@@ -60,7 +60,8 @@ export const bookingsAPI = {
   getBookings: (params) => api.get('/bookings', { params }),
   getBooking: (id) => api.get(`/bookings/${id}`),
   confirmBooking: (id) => api.put(`/bookings/${id}/confirm`),
-  completeBooking: (id) => api.put(`/bookings/${id}/complete`),
+  checkinBooking: (id) => api.put(`/bookings/${id}/checkin`),
+  submitSessionNotes: (id, data) => api.post(`/bookings/${id}/notes`, data),
   cancelBooking: (id, data) => api.put(`/bookings/${id}/cancel`, data)
 };
 
