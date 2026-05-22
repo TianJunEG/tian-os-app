@@ -243,7 +243,7 @@ const generateMatchExplanation = (scores, tutor) => {
 // @route   POST /api/search/tutors
 // @desc    Search and match tutors (9-criteria algorithm)
 // @access  Private
-router.post('/', protect, async (req, res) => {
+router.post('/tutors', protect, async (req, res) => {
   try {
     const {
       specialty,
@@ -309,12 +309,16 @@ router.post('/', protect, async (req, res) => {
 
       return {
         _id: tutor._id,
-        name: tutor.userId?.name || 'Unnamed',
-        email: tutor.userId?.email,
-        avatar: tutor.userId?.avatar,
-        bio: tutor.userId?.bio,
-        location: tutor.userId?.location || tutor.postalCode,
-        phone: tutor.userId?.phone,
+        userId: {
+          _id: tutor.userId?._id,
+          name: tutor.userId?.name || 'Unnamed',
+          email: tutor.userId?.email,
+          avatar: tutor.userId?.avatar,
+          bio: tutor.userId?.bio,
+          location: tutor.userId?.location || tutor.postalCode,
+          phone: tutor.userId?.phone
+        },
+        headline: tutor.headline,
         specialties: tutor.specialties,
         grades: tutor.grades,
         hourlyRate: tutor.hourlyRate,

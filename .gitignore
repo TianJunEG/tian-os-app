@@ -9,6 +9,9 @@ node_modules/
 # MongoDB local data
 mongodb/
 
+# Runtime uploads
+uploads/
+
 # OS files
 .DS_Store
 Thumbs.db

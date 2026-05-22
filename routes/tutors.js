@@ -3,8 +3,50 @@ import { body, validationResult } from 'express-validator';
 import TutorProfile from '../models/TutorProfile.js';
 import User from '../models/User.js';
 import { protect, authorize } from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
 
 const router = express.Router();
+
+// @route   POST /api/tutors/upload-credentials
+// @desc    Upload credential documents (PDF or image)
+// @access  Private (tutor only)
+router.post(
+  '/upload-credentials',
+  protect,
+  authorize('tutor'),
+  upload.single('credentials'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Build file URL
+      const fileUrl = `/uploads/credentials/${req.file.filename}`;
+
+      // Update tutor profile with credentials URL
+      const tutorProfile = await TutorProfile.findOneAndUpdate(
+        { userId: req.user.id },
+        { credentialsUrl: fileUrl, updatedAt: new Date() },
+        { new: true }
+      );
+
+      if (!tutorProfile) {
+        return res.status(404).json({ error: 'Tutor profile not found' });
+      }
+
+      res.json({
+        success: true,
+        message: 'Credentials uploaded successfully',
+        credentialsUrl: fileUrl,
+        tutorProfile
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
 
 // @route   POST /api/tutors/profile
 // @desc    Create/update tutor profile
@@ -133,15 +175,113 @@ router.get('/', async (req, res) => {
 });
 
 // @route   PUT /api/tutors/availability
-// @desc    Update tutor availability
+// @desc    Update tutor availability (by day)
 // @access  Private (tutor only)
 router.put(
   '/availability',
   protect,
   authorize('tutor'),
+  [
+    body('day', 'Day is required').isIn(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']),
+    body('available', 'Available status must be boolean').isBoolean(),
+    body('start', 'Start time must be in HH:mm format').matches(/^\d{2}:\d{2}$/).optional(),
+    body('end', 'End time must be in HH:mm format').matches(/^\d{2}:\d{2}$/).optional()
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      const { day, available, start, end } = req.body;
+
+      const tutorProfile = await TutorProfile.findOne({ userId: req.user.id });
+      if (!tutorProfile) {
+        return res.status(404).json({ error: 'Tutor profile not found' });
+      }
+
+      // Update specific day availability
+      if (!tutorProfile.availability) {
+        tutorProfile.availability = {};
+      }
+
+      tutorProfile.availability[day] = {
+        available,
+        start: start || '09:00',
+        end: end || '17:00'
+      };
+
+      tutorProfile.updatedAt = new Date();
+      await tutorProfile.save();
+
+      res.json({ success: true, tutorProfile });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// @route   GET /api/tutors/me/availability
+// @desc    Get current tutor's availability
+// @access  Private (tutor only)
+router.get(
+  '/me/availability',
+  protect,
+  authorize('tutor'),
   async (req, res) => {
     try {
+      const tutorProfile = await TutorProfile.findOne({ userId: req.user.id });
+      if (!tutorProfile) {
+        return res.status(404).json({ error: 'Tutor profile not found' });
+      }
+
+      res.json({
+        success: true,
+        availability: tutorProfile.availability
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+// @route   POST /api/tutors/me/availability/bulk
+// @desc    Bulk update availability for multiple days
+// @access  Private (tutor only)
+router.post(
+  '/me/availability/bulk',
+  protect,
+  authorize('tutor'),
+  [
+    body('availability', 'Availability object is required').isObject()
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
       const { availability } = req.body;
+
+      // Validate structure
+      const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      for (const day of Object.keys(availability)) {
+        if (!validDays.includes(day)) {
+          return res.status(400).json({ error: `Invalid day: ${day}` });
+        }
+        const dayAvailability = availability[day];
+        if (typeof dayAvailability.available !== 'boolean') {
+          return res.status(400).json({ error: `${day}.available must be boolean` });
+        }
+        if (dayAvailability.start && !dayAvailability.start.match(/^\d{2}:\d{2}$/)) {
+          return res.status(400).json({ error: `${day}.start must be in HH:mm format` });
+        }
+        if (dayAvailability.end && !dayAvailability.end.match(/^\d{2}:\d{2}$/)) {
+          return res.status(400).json({ error: `${day}.end must be in HH:mm format` });
+        }
+      }
 
       const tutorProfile = await TutorProfile.findOneAndUpdate(
         { userId: req.user.id },

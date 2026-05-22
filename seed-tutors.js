@@ -112,7 +112,7 @@ const headlines = [
 ];
 
 const subjects = [
-  'Math', 'English', 'Science', 'History', 'Languages',
+  'Math', 'English', 'Science', 'History', 'Chinese',
   'Test Prep', 'Programming', 'Business', 'Arts', 'Music'
 ];
 
@@ -204,7 +204,7 @@ function generateTutorData() {
     .replace('{grade}', grade);
 
   const description = getRandomElement(descriptions);
-  const experience = getRandomElement(experienceSamples)
+  const experienceDesc = getRandomElement(experienceSamples)
     .replace('{years}', yearsExp)
     .replace('{subject}', specialty)
     .replace('{grade}', grade);
@@ -220,12 +220,25 @@ function generateTutorData() {
   const rating = getRandomRating();
   const ratingCount = rating > 0 ? Math.floor(Math.random() * 50) + 5 : 0;
 
+  const educationLevels = ['high_school', 'associates', 'bachelors', 'masters', 'phd'];
+
+  const makeSlot = (isWeekday) => {
+    const avail = isWeekday ? Math.random() > 0.3 : Math.random() > 0.5;
+    return {
+      available: avail,
+      start: isWeekday ? '09:00' : '10:00',
+      end: isWeekday ? '17:00' : '16:00'
+    };
+  };
+
   return {
     name,
     email,
     headline,
     description,
-    experience,
+    bio: experienceDesc,
+    experience: yearsExp,
+    education: getRandomElement(educationLevels),
     qualifications,
     specialties,
     grades: studentGrades,
@@ -239,13 +252,13 @@ function generateTutorData() {
     completedBookings: Math.floor(Math.random() * 50),
     cancelledBookings: Math.floor(Math.random() * 5),
     availability: {
-      monday: Math.random() > 0.3,
-      tuesday: Math.random() > 0.3,
-      wednesday: Math.random() > 0.3,
-      thursday: Math.random() > 0.3,
-      friday: Math.random() > 0.3,
-      saturday: Math.random() > 0.3,
-      sunday: Math.random() > 0.3
+      monday: makeSlot(true),
+      tuesday: makeSlot(true),
+      wednesday: makeSlot(true),
+      thursday: makeSlot(true),
+      friday: makeSlot(true),
+      saturday: makeSlot(false),
+      sunday: makeSlot(false)
     }
   };
 }
@@ -298,9 +311,11 @@ async function seedTutors(count = 1000) {
             userId: user._id,
             headline: tutorData.headline,
             description: tutorData.description,
+            bio: tutorData.bio,
             qualifications: tutorData.qualifications,
             specialties: tutorData.specialties,
             grades: tutorData.grades,
+            education: tutorData.education,
             hourlyRate: tutorData.hourlyRate,
             languages: tutorData.languages,
             rating: tutorData.rating,
@@ -309,9 +324,8 @@ async function seedTutors(count = 1000) {
             cancelledBookings: tutorData.cancelledBookings,
             experience: tutorData.experience,
             availability: tutorData.availability,
-            isActive: true,
-            seededAt: new Date(),
-            isSeeded: true
+            status: 'verified',
+            isActive: true
           });
 
           await tutorProfile.save();

@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
+import { sanitizeInputs } from './middleware/validation.js';
 import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
 import parentRoutes from './routes/parents.js';
@@ -29,13 +32,20 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Security & Validation Middleware
+app.use(sanitizeInputs);
+app.use(apiRateLimit);
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Backend is running', timestamp: new Date() });
 });
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRateLimit, authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/parents', parentRoutes);
 app.use('/api/search', searchRoutes);
@@ -45,19 +55,11 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
-});
-
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
+app.use(notFoundHandler);
+
+// Global error handling middleware (must be last)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {

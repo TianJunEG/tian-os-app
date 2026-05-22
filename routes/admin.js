@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import TutorProfile from '../models/TutorProfile.js';
 import Booking from '../models/Booking.js';
 import { protect, authorize } from '../middleware/auth.js';
+import { sendTutorApprovalEmail, sendTutorRejectionEmail } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -139,17 +140,17 @@ router.put(
 // @access  Private (admin only)
 router.get('/verification-queue', adminOnly, async (req, res) => {
   try {
-    const { status = 'pending', page = 1, limit = 20 } = req.query;
+    const { status = 'pending_verification', page = 1, limit = 20 } = req.query;
 
     const skip = (page - 1) * limit;
 
-    const tutorProfiles = await TutorProfile.find({ verificationStatus: status })
+    const tutorProfiles = await TutorProfile.find({ status: status })
       .populate('userId', 'name email phone avatar')
       .limit(parseInt(limit))
       .skip(skip)
       .sort({ createdAt: -1 });
 
-    const total = await TutorProfile.countDocuments({ verificationStatus: status });
+    const total = await TutorProfile.countDocuments({ status: status });
 
     res.json({
       success: true,
@@ -166,14 +167,15 @@ router.get('/verification-queue', adminOnly, async (req, res) => {
         email: t.userId.email,
         phone: t.userId.phone,
         specialties: t.specialties,
-        grades: t.grades,
+        gradeLevel: t.gradeLevel,
         hourlyRate: t.hourlyRate,
         totalHoursTaught: t.totalHoursTaught,
-        verificationStatus: t.verificationStatus,
-        credentialsSubmitted: t.credentialsSubmitted,
+        status: t.status,
+        credentialsUrl: t.credentialsUrl,
         submittedAt: t.createdAt,
-        background: t.background,
-        teachingPhilosophy: t.teachingPhilosophy
+        bio: t.bio,
+        education: t.education,
+        experience: t.experience
       }))
     });
   } catch (error) {
@@ -203,10 +205,10 @@ router.put(
       const tutorProfile = await TutorProfile.findByIdAndUpdate(
         req.params.tutorId,
         {
-          verificationStatus: action === 'approve' ? 'verified' : 'rejected',
+          status: action === 'approve' ? 'verified' : 'rejected',
           verificationNotes: notes,
-          verificationReviewedAt: new Date(),
-          verificationReviewedBy: req.user.id
+          verifiedAt: new Date(),
+          verifiedBy: req.user.id
         },
         { new: true }
       ).populate('userId', 'name email');
@@ -215,7 +217,23 @@ router.put(
         return res.status(404).json({ error: 'Tutor not found' });
       }
 
-      // TODO: Send email to tutor with decision
+      // Send email to tutor with decision
+      try {
+        if (action === 'approve') {
+          await sendTutorApprovalEmail({
+            name: tutorProfile.userId.name,
+            email: tutorProfile.userId.email
+          });
+        } else {
+          await sendTutorRejectionEmail({
+            name: tutorProfile.userId.name,
+            email: tutorProfile.userId.email
+          }, notes);
+        }
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        // Don't fail the request if email fails
+      }
 
       res.json({
         success: true,
@@ -223,7 +241,7 @@ router.put(
         tutor: {
           name: tutorProfile.userId.name,
           email: tutorProfile.userId.email,
-          status: tutorProfile.verificationStatus
+          status: tutorProfile.status
         }
       });
     } catch (error) {
@@ -341,8 +359,8 @@ router.get('/dashboard', adminOnly, async (req, res) => {
     const totalUsers = parentCount + tutorCount;
 
     // Count verified tutors
-    const verifiedTutors = await TutorProfile.countDocuments({ verificationStatus: 'verified' });
-    const pendingVerification = await TutorProfile.countDocuments({ verificationStatus: 'pending' });
+    const verifiedTutors = await TutorProfile.countDocuments({ status: 'verified' });
+    const pendingVerification = await TutorProfile.countDocuments({ status: 'pending_verification' });
 
     // Booking stats
     const completedBookings = await Booking.countDocuments({ status: 'completed' });
@@ -378,12 +396,12 @@ router.get('/dashboard', adminOnly, async (req, res) => {
 
     // Average metrics
     const avgRating = await TutorProfile.aggregate([
-      { $match: { verificationStatus: 'verified' } },
+      { $match: { status: 'verified' } },
       { $group: { _id: null, avgRating: { $avg: '$rating.average' } } }
     ]);
 
     const avgMatchSuccess = await TutorProfile.aggregate([
-      { $match: { verificationStatus: 'verified' } },
+      { $match: { status: 'verified' } },
       { $group: { _id: null, avgSuccess: { $avg: '$matchSuccessRate' } } }
     ]);
 

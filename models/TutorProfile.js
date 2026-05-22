@@ -37,20 +37,34 @@ const tutorProfileSchema = new mongoose.Schema({
   grades: [{
     type: String,
     enum: [
+      // Singapore Education System
+      'Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 5', 'Primary 6',
+      'Secondary 1', 'Secondary 2', 'Secondary 3', 'Secondary 4', 'Secondary 5',
+      'ITE', 'Polytechnic', 'JC (A-Levels)', 'University',
+      // US Education System (for international students)
       'Elementary', 'Middle School', 'High School', 'College',
+      // General
       'Adult Learner', 'All Levels'
     ]
   }],
   gradeLevel: [{
     type: String,
     enum: [
+      // Singapore System
+      'Primary (P1-P3)', 'Primary (P4-P6)',
+      'Secondary (Sec 1-2)', 'Secondary (Sec 3-4)', 'Secondary (Sec 5)',
+      'ITE Level 1-2', 'ITE Level 3-4',
+      'Polytechnic Year 1', 'Polytechnic Year 2', 'Polytechnic Year 3',
+      'JC/A-Levels',
+      'University/Tertiary',
+      // US System
       'K-2', 'Grade 3-5', 'Grade 6-8', 'Grade 9-10', 'Grade 11-12', 'College', 'Adult'
     ],
     default: []
   }],
   education: {
     type: String,
-    enum: ['high_school', 'associates', 'bachelors', 'masters', 'phd'],
+    enum: ['', 'high_school', 'associates', 'bachelors', 'masters', 'phd'],
     default: ''
   },
   experience: {
