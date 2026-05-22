@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star, Shield } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, Shield, TrendingUp } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -75,6 +75,14 @@ export default function DashboardPage() {
                 <Search className="w-8 h-8 text-purple-600 mb-2" />
                 <h3 className="font-semibold text-gray-900">Find Tutors</h3>
                 <p className="text-sm text-gray-600">Search & book tutors</p>
+              </button>
+              <button
+                onClick={() => navigate('/progress')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <TrendingUp className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Progress</h3>
+                <p className="text-sm text-gray-600">Track learning & notes</p>
               </button>
             </>
           )}

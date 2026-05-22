@@ -12,6 +12,7 @@ import PaymentPage from './pages/PaymentPage';
 import BookingsPage from './pages/BookingsPage';
 import MessagesPage from './pages/MessagesPage';
 import TutorProfilePage from './pages/TutorProfilePage';
+import ParentProgressPage from './pages/ParentProgressPage';
 import AdminDashboard from './components/AdminDashboard';
 
 // Protected Route Component
@@ -211,6 +212,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <TutorProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute>
+                <ParentProgressPage />
               </ProtectedRoute>
             }
           />
