@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { adminAPI } from '../services/api';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -20,19 +20,11 @@ const AdminDashboard = () => {
     limit: 20
   });
 
-  const API_URL = 'http://localhost:5001/api';
-  const token = localStorage.getItem('token');
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
-
   // Fetch dashboard metrics
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get(`${API_URL}/admin/dashboard`, { headers });
+        const res = await adminAPI.getDashboard();
         setData(prev => ({ ...prev, dashboard: res.data.dashboard }));
       } catch (error) {
         console.error('Dashboard error:', error);
@@ -47,43 +39,31 @@ const AdminDashboard = () => {
       setLoading(true);
       try {
         if (activeTab === 'users') {
-          const res = await axios.get(`${API_URL}/admin/users`, {
-            headers,
-            params: {
-              role: filters.userRole || undefined,
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getUsers({
+            role: filters.userRole || undefined,
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, users: res.data }));
         } else if (activeTab === 'verification') {
-          const res = await axios.get(`${API_URL}/admin/verification-queue`, {
-            headers,
-            params: {
-              status: 'pending',
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getVerificationQueue({
+            status: 'pending_verification',
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, verificationQueue: res.data }));
         } else if (activeTab === 'bookings') {
-          const res = await axios.get(`${API_URL}/admin/bookings`, {
-            headers,
-            params: {
-              status: filters.bookingStatus || undefined,
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getBookings({
+            status: filters.bookingStatus || undefined,
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, bookings: res.data }));
         } else if (activeTab === 'disputes') {
-          const res = await axios.get(`${API_URL}/admin/disputes`, {
-            headers,
-            params: {
-              status: filters.disputeStatus,
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getDisputes({
+            status: filters.disputeStatus,
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, disputes: res.data }));
         }
@@ -104,17 +84,13 @@ const AdminDashboard = () => {
       const notes = prompt(`Enter notes for this verification (${action}):`);
       if (!notes) return;
 
-      await axios.put(
-        `${API_URL}/admin/verification/${tutorId}`,
-        { action, notes },
-        { headers }
-      );
+      await adminAPI.verifyTutor(tutorId, { action, notes });
 
       alert(`Tutor ${action === 'approve' ? 'approved' : 'rejected'}`);
       // Refresh verification queue
       setFilters(prev => ({ ...prev, page: 1 }));
     } catch (error) {
-      alert('Error updating verification: ' + error.message);
+      alert('Error updating verification: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -125,16 +101,12 @@ const AdminDashboard = () => {
 
       if (!resolution || !action) return;
 
-      await axios.put(
-        `${API_URL}/admin/disputes/${bookingId}/resolve`,
-        { resolution, action },
-        { headers }
-      );
+      await adminAPI.resolveDispute(bookingId, { resolution, action });
 
       alert('Dispute resolved');
       setFilters(prev => ({ ...prev, page: 1 }));
     } catch (error) {
-      alert('Error resolving dispute: ' + error.message);
+      alert('Error resolving dispute: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -353,8 +325,8 @@ const AdminDashboard = () => {
                 <tr key={tutor._id}>
                   <td>{tutor.name}</td>
                   <td>{tutor.email}</td>
-                  <td>{tutor.specialties.join(', ')}</td>
-                  <td>{tutor.grades.join(', ')}</td>
+                  <td>{(tutor.specialties || []).join(', ')}</td>
+                  <td>{(tutor.grades || tutor.gradeLevel || []).join(', ')}</td>
                   <td>${tutor.hourlyRate}/hr</td>
                   <td>{tutor.totalHoursTaught}h</td>
                   <td>

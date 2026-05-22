@@ -83,6 +83,17 @@ export const messagesAPI = {
   deleteMessage: (id) => api.delete(`/messages/${id}`)
 };
 
+// Admin API
+export const adminAPI = {
+  getDashboard: () => api.get('/admin/dashboard'),
+  getUsers: (params) => api.get('/admin/users', { params }),
+  getVerificationQueue: (params) => api.get('/admin/verification-queue', { params }),
+  verifyTutor: (tutorId, data) => api.put(`/admin/verification/${tutorId}`, data),
+  getBookings: (params) => api.get('/admin/bookings', { params }),
+  getDisputes: (params) => api.get('/admin/disputes', { params }),
+  resolveDispute: (bookingId, data) => api.put(`/admin/disputes/${bookingId}/resolve`, data)
+};
+
 // Reviews API
 export const reviewsAPI = {
   createReview: (data) => api.post('/reviews', data),

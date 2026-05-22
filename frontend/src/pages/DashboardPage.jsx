@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, Shield } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -90,6 +90,17 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-600">Edit your profile</p>
               </button>
             </>
+          )}
+
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            >
+              <Shield className="w-8 h-8 text-purple-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">Admin Dashboard</h3>
+              <p className="text-sm text-gray-600">Users, verification & disputes</p>
+            </button>
           )}
 
           <button
