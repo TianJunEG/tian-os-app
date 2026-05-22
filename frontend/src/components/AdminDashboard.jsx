@@ -246,6 +246,7 @@ const AdminDashboard = () => {
             </select>
           </div>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -282,6 +283,7 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination */}
           <div className="pagination">
@@ -307,6 +309,7 @@ const AdminDashboard = () => {
         <div className="admin-section">
           <h2>Pending Tutor Verifications ({data.verificationQueue.pagination.total})</h2>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -350,6 +353,7 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {data.verificationQueue.tutors.length === 0 && (
             <p className="empty-state">✓ No pending verifications</p>
@@ -377,6 +381,7 @@ const AdminDashboard = () => {
             </select>
           </div>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -413,6 +418,7 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -421,6 +427,7 @@ const AdminDashboard = () => {
         <div className="admin-section">
           <h2>Disputes ({data.disputes.pagination.total})</h2>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -454,6 +461,7 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {data.disputes.disputes.length === 0 && (
             <p className="empty-state">✓ No open disputes</p>
