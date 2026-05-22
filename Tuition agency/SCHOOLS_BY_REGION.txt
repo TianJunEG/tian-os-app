@@ -1,0 +1,275 @@
+SINGAPORE PRIMARY SCHOOLS - DISTRIBUTION BY REGION
+====================================================
+
+Region Analysis from Research Dataset:
+
+Ang Mo Kio (East):
+- Ang Mo Kio Primary School
+- Anderson Primary School
+- Kiang Kang Primary School
+- Northbrooks Primary School
+- Wei Ming Primary School
+Total: 5 schools
+
+Bedok (East):
+- Bedok Green Primary School
+- Keming Primary School
+- Loyang Primary School
+- Loyang View Primary
+- Mandarin Gardens Primary
+Total: 5 schools
+
+Bishan (Central):
+- Ai Tong School
+- Marymount Primary School
+- Raffles Girls' Primary School
+- Raffles Institution Primary
+- St Michael's Primary School
+Total: 5 schools
+
+Bukit Batok (West):
+- Bukit View Primary School
+Total: 1 school
+
+Bukit Merah (Central):
+- Alexandra Primary School
+- Blangah Rise Primary School
+- Deanery Primary School
+- Gan Eng Seng Primary School
+- Hillgrove Primary School
+- Regent Primary School
+- Radin Mas Primary School
+- River Valley Primary School
+- Rowan Primary School
+- Royal Primary School
+- South View Primary School
+- St Jude's Primary School
+- St Paul's Primary School
+- St Stephen's Primary School
+- Telok Blangah Primary School
+- Ulu Pandan Primary School
+- Victoria Primary School
+Total: 17 schools
+
+Bukit Panjang (West):
+- Beacon Primary School
+- Bukit Panjang Primary School
+- Yew Tee Primary School
+Total: 3 schools
+
+Bukit Timah (West):
+- Bukit Timah Primary School
+- Greenridge Primary School
+- Horizon Primary School
+- Meridian Primary School
+- Nan Yang Girls High School Primary
+- Nan Yang Primary School
+- Nanyang Primary School
+- Riverdale Primary School
+- Sunset Primary School
+- Townsville Primary School
+- Upper Bukit Timah Primary
+- Wangsa Primary School
+Total: 12 schools
+
+Clementi (West):
+- Clementi Primary School
+- Lima Primary School
+- Mouhot Primary School
+- Nan Chiau Primary School
+- Nan Hua Primary School
+- Nan Hua High School Primary Section
+- Perlis Primary School
+- Ping Yi Primary School
+- Propagating Christ Primary
+- Sanyuan Primary School
+- Shanshan Primary School
+- Shipley Primary School
+- Singa Primary School
+- Sook Kheng Primary School
+- St Hilda's Primary School
+- Tanglin Trust School Primary
+- Tianniao Primary School
+- Ting Wen Primary School
+- Tung Lu Primary School
+- Tuoe Primary School
+- Tian Hou Primary School
+- Unity Primary School
+- Vanda Miss Joaquim Primary
+- West View Primary School
+- Willoughby Primary School
+- Yuanlin Primary School
+- Yuying Primary School
+- Zhangde Primary School
+- Zhenghua Primary School
+- Zhonghua Primary School
+- Zhongshan Primary School
+- Zhuji Primary School
+Total: 32 schools
+
+Fairfield (West):
+- Fairfield Methodist Primary
+Total: 1 school
+
+Farrer Park (Central):
+- Farrer Park Primary School
+Total: 1 school
+
+Geylang (East):
+- Canossa Catholic Primary School
+- Dunman Primary School
+- Geylang Methodist School Primary
+- Holy Innocents Primary School
+- Middle Road Primary School
+- Minangkabau Primary School
+- Pei Chun Primary School
+- Pheng Geck Primary School
+- Stamford Primary School
+- Waterloo Primary School
+Total: 10 schools
+
+Ghim Moh (West):
+- Ghim Moh Primary School
+Total: 1 school
+
+Hougang (North-East):
+- Hougang Primary School
+- Lianhua Primary School
+- Scenic Primary School
+Total: 3 schools
+
+Hoxton (East):
+- Gongshang Primary School
+Total: 1 school
+
+Jurong East (West):
+- Coral Primary School
+- Fuhua Primary School
+- Jurong Green Primary School
+- Lakeside Primary School
+- Westlake Primary School
+Total: 5 schools
+
+Jurong West (West):
+- Boon Lay Garden Primary School
+- Casuarina Primary School
+- Dong Zhuang Primary School
+Total: 3 schools
+
+Jurong (West):
+- Guangyang Primary School
+- Kiasuclub Primary School
+Total: 2 schools
+
+Kallang (East):
+- Bendemeer Primary School
+Total: 1 school
+
+Katong (East):
+- Katong Convent Primary School
+- Tanjong Katong Primary School
+Total: 2 schools
+
+Kranji (North):
+- Kranji Primary School
+Total: 1 school
+
+Marine Parade (East):
+- Cath Primary School
+- Catholic High School (Primary)
+- Henry Park Primary School
+- Paya Lebar Green Primary
+- Paya Lebar Methodist Girls Primary
+- Siglap Primary School
+- Sinan Primary School
+- St Margaret's Primary School
+- Temasek Primary School
+Total: 9 schools
+
+Nee Soon (North):
+- Nee Soon Primary School
+Total: 1 school
+
+Novena (Central):
+- Anglo-Chinese School (Primary)
+- Chij St Nicholas Girls School
+- Methodist Girls School Primary
+- St Andrew's Primary School
+- St Andrew's Secondary (Primary Dept)
+Total: 5 schools
+
+Pasir Ris (North-East):
+- Seraya Primary School
+Total: 1 school
+
+Potong Pasir (East):
+- Chij Primary School Potong Pasir
+- Montfort Primary School
+- Potong Pasir Primary School
+Total: 3 schools
+
+Serangoon (East):
+- Serangoon Gardens Primary
+- Serangoon Primary School
+Total: 2 schools
+
+Seng Kang (North-East):
+- Anchor Green Primary School
+- Junyuan Primary School
+- Seng Kang Primary School
+Total: 3 schools
+
+Sembawang (North):
+- Canberra Primary School
+- Sembawang Primary School
+Total: 2 schools
+
+Tanjong Pagar (Central):
+- Cantonment Primary School
+- Tanjong Pagar Primary School
+Total: 2 schools
+
+Tiong Bahru (Central):
+- Chij Our Lady Of Nativity Primary
+- Chij St Theresa Convent Primary
+- Crescent Girls School
+- Flora Primary School
+- Gandhi Memorial Primary
+- Haig Girls School
+- Heng Mui Keng Primary School
+- Lengkok Bahru Primary
+- Mei Chin Primary School
+- Mowbray Road Primary
+- Pei Chun Public School
+- Seng Poh Primary School
+- Singapore Chinese Girls School
+- Tao Nan School Primary
+- United World College Primary
+Total: 15 schools
+
+Toa Payoh (Central):
+- Toa Payoh Primary School
+Total: 1 school
+
+Ubi (East):
+- Macpherson Primary School
+Total: 1 school
+
+Woodlands (North):
+- Admiralty Primary School
+- Chingay Primary School
+- Woodgrove Primary School
+- Woodlands Primary School
+- Woodlands Ring Primary School
+- Woodlands View Primary
+Total: 6 schools
+
+Yishun (North):
+- Ahmad Ibrahim Primary School
+- St Gabriel's Primary School
+- Yishun Primary School
+Total: 3 schools
+
+====================================================
+TOTAL: 178 Schools across 32 regions/planning areas
+====================================================

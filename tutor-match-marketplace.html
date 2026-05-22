@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Match - Premium Online Tutoring Marketplace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            font-family: 'Rubik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .gradient-primary {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        }
+
+        .btn-primary {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #6d28d9;
+        }
+
+        .category-card {
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(124, 58, 237, 0.3);
+        }
+
+        .category-card-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .category-card-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .category-card-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .category-card-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .category-card-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .category-card-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+
+        .tutor-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .tutor-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            border-color: #d1d5db;
+        }
+
+        .search-input {
+            background: white;
+            border: none;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .search-btn {
+            background: #7c3aed;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #6d28d9;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #7c3aed;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body class="bg-white scroll-smooth">
+    <!-- Navigation -->
+    <nav class="sticky top-0 bg-white border-b border-gray-200 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">TM</div>
+                <span class="text-xl font-bold text-gray-900">Tutor Match</span>
+            </div>
+
+            <div class="hidden md:flex gap-8">
+                <a href="#" class="text-gray-600 hover:text-gray-900 font-medium transition">Browse Tutors</a>
+                <a href="#" class="text-gray-600 hover:text-gray-900 font-medium transition">Categories</a>
+                <a href="#" class="text-gray-600 hover:text-gray-900 font-medium transition">How it Works</a>
+            </div>
+
+            <div class="flex gap-3">
+                <button class="px-5 py-2 text-gray-700 font-medium hover:text-gray-900 transition">Sign In</button>
+                <button class="btn-primary px-6 py-2 rounded-lg font-medium text-white">Join as Tutor</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-primary text-white py-20">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h1 class="text-6xl font-bold mb-4">Find the Perfect Tutor</h1>
+                <p class="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+                    Discover certified tutors across all subjects. Get matched instantly. Learn your way.
+                </p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="max-w-3xl mx-auto mb-12">
+                <div class="flex gap-3 flex-col sm:flex-row">
+                    <input type="text" placeholder="What do you want to learn today?" class="search-input flex-1 text-gray-900">
+                    <button class="search-btn">Search</button>
+                </div>
+                <div class="flex gap-3 mt-4 flex-wrap justify-center text-sm text-gray-400">
+                    <span>Popular: </span>
+                    <a href="#" class="text-white hover:underline">Math</a>
+                    <a href="#" class="text-white hover:underline">English</a>
+                    <a href="#" class="text-white hover:underline">Spanish</a>
+                    <a href="#" class="text-white hover:underline">Physics</a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-8 max-w-3xl mx-auto">
+                <div class="stat-box">
+                    <div class="text-3xl font-bold text-white">50K+</div>
+                    <div class="text-gray-300 text-sm mt-1">Active Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="text-3xl font-bold text-white">4.9★</div>
+                    <div class="text-gray-300 text-sm mt-1">Avg. Rating</div>
+                </div>
+                <div class="stat-box">
+                    <div class="text-3xl font-bold text-white">500K+</div>
+                    <div class="text-gray-300 text-sm mt-1">Hours Taught</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-2">Explore Top Categories</h2>
+                <p class="text-gray-600">Find expert tutors in any subject</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="category-card category-card-1">
+                    <h3 class="text-2xl font-bold">Mathematics</h3>
+                    <p class="text-sm opacity-90 mt-2">2,450 tutors available</p>
+                </div>
+
+                <div class="category-card category-card-2">
+                    <h3 class="text-2xl font-bold">Languages</h3>
+                    <p class="text-sm opacity-90 mt-2">3,120 tutors available</p>
+                </div>
+
+                <div class="category-card category-card-3">
+                    <h3 class="text-2xl font-bold">Sciences</h3>
+                    <p class="text-sm opacity-90 mt-2">2,890 tutors available</p>
+                </div>
+
+                <div class="category-card category-card-4">
+                    <h3 class="text-2xl font-bold">Test Prep</h3>
+                    <p class="text-sm opacity-90 mt-2">1,560 tutors available</p>
+                </div>
+
+                <div class="category-card category-card-5">
+                    <h3 class="text-2xl font-bold">Programming</h3>
+                    <p class="text-sm opacity-90 mt-2">1,890 tutors available</p>
+                </div>
+
+                <div class="category-card category-card-6">
+                    <h3 class="text-2xl font-bold">Arts & Music</h3>
+                    <p class="text-sm opacity-90 mt-2">980 tutors available</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Tutors -->
+    <section class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-2">Top Rated Tutors</h2>
+                <p class="text-gray-600">Trusted by thousands of students</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Tutor Card 1 -->
+                <div class="tutor-card">
+                    <div class="h-48 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-6xl">👨‍🏫</div>
+                    <div class="p-5">
+                        <h4 class="font-bold text-gray-900">Dr. Marcus Lee</h4>
+                        <p class="text-sm text-purple-600 font-medium mb-2">AP Calculus & Physics</p>
+                        <div class="flex items-center gap-1 mb-3">
+                            <span class="text-yellow-400">★★★★★</span>
+                            <span class="text-sm text-gray-600">(287)</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">$45/hour</p>
+                        <button class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition">View Profile</button>
+                    </div>
+                </div>
+
+                <!-- Tutor Card 2 -->
+                <div class="tutor-card">
+                    <div class="h-48 bg-gradient-to-br from-pink-400 to-pink-600 flex items-center justify-center text-6xl">👩‍🏫</div>
+                    <div class="p-5">
+                        <h4 class="font-bold text-gray-900">Sofia Rodriguez</h4>
+                        <p class="text-sm text-pink-600 font-medium mb-2">Spanish & Languages</p>
+                        <div class="flex items-center gap-1 mb-3">
+                            <span class="text-yellow-400">★★★★★</span>
+                            <span class="text-sm text-gray-600">(412)</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">$40/hour</p>
+                        <button class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition">View Profile</button>
+                    </div>
+                </div>
+
+                <!-- Tutor Card 3 -->
+                <div class="tutor-card">
+                    <div class="h-48 bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-6xl">👨‍💻</div>
+                    <div class="p-5">
+                        <h4 class="font-bold text-gray-900">Alex Chen</h4>
+                        <p class="text-sm text-blue-600 font-medium mb-2">Computer Science</p>
+                        <div class="flex items-center gap-1 mb-3">
+                            <span class="text-yellow-400">★★★★★</span>
+                            <span class="text-sm text-gray-600">(156)</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">$50/hour</p>
+                        <button class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition">View Profile</button>
+                    </div>
+                </div>
+
+                <!-- Tutor Card 4 -->
+                <div class="tutor-card">
+                    <div class="h-48 bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-6xl">📚</div>
+                    <div class="p-5">
+                        <h4 class="font-bold text-gray-900">James Wilson</h4>
+                        <p class="text-sm text-green-600 font-medium mb-2">English & Writing</p>
+                        <div class="flex items-center gap-1 mb-3">
+                            <span class="text-yellow-400">★★★★★</span>
+                            <span class="text-sm text-gray-600">(198)</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">$38/hour</p>
+                        <button class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 transition">View Profile</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-12">
+                <button class="border-2 border-purple-600 text-purple-600 px-8 py-3 rounded-lg font-medium hover:bg-purple-50 transition">
+                    Browse All Tutors
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="py-24 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">How Tutor Match Works</h2>
+                <p class="text-gray-600 text-lg">Simple steps to find your perfect tutor</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-purple-600">1</span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Search & Filter</h3>
+                    <p class="text-gray-600 text-sm">Find tutors by subject, rating, and price</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-purple-600">2</span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">View Profiles</h3>
+                    <p class="text-gray-600 text-sm">Check experience, reviews, and availability</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-purple-600">3</span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Message & Book</h3>
+                    <p class="text-gray-600 text-sm">Chat and schedule your first session</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl font-bold text-purple-600">4</span>
+                    </div>
+                    <h3 class="font-bold text-gray-900 mb-2">Learn & Grow</h3>
+                    <p class="text-gray-600 text-sm">Track progress and achieve your goals</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="gradient-primary text-white py-20">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-5xl font-bold mb-6">Start Your Learning Journey</h2>
+            <p class="text-xl text-gray-300 mb-10">Join thousands of students achieving their goals with Tutor Match</p>
+            <button class="bg-white text-purple-600 px-10 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition">
+                Find Your Tutor Today
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+                <div>
+                    <h4 class="font-bold text-white mb-4">Categories</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Mathematics</a></li>
+                        <li><a href="#" class="hover:text-white transition">Languages</a></li>
+                        <li><a href="#" class="hover:text-white transition">Sciences</a></li>
+                        <li><a href="#" class="hover:text-white transition">Test Prep</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">For Students</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Browse Tutors</a></li>
+                        <li><a href="#" class="hover:text-white transition">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition">Safety Tips</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">For Tutors</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Join as Tutor</a></li>
+                        <li><a href="#" class="hover:text-white transition">Become a Pro</a></li>
+                        <li><a href="#" class="hover:text-white transition">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition">Resources</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Company</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">About</a></li>
+                        <li><a href="#" class="hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition">Privacy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms</a></li>
+                        <li><a href="#" class="hover:text-white transition">Security</a></li>
+                        <li><a href="#" class="hover:text-white transition">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center gap-2 mb-4 md:mb-0">
+                        <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">TM</div>
+                        <span class="font-bold text-white">Tutor Match</span>
+                    </div>
+                    <p class="text-sm">© 2026 Tutor Match. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

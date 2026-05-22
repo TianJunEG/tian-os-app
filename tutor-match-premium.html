@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Match - Premium Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        body {
+            background: #ffffff;
+        }
+
+        .nav-link {
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #0f172a;
+        }
+
+        .btn-primary {
+            background: #0f172a;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #1e293b;
+        }
+
+        .btn-secondary {
+            border: 2px solid #0f172a;
+            color: #0f172a;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #0f172a;
+            color: white;
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .feature-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="scroll-smooth">
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-white z-50 border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-6 py-5">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">TM</span>
+                    </div>
+                    <span class="text-xl font-bold text-slate-900">Tutor Match</span>
+                </div>
+
+                <div class="hidden md:flex gap-8">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#process" class="nav-link">How it works</a>
+                    <a href="#tutors" class="nav-link">Tutors</a>
+                    <a href="#pricing" class="nav-link">Pricing</a>
+                </div>
+
+                <div class="hidden md:flex gap-3">
+                    <button class="px-6 py-2 text-slate-700 font-medium hover:text-slate-900 transition">Sign In</button>
+                    <button class="btn-primary">Get Started</button>
+                </div>
+
+                <button class="md:hidden text-slate-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient pt-32 pb-32">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-16 items-center">
+                <div>
+                    <div class="inline-block mb-6 px-4 py-2 bg-slate-100 rounded-full text-sm font-semibold text-slate-700">
+                        ✓ Intelligent Matching
+                    </div>
+                    <h1 class="text-7xl font-bold text-slate-900 mb-6 leading-tight">
+                        Find your perfect tutor
+                    </h1>
+                    <p class="text-xl text-slate-600 mb-8 leading-relaxed max-w-lg">
+                        Get matched with elite tutors based on your learning style, goals, and schedule. Personalized education that actually works.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="btn-primary">Start Learning</button>
+                        <button class="btn-secondary">Become a Tutor</button>
+                    </div>
+                    <div class="flex gap-12 mt-16">
+                        <div>
+                            <div class="text-3xl font-bold text-slate-900">50K+</div>
+                            <div class="text-slate-600 text-sm mt-1">Students</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-slate-900">4.9★</div>
+                            <div class="text-slate-600 text-sm mt-1">Average Rating</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-slate-900">500K+</div>
+                            <div class="text-slate-600 text-sm mt-1">Hours Taught</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden md:block">
+                    <div class="bg-gradient-to-br from-slate-100 to-slate-50 rounded-2xl p-8 border border-slate-200">
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-xl p-5 border border-slate-100">
+                                <div class="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wide">Top Tutor</div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-lg font-bold text-white">JD</div>
+                                    <div>
+                                        <div class="font-semibold text-slate-900">Dr. James Davis</div>
+                                        <div class="text-sm text-slate-500">Mathematics PhD</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-xl p-5 border border-slate-100">
+                                <div class="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Student Review</div>
+                                <p class="text-sm text-slate-700">"Changed how I learn. My SAT improved 280 points."</p>
+                                <div class="flex gap-1 mt-3">
+                                    <span class="text-lg">⭐</span><span class="text-lg">⭐</span><span class="text-lg">⭐</span><span class="text-lg">⭐</span><span class="text-lg">⭐</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white rounded-xl p-4 border border-slate-100 text-center">
+                                    <div class="text-2xl font-bold text-slate-900">98%</div>
+                                    <div class="text-xs text-slate-500 mt-2">Success Rate</div>
+                                </div>
+                                <div class="bg-white rounded-xl p-4 border border-slate-100 text-center">
+                                    <div class="text-2xl font-bold text-slate-900">2.8K</div>
+                                    <div class="text-xs text-slate-500 mt-2">Hours Taught</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold text-slate-900 mb-4">Why Tutor Match</h2>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+                    Intelligent matching meets personalized learning
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="feature-card">
+                    <div class="icon-box mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Smart Matching</h3>
+                    <p class="text-slate-600">Our algorithm analyzes 50+ factors to find your ideal tutor. Perfect compatibility guaranteed.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon-box mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Verified Experts</h3>
+                    <p class="text-slate-600">Every tutor is thoroughly vetted. Real credentials, proven track records, secure environment.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon-box mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+                            <path d="M21 3v5h-5"></path>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+                            <path d="M3 21v-5h5"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">Real Results</h3>
+                    <p class="text-slate-600">Track progress with detailed analytics. See measurable improvement every step of the way.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="process" class="py-32 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold text-slate-900 mb-4">Four Simple Steps</h2>
+                <p class="text-lg text-slate-600">Get started in minutes</p>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="bg-white rounded-xl p-8 border border-slate-200">
+                    <div class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold mb-4">1</div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Create Profile</h3>
+                    <p class="text-slate-600 text-sm">Tell us your learning goals and preferences</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 border border-slate-200">
+                    <div class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold mb-4">2</div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Get Matched</h3>
+                    <p class="text-slate-600 text-sm">Receive your perfect tutor instantly</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 border border-slate-200">
+                    <div class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold mb-4">3</div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Book Session</h3>
+                    <p class="text-slate-600 text-sm">Schedule at your convenience</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 border border-slate-200">
+                    <div class="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold mb-4">4</div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Start Learning</h3>
+                    <p class="text-slate-600 text-sm">Achieve your academic goals</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-32 bg-slate-900 text-white">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-5xl font-bold mb-6">Ready to excel?</h2>
+            <p class="text-lg text-slate-300 mb-8">Join thousands of students achieving their best with Tutor Match</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button class="bg-white text-slate-900 px-8 py-3 rounded-lg font-bold hover:bg-slate-100 transition">
+                    Find Your Tutor
+                </button>
+                <button class="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 transition">
+                    Apply as Tutor
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 py-16">
+            <div class="grid md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-xs">TM</span>
+                        </div>
+                        <span class="font-bold text-slate-900">Tutor Match</span>
+                    </div>
+                    <p class="text-slate-600 text-sm">Intelligent education matching</p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 mb-4">Product</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">For Students</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">For Tutors</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Pricing</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">How it Works</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 mb-4">Company</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">About</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Blog</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Careers</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-slate-900 mb-4">Legal</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Privacy Policy</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Terms of Service</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Security</a></li>
+                        <li><a href="#" class="text-slate-600 hover:text-slate-900 text-sm transition">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-200 pt-8">
+                <p class="text-slate-600 text-sm text-center">© 2026 Tutor Match. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

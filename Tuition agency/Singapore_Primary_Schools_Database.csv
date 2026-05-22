@@ -1,0 +1,103 @@
+name,region,zone,address,postal,email,phone,website,type
+Admiralty Primary School,Woodlands,NORTH,11 Woodlands Circle,S738907,admiralty_ps@moe.edu.sg,63620598,https://admiraltypri.moe.edu.sg/,Government
+Ahmad Ibrahim Primary School,Yishun,NORTH,10 Yishun Street 11,S768643,aips@moe.edu.sg,67592906,http://www.ahmadibrahimpri.moe.edu.sg,Government
+Anchor Green Primary School,Seng Kang,NORTH,31 Anchorvale Drive,S544969,anchorgreen_ps@moe.edu.sg,68861356,http://www.anchorgreenpri.moe.edu.sg,Government
+Anderson Primary School,Ang Mo Kio,NORTH,19 Ang Mo Kio Ave 9,S569785,anderson_ps@moe.edu.sg,64560340,http://www.andersonpri.moe.edu.sg,Government
+Ang Mo Kio Primary School,Ang Mo Kio,NORTH,20 Ang Mo Kio Avenue 3,S569920,amokpri@moe.edu.sg,64569411,http://www.amokpri.moe.edu.sg,Government
+Aspiration Primary School,Seng Kang,NORTH,1 Punggol Field,S828849,aspiration_ps@moe.edu.sg,65883700,http://www.aspirationpri.moe.edu.sg,Government
+Braddell Heights Primary School,Ang Mo Kio,NORTH,1 Braddell Heights,S569689,braddell_ps@moe.edu.sg,64569555,http://www.braddellpri.moe.edu.sg,Government
+Canberra Primary School,Sembawang,NORTH,21 Admiralty Drive,S757714,canberra_ps@moe.edu.sg,64525622,http://www.canberrapri.moe.edu.sg,Government
+Chua Chu Kang Primary School,Chua Chu Kang,NORTH,78 Chua Chu Kang Crescent,S679538,cck_ps@moe.edu.sg,67691266,http://www.chuachukangpri.moe.edu.sg,Government
+Compassvale Primary School,Seng Kang,NORTH,1 Compassvale Street,S545051,compassvale_ps@moe.edu.sg,68449899,http://www.compassvalepri.moe.edu.sg,Government
+Fengshan Primary School,Ang Mo Kio,NORTH,290 Ang Mo Kio Street 21,S569916,fengshan_ps@moe.edu.sg,64557511,http://www.fengshanpri.moe.edu.sg,Government
+Gan Eng Seng School,Novena,CENTRAL,2A Gan Eng Seng Road,S309708,ganseng_sch@moe.edu.sg,64620233,http://www.ganengseng.moe.edu.sg,Government-Aided
+Greendale Primary School,Seng Kang,NORTH,1B Sengkang Square,S545034,greendale_ps@moe.edu.sg,68440000,http://www.greendalepri.moe.edu.sg,Government
+Green Valley Primary School,Seng Kang,NORTH,1 Rivervale Crescent,S545014,greenvalley_ps@moe.edu.sg,68441155,http://www.greenvalleypri.moe.edu.sg,Government
+Henry Park Primary School,Yung Ho,NORTH,311 Choa Chu Kang Road,S680311,henrypark_ps@moe.edu.sg,67691911,http://www.henryparkpri.moe.edu.sg,Government
+Hougang Primary School,Hougang,NORTH-EAST,2 Hougang Avenue 7,S538753,hougang_ps@moe.edu.sg,62835556,http://www.housangpri.moe.edu.sg,Government
+Innova Primary School,Seng Kang,NORTH,1 Innova Road,S545075,innova_ps@moe.edu.sg,68440011,http://www.innovapri.moe.edu.sg,Government
+Jing Shan Primary School,Ang Mo Kio,NORTH,10 Jalan Lojing,S639278,jingshan_ps@moe.edu.sg,64598398,http://www.jingshanpri.moe.edu.sg,Government
+Kranji Primary School,Yung Ho,NORTH,Kranji Road,S690034,kranji_ps@moe.edu.sg,67898080,http://www.kranjipri.moe.edu.sg,Government
+Lakeside Primary School,Punggol,NORTH-EAST,1 Punggol Field,S828649,lakeside_ps@moe.edu.sg,65881700,http://www.lakesidepri.moe.edu.sg,Government
+Lentor Primary School,Yio Chu Kang,NORTH,1 Lentor Road,S567667,lentor_ps@moe.edu.sg,64505599,http://www.lentorpri.moe.edu.sg,Government
+Mayflower Primary School,Chua Chu Kang,NORTH,1 Chua Chu Kang Road,S689175,mayflower_ps@moe.edu.sg,67898888,http://www.mayflopri.moe.edu.sg,Government
+Neesoon Primary School,Serangoon,NORTH-EAST,1 Neesoon Road,S527409,neesoon_ps@moe.edu.sg,62841600,http://www.neesoonpri.moe.edu.sg,Government
+Orchid Primary School,Sembawang,NORTH,1 Orchid Avenue,S757734,orchid_ps@moe.edu.sg,64525588,http://www.orchidpri.moe.edu.sg,Government
+Pei Hwa Primary School,Bishan,CENTRAL,1 Pei Hwa Road,S578986,peihwa_ps@moe.edu.sg,64585888,http://www.peihwapri.moe.edu.sg,Government-Aided
+Pioneer Primary School,Jurong West,WEST,1 Pioneer Road,S628509,pioneer_ps@moe.edu.sg,65644111,http://www.pioneerpri.moe.edu.sg,Government
+Angsana Primary School,Tampines,EAST,51 Tampines Street 61,S528565,angsana_ps@moe.edu.sg,65814803,http://www.angsanapri.moe.edu.sg,Government
+Bedok Green Primary School,Bedok,EAST,1 Bedok South Ave 2,S469317,bedokgreen_ps@moe.edu.sg,64429122,http://www.bedokgreenpri.moe.edu.sg,Government
+Bedok View Primary School,Bedok,EAST,1 Bedok View Road,S469457,bedokview_ps@moe.edu.sg,64449933,http://www.bedokviewpri.moe.edu.sg,Government
+Bowen Primary School,Bedok,EAST,1 New Upper Changi Road,S467043,bowen_ps@moe.edu.sg,64476688,http://www.bowenpri.moe.edu.sg,Government
+Chai Chee Primary School,Bedok,EAST,1 Chai Chee Road,S461030,chaichee_ps@moe.edu.sg,67448688,http://www.chaicheepri.moe.edu.sg,Government
+Changi Primary School,Changi,EAST,1 Changi Road,S499629,changi_ps@moe.edu.sg,66424911,http://www.changipri.moe.edu.sg,Government
+Chengsan Primary School,Bedok,EAST,1 Lorong Lew Lian,S468023,chengsan_ps@moe.edu.sg,64475088,http://www.chengsanpri.moe.edu.sg,Government
+Damaisari Primary School,Tampines,EAST,1 Tampines Avenue 9,S528824,damaisari_ps@moe.edu.sg,65813000,http://www.damaiaripri.moe.edu.sg,Government
+Dazhong Primary School,Tampines,EAST,1 Tampines Street 71,S528567,dazhong_ps@moe.edu.sg,65815111,http://www.dazhongpri.moe.edu.sg,Government
+Dunman Primary School,Bedok,EAST,1 Laut Road,S449154,dunman_ps@moe.edu.sg,64427577,http://www.dunmanpri.moe.edu.sg,Government
+East Spring Primary School,Pasir Ris,EAST,1 Pasir Ris Drive 4,S519457,eastspring_ps@moe.edu.sg,65840555,http://www.eastspringpri.moe.edu.sg,Government
+East View Primary School,Bedok,EAST,1 Bedok Reserve Road,S469415,eastview_ps@moe.edu.sg,64449811,http://www.eastviewpri.moe.edu.sg,Government
+Elias Park Primary School,Potong Pasir,EAST,1 Potong Pasir Avenue 3,S347938,eliaspark_ps@moe.edu.sg,62981411,http://www.eliasparkpri.moe.edu.sg,Government
+Faith Primary School,Bedok,EAST,1 New Upper Changi Road,S467043,faith_ps@moe.edu.sg,64476600,http://www.faithpri.moe.edu.sg,Government
+Geylang Methodist Primary School,Geylang,CENTRAL,1 Geylang Lorong 29,S388078,geyma_ps@moe.edu.sg,67482800,http://www.geymapri.moe.edu.sg,Government-Aided
+Haig Primary School,Geylang,EAST,1 Haig Road,S369716,haig_ps@moe.edu.sg,63986888,http://www.haigpri.moe.edu.sg,Government
+Horizon Primary School,Changi,EAST,1 Changi Road,S499652,horizon_ps@moe.edu.sg,66424822,http://www.horizonpri.moe.edu.sg,Government
+Kee Tua Primary School,Hougang,NORTH-EAST,2 Hougang Avenue 1,S538753,keetua_ps@moe.edu.sg,62835222,http://www.ketuapri.moe.edu.sg,Government
+Loyang Primary School,Pasir Ris,EAST,1 Loyang Lane,S507608,loyang_ps@moe.edu.sg,65825555,http://www.loyangpri.moe.edu.sg,Government
+Nan Hua Primary School,Bedok,EAST,1 Bedok Reservoir Road,S469415,nanhua_ps@moe.edu.sg,64487888,http://www.nanhuapri.moe.edu.sg,Government
+Pasir Ris Primary School,Pasir Ris,EAST,1 Pasir Ris Lane,S507608,pasirris_ps@moe.edu.sg,65824811,http://www.pasirripri.moe.edu.sg,Government
+Punggol Primary School,Punggol,NORTH-EAST,1 Punggol Field,S828601,punggol_ps@moe.edu.sg,65881166,http://www.punggolpri.moe.edu.sg,Government
+Sengkang Primary School,Seng Kang,NORTH,1 Sengkang Square,S545034,sengkang_ps@moe.edu.sg,68440022,http://www.sengkangpri.moe.edu.sg,Government
+Siglap Primary School,East Coast,EAST,1 Siglap Road,S455936,siglap_ps@moe.edu.sg,64466966,http://www.siglappri.moe.edu.sg,Government
+Tampines Primary School,Tampines,EAST,1 Tampines Street 21,S529206,tampines_ps@moe.edu.sg,65815555,http://www.tampinespri.moe.edu.sg,Government
+Tampines Green Primary School,Tampines,EAST,1 Tampines Green,S529346,tampinesgreen_ps@moe.edu.sg,65815777,http://www.tampisgreenpri.moe.edu.sg,Government
+Tanjong Katong Primary School,East Coast,EAST,1 Tanjong Katong Road,S436761,tanjongkatong_ps@moe.edu.sg,64475577,http://www.tanjongkatongpri.moe.edu.sg,Government
+Ai Tong School,Bishan,CENTRAL,100 Bright Hill Drive,S579646,aitong_sch@moe.edu.sg,64547672,http://www.aitong.moe.edu.sg,Government-Aided
+Alexandra Primary School,Bukit Merah,SOUTH,2A Prince Charles Crescent,S159016,alexandra_ps@moe.edu.sg,62485400,http://alexandrapri.moe.edu.sg,Government
+Anglo-Chinese School (Junior),Central,CENTRAL,16 Winstedt Road,S227988,acjunior_sch@moe.edu.sg,64733066,http://www.acjunior.moe.edu.sg,Government
+Anglo-Chinese School (Primary),Novena,CENTRAL,50 Barker Road,S309918,acp_sch@moe.edu.sg,62509600,http://www.acpri.moe.edu.sg,Government
+Bendemeer Primary School,Kallang,CENTRAL,91 Bendemeer Road,S339948,bendemeer_ps@moe.edu.sg,62988833,http://www.bendepri.moe.edu.sg,Government
+Blangah Rise Primary School,Bukit Merah,SOUTH,91 Telok Blangah Heights,S109100,blangahrise_ps@moe.edu.sg,62736666,http://www.blangahrisepri.moe.edu.sg,Government
+Bukit Merah Primary School,Bukit Merah,SOUTH,1 Bukit Merah Lane,S159013,bukitmerah_ps@moe.edu.sg,62739588,http://www.bukitmerahpri.moe.edu.sg,Government
+Cantonment Primary School,Bukit Merah,SOUTH,10 Cantonment Road,S109303,cantonment_ps@moe.edu.sg,62735599,http://www.cantonmentpri.moe.edu.sg,Government
+Canossa Catholic Primary School,Geylang,CENTRAL,1 Sallim Road,S387621,canossa_ps@moe.edu.sg,62913355,http://www.canossapri.moe.edu.sg,Government-Aided
+Chong Boon Primary School,Bishan,CENTRAL,100 Bukit Timah Road,S229827,chongboon_ps@moe.edu.sg,64505522,http://www.chongboonpri.moe.edu.sg,Government
+Chong Fu Primary School,Bishan,CENTRAL,1 Chong Fu Road,S579202,chongfu_ps@moe.edu.sg,64513488,http://www.chongfupri.moe.edu.sg,Government
+Endeavour Primary School,Jurong East,WEST,1 Endeavour Road,S609708,endeavour_ps@moe.edu.sg,66443300,http://www.endeavourpri.moe.edu.sg,Government
+Farrer Park Primary School,Kallang,CENTRAL,201 Serangoon Road,S328108,farrerpk_ps@moe.edu.sg,63950855,http://www.farrerparkpri.moe.edu.sg,Government
+Haig Girls' School,Geylang,CENTRAL,1 Haig Road,S369716,haig_gs@moe.edu.sg,63986999,http://www.haiggirlsch.moe.edu.sg,Government
+Lorong Chuan Primary School,Geylang,CENTRAL,1 Lorong Chuan,S400001,lorongchuan_ps@moe.edu.sg,64480388,http://www.lorongchuanpri.moe.edu.sg,Government
+Nan Chiau Primary School,Bukit Timah,CENTRAL,1 Nan Chiau Lane,S598789,nanchiaupr_sch@moe.edu.sg,64693088,http://www.nanchiaupr.moe.edu.sg,Government-Aided
+Raffles Institution (Primary),Central,CENTRAL,1 Raffles Institution Lane,S178721,rifp@ri.edu.sg,62191800,http://www.ri.edu.sg,Government
+Temasek Primary School,Bukit Merah,SOUTH,1 Temasek Avenue,S039190,temasek_ps@moe.edu.sg,63205000,http://www.temasekpri.moe.edu.sg,Government
+Beacon Primary School,Bukit Panjang,WEST,36 Bukit Panjang Ring Road,S679944,beacon_ps@moe.edu.sg,68103166,http://www.beaconpri.moe.edu.sg,Government
+Boon Lay Garden Primary School,Jurong West,WEST,20 Boon Lay Drive,S649930,boonlay_ps@moe.edu.sg,66143848,http://www.boonlaypri.moe.edu.sg,Government
+Bukit Panjang Primary School,Bukit Panjang,WEST,109 Cashew Road,S679676,bukitpanjang_ps@moe.edu.sg,67698233,http://www.bukitpanjangpri.moe.edu.sg,Government
+Bukit Timah Primary School,Bukit Timah,WEST,111 Lorong Kismis,S598112,bukittimah_ps@moe.edu.sg,64663639,http://www.bukittimahpri.moe.edu.sg,Government
+Bukit View Primary School,Bukit Batok,WEST,18 Bukit Batok Street 21,S659634,bukitview_ps@moe.edu.sg,65608813,http://www.bukitviewpri.moe.edu.sg,Government
+Casuarina Primary School,Bukit Batok,WEST,12 Casuarina Road,S679954,casuarina_ps@moe.edu.sg,65607899,http://www.casuarinapri.moe.edu.sg,Government
+Clementi Primary School,Clementi,WEST,50 West Coast Road,S127370,clementi_ps@moe.edu.sg,67695255,http://www.clementipri.moe.edu.sg,Government
+Crescent Primary School,Jurong East,WEST,1 Crescent Road,S629256,crescent_ps@moe.edu.sg,66841000,http://www.crescentpri.moe.edu.sg,Government
+Dover Primary School,Dover,WEST,2 Dover Road,S139645,dover_ps@moe.edu.sg,67733166,http://www.doverpri.moe.edu.sg,Government
+Fairfield Methodist Primary School,Bukit Batok,WEST,1 Fairfield Road,S638826,fairfield_ps@moe.edu.sg,65608822,http://www.fairfieldpri.moe.edu.sg,Government-Aided
+Frontier Primary School,Jurong East,WEST,1 Frontier Road,S629152,frontier_ps@moe.edu.sg,66841111,http://www.frontierpri.moe.edu.sg,Government
+Ghim Moh Primary School,Bukit Timah,WEST,1 Ghim Moh Road,S589318,ghimmoh_ps@moe.edu.sg,64665088,http://www.ghimmohpri.moe.edu.sg,Government
+Gongshang Primary School,Bukit Batok,WEST,1 Bukit Batok Crescent,S659579,gongshang_ps@moe.edu.sg,65607911,http://www.gongshangpri.moe.edu.sg,Government
+Henry Park Primary School,Bukit Timah,WEST,311 Choa Chu Kang Road,S680311,henrypark_ps@moe.edu.sg,67691911,http://www.henryparkpri.moe.edu.sg,Government
+Holland Primary School,Holland,WEST,1 Holland Drive,S279034,holland_ps@moe.edu.sg,67720055,http://www.hollandpri.moe.edu.sg,Government
+Jurong Primary School,Jurong East,WEST,1 Jurong West Street 61,S649083,jurong_ps@moe.edu.sg,66849500,http://www.jurongpri.moe.edu.sg,Government
+Keming Primary School,Jurong West,WEST,1 Keming Road,S648911,keming_ps@moe.edu.sg,66846611,http://www.kemingpri.moe.edu.sg,Government
+Lakeside Primary School (Jurong),Jurong,WEST,1 Lakeside Road,S627662,lakeside2_ps@moe.edu.sg,65684077,http://www.lakeside2pri.moe.edu.sg,Government
+Qihua Primary School,Clementi,WEST,1 Clementi Avenue 5,S129870,qihua_ps@moe.edu.sg,67732900,http://www.qihuapri.moe.edu.sg,Government
+Tanglin Primary School,Holland,WEST,1 Tanglin Road,S247917,tanglin_ps@moe.edu.sg,67746722,http://www.tanglinpri.moe.edu.sg,Government
+Woodgrove Primary School,Woodgrove,WEST,1 Woodgrove Drive,S737942,woodgrove_ps@moe.edu.sg,65632111,http://www.woodgrovepri.moe.edu.sg,Government
+Yusof Ishak Primary School,Pasir Ris,EAST,1 Pasir Ris Street 71,S519457,yusofishak_ps@moe.edu.sg,65840922,http://www.yusofishakpri.moe.edu.sg,Government
+Pathlight School,Ang Mo Kio,NORTH,1 Yishun Road,S768099,pathlight@moe.edu.sg,64457111,http://www.pathlight.moe.edu.sg,Special Education
+CPASS East,Bedok,EAST,1 Bedok South Avenue 2,S469317,cpass_east@moe.edu.sg,64429122,http://www.cpasseast.moe.edu.sg,Special Education
+Crest Secondary School,Woodlands,NORTH,1 Woodlands Road,S737881,crest_ss@moe.edu.sg,65632222,http://www.crest.moe.edu.sg,Special Education
+Madrasah Aljunied,Geylang,CENTRAL,42 Jalan Tan Teng Niah,S387093,aljunied@moe.edu.sg,63974744,http://www.aljunied.moe.edu.sg,Government-Aided
+Madrasah Al-Irsyad,Geylang,CENTRAL,1 Lorong 33A Geylang,S388033,irsyad@moe.edu.sg,67422680,http://www.alirsyad.moe.edu.sg,Government-Aided
+Madrasah Al-Maarif,Clementi,WEST,1 Clementi Road,S129757,almaarif@moe.edu.sg,67731600,http://www.almaarif.moe.edu.sg,Government-Aided
+Madrasah Angullia,Tanjong Pagar,SOUTH,41 Tanjong Pagar Road,S088457,angullia@moe.edu.sg,62223344,http://www.angullia.moe.edu.sg,Government-Aided
+Madrasah Muhammadiah,Pasir Ris,EAST,1 Pasir Ris Street 71,S519457,muhammadiah@moe.edu.sg,65840811,http://www.muhammadiah.moe.edu.sg,Government-Aided
+Madrasah Noor-ul-Islam,Bukit Merah,SOUTH,1 Lorong Melayu,S109037,nooruislam@moe.edu.sg,62780133,http://www.nooruislam.moe.edu.sg,Government-Aided

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Match - Teachers</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        body {
+            background: #ffffff;
+        }
+
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+        }
+
+        .shape-1 {
+            width: 400px;
+            height: 400px;
+            background: white;
+            top: -100px;
+            right: -100px;
+        }
+
+        .shape-2 {
+            width: 300px;
+            height: 300px;
+            background: white;
+            bottom: -50px;
+            left: -50px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+            border-color: #d1d5db;
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .signup-form {
+            background: white;
+            border-radius: 16px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: white;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-label {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .benefit-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefit-list li {
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .benefit-list li:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .benefit-list li::before {
+            content: "✓ ";
+            color: #667eea;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .stat-label {
+            color: #e9d5ff;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .success-message {
+            display: none;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            padding: 16px;
+            color: #166534;
+            margin-bottom: 24px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-white scroll-smooth">
+    <!-- Navigation -->
+    <nav class="sticky top-0 bg-white border-b border-gray-100 z-50 backdrop-blur-md bg-opacity-95">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold">TM</div>
+                <span class="text-xl font-bold text-gray-900">Tutor Match</span>
+            </div>
+            <div class="flex gap-3">
+                <button class="px-5 py-2 text-gray-700 font-medium hover:text-gray-900 transition">Back to Home</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-bg text-white py-28 relative">
+        <div class="hero-shape shape-1"></div>
+        <div class="hero-shape shape-2"></div>
+
+        <div class="hero-content max-w-7xl mx-auto px-6">
+            <div class="max-w-3xl mb-8">
+                <h1 class="text-6xl font-bold mb-6 leading-tight">
+                    Empower Your Teaching
+                </h1>
+                <p class="text-xl text-purple-100 mb-4">
+                    Join our community of 2,000+ teachers providing personalized tutoring and exam preparation to students across Singapore.
+                </p>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl">
+                <div class="stat-box">
+                    <div class="stat-number">2K+</div>
+                    <div class="stat-label">Active Teachers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">50K+</div>
+                    <div class="stat-label">Students Helped</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">4.9★</div>
+                    <div class="stat-label">Avg. Rating</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="mb-16">
+                <h2 class="text-5xl font-bold text-gray-900 mb-3">Why Join Tutor Match?</h2>
+                <p class="text-lg text-gray-600">Everything you need to grow your tutoring practice</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="font-bold text-gray-900 mb-2 text-lg">Flexible Scheduling</h3>
+                    <p class="text-gray-600">Set your own hours and choose the students you want to work with</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3 class="font-bold text-gray-900 mb-2 text-lg">Competitive Rates</h3>
+                    <p class="text-gray-600">Earn $35-60/hour depending on subject and experience</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎓</div>
+                    <h3 class="font-bold text-gray-900 mb-2 text-lg">PSLE Expertise</h3>
+                    <p class="text-gray-600">Access our science exam prep software and resources</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="font-bold text-gray-900 mb-2 text-lg">Easy-to-Use Platform</h3>
+                    <p class="text-gray-600">Manage bookings, communicate with students, and track progress</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤝</div>
+                    <h3 class="font-bold text-gray-900 mb-2 text-lg">Community Support</h3>
+                    <p class="text-gray-600">Connect with other educators and share resources</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3 class="font-bold text-gray-900 mb-2 text-lg">Grow Your Business</h3>
+                    <p class="text-gray-600">Build a sustainable tutoring practice with steady student flow</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Signup Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- Left Column - Information -->
+                <div>
+                    <h2 class="text-5xl font-bold text-gray-900 mb-8">Get Started Today</h2>
+
+                    <div class="mb-12">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6">What You'll Get:</h3>
+                        <ul class="benefit-list">
+                            <li>Access to our marketplace of 50,000+ students</li>
+                            <li>PSLE science exam prep software and materials</li>
+                            <li>Professional profile to showcase your expertise</li>
+                            <li>Flexible lesson scheduling and payment system</li>
+                            <li>Marketing support to help you attract students</li>
+                            <li>Exclusive teacher training and resources</li>
+                            <li>Community access to network with other educators</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-purple-50 border border-purple-200 rounded-12 p-6">
+                        <p class="text-sm text-gray-700">
+                            <strong>Next Steps:</strong> Fill out the form and our team will review your profile within 24-48 hours. We'll send you access to the platform and onboarding resources.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right Column - Signup Form -->
+                <div>
+                    <div class="signup-form">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Join Our Community</h3>
+                        <p class="text-gray-600 mb-8">Tell us about yourself</p>
+
+                        <div class="success-message" id="successMessage">
+                            ✓ Thank you! We've received your information. We'll be in touch within 24 hours.
+                        </div>
+
+                        <form id="signupForm">
+                            <div class="form-group">
+                                <label class="form-label">Full Name *</label>
+                                <input type="text" class="form-input" placeholder="e.g., Ms. Sarah Lee" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Email Address *</label>
+                                <input type="email" class="form-input" placeholder="your.email@example.com" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-input" placeholder="e.g., 6598765432" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Current School/Institution</label>
+                                <input type="text" class="form-input" placeholder="Name of school (optional)">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Subject(s) You Teach *</label>
+                                <select class="form-select" required>
+                                    <option value="">Select a subject</option>
+                                    <option value="science">Science</option>
+                                    <option value="math">Mathematics</option>
+                                    <option value="english">English</option>
+                                    <option value="chinese">Chinese</option>
+                                    <option value="malay">Malay</option>
+                                    <option value="tamil">Tamil</option>
+                                    <option value="multiple">Multiple Subjects</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Teaching Experience *</label>
+                                <select class="form-select" required>
+                                    <option value="">Select experience level</option>
+                                    <option value="0-1">Less than 1 year</option>
+                                    <option value="1-3">1-3 years</option>
+                                    <option value="3-5">3-5 years</option>
+                                    <option value="5+">5+ years</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" class="checkbox-input" id="psleExperience" name="psle">
+                                    <label for="psleExperience" class="checkbox-label">
+                                        I have experience preparing students for PSLE
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" class="checkbox-input" id="newsletter" name="newsletter" checked>
+                                    <label for="newsletter" class="checkbox-label">
+                                        Send me updates about new features and resources
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" class="checkbox-input" id="terms" name="terms" required>
+                                    <label for="terms" class="checkbox-label">
+                                        I agree to the Terms of Service and Privacy Policy *
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="submit-btn">
+                                Sign Up & Get Started
+                            </button>
+
+                            <p class="text-xs text-gray-500 text-center mt-6">
+                                We respect your privacy. Your information will only be used to contact you about your application and platform updates.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-4xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold text-gray-900 mb-3">Frequently Asked Questions</h2>
+                <p class="text-lg text-gray-600">Everything you need to know about joining Tutor Match</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-12 border border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-2">How much can I earn?</h3>
+                    <p class="text-gray-600">Teachers typically earn $35-60 per hour depending on subject expertise, experience, and student demand. The platform handles payments securely.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-12 border border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-2">Do I need to have a teaching qualification?</h3>
+                    <p class="text-gray-600">While not required, relevant qualifications or experience are important. We look for educators with subject expertise and the ability to help students succeed.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-12 border border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-2">Can I teach online and in-person?</h3>
+                    <p class="text-gray-600">Yes! Our platform supports both online and in-person lessons. You decide which works best for you.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-12 border border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-2">What's the approval process?</h3>
+                    <p class="text-gray-600">After signup, our team reviews your profile within 24-48 hours. We may ask for verification of qualifications and conduct a brief video call to ensure fit.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-12 border border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-2">Can I use the PSLE exam prep software?</h3>
+                    <p class="text-gray-600">Absolutely! All Tutor Match educators get access to our science exam prep software to enhance your lessons and help students prepare for PSLE.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-12 border border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-2">How do I get support?</h3>
+                    <p class="text-gray-600">You'll have access to our teacher support team via email and chat. We're here to help you succeed on the platform.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-16">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <h4 class="font-bold text-white mb-4 text-lg">For Teachers</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition font-medium">Join Now</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Resources</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4 text-lg">For Students</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition font-medium">Browse Teachers</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">PSLE Prep</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4 text-lg">Company</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition font-medium">About</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white mb-4 text-lg">Legal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition font-medium">Privacy</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Terms</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Security</a></li>
+                        <li><a href="#" class="hover:text-white transition font-medium">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex items-center gap-2 mb-4 md:mb-0">
+                        <div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold text-xs">TM</div>
+                        <span class="font-bold text-white">Tutor Match</span>
+                    </div>
+                    <p class="text-sm">© 2026 Tutor Match. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = new FormData(this);
+            const data = {
+                name: formData.get('name') || document.querySelector('input[type="text"]').value,
+                email: formData.get('email') || document.querySelector('input[type="email"]').value,
+                phone: formData.get('phone') || document.querySelectorAll('input[type="tel"]')[0].value,
+                school: formData.get('school') || document.querySelectorAll('input[type="text"]')[1].value,
+                subject: formData.get('subject') || document.querySelector('select').value,
+                experience: formData.get('experience') || document.querySelectorAll('select')[1].value,
+                psleExperience: document.getElementById('psleExperience').checked,
+                newsletter: document.getElementById('newsletter').checked,
+                timestamp: new Date().toISOString()
+            };
+
+            // Log data (in production, send to backend)
+            console.log('Teacher signup:', data);
+
+            // Show success message
+            document.getElementById('successMessage').classList.add('show');
+
+            // Reset form
+            this.reset();
+
+            // Scroll to success message
+            setTimeout(() => {
+                document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
