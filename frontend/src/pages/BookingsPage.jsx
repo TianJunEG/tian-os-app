@@ -31,6 +31,15 @@ export default function BookingsPage() {
     }
   };
 
+  const handleConfirm = async (bookingId) => {
+    try {
+      await bookingsAPI.confirmBooking(bookingId);
+      loadBookings();
+    } catch (err) {
+      alert('Failed to confirm booking');
+    }
+  };
+
   const handleCancel = async (bookingId) => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {
       try {
@@ -155,7 +164,10 @@ export default function BookingsPage() {
                 {(booking.status === 'pending' || booking.status === 'confirmed') && (
                   <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
                     {user?.role === 'tutor' && booking.status === 'pending' && (
-                      <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium">
+                      <button
+                        onClick={() => handleConfirm(booking._id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                      >
                         Confirm
                       </button>
                     )}

@@ -4,6 +4,48 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Normalize a subject label to a canonical specialty, so synonyms like
+// "Mathematics" and the seeded specialty "Math" align.
+const SUBJECT_SYNONYMS = {
+  math: 'math', maths: 'math', mathematics: 'math', algebra: 'math', calculus: 'math', geometry: 'math',
+  english: 'english', 'language arts': 'english', literature: 'english', writing: 'english',
+  science: 'science', biology: 'science', chemistry: 'science', physics: 'science',
+  programming: 'programming', coding: 'programming', 'computer science': 'programming',
+  'test prep': 'test prep', sat: 'test prep', act: 'test prep',
+  history: 'history', chinese: 'chinese', music: 'music', arts: 'arts', art: 'arts', business: 'business'
+};
+const normalizeSubject = (s) => {
+  if (!s) return '';
+  const key = s.trim().toLowerCase();
+  return SUBJECT_SYNONYMS[key] || key;
+};
+
+// Map a grade label to a level band (1=primary/elementary, 2=middle,
+// 3=secondary/high, 4=junior college/college) so labels can be compared
+// numerically. Handles both US and Singapore terminology. Returns null for
+// wildcards ("All Levels") or unrecognized values.
+const gradeToLevel = (g) => {
+  if (g === null || g === undefined) return null;
+  const str = String(g).toLowerCase();
+  if (str.includes('all level')) return null; // wildcard — matches anything
+
+  // Keyword / abbreviation matches (check before falling back to numbers).
+  // College/JC first so "junior college" isn't caught by other bands.
+  if (str.includes('college') || str.includes('university') || /\bjc\b/.test(str) || str.includes('a-level') || str.includes('a level')) return 4;
+  if (str.includes('secondary') || /\bsec\b/.test(str) || str.includes('high') || str.includes('o-level') || str.includes('o level')) return 3;
+  if (str.includes('middle')) return 2;
+  if (str.includes('element') || str.includes('primary') || /\bpri\b/.test(str) || /\bp[1-6]\b/.test(str) || str.includes('psle')) return 1;
+
+  // Fall back to the FIRST number in the string ("Grade 9", "Grade 9-10", "9").
+  const m = str.match(/\d+/);
+  if (!m) return null;
+  const num = parseInt(m[0], 10);
+  if (num <= 6) return 1;   // P1-P6 / elementary
+  if (num <= 8) return 2;   // middle school
+  if (num <= 12) return 3;  // secondary / high school
+  return 4;                 // college+
+};
+
 // Enhanced 9-Criteria Matching Algorithm (85%+ success target)
 // Based on pitch: subject, grade, teaching style, availability, location, success rate, preferences, special needs, price
 const calculateCompatibilityScore = (tutorProfile, parentProfile, searchCriteria) => {
@@ -23,34 +65,35 @@ const calculateCompatibilityScore = (tutorProfile, parentProfile, searchCriteria
 
   // 1. SUBJECT ALIGNMENT (0-100)
   if (searchCriteria.specialty && tutorProfile.specialties) {
-    const exactMatch = tutorProfile.specialties.some(s =>
-      s.toLowerCase() === searchCriteria.specialty.toLowerCase()
-    );
-    const relatedMatch = tutorProfile.specialties.some(s =>
-      s.toLowerCase().includes(searchCriteria.specialty.split(' ')[0].toLowerCase())
-    );
+    const wanted = normalizeSubject(searchCriteria.specialty);
+    const tutorSubjects = tutorProfile.specialties.map(normalizeSubject);
+    const exactMatch = tutorSubjects.includes(wanted);
+    const relatedMatch = tutorSubjects.some(s => s.includes(wanted) || wanted.includes(s));
     scores.subjectAlignment = exactMatch ? 100 : (relatedMatch ? 70 : 0);
   } else {
     scores.subjectAlignment = 50; // Neutral if no specialty specified
   }
 
   // 2. GRADE FIT (0-100)
-  if (searchCriteria.grade && tutorProfile.grades) {
-    const gradeNumber = parseInt(searchCriteria.grade);
-    const tutorGrades = tutorProfile.grades.map(g => parseInt(g));
-    const gradeDiff = Math.min(...tutorGrades.map(tg => Math.abs(tg - gradeNumber)));
+  if (searchCriteria.grade && tutorProfile.grades && tutorProfile.grades.length > 0) {
+    const wantedLevel = gradeToLevel(searchCriteria.grade);
+    const tutorLevels = tutorProfile.grades.map(gradeToLevel);
 
-    if (gradeDiff === 0) {
-      scores.gradeFit = 100; // Exact match
-    } else if (gradeDiff === 1) {
-      scores.gradeFit = 100; // ±1 grade
-    } else if (gradeDiff === 2) {
-      scores.gradeFit = 70;  // ±2 grades
+    // A tutor tagged "All Levels" (null level) teaches any grade.
+    if (wantedLevel === null || tutorLevels.includes(null)) {
+      scores.gradeFit = 100;
     } else {
-      scores.gradeFit = 0;   // Too different
+      const gradeDiff = Math.min(...tutorLevels.map(tl => Math.abs(tl - wantedLevel)));
+      if (gradeDiff === 0) {
+        scores.gradeFit = 100; // Exact band
+      } else if (gradeDiff === 1) {
+        scores.gradeFit = 70;  // Adjacent band
+      } else {
+        scores.gradeFit = 40;  // Distant band
+      }
     }
   } else {
-    scores.gradeFit = 50; // Neutral
+    scores.gradeFit = 50; // Neutral when grade not specified
   }
 
   // 3. TEACHING STYLE MATCH (0-100)
