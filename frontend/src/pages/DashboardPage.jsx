@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star, Shield, TrendingUp } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, Shield, TrendingUp, UserCog, ClipboardList } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -84,6 +84,14 @@ export default function DashboardPage() {
                 <h3 className="font-semibold text-gray-900">Progress</h3>
                 <p className="text-sm text-gray-600">Track learning & notes</p>
               </button>
+              <button
+                onClick={() => navigate('/parent/profile')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <UserCog className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Student Profile</h3>
+                <p className="text-sm text-gray-600">Goals & preferences</p>
+              </button>
             </>
           )}
 
@@ -96,6 +104,14 @@ export default function DashboardPage() {
                 <BookOpen className="w-8 h-8 text-purple-600 mb-2" />
                 <h3 className="font-semibold text-gray-900">My Profile</h3>
                 <p className="text-sm text-gray-600">Edit your profile</p>
+              </button>
+              <button
+                onClick={() => navigate('/tutor/onboarding')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <ClipboardList className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Onboarding</h3>
+                <p className="text-sm text-gray-600">Complete your application</p>
               </button>
             </>
           )}

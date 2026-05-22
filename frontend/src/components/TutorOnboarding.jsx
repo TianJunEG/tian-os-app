@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { tutorsAPI } from '../services/api';
 import './TutorOnboarding.css';
 
 const TutorOnboarding = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const API_URL = 'http://localhost:5001/api';
-  const token = localStorage.getItem('token');
-  const userId = localStorage.getItem('userId');
 
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
@@ -215,39 +214,29 @@ const TutorOnboarding = () => {
       }
 
       // Submit tutor profile
-      const response = await axios.post(
-        `${API_URL}/tutors/onboarding`,
-        {
-          userId,
-          specialties: formData.specialties,
-          gradeLevel: formData.gradeLevel,
-          hourlyRate: parseFloat(formData.hourlyRate),
-          bio: formData.bio,
-          education: formData.education,
-          experience: parseInt(formData.experience),
-          certifications: formData.certifications,
-          credentialsUrl,
-          availability: formData.availability,
-          bankingInfo: {
-            accountName: formData.bankAccountName,
-            routingNumber: formData.bankRoutingNumber,
-            accountNumber: formData.bankAccountNumber,
-            accountType: formData.accountType
-          }
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+      const response = await tutorsAPI.completeOnboarding({
+        specialties: formData.specialties,
+        gradeLevel: formData.gradeLevel,
+        hourlyRate: parseFloat(formData.hourlyRate),
+        bio: formData.bio,
+        education: formData.education,
+        experience: parseInt(formData.experience),
+        certifications: formData.certifications,
+        credentialsUrl,
+        availability: formData.availability,
+        bankingInfo: {
+          accountName: formData.bankAccountName,
+          routingNumber: formData.bankRoutingNumber,
+          accountNumber: formData.bankAccountNumber,
+          accountType: formData.accountType
         }
-      );
+      });
 
       if (response.data.success) {
         setSuccess(true);
         // Redirect after 2 seconds
         setTimeout(() => {
-          window.location.href = '/tutor/dashboard';
+          navigate('/dashboard');
         }, 2000);
       }
     } catch (err) {

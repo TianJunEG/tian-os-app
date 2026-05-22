@@ -14,6 +14,8 @@ import MessagesPage from './pages/MessagesPage';
 import TutorProfilePage from './pages/TutorProfilePage';
 import ParentProgressPage from './pages/ParentProgressPage';
 import AdminDashboard from './components/AdminDashboard';
+import TutorOnboarding from './components/TutorOnboarding';
+import ParentProfile from './components/ParentProfile';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -212,6 +214,24 @@ function App() {
             element={
               <ProtectedRoute>
                 <TutorProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tutor/onboarding"
+            element={
+              <ProtectedRoute>
+                <TutorOnboarding />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/parent/profile"
+            element={
+              <ProtectedRoute>
+                <ParentProfile />
               </ProtectedRoute>
             }
           />

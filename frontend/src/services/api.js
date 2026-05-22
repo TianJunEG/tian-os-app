@@ -41,10 +41,18 @@ export const authAPI = {
 // Tutors API
 export const tutorsAPI = {
   createProfile: (data) => api.post('/tutors/profile', data),
+  completeOnboarding: (data) => api.post('/tutors/onboarding', data),
   getAllTutors: (params) => api.get('/tutors', { params }),
   getTutorProfile: (id) => api.get(`/tutors/${id}`),
   getMyProfile: () => api.get('/tutors/me/profile'),
   updateAvailability: (data) => api.put('/tutors/availability', data)
+};
+
+// Parents API
+export const parentsAPI = {
+  createProfile: (data) => api.post('/parents/profile', data),
+  getProfile: () => api.get('/parents/profile'),
+  updateProfile: (data) => api.put('/parents/profile', data)
 };
 
 // Search API
