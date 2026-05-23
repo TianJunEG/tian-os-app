@@ -165,7 +165,7 @@ function MissionSection() {
         <div className="bg-white rounded-xl shadow p-8">
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Inclusive employment</h3>
           <p className="text-gray-600">
-            We hire people with special needs across our team — in roles like marketing, customer
+            We hire persons with disabilities across our team — in roles like marketing, customer
             service, and operations. Meaningful work and the right support unlock real talent, and
             building an inclusive workplace makes everything we do stronger.
           </p>
