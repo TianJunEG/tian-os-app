@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Volume2, Mic, Shuffle, Eraser, Eye, Grid, LayoutGrid,
-  Pencil, Share2, Lock, ListChecks, ArrowLeft, Star
+  Pencil, Share2, Lock, ListChecks, ArrowLeft, Star, Printer
 } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
@@ -134,6 +134,13 @@ export default function SpellingListDetailPage() {
                 </span>
                 <h3 className="font-semibold text-gray-900 text-sm">View words</h3>
                 <p className="text-xs text-gray-500">See the full list</p>
+              </button>
+              <button onClick={() => navigate(`/spelling/lists/${id}/print`)} className="p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition text-left border border-gray-100">
+                <span className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-orange-500">
+                  <Printer className="w-5 h-5 text-white" />
+                </span>
+                <h3 className="font-semibold text-gray-900 text-sm">Print sheet</h3>
+                <p className="text-xs text-gray-500">Test, practice & puzzles</p>
               </button>
             </div>
           </>
