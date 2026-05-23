@@ -2,41 +2,43 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ArrowLeft, ArrowRight, Download, Lock } from 'lucide-react';
 import { resourcesAPI, SERVER_ORIGIN } from '../services/api';
 import { GROUP_NAME, RESOURCE_CATEGORIES } from '../config/brand';
 import Seo from '../components/Seo';
+import SiteHeader from '../components/SiteHeader';
+import SiteFooter from '../components/SiteFooter';
 import { trackEvent } from '../lib/analytics';
 
-const categoryName = (id) =>
-  RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
+const categoryName = (id) => RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
 
 // Tailwind-styled element mappings for rendered Markdown.
 const markdownComponents = {
-  h1: ({ node, ...props }) => <h2 className="text-2xl font-bold text-gray-900 mt-6 mb-3" {...props} />,
-  h2: ({ node, ...props }) => <h3 className="text-xl font-semibold text-gray-900 mt-6 mb-2" {...props} />,
-  h3: ({ node, ...props }) => <h4 className="text-lg font-semibold text-gray-900 mt-4 mb-2" {...props} />,
-  p: ({ node, ...props }) => <p className="text-gray-700 mb-4 leading-relaxed" {...props} />,
-  ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-4 text-gray-700 space-y-1" {...props} />,
-  ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-4 text-gray-700 space-y-1" {...props} />,
+  h1: ({ node, ...props }) => <h2 className="mt-8 mb-3 font-display text-2xl font-bold text-slate-900" {...props} />,
+  h2: ({ node, ...props }) => <h3 className="mt-8 mb-2 font-display text-xl font-semibold text-slate-900" {...props} />,
+  h3: ({ node, ...props }) => <h4 className="mt-6 mb-2 font-display text-lg font-semibold text-slate-900" {...props} />,
+  p: ({ node, ...props }) => <p className="mb-4 leading-relaxed text-slate-700" {...props} />,
+  ul: ({ node, ...props }) => <ul className="mb-4 list-disc space-y-1 pl-6 text-slate-700" {...props} />,
+  ol: ({ node, ...props }) => <ol className="mb-4 list-decimal space-y-1 pl-6 text-slate-700" {...props} />,
   li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
   a: ({ node, ...props }) => (
-    <a className="text-purple-600 underline hover:text-purple-700" target="_blank" rel="noopener noreferrer" {...props} />
+    <a className="text-indigo-600 underline hover:text-indigo-700" target="_blank" rel="noopener noreferrer" {...props} />
   ),
-  strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900" {...props} />,
+  strong: ({ node, ...props }) => <strong className="font-semibold text-slate-900" {...props} />,
   blockquote: ({ node, ...props }) => (
-    <blockquote className="border-l-4 border-purple-200 pl-4 italic text-gray-600 mb-4" {...props} />
+    <blockquote className="mb-4 border-l-4 border-indigo-200 pl-4 italic text-slate-600" {...props} />
   ),
-  code: ({ node, ...props }) => <code className="bg-gray-100 rounded px-1 py-0.5 text-sm" {...props} />,
+  code: ({ node, ...props }) => <code className="rounded bg-slate-100 px-1 py-0.5 text-sm" {...props} />,
   table: ({ node, ...props }) => (
-    <div className="overflow-x-auto mb-4">
-      <table className="min-w-full border border-gray-200 text-sm" {...props} />
+    <div className="mb-4 overflow-x-auto">
+      <table className="min-w-full border border-slate-200 text-sm" {...props} />
     </div>
   ),
   th: ({ node, ...props }) => (
-    <th className="border border-gray-200 bg-gray-50 px-3 py-2 text-left font-semibold" {...props} />
+    <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold" {...props} />
   ),
-  td: ({ node, ...props }) => <td className="border border-gray-200 px-3 py-2" {...props} />,
-  del: ({ node, ...props }) => <del className="text-gray-500" {...props} />
+  td: ({ node, ...props }) => <td className="border border-slate-200 px-3 py-2" {...props} />,
+  del: ({ node, ...props }) => <del className="text-slate-500" {...props} />,
 };
 
 function GateForm({ slug, resourceTitle, onUnlock }) {
@@ -59,45 +61,28 @@ function GateForm({ slug, resourceTitle, onUnlock }) {
   };
 
   return (
-    <div className="bg-purple-50 border border-purple-100 rounded-lg p-6 mt-2">
-      <h2 className="text-lg font-semibold text-gray-900 mb-1">Get free access</h2>
-      <p className="text-gray-600 text-sm mb-4">
+    <div className="mt-2 rounded-xl border border-indigo-100 bg-indigo-50/60 p-6">
+      <div className="flex items-center gap-2 text-indigo-700">
+        <Lock className="h-4 w-4" />
+        <h2 className="font-display text-lg font-semibold text-slate-900">Get free access</h2>
+      </div>
+      <p className="mt-1 mb-4 text-sm text-slate-600">
         Enter your email and we'll unlock this resource. We'll only use it to share helpful learning
         materials — no spam.
       </p>
       <form onSubmit={handleSubmit} className="space-y-3">
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>
-        )}
+        {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
         <div>
-          <label htmlFor="gate-name" className="block text-sm font-medium text-gray-700 mb-1">
-            Name <span className="text-gray-400">(optional)</span>
+          <label htmlFor="gate-name" className="field-label">
+            Name <span className="text-slate-400">(optional)</span>
           </label>
-          <input
-            id="gate-name"
-            type="text"
-            value={form.name}
-            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-            maxLength={100}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
+          <input id="gate-name" type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} maxLength={100} className="field" />
         </div>
         <div>
-          <label htmlFor="gate-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            id="gate-email"
-            type="email"
-            required
-            value={form.email}
-            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
+          <label htmlFor="gate-email" className="field-label">Email</label>
+          <input id="gate-email" type="email" required value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} className="field" />
         </div>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
-        >
+        <button type="submit" disabled={submitting} className="btn-primary">
           {submitting ? 'Unlocking...' : 'Unlock resource'}
         </button>
       </form>
@@ -132,8 +117,11 @@ export default function ResourceDetailPage() {
     };
   }, [slug]);
 
+  const body = unlocked?.body ?? resource?.body;
+  const fileUrl = unlocked?.fileUrl ?? resource?.fileUrl;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-white">
       {resource && (
         <Seo
           title={resource.title}
@@ -142,85 +130,81 @@ export default function ResourceDetailPage() {
         />
       )}
       <a href="#main" className="skip-link">Skip to content</a>
-      <header className="bg-white shadow">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link to="/resources" className="text-purple-600 hover:text-purple-700 font-medium">
-            ← All resources
-          </Link>
-          <Link to="/" className="text-xs text-gray-500 hover:text-purple-600">
-            {GROUP_NAME}
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
-      <main id="main" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {status === 'loading' && <p className="text-center text-gray-500" role="status">Loading...</p>}
+      <main id="main" className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+        <Link to="/resources" className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700">
+          <ArrowLeft className="h-4 w-4" /> All resources
+        </Link>
+
+        {status === 'loading' && <p className="mt-10 text-center text-slate-500" role="status">Loading...</p>}
 
         {status === 'notfound' && (
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Resource not found</h2>
-            <Link to="/resources" className="text-purple-600 hover:text-purple-700 font-medium">
+          <div className="mt-16 text-center">
+            <h1 className="font-display text-2xl font-bold text-slate-900">Resource not found</h1>
+            <Link to="/resources" className="mt-4 inline-block font-medium text-indigo-600 hover:text-indigo-700">
               Browse all resources
             </Link>
           </div>
         )}
 
         {status === 'ready' && resource && (
-          <article className="bg-white rounded-xl shadow p-8">
-            <span className="text-xs font-semibold uppercase tracking-wide text-purple-700">
+          <article className="mt-6">
+            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
               {categoryName(resource.category)}
             </span>
-            <h1 className="text-3xl font-bold text-gray-900 mt-2 mb-3">{resource.title}</h1>
-
-            <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-6">
-              {resource.level && <span className="bg-gray-100 px-2 py-1 rounded">{resource.level}</span>}
-              {resource.subject && <span className="bg-gray-100 px-2 py-1 rounded">{resource.subject}</span>}
+            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              {resource.title}
+            </h1>
+            <div className="mt-4 mb-8 flex flex-wrap gap-2 text-xs text-slate-500">
+              {resource.level && <span className="rounded bg-slate-100 px-2 py-1">{resource.level}</span>}
+              {resource.subject && <span className="rounded bg-slate-100 px-2 py-1">{resource.subject}</span>}
             </div>
 
             {resource.gated && !unlocked ? (
               <>
-                {resource.summary && <p className="text-gray-700 mb-4">{resource.summary}</p>}
-                <GateForm
-                  slug={resource.slug}
-                  resourceTitle={resource.title}
-                  onUnlock={(data) => setUnlocked(data)}
-                />
+                {resource.summary && <p className="mb-4 text-lg leading-relaxed text-slate-700">{resource.summary}</p>}
+                <GateForm slug={resource.slug} resourceTitle={resource.title} onUnlock={(data) => setUnlocked(data)} />
               </>
             ) : (
               <>
-                {(unlocked?.body ?? resource.body) && (
+                {body && (
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                    {unlocked?.body ?? resource.body}
+                    {body}
                   </ReactMarkdown>
                 )}
-
-                {(unlocked?.fileUrl ?? resource.fileUrl) && (
+                {fileUrl && (
                   <a
-                    href={`${SERVER_ORIGIN}${unlocked?.fileUrl ?? resource.fileUrl}`}
+                    href={`${SERVER_ORIGIN}${fileUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => trackEvent('Resource Download', { resource: resource.title })}
-                    className="inline-block mt-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                    className="btn-primary mt-2"
                   >
-                    Download
+                    <Download className="h-4 w-4" /> Download
                   </a>
                 )}
               </>
             )}
 
-            <div className="mt-10 pt-6 border-t border-gray-100">
-              <p className="text-gray-700 mb-3 font-medium">Need a hand with this topic?</p>
+            <div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-6 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="font-display font-semibold text-slate-900">Need a hand with this topic?</p>
+                <p className="mt-1 text-sm text-slate-600">Get matched with a vetted tutor who can help.</p>
+              </div>
               <Link
                 to="/register?role=parent"
                 onClick={() => trackEvent('Find a Tutor', { source: 'resource' })}
-                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                className="btn-primary mt-4 sm:mt-0"
               >
-                Find a Tutor
+                Find a tutor <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </article>
         )}
       </main>
+
+      <SiteFooter />
     </div>
   );
 }
