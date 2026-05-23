@@ -14,6 +14,7 @@ import MessagesPage from './pages/MessagesPage';
 import TutorProfilePage from './pages/TutorProfilePage';
 import WorksheetGeneratorPage from './pages/WorksheetGeneratorPage';
 import StudentsPage from './pages/StudentsPage';
+import MobileNav from './components/MobileNav';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -34,7 +35,12 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" />;
   }
 
-  return children;
+  return (
+    <>
+      <div className="pb-16 md:pb-0">{children}</div>
+      <MobileNav />
+    </>
+  );
 };
 
 // Public Route (redirects to dashboard if already logged in)
@@ -80,17 +86,17 @@ const LandingPage = () => (
 
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center">
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
           Find Your Perfect Tutor
         </h2>
         <p className="text-xl text-gray-600 mb-8">
           Connect with expert tutors and start learning today
         </p>
-        <div className="space-x-4">
-          <a href="/register?role=parent" className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-block font-medium">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
+          <a href="/register?role=parent" className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-center">
             Find a Tutor
           </a>
-          <a href="/register?role=tutor" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-block font-medium">
+          <a href="/register?role=tutor" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-center">
             Become a Tutor
           </a>
         </div>
