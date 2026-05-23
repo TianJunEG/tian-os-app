@@ -23,8 +23,14 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['parent', 'tutor', 'admin'],
+    enum: ['parent', 'tutor', 'admin', 'student'],
     default: 'parent'
+  },
+  // For student accounts: the parent/tutor who provisioned and owns them.
+  linkedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   avatar: {
     type: String,

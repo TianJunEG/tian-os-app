@@ -13,7 +13,7 @@
     "seed:reviews": "node seed-reviews.js",
     "seed:all": "node seed-tutors.js && node seed-reviews.js",
     "seed:fresh": "node clear-db.js && node seed-tutors.js && node seed-reviews.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run"
   },
   "keywords": [
     "tutoring",
@@ -23,11 +23,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.6",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-validator": "^7.0.0",
+    "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.0",
     "multer": "^1.4.5-lts.1",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "mongodb-memory-server-core": "^11.1.0",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "vitest": "^4.1.7"
   }
 }

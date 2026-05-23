@@ -18,6 +18,15 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // For file uploads, drop the JSON content-type so the browser sets the
+  // correct multipart/form-data boundary.
+  if (config.data instanceof FormData) {
+    if (config.headers && typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type');
+    } else if (config.headers) {
+      delete config.headers['Content-Type'];
+    }
+  }
   return config;
 });
 
@@ -115,6 +124,25 @@ export const messagesAPI = {
   sendMessage: (data) => api.post('/messages', data),
   editMessage: (id, data) => api.put(`/messages/${id}`, data),
   deleteMessage: (id) => api.delete(`/messages/${id}`)
+};
+
+// Worksheets API (math misconception practice generator)
+export const worksheetsAPI = {
+  generate: (formData) => api.post('/worksheets/generate', formData),
+  list: () => api.get('/worksheets'),
+  get: (id) => api.get(`/worksheets/${id}`),
+  updateSession: (id, n, data) => api.patch(`/worksheets/${id}/sessions/${n}`, data),
+  markSession: (id, n, data) => api.post(`/worksheets/${id}/sessions/${n}/mark`, data),
+  reinforce: (id, data) => api.post(`/worksheets/${id}/reinforce`, data),
+  mistakes: (params) => api.get('/worksheets/mistakes', { params }),
+  remove: (id) => api.delete(`/worksheets/${id}`)
+};
+
+// Students API (student logins managed by a parent/tutor)
+export const studentsAPI = {
+  create: (data) => api.post('/students', data),
+  list: () => api.get('/students'),
+  remove: (id) => api.delete(`/students/${id}`)
 };
 
 // Admin API

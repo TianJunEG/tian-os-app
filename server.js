@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -14,6 +15,8 @@ import paymentRoutes from './routes/payments.js';
 import messageRoutes from './routes/messages.js';
 import reviewRoutes from './routes/reviews.js';
 import adminRoutes from './routes/admin.js';
+import worksheetRoutes from './routes/worksheets.js';
+import studentRoutes from './routes/students.js';
 import partnerRoutes from './routes/partners.js';
 import resourceRoutes from './routes/resources.js';
 
@@ -25,6 +28,11 @@ const app = express();
 connectDB();
 
 // Middleware
+app.use(helmet({
+  // allow the separate-origin frontend to load images served from /uploads
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
   .split(',')
@@ -43,8 +51,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Security & Validation Middleware
 app.use(sanitizeInputs);
@@ -68,6 +76,8 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/worksheets', worksheetRoutes);
+app.use('/api/students', studentRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/resources', resourceRoutes);
 

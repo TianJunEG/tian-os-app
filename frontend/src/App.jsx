@@ -1,27 +1,38 @@
-import React, { useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { initAnalytics } from './lib/analytics';
+import MobileNav from './components/MobileNav';
+import PwaManager from './components/PwaManager';
+import ErrorBoundary from './components/ErrorBoundary';
 
-// Pages
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import TutorSearchPage from './pages/TutorSearchPage';
-import BookingPage from './pages/BookingPage';
-import PaymentPage from './pages/PaymentPage';
-import BookingsPage from './pages/BookingsPage';
-import MessagesPage from './pages/MessagesPage';
-import TutorProfilePage from './pages/TutorProfilePage';
-import ParentProgressPage from './pages/ParentProgressPage';
-import GroupLandingPage from './pages/GroupLandingPage';
-import TutoringLandingPage from './pages/TutoringLandingPage';
-import EduAppsLandingPage from './pages/EduAppsLandingPage';
-import ResourcesHubPage from './pages/ResourcesHubPage';
-import ResourceDetailPage from './pages/ResourceDetailPage';
-import AdminDashboard from './components/AdminDashboard';
-import TutorOnboarding from './components/TutorOnboarding';
-import ParentProfile from './components/ParentProfile';
+// Pages are code-split so each route loads its own chunk on demand.
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const TutorSearchPage = lazy(() => import('./pages/TutorSearchPage'));
+const BookingPage = lazy(() => import('./pages/BookingPage'));
+const PaymentPage = lazy(() => import('./pages/PaymentPage'));
+const BookingsPage = lazy(() => import('./pages/BookingsPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const TutorProfilePage = lazy(() => import('./pages/TutorProfilePage'));
+const WorksheetGeneratorPage = lazy(() => import('./pages/WorksheetGeneratorPage'));
+const StudentsPage = lazy(() => import('./pages/StudentsPage'));
+const ParentProgressPage = lazy(() => import('./pages/ParentProgressPage'));
+const GroupLandingPage = lazy(() => import('./pages/GroupLandingPage'));
+const TutoringLandingPage = lazy(() => import('./pages/TutoringLandingPage'));
+const EduAppsLandingPage = lazy(() => import('./pages/EduAppsLandingPage'));
+const ResourcesHubPage = lazy(() => import('./pages/ResourcesHubPage'));
+const ResourceDetailPage = lazy(() => import('./pages/ResourceDetailPage'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const TutorOnboarding = lazy(() => import('./components/TutorOnboarding'));
+const ParentProfile = lazy(() => import('./components/ParentProfile'));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+  </div>
+);
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -42,7 +53,12 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" />;
   }
 
-  return children;
+  return (
+    <>
+      <div className="pb-16 md:pb-0">{children}</div>
+      <MobileNav />
+    </>
+  );
 };
 
 // Admin Route (requires authenticated admin role)
@@ -102,6 +118,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <PwaManager />
+        <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<GroupLandingPage />} />
@@ -193,6 +212,24 @@ function App() {
           />
 
           <Route
+            path="/worksheets"
+            element={
+              <ProtectedRoute>
+                <WorksheetGeneratorPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/students"
+            element={
+              <ProtectedRoute>
+                <StudentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/tutor/onboarding"
             element={
               <ProtectedRoute>
@@ -231,6 +268,8 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
+        </ErrorBoundary>
       </AuthProvider>
     </Router>
   );
