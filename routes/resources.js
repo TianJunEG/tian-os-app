@@ -44,6 +44,7 @@ const validators = [
 router.get('/', async (req, res) => {
   try {
     const { category, level, subject, q, page = 1, limit = 12 } = req.query;
+    const perPage = Math.min(parseInt(limit) || 12, 100);
     const filter = { published: true };
     if (category) filter.category = category;
     if (level) filter.level = level;
@@ -54,13 +55,15 @@ router.get('/', async (req, res) => {
       filter.$or = [{ title: regex }, { summary: regex }];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (parseInt(page) - 1) * perPage;
     const [resources, total] = await Promise.all([
+      // Exclude body and fileUrl: listings never need them, and fileUrl
+      // must not leak for gated resources.
       Resource.find(filter)
-        .select('-body')
+        .select('-body -fileUrl')
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(perPage),
       Resource.countDocuments(filter)
     ]);
 
@@ -68,9 +71,9 @@ router.get('/', async (req, res) => {
       resources,
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
+        limit: perPage,
         total,
-        pages: Math.ceil(total / parseInt(limit)) || 1
+        pages: Math.ceil(total / perPage) || 1
       }
     });
   } catch (error) {
@@ -110,7 +113,10 @@ router.get('/leads', adminOnly, async (req, res) => {
 // @access  Public
 router.post(
   '/:slug/unlock',
-  [body('email').trim().isEmail().withMessage('A valid email is required').normalizeEmail()],
+  [
+    body('email').trim().isEmail().withMessage('A valid email is required').normalizeEmail(),
+    body('name').optional().trim().isLength({ max: 100 })
+  ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

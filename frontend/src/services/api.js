@@ -70,8 +70,10 @@ export const resourcesAPI = {
   list: (params) => api.get('/resources', { params }),
   getBySlug: (slug) => api.get(`/resources/${slug}`),
   adminList: () => api.get('/resources/admin'),
-  create: (formData) => api.post('/resources', formData),
-  update: (id, formData) => api.put(`/resources/${id}`, formData),
+  create: (formData) =>
+    api.post('/resources', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/resources/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   remove: (id) => api.delete(`/resources/${id}`),
   unlock: (slug, data) => api.post(`/resources/${slug}/unlock`, data),
   getLeads: () => api.get('/resources/leads')

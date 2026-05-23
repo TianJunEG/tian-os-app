@@ -22,12 +22,12 @@ export default function TutoringLandingPage() {
               </Link>
             </div>
             <div className="space-x-4">
-              <a href="/login" className="text-gray-700 hover:text-purple-600 font-medium">
+              <Link to="/login" className="text-gray-700 hover:text-purple-600 font-medium">
                 Login
-              </a>
-              <a href="/register" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+              </Link>
+              <Link to="/register" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
                 Sign Up
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -40,18 +40,18 @@ export default function TutoringLandingPage() {
             Connect with expert tutors and start learning today
           </p>
           <div className="space-x-4">
-            <a
-              href="/register?role=parent"
+            <Link
+              to="/register?role=parent"
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-block font-medium"
             >
               Find a Tutor
-            </a>
-            <a
-              href="/register?role=tutor"
+            </Link>
+            <Link
+              to="/register?role=tutor"
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-block font-medium"
             >
               Become a Tutor
-            </a>
+            </Link>
           </div>
         </div>
       </main>

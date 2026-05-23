@@ -79,7 +79,10 @@ export default function ParentProgressPage() {
 
   useEffect(() => {
     const parentId = user?._id || user?.id;
-    if (!parentId) return;
+    if (!parentId) {
+      setLoading(false);
+      return;
+    }
 
     bookingsAPI.getParentProgress(parentId)
       .then(res => {
