@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { resourcesAPI } from '../services/api';
 import { GROUP_NAME, RESOURCE_CATEGORIES } from '../config/brand';
+import Seo from '../components/Seo';
 
 const categoryName = (id) =>
   RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
@@ -36,6 +37,12 @@ export default function ResourcesHubPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <Seo
+        title="Resources"
+        description="Free learning resources from Tian Jun Education Group: MOE syllabus guides, practice papers, and family activities."
+        path="/resources"
+      />
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div>
@@ -50,7 +57,7 @@ export default function ResourcesHubPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Free learning resources</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -59,8 +66,10 @@ export default function ResourcesHubPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
+        <div className="flex flex-wrap justify-center gap-2 mb-10" role="group" aria-label="Filter resources by category">
           <button
+            type="button"
+            aria-pressed={activeCategory === ''}
             onClick={() => setActiveCategory('')}
             className={`px-4 py-2 rounded-full text-sm font-medium ${
               activeCategory === ''
@@ -73,6 +82,8 @@ export default function ResourcesHubPage() {
           {RESOURCE_CATEGORIES.map((cat) => (
             <button
               key={cat.id}
+              type="button"
+              aria-pressed={activeCategory === cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={`px-4 py-2 rounded-full text-sm font-medium ${
                 activeCategory === cat.id
@@ -86,7 +97,7 @@ export default function ResourcesHubPage() {
         </div>
 
         {loading ? (
-          <p className="text-center text-gray-500">Loading resources...</p>
+          <p className="text-center text-gray-500" role="status">Loading resources...</p>
         ) : resources.length === 0 ? (
           <p className="text-center text-gray-500">No resources here yet — check back soon.</p>
         ) : (

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { resourcesAPI, SERVER_ORIGIN } from '../services/api';
 import { GROUP_NAME, RESOURCE_CATEGORIES } from '../config/brand';
+import Seo from '../components/Seo';
 
 const categoryName = (id) =>
   RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
@@ -53,6 +54,14 @@ export default function ResourceDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      {resource && (
+        <Seo
+          title={resource.title}
+          description={resource.summary || `A ${categoryName(resource.category)} resource from ${GROUP_NAME}.`}
+          path={`/resources/${resource.slug}`}
+        />
+      )}
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className="bg-white shadow">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <Link to="/resources" className="text-purple-600 hover:text-purple-700 font-medium">
@@ -64,8 +73,8 @@ export default function ResourceDetailPage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {status === 'loading' && <p className="text-center text-gray-500">Loading...</p>}
+      <main id="main" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {status === 'loading' && <p className="text-center text-gray-500" role="status">Loading...</p>}
 
         {status === 'notfound' && (
           <div className="text-center">

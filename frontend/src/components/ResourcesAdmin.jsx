@@ -111,13 +111,13 @@ const ResourcesAdmin = () => {
         {error && <div className="form-error">{error}</div>}
 
         <div className="full-width">
-          <label>Title</label>
-          <input type="text" name="title" value={form.title} onChange={handleChange} required maxLength={200} />
+          <label htmlFor="res-title">Title</label>
+          <input id="res-title" type="text" name="title" value={form.title} onChange={handleChange} required maxLength={200} />
         </div>
 
         <div>
-          <label>Category</label>
-          <select name="category" value={form.category} onChange={handleChange}>
+          <label htmlFor="res-category">Category</label>
+          <select id="res-category" name="category" value={form.category} onChange={handleChange}>
             {RESOURCE_CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -127,28 +127,29 @@ const ResourcesAdmin = () => {
         </div>
 
         <div>
-          <label>Level (optional)</label>
-          <input type="text" name="level" value={form.level} onChange={handleChange} placeholder="e.g. Primary 5" maxLength={60} />
+          <label htmlFor="res-level">Level (optional)</label>
+          <input id="res-level" type="text" name="level" value={form.level} onChange={handleChange} placeholder="e.g. Primary 5" maxLength={60} />
         </div>
 
         <div>
-          <label>Subject (optional)</label>
-          <input type="text" name="subject" value={form.subject} onChange={handleChange} placeholder="e.g. Mathematics" maxLength={60} />
+          <label htmlFor="res-subject">Subject (optional)</label>
+          <input id="res-subject" type="text" name="subject" value={form.subject} onChange={handleChange} placeholder="e.g. Mathematics" maxLength={60} />
         </div>
 
         <div>
-          <label>Attachment (PDF/image, optional)</label>
-          <input type="file" accept="application/pdf,image/*" onChange={(e) => setFile(e.target.files[0] || null)} />
+          <label htmlFor="res-file">Attachment (PDF/image, optional)</label>
+          <input id="res-file" type="file" accept="application/pdf,image/*" onChange={(e) => setFile(e.target.files[0] || null)} />
         </div>
 
         <div className="full-width">
-          <label>Summary (shown in listings)</label>
-          <input type="text" name="summary" value={form.summary} onChange={handleChange} maxLength={400} />
+          <label htmlFor="res-summary">Summary (shown in listings)</label>
+          <input id="res-summary" type="text" name="summary" value={form.summary} onChange={handleChange} maxLength={400} />
         </div>
 
         <div className="full-width">
-          <label>Body (Markdown supported)</label>
+          <label htmlFor="res-body">Body (Markdown supported)</label>
           <textarea
+            id="res-body"
             name="body"
             value={form.body}
             onChange={handleChange}

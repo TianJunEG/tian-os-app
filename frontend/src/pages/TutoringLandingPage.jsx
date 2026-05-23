@@ -1,10 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GROUP_NAME } from '../config/brand';
+import Seo from '../components/Seo';
 
 export default function TutoringLandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <Seo
+        title="Tutor Matching"
+        description="Connect with expert, vetted tutors and start learning today — Tutor Matching, a service of Tian Jun Education Group."
+        path="/tutoring"
+      />
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
@@ -26,7 +33,7 @@ export default function TutoringLandingPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Find Your Perfect Tutor</h2>
           <p className="text-xl text-gray-600 mb-8">

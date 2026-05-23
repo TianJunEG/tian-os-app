@@ -1,10 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { GROUP_NAME } from '../config/brand';
+import Seo from '../components/Seo';
 
 export default function EduAppsLandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <Seo
+        title="Edu Apps"
+        description="Interactive learning apps for every student — coming soon from Tian Jun Education Group."
+        path="/edu-apps"
+      />
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div>
@@ -16,7 +23,7 @@ export default function EduAppsLandingPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center max-w-2xl mx-auto">
           <span className="inline-block text-xs font-semibold uppercase tracking-wide text-amber-700 bg-amber-100 px-3 py-1 rounded mb-6">
             Coming soon

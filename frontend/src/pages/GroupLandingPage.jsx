@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { partnersAPI } from '../services/api';
 import { GROUP_NAME, SERVICES } from '../config/brand';
+import Seo from '../components/Seo';
 
 function PartnershipSection() {
   const [form, setForm] = useState({ name: '', organization: '', email: '', message: '' });
@@ -66,8 +67,9 @@ function PartnershipSection() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                <label htmlFor="partner-name" className="block text-sm font-medium text-gray-700 mb-2">Name</label>
                 <input
+                  id="partner-name"
                   type="text"
                   name="name"
                   value={form.name}
@@ -78,10 +80,11 @@ function PartnershipSection() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="partner-org" className="block text-sm font-medium text-gray-700 mb-2">
                   Organization <span className="text-gray-400">(optional)</span>
                 </label>
                 <input
+                  id="partner-org"
                   type="text"
                   name="organization"
                   value={form.organization}
@@ -92,8 +95,9 @@ function PartnershipSection() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label htmlFor="partner-email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
+                id="partner-email"
                 type="email"
                 name="email"
                 value={form.email}
@@ -103,8 +107,9 @@ function PartnershipSection() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tell us how you'd like to work together</label>
+              <label htmlFor="partner-message" className="block text-sm font-medium text-gray-700 mb-2">Tell us how you'd like to work together</label>
               <textarea
+                id="partner-message"
                 name="message"
                 value={form.message}
                 onChange={handleChange}
@@ -184,6 +189,11 @@ function MissionSection() {
 export default function GroupLandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <Seo
+        description={`${GROUP_NAME} is a social enterprise bringing together a family of education services — tutor matching, learning resources, and more.`}
+        path="/"
+      />
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-purple-600">{GROUP_NAME}</h1>
@@ -193,7 +203,7 @@ export default function GroupLandingPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-14">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Empowering learners across every stage
