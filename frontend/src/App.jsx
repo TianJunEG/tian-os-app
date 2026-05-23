@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import MobileNav from './components/MobileNav';
 import PwaManager from './components/PwaManager';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages are code-split so each route loads its own chunk on demand.
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -118,6 +119,7 @@ function App() {
     <Router>
       <AuthProvider>
         <PwaManager />
+        <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
@@ -227,6 +229,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         </Suspense>
+        </ErrorBoundary>
       </AuthProvider>
     </Router>
   );
