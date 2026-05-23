@@ -51,6 +51,71 @@ function circle(r) {
     <text x="${cx + rad / 2}" y="${cy - 6}" class="d-label" text-anchor="middle">r = ${r} cm</text>`);
 }
 
+// Angles on a straight line (total 180) or at a point (total 360). `segments` are the
+// consecutive angles around the centre; the last one is the unknown, drawn as "x°".
+function angleDiagram(segments, total) {
+  const cx = 100, cy = total === 180 ? 98 : 90, R = 62, lr = 40;
+  const xy = (deg, rad) => [cx + rad * Math.cos((deg * Math.PI) / 180), cy - rad * Math.sin((deg * Math.PI) / 180)];
+  let body = '';
+  if (total === 180) body += `<line x1="${cx - R - 6}" y1="${cy}" x2="${cx + R + 6}" y2="${cy}" class="d-base"/>`;
+  const bounds = [0];
+  segments.forEach((s) => bounds.push(bounds[bounds.length - 1] + s));
+  const start = total === 360 ? 0 : 1; // for a point, also draw the 0° ray as reference
+  for (let i = start; i < bounds.length - 1; i++) {
+    const [x, y] = xy(bounds[i], R);
+    body += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="d-radius"/>`;
+  }
+  if (total === 360) { const [x, y] = xy(0, R); body += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="d-radius"/>`; }
+  segments.forEach((s, i) => {
+    const [lx, ly] = xy((bounds[i] + bounds[i + 1]) / 2, lr);
+    const t = i === segments.length - 1 ? 'x°' : `${s}°`;
+    body += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="d-label" text-anchor="middle" dominant-baseline="middle">${t}</text>`;
+  });
+  body += `<circle cx="${cx}" cy="${cy}" r="2.4" class="d-dot"/>`;
+  return svg(200, total === 180 ? 132 : 182, `Angles around a ${total === 180 ? 'line' : 'point'} summing to ${total}°`, body);
+}
+
+// Triangle with two known interior angles and the third unknown (x°).
+function triAngles(a, b) {
+  return svg(200, 148, `Triangle, angles ${a}° and ${b}° with one unknown`, `
+    <polygon points="28,118 172,118 118,26" class="d-shape"/>
+    <text x="48" y="110" class="d-label">${a}°</text>
+    <text x="150" y="110" class="d-label" text-anchor="end">${b}°</text>
+    <text x="118" y="48" class="d-label" text-anchor="middle">x°</text>`);
+}
+
+function semicircle(r) {
+  const cx = 100, cy = 104, rad = 64;
+  return svg(200, 132, `Semicircle, radius ${r} cm`, `
+    <path d="M ${cx - rad} ${cy} A ${rad} ${rad} 0 0 1 ${cx + rad} ${cy} Z" class="d-shape"/>
+    <line x1="${cx}" y1="${cy}" x2="${cx + rad}" y2="${cy}" class="d-radius"/>
+    <circle cx="${cx}" cy="${cy}" r="2.4" class="d-dot"/>
+    <text x="${cx + rad / 2}" y="${cy - 6}" class="d-label" text-anchor="middle">r = ${r} cm</text>`);
+}
+
+function quarterCircle(r) {
+  const ox = 52, oy = 116, rad = 88;
+  return svg(200, 150, `Quarter circle, radius ${r} cm`, `
+    <path d="M ${ox} ${oy} L ${ox + rad} ${oy} A ${rad} ${rad} 0 0 0 ${ox} ${oy - rad} Z" class="d-shape"/>
+    <rect x="${ox}" y="${oy - 9}" width="9" height="9" class="d-rt"/>
+    <text x="${ox + rad / 2}" y="${oy + 18}" class="d-label" text-anchor="middle">r = ${r} cm</text>`);
+}
+
+// L-shaped composite: outer W×H rectangle with a notch (nw×nh) removed from the top-right.
+function lshape(W, H, nw, nh) {
+  const unit = Math.min(120 / W, 86 / H), pw = W * unit, ph = H * unit, nwp = nw * unit, nhp = nh * unit;
+  const x0 = (200 - pw) / 2, y0 = 14;
+  const pts = [
+    [x0, y0], [x0 + pw - nwp, y0], [x0 + pw - nwp, y0 + nhp], [x0 + pw, y0 + nhp], [x0 + pw, y0 + ph], [x0, y0 + ph],
+  ].map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  return svg(200, y0 + ph + 30, `L-shaped figure, ${W} by ${H} cm with a ${nw} by ${nh} cm notch`, `
+    <polygon points="${pts}" class="d-shape"/>
+    <text x="${x0 + pw / 2}" y="${y0 + ph + 18}" class="d-label" text-anchor="middle">${W} cm</text>
+    <text x="${x0 - 8}" y="${y0 + ph / 2}" class="d-label" text-anchor="end" dominant-baseline="middle">${H} cm</text>
+    <text x="${(x0 + pw - nwp + x0 + pw) / 2}" y="${y0 + nhp + 14}" class="d-label" text-anchor="middle">${nw} cm</text>
+    <text x="${x0 + pw - nwp - 5}" y="${y0 + nhp / 2}" class="d-label" text-anchor="end" dominant-baseline="middle">${nh} cm</text>`);
+}
+
 export function diagramFor(p) {
   if (!p || !p.parts) return '';
   const a = p.parts;
@@ -61,6 +126,14 @@ export function diagramFor(p) {
     case 'cuboidVolume': return cuboid(a.l, a.b, a.h);
     case 'circleArea':
     case 'circleCircumference': return circle(a.r);
+    case 'angleLine':
+    case 'anglePoint': return angleDiagram(a.segments, a.total);
+    case 'angleTriangle': return triAngles(a.a, a.b);
+    case 'semicircleArea':
+    case 'semicirclePerimeter': return semicircle(a.r);
+    case 'quarterArea':
+    case 'quarterPerimeter': return quarterCircle(a.r);
+    case 'compositeArea': return lshape(a.W, a.H, a.nw, a.nh);
     default: return '';
   }
 }

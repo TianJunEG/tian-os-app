@@ -126,6 +126,7 @@ body {
 .diagram .d-dash { stroke: var(--brand); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .diagram .d-rt { fill: none; stroke: var(--brand); stroke-width: 1.5; }
 .diagram .d-radius { stroke: var(--brand); stroke-width: 2; }
+.diagram .d-base { stroke: var(--ink-soft); stroke-width: 2; }
 .diagram .d-dot { fill: var(--brand); }
 .diagram .d-label { fill: var(--ink); font-size: 13px; font-weight: 600; }
 

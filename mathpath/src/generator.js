@@ -691,6 +691,68 @@ function genCircleCircumference(skill) {
   return decProblem(skill, `Circumference of this circle = ? cm  (take π = 3.14)`, 2 * PI * r, 'circleCircumference', { r });
 }
 
+// Build n consecutive angles that sum to `total`, each ≥ 20°; the last is the unknown.
+function angleSegments(total, n) {
+  for (let t = 0; t < 300; t++) {
+    const seg = [];
+    let remaining = total;
+    let ok = true;
+    for (let i = 0; i < n - 1; i++) {
+      const max = remaining - 20 * (n - i - 1);
+      if (max < 20) { ok = false; break; }
+      const v = randInt(20, max);
+      seg.push(v); remaining -= v;
+    }
+    if (ok && remaining >= 20) { seg.push(remaining); return seg; }
+  }
+  return total === 180 ? [110, 70] : [120, 90, 150];
+}
+
+function genAngleLine(skill) {
+  const seg = angleSegments(180, Math.random() < 0.5 ? 2 : 3);
+  return problem(skill, `Find angle x, in degrees.`, seg[seg.length - 1], 'angleLine', { segments: seg, total: 180 });
+}
+
+function genAnglePoint(skill) {
+  const seg = angleSegments(360, randInt(2, 3) + 1);
+  return problem(skill, `Find angle x, in degrees.`, seg[seg.length - 1], 'anglePoint', { segments: seg, total: 360 });
+}
+
+function genAngleTriangle(skill) {
+  for (let t = 0; t < 300; t++) {
+    const a = randInt(20, 130), b = randInt(20, 130);
+    if (180 - a - b >= 20) return problem(skill, `Find angle x, in degrees.`, 180 - a - b, 'angleTriangle', { a, b });
+  }
+  return problem(skill, `Find angle x, in degrees.`, 80, 'angleTriangle', { a: 60, b: 40 });
+}
+
+function genSemicircleArea(skill) {
+  const r = randInt(2, 12);
+  return decProblem(skill, `Area of this semicircle = ? cm²  (take π = 3.14)`, 0.5 * PI * r * r, 'semicircleArea', { r });
+}
+
+function genSemicirclePerimeter(skill) {
+  const r = randInt(2, 12);
+  return decProblem(skill, `Perimeter of this semicircle = ? cm  (take π = 3.14)`, PI * r + 2 * r, 'semicirclePerimeter', { r });
+}
+
+function genQuarterArea(skill) {
+  const r = randInt(2, 12);
+  return decProblem(skill, `Area of this quarter circle = ? cm²  (take π = 3.14)`, 0.25 * PI * r * r, 'quarterArea', { r });
+}
+
+function genQuarterPerimeter(skill) {
+  const r = randInt(2, 12);
+  return decProblem(skill, `Perimeter of this quarter circle = ? cm  (take π = 3.14)`, (PI * r) / 2 + 2 * r, 'quarterPerimeter', { r });
+}
+
+// L-shaped composite area = outer rectangle − notch.
+function genCompositeArea(skill) {
+  const W = randInt(6, 16), H = randInt(5, 12);
+  const nw = randInt(2, W - 3), nh = randInt(2, H - 2);
+  return problem(skill, `Area of this L-shaped figure = ? cm²`, W * H - nw * nh, 'compositeArea', { W, H, nw, nh });
+}
+
 const KINDS = {
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
@@ -710,6 +772,9 @@ const KINDS = {
   algSimplify: genAlgSimplify, algEval: genAlgEval, algSolve: genAlgSolve, average: genAverage,
   rectArea: genRectArea, rectPerimeter: genRectPerimeter, triArea: genTriArea,
   cuboidVolume: genCuboidVolume, circleArea: genCircleArea, circleCircumference: genCircleCircumference,
+  angleLine: genAngleLine, anglePoint: genAnglePoint, angleTriangle: genAngleTriangle,
+  semicircleArea: genSemicircleArea, semicirclePerimeter: genSemicirclePerimeter,
+  quarterArea: genQuarterArea, quarterPerimeter: genQuarterPerimeter, compositeArea: genCompositeArea,
 };
 
 export function generateProblem(skill) {

@@ -19,7 +19,7 @@ export default {
     { id: 'ratio', name: 'Ratio', subtitle: 'Equivalent ratios & sharing' },
     { id: 'alg', name: 'Algebra', subtitle: 'Expressions & simple equations' },
     { id: 'stat', name: 'Averages', subtitle: 'Average of a set of data' },
-    { id: 'mg', name: 'Circles', subtitle: 'Area & circumference' },
+    { id: 'mg', name: 'Circles', subtitle: 'Circle, semicircle & quarter circle' },
   ],
   skills: [
     // --- Fractions ---
@@ -99,13 +99,37 @@ export default {
       example: 'r = 6 cm → circumference 37.68 cm (π = 3.14)', timeTarget: 18,
       hint: 'Circumference = 2 × π × r.',
       spec: { kind: 'circleCircumference' } },
+
+    { id: 'sg-p6-semi-area', group: 'mg', code: 'AV 1.2', name: 'Area of a semicircle',
+      objective: 'finding the area of a semicircle',
+      example: 'r = 6 cm → 56.52 cm² (π = 3.14)', timeTarget: 20,
+      hint: 'A semicircle is half a circle: area = ½ × π × r × r.',
+      spec: { kind: 'semicircleArea' } },
+
+    { id: 'sg-p6-semi-perimeter', group: 'mg', code: 'AV 1.2', name: 'Perimeter of a semicircle',
+      objective: 'finding the perimeter of a semicircle',
+      example: 'r = 6 cm → 30.84 cm (π = 3.14)', timeTarget: 22,
+      hint: 'Perimeter = half the circumference (π × r) plus the diameter (2 × r).',
+      spec: { kind: 'semicirclePerimeter' } },
+
+    { id: 'sg-p6-quarter-area', group: 'mg', code: 'AV 1.2', name: 'Area of a quarter circle',
+      objective: 'finding the area of a quarter circle',
+      example: 'r = 8 cm → 50.24 cm² (π = 3.14)', timeTarget: 20,
+      hint: 'A quarter circle is a quarter of a circle: area = ¼ × π × r × r.',
+      spec: { kind: 'quarterArea' } },
+
+    { id: 'sg-p6-quarter-perimeter', group: 'mg', code: 'AV 1.2', name: 'Perimeter of a quarter circle',
+      objective: 'finding the perimeter of a quarter circle',
+      example: 'r = 8 cm → 41.12 cm (π = 3.14)', timeTarget: 22,
+      hint: 'Perimeter = a quarter of the circumference (½ × π × r) plus two radii (2 × r).',
+      spec: { kind: 'quarterPerimeter' } },
   ],
 
   // In the P6 syllabus but needing item types beyond a single number answer.
   pending: [
     'Ratio 1.1/1.2/1.4/1.5/1.7 notation, simplest form, finding a ratio, fraction-ratio link (needs ratio answer a:b)',
     'Algebra 1.1/1.2 letters & expression notation (conceptual — needs expression item)',
-    'Measurement & Geometry: semicircle & quarter circle, composite figures (full-circle area & circumference now drillable with diagrams)',
+    'Measurement & Geometry: composite figures with circle parts; volume — missing dimension given the volume',
     'Volume of cube/cuboid: finding a missing dimension given the volume',
     'Geometry: unknown angles in composite figures (square, rectangle, parallelogram, rhombus, trapezium)',
     'Statistics: reading & interpreting tables, line graphs and pie charts (needs chart item)',

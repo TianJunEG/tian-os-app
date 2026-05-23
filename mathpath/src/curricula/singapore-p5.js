@@ -19,7 +19,8 @@ export default {
     { id: 'dec', name: 'Decimals', subtitle: 'Powers of 10 & metric conversion' },
     { id: 'pct', name: 'Percentage', subtitle: 'Part of a whole, discount, GST, interest' },
     { id: 'rate', name: 'Rate', subtitle: 'Rate, total and units' },
-    { id: 'mg', name: 'Area & Volume', subtitle: 'Triangle & cuboid' },
+    { id: 'mg', name: 'Area & Volume', subtitle: 'Triangle, cuboid & composite' },
+    { id: 'geo', name: 'Angles', subtitle: 'Lines, points & triangles' },
   ],
   skills: [
     // --- Whole Numbers / Four Operations ---
@@ -117,14 +118,38 @@ export default {
       example: '6 × 3 × 4 → 72 cm³', timeTarget: 16,
       hint: 'Volume of a cuboid = length × width × height.',
       spec: { kind: 'cuboidVolume' } },
+
+    { id: 'sg-p5-composite', group: 'mg', code: 'AV 1.3', name: 'Area of a composite figure',
+      objective: 'finding the area of composite figures made up of rectangles, squares and triangles',
+      example: 'L-shape: 12×8 − 5×3 = 81 cm²', timeTarget: 24,
+      hint: 'Split the figure into rectangles (or subtract the missing piece), then add up.',
+      spec: { kind: 'compositeArea' } },
+
+    // --- Angles (with diagram) ---
+    { id: 'sg-p5-angle-line', group: 'geo', code: 'G 1.1', name: 'Angles on a straight line',
+      objective: 'angles on a straight line',
+      example: '130° + x = 180° → x = 50°', timeTarget: 14,
+      hint: 'Angles on a straight line add up to 180°.',
+      spec: { kind: 'angleLine' } },
+
+    { id: 'sg-p5-angle-point', group: 'geo', code: 'G 1.2', name: 'Angles at a point',
+      objective: 'angles at a point',
+      example: '120° + 90° + x = 360° → x = 150°', timeTarget: 16,
+      hint: 'Angles at a point add up to 360°.',
+      spec: { kind: 'anglePoint' } },
+
+    { id: 'sg-p5-angle-triangle', group: 'geo', code: 'G 2.2', name: 'Angle sum of a triangle',
+      objective: 'angle sum of a triangle',
+      example: '65° + 40° + x = 180° → x = 75°', timeTarget: 16,
+      hint: 'The three angles of a triangle add up to 180°.',
+      spec: { kind: 'angleTriangle' } },
   ],
 
   // In the P5 syllabus but needing item types beyond a single number answer.
   pending: [
     'WN 1.1 reading & writing numbers up to 10 million in words (needs text item)',
     'Fr 1.1 dividing a whole number by a whole number with quotient as a fraction (needs fraction answer)',
-    'Measurement & Geometry: composite figures (area of triangle & volume of cuboid now drillable with diagrams)',
-    'Geometry: angles on a line / at a point / vertically opposite, triangle & quadrilateral angle facts',
+    'Geometry: vertically opposite angles, isosceles/equilateral triangle & quadrilateral angle facts',
     'Statistics: average of a set of data (P5 Statistics — drillable as an integer, future add)',
     'Multi-step & ratio/algebra-readiness word problems (needs word-problem / bar-model item)',
   ],
