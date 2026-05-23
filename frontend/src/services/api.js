@@ -55,6 +55,12 @@ export const parentsAPI = {
   updateProfile: (data) => api.put('/parents/profile', data)
 };
 
+// Partners API
+export const partnersAPI = {
+  submitInquiry: (data) => api.post('/partners/inquiries', data),
+  getInquiries: (params) => api.get('/partners/inquiries', { params })
+};
+
 // Search API
 export const searchAPI = {
   searchTutors: (data) => api.post('/search/tutors', data),

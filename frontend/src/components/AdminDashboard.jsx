@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { adminAPI } from '../services/api';
+import { adminAPI, partnersAPI } from '../services/api';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -9,7 +9,8 @@ const AdminDashboard = () => {
     users: null,
     verificationQueue: null,
     bookings: null,
-    disputes: null
+    disputes: null,
+    partners: null
   });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -66,6 +67,12 @@ const AdminDashboard = () => {
             limit: filters.limit
           });
           setData(prev => ({ ...prev, disputes: res.data }));
+        } else if (activeTab === 'partners') {
+          const res = await partnersAPI.getInquiries({
+            page: filters.page,
+            limit: filters.limit
+          });
+          setData(prev => ({ ...prev, partners: res.data }));
         }
       } catch (error) {
         console.error(`Error fetching ${activeTab}:`, error);
@@ -144,6 +151,12 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('disputes')}
           >
             ⚠️ Disputes ({data.disputes?.pagination?.total || 0})
+          </button>
+          <button
+            className={`nav-btn ${activeTab === 'partners' ? 'active' : ''}`}
+            onClick={() => setActiveTab('partners')}
+          >
+            🤝 Partnerships ({data.partners?.pagination?.total || 0})
           </button>
         </div>
       </header>
@@ -466,6 +479,62 @@ const AdminDashboard = () => {
           {data.disputes.disputes.length === 0 && (
             <p className="empty-state">✓ No open disputes</p>
           )}
+        </div>
+      )}
+
+      {/* PARTNERSHIPS TAB */}
+      {activeTab === 'partners' && data.partners && (
+        <div className="admin-section">
+          <h2>Partnership Inquiries ({data.partners.pagination.total})</h2>
+
+          <div className="table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Organization</th>
+                <th>Email</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Received</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.partners.inquiries.map(inquiry => (
+                <tr key={inquiry._id}>
+                  <td>{inquiry.name}</td>
+                  <td>{inquiry.organization || 'N/A'}</td>
+                  <td>{inquiry.email}</td>
+                  <td className="truncate">{inquiry.message}</td>
+                  <td>
+                    <span className="badge badge-parent">{inquiry.status}</span>
+                  </td>
+                  <td>{new Date(inquiry.createdAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+
+          {data.partners.inquiries.length === 0 && (
+            <p className="empty-state">No partnership inquiries yet</p>
+          )}
+
+          <div className="pagination">
+            <button
+              disabled={filters.page === 1}
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+            >
+              ← Prev
+            </button>
+            <span>Page {data.partners.pagination.page} of {data.partners.pagination.pages}</span>
+            <button
+              disabled={filters.page >= data.partners.pagination.pages}
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+            >
+              Next →
+            </button>
+          </div>
         </div>
       )}
     </div>

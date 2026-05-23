@@ -1,6 +1,116 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { partnersAPI } from '../services/api';
 import { GROUP_NAME, SERVICES } from '../config/brand';
+
+function PartnershipSection() {
+  const [form, setForm] = useState({ name: '', organization: '', email: '', message: '' });
+  const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('submitting');
+    setError('');
+    try {
+      await partnersAPI.submitInquiry(form);
+      setStatus('success');
+      setForm({ name: '', organization: '', email: '', message: '' });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not submit your inquiry. Please try again.');
+      setStatus('error');
+    }
+  };
+
+  return (
+    <section className="mt-20 max-w-3xl mx-auto">
+      <div className="bg-white rounded-xl shadow p-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Partnerships</h2>
+        <p className="text-gray-600 mb-6">
+          We're not formally launching partnerships yet, but we'd love to hear from schools,
+          educators, and organizations interested in working with {GROUP_NAME}. Tell us a little
+          about you and we'll reach out when the time is right.
+        </p>
+
+        {status === 'success' ? (
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+            Thank you for your interest. Our team will be in touch.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {error}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                  maxLength={100}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Organization <span className="text-gray-400">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  name="organization"
+                  value={form.organization}
+                  onChange={handleChange}
+                  maxLength={150}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">How would you like to partner?</label>
+              <textarea
+                name="message"
+                value={form.message}
+                onChange={handleChange}
+                required
+                minLength={10}
+                maxLength={2000}
+                rows={4}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={status === 'submitting'}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
+            >
+              {status === 'submitting' ? 'Submitting...' : 'Express Interest'}
+            </button>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
 
 export default function GroupLandingPage() {
   return (
@@ -53,6 +163,8 @@ export default function GroupLandingPage() {
             );
           })}
         </div>
+
+        <PartnershipSection />
       </main>
 
       <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-gray-500 text-sm">
