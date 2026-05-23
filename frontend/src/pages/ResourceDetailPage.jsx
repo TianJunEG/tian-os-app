@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { resourcesAPI, SERVER_ORIGIN } from '../services/api';
 import { GROUP_NAME, RESOURCE_CATEGORIES } from '../config/brand';
 import Seo from '../components/Seo';
+import { trackEvent } from '../lib/analytics';
 
 const categoryName = (id) =>
   RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
@@ -119,6 +120,7 @@ export default function ResourceDetailPage() {
                 href={`${SERVER_ORIGIN}${resource.fileUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackEvent('Resource Download', { resource: resource.title })}
                 className="inline-block mt-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
               >
                 Download
@@ -129,6 +131,7 @@ export default function ResourceDetailPage() {
               <p className="text-gray-700 mb-3 font-medium">Need a hand with this topic?</p>
               <Link
                 to="/register?role=parent"
+                onClick={() => trackEvent('Find a Tutor', { source: 'resource' })}
                 className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
               >
                 Find a Tutor

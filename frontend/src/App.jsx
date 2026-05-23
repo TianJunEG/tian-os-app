@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { initAnalytics } from './lib/analytics';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -94,6 +95,10 @@ const PublicRoute = ({ children }) => {
 
 // Main App
 function App() {
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   return (
     <Router>
       <AuthProvider>

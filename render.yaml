@@ -56,6 +56,8 @@ services:
         sync: false # set to the deployed API URL + /api, e.g. https://tutor-match-api.onrender.com/api
       - key: VITE_STRIPE_PUBLISHABLE_KEY
         sync: false
+      - key: VITE_PLAUSIBLE_DOMAIN
+        sync: false # optional: your site domain as registered in Plausible
     routes:
       # SPA fallback so client-side routes (e.g. /resources/:slug) resolve to index.html
       - type: rewrite

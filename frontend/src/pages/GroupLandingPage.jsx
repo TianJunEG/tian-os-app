@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { partnersAPI } from '../services/api';
 import { GROUP_NAME, SERVICES } from '../config/brand';
 import Seo from '../components/Seo';
+import { trackEvent } from '../lib/analytics';
 
 function PartnershipSection() {
   const [form, setForm] = useState({ name: '', organization: '', email: '', message: '' });
@@ -19,6 +20,7 @@ function PartnershipSection() {
     setError('');
     try {
       await partnersAPI.submitInquiry(form);
+      trackEvent('Partnership Inquiry');
       setStatus('success');
       setForm({ name: '', organization: '', email: '', message: '' });
     } catch (err) {
