@@ -1,18 +1,13 @@
-// storage.js — learner progress, persisted in the browser.
+// storage.js — learner progress, persisted in the browser, namespaced per curriculum.
 //
-// Thin slice: a single local learner profile in localStorage. The shape mirrors what a
-// backend `Progress` document would hold later, so swapping in an API is a localised change.
+// A learner can work in more than one framework (e.g. Singapore P1 and Foundational), each
+// with its own placement, current rung, mastery and history. The shape mirrors what a backend
+// `Progress` document would hold, so swapping localStorage for an API is a localised change.
 
-const KEY = 'mathpath.progress.v1';
+const KEY = 'mathpath.progress.v2';
 
 export function defaultProgress() {
-  return {
-    learner: 'Learner',
-    placed: false,
-    currentSkillId: 'A1',
-    mastery: {},  // skillId -> { mastered, bestAccuracy, bestAvgTimeSec, sessions }
-    history: [],  // { skillId, at, accuracy, avgTimeSec, mastered }
-  };
+  return { learner: 'Learner', activeCurriculumId: null, byCurriculum: {} };
 }
 
 export function loadProgress() {
@@ -34,38 +29,44 @@ export function resetProgress() {
   return saveProgress(defaultProgress());
 }
 
-// Fold a scored session into progress: update best stats, mark mastery, advance the rung.
-export function applySessionResult(progress, score, nextSkillId) {
-  const prev = progress.mastery[score.skillId] || { mastered: false, sessions: 0 };
-  progress.mastery[score.skillId] = {
+// Lazily initialise and return the progress record for one curriculum.
+export function curriculumProgress(progress, curriculumId, firstSkillId) {
+  if (!progress.byCurriculum[curriculumId]) {
+    progress.byCurriculum[curriculumId] = {
+      placed: false,
+      currentSkillId: firstSkillId,
+      mastery: {},  // skillId -> { mastered, bestAccuracy, bestAvgTimeSec, sessions }
+      history: [],  // { skillId, at, accuracy, avgTimeSec, mastered }
+    };
+  }
+  return progress.byCurriculum[curriculumId];
+}
+
+// Fold a scored session into one curriculum's progress (caller persists the whole object).
+export function applySessionResult(cp, score, nextSkillId) {
+  const prev = cp.mastery[score.skillId] || { mastered: false, sessions: 0 };
+  cp.mastery[score.skillId] = {
     mastered: prev.mastered || score.mastered,
     bestAccuracy: Math.max(prev.bestAccuracy || 0, score.accuracy),
-    bestAvgTimeSec: prev.bestAvgTimeSec
-      ? Math.min(prev.bestAvgTimeSec, score.avgTimeSec)
-      : score.avgTimeSec,
+    bestAvgTimeSec: prev.bestAvgTimeSec ? Math.min(prev.bestAvgTimeSec, score.avgTimeSec) : score.avgTimeSec,
     sessions: prev.sessions + 1,
   };
 
-  progress.history.unshift({
-    skillId: score.skillId,
-    at: Date.now(),
-    accuracy: score.accuracy,
-    avgTimeSec: score.avgTimeSec,
-    mastered: score.mastered,
+  cp.history.unshift({
+    skillId: score.skillId, at: Date.now(),
+    accuracy: score.accuracy, avgTimeSec: score.avgTimeSec, mastered: score.mastered,
   });
-  progress.history = progress.history.slice(0, 30);
+  cp.history = cp.history.slice(0, 30);
 
-  if (score.mastered && nextSkillId) {
-    progress.currentSkillId = nextSkillId;
-  }
-  return saveProgress(progress);
+  if (score.mastered && nextSkillId) cp.currentSkillId = nextSkillId;
+  return cp;
 }
 
-// Used by placement to pre-mark everything proven in the probe.
-export function markMastered(progress, skillIds) {
+// Pre-mark everything proven during placement.
+export function markMastered(cp, skillIds) {
   for (const id of skillIds) {
-    const prev = progress.mastery[id] || { sessions: 0 };
-    progress.mastery[id] = { ...prev, mastered: true, bestAccuracy: Math.max(prev.bestAccuracy || 0, 1) };
+    const prev = cp.mastery[id] || { sessions: 0 };
+    cp.mastery[id] = { ...prev, mastered: true, bestAccuracy: Math.max(prev.bestAccuracy || 0, 1) };
   }
-  return progress;
+  return cp;
 }
