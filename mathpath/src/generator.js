@@ -552,6 +552,108 @@ function genRate(skill) {
   return problem(skill, `At ${rate} km/h, how many hours to travel ${total} km?`, units, 'rate', { rate, units, total, which });
 }
 
+// ---------- Primary 6 ----------
+
+// Divide a proper fraction by a whole number — the denominator gets multiplied: "1/2 ÷ 3 = 1/?" → 6
+function genFracDivWhole(skill) {
+  const r = randInt;
+  const d = r(2, 8), a = r(1, d - 1), n = r(2, 9);
+  return problem(skill, `${a}/${d} ${DIVIDE} ${n} = ${a}/?`, d * n, 'fracDivWhole', { a, d, n });
+}
+
+// Divide a whole number by a proper fraction (invert and multiply): "6 ÷ 2/3 =" → 9
+function genDivByFraction(skill) {
+  const r = randInt;
+  const d = r(2, 6), a = r(1, d - 1), k = r(2, 6), n = a * k; // n chosen so n*d/a is whole
+  return problem(skill, `${n} ${DIVIDE} ${a}/${d} =`, k * d, 'divByFraction', { n, a, d });
+}
+
+// Find the whole given a part and the percentage: "20% of a number is 30. What is the number?" → 150
+function genPercentWhole(skill) {
+  for (let t = 0; t < 300; t++) {
+    const pct = randInt(1, 19) * 5;
+    const whole = pickFrom([20, 40, 50, 60, 80, 100, 120, 150, 200, 400, 500]);
+    if ((pct * whole) % 100 !== 0) continue;
+    return problem(skill, `${pct}% of a number is ${(pct * whole) / 100}. What is the number?`, whole, 'percentWhole', { pct, part: (pct * whole) / 100, whole });
+  }
+  return problem(skill, `20% of a number is 30. What is the number?`, 150, 'percentWhole', { pct: 20, part: 30, whole: 150 });
+}
+
+// Percentage increase / decrease: "A price increased from $80 to $100. Percentage increase?" → 25
+function genPercentChange(skill) {
+  for (let t = 0; t < 300; t++) {
+    const before = pickFrom([20, 25, 40, 50, 80, 100, 200, 250, 500]);
+    const pct = pickFrom([5, 10, 15, 20, 25, 40, 50]);
+    if ((before * pct) % 100 !== 0) continue;
+    const inc = Math.random() < 0.5;
+    const after = inc ? before + (before * pct) / 100 : before - (before * pct) / 100;
+    if (after <= 0) continue;
+    return problem(skill, `A price ${inc ? 'increased' : 'decreased'} from $${before} to $${after}. What is the percentage ${inc ? 'increase' : 'decrease'}?`, pct, 'percentChange', { before, after });
+  }
+  return problem(skill, `A price increased from $80 to $100. What is the percentage increase?`, 25, 'percentChange', { before: 80, after: 100 });
+}
+
+// Missing term in a pair of equivalent ratios: "2 : 3 = 8 : ?" → 12
+function genRatioMissing(skill) {
+  const r = randInt;
+  const a = r(1, 9), b = r(1, 9), k = r(2, 9);
+  return problem(skill, `${a} : ${b} = ${a * k} : ?`, b * k, 'ratioMissing', { a, b, k });
+}
+
+// Divide a quantity in a given ratio: "Divide $100 in the ratio 2 : 3. First share?" → 40
+function genRatioDivide(skill) {
+  const r = randInt;
+  const a = r(1, 5), b = r(1, 5), unit = r(2, 20), total = (a + b) * unit;
+  const first = Math.random() < 0.5;
+  return problem(skill, `Divide $${total} in the ratio ${a} : ${b}. What is the ${first ? 'first' : 'second'} share, in $?`, (first ? a : b) * unit, 'ratioDivide', { a, b, total, first });
+}
+
+// Simplify a linear expression — combine like terms, give the coefficient: "5a + 3a − 2a = ?a" → 6
+function genAlgSimplify(skill) {
+  const r = randInt, L = pickFrom(['a', 'b', 'x', 'y', 'n']);
+  const p = r(2, 9), q = r(1, 6), s = r(0, p + q - 1);
+  const expr = s > 0 ? `${p}${L} ${PLUS} ${q}${L} ${MINUS} ${s}${L}` : `${p}${L} ${PLUS} ${q}${L}`;
+  return problem(skill, `${expr} = ?${L}`, p + q - s, 'algSimplify', { p, q, s });
+}
+
+// Evaluate a linear expression by substitution: "If x = 5, find 3x + 2" → 17
+function genAlgEval(skill) {
+  const r = randInt, L = pickFrom(['a', 'b', 'x', 'y', 'n']);
+  const val = r(2, 12), m = r(2, 9), c = r(1, 20);
+  if (Math.random() < 0.5 && m * val - c >= 0) {
+    return problem(skill, `If ${L} = ${val}, find ${m}${L} ${MINUS} ${c}`, m * val - c, 'algEval', { val, m, c, op: '-' });
+  }
+  return problem(skill, `If ${L} = ${val}, find ${m}${L} ${PLUS} ${c}`, m * val + c, 'algEval', { val, m, c, op: '+' });
+}
+
+// Solve a simple linear equation (whole-number coefficient): "Solve 3x + 2 = 14. x = ?" → 4
+function genAlgSolve(skill) {
+  const r = randInt, L = pickFrom(['x', 'y', 'n', 'a']);
+  const x = r(2, 12), m = r(2, 9), c = r(1, 20);
+  if (Math.random() < 0.5 && m * x - c > 0) {
+    const rhs = m * x - c;
+    return problem(skill, `Solve: ${m}${L} ${MINUS} ${c} = ${rhs}.  ${L} = ?`, x, 'algSolve', { x, m, c, op: '-', rhs });
+  }
+  const rhs = m * x + c;
+  return problem(skill, `Solve: ${m}${L} ${PLUS} ${c} = ${rhs}.  ${L} = ?`, x, 'algSolve', { x, m, c, op: '+', rhs });
+}
+
+// Average of a set of data, or the total given the average: "Find the average of 4, 8, 6" → 6
+function genAverage(skill) {
+  const r = randInt;
+  if (Math.random() < 0.4) {
+    const count = r(3, 5), mean = r(2, 30);
+    return problem(skill, `The average of ${count} numbers is ${mean}. What is their total?`, mean * count, 'average', { mean, count, which: 'total' });
+  }
+  for (let t = 0; t < 300; t++) {
+    const count = r(3, 5), nums = Array.from({ length: count }, () => r(1, 40));
+    const sum = nums.reduce((p, n) => p + n, 0);
+    if (sum % count !== 0) continue;
+    return problem(skill, `Find the average of ${nums.join(', ')}`, sum / count, 'average', { nums, which: 'mean' });
+  }
+  return problem(skill, `Find the average of 4, 8, 6`, 6, 'average', { nums: [4, 8, 6], which: 'mean' });
+}
+
 const KINDS = {
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
@@ -565,6 +667,10 @@ const KINDS = {
   fracTimesWhole: genFracTimesWhole, fracTimesFrac: genFracTimesFrac,
   decMulDivPow10: genDecMulDivPow10, unitConvert: genUnitConvert,
   partAsPercent: genPartAsPercent, percentOf: genPercentOf, percentApp: genPercentApp, rate: genRate,
+  fracDivWhole: genFracDivWhole, divByFraction: genDivByFraction,
+  percentWhole: genPercentWhole, percentChange: genPercentChange,
+  ratioMissing: genRatioMissing, ratioDivide: genRatioDivide,
+  algSimplify: genAlgSimplify, algEval: genAlgEval, algSolve: genAlgSolve, average: genAverage,
 };
 
 export function generateProblem(skill) {
