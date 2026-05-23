@@ -100,7 +100,15 @@ export const worksheetsAPI = {
   updateSession: (id, n, data) => api.patch(`/worksheets/${id}/sessions/${n}`, data),
   markSession: (id, n, data) => api.post(`/worksheets/${id}/sessions/${n}/mark`, data),
   reinforce: (id, data) => api.post(`/worksheets/${id}/reinforce`, data),
+  mistakes: (params) => api.get('/worksheets/mistakes', { params }),
   remove: (id) => api.delete(`/worksheets/${id}`)
+};
+
+// Students API (student logins managed by a parent/tutor)
+export const studentsAPI = {
+  create: (data) => api.post('/students', data),
+  list: () => api.get('/students'),
+  remove: (id) => api.delete(`/students/${id}`)
 };
 
 // Reviews API

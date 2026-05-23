@@ -13,6 +13,7 @@ import BookingsPage from './pages/BookingsPage';
 import MessagesPage from './pages/MessagesPage';
 import TutorProfilePage from './pages/TutorProfilePage';
 import WorksheetGeneratorPage from './pages/WorksheetGeneratorPage';
+import StudentsPage from './pages/StudentsPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -194,6 +195,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <WorksheetGeneratorPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/students"
+            element={
+              <ProtectedRoute>
+                <StudentsPage />
               </ProtectedRoute>
             }
           />

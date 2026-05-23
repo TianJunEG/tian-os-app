@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star, Sparkles } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, Sparkles, Users } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -11,6 +11,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (user?.role === 'student') {
+      setLoading(false);
+      return;
+    }
     loadBookings();
   }, [user]);
 
@@ -66,61 +70,82 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {user?.role === 'student' && (
+            <button
+              onClick={() => navigate('/worksheets')}
+              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            >
+              <Sparkles className="w-8 h-8 text-purple-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">My Practice</h3>
+              <p className="text-sm text-gray-600">Your plans &amp; mistakes</p>
+            </button>
+          )}
+
           {user?.role === 'parent' && (
-            <>
-              <button
-                onClick={() => navigate('/search')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-              >
-                <Search className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">Find Tutors</h3>
-                <p className="text-sm text-gray-600">Search & book tutors</p>
-              </button>
-            </>
+            <button
+              onClick={() => navigate('/search')}
+              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            >
+              <Search className="w-8 h-8 text-purple-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">Find Tutors</h3>
+              <p className="text-sm text-gray-600">Search & book tutors</p>
+            </button>
           )}
 
           {user?.role === 'tutor' && (
+            <button
+              onClick={() => navigate('/tutor/profile')}
+              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            >
+              <BookOpen className="w-8 h-8 text-purple-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">My Profile</h3>
+              <p className="text-sm text-gray-600">Edit your profile</p>
+            </button>
+          )}
+
+          {user?.role !== 'student' && (
             <>
               <button
-                onClick={() => navigate('/tutor/profile')}
+                onClick={() => navigate('/worksheets')}
                 className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
               >
-                <BookOpen className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">My Profile</h3>
-                <p className="text-sm text-gray-600">Edit your profile</p>
+                <Sparkles className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Worksheet Generator</h3>
+                <p className="text-sm text-gray-600">Practice from marked work</p>
+              </button>
+
+              <button
+                onClick={() => navigate('/students')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <Users className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Students</h3>
+                <p className="text-sm text-gray-600">Manage student logins</p>
+              </button>
+
+              <button
+                onClick={() => navigate('/messages')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <MessageSquare className="w-8 h-8 text-blue-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Messages</h3>
+                <p className="text-sm text-gray-600">Chat with users</p>
+              </button>
+
+              <button
+                onClick={() => navigate('/bookings')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <BookOpen className="w-8 h-8 text-green-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">My Bookings</h3>
+                <p className="text-sm text-gray-600">View all bookings</p>
               </button>
             </>
           )}
-
-          <button
-            onClick={() => navigate('/worksheets')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-          >
-            <Sparkles className="w-8 h-8 text-purple-600 mb-2" />
-            <h3 className="font-semibold text-gray-900">Worksheet Generator</h3>
-            <p className="text-sm text-gray-600">Practice from marked work</p>
-          </button>
-
-          <button
-            onClick={() => navigate('/messages')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-          >
-            <MessageSquare className="w-8 h-8 text-blue-600 mb-2" />
-            <h3 className="font-semibold text-gray-900">Messages</h3>
-            <p className="text-sm text-gray-600">Chat with users</p>
-          </button>
-
-          <button
-            onClick={() => navigate('/bookings')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-          >
-            <BookOpen className="w-8 h-8 text-green-600 mb-2" />
-            <h3 className="font-semibold text-gray-900">My Bookings</h3>
-            <p className="text-sm text-gray-600">View all bookings</p>
-          </button>
         </div>
 
         {/* Recent Bookings */}
+        {user?.role !== 'student' && (
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">Recent Bookings</h2>
@@ -181,6 +206,7 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        )}
       </main>
     </div>
   );

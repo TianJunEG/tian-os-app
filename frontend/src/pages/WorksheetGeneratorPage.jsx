@@ -14,7 +14,8 @@ import {
   XCircle,
   RefreshCw
 } from 'lucide-react';
-import { worksheetsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { worksheetsAPI, studentsAPI } from '../services/api';
 import './WorksheetGeneratorPage.css';
 
 const FILE_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/api\/?$/, '');
@@ -98,6 +99,8 @@ function scoreClass(s) {
 
 export default function WorksheetGeneratorPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isStudent = user?.role === 'student';
 
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -105,6 +108,7 @@ export default function WorksheetGeneratorPage() {
   const [gradeLevel, setGradeLevel] = useState('');
   const [topicHint, setTopicHint] = useState('');
   const [questionsPerSession, setQuestionsPerSession] = useState('5');
+  const [assignStudentId, setAssignStudentId] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -124,10 +128,16 @@ export default function WorksheetGeneratorPage() {
   const drawState = useRef({ drawing: false, x: 0, y: 0 });
 
   const [history, setHistory] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [mistakes, setMistakes] = useState([]);
 
   useEffect(() => {
+    if (!user) return;
     loadHistory();
-  }, []);
+    loadMistakes();
+    if (!isStudent) loadStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Reset answer entry whenever the worksheet or active session changes.
   useEffect(() => {
@@ -146,9 +156,27 @@ export default function WorksheetGeneratorPage() {
     }
   };
 
+  const loadStudents = async () => {
+    try {
+      const res = await studentsAPI.list();
+      setStudents(res.data.students || []);
+    } catch (err) {
+      console.error('Failed to load students:', err);
+    }
+  };
+
+  const loadMistakes = async () => {
+    try {
+      const res = await worksheetsAPI.mistakes();
+      setMistakes(res.data.mistakes || []);
+    } catch (err) {
+      console.error('Failed to load mistakes:', err);
+    }
+  };
+
   const adoptWorksheet = (w) => {
     setWorksheet(w);
-    setTeacherView(true);
+    setTeacherView(!isStudent);
     const sessions = w.practiceSessions || [];
     const next = sessions.find((s) => !s.completed) || sessions[0];
     setActiveSession(next ? next.sessionNumber : 1);
@@ -181,12 +209,14 @@ export default function WorksheetGeneratorPage() {
       if (studentName) formData.append('studentName', studentName);
       if (gradeLevel) formData.append('gradeLevel', gradeLevel);
       if (topicHint) formData.append('topicHint', topicHint);
+      if (assignStudentId) formData.append('studentId', assignStudentId);
       formData.append('questionsPerSession', questionsPerSession);
 
       const res = await worksheetsAPI.generate(formData);
       adoptWorksheet(res.data.worksheet);
       setEscalatedNote(res.data.escalated ? `Handwriting was unclear — read with ${res.data.modelUsed}.` : null);
       loadHistory();
+      loadMistakes();
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong generating the worksheet.');
     } finally {
@@ -320,6 +350,7 @@ export default function WorksheetGeneratorPage() {
       setWorksheet(res.data.worksheet);
       setEscalatedNote(res.data.escalated ? `Handwriting was unclear — re-read with ${res.data.modelUsed}.` : null);
       loadHistory();
+      loadMistakes();
     } catch (err) {
       setError(err.response?.data?.error || 'Could not mark the answers.');
     } finally {
@@ -371,10 +402,12 @@ export default function WorksheetGeneratorPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-purple-600" />
-                Math Worksheet Generator
+                {isStudent ? 'My Practice' : 'Math Worksheet Generator'}
               </h1>
               <p className="text-gray-600 text-sm">
-                Upload marked work → diagnose → practice → auto-mark
+                {isStudent
+                  ? 'Do your practice and review your mistakes'
+                  : 'Upload marked work → diagnose → practice → auto-mark'}
               </p>
             </div>
           </div>
@@ -382,94 +415,122 @@ export default function WorksheetGeneratorPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Upload form */}
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 no-print">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Photo of marked work <span className="text-red-500">*</span>
-              </label>
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 transition h-56 overflow-hidden">
-                {previewUrl ? (
-                  <img src={previewUrl} alt="Selected work" className="h-full w-full object-contain" />
-                ) : (
-                  <div className="text-center p-6">
-                    <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Tap to upload a photo</p>
-                    <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WEBP or GIF</p>
-                  </div>
-                )}
-                <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-              </label>
+        {/* Upload form (guardians only) */}
+        {!isStudent && (
+          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 no-print">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Photo of marked work <span className="text-red-500">*</span>
+                </label>
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-400 transition h-56 overflow-hidden">
+                  {previewUrl ? (
+                    <img src={previewUrl} alt="Selected work" className="h-full w-full object-contain" />
+                  ) : (
+                    <div className="text-center p-6">
+                      <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Tap to upload a photo</p>
+                      <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WEBP or GIF</p>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                </label>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Student name (optional)</label>
+                  <input
+                    type="text"
+                    value={studentName}
+                    onChange={(e) => setStudentName(e.target.value)}
+                    placeholder="e.g. Alex"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Grade / level (optional)</label>
+                  <input
+                    type="text"
+                    value={gradeLevel}
+                    onChange={(e) => setGradeLevel(e.target.value)}
+                    placeholder="e.g. Year 5, Grade 7, Algebra I"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Topic hint (optional)</label>
+                  <input
+                    type="text"
+                    value={topicHint}
+                    onChange={(e) => setTopicHint(e.target.value)}
+                    placeholder="e.g. adding fractions"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Questions per session</label>
+                  <select
+                    value={questionsPerSession}
+                    onChange={(e) => setQuestionsPerSession(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Builds 3 spaced sessions — today, +2 days, +7 days — for mastery.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Student name (optional)</label>
-                <input
-                  type="text"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                  placeholder="e.g. Alex"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Grade / level (optional)</label>
-                <input
-                  type="text"
-                  value={gradeLevel}
-                  onChange={(e) => setGradeLevel(e.target.value)}
-                  placeholder="e.g. Year 5, Grade 7, Algebra I"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Topic hint (optional)</label>
-                <input
-                  type="text"
-                  value={topicHint}
-                  onChange={(e) => setTopicHint(e.target.value)}
-                  placeholder="e.g. adding fractions"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Questions per session</label>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Assign to a student (optional)</label>
+              {students.length > 0 ? (
                 <select
-                  value={questionsPerSession}
-                  onChange={(e) => setQuestionsPerSession(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  value={assignStudentId}
+                  onChange={(e) => setAssignStudentId(e.target.value)}
+                  className="w-full sm:w-80 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
+                  <option value="">— Not assigned —</option>
+                  {students.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name} ({s.email})
+                    </option>
+                  ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Builds 3 spaced sessions — today, +2 days, +7 days — for mastery.
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No student logins yet.{' '}
+                  <button type="button" onClick={() => navigate('/students')} className="text-purple-600 hover:underline">
+                    Add one
+                  </button>{' '}
+                  so they can do this practice when they log in.
                 </p>
-              </div>
+              )}
             </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-6 w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
-          >
-            {loading ? (
-              <>
-                <Loader className="w-5 h-5 animate-spin" />
-                Analyzing…
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                Generate practice plan
-              </>
-            )}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-6 w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+            >
+              {loading ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  Analyzing…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Generate practice plan
+                </>
+              )}
+            </button>
+          </form>
+        )}
 
         {loading && (
           <div className="bg-white rounded-lg shadow p-8 text-center no-print">
@@ -491,20 +552,24 @@ export default function WorksheetGeneratorPage() {
           <div className="space-y-4">
             {/* Controls (not printed) */}
             <div className="flex flex-wrap items-center justify-between gap-3 no-print">
-              <div>
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={teacherView}
-                    onChange={(e) => setTeacherView(e.target.checked)}
-                    className="rounded text-purple-600 focus:ring-purple-500"
-                  />
-                  Teacher view (show diagnosis &amp; answers)
-                </label>
-                {!isMarked && (
-                  <p className="text-xs text-gray-400 mt-1">Uncheck so the student can answer in-app.</p>
-                )}
-              </div>
+              {isStudent ? (
+                <div />
+              ) : (
+                <div>
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={teacherView}
+                      onChange={(e) => setTeacherView(e.target.checked)}
+                      className="rounded text-purple-600 focus:ring-purple-500"
+                    />
+                    Teacher view (show diagnosis &amp; answers)
+                  </label>
+                  {!isMarked && (
+                    <p className="text-xs text-gray-400 mt-1">Uncheck so the student can answer in-app.</p>
+                  )}
+                </div>
+              )}
               {activeSessionObj && (
                 <button
                   onClick={() => window.print()}
@@ -809,16 +874,20 @@ export default function WorksheetGeneratorPage() {
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-medium text-amber-900">Missed: {missedTitles.join(', ')}</p>
-                      <p className="text-sm text-amber-700">Generate a fresh spaced plan targeting just these.</p>
+                      {!isStudent && (
+                        <p className="text-sm text-amber-700">Generate a fresh spaced plan targeting just these.</p>
+                      )}
                     </div>
-                    <button
-                      onClick={handleReinforce}
-                      disabled={reinforcing}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition text-sm font-medium"
-                    >
-                      <RefreshCw className={`w-4 h-4 ${reinforcing ? 'animate-spin' : ''}`} />
-                      {reinforcing ? 'Generating…' : 'Generate targeted practice'}
-                    </button>
+                    {!isStudent && (
+                      <button
+                        onClick={handleReinforce}
+                        disabled={reinforcing}
+                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition text-sm font-medium"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${reinforcing ? 'animate-spin' : ''}`} />
+                        {reinforcing ? 'Generating…' : 'Generate targeted practice'}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2 text-green-800 text-sm">
@@ -834,10 +903,12 @@ export default function WorksheetGeneratorPage() {
         {/* History / due list */}
         <div className="bg-white rounded-lg shadow no-print">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Practice plans</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{isStudent ? 'My practice' : 'Practice plans'}</h2>
           </div>
           {history.length === 0 ? (
-            <div className="p-6 text-center text-gray-500 text-sm">No worksheets generated yet.</div>
+            <div className="p-6 text-center text-gray-500 text-sm">
+              {isStudent ? 'No practice assigned yet.' : 'No worksheets generated yet.'}
+            </div>
           ) : (
             <ul className="divide-y divide-gray-200">
               {history.map((w) => {
@@ -853,7 +924,7 @@ export default function WorksheetGeneratorPage() {
                       <div className="min-w-0">
                         <p className="font-medium text-gray-900 truncate">
                           {w.topic || 'Math worksheet'}
-                          {w.studentName ? ` — ${w.studentName}` : ''}
+                          {!isStudent && w.studentName ? ` — ${w.studentName}` : ''}
                         </p>
                         <p className="text-xs text-gray-500">
                           {w.sessionsCompleted || 0}/{w.sessionsTotal || 0} sessions
@@ -865,17 +936,53 @@ export default function WorksheetGeneratorPage() {
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.cls}`}>
                         {status.label}
                       </span>
-                      <button
-                        onClick={(e) => deleteWorksheet(w._id, e)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                        aria-label="Delete worksheet"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {!isStudent && (
+                        <button
+                          onClick={(e) => deleteWorksheet(w._id, e)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          aria-label="Delete worksheet"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </li>
                 );
               })}
+            </ul>
+          )}
+        </div>
+
+        {/* Mistakes review */}
+        <div className="bg-white rounded-lg shadow no-print">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {isStudent ? 'My mistakes to review' : 'Mistakes to review'}
+            </h2>
+          </div>
+          {mistakes.length === 0 ? (
+            <div className="p-6 text-center text-gray-500 text-sm">
+              No mistakes recorded yet — anything answered incorrectly shows here for review.
+            </div>
+          ) : (
+            <ul className="divide-y divide-gray-200">
+              {mistakes.slice(0, 50).map((m, i) => (
+                <li key={i} className="px-6 py-3">
+                  <div className="flex items-start gap-2">
+                    <XCircle className="w-4 h-4 text-red-500 mt-1 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-900">{m.prompt}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {m.topic ? `${m.topic} · ` : ''}
+                        {!isStudent && m.studentName ? `${m.studentName} · ` : ''}
+                        {m.studentResponse ? `wrote: ${m.studentResponse} · ` : ''}
+                        correct: {m.answer}
+                      </p>
+                      {m.feedback && <p className="text-xs text-gray-600 mt-1">{m.feedback}</p>}
+                    </div>
+                  </div>
+                </li>
+              ))}
             </ul>
           )}
         </div>
