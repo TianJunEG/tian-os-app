@@ -1,0 +1,63 @@
+# Render Blueprint — provisions the API and the static frontend together.
+# Import this repo at https://dashboard.render.com → New → Blueprint.
+# Values marked `sync: false` are secrets/per-environment and are set in the
+# Render dashboard (they are intentionally not stored in the repo).
+services:
+  # ---- Express API ----
+  - type: web
+    name: tutor-match-api
+    runtime: node
+    rootDir: .
+    plan: starter # always-on; required for the persistent disk below
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false # set to the deployed frontend URL, e.g. https://tutor-match-web.onrender.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLIC_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: EMAIL_SERVICE
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: PARTNERSHIPS_NOTIFICATION_EMAIL
+        sync: false
+
+  # ---- React (Vite) static frontend ----
+  - type: web
+    name: tutor-match-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false # set to the deployed API URL + /api, e.g. https://tutor-match-api.onrender.com/api
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        sync: false
+    routes:
+      # SPA fallback so client-side routes (e.g. /resources/:slug) resolve to index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
