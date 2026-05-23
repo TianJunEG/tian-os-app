@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -25,6 +26,10 @@ const app = express();
 connectDB();
 
 // Middleware
+app.use(helmet({
+  // allow the separate-origin frontend to load images served from /uploads
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true,
