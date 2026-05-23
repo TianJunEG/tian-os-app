@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import PartnerInquiry from '../models/PartnerInquiry.js';
 import { protect, authorize } from '../middleware/auth.js';
+import { sendPartnerInquiryNotificationEmail } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -28,6 +29,13 @@ router.post(
     try {
       const { name, organization, email, message } = req.body;
       const inquiry = await PartnerInquiry.create({ name, organization, email, message });
+
+      // Notify the team, but don't fail the submission if email is unavailable.
+      try {
+        await sendPartnerInquiryNotificationEmail(inquiry);
+      } catch (emailError) {
+        console.error('Partner inquiry notification failed:', emailError.message);
+      }
 
       res.status(201).json({
         success: true,

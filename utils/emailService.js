@@ -198,11 +198,46 @@ export const sendPaymentConfirmationEmail = async (parent, booking, amount) => {
   });
 };
 
+/**
+ * Notify the team of a new partnership inquiry
+ */
+export const sendPartnerInquiryNotificationEmail = async (inquiry) => {
+  const to =
+    process.env.PARTNERSHIPS_NOTIFICATION_EMAIL ||
+    process.env.EMAIL_FROM ||
+    process.env.EMAIL_USER;
+
+  if (!to) {
+    console.warn('No partnership notification recipient configured; skipping email.');
+    return;
+  }
+
+  const html = `
+    <h2>New Partnership Inquiry 🤝</h2>
+    <p>A new partnership inquiry was submitted.</p>
+    <ul>
+      <li><strong>Name:</strong> ${inquiry.name}</li>
+      <li><strong>Organization:</strong> ${inquiry.organization || 'N/A'}</li>
+      <li><strong>Email:</strong> ${inquiry.email}</li>
+    </ul>
+    <h3>Message:</h3>
+    <p>${inquiry.message}</p>
+    <p>Review inquiries in the admin dashboard.</p>
+  `;
+
+  return sendEmail({
+    to,
+    subject: `New partnership inquiry from ${inquiry.name}`,
+    html
+  });
+};
+
 export default {
   sendEmail,
   sendTutorApprovalEmail,
   sendTutorRejectionEmail,
   sendBookingConfirmationEmail,
   sendSessionReminderEmail,
-  sendPaymentConfirmationEmail
+  sendPaymentConfirmationEmail,
+  sendPartnerInquiryNotificationEmail
 };
