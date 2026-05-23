@@ -10,7 +10,9 @@ import {
   TrendingUp,
   Target,
   BarChart3,
-  ChevronRight
+  ChevronRight,
+  Award,
+  Flame
 } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
@@ -34,10 +36,12 @@ export default function SpellingHomePage() {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [listCount, setListCount] = useState(null);
+  const [game, setGame] = useState(null);
 
   useEffect(() => {
     spellingAPI.getStats().then((r) => setStats(r.data)).catch(() => {});
     spellingAPI.getLists().then((r) => setListCount(r.data.count)).catch(() => {});
+    spellingAPI.getGamification().then((r) => setGame(r.data)).catch(() => {});
   }, []);
 
   return (
@@ -53,6 +57,16 @@ export default function SpellingHomePage() {
               <TrendingUp className="w-5 h-5 text-purple-600" />
               <span className="font-semibold">{stats.accuracy}%</span> accuracy
             </div>
+            {game && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                Level {game.level}
+              </span>
+            )}
+            {game && game.dayStreak > 0 && (
+              <span className="inline-flex items-center gap-1 text-orange-500 font-semibold text-sm">
+                <Flame className="w-4 h-4" /> {game.dayStreak}
+              </span>
+            )}
             <div className="text-sm text-gray-500">{stats.total} words practised</div>
             {stats.mastery && (
               <div className="text-sm text-gray-500">
@@ -115,6 +129,13 @@ export default function SpellingHomePage() {
             desc={stats?.mastery ? `${stats.mastery.mastered} mastered` : 'Accuracy & mastery'}
             color="bg-teal-600"
             onClick={() => navigate('/spelling/progress')}
+          />
+          <Tile
+            icon={Award}
+            title="Achievements"
+            desc={game ? `Level ${game.level} · ${game.badges.filter((b) => b.earned).length} badges` : 'Levels, streaks & badges'}
+            color="bg-amber-500"
+            onClick={() => navigate('/spelling/achievements')}
           />
           <Tile
             icon={Upload}

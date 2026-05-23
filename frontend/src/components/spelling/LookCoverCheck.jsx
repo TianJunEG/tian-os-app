@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Eye, EyeOff, Check, X, ChevronRight, Volume2, RotateCcw } from 'lucide-react';
+import { Eye, EyeOff, Check, X, ChevronRight, Volume2, RotateCcw, Flame } from 'lucide-react';
 import { isCorrect } from '../../utils/spellingGames';
 import { speakOnce } from '../../utils/tts';
+import { playCorrect, playWrong } from '../../utils/sound';
+import ScoreSummary from './ScoreSummary';
 
 // The traditional Look → Cover → Write → Check method.
 export default function LookCoverCheck({ words, onAttempt }) {
@@ -10,6 +12,7 @@ export default function LookCoverCheck({ words, onAttempt }) {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
   const [score, setScore] = useState({ correct: 0, done: 0 });
+  const [streak, setStreak] = useState(0);
   const [finished, setFinished] = useState(false);
   const inputRef = useRef(null);
 
@@ -29,6 +32,9 @@ export default function LookCoverCheck({ words, onAttempt }) {
     const ok = isCorrect(input, current.word);
     setResult(ok ? 'correct' : 'wrong');
     setScore((s) => ({ correct: s.correct + (ok ? 1 : 0), done: s.done + 1 }));
+    setStreak((st) => (ok ? st + 1 : 0));
+    if (ok) playCorrect();
+    else playWrong();
     onAttempt?.(current.word, ok);
     setPhase('check');
   };
@@ -41,20 +47,13 @@ export default function LookCoverCheck({ words, onAttempt }) {
   const restart = () => {
     setIndex(0);
     setScore({ correct: 0, done: 0 });
+    setStreak(0);
     setFinished(false);
     setPhase('look');
   };
 
   if (finished) {
-    return (
-      <div className="text-center py-10">
-        <div className="text-5xl font-extrabold text-purple-600 mb-2">{score.correct}/{words.length}</div>
-        <p className="text-gray-700 mb-6">words remembered correctly.</p>
-        <button onClick={restart} className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center gap-2">
-          <RotateCcw className="w-5 h-5" /> Start over
-        </button>
-      </div>
-    );
+    return <ScoreSummary correct={score.correct} total={words.length} onRestart={restart} restartLabel="Start over" unit="remembered" />;
   }
 
   const steps = ['look', 'write', 'check'];
@@ -63,7 +62,14 @@ export default function LookCoverCheck({ words, onAttempt }) {
     <div>
       <div className="flex items-center justify-between mb-6 text-sm text-gray-500">
         <span>Word {index + 1} of {words.length}</span>
-        <span>Score {score.correct}/{score.done}</span>
+        <span className="flex items-center gap-2">
+          {streak >= 2 && (
+            <span className="inline-flex items-center gap-0.5 text-orange-500 font-semibold" title="Streak">
+              <Flame className="w-4 h-4" /> {streak}
+            </span>
+          )}
+          Score {score.correct}/{score.done}
+        </span>
       </div>
 
       {/* Step indicator */}

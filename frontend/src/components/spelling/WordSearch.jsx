@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { RotateCcw, Trophy } from 'lucide-react';
 import { generateWordSearch, normalizeSpelling } from '../../utils/spellingGames';
+import { playCorrect, playWin } from '../../utils/sound';
+import { confettiBurst } from '../../utils/confetti';
 
 const cellsBetween = (a, b) => {
   const dr = Math.sign(b.r - a.r);
@@ -52,6 +54,13 @@ export default function WordSearch({ words, onAttempt }) {
       });
       setFoundWords((prev) => new Set(prev).add(match));
       onAttempt?.(match, true);
+      const completes = foundWords.size + 1 >= targetWords.length;
+      if (completes) {
+        playWin();
+        confettiBurst();
+      } else {
+        playCorrect();
+      }
     }
   };
 

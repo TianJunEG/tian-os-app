@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Play, Square, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { createSpeaker, ttsSupported } from '../../utils/tts';
+import { playWin } from '../../utils/sound';
+import { confettiBurst } from '../../utils/confetti';
 
 // Splits a passage into sentence segments, reads each one twice with a pause
 // for writing, then scores the typed text against the original word by word.
@@ -104,6 +106,10 @@ export default function Dictation({ words = [], onAttempt }) {
     const r = diff();
     setReport(r);
     onAttempt?.('dictation', r.accuracy >= 80);
+    if (r.accuracy >= 70) {
+      playWin();
+      confettiBurst();
+    }
   };
 
   return (

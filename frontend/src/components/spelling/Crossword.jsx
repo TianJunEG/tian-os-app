@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { RotateCcw, Eye, CheckCircle2 } from 'lucide-react';
 import { generateCrossword } from '../../utils/spellingGames';
+import { playWin } from '../../utils/sound';
+import { confettiBurst } from '../../utils/confetti';
 
 // Builds a connected crossword from the list. Clues prefer the definition, then
 // the example sentence with the answer blanked out.
@@ -57,6 +59,7 @@ export default function Crossword({ words, onAttempt }) {
 
   const check = () => {
     setChecked(true);
+    let solved = true;
     [...puzzle.across, ...puzzle.down].forEach((entry) => {
       const isAcross = puzzle.across.includes(entry);
       let correct = true;
@@ -65,8 +68,13 @@ export default function Crossword({ words, onAttempt }) {
         const c = entry.col + (isAcross ? i : 0);
         if ((entries[key(r, c)] || '') !== entry.word[i]) correct = false;
       }
+      if (!correct) solved = false;
       onAttempt?.(entry.word, correct);
     });
+    if (solved) {
+      playWin();
+      confettiBurst();
+    }
   };
 
   const reveal = () => {

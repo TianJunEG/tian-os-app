@@ -97,6 +97,7 @@ export const spellingAPI = {
   getSurprise: (params) => api.get('/spelling/surprise', { params }),
   getRevision: (params) => api.get('/spelling/revision', { params }),
   getStats: () => api.get('/spelling/stats'),
+  getGamification: () => api.get('/spelling/gamification'),
   recordAttempts: (data) => api.post('/spelling/attempts', data),
   // Uses native fetch so the browser sets the multipart boundary correctly.
   extractFile: async (file) => {

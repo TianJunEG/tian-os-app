@@ -23,6 +23,7 @@ import MisspeltWordsPage from './pages/spelling/MisspeltWordsPage';
 import SurpriseSpellingPage from './pages/spelling/SurpriseSpellingPage';
 import SpellingRevisionPage from './pages/spelling/SpellingRevisionPage';
 import SpellingProgressPage from './pages/spelling/SpellingProgressPage';
+import SpellingAchievementsPage from './pages/spelling/SpellingAchievementsPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -210,6 +211,7 @@ function App() {
           <Route path="/spelling/surprise" element={<ProtectedRoute><SurpriseSpellingPage /></ProtectedRoute>} />
           <Route path="/spelling/revision" element={<ProtectedRoute><SpellingRevisionPage /></ProtectedRoute>} />
           <Route path="/spelling/progress" element={<ProtectedRoute><SpellingProgressPage /></ProtectedRoute>} />
+          <Route path="/spelling/achievements" element={<ProtectedRoute><SpellingAchievementsPage /></ProtectedRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />

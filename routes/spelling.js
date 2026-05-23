@@ -257,6 +257,80 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// @route   GET /api/spelling/gamification
+// @desc    XP, level, daily practice streak and badges for the current user
+// @access  Private
+router.get('/gamification', async (req, res) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    const [correct, attemptsTotal, listCount, sharedCount, recent, dayRows] = await Promise.all([
+      SpellingAttempt.countDocuments({ user: userId, correct: true }),
+      SpellingAttempt.countDocuments({ user: userId }),
+      SpellingList.countDocuments({ owner: userId }),
+      SpellingList.countDocuments({ owner: userId, isShared: true }),
+      SpellingAttempt.find({ user: userId }).sort({ createdAt: -1 }).limit(2000),
+      SpellingAttempt.aggregate([
+        { $match: { user: userId } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } } } },
+        { $sort: { _id: -1 } },
+        { $limit: 400 }
+      ])
+    ]);
+
+    const mastered = [...computeWordStats(recent).values()].filter((s) => s.mastered).length;
+    const accuracy = attemptsTotal ? Math.round((correct / attemptsTotal) * 100) : 0;
+
+    // Consecutive practice days ending today or yesterday (UTC days).
+    const dateSet = new Set(dayRows.map((d) => d._id));
+    const fmt = (d) => d.toISOString().slice(0, 10);
+    const cursor = new Date();
+    let dayStreak = 0;
+    if (!dateSet.has(fmt(cursor))) cursor.setUTCDate(cursor.getUTCDate() - 1);
+    while (dateSet.has(fmt(cursor))) {
+      dayStreak += 1;
+      cursor.setUTCDate(cursor.getUTCDate() - 1);
+    }
+
+    const xp = correct * 10;
+    const level = Math.floor(xp / 100) + 1;
+
+    // Badge definitions; `value`/`target` drive both earned state and progress.
+    const defs = [
+      { id: 'first', name: 'First Steps', description: 'Spell your first word correctly', icon: 'Footprints', value: correct, target: 1 },
+      { id: 'explorer', name: 'Word Explorer', description: 'Practise 50 words', icon: 'Compass', value: attemptsTotal, target: 50 },
+      { id: 'sharp', name: 'Sharp Speller', description: 'Spell 100 words correctly', icon: 'Zap', value: correct, target: 100 },
+      { id: 'master10', name: 'Master Mind', description: 'Master 10 words', icon: 'Brain', value: mastered, target: 10 },
+      { id: 'master50', name: 'Spelling Champion', description: 'Master 50 words', icon: 'Trophy', value: mastered, target: 50 },
+      { id: 'streak3', name: 'On Fire', description: 'Practise 3 days in a row', icon: 'Flame', value: dayStreak, target: 3 },
+      { id: 'streak7', name: 'Week Warrior', description: 'Practise 7 days in a row', icon: 'CalendarCheck', value: dayStreak, target: 7 },
+      { id: 'sharer', name: 'Sharing is Caring', description: 'Share a list to the library', icon: 'Share2', value: sharedCount, target: 1 },
+      { id: 'author', name: 'List Maker', description: 'Create 5 lists', icon: 'BookOpen', value: listCount, target: 5 },
+      { id: 'perfect', name: 'Perfectionist', description: 'Reach 90% accuracy (20+ words)', icon: 'Target', value: attemptsTotal >= 20 ? accuracy : 0, target: 90 }
+    ];
+    const badges = defs.map((b) => ({
+      id: b.id,
+      name: b.name,
+      description: b.description,
+      icon: b.icon,
+      earned: b.value >= b.target,
+      progress: { value: Math.min(b.value, b.target), target: b.target }
+    }));
+
+    res.json({
+      success: true,
+      xp,
+      level,
+      levelProgress: { into: xp - (level - 1) * 100, perLevel: 100 },
+      dayStreak,
+      totals: { attempts: attemptsTotal, correct, accuracy, mastered },
+      badges
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // @route   POST /api/spelling/attempts
 // @desc    Record one or more practice attempts
 // @access  Private

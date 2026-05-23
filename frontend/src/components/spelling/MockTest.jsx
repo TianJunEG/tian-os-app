@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Volume2, RotateCcw, Check, X, ChevronRight } from 'lucide-react';
+import { Volume2, RotateCcw, Check, X, ChevronRight, Flame } from 'lucide-react';
 import { createSpeaker, ttsSupported } from '../../utils/tts';
 import { isCorrect } from '../../utils/spellingGames';
+import { playCorrect, playWrong } from '../../utils/sound';
+import ScoreSummary from './ScoreSummary';
 
 // Reads a word (or its example sentence + "Spell '<word>'") aloud, repeating
 // once like a real spelling test, then checks what the student types.
@@ -17,6 +19,7 @@ export default function MockTest({ words, onAttempt }) {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null); // 'correct' | 'wrong' | null
   const [score, setScore] = useState({ correct: 0, done: 0 });
+  const [streak, setStreak] = useState(0);
   const [finished, setFinished] = useState(false);
 
   const current = words[index];
@@ -62,6 +65,9 @@ export default function MockTest({ words, onAttempt }) {
     const ok = isCorrect(input, current.word);
     setResult(ok ? 'correct' : 'wrong');
     setScore((s) => ({ correct: s.correct + (ok ? 1 : 0), done: s.done + 1 }));
+    setStreak((st) => (ok ? st + 1 : 0));
+    if (ok) playCorrect();
+    else playWrong();
     onAttempt?.(current.word, ok);
     speaker.current.stop();
   };
@@ -81,6 +87,7 @@ export default function MockTest({ words, onAttempt }) {
     setInput('');
     setResult(null);
     setScore({ correct: 0, done: 0 });
+    setStreak(0);
     setFinished(false);
   };
 
@@ -105,21 +112,7 @@ export default function MockTest({ words, onAttempt }) {
   };
 
   if (finished) {
-    const pct = Math.round((score.correct / words.length) * 100);
-    return (
-      <div className="text-center py-10">
-        <div className="text-5xl font-extrabold text-purple-600 mb-2">{pct}%</div>
-        <p className="text-gray-700 mb-6">
-          You spelt {score.correct} of {words.length} words correctly.
-        </p>
-        <button
-          onClick={restart}
-          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center gap-2"
-        >
-          <RotateCcw className="w-5 h-5" /> Try again
-        </button>
-      </div>
-    );
+    return <ScoreSummary correct={score.correct} total={words.length} onRestart={restart} unit="words correct" />;
   }
 
   return (
@@ -152,7 +145,12 @@ export default function MockTest({ words, onAttempt }) {
           />
           Slower voice
         </label>
-        <span className="ml-auto text-gray-500">
+        <span className="ml-auto flex items-center gap-2 text-gray-500">
+          {streak >= 2 && (
+            <span className="inline-flex items-center gap-0.5 text-orange-500 font-semibold" title="Streak">
+              <Flame className="w-4 h-4" /> {streak}
+            </span>
+          )}
           Word {index + 1} of {words.length} · Score {score.correct}/{score.done}
         </span>
       </div>
