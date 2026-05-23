@@ -83,6 +83,36 @@ export const messagesAPI = {
   deleteMessage: (id) => api.delete(`/messages/${id}`)
 };
 
+// Spelling API
+export const spellingAPI = {
+  getLists: () => api.get('/spelling/lists'),
+  getList: (id) => api.get(`/spelling/lists/${id}`),
+  createList: (data) => api.post('/spelling/lists', data),
+  updateList: (id, data) => api.put(`/spelling/lists/${id}`, data),
+  deleteList: (id) => api.delete(`/spelling/lists/${id}`),
+  shareList: (id, data) => api.put(`/spelling/lists/${id}/share`, data),
+  copyList: (id) => api.post(`/spelling/lists/${id}/copy`),
+  getLibrary: (params) => api.get('/spelling/library', { params }),
+  getMisspelt: (params) => api.get('/spelling/misspelt', { params }),
+  getSurprise: (params) => api.get('/spelling/surprise', { params }),
+  getStats: () => api.get('/spelling/stats'),
+  recordAttempts: (data) => api.post('/spelling/attempts', data),
+  // Uses native fetch so the browser sets the multipart boundary correctly.
+  extractFile: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE_URL}/spelling/extract`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data;
+  }
+};
+
 // Reviews API
 export const reviewsAPI = {
   createReview: (data) => api.post('/reviews', data),
