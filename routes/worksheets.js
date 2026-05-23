@@ -4,6 +4,7 @@ import Worksheet from '../models/Worksheet.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet } from '../utils/aiService.js';
+import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/practiceSchedule.js';
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ function sendAiError(res, err) {
 
 // @route   POST /api/worksheets/generate
 // @desc    Upload a photo of marked math work; diagnose misconceptions and
-//          generate targeted practice questions.
+//          generate spaced practice sessions of targeted questions.
 // @access  Private (tutor or parent)
 router.post(
   '/generate',
@@ -44,7 +45,9 @@ router.post(
       return res.status(400).json({ error: 'Please upload a photo of the marked work.' });
     }
 
-    const { studentName, gradeLevel, topicHint, numQuestions } = req.body;
+    const { studentName, gradeLevel, topicHint, questionsPerSession } = req.body;
+    const perSession = Math.min(Math.max(parseInt(questionsPerSession, 10) || 5, 2), 6);
+    const totalQuestions = perSession * SESSION_OFFSETS.length;
 
     try {
       const buffer = await fs.readFile(req.file.path);
@@ -55,10 +58,12 @@ router.post(
         mimeType: req.file.mimetype,
         gradeLevel,
         topicHint,
-        numQuestions
+        numQuestions: totalQuestions
       });
 
-      const worksheet = await Worksheet.create({
+      const practiceSessions = buildSessions(result.questions);
+
+      const worksheet = new Worksheet({
         userId: req.user.id,
         studentName: studentName ? String(studentName).slice(0, 100) : undefined,
         subject: 'Math',
@@ -68,8 +73,10 @@ router.post(
         overallSummary: result.overallSummary,
         misconceptions: Array.isArray(result.misconceptions) ? result.misconceptions : [],
         skillsToReinforce: Array.isArray(result.skillsToReinforce) ? result.skillsToReinforce : [],
-        questions: Array.isArray(result.questions) ? result.questions : []
+        practiceSessions
       });
+      recomputeSchedule(worksheet);
+      await worksheet.save();
 
       return res.status(201).json({ success: true, worksheet, readable: result.readable !== false });
     } catch (err) {
@@ -79,12 +86,12 @@ router.post(
 );
 
 // @route   GET /api/worksheets
-// @desc    List the current user's generated worksheets (summary fields only)
+// @desc    List the current user's worksheets with due-status fields
 // @access  Private
 router.get('/', protect, async (req, res) => {
   try {
     const worksheets = await Worksheet.find({ userId: req.user.id })
-      .select('studentName subject topic gradeLevel overallSummary createdAt')
+      .select('studentName subject topic gradeLevel overallSummary nextDueAt sessionsTotal sessionsCompleted createdAt')
       .sort({ createdAt: -1 })
       .limit(50);
 
@@ -95,7 +102,7 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   GET /api/worksheets/:id
-// @desc    Get a single worksheet with full questions
+// @desc    Get a single worksheet with all practice sessions
 // @access  Private (owner only)
 router.get('/:id', protect, async (req, res) => {
   try {
@@ -103,6 +110,45 @@ router.get('/:id', protect, async (req, res) => {
     if (!worksheet) {
       return res.status(404).json({ error: 'Worksheet not found' });
     }
+    return res.json({ success: true, worksheet });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// @route   PATCH /api/worksheets/:id/sessions/:n
+// @desc    Reschedule a practice session and/or mark it complete
+// @access  Private (owner only)
+router.patch('/:id/sessions/:n', protect, async (req, res) => {
+  try {
+    const worksheet = await Worksheet.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!worksheet) {
+      return res.status(404).json({ error: 'Worksheet not found' });
+    }
+
+    const sessionNumber = parseInt(req.params.n, 10);
+    const session = worksheet.practiceSessions.find((s) => s.sessionNumber === sessionNumber);
+    if (!session) {
+      return res.status(404).json({ error: 'Practice session not found' });
+    }
+
+    if (req.body.scheduledFor !== undefined) {
+      const date = new Date(req.body.scheduledFor);
+      if (isNaN(date.getTime())) {
+        return res.status(400).json({ error: 'Invalid date' });
+      }
+      session.scheduledFor = date;
+    }
+
+    if (req.body.completed !== undefined) {
+      session.completed = !!req.body.completed;
+      session.completedAt = session.completed ? new Date() : null;
+    }
+
+    recomputeSchedule(worksheet);
+    worksheet.updatedAt = new Date();
+    await worksheet.save();
+
     return res.json({ success: true, worksheet });
   } catch (err) {
     return res.status(500).json({ error: err.message });

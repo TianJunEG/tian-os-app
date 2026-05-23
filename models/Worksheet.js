@@ -18,6 +18,14 @@ const questionSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
+const practiceSessionSchema = new mongoose.Schema({
+  sessionNumber: { type: Number, required: true },
+  scheduledFor: { type: Date, required: true },
+  completed: { type: Boolean, default: false },
+  completedAt: { type: Date, default: null },
+  questions: [questionSchema]
+}, { _id: false });
+
 const worksheetSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -47,7 +55,20 @@ const worksheetSchema = new mongoose.Schema({
   },
   misconceptions: [misconceptionSchema],
   skillsToReinforce: [String],
-  questions: [questionSchema],
+  practiceSessions: [practiceSessionSchema],
+  // Denormalized for cheap due-list rendering
+  nextDueAt: {
+    type: Date,
+    default: null
+  },
+  sessionsTotal: {
+    type: Number,
+    default: 0
+  },
+  sessionsCompleted: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -59,5 +80,6 @@ const worksheetSchema = new mongoose.Schema({
 });
 
 worksheetSchema.index({ userId: 1, createdAt: -1 });
+worksheetSchema.index({ userId: 1, nextDueAt: 1 });
 
 export default mongoose.model('Worksheet', worksheetSchema);

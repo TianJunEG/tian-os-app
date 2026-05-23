@@ -109,11 +109,12 @@ export async function analyzeAndGenerateWorksheet({ imageBase64, mimeType, grade
     throw err;
   }
 
-  const count = Math.min(Math.max(parseInt(numQuestions, 10) || 8, 3), 15);
+  const count = Math.min(Math.max(parseInt(numQuestions, 10) || 12, 6), 18);
 
   const instructions = [
     'Analyze the attached photo of marked math work, diagnose the misconception(s) behind any wrong answers, and generate practice questions.',
     `Generate exactly ${count} practice questions spread across easier / similar / harder difficulties.`,
+    'These will be divided into several spaced practice sessions, so make every question distinct — vary the numbers and surface form; do not produce near-duplicates.',
     gradeLevel ? `Student grade or level: ${gradeLevel}.` : '',
     topicHint ? `Topic context provided by the user: ${topicHint}.` : '',
     'Return only the structured worksheet data.'

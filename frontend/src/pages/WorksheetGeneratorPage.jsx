@@ -8,7 +8,9 @@ import {
   AlertCircle,
   Trash2,
   FileText,
-  Loader
+  Loader,
+  Calendar,
+  CheckCircle
 } from 'lucide-react';
 import { worksheetsAPI } from '../services/api';
 import './WorksheetGeneratorPage.css';
@@ -53,6 +55,39 @@ const difficultyStyles = {
   harder: 'bg-orange-100 text-orange-800'
 };
 
+function startOfDay(d) {
+  const x = new Date(d);
+  return new Date(x.getFullYear(), x.getMonth(), x.getDate());
+}
+
+function dayDiff(date) {
+  return Math.round((startOfDay(date) - startOfDay(new Date())) / 86400000);
+}
+
+function relativeLabel(date) {
+  const d = dayDiff(date);
+  if (d === 0) return 'Today';
+  if (d < 0) return `${-d}d overdue`;
+  return `in ${d}d`;
+}
+
+function dueStatus(w) {
+  if (w.sessionsTotal && w.sessionsCompleted >= w.sessionsTotal) {
+    return { label: 'Complete', cls: 'bg-green-100 text-green-800' };
+  }
+  if (!w.nextDueAt) return { label: '—', cls: 'bg-gray-100 text-gray-600' };
+  const d = dayDiff(w.nextDueAt);
+  if (d < 0) return { label: 'Overdue', cls: 'bg-red-100 text-red-800' };
+  if (d === 0) return { label: 'Due today', cls: 'bg-yellow-100 text-yellow-800' };
+  return { label: `Due in ${d}d`, cls: 'bg-blue-100 text-blue-800' };
+}
+
+function toDateInputValue(date) {
+  const d = new Date(date);
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
 export default function WorksheetGeneratorPage() {
   const navigate = useNavigate();
 
@@ -61,12 +96,13 @@ export default function WorksheetGeneratorPage() {
   const [studentName, setStudentName] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
   const [topicHint, setTopicHint] = useState('');
-  const [numQuestions, setNumQuestions] = useState('8');
+  const [questionsPerSession, setQuestionsPerSession] = useState('5');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [worksheet, setWorksheet] = useState(null);
   const [teacherView, setTeacherView] = useState(true);
+  const [activeSession, setActiveSession] = useState(1);
 
   const [history, setHistory] = useState([]);
 
@@ -81,6 +117,14 @@ export default function WorksheetGeneratorPage() {
     } catch (err) {
       console.error('Failed to load worksheet history:', err);
     }
+  };
+
+  const adoptWorksheet = (w) => {
+    setWorksheet(w);
+    setTeacherView(true);
+    const sessions = w.practiceSessions || [];
+    const next = sessions.find((s) => !s.completed) || sessions[0];
+    setActiveSession(next ? next.sessionNumber : 1);
   };
 
   const handleFileChange = (e) => {
@@ -110,11 +154,10 @@ export default function WorksheetGeneratorPage() {
       if (studentName) formData.append('studentName', studentName);
       if (gradeLevel) formData.append('gradeLevel', gradeLevel);
       if (topicHint) formData.append('topicHint', topicHint);
-      formData.append('numQuestions', numQuestions);
+      formData.append('questionsPerSession', questionsPerSession);
 
       const res = await worksheetsAPI.generate(formData);
-      setWorksheet(res.data.worksheet);
-      setTeacherView(true);
+      adoptWorksheet(res.data.worksheet);
       loadHistory();
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong generating the worksheet.');
@@ -127,11 +170,20 @@ export default function WorksheetGeneratorPage() {
     setError(null);
     try {
       const res = await worksheetsAPI.get(id);
-      setWorksheet(res.data.worksheet);
-      setTeacherView(true);
+      adoptWorksheet(res.data.worksheet);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not open that worksheet.');
+    }
+  };
+
+  const updateSession = async (sessionNumber, payload) => {
+    try {
+      const res = await worksheetsAPI.updateSession(worksheet._id, sessionNumber, payload);
+      setWorksheet(res.data.worksheet);
+      loadHistory();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not update the session.');
     }
   };
 
@@ -147,30 +199,29 @@ export default function WorksheetGeneratorPage() {
     }
   };
 
-  const hasQuestions = worksheet?.questions?.length > 0;
+  const sessions = worksheet?.practiceSessions || [];
+  const activeSessionObj = sessions.find((s) => s.sessionNumber === activeSession) || sessions[0];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow sticky top-0 z-40 no-print">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
-                aria-label="Back to dashboard"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-purple-600" />
-                  Math Worksheet Generator
-                </h1>
-                <p className="text-gray-600 text-sm">
-                  Upload marked work → diagnose the misconception → practice questions
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              aria-label="Back to dashboard"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-purple-600" />
+                Math Worksheet Generator
+              </h1>
+              <p className="text-gray-600 text-sm">
+                Upload marked work → diagnose the misconception → spaced practice
+              </p>
             </div>
           </div>
         </div>
@@ -230,17 +281,19 @@ export default function WorksheetGeneratorPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Number of questions</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Questions per session</label>
                 <select
-                  value={numQuestions}
-                  onChange={(e) => setNumQuestions(e.target.value)}
+                  value={questionsPerSession}
+                  onChange={(e) => setQuestionsPerSession(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
+                  <option value="4">4</option>
                   <option value="5">5</option>
-                  <option value="8">8</option>
-                  <option value="10">10</option>
-                  <option value="12">12</option>
+                  <option value="6">6</option>
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Builds 3 spaced sessions — today, +2 days, +7 days — for mastery.
+                </p>
               </div>
             </div>
           </div>
@@ -258,7 +311,7 @@ export default function WorksheetGeneratorPage() {
             ) : (
               <>
                 <Sparkles className="w-5 h-5" />
-                Generate worksheet
+                Generate practice plan
               </>
             )}
           </button>
@@ -267,7 +320,7 @@ export default function WorksheetGeneratorPage() {
         {loading && (
           <div className="bg-white rounded-lg shadow p-8 text-center no-print">
             <Loader className="w-10 h-10 text-purple-600 animate-spin mx-auto mb-3" />
-            <p className="text-gray-700 font-medium">Reading the work and building practice questions…</p>
+            <p className="text-gray-700 font-medium">Reading the work and building spaced practice…</p>
             <p className="text-gray-500 text-sm mt-1">This can take up to a minute.</p>
           </div>
         )}
@@ -293,77 +346,145 @@ export default function WorksheetGeneratorPage() {
                 />
                 Teacher view (show diagnosis &amp; answers)
               </label>
-              <button
-                onClick={() => window.print()}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition text-sm font-medium"
-              >
-                <Printer className="w-4 h-4" />
-                Print / Save PDF
-              </button>
+              {activeSessionObj && (
+                <button
+                  onClick={() => window.print()}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition text-sm font-medium"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print / Save session as PDF
+                </button>
+              )}
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6 sm:p-8 print-area">
-              <div className="border-b border-gray-200 pb-4 mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {worksheet.topic || 'Math Practice Worksheet'}
-                </h2>
-                <p className="text-gray-500 text-sm mt-1">
-                  {worksheet.studentName ? `${worksheet.studentName} • ` : ''}
-                  {worksheet.gradeLevel ? `${worksheet.gradeLevel} • ` : ''}
-                  {new Date(worksheet.createdAt || Date.now()).toLocaleDateString()}
-                </p>
-              </div>
-
-              {/* Diagnosis (teacher view) */}
-              {teacherView && (
-                <div className="mb-6 space-y-4">
+            {/* Diagnosis (teacher view, on-screen only) */}
+            {teacherView && (
+              <div className="bg-white rounded-lg shadow p-6 space-y-4 no-print">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{worksheet.topic || 'Diagnosis'}</h2>
                   {worksheet.overallSummary && (
-                    <div className="bg-purple-50 border border-purple-100 rounded-lg p-4">
-                      <h3 className="font-semibold text-purple-900 mb-1">Diagnosis</h3>
-                      <p className="text-gray-700 text-sm whitespace-pre-line">{worksheet.overallSummary}</p>
-                    </div>
-                  )}
-
-                  {worksheet.misconceptions?.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">Misconceptions to tackle</h3>
-                      <div className="space-y-3">
-                        {worksheet.misconceptions.map((m, i) => (
-                          <div key={i} className="border border-gray-200 rounded-lg p-3">
-                            <p className="font-medium text-gray-900">{m.title}</p>
-                            <p className="text-sm text-gray-700 mt-1">{m.description}</p>
-                            {m.evidence && (
-                              <p className="text-xs text-gray-500 mt-2">
-                                <span className="font-medium">Evidence:</span> {m.evidence}
-                              </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {worksheet.skillsToReinforce?.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-2">Skills to reinforce</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {worksheet.skillsToReinforce.map((s, i) => (
-                          <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                    <p className="text-gray-700 text-sm mt-1 whitespace-pre-line">{worksheet.overallSummary}</p>
                   )}
                 </div>
-              )}
 
-              {/* Questions */}
-              {hasQuestions ? (
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Practice questions</h3>
+                {worksheet.misconceptions?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Misconceptions to tackle</h3>
+                    <div className="space-y-3">
+                      {worksheet.misconceptions.map((m, i) => (
+                        <div key={i} className="border border-gray-200 rounded-lg p-3">
+                          <p className="font-medium text-gray-900">{m.title}</p>
+                          <p className="text-sm text-gray-700 mt-1">{m.description}</p>
+                          {m.evidence && (
+                            <p className="text-xs text-gray-500 mt-2">
+                              <span className="font-medium">Evidence:</span> {m.evidence}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {worksheet.skillsToReinforce?.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Skills to reinforce</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {worksheet.skillsToReinforce.map((s, i) => (
+                        <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {worksheet.sourceImageUrl && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Original work</h3>
+                    <img
+                      src={`${FILE_BASE}${worksheet.sourceImageUrl}`}
+                      alt="Original marked work"
+                      className="max-h-72 rounded-lg border border-gray-200"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Session tabs */}
+            {sessions.length > 0 && (
+              <div className="flex flex-wrap gap-2 no-print">
+                {sessions.map((s) => {
+                  const isActive = s.sessionNumber === activeSessionObj?.sessionNumber;
+                  return (
+                    <button
+                      key={s.sessionNumber}
+                      onClick={() => setActiveSession(s.sessionNumber)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition ${
+                        isActive
+                          ? 'bg-purple-600 text-white border-purple-600'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
+                      }`}
+                    >
+                      {s.completed ? (
+                        <CheckCircle className={`w-4 h-4 ${isActive ? 'text-white' : 'text-green-600'}`} />
+                      ) : (
+                        <Calendar className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                      )}
+                      <span>Session {s.sessionNumber}</span>
+                      <span className={isActive ? 'text-purple-100' : 'text-gray-400'}>
+                        · {s.completed ? 'done' : relativeLabel(s.scheduledFor)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Session scheduling controls (teacher view) */}
+            {activeSessionObj && teacherView && (
+              <div className="bg-white rounded-lg shadow p-4 flex flex-wrap items-center gap-4 no-print">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm text-gray-700">Scheduled for</label>
+                  <input
+                    type="date"
+                    value={toDateInputValue(activeSessionObj.scheduledFor)}
+                    onChange={(e) => updateSession(activeSessionObj.sessionNumber, { scheduledFor: e.target.value })}
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={activeSessionObj.completed}
+                    onChange={(e) => updateSession(activeSessionObj.sessionNumber, { completed: e.target.checked })}
+                    className="rounded text-green-600 focus:ring-green-500"
+                  />
+                  Mark this session complete
+                </label>
+              </div>
+            )}
+
+            {/* Printable session sheet */}
+            <div className="bg-white rounded-lg shadow p-6 sm:p-8 print-area">
+              {activeSessionObj ? (
+                <>
+                  <div className="border-b border-gray-200 pb-4 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {worksheet.topic || 'Math Practice'} — Session {activeSessionObj.sessionNumber} of{' '}
+                      {sessions.length}
+                    </h2>
+                    <p className="text-gray-500 text-sm mt-1">
+                      {worksheet.studentName ? `${worksheet.studentName} • ` : ''}
+                      {worksheet.gradeLevel ? `${worksheet.gradeLevel} • ` : ''}
+                      Scheduled for {new Date(activeSessionObj.scheduledFor).toLocaleDateString()}
+                    </p>
+                  </div>
+
                   <ol className="space-y-5">
-                    {worksheet.questions.map((q, i) => (
+                    {activeSessionObj.questions.map((q, i) => (
                       <li key={i} className="worksheet-question">
                         <div className="flex items-start gap-3">
                           <span className="font-semibold text-gray-900">{i + 1}.</span>
@@ -400,7 +521,7 @@ export default function WorksheetGeneratorPage() {
                       </li>
                     ))}
                   </ol>
-                </div>
+                </>
               ) : (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -410,57 +531,55 @@ export default function WorksheetGeneratorPage() {
                   </p>
                 </div>
               )}
-
-              {teacherView && worksheet.sourceImageUrl && (
-                <div className="mt-6 no-print">
-                  <h3 className="font-semibold text-gray-900 mb-2">Original work</h3>
-                  <img
-                    src={`${FILE_BASE}${worksheet.sourceImageUrl}`}
-                    alt="Original marked work"
-                    className="max-h-80 rounded-lg border border-gray-200"
-                  />
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        {/* History */}
+        {/* History / due list */}
         <div className="bg-white rounded-lg shadow no-print">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Past worksheets</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Practice plans</h2>
           </div>
           {history.length === 0 ? (
             <div className="p-6 text-center text-gray-500 text-sm">No worksheets generated yet.</div>
           ) : (
             <ul className="divide-y divide-gray-200">
-              {history.map((w) => (
-                <li
-                  key={w._id}
-                  onClick={() => openWorksheet(w._id)}
-                  className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="w-5 h-5 text-purple-600 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
-                        {w.topic || 'Math worksheet'}
-                        {w.studentName ? ` — ${w.studentName}` : ''}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(w.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => deleteWorksheet(w._id, e)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                    aria-label="Delete worksheet"
+              {history.map((w) => {
+                const status = dueStatus(w);
+                return (
+                  <li
+                    key={w._id}
+                    onClick={() => openWorksheet(w._id)}
+                    className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </li>
-              ))}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900 truncate">
+                          {w.topic || 'Math worksheet'}
+                          {w.studentName ? ` — ${w.studentName}` : ''}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {w.sessionsCompleted || 0}/{w.sessionsTotal || 0} sessions
+                          {w.nextDueAt ? ` · next ${new Date(w.nextDueAt).toLocaleDateString()}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${status.cls}`}>
+                        {status.label}
+                      </span>
+                      <button
+                        onClick={(e) => deleteWorksheet(w._id, e)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        aria-label="Delete worksheet"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

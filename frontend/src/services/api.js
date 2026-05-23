@@ -97,6 +97,7 @@ export const worksheetsAPI = {
   generate: (formData) => api.post('/worksheets/generate', formData),
   list: () => api.get('/worksheets'),
   get: (id) => api.get(`/worksheets/${id}`),
+  updateSession: (id, n, data) => api.patch(`/worksheets/${id}/sessions/${n}`, data),
   remove: (id) => api.delete(`/worksheets/${id}`)
 };
 
