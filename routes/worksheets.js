@@ -6,6 +6,7 @@ import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
 import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/practiceSchedule.js';
+import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
 import { applyMarks } from '../utils/marking.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
 
@@ -315,18 +316,9 @@ router.post('/:id/reinforce', protect, async (req, res) => {
       numQuestions: totalQuestions
     });
 
-    const worksheet = new Worksheet({
-      userId: req.user.id,
-      studentId: source.studentId,
-      studentName: source.studentName,
-      subject: source.subject,
-      topic: source.topic,
-      gradeLevel: source.gradeLevel,
-      overallSummary: `Reinforcement practice targeting: ${misconceptions.map((m) => m.title).join(', ') || source.topic}.`,
-      misconceptions,
-      skillsToReinforce: source.skillsToReinforce,
-      practiceSessions: buildSessions(questions)
-    });
+    const worksheet = new Worksheet(
+      buildReinforcementWorksheet({ source, userId: req.user.id, misconceptions, questions })
+    );
     recomputeSchedule(worksheet);
     await worksheet.save();
 

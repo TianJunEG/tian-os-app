@@ -19,7 +19,7 @@ export function canManageWorksheet(worksheet, userId) {
 // or they could read it from the API response before answering. Answers for
 // already-marked questions are kept so post-attempt review still works.
 export function redactWorksheetForViewer(worksheet, userId) {
-  const obj = typeof worksheet?.toObject === 'function' ? worksheet.toObject() : worksheet;
+  const obj = typeof worksheet?.toObject === 'function' ? worksheet.toObject() : structuredClone(worksheet);
   if (canManageWorksheet(obj, userId)) return obj;
 
   for (const session of obj.practiceSessions || []) {

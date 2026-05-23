@@ -13,7 +13,7 @@
     "seed:reviews": "node seed-reviews.js",
     "seed:all": "node seed-tutors.js && node seed-reviews.js",
     "seed:fresh": "node clear-db.js && node seed-tutors.js && node seed-reviews.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run"
   },
   "keywords": [
     "tutoring",
@@ -38,6 +38,7 @@
     "validator": "^13.9.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "vitest": "^4.1.7"
   }
 }
