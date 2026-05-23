@@ -42,11 +42,16 @@ const validators = [
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { category, level, subject, page = 1, limit = 12 } = req.query;
+    const { category, level, subject, q, page = 1, limit = 12 } = req.query;
     const filter = { published: true };
     if (category) filter.category = category;
     if (level) filter.level = level;
     if (subject) filter.subject = subject;
+    if (q && q.trim()) {
+      const escaped = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
+      filter.$or = [{ title: regex }, { summary: regex }];
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const [resources, total] = await Promise.all([

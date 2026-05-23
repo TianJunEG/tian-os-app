@@ -102,6 +102,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleInquiryStatus = async (id, status) => {
+    try {
+      await partnersAPI.updateInquiryStatus(id, status);
+      const res = await partnersAPI.getInquiries({ page: filters.page, limit: filters.limit });
+      setData(prev => ({ ...prev, partners: res.data }));
+    } catch (error) {
+      alert('Error updating status: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
   const handleResolvDispute = async (bookingId) => {
     try {
       const resolution = prompt('Enter resolution details:');
@@ -514,7 +524,15 @@ const AdminDashboard = () => {
                   <td>{inquiry.email}</td>
                   <td className="truncate">{inquiry.message}</td>
                   <td>
-                    <span className="badge badge-parent">{inquiry.status}</span>
+                    <select
+                      className="filter-select"
+                      value={inquiry.status}
+                      onChange={(e) => handleInquiryStatus(inquiry._id, e.target.value)}
+                    >
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="archived">Archived</option>
+                    </select>
                   </td>
                   <td>{new Date(inquiry.createdAt).toLocaleDateString()}</td>
                 </tr>

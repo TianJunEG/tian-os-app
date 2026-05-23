@@ -2,7 +2,12 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import PartnerInquiry from '../models/PartnerInquiry.js';
 import { protect, authorize } from '../middleware/auth.js';
-import { sendPartnerInquiryNotificationEmail } from '../utils/emailService.js';
+import {
+  sendPartnerInquiryNotificationEmail,
+  sendPartnerInquiryAcknowledgementEmail
+} from '../utils/emailService.js';
+
+const INQUIRY_STATUSES = ['new', 'contacted', 'archived'];
 
 const router = express.Router();
 
@@ -30,11 +35,17 @@ router.post(
       const { name, organization, email, message } = req.body;
       const inquiry = await PartnerInquiry.create({ name, organization, email, message });
 
-      // Notify the team, but don't fail the submission if email is unavailable.
+      // Notify the team and acknowledge the partner, but never fail the
+      // submission if email is unavailable.
       try {
         await sendPartnerInquiryNotificationEmail(inquiry);
       } catch (emailError) {
         console.error('Partner inquiry notification failed:', emailError.message);
+      }
+      try {
+        await sendPartnerInquiryAcknowledgementEmail(inquiry);
+      } catch (emailError) {
+        console.error('Partner inquiry acknowledgement failed:', emailError.message);
       }
 
       res.status(201).json({
@@ -76,6 +87,30 @@ router.get('/inquiries', protect, authorize('admin'), async (req, res) => {
   } catch (error) {
     console.error('List partner inquiries error:', error);
     res.status(500).json({ message: 'Error fetching inquiries' });
+  }
+});
+
+// @route   PATCH /api/partners/inquiries/:id
+// @desc    Update the status of an inquiry
+// @access  Private (admin only)
+router.patch('/inquiries/:id', protect, authorize('admin'), async (req, res) => {
+  const { status } = req.body;
+  if (!INQUIRY_STATUSES.includes(status)) {
+    return res.status(400).json({ message: 'Invalid status' });
+  }
+  try {
+    const inquiry = await PartnerInquiry.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    if (!inquiry) {
+      return res.status(404).json({ message: 'Inquiry not found' });
+    }
+    res.json({ inquiry });
+  } catch (error) {
+    console.error('Update inquiry status error:', error);
+    res.status(500).json({ message: 'Error updating inquiry' });
   }
 });
 

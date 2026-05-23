@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { resourcesAPI, SERVER_ORIGIN } from '../services/api';
 import { GROUP_NAME, RESOURCE_CATEGORIES } from '../config/brand';
 import Seo from '../components/Seo';
@@ -24,7 +25,17 @@ const markdownComponents = {
   blockquote: ({ node, ...props }) => (
     <blockquote className="border-l-4 border-purple-200 pl-4 italic text-gray-600 mb-4" {...props} />
   ),
-  code: ({ node, ...props }) => <code className="bg-gray-100 rounded px-1 py-0.5 text-sm" {...props} />
+  code: ({ node, ...props }) => <code className="bg-gray-100 rounded px-1 py-0.5 text-sm" {...props} />,
+  table: ({ node, ...props }) => (
+    <div className="overflow-x-auto mb-4">
+      <table className="min-w-full border border-gray-200 text-sm" {...props} />
+    </div>
+  ),
+  th: ({ node, ...props }) => (
+    <th className="border border-gray-200 bg-gray-50 px-3 py-2 text-left font-semibold" {...props} />
+  ),
+  td: ({ node, ...props }) => <td className="border border-gray-200 px-3 py-2" {...props} />,
+  del: ({ node, ...props }) => <del className="text-gray-500" {...props} />
 };
 
 export default function ResourceDetailPage() {
@@ -98,7 +109,9 @@ export default function ResourceDetailPage() {
             </div>
 
             {resource.body && (
-              <ReactMarkdown components={markdownComponents}>{resource.body}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {resource.body}
+              </ReactMarkdown>
             )}
 
             {resource.fileUrl && (

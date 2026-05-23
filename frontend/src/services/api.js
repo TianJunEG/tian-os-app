@@ -61,7 +61,8 @@ export const parentsAPI = {
 // Partners API
 export const partnersAPI = {
   submitInquiry: (data) => api.post('/partners/inquiries', data),
-  getInquiries: (params) => api.get('/partners/inquiries', { params })
+  getInquiries: (params) => api.get('/partners/inquiries', { params }),
+  updateInquiryStatus: (id, status) => api.patch(`/partners/inquiries/${id}`, { status })
 };
 
 // Resources API

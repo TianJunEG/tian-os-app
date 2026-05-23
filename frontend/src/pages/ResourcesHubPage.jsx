@@ -9,6 +9,7 @@ const categoryName = (id) =>
 
 export default function ResourcesHubPage() {
   const [activeCategory, setActiveCategory] = useState('');
+  const [search, setSearch] = useState('');
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +20,7 @@ export default function ResourcesHubPage() {
       try {
         const res = await resourcesAPI.list({
           category: activeCategory || undefined,
+          q: search.trim() || undefined,
           limit: 50
         });
         if (!cancelled) setResources(res.data.resources);
@@ -29,11 +31,13 @@ export default function ResourcesHubPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    fetchResources();
+    // Debounce so typing doesn't fire a request per keystroke.
+    const timer = setTimeout(fetchResources, 300);
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
-  }, [activeCategory]);
+  }, [activeCategory, search]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
@@ -64,6 +68,18 @@ export default function ResourcesHubPage() {
             Guides to the MOE syllabus, our own practice papers, and activities families can do
             together — free from {GROUP_NAME}.
           </p>
+        </div>
+
+        <div className="max-w-md mx-auto mb-6">
+          <label htmlFor="resource-search" className="sr-only">Search resources</label>
+          <input
+            id="resource-search"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search resources..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
         </div>
 
         <div className="flex flex-wrap justify-center gap-2 mb-10" role="group" aria-label="Filter resources by category">

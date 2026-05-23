@@ -232,6 +232,25 @@ export const sendPartnerInquiryNotificationEmail = async (inquiry) => {
   });
 };
 
+/**
+ * Acknowledge a partnership inquiry to the person who submitted it
+ */
+export const sendPartnerInquiryAcknowledgementEmail = async (inquiry) => {
+  const html = `
+    <h2>Thanks for reaching out 🤝</h2>
+    <p>Hi ${inquiry.name},</p>
+    <p>Thank you for your interest in partnering with Tian Jun Education Group. We've received
+    your message and our team will be in touch as partnership opportunities open up.</p>
+    <p>Warm regards,<br>The Tian Jun Education Group Team</p>
+  `;
+
+  return sendEmail({
+    to: inquiry.email,
+    subject: 'We received your partnership inquiry',
+    html
+  });
+};
+
 export default {
   sendEmail,
   sendTutorApprovalEmail,
@@ -239,5 +258,6 @@ export default {
   sendBookingConfirmationEmail,
   sendSessionReminderEmail,
   sendPaymentConfirmationEmail,
-  sendPartnerInquiryNotificationEmail
+  sendPartnerInquiryNotificationEmail,
+  sendPartnerInquiryAcknowledgementEmail
 };
