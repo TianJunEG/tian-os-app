@@ -403,7 +403,7 @@ function genMulDivDecimal(skill) {
 
 // Express a fraction as a decimal (denominator a factor of 10 or 100): "3/4 =" → 0.75
 function genFracToDecimal(skill) {
-  const denomSet = [2, 4, 5, 10, 20, 25, 50, 100];
+  const denomSet = skill.spec.denomSet || [2, 4, 5, 10, 20, 25, 50, 100];
   for (let t = 0; t < 300; t++) {
     const d = pickFrom(denomSet);
     const a = randInt(1, d - 1);
@@ -411,6 +411,145 @@ function genFracToDecimal(skill) {
     return decProblem(skill, `${a}/${d} =`, a / d, 'fracToDecimal', { a, d });
   }
   return decProblem(skill, `3/4 =`, 0.75, 'fracToDecimal', { a: 3, d: 4 });
+}
+
+// ---------- Primary 5 ----------
+
+// Multiply/divide whole numbers by 10/100/1000 and their multiples: "47 × 1000 =" → 47000
+function genMulDivPow10(skill) {
+  const factor = pickFrom([10, 100, 1000]) * pickFrom([1, 1, 1, 2, 3, 4, 5]);
+  if (Math.random() < 0.5) {
+    const a = randInt(2, 999);
+    return problem(skill, `${a} ${TIMES} ${factor} =`, a * factor, 'mulDivPow10', { op: '*', a, factor });
+  }
+  const q = randInt(2, 999);
+  return problem(skill, `${q * factor} ${DIVIDE} ${factor} =`, q, 'mulDivPow10', { op: '/', a: q * factor, factor });
+}
+
+// Order of operations / brackets. Values constructed so the result is a whole number.
+// "3 + 4 × 5 =" → 23   ·   "(3 + 4) × 5 =" → 35
+function genOrderOps(skill) {
+  const r = randInt, br = !!skill.spec.brackets;
+  let display, jsExpr, answer;
+  const set = (d, j, ans) => { display = d; jsExpr = j; answer = ans; };
+  if (!br) {
+    switch (r(0, 4)) {
+      case 0: { const a = r(1, 20), b = r(2, 9), c = r(2, 9); set(`${a} ${PLUS} ${b} ${TIMES} ${c} =`, `${a}+${b}*${c}`, a + b * c); break; }
+      case 1: { const a = r(2, 9), b = r(2, 9), c = r(1, a * b); set(`${a} ${TIMES} ${b} ${MINUS} ${c} =`, `${a}*${b}-${c}`, a * b - c); break; }
+      case 2: { const a = r(2, 9), b = r(2, 9), c = r(1, 20); set(`${a} ${TIMES} ${b} ${PLUS} ${c} =`, `${a}*${b}+${c}`, a * b + c); break; }
+      case 3: { const c = r(2, 9), q = r(2, 9), a = r(1, 20); set(`${a} ${PLUS} ${c * q} ${DIVIDE} ${c} =`, `${a}+${c * q}/${c}`, a + q); break; }
+      default: { const c = r(2, 9), q = r(2, 9), a = r(q, 25); set(`${a} ${MINUS} ${c * q} ${DIVIDE} ${c} =`, `${a}-${c * q}/${c}`, a - q); break; }
+    }
+  } else {
+    switch (r(0, 4)) {
+      case 0: { const a = r(2, 15), b = r(2, 15), c = r(2, 9); set(`(${a} ${PLUS} ${b}) ${TIMES} ${c} =`, `(${a}+${b})*${c}`, (a + b) * c); break; }
+      case 1: { const a = r(3, 20), b = r(1, a - 1), c = r(2, 9); set(`(${a} ${MINUS} ${b}) ${TIMES} ${c} =`, `(${a}-${b})*${c}`, (a - b) * c); break; }
+      case 2: { const a = r(2, 9), b = r(2, 12), c = r(2, 12); set(`${a} ${TIMES} (${b} ${PLUS} ${c}) =`, `${a}*(${b}+${c})`, a * (b + c)); break; }
+      case 3: { const c = r(2, 9), q = r(2, 9), sum = c * q, a = r(1, sum - 1); set(`(${a} ${PLUS} ${sum - a}) ${DIVIDE} ${c} =`, `(${a}+${sum - a})/${c}`, q); break; }
+      default: { const a = r(2, 9), b = r(2, 12), c = r(1, b - 1); set(`${a} ${TIMES} (${b} ${MINUS} ${c}) =`, `${a}*(${b}-${c})`, a * (b - c)); break; }
+    }
+  }
+  return problem(skill, display, answer, 'orderOps', { jsExpr });
+}
+
+// Add/subtract mixed numbers, answer as an improper numerator over the LCD: "1 1/2 + 2 1/3 = ?/6" → 23
+function genMixedAddSub(skill) {
+  const maxDenom = skill.spec.maxDenom || 12, r = randInt;
+  const d1 = r(2, maxDenom), d2 = r(2, maxDenom), L = lcm(d1, d2);
+  const w1 = r(1, 4), a = r(1, d1 - 1), w2 = r(1, 4), b = r(1, d2 - 1);
+  const V1 = w1 * L + a * (L / d1), V2 = w2 * L + b * (L / d2);
+  const op = Math.random() < 0.5 ? '+' : '-';
+  if (op === '+') return problem(skill, `${w1} ${a}/${d1} ${PLUS} ${w2} ${b}/${d2} = ?/${L}`, V1 + V2, 'mixedAddSub', { w1, a, d1, w2, b, d2, L, op });
+  if (V1 >= V2) return problem(skill, `${w1} ${a}/${d1} ${MINUS} ${w2} ${b}/${d2} = ?/${L}`, V1 - V2, 'mixedAddSub', { w1, a, d1, w2, b, d2, L, op });
+  return problem(skill, `${w2} ${b}/${d2} ${MINUS} ${w1} ${a}/${d1} = ?/${L}`, V2 - V1, 'mixedAddSub', { w1, a, d1, w2, b, d2, L, op });
+}
+
+// Fraction (proper/improper/mixed) × whole number, chosen so the product is a whole: "3/4 × 8 =" → 6
+function genFracTimesWhole(skill) {
+  const r = randInt;
+  const d = r(2, 9), n = d * r(1, 6); // n a multiple of d → whole-number product
+  if (Math.random() < 0.4) {
+    const w = r(1, 4), a = r(1, d - 1);
+    return problem(skill, `${w} ${a}/${d} ${TIMES} ${n} =`, (w * d + a) * (n / d), 'fracTimesWhole', { w, a, d, n });
+  }
+  const a = r(1, 2 * d);
+  return problem(skill, `${a}/${d} ${TIMES} ${n} =`, a * (n / d), 'fracTimesWhole', { w: 0, a, d, n });
+}
+
+// Multiply two fractions, answer as numerator over the product of denominators: "2/3 × 3/5 = ?/15" → 6
+function genFracTimesFrac(skill) {
+  const r = randInt;
+  const d1 = r(2, 8), d2 = r(2, 8), a = r(1, 2 * d1), c = r(1, 2 * d2);
+  return problem(skill, `${a}/${d1} ${TIMES} ${c}/${d2} = ?/${d1 * d2}`, a * c, 'fracTimesFrac', { a, d1, c, d2 });
+}
+
+// Multiply/divide decimals (≤ 3 dp) by 10/100/1000 and their multiples: "0.45 × 100 =" → 45
+function genDecMulDivPow10(skill) {
+  const factor = pickFrom([10, 100, 1000]) * pickFrom([1, 1, 1, 2, 3, 5]);
+  if (Math.random() < 0.5) {
+    const x = randInt(1, 9999) / 1000;
+    return decProblem(skill, `${fmt(x)} ${TIMES} ${factor} =`, x * factor, 'decMulDivPow10', { op: '*', x, factor });
+  }
+  const q = randInt(1, 9999) / 1000;
+  return decProblem(skill, `${fmt(dround(q * factor, 3))} ${DIVIDE} ${factor} =`, q, 'decMulDivPow10', { op: '/', x: dround(q * factor, 3), factor });
+}
+
+// Metric conversion in decimal form: "2500 m = ? km" → 2.5  ·  "3.2 km = ? m" → 3200
+function genUnitConvert(skill) {
+  const [large, small, factor] = pickFrom([['km', 'm', 1000], ['m', 'cm', 100], ['kg', 'g', 1000], ['l', 'ml', 1000]]);
+  if (Math.random() < 0.5) {
+    const a = randInt(1, 9999); // smaller unit → larger unit
+    return decProblem(skill, `${a} ${small} = ? ${large}`, a / factor, 'unitConvert', { op: '/', a, factor });
+  }
+  const a = randInt(1, 9000) / 1000; // larger unit (≤ 3 dp) → smaller unit
+  return decProblem(skill, `${fmt(a)} ${large} = ? ${small}`, a * factor, 'unitConvert', { op: '*', a, factor });
+}
+
+// Expressing a part of a whole as a percentage: "15 out of 50 = ?%" → 30
+function genPartAsPercent(skill) {
+  for (let t = 0; t < 300; t++) {
+    const whole = pickFrom([10, 20, 25, 50, 100, 200]);
+    const part = randInt(1, whole - 1);
+    if ((part * 100) % whole !== 0) continue;
+    return problem(skill, `${part} out of ${whole} = ?%`, (part * 100) / whole, 'partAsPercent', { part, whole });
+  }
+  return problem(skill, `1 out of 4 = ?%`, 25, 'partAsPercent', { part: 1, whole: 4 });
+}
+
+// Finding a percentage part of a whole: "20% of 80 =" → 16
+function genPercentOf(skill) {
+  for (let t = 0; t < 300; t++) {
+    const pct = randInt(1, 20) * 5;
+    const whole = pickFrom([20, 40, 50, 60, 80, 100, 150, 200, 400, 500]);
+    if ((pct * whole) % 100 !== 0) continue;
+    return problem(skill, `${pct}% of ${whole} =`, (pct * whole) / 100, 'percentOf', { pct, whole });
+  }
+  return problem(skill, `20% of 50 =`, 10, 'percentOf', { pct: 20, whole: 50 });
+}
+
+// Discount / GST / interest — applied percentage: "A $250 item has a 20% discount. Discount = ?" → 50
+function genPercentApp(skill) {
+  const phrase = pickFrom([
+    (p, c) => `A $${p} item has a ${c}% discount. How much is the discount, in $?`,
+    (p, c) => `${c}% GST is charged on a $${p} purchase. How much is the GST, in $?`,
+    (p, c) => `$${p} earns ${c}% interest in a year. How much interest, in $?`,
+  ]);
+  for (let t = 0; t < 300; t++) {
+    const price = pickFrom([50, 80, 100, 120, 150, 200, 250, 400, 500, 800, 1000]);
+    const pct = pickFrom([5, 8, 9, 10, 15, 20, 25, 50]);
+    if ((price * pct) % 100 !== 0) continue;
+    return problem(skill, phrase(price, pct), (price * pct) / 100, 'percentApp', { price, pct });
+  }
+  return problem(skill, `A $100 item has a 20% discount. How much is the discount, in $?`, 20, 'percentApp', { price: 100, pct: 20 });
+}
+
+// Rate: find the rate, total, or number of units given the other two.
+function genRate(skill) {
+  const r = randInt, rate = r(2, 60), units = r(2, 12), total = rate * units;
+  const which = pickFrom(['total', 'rate', 'units']);
+  if (which === 'total') return problem(skill, `A car travels at ${rate} km/h for ${units} h. Distance = ? km`, total, 'rate', { rate, units, total, which });
+  if (which === 'rate') return problem(skill, `A car travels ${total} km in ${units} h. Speed = ? km/h`, rate, 'rate', { rate, units, total, which });
+  return problem(skill, `At ${rate} km/h, how many hours to travel ${total} km?`, units, 'rate', { rate, units, total, which });
 }
 
 const KINDS = {
@@ -422,6 +561,10 @@ const KINDS = {
   mixedToImproper: genMixedToImproper, fractionOfSet: genFractionOfSet, fractionUnlike: genFractionUnlike,
   decimalPlaceValue: genDecimalPlaceValue, compareDecimal: genCompareDecimal, roundDecimal: genRoundDecimal,
   addSubDecimal: genAddSubDecimal, mulDivDecimal: genMulDivDecimal, fracToDecimal: genFracToDecimal,
+  mulDivPow10: genMulDivPow10, orderOps: genOrderOps, mixedAddSub: genMixedAddSub,
+  fracTimesWhole: genFracTimesWhole, fracTimesFrac: genFracTimesFrac,
+  decMulDivPow10: genDecMulDivPow10, unitConvert: genUnitConvert,
+  partAsPercent: genPartAsPercent, percentOf: genPercentOf, percentApp: genPercentApp, rate: genRate,
 };
 
 export function generateProblem(skill) {
