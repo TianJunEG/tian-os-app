@@ -7,7 +7,7 @@ import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
 import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/practiceSchedule.js';
 import { applyMarks } from '../utils/marking.js';
-import { canViewWorksheet } from '../utils/worksheetAccess.js';
+import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
 
 const router = express.Router();
 
@@ -179,7 +179,7 @@ router.get('/:id', protect, async (req, res) => {
     if (!worksheet || !canViewWorksheet(worksheet, req.user.id)) {
       return res.status(404).json({ error: 'Worksheet not found' });
     }
-    return res.json({ success: true, worksheet });
+    return res.json({ success: true, worksheet: redactWorksheetForViewer(worksheet, req.user.id) });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
@@ -281,7 +281,7 @@ router.post('/:id/sessions/:n/mark', protect, async (req, res) => {
       )
     ];
 
-    return res.json({ success: true, worksheet, score: session.score, missedMisconceptions, modelUsed, escalated });
+    return res.json({ success: true, worksheet: redactWorksheetForViewer(worksheet, req.user.id), score: session.score, missedMisconceptions, modelUsed, escalated });
   } catch (err) {
     return sendAiError(res, err);
   }
@@ -317,6 +317,7 @@ router.post('/:id/reinforce', protect, async (req, res) => {
 
     const worksheet = new Worksheet({
       userId: req.user.id,
+      studentId: source.studentId,
       studentName: source.studentName,
       subject: source.subject,
       topic: source.topic,
