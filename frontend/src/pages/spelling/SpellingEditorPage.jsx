@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Plus, Trash2, Upload, BookOpen, Loader2, Save, FileText } from 'lucide-react';
+import { Plus, Trash2, Upload, BookOpen, Loader2, Save, FileText, Sparkles } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
 import { lookupWord, bestDefinition, bestExample } from '../../services/dictionary';
@@ -30,6 +30,9 @@ export default function SpellingEditorPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [lookupIdx, setLookupIdx] = useState(null);
+  const [bulkFilling, setBulkFilling] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 });
+  const bulkCancel = useRef(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
 
@@ -111,6 +114,61 @@ export default function SpellingEditorPage() {
     } finally {
       setLookupIdx(null);
     }
+  };
+
+  // Look up a meaning + example for every word that's missing one. Existing
+  // text is never overwritten; runs sequentially to be gentle on the free API.
+  const fillAll = async () => {
+    const targets = words
+      .map((w, i) => ({ i, word: w.word.trim() }))
+      .filter(({ i, word }) => word && (!words[i].definition.trim() || !words[i].sentence.trim()));
+    if (targets.length === 0) {
+      setNotice('Every word already has a meaning and an example sentence.');
+      return;
+    }
+    bulkCancel.current = false;
+    setError('');
+    setNotice('');
+    setBulkFilling(true);
+    let filled = 0;
+    let notFound = 0;
+    for (let k = 0; k < targets.length; k++) {
+      if (bulkCancel.current) break;
+      setBulkProgress({ done: k, total: targets.length });
+      const { i, word } = targets[k];
+      try {
+        const result = await lookupWord(word);
+        const def = bestDefinition(result);
+        const example = bestExample(result);
+        if (def || example) {
+          setWords((ws) =>
+            ws.map((w, idx) =>
+              idx === i
+                ? {
+                    ...w,
+                    definition: w.definition.trim() ? w.definition : def,
+                    sentence: w.sentence.trim() ? w.sentence : example
+                  }
+                : w
+            )
+          );
+          filled += 1;
+        } else {
+          notFound += 1;
+        }
+      } catch {
+        notFound += 1;
+      }
+      await new Promise((r) => setTimeout(r, 120));
+    }
+    const stopped = bulkCancel.current;
+    setBulkFilling(false);
+    setBulkProgress({ done: 0, total: 0 });
+    setNotice(
+      stopped
+        ? `Stopped. Filled ${filled} word(s).`
+        : `Filled ${filled} word(s).${notFound ? ` ${notFound} had no dictionary entry — add those by hand.` : ''}`
+    );
   };
 
   const save = async () => {
@@ -211,11 +269,28 @@ export default function SpellingEditorPage() {
 
         {/* Words */}
         <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
             <h2 className="font-semibold text-gray-900">Words ({words.filter((w) => w.word.trim()).length})</h2>
-            <button onClick={addRow} className="text-sm text-purple-600 hover:underline inline-flex items-center gap-1">
-              <Plus className="w-4 h-4" /> Add word
-            </button>
+            <div className="flex items-center gap-4">
+              {bulkFilling ? (
+                <span className="text-sm text-gray-500 inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Filling {bulkProgress.done}/{bulkProgress.total}…
+                  <button onClick={() => { bulkCancel.current = true; }} className="text-red-500 hover:underline">Stop</button>
+                </span>
+              ) : (
+                <button
+                  onClick={fillAll}
+                  disabled={!words.some((w) => w.word.trim())}
+                  title="Look up a meaning and example for every word that's missing one"
+                  className="text-sm text-purple-600 hover:underline inline-flex items-center gap-1 disabled:opacity-40"
+                >
+                  <Sparkles className="w-4 h-4" /> Fill all blanks
+                </button>
+              )}
+              <button onClick={addRow} className="text-sm text-purple-600 hover:underline inline-flex items-center gap-1">
+                <Plus className="w-4 h-4" /> Add word
+              </button>
+            </div>
           </div>
           <div className="space-y-4">
             {words.map((w, i) => (
