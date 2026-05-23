@@ -15,7 +15,13 @@ const questionSchema = new mongoose.Schema({
     type: String,
     enum: ['easier', 'similar', 'harder'],
     default: 'similar'
-  }
+  },
+  // Filled in when the student's answer is marked
+  studentResponseType: { type: String, enum: ['text', 'image'] },
+  studentResponse: { type: String },
+  correct: { type: Boolean, default: null },
+  feedback: { type: String },
+  markedAt: { type: Date }
 }, { _id: false });
 
 const practiceSessionSchema = new mongoose.Schema({
@@ -23,6 +29,8 @@ const practiceSessionSchema = new mongoose.Schema({
   scheduledFor: { type: Date, required: true },
   completed: { type: Boolean, default: false },
   completedAt: { type: Date, default: null },
+  marked: { type: Boolean, default: false },
+  score: { type: Number, default: null },
   questions: [questionSchema]
 }, { _id: false });
 

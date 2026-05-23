@@ -3,8 +3,9 @@ import fs from 'fs/promises';
 import Worksheet from '../models/Worksheet.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
-import { analyzeAndGenerateWorksheet } from '../utils/aiService.js';
+import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
 import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/practiceSchedule.js';
+import { applyMarks } from '../utils/marking.js';
 
 const router = express.Router();
 
@@ -78,7 +79,13 @@ router.post(
       recomputeSchedule(worksheet);
       await worksheet.save();
 
-      return res.status(201).json({ success: true, worksheet, readable: result.readable !== false });
+      return res.status(201).json({
+        success: true,
+        worksheet,
+        readable: result.readable !== false,
+        modelUsed: result.modelUsed,
+        escalated: result.escalated
+      });
     } catch (err) {
       return sendAiError(res, err);
     }
@@ -152,6 +159,117 @@ router.patch('/:id/sessions/:n', protect, async (req, res) => {
     return res.json({ success: true, worksheet });
   } catch (err) {
     return res.status(500).json({ error: err.message });
+  }
+});
+
+// @route   POST /api/worksheets/:id/sessions/:n/mark
+// @desc    Mark a student's typed/handwritten answers for a session, then
+//          auto-complete it. Returns the marked worksheet + missed misconceptions.
+// @access  Private (owner only)
+router.post('/:id/sessions/:n/mark', protect, async (req, res) => {
+  try {
+    const worksheet = await Worksheet.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!worksheet) {
+      return res.status(404).json({ error: 'Worksheet not found' });
+    }
+
+    const sessionNumber = parseInt(req.params.n, 10);
+    const session = worksheet.practiceSessions.find((s) => s.sessionNumber === sessionNumber);
+    if (!session) {
+      return res.status(404).json({ error: 'Practice session not found' });
+    }
+
+    const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
+    const items = [];
+
+    for (const a of answers) {
+      const i = parseInt(a.questionIndex, 10);
+      const q = session.questions[i];
+      if (!q) continue;
+
+      if (a.type === 'image' && typeof a.imageDataUrl === 'string') {
+        const match = a.imageDataUrl.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
+        if (!match) continue;
+        items.push({ index: i, prompt: q.prompt, correctAnswer: q.answer, type: 'image', mimeType: match[1], imageBase64: match[2] });
+        q.studentResponseType = 'image';
+      } else {
+        const text = typeof a.text === 'string' ? a.text.trim() : '';
+        if (!text) continue;
+        items.push({ index: i, prompt: q.prompt, correctAnswer: q.answer, type: 'text', text });
+        q.studentResponseType = 'text';
+        q.studentResponse = text;
+      }
+    }
+
+    if (items.length === 0) {
+      return res.status(400).json({ error: 'No answers were submitted to mark.' });
+    }
+
+    const { results, modelUsed, escalated } = await markAnswers({ items });
+    applyMarks(session, results);
+    recomputeSchedule(worksheet);
+    worksheet.updatedAt = new Date();
+    await worksheet.save();
+
+    const missedMisconceptions = [
+      ...new Set(
+        session.questions
+          .filter((q) => q.correct === false && q.targetsMisconception)
+          .map((q) => q.targetsMisconception)
+      )
+    ];
+
+    return res.json({ success: true, worksheet, score: session.score, missedMisconceptions, modelUsed, escalated });
+  } catch (err) {
+    return sendAiError(res, err);
+  }
+});
+
+// @route   POST /api/worksheets/:id/reinforce
+// @desc    Generate a new spaced practice plan targeting the same (or missed)
+//          misconceptions — no new photo needed.
+// @access  Private (owner only)
+router.post('/:id/reinforce', protect, async (req, res) => {
+  try {
+    const source = await Worksheet.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!source) {
+      return res.status(404).json({ error: 'Worksheet not found' });
+    }
+
+    let misconceptions = source.misconceptions || [];
+    if (Array.isArray(req.body.misconceptionTitles) && req.body.misconceptionTitles.length) {
+      const wanted = new Set(req.body.misconceptionTitles);
+      const filtered = misconceptions.filter((m) => wanted.has(m.title));
+      if (filtered.length) misconceptions = filtered;
+    }
+
+    const perSession = Math.min(Math.max(parseInt(req.body.questionsPerSession, 10) || 5, 2), 6);
+    const totalQuestions = perSession * SESSION_OFFSETS.length;
+
+    const questions = await generateReinforcement({
+      topic: source.topic,
+      misconceptions,
+      gradeLevel: source.gradeLevel,
+      numQuestions: totalQuestions
+    });
+
+    const worksheet = new Worksheet({
+      userId: req.user.id,
+      studentName: source.studentName,
+      subject: source.subject,
+      topic: source.topic,
+      gradeLevel: source.gradeLevel,
+      overallSummary: `Reinforcement practice targeting: ${misconceptions.map((m) => m.title).join(', ') || source.topic}.`,
+      misconceptions,
+      skillsToReinforce: source.skillsToReinforce,
+      practiceSessions: buildSessions(questions)
+    });
+    recomputeSchedule(worksheet);
+    await worksheet.save();
+
+    return res.status(201).json({ success: true, worksheet });
+  } catch (err) {
+    return sendAiError(res, err);
   }
 });
 

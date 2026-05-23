@@ -98,6 +98,8 @@ export const worksheetsAPI = {
   list: () => api.get('/worksheets'),
   get: (id) => api.get(`/worksheets/${id}`),
   updateSession: (id, n, data) => api.patch(`/worksheets/${id}/sessions/${n}`, data),
+  markSession: (id, n, data) => api.post(`/worksheets/${id}/sessions/${n}/mark`, data),
+  reinforce: (id, data) => api.post(`/worksheets/${id}/reinforce`, data),
   remove: (id) => api.delete(`/worksheets/${id}`)
 };
 
