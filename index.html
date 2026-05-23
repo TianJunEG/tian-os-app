@@ -1,323 +1,1039 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AEO - Find Your Perfect Tutor</title>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Heuristics Lab</title>
+<style>
+  :root{
+    --bg:#f3f6fb; --card:#ffffff; --ink:#1f2a44; --muted:#6b7896; --line:#e3e9f3;
+    --brand:#3b6ef6; --brand-dk:#2f57c9; --accent:#ff8a3d; --good:#19a974; --bad:#e0455e;
+    --u:#3b6ef6; --x1:#ff8a3d; --x2:#19a974; --x3:#9b6cf2;
+    --shadow:0 10px 30px rgba(31,42,68,.08); --shadow-sm:0 4px 14px rgba(31,42,68,.07);
+    --r:18px;
+    --h1:#3b6ef6; --h2:#11a3c4; --h3:#9b6cf2; --h4:#ef8d2f; --h5:#e0455e; --h6:#19a974;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 18px 80px}
+
+  /* Header */
+  header{position:sticky;top:0;z-index:40;background:rgba(243,246,251,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line)}
+  .bar{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 18px;flex-wrap:wrap}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.18rem;letter-spacing:-.3px;cursor:pointer}
+  .logo .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--brand),#7aa0ff);
+    display:grid;place-items:center;color:#fff;font-weight:900;box-shadow:var(--shadow-sm)}
+  .spacer{flex:1}
+  .lvlbox{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:4px;box-shadow:var(--shadow-sm)}
+  .lvlbox button{width:34px;height:30px;border-radius:999px;font-weight:800;color:var(--muted);font-size:.92rem}
+  .lvlbox button.on{background:var(--brand);color:#fff}
+  .lvllabel{font-size:.72rem;color:var(--muted);font-weight:700;padding:0 6px;white-space:nowrap}
+  .modetog{display:flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;box-shadow:var(--shadow-sm)}
+  .modetog button{padding:6px 14px;border-radius:999px;font-weight:700;color:var(--muted);font-size:.85rem}
+  .modetog button.on{background:var(--ink);color:#fff}
+
+  /* Hero / hub */
+  .hero{background:linear-gradient(135deg,#eaf1ff,#f7f3ff);border:1px solid var(--line);border-radius:24px;
+    padding:26px 26px 22px;margin:20px 0;box-shadow:var(--shadow-sm)}
+  .hero h1{margin:0 0 6px;font-size:1.7rem;letter-spacing:-.5px}
+  .hero p{margin:0;color:var(--muted);max-width:62ch}
+  .levelpill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:6px 12px;font-weight:700;font-size:.85rem;margin-top:14px;box-shadow:var(--shadow-sm)}
+  .levelpill b{color:var(--brand)}
+
+  .udsc{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 8px}
+  .udsc .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm)}
+  .udsc .step .k{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;font-weight:900;margin-bottom:8px}
+  .udsc .step h4{margin:0 0 3px;font-size:1rem}
+  .udsc .step p{margin:0;font-size:.82rem;color:var(--muted)}
+
+  .sectlabel{font-weight:800;font-size:1.15rem;margin:26px 4px 12px;letter-spacing:-.3px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
+  .hcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow-sm);
+    cursor:pointer;transition:transform .14s ease,box-shadow .14s ease;position:relative;overflow:hidden}
+  .hcard:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .hcard .badge{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:1.05rem;margin-bottom:10px}
+  .hcard h3{margin:0 0 4px;font-size:1.08rem}
+  .hcard .tag{font-size:.74rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .hcard p{margin:8px 0 0;font-size:.86rem;color:var(--muted)}
+  .hcard .prog{height:7px;border-radius:999px;background:var(--line);margin-top:12px;overflow:hidden}
+  .hcard .prog i{display:block;height:100%;border-radius:999px;background:var(--good);width:0;transition:width .4s}
+  .hcard .stars{font-size:.78rem;color:var(--muted);margin-top:6px;font-weight:700}
+
+  .tool-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .toolcard{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    padding:16px 18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .14s,box-shadow .14s}
+  .toolcard:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  .toolcard .ic{width:46px;height:46px;border-radius:13px;flex:none;display:grid;place-items:center;color:#fff}
+  .toolcard h3{margin:0 0 3px;font-size:1.05rem}
+  .toolcard p{margin:0;font-size:.84rem;color:var(--muted)}
+  /* 4-stage flow band (informational, not clickable) */
+  .guideband{background:linear-gradient(135deg,#eef3ff,#f6f3ff);border:1px solid var(--line);border-radius:18px;padding:16px 18px 18px;margin:18px 0}
+  .guideband .ttl{font-weight:800;font-size:1rem;margin-bottom:12px}
+  .flowstrip{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+  .flownode{flex:1 1 150px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .flownode .k{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:900;margin-bottom:8px}
+  .flownode h4{margin:0 0 2px;font-size:.95rem}
+  .flownode p{margin:0;font-size:.78rem;color:var(--muted)}
+  .flowarrow{display:flex;align-items:center;color:#b9c4da;font-weight:900;font-size:1.3rem;flex:0 0 auto}
+  /* clickable affordances */
+  .sectlabel .hint{font-weight:500;font-size:.82rem;color:var(--muted);margin-left:8px}
+  .cardchev{position:absolute;top:14px;right:14px;width:27px;height:27px;border-radius:999px;background:#eef2fb;color:var(--brand);
+    display:grid;place-items:center;font-weight:900;font-size:1.05rem;transition:all .14s;line-height:1}
+  .hcard:hover .cardchev,.toolcard:hover .cardchev{background:var(--brand);color:#fff;transform:translateX(2px)}
+  .openlink{margin-top:10px;color:var(--brand);font-weight:800;font-size:.82rem}
+  @media(max-width:680px){.flowarrow{display:none}}
+
+  /* Detail view */
+  .back{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-weight:700;margin:18px 0 8px;font-size:.9rem}
+  .detailhead{display:flex;gap:14px;align-items:flex-start;margin-bottom:6px}
+  .detailhead .badge{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:1.3rem;flex:none}
+  .detailhead h2{margin:0;font-size:1.5rem;letter-spacing:-.4px}
+  .detailhead .tag{font-size:.78rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .tabs{display:flex;gap:6px;margin:18px 0;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px;
+    box-shadow:var(--shadow-sm);overflow-x:auto}
+  .tabs button{padding:9px 16px;border-radius:999px;font-weight:700;color:var(--muted);white-space:nowrap;font-size:.9rem}
+  .tabs button.on{background:var(--brand);color:#fff}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow-sm)}
+  .panel h3{margin:0 0 10px}
+  .lead{color:var(--muted)}
+
+  /* Walkthrough */
+  .problembox{background:#f0f5ff;border:1px solid #d9e4fb;border-radius:14px;padding:16px 18px;font-size:1.04rem;font-weight:600}
+  .stage{border:1px solid var(--line);border-radius:14px;padding:0;margin-top:14px;overflow:hidden;opacity:1}
+  .stage .sh{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fafbff;border-bottom:1px solid var(--line)}
+  .stage .sh .pin{font-size:.7rem;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:#fff;padding:3px 9px;border-radius:999px}
+  .stage .sh h4{margin:0;font-size:1rem}
+  .stage .body{padding:16px}
+  .stage .body p{margin:0 0 10px}
+  .stage.hidden{display:none}
+  .stepctrl{display:flex;gap:10px;align-items:center;margin-top:18px}
+  .btn{background:var(--brand);color:#fff;font-weight:800;padding:11px 20px;border-radius:12px;box-shadow:var(--shadow-sm);
+    transition:transform .1s,filter .1s;font-size:.95rem}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:#eef2fb;color:var(--ink)}
+  .btn.sm{padding:8px 14px;font-size:.86rem}
+  .btn[disabled]{opacity:.4;cursor:default}
+  .progdots{display:flex;gap:6px;margin-left:auto}
+  .progdots i{width:11px;height:11px;border-radius:999px;background:var(--line);cursor:pointer;transition:transform .1s}
+  .progdots i:hover{transform:scale(1.25)}
+  .progdots i.on{background:var(--brand);transform:scale(1.2)}
+  .progdots i.done{background:var(--brand);opacity:.4}
+  .stepnav{position:sticky;bottom:14px;z-index:6;display:flex;align-items:center;gap:12px;background:var(--card);
+    border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:16px 0 4px;box-shadow:0 8px 26px rgba(31,42,68,.18)}
+  .stepcount{font-weight:800;color:var(--muted);font-size:.88rem}
+  .phaserail{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:14px 0}
+  .phasepill{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);
+    background:#eef2fb;border-radius:999px;padding:5px 11px;transition:all .15s}
+  .phasepill.on{background:var(--h2);color:#fff;transform:scale(1.04)}
+  .phasepill.done{background:#dff3ea;color:var(--good)}
+  .phasesep{color:#c7d0e0;font-weight:800;font-size:.8rem}
+  .levelbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f0f5ff;border:1px solid #d9e4fb;
+    border-radius:12px;padding:10px 14px;margin:14px 0;font-size:.85rem;color:var(--ink)}
+  .levelbar b{color:var(--brand)}
+  .lvlbox button{position:relative}
+  .modal-bg{position:fixed;inset:0;background:rgba(31,42,68,.45);display:grid;place-items:center;z-index:100;padding:20px;
+    animation:fade .15s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal-card{background:var(--card);border-radius:18px;padding:24px 24px 20px;max-width:400px;box-shadow:var(--shadow);text-align:center}
+  .modal-card h3{margin:0 0 8px;font-size:1.2rem}
+  .modal-card p{margin:0 0 18px;color:var(--muted);font-size:.92rem}
+  .modal-btns{display:flex;gap:10px;justify-content:center}
+  .lockhint{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:5px;margin-left:4px}
+
+  svg.viz{max-width:100%;height:auto;display:block}
+  .vizwrap{background:#fbfcff;border:1px dashed #d9e1f1;border-radius:12px;padding:14px;margin-top:6px;overflow-x:auto}
+  table.dtab{border-collapse:collapse;width:100%;font-size:.9rem}
+  table.dtab th,table.dtab td{border:1px solid var(--line);padding:7px 9px;text-align:center}
+  table.dtab th{background:#f3f6ff;font-weight:800}
+  table.dtab td.hit{background:#e3f8ee;font-weight:800;color:var(--good)}
+  table.dtab td.miss{color:var(--bad)}
+  .eq{font-family:"Cambria Math",Georgia,serif;font-size:1.06rem;background:#fff7ef;border:1px solid #ffe2c4;
+    border-radius:10px;padding:10px 14px;display:inline-block;margin:4px 0}
+
+  /* Decision guide */
+  .dq{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm)}
+  .dq .q{font-size:1.15rem;font-weight:700;margin-bottom:16px}
+  .dq .choices{display:flex;gap:12px}
+  .dq .choices button{flex:1;padding:16px;border-radius:13px;font-weight:800;font-size:1rem;border:2px solid var(--line);background:#fafbff;transition:all .12s}
+  .dq .choices button.yes:hover{border-color:var(--good);color:var(--good);background:#f0fbf6}
+  .dq .choices button.no:hover{border-color:var(--bad);color:var(--bad);background:#fdf1f3}
+  .flowmap{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .flowmap .node{display:flex;align-items:center;gap:10px;font-size:.86rem;color:var(--muted);padding:8px 12px;border-radius:10px;border:1px dashed var(--line)}
+  .flowmap .node.active{border-style:solid;border-color:var(--brand);color:var(--ink);background:#f3f7ff;font-weight:700}
+  .flowmap .node.passed{opacity:.45;text-decoration:line-through}
+  .result{margin-top:18px;border-radius:16px;padding:20px;color:#fff;text-align:center}
+  .result h3{margin:0 0 4px;font-size:1.4rem}
+  .result p{margin:0 0 14px;opacity:.92}
+
+  /* Practice */
+  .pcard{background:#f0f5ff;border:1px solid #d9e4fb;border-radius:14px;padding:18px}
+  .pq{font-size:1.08rem;font-weight:600;margin-bottom:14px}
+  .ansrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .ansrow input{font-size:1.05rem;padding:11px 14px;border:2px solid var(--line);border-radius:11px;width:160px;font-weight:700;font-family:inherit}
+  .ansrow input:focus{outline:none;border-color:var(--brand)}
+  .mcgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mcgrid button{padding:13px;border-radius:11px;border:2px solid var(--line);background:#fff;font-weight:700;font-size:1rem;text-align:left}
+  .mcgrid button:hover{border-color:var(--brand)}
+  .mcgrid button.sel{border-color:var(--brand);background:#eef3ff}
+  .mcgrid button.right{border-color:var(--good);background:#eafaf2;color:var(--good)}
+  .mcgrid button.wrong{border-color:var(--bad);background:#fdeef1;color:var(--bad)}
+  .feedback{margin-top:14px;border-radius:12px;padding:14px 16px;font-weight:600;display:none}
+  .feedback.show{display:block}
+  .feedback.ok{background:#eafaf2;border:1px solid #b6ecd2;color:#0c7a52}
+  .feedback.no{background:#fdeef1;border:1px solid #f6c9d2;color:#b32340}
+  .feedback .sol{font-weight:500;margin-top:8px;color:var(--ink);font-size:.92rem}
+  .scorebar{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .scorebadge{font-weight:800;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 14px;box-shadow:var(--shadow-sm)}
+
+  /* Builder */
+  .builderbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .canvasrow{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px;border-radius:12px;border:2px solid transparent}
+  .canvasrow.sel{border-color:var(--brand);background:#f6f9ff}
+  .canvasrow .rname{width:108px;flex:none}
+  .canvasrow .rname input{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-weight:700;font-family:inherit;font-size:.86rem}
+  .blocks{display:flex;gap:4px;flex-wrap:wrap;align-items:center;min-height:42px;flex:1}
+  .blk{height:40px;min-width:42px;border-radius:8px;display:grid;place-items:center;color:#fff;font-weight:800;padding:0 8px;
+    box-shadow:var(--shadow-sm);animation:pop .18s ease}
+  .blk.unit{background:var(--u)}
+  .blk.num{background:var(--accent)}
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .rowtools{display:flex;gap:4px}
+  .rowtools button{width:34px;height:34px;border-radius:9px;background:#eef2fb;color:var(--ink);font-weight:900;font-size:1.05rem}
+  .readout{background:#fbfcff;border:1px dashed #d9e1f1;border-radius:12px;padding:14px;margin-top:6px;font-size:.92rem}
+  .readout .row{display:flex;justify-content:space-between;padding:3px 0}
+  .presetsel{padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-weight:600}
+
+  .note{background:#fff7ef;border:1px solid #ffe2c4;border-radius:12px;padding:13px 16px;font-size:.9rem;margin-top:14px}
+  .note b{color:var(--accent)}
+  .parentonly{display:none}
+  body.parent .parentonly{display:block}
+  .scopechips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:.74rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#eef2fb;color:var(--muted)}
+  .chip.on{background:#e3f8ee;color:var(--good)}
+  .chip.off{opacity:.5;text-decoration:line-through}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:40px}
+  @media(max-width:680px){
+    .udsc{grid-template-columns:1fr 1fr}
+    .tool-row{grid-template-columns:1fr}
+    .mcgrid{grid-template-columns:1fr}
+    .hero h1{font-size:1.4rem}
+  }
+</style>
 </head>
-<body class="antialiased">
-    <div id="root"></div>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo" onclick="go('home')"><span class="mark">∑</span><span>Math Heuristics Lab</span></div>
+    <div class="spacer"></div>
+    <div class="lvlbox" id="lvlbox" title="Choose level (Primary 1 to 6)"></div>
+    <div class="modetog" id="modetog">
+      <button data-m="student" class="on" onclick="setMode('student')">Student</button>
+      <button data-m="parent" onclick="setMode('parent')">Parent</button>
+    </div>
+  </div>
+</header>
+<div class="wrap" id="app"></div>
+<footer>Built around the “4‑Stage Thinking Guide” (Understand · Decide · Solve · Check) and the six problem‑solving heuristics, with levels P1–P6 following the 2021 Primary Mathematics Syllabus.</footer>
 
-    <script type="module">
-        import React from 'https://esm.sh/react@18'
-        import ReactDOM from 'https://esm.sh/react-dom@18/client'
+<script>
+"use strict";
+/* =====================================================================
+   MATH HEURISTICS LAB  —  single-file app
+   Levels P1–P6 follow the 2021 Primary Mathematics Syllabus (Number & Algebra)
+   ===================================================================== */
 
-        // Icon components from lucide
-        const Menu = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        const X = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        const Star = ({ size = 24, fill = false }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 10.26 24 12.52 18 18.69 19.54 27.88 12 23.77 4.46 27.88 6 18.69 0 12.52 8.91 10.26 12 2"></polygon></svg>
-        const Users = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        const Clock = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        const Zap = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-        const Shield = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-        const TrendingUp = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-        const ArrowRight = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        const CheckCircle = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+/* ---------------------- LEVEL SYSTEM (from syllabus) ----------------- */
+const LEVELS = [
+  {n:1, grade:'P1', age:'6–7',  max:100,      digits:'2-digit (to 100)',
+   scope:'Whole numbers to 100; + and − within 100; simple × and ÷.',
+   frac:false, dec:false, pct:false, ratio:false, alg:false},
+  {n:2, grade:'P2', age:'7–8',  max:1000,     digits:'3-digit (to 1 000)',
+   scope:'Whole numbers to 1 000; tables 2,3,4,5,10; like fractions (same denominator).',
+   frac:'like', dec:false, pct:false, ratio:false, alg:false},
+  {n:3, grade:'P3', age:'8–9',  max:10000,    digits:'4-digit (to 10 000)',
+   scope:'To 10 000; tables 6–9; division with remainder; equivalent fractions; money in decimals.',
+   frac:'equiv', dec:'money', pct:false, ratio:false, alg:false},
+  {n:4, grade:'P4', age:'9–10', max:100000,   digits:'5-digit (to 100 000)',
+   scope:'To 100 000; factors & multiples; mixed numbers; fraction of a set; decimals (to 3 d.p.).',
+   frac:'set', dec:true, pct:false, ratio:false, alg:false},
+  {n:5, grade:'P5', age:'10–11',max:10000000, digits:'up to 7-digit (to 10 million)',
+   scope:'To 10 million; order of operations; × fractions; decimal four operations; percentage; rate.',
+   frac:'mul', dec:true, pct:'basic', ratio:false, alg:false},
+  {n:6, grade:'P6', age:'11–12',max:10000000, digits:'up to 7-digit (to 10 million)',
+   scope:'÷ fractions; percentage increase/decrease; ratio (a:b, a:b:c); algebra (letters & simple equations).',
+   frac:'div', dec:true, pct:'adv', ratio:true, alg:true},
+];
 
-        function LandingPage() {
-            const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+/* ---------------------- STATE ----------------- */
+const KEY='mhl_state_v1';
+let state = {level:3, mode:'student', progress:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)); if(s){state=Object.assign(state,s);}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({level:state.level,mode:state.mode,progress:state.progress}));}catch(e){}}
+function L(){return LEVELS[state.level-1];}
+function prog(hid){ if(!state.progress[hid]) state.progress[hid]={learned:false,best:0,attempts:0}; return state.progress[hid]; }
 
-            return (
-                <div className="min-h-screen bg-white">
-                    {/* Navigation */}
-                    <nav className="fixed w-full bg-white shadow-sm z-50">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="flex justify-between items-center h-16">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-teal-600 rounded-lg flex items-center justify-center">
-                                        <span className="text-white font-bold text-lg">A</span>
-                                    </div>
-                                    <span className="text-xl font-bold text-slate-900">AEO</span>
-                                </div>
+/* ---------------------- HELPERS ----------------- */
+const rint=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rint(0,a.length-1)];
+function pick2(a){const i=rint(0,a.length-1);let j=rint(0,a.length-1);while(j===i)j=rint(0,a.length-1);return [a[i],a[j]];}
+const NAMES=['Ali','Bala','Mei','Sam','Tom','Jane','Raju','Siti','Ken','Lily','Aisha','Wei','Devi','Hao','Nur'];
+const ITEMS=['stickers','marbles','sweets','stamps','beads','cards','pencils','shells','buttons','badges'];
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function fmtNum(n){ if(Number.isInteger(n)) return n.toLocaleString('en-US'); return (Math.round(n*100)/100).toString(); }
+function money(n){ return '$'+ (Number.isInteger(n)? n.toLocaleString('en-US') : n.toFixed(2)); }
+function approxEq(a,b){ return Math.abs(a-b) < 0.001; }
 
-                                {/* Desktop Menu */}
-                                <div className="hidden md:flex gap-8">
-                                    <a href="#features" className="text-slate-700 hover:text-blue-600 transition">Features</a>
-                                    <a href="#how-it-works" className="text-slate-700 hover:text-blue-600 transition">How It Works</a>
-                                    <a href="#tutors" className="text-slate-700 hover:text-blue-600 transition">Find Tutors</a>
-                                    <a href="#pricing" className="text-slate-700 hover:text-blue-600 transition">Pricing</a>
-                                </div>
+/* ---------------------- SVG BAR MODEL RENDERER ----------------- */
+/* rows: [{label, units:int, extras:[{val,kind}], faint:bool, valPerUnit:optional}]
+   opt: {uw, totalText, totalRows:[i..], showUnitTag} */
+function barSVG(rows, opt){
+  opt=opt||{};
+  const uw=opt.uw||52, rh=42, gap=14, labelW=opt.labelW||100, padL=8, padT=12, rightPad=opt.totalText?64:14;
+  let maxBlocks=0;
+  rows.forEach(r=>{const b=(r.units||0)+(r.extras?r.extras.length:0); if(b>maxBlocks)maxBlocks=b;});
+  const chartW=labelW+padL+maxBlocks*uw+rightPad;
+  const h=padT*2+rows.length*(rh+gap)-gap;
+  let s=`<svg class="viz" viewBox="0 0 ${chartW} ${h}" style="width:100%;max-width:${chartW}px;height:auto;display:block" preserveAspectRatio="xMinYMin meet" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif">`;
+  const ufills=['var(--u)']; const xf=['var(--x1)','var(--x2)','var(--x3)','#e0455e'];
+  rows.forEach((r,ri)=>{
+    const y=padT+ri*(rh+gap);
+    const op=r.faint?0.28:1;
+    s+=`<text x="0" y="${y+rh/2+5}" font-size="14" font-weight="700" fill="var(--ink)" opacity="${op}">${esc(r.label)}</text>`;
+    let x=labelW+padL;
+    for(let u=0;u<(r.units||0);u++){
+      s+=`<rect x="${x}" y="${y}" width="${uw}" height="${rh}" rx="6" fill="var(--u)" opacity="${op}"/>`;
+      const tag=r.valPerUnit!=null? fmtNum(r.valPerUnit) : (opt.unitTag||'1u');
+      s+=`<text x="${x+uw/2}" y="${y+rh/2+5}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff" opacity="${op}">${tag}</text>`;
+      x+=uw+2;
+    }
+    (r.extras||[]).forEach((e,ei)=>{
+      const f=xf[ei%xf.length];
+      s+=`<rect x="${x}" y="${y}" width="${uw}" height="${rh}" rx="6" fill="${f}" opacity="${op}"/>`;
+      s+=`<text x="${x+uw/2}" y="${y+rh/2+5}" text-anchor="middle" font-size="12.5" font-weight="800" fill="#fff" opacity="${op}">${esc(e.val)}</text>`;
+      x+=uw+2;
+    });
+  });
+  if(opt.totalText){
+    const idx=opt.totalRows||rows.map((r,i)=>i);
+    const y1=padT+idx[0]*(rh+gap);
+    const y2=padT+idx[idx.length-1]*(rh+gap)+rh;
+    const bx=chartW-rightPad+14;
+    s+=`<path d="M ${bx-6} ${y1} q 6 0 6 8 L ${bx} ${(y1+y2)/2-8} q 0 8 7 8 q -7 0 -7 8 L ${bx} ${y2-8} q 0 8 -6 8" fill="none" stroke="var(--muted)" stroke-width="2"/>`;
+    s+=`<text x="${bx+10}" y="${(y1+y2)/2+5}" font-size="14" font-weight="800" fill="var(--ink)">${esc(opt.totalText)}</text>`;
+  }
+  s+=`</svg>`;
+  return `<div class="vizwrap">${s}</div>`;
+}
+function tableHTML(headers, rows){
+  let s='<div class="vizwrap"><table class="dtab"><tr>'+headers.map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  rows.forEach(r=>{ s+='<tr>'+r.map(c=>{ if(c&&c.cls) return `<td class="${c.cls}">${c.v}</td>`; return `<td>${c}</td>`;}).join('')+'</tr>'; });
+  return s+'</table></div>';
+}
+/* Draws Pattern 1..maxN as checkerboard-coloured triangular staircases.
+   Star cells (blue) = ceil(n/2)^2 ; Square cells (orange) = floor(n/2)*(floor(n/2)+1). */
+function patternFig(maxN){
+  const cell=22,gap=30,padT=8,labelH=20;
+  let totalW=8;for(let n=1;n<=maxN;n++)totalW+=n*cell+gap;
+  const figH=maxN*cell,Hh=padT+figH+labelH;
+  let s=`<svg class="viz" viewBox="0 0 ${totalW} ${Hh}" style="width:100%;max-width:${totalW}px;height:auto;display:block" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI,Arial,sans-serif">`;
+  let x0=4;
+  for(let n=1;n<=maxN;n++){const fw=n*cell,yTop=padT+(maxN-n)*cell;
+    for(let i=1;i<=n;i++){for(let c=1;c<=i;c++){
+      const star=((i+c)%2===1),cx=x0+(c-1)*cell,cy=yTop+(i-1)*cell;
+      s+=`<rect x="${cx}" y="${cy}" width="${cell-3}" height="${cell-3}" rx="3" fill="${star?'var(--u)':'var(--x1)'}"/>`;
+      if(star)s+=`<text x="${cx+(cell-3)/2}" y="${cy+(cell-3)/2+3.6}" text-anchor="middle" font-size="11" fill="#fff">★</text>`;
+    }}
+    s+=`<text x="${x0+fw/2}" y="${padT+figH+labelH-4}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--muted)">Pattern ${n}</text>`;
+    x0+=fw+gap;
+  }
+  return `<div class="vizwrap">${s}</svg></div>`;
+}
 
-                                <div className="hidden md:flex gap-4">
-                                    <button className="px-6 py-2 text-blue-600 font-medium hover:bg-blue-50 rounded-lg transition">
-                                        Sign In
-                                    </button>
-                                    <button className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
-                                        Get Started
-                                    </button>
-                                </div>
+/* ====================================================================
+   HEURISTIC CONTENT  (canonical worked examples — the teaching method)
+   ==================================================================== */
+const HEUR = [
+{ id:'H1', name:'Model / Diagram', short:'Model Drawing', tag:'Draw it as bars', color:'var(--h1)',
+  decision:'Can it be easily shown with a model or diagram?',
+  when:'Use when quantities can be drawn as bars — part–whole (pieces making a total) or comparison (one longer/shorter than another).',
+  learn:{
+    problem:'Richard, James and Lionel have 30 chocolates altogether. Lionel has 8 more chocolates than Richard, while James has 2 chocolates fewer than Richard. How many chocolates does Richard have?',
+    stages:[
+      {tag:'Understand',color:'var(--h1)',title:'What do I need to find?',
+       html:`<p><b>Find:</b> the number of chocolates Richard has.</p>
+             <p><b>Clue words:</b> “30 altogether”, “Lionel has 8 more than Richard”, “James has 2 fewer than Richard”.</p>
+             <p>Everyone is compared to <b>Richard</b>, so it is easiest to start from the smallest — <b>James</b>.</p>`},
+      {tag:'Decide',color:'var(--h1)',title:'Which heuristic?',
+       html:`<p>These quantities compare nicely as lengths, so the answer to “<i>Can it be shown with a model?</i>” is <b>Yes</b>.</p>
+             <p>→ Use <b>H1 – Model / Diagram</b>.</p>`},
+      {tag:'Solve',color:'var(--h1)',title:'Step 1 — Draw the smallest bar (James)',
+       html:`<p>Let <b>1 unit</b> = James's chocolates.</p>`+
+            barSVG([{label:'James',units:1},{label:'Richard',units:0,faint:true},{label:'Lionel',units:0,faint:true}])},
+      {tag:'Solve',color:'var(--h1)',title:'Step 2 — Richard is 2 more than James',
+       html:`<p>James has 2 fewer than Richard, so <b>Richard = 1 unit + 2</b>.</p>`+
+            barSVG([{label:'James',units:1},{label:'Richard',units:1,extras:[{val:'2'}]},{label:'Lionel',units:0,faint:true}])},
+      {tag:'Solve',color:'var(--h1)',title:'Step 3 — Lionel is 8 more than Richard',
+       html:`<p><b>Lionel = Richard + 8 = 1 unit + 2 + 8</b>.</p>`+
+            barSVG([{label:'James',units:1},{label:'Richard',units:1,extras:[{val:'2'}]},{label:'Lionel',units:1,extras:[{val:'2'},{val:'8'}]}],{totalText:'30'})},
+      {tag:'Solve',color:'var(--h1)',title:'Step 4 — Write the equation',
+       html:`<p>All three bars together make 30.</p>
+             <div class="eq">3 units + 2 + 2 + 8 = 30</div><br>
+             <div class="eq">3 units + 12 = 30</div>`},
+      {tag:'Solve',color:'var(--h1)',title:'Step 5 — Find 1 unit',
+       html:`<div class="eq">3 units = 30 − 12 = 18</div><br><div class="eq">1 unit = 18 ÷ 3 = 6</div>
+             <p style="margin-top:10px">So James has 6 chocolates.</p>`+
+            barSVG([{label:'James',units:1,valPerUnit:6},{label:'Richard',units:1,valPerUnit:6,extras:[{val:'2'}]},{label:'Lionel',units:1,valPerUnit:6,extras:[{val:'2'},{val:'8'}]}])},
+      {tag:'Solve',color:'var(--h1)',title:'Step 6 — Answer the question',
+       html:`<p>Richard = 1 unit + 2 = 6 + 2 = <b>8</b>.</p><div class="eq">Richard has 8 chocolates.</div>`},
+      {tag:'Check',color:'var(--h1)',title:'Check the solution',
+       html:`<p>James = 6, Richard = 8, Lionel = 6 + 2 + 8 = 16.</p>
+             <p>Total = 6 + 8 + 16 = <b>30</b> ✓ &nbsp; Lionel − Richard = 8 ✓ &nbsp; Richard − James = 2 ✓</p>`}
+    ]
+  }
+},
+{ id:'H2', name:'Find a Pattern', short:'Find a Pattern', tag:'Spot the rule', color:'var(--h2)',
+  decision:'Is there a table or a series of numbers / figures?',
+  when:'Use when items grow in a regular way. Build a table, look at how it changes each step, find the rule, then extend it.',
+  learn:{
+    problem:'A growing pattern is made of stars (★) and squares (□). The counts follow: Pattern 1, 2, 3, 4 … Find the number of stars and squares in Pattern 8, and the difference in Pattern 100.',
+    stages:[
+      {tag:'Understand',color:'var(--h2)',title:'What do I need to find?',
+       html:`<p>The first four patterns look like this:</p>`+patternFig(4)+
+            `<p style="font-size:.86rem;color:var(--muted)"><span style="color:var(--u);font-weight:800">■ ★</span> = star &nbsp;&nbsp; <span style="color:var(--x1);font-weight:800">■</span> = square</p>
+             <p><b>Find:</b> the number of stars &amp; squares in Pattern 8, and the difference (squares − stars) in Pattern 100.</p>
+             <p><b>Clue:</b> the figures grow step by step — a perfect case for a table.</p>`},
+      {tag:'Decide',color:'var(--h2)',title:'Which heuristic?',
+       html:`<p>There is a <b>series of figures</b> → answer to “table or series?” is <b>Yes</b>.</p><p>→ Use <b>H2 – Find a Pattern</b>.</p>`},
+      {tag:'Solve',color:'var(--h2)',title:'Step 1 — Make a table',
+       html:`<p>Count carefully and record each pattern.</p>`+
+        tableHTML(['Pattern','1','2','3','4','5','6','7','8'],
+          [['★ Stars','0','1','2','4','6','9','12',{cls:'hit',v:'16'}],
+           ['□ Squares','1','2','4','6','9','12','16',{cls:'hit',v:'20'}]])},
+      {tag:'Solve',color:'var(--h2)',title:'Step 2 — Find the rule',
+       html:`<p>Compare the two rows. The key relationship is their <b>difference</b>:</p>
+             <p>Squares − Stars = 1, 1, 2, 2, 3, 3, 4, 4 … — it goes up by 1 every <b>two</b> patterns.</p>
+             <div class="eq">Pattern 8 → stars = 16, squares = 20 &nbsp;(difference = 4)</div>`},
+      {tag:'Solve',color:'var(--h2)',title:'Step 3 — Extend to Pattern 100',
+       html:`<p>For an even pattern, the difference (squares − stars) is exactly <b>half the pattern number</b>.</p>
+             <div class="eq">Pattern 100 → difference = 100 ÷ 2 = 50</div>`},
+      {tag:'Check',color:'var(--h2)',title:'Check the solution',
+       html:`<p>Test the rule on Pattern 8: squares − stars = 20 − 16 = 4 = 8 ÷ 2 ✓.</p>
+             <p>The rule holds for every even pattern, so 50 is reliable.</p>`}
+    ]
+  }
+},
+{ id:'H3', name:'Substitution', short:'Substitution', tag:'Swap & compare', color:'var(--h3)',
+  decision:'Are two or more quantities linked in more than one way?',
+  when:'Use when two unknowns appear in two different combinations. Make one quantity match (by doubling/scaling), then subtract to remove it.',
+  learn:{
+    problem:'Sundram paid $52 for 3 pairs of shorts and 2 polo‑tees. Joshua paid $96 for 5 pairs of shorts and 4 polo‑tees. Find the cost of 1 polo‑tee.',
+    stages:[
+      {tag:'Understand',color:'var(--h3)',title:'What do I need to find?',
+       html:`<p><b>Find:</b> the cost of 1 polo‑tee.</p>
+             <p><b>Clues:</b> 3 shorts + 2 tees = $52; &nbsp; 5 shorts + 4 tees = $96.</p>`},
+      {tag:'Decide',color:'var(--h3)',title:'Which heuristic?',
+       html:`<p>Two items (shorts & tees) are linked in <b>two different ways</b> → <b>Yes</b>.</p><p>→ Use <b>H3 – Substitution</b>.</p>`},
+      {tag:'Solve',color:'var(--h3)',title:'Step 1 — Make the tees match',
+       html:`<p>Double Sundram's purchase so both have 4 tees:</p>
+             <div class="eq">2 × (3 shorts + 2 tees) → 6 shorts + 4 tees = $104</div>`+
+        barSVG([{label:'6 shorts + 4 tees',units:6,extras:[{val:'T'},{val:'T'},{val:'T'},{val:'T'}]}],{totalText:'$104',uw:30,labelW:120})},
+      {tag:'Solve',color:'var(--h3)',title:'Step 2 — Subtract to remove the tees',
+       html:`<p>Compare with Joshua (5 shorts + 4 tees = $96). The tees cancel:</p>
+             <div class="eq">6 shorts − 5 shorts = 1 short = $104 − $96 = $8</div>`},
+      {tag:'Solve',color:'var(--h3)',title:'Step 3 — Back‑substitute',
+       html:`<p>Use Sundram's row: 3 shorts = 3 × $8 = $24.</p>
+             <div class="eq">2 tees = $52 − $24 = $28 → 1 tee = $14</div>`},
+      {tag:'Check',color:'var(--h3)',title:'Check the solution',
+       html:`<p>Joshua: 5 × $8 + 4 × $14 = $40 + $56 = <b>$96</b> ✓</p><p>1 polo‑tee = <b>$14</b>.</p>`}
+    ]
+  }
+},
+{ id:'H4', name:'Make a List', short:'Make a List', tag:'List the cases', color:'var(--h4)',
+  decision:'Is there a stated range, or multiples / factors?',
+  when:'Use when the answer sits inside a range and must satisfy a few conditions. List the candidates systematically and find the one that fits all clues.',
+  learn:{
+    problem:'Catherine has a bag of between 170 and 200 coins. In stacks of 8 there are 2 left over. In stacks of 9 she is 2 short. How many coins are in the bag?',
+    stages:[
+      {tag:'Understand',color:'var(--h4)',title:'What do I need to find?',
+       html:`<p><b>Find:</b> the number of coins (between 170 and 200).</p>
+             <p><b>Clues:</b> 2 more than a multiple of 8; 2 less than a multiple of 9.</p>`},
+      {tag:'Decide',color:'var(--h4)',title:'Which heuristic?',
+       html:`<p>There is a <b>stated range</b> with <b>multiples</b> → <b>Yes</b>.</p><p>→ Use <b>H4 – Make a List</b>.</p>`},
+      {tag:'Solve',color:'var(--h4)',title:'Step 1 — List both sets in range',
+       html:`<p>Numbers that are 2 more than a multiple of 8, and 2 less than a multiple of 9:</p>`+
+        tableHTML(['“+2 of ×8”','170','178','186','194','202'],[['“−2 of ×9”','169',{cls:'hit',v:'178'},'187','196','205']])},
+      {tag:'Solve',color:'var(--h4)',title:'Step 2 — Find the common number',
+       html:`<p><b>178</b> appears in both lists. 178 = 8×22 + 2, and 178 = 9×20 − 2.</p><div class="eq">There are 178 coins.</div>`},
+      {tag:'Check',color:'var(--h4)',title:'Check the solution',
+       html:`<p>178 ÷ 8 = 22 r 2 ✓ &nbsp; 178 + 2 = 180 = 9 × 20 ✓ &nbsp; 170 < 178 < 200 ✓</p>`}
+    ]
+  }
+},
+{ id:'H5', name:'Guess and Check', short:'Guess & Check', tag:'Try, test, adjust', color:'var(--h5)',
+  decision:'When nothing else fits — make a smart guess.',
+  when:'Use when two totals link two unknowns and a model is awkward. Make a sensible guess, check both totals, then adjust up or down.',
+  learn:{
+    problem:'A shop sells jeans at $18 and pants at $25. One day it sold 50 pairs in total for $1005. How many pairs of jeans and how many pairs of pants were sold?',
+    stages:[
+      {tag:'Understand',color:'var(--h5)',title:'What do I need to find?',
+       html:`<p><b>Find:</b> number of pairs of jeans and pants.</p>
+             <p><b>Clues:</b> jeans $18, pants $25, total 50 pairs, total earnings $1005.</p>`},
+      {tag:'Decide',color:'var(--h5)',title:'Which heuristic?',
+       html:`<p>A model is awkward here, so we fall to the last branch → <b>H5 – Guess and Check</b>.</p>`},
+      {tag:'Solve',color:'var(--h5)',title:'Step 1 — Guess, check, adjust',
+       html:`<p>Keep total pairs at 50 and chase $1005.</p>`+
+        tableHTML(['Jeans','×$18','Pants','×$25','Total','?'],
+          [['25','450','25','625','$1075',{cls:'miss',v:'too high'}],
+           ['30','540','20','500','$1040',{cls:'miss',v:'too high'}],
+           ['40','720','10','250','$970',{cls:'miss',v:'too low'}],
+           ['35','630','15','375',{cls:'hit',v:'$1005'},{cls:'hit',v:'✓'}]])},
+      {tag:'Solve',color:'var(--h5)',title:'Step 2 — Read the answer',
+       html:`<div class="eq">35 pairs of jeans and 15 pairs of pants.</div>`},
+      {tag:'Check',color:'var(--h5)',title:'Check the solution',
+       html:`<p>35 + 15 = 50 pairs ✓ &nbsp; 35×$18 + 15×$25 = $630 + $375 = <b>$1005</b> ✓</p>`}
+    ]
+  }
+},
+{ id:'H6', name:'Working Backwards', short:'Work Backwards', tag:'Undo the steps', color:'var(--h6)',
+  decision:'Is there a final result, with steps that led to it?',
+  when:'Use when you know the end result and the steps taken. Start from the end and reverse every step (each operation becomes its opposite).',
+  learn:{
+    problem:'There are 48 durian puffs in boxes P, Q and R. Move 6 from P to Q, then 3 from Q to R, then 5 from R to P. Now all three boxes are equal. What is the difference between boxes Q and R at the start?',
+    stages:[
+      {tag:'Understand',color:'var(--h6)',title:'What do I need to find?',
+       html:`<p><b>Find:</b> the starting difference between Q and R.</p>
+             <p><b>Clues:</b> 48 puffs total; after the three moves, all boxes equal → 48 ÷ 3 = <b>16 each</b>.</p>`},
+      {tag:'Decide',color:'var(--h6)',title:'Which heuristic?',
+       html:`<p>We know the <b>final result</b> and the steps that led to it → <b>H6 – Working Backwards</b>.</p>`},
+      {tag:'Solve',color:'var(--h6)',title:'Step 1 — Start from the end (16,16,16)',
+       html:`<p>Reverse the last move first: “5 from R to P” → put 5 back from P to R.</p>
+             <div class="eq">P 16−5=11, &nbsp; R 16+5=21, &nbsp; Q 16</div>`},
+      {tag:'Solve',color:'var(--h6)',title:'Step 2 — Reverse “3 from Q to R”',
+       html:`<p>Put 3 back from R to Q.</p><div class="eq">Q 16+3=19, &nbsp; R 21−3=18, &nbsp; P 11</div>`},
+      {tag:'Solve',color:'var(--h6)',title:'Step 3 — Reverse “6 from P to Q”',
+       html:`<p>Put 6 back from Q to P.</p><div class="eq">P 11+6=17, &nbsp; Q 19−6=13, &nbsp; R 18</div>
+             <p>Start: P = 17, Q = 13, R = 18.</p>`+
+        barSVG([{label:'P (start)',units:0,extras:[{val:'17'}]},{label:'Q (start)',units:0,extras:[{val:'13'}]},{label:'R (start)',units:0,extras:[{val:'18'}]}],{uw:54,labelW:84})},
+      {tag:'Solve',color:'var(--h6)',title:'Step 4 — Answer',
+       html:`<div class="eq">Difference between Q and R = 18 − 13 = 5</div>`},
+      {tag:'Check',color:'var(--h6)',title:'Check the solution',
+       html:`<p>Run it forward: 17,13,18 → (6 P→Q) 11,19,18 → (3 Q→R) 11,16,21 → (5 R→P) 16,16,16 ✓ all equal.</p>`}
+    ]
+  }
+}
+];
+function H(id){return HEUR.find(h=>h.id===id);}
 
-                                {/* Mobile Menu Button */}
-                                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden">
-                                    {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                                </button>
-                            </div>
+/* ---------------------- small text helpers ----------------- */
+const app=document.getElementById('app');
+function ord(k){const s=['th','st','nd','rd'],v=k%100;return k+(s[(v-20)%10]||s[v]||s[0]);}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rint(0,i);const t=a[i];a[i]=a[j];a[j]=t;}return a;}
 
-                            {/* Mobile Menu */}
-                            {mobileMenuOpen && (
-                                <div className="md:hidden pb-4 border-t border-slate-200">
-                                    <a href="#features" className="block py-2 text-slate-700">Features</a>
-                                    <a href="#how-it-works" className="block py-2 text-slate-700">How It Works</a>
-                                    <a href="#tutors" className="block py-2 text-slate-700">Find Tutors</a>
-                                    <a href="#pricing" className="block py-2 text-slate-700">Pricing</a>
-                                    <div className="flex flex-col gap-2 mt-4">
-                                        <button className="w-full py-2 text-blue-600 font-medium">Sign In</button>
-                                        <button className="w-full py-2 bg-blue-600 text-white font-medium rounded-lg">Get Started</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </nav>
+/* ====================================================================
+   HOME / HUB
+   ==================================================================== */
+function renderHome(){
+  const lv=L();
+  const chips=[
+    ['Whole numbers · '+lv.digits,true],
+    ['Fractions',!!lv.frac],['Decimals',!!lv.dec],['Percentage',!!lv.pct],
+    ['Ratio',!!lv.ratio],['Algebra',!!lv.alg]
+  ];
+  const udsc=[
+    ['U','Understand','var(--h1)','What must I find? Highlight the clue words.'],
+    ['D','Decide','var(--h3)','Pick a heuristic with the Decision Guide.'],
+    ['S','Solve','var(--h4)','Draw a model / table and work it out.'],
+    ['C','Check','var(--h6)','Right question? Same units? Answer sensible?']
+  ];
+  const cards=HEUR.map(h=>{const p=prog(h.id);const pct=p.best;
+    return `<div class="hcard" onclick="go('heur','${h.id}')">
+      <div class="cardchev">›</div>
+      <div class="badge" style="background:${h.color}">${h.id}</div>
+      <div class="tag">${h.tag}</div>
+      <h3>${h.name}</h3>
+      <p>${h.when.split('.')[0]}.</p>
+      <div class="prog"><i style="width:${pct}%;background:${pct>=80?'var(--good)':pct>0?'var(--accent)':'var(--line)'}"></i></div>
+      <div class="stars">${p.learned?'Lesson done · ':'Not started · '}Best practice ${p.best}%</div>
+      <div class="openlink">Open lesson →</div>
+    </div>`;}).join('');
+  app.innerHTML=`
+  <div class="hero">
+    <h1>Solve any word problem in four steps</h1>
+    <p>Read the 4 steps below, use the <b>Decision Guide</b> to choose a method, then open a heuristic to learn it and practise.</p>
+    <span class="levelpill">Level <b>${lv.n}</b> · ${lv.grade} · ages ${lv.age}</span>
+    <div class="scopechips">${chips.map(c=>`<span class="chip ${c[1]?'on':'off'}">${c[0]}</span>`).join('')}</div>
+    <div style="font-size:.84rem;color:var(--muted);margin-top:10px">${lv.scope}</div>
+  </div>
 
-                    {/* Hero Section */}
-                    <section className="pt-32 pb-20 bg-gradient-to-br from-blue-50 via-white to-teal-50">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid md:grid-cols-2 gap-12 items-center">
-                                <div>
-                                    <div className="inline-block mb-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                        ✨ Personalized Learning Starts Here
-                                    </div>
-                                    <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-                                        Find Your Perfect Tutor in Minutes
-                                    </h1>
-                                    <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                                        Connect with qualified tutors who match your learning style. Real results, real progress, no subscriptions.
-                                    </p>
-                                    <div className="flex flex-col sm:flex-row gap-4">
-                                        <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:shadow-lg transition flex items-center justify-center gap-2">
-                                            Start Free Search <ArrowRight size={20} />
-                                        </button>
-                                        <button className="px-8 py-4 border-2 border-slate-300 text-slate-900 font-medium rounded-lg hover:border-slate-400 transition">
-                                            Become a Tutor
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center gap-6 mt-12 text-sm text-slate-600">
-                                        <div className="flex items-center gap-2">
-                                            <Star size={18} className="text-yellow-400" fill="true" />
-                                            <span><strong>4.9</strong> avg rating</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Users size={18} className="text-teal-600" />
-                                            <span><strong>50K+</strong> students</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Clock size={18} className="text-orange-500" />
-                                            <span><strong>500K+</strong> hours taught</span>
-                                        </div>
-                                    </div>
-                                </div>
+  <div class="sectlabel">1 · The method <span class="hint">read this — it's the thinking process, not buttons</span></div>
+  <div class="guideband">
+    <div class="flowstrip">${udsc.map((s,i)=>`<div class="flownode"><div class="k" style="background:${s[2]}">${s[0]}</div><h4>${s[1]}</h4><p>${s[3]}</p></div>${i<3?'<div class="flowarrow">→</div>':''}`).join('')}</div>
+  </div>
 
-                                {/* Hero Image */}
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-teal-300 rounded-3xl opacity-20 blur-3xl"></div>
-                                    <div className="relative bg-gradient-to-br from-blue-500 to-teal-500 rounded-3xl p-8 text-white shadow-2xl">
-                                        <div className="space-y-6">
-                                            <div className="bg-white bg-opacity-20 backdrop-blur rounded-2xl p-4">
-                                                <p className="text-sm opacity-90 mb-2">Featured Tutor</p>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 bg-yellow-300 rounded-full flex items-center justify-center text-xl">👩‍🏫</div>
-                                                    <div>
-                                                        <p className="font-semibold">Sarah Chen</p>
-                                                        <p className="text-sm opacity-90">AP Calculus Expert</p>
-                                                    </div>
-                                                    <div className="ml-auto flex gap-1">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <Star key={i} size={16} className="fill-yellow-300 text-yellow-300" />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="bg-white bg-opacity-20 backdrop-blur rounded-2xl p-4">
-                                                <p className="text-sm opacity-90 mb-3">Recent Session</p>
-                                                <p className="text-sm">"Math was intimidating until Sarah made it click for me!" - Alex</p>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="bg-white bg-opacity-20 backdrop-blur rounded-xl p-3 text-center">
-                                                    <p className="text-2xl font-bold">95%</p>
-                                                    <p className="text-xs opacity-90">Pass Rate</p>
-                                                </div>
-                                                <div className="bg-white bg-opacity-20 backdrop-blur rounded-xl p-3 text-center">
-                                                    <p className="text-2xl font-bold">2.4K</p>
-                                                    <p className="text-xs opacity-90">Hours Taught</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+  <div class="sectlabel">2 · Tools <span class="hint">tap to open</span></div>
+  <div class="tool-row">
+    <div class="toolcard" onclick="go('decision')">
+      <div class="cardchev">›</div>
+      <div class="ic" style="background:var(--h3)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v4M5 21v-5a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v5"/><rect x="9" y="3" width="6" height="4" rx="1.5"/></svg></div>
+      <div><h3>Decision Guide</h3><p>Answer a few yes/no questions to pick the best heuristic for your problem.</p></div>
+    </div>
+    <div class="toolcard" onclick="openBuilder()">
+      <div class="cardchev">›</div>
+      <div class="ic" style="background:var(--h1)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="5" width="13" height="4" rx="1"/><rect x="3" y="11" width="18" height="4" rx="1"/><rect x="3" y="17" width="8" height="4" rx="1"/></svg></div>
+      <div><h3>Bar Model Builder</h3><p>Build, label and solve bar models with your own units. The model‑drawing centrepiece.</p></div>
+    </div>
+  </div>
 
-                    {/* Features Section */}
-                    <section id="features" className="py-20 bg-white">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="text-center mb-16">
-                                <h2 className="text-4xl font-bold text-slate-900 mb-4">Why Choose AEO?</h2>
-                                <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                                    We've reimagined how students find tutors—making it faster, smarter, and more personal.
-                                </p>
-                            </div>
+  <div class="sectlabel">3 · The six heuristics <span class="hint">tap a card to learn &amp; practise</span></div>
+  <div class="grid">${cards}</div>`;
+}
+function openBuilder(){state.view='heur';state.arg='H1';state.tab='build';render();window.scrollTo(0,0);}
 
-                            <div className="grid md:grid-cols-3 gap-8">
-                                {/* Feature 1 */}
-                                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 border border-blue-200">
-                                    <div className="w-14 h-14 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
-                                        <Zap size={28} className="text-white" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">Smart Matching</h3>
-                                    <p className="text-slate-700 mb-4">
-                                        Our algorithm matches you with tutors based on teaching style, availability, and expertise—not just keywords.
-                                    </p>
-                                    <ul className="space-y-2 text-sm text-slate-600">
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-teal-600" />
-                                            <span>Personality compatibility matching</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-teal-600" />
-                                            <span>Real-time availability sync</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-teal-600" />
-                                            <span>Verified credentials</span>
-                                        </li>
-                                    </ul>
-                                </div>
+/* ====================================================================
+   DECISION GUIDE (interactive flowchart)
+   ==================================================================== */
+const DQ=[
+  {q:'Is there a table, or a series of numbers or figures that grows?',r:'H2'},
+  {q:'Is there a stated range, or multiples / factors to consider?',r:'H4'},
+  {q:'Are two or more quantities linked in more than one way?',r:'H3'},
+  {q:'Is there a final result, with steps that led up to it?',r:'H6'},
+  {q:'Can it be shown easily with a model or diagram (bars)?',r:'H1'}
+];
+function renderDecision(){
+  if(!state.dq)state.dq={i:0,result:null};
+  const d=state.dq;
+  const map=DQ.map((x,i)=>{
+    const cls=d.result?(x.r===d.result?'':'passed'):(i<d.i?'passed':i===d.i?'active':'');
+    return `<div class="node ${cls}">${i+1}. ${x.q} <span style="margin-left:auto;font-weight:800">→ ${x.r}</span></div>`;
+  }).join('');
+  let inner;
+  if(d.result){
+    const h=H(d.result);
+    inner=`<div class="result" style="background:${h.color}">
+      <h3>Use ${h.id} — ${h.name}</h3>
+      <p>${h.when}</p>
+      <button class="btn ghost" onclick="go('heur','${h.id}')">Open this heuristic →</button>
+    </div>
+    <div class="stepctrl"><button class="btn ghost sm" onclick="dqReset()">↺ Start over</button></div>`;
+  } else {
+    inner=`<div class="dq">
+      <div class="q">${DQ[d.i].q}</div>
+      <div class="choices">
+        <button class="yes" onclick="dqAns(true)">Yes</button>
+        <button class="no" onclick="dqAns(false)">No</button>
+      </div>
+    </div>
+    <div class="stepctrl"><button class="btn ghost sm" onclick="dqReset()">↺ Restart</button>
+    <span style="margin-left:auto;color:var(--muted);font-size:.85rem">Question ${d.i+1} of ${DQ.length}</span></div>`;
+  }
+  app.innerHTML=`<div class="back" style="cursor:pointer" onclick="go('home')">← Home</div>
+   <div class="detailhead"><div class="badge" style="background:var(--h3)">?</div>
+    <div><div class="tag">Decide an approach</div><h2>Decision Guide</h2></div></div>
+   <p class="lead">Work down the questions in order. The first “Yes” chooses your heuristic. If every answer is “No”, use Guess and Check.</p>
+   <div class="panel">${inner}<div style="margin-top:18px"><div class="tag" style="margin-bottom:8px">The flow</div><div class="flowmap">${map}<div class="node ${d.result==='H5'?'active':''}">If all “No” → H5 – Guess and Check</div></div></div></div>`;
+}
+function dqAns(yes){const d=state.dq;if(yes){d.result=DQ[d.i].r;}else{d.i++;if(d.i>=DQ.length)d.result='H5';}renderDecision();}
+function dqReset(){state.dq={i:0,result:null};renderDecision();}
 
-                                {/* Feature 2 */}
-                                <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl p-8 border border-teal-200">
-                                    <div className="w-14 h-14 bg-teal-600 rounded-xl flex items-center justify-center mb-6">
-                                        <Shield size={28} className="text-white" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">100% Safe & Secure</h3>
-                                    <p className="text-slate-700 mb-4">
-                                        Verified tutors, secure payments, and transparent reviews. Your education journey is in safe hands.
-                                    </p>
-                                    <ul className="space-y-2 text-sm text-slate-600">
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-emerald-600" />
-                                            <span>Background verified tutors</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-emerald-600" />
-                                            <span>Secure payment processing</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-emerald-600" />
-                                            <span>Transparent pricing</span>
-                                        </li>
-                                    </ul>
-                                </div>
+/* ====================================================================
+   HEURISTIC DETAIL  (tabs)
+   ==================================================================== */
+function renderHeur(id){
+  const h=H(id);const hasBuild=(id==='H1');const lv=L();
+  const tabs=[['walk','Walkthrough']].concat(hasBuild?[['build','Bar Builder']]:[]).concat([['practice','Practice']]);
+  if(!state.tab||!tabs.find(t=>t[0]===state.tab))state.tab='walk';
+  app.innerHTML=`<div class="back" style="cursor:pointer" onclick="go('home')">← All heuristics</div>
+   <div class="detailhead"><div class="badge" style="background:${h.color}">${h.id}</div>
+    <div><div class="tag">${h.tag}</div><h2>${h.name}</h2></div></div>
+   <p class="lead">${h.when} <span class="chip" style="margin-left:6px">Decision clue: ${h.decision}</span></p>
+   <div class="levelbar">Set to <b>Level ${lv.n} · ${lv.grade}</b> (ages ${lv.age}) — Practice scope: ${lv.scope}</div>
+   <div class="tabs">${tabs.map(t=>`<button class="${state.tab===t[0]?'on':''}" onclick="setTab('${t[0]}')">${t[1]}</button>`).join('')}</div>
+   <div id="tabbody"></div>`;
+  renderTab(id);
+}
+function setTab(t){state.tab=t;renderHeur(state.arg);window.scrollTo(0,0);}
+function renderTab(id){const b=document.getElementById('tabbody');
+  if(state.tab==='walk')return renderWalk(id,b);
+  if(state.tab==='build')return renderBuilder(b);
+  if(state.tab==='practice')return renderPractice(id,b);
+}
 
-                                {/* Feature 3 */}
-                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-8 border border-orange-200">
-                                    <div className="w-14 h-14 bg-orange-600 rounded-xl flex items-center justify-center mb-6">
-                                        <TrendingUp size={28} className="text-white" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-slate-900 mb-3">Track Progress</h3>
-                                    <p className="text-slate-700 mb-4">
-                                        See measurable improvement with session notes, progress reports, and personalized feedback from your tutor.
-                                    </p>
-                                    <ul className="space-y-2 text-sm text-slate-600">
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-orange-600" />
-                                            <span>Detailed session notes</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-orange-600" />
-                                            <span>Progress dashboards</span>
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-orange-600" />
-                                            <span>Goal tracking</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+/* ---- Walkthrough engine ---- */
+function parentNote(id){return ({
+  H1:'Model drawing makes the relationships visible. Insist the bars be drawn to scale and labelled. Always start the bars from the same left edge so comparisons are fair, and let your child point to “1 unit” before computing it.',
+  H2:'Encourage building the table fully before hunting for the rule. Ask “how much does it change each step?” then “does the change itself change?”. Naming the rule out loud is the key skill.',
+  H3:'The trick is making one quantity match across both lines, then subtracting. Have your child say which item “cancels” and why before doing the arithmetic.',
+  H4:'Stress being systematic — list in order, don’t jump around, and stop when both conditions meet. This builds the habit of organised search.',
+  H5:'A good first guess and a clear “too high / too low” reaction is the whole skill. Keep the running table tidy so the adjustment is obvious.',
+  H6:'Each operation is undone by its opposite, in reverse order. Have your child write the steps forward first, then literally read them bottom‑to‑top while reversing each one.'
+})[id];}
 
-                    {/* CTA Section */}
-                    <section className="py-20 bg-gradient-to-r from-blue-600 to-teal-600 text-white">
-                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                            <h2 className="text-5xl font-bold mb-6">Ready to Transform Your Learning?</h2>
-                            <p className="text-xl mb-8 opacity-95">
-                                Join thousands of students achieving their goals with AEO tutors.
-                            </p>
-                            <div className="flex flex-col sm:flex-row justify-center gap-4">
-                                <button className="px-8 py-4 bg-white text-blue-600 font-bold rounded-lg hover:bg-slate-100 transition">
-                                    Search Tutors Now
-                                </button>
-                                <button className="px-8 py-4 border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:bg-opacity-10 transition">
-                                    Become a Tutor
-                                </button>
-                            </div>
-                        </div>
-                    </section>
+function renderWalk(id,b){
+  const h=H(id),w=h.learn;
+  if(!state.walk||state.walk.id!==id)state.walk={id,step:1};
+  const total=w.stages.length;
+  const cur=Math.max(1,Math.min(total,state.walk.step));state.walk.step=cur;
+  const s=w.stages[cur-1];
+  const phases=['Understand','Decide','Solve','Check'];
+  const cp=phases.indexOf(s.tag);
+  const rail=phases.map((p,pi)=>`<span class="phasepill ${pi===cp?'on':pi<cp?'done':''}">${p}</span>`).join('<span class="phasesep">→</span>');
+  b.innerHTML=`<div class="panel">
+    <div class="problembox">${w.problem}</div>
+    <div class="phaserail">${rail}</div>
+    <div class="stage" id="curstage">
+      <div class="sh"><span class="pin" style="background:${s.color}">${s.tag}</span><h4>${s.title}</h4></div>
+      <div class="body">${s.html}</div>
+    </div>
+    ${cur>=total?`<div class="note">Nice — you’ve seen the whole method. Now try it yourself in <b>Practice</b>${id==='H1'?' or the <b>Bar Builder</b>':''}.</div>`:''}
+    <div class="parentonly note"><b>Parent / teacher note:</b> ${parentNote(id)}</div>
+    <div class="stepnav">
+      <button class="btn ghost sm" onclick="walkStep(-1)" ${cur<=1?'disabled':''}>← Back</button>
+      <span class="stepcount">Step ${cur} of ${total}</span>
+      <button class="btn" onclick="walkStep(1)" ${cur>=total?'disabled':''}>${cur>=total?'Finished ✓':'Next step →'}</button>
+      <div class="progdots">${w.stages.map((x,i)=>`<i class="${i===cur-1?'on':i<cur-1?'done':''}" onclick="walkGo(${i+1})" title="${x.tag}"></i>`).join('')}</div>
+    </div>
+  </div>`;
+  if(cur>=total){const p=prog(id);if(!p.learned){p.learned=true;save();}}
+}
+function walkStep(d){const t=H(state.walk.id).learn.stages.length;state.walk.step=Math.max(1,Math.min(t,state.walk.step+d));renderTab(state.walk.id);walkScroll();}
+function walkGo(n){state.walk.step=n;renderTab(state.walk.id);walkScroll();}
+function walkScroll(){const el=document.getElementById('curstage');if(!el)return;
+  const r=el.getBoundingClientRect();
+  if(r.top<70||r.bottom>window.innerHeight){const y=r.top+window.scrollY-80;window.scrollTo({top:y<0?0:y,behavior:'smooth'});}}
 
-                    {/* Footer */}
-                    <footer className="bg-slate-900 text-slate-300 py-12">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid md:grid-cols-4 gap-8 mb-8">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-teal-500 rounded-lg flex items-center justify-center">
-                                            <span className="text-white font-bold text-sm">A</span>
-                                        </div>
-                                        <span className="font-bold text-white">AEO</span>
-                                    </div>
-                                    <p className="text-sm">Personalized learning, real progress.</p>
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-white mb-3">Product</p>
-                                    <ul className="space-y-2 text-sm">
-                                        <li><a href="#" className="hover:text-white transition">For Students</a></li>
-                                        <li><a href="#" className="hover:text-white transition">For Tutors</a></li>
-                                        <li><a href="#" className="hover:text-white transition">Pricing</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-white mb-3">Company</p>
-                                    <ul className="space-y-2 text-sm">
-                                        <li><a href="#" className="hover:text-white transition">About</a></li>
-                                        <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                                        <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-white mb-3">Legal</p>
-                                    <ul className="space-y-2 text-sm">
-                                        <li><a href="#" className="hover:text-white transition">Privacy</a></li>
-                                        <li><a href="#" className="hover:text-white transition">Terms</a></li>
-                                        <li><a href="#" className="hover:text-white transition">Contact</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div className="border-t border-slate-700 pt-8 text-sm">
-                                <p className="text-center">© 2026 AEO. All rights reserved. | Empowering learners worldwide.</p>
-                            </div>
-                        </div>
-                    </footer>
-                </div>
-            );
-        }
+/* ====================================================================
+   BAR MODEL BUILDER  (interactive, model-drawing centrepiece)
+   ==================================================================== */
+const BLD_PRESETS=[
+  {id:'free',label:'Free build (sandbox)'},
+  {id:'choc',label:'Chocolates — the lesson problem',
+   q:'Richard, James & Lionel have 30 altogether. Lionel has 8 more than Richard; James has 2 fewer than Richard. How many does Richard have?',
+   total:30,ask:'Richard',answer:8,
+   tip:'Try: James = 1 unit, Richard = 1 unit + a “2” block, Lionel = 1 unit + a “2” + an “8”. Total = 30.'},
+  {id:'share',label:'Sharing more/less (Level 1–2)',
+   q:'Ali & Bala have 24 stickers. Ali has 6 more than Bala. How many does Bala have?',
+   total:24,ask:'Bala',answer:9,
+   tip:'Bala = 1 unit. Ali = 1 unit + a “6” block. Total = 24.'},
+  {id:'mult',label:'Multiples (Level 2–3)',
+   q:'A 24 m rope is cut so the long piece is 3 times the short piece. How long is the short piece?',
+   total:24,ask:'Short piece',answer:6,
+   tip:'Short = 1 unit. Long = 3 units (three unit blocks). Total = 24.'},
+  {id:'frac',label:'Fraction of a set (Level 4)',
+   q:'2/5 of 40 pupils are boys. How many boys are there?',
+   total:40,ask:'Boys',answer:16,
+   tip:'Make 5 unit blocks for the whole class (total 40). Boys = 2 of those units.'}
+];
+function renderBuilder(b){
+  if(!state.bld)state.bld={rows:[{name:'James',blocks:[]},{name:'Richard',blocks:[]}],sel:0,total:'',preset:'free',ans:''};
+  const s=state.bld;
+  const preset=BLD_PRESETS.find(p=>p.id===s.preset)||BLD_PRESETS[0];
+  // compute
+  let totUnits=0,totExtra=0;
+  s.rows.forEach(r=>{r.blocks.forEach(bk=>{if(bk.t==='u')totUnits++;else totExtra+=bk.v;});});
+  const totalNum=parseFloat(s.total);
+  const haveTotal=!isNaN(totalNum)&&s.total!=='';
+  let unitVal=null;
+  if(haveTotal&&totUnits>0)unitVal=(totalNum-totExtra)/totUnits;
+  const rowVal=r=>{let u=0,e=0;r.blocks.forEach(bk=>{if(bk.t==='u')u++;else e+=bk.v;});return unitVal!=null?u*unitVal+e:null;};
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(React.createElement(LandingPage));
-    </script>
+  const rowsHtml=s.rows.map((r,i)=>`
+    <div class="canvasrow ${i===s.sel?'sel':''}" onclick="bldSel(${i})">
+      <div class="rname"><input value="${esc(r.name)}" onchange="bldName(${i},this.value)" onclick="event.stopPropagation()"></div>
+      <div class="blocks">
+        ${r.blocks.map(bk=>bk.t==='u'?`<div class="blk unit">1u</div>`:`<div class="blk num">+${fmtNum(bk.v)}</div>`).join('')||'<span style="color:var(--muted);font-size:.82rem">empty — add unit/number →</span>'}
+        <span class="rowval" id="rowval-${i}" style="margin-left:8px;font-weight:800;color:var(--muted)"></span>
+      </div>
+      <div class="rowtools" onclick="event.stopPropagation()">
+        <button title="Add 1 unit" onclick="bldAdd(${i},'u')">u</button>
+        <button title="Add a number block" onclick="bldAdd(${i},'n')">＋</button>
+        <button title="Remove last block" onclick="bldDelBlock(${i})">⌫</button>
+        <button title="Delete this bar" onclick="bldDelRow(${i})">✕</button>
+      </div>
+    </div>`).join('');
+
+  let checkPanel='';
+  if(preset.id!=='free'){
+    checkPanel=`<div class="pcard" style="margin-top:14px">
+      <div class="pq">${preset.q}</div>
+      <div class="note" style="margin-top:0"><b>Hint:</b> ${preset.tip}</div>
+      <div class="ansrow" style="margin-top:12px">
+        <span style="font-weight:700">${preset.ask} =</span>
+        <input id="bldans" value="${esc(s.ans)}" inputmode="decimal" placeholder="read it off your model" oninput="state.bld.ans=this.value">
+        <button class="btn" onclick="bldCheck(${preset.answer})">Check</button>
+      </div>
+      <div class="feedback" id="bldfb"></div>
+    </div>`;
+  }
+
+  b.innerHTML=`<div class="panel">
+    <div class="builderbar">
+      <select class="presetsel" onchange="bldPreset(this.value)">
+        ${BLD_PRESETS.map(p=>`<option value="${p.id}" ${p.id===s.preset?'selected':''}>${p.label}</option>`).join('')}
+      </select>
+      <button class="btn ghost sm" onclick="bldAddRow()">＋ Add bar</button>
+      <button class="btn ghost sm" onclick="bldClear()">Clear all</button>
+    </div>
+    <p class="lead" style="margin-top:0">Tap a bar to select it, then add equal <b style="color:var(--u)">unit</b> blocks and labelled <b style="color:var(--accent)">number</b> blocks. Units in every bar are the same size — that’s the whole idea of a model.</p>
+    ${rowsHtml}
+    <div class="readout">
+      <div class="row"><span>Total unit blocks</span><b id="ro-units">${totUnits}</b></div>
+      <div class="row"><span>Total of number blocks</span><b id="ro-extra">${fmtNum(totExtra)}</b></div>
+      <div class="row"><span>Grand total of all bars</span>
+        <span><input style="width:130px" id="bldtot" value="${esc(s.total)}" inputmode="decimal" placeholder="type total" oninput="state.bld.total=this.value;bldRecalc()"></span></div>
+      <div class="row" style="border-top:1px dashed var(--line);margin-top:6px;padding-top:8px">
+        <span><b>1 unit =</b> (total − numbers) ÷ units</span>
+        <b id="ro-unit" style="color:var(--brand)">—</b></div>
+    </div>
+    ${checkPanel}
+  </div>`;
+  bldRecalc();
+}
+function bldRecalc(){
+  const s=state.bld;if(!s)return;
+  let u=0,e=0;s.rows.forEach(r=>r.blocks.forEach(bk=>{if(bk.t==='u')u++;else e+=bk.v;}));
+  const tn=parseFloat(s.total),have=!isNaN(tn)&&s.total!=='';
+  const uv=(have&&u>0)?(tn-e)/u:null;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('ro-units',u);set('ro-extra',fmtNum(e));set('ro-unit',uv!=null?fmtNum(uv):'—');
+  s.rows.forEach((r,i)=>{const el=document.getElementById('rowval-'+i);if(!el)return;
+    if(uv==null){el.textContent='';return;}
+    let ru=0,re=0;r.blocks.forEach(bk=>{if(bk.t==='u')ru++;else re+=bk.v;});
+    el.textContent='= '+fmtNum(ru*uv+re);});
+}
+function bldSel(i){state.bld.sel=i;renderTab('H1');}
+function bldName(i,v){state.bld.rows[i].name=v;}
+function bldAdd(i,t){state.bld.sel=i;
+  if(t==='u'){state.bld.rows[i].blocks.push({t:'u'});}
+  else{const v=parseFloat(prompt('Number for this block (e.g. 2, 8, 0.5):','2'));if(!isNaN(v))state.bld.rows[i].blocks.push({t:'n',v});}
+  renderTab('H1');}
+function bldDelBlock(i){state.bld.rows[i].blocks.pop();renderTab('H1');}
+function bldDelRow(i){if(state.bld.rows.length<=1)return;state.bld.rows.splice(i,1);state.bld.sel=0;renderTab('H1');}
+function bldAddRow(){state.bld.rows.push({name:'Bar '+(state.bld.rows.length+1),blocks:[]});renderTab('H1');}
+function bldClear(){state.bld.rows.forEach(r=>r.blocks=[]);state.bld.total='';state.bld.ans='';renderTab('H1');}
+function bldPreset(id){const p=BLD_PRESETS.find(x=>x.id===id);state.bld.preset=id;state.bld.ans='';
+  if(id==='free'){state.bld.rows=[{name:'Bar A',blocks:[]},{name:'Bar B',blocks:[]}];state.bld.total='';}
+  else if(id==='choc'){state.bld.rows=[{name:'James',blocks:[]},{name:'Richard',blocks:[]},{name:'Lionel',blocks:[]}];state.bld.total='';}
+  else if(id==='share'){state.bld.rows=[{name:'Bala',blocks:[]},{name:'Ali',blocks:[]}];state.bld.total='';}
+  else if(id==='mult'){state.bld.rows=[{name:'Short',blocks:[]},{name:'Long',blocks:[]}];state.bld.total='';}
+  else if(id==='frac'){state.bld.rows=[{name:'Whole class',blocks:[]},{name:'Boys',blocks:[]}];state.bld.total='';}
+  state.bld.sel=0;renderTab('H1');}
+function bldCheck(ans){const v=parseFloat((state.bld.ans||'').replace(/[^0-9.\-]/g,''));const fb=document.getElementById('bldfb');
+  const ok=approxEq(v,ans);fb.className='feedback show '+(ok?'ok':'no');
+  fb.innerHTML=ok?'<b>Correct!</b> Your model gives the right answer.':`<b>Not yet.</b> Check your bars and the total. Expected answer: <b>${fmtNum(ans)}</b>.`;}
+
+/* ====================================================================
+   PRACTICE  (per-level generators + auto scoring)
+   ==================================================================== */
+function genProblem(id,lv){
+  if(id==='H1')return gH1(lv);
+  if(id==='H2')return gH2(lv);
+  if(id==='H3')return gH3(lv);
+  if(id==='H4')return gH4(lv);
+  if(id==='H5')return gH5(lv);
+  return gH6(lv);
+}
+function gH1(lv){const it=pick(ITEMS),pr=pick2(NAMES),A=pr[0],B=pr[1],n=lv.n;
+  if(n===1){const s=rint(5,25),d=rint(2,12),T=2*s+d;
+    return {q:`${A} and ${B} have ${T} ${it} altogether. ${A} has ${d} more ${it} than ${B}. How many ${it} does ${B} have?`,type:'num',answer:s,
+      hint:`Draw two bars. ${B} = 1 unit; ${A} = 1 unit + ${d}. So 2 units + ${d} = ${T}.`,
+      sol:`2 units = ${T} − ${d} = ${T-d}; 1 unit = ${(T-d)/2}. ${B} has ${s}.`};}
+  if(n===2){const u=rint(20,160),k=pick([2,3,4]),T=u*(k+1);
+    return {q:`${A} has ${k} times as many ${it} as ${B}. Together they have ${T} ${it}. How many does ${B} have?`,type:'num',answer:u,
+      hint:`${B} = 1 unit, ${A} = ${k} units, so ${k+1} units = ${T}.`,sol:`${k+1} units = ${T}; 1 unit = ${u}. ${B} has ${u}.`};}
+  if(n===3){const u=rint(80,600),a=rint(20,150),b=rint(20,150),T=3*u+2*a+b,rich=u+a;
+    return {q:`${A}, ${B} and Cara have ${T} ${it} altogether. ${B} has ${a} more than ${A}. Cara has ${b} more than ${B}. How many ${it} does ${B} have?`,type:'num',answer:rich,
+      hint:`Smallest is ${A} = 1 unit. ${B} = 1u + ${a}. Cara = 1u + ${a} + ${b}. So 3 units + ${2*a+b} = ${T}.`,
+      sol:`3 units = ${T} − ${2*a+b} = ${T-2*a-b}; 1 unit = ${u}. ${B} = ${u} + ${a} = ${rich}.`};}
+  if(n===4){const den=pick([4,5,8,10]),num=rint(1,den-1),T=den*rint(8,40),part=T*num/den;
+    return {q:`There are ${T} ${it} in a box. ${num}/${den} of them are red. How many red ${it} are there?`,type:'num',answer:part,
+      hint:`Split the bar into ${den} equal units. 1 unit = ${T} ÷ ${den}.`,sol:`1 unit = ${T} ÷ ${den} = ${T/den}; red = ${num} units = ${part}.`};}
+  if(n===5){const P=20*pick([2,3,4,5,6,8,10,12,15]),r=pick([10,20,25,50]),paid=P*(100-r)/100;
+    return {q:`A jacket costs ${money(P)}. In a sale there is a ${r}% discount. How much do you pay?`,type:'num',answer:paid,unit:'$',
+      hint:`Draw the price as 100%. You pay ${100-r}% of it.`,sol:`Discount = ${r}% of ${money(P)} = ${money(P*r/100)}; you pay ${money(paid)}.`};}
+  const m=pick([2,3,4,5]),p=pick([2,3,4,5]),u=rint(6,40),T=(m+p)*u,Aval=m*u;
+  return {q:`${A} and ${B} share ${T} ${it} in the ratio ${m} : ${p}. How many ${it} does ${A} get?`,type:'num',answer:Aval,
+    hint:`Total units = ${m} + ${p} = ${m+p}. 1 unit = ${T} ÷ ${m+p}.`,sol:`1 unit = ${T} ÷ ${m+p} = ${u}; ${A} = ${m} units = ${Aval}.`};
+}
+function gH2(lv){const n=lv.n;
+  if(n===1){const s=rint(1,9),d=pick([2,5,10]),k=rint(6,8),t=[s,s+d,s+2*d,s+3*d],ans=s+(k-1)*d;
+    return {q:`Look at the pattern: ${t.join(', ')}, … &nbsp; What is the ${ord(k)} number?`,type:'num',answer:ans,hint:`Each step adds ${d}.`,sol:`Term ${k} = ${s} + (${k}−1)×${d} = ${ans}.`};}
+  if(n===2){const s=rint(2,12),d=rint(3,10),k=rint(8,12),t=[s,s+d,s+2*d,s+3*d],ans=s+(k-1)*d;
+    return {q:`A pattern starts ${t.join(', ')}, … Find the ${ord(k)} term.`,type:'num',answer:ans,hint:`The common step is ${d}.`,sol:`${s} + (${k}−1)×${d} = ${ans}.`};}
+  if(n===3){const k=rint(5,12),ans=3*k+1;
+    return {q:`Squares are made in a row with matchsticks: 1 square needs 4 sticks, 2 need 7, 3 need 10, … How many sticks for ${k} squares?`,type:'num',answer:ans,hint:`The first square uses 4; each new square adds 3.`,sol:`Sticks = 3 × ${k} + 1 = ${ans}.`};}
+  if(n===4){const s=rint(4,12),d=rint(4,12),k=rint(20,60),t=[s,s+d,s+2*d,s+3*d],ans=s+(k-1)*d;
+    return {q:`A pattern goes ${t.join(', ')}, … Find the ${ord(k)} term.`,type:'num',answer:ans,hint:`Step = ${d}. Term k = first + (k−1) × step.`,sol:`${s} + (${k}−1)×${d} = ${ans}.`};}
+  if(n===5){const s=pick([0.5,1.5,2.5,3.5]),d=pick([0.5,1.5,2.5]),k=rint(8,12),t=[s,s+d,s+2*d,s+3*d].map(fmtNum),ans=s+(k-1)*d;
+    return {q:`A decimal pattern goes ${t.join(', ')}, … Find the ${ord(k)} term.`,type:'num',answer:ans,hint:`The step is ${fmtNum(d)}.`,sol:`${fmtNum(s)} + (${k}−1)×${fmtNum(d)} = ${fmtNum(ans)}.`};}
+  const a=pick([2,3,4,5]),b=rint(1,6),t=[a+b,2*a+b,3*a+b,4*a+b],correct=`${a}n + ${b}`,
+    choices=shuffle([correct,`${a}n + ${b+1}`,`${a+1}n + ${b}`,`${a}n − ${b}`]);
+  return {q:`A pattern is ${t.join(', ')}, … If n is the position number, which rule gives the n‑th term?`,type:'mc',choices,answer:correct,
+    hint:`It increases by ${a} each step, and term 1 is ${t[0]}.`,sol:`Step ${a} → ${a}n; check: ${a}×1 + ${b} = ${t[0]}. Rule = ${correct}.`};
+}
+function gH3(lv){const n=lv.n;
+  if(n===1){const c=pick([2,5,10]),per=rint(2,Math.max(2,Math.floor(20/c))),tot=c*per,it=pick(['pens','toys','cakes','sweets','rulers']);
+    return {q:`${c} identical ${it} cost ${money(tot)} in total. How much does 1 cost?`,type:'num',answer:per,unit:'$',hint:`Share ${money(tot)} equally among ${c}.`,sol:`${money(tot)} ÷ ${c} = ${money(per)}.`};}
+  if(n===2){const bk=rint(3,12),p=rint(2,9),X=2*bk+p;
+    return {q:`2 books and 1 pen cost ${money(X)}. A book costs ${money(bk)}. How much is the pen?`,type:'num',answer:p,unit:'$',hint:`Take away the 2 books first.`,sol:`Pen = ${money(X)} − 2 × ${money(bk)} = ${money(p)}.`};}
+  if(n===3){const Av=rint(3,12),Bv=rint(2,9),X=2*Av+Bv,Y=2*Av+3*Bv;
+    return {q:`2 apples and 1 orange cost ${money(X)}. 2 apples and 3 oranges cost ${money(Y)}. Find the cost of 1 orange.`,type:'num',answer:Bv,unit:'$',hint:`Both rows have 2 apples — subtract to leave oranges.`,sol:`${money(Y)} − ${money(X)} = 2 oranges = ${money(Y-X)}; 1 orange = ${money(Bv)}.`};}
+  if(n===4){const sh=rint(4,15),tp=rint(5,18),X=3*sh+2*tp,Y=5*sh+4*tp;
+    return {q:`3 shorts and 2 tops cost ${money(X)}. 5 shorts and 4 tops cost ${money(Y)}. Find the cost of 1 top.`,type:'num',answer:tp,unit:'$',
+      hint:`Double the first row (6 shorts + 4 tops), then subtract the second to leave shorts.`,sol:`2 × first = 6 shorts + 4 tops = ${money(2*X)}; minus second → 1 short = $${2*X-Y}; 1 top = (${money(X)} − 3 × $${2*X-Y}) ÷ 2 = ${money(tp)}.`};}
+  if(n===5){const rl=rint(2,6),pn=pick([1.5,2,2.5,3]),X=2*rl+3*pn,Y=4*rl+3*pn;
+    return {q:`2 rulers and 3 pens cost ${money(X)}. 4 rulers and 3 pens cost ${money(Y)}. Find the cost of 1 ruler.`,type:'num',answer:rl,unit:'$',hint:`Same number of pens (3) — subtract to leave rulers.`,sol:`${money(Y)} − ${money(X)} = 2 rulers = ${money(Y-X)}; 1 ruler = ${money(rl)}.`};}
+  const x=rint(3,12),y=rint(2,10),S=x+y,D=x-y;
+  return {q:`Two numbers x and y satisfy x + y = ${S} and x − y = ${D}. Find x.`,type:'num',answer:x,hint:`Add the two equations so that y cancels: 2x = ${S} + ${D}.`,sol:`2x = ${S} + ${D} = ${S+D}; x = ${x}.`};
+}
+function gH4(lv){const n=lv.n;
+  if(n===1){const ans=pick([15,25,35,45,55,65,75,85,95]),lo=ans-rint(3,4),hi=ans+rint(3,4);
+    return {q:`I am a number between ${lo} and ${hi}. I am odd and a multiple of 5. What number am I?`,type:'num',answer:ans,hint:`List the multiples of 5 in range, keep the odd one.`,sol:`The multiple of 5 in range that is odd is ${ans}.`};}
+  if(n===2){const ans=pick([14,28,42,56,70,84,98]),lo=ans-rint(5,6),hi=ans+rint(5,6);
+    return {q:`I am a number between ${lo} and ${hi}. I am even and a multiple of 7. What number am I?`,type:'num',answer:ans,hint:`Multiples of 7: 7, 14, 21, … keep the even one in range.`,sol:`${ans} is even and 7 × ${ans/7}.`};}
+  if(n===3){const m=pick([5,6,7]),k=pick([4,8,9]),lcm=m*k/gcd(m,k);let ans,rm,rk,g=0;
+    do{ans=rint(lcm+2,lcm*3);rm=ans%m;rk=ans%k;g++;}while((rm===0||rk===0)&&g<60);
+    const off=Math.min(5,Math.floor((lcm-1)/2)),lo=ans-rint(2,off),hi=ans+rint(2,off);
+    return {q:`A number between ${lo} and ${hi} leaves remainder ${rm} when divided by ${m}, and remainder ${rk} when divided by ${k}. Find it.`,type:'num',answer:ans,
+      hint:`List numbers in range with remainder ${rm} on ÷${m}; check which also gives ${rk} on ÷${k}.`,sol:`${ans} ÷ ${m} = ${Math.floor(ans/m)} r ${rm}; ${ans} ÷ ${k} = ${Math.floor(ans/k)} r ${rk}.`};}
+  if(n===4){const m=8,k=9;let ans=rint(120,260);const e=ans%m,s=(k-(ans%k))%k;
+    const lo=Math.max(100,ans-rint(8,15)),hi=ans+rint(8,15);
+    return {q:`A jar holds between ${lo} and ${hi} marbles. In stacks of ${m} there are ${e} left over. In stacks of ${k} it is ${s} short. How many marbles are in the jar?`,type:'num',answer:ans,
+      hint:`List “${e} more than a multiple of ${m}” and “${s} less than a multiple of ${k}”, then find the common number.`,
+      sol:`${ans} = ${m} × ${Math.floor(ans/m)} + ${e}; and ${ans} + ${s} = ${ans+s} = ${k} × ${(ans+s)/k}.`};}
+  if(n===5){const a=pick([2,3,5]),b=pick([8,10,12]),x=rint(2,6),y=rint(2,6),N=x+y,C=a*x+b*y;
+    return {q:`Tickets cost ${money(a)} (child) or ${money(b)} (adult). ${N} tickets were bought for ${money(C)} in total. How many child tickets were bought?`,type:'num',answer:x,
+      hint:`List the cases: 1 child, 2 children, … and check the total cost each time.`,sol:`${x} child + ${y} adult = ${N} tickets; ${x} × ${money(a)} + ${y} × ${money(b)} = ${money(C)}.`};}
+  const ans=pick([12,24,36,48,60]),lo=ans-rint(4,6),hi=ans+rint(4,6);
+  return {q:`A number between ${lo} and ${hi} is a common multiple of 6 and 4. What is it?`,type:'num',answer:ans,hint:`Common multiples of 6 and 4 are the multiples of 12.`,sol:`${ans} = 6 × ${ans/6} = 4 × ${ans/4}.`};
+}
+function gH5(lv){const n=lv.n;
+  if(n<=2){const hi=(n===1)?6:9,t=rint(2,hi),f=rint(2,hi),C=t+f,V=10*t+5*f;
+    return {q:`A piggy bank holds only 10‑cent and 5‑cent coins — ${C} coins worth ${V} cents in all. How many 10‑cent coins are there?`,type:'num',answer:t,hint:`Guess the number of 10¢ coins; the rest are 5¢; then check the value.`,sol:`${t} ten‑cent (${10*t}¢) + ${f} five‑cent (${5*f}¢) = ${V}¢, total ${C} coins.`};}
+  if(n===3){const t=rint(4,12),f=rint(4,12),C=t+f,V=10*t+5*f;
+    return {q:`There are ${C} coins (10‑cent and 5‑cent) worth ${V} cents in all. How many 5‑cent coins are there?`,type:'num',answer:f,hint:`Try a number of 5¢ coins; the rest are 10¢; check the total value.`,sol:`${f} five‑cent + ${t} ten‑cent → ${V}¢ with ${C} coins.`};}
+  if(n===4){const r=rint(3,9),c=rint(4,12),heads=r+c,legs=4*r+2*c;
+    return {q:`A farm has chickens and rabbits — ${heads} heads and ${legs} legs in all. How many rabbits are there?`,type:'num',answer:r,hint:`If all were chickens there would be ${2*heads} legs; each rabbit adds 2 more.`,sol:`Extra legs = ${legs} − ${2*heads} = ${legs-2*heads}; rabbits = ${(legs-2*heads)/2} = ${r}.`};}
+  if(n===5){const j=rint(10,30),p=rint(10,30),tot=j+p,earn=18*j+25*p;
+    return {q:`A shop sells jeans at $18 and pants at $25. It sold ${tot} pairs for ${money(earn)} in total. How many pairs of jeans were sold?`,type:'num',answer:j,hint:`Guess the pairs of jeans; the rest are pants; check the money.`,sol:`${j} jeans (${money(18*j)}) + ${p} pants (${money(25*p)}) = ${money(earn)} with ${tot} pairs.`};}
+  const right=rint(8,18),wrong=rint(2,8),total=right+wrong,score=3*right-wrong;
+  return {q:`In a ${total}‑question quiz, +3 marks for each correct answer and −1 for each wrong one. A pupil scored ${score} marks. How many questions did they get correct?`,type:'num',answer:right,hint:`Guess the number correct; the rest are wrong; check the score.`,sol:`${right} × 3 − ${wrong} × 1 = ${score}, with ${total} questions in all.`};
+}
+function gH6(lv){const n=lv.n;
+  if(n===1){const x=rint(5,40),a=rint(3,20),R=x+a;
+    return {q:`I think of a number, add ${a}, and get ${R}. What was my number?`,type:'num',answer:x,hint:`Undo “+ ${a}” by subtracting.`,sol:`${R} − ${a} = ${x}.`};}
+  if(n===2){const x=rint(2,12),k=pick([2,3,4]),a=rint(2,15),R=x*k+a;
+    return {q:`I think of a number, multiply it by ${k}, then add ${a}, and get ${R}. Find my number.`,type:'num',answer:x,hint:`Work in reverse: subtract ${a}, then divide by ${k}.`,sol:`(${R} − ${a}) ÷ ${k} = ${x}.`};}
+  if(n===3){const x=rint(3,15),k=pick([2,3]),a=rint(2,12),bb=rint(2,12),R=(x+a)*k-bb;
+    return {q:`A number has ${a} added; the result is multiplied by ${k}; then ${bb} is subtracted, giving ${R}. Find the number.`,type:'num',answer:x,hint:`Reverse the steps: add ${bb}, divide by ${k}, then subtract ${a}.`,sol:`((${R} + ${bb}) ÷ ${k}) − ${a} = ${x}.`};}
+  if(n===4){const x=rint(4,20),k=pick([2,3,4,5]),a=rint(3,20),R=x*k-a;
+    return {q:`A number is multiplied by ${k}, then ${a} is taken away, leaving ${R}. What is the number?`,type:'num',answer:x,hint:`Add ${a} back, then divide by ${k}.`,sol:`(${R} + ${a}) ÷ ${k} = ${x}.`};}
+  if(n===5){const fr=pick([[1,3],[1,4],[2,5],[3,4],[2,3]]),num=fr[0],den=fr[1],O=den*rint(6,40),left=O*(den-num)/den;
+    return {q:`Sam spent ${num}/${den} of his money and had ${money(left)} left. How much did he have at first?`,type:'num',answer:O,unit:'$',hint:`He has ${den-num}/${den} of it left = ${money(left)}. Work back to the whole.`,sol:`${den-num}/${den} of the total = ${money(left)}; 1/${den} = ${money(left/(den-num))}; total = ${money(O)}.`};}
+  const O=20*rint(2,15),r=pick([10,20,25,40,50]),left=O*(100-r)/100;
+  return {q:`After spending ${r}% of her savings, May had ${money(left)} left. How much did she save at first?`,type:'num',answer:O,unit:'$',hint:`${money(left)} is ${100-r}% of the original amount.`,sol:`${100-r}% = ${money(left)}; 1% = ${money(left/(100-r))}; 100% = ${money(O)}.`};
+}
+
+function renderPractice(id,b){
+  const lv=L();
+  if(!state.prac||state.prac.id!==id||state.prac.level!==lv.n)newQuestion(id);
+  const q=state.prac.q,sc=state.prac.score,pctNow=sc.total?Math.round(sc.right/sc.total*100):0;
+  let ans;
+  if(q.type==='mc'){
+    ans=`<div class="mcgrid" id="mcg">${q.choices.map((c,i)=>`<button data-i="${i}" onclick="pickMC(${i})">${esc(c)}</button>`).join('')}</div>`;
+  } else {
+    ans=`<div class="ansrow"><input id="pin" type="text" inputmode="decimal" placeholder="${q.unit==='$'?'e.g. 24 (or 24.50)':'your answer'}"> <button class="btn" onclick="checkAns()">Check</button></div>`;
+  }
+  b.innerHTML=`<div class="panel">
+    <div class="scorebar" id="scbar">
+      <span class="scorebadge">Level ${lv.n} · ${lv.grade}</span>
+      <span class="scorebadge">Score: ${sc.right}/${sc.total} (${pctNow}%)</span>
+      <span class="scorebadge">Best: ${prog(id).best}%</span>
+    </div>
+    <div class="pcard">
+      <div class="pq">${q.q}</div>
+      ${ans}
+      <div class="feedback" id="fb"></div>
+    </div>
+    <div class="stepctrl">
+      <button class="btn ghost sm" onclick="showHint()">Show hint</button>
+      <button class="btn sm" onclick="newQuestion('${id}');renderTab('${id}')">New question →</button>
+    </div>
+    <div class="parentonly note"><b>Parent / teacher note:</b> ${parentNote(id)} Problems here follow Level ${lv.n} (${lv.grade}) scope: ${lv.scope}</div>
+  </div>`;
+  const pin=document.getElementById('pin');
+  if(pin){pin.focus();pin.addEventListener('keydown',e=>{if(e.key==='Enter')checkAns();});}
+}
+function newQuestion(id){
+  const same=(state.prac&&state.prac.id===id&&state.prac.level===L().n);
+  const keep=same?state.prac.score:{right:0,total:0};
+  state.prac={id,q:genProblem(id,L()),answered:false,picked:null,score:keep,level:L().n};
+}
+function showHint(){const fb=document.getElementById('fb');if(!fb)return;fb.className='feedback show ok';fb.innerHTML='<b>Hint:</b> '+state.prac.q.hint;}
+function checkAns(){if(state.prac.answered)return;const pin=document.getElementById('pin');if(!pin)return;const raw=(pin.value||'').trim();
+  if(raw==='')return;const val=parseFloat(raw.replace(/[^0-9.\-]/g,''));if(isNaN(val))return;
+  finishAns(approxEq(val,state.prac.q.answer));pin.disabled=true;}
+function pickMC(i){if(state.prac.answered||!state.prac.q.choices)return;const q=state.prac.q;const ok=q.choices[i]===q.answer;state.prac.picked=i;
+  document.querySelectorAll('#mcg button').forEach((btn,j)=>{btn.disabled=true;if(q.choices[j]===q.answer)btn.classList.add('right');else if(j===i)btn.classList.add('wrong');});
+  finishAns(ok);}
+function finishAns(ok){
+  const id=state.prac.id,q=state.prac.q,sc=state.prac.score;state.prac.answered=true;
+  sc.total++;if(ok)sc.right++;
+  const p=prog(id);p.attempts++;const pctNow=Math.round(sc.right/sc.total*100);if(pctNow>p.best)p.best=pctNow;save();
+  const fb=document.getElementById('fb');fb.className='feedback show '+(ok?'ok':'no');
+  fb.innerHTML=(ok?'<b>Correct!</b> ':'<b>Not quite — here’s how:</b> ')+`<span class="sol">${q.sol}</span>`;
+  const sb=document.getElementById('scbar');
+  if(sb)sb.innerHTML=`<span class="scorebadge">Level ${L().n} · ${L().grade}</span>
+    <span class="scorebadge">Score: ${sc.right}/${sc.total} (${pctNow}%)</span>
+    <span class="scorebadge">Best: ${p.best}%</span>`;
+}
+
+/* ---------------------- BOOT ----------------- */
+function go(view,arg){ state.view=view; state.arg=arg; render(); window.scrollTo(0,0); }
+function setMode(m){ state.mode=m; document.body.classList.toggle('parent',m==='parent');
+  document.querySelectorAll('#modetog button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); save(); render(); }
+function setLevel(n){ state.level=n; save(); renderLevelBox(); render(); }
+function askLevel(n){
+  if(n===state.level)return;
+  const l=LEVELS[n-1];
+  uiConfirm('Change to Level '+n+' ('+l.grade+')?',
+    'This sets the <b>Practice</b> questions to '+l.grade+' difficulty (numbers '+l.digits+'). The lessons stay the same. Continue?',
+    'Yes, switch to '+l.grade, function(){ setLevel(n); });
+}
+function uiConfirm(title, body, yesLabel, onYes){
+  const bg=document.createElement('div'); bg.className='modal-bg';
+  bg.innerHTML='<div class="modal-card"><h3>'+title+'</h3><p>'+body+'</p>'+
+    '<div class="modal-btns"><button class="btn ghost" id="mc-no">Cancel</button>'+
+    '<button class="btn" id="mc-yes">'+yesLabel+'</button></div></div>';
+  document.body.appendChild(bg);
+  bg.querySelector('#mc-no').onclick=function(){ bg.remove(); };
+  bg.querySelector('#mc-yes').onclick=function(){ bg.remove(); onYes(); };
+  bg.onclick=function(e){ if(e.target===bg) bg.remove(); };
+}
+function renderLevelBox(){
+  const box=document.getElementById('lvlbox');
+  box.innerHTML='<span class="lvllabel">Level</span>'+LEVELS.map(l=>
+    `<button class="${l.n===state.level?'on':''}" title="${l.grade} · ages ${l.age} (tap to change — needs confirm)" onclick="askLevel(${l.n})">${l.n}</button>`).join('');
+}
+function render(){
+  const v=state.view||'home';
+  if(v==='home') return renderHome();
+  if(v==='decision') return renderDecision();
+  if(v==='heur') return renderHeur(state.arg);
+  renderHome();
+}
+document.body.classList.toggle('parent',state.mode==='parent');
+document.querySelectorAll('#modetog button').forEach(b=>b.classList.toggle('on',b.dataset.m===state.mode));
+renderLevelBox();
+render();
+</script>
 </body>
 </html>
