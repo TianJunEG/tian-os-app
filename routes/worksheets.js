@@ -1,11 +1,13 @@
 import express from 'express';
 import fs from 'fs/promises';
 import Worksheet from '../models/Worksheet.js';
+import User from '../models/User.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
 import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/practiceSchedule.js';
 import { applyMarks } from '../utils/marking.js';
+import { canViewWorksheet } from '../utils/worksheetAccess.js';
 
 const router = express.Router();
 
@@ -46,11 +48,19 @@ router.post(
       return res.status(400).json({ error: 'Please upload a photo of the marked work.' });
     }
 
-    const { studentName, gradeLevel, topicHint, questionsPerSession } = req.body;
+    const { studentName, gradeLevel, topicHint, questionsPerSession, studentId } = req.body;
     const perSession = Math.min(Math.max(parseInt(questionsPerSession, 10) || 5, 2), 6);
     const totalQuestions = perSession * SESSION_OFFSETS.length;
 
     try {
+      let assignedStudent = null;
+      if (studentId) {
+        assignedStudent = await User.findOne({ _id: studentId, linkedTo: req.user.id, role: 'student' });
+        if (!assignedStudent) {
+          return res.status(400).json({ error: 'Invalid student selection.' });
+        }
+      }
+
       const buffer = await fs.readFile(req.file.path);
       const imageBase64 = buffer.toString('base64');
 
@@ -66,7 +76,8 @@ router.post(
 
       const worksheet = new Worksheet({
         userId: req.user.id,
-        studentName: studentName ? String(studentName).slice(0, 100) : undefined,
+        studentId: assignedStudent ? assignedStudent._id : null,
+        studentName: studentName ? String(studentName).slice(0, 100) : assignedStudent?.name,
         subject: 'Math',
         topic: result.topic,
         gradeLevel,
@@ -97,8 +108,15 @@ router.post(
 // @access  Private
 router.get('/', protect, async (req, res) => {
   try {
-    const worksheets = await Worksheet.find({ userId: req.user.id })
-      .select('studentName subject topic gradeLevel overallSummary nextDueAt sessionsTotal sessionsCompleted createdAt')
+    const filter = req.user.role === 'student'
+      ? { studentId: req.user.id }
+      : { userId: req.user.id };
+    if (req.user.role !== 'student' && req.query.studentId) {
+      filter.studentId = req.query.studentId;
+    }
+
+    const worksheets = await Worksheet.find(filter)
+      .select('studentName studentId subject topic gradeLevel overallSummary nextDueAt sessionsTotal sessionsCompleted createdAt')
       .sort({ createdAt: -1 })
       .limit(50);
 
@@ -108,13 +126,57 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/worksheets/mistakes
+// @desc    Aggregate every incorrectly-answered question (a student's own, or
+//          all of a parent/tutor's — optionally filtered by ?studentId).
+// @access  Private
+router.get('/mistakes', protect, async (req, res) => {
+  try {
+    const filter = req.user.role === 'student'
+      ? { studentId: req.user.id }
+      : { userId: req.user.id };
+    if (req.user.role !== 'student' && req.query.studentId) {
+      filter.studentId = req.query.studentId;
+    }
+
+    const worksheets = await Worksheet.find(filter).sort({ createdAt: -1 }).limit(100);
+
+    const mistakes = [];
+    for (const w of worksheets) {
+      for (const session of w.practiceSessions) {
+        for (const q of session.questions) {
+          if (q.correct === false) {
+            mistakes.push({
+              worksheetId: w._id,
+              topic: w.topic,
+              studentName: w.studentName,
+              sessionNumber: session.sessionNumber,
+              prompt: q.prompt,
+              answer: q.answer,
+              studentResponse: q.studentResponse,
+              feedback: q.feedback,
+              misconception: q.targetsMisconception,
+              markedAt: q.markedAt
+            });
+          }
+        }
+      }
+    }
+    mistakes.sort((a, b) => new Date(b.markedAt || 0) - new Date(a.markedAt || 0));
+
+    return res.json({ success: true, count: mistakes.length, mistakes });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // @route   GET /api/worksheets/:id
 // @desc    Get a single worksheet with all practice sessions
-// @access  Private (owner only)
+// @access  Private (owner or assigned student)
 router.get('/:id', protect, async (req, res) => {
   try {
-    const worksheet = await Worksheet.findOne({ _id: req.params.id, userId: req.user.id });
-    if (!worksheet) {
+    const worksheet = await Worksheet.findById(req.params.id);
+    if (!worksheet || !canViewWorksheet(worksheet, req.user.id)) {
       return res.status(404).json({ error: 'Worksheet not found' });
     }
     return res.json({ success: true, worksheet });
@@ -168,8 +230,8 @@ router.patch('/:id/sessions/:n', protect, async (req, res) => {
 // @access  Private (owner only)
 router.post('/:id/sessions/:n/mark', protect, async (req, res) => {
   try {
-    const worksheet = await Worksheet.findOne({ _id: req.params.id, userId: req.user.id });
-    if (!worksheet) {
+    const worksheet = await Worksheet.findById(req.params.id);
+    if (!worksheet || !canViewWorksheet(worksheet, req.user.id)) {
       return res.status(404).json({ error: 'Worksheet not found' });
     }
 

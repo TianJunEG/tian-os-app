@@ -40,6 +40,11 @@ const worksheetSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  studentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   studentName: {
     type: String,
     trim: true,
@@ -89,5 +94,6 @@ const worksheetSchema = new mongoose.Schema({
 
 worksheetSchema.index({ userId: 1, createdAt: -1 });
 worksheetSchema.index({ userId: 1, nextDueAt: 1 });
+worksheetSchema.index({ studentId: 1, createdAt: -1 });
 
 export default mongoose.model('Worksheet', worksheetSchema);

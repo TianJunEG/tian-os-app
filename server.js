@@ -15,6 +15,7 @@ import messageRoutes from './routes/messages.js';
 import reviewRoutes from './routes/reviews.js';
 import adminRoutes from './routes/admin.js';
 import worksheetRoutes from './routes/worksheets.js';
+import studentRoutes from './routes/students.js';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/worksheets', worksheetRoutes);
+app.use('/api/students', studentRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
