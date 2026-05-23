@@ -1,10 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { resourcesAPI, SERVER_ORIGIN } from '../services/api';
 import { GROUP_NAME, RESOURCE_CATEGORIES } from '../config/brand';
 
 const categoryName = (id) =>
   RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
+
+// Tailwind-styled element mappings for rendered Markdown.
+const markdownComponents = {
+  h1: ({ node, ...props }) => <h2 className="text-2xl font-bold text-gray-900 mt-6 mb-3" {...props} />,
+  h2: ({ node, ...props }) => <h3 className="text-xl font-semibold text-gray-900 mt-6 mb-2" {...props} />,
+  h3: ({ node, ...props }) => <h4 className="text-lg font-semibold text-gray-900 mt-4 mb-2" {...props} />,
+  p: ({ node, ...props }) => <p className="text-gray-700 mb-4 leading-relaxed" {...props} />,
+  ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-4 text-gray-700 space-y-1" {...props} />,
+  ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-4 text-gray-700 space-y-1" {...props} />,
+  li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
+  a: ({ node, ...props }) => (
+    <a className="text-purple-600 underline hover:text-purple-700" target="_blank" rel="noopener noreferrer" {...props} />
+  ),
+  strong: ({ node, ...props }) => <strong className="font-semibold text-gray-900" {...props} />,
+  blockquote: ({ node, ...props }) => (
+    <blockquote className="border-l-4 border-purple-200 pl-4 italic text-gray-600 mb-4" {...props} />
+  ),
+  code: ({ node, ...props }) => <code className="bg-gray-100 rounded px-1 py-0.5 text-sm" {...props} />
+};
 
 export default function ResourceDetailPage() {
   const { slug } = useParams();
@@ -68,14 +88,9 @@ export default function ResourceDetailPage() {
               {resource.subject && <span className="bg-gray-100 px-2 py-1 rounded">{resource.subject}</span>}
             </div>
 
-            {resource.body &&
-              resource.body
-                .split(/\n{2,}/)
-                .map((para, i) => (
-                  <p key={i} className="text-gray-700 mb-4 whitespace-pre-line">
-                    {para}
-                  </p>
-                ))}
+            {resource.body && (
+              <ReactMarkdown components={markdownComponents}>{resource.body}</ReactMarkdown>
+            )}
 
             {resource.fileUrl && (
               <a

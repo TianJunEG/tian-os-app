@@ -147,8 +147,15 @@ const ResourcesAdmin = () => {
         </div>
 
         <div className="full-width">
-          <label>Body</label>
-          <textarea name="body" value={form.body} onChange={handleChange} rows={8} maxLength={20000} />
+          <label>Body (Markdown supported)</label>
+          <textarea
+            name="body"
+            value={form.body}
+            onChange={handleChange}
+            rows={8}
+            maxLength={20000}
+            placeholder="Use Markdown: # Heading, **bold**, - lists, [links](https://...)"
+          />
         </div>
 
         <div className="form-actions">
