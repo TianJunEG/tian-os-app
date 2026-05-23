@@ -1,0 +1,10 @@
+{
+  "name": "mathpath",
+  "version": "0.1.0",
+  "description": "MathPath — diagnostic placement and mastery-based math practice (a learning companion by Tutor Match).",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "license": "ISC"
+}
