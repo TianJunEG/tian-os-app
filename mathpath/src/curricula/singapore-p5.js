@@ -21,6 +21,7 @@ export default {
     { id: 'rate', name: 'Rate', subtitle: 'Rate, total and units' },
     { id: 'mg', name: 'Area & Volume', subtitle: 'Triangle, cuboid & composite' },
     { id: 'geo', name: 'Angles', subtitle: 'Lines, points & triangles' },
+    { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
   ],
   skills: [
     // --- Whole Numbers / Four Operations ---
@@ -143,6 +144,19 @@ export default {
       example: '65° + 40° + x = 180° → x = 75°', timeTarget: 16,
       hint: 'The three angles of a triangle add up to 180°.',
       spec: { kind: 'angleTriangle' } },
+
+    // --- Word problems (bar model diagram + worded prompt) ---
+    { id: 'sg-p5-wp-percent', group: 'wp', code: 'WP %', name: 'Word problem: percentage of a quantity',
+      objective: 'find a percentage of a quantity using the model method',
+      example: '20% of 150 → 30', timeTarget: 40,
+      hint: 'The whole bar is 100%; find the part the percentage points to.',
+      spec: { kind: 'barModel', structure: 'percentOfQuantity' } },
+
+    { id: 'sg-p5-wp-fraction', group: 'wp', code: 'WP fraction', name: 'Word problem: fraction of a quantity',
+      objective: 'find a fraction of a quantity using the model method',
+      example: '5/6 of 48 → 40', timeTarget: 40,
+      hint: 'Divide the whole into equal parts (the denominator); take the numerator-many.',
+      spec: { kind: 'barModel', structure: 'fractionOfQuantity', eachMax: 12 } },
   ],
 
   // In the P5 syllabus but needing item types beyond a single number answer.
@@ -151,6 +165,6 @@ export default {
     'Fr 1.1 dividing a whole number by a whole number with quotient as a fraction (needs fraction answer)',
     'Geometry: vertically opposite angles, isosceles/equilateral triangle & quadrilateral angle facts',
     'Statistics: average of a set of data (P5 Statistics — drillable as an integer, future add)',
-    'Multi-step & ratio/algebra-readiness word problems (needs word-problem / bar-model item)',
+    'Multi-step & algebra-readiness word problems (percentage & fraction-of-quantity bar models now drillable)',
   ],
 };

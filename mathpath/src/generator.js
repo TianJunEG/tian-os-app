@@ -812,6 +812,41 @@ function genBarModel(skill) {
     const model = { rows: [{ cells: Array.from({ length: n }, () => cell(each, '?')) }], braces: [{ row: 0, start: 0, end: n - 1, label: `${total}`, side: 'top' }] };
     return barModelProblem(skill, display, each, { structure: st, total, n, model });
   }
+  if (st === 'fractionOfQuantity') {
+    const d = pickFrom([2, 3, 4, 5, 6, 8]), unitVal = r(2, s.eachMax || 9), num = r(1, d - 1), whole = d * unitVal;
+    const c = pickFrom([['sweets', 'red'], ['marbles', 'blue'], ['stickers', 'shiny'], ['beads', 'gold']]);
+    const display = `There are ${whole} ${c[0]}. ${num}/${d} of them are ${c[1]}. How many ${c[0]} are ${c[1]}?`;
+    const cells = Array.from({ length: d }, (_, i) => cell(unitVal, '', i < num));
+    const model = { rows: [{ cells }], braces: [{ row: 0, start: 0, end: d - 1, label: `${whole}`, side: 'top' }, { row: 0, start: 0, end: num - 1, label: '?', side: 'bottom' }] };
+    return barModelProblem(skill, display, num * unitVal, { structure: st, whole, d, num, model });
+  }
+  if (st === 'percentOfQuantity') {
+    let pct, whole;
+    do { pct = pickFrom([5, 10, 20, 25, 40, 50, 60, 75, 80]); whole = pickFrom([20, 40, 50, 60, 80, 100, 120, 160, 200, 240, 400]); } while ((pct * whole) % 100 !== 0);
+    const part = (pct * whole) / 100;
+    const c = pickFrom([['students', 'girls'], ['apples', 'ripe'], ['books', 'fiction'], ['cars', 'red']]);
+    const display = `${pct}% of the ${whole} ${c[0]} are ${c[1]}. How many ${c[0]} are ${c[1]}?`;
+    const model = { rows: [{ cells: [cell(part, '?', true), cell(whole - part, '')] }], braces: [{ row: 0, start: 0, end: 1, label: `${whole}`, side: 'top' }] };
+    return barModelProblem(skill, display, part, { structure: st, whole, pct, model });
+  }
+  if (st === 'ratioShare') {
+    let a = r(1, 5), b = r(1, 5); if (a + b < 3) b += 2;
+    const unit = r(2, s.eachMax || 12), total = (a + b) * unit, [A, B] = twoNames();
+    const item = pickFrom(['sweets', 'marbles', 'stickers', 'coins']);
+    const display = `${total} ${item} are shared between ${A} and ${B} in the ratio ${a} : ${b}. How many ${item} does ${A} get?`;
+    const cells = Array.from({ length: a + b }, (_, i) => cell(unit, '', i < a));
+    const model = { rows: [{ cells }], braces: [{ row: 0, start: 0, end: a + b - 1, label: `${total}`, side: 'top' }, { row: 0, start: 0, end: a - 1, label: '?', side: 'bottom' }] };
+    return barModelProblem(skill, display, a * unit, { structure: st, total, a, b, model });
+  }
+  if (st === 'percentWholeBar') {
+    let pct, whole;
+    do { pct = pickFrom([5, 10, 20, 25, 40, 50, 75, 80]); whole = pickFrom([20, 40, 50, 60, 80, 100, 120, 150, 200, 240, 400, 500]); } while ((pct * whole) % 100 !== 0);
+    const part = (pct * whole) / 100;
+    const display = `${pct}% of a number is ${part}. What is the number?`;
+    const model = { rows: [{ cells: [cell(part, `${part}`, true), cell(whole - part, '')] }], braces: [{ row: 0, start: 0, end: 1, label: '?', side: 'top' }] };
+    return barModelProblem(skill, display, whole, { structure: st, whole, pct, part, model });
+  }
+
   // twoStepRemain
   const lo = s.min || 10, hi = s.max || 300;
   const s1 = r(lo, hi), s2 = r(lo, hi), remain = r(lo, hi), total = s1 + s2 + remain;

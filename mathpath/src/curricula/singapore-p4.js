@@ -19,6 +19,7 @@ export default {
     { id: 'fo', name: 'Four Operations', subtitle: 'Multiplication & division algorithms' },
     { id: 'fr', name: 'Fractions', subtitle: 'Mixed numbers, sets, unlike fractions' },
     { id: 'dec', name: 'Decimals', subtitle: 'Up to 3 decimal places' },
+    { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -133,6 +134,19 @@ export default {
       example: '3/4 = 0.75', timeTarget: 16,
       hint: 'Rename the fraction with denominator 10 or 100, then read off the decimal.',
       spec: { kind: 'fracToDecimal' } },
+
+    // --- Word problems (bar model diagram + worded prompt) ---
+    { id: 'sg-p4-wp-fraction', group: 'wp', code: 'WP fraction', name: 'Word problem: fraction of a quantity',
+      objective: 'find a fraction of a quantity using the model method',
+      example: '3/8 of 24 → 9', timeTarget: 40,
+      hint: 'Split the whole into equal parts (the denominator); take as many as the numerator.',
+      spec: { kind: 'barModel', structure: 'fractionOfQuantity', eachMax: 9 } },
+
+    { id: 'sg-p4-wp-twostep', group: 'wp', code: 'WP 2-step', name: 'Two-step word problem (larger numbers)',
+      objective: 'solve a 2-step word problem using the model method',
+      example: '$1850 − $640 − $475 → $735 left', timeTarget: 50,
+      hint: 'The whole bar is split into the amounts spent and the amount left.',
+      spec: { kind: 'barModel', structure: 'twoStepRemain', min: 150, max: 2500 } },
   ],
 
   // In the P4 syllabus but needing item types beyond a single number answer.
@@ -145,6 +159,6 @@ export default {
     'Measurement: time (24-hour clock, duration), area & perimeter of composite figures',
     'Geometry: angles, symmetry, properties of squares/rectangles, nets',
     'Statistics: reading & interpreting tables and line graphs (needs chart item)',
-    'Multi-step word problems (needs word-problem / bar-model item)',
+    'Multi-step (3+ step) word problems (fraction-of-quantity & two-step bar models now drillable)',
   ],
 };

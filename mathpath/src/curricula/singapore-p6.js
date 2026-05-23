@@ -20,6 +20,7 @@ export default {
     { id: 'alg', name: 'Algebra', subtitle: 'Expressions & simple equations' },
     { id: 'stat', name: 'Averages', subtitle: 'Average of a set of data' },
     { id: 'mg', name: 'Circles', subtitle: 'Circle, semicircle & quarter circle' },
+    { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
   ],
   skills: [
     // --- Fractions ---
@@ -123,6 +124,19 @@ export default {
       example: 'r = 8 cm → 41.12 cm (π = 3.14)', timeTarget: 22,
       hint: 'Perimeter = a quarter of the circumference (½ × π × r) plus two radii (2 × r).',
       spec: { kind: 'quarterPerimeter' } },
+
+    // --- Word problems (bar model diagram + worded prompt) ---
+    { id: 'sg-p6-wp-ratio', group: 'wp', code: 'WP ratio', name: 'Word problem: sharing in a ratio',
+      objective: 'divide a quantity in a given ratio using the model method',
+      example: '$40 shared 3 : 2 → first share $24', timeTarget: 44,
+      hint: 'Add the ratio parts to get the units, find one unit, then multiply.',
+      spec: { kind: 'barModel', structure: 'ratioShare', eachMax: 12 } },
+
+    { id: 'sg-p6-wp-percentwhole', group: 'wp', code: 'WP %', name: 'Word problem: find the whole from a percentage',
+      objective: 'find the whole given a part and the percentage, using the model method',
+      example: '20% of a number is 30 → 150', timeTarget: 44,
+      hint: 'Work out what 1% is (the part ÷ the percentage), then multiply by 100.',
+      spec: { kind: 'barModel', structure: 'percentWholeBar' } },
   ],
 
   // In the P6 syllabus but needing item types beyond a single number answer.
@@ -133,6 +147,6 @@ export default {
     'Volume of cube/cuboid: finding a missing dimension given the volume',
     'Geometry: unknown angles in composite figures (square, rectangle, parallelogram, rhombus, trapezium)',
     'Statistics: reading & interpreting tables, line graphs and pie charts (needs chart item)',
-    'Multi-step word problems & model (bar) method (needs word-problem / bar-model item)',
+    'Multi-step word problems (ratio & percentage-whole bar models now drillable)',
   ],
 };
