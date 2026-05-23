@@ -144,7 +144,7 @@ function MissionSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow p-8">
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Investing in at-risk youth</h3>
           <p className="text-gray-600">
@@ -162,11 +162,20 @@ function MissionSection() {
             our newest tutors, and shapes how every service is built.
           </p>
         </div>
+        <div className="bg-white rounded-xl shadow p-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Inclusive employment</h3>
+          <p className="text-gray-600">
+            We hire people with special needs across our team — in roles like marketing, customer
+            service, and operations. Meaningful work and the right support unlock real talent, and
+            building an inclusive workplace makes everything we do stronger.
+          </p>
+        </div>
       </div>
 
       <p className="text-center text-gray-600 mt-8 max-w-3xl mx-auto">
         The result is a cycle that compounds: experienced teachers raise up young learners, those
-        learners become tutors, and the impact grows with every student we reach.
+        learners become tutors, and an inclusive team powers it all — so the impact grows with
+        every student we reach and every person we employ.
       </p>
     </section>
   );
