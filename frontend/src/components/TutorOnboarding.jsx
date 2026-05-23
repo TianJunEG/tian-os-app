@@ -562,7 +562,7 @@ const TutorOnboarding = () => {
         <div className="success-message">
           <div className="success-icon">✓</div>
           <h2>Application Submitted!</h2>
-          <p>Thank you for applying to become a tutor on AEO.</p>
+          <p>Thank you for applying to become a tutor with Tian Jun Education Group.</p>
           <p>We're reviewing your application and will notify you within 24-48 hours.</p>
           <p>Check your email for updates!</p>
           <div className="spinner"></div>
