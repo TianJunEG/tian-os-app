@@ -46,6 +46,10 @@ const resourceSchema = new mongoose.Schema(
     published: {
       type: Boolean,
       default: true
+    },
+    gated: {
+      type: Boolean,
+      default: false
     }
   },
   { timestamps: true }

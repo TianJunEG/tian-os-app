@@ -72,7 +72,9 @@ export const resourcesAPI = {
   adminList: () => api.get('/resources/admin'),
   create: (formData) => api.post('/resources', formData),
   update: (id, formData) => api.put(`/resources/${id}`, formData),
-  remove: (id) => api.delete(`/resources/${id}`)
+  remove: (id) => api.delete(`/resources/${id}`),
+  unlock: (slug, data) => api.post(`/resources/${slug}/unlock`, data),
+  getLeads: () => api.get('/resources/leads')
 };
 
 // Search API

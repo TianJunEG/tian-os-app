@@ -9,13 +9,15 @@ const emptyForm = {
   subject: '',
   summary: '',
   body: '',
-  published: true
+  published: true,
+  gated: false
 };
 
 const categoryName = (id) => RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
 
 const ResourcesAdmin = () => {
   const [resources, setResources] = useState([]);
+  const [leads, setLeads] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [file, setFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -31,8 +33,18 @@ const ResourcesAdmin = () => {
     }
   };
 
+  const loadLeads = async () => {
+    try {
+      const res = await resourcesAPI.getLeads();
+      setLeads(res.data.leads);
+    } catch (err) {
+      console.error('Error loading leads:', err);
+    }
+  };
+
   useEffect(() => {
     loadResources();
+    loadLeads();
   }, []);
 
   const handleChange = (e) => {
@@ -56,7 +68,8 @@ const ResourcesAdmin = () => {
       subject: resource.subject || '',
       summary: resource.summary || '',
       body: resource.body || '',
-      published: resource.published
+      published: resource.published,
+      gated: resource.gated || false
     });
     setFile(null);
     setError('');
@@ -76,6 +89,7 @@ const ResourcesAdmin = () => {
       data.append('summary', form.summary);
       data.append('body', form.body);
       data.append('published', form.published);
+      data.append('gated', form.gated);
       if (file) data.append('file', file);
 
       if (editingId) {
@@ -164,6 +178,10 @@ const ResourcesAdmin = () => {
             <input type="checkbox" name="published" checked={form.published} onChange={handleChange} />
             Published
           </label>
+          <label className="checkbox-row">
+            <input type="checkbox" name="gated" checked={form.gated} onChange={handleChange} />
+            Require email to access
+          </label>
           <button type="submit" className="btn-success" disabled={saving}>
             {saving ? 'Saving...' : editingId ? 'Update Resource' : 'Create Resource'}
           </button>
@@ -185,6 +203,7 @@ const ResourcesAdmin = () => {
               <th>Level</th>
               <th>Subject</th>
               <th>File</th>
+              <th>Access</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -197,6 +216,7 @@ const ResourcesAdmin = () => {
                 <td>{r.level || '—'}</td>
                 <td>{r.subject || '—'}</td>
                 <td>{r.fileUrl ? '✓' : '—'}</td>
+                <td>{r.gated ? 'Email-gated' : 'Open'}</td>
                 <td>
                   <span className={`badge ${r.published ? 'badge-success' : 'badge-warning'}`}>
                     {r.published ? 'Published' : 'Draft'}
@@ -217,6 +237,33 @@ const ResourcesAdmin = () => {
       </div>
 
       {resources.length === 0 && <p className="empty-state">No resources yet — add one above.</p>}
+
+      <h2>Captured Leads ({leads.length})</h2>
+      <div className="table-wrapper">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Resource</th>
+              <th>Captured</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.map((lead) => (
+              <tr key={lead._id}>
+                <td>{lead.email}</td>
+                <td>{lead.name || '—'}</td>
+                <td>{lead.resourceTitle || '—'}</td>
+                <td>{new Date(lead.createdAt).toLocaleDateString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {leads.length === 0 && (
+        <p className="empty-state">No leads yet — mark a resource "Require email to access" to start capturing.</p>
+      )}
     </div>
   );
 };

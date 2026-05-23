@@ -1,6 +1,7 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Resource, { RESOURCE_CATEGORIES } from '../models/Resource.js';
+import ResourceLead from '../models/ResourceLead.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadResource from '../middleware/uploadResource.js';
 
@@ -91,6 +92,51 @@ router.get('/admin', adminOnly, async (req, res) => {
   }
 });
 
+// @route   GET /api/resources/leads
+// @desc    List captured leads from gated resources
+// @access  Private (admin only)
+router.get('/leads', adminOnly, async (req, res) => {
+  try {
+    const leads = await ResourceLead.find().sort({ createdAt: -1 }).limit(500);
+    res.json({ leads });
+  } catch (error) {
+    console.error('List resource leads error:', error);
+    res.status(500).json({ message: 'Error fetching leads' });
+  }
+});
+
+// @route   POST /api/resources/:slug/unlock
+// @desc    Capture an email and return the gated resource's content
+// @access  Public
+router.post(
+  '/:slug/unlock',
+  [body('email').trim().isEmail().withMessage('A valid email is required').normalizeEmail()],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ message: errors.array()[0].msg });
+    }
+    try {
+      const resource = await Resource.findOne({ slug: req.params.slug, published: true });
+      if (!resource) {
+        return res.status(404).json({ message: 'Resource not found' });
+      }
+
+      await ResourceLead.create({
+        email: req.body.email,
+        name: req.body.name,
+        resourceId: resource._id,
+        resourceTitle: resource.title
+      });
+
+      res.json({ body: resource.body, fileUrl: resource.fileUrl });
+    } catch (error) {
+      console.error('Unlock resource error:', error);
+      res.status(500).json({ message: 'Could not unlock this resource.' });
+    }
+  }
+);
+
 // @route   POST /api/resources
 // @desc    Create a resource
 // @access  Private (admin only)
@@ -100,7 +146,7 @@ router.post('/', adminOnly, uploadResource.single('file'), validators, async (re
     return res.status(400).json({ message: errors.array()[0].msg });
   }
   try {
-    const { title, category, level, subject, summary, body: content, published } = req.body;
+    const { title, category, level, subject, summary, body: content, published, gated } = req.body;
     const slug = await uniqueSlug(title);
     const resource = await Resource.create({
       title,
@@ -111,6 +157,7 @@ router.post('/', adminOnly, uploadResource.single('file'), validators, async (re
       summary,
       body: content,
       published: published === undefined ? true : published === 'true' || published === true,
+      gated: gated === 'true' || gated === true,
       fileUrl: req.file ? `/uploads/resources/${req.file.filename}` : undefined
     });
     res.status(201).json({ resource });
@@ -134,7 +181,7 @@ router.put('/:id', adminOnly, uploadResource.single('file'), validators, async (
       return res.status(404).json({ message: 'Resource not found' });
     }
 
-    const { title, category, level, subject, summary, body: content, published } = req.body;
+    const { title, category, level, subject, summary, body: content, published, gated } = req.body;
     if (title && title !== resource.title) {
       resource.slug = await uniqueSlug(title, resource._id.toString());
       resource.title = title;
@@ -145,6 +192,7 @@ router.put('/:id', adminOnly, uploadResource.single('file'), validators, async (
     if (summary !== undefined) resource.summary = summary;
     if (content !== undefined) resource.body = content;
     if (published !== undefined) resource.published = published === 'true' || published === true;
+    if (gated !== undefined) resource.gated = gated === 'true' || gated === true;
     if (req.file) resource.fileUrl = `/uploads/resources/${req.file.filename}`;
 
     await resource.save();
@@ -179,6 +227,12 @@ router.get('/:slug', async (req, res) => {
     const resource = await Resource.findOne({ slug: req.params.slug, published: true });
     if (!resource) {
       return res.status(404).json({ message: 'Resource not found' });
+    }
+    // For gated resources, withhold the body and file until the visitor
+    // unlocks with an email (see POST /:slug/unlock).
+    if (resource.gated) {
+      const { body, fileUrl, ...meta } = resource.toObject();
+      return res.json({ resource: { ...meta, hasFile: Boolean(fileUrl) } });
     }
     res.json({ resource });
   } catch (error) {

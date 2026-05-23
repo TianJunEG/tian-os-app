@@ -39,15 +39,83 @@ const markdownComponents = {
   del: ({ node, ...props }) => <del className="text-gray-500" {...props} />
 };
 
+function GateForm({ slug, resourceTitle, onUnlock }) {
+  const [form, setForm] = useState({ name: '', email: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await resourcesAPI.unlock(slug, form);
+      trackEvent('Resource Lead', { resource: resourceTitle });
+      onUnlock(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not unlock this resource.');
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-purple-50 border border-purple-100 rounded-lg p-6 mt-2">
+      <h2 className="text-lg font-semibold text-gray-900 mb-1">Get free access</h2>
+      <p className="text-gray-600 text-sm mb-4">
+        Enter your email and we'll unlock this resource. We'll only use it to share helpful learning
+        materials — no spam.
+      </p>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">{error}</div>
+        )}
+        <div>
+          <label htmlFor="gate-name" className="block text-sm font-medium text-gray-700 mb-1">
+            Name <span className="text-gray-400">(optional)</span>
+          </label>
+          <input
+            id="gate-name"
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+            maxLength={100}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label htmlFor="gate-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            id="gate-email"
+            type="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
+        >
+          {submitting ? 'Unlocking...' : 'Unlock resource'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 export default function ResourceDetailPage() {
   const { slug } = useParams();
   const [resource, setResource] = useState(null);
+  const [unlocked, setUnlocked] = useState(null); // { body, fileUrl } once email is captured
   const [status, setStatus] = useState('loading'); // loading | ready | notfound
 
   useEffect(() => {
     let cancelled = false;
     const fetchResource = async () => {
       setStatus('loading');
+      setUnlocked(null);
       try {
         const res = await resourcesAPI.getBySlug(slug);
         if (!cancelled) {
@@ -109,22 +177,35 @@ export default function ResourceDetailPage() {
               {resource.subject && <span className="bg-gray-100 px-2 py-1 rounded">{resource.subject}</span>}
             </div>
 
-            {resource.body && (
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                {resource.body}
-              </ReactMarkdown>
-            )}
+            {resource.gated && !unlocked ? (
+              <>
+                {resource.summary && <p className="text-gray-700 mb-4">{resource.summary}</p>}
+                <GateForm
+                  slug={resource.slug}
+                  resourceTitle={resource.title}
+                  onUnlock={(data) => setUnlocked(data)}
+                />
+              </>
+            ) : (
+              <>
+                {(unlocked?.body ?? resource.body) && (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                    {unlocked?.body ?? resource.body}
+                  </ReactMarkdown>
+                )}
 
-            {resource.fileUrl && (
-              <a
-                href={`${SERVER_ORIGIN}${resource.fileUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackEvent('Resource Download', { resource: resource.title })}
-                className="inline-block mt-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
-              >
-                Download
-              </a>
+                {(unlocked?.fileUrl ?? resource.fileUrl) && (
+                  <a
+                    href={`${SERVER_ORIGIN}${unlocked?.fileUrl ?? resource.fileUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackEvent('Resource Download', { resource: resource.title })}
+                    className="inline-block mt-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
+                  >
+                    Download
+                  </a>
+                )}
+              </>
             )}
 
             <div className="mt-10 pt-6 border-t border-gray-100">

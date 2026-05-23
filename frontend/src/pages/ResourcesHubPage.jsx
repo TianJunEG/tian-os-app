@@ -126,6 +126,11 @@ export default function ResourcesHubPage() {
               >
                 <span className="text-xs font-semibold uppercase tracking-wide text-purple-700 mb-2">
                   {categoryName(resource.category)}
+                  {resource.gated && (
+                    <span className="ml-2 normal-case text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
+                      Email required
+                    </span>
+                  )}
                 </span>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{resource.title}</h3>
                 {resource.summary && (
