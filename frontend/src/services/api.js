@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
+// Backend origin (without the /api suffix) for serving uploaded files.
+export const SERVER_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -59,6 +62,16 @@ export const parentsAPI = {
 export const partnersAPI = {
   submitInquiry: (data) => api.post('/partners/inquiries', data),
   getInquiries: (params) => api.get('/partners/inquiries', { params })
+};
+
+// Resources API
+export const resourcesAPI = {
+  list: (params) => api.get('/resources', { params }),
+  getBySlug: (slug) => api.get(`/resources/${slug}`),
+  adminList: () => api.get('/resources/admin'),
+  create: (formData) => api.post('/resources', formData),
+  update: (id, formData) => api.put(`/resources/${id}`, formData),
+  remove: (id) => api.delete(`/resources/${id}`)
 };
 
 // Search API

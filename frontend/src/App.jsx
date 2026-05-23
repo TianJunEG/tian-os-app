@@ -16,6 +16,8 @@ import ParentProgressPage from './pages/ParentProgressPage';
 import GroupLandingPage from './pages/GroupLandingPage';
 import TutoringLandingPage from './pages/TutoringLandingPage';
 import EduAppsLandingPage from './pages/EduAppsLandingPage';
+import ResourcesHubPage from './pages/ResourcesHubPage';
+import ResourceDetailPage from './pages/ResourceDetailPage';
 import AdminDashboard from './components/AdminDashboard';
 import TutorOnboarding from './components/TutorOnboarding';
 import ParentProfile from './components/ParentProfile';
@@ -100,6 +102,8 @@ function App() {
           <Route path="/" element={<GroupLandingPage />} />
           <Route path="/tutoring" element={<TutoringLandingPage />} />
           <Route path="/edu-apps" element={<EduAppsLandingPage />} />
+          <Route path="/resources" element={<ResourcesHubPage />} />
+          <Route path="/resources/:slug" element={<ResourceDetailPage />} />
 
           {/* Auth Routes */}
           <Route

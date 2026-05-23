@@ -3,6 +3,30 @@
 export const GROUP_NAME = 'Tian Jun Education Group';
 export const GROUP_SHORT = 'Tian Jun';
 
+// Resource hub categories. `id` must match the backend Resource enum.
+export const RESOURCE_CATEGORIES = [
+  {
+    id: 'understanding-moe',
+    name: 'Understanding MOE',
+    blurb: 'Plain-English guides to the MOE syllabus and curriculum.'
+  },
+  {
+    id: 'worksheets',
+    name: 'Worksheets & Papers',
+    blurb: 'Our own practice papers and topic exercises to download.'
+  },
+  {
+    id: 'activities',
+    name: 'Family Activities',
+    blurb: 'Educational activities families can do together at home.'
+  },
+  {
+    id: 'partners',
+    name: 'From Our Partners',
+    blurb: 'Content created with local businesses we work with.'
+  }
+];
+
 export const SERVICES = [
   {
     id: 'tutoring',

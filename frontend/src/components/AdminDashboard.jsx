@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI, partnersAPI } from '../services/api';
+import ResourcesAdmin from './ResourcesAdmin';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -157,6 +158,12 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('partners')}
           >
             🤝 Partnerships ({data.partners?.pagination?.total || 0})
+          </button>
+          <button
+            className={`nav-btn ${activeTab === 'resources' ? 'active' : ''}`}
+            onClick={() => setActiveTab('resources')}
+          >
+            📚 Resources
           </button>
         </div>
       </header>
@@ -537,6 +544,9 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* RESOURCES TAB */}
+      {activeTab === 'resources' && <ResourcesAdmin />}
     </div>
   );
 };
