@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { adminAPI, partnersAPI } from '../services/api';
+import ResourcesAdmin from './ResourcesAdmin';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -9,7 +10,8 @@ const AdminDashboard = () => {
     users: null,
     verificationQueue: null,
     bookings: null,
-    disputes: null
+    disputes: null,
+    partners: null
   });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -20,19 +22,11 @@ const AdminDashboard = () => {
     limit: 20
   });
 
-  const API_URL = 'http://localhost:5001/api';
-  const token = localStorage.getItem('token');
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
-
   // Fetch dashboard metrics
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get(`${API_URL}/admin/dashboard`, { headers });
+        const res = await adminAPI.getDashboard();
         setData(prev => ({ ...prev, dashboard: res.data.dashboard }));
       } catch (error) {
         console.error('Dashboard error:', error);
@@ -47,45 +41,39 @@ const AdminDashboard = () => {
       setLoading(true);
       try {
         if (activeTab === 'users') {
-          const res = await axios.get(`${API_URL}/admin/users`, {
-            headers,
-            params: {
-              role: filters.userRole || undefined,
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getUsers({
+            role: filters.userRole || undefined,
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, users: res.data }));
         } else if (activeTab === 'verification') {
-          const res = await axios.get(`${API_URL}/admin/verification-queue`, {
-            headers,
-            params: {
-              status: 'pending',
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getVerificationQueue({
+            status: 'pending_verification',
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, verificationQueue: res.data }));
         } else if (activeTab === 'bookings') {
-          const res = await axios.get(`${API_URL}/admin/bookings`, {
-            headers,
-            params: {
-              status: filters.bookingStatus || undefined,
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getBookings({
+            status: filters.bookingStatus || undefined,
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, bookings: res.data }));
         } else if (activeTab === 'disputes') {
-          const res = await axios.get(`${API_URL}/admin/disputes`, {
-            headers,
-            params: {
-              status: filters.disputeStatus,
-              page: filters.page,
-              limit: filters.limit
-            }
+          const res = await adminAPI.getDisputes({
+            status: filters.disputeStatus,
+            page: filters.page,
+            limit: filters.limit
           });
           setData(prev => ({ ...prev, disputes: res.data }));
+        } else if (activeTab === 'partners') {
+          const res = await partnersAPI.getInquiries({
+            page: filters.page,
+            limit: filters.limit
+          });
+          setData(prev => ({ ...prev, partners: res.data }));
         }
       } catch (error) {
         console.error(`Error fetching ${activeTab}:`, error);
@@ -104,17 +92,23 @@ const AdminDashboard = () => {
       const notes = prompt(`Enter notes for this verification (${action}):`);
       if (!notes) return;
 
-      await axios.put(
-        `${API_URL}/admin/verification/${tutorId}`,
-        { action, notes },
-        { headers }
-      );
+      await adminAPI.verifyTutor(tutorId, { action, notes });
 
       alert(`Tutor ${action === 'approve' ? 'approved' : 'rejected'}`);
       // Refresh verification queue
       setFilters(prev => ({ ...prev, page: 1 }));
     } catch (error) {
-      alert('Error updating verification: ' + error.message);
+      alert('Error updating verification: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleInquiryStatus = async (id, status) => {
+    try {
+      await partnersAPI.updateInquiryStatus(id, status);
+      const res = await partnersAPI.getInquiries({ page: filters.page, limit: filters.limit });
+      setData(prev => ({ ...prev, partners: res.data }));
+    } catch (error) {
+      alert('Error updating status: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -125,16 +119,12 @@ const AdminDashboard = () => {
 
       if (!resolution || !action) return;
 
-      await axios.put(
-        `${API_URL}/admin/disputes/${bookingId}/resolve`,
-        { resolution, action },
-        { headers }
-      );
+      await adminAPI.resolveDispute(bookingId, { resolution, action });
 
       alert('Dispute resolved');
       setFilters(prev => ({ ...prev, page: 1 }));
     } catch (error) {
-      alert('Error resolving dispute: ' + error.message);
+      alert('Error resolving dispute: ' + (error.response?.data?.error || error.message));
     }
   };
 
@@ -172,6 +162,18 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('disputes')}
           >
             ⚠️ Disputes ({data.disputes?.pagination?.total || 0})
+          </button>
+          <button
+            className={`nav-btn ${activeTab === 'partners' ? 'active' : ''}`}
+            onClick={() => setActiveTab('partners')}
+          >
+            🤝 Partnerships ({data.partners?.pagination?.total || 0})
+          </button>
+          <button
+            className={`nav-btn ${activeTab === 'resources' ? 'active' : ''}`}
+            onClick={() => setActiveTab('resources')}
+          >
+            📚 Resources
           </button>
         </div>
       </header>
@@ -274,6 +276,7 @@ const AdminDashboard = () => {
             </select>
           </div>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -310,6 +313,7 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {/* Pagination */}
           <div className="pagination">
@@ -335,6 +339,7 @@ const AdminDashboard = () => {
         <div className="admin-section">
           <h2>Pending Tutor Verifications ({data.verificationQueue.pagination.total})</h2>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -353,8 +358,8 @@ const AdminDashboard = () => {
                 <tr key={tutor._id}>
                   <td>{tutor.name}</td>
                   <td>{tutor.email}</td>
-                  <td>{tutor.specialties.join(', ')}</td>
-                  <td>{tutor.grades.join(', ')}</td>
+                  <td>{(tutor.specialties || []).join(', ')}</td>
+                  <td>{(tutor.grades || tutor.gradeLevel || []).join(', ')}</td>
                   <td>${tutor.hourlyRate}/hr</td>
                   <td>{tutor.totalHoursTaught}h</td>
                   <td>
@@ -378,6 +383,7 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {data.verificationQueue.tutors.length === 0 && (
             <p className="empty-state">✓ No pending verifications</p>
@@ -405,6 +411,7 @@ const AdminDashboard = () => {
             </select>
           </div>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -441,6 +448,7 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 
@@ -449,6 +457,7 @@ const AdminDashboard = () => {
         <div className="admin-section">
           <h2>Disputes ({data.disputes.pagination.total})</h2>
 
+          <div className="table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
@@ -482,12 +491,80 @@ const AdminDashboard = () => {
               ))}
             </tbody>
           </table>
+          </div>
 
           {data.disputes.disputes.length === 0 && (
             <p className="empty-state">✓ No open disputes</p>
           )}
         </div>
       )}
+
+      {/* PARTNERSHIPS TAB */}
+      {activeTab === 'partners' && data.partners && (
+        <div className="admin-section">
+          <h2>Partnership Inquiries ({data.partners.pagination.total})</h2>
+
+          <div className="table-wrapper">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Organization</th>
+                <th>Email</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Received</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.partners.inquiries.map(inquiry => (
+                <tr key={inquiry._id}>
+                  <td>{inquiry.name}</td>
+                  <td>{inquiry.organization || 'N/A'}</td>
+                  <td>{inquiry.email}</td>
+                  <td className="truncate">{inquiry.message}</td>
+                  <td>
+                    <select
+                      className="filter-select"
+                      value={inquiry.status}
+                      onChange={(e) => handleInquiryStatus(inquiry._id, e.target.value)}
+                    >
+                      <option value="new">New</option>
+                      <option value="contacted">Contacted</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </td>
+                  <td>{new Date(inquiry.createdAt).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+
+          {data.partners.inquiries.length === 0 && (
+            <p className="empty-state">No partnership inquiries yet</p>
+          )}
+
+          <div className="pagination">
+            <button
+              disabled={filters.page === 1}
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+            >
+              ← Prev
+            </button>
+            <span>Page {data.partners.pagination.page} of {data.partners.pagination.pages}</span>
+            <button
+              disabled={filters.page >= data.partners.pagination.pages}
+              onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* RESOURCES TAB */}
+      {activeTab === 'resources' && <ResourcesAdmin />}
     </div>
   );
 };

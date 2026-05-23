@@ -1,5 +1,14 @@
 import nodemailer from 'nodemailer';
 
+// Escape user-supplied values before interpolating into email HTML.
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 // Initialize email transporter
 // For production: use a real email service (SendGrid, AWS SES, etc.)
 // For development: use ethereal (fake email service for testing)
@@ -198,11 +207,66 @@ export const sendPaymentConfirmationEmail = async (parent, booking, amount) => {
   });
 };
 
+/**
+ * Notify the team of a new partnership inquiry
+ */
+export const sendPartnerInquiryNotificationEmail = async (inquiry) => {
+  const to =
+    process.env.PARTNERSHIPS_NOTIFICATION_EMAIL ||
+    process.env.EMAIL_FROM ||
+    process.env.EMAIL_USER;
+
+  if (!to) {
+    console.warn('No partnership notification recipient configured; skipping email.');
+    return;
+  }
+
+  const html = `
+    <h2>New Partnership Inquiry 🤝</h2>
+    <p>A new partnership inquiry was submitted.</p>
+    <ul>
+      <li><strong>Name:</strong> ${escapeHtml(inquiry.name)}</li>
+      <li><strong>Organization:</strong> ${escapeHtml(inquiry.organization || 'N/A')}</li>
+      <li><strong>Email:</strong> ${escapeHtml(inquiry.email)}</li>
+    </ul>
+    <h3>Message:</h3>
+    <p>${escapeHtml(inquiry.message)}</p>
+    <p>Review inquiries in the admin dashboard.</p>
+  `;
+
+  return sendEmail({
+    to,
+    subject: `New partnership inquiry from ${inquiry.name}`,
+    html
+  });
+};
+
+/**
+ * Acknowledge a partnership inquiry to the person who submitted it
+ */
+export const sendPartnerInquiryAcknowledgementEmail = async (inquiry) => {
+  const html = `
+    <h2>Thanks for reaching out 🤝</h2>
+    <p>Hi ${escapeHtml(inquiry.name)},</p>
+    <p>Thank you for your interest in partnering with Tian Jun Education Group. We've received
+    your message and our team will be in touch as partnership opportunities open up.</p>
+    <p>Warm regards,<br>The Tian Jun Education Group Team</p>
+  `;
+
+  return sendEmail({
+    to: inquiry.email,
+    subject: 'We received your partnership inquiry',
+    html
+  });
+};
+
 export default {
   sendEmail,
   sendTutorApprovalEmail,
   sendTutorRejectionEmail,
   sendBookingConfirmationEmail,
   sendSessionReminderEmail,
-  sendPaymentConfirmationEmail
+  sendPaymentConfirmationEmail,
+  sendPartnerInquiryNotificationEmail,
+  sendPartnerInquiryAcknowledgementEmail
 };

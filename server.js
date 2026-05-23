@@ -14,6 +14,8 @@ import paymentRoutes from './routes/payments.js';
 import messageRoutes from './routes/messages.js';
 import reviewRoutes from './routes/reviews.js';
 import adminRoutes from './routes/admin.js';
+import partnerRoutes from './routes/partners.js';
+import resourceRoutes from './routes/resources.js';
 
 dotenv.config();
 
@@ -23,8 +25,20 @@ const app = express();
 connectDB();
 
 // Middleware
+// Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow same-origin/non-browser requests (no Origin header) and whitelisted origins.
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -54,6 +68,8 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/partners', partnerRoutes);
+app.use('/api/resources', resourceRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
