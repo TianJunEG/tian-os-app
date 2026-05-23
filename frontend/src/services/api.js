@@ -96,6 +96,7 @@ export const spellingAPI = {
   getMisspelt: (params) => api.get('/spelling/misspelt', { params }),
   getSurprise: (params) => api.get('/spelling/surprise', { params }),
   getRevision: (params) => api.get('/spelling/revision', { params }),
+  getDue: (params) => api.get('/spelling/due', { params }),
   getStats: () => api.get('/spelling/stats'),
   getGamification: () => api.get('/spelling/gamification'),
   recordAttempts: (data) => api.post('/spelling/attempts', data),

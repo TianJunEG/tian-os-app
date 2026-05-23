@@ -6,7 +6,7 @@ import SpellingList from '../models/SpellingList.js';
 import SpellingAttempt from '../models/SpellingAttempt.js';
 import { protect } from '../middleware/auth.js';
 import { extractWordsFromFile } from '../utils/spellingExtract.js';
-import { computeWordStats, byRevisionPriority } from '../utils/spellingStats.js';
+import { computeWordStats, byRevisionPriority, isDue, byDuePriority, nextReviewAt } from '../utils/spellingStats.js';
 import misspeltWords from '../data/misspeltWords.js';
 
 const router = express.Router();
@@ -215,6 +215,64 @@ router.get('/revision', async (req, res) => {
     });
 
     res.json({ success: true, words, weakCount: weak.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// @route   GET /api/spelling/due
+// @desc    Words due for spaced-repetition review today, scheduled from each
+//          word's correct streak and when it was last practised.
+// @access  Private
+router.get('/due', async (req, res) => {
+  try {
+    const count = Math.min(Math.max(parseInt(req.query.count, 10) || 20, 1), 50);
+    const now = new Date();
+    const attempts = await SpellingAttempt.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(2000);
+    const all = [...computeWordStats(attempts).values()];
+    const due = all.filter((s) => isDue(s, now)).sort(byDuePriority);
+
+    if (due.length === 0) {
+      // Soonest upcoming review so the UI can say when to come back.
+      const upcoming = all.map(nextReviewAt).sort((a, b) => a - b)[0] || null;
+      return res.json({
+        success: true,
+        words: [],
+        dueCount: 0,
+        nextDue: upcoming ? upcoming.toISOString() : null,
+        message: all.length
+          ? "You're all caught up — nothing due for review right now."
+          : 'Practise some words and they will be scheduled for review here.'
+      });
+    }
+
+    // Recover sentence/definition from the user's lists where available.
+    const lists = await SpellingList.find({ owner: req.user.id }).select('title words');
+    const info = new Map();
+    for (const list of lists) {
+      for (const w of list.words) {
+        if (!w.word) continue;
+        const key = w.word.toLowerCase();
+        const existing = info.get(key);
+        if (!existing || (!existing.sentence && w.sentence)) {
+          info.set(key, { sentence: w.sentence || '', definition: w.definition || '', listTitle: list.title });
+        }
+      }
+    }
+
+    const words = due.slice(0, count).map((s) => {
+      const extra = info.get(s.word.toLowerCase()) || {};
+      return {
+        word: s.word,
+        sentence: extra.sentence || '',
+        definition: extra.definition || '',
+        misses: s.misses,
+        mastered: s.mastered,
+        listTitle: extra.listTitle || null
+      };
+    });
+
+    res.json({ success: true, words, dueCount: due.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

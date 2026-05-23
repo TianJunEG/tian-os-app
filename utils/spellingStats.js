@@ -38,3 +38,31 @@ export function computeWordStats(attempts) {
 export function byRevisionPriority(a, b) {
   return b.misses - a.misses || new Date(a.lastSeen) - new Date(b.lastSeen);
 }
+
+// --- Spaced repetition scheduling --------------------------------------------
+// Review gaps in days, indexed by the word's current correct streak. A correct
+// answer lengthens the gap (the word is "sticking"); a miss resets the streak
+// to 0 so the word returns the next day. The index is clamped to the last gap,
+// so well-known words still resurface roughly every couple of months.
+export const REVIEW_INTERVAL_DAYS = [1, 2, 4, 7, 14, 30, 60];
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// When a word is next due for review, from its streak and when it was last seen.
+export function nextReviewAt(stat) {
+  const idx = Math.min(stat.streak, REVIEW_INTERVAL_DAYS.length - 1);
+  return new Date(new Date(stat.lastSeen).getTime() + REVIEW_INTERVAL_DAYS[idx] * DAY_MS);
+}
+
+// Whole-day comparison, so a word stays "due today" for the whole calendar day
+// rather than only after the exact time it was last practised.
+const dayNumber = (d) => Math.floor(new Date(d).getTime() / DAY_MS);
+
+export function isDue(stat, now = new Date()) {
+  return dayNumber(nextReviewAt(stat)) <= dayNumber(now);
+}
+
+// Sort comparator for the review queue: most overdue first, then most-missed.
+export function byDuePriority(a, b) {
+  return nextReviewAt(a) - nextReviewAt(b) || b.misses - a.misses;
+}

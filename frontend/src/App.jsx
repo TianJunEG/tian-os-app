@@ -22,6 +22,7 @@ import SpellingLibraryPage from './pages/spelling/SpellingLibraryPage';
 import MisspeltWordsPage from './pages/spelling/MisspeltWordsPage';
 import SurpriseSpellingPage from './pages/spelling/SurpriseSpellingPage';
 import SpellingRevisionPage from './pages/spelling/SpellingRevisionPage';
+import SpellingDuePage from './pages/spelling/SpellingDuePage';
 import SpellingProgressPage from './pages/spelling/SpellingProgressPage';
 import SpellingAchievementsPage from './pages/spelling/SpellingAchievementsPage';
 import SpellingPrintPage from './pages/spelling/SpellingPrintPage';
@@ -211,6 +212,7 @@ function App() {
           <Route path="/spelling/misspelt" element={<ProtectedRoute><MisspeltWordsPage /></ProtectedRoute>} />
           <Route path="/spelling/surprise" element={<ProtectedRoute><SurpriseSpellingPage /></ProtectedRoute>} />
           <Route path="/spelling/revision" element={<ProtectedRoute><SpellingRevisionPage /></ProtectedRoute>} />
+          <Route path="/spelling/due" element={<ProtectedRoute><SpellingDuePage /></ProtectedRoute>} />
           <Route path="/spelling/progress" element={<ProtectedRoute><SpellingProgressPage /></ProtectedRoute>} />
           <Route path="/spelling/achievements" element={<ProtectedRoute><SpellingAchievementsPage /></ProtectedRoute>} />
           <Route path="/spelling/lists/:id/print" element={<ProtectedRoute><SpellingPrintPage /></ProtectedRoute>} />

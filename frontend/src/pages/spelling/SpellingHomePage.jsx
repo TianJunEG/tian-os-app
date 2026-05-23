@@ -12,7 +12,8 @@ import {
   BarChart3,
   ChevronRight,
   Award,
-  Flame
+  Flame,
+  CalendarClock
 } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
@@ -37,11 +38,13 @@ export default function SpellingHomePage() {
   const [stats, setStats] = useState(null);
   const [listCount, setListCount] = useState(null);
   const [game, setGame] = useState(null);
+  const [dueCount, setDueCount] = useState(null);
 
   useEffect(() => {
     spellingAPI.getStats().then((r) => setStats(r.data)).catch(() => {});
     spellingAPI.getLists().then((r) => setListCount(r.data.count)).catch(() => {});
     spellingAPI.getGamification().then((r) => setGame(r.data)).catch(() => {});
+    spellingAPI.getDue({ count: 1 }).then((r) => setDueCount(r.data.dueCount)).catch(() => {});
   }, []);
 
   return (
@@ -80,7 +83,38 @@ export default function SpellingHomePage() {
           </button>
         )}
 
+        {dueCount > 0 && (
+          <button
+            onClick={() => navigate('/spelling/due')}
+            className="w-full mb-6 p-4 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-3 text-left bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+          >
+            <CalendarClock className="w-6 h-6 shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold">
+                {dueCount} word{dueCount === 1 ? '' : 's'} due for review today
+              </p>
+              <p className="text-sm text-white/80">A few minutes of spaced practice keeps them stuck.</p>
+            </div>
+            <span className="inline-flex items-center gap-1 text-sm font-medium bg-white/20 rounded-lg px-3 py-1.5">
+              Start review <ChevronRight className="w-4 h-4" />
+            </span>
+          </button>
+        )}
+
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <Tile
+            icon={CalendarClock}
+            title="Due today"
+            desc={
+              dueCount == null
+                ? 'Spaced-repetition review'
+                : dueCount > 0
+                ? `${dueCount} word(s) due for review`
+                : "You're all caught up"
+            }
+            color="bg-indigo-600"
+            onClick={() => navigate('/spelling/due')}
+          />
           <Tile
             icon={ListChecks}
             title="My lists"
