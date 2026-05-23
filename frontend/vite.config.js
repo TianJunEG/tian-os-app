@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
@@ -12,7 +12,9 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
   },
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify('http://localhost:5001/api')
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.js',
   }
 })
