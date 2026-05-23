@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star, Sparkles, Users } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, Sparkles, Users, Shield, TrendingUp, UserCog, ClipboardList } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -82,14 +82,32 @@ export default function DashboardPage() {
           )}
 
           {user?.role === 'parent' && (
-            <button
-              onClick={() => navigate('/search')}
-              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-            >
-              <Search className="w-8 h-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Find Tutors</h3>
-              <p className="text-sm text-gray-600">Search & book tutors</p>
-            </button>
+            <>
+              <button
+                onClick={() => navigate('/search')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <Search className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Find Tutors</h3>
+                <p className="text-sm text-gray-600">Search & book tutors</p>
+              </button>
+              <button
+                onClick={() => navigate('/progress')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <TrendingUp className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Progress</h3>
+                <p className="text-sm text-gray-600">Track learning & notes</p>
+              </button>
+              <button
+                onClick={() => navigate('/parent/profile')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <UserCog className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Student Profile</h3>
+                <p className="text-sm text-gray-600">Goals & preferences</p>
+              </button>
+            </>
           )}
 
           {user?.role === 'tutor' && (
@@ -140,7 +158,25 @@ export default function DashboardPage() {
                 <h3 className="font-semibold text-gray-900">My Bookings</h3>
                 <p className="text-sm text-gray-600">View all bookings</p>
               </button>
+              <button
+                onClick={() => navigate('/tutor/onboarding')}
+                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+              >
+                <ClipboardList className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900">Onboarding</h3>
+                <p className="text-sm text-gray-600">Complete your application</p>
+              </button>
             </>
+          )}
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => navigate('/admin')}
+              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            >
+              <Shield className="w-8 h-8 text-purple-600 mb-2" />
+              <h3 className="font-semibold text-gray-900">Admin Dashboard</h3>
+              <p className="text-sm text-gray-600">Users, verification & disputes</p>
+            </button>
           )}
         </div>
 

@@ -117,9 +117,10 @@ const calculateCompatibilityScore = (tutorProfile, parentProfile, searchCriteria
 
   // 4. AVAILABILITY MATCH (0-100)
   if (searchCriteria.preferredDays && searchCriteria.preferredDays.length > 0 && tutorProfile.availability) {
-    const availableDays = searchCriteria.preferredDays.filter(day =>
-      tutorProfile.availability[day.toLowerCase()]
-    ).length;
+    const availableDays = searchCriteria.preferredDays.filter(day => {
+      const slot = tutorProfile.availability[day.toLowerCase()];
+      return slot && slot.available;
+    }).length;
 
     const overlapPercentage = (availableDays / searchCriteria.preferredDays.length) * 100;
 

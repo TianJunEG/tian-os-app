@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { parentsAPI } from '../services/api';
 import './ParentProfile.css';
 
 const ParentProfile = ({ onComplete }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const API_URL = 'http://localhost:5001/api';
-  const token = localStorage.getItem('token');
-  const userId = localStorage.getItem('userId');
 
   const [formData, setFormData] = useState({
     // Step 1: Student Info
@@ -164,37 +163,27 @@ const ParentProfile = ({ onComplete }) => {
     setError('');
 
     try {
-      const response = await axios.post(
-        `${API_URL}/parents/profile`,
-        {
-          userId,
-          studentName: formData.studentName,
-          studentAge: parseInt(formData.studentAge),
-          gradeLevel: formData.gradeLevel,
-          primarySubject: formData.primarySubject,
-          otherSubjects: formData.otherSubjects,
-          learningGoals: formData.learningGoals,
-          specificChallenges: formData.specificChallenges,
-          preferredTutorGender: formData.preferredTutorGender,
-          learningStyle: formData.learningStyle,
-          preferredSessionType: formData.preferredSessionType,
-          timezone: formData.timezone,
-          budget: parseFloat(formData.budget),
-          availability: formData.availability
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await parentsAPI.createProfile({
+        studentName: formData.studentName,
+        studentAge: parseInt(formData.studentAge),
+        gradeLevel: formData.gradeLevel,
+        primarySubject: formData.primarySubject,
+        otherSubjects: formData.otherSubjects,
+        learningGoals: formData.learningGoals,
+        specificChallenges: formData.specificChallenges,
+        preferredTutorGender: formData.preferredTutorGender,
+        learningStyle: formData.learningStyle,
+        preferredSessionType: formData.preferredSessionType,
+        timezone: formData.timezone,
+        budget: parseFloat(formData.budget),
+        availability: formData.availability
+      });
 
       if (response.data.success) {
         setSuccess(true);
         setTimeout(() => {
           onComplete && onComplete();
-          window.location.href = '/search';
+          navigate('/search');
         }, 2000);
       }
     } catch (err) {

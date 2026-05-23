@@ -38,6 +38,7 @@
     "validator": "^13.9.0"
   },
   "devDependencies": {
+    "mongodb-memory-server-core": "^11.1.0",
     "nodemon": "^3.1.14",
     "vitest": "^4.1.7"
   }

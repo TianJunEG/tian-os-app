@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
+// Backend origin (without the /api suffix) for serving uploaded files.
+export const SERVER_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -50,10 +53,39 @@ export const authAPI = {
 // Tutors API
 export const tutorsAPI = {
   createProfile: (data) => api.post('/tutors/profile', data),
+  completeOnboarding: (data) => api.post('/tutors/onboarding', data),
   getAllTutors: (params) => api.get('/tutors', { params }),
   getTutorProfile: (id) => api.get(`/tutors/${id}`),
   getMyProfile: () => api.get('/tutors/me/profile'),
   updateAvailability: (data) => api.put('/tutors/availability', data)
+};
+
+// Parents API
+export const parentsAPI = {
+  createProfile: (data) => api.post('/parents/profile', data),
+  getProfile: () => api.get('/parents/profile'),
+  updateProfile: (data) => api.put('/parents/profile', data)
+};
+
+// Partners API
+export const partnersAPI = {
+  submitInquiry: (data) => api.post('/partners/inquiries', data),
+  getInquiries: (params) => api.get('/partners/inquiries', { params }),
+  updateInquiryStatus: (id, status) => api.patch(`/partners/inquiries/${id}`, { status })
+};
+
+// Resources API
+export const resourcesAPI = {
+  list: (params) => api.get('/resources', { params }),
+  getBySlug: (slug) => api.get(`/resources/${slug}`),
+  adminList: () => api.get('/resources/admin'),
+  create: (formData) =>
+    api.post('/resources', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/resources/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  remove: (id) => api.delete(`/resources/${id}`),
+  unlock: (slug, data) => api.post(`/resources/${slug}/unlock`, data),
+  getLeads: () => api.get('/resources/leads')
 };
 
 // Search API
@@ -71,6 +103,8 @@ export const bookingsAPI = {
   confirmBooking: (id) => api.put(`/bookings/${id}/confirm`),
   checkinBooking: (id) => api.put(`/bookings/${id}/checkin`),
   submitSessionNotes: (id, data) => api.post(`/bookings/${id}/notes`, data),
+  getSessionNotes: (id) => api.get(`/bookings/${id}/notes`),
+  getParentProgress: (parentId) => api.get(`/bookings/parent/${parentId}/progress`),
   cancelBooking: (id, data) => api.put(`/bookings/${id}/cancel`, data)
 };
 
@@ -109,6 +143,17 @@ export const studentsAPI = {
   create: (data) => api.post('/students', data),
   list: () => api.get('/students'),
   remove: (id) => api.delete(`/students/${id}`)
+};
+
+// Admin API
+export const adminAPI = {
+  getDashboard: () => api.get('/admin/dashboard'),
+  getUsers: (params) => api.get('/admin/users', { params }),
+  getVerificationQueue: (params) => api.get('/admin/verification-queue', { params }),
+  verifyTutor: (tutorId, data) => api.put(`/admin/verification/${tutorId}`, data),
+  getBookings: (params) => api.get('/admin/bookings', { params }),
+  getDisputes: (params) => api.get('/admin/disputes', { params }),
+  resolveDispute: (bookingId, data) => api.put(`/admin/disputes/${bookingId}/resolve`, data)
 };
 
 // Reviews API

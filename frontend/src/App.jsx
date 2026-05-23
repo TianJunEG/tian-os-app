@@ -1,6 +1,7 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { initAnalytics } from './lib/analytics';
 import MobileNav from './components/MobileNav';
 import PwaManager from './components/PwaManager';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -17,6 +18,15 @@ const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const TutorProfilePage = lazy(() => import('./pages/TutorProfilePage'));
 const WorksheetGeneratorPage = lazy(() => import('./pages/WorksheetGeneratorPage'));
 const StudentsPage = lazy(() => import('./pages/StudentsPage'));
+const ParentProgressPage = lazy(() => import('./pages/ParentProgressPage'));
+const GroupLandingPage = lazy(() => import('./pages/GroupLandingPage'));
+const TutoringLandingPage = lazy(() => import('./pages/TutoringLandingPage'));
+const EduAppsLandingPage = lazy(() => import('./pages/EduAppsLandingPage'));
+const ResourcesHubPage = lazy(() => import('./pages/ResourcesHubPage'));
+const ResourceDetailPage = lazy(() => import('./pages/ResourceDetailPage'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const TutorOnboarding = lazy(() => import('./components/TutorOnboarding'));
+const ParentProfile = lazy(() => import('./components/ParentProfile'));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -51,6 +61,32 @@ const ProtectedRoute = ({ children }) => {
   );
 };
 
+// Admin Route (requires authenticated admin role)
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, loading, user } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user?.role !== 'admin') {
+    return <Navigate to="/dashboard" />;
+  }
+
+  return children;
+};
+
 // Public Route (redirects to dashboard if already logged in)
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -73,48 +109,12 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// Landing Page
-const LandingPage = () => (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-    <header className="bg-white shadow">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-purple-600">Tutor Match</h1>
-          <div className="space-x-4">
-            <a href="/login" className="text-gray-700 hover:text-purple-600 font-medium">
-              Login
-            </a>
-            <a href="/register" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-              Sign Up
-            </a>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center">
-        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-          Find Your Perfect Tutor
-        </h2>
-        <p className="text-xl text-gray-600 mb-8">
-          Connect with expert tutors and start learning today
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
-          <a href="/register?role=parent" className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-center">
-            Find a Tutor
-          </a>
-          <a href="/register?role=tutor" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-center">
-            Become a Tutor
-          </a>
-        </div>
-      </div>
-    </main>
-  </div>
-);
-
 // Main App
 function App() {
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   return (
     <Router>
       <AuthProvider>
@@ -123,7 +123,11 @@ function App() {
         <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<GroupLandingPage />} />
+          <Route path="/tutoring" element={<TutoringLandingPage />} />
+          <Route path="/edu-apps" element={<EduAppsLandingPage />} />
+          <Route path="/resources" element={<ResourcesHubPage />} />
+          <Route path="/resources/:slug" element={<ResourceDetailPage />} />
 
           {/* Auth Routes */}
           <Route
@@ -222,6 +226,42 @@ function App() {
               <ProtectedRoute>
                 <StudentsPage />
               </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/tutor/onboarding"
+            element={
+              <ProtectedRoute>
+                <TutorOnboarding />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/parent/profile"
+            element={
+              <ProtectedRoute>
+                <ParentProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute>
+                <ParentProgressPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             }
           />
 
