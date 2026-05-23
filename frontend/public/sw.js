@@ -2,7 +2,9 @@
 // Strategy: app-shell precache + network-first navigation (SPA fallback)
 // + stale-while-revalidate for same-origin static assets. API and
 // cross-origin requests are left to the network.
-const CACHE = 'tutormatch-v1';
+// __SW_VERSION__ is replaced at build time (scripts/postbuild-sw.cjs) with a
+// hash of the built assets, so a new release auto-invalidates old caches.
+const CACHE = 'tutormatch-__SW_VERSION__';
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {

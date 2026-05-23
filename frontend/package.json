@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/postbuild-sw.cjs",
     "preview": "vite preview",
     "icons": "node scripts/generate-icons.cjs"
   },
