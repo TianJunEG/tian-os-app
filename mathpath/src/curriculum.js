@@ -7,8 +7,9 @@
 
 import foundational from './curricula/foundational.js';
 import singaporeP1 from './curricula/singapore-p1.js';
+import singaporeP2 from './curricula/singapore-p2.js';
 
-export const CURRICULA = [singaporeP1, foundational];
+export const CURRICULA = [singaporeP1, singaporeP2, foundational];
 
 // engine constants (framework-independent)
 export const QUESTIONS_PER_SESSION = 10;

@@ -8,6 +8,14 @@
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
+// Draw the second operand, optionally forced to a multiple of ten/hundred (mental-calc skills).
+function drawB(s) {
+  const base = randInt(s.bRange[0], s.bRange[1]);
+  if (s.bMultipleSet) return base * pickFrom(s.bMultipleSet);
+  if (s.bMultiple) return base * s.bMultiple;
+  return base;
+}
+
 function additionCarries(a, b) {
   while (a > 0 || b > 0) {
     if ((a % 10) + (b % 10) >= 10) return true;
@@ -43,9 +51,7 @@ function genAdd(skill) {
       return problem(skill, `${nums.join(` ${PLUS} `)} =`, sum, 'add', { terms: nums });
     }
     const a = randInt(s.aRange[0], s.aRange[1]);
-    const b = s.bMultiple
-      ? randInt(s.bRange[0], s.bRange[1]) * s.bMultiple
-      : randInt(s.bRange[0], s.bRange[1]);
+    const b = drawB(s);
     const sum = a + b;
     if (s.maxSum != null && sum > s.maxSum) continue;
     if (s.minSum != null && sum < s.minSum) continue;
@@ -61,7 +67,7 @@ function genSub(skill) {
   const s = skill.spec;
   for (let t = 0; t < 300; t++) {
     let a = randInt(s.aRange[0], s.aRange[1]);
-    let b = randInt(s.bRange[0], s.bRange[1]);
+    let b = drawB(s);
     if (b > a) { const tmp = a; a = b; b = tmp; }
     if (a === b) continue;
     const borrows = subtractionBorrows(a, b);
@@ -73,27 +79,31 @@ function genSub(skill) {
   return problem(skill, `${big} ${MINUS} 1 =`, big - 1, 'sub', { a: big, b: 1 });
 }
 
+const pickFrom = (arr) => arr[randInt(0, arr.length - 1)];
+
 function genMul(skill) {
   const s = skill.spec;
   for (let t = 0; t < 300; t++) {
-    const a = randInt(s.aRange[0], s.aRange[1]);
-    const b = randInt(s.bRange[0], s.bRange[1]);
+    const a = s.aSet ? pickFrom(s.aSet) : randInt(s.aRange[0], s.aRange[1]);
+    const b = s.bSet ? pickFrom(s.bSet) : randInt(s.bRange[0], s.bRange[1]);
     if (s.maxProduct != null && a * b > s.maxProduct) continue;
     return problem(skill, `${a} ${TIMES} ${b} =`, a * b, 'mul', { a, b });
   }
-  return problem(skill, `${s.aRange[0]} ${TIMES} ${s.bRange[0]} =`, s.aRange[0] * s.bRange[0], 'mul', { a: s.aRange[0], b: s.bRange[0] });
+  const a = s.aSet ? s.aSet[0] : s.aRange[0];
+  const b = s.bSet ? s.bSet[0] : s.bRange[0];
+  return problem(skill, `${a} ${TIMES} ${b} =`, a * b, 'mul', { a, b });
 }
 
 function genDiv(skill) {
   const s = skill.spec;
   for (let t = 0; t < 300; t++) {
-    const divisor = randInt(s.divisorRange[0], s.divisorRange[1]);
+    const divisor = s.divisorSet ? pickFrom(s.divisorSet) : randInt(s.divisorRange[0], s.divisorRange[1]);
     const quotient = randInt(s.quotientRange[0], s.quotientRange[1]);
     const dividend = divisor * quotient;
     if (s.maxDividend != null && dividend > s.maxDividend) continue;
     return problem(skill, `${dividend} ${DIVIDE} ${divisor} =`, quotient, 'div', { dividend, divisor });
   }
-  const d = s.divisorRange[0], q = s.quotientRange[0];
+  const d = s.divisorSet ? s.divisorSet[0] : s.divisorRange[0], q = s.quotientRange[0];
   return problem(skill, `${d * q} ${DIVIDE} ${d} =`, q, 'div', { dividend: d * q, divisor: d });
 }
 
@@ -122,12 +132,47 @@ function genMissing(skill) {
   return problem(skill, `1 ${PLUS} ___ = 2`, 1, 'missing', { a: 1, b: 1, c: 2, hidden: 'b' });
 }
 
-// Place value: "3 tens and 4 ones = ___"
+// Place value: "3 tens and 4 ones =" or, with hundreds, "2 hundreds, 3 tens and 4 ones ="
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 function genPlaceValue(skill) {
   const s = skill.spec;
-  const tens = randInt(1, s.maxTens || 9);
+  const tens = randInt(s.hundreds ? 0 : 1, 9);
   const ones = randInt(0, 9);
-  return problem(skill, `${tens} ten${tens > 1 ? 's' : ''} and ${ones} one${ones === 1 ? '' : 's'} =`, tens * 10 + ones, 'placeValue', { tens, ones });
+  if (s.hundreds) {
+    const hundreds = randInt(1, 9);
+    const display = `${plural(hundreds, 'hundred')}, ${plural(tens, 'ten')} and ${plural(ones, 'one')} =`;
+    return problem(skill, display, hundreds * 100 + tens * 10 + ones, 'placeValue', { hundreds, tens, ones });
+  }
+  return problem(skill, `${plural(tens, 'ten')} and ${plural(ones, 'one')} =`, tens * 10 + ones, 'placeValue', { hundreds: 0, tens, ones });
+}
+
+// Odd / even: "Next even number after 23"
+function genParity(skill) {
+  const s = skill.spec;
+  const which = s.which === 'either' ? (Math.random() < 0.5 ? 'even' : 'odd') : (s.which || 'even');
+  const n = randInt(s.range[0], s.range[1]);
+  const parityOk = which === 'even' ? n % 2 === 0 : n % 2 === 1;
+  const answer = parityOk ? n + 2 : n + 1;
+  return problem(skill, `Next ${which} number after ${n}`, answer, 'parity', { n, which });
+}
+
+// Like fractions within one whole: "3/8 + 2/8 = ?/8" → numerator answer
+function genFractionLike(skill) {
+  const s = skill.spec;
+  for (let t = 0; t < 300; t++) {
+    const d = randInt(s.denomRange[0], s.denomRange[1]);
+    if (d < 2) continue;
+    const op = Math.random() < 0.5 ? '+' : '-';
+    if (op === '+') {
+      const a = randInt(1, d - 1);
+      const b = randInt(1, d - a); // a + b <= d (within one whole)
+      return problem(skill, `${a}/${d} ${PLUS} ${b}/${d} = ?/${d}`, a + b, 'fractionLike', { a, b, d, op });
+    }
+    const a = randInt(2, d);
+    const b = randInt(1, a - 1);
+    return problem(skill, `${a}/${d} ${MINUS} ${b}/${d} = ?/${d}`, a - b, 'fractionLike', { a, b, d, op });
+  }
+  return problem(skill, `1/4 ${PLUS} 1/4 = ?/4`, 2, 'fractionLike', { a: 1, b: 1, d: 4, op: '+' });
 }
 
 // Comparison: "Which is greater: 34 or 43?"
@@ -161,6 +206,7 @@ function genPattern(skill) {
 const KINDS = {
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
+  parity: genParity, fractionLike: genFractionLike,
 };
 
 export function generateProblem(skill) {
