@@ -29,16 +29,33 @@ function PartnershipSection() {
   return (
     <section className="mt-20 max-w-3xl mx-auto">
       <div className="bg-white rounded-xl shadow p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Partnerships</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Partner with us</h2>
         <p className="text-gray-600 mb-6">
-          We're not formally launching partnerships yet, but we'd love to hear from schools,
-          educators, and organizations interested in working with {GROUP_NAME}. Tell us a little
-          about you and we'll reach out when the time is right.
+          {GROUP_NAME} is building a connected family of education services, and the best ones are
+          built together. We're not formally opening partnerships yet, but we're already talking
+          with the schools, educators, and organizations who want to help shape what comes next. If
+          that sounds like you, introduce yourself, and we'll reach out as opportunities open up.
         </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="rounded-lg bg-purple-50 p-4">
+            <h3 className="font-semibold text-gray-900 mb-1">Schools &amp; institutions</h3>
+            <p className="text-sm text-gray-600">Bring vetted tutoring and learning tools to your students.</p>
+          </div>
+          <div className="rounded-lg bg-purple-50 p-4">
+            <h3 className="font-semibold text-gray-900 mb-1">Educators &amp; creators</h3>
+            <p className="text-sm text-gray-600">Grow your reach and build alongside our services.</p>
+          </div>
+          <div className="rounded-lg bg-purple-50 p-4">
+            <h3 className="font-semibold text-gray-900 mb-1">Organizations</h3>
+            <p className="text-sm text-gray-600">Expand learning access through community programs.</p>
+          </div>
+        </div>
 
         {status === 'success' ? (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-            Thank you for your interest. Our team will be in touch.
+            Thanks for reaching out. We've received your details and will be in touch as
+            partnership opportunities open up.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -86,7 +103,7 @@ function PartnershipSection() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">How would you like to partner?</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tell us how you'd like to work together</label>
               <textarea
                 name="message"
                 value={form.message}
@@ -103,7 +120,7 @@ function PartnershipSection() {
               disabled={status === 'submitting'}
               className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50"
             >
-              {status === 'submitting' ? 'Submitting...' : 'Express Interest'}
+              {status === 'submitting' ? 'Sending...' : 'Get in touch'}
             </button>
           </form>
         )}
