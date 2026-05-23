@@ -39,9 +39,11 @@ export default function SpellingListsPage() {
         right={
           <button
             onClick={() => navigate('/spelling/lists/new')}
-            className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm inline-flex items-center gap-1"
+            className="px-3 min-h-[44px] bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm inline-flex items-center justify-center gap-1"
+            aria-label="New list"
+            title="New list"
           >
-            <Plus className="w-4 h-4" /> New
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">New</span>
           </button>
         }
       />

@@ -100,10 +100,10 @@ export default function SpellingListDetailPage() {
         right={
           isOwner && (
             <div className="flex gap-1">
-              <button onClick={toggleShare} title={list.isShared ? 'Shared — click to make private' : 'Private — click to share'} className={`p-2 rounded-lg ${list.isShared ? 'text-blue-600 hover:bg-blue-50' : 'text-gray-500 hover:bg-gray-100'}`}>
+              <button onClick={toggleShare} aria-label={list.isShared ? 'Shared — make private' : 'Private — share'} title={list.isShared ? 'Shared — click to make private' : 'Private — click to share'} className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg ${list.isShared ? 'text-blue-600 hover:bg-blue-50' : 'text-gray-500 hover:bg-gray-100'}`}>
                 {list.isShared ? <Share2 className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
               </button>
-              <button onClick={() => navigate(`/spelling/lists/${id}/edit`)} title="Edit" className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button onClick={() => navigate(`/spelling/lists/${id}/edit`)} aria-label="Edit list" title="Edit" className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg">
                 <Pencil className="w-5 h-5" />
               </button>
             </div>

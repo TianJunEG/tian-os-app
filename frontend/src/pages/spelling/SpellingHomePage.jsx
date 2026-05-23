@@ -86,16 +86,18 @@ export default function SpellingHomePage() {
         {dueCount > 0 && (
           <button
             onClick={() => navigate('/spelling/due')}
-            className="w-full mb-6 p-4 rounded-xl shadow-sm hover:shadow-md transition flex items-center gap-3 text-left bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+            className="w-full mb-6 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col sm:flex-row sm:items-center gap-3 text-left bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
           >
-            <CalendarClock className="w-6 h-6 shrink-0" />
-            <div className="flex-1">
-              <p className="font-semibold">
-                {dueCount} word{dueCount === 1 ? '' : 's'} due for review today
-              </p>
-              <p className="text-sm text-white/80">A few minutes of spaced practice keeps them stuck.</p>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <CalendarClock className="w-6 h-6 shrink-0" />
+              <div>
+                <p className="font-semibold">
+                  {dueCount} word{dueCount === 1 ? '' : 's'} due for review today
+                </p>
+                <p className="text-sm text-white/80">A few minutes of spaced practice keeps them stuck.</p>
+              </div>
             </div>
-            <span className="inline-flex items-center gap-1 text-sm font-medium bg-white/20 rounded-lg px-3 py-1.5">
+            <span className="inline-flex items-center justify-center gap-1 text-sm font-medium bg-white/20 rounded-lg px-4 py-2.5 w-full sm:w-auto shrink-0">
               Start review <ChevronRight className="w-4 h-4" />
             </span>
           </button>

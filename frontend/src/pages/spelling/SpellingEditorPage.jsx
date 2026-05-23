@@ -306,12 +306,13 @@ export default function SpellingEditorPage() {
                   <button
                     onClick={() => lookup(i)}
                     disabled={!w.word.trim() || lookupIdx === i}
+                    aria-label="Look up definition"
                     title="Look up definition"
-                    className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg disabled:opacity-40"
+                    className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-purple-600 hover:bg-purple-50 rounded-lg disabled:opacity-40"
                   >
                     {lookupIdx === i ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
                   </button>
-                  <button onClick={() => removeRow(i)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg" title="Remove">
+                  <button onClick={() => removeRow(i)} aria-label="Remove word" className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-red-400 hover:bg-red-50 rounded-lg" title="Remove">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>

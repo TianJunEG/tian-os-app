@@ -15,15 +15,15 @@ export default function SpellingHeader({ title, subtitle, backTo = '/spelling', 
   };
   return (
     <header className="bg-white shadow sticky top-0 z-40">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-1 sm:gap-3">
         <button
           onClick={() => navigate(backTo)}
-          className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+          className="-ml-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition"
           aria-label="Back"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="flex items-center gap-2 text-purple-600">
+        <div className="hidden sm:flex items-center gap-2 text-purple-600">
           <SpellCheck className="w-6 h-6" />
         </div>
         <div className="flex-1 min-w-0">
@@ -33,7 +33,7 @@ export default function SpellingHeader({ title, subtitle, backTo = '/spelling', 
         {right}
         <button
           onClick={toggleSound}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition"
           aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}
           title={muted ? 'Sounds off' : 'Sounds on'}
         >
@@ -41,7 +41,7 @@ export default function SpellingHeader({ title, subtitle, backTo = '/spelling', 
         </button>
         <button
           onClick={() => navigate('/dashboard')}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition"
           aria-label="Dashboard"
         >
           <Home className="w-5 h-5" />
