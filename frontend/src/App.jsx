@@ -1,21 +1,27 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-
-// Pages
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import TutorSearchPage from './pages/TutorSearchPage';
-import BookingPage from './pages/BookingPage';
-import PaymentPage from './pages/PaymentPage';
-import BookingsPage from './pages/BookingsPage';
-import MessagesPage from './pages/MessagesPage';
-import TutorProfilePage from './pages/TutorProfilePage';
-import WorksheetGeneratorPage from './pages/WorksheetGeneratorPage';
-import StudentsPage from './pages/StudentsPage';
 import MobileNav from './components/MobileNav';
 import PwaManager from './components/PwaManager';
+
+// Pages are code-split so each route loads its own chunk on demand.
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const TutorSearchPage = lazy(() => import('./pages/TutorSearchPage'));
+const BookingPage = lazy(() => import('./pages/BookingPage'));
+const PaymentPage = lazy(() => import('./pages/PaymentPage'));
+const BookingsPage = lazy(() => import('./pages/BookingsPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const TutorProfilePage = lazy(() => import('./pages/TutorProfilePage'));
+const WorksheetGeneratorPage = lazy(() => import('./pages/WorksheetGeneratorPage'));
+const StudentsPage = lazy(() => import('./pages/StudentsPage'));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+  </div>
+);
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -112,6 +118,7 @@ function App() {
     <Router>
       <AuthProvider>
         <PwaManager />
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
@@ -219,6 +226,7 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
       </AuthProvider>
     </Router>
   );
