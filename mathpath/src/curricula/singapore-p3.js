@@ -1,0 +1,123 @@
+// singapore-p3.js — Singapore Primary 3, Number and Algebra + Fractions strands.
+//
+// Mapped to the official "2021 Primary Mathematics Syllabus (P1–P6)", MOE Singapore
+// (updated Oct 2025). `code`/`objective` are taken from the syllabus verbatim.
+// Single-integer-answer objectives are implemented; objectives needing richer item types
+// (simplest-form/unlike fractions, money, measurement, area, geometry, charts, word problems)
+// are listed in `pending`.
+
+export default {
+  id: 'sg-p3',
+  country: 'Singapore',
+  framework: 'MOE 2021 Primary Mathematics Syllabus (updated Oct 2025)',
+  label: 'Singapore · Primary 3',
+  source: 'https://www.moe.gov.sg/primary/curriculum/syllabus',
+  groups: [
+    { id: 'wn', name: 'Whole Numbers', subtitle: 'Numbers up to 10 000' },
+    { id: 'as', name: 'Addition & Subtraction', subtitle: 'Algorithms up to 4 digits' },
+    { id: 'md', name: 'Multiplication & Division', subtitle: 'Tables 6–9; up to 3-digit by 1-digit' },
+    { id: 'fr', name: 'Fractions', subtitle: 'Equivalent & related fractions' },
+  ],
+  skills: [
+    // --- Whole Numbers ---
+    { id: 'sg-p3-pv', group: 'wn', code: 'WN 1.2', name: 'Place value (thousands→ones)',
+      objective: 'number notation, representations and place values (thousands, hundreds, tens, ones)',
+      example: '3 thousands, 4 hundreds, 0 tens and 5 ones = 3405', timeTarget: 14,
+      hint: 'Thousands → ×1000, hundreds → ×100, tens → ×10, then add the ones.',
+      spec: { kind: 'placeValue', thousands: true } },
+
+    { id: 'sg-p3-compare', group: 'wn', code: 'WN 1.4', name: 'Comparing & ordering numbers',
+      objective: 'comparing and ordering numbers',
+      example: 'Which is greater: 3471 or 3417? → 3471', timeTarget: 10,
+      hint: 'Compare from the largest place value down: thousands, then hundreds, then tens, then ones.',
+      spec: { kind: 'compare', range: [3, 9999], pick: 'greater' } },
+
+    { id: 'sg-p3-pattern', group: 'wn', code: 'WN 1.5', name: 'Number patterns (hundreds/thousands)',
+      objective: 'patterns in number sequences',
+      example: '1500, 1750, 2000, 2250, ? → 2500', timeTarget: 14,
+      hint: 'Find the constant jump between terms, then add it once more.',
+      spec: { kind: 'pattern', startRange: [200, 2000], stepRange: [25, 250], len: 4 } },
+
+    // --- Addition and Subtraction ---
+    { id: 'sg-p3-mental-add', group: 'as', code: 'WN 2.2', name: 'Mental addition (two 2-digit)',
+      objective: 'mental calculation involving addition … of two 2-digit numbers',
+      example: '47 + 38 = 85', timeTarget: 12,
+      hint: 'Add tens to tens and ones to ones, then combine.',
+      spec: { kind: 'add', aRange: [11, 89], bRange: [11, 89] } },
+
+    { id: 'sg-p3-mental-sub', group: 'as', code: 'WN 2.2', name: 'Mental subtraction (two 2-digit)',
+      objective: 'mental calculation involving … subtraction of two 2-digit numbers',
+      example: '83 − 47 = 36', timeTarget: 13,
+      hint: 'Subtract the tens, then adjust for the ones.',
+      spec: { kind: 'sub', aRange: [20, 99], bRange: [11, 89] } },
+
+    { id: 'sg-p3-add4', group: 'as', code: 'WN 2.1', name: 'Addition within 10 000',
+      objective: 'addition and subtraction algorithms (up to 4 digits)',
+      example: '3486 + 2057 = 5543', timeTarget: 24,
+      hint: 'Line up the digits and add column by column, carrying when a column reaches 10.',
+      spec: { kind: 'add', aRange: [1000, 8000], bRange: [1000, 8000], maxSum: 9999 } },
+
+    { id: 'sg-p3-sub4', group: 'as', code: 'WN 2.1', name: 'Subtraction within 10 000',
+      objective: 'addition and subtraction algorithms (up to 4 digits)',
+      example: '7204 − 3568 = 3636', timeTarget: 26,
+      hint: 'Subtract column by column, borrowing from the next place when needed.',
+      spec: { kind: 'sub', aRange: [3000, 9999], bRange: [1000, 6000] } },
+
+    // --- Multiplication and Division ---
+    { id: 'sg-p3-tables-mul', group: 'md', code: 'MD 3.1 / 3.2', name: 'Multiplication tables (6,7,8,9)',
+      objective: 'multiplication tables of 6, 7, 8 and 9; multiplying within the tables',
+      example: '7 × 8 = 56', timeTarget: 11,
+      hint: 'Recall the table fact for 6, 7, 8 or 9.',
+      spec: { kind: 'mul', aSet: [6, 7, 8, 9], bRange: [1, 10], maxProduct: 90 } },
+
+    { id: 'sg-p3-tables-div', group: 'md', code: 'MD 3.2', name: 'Dividing within the tables',
+      objective: 'multiplying and dividing within the multiplication tables',
+      example: '56 ÷ 8 = 7', timeTarget: 12,
+      hint: 'Which 6/7/8/9 table fact makes this number?',
+      spec: { kind: 'div', divisorSet: [6, 7, 8, 9], quotientRange: [1, 10], maxDividend: 90 } },
+
+    { id: 'sg-p3-div-remainder', group: 'md', code: 'MD 3.3', name: 'Division with remainder',
+      objective: 'division with remainder',
+      example: 'Find the remainder: 29 ÷ 4 → 1', timeTarget: 14,
+      hint: 'How many whole groups fit, and how many are left over? The leftover is the remainder.',
+      spec: { kind: 'divRemainder', divisorRange: [3, 9], quotientRange: [2, 12] } },
+
+    { id: 'sg-p3-mul3by1', group: 'md', code: 'MD 3.4', name: 'Multiply up to 3-digit by 1-digit',
+      objective: 'multiplication … algorithms (up to 3 digits by 1 digit)',
+      example: '243 × 6 = 1458', timeTarget: 22,
+      hint: 'Multiply each digit by the 1-digit number, carrying as you go.',
+      spec: { kind: 'mul', aRange: [13, 399], bRange: [2, 9] } },
+
+    { id: 'sg-p3-div3by1', group: 'md', code: 'MD 3.4', name: 'Divide up to 3-digit by 1-digit',
+      objective: 'division … algorithms (up to 3 digits by 1 digit)',
+      example: '486 ÷ 6 = 81', timeTarget: 24,
+      hint: 'Use long/short division, working from the largest place value down.',
+      spec: { kind: 'div', divisorRange: [2, 9], quotientRange: [11, 150], maxDividend: 999 } },
+
+    // --- Fractions ---
+    { id: 'sg-p3-frac-equiv', group: 'fr', code: 'Fr 1.1 / 1.4', name: 'Equivalent fractions',
+      objective: 'equivalent fractions; writing the equivalent fraction given the denominator or numerator',
+      example: '1/2 = ?/6 → 3', timeTarget: 14,
+      hint: 'Whatever you multiply the bottom by, multiply the top by the same number.',
+      spec: { kind: 'fractionEquiv', baseDenomRange: [2, 6], scaleRange: [2, 4], maxDenom: 12 } },
+
+    { id: 'sg-p3-frac-related', group: 'fr', code: 'Fr 2.1', name: 'Add & subtract related fractions',
+      objective: 'adding and subtracting two related fractions within one whole (denominators not exceeding 12)',
+      example: '1/2 + 1/4 = ?/4 → 3', timeTarget: 18,
+      hint: 'Rename the fraction with the smaller denominator so both share the larger one, then add/subtract the tops.',
+      spec: { kind: 'fractionRelated', maxDenom: 12 } },
+  ],
+
+  // In the P3 syllabus but needing item types beyond a single-integer answer.
+  pending: [
+    'WN 1.1 counting in hundreds/thousands (needs pictorial item)',
+    'WN 1.3 reading & writing numbers in words (needs text item)',
+    'Fractions 1.2 simplest form, 1.3 comparing/ordering unlike fractions (needs fraction item)',
+    'Money 1.1 adding & subtracting money in decimal notation (needs money item)',
+    'Measurement: length/mass/volume in compound units & conversions; time (seconds, duration, 24-hour clock)',
+    'Area & Perimeter of rectangle/square (needs measurement item)',
+    'Geometry: angles, perpendicular & parallel lines (needs geometry item)',
+    'Statistics: reading bar graphs with scales (needs chart item)',
+    'Multi-step word problems (needs word-problem / bar-model item)',
+  ],
+};

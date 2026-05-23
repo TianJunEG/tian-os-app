@@ -132,18 +132,23 @@ function genMissing(skill) {
   return problem(skill, `1 ${PLUS} ___ = 2`, 1, 'missing', { a: 1, b: 1, c: 2, hidden: 'b' });
 }
 
-// Place value: "3 tens and 4 ones =" or, with hundreds, "2 hundreds, 3 tens and 4 ones ="
+// Place value: tens/ones, or with hundreds, or with thousands.
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 function genPlaceValue(skill) {
   const s = skill.spec;
+  if (s.thousands) {
+    const thousands = randInt(1, 9), hundreds = randInt(0, 9), tens = randInt(0, 9), ones = randInt(0, 9);
+    const display = `${plural(thousands, 'thousand')}, ${plural(hundreds, 'hundred')}, ${plural(tens, 'ten')} and ${plural(ones, 'one')} =`;
+    return problem(skill, display, thousands * 1000 + hundreds * 100 + tens * 10 + ones, 'placeValue', { thousands, hundreds, tens, ones });
+  }
   const tens = randInt(s.hundreds ? 0 : 1, 9);
   const ones = randInt(0, 9);
   if (s.hundreds) {
     const hundreds = randInt(1, 9);
     const display = `${plural(hundreds, 'hundred')}, ${plural(tens, 'ten')} and ${plural(ones, 'one')} =`;
-    return problem(skill, display, hundreds * 100 + tens * 10 + ones, 'placeValue', { hundreds, tens, ones });
+    return problem(skill, display, hundreds * 100 + tens * 10 + ones, 'placeValue', { thousands: 0, hundreds, tens, ones });
   }
-  return problem(skill, `${plural(tens, 'ten')} and ${plural(ones, 'one')} =`, tens * 10 + ones, 'placeValue', { hundreds: 0, tens, ones });
+  return problem(skill, `${plural(tens, 'ten')} and ${plural(ones, 'one')} =`, tens * 10 + ones, 'placeValue', { thousands: 0, hundreds: 0, tens, ones });
 }
 
 // Odd / even: "Next even number after 23"
@@ -203,10 +208,60 @@ function genPattern(skill) {
   return problem(skill, '2, 4, 6, 8, ?', 10, 'pattern', { seq: [2, 4, 6, 8], next: 10 });
 }
 
+// Division with remainder: "Find the remainder: 29 ÷ 4" → 1
+function genDivRemainder(skill) {
+  const s = skill.spec;
+  const divisor = randInt(s.divisorRange[0], s.divisorRange[1]); // >= 2
+  const quotient = randInt(s.quotientRange[0], s.quotientRange[1]);
+  const remainder = randInt(1, divisor - 1); // always a non-zero leftover
+  const dividend = divisor * quotient + remainder;
+  return problem(skill, `Find the remainder: ${dividend} ${DIVIDE} ${divisor}`, remainder, 'divRemainder', { dividend, divisor, quotient, remainder });
+}
+
+// Equivalent fractions: "1/2 = ?/6" → 3  (denominators kept within 12)
+function genFractionEquiv(skill) {
+  const s = skill.spec;
+  const maxDenom = s.maxDenom || 12;
+  for (let t = 0; t < 300; t++) {
+    const b = randInt(s.baseDenomRange[0], s.baseDenomRange[1]); // >= 2
+    const k = randInt(s.scaleRange[0], s.scaleRange[1]); // >= 2
+    const target = b * k;
+    if (target > maxDenom) continue;
+    const a = randInt(1, b - 1);
+    return problem(skill, `${a}/${b} = ?/${target}`, a * k, 'fractionEquiv', { a, b, k, target });
+  }
+  return problem(skill, `1/2 = ?/4`, 2, 'fractionEquiv', { a: 1, b: 2, k: 2, target: 4 });
+}
+
+// Two related fractions within one whole (one denominator a multiple of the other):
+// "1/2 + 1/4 = ?/4" → 3   answer is the numerator over the larger denominator.
+function genFractionRelated(skill) {
+  const maxDenom = skill.spec.maxDenom || 12;
+  for (let t = 0; t < 400; t++) {
+    const d1 = randInt(2, 6);
+    const k = randInt(2, Math.floor(maxDenom / d1));
+    if (k < 2) continue;
+    const d2 = d1 * k; // larger, common denominator
+    const a = randInt(1, d1 - 1); // a/d1 == (a*k)/d2
+    const b = randInt(1, d2 - 1); // b/d2
+    const vA = a * k, vB = b;
+    const op = Math.random() < 0.5 ? '+' : '-';
+    if (op === '+') {
+      if (vA + vB > d2) continue; // keep within one whole
+      return problem(skill, `${a}/${d1} ${PLUS} ${b}/${d2} = ?/${d2}`, vA + vB, 'fractionRelated', { a, d1, b, d2, op });
+    }
+    if (vA === vB) continue;
+    if (vA > vB) return problem(skill, `${a}/${d1} ${MINUS} ${b}/${d2} = ?/${d2}`, vA - vB, 'fractionRelated', { a, d1, b, d2, op });
+    return problem(skill, `${b}/${d2} ${MINUS} ${a}/${d1} = ?/${d2}`, vB - vA, 'fractionRelated', { a, d1, b, d2, op });
+  }
+  return problem(skill, `1/2 ${PLUS} 1/4 = ?/4`, 3, 'fractionRelated', { a: 1, d1: 2, b: 1, d2: 4, op: '+' });
+}
+
 const KINDS = {
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,
+  divRemainder: genDivRemainder, fractionEquiv: genFractionEquiv, fractionRelated: genFractionRelated,
 };
 
 export function generateProblem(skill) {
