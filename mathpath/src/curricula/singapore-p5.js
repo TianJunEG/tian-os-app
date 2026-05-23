@@ -19,6 +19,7 @@ export default {
     { id: 'dec', name: 'Decimals', subtitle: 'Powers of 10 & metric conversion' },
     { id: 'pct', name: 'Percentage', subtitle: 'Part of a whole, discount, GST, interest' },
     { id: 'rate', name: 'Rate', subtitle: 'Rate, total and units' },
+    { id: 'mg', name: 'Area & Volume', subtitle: 'Triangle & cuboid' },
   ],
   skills: [
     // --- Whole Numbers / Four Operations ---
@@ -103,13 +104,26 @@ export default {
       example: '240 km in 4 h → 60 km/h', timeTarget: 20,
       hint: 'rate = total ÷ units; total = rate × units; units = total ÷ rate.',
       spec: { kind: 'rate' } },
+
+    // --- Area & Volume (with diagram) ---
+    { id: 'sg-p5-tri-area', group: 'mg', code: 'AV 1.2', name: 'Area of a triangle',
+      objective: 'area of triangle',
+      example: 'base 8 cm, height 5 cm → area 20 cm²', timeTarget: 16,
+      hint: 'Area of a triangle = ½ × base × height.',
+      spec: { kind: 'triArea' } },
+
+    { id: 'sg-p5-cuboid-volume', group: 'mg', code: 'AV 2.4', name: 'Volume of a cuboid',
+      objective: 'volume of a cube/cuboid',
+      example: '6 × 3 × 4 → 72 cm³', timeTarget: 16,
+      hint: 'Volume of a cuboid = length × width × height.',
+      spec: { kind: 'cuboidVolume' } },
   ],
 
   // In the P5 syllabus but needing item types beyond a single number answer.
   pending: [
     'WN 1.1 reading & writing numbers up to 10 million in words (needs text item)',
     'Fr 1.1 dividing a whole number by a whole number with quotient as a fraction (needs fraction answer)',
-    'Measurement & Geometry: area of a triangle, volume of cube/cuboid (drillable as integers — easy future add)',
+    'Measurement & Geometry: composite figures (area of triangle & volume of cuboid now drillable with diagrams)',
     'Geometry: angles on a line / at a point / vertically opposite, triangle & quadrilateral angle facts',
     'Statistics: average of a set of data (P5 Statistics — drillable as an integer, future add)',
     'Multi-step & ratio/algebra-readiness word problems (needs word-problem / bar-model item)',

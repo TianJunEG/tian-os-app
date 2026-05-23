@@ -119,6 +119,16 @@ body {
 .key.wide { grid-column: 1 / -1; }
 .key.clear { color: var(--warn); }
 
+/* ---- geometry diagrams ---- */
+.diagram { display: block; width: 100%; max-width: 230px; height: auto; margin: 2px auto 8px; }
+.diagram .d-shape { fill: var(--brand); fill-opacity: .12; stroke: var(--brand); stroke-width: 2; stroke-linejoin: round; }
+.diagram .d-face2 { fill-opacity: .06; }
+.diagram .d-dash { stroke: var(--brand); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.diagram .d-rt { fill: none; stroke: var(--brand); stroke-width: 1.5; }
+.diagram .d-radius { stroke: var(--brand); stroke-width: 2; }
+.diagram .d-dot { fill: var(--brand); }
+.diagram .d-label { fill: var(--ink); font-size: 13px; font-weight: 600; }
+
 /* ---- feedback ---- */
 .feedback { min-height: 28px; text-align: center; font-weight: 700; font-size: 18px; }
 .feedback.ok { color: var(--ok); }

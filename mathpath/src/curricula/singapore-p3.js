@@ -17,6 +17,7 @@ export default {
     { id: 'as', name: 'Addition & Subtraction', subtitle: 'Algorithms up to 4 digits' },
     { id: 'md', name: 'Multiplication & Division', subtitle: 'Tables 6–9; up to 3-digit by 1-digit' },
     { id: 'fr', name: 'Fractions', subtitle: 'Equivalent & related fractions' },
+    { id: 'mg', name: 'Area & Perimeter', subtitle: 'Rectangle & square' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -106,6 +107,19 @@ export default {
       example: '1/2 + 1/4 = ?/4 → 3', timeTarget: 18,
       hint: 'Rename the fraction with the smaller denominator so both share the larger one, then add/subtract the tops.',
       spec: { kind: 'fractionRelated', maxDenom: 12 } },
+
+    // --- Area & Perimeter (with diagram) ---
+    { id: 'sg-p3-rect-area', group: 'mg', code: 'AP 1.4', name: 'Area of a rectangle',
+      objective: 'area of rectangle/square',
+      example: 'A 8 cm × 5 cm rectangle has area 40 cm²', timeTarget: 14,
+      hint: 'Area of a rectangle = length × width.',
+      spec: { kind: 'rectArea' } },
+
+    { id: 'sg-p3-rect-perimeter', group: 'mg', code: 'AP 1.3', name: 'Perimeter of a rectangle',
+      objective: 'perimeter of rectangle/square',
+      example: 'A 8 cm × 5 cm rectangle has perimeter 26 cm', timeTarget: 14,
+      hint: 'Perimeter = 2 × (length + width) — add up all four sides.',
+      spec: { kind: 'rectPerimeter' } },
   ],
 
   // In the P3 syllabus but needing item types beyond a single-integer answer.
@@ -115,7 +129,7 @@ export default {
     'Fractions 1.2 simplest form, 1.3 comparing/ordering unlike fractions (needs fraction item)',
     'Money 1.1 adding & subtracting money in decimal notation (needs money item)',
     'Measurement: length/mass/volume in compound units & conversions; time (seconds, duration, 24-hour clock)',
-    'Area & Perimeter of rectangle/square (needs measurement item)',
+    'Area & Perimeter of rectilinear/composite figures (rectangle & square now drillable with diagrams)',
     'Geometry: angles, perpendicular & parallel lines (needs geometry item)',
     'Statistics: reading bar graphs with scales (needs chart item)',
     'Multi-step word problems (needs word-problem / bar-model item)',

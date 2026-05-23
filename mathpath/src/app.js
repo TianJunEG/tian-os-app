@@ -6,6 +6,7 @@ import * as Diag from './diagnostic.js';
 import * as S from './session.js';
 import * as Store from './storage.js';
 import { checkAnswer } from './generator.js';
+import { diagramFor } from './diagram.js';
 
 const app = document.getElementById('app');
 const rungIndicator = document.getElementById('rung-indicator');
@@ -221,6 +222,7 @@ function renderDiagnostic() {
         <div><h2>Placement check</h2><div class="qcount">Question ${d.idx + 1}</div></div>
         <div class="qcount">Finding the right level…</div>
       </div>
+      ${diagramFor(probe.problem)}
       <div class="problem">${probe.problem.display}</div>
       ${answerEntryHTML(probe.problem.decimal)}
       <div class="feedback muted">Answer what you can. If it gets too hard, that's exactly the signal we need.</div>
@@ -275,6 +277,7 @@ function renderDrill() {
     paint(`
       <section class="card stack">
         ${head}
+        ${diagramFor(s.current)}
         <div class="problem">${solvedDisplay(s.current)}</div>
         <div class="feedback ${ok ? 'ok' : 'bad'}">${ok ? 'Correct!' : `Not quite — the answer is ${s.current.answer}.`}</div>
         <button class="btn btn-primary btn-block" id="cont">${S.isComplete(s) ? 'See results' : 'Next question'}</button>
@@ -287,6 +290,7 @@ function renderDrill() {
   paint(`
     <section class="card stack">
       ${head}
+      ${diagramFor(s.current)}
       <div class="problem">${s.current.display}</div>
       ${answerEntryHTML(s.current.decimal)}
       ${state.hint

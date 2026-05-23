@@ -654,6 +654,43 @@ function genAverage(skill) {
   return problem(skill, `Find the average of 4, 8, 6`, 6, 'average', { nums: [4, 8, 6], which: 'mean' });
 }
 
+// ---------- Measurement & Geometry (P3 / P5 / P6) ----------
+// Each of these pairs with an SVG figure drawn from the same parts (see diagram.js).
+
+const PI = 3.14;
+
+function genRectArea(skill) {
+  const l = randInt(3, 15), w = randInt(2, 12);
+  return problem(skill, `Area of this rectangle = ? cm²`, l * w, 'rectArea', { l, w });
+}
+
+function genRectPerimeter(skill) {
+  const l = randInt(3, 15), w = randInt(2, 12);
+  return problem(skill, `Perimeter of this rectangle = ? cm`, 2 * (l + w), 'rectPerimeter', { l, w });
+}
+
+function genTriArea(skill) {
+  const base = randInt(3, 16);
+  let height = randInt(2, 12);
+  if ((base * height) % 2 !== 0) height += 1; // keep ½·b·h a whole number
+  return problem(skill, `Area of this triangle = ? cm²`, (base * height) / 2, 'triArea', { base, height });
+}
+
+function genCuboidVolume(skill) {
+  const l = randInt(2, 9), b = randInt(2, 9), h = randInt(2, 9);
+  return problem(skill, `Volume of this cuboid = ? cm³`, l * b * h, 'cuboidVolume', { l, b, h });
+}
+
+function genCircleArea(skill) {
+  const r = randInt(1, 12);
+  return decProblem(skill, `Area of this circle = ? cm²  (take π = 3.14)`, PI * r * r, 'circleArea', { r });
+}
+
+function genCircleCircumference(skill) {
+  const r = randInt(1, 12);
+  return decProblem(skill, `Circumference of this circle = ? cm  (take π = 3.14)`, 2 * PI * r, 'circleCircumference', { r });
+}
+
 const KINDS = {
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
@@ -671,6 +708,8 @@ const KINDS = {
   percentWhole: genPercentWhole, percentChange: genPercentChange,
   ratioMissing: genRatioMissing, ratioDivide: genRatioDivide,
   algSimplify: genAlgSimplify, algEval: genAlgEval, algSolve: genAlgSolve, average: genAverage,
+  rectArea: genRectArea, rectPerimeter: genRectPerimeter, triArea: genTriArea,
+  cuboidVolume: genCuboidVolume, circleArea: genCircleArea, circleCircumference: genCircleCircumference,
 };
 
 export function generateProblem(skill) {

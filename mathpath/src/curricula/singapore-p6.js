@@ -19,6 +19,7 @@ export default {
     { id: 'ratio', name: 'Ratio', subtitle: 'Equivalent ratios & sharing' },
     { id: 'alg', name: 'Algebra', subtitle: 'Expressions & simple equations' },
     { id: 'stat', name: 'Averages', subtitle: 'Average of a set of data' },
+    { id: 'mg', name: 'Circles', subtitle: 'Area & circumference' },
   ],
   skills: [
     // --- Fractions ---
@@ -85,13 +86,26 @@ export default {
       example: 'Average of 4, 8, 6 → 6', timeTarget: 18,
       hint: 'Average = total ÷ how many; so total = average × how many.',
       spec: { kind: 'average' } },
+
+    // --- Circles (with diagram; take π = 3.14, answers as decimals) ---
+    { id: 'sg-p6-circle-area', group: 'mg', code: 'AV 1.1', name: 'Area of a circle',
+      objective: 'area of circle',
+      example: 'r = 6 cm → area 113.04 cm² (π = 3.14)', timeTarget: 18,
+      hint: 'Area of a circle = π × r × r.',
+      spec: { kind: 'circleArea' } },
+
+    { id: 'sg-p6-circle-circ', group: 'mg', code: 'AV 1.1', name: 'Circumference of a circle',
+      objective: 'circumference of circle',
+      example: 'r = 6 cm → circumference 37.68 cm (π = 3.14)', timeTarget: 18,
+      hint: 'Circumference = 2 × π × r.',
+      spec: { kind: 'circleCircumference' } },
   ],
 
   // In the P6 syllabus but needing item types beyond a single number answer.
   pending: [
     'Ratio 1.1/1.2/1.4/1.5/1.7 notation, simplest form, finding a ratio, fraction-ratio link (needs ratio answer a:b)',
     'Algebra 1.1/1.2 letters & expression notation (conceptual — needs expression item)',
-    'Measurement & Geometry: area/circumference of circle, semicircle & quarter circle, composite figures',
+    'Measurement & Geometry: semicircle & quarter circle, composite figures (full-circle area & circumference now drillable with diagrams)',
     'Volume of cube/cuboid: finding a missing dimension given the volume',
     'Geometry: unknown angles in composite figures (square, rectangle, parallelogram, rhombus, trapezium)',
     'Statistics: reading & interpreting tables, line graphs and pie charts (needs chart item)',
