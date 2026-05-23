@@ -129,6 +129,49 @@ function PartnershipSection() {
   );
 }
 
+function MissionSection() {
+  return (
+    <section className="mt-20 max-w-5xl mx-auto">
+      <div className="text-center mb-10">
+        <span className="inline-block text-xs font-semibold uppercase tracking-wide text-purple-700 bg-purple-100 px-3 py-1 rounded mb-4">
+          A social enterprise
+        </span>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Education that gives back</h2>
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          {GROUP_NAME} is being established as a social enterprise — a business built to create
+          opportunity, not just returns. Every service we run is designed to lift the people who
+          need it most and to keep great teaching in the hands of those who do it best.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl shadow p-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Investing in at-risk youth</h3>
+          <p className="text-gray-600">
+            We support young people facing barriers to education. As they grow and achieve strong
+            results, we train and mentor them to become tutors themselves — turning their own
+            progress into a livelihood, and into a role model for the next student coming up behind
+            them.
+          </p>
+        </div>
+        <div className="bg-white rounded-xl shadow p-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Honouring experienced educators</h3>
+          <p className="text-gray-600">
+            We bring retired teachers back into education as consultants and tutors. Decades of
+            classroom wisdom shouldn't retire with them — instead it guides our students, mentors
+            our newest tutors, and shapes how every service is built.
+          </p>
+        </div>
+      </div>
+
+      <p className="text-center text-gray-600 mt-8 max-w-3xl mx-auto">
+        The result is a cycle that compounds: experienced teachers raise up young learners, those
+        learners become tutors, and the impact grows with every student we reach.
+      </p>
+    </section>
+  );
+}
+
 export default function GroupLandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
@@ -180,6 +223,8 @@ export default function GroupLandingPage() {
             );
           })}
         </div>
+
+        <MissionSection />
 
         <PartnershipSection />
       </main>
