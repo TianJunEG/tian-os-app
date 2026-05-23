@@ -15,6 +15,7 @@ import TutorProfilePage from './pages/TutorProfilePage';
 import WorksheetGeneratorPage from './pages/WorksheetGeneratorPage';
 import StudentsPage from './pages/StudentsPage';
 import MobileNav from './components/MobileNav';
+import PwaManager from './components/PwaManager';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -110,6 +111,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <PwaManager />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
