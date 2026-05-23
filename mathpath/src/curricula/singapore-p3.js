@@ -18,6 +18,7 @@ export default {
     { id: 'md', name: 'Multiplication & Division', subtitle: 'Tables 6–9; up to 3-digit by 1-digit' },
     { id: 'fr', name: 'Fractions', subtitle: 'Equivalent & related fractions' },
     { id: 'mg', name: 'Area & Perimeter', subtitle: 'Rectangle & square' },
+    { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -120,6 +121,19 @@ export default {
       example: 'A 8 cm × 5 cm rectangle has perimeter 26 cm', timeTarget: 14,
       hint: 'Perimeter = 2 × (length + width) — add up all four sides.',
       spec: { kind: 'rectPerimeter' } },
+
+    // --- Word problems (bar model diagram + worded prompt) ---
+    { id: 'sg-p3-wp-share', group: 'wp', code: 'WP ÷', name: 'Word problem: sharing equally',
+      objective: 'divide into equal parts using the model method',
+      example: '48 shared among 6 → 8 each', timeTarget: 36,
+      hint: 'The whole is split into equal bars — divide by the number of bars.',
+      spec: { kind: 'barModel', structure: 'unitsEach', nMax: 8, eachMax: 12 } },
+
+    { id: 'sg-p3-wp-twostep', group: 'wp', code: 'WP 2-step', name: 'Two-step word problem',
+      objective: 'solve a 2-step word problem using the model method',
+      example: '$650 − $180 − $240 → $230 left', timeTarget: 50,
+      hint: 'The whole bar is split into the parts spent and the part left over.',
+      spec: { kind: 'barModel', structure: 'twoStepRemain', min: 30, max: 320 } },
   ],
 
   // In the P3 syllabus but needing item types beyond a single-integer answer.
@@ -132,6 +146,6 @@ export default {
     'Area & Perimeter of rectilinear/composite figures (rectangle & square now drillable with diagrams)',
     'Geometry: angles, perpendicular & parallel lines (needs geometry item)',
     'Statistics: reading bar graphs with scales (needs chart item)',
-    'Multi-step word problems (needs word-problem / bar-model item)',
+    'Multi-step (3+ step) word problems (single- and two-step bar models now drillable)',
   ],
 };

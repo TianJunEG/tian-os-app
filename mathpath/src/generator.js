@@ -753,7 +753,76 @@ function genCompositeArea(skill) {
   return problem(skill, `Area of this L-shaped figure = ? cm²`, W * H - nw * nh, 'compositeArea', { W, H, nw, nh });
 }
 
+// ---------- Word problems (bar models) ----------
+// One generator + one diagram renderer cover several model-method structures (spec.structure).
+// Every problem has a worded prompt, a proportional bar diagram, and a single whole-number answer.
+
+const BAR_NAMES = ['Aisha', 'Ben', 'Mei', 'Raj', 'Sara', 'Tom', 'Lily', 'Omar'];
+function twoNames() { const a = pickFrom(BAR_NAMES); let b = pickFrom(BAR_NAMES); while (b === a) b = pickFrom(BAR_NAMES); return [a, b]; }
+const cell = (value, label, accent) => ({ value, label, accent: !!accent });
+const barModelProblem = (skill, display, answer, parts) => problem(skill, display, answer, 'barModel', parts);
+
+function genBarModel(skill) {
+  const s = skill.spec, r = randInt;
+  let st = s.structure;
+  if (st === 'compare') st = Math.random() < 0.5 ? 'compareMore' : 'compareDiff';
+
+  if (st === 'partWhole') {
+    const a = r(s.min || 3, s.max || 20), b = r(s.min || 3, s.max || 20);
+    const c = pickFrom([['red', 'blue', 'marbles'], ['green', 'red', 'apples'], ['big', 'small', 'boxes'], ['gold', 'silver', 'coins']]);
+    const display = `A bag has ${a} ${c[0]} ${c[2]} and ${b} ${c[1]} ${c[2]}. How many ${c[2]} are there altogether?`;
+    const model = { rows: [{ cells: [cell(a, `${a}`), cell(b, `${b}`)] }], braces: [{ row: 0, start: 0, end: 1, label: '?', side: 'bottom' }] };
+    return barModelProblem(skill, display, a + b, { structure: st, a, b, model });
+  }
+  if (st === 'missingPart') {
+    const whole = r(s.wholeMin || 12, s.wholeMax || 40), a = r(2, whole - 2);
+    const c = pickFrom([['children', 'are boys', 'girls'], ['fruits', 'are apples', 'oranges'], ['pencils', 'are red', 'blue ones']]);
+    const display = `There are ${whole} ${c[0]}. ${a} ${c[1]}. How many ${c[2]} are there?`;
+    const model = { rows: [{ cells: [cell(a, `${a}`), cell(whole - a, '?')] }], braces: [{ row: 0, start: 0, end: 1, label: `${whole}`, side: 'top' }] };
+    return barModelProblem(skill, display, whole - a, { structure: st, whole, a, model });
+  }
+  if (st === 'compareMore') {
+    const [A, B] = twoNames(), a = r(s.min || 5, s.max || 40), d = r(s.dMin || 3, s.dMax || 20);
+    const item = pickFrom(['stickers', 'stamps', 'shells', 'cards']);
+    const display = `${A} has ${a} ${item}. ${B} has ${d} more ${item} than ${A}. How many ${item} does ${B} have?`;
+    const model = { rows: [{ caption: A, cells: [cell(a, `${a}`)] }, { caption: B, cells: [cell(a, `${a}`), cell(d, `${d}`, true)] }], braces: [{ row: 1, start: 0, end: 1, label: '?', side: 'bottom' }] };
+    return barModelProblem(skill, display, a + d, { structure: st, a, d, model });
+  }
+  if (st === 'compareDiff') {
+    const [A, B] = twoNames();
+    let a = r(s.min || 5, s.max || 40), b = r(s.min || 5, s.max || 40);
+    if (a === b) a += r(1, 5);
+    if (a < b) { const t = a; a = b; b = t; }
+    const item = pickFrom(['books', 'sweets', 'beads', 'points']);
+    const display = `${A} has ${a} ${item}. ${B} has ${b} ${item}. How many more ${item} does ${A} have than ${B}?`;
+    const model = { rows: [{ caption: A, cells: [cell(b, ''), cell(a - b, '?', true)] }, { caption: B, cells: [cell(b, `${b}`)] }], braces: [{ row: 0, start: 0, end: 1, label: `${a}`, side: 'top' }] };
+    return barModelProblem(skill, display, a - b, { structure: st, a, b, model });
+  }
+  if (st === 'unitsTotal') {
+    const n = r(2, s.nMax || 5), each = r(2, s.eachMax || 9);
+    const [name] = twoNames(), c = pickFrom([['bags', 'bag', 'marbles'], ['boxes', 'box', 'crayons'], ['packs', 'pack', 'cards'], ['baskets', 'basket', 'eggs']]);
+    const display = `${name} buys ${n} ${c[0]} of ${c[2]}. Each ${c[1]} has ${each} ${c[2]}. How many ${c[2]} in all?`;
+    const model = { rows: [{ cells: Array.from({ length: n }, () => cell(each, `${each}`)) }], braces: [{ row: 0, start: 0, end: n - 1, label: '?', side: 'bottom' }] };
+    return barModelProblem(skill, display, n * each, { structure: st, n, each, model });
+  }
+  if (st === 'unitsEach') {
+    const n = r(2, s.nMax || 6), each = r(2, s.eachMax || 12), total = n * each;
+    const c = pickFrom([['children', 'sweets'], ['friends', 'stickers'], ['plates', 'biscuits'], ['boxes', 'pens']]);
+    const display = `${total} ${c[1]} are shared equally among ${n} ${c[0]}. How many ${c[1]} does each get?`;
+    const model = { rows: [{ cells: Array.from({ length: n }, () => cell(each, '?')) }], braces: [{ row: 0, start: 0, end: n - 1, label: `${total}`, side: 'top' }] };
+    return barModelProblem(skill, display, each, { structure: st, total, n, model });
+  }
+  // twoStepRemain
+  const lo = s.min || 10, hi = s.max || 300;
+  const s1 = r(lo, hi), s2 = r(lo, hi), remain = r(lo, hi), total = s1 + s2 + remain;
+  const [name] = twoNames(), items = pickFrom([['a book', 'a pen'], ['a toy', 'a snack'], ['a shirt', 'a cap'], ['lunch', 'a drink']]);
+  const display = `${name} had $${total}. ${name} spent $${s1} on ${items[0]} and $${s2} on ${items[1]}. How much money is left?`;
+  const model = { rows: [{ cells: [cell(s1, `${s1}`), cell(s2, `${s2}`), cell(remain, '?')] }], braces: [{ row: 0, start: 0, end: 2, label: `${total}`, side: 'top' }] };
+  return barModelProblem(skill, display, remain, { structure: 'twoStepRemain', total, s1, s2, model });
+}
+
 const KINDS = {
+  barModel: genBarModel,
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,

@@ -116,10 +116,59 @@ function lshape(W, H, nw, nh) {
     <text x="${x0 + pw - nwp - 5}" y="${y0 + nhp / 2}" class="d-label" text-anchor="end" dominant-baseline="middle">${nh} cm</text>`);
 }
 
+// Bar model for word problems. Driven by a data model so every problem structure
+// (part-whole, comparison, equal units, multi-step) reuses one renderer.
+//   model = { rows: [{ caption?, cells: [{ value, label, accent? }] }],
+//             braces: [{ row, start, end, label, side:'top'|'bottom' }] }
+// Bars are drawn to scale from the true values; unknown cells/braces are labelled "?".
+function barModel(m) {
+  const rows = m.rows, braces = m.braces || [];
+  const capW = rows.some((r) => r.caption) ? 50 : 6;
+  const x0 = capW, barMax = 150, rightPad = 14, rowH = 30, rowGap = 12;
+  const maxTotal = Math.max(...rows.map((r) => r.cells.reduce((s, c) => s + c.value, 0)));
+  const ppu = barMax / maxTotal;
+  const cw = (c) => Math.max(14, c.value * ppu);
+  const topBand = braces.some((b) => b.side === 'top') ? 22 : 6;
+  const botBand = braces.some((b) => b.side === 'bottom') ? 26 : 6;
+  const rowTop = (i) => topBand + i * (rowH + rowGap);
+  const W = x0 + barMax + rightPad, H = topBand + rows.length * rowH + (rows.length - 1) * rowGap + botBand;
+  let body = '';
+  rows.forEach((row, ri) => {
+    const y = rowTop(ri);
+    let x = x0;
+    if (row.caption) body += `<text x="${capW - 6}" y="${y + rowH / 2}" class="d-cap" text-anchor="end" dominant-baseline="middle">${row.caption}</text>`;
+    row.cells.forEach((c) => {
+      const w = cw(c);
+      body += `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${rowH}" class="d-cell${c.accent ? ' d-cell-accent' : ''}"/>`;
+      if (c.label) {
+        body += w >= 22
+          ? `<text x="${(x + w / 2).toFixed(1)}" y="${y + rowH / 2}" class="d-label" text-anchor="middle" dominant-baseline="middle">${c.label}</text>`
+          : `<text x="${(x + w / 2).toFixed(1)}" y="${y - 4}" class="d-label" text-anchor="middle">${c.label}</text>`;
+      }
+      x += w;
+    });
+  });
+  const cellX = (ri, ci) => x0 + rows[ri].cells.slice(0, ci).reduce((s, c) => s + cw(c), 0);
+  braces.forEach((br) => {
+    const xL = cellX(br.row, br.start), xR = cellX(br.row, br.end + 1), mid = (xL + xR) / 2;
+    if (br.side === 'bottom') {
+      const y = rowTop(br.row) + rowH + 6;
+      body += `<path d="M ${xL.toFixed(1)} ${y - 5} V ${y} H ${xR.toFixed(1)} V ${y - 5}" class="d-brace" fill="none"/>`;
+      body += `<text x="${mid.toFixed(1)}" y="${y + 15}" class="d-label" text-anchor="middle">${br.label}</text>`;
+    } else {
+      const y = rowTop(br.row) - 6;
+      body += `<path d="M ${xL.toFixed(1)} ${y + 5} V ${y} H ${xR.toFixed(1)} V ${y + 5}" class="d-brace" fill="none"/>`;
+      body += `<text x="${mid.toFixed(1)}" y="${y - 4}" class="d-label" text-anchor="middle">${br.label}</text>`;
+    }
+  });
+  return svg(W, H, 'Bar model for the word problem', body);
+}
+
 export function diagramFor(p) {
   if (!p || !p.parts) return '';
   const a = p.parts;
   switch (p.kind) {
+    case 'barModel': return barModel(a.model);
     case 'rectArea':
     case 'rectPerimeter': return rectangle(a.l, a.w);
     case 'triArea': return triangle(a.base, a.height);

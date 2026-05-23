@@ -129,6 +129,10 @@ body {
 .diagram .d-base { stroke: var(--ink-soft); stroke-width: 2; }
 .diagram .d-dot { fill: var(--brand); }
 .diagram .d-label { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.diagram .d-cell { fill: var(--brand); fill-opacity: .14; stroke: var(--brand); stroke-width: 1.6; }
+.diagram .d-cell-accent { fill: var(--brand-2); fill-opacity: .22; stroke: var(--brand-2); }
+.diagram .d-cap { fill: var(--ink-soft); font-size: 12.5px; font-weight: 600; }
+.diagram .d-brace { stroke: var(--ink-soft); stroke-width: 1.6; }
 
 /* ---- feedback ---- */
 .feedback { min-height: 28px; text-align: center; font-weight: 700; font-size: 18px; }

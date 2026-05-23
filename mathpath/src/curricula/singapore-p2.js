@@ -16,6 +16,7 @@ export default {
     { id: 'as', name: 'Addition & Subtraction', subtitle: 'Algorithms up to 3 digits' },
     { id: 'md', name: 'Multiplication & Division', subtitle: 'Tables of 2, 3, 4, 5 and 10' },
     { id: 'fr', name: 'Fractions', subtitle: 'Like fractions within one whole' },
+    { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -87,6 +88,19 @@ export default {
       example: '3/8 + 2/8 = ?/8 → 5', timeTarget: 14,
       hint: 'The denominator stays the same; just add or subtract the top numbers.',
       spec: { kind: 'fractionLike', denomRange: [3, 12] } },
+
+    // --- Word problems (bar model diagram + worded prompt) ---
+    { id: 'sg-p2-wp-compare', group: 'wp', code: 'WP +/−', name: 'Word problem: comparing two quantities',
+      objective: 'compare two quantities (more/fewer) using the model method',
+      example: 'Ben has 8 more than Mei (24) → 32', timeTarget: 38,
+      hint: 'Draw two bars one above the other; the longer one is bigger by the difference.',
+      spec: { kind: 'barModel', structure: 'compare', min: 5, max: 60, dMin: 3, dMax: 25 } },
+
+    { id: 'sg-p2-wp-units', group: 'wp', code: 'WP ×', name: 'Word problem: equal groups',
+      objective: 'multiply equal groups using the model method',
+      example: '4 bags × 5 marbles → 20', timeTarget: 34,
+      hint: 'Each equal bar is one group — there are as many bars as groups.',
+      spec: { kind: 'barModel', structure: 'unitsTotal', nMax: 5, eachMax: 10 } },
   ],
 
   // In the P2 syllabus but needing item types beyond a single-integer answer.
@@ -98,6 +112,6 @@ export default {
     'Measurement: length, mass, volume, time (needs measurement items)',
     'Geometry: 2D/3D shapes, lines and curves (needs shape item)',
     'Statistics: picture graphs with scales (needs chart item)',
-    '2- and 3-step word problems (needs word-problem / bar-model item)',
+    'Multi-step (2–3 step) word problems (single-step bar models now drillable)',
   ],
 };

@@ -19,6 +19,7 @@ export default {
     { id: 'wn', name: 'Whole Numbers', subtitle: 'Numbers up to 100' },
     { id: 'as', name: 'Addition & Subtraction', subtitle: 'Within 100 (mental within 20)' },
     { id: 'md', name: 'Multiplication & Division', subtitle: 'Multiply within 40, divide within 20' },
+    { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -101,10 +102,22 @@ export default {
       example: '18 ÷ 3 = 6', timeTarget: 14,
       hint: 'How many groups of the second number fit into the first?',
       spec: { kind: 'div', divisorRange: [2, 5], quotientRange: [2, 4], maxDividend: 20 } },
+
+    // --- Word problems (bar model diagram + worded prompt) ---
+    { id: 'sg-p1-wp-total', group: 'wp', code: 'WP +', name: 'Word problem: find the total',
+      objective: 'add to find the whole, using the model method',
+      example: '13 red + 8 blue → 21', timeTarget: 30,
+      hint: 'The two parts join to make the whole — add them.',
+      spec: { kind: 'barModel', structure: 'partWhole', min: 3, max: 20 } },
+
+    { id: 'sg-p1-wp-part', group: 'wp', code: 'WP −', name: 'Word problem: find the missing part',
+      objective: 'subtract to find a missing part, using the model method',
+      example: '30 total, 18 boys → 12 girls', timeTarget: 32,
+      hint: 'Take the known part away from the whole to find the other part.',
+      spec: { kind: 'barModel', structure: 'missingPart', wholeMin: 12, wholeMax: 40 } },
   ],
 
-  // Officially in P1 but needing item types beyond a single-integer answer (next frontier:
-  // pictorial / word-problem / bar-model items).
+  // Officially in P1 but needing item types beyond a single-integer answer.
   pending: [
     'WN 1.1 counting objects (needs pictorial item)',
     'WN 1.3 reading & writing numbers in words (needs text item)',
@@ -113,6 +126,5 @@ export default {
     'Measurement: length & time (needs measurement items)',
     'Geometry: 2D shapes (needs shape item)',
     'Statistics: picture graphs (needs chart item)',
-    '1- and 2-step word problems within 20 (needs word-problem / bar-model item)',
   ],
 };
