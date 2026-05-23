@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, Sparkles } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -91,6 +91,15 @@ export default function DashboardPage() {
               </button>
             </>
           )}
+
+          <button
+            onClick={() => navigate('/worksheets')}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+          >
+            <Sparkles className="w-8 h-8 text-purple-600 mb-2" />
+            <h3 className="font-semibold text-gray-900">Worksheet Generator</h3>
+            <p className="text-sm text-gray-600">Practice from marked work</p>
+          </button>
 
           <button
             onClick={() => navigate('/messages')}

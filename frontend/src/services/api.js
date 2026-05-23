@@ -15,6 +15,15 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // For file uploads, drop the JSON content-type so the browser sets the
+  // correct multipart/form-data boundary.
+  if (config.data instanceof FormData) {
+    if (config.headers && typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type');
+    } else if (config.headers) {
+      delete config.headers['Content-Type'];
+    }
+  }
   return config;
 });
 
@@ -81,6 +90,14 @@ export const messagesAPI = {
   sendMessage: (data) => api.post('/messages', data),
   editMessage: (id, data) => api.put(`/messages/${id}`, data),
   deleteMessage: (id) => api.delete(`/messages/${id}`)
+};
+
+// Worksheets API (math misconception practice generator)
+export const worksheetsAPI = {
+  generate: (formData) => api.post('/worksheets/generate', formData),
+  list: () => api.get('/worksheets'),
+  get: (id) => api.get(`/worksheets/${id}`),
+  remove: (id) => api.delete(`/worksheets/${id}`)
 };
 
 // Reviews API
