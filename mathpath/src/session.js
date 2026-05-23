@@ -8,7 +8,7 @@
 import {
   QUESTIONS_PER_SESSION, MASTERY_ACCURACY, SPEED_GRACE, getSkill,
 } from './curriculum.js';
-import { generateProblem } from './generator.js';
+import { generateProblem, checkAnswer } from './generator.js';
 
 export const MAX_ATTEMPTS = 2;
 
@@ -39,7 +39,7 @@ export function nextQuestion(session) {
 
 // value: the learner's typed number. Returns the UI's next move.
 export function submitAnswer(session, value) {
-  const correct = Number(value) === session.current.answer;
+  const correct = checkAnswer(value, session.current);
   session.attempts += 1;
 
   if (correct) {

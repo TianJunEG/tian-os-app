@@ -136,19 +136,25 @@ function genMissing(skill) {
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 function genPlaceValue(skill) {
   const s = skill.spec;
+  if (s.tenThousands) {
+    const tenThousands = randInt(1, 9), thousands = randInt(0, 9), hundreds = randInt(0, 9), tens = randInt(0, 9), ones = randInt(0, 9);
+    const display = `${plural(tenThousands, 'ten thousand')}, ${plural(thousands, 'thousand')}, ${plural(hundreds, 'hundred')}, ${plural(tens, 'ten')} and ${plural(ones, 'one')} =`;
+    const value = tenThousands * 10000 + thousands * 1000 + hundreds * 100 + tens * 10 + ones;
+    return problem(skill, display, value, 'placeValue', { tenThousands, thousands, hundreds, tens, ones });
+  }
   if (s.thousands) {
     const thousands = randInt(1, 9), hundreds = randInt(0, 9), tens = randInt(0, 9), ones = randInt(0, 9);
     const display = `${plural(thousands, 'thousand')}, ${plural(hundreds, 'hundred')}, ${plural(tens, 'ten')} and ${plural(ones, 'one')} =`;
-    return problem(skill, display, thousands * 1000 + hundreds * 100 + tens * 10 + ones, 'placeValue', { thousands, hundreds, tens, ones });
+    return problem(skill, display, thousands * 1000 + hundreds * 100 + tens * 10 + ones, 'placeValue', { tenThousands: 0, thousands, hundreds, tens, ones });
   }
   const tens = randInt(s.hundreds ? 0 : 1, 9);
   const ones = randInt(0, 9);
   if (s.hundreds) {
     const hundreds = randInt(1, 9);
     const display = `${plural(hundreds, 'hundred')}, ${plural(tens, 'ten')} and ${plural(ones, 'one')} =`;
-    return problem(skill, display, hundreds * 100 + tens * 10 + ones, 'placeValue', { thousands: 0, hundreds, tens, ones });
+    return problem(skill, display, hundreds * 100 + tens * 10 + ones, 'placeValue', { tenThousands: 0, thousands: 0, hundreds, tens, ones });
   }
-  return problem(skill, `${plural(tens, 'ten')} and ${plural(ones, 'one')} =`, tens * 10 + ones, 'placeValue', { thousands: 0, hundreds: 0, tens, ones });
+  return problem(skill, `${plural(tens, 'ten')} and ${plural(ones, 'one')} =`, tens * 10 + ones, 'placeValue', { tenThousands: 0, thousands: 0, hundreds: 0, tens, ones });
 }
 
 // Odd / even: "Next even number after 23"
@@ -257,14 +263,178 @@ function genFractionRelated(skill) {
   return problem(skill, `1/2 ${PLUS} 1/4 = ?/4`, 3, 'fractionRelated', { a: 1, d1: 2, b: 1, d2: 4, op: '+' });
 }
 
+// ---------- Primary 4 ----------
+
+const gcd = (a, b) => { while (b) { [a, b] = [b, a % b]; } return a; };
+const lcm = (a, b) => (a / gcd(a, b)) * b;
+const dround = (x, p = 3) => Math.round(x * 10 ** p) / 10 ** p;
+const fmt = (x) => String(dround(x, 3)); // tidy decimal for display (no trailing zeros)
+function decProblem(skill, display, answer, kind, parts) {
+  const p = problem(skill, display, dround(answer, 3), kind, parts);
+  p.decimal = true; // tells the UI to allow a decimal point and grade with tolerance
+  return p;
+}
+
+// Rounding whole numbers: "Round 3847 to the nearest 100" → 3800
+function genRoundInt(skill) {
+  const s = skill.spec;
+  const unit = pickFrom(s.unitSet);
+  const n = randInt(s.range[0], s.range[1]);
+  return problem(skill, `Round ${n} to the nearest ${unit}`, Math.round(n / unit) * unit, 'roundInt', { n, unit });
+}
+
+// Greatest common factor: "Greatest common factor of 24 and 36" → 12
+function genHcf(skill) {
+  for (let t = 0; t < 300; t++) {
+    const g = randInt(2, 9);
+    const x = g * randInt(2, Math.floor(100 / g));
+    const y = g * randInt(2, Math.floor(100 / g));
+    if (x === y) continue;
+    return problem(skill, `Greatest common factor of ${x} and ${y}`, gcd(x, y), 'hcf', { x, y });
+  }
+  return problem(skill, `Greatest common factor of 12 and 18`, 6, 'hcf', { x: 12, y: 18 });
+}
+
+// Lowest common multiple of two 1-digit numbers: "Lowest common multiple of 4 and 6" → 12
+function genLcm(skill) {
+  for (let t = 0; t < 300; t++) {
+    const a = randInt(2, 9), b = randInt(2, 9);
+    if (a === b) continue;
+    return problem(skill, `Lowest common multiple of ${a} and ${b}`, lcm(a, b), 'lcm', { a, b });
+  }
+  return problem(skill, `Lowest common multiple of 4 and 6`, 12, 'lcm', { a: 4, b: 6 });
+}
+
+// Mixed number → improper fraction: "2 1/3 = ?/3" → 7
+function genMixedToImproper(skill) {
+  const maxDenom = skill.spec.maxDenom || 12;
+  const d = randInt(2, maxDenom);
+  const whole = randInt(1, 5);
+  const num = randInt(1, d - 1);
+  return problem(skill, `${whole} ${num}/${d} = ?/${d}`, whole * d + num, 'mixedToImproper', { whole, num, d });
+}
+
+// Fraction of a set: "3/4 of 20 =" → 15
+function genFractionOfSet(skill) {
+  for (let t = 0; t < 300; t++) {
+    const d = randInt(2, 9);
+    const set = d * randInt(2, Math.floor(100 / d));
+    const a = randInt(1, d - 1);
+    return problem(skill, `${a}/${d} of ${set} =`, (set / d) * a, 'fractionOfSet', { a, d, set });
+  }
+  return problem(skill, `1/2 of 10 =`, 5, 'fractionOfSet', { a: 1, d: 2, set: 10 });
+}
+
+// Add/subtract two unlike fractions (≤ 2 different denominators ≤ 12), answer over the LCD.
+// "1/3 + 1/4 = ?/12" → 7
+function genFractionUnlike(skill) {
+  const maxDenom = skill.spec.maxDenom || 12;
+  for (let t = 0; t < 500; t++) {
+    const d1 = randInt(2, maxDenom), d2 = randInt(2, maxDenom);
+    if (d1 === d2) continue;
+    const L = lcm(d1, d2);
+    const a = randInt(1, d1 - 1), b = randInt(1, d2 - 1);
+    const vA = a * (L / d1), vB = b * (L / d2);
+    const op = Math.random() < 0.5 ? '+' : '-';
+    if (op === '+') {
+      if (vA + vB > L) continue; // within one whole
+      return problem(skill, `${a}/${d1} ${PLUS} ${b}/${d2} = ?/${L}`, vA + vB, 'fractionUnlike', { a, d1, b, d2, L, op });
+    }
+    if (vA === vB) continue;
+    if (vA > vB) return problem(skill, `${a}/${d1} ${MINUS} ${b}/${d2} = ?/${L}`, vA - vB, 'fractionUnlike', { a, d1, b, d2, L, op });
+    return problem(skill, `${b}/${d2} ${MINUS} ${a}/${d1} = ?/${L}`, vB - vA, 'fractionUnlike', { a, d1, b, d2, L, op });
+  }
+  return problem(skill, `1/3 ${PLUS} 1/4 = ?/12`, 7, 'fractionUnlike', { a: 1, d1: 3, b: 1, d2: 4, L: 12, op: '+' });
+}
+
+// Decimal place value (compose): "4 tenths, 7 hundredths and 3 thousandths =" → 0.473
+function genDecimalPlaceValue(skill) {
+  let t1, h1, th, N;
+  do { t1 = randInt(0, 9); h1 = randInt(0, 9); th = randInt(0, 9); N = t1 * 100 + h1 * 10 + th; } while (N === 0);
+  const display = `${t1} tenths, ${h1} hundredths and ${th} thousandths =`;
+  return decProblem(skill, display, N / 1000, 'decimalPlaceValue', { t1, h1, th });
+}
+
+// Comparing decimals: "Which is greater: 0.7 or 0.65?" → 0.7
+function genCompareDecimal(skill) {
+  for (let t = 0; t < 300; t++) {
+    const x = randInt(1, 999) / 100, y = randInt(1, 999) / 100;
+    if (x === y) continue;
+    return decProblem(skill, `Which is greater: ${fmt(x)} or ${fmt(y)}?`, Math.max(x, y), 'compareDecimal', { x, y });
+  }
+  return decProblem(skill, `Which is greater: 0.7 or 0.65?`, 0.7, 'compareDecimal', { x: 0.7, y: 0.65 });
+}
+
+// Rounding decimals: "Round 3.467 to 1 decimal place" → 3.5
+function genRoundDecimal(skill) {
+  const value = dround(randInt(1, 9999) / 1000, 3);
+  const target = pickFrom(['whole', '1', '2']);
+  const label = target === 'whole' ? 'the nearest whole number' : `${target} decimal place${target === '1' ? '' : 's'}`;
+  const answer = target === 'whole' ? Math.round(value) : dround(value, Number(target));
+  return decProblem(skill, `Round ${fmt(value)} to ${label}`, answer, 'roundDecimal', { value, target });
+}
+
+// Add/subtract decimals up to 2 dp (computed in cents to stay exact): "12.3 + 4.05 =" → 16.35
+function genAddSubDecimal(skill) {
+  for (let t = 0; t < 300; t++) {
+    const x = randInt(10, 9000), y = randInt(10, 9000); // cents
+    const op = Math.random() < 0.5 ? '+' : '-';
+    if (op === '+') {
+      if (x + y > 9999) continue;
+      return decProblem(skill, `${fmt(x / 100)} ${PLUS} ${fmt(y / 100)} =`, (x + y) / 100, 'addSubDecimal', { x, y, op });
+    }
+    if (x <= y) continue;
+    return decProblem(skill, `${fmt(x / 100)} ${MINUS} ${fmt(y / 100)} =`, (x - y) / 100, 'addSubDecimal', { x, y, op });
+  }
+  return decProblem(skill, `1.5 ${PLUS} 2.25 =`, 3.75, 'addSubDecimal', { x: 150, y: 225, op: '+' });
+}
+
+// Multiply/divide a decimal (≤ 2 dp) by a 1-digit whole number: "1.2 × 4 =" → 4.8 ; "4.8 ÷ 4 =" → 1.2
+function genMulDivDecimal(skill) {
+  const m = randInt(2, 9);
+  if (Math.random() < 0.5) {
+    const x = randInt(10, 500) / 100; // the decimal
+    return decProblem(skill, `${fmt(x)} ${TIMES} ${m} =`, x * m, 'mulDivDecimal', { op: '*', x, m });
+  }
+  const q = randInt(10, 300) / 100; // clean quotient
+  const dividend = dround(q * m, 2);
+  return decProblem(skill, `${fmt(dividend)} ${DIVIDE} ${m} =`, q, 'mulDivDecimal', { op: '/', x: dividend, m });
+}
+
+// Express a fraction as a decimal (denominator a factor of 10 or 100): "3/4 =" → 0.75
+function genFracToDecimal(skill) {
+  const denomSet = [2, 4, 5, 10, 20, 25, 50, 100];
+  for (let t = 0; t < 300; t++) {
+    const d = pickFrom(denomSet);
+    const a = randInt(1, d - 1);
+    if (a / d >= 1) continue;
+    return decProblem(skill, `${a}/${d} =`, a / d, 'fracToDecimal', { a, d });
+  }
+  return decProblem(skill, `3/4 =`, 0.75, 'fracToDecimal', { a: 3, d: 4 });
+}
+
 const KINDS = {
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,
   divRemainder: genDivRemainder, fractionEquiv: genFractionEquiv, fractionRelated: genFractionRelated,
+  roundInt: genRoundInt, hcf: genHcf, lcm: genLcm,
+  mixedToImproper: genMixedToImproper, fractionOfSet: genFractionOfSet, fractionUnlike: genFractionUnlike,
+  decimalPlaceValue: genDecimalPlaceValue, compareDecimal: genCompareDecimal, roundDecimal: genRoundDecimal,
+  addSubDecimal: genAddSubDecimal, mulDivDecimal: genMulDivDecimal, fracToDecimal: genFracToDecimal,
 };
 
 export function generateProblem(skill) {
   const gen = KINDS[skill.spec.kind] || genAdd;
   return gen(skill);
+}
+
+// Grade a typed answer. Integer problems need an exact match; decimal problems
+// (prob.decimal) are compared at 3 dp so "0.5" and "0.50" both pass and float
+// artefacts don't cause false negatives.
+export function checkAnswer(value, prob) {
+  const n = Number(String(value).trim());
+  if (!Number.isFinite(n)) return false;
+  if (!prob.decimal) return n === prob.answer;
+  return Math.round(n * 1000) === Math.round(prob.answer * 1000);
 }

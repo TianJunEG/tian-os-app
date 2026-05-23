@@ -5,6 +5,7 @@ import * as C from './curriculum.js';
 import * as Diag from './diagnostic.js';
 import * as S from './session.js';
 import * as Store from './storage.js';
+import { checkAnswer } from './generator.js';
 
 const app = document.getElementById('app');
 const rungIndicator = document.getElementById('rung-indicator');
@@ -67,31 +68,48 @@ function updateRung() {
 }
 
 // ---- shared answer entry (input + on-screen keypad) ----
-function answerEntryHTML() {
+// allowDecimal adds a "." key and lets the input accept one decimal point (P4+ decimals).
+function answerEntryHTML(allowDecimal) {
   const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     .map((n) => `<button class="key" data-k="${n}">${n}</button>`).join('');
+  const lastRow = allowDecimal
+    ? `<button class="key clear" data-k="back" aria-label="Backspace">⌫</button>
+       <button class="key" data-k="0">0</button>
+       <button class="key" data-k=".">.</button>
+       <button class="key enter wide" data-k="enter">Enter</button>`
+    : `<button class="key clear" data-k="back" aria-label="Backspace">⌫</button>
+       <button class="key" data-k="0">0</button>
+       <button class="key enter" data-k="enter">Enter</button>`;
   return `
-    <input id="answer" class="answer" inputmode="numeric" autocomplete="off" placeholder="?" aria-label="Your answer" />
+    <input id="answer" class="answer" inputmode="${allowDecimal ? 'decimal' : 'numeric'}" autocomplete="off" placeholder="?" aria-label="Your answer" />
     <div class="keypad">
       ${digits}
-      <button class="key clear" data-k="back" aria-label="Backspace">⌫</button>
-      <button class="key" data-k="0">0</button>
-      <button class="key enter" data-k="enter">Enter</button>
+      ${lastRow}
     </div>`;
 }
 
-function wireAnswerEntry(onSubmit) {
+function wireAnswerEntry(onSubmit, allowDecimal) {
   const input = document.getElementById('answer');
   if (!input) return;
   input.focus();
-  input.addEventListener('input', () => { input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4); });
+  const maxLen = allowDecimal ? 6 : 4;
+  const sanitize = () => {
+    let v = input.value.replace(allowDecimal ? /[^0-9.]/g : /[^0-9]/g, '');
+    if (allowDecimal) {
+      const i = v.indexOf('.');
+      if (i !== -1) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, ''); // keep only the first dot
+    }
+    input.value = v.slice(0, maxLen);
+  };
+  input.addEventListener('input', sanitize);
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); onSubmit(input.value); } });
   app.querySelectorAll('.key').forEach((btn) => {
     btn.addEventListener('click', () => {
       const k = btn.dataset.k;
       if (k === 'enter') { onSubmit(input.value); return; }
       if (k === 'back') input.value = input.value.slice(0, -1);
-      else if (input.value.length < 4) input.value += k;
+      else input.value += k;
+      sanitize();
       input.focus();
     });
   });
@@ -204,17 +222,17 @@ function renderDiagnostic() {
         <div class="qcount">Finding the right level…</div>
       </div>
       <div class="problem">${probe.problem.display}</div>
-      ${answerEntryHTML()}
+      ${answerEntryHTML(probe.problem.decimal)}
       <div class="feedback muted">Answer what you can. If it gets too hard, that's exactly the signal we need.</div>
     </section>`);
-  wireAnswerEntry(onDiagSubmit);
+  wireAnswerEntry(onDiagSubmit, probe.problem.decimal);
 }
 
 function onDiagSubmit(value) {
   if (value === '' || value == null) return;
   const d = state.diag;
   const probe = d.probes[d.idx];
-  const correct = Number(value) === probe.problem.answer;
+  const correct = checkAnswer(value, probe.problem);
   d.results.push({ skillId: probe.skill.id, correct });
   d.consec = correct ? 0 : d.consec + 1;
   d.idx += 1;
@@ -270,12 +288,12 @@ function renderDrill() {
     <section class="card stack">
       ${head}
       <div class="problem">${s.current.display}</div>
-      ${answerEntryHTML()}
+      ${answerEntryHTML(s.current.decimal)}
       ${state.hint
         ? `<div class="hint">Hint: ${state.hint}</div>`
         : '<div class="feedback muted">Type your answer, then Enter.</div>'}
     </section>`);
-  wireAnswerEntry(onDrillSubmit);
+  wireAnswerEntry(onDrillSubmit, s.current.decimal);
 }
 
 function onDrillSubmit(value) {
