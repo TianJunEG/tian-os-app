@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -10,7 +10,9 @@ import {
   FileText,
   Loader,
   Calendar,
-  CheckCircle
+  CheckCircle,
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
 import { worksheetsAPI } from '../services/api';
 import './WorksheetGeneratorPage.css';
@@ -88,6 +90,12 @@ function toDateInputValue(date) {
   return local.toISOString().slice(0, 10);
 }
 
+function scoreClass(s) {
+  if (s >= 80) return 'bg-green-100 text-green-800';
+  if (s >= 50) return 'bg-yellow-100 text-yellow-800';
+  return 'bg-red-100 text-red-800';
+}
+
 export default function WorksheetGeneratorPage() {
   const navigate = useNavigate();
 
@@ -103,12 +111,31 @@ export default function WorksheetGeneratorPage() {
   const [worksheet, setWorksheet] = useState(null);
   const [teacherView, setTeacherView] = useState(true);
   const [activeSession, setActiveSession] = useState(1);
+  const [escalatedNote, setEscalatedNote] = useState(null);
+
+  // Per-question answer entry
+  const [answerMode, setAnswerMode] = useState({}); // i -> 'type' | 'draw'
+  const [typed, setTyped] = useState({}); // i -> string
+  const [drawn, setDrawn] = useState({}); // i -> bool (canvas has strokes)
+  const [marking, setMarking] = useState(false);
+  const [reinforcing, setReinforcing] = useState(false);
+
+  const canvasRefs = useRef({});
+  const drawState = useRef({ drawing: false, x: 0, y: 0 });
 
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
     loadHistory();
   }, []);
+
+  // Reset answer entry whenever the worksheet or active session changes.
+  useEffect(() => {
+    setAnswerMode({});
+    setTyped({});
+    setDrawn({});
+    canvasRefs.current = {};
+  }, [worksheet?._id, activeSession]);
 
   const loadHistory = async () => {
     try {
@@ -158,6 +185,7 @@ export default function WorksheetGeneratorPage() {
 
       const res = await worksheetsAPI.generate(formData);
       adoptWorksheet(res.data.worksheet);
+      setEscalatedNote(res.data.escalated ? `Handwriting was unclear — read with ${res.data.modelUsed}.` : null);
       loadHistory();
     } catch (err) {
       setError(err.response?.data?.error || 'Something went wrong generating the worksheet.');
@@ -171,6 +199,7 @@ export default function WorksheetGeneratorPage() {
     try {
       const res = await worksheetsAPI.get(id);
       adoptWorksheet(res.data.worksheet);
+      setEscalatedNote(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not open that worksheet.');
@@ -199,8 +228,133 @@ export default function WorksheetGeneratorPage() {
     }
   };
 
+  // --- drawing canvas helpers ---
+  const setMode = (i, m) => setAnswerMode((prev) => ({ ...prev, [i]: m }));
+
+  const initCanvas = (el) => {
+    if (!el || el._inited) return;
+    const ctx = el.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, el.width, el.height);
+    ctx.strokeStyle = '#111827';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    el._inited = true;
+  };
+
+  const canvasPos = (el, e) => {
+    const r = el.getBoundingClientRect();
+    const t = e.touches && e.touches[0];
+    const cx = t ? t.clientX : e.clientX;
+    const cy = t ? t.clientY : e.clientY;
+    return { x: (cx - r.left) * (el.width / r.width), y: (cy - r.top) * (el.height / r.height) };
+  };
+
+  const onDown = (i, e) => {
+    const el = canvasRefs.current[i];
+    if (!el) return;
+    e.preventDefault();
+    const p = canvasPos(el, e);
+    drawState.current = { drawing: true, x: p.x, y: p.y };
+  };
+
+  const onMove = (i, e) => {
+    if (!drawState.current.drawing) return;
+    const el = canvasRefs.current[i];
+    if (!el) return;
+    e.preventDefault();
+    const p = canvasPos(el, e);
+    const ctx = el.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(drawState.current.x, drawState.current.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    drawState.current.x = p.x;
+    drawState.current.y = p.y;
+    setDrawn((prev) => (prev[i] ? prev : { ...prev, [i]: true }));
+  };
+
+  const onUp = () => {
+    drawState.current.drawing = false;
+  };
+
+  const clearCanvas = (i) => {
+    const el = canvasRefs.current[i];
+    if (!el) return;
+    const ctx = el.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, el.width, el.height);
+    ctx.strokeStyle = '#111827';
+    setDrawn((prev) => {
+      const n = { ...prev };
+      delete n[i];
+      return n;
+    });
+  };
+
+  const submitForMarking = async () => {
+    if (!activeSessionObj) return;
+    const answers = [];
+    activeSessionObj.questions.forEach((q, i) => {
+      const mode = answerMode[i] || 'type';
+      if (mode === 'draw') {
+        if (drawn[i] && canvasRefs.current[i]) {
+          answers.push({ questionIndex: i, type: 'image', imageDataUrl: canvasRefs.current[i].toDataURL('image/jpeg', 0.85) });
+        }
+      } else {
+        const t = (typed[i] || '').trim();
+        if (t) answers.push({ questionIndex: i, type: 'text', text: t });
+      }
+    });
+
+    if (answers.length === 0) {
+      setError('Write or type at least one answer first.');
+      return;
+    }
+
+    setMarking(true);
+    setError(null);
+    try {
+      const res = await worksheetsAPI.markSession(worksheet._id, activeSessionObj.sessionNumber, { answers });
+      setWorksheet(res.data.worksheet);
+      setEscalatedNote(res.data.escalated ? `Handwriting was unclear — re-read with ${res.data.modelUsed}.` : null);
+      loadHistory();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not mark the answers.');
+    } finally {
+      setMarking(false);
+    }
+  };
+
+  const handleReinforce = async () => {
+    setReinforcing(true);
+    setError(null);
+    try {
+      const res = await worksheetsAPI.reinforce(worksheet._id, { misconceptionTitles: missedTitles });
+      adoptWorksheet(res.data.worksheet);
+      setEscalatedNote(null);
+      loadHistory();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not generate targeted practice.');
+    } finally {
+      setReinforcing(false);
+    }
+  };
+
   const sessions = worksheet?.practiceSessions || [];
   const activeSessionObj = sessions.find((s) => s.sessionNumber === activeSession) || sessions[0];
+  const isMarked = !!activeSessionObj?.marked;
+  const answeredCount = activeSessionObj
+    ? activeSessionObj.questions.filter((q) => q.correct === true || q.correct === false).length
+    : 0;
+  const correctCount = activeSessionObj
+    ? activeSessionObj.questions.filter((q) => q.correct === true).length
+    : 0;
+  const missedTitles = isMarked
+    ? [...new Set(activeSessionObj.questions.filter((q) => q.correct === false).map((q) => q.targetsMisconception).filter(Boolean))]
+    : [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -220,7 +374,7 @@ export default function WorksheetGeneratorPage() {
                 Math Worksheet Generator
               </h1>
               <p className="text-gray-600 text-sm">
-                Upload marked work → diagnose the misconception → spaced practice
+                Upload marked work → diagnose → practice → auto-mark
               </p>
             </div>
           </div>
@@ -337,15 +491,20 @@ export default function WorksheetGeneratorPage() {
           <div className="space-y-4">
             {/* Controls (not printed) */}
             <div className="flex flex-wrap items-center justify-between gap-3 no-print">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={teacherView}
-                  onChange={(e) => setTeacherView(e.target.checked)}
-                  className="rounded text-purple-600 focus:ring-purple-500"
-                />
-                Teacher view (show diagnosis &amp; answers)
-              </label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={teacherView}
+                    onChange={(e) => setTeacherView(e.target.checked)}
+                    className="rounded text-purple-600 focus:ring-purple-500"
+                  />
+                  Teacher view (show diagnosis &amp; answers)
+                </label>
+                {!isMarked && (
+                  <p className="text-xs text-gray-400 mt-1">Uncheck so the student can answer in-app.</p>
+                )}
+              </div>
               {activeSessionObj && (
                 <button
                   onClick={() => window.print()}
@@ -356,6 +515,12 @@ export default function WorksheetGeneratorPage() {
                 </button>
               )}
             </div>
+
+            {escalatedNote && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800 no-print">
+                {escalatedNote}
+              </div>
+            )}
 
             {/* Diagnosis (teacher view, on-screen only) */}
             {teacherView && (
@@ -416,25 +581,25 @@ export default function WorksheetGeneratorPage() {
             {sessions.length > 0 && (
               <div className="flex flex-wrap gap-2 no-print">
                 {sessions.map((s) => {
-                  const isActive = s.sessionNumber === activeSessionObj?.sessionNumber;
+                  const active = s.sessionNumber === activeSessionObj?.sessionNumber;
                   return (
                     <button
                       key={s.sessionNumber}
                       onClick={() => setActiveSession(s.sessionNumber)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition ${
-                        isActive
+                        active
                           ? 'bg-purple-600 text-white border-purple-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-purple-400'
                       }`}
                     >
                       {s.completed ? (
-                        <CheckCircle className={`w-4 h-4 ${isActive ? 'text-white' : 'text-green-600'}`} />
+                        <CheckCircle className={`w-4 h-4 ${active ? 'text-white' : 'text-green-600'}`} />
                       ) : (
-                        <Calendar className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                        <Calendar className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-400'}`} />
                       )}
                       <span>Session {s.sessionNumber}</span>
-                      <span className={isActive ? 'text-purple-100' : 'text-gray-400'}>
-                        · {s.completed ? 'done' : relativeLabel(s.scheduledFor)}
+                      <span className={active ? 'text-purple-100' : 'text-gray-400'}>
+                        · {s.completed ? (s.score != null ? `${s.score}%` : 'done') : relativeLabel(s.scheduledFor)}
                       </span>
                     </button>
                   );
@@ -473,54 +638,158 @@ export default function WorksheetGeneratorPage() {
                 <>
                   <div className="border-b border-gray-200 pb-4 mb-4">
                     <h2 className="text-2xl font-bold text-gray-900">
-                      {worksheet.topic || 'Math Practice'} — Session {activeSessionObj.sessionNumber} of{' '}
-                      {sessions.length}
+                      {worksheet.topic || 'Math Practice'} — Session {activeSessionObj.sessionNumber} of {sessions.length}
                     </h2>
                     <p className="text-gray-500 text-sm mt-1">
                       {worksheet.studentName ? `${worksheet.studentName} • ` : ''}
                       {worksheet.gradeLevel ? `${worksheet.gradeLevel} • ` : ''}
                       Scheduled for {new Date(activeSessionObj.scheduledFor).toLocaleDateString()}
                     </p>
+                    {isMarked && (
+                      <span className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium ${scoreClass(activeSessionObj.score || 0)}`}>
+                        Score: {activeSessionObj.score}% · {correctCount}/{answeredCount} correct
+                      </span>
+                    )}
                   </div>
 
                   <ol className="space-y-5">
-                    {activeSessionObj.questions.map((q, i) => (
-                      <li key={i} className="worksheet-question">
-                        <div className="flex items-start gap-3">
-                          <span className="font-semibold text-gray-900">{i + 1}.</span>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-gray-900">{q.prompt}</p>
-                              {teacherView && q.difficulty && (
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                                    difficultyStyles[q.difficulty] || 'bg-gray-100 text-gray-700'
-                                  }`}
-                                >
-                                  {q.difficulty}
-                                </span>
-                              )}
-                            </div>
-
-                            {teacherView ? (
-                              <div className="mt-2 space-y-1">
-                                <p className="text-sm text-green-700">
-                                  <span className="font-medium">Answer:</span> {q.answer}
-                                </p>
-                                {q.workedSolution && (
-                                  <p className="text-sm text-gray-600 whitespace-pre-line">
-                                    <span className="font-medium">Solution:</span> {q.workedSolution}
-                                  </p>
+                    {activeSessionObj.questions.map((q, i) => {
+                      const mode = answerMode[i] || 'type';
+                      return (
+                        <li key={i} className="worksheet-question">
+                          <div className="flex items-start gap-3">
+                            <span className="font-semibold text-gray-900">{i + 1}.</span>
+                            <div className="flex-1">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-gray-900">{q.prompt}</p>
+                                {teacherView && q.difficulty && (
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                                      difficultyStyles[q.difficulty] || 'bg-gray-100 text-gray-700'
+                                    }`}
+                                  >
+                                    {q.difficulty}
+                                  </span>
                                 )}
                               </div>
-                            ) : (
-                              <div className="mt-3 border-b border-dashed border-gray-300 h-10" />
-                            )}
+
+                              {/* Marked result */}
+                              {isMarked && (q.correct === true || q.correct === false) && (
+                                <div className={`mt-2 rounded-lg p-2 ${q.correct ? 'bg-green-50' : 'bg-red-50'}`}>
+                                  <div className="flex items-center gap-2 text-sm">
+                                    {q.correct ? (
+                                      <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                                    ) : (
+                                      <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                                    )}
+                                    <span className={q.correct ? 'text-green-800 font-medium' : 'text-red-800 font-medium'}>
+                                      {q.correct ? 'Correct' : 'Not quite'}
+                                    </span>
+                                    {q.studentResponse && (
+                                      <span className="text-gray-500">· you wrote: {q.studentResponse}</span>
+                                    )}
+                                  </div>
+                                  {q.feedback && <p className="text-sm text-gray-700 mt-1">{q.feedback}</p>}
+                                </div>
+                              )}
+
+                              {/* Teacher answer / solution */}
+                              {teacherView && (
+                                <div className="mt-2 space-y-1">
+                                  <p className="text-sm text-green-700">
+                                    <span className="font-medium">Answer:</span> {q.answer}
+                                  </p>
+                                  {q.workedSolution && (
+                                    <p className="text-sm text-gray-600 whitespace-pre-line">
+                                      <span className="font-medium">Solution:</span> {q.workedSolution}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Student answer entry */}
+                              {!isMarked && !teacherView && (
+                                <div className="mt-3 no-print">
+                                  <div className="inline-flex rounded-lg border border-gray-300 overflow-hidden mb-2 text-xs">
+                                    <button
+                                      type="button"
+                                      onClick={() => setMode(i, 'type')}
+                                      className={`px-3 py-1 ${mode === 'type' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600'}`}
+                                    >
+                                      Type
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setMode(i, 'draw')}
+                                      className={`px-3 py-1 ${mode === 'draw' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600'}`}
+                                    >
+                                      Draw
+                                    </button>
+                                  </div>
+                                  {mode === 'type' ? (
+                                    <input
+                                      type="text"
+                                      value={typed[i] || ''}
+                                      onChange={(e) => setTyped((p) => ({ ...p, [i]: e.target.value }))}
+                                      placeholder="Your answer"
+                                      className="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    />
+                                  ) : (
+                                    <div>
+                                      <canvas
+                                        key={`canvas-${activeSessionObj.sessionNumber}-${i}`}
+                                        ref={(el) => {
+                                          canvasRefs.current[i] = el;
+                                          initCanvas(el);
+                                        }}
+                                        width={700}
+                                        height={140}
+                                        onMouseDown={(e) => onDown(i, e)}
+                                        onMouseMove={(e) => onMove(i, e)}
+                                        onMouseUp={onUp}
+                                        onMouseLeave={onUp}
+                                        onTouchStart={(e) => onDown(i, e)}
+                                        onTouchMove={(e) => onMove(i, e)}
+                                        onTouchEnd={onUp}
+                                        className="w-full border border-gray-300 rounded bg-white"
+                                        style={{ touchAction: 'none', maxWidth: '100%' }}
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => clearCanvas(i)}
+                                        className="text-xs text-gray-500 mt-1 hover:text-gray-700"
+                                      >
+                                        Clear
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </li>
-                    ))}
+                        </li>
+                      );
+                    })}
                   </ol>
+
+                  {!isMarked && !teacherView && (
+                    <div className="mt-6 no-print">
+                      <button
+                        onClick={submitForMarking}
+                        disabled={marking}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition font-medium"
+                      >
+                        {marking ? (
+                          <>
+                            <Loader className="w-5 h-5 animate-spin" />
+                            Marking…
+                          </>
+                        ) : (
+                          'Submit for marking'
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
@@ -532,6 +801,33 @@ export default function WorksheetGeneratorPage() {
                 </div>
               )}
             </div>
+
+            {/* Close the loop: reinforce on missed misconceptions */}
+            {isMarked && activeSessionObj && (
+              <div className="no-print">
+                {missedTitles.length > 0 ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-amber-900">Missed: {missedTitles.join(', ')}</p>
+                      <p className="text-sm text-amber-700">Generate a fresh spaced plan targeting just these.</p>
+                    </div>
+                    <button
+                      onClick={handleReinforce}
+                      disabled={reinforcing}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition text-sm font-medium"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${reinforcing ? 'animate-spin' : ''}`} />
+                      {reinforcing ? 'Generating…' : 'Generate targeted practice'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-2 text-green-800 text-sm">
+                    <CheckCircle className="w-5 h-5" />
+                    All answered questions correct — great work!
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
