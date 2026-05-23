@@ -25,7 +25,8 @@ const spellingAttemptSchema = new mongoose.Schema({
       'wordsearch',
       'crossword',
       'surprise',
-      'misspelt'
+      'misspelt',
+      'revision'
     ],
     default: 'mock'
   },

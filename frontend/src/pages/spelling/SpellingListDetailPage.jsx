@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Volume2, Mic, Shuffle, Eraser, Eye, Grid, LayoutGrid,
-  Pencil, Share2, Lock, ListChecks, ArrowLeft
+  Pencil, Share2, Lock, ListChecks, ArrowLeft, Star
 } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
@@ -35,6 +35,7 @@ export default function SpellingListDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [active, setActive] = useState(null); // activity key or 'words'
+  const [masteredSet, setMasteredSet] = useState(new Set());
 
   useEffect(() => {
     spellingAPI
@@ -46,6 +47,14 @@ export default function SpellingListDetailPage() {
       .catch((e) => setError(e.response?.data?.error || 'Could not load this list.'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Best-effort: highlight words the student has already mastered.
+  useEffect(() => {
+    spellingAPI
+      .getStats()
+      .then((r) => setMasteredSet(new Set((r.data.masteredWords || []).map((w) => w.toLowerCase()))))
+      .catch(() => {});
+  }, [active]);
 
   const words = useMemo(() => list?.words || [], [list]);
 
@@ -144,7 +153,12 @@ export default function SpellingListDetailPage() {
                     <li key={i} className="flex items-baseline gap-3 py-2 border-b border-gray-50">
                       <span className="text-gray-400 text-sm w-5 text-right">{i + 1}</span>
                       <div className="flex-1">
-                        <span className="font-medium text-gray-900">{w.word}</span>
+                        <span className="font-medium text-gray-900 inline-flex items-center gap-1">
+                          {w.word}
+                          {masteredSet.has(w.word.toLowerCase()) && (
+                            <Star className="w-3.5 h-3.5 fill-green-500 text-green-500" title="Mastered" />
+                          )}
+                        </span>
                         {w.sentence && <p className="text-sm text-gray-600">{w.sentence}</p>}
                         {w.definition && <p className="text-sm text-gray-400">{w.definition}</p>}
                       </div>

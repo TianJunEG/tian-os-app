@@ -21,6 +21,8 @@ import SpellingListDetailPage from './pages/spelling/SpellingListDetailPage';
 import SpellingLibraryPage from './pages/spelling/SpellingLibraryPage';
 import MisspeltWordsPage from './pages/spelling/MisspeltWordsPage';
 import SurpriseSpellingPage from './pages/spelling/SurpriseSpellingPage';
+import SpellingRevisionPage from './pages/spelling/SpellingRevisionPage';
+import SpellingProgressPage from './pages/spelling/SpellingProgressPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -206,6 +208,8 @@ function App() {
           <Route path="/spelling/library" element={<ProtectedRoute><SpellingLibraryPage /></ProtectedRoute>} />
           <Route path="/spelling/misspelt" element={<ProtectedRoute><MisspeltWordsPage /></ProtectedRoute>} />
           <Route path="/spelling/surprise" element={<ProtectedRoute><SurpriseSpellingPage /></ProtectedRoute>} />
+          <Route path="/spelling/revision" element={<ProtectedRoute><SpellingRevisionPage /></ProtectedRoute>} />
+          <Route path="/spelling/progress" element={<ProtectedRoute><SpellingProgressPage /></ProtectedRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />

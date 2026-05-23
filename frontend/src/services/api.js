@@ -95,6 +95,7 @@ export const spellingAPI = {
   getLibrary: (params) => api.get('/spelling/library', { params }),
   getMisspelt: (params) => api.get('/spelling/misspelt', { params }),
   getSurprise: (params) => api.get('/spelling/surprise', { params }),
+  getRevision: (params) => api.get('/spelling/revision', { params }),
   getStats: () => api.get('/spelling/stats'),
   recordAttempts: (data) => api.post('/spelling/attempts', data),
   // Uses native fetch so the browser sets the multipart boundary correctly.

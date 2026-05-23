@@ -7,7 +7,10 @@ import {
   Sparkles,
   AlertTriangle,
   Plus,
-  TrendingUp
+  TrendingUp,
+  Target,
+  BarChart3,
+  ChevronRight
 } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
@@ -42,23 +45,25 @@ export default function SpellingHomePage() {
       <SpellingHeader title="Spelling" subtitle={`Hi ${user?.name || 'there'}!`} backTo="/dashboard" />
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {stats && stats.total > 0 && (
-          <div className="mb-6 p-4 bg-white rounded-xl shadow-sm flex flex-wrap items-center gap-6">
+          <button
+            onClick={() => navigate('/spelling/progress')}
+            className="w-full mb-6 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition flex flex-wrap items-center gap-6 text-left"
+          >
             <div className="flex items-center gap-2 text-gray-700">
               <TrendingUp className="w-5 h-5 text-purple-600" />
               <span className="font-semibold">{stats.accuracy}%</span> accuracy
             </div>
             <div className="text-sm text-gray-500">{stats.total} words practised</div>
-            {stats.trickyWords?.length > 0 && (
+            {stats.mastery && (
               <div className="text-sm text-gray-500">
-                Tricky words:{' '}
-                {stats.trickyWords.slice(0, 5).map((w) => (
-                  <span key={w.word} className="font-medium text-gray-700">
-                    {w.word}{' '}
-                  </span>
-                ))}
+                <span className="text-green-600 font-medium">{stats.mastery.mastered}</span> mastered ·{' '}
+                <span className="text-rose-500 font-medium">{stats.mastery.weak}</span> to revise
               </div>
             )}
-          </div>
+            <span className="ml-auto text-sm text-purple-600 inline-flex items-center gap-1">
+              View progress <ChevronRight className="w-4 h-4" />
+            </span>
+          </button>
         )}
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -93,9 +98,23 @@ export default function SpellingHomePage() {
           <Tile
             icon={Sparkles}
             title="Surprise spelling"
-            desc="Random words from your lists"
+            desc="Random words, weighted to tricky ones"
             color="bg-pink-500"
             onClick={() => navigate('/spelling/surprise')}
+          />
+          <Tile
+            icon={Target}
+            title="Revise tricky words"
+            desc={stats?.mastery?.weak ? `${stats.mastery.weak} word(s) to revise` : 'Practise words you missed'}
+            color="bg-rose-500"
+            onClick={() => navigate('/spelling/revision')}
+          />
+          <Tile
+            icon={BarChart3}
+            title="My progress"
+            desc={stats?.mastery ? `${stats.mastery.mastered} mastered` : 'Accuracy & mastery'}
+            color="bg-teal-600"
+            onClick={() => navigate('/spelling/progress')}
           />
           <Tile
             icon={Upload}

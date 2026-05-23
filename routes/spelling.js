@@ -6,6 +6,7 @@ import SpellingList from '../models/SpellingList.js';
 import SpellingAttempt from '../models/SpellingAttempt.js';
 import { protect } from '../middleware/auth.js';
 import { extractWordsFromFile } from '../utils/spellingExtract.js';
+import { computeWordStats, byRevisionPriority } from '../utils/spellingStats.js';
 import misspeltWords from '../data/misspeltWords.js';
 
 const router = express.Router();
@@ -118,26 +119,34 @@ router.get('/misspelt', (req, res) => {
 });
 
 // @route   GET /api/spelling/surprise
-// @desc    Pull a random selection of words from the user's previous lists
+// @desc    Pull a random selection of words from the user's lists, weighted
+//          toward words they find tricky (more misses => more likely).
 // @access  Private
 router.get('/surprise', async (req, res) => {
   try {
     const count = Math.min(Math.max(parseInt(req.query.count, 10) || 10, 1), 50);
-    const lists = await SpellingList.find({ owner: req.user.id }).select('title words');
+    const [lists, attempts] = await Promise.all([
+      SpellingList.find({ owner: req.user.id }).select('title words'),
+      SpellingAttempt.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(2000)
+    ]);
+    const stats = computeWordStats(attempts);
 
-    // Flatten every word across the user's lists, tagging its source list.
+    // Flatten every word across the user's lists, weighting by past misses.
     const pool = [];
     for (const list of lists) {
       for (const w of list.words) {
-        if (w.word) {
-          pool.push({
-            word: w.word,
-            sentence: w.sentence || '',
-            definition: w.definition || '',
-            listTitle: list.title,
-            listId: list._id
-          });
-        }
+        if (!w.word) continue;
+        const s = stats.get(w.word.toLowerCase());
+        let weight = 1 + (s ? s.misses * 2 : 0);
+        if (s && s.mastered) weight *= 0.4; // de-prioritise mastered words
+        pool.push({
+          word: w.word,
+          sentence: w.sentence || '',
+          definition: w.definition || '',
+          listTitle: list.title,
+          listId: list._id,
+          weight: Math.max(weight, 0.1)
+        });
       }
     }
 
@@ -145,13 +154,67 @@ router.get('/surprise', async (req, res) => {
       return res.json({ success: true, words: [], message: 'No words yet. Create a list first!' });
     }
 
-    // Fisher-Yates shuffle, then take the requested count.
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
+    // Weighted sampling without replacement.
+    const items = pool.slice();
+    const picked = [];
+    const n = Math.min(count, items.length);
+    for (let k = 0; k < n; k++) {
+      const totalW = items.reduce((sum, it) => sum + it.weight, 0);
+      let r = Math.random() * totalW;
+      let idx = 0;
+      for (; idx < items.length - 1; idx++) {
+        r -= items[idx].weight;
+        if (r <= 0) break;
+      }
+      picked.push(items.splice(idx, 1)[0]);
     }
 
-    res.json({ success: true, words: pool.slice(0, count), poolSize: pool.length });
+    res.json({ success: true, words: picked.map(({ weight, ...w }) => w), poolSize: pool.length });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// @route   GET /api/spelling/revision
+// @desc    Words the student should revise (attempted, missed, not yet
+//          mastered), joined with list data so they carry sentence/definition.
+// @access  Private
+router.get('/revision', async (req, res) => {
+  try {
+    const count = Math.min(Math.max(parseInt(req.query.count, 10) || 15, 1), 50);
+    const attempts = await SpellingAttempt.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(2000);
+    const weak = [...computeWordStats(attempts).values()].filter((s) => s.weak).sort(byRevisionPriority);
+
+    if (weak.length === 0) {
+      return res.json({ success: true, words: [], message: 'No words need revision right now.' });
+    }
+
+    // Recover sentence/definition from the user's lists where available.
+    const lists = await SpellingList.find({ owner: req.user.id }).select('title words');
+    const info = new Map();
+    for (const list of lists) {
+      for (const w of list.words) {
+        if (!w.word) continue;
+        const key = w.word.toLowerCase();
+        const existing = info.get(key);
+        if (!existing || (!existing.sentence && w.sentence)) {
+          info.set(key, { sentence: w.sentence || '', definition: w.definition || '', listTitle: list.title });
+        }
+      }
+    }
+
+    const words = weak.slice(0, count).map((s) => {
+      const extra = info.get(s.word.toLowerCase()) || {};
+      return {
+        word: s.word,
+        sentence: extra.sentence || '',
+        definition: extra.definition || '',
+        misses: s.misses,
+        listTitle: extra.listTitle || null
+      };
+    });
+
+    res.json({ success: true, words, weakCount: weak.length });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -164,30 +227,30 @@ router.get('/stats', async (req, res) => {
   try {
     const attempts = await SpellingAttempt.find({ user: req.user.id })
       .sort({ createdAt: -1 })
-      .limit(500);
+      .limit(2000);
 
     const total = attempts.length;
     const correct = attempts.filter((a) => a.correct).length;
 
-    // Words most often spelt wrong, for targeted revision.
-    const wrongCounts = {};
-    for (const a of attempts) {
-      if (!a.correct && a.word) {
-        const key = a.word.toLowerCase();
-        wrongCounts[key] = (wrongCounts[key] || 0) + 1;
-      }
-    }
-    const trickyWords = Object.entries(wrongCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([word, misses]) => ({ word, misses }));
+    const all = [...computeWordStats(attempts).values()];
+    const masteredWords = all.filter((s) => s.mastered).map((s) => s.word);
+    const weakWords = all
+      .filter((s) => s.weak)
+      .sort(byRevisionPriority)
+      .map((s) => ({ word: s.word, misses: s.misses }));
+    const learning = all.filter((s) => !s.mastered && !s.weak).length;
 
     res.json({
       success: true,
       total,
       correct,
       accuracy: total ? Math.round((correct / total) * 100) : 0,
-      trickyWords
+      uniqueWords: all.length,
+      mastery: { mastered: masteredWords.length, learning, weak: weakWords.length },
+      masteredWords,
+      weakWords,
+      // Kept for backward compatibility with the home screen.
+      trickyWords: weakWords.slice(0, 10)
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
