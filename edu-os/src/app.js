@@ -4,6 +4,7 @@ import * as S from './store.js';
 import * as U from './ui.js';
 import { icon } from './icons.js';
 import { SUBJECTS, topicsOf } from './data.js';
+import { sourceForSubject } from './learning.js';
 import * as parent from './roles/parent.js';
 import * as student from './roles/student.js';
 import * as tutor from './roles/tutor.js';
@@ -136,6 +137,7 @@ document.addEventListener('click', (e) => {
     case 'advance-lead': S.advanceLead(d.lead); U.toast('Lead updated'); render(); break;
     case 'resolve-ticket': S.resolveTicket(d.ticket); U.toast('Ticket resolved'); render(); break;
     case 'close-sheet': U.closeSheet(); break;
+    case 'app-soon': U.toast(`${d.app} plugs in here once its app is added`); break;
     case 'soon': U.toast('Prototype — not wired yet'); break;
     default: break;
   }
@@ -192,8 +194,12 @@ function openWorksheet(worksheetId) {
   const w = S.db().worksheets.find((x) => x.id === worksheetId);
   const subjectId = w.topicId.split('-')[0];
   const t = topicsOf(subjectId).find((x) => x.id === w.topicId) || {};
-  U.openSheet(`<h3>${w.type} worksheet</h3><p class="sm muted" style="margin:4px 0 14px">${U.esc(t.name || 'Topic practice')} · adaptive difficulty, powered by MathPath. Your results sync straight back here.</p>
-    <a class="btn primary block" href="/mathpath/?student=${w.studentId}&subject=${subjectId}&topic=${w.topicId}&return=/" target="_blank" rel="noopener">${icon('play')} Practise in MathPath</a>
+  const src = sourceForSubject(subjectId);
+  const launch = src && src.live
+    ? `<a class="btn primary block" href="${src.path}?student=${w.studentId}&subject=${subjectId}&topic=${w.topicId}&return=/" target="_blank" rel="noopener">${icon('play')} Practise in ${src.label}</a>`
+    : `<button class="btn block" data-act="app-soon" data-app="${src ? src.label : 'A companion app'}">${icon('play')} ${src ? `${src.label} — coming soon` : 'No companion app yet'}</button>`;
+  U.openSheet(`<h3>${w.type} worksheet</h3><p class="sm muted" style="margin:4px 0 14px">${U.esc(t.name || 'Topic practice')} · adaptive difficulty${src && src.live ? `, powered by ${src.label}. Your results sync straight back here.` : '.'}</p>
+    ${launch}
     <button class="btn ghost block" style="margin-top:8px" data-act="complete-worksheet" data-worksheet="${worksheetId}">Mark complete (demo)</button>`);
 }
 

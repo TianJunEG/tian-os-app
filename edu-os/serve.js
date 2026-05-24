@@ -8,7 +8,9 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
-const MATHPATH = join(ROOT, '..', 'mathpath'); // served same-origin under /mathpath so the two apps share storage
+// Companion learning apps served same-origin (under /<app>/) so they share the learning event
+// log. Drop a sibling folder named like these and it mounts automatically.
+const APPS = new Set(['mathpath', 'spelling', 'science']);
 const PORT = process.env.PORT || 8090;
 
 const TYPES = {
@@ -26,10 +28,12 @@ const server = http.createServer(async (req, res) => {
     let rel = normalize(url).replace(/^(\.\.[/\\])+/, ''); // block path traversal
     if (rel === '/' || rel === '\\') rel = '/index.html';
     let file;
-    if (rel === '/mathpath' || rel.startsWith('/mathpath/')) {
-      const sub = rel.replace(/^\/mathpath\/?/, '') || 'index.html';
-      file = join(MATHPATH, sub);
-      if (!file.startsWith(MATHPATH)) { res.writeHead(403); res.end('Forbidden'); return; }
+    const app = rel.split('/')[1];
+    if (APPS.has(app)) {
+      const base = join(ROOT, '..', app);
+      const sub = rel.slice(app.length + 1).replace(/^\//, '') || 'index.html';
+      file = join(base, sub);
+      if (!file.startsWith(base)) { res.writeHead(403); res.end('Forbidden'); return; }
     } else {
       file = join(ROOT, rel);
       if (!file.startsWith(ROOT)) { res.writeHead(403); res.end('Forbidden'); return; }

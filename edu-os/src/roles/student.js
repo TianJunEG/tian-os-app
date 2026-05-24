@@ -4,6 +4,16 @@ import * as AI from '../ai.js';
 import * as U from '../ui.js';
 import { icon } from '../icons.js';
 import { topicsOf } from '../data.js';
+import { sourceForSubject } from '../learning.js';
+
+// Route a subject to its companion learning app: live app → launch link; declared-but-not-built
+// → "coming soon" slot; none → nothing.
+function practiseCTA(me, subjectId, topicId = '') {
+  const src = sourceForSubject(subjectId); const su = S.subject(subjectId);
+  if (!src) return '';
+  if (!src.live) return `<button class="btn block" data-act="app-soon" data-app="${src.label}">${icon('play')} ${src.label} <span class="badge b-mute" style="margin-left:6px">coming soon</span></button>`;
+  return `<a class="btn primary block" href="${src.path}?student=${me.id}&subject=${subjectId}${topicId ? `&topic=${topicId}` : ''}&return=/" target="_blank" rel="noopener">${icon('play')} Practise ${su.name} in ${src.label}</a>`;
+}
 
 export const nav = [
   { id: 'home', label: 'Today', icon: 'home' },
@@ -114,7 +124,7 @@ function subjectMap(me, subjectId) {
 
     ${aiWorksheets(me, subjectId)}
 
-    <a class="btn primary block" href="/mathpath/?student=${me.id}&subject=${subjectId}&return=/" target="_blank" rel="noopener">${icon('play')} Practise ${su.name} in MathPath</a>
+    ${practiseCTA(me, subjectId)}
 
     ${tutorSupport(me, subjectId)}
   </div>`;
