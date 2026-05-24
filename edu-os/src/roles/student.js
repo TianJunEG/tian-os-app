@@ -14,6 +14,7 @@ export const nav = [
 
 export function render(tab, param) {
   const me = S.student(S.user().id);
+  if (!me) return '<div class="card">No student profile for this session.</div>';
   if (tab === 'subjects') return param ? subjectMap(me, param) : subjects(me);
   if (tab === 'planner') return planner(me);
   if (tab === 'progress') return progress(me);

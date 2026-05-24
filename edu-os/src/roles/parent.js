@@ -14,6 +14,7 @@ export const nav = [
 
 export function render(tab, param) {
   const p = S.parent(S.user().id);
+  if (!p) return '<div class="card">No parent profile for this session.</div>';
   if (tab === 'children') return param ? childDetail(param) : children(p);
   if (tab === 'tutors') return tutors(p);
   if (tab === 'billing') return billing(p);

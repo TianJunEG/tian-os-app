@@ -14,6 +14,7 @@ export const nav = [
 
 export function render(tab, param) {
   const t = S.tutor(S.user().id);
+  if (!t) return '<div class="card">No tutor profile for this session.</div>';
   if (tab === 'students') return param ? studentDetail(t, param) : students(t);
   if (tab === 'insights') return insights(t);
   if (tab === 'earnings') return earnings(t);
