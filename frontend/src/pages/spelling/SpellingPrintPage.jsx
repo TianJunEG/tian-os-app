@@ -152,6 +152,14 @@ export default function SpellingPrintPage() {
   }, [id]);
 
   const words = list?.words || [];
+  const lang = list?.language || 'en';
+  // Word search relies on the Latin alphabet, so it isn't offered for Chinese.
+  const types = lang === 'zh' ? TYPES.filter((t) => t.key !== 'wordsearch') : TYPES;
+
+  useEffect(() => {
+    if (lang === 'zh' && type === 'wordsearch') setType('test');
+  }, [lang, type]);
+
   const wordSearch = useMemo(
     () => generateWordSearch(words.map((w) => w.word)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -179,7 +187,7 @@ export default function SpellingPrintPage() {
           </button>
 
           <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            {TYPES.map((t) => (
+            {types.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setType(t.key)}
