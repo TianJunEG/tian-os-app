@@ -891,7 +891,7 @@ function gH3(lv){const n=lv.n;
       hint:`Double the first row (6 shorts + 4 tops), then subtract the second to leave shorts.`,sol:`2 × first = 6 shorts + 4 tops = ${money(2*X)}; minus second → 1 short = $${2*X-Y}; 1 top = (${money(X)} − 3 × $${2*X-Y}) ÷ 2 = ${money(tp)}.`};}
   if(n===5){const rl=rint(2,6),pn=pick([1.5,2,2.5,3]),X=2*rl+3*pn,Y=4*rl+3*pn;
     return {q:`2 rulers and 3 pens cost ${money(X)}. 4 rulers and 3 pens cost ${money(Y)}. Find the cost of 1 ruler.`,type:'num',answer:rl,unit:'$',hint:`Same number of pens (3) — subtract to leave rulers.`,sol:`${money(Y)} − ${money(X)} = 2 rulers = ${money(Y-X)}; 1 ruler = ${money(rl)}.`};}
-  const x=rint(3,12),y=rint(2,10),S=x+y,D=x-y;
+  const y=rint(2,9),x=y+rint(2,8),S=x+y,D=x-y;
   return {q:`Two numbers x and y satisfy x + y = ${S} and x − y = ${D}. Find x.`,type:'num',answer:x,hint:`Add the two equations so that y cancels: 2x = ${S} + ${D}.`,sol:`2x = ${S} + ${D} = ${S+D}; x = ${x}.`};
 }
 function gH4(lv){const n=lv.n;
@@ -932,9 +932,9 @@ function gH6(lv){const n=lv.n;
     return {q:`I think of a number, add ${a}, and get ${R}. What was my number?`,type:'num',answer:x,hint:`Undo “+ ${a}” by subtracting.`,sol:`${R} − ${a} = ${x}.`};}
   if(n===2){const x=rint(2,12),k=pick([2,3,4]),a=rint(2,15),R=x*k+a;
     return {q:`I think of a number, multiply it by ${k}, then add ${a}, and get ${R}. Find my number.`,type:'num',answer:x,hint:`Work in reverse: subtract ${a}, then divide by ${k}.`,sol:`(${R} − ${a}) ÷ ${k} = ${x}.`};}
-  if(n===3){const x=rint(3,15),k=pick([2,3]),a=rint(2,12),bb=rint(2,12),R=(x+a)*k-bb;
+  if(n===3){const x=rint(3,15),k=pick([2,3]),a=rint(2,12),bb=rint(2,Math.min(12,(x+a)*k-2)),R=(x+a)*k-bb;
     return {q:`A number has ${a} added; the result is multiplied by ${k}; then ${bb} is subtracted, giving ${R}. Find the number.`,type:'num',answer:x,hint:`Reverse the steps: add ${bb}, divide by ${k}, then subtract ${a}.`,sol:`((${R} + ${bb}) ÷ ${k}) − ${a} = ${x}.`};}
-  if(n===4){const x=rint(4,20),k=pick([2,3,4,5]),a=rint(3,20),R=x*k-a;
+  if(n===4){const x=rint(4,20),k=pick([2,3,4,5]),a=rint(3,Math.min(20,x*k-2)),R=x*k-a;
     return {q:`A number is multiplied by ${k}, then ${a} is taken away, leaving ${R}. What is the number?`,type:'num',answer:x,hint:`Add ${a} back, then divide by ${k}.`,sol:`(${R} + ${a}) ÷ ${k} = ${x}.`};}
   if(n===5){const fr=pick([[1,3],[1,4],[2,5],[3,4],[2,3]]),num=fr[0],den=fr[1],O=den*rint(6,40),left=O*(den-num)/den;
     return {q:`Sam spent ${num}/${den} of his money and had ${money(left)} left. How much did he have at first?`,type:'num',answer:O,unit:'$',hint:`He has ${den-num}/${den} of it left = ${money(left)}. Work back to the whole.`,sol:`${den-num}/${den} of the total = ${money(left)}; 1/${den} = ${money(left/(den-num))}; total = ${money(O)}.`};}
