@@ -111,6 +111,12 @@ export default {
       hint: '$1 = 100 cents — multiply dollars by 100, or split cents into dollars and cents.',
       spec: { kind: 'moneyConvert' } },
 
+    { id: 'sg-p2-money-compare', group: 'money', code: 'Money 1.3', name: 'Comparing amounts of money',
+      objective: 'comparing two or three amounts of money',
+      example: '$4.50 vs $4.05 → $4.50', timeTarget: 14,
+      hint: 'Compare the dollars first, then the cents — line up the decimal points.',
+      spec: { kind: 'moneyCompare' } },
+
     // --- Statistics (picture graph diagram) ---
     { id: 'sg-p2-stat', group: 'stat', code: 'Stat 1.1', name: 'Reading a picture graph',
       objective: 'reading and interpreting data from picture graphs with scales',
@@ -124,7 +130,7 @@ export default {
     'WN 1.1 counting in tens/hundreds (needs pictorial item)',
     'WN 1.3 reading & writing numbers in words (needs text item)',
     'Fractions 1.1–1.3 fraction of a whole, notation, comparing/ordering fractions (needs fraction/pictorial item)',
-    'Money 1.1 counting/comparing money (decimal notation & cents conversion now drillable)',
+    'Money 1.1 counting coins/notes from pictures (notation, conversion & comparing now drillable)',
     'Measurement: length, mass, volume, time (needs measurement items)',
     'Geometry: 2D/3D shapes, lines and curves (needs shape item)',
     'Statistics: naming the most/least category (text answer; reading picture-graph values now drillable)',

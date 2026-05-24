@@ -20,6 +20,7 @@ export default {
     { id: 'mg', name: 'Area & Perimeter', subtitle: 'Rectangle & square' },
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
     { id: 'meas', name: 'Measurement', subtitle: 'Compound units & time' },
+    { id: 'money', name: 'Money', subtitle: 'Add, subtract & change' },
     { id: 'stat', name: 'Statistics', subtitle: 'Bar graphs' },
   ],
   skills: [
@@ -150,6 +151,19 @@ export default {
       hint: 'Count on from the start to the next hour, then on to the finish.',
       spec: { kind: 'duration' } },
 
+    // --- Money ---
+    { id: 'sg-p3-money-addsub', group: 'money', code: 'Money 1.1', name: 'Adding & subtracting money',
+      objective: 'adding and subtracting money in decimal notation',
+      example: '$12.45 + $3.70 = $16.15', timeTarget: 22,
+      hint: 'Line up the decimal points and work in dollars and cents.',
+      spec: { kind: 'moneyAddSub' } },
+
+    { id: 'sg-p3-money-change', group: 'money', code: 'Money 1.1', name: 'Making change',
+      objective: 'finding change in a money word problem',
+      example: '$6.40 paid with $10 → $3.60', timeTarget: 24,
+      hint: 'Change = amount paid − cost. Count up from the cost to the note.',
+      spec: { kind: 'moneyChange' } },
+
     // --- Statistics (bar graph diagram) ---
     { id: 'sg-p3-stat', group: 'stat', code: 'Stat 1.1/1.2', name: 'Reading a bar graph',
       objective: 'reading and interpreting data from bar graphs, with different scales',
@@ -163,7 +177,7 @@ export default {
     'WN 1.1 counting in hundreds/thousands (needs pictorial item)',
     'WN 1.3 reading & writing numbers in words (needs text item)',
     'Fractions 1.2 simplest form, 1.3 comparing/ordering unlike fractions (needs fraction item)',
-    'Money 1.1 adding & subtracting money in decimal notation (covered numerically by decimals)',
+    'Money: multi-step money word problems (adding, subtracting & making change now drillable)',
     'Measurement: telling time on a clock face & the 24-hour clock (compound-unit conversion & duration now drillable)',
     'Area & Perimeter of rectilinear/composite figures (rectangle & square now drillable with diagrams)',
     'Geometry: angles, perpendicular & parallel lines (needs geometry item)',

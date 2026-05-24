@@ -20,6 +20,7 @@ export default {
     { id: 'as', name: 'Addition & Subtraction', subtitle: 'Within 100 (mental within 20)' },
     { id: 'md', name: 'Multiplication & Division', subtitle: 'Multiply within 40, divide within 20' },
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
+    { id: 'money', name: 'Money', subtitle: 'Counting coins' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -115,6 +116,13 @@ export default {
       example: '30 total, 18 boys → 12 girls', timeTarget: 32,
       hint: 'Take the known part away from the whole to find the other part.',
       spec: { kind: 'barModel', structure: 'missingPart', wholeMin: 12, wholeMax: 40 } },
+
+    // --- Money ---
+    { id: 'sg-p1-money', group: 'money', code: 'Money 1.1', name: 'Counting money',
+      objective: 'counting amount of money in cents',
+      example: '3 fifty-cent + 2 ten-cent → 170 cents', timeTarget: 22,
+      hint: 'Add up the value of each coin — count in fives, tens or fifties.',
+      spec: { kind: 'moneyCount' } },
   ],
 
   // Officially in P1 but needing item types beyond a single-integer answer.
@@ -122,7 +130,7 @@ export default {
     'WN 1.1 counting objects (needs pictorial item)',
     'WN 1.3 reading & writing numbers in words (needs text item)',
     'WN 1.7 ordinal numbers (needs context item)',
-    'Money 1.1 counting money (needs money item)',
+    'Money 1.1 recognising coins/notes from pictures (counting by value now drillable)',
     'Measurement: length & time (needs measurement items)',
     'Geometry: 2D shapes (needs shape item)',
     'Statistics: picture graphs (needs chart item)',

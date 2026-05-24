@@ -883,6 +883,44 @@ function genMoneyConvert(skill) {
   return decProblem(skill, `${cents} cents = $ ?`, cents / 100, 'moneyConvert', { cents, dir: 'toDollars' });
 }
 
+const COIN_WORD = { 5: 'five-cent', 10: 'ten-cent', 20: 'twenty-cent', 50: 'fifty-cent', 100: 'one-dollar' };
+const money = (c) => `$${(c / 100).toFixed(2)}`;
+
+// Counting money: "3 fifty-cent coins and 2 ten-cent coins = ? cents" → 170
+function genMoneyCount(skill) {
+  const denoms = [10, 20, 50, 100];
+  let d1 = pickFrom(denoms), d2 = pickFrom(denoms);
+  while (d2 === d1) d2 = pickFrom(denoms);
+  const a = randInt(1, 5), b = randInt(1, 5);
+  const coins = (n, d) => `${n} ${COIN_WORD[d]} ${n === 1 ? 'coin' : 'coins'}`;
+  return problem(skill, `How much is ${coins(a, d1)} and ${coins(b, d2)}? Give your answer in cents.`, a * d1 + b * d2, 'moneyCount', { a, d1, b, d2 });
+}
+
+// Comparing two or three amounts: "Which is greatest: $4.50, $4.05?" → 4.5
+function genMoneyCompare(skill) {
+  const k = Math.random() < 0.5 ? 2 : 3, set = [];
+  while (set.length < k) { const v = randInt(105, 1995); if (!set.includes(v)) set.push(v); }
+  return decProblem(skill, `Which amount is the greatest: ${set.map(money).join(', ')}? Give your answer in dollars.`, Math.max(...set) / 100, 'moneyCompare', { set });
+}
+
+// Adding / subtracting money in decimal notation: "$12.45 + $3.70 = ?" → 16.15
+function genMoneyAddSub(skill) {
+  let a = randInt(105, 5000), b = randInt(105, 5000);
+  const op = Math.random() < 0.5 ? '+' : '-';
+  if (op === '+') return decProblem(skill, `${money(a)} ${PLUS} ${money(b)} = ?`, (a + b) / 100, 'moneyAddSub', { a, b, op });
+  if (a < b) { const t = a; a = b; b = t; }
+  return decProblem(skill, `${money(a)} ${MINUS} ${money(b)} = ?`, (a - b) / 100, 'moneyAddSub', { a, b, op });
+}
+
+// Making change: "A toy costs $6.40. You pay with a $10 note. How much change?" → 3.6
+function genMoneyChange(skill) {
+  const paid = pickFrom([2, 5, 10, 20, 50]) * 100;
+  const lo = Math.max(105, paid - 495);
+  const cost = 5 * randInt(Math.ceil(lo / 5), (paid - 5) / 5);
+  const item = pickFrom(['book', 'toy', 'pen', 'cap', 'game']);
+  return decProblem(skill, `A ${item} costs ${money(cost)}. You pay with a ${money(paid)} note. How much change, in dollars?`, (paid - cost) / 100, 'moneyChange', { paid, cost });
+}
+
 // Read a bar / picture graph: value, difference, or total.
 function genBarChart(skill) {
   const mode = skill.spec.mode || 'bar', r = randInt;
@@ -910,6 +948,7 @@ function genBarChart(skill) {
 const KINDS = {
   barModel: genBarModel,
   compoundToUnit: genCompoundToUnit, duration: genDuration, moneyConvert: genMoneyConvert, barChart: genBarChart,
+  moneyCount: genMoneyCount, moneyCompare: genMoneyCompare, moneyAddSub: genMoneyAddSub, moneyChange: genMoneyChange,
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,
