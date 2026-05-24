@@ -22,6 +22,8 @@ export default {
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
     { id: 'money', name: 'Money', subtitle: 'Counting coins' },
     { id: 'stat', name: 'Statistics', subtitle: 'Picture graphs' },
+    { id: 'geo', name: 'Shapes', subtitle: '2D shapes' },
+    { id: 'time', name: 'Time', subtitle: "O'clock & half past" },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -131,16 +133,33 @@ export default {
       example: 'count the icons in a row → e.g. 6', timeTarget: 20,
       hint: 'Each picture stands for one — count the pictures in the row.',
       spec: { kind: 'barChart', mode: 'picture', scale: 1 } },
+
+    // --- Numbers in words, shapes & time (multiple choice) ---
+    { id: 'sg-p1-words', group: 'wn', code: 'WN 1.3', name: 'Numbers in words',
+      objective: 'reading and writing numbers in words',
+      example: '47 → "forty-seven"', timeTarget: 16,
+      hint: 'Say the number out loud, then pick the matching words.',
+      spec: { kind: 'numberInWords', min: 11, max: 99 } },
+
+    { id: 'sg-p1-shape', group: 'geo', code: 'Geometry 1', name: 'Naming 2D shapes',
+      objective: 'identifying and naming 2D shapes',
+      example: 'a 3-sided shape → triangle', timeTarget: 14,
+      hint: 'Count the sides and corners: 3 = triangle, 4 = square/rectangle, round = circle.',
+      spec: { kind: 'shapeName', shapes: ['circle', 'square', 'rectangle', 'triangle'] } },
+
+    { id: 'sg-p1-clock', group: 'time', code: 'Time 1', name: "Telling time (o'clock & half past)",
+      objective: 'telling time to the hour and half hour',
+      example: 'hands at 3 and 6 → 3:30', timeTarget: 18,
+      hint: 'The short hand shows the hour; the long hand shows the minutes.',
+      spec: { kind: 'clockRead', gran: 30 } },
   ],
 
   // Officially in P1 but needing item types beyond a single-integer answer.
   pending: [
     'WN 1.1 counting objects (needs pictorial item)',
-    'WN 1.3 reading & writing numbers in words (needs text item)',
     'WN 1.7 ordinal numbers (needs context item)',
     'Money 1.1 recognising coins/notes from pictures (counting by value now drillable)',
-    'Measurement: length & time (needs measurement items)',
-    'Geometry: 2D shapes (needs shape item)',
+    'Measurement: comparing length & mass (needs measurement item)',
     'Statistics: naming the most/least category (text answer; reading picture-graph values now drillable)',
   ],
 };

@@ -277,13 +277,46 @@ function lineChart(c) {
   return svg(W, 150, 'Line graph', body);
 }
 
+// A named 2D shape (no measurements) for shape-recognition multiple-choice items.
+function shape2D(name) {
+  const cx = 70, cy = 66, R = 46;
+  const reg = (sides, rot) => { let p = ''; for (let i = 0; i < sides; i++) p += `${polar(cx, cy, R, rot + (i * 360) / sides)} `; return `<polygon points="${p.trim()}" class="d-shape"/>`; };
+  let body;
+  if (name === 'circle') body = `<circle cx="${cx}" cy="${cy}" r="${R}" class="d-shape"/>`;
+  else if (name === 'square') body = `<rect x="${cx - 42}" y="${cy - 42}" width="84" height="84" class="d-shape"/>`;
+  else if (name === 'rectangle') body = `<rect x="${cx - 54}" y="${cy - 34}" width="108" height="68" class="d-shape"/>`;
+  else if (name === 'triangle') body = reg(3, -90);
+  else if (name === 'pentagon') body = reg(5, -90);
+  else body = reg(6, -90);
+  return svg(140, 132, `A ${name}`, body);
+}
+
+// Analogue clock face showing h:mm, for telling-time multiple-choice items.
+function clockFace(h, m) {
+  const cx = 72, cy = 72, R = 60;
+  let body = `<circle cx="${cx}" cy="${cy}" r="${R}" class="d-shape" fill-opacity="0.06"/>`;
+  for (let t = 0; t < 12; t++) {
+    const o = polar(cx, cy, R - 3, t * 30 - 90).split(' '), i = polar(cx, cy, R - 9, t * 30 - 90).split(' ');
+    body += `<line x1="${o[0]}" y1="${o[1]}" x2="${i[0]}" y2="${i[1]}" class="d-axis"/>`;
+  }
+  const hp = polar(cx, cy, R * 0.5, (h % 12) * 30 + m * 0.5 - 90).split(' ');
+  const mp = polar(cx, cy, R * 0.82, m * 6 - 90).split(' ');
+  body += `<line x1="${cx}" y1="${cy}" x2="${hp[0]}" y2="${hp[1]}" class="d-hand-h"/>`;
+  body += `<line x1="${cx}" y1="${cy}" x2="${mp[0]}" y2="${mp[1]}" class="d-hand-m"/>`;
+  body += `<circle cx="${cx}" cy="${cy}" r="3" class="d-dot"/>`;
+  return svg(146, 150, 'Clock face', body);
+}
+
 export function diagramFor(p) {
   if (!p || !p.parts) return '';
   const a = p.parts;
   switch (p.kind) {
     case 'barModel': return barModel(a.model);
     case 'moneyCount': return moneyTokens(a.tokens);
-    case 'barChart': {
+    case 'shapeName': return shape2D(a.shape);
+    case 'clockRead': return clockFace(a.h, a.m);
+    case 'barChart':
+    case 'chartCategory': {
       const m = a.chart.mode;
       return m === 'picture' ? pictureGraph(a.chart) : m === 'pie' ? pieChart(a.chart) : m === 'line' ? lineChart(a.chart) : barChart(a.chart);
     }

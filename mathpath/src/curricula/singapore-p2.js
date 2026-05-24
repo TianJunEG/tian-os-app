@@ -19,6 +19,7 @@ export default {
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
     { id: 'money', name: 'Money', subtitle: 'Dollars & cents' },
     { id: 'stat', name: 'Statistics', subtitle: 'Picture graphs' },
+    { id: 'time', name: 'Time', subtitle: 'To 5 minutes' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -129,17 +130,34 @@ export default {
       example: '5 icons × 2 each → 10', timeTarget: 22,
       hint: 'Count the icons for a row, then multiply by what each icon stands for.',
       spec: { kind: 'barChart', mode: 'picture' } },
+
+    { id: 'sg-p2-stat-most', group: 'stat', code: 'Stat 1.1', name: 'Most & least on a graph',
+      objective: 'interpreting a picture graph to find the greatest/smallest category',
+      example: 'which colour has the most?', timeTarget: 18,
+      hint: 'Find the longest row (most) or shortest row (least).',
+      spec: { kind: 'chartCategory', mode: 'picture' } },
+
+    // --- Numbers in words & time (multiple choice) ---
+    { id: 'sg-p2-words', group: 'wn', code: 'WN 1.3', name: 'Numbers in words (to 1000)',
+      objective: 'reading and writing numbers in words',
+      example: '247 → "two hundred and forty-seven"', timeTarget: 18,
+      hint: 'Read the hundreds, then the tens and ones, joined with "and".',
+      spec: { kind: 'numberInWords', min: 101, max: 999 } },
+
+    { id: 'sg-p2-clock', group: 'time', code: 'Time 2', name: 'Telling time (to 5 minutes)',
+      objective: 'telling time to 5 minutes',
+      example: 'hands at 7 and 9 → 7:45', timeTarget: 18,
+      hint: 'Count the long hand in fives around the clock from the 12.',
+      spec: { kind: 'clockRead', gran: 5 } },
   ],
 
   // In the P2 syllabus but needing item types beyond a single-integer answer.
   pending: [
     'WN 1.1 counting in tens/hundreds (needs pictorial item)',
-    'WN 1.3 reading & writing numbers in words (needs text item)',
     'Fractions 1.1–1.3 fraction of a whole, notation, comparing/ordering fractions (needs fraction/pictorial item)',
     'Money 1.1 counting coins/notes from pictures (notation, conversion & comparing now drillable)',
-    'Measurement: length, mass, volume, time (needs measurement items)',
-    'Geometry: 2D/3D shapes, lines and curves (needs shape item)',
-    'Statistics: naming the most/least category (text answer; reading picture-graph values now drillable)',
+    'Measurement: comparing length, mass & volume (needs measurement item)',
+    'Geometry: 3D solids, lines and curves (2D shape naming now drillable)',
     'Multi-step (2–3 step) word problems (single-step bar models now drillable)',
   ],
 };

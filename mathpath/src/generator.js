@@ -930,38 +930,113 @@ function genMoneyChange(skill) {
   return decProblem(skill, `A ${item} costs ${money(cost)}. You pay with a ${money(paid)} note. How much change, in dollars?`, (paid - cost) / 100, 'moneyChange', { paid, cost });
 }
 
-// Read a bar / picture / pie / line graph: value, difference, or total.
-function genBarChart(skill) {
-  const mode = skill.spec.mode || 'bar', r = randInt;
-  const sets = [
-    { theme: 'the number of marbles of each colour', labels: ['Red', 'Blue', 'Green', 'Yellow'], time: false },
-    { theme: 'the pets owned by a class', labels: ['Cats', 'Dogs', 'Fish', 'Birds'], time: false },
-    { theme: 'the fruit sold at a stall', labels: ['Apples', 'Pears', 'Plums', 'Grapes'], time: false },
-    { theme: 'the number of books read each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'], time: true },
-    { theme: 'the temperature recorded each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'], time: true },
-  ];
-  // Line graphs use time series; pie charts partition a whole (no time series).
-  const pool = mode === 'line' ? sets.filter((s) => s.time) : mode === 'pie' ? sets.filter((s) => !s.time) : sets;
+const CHART_SETS = [
+  { theme: 'the number of marbles of each colour', labels: ['Red', 'Blue', 'Green', 'Yellow'], time: false },
+  { theme: 'the pets owned by a class', labels: ['Cats', 'Dogs', 'Fish', 'Birds'], time: false },
+  { theme: 'the fruit sold at a stall', labels: ['Apples', 'Pears', 'Plums', 'Grapes'], time: false },
+  { theme: 'the number of books read each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'], time: true },
+  { theme: 'the temperature recorded each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'], time: true },
+];
+// Build a chart's data. Line graphs use time series; pie charts partition a whole.
+function makeChart(mode, scaleOverride) {
+  const r = randInt;
+  const pool = mode === 'line' ? CHART_SETS.filter((s) => s.time) : mode === 'pie' ? CHART_SETS.filter((s) => !s.time) : CHART_SETS;
   const set = pickFrom(pool);
-  const n = Math.min(set.labels.length, r(3, 4)), scale = skill.spec.scale || pickFrom([1, 2, 5, 10]), cap = mode === 'picture' ? 7 : 5;
+  const n = Math.min(set.labels.length, r(3, 4)), scale = scaleOverride || pickFrom([1, 2, 5, 10]), cap = mode === 'picture' ? 7 : 5;
   const cats = Array.from({ length: n }, (_, i) => ({ label: set.labels[i], value: scale * r(1, cap) }));
-  const chart = { mode, cats, scale }, noun = { picture: 'picture graph', pie: 'pie chart', line: 'line graph', bar: 'bar graph' }[mode];
+  return { chart: { mode, cats, scale }, noun: { picture: 'picture graph', pie: 'pie chart', line: 'line graph', bar: 'bar graph' }[mode], theme: set.theme };
+}
+
+// Read a bar / picture / pie / line graph: value, difference, or total (numeric answer).
+function genBarChart(skill) {
+  const mode = skill.spec.mode || 'bar', { chart, noun, theme } = makeChart(mode, skill.spec.scale), cats = chart.cats, n = cats.length;
   const q = pickFrom(mode === 'line' ? ['value', 'diff'] : ['value', 'diff', 'total']);
   if (q === 'value') {
-    const i = r(0, n - 1);
-    return problem(skill, `The ${noun} shows ${set.theme}. What is the value for ${cats[i].label}?`, cats[i].value, 'barChart', { chart, q, i });
+    const i = randInt(0, n - 1);
+    return problem(skill, `The ${noun} shows ${theme}. What is the value for ${cats[i].label}?`, cats[i].value, 'barChart', { chart, q, i });
   }
-  if (q === 'total') return problem(skill, `The ${noun} shows ${set.theme}. What is the total?`, cats.reduce((p, d) => p + d.value, 0), 'barChart', { chart, q });
+  if (q === 'total') return problem(skill, `The ${noun} shows ${theme}. What is the total?`, cats.reduce((p, d) => p + d.value, 0), 'barChart', { chart, q });
   let hi = 0, lo = 0;
   cats.forEach((d, i) => { if (d.value > cats[hi].value) hi = i; if (d.value < cats[lo].value) lo = i; });
   if (cats[hi].value === cats[lo].value) return genBarChart(skill);
-  return problem(skill, `The ${noun} shows ${set.theme}. How many more for ${cats[hi].label} than ${cats[lo].label}?`, cats[hi].value - cats[lo].value, 'barChart', { chart, q, i: hi, j: lo });
+  return problem(skill, `The ${noun} shows ${theme}. How many more for ${cats[hi].label} than ${cats[lo].label}?`, cats[hi].value - cats[lo].value, 'barChart', { chart, q, i: hi, j: lo });
+}
+
+// ---------- Multiple-choice items (non-numeric answers) ----------
+
+function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = randInt(0, i); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+const cap1 = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+function choiceProblem(skill, display, answer, choices, kind, parts) {
+  const p = problem(skill, display, answer, kind, parts);
+  p.choice = true; p.choices = choices;
+  return p;
+}
+
+const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+function toWords(n) {
+  if (n < 20) return ONES[n];
+  if (n < 100) return TENS[Math.floor(n / 10)] + (n % 10 ? `-${ONES[n % 10]}` : '');
+  if (n < 1000) return `${ONES[Math.floor(n / 100)]} hundred${n % 100 ? ` and ${toWords(n % 100)}` : ''}`;
+  return `${toWords(Math.floor(n / 1000))} thousand${n % 1000 ? `${n % 1000 < 100 ? ' and' : ''} ${toWords(n % 1000)}` : ''}`;
+}
+
+// "Which of these is 247 in words?" → multiple choice over word forms.
+function genNumberInWords(skill) {
+  const s = skill.spec, n = randInt(s.min || 20, s.max || 999);
+  const answer = toWords(n), seen = new Set([answer]), choices = [answer];
+  const deltas = [1, -1, 9, -9, 10, -10, 100, -100, 20, -20];
+  for (let t = 0; t < 200 && choices.length < 4; t++) {
+    const m = n + pickFrom(deltas);
+    if (m < 1 || m > 9999) continue;
+    const w = toWords(m);
+    if (!seen.has(w)) { seen.add(w); choices.push(w); }
+  }
+  return choiceProblem(skill, `Which of these is ${n} in words?`, answer, shuffle(choices), 'numberInWords', { n });
+}
+
+// "What is the name of this shape?" → multiple choice over shape names (shows a 2D shape).
+const SHAPES = ['circle', 'square', 'rectangle', 'triangle', 'pentagon', 'hexagon'];
+function genShapeName(skill) {
+  const pool = skill.spec.shapes || SHAPES, shape = pickFrom(pool);
+  const others = shuffle(pool.filter((s) => s !== shape)).slice(0, 3);
+  return choiceProblem(skill, `What is the name of this shape?`, cap1(shape), shuffle([cap1(shape), ...others.map(cap1)]), 'shapeName', { shape });
+}
+
+// "Which has the most/least?" on a graph → multiple choice over category labels.
+function genChartCategory(skill) {
+  const { chart, noun, theme } = makeChart(skill.spec.mode || 'bar', skill.spec.scale), cats = chart.cats;
+  const which = Math.random() < 0.5 ? 'most' : 'least';
+  const sorted = [...cats].sort((a, b) => b.value - a.value);
+  const target = which === 'most' ? sorted[0] : sorted[sorted.length - 1];
+  const tie = which === 'most' ? sorted[1].value === target.value : sorted[sorted.length - 2].value === target.value;
+  if (tie) return genChartCategory(skill);
+  return choiceProblem(skill, `The ${noun} shows ${theme}. Which has the ${which}?`, target.label, shuffle(cats.map((c) => c.label)), 'chartCategory', { chart, which });
+}
+
+// "What time is shown?" on a clock face → multiple choice over times.
+function genClockRead(skill) {
+  const gran = skill.spec.gran || 5, r = randInt;
+  const fmt = (h, m) => `${h}:${String(m).padStart(2, '0')}`;
+  const h = r(1, 12), m = r(0, 59 / gran | 0) * gran;
+  const answer = fmt(h, m), seen = new Set([answer]), choices = [answer];
+  for (let t = 0; t < 200 && choices.length < 4; t++) {
+    const dh = r(0, 1) ? 0 : pickFrom([-1, 1, 2]);
+    const dm = pickFrom([-2, -1, 1, 2]) * gran;
+    let hh = ((h - 1 + dh + 12) % 12) + 1, mm = m + dm;
+    if (mm < 0) { mm += 60; hh = ((hh - 2 + 12) % 12) + 1; }
+    if (mm >= 60) { mm -= 60; hh = (hh % 12) + 1; }
+    const f = fmt(hh, mm);
+    if (!seen.has(f)) { seen.add(f); choices.push(f); }
+  }
+  return choiceProblem(skill, `What time is shown on the clock?`, answer, shuffle(choices), 'clockRead', { h, m });
 }
 
 const KINDS = {
   barModel: genBarModel,
   compoundToUnit: genCompoundToUnit, duration: genDuration, moneyConvert: genMoneyConvert, barChart: genBarChart,
   moneyCount: genMoneyCount, moneyCompare: genMoneyCompare, moneyAddSub: genMoneyAddSub, moneyChange: genMoneyChange,
+  numberInWords: genNumberInWords, shapeName: genShapeName, chartCategory: genChartCategory, clockRead: genClockRead,
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,
@@ -994,6 +1069,7 @@ export function generateProblem(skill) {
 // (prob.decimal) are compared at 3 dp so "0.5" and "0.50" both pass and float
 // artefacts don't cause false negatives.
 export function checkAnswer(value, prob) {
+  if (prob.choice) return String(value) === String(prob.answer);
   const n = Number(String(value).trim());
   if (!Number.isFinite(n)) return false;
   if (!prob.decimal) return n === prob.answer;

@@ -116,6 +116,18 @@ function wireAnswerEntry(onSubmit, allowDecimal) {
   });
 }
 
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function choiceEntryHTML(choices) {
+  return `<div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}">${esc(c)}</button>`).join('')}</div>`;
+}
+function wireChoiceEntry(onSubmit, choices) {
+  app.querySelectorAll('.choice').forEach((btn) => btn.addEventListener('click', () => onSubmit(choices[Number(btn.dataset.i)])));
+}
+
+// Pick numeric keypad or multiple-choice buttons based on the problem.
+function answerUI(prob) { return prob.choice ? choiceEntryHTML(prob.choices) : answerEntryHTML(prob.decimal); }
+function wireAnswer(prob, onSubmit) { if (prob.choice) wireChoiceEntry(onSubmit, prob.choices); else wireAnswerEntry(onSubmit, prob.decimal); }
+
 function parentNoteHTML() {
   return `<div class="parent-note"><b>For parents:</b> Sit alongside for the first few sessions and let the software lead. MathPath only moves up a level when answers are both accurate and quick, so a "not yet" just means a little more practice — never failure. Hints appear automatically after a wrong answer.</div>`;
 }
@@ -224,10 +236,10 @@ function renderDiagnostic() {
       </div>
       ${diagramFor(probe.problem)}
       <div class="problem">${probe.problem.display}</div>
-      ${answerEntryHTML(probe.problem.decimal)}
+      ${answerUI(probe.problem)}
       <div class="feedback muted">Answer what you can. If it gets too hard, that's exactly the signal we need.</div>
     </section>`);
-  wireAnswerEntry(onDiagSubmit, probe.problem.decimal);
+  wireAnswer(probe.problem, onDiagSubmit);
 }
 
 function onDiagSubmit(value) {
@@ -292,12 +304,12 @@ function renderDrill() {
       ${head}
       ${diagramFor(s.current)}
       <div class="problem">${s.current.display}</div>
-      ${answerEntryHTML(s.current.decimal)}
+      ${answerUI(s.current)}
       ${state.hint
         ? `<div class="hint">Hint: ${state.hint}</div>`
         : '<div class="feedback muted">Type your answer, then Enter.</div>'}
     </section>`);
-  wireAnswerEntry(onDrillSubmit, s.current.decimal);
+  wireAnswer(s.current, onDrillSubmit);
 }
 
 function onDrillSubmit(value) {

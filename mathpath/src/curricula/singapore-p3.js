@@ -151,6 +151,12 @@ export default {
       hint: 'Count on from the start to the next hour, then on to the finish.',
       spec: { kind: 'duration' } },
 
+    { id: 'sg-p3-clock', group: 'meas', code: 'ME 2.1', name: 'Telling time (to the minute)',
+      objective: 'telling and writing time to the minute',
+      example: 'hands at 10 and 37 → 10:37', timeTarget: 18,
+      hint: 'Read the hour from the short hand, then the exact minutes from the long hand.',
+      spec: { kind: 'clockRead', gran: 1 } },
+
     // --- Money ---
     { id: 'sg-p3-money-addsub', group: 'money', code: 'Money 1.1', name: 'Adding & subtracting money',
       objective: 'adding and subtracting money in decimal notation',
@@ -170,6 +176,12 @@ export default {
       example: 'Red 15, Blue 10 → 5 more red', timeTarget: 24,
       hint: 'Read each bar against the scale on the axis, then compare or total.',
       spec: { kind: 'barChart', mode: 'bar' } },
+
+    { id: 'sg-p3-stat-most', group: 'stat', code: 'Stat 1.1', name: 'Most & least on a bar graph',
+      objective: 'interpreting a bar graph to find the greatest/smallest category',
+      example: 'which day had the most?', timeTarget: 18,
+      hint: 'The tallest bar is the most; the shortest bar is the least.',
+      spec: { kind: 'chartCategory', mode: 'bar' } },
   ],
 
   // In the P3 syllabus but needing item types beyond a single-integer answer.
@@ -178,10 +190,9 @@ export default {
     'WN 1.3 reading & writing numbers in words (needs text item)',
     'Fractions 1.2 simplest form, 1.3 comparing/ordering unlike fractions (needs fraction item)',
     'Money: multi-step money word problems (adding, subtracting & making change now drillable)',
-    'Measurement: telling time on a clock face & the 24-hour clock (compound-unit conversion & duration now drillable)',
+    'Measurement: the 24-hour clock (telling time to the minute, durations & conversions now drillable)',
     'Area & Perimeter of rectilinear/composite figures (rectangle & square now drillable with diagrams)',
     'Geometry: angles, perpendicular & parallel lines (needs geometry item)',
-    'Statistics: naming the most/least category & trends (reading bar-graph values now drillable)',
     'Multi-step (3+ step) word problems (single- and two-step bar models now drillable)',
   ],
 };

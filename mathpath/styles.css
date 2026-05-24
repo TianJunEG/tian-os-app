@@ -137,6 +137,17 @@ body {
 .diagram .d-grid { stroke: var(--line); stroke-width: 1; }
 .diagram .d-axisn { fill: var(--ink-soft); font-size: 10px; font-weight: 600; }
 .diagram .d-icon { fill: var(--brand); fill-opacity: .85; stroke: var(--brand); stroke-width: 1; }
+.diagram .d-hand-h { stroke: var(--ink); stroke-width: 3.4; stroke-linecap: round; }
+.diagram .d-hand-m { stroke: var(--brand); stroke-width: 2.4; stroke-linecap: round; }
+
+/* ---- multiple-choice answers ---- */
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.choice {
+  font-size: 18px; font-weight: 700; padding: 14px 8px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+}
+.choice:hover { filter: brightness(1.15); border-color: var(--brand); }
+.choice:active { transform: translateY(1px); }
 
 /* ---- feedback ---- */
 .feedback { min-height: 28px; text-align: center; font-weight: 700; font-size: 18px; }
