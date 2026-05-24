@@ -13,6 +13,20 @@ import BookingsPage from './pages/BookingsPage';
 import MessagesPage from './pages/MessagesPage';
 import TutorProfilePage from './pages/TutorProfilePage';
 
+// Spelling app pages
+import SpellingHomePage from './pages/spelling/SpellingHomePage';
+import SpellingListsPage from './pages/spelling/SpellingListsPage';
+import SpellingEditorPage from './pages/spelling/SpellingEditorPage';
+import SpellingListDetailPage from './pages/spelling/SpellingListDetailPage';
+import SpellingLibraryPage from './pages/spelling/SpellingLibraryPage';
+import MisspeltWordsPage from './pages/spelling/MisspeltWordsPage';
+import SurpriseSpellingPage from './pages/spelling/SurpriseSpellingPage';
+import SpellingRevisionPage from './pages/spelling/SpellingRevisionPage';
+import SpellingDuePage from './pages/spelling/SpellingDuePage';
+import SpellingProgressPage from './pages/spelling/SpellingProgressPage';
+import SpellingAchievementsPage from './pages/spelling/SpellingAchievementsPage';
+import SpellingPrintPage from './pages/spelling/SpellingPrintPage';
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -187,6 +201,21 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Spelling app */}
+          <Route path="/spelling" element={<ProtectedRoute><SpellingHomePage /></ProtectedRoute>} />
+          <Route path="/spelling/lists" element={<ProtectedRoute><SpellingListsPage /></ProtectedRoute>} />
+          <Route path="/spelling/lists/new" element={<ProtectedRoute><SpellingEditorPage /></ProtectedRoute>} />
+          <Route path="/spelling/lists/:id" element={<ProtectedRoute><SpellingListDetailPage /></ProtectedRoute>} />
+          <Route path="/spelling/lists/:id/edit" element={<ProtectedRoute><SpellingEditorPage /></ProtectedRoute>} />
+          <Route path="/spelling/library" element={<ProtectedRoute><SpellingLibraryPage /></ProtectedRoute>} />
+          <Route path="/spelling/misspelt" element={<ProtectedRoute><MisspeltWordsPage /></ProtectedRoute>} />
+          <Route path="/spelling/surprise" element={<ProtectedRoute><SurpriseSpellingPage /></ProtectedRoute>} />
+          <Route path="/spelling/revision" element={<ProtectedRoute><SpellingRevisionPage /></ProtectedRoute>} />
+          <Route path="/spelling/due" element={<ProtectedRoute><SpellingDuePage /></ProtectedRoute>} />
+          <Route path="/spelling/progress" element={<ProtectedRoute><SpellingProgressPage /></ProtectedRoute>} />
+          <Route path="/spelling/achievements" element={<ProtectedRoute><SpellingAchievementsPage /></ProtectedRoute>} />
+          <Route path="/spelling/lists/:id/print" element={<ProtectedRoute><SpellingPrintPage /></ProtectedRoute>} />
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
