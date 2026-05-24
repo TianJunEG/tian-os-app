@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
+import ParentDashboardPage from './pages/ParentDashboardPage';
+import ChildProfilePage from './pages/ChildProfilePage';
 import TutorSearchPage from './pages/TutorSearchPage';
 import BookingPage from './pages/BookingPage';
 import PaymentPage from './pages/PaymentPage';
@@ -154,6 +156,24 @@ function App() {
             element={
               <ProtectedRoute>
                 <StudentDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/children"
+            element={
+              <ProtectedRoute>
+                <ParentDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/children/:childId"
+            element={
+              <ProtectedRoute>
+                <ChildProfilePage />
               </ProtectedRoute>
             }
           />

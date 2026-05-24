@@ -130,7 +130,10 @@ export const reviewsAPI = {
 // Learning API — the unified cross-app progress profile (Spelling + Math apps + Science).
 export const learningAPI = {
   getProfile: () => api.get('/learning/profile'),
-  postResult: (data) => api.post('/learning/result', data)
+  postResult: (data) => api.post('/learning/result', data),
+  getChildren: () => api.get('/learning/children'),
+  addChild: (data) => api.post('/learning/children', data),
+  getChildProfile: (childId) => api.get(`/learning/children/${childId}/profile`)
 };
 
 export default api;

@@ -67,12 +67,12 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <button
-            onClick={() => navigate('/learning')}
+            onClick={() => navigate(user?.role === 'parent' ? '/children' : '/learning')}
             className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
           >
             <TrendingUp className="w-8 h-8 text-indigo-600 mb-2" />
-            <h3 className="font-semibold text-gray-900">My Learning</h3>
-            <p className="text-sm text-gray-600">Progress across all apps</p>
+            <h3 className="font-semibold text-gray-900">{user?.role === 'parent' ? 'My Children' : 'My Learning'}</h3>
+            <p className="text-sm text-gray-600">{user?.role === 'parent' ? 'Each child’s progress' : 'Progress across all apps'}</p>
           </button>
           {user?.role === 'parent' && (
             <>
