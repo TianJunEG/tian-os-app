@@ -15,6 +15,7 @@ const router = express.Router();
 router.use(protect);
 
 const LEVELS = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'other'];
+const LANGUAGES = ['en', 'ms', 'zh'];
 
 // In-memory upload so we can hand the buffer straight to the extractor.
 const upload = multer({
@@ -81,9 +82,10 @@ router.get('/lists', async (req, res) => {
 // @access  Private
 router.get('/library', async (req, res) => {
   try {
-    const { level, q, page = 1, limit = 24 } = req.query;
+    const { level, language, q, page = 1, limit = 24 } = req.query;
     const filter = { isShared: true };
     if (level && LEVELS.includes(level)) filter.level = level;
+    if (language && LANGUAGES.includes(language)) filter.language = language;
     if (q && q.trim()) {
       const safe = q.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.title = { $regex: safe, $options: 'i' };
@@ -448,7 +450,7 @@ router.post(
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     try {
-      const { title, description = '', level = 'other', sourceType = 'manual', isShared = false } = req.body;
+      const { title, description = '', level = 'other', language = 'en', sourceType = 'manual', isShared = false } = req.body;
       const words = sanitizeWords(req.body.words);
 
       const list = await SpellingList.create({
@@ -456,6 +458,7 @@ router.post(
         title: title.trim(),
         description,
         level: LEVELS.includes(level) ? level : 'other',
+        language: LANGUAGES.includes(language) ? language : 'en',
         sourceType,
         isShared: !!isShared,
         words
@@ -480,10 +483,11 @@ router.put('/lists/:id', async (req, res) => {
       return res.status(403).json({ error: 'You can only edit your own lists' });
     }
 
-    const { title, description, level, isShared } = req.body;
+    const { title, description, level, language, isShared } = req.body;
     if (typeof title === 'string' && title.trim()) list.title = title.trim();
     if (typeof description === 'string') list.description = description;
     if (LEVELS.includes(level)) list.level = level;
+    if (LANGUAGES.includes(language)) list.language = language;
     if (typeof isShared === 'boolean') list.isShared = isShared;
     if (req.body.words !== undefined) list.words = sanitizeWords(req.body.words);
 
@@ -536,6 +540,7 @@ router.post('/lists/:id/copy', async (req, res) => {
       title: `${source.title} (copy)`,
       description: source.description,
       level: source.level,
+      language: source.language || 'en',
       sourceType: source.sourceType,
       isShared: false,
       copiedFrom: source._id,

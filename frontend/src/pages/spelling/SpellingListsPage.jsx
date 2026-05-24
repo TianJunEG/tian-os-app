@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Share2, Lock, BookOpen, Pencil } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
+import { langShort } from '../../utils/spellingLang';
 
 const LEVEL_LABELS = { P1: 'Primary 1', P2: 'Primary 2', P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6', other: 'Other' };
 
@@ -75,6 +76,9 @@ export default function SpellingListsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
+                    {list.language && list.language !== 'en' && (
+                      <span className="px-2 py-0.5 bg-rose-50 text-rose-700 rounded">{langShort(list.language)}</span>
+                    )}
                     <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded">{LEVEL_LABELS[list.level] || 'Other'}</span>
                     <span>{list.words?.length || 0} words</span>
                   </div>

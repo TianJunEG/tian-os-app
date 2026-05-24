@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
+import { activitiesForLanguage, langLabel } from '../../utils/spellingLang';
 import MockTest from '../../components/spelling/MockTest';
 import Dictation from '../../components/spelling/Dictation';
 import ScrambleGame from '../../components/spelling/ScrambleGame';
@@ -90,12 +91,14 @@ export default function SpellingListDetailPage() {
   }
 
   const activity = ACTIVITIES.find((a) => a.key === active);
+  const lang = list.language || 'en';
+  const shownActivities = activitiesForLanguage(ACTIVITIES, lang);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <SpellingHeader
         title={list.title}
-        subtitle={`${LEVEL_LABELS[list.level]} · ${words.length} words${list.owner?.name ? ` · by ${list.owner.name}` : ''}`}
+        subtitle={`${lang !== 'en' ? `${langLabel(lang)} · ` : ''}${LEVEL_LABELS[list.level]} · ${words.length} words${list.owner?.name ? ` · by ${list.owner.name}` : ''}`}
         backTo="/spelling/lists"
         right={
           isOwner && (
@@ -115,7 +118,7 @@ export default function SpellingListDetailPage() {
         {!active && (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {ACTIVITIES.map((a) => (
+              {shownActivities.map((a) => (
                 <button
                   key={a.key}
                   onClick={() => setActive(a.key)}
@@ -184,7 +187,7 @@ export default function SpellingListDetailPage() {
                   </span>
                   {activity.label}
                 </h2>
-                <activity.Comp words={words} onAttempt={recordAttempt(activity.mode)} />
+                <activity.Comp words={words} onAttempt={recordAttempt(activity.mode)} lang={lang} />
               </>
             )}
           </div>

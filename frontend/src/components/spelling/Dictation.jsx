@@ -1,13 +1,14 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Play, Square, RotateCcw, CheckCircle2 } from 'lucide-react';
-import { createSpeaker, ttsSupported } from '../../utils/tts';
+import { createSpeaker, ttsSupported, speakOptionsFor } from '../../utils/tts';
 import { playWin } from '../../utils/sound';
 import { confettiBurst } from '../../utils/confetti';
 
 // Splits a passage into sentence segments, reads each one twice with a pause
 // for writing, then scores the typed text against the original word by word.
-export default function Dictation({ words = [], onAttempt }) {
+export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
   const speaker = useRef(createSpeaker());
+  const sp = speakOptionsFor(lang);
 
   const seededPassage = useMemo(
     () => words.map((w) => w.sentence).filter(Boolean).join(' '),
@@ -34,9 +35,9 @@ export default function Dictation({ words = [], onAttempt }) {
     const steps = [];
     segments.forEach((seg) => {
       // Mark which segment is being read (first read of each).
-      steps.push({ text: seg, rate, seg: true });
+      steps.push({ text: seg, rate, seg: true, ...sp });
       steps.push({ pause: 600 });
-      steps.push({ text: seg, rate }); // read twice
+      steps.push({ text: seg, rate, ...sp }); // read twice
       steps.push({ pause: Math.min(4000, 900 + seg.length * 60) }); // time to write
     });
     let segCounter = -1;

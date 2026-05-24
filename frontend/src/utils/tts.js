@@ -27,6 +27,32 @@ export function getEnglishVoices() {
   return synth.getVoices().filter((v) => /^en/i.test(v.lang));
 }
 
+// Maps a list language code to a BCP-47 speech tag for the Web Speech API.
+const SPEECH_LANGS = { en: 'en-GB', ms: 'ms-MY', zh: 'zh-CN' };
+export const speechLangFor = (code) => SPEECH_LANGS[code] || 'en-GB';
+
+// The best installed voice for a language code ('en' | 'ms' | 'zh'), or
+// undefined if none is available on this device.
+export function bestVoiceFor(code) {
+  if (!synth) return undefined;
+  const prefix = code === 'ms' ? 'ms' : code === 'zh' ? 'zh' : 'en';
+  const re = new RegExp(`^${prefix}([-_]|$)`, 'i');
+  return synth.getVoices().find((v) => re.test(v.lang)) || undefined;
+}
+
+// English is treated as always available; other languages depend on the
+// voices installed on the device.
+export function voiceAvailableFor(code) {
+  if (code === 'en') return ttsSupported();
+  return !!bestVoiceFor(code);
+}
+
+// Convenience: { lang, voice } to spread onto a speech step or speakOnce opts.
+export const speakOptionsFor = (code) => ({
+  lang: speechLangFor(code),
+  voice: bestVoiceFor(code)
+});
+
 // A small controller that plays a sequence of speech / pause steps and can be
 // stopped midway. Each step is either { text, rate, pitch, lang, voice } or
 // { pause: milliseconds }.

@@ -28,7 +28,8 @@ export const pickRandom = (arr, n) => shuffle(arr).slice(0, n);
 // when the user taps them. Guaranteed not identical to the original order
 // (unless the word is a single character).
 export function scrambleWord(word) {
-  const letters = String(word).split('');
+  // Split by code point so multi-byte characters (e.g. Chinese) stay intact.
+  const letters = [...String(word)];
   const tiles = letters.map((letter, i) => ({ id: `${i}-${letter}`, letter }));
   if (tiles.length < 2) return tiles;
 

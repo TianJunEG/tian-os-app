@@ -54,6 +54,14 @@ const spellingListSchema = new mongoose.Schema({
     enum: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'other'],
     default: 'other'
   },
+  // The language being practised. English/Malay use the Latin alphabet; Chinese
+  // is character-based and practised by handwriting rather than typing.
+  language: {
+    type: String,
+    enum: ['en', 'ms', 'zh'],
+    default: 'en',
+    index: true
+  },
   words: {
     type: [wordSchema],
     default: []

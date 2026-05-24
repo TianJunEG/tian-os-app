@@ -4,6 +4,7 @@ import { Plus, Trash2, Upload, BookOpen, Loader2, Save, FileText, Sparkles } fro
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
 import { lookupWord, bestDefinition, bestExample } from '../../services/dictionary';
+import { LANGUAGES, supportsDictionary, wordPlaceholder } from '../../utils/spellingLang';
 
 const LEVELS = [
   ['P1', 'Primary 1'], ['P2', 'Primary 2'], ['P3', 'Primary 3'],
@@ -22,6 +23,7 @@ export default function SpellingEditorPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [level, setLevel] = useState('other');
+  const [language, setLanguage] = useState('en');
   const [isShared, setIsShared] = useState(false);
   const [words, setWords] = useState([emptyRow()]);
   const [sourceType, setSourceType] = useState('manual');
@@ -45,6 +47,7 @@ export default function SpellingEditorPage() {
         setTitle(l.title);
         setDescription(l.description || '');
         setLevel(l.level || 'other');
+        setLanguage(l.language || 'en');
         setIsShared(!!l.isShared);
         setWords(l.words.length ? l.words.map((w) => ({ word: w.word, sentence: w.sentence || '', definition: w.definition || '' })) : [emptyRow()]);
         setSourceType(l.sourceType || 'manual');
@@ -179,7 +182,7 @@ export default function SpellingEditorPage() {
 
     setSaving(true);
     try {
-      const payload = { title: title.trim(), description, level, isShared, sourceType, words: cleanWords };
+      const payload = { title: title.trim(), description, level, language, isShared, sourceType, words: cleanWords };
       const res = isEdit ? await spellingAPI.updateList(id, payload) : await spellingAPI.createList(payload);
       navigate(`/spelling/lists/${res.data.list._id}`);
     } catch (err) {
@@ -220,6 +223,14 @@ export default function SpellingEditorPage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
+              <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-purple-500 outline-none bg-white">
+                {LANGUAGES.map(([v, label]) => (
+                  <option key={v} value={v}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
               <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-purple-500 outline-none bg-white">
                 {LEVELS.map(([v, label]) => (
@@ -227,12 +238,15 @@ export default function SpellingEditorPage() {
                 ))}
               </select>
             </div>
-            <div className="flex items-end">
-              <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-gray-700">
-                <input type="checkbox" checked={isShared} onChange={(e) => setIsShared(e.target.checked)} className="rounded text-purple-600 w-4 h-4" />
-                Share to the library ({level === 'other' ? 'set a level for others to find it' : 'visible to everyone'})
-              </label>
-            </div>
+          </div>
+          {language === 'zh' && (
+            <p className="text-xs text-gray-500 -mt-2">中文 lists are practised by handwriting (finger or stylus), not typing.</p>
+          )}
+          <div>
+            <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+              <input type="checkbox" checked={isShared} onChange={(e) => setIsShared(e.target.checked)} className="rounded text-purple-600 w-4 h-4" />
+              Share to the library ({level === 'other' ? 'set a level for others to find it' : 'visible to everyone'})
+            </label>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
@@ -272,7 +286,7 @@ export default function SpellingEditorPage() {
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
             <h2 className="font-semibold text-gray-900">Words ({words.filter((w) => w.word.trim()).length})</h2>
             <div className="flex items-center gap-4">
-              {bulkFilling ? (
+              {supportsDictionary(language) && (bulkFilling ? (
                 <span className="text-sm text-gray-500 inline-flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" /> Filling {bulkProgress.done}/{bulkProgress.total}…
                   <button onClick={() => { bulkCancel.current = true; }} className="text-red-500 hover:underline">Stop</button>
@@ -286,7 +300,7 @@ export default function SpellingEditorPage() {
                 >
                   <Sparkles className="w-4 h-4" /> Fill all blanks
                 </button>
-              )}
+              ))}
               <button onClick={addRow} className="text-sm text-purple-600 hover:underline inline-flex items-center gap-1">
                 <Plus className="w-4 h-4" /> Add word
               </button>
@@ -300,18 +314,20 @@ export default function SpellingEditorPage() {
                   <input
                     value={w.word}
                     onChange={(e) => updateRow(i, 'word', e.target.value)}
-                    placeholder="word"
+                    placeholder={wordPlaceholder(language)}
                     className="flex-1 p-2 border border-gray-300 rounded-lg focus:border-purple-500 outline-none font-medium"
                   />
-                  <button
-                    onClick={() => lookup(i)}
-                    disabled={!w.word.trim() || lookupIdx === i}
-                    aria-label="Look up definition"
-                    title="Look up definition"
-                    className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-purple-600 hover:bg-purple-50 rounded-lg disabled:opacity-40"
-                  >
-                    {lookupIdx === i ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
-                  </button>
+                  {supportsDictionary(language) && (
+                    <button
+                      onClick={() => lookup(i)}
+                      disabled={!w.word.trim() || lookupIdx === i}
+                      aria-label="Look up definition"
+                      title="Look up definition"
+                      className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-purple-600 hover:bg-purple-50 rounded-lg disabled:opacity-40"
+                    >
+                      {lookupIdx === i ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
+                    </button>
+                  )}
                   <button onClick={() => removeRow(i)} aria-label="Remove word" className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-red-400 hover:bg-red-50 rounded-lg" title="Remove">
                     <Trash2 className="w-4 h-4" />
                   </button>

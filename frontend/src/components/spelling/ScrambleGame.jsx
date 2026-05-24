@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { RotateCcw, Check, X, ChevronRight, Volume2, Lightbulb, Flame } from 'lucide-react';
 import { scrambleWord, isCorrect } from '../../utils/spellingGames';
-import { speakOnce } from '../../utils/tts';
+import { speakOnce, speakOptionsFor } from '../../utils/tts';
+import { isHandwritten } from '../../utils/spellingLang';
 import { playCorrect, playWrong } from '../../utils/sound';
 import ScoreSummary from './ScoreSummary';
 
-// Letters are shown as shuffled tiles; the student taps to build the word in
-// order (tap a placed tile to send it back), with reset and check.
-export default function ScrambleGame({ words, onAttempt }) {
+// Letters (or characters) are shown as shuffled tiles; the student taps to build
+// the word in order (tap a placed tile to send it back), with reset and check.
+export default function ScrambleGame({ words, onAttempt, lang = 'en' }) {
+  const tileCase = isHandwritten(lang) ? '' : 'uppercase';
   const [index, setIndex] = useState(0);
   const [pool, setPool] = useState([]);
   const [answer, setAnswer] = useState([]);
@@ -89,7 +91,7 @@ export default function ScrambleGame({ words, onAttempt }) {
 
       {/* Clues */}
       <div className="flex items-center justify-center gap-3 mb-4">
-        <button onClick={() => speakOnce(current.word)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg" aria-label="Hear word">
+        <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg" aria-label="Hear word">
           <Volume2 className="w-5 h-5" />
         </button>
         {(current.definition || current.sentence) && (
@@ -110,12 +112,12 @@ export default function ScrambleGame({ words, onAttempt }) {
           result === 'correct' ? 'border-green-500 bg-green-50' : result === 'wrong' ? 'border-red-500 bg-red-50' : 'border-dashed border-gray-300'
         }`}
       >
-        {answer.length === 0 && <span className="text-gray-400 text-sm">Tap the letters in order</span>}
+        {answer.length === 0 && <span className="text-gray-400 text-sm">Tap the {isHandwritten(lang) ? 'characters' : 'letters'} in order</span>}
         {answer.map((tile) => (
           <button
             key={tile.id}
             onClick={() => removeTile(tile)}
-            className="w-11 h-11 rounded-lg bg-purple-600 text-white text-xl font-bold uppercase shadow hover:bg-purple-700"
+            className={`w-11 h-11 rounded-lg bg-purple-600 text-white text-xl font-bold ${tileCase} shadow hover:bg-purple-700`}
           >
             {tile.letter}
           </button>
@@ -128,7 +130,7 @@ export default function ScrambleGame({ words, onAttempt }) {
           <button
             key={tile.id}
             onClick={() => placeTile(tile)}
-            className="w-11 h-11 rounded-lg bg-white border-2 border-gray-300 text-gray-800 text-xl font-bold uppercase shadow-sm hover:border-purple-400 active:scale-95 transition"
+            className={`w-11 h-11 rounded-lg bg-white border-2 border-gray-300 text-gray-800 text-xl font-bold ${tileCase} shadow-sm hover:border-purple-400 active:scale-95 transition`}
           >
             {tile.letter}
           </button>
