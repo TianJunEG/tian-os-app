@@ -7,11 +7,16 @@
 const SHARED_KEY = 'tutormatch.learning';
 const qp = () => new URLSearchParams(location.search);
 
+function token() {
+  try { return localStorage.getItem('token') || JSON.parse(localStorage.getItem('user') || '{}').token || ''; } catch { return ''; }
+}
+
 export function emitResult(r) {
+  let rec;
   try {
     if (typeof localStorage === 'undefined') return;
     const q = qp();
-    const rec = {
+    rec = {
       source: 'mathpath',
       studentId: q.get('student') || 'ethan',
       subjectHint: q.get('subject') || 'emath',
@@ -27,7 +32,18 @@ export function emitResult(r) {
     const log = JSON.parse(localStorage.getItem(SHARED_KEY) || '[]');
     log.push(rec);
     localStorage.setItem(SHARED_KEY, JSON.stringify(log.slice(-300)));
-  } catch { /* never block practice */ }
+  } catch { return; /* never block practice */ }
+  try {
+    // Real-app path: persist to the unified profile API (same contract as the event log).
+    const tok = token();
+    if (tok) {
+      fetch('/api/learning/result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
+        body: JSON.stringify({ source: 'mathpath', subject: rec.subjectHint, topic: rec.skillName || 'Practice', accuracy: rec.accuracy, mastered: rec.mastered, minutes: rec.minutes }),
+      }).catch(() => {});
+    }
+  } catch { /* best effort */ }
 }
 
 // Thin banner linking back to the dashboard, shown only when launched with context.
