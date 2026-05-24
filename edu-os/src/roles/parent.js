@@ -93,6 +93,7 @@ function childDetail(studentId) {
   const reports = S.reportsFor(k.id);
   const rc = AI.revisionConsistency(k.id);
   const wsDone = S.worksheetsFor(k.id).filter((w) => w.status === 'done');
+  const wsAssigned = S.worksheetsFor(k.id).filter((w) => w.status === 'assigned');
 
   return `
   <a class="link" href="#/parent/children" style="margin-bottom:10px">${icon('left')} Children</a>
@@ -129,6 +130,8 @@ function childDetail(studentId) {
       </div>
       ${weekBars(rc.series)}
       <div class="row between sm" style="margin-top:12px"><span class="muted">Worksheets completed</span><b>${wsDone.length}</b></div>
+      <div class="row between sm" style="margin-top:6px"><span class="muted">Remediation assigned (from mistakes)</span><b>${wsAssigned.length}</b></div>
+      ${wsAssigned.length ? `<div class="tiny faint" style="margin-top:6px">AI generated these from recent app mistakes — ${k.name.split(' ')[0]} can clear them by practising in the app.</div>` : ''}
     </div>
   </div>`;
 }

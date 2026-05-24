@@ -23,6 +23,19 @@ export function render(tab, param) {
 
 const assignedWorksheet = (studentId, topicId) => S.worksheetsFor(studentId).find((w) => w.topicId === topicId && w.status === 'assigned');
 
+// AI Worksheet System: remediation worksheets generated from mistakes in the learning apps.
+function aiWorksheets(me, subjectId) {
+  const ts = topicsOf(subjectId);
+  const ws = S.worksheetsFor(me.id).filter((w) => w.status === 'assigned' && ts.some((t) => t.id === w.topicId));
+  if (!ws.length) return '';
+  return `<div class="ai"><div class="ai-h">${icon('sparkles')} AI worksheets · mistake-based remediation</div>
+    ${ws.map((w) => { const t = ts.find((x) => x.id === w.topicId) || {}; return `<div class="reco tap" data-act="open-worksheet" data-worksheet="${w.id}">
+      <div class="ric" style="background:var(--brand-soft);color:var(--brand)">${icon('clipboard')}</div>
+      <div class="grow"><div class="rt">${U.esc(t.name || 'Practice')}</div><div class="rd">${U.esc(w.reason || w.type)}</div></div>
+      <div class="chev faint">${icon('right')}</div></div>`; }).join('')}
+  </div>`;
+}
+
 // ---------------- Today ----------------
 function home(me) {
   const ex = AI.examInfo();
@@ -98,6 +111,8 @@ function subjectMap(me, subjectId) {
       ${U.cardHead('layers', 'Topic mastery map')}
       <div class="list">${topics.map((t) => topicRow(me, t)).join('')}</div>
     </div>
+
+    ${aiWorksheets(me, subjectId)}
 
     <a class="btn primary block" href="/mathpath/?student=${me.id}&subject=${subjectId}&return=/" target="_blank" rel="noopener">${icon('play')} Practise ${su.name} in MathPath</a>
 

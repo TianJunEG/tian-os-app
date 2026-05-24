@@ -3,7 +3,7 @@ import * as S from '../store.js';
 import * as AI from '../ai.js';
 import * as U from '../ui.js';
 import { icon } from '../icons.js';
-import { topicsOf } from '../data.js';
+import { topicsOf, TOPICS } from '../data.js';
 
 export const nav = [
   { id: 'home', label: 'Home', icon: 'home' },
@@ -103,6 +103,9 @@ function studentDetail(t, studentId) {
       <div class="row between sm"><span class="muted">This week</span><b>${rc.minutesWeek} min · ${rc.activeDays}/7 days</b></div>
       <div style="margin-top:10px">${weekBars(rc.series)}</div>
     </div>
+
+    ${(() => { const aw = S.worksheetsFor(s.id).filter((w) => w.status === 'assigned'); return aw.length ? `<div class="card">${U.cardHead('sparkles', 'AI-assigned worksheets', { sub: 'Auto-generated from app mistakes' })}
+      <div class="list">${aw.map((w) => { const tp = TOPICS.find((x) => x.id === w.topicId) || {}; return `<div class="rowitem plain"><div class="lead" style="background:var(--brand-soft);color:var(--brand)">${icon('clipboard')}</div><div class="grow"><div class="t" style="font-size:14px">${U.esc(tp.name || 'Practice')}</div><div class="d">${U.esc(w.reason || w.type)}</div></div><span class="badge b-warn">assigned</span></div>`; }).join('')}</div></div>` : ''; })()}
 
     <div class="card">${U.cardHead('clipboard', 'Lesson history')}
       ${lessons.length ? `<div class="list">${lessons.map(lhist).join('')}</div>` : '<p class="sm muted">No lessons yet.</p>'}

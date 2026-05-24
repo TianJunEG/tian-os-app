@@ -18,6 +18,7 @@ export function emitResult(r) {
       curriculumId: r.curriculumId || '',
       skillId: r.skillId || '',
       skillName: r.skillName || '',
+      topicId: q.get('topic') || '', // exact Education OS topic, when launched from a worksheet
       accuracy: Math.max(0, Math.min(100, Math.round(r.accuracy || 0))),
       mastered: !!r.mastered,
       minutes: Math.max(5, Math.round((r.questions || 10) * 0.6)),

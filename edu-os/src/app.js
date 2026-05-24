@@ -193,7 +193,7 @@ function openWorksheet(worksheetId) {
   const subjectId = w.topicId.split('-')[0];
   const t = topicsOf(subjectId).find((x) => x.id === w.topicId) || {};
   U.openSheet(`<h3>${w.type} worksheet</h3><p class="sm muted" style="margin:4px 0 14px">${U.esc(t.name || 'Topic practice')} · adaptive difficulty, powered by MathPath. Your results sync straight back here.</p>
-    <a class="btn primary block" href="/mathpath/?student=${w.studentId}&subject=${subjectId}&return=/" target="_blank" rel="noopener">${icon('play')} Practise in MathPath</a>
+    <a class="btn primary block" href="/mathpath/?student=${w.studentId}&subject=${subjectId}&topic=${w.topicId}&return=/" target="_blank" rel="noopener">${icon('play')} Practise in MathPath</a>
     <button class="btn ghost block" style="margin-top:8px" data-act="complete-worksheet" data-worksheet="${worksheetId}">Mark complete (demo)</button>`);
 }
 

@@ -46,24 +46,41 @@ export function mapTopic(subjectId, skillName = '') {
   return (ts.find((t) => /algebra/i.test(t.name)) || ts[0]).id;
 }
 
+export const REMEDIATION_AT = 65; // below this, MathPath mistakes spawn a remediation worksheet
+const today = () => new Date().toISOString().slice(0, 10);
+let _rid = 0;
+const wsId = () => `wsai-${Date.now().toString(36)}-${_rid++}`;
+
+// Prefer the exact topic the dashboard launched (rec.topicId); else infer from the skill name.
+export function resolveTopic(subjectId, rec) {
+  if (rec.topicId && topicsOf(subjectId).some((t) => t.id === rec.topicId)) return rec.topicId;
+  return mapTopic(subjectId, rec.skillName);
+}
+
 // Apply a batch of result records to the shared profile. Returns the number applied.
+// Mistake-based remediation: a weak result auto-assigns a targeted worksheet; a strong result
+// on a topic with an open worksheet marks that worksheet done. (The AI Worksheet System loop.)
 export function applyRecords(db, records) {
   let applied = 0;
   for (const rec of records) {
     if (rec.source !== 'mathpath' || !rec.studentId) continue;
     const subjectId = mapSubject(db, rec);
-    const topicId = mapTopic(subjectId, rec.skillName);
+    const topicId = resolveTopic(subjectId, rec);
     if (!topicId) continue;
     const key = `${rec.studentId}:${topicId}`;
     const prev = db.progress[key] || { status: 'not-started', accuracy: 0 };
     const acc = prev.accuracy ? Math.round((prev.accuracy + rec.accuracy) / 2) : rec.accuracy;
-    db.progress[key] = { accuracy: acc, status: rec.mastered || acc >= 85 ? 'mastered' : acc >= 65 ? 'learning' : 'needs-revision' };
-    // revision minutes → today's slot
+    db.progress[key] = { accuracy: acc, status: rec.mastered || acc >= 85 ? 'mastered' : acc >= REMEDIATION_AT ? 'learning' : 'needs-revision' };
+
     const arr = db.revision[rec.studentId] || (db.revision[rec.studentId] = [0, 0, 0, 0, 0, 0, 0]);
     arr[arr.length - 1] += rec.minutes || 0;
-    // complete a matching assigned worksheet, if any
-    const ws = db.worksheets.find((w) => w.studentId === rec.studentId && w.topicId === topicId && w.status === 'assigned');
-    if (ws) { ws.status = 'done'; ws.score = rec.accuracy; ws.date = new Date().toISOString().slice(0, 10); }
+
+    const open = db.worksheets.find((w) => w.studentId === rec.studentId && w.topicId === topicId && w.status === 'assigned');
+    if (rec.accuracy >= REMEDIATION_AT) {
+      if (open) { open.status = 'done'; open.score = rec.accuracy; open.date = today(); } // remediation cleared
+    } else if (!open) {
+      db.worksheets.push({ id: wsId(), studentId: rec.studentId, topicId, status: 'assigned', type: 'Remediation', source: 'mathpath-mistakes', reason: `${rec.accuracy}% in MathPath — targeted practice generated`, date: null, score: null });
+    }
     applied++;
   }
   return applied;
