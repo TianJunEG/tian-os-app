@@ -232,6 +232,16 @@
   .cluelabel{font-size:.66rem;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#fff;
     background:var(--accent);border-radius:999px;padding:4px 10px;white-space:nowrap}
 
+  /* embedded model builder in practice */
+  .drawwrap{margin-top:16px}
+  .drawtoggle{display:inline-flex;align-items:center;gap:8px;background:#eef3ff;color:var(--brand);font-weight:800;
+    padding:11px 18px;border-radius:12px;font-size:.92rem;border:1px solid #d9e4fb;transition:all .12s}
+  .drawtoggle:hover{background:#e2ebff}
+  .drawtoggle .pen{font-weight:900}
+  .buildembed{background:#fbfcff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:12px}
+  .buildembed .panel{background:none;border:none;box-shadow:none;padding:0}
+  .drawcap{font-size:.84rem;color:var(--muted);margin:0 0 10px;font-weight:600}
+
   /* readability bumps */
   .hcard p{font-size:.9rem}
   .udsc .step p,.flownode p{font-size:.82rem}
@@ -774,7 +784,7 @@ const BLD_PRESETS=[
    total:40,ask:'Boys',answer:16,
    tip:'Make 5 unit blocks for the whole class (total 40). Boys = 2 of those units.'}
 ];
-function renderBuilder(b){
+function renderBuilder(b,compact){
   if(!state.bld)state.bld={rows:[{name:'James',blocks:[]},{name:'Richard',blocks:[]}],sel:0,total:'',preset:'free',ans:''};
   const s=state.bld;
   const preset=BLD_PRESETS.find(p=>p.id===s.preset)||BLD_PRESETS[0];
@@ -803,7 +813,7 @@ function renderBuilder(b){
     </div>`).join('');
 
   let checkPanel='';
-  if(preset.id!=='free'){
+  if(!compact && preset.id!=='free'){
     checkPanel=`<div class="pcard" style="margin-top:14px">
       <div class="pq">${preset.q}</div>
       <div class="note" style="margin-top:0"><b>Hint:</b> ${preset.tip}</div>
@@ -818,9 +828,9 @@ function renderBuilder(b){
 
   b.innerHTML=`<div class="panel">
     <div class="builderbar">
-      <select class="presetsel" onchange="bldPreset(this.value)">
+      ${compact?'':`<select class="presetsel" onchange="bldPreset(this.value)">
         ${BLD_PRESETS.map(p=>`<option value="${p.id}" ${p.id===s.preset?'selected':''}>${p.label}</option>`).join('')}
-      </select>
+      </select>`}
       <button class="btn ghost sm" onclick="bldAddRow()">＋ Add bar</button>
       <button class="btn ghost sm" onclick="bldClear()">Clear all</button>
     </div>
@@ -901,9 +911,13 @@ function gH1(lv){const it=pick(ITEMS),pr=pick2(NAMES),A=pr[0],B=pr[1],n=lv.n;
   if(n===5){const P=20*pick([2,3,4,5,6,8,10,12,15]),r=pick([10,20,25,50]),paid=P*(100-r)/100;
     return {q:`A jacket costs ${money(P)}. In a sale there is a ${r}% discount. How much do you pay?`,type:'num',answer:paid,unit:'$',
       hint:`Draw the price as 100%. You pay ${100-r}% of it.`,sol:`Discount = ${r}% of ${money(P)} = ${money(P*r/100)}; you pay ${money(paid)}.`};}
-  const m=pick([2,3,4,5]),p=pick([2,3,4,5]),u=rint(6,40),T=(m+p)*u,Aval=m*u;
-  return {q:`${A} and ${B} share ${T} ${it} in the ratio ${m} : ${p}. How many ${it} does ${A} get?`,type:'num',answer:Aval,
-    hint:`Total units = ${m} + ${p} = ${m+p}. 1 unit = ${T} ÷ ${m+p}.`,sol:`1 unit = ${T} ÷ ${m+p} = ${u}; ${A} = ${m} units = ${Aval}.`};
+  const trip=pick([[2,3,5],[3,4,5],[2,3,4],[1,3,5],[2,5,7],[3,5,7],[1,4,5],[2,3,6],[1,2,4],[3,4,6]]),
+    nm=shuffle(NAMES).slice(0,3),pa=trip[0],pb=trip[1],pc=trip[2],u=rint(40,180),
+    sum=pa+pb+pc,T=sum*u,ent=[[nm[0],pa],[nm[1],pb],[nm[2],pc]],
+    mx=ent.reduce((a,b)=>b[1]>a[1]?b:a),mn=ent.reduce((a,b)=>b[1]<a[1]?b:a),diff=(mx[1]-mn[1])*u;
+  return {q:`${nm[0]}, ${nm[1]} and ${nm[2]} share ${fmtNum(T)} ${it} in the ratio ${pa} : ${pb} : ${pc}. How many more ${it} does ${mx[0]} get than ${mn[0]}?`,type:'num',answer:diff,
+    hint:`Total units = ${pa} + ${pb} + ${pc} = ${sum}. 1 unit = ${fmtNum(T)} ÷ ${sum} = ${u}.`,
+    sol:`1 unit = ${u}; difference = (${mx[1]} − ${mn[1]}) units = ${mx[1]-mn[1]} units = ${fmtNum(diff)}.`};
 }
 function gH2(lv){const n=lv.n;
   if(n===1){const s=rint(1,9),d=pick([2,5,10]),k=rint(6,8),t=[s,s+d,s+2*d,s+3*d],ans=s+(k-1)*d;
@@ -916,10 +930,10 @@ function gH2(lv){const n=lv.n;
     return {q:`A pattern goes ${t.join(', ')}, … Find the ${ord(k)} term.`,type:'num',answer:ans,hint:`Step = ${d}. Term k = first + (k−1) × step.`,sol:`${s} + (${k}−1)×${d} = ${ans}.`};}
   if(n===5){const s=pick([0.5,1.5,2.5,3.5]),d=pick([0.5,1.5,2.5]),k=rint(8,12),t=[s,s+d,s+2*d,s+3*d].map(fmtNum),ans=s+(k-1)*d;
     return {q:`A decimal pattern goes ${t.join(', ')}, … Find the ${ord(k)} term.`,type:'num',answer:ans,hint:`The step is ${fmtNum(d)}.`,sol:`${fmtNum(s)} + (${k}−1)×${fmtNum(d)} = ${fmtNum(ans)}.`};}
-  const a=pick([2,3,4,5]),b=rint(1,6),t=[a+b,2*a+b,3*a+b,4*a+b],correct=`${a}n + ${b}`,
-    choices=shuffle([correct,`${a}n + ${b+1}`,`${a+1}n + ${b}`,`${a}n − ${b}`]);
-  return {q:`A pattern is ${t.join(', ')}, … If n is the position number, which rule gives the n‑th term?`,type:'mc',choices,answer:correct,
-    hint:`It increases by ${a} each step, and term 1 is ${t[0]}.`,sol:`Step ${a} → ${a}n; check: ${a}×1 + ${b} = ${t[0]}. Rule = ${correct}.`};
+  const a=pick([3,4,6,7,8]),b=rint(2,15),pos=rint(20,60),val=a*pos+b;
+  return {q:`A number pattern follows the rule ${a}n + ${b} (n is the position number). Which term number n has the value ${val}?`,type:'num',answer:pos,
+    hint:`Set ${a}n + ${b} = ${val}; subtract ${b}, then divide by ${a}.`,
+    sol:`${a}n + ${b} = ${val} → ${a}n = ${val-b} → n = ${pos}.`};
 }
 function gH3(lv){const n=lv.n;
   if(n===1){const c=pick([2,5,10]),per=rint(2,Math.max(2,Math.floor(20/c))),tot=c*per,it=pick(['pens','toys','cakes','sweets','rulers']);
@@ -933,8 +947,10 @@ function gH3(lv){const n=lv.n;
       hint:`Double the first row (6 shorts + 4 tops), then subtract the second to leave shorts.`,sol:`2 × first = 6 shorts + 4 tops = ${money(2*X)}; minus second → 1 short = $${2*X-Y}; 1 top = (${money(X)} − 3 × $${2*X-Y}) ÷ 2 = ${money(tp)}.`};}
   if(n===5){const rl=rint(2,6),pn=pick([1.5,2,2.5,3]),X=2*rl+3*pn,Y=4*rl+3*pn;
     return {q:`2 rulers and 3 pens cost ${money(X)}. 4 rulers and 3 pens cost ${money(Y)}. Find the cost of 1 ruler.`,type:'num',answer:rl,unit:'$',hint:`Same number of pens (3) — subtract to leave rulers.`,sol:`${money(Y)} − ${money(X)} = 2 rulers = ${money(Y-X)}; 1 ruler = ${money(rl)}.`};}
-  const y=rint(2,9),x=y+rint(2,8),S=x+y,D=x-y;
-  return {q:`Two numbers x and y satisfy x + y = ${S} and x − y = ${D}. Find x.`,type:'num',answer:x,hint:`Add the two equations so that y cancels: 2x = ${S} + ${D}.`,sol:`2x = ${S} + ${D} = ${S+D}; x = ${x}.`};
+  const a=rint(15,60),b=rint(15,60),P=3*a+2*b,Q=a+b;
+  return {q:`Two numbers a and b satisfy 3a + 2b = ${P} and a + b = ${Q}. Find a.`,type:'num',answer:a,
+    hint:`Double the second equation: 2a + 2b = ${2*Q}. Subtract it from the first to remove b.`,
+    sol:`(3a + 2b) − 2 × (a + b) = ${P} − ${2*Q} = ${P-2*Q}; so a = ${a}.`};
 }
 function gH4(lv){const n=lv.n;
   if(n===1){const ans=pick([15,25,35,45,55,65,75,85,95]),lo=ans-rint(3,4),hi=ans+rint(3,4);
@@ -954,8 +970,12 @@ function gH4(lv){const n=lv.n;
   if(n===5){const a=pick([2,3,5]),b=pick([8,10,12]),x=rint(2,6),y=rint(2,6),N=x+y,C=a*x+b*y;
     return {q:`Tickets cost ${money(a)} (child) or ${money(b)} (adult). ${N} tickets were bought for ${money(C)} in total. How many child tickets were bought?`,type:'num',answer:x,
       hint:`List the cases: 1 child, 2 children, … and check the total cost each time.`,sol:`${x} child + ${y} adult = ${N} tickets; ${x} × ${money(a)} + ${y} × ${money(b)} = ${money(C)}.`};}
-  const ans=pick([12,24,36,48,60]),lo=ans-rint(4,6),hi=ans+rint(4,6);
-  return {q:`A number between ${lo} and ${hi} is a common multiple of 6 and 4. What is it?`,type:'num',answer:ans,hint:`Common multiples of 6 and 4 are the multiples of 12.`,sol:`${ans} = 6 × ${ans/6} = 4 × ${ans/4}.`};
+  const cmp=pick([[8,12],[6,9],[8,10],[10,15],[9,12],[12,15],[6,8],[9,15],[10,12]]),
+    xx=cmp[0],yy=cmp[1],lcm=xx*yy/gcd(xx,yy),mult=rint(3,8),ans=lcm*mult,
+    lo=ans-rint(1,lcm-1),hi=ans+rint(1,lcm-1);
+  return {q:`Find the number between ${lo} and ${hi} that is a multiple of both ${xx} and ${yy}.`,type:'num',answer:ans,
+    hint:`Numbers that are multiples of both ${xx} and ${yy} are multiples of their LCM, ${lcm}.`,
+    sol:`LCM(${xx}, ${yy}) = ${lcm}; the multiple between ${lo} and ${hi} is ${ans} = ${lcm} × ${mult}.`};
 }
 function gH5(lv){const n=lv.n;
   if(n<=2){const hi=(n===1)?6:9,t=rint(2,hi),f=rint(2,hi),C=t+f,V=10*t+5*f;
@@ -966,8 +986,10 @@ function gH5(lv){const n=lv.n;
     return {q:`A farm has chickens and rabbits — ${heads} heads and ${legs} legs in all. How many rabbits are there?`,type:'num',answer:r,hint:`If all were chickens there would be ${2*heads} legs; each rabbit adds 2 more.`,sol:`Extra legs = ${legs} − ${2*heads} = ${legs-2*heads}; rabbits = ${(legs-2*heads)/2} = ${r}.`};}
   if(n===5){const j=rint(10,30),p=rint(10,30),tot=j+p,earn=18*j+25*p;
     return {q:`A shop sells jeans at $18 and pants at $25. It sold ${tot} pairs for ${money(earn)} in total. How many pairs of jeans were sold?`,type:'num',answer:j,hint:`Guess the pairs of jeans; the rest are pants; check the money.`,sol:`${j} jeans (${money(18*j)}) + ${p} pants (${money(25*p)}) = ${money(earn)} with ${tot} pairs.`};}
-  const right=rint(8,18),wrong=rint(2,8),total=right+wrong,score=3*right-wrong;
-  return {q:`In a ${total}‑question quiz, +3 marks for each correct answer and −1 for each wrong one. A pupil scored ${score} marks. How many questions did they get correct?`,type:'num',answer:right,hint:`Guess the number correct; the rest are wrong; check the score.`,sol:`${right} × 3 − ${wrong} × 1 = ${score}, with ${total} questions in all.`};
+  const total=rint(30,50),right=rint(Math.ceil(total*0.55),total-2),wrong=total-right,cm=pick([4,5]),pen=pick([1,2]),score=cm*right-pen*wrong;
+  return {q:`In a ${total}‑question quiz, +${cm} marks for each correct answer and −${pen} for each wrong one (no blanks). A pupil scored ${score} marks. How many answers were correct?`,type:'num',answer:right,
+    hint:`If all ${total} were correct, the score would be ${cm*total}. Each wrong answer costs ${cm+pen} marks.`,
+    sol:`Marks lost = ${cm*total} − ${score} = ${cm*total-score}; wrong = ${cm*total-score} ÷ ${cm+pen} = ${wrong}; correct = ${total} − ${wrong} = ${right}.`};
 }
 function gH6(lv){const n=lv.n;
   if(n===1){const x=rint(5,40),a=rint(3,20),R=x+a;
@@ -980,8 +1002,12 @@ function gH6(lv){const n=lv.n;
     return {q:`A number is multiplied by ${k}, then ${a} is taken away, leaving ${R}. What is the number?`,type:'num',answer:x,hint:`Add ${a} back, then divide by ${k}.`,sol:`(${R} + ${a}) ÷ ${k} = ${x}.`};}
   if(n===5){const fr=pick([[1,3],[1,4],[2,5],[3,4],[2,3]]),num=fr[0],den=fr[1],O=den*rint(6,40),left=O*(den-num)/den;
     return {q:`Sam spent ${num}/${den} of his money and had ${money(left)} left. How much did he have at first?`,type:'num',answer:O,unit:'$',hint:`He has ${den-num}/${den} of it left = ${money(left)}. Work back to the whole.`,sol:`${den-num}/${den} of the total = ${money(left)}; 1/${den} = ${money(left/(den-num))}; total = ${money(O)}.`};}
-  const O=20*rint(2,15),r=pick([10,20,25,40,50]),left=O*(100-r)/100;
-  return {q:`After spending ${r}% of her savings, May had ${money(left)} left. How much did she save at first?`,type:'num',answer:O,unit:'$',hint:`${money(left)} is ${100-r}% of the original amount.`,sol:`${100-r}% = ${money(left)}; 1% = ${money(left/(100-r))}; 100% = ${money(O)}.`};
+  const pr2=pick([[20,25],[25,20],[50,40],[40,50],[20,50],[50,20],[25,40],[40,25],[10,20],[20,10],[50,50],[10,50]]),
+    r1=pr2[0],r2=pr2[1],O=100*rint(15,90),nm6=pick(NAMES),
+    rem=O*(100-r1)/100,left=rem*(100-r2)/100,pctLeft=(100-r1)*(100-r2)/100;
+  return {q:`${nm6} spent ${r1}% of their money, then ${r2}% of what was left, and had ${money(left)} left. How much did ${nm6} have at first?`,type:'num',answer:O,unit:'$',
+    hint:`After spending ${r1}%, ${100-r1}% remained. Spending ${r2}% of that leaves ${100-r2}% of the remainder.`,
+    sol:`${money(left)} is ${pctLeft}% of the start (${100-r1}% × ${100-r2}%); 1% = ${money(O/100)}; start = ${money(O)}.`};
 }
 
 function renderPractice(id,b){
@@ -1009,11 +1035,17 @@ function renderPractice(id,b){
       <button class="btn ghost sm" onclick="showHint()">Show hint</button>
       <button class="btn sm" onclick="newQuestion('${id}');renderTab('${id}')">New question →</button>
     </div>
+    ${id==='H1'?`<div class="drawwrap">
+      <button class="drawtoggle" onclick="togglePracDraw()">${state.pracDraw?'▾ Hide model':'▸ Draw a model to help'}</button>
+      ${state.pracDraw?`<div class="buildembed"><p class="drawcap">Sketch the bars for this question — add equal <b style="color:var(--u)">unit</b> blocks and labelled <b style="color:var(--accent)">number</b> blocks, type the grand total, then read off what 1 unit is.</p><div id="pracbuild"></div></div>`:''}
+    </div>`:''}
     <div class="parentonly note"><b>Parent / teacher note:</b> ${parentNote(id)} Problems here follow Level ${lv.n} (${lv.grade}) scope: ${lv.scope}</div>
   </div>`;
   const pin=document.getElementById('pin');
-  if(pin){pin.focus();pin.addEventListener('keydown',e=>{if(e.key==='Enter')checkAns();});}
+  if(pin){pin.addEventListener('keydown',e=>{if(e.key==='Enter')checkAns();});if(!state.pracDraw)pin.focus();}
+  if(id==='H1'&&state.pracDraw){const pb=document.getElementById('pracbuild');if(pb)renderBuilder(pb,true);}
 }
+function togglePracDraw(){state.pracDraw=!state.pracDraw;renderTab(state.arg);}
 function newQuestion(id){
   const same=(state.prac&&state.prac.id===id&&state.prac.level===L().n);
   const keep=same?state.prac.score:{right:0,total:0};
