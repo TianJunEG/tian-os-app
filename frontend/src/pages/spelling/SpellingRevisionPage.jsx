@@ -7,12 +7,14 @@ import MockTest from '../../components/spelling/MockTest';
 import ScrambleGame from '../../components/spelling/ScrambleGame';
 import MissingLetters from '../../components/spelling/MissingLetters';
 import LookCoverCheck from '../../components/spelling/LookCoverCheck';
+import { useLanguageScope, LanguageScopeTabs } from '../../components/spelling/LanguageScope';
+import { activitiesForLanguage, activityCopy } from '../../utils/spellingLang';
 
 const ACTIVITIES = [
-  ['mock', 'Mock test', MockTest],
-  ['lookcover', 'Look · Cover · Check', LookCoverCheck],
-  ['scramble', 'Scramble', ScrambleGame],
-  ['missing', 'Missing letters', MissingLetters]
+  { key: 'mock', label: 'Mock test', Comp: MockTest },
+  { key: 'lookcover', label: 'Look · Cover · Check', Comp: LookCoverCheck },
+  { key: 'scramble', label: 'Scramble', Comp: ScrambleGame },
+  { key: 'missing', label: 'Missing letters', Comp: MissingLetters }
 ];
 
 export default function SpellingRevisionPage() {
@@ -43,7 +45,8 @@ export default function SpellingRevisionPage() {
   const record = (word, correct) =>
     spellingAPI.recordAttempts({ word, correct, mode: 'revision' }).catch(() => {});
 
-  const ActiveComp = useMemo(() => ACTIVITIES.find(([k]) => k === activity)?.[2], [activity]);
+  const { langs, lang, setLang, filtered } = useLanguageScope(words);
+  const ActiveComp = useMemo(() => ACTIVITIES.find((a) => a.key === activity)?.Comp, [activity]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,25 +73,26 @@ export default function SpellingRevisionPage() {
             <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-purple-600 inline-flex items-center gap-1 mb-5">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            <ActiveComp words={words} onAttempt={record} />
+            <ActiveComp key={lang} words={filtered} onAttempt={record} lang={lang} />
           </div>
         ) : (
           <>
             <div className="bg-white rounded-xl shadow-sm p-5 mb-6 flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 text-gray-700">
                 <Target className="w-5 h-5 text-rose-500" />
-                <span className="font-semibold">{words.length}</span> words to revise
-                {weakCount > words.length && <span className="text-sm text-gray-400">of {weakCount} total</span>}
+                <span className="font-semibold">{filtered.length}</span> words to revise
+                {weakCount > filtered.length && <span className="text-sm text-gray-400">of {weakCount} total</span>}
               </div>
               <button onClick={load} className="ml-auto px-3 py-1.5 bg-rose-500 text-white rounded-lg hover:bg-rose-600 text-sm inline-flex items-center gap-1">
                 <RefreshCw className="w-4 h-4" /> Refresh
               </button>
             </div>
 
+            <LanguageScopeTabs langs={langs} lang={lang} setLang={setLang} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              {ACTIVITIES.map(([key, label]) => (
-                <button key={key} onClick={() => setActivity(key)} className="py-3 px-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
-                  {label}
+              {activitiesForLanguage(ACTIVITIES, lang).map((a) => (
+                <button key={a.key} onClick={() => setActivity(a.key)} className="py-3 px-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
+                  {activityCopy(a, lang).label}
                 </button>
               ))}
             </div>
@@ -96,7 +100,7 @@ export default function SpellingRevisionPage() {
             <div className="bg-white rounded-xl shadow-sm p-5">
               <h2 className="font-semibold text-gray-900 mb-3">Words you've missed</h2>
               <ul className="divide-y divide-gray-50">
-                {words.map((w) => (
+                {filtered.map((w) => (
                   <li key={w.word} className="flex items-center gap-3 py-2.5">
                     <span className="font-medium text-gray-900 flex-1">{w.word}</span>
                     {w.listTitle && <span className="text-xs text-gray-400">{w.listTitle}</span>}

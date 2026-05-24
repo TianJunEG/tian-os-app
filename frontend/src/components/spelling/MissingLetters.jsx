@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { RotateCcw, Check, X, ChevronRight, Volume2, Lightbulb, Flame } from 'lucide-react';
 import { makeMissingLetters, isCorrect } from '../../utils/spellingGames';
-import { speakOnce } from '../../utils/tts';
+import { speakOnce, speakOptionsFor } from '../../utils/tts';
 import { playCorrect, playWrong } from '../../utils/sound';
 import ScoreSummary from './ScoreSummary';
 
 // Shows the word with some letters blanked out; the student types the missing
 // letters into the gaps.
-export default function MissingLetters({ words, onAttempt }) {
+export default function MissingLetters({ words, onAttempt, lang = 'en' }) {
   const [index, setIndex] = useState(0);
   const [template, setTemplate] = useState([]);
   const [entries, setEntries] = useState({}); // position -> typed char
@@ -102,7 +102,7 @@ export default function MissingLetters({ words, onAttempt }) {
       </div>
 
       <div className="flex items-center justify-center gap-3 mb-6">
-        <button onClick={() => speakOnce(current.word)} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg" aria-label="Hear word">
+        <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg" aria-label="Hear word">
           <Volume2 className="w-5 h-5" />
         </button>
         {(current.definition || current.sentence) && (

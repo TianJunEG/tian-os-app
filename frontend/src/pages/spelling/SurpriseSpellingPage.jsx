@@ -7,12 +7,14 @@ import MockTest from '../../components/spelling/MockTest';
 import ScrambleGame from '../../components/spelling/ScrambleGame';
 import MissingLetters from '../../components/spelling/MissingLetters';
 import LookCoverCheck from '../../components/spelling/LookCoverCheck';
+import { useLanguageScope, LanguageScopeTabs } from '../../components/spelling/LanguageScope';
+import { activitiesForLanguage, activityCopy } from '../../utils/spellingLang';
 
 const ACTIVITIES = [
-  ['mock', 'Mock test', MockTest],
-  ['lookcover', 'Look · Cover · Check', LookCoverCheck],
-  ['scramble', 'Scramble', ScrambleGame],
-  ['missing', 'Missing letters', MissingLetters]
+  { key: 'mock', label: 'Mock test', Comp: MockTest },
+  { key: 'lookcover', label: 'Look · Cover · Check', Comp: LookCoverCheck },
+  { key: 'scramble', label: 'Scramble', Comp: ScrambleGame },
+  { key: 'missing', label: 'Missing letters', Comp: MissingLetters }
 ];
 
 export default function SurpriseSpellingPage() {
@@ -44,7 +46,8 @@ export default function SurpriseSpellingPage() {
   const record = (word, correct) =>
     spellingAPI.recordAttempts({ word, correct, mode: 'surprise' }).catch(() => {});
 
-  const ActiveComp = useMemo(() => ACTIVITIES.find(([k]) => k === activity)?.[2], [activity]);
+  const { langs, lang, setLang, filtered } = useLanguageScope(words);
+  const ActiveComp = useMemo(() => ACTIVITIES.find((a) => a.key === activity)?.Comp, [activity]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -65,14 +68,14 @@ export default function SurpriseSpellingPage() {
             <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-purple-600 inline-flex items-center gap-1 mb-5">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            <ActiveComp words={words} onAttempt={record} />
+            <ActiveComp key={lang} words={filtered} onAttempt={record} lang={lang} />
           </div>
         ) : (
           <>
             <div className="bg-white rounded-xl shadow-sm p-5 mb-6 flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 text-gray-700">
                 <Sparkles className="w-5 h-5 text-pink-500" />
-                <span className="font-semibold">{words.length}</span> surprise words
+                <span className="font-semibold">{filtered.length}</span> surprise words
                 <span className="text-sm text-gray-400">from {poolSize} in your lists</span>
               </div>
               <div className="ml-auto flex items-center gap-2">
@@ -87,10 +90,11 @@ export default function SurpriseSpellingPage() {
               </div>
             </div>
 
+            <LanguageScopeTabs langs={langs} lang={lang} setLang={setLang} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {ACTIVITIES.map(([key, label]) => (
-                <button key={key} onClick={() => setActivity(key)} className="py-3 px-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
-                  {label}
+              {activitiesForLanguage(ACTIVITIES, lang).map((a) => (
+                <button key={a.key} onClick={() => setActivity(a.key)} className="py-3 px-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
+                  {activityCopy(a, lang).label}
                 </button>
               ))}
             </div>

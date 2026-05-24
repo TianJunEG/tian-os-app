@@ -128,7 +128,7 @@ router.get('/surprise', async (req, res) => {
   try {
     const count = Math.min(Math.max(parseInt(req.query.count, 10) || 10, 1), 50);
     const [lists, attempts] = await Promise.all([
-      SpellingList.find({ owner: req.user.id }).select('title words'),
+      SpellingList.find({ owner: req.user.id }).select('title words language'),
       SpellingAttempt.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(2000)
     ]);
     const stats = computeWordStats(attempts);
@@ -145,6 +145,7 @@ router.get('/surprise', async (req, res) => {
           word: w.word,
           sentence: w.sentence || '',
           definition: w.definition || '',
+          language: list.language || 'en',
           listTitle: list.title,
           listId: list._id,
           weight: Math.max(weight, 0.1)
@@ -192,7 +193,7 @@ router.get('/revision', async (req, res) => {
     }
 
     // Recover sentence/definition from the user's lists where available.
-    const lists = await SpellingList.find({ owner: req.user.id }).select('title words');
+    const lists = await SpellingList.find({ owner: req.user.id }).select('title words language');
     const info = new Map();
     for (const list of lists) {
       for (const w of list.words) {
@@ -200,7 +201,7 @@ router.get('/revision', async (req, res) => {
         const key = w.word.toLowerCase();
         const existing = info.get(key);
         if (!existing || (!existing.sentence && w.sentence)) {
-          info.set(key, { sentence: w.sentence || '', definition: w.definition || '', listTitle: list.title });
+          info.set(key, { sentence: w.sentence || '', definition: w.definition || '', language: list.language || 'en', listTitle: list.title });
         }
       }
     }
@@ -211,6 +212,7 @@ router.get('/revision', async (req, res) => {
         word: s.word,
         sentence: extra.sentence || '',
         definition: extra.definition || '',
+        language: extra.language || 'en',
         misses: s.misses,
         listTitle: extra.listTitle || null
       };
@@ -249,7 +251,7 @@ router.get('/due', async (req, res) => {
     }
 
     // Recover sentence/definition from the user's lists where available.
-    const lists = await SpellingList.find({ owner: req.user.id }).select('title words');
+    const lists = await SpellingList.find({ owner: req.user.id }).select('title words language');
     const info = new Map();
     for (const list of lists) {
       for (const w of list.words) {
@@ -257,7 +259,7 @@ router.get('/due', async (req, res) => {
         const key = w.word.toLowerCase();
         const existing = info.get(key);
         if (!existing || (!existing.sentence && w.sentence)) {
-          info.set(key, { sentence: w.sentence || '', definition: w.definition || '', listTitle: list.title });
+          info.set(key, { sentence: w.sentence || '', definition: w.definition || '', language: list.language || 'en', listTitle: list.title });
         }
       }
     }
@@ -268,6 +270,7 @@ router.get('/due', async (req, res) => {
         word: s.word,
         sentence: extra.sentence || '',
         definition: extra.definition || '',
+        language: extra.language || 'en',
         misses: s.misses,
         mastered: s.mastered,
         listTitle: extra.listTitle || null

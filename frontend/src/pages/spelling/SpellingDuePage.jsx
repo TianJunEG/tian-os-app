@@ -7,12 +7,14 @@ import MockTest from '../../components/spelling/MockTest';
 import ScrambleGame from '../../components/spelling/ScrambleGame';
 import MissingLetters from '../../components/spelling/MissingLetters';
 import LookCoverCheck from '../../components/spelling/LookCoverCheck';
+import { useLanguageScope, LanguageScopeTabs } from '../../components/spelling/LanguageScope';
+import { activitiesForLanguage, activityCopy } from '../../utils/spellingLang';
 
 const ACTIVITIES = [
-  ['mock', 'Mock test', MockTest],
-  ['lookcover', 'Look · Cover · Check', LookCoverCheck],
-  ['scramble', 'Scramble', ScrambleGame],
-  ['missing', 'Missing letters', MissingLetters]
+  { key: 'mock', label: 'Mock test', Comp: MockTest },
+  { key: 'lookcover', label: 'Look · Cover · Check', Comp: LookCoverCheck },
+  { key: 'scramble', label: 'Scramble', Comp: ScrambleGame },
+  { key: 'missing', label: 'Missing letters', Comp: MissingLetters }
 ];
 
 // Friendly "when next" label from an ISO date, in whole days.
@@ -57,7 +59,8 @@ export default function SpellingDuePage() {
   const record = (word, correct) =>
     spellingAPI.recordAttempts({ word, correct, mode: 'due' }).catch(() => {});
 
-  const ActiveComp = useMemo(() => ACTIVITIES.find(([k]) => k === activity)?.[2], [activity]);
+  const { langs, lang, setLang, filtered } = useLanguageScope(words);
+  const ActiveComp = useMemo(() => ACTIVITIES.find((a) => a.key === activity)?.Comp, [activity]);
   const nextLabel = relativeDay(nextDue);
 
   return (
@@ -89,7 +92,7 @@ export default function SpellingDuePage() {
             <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-purple-600 inline-flex items-center gap-1 mb-5">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
-            <ActiveComp words={words} onAttempt={record} />
+            <ActiveComp key={lang} words={filtered} onAttempt={record} lang={lang} />
           </div>
         ) : (
           <>
@@ -97,7 +100,7 @@ export default function SpellingDuePage() {
               <div className="flex items-center gap-2 text-gray-700">
                 <CalendarClock className="w-5 h-5 text-purple-600" />
                 <span className="font-semibold">{dueCount}</span> word{dueCount === 1 ? '' : 's'} due today
-                {dueCount > words.length && <span className="text-sm text-gray-400">(showing {words.length})</span>}
+                {dueCount > filtered.length && <span className="text-sm text-gray-400">(showing {filtered.length})</span>}
               </div>
               <button onClick={load} className="ml-auto px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm inline-flex items-center gap-1">
                 <RefreshCw className="w-4 h-4" /> Refresh
@@ -109,10 +112,11 @@ export default function SpellingDuePage() {
               Pick an activity — getting a word right pushes its next review further out; missing it brings the word back tomorrow.
             </p>
 
+            <LanguageScopeTabs langs={langs} lang={lang} setLang={setLang} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              {ACTIVITIES.map(([key, label]) => (
-                <button key={key} onClick={() => setActivity(key)} className="py-3 px-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
-                  {label}
+              {activitiesForLanguage(ACTIVITIES, lang).map((a) => (
+                <button key={a.key} onClick={() => setActivity(a.key)} className="py-3 px-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
+                  {activityCopy(a, lang).label}
                 </button>
               ))}
             </div>
@@ -120,7 +124,7 @@ export default function SpellingDuePage() {
             <div className="bg-white rounded-xl shadow-sm p-5">
               <h2 className="font-semibold text-gray-900 mb-3">Words to review</h2>
               <ul className="divide-y divide-gray-50">
-                {words.map((w) => (
+                {filtered.map((w) => (
                   <li key={w.word} className="flex items-center gap-3 py-2.5">
                     <span className="font-medium text-gray-900 flex-1">{w.word}</span>
                     {w.listTitle && <span className="text-xs text-gray-400">{w.listTitle}</span>}
