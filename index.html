@@ -4,24 +4,28 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Heuristics Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f3f6fb; --card:#ffffff; --ink:#1f2a44; --muted:#6b7896; --line:#e3e9f3;
-    --brand:#3b6ef6; --brand-dk:#2f57c9; --accent:#ff8a3d; --good:#19a974; --bad:#e0455e;
+    --bg:#f7f5f0; --card:#ffffff; --ink:#26324a; --muted:#586079; --line:#ebe6dc;
+    --brand:#3b6ef6; --brand-dk:#2f57c9; --accent:#ff8a3d; --good:#15a06d; --bad:#e0455e;
     --u:#3b6ef6; --x1:#ff8a3d; --x2:#19a974; --x3:#9b6cf2;
-    --shadow:0 10px 30px rgba(31,42,68,.08); --shadow-sm:0 4px 14px rgba(31,42,68,.07);
-    --r:18px;
+    --shadow:0 12px 34px rgba(48,42,70,.10); --shadow-sm:0 4px 14px rgba(48,42,70,.07);
+    --r:20px;
     --h1:#3b6ef6; --h2:#11a3c4; --h3:#9b6cf2; --h4:#ef8d2f; --h5:#e0455e; --h6:#19a974;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
-  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  body{font-family:ui-rounded,"Nunito","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;font-size:16.5px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  :focus-visible{outline:3px solid rgba(59,110,246,.55);outline-offset:2px;border-radius:8px}
   button{font-family:inherit;cursor:pointer;border:none;background:none}
   .wrap{max-width:1080px;margin:0 auto;padding:0 18px 80px}
 
   /* Header */
-  header{position:sticky;top:0;z-index:40;background:rgba(243,246,251,.86);backdrop-filter:blur(10px);
+  header{position:sticky;top:0;z-index:40;background:rgba(247,245,240,.85);backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line)}
   .bar{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 18px;flex-wrap:wrap}
   .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.18rem;letter-spacing:-.3px;cursor:pointer}
@@ -38,10 +42,10 @@
   .modetog button.on{background:var(--ink);color:#fff}
 
   /* Hero / hub */
-  .hero{background:linear-gradient(135deg,#eaf1ff,#f7f3ff);border:1px solid var(--line);border-radius:24px;
-    padding:26px 26px 22px;margin:20px 0;box-shadow:var(--shadow-sm)}
-  .hero h1{margin:0 0 6px;font-size:1.7rem;letter-spacing:-.5px}
-  .hero p{margin:0;color:var(--muted);max-width:62ch}
+  .hero{background:linear-gradient(135deg,#ffe9d6 0%,#eaf1ff 50%,#f1e9ff 100%);border:1px solid var(--line);border-radius:26px;
+    padding:30px 30px 26px;margin:22px 0;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .hero h1{margin:0 0 6px;font-size:1.95rem;letter-spacing:-.6px;font-weight:900}
+  .hero p{margin:0;color:var(--muted);max-width:62ch;font-size:1.02rem}
   .levelpill{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
     border-radius:999px;padding:6px 12px;font-weight:700;font-size:.85rem;margin-top:14px;box-shadow:var(--shadow-sm)}
   .levelpill b{color:var(--brand)}
@@ -73,7 +77,7 @@
   .toolcard h3{margin:0 0 3px;font-size:1.05rem}
   .toolcard p{margin:0;font-size:.84rem;color:var(--muted)}
   /* 4-stage flow band (informational, not clickable) */
-  .guideband{background:linear-gradient(135deg,#eef3ff,#f6f3ff);border:1px solid var(--line);border-radius:18px;padding:16px 18px 18px;margin:18px 0}
+  .guideband{background:linear-gradient(135deg,#fff2e6,#eef3ff 60%,#f6f1ff);border:1px solid var(--line);border-radius:20px;padding:16px 18px 18px;margin:18px 0}
   .guideband .ttl{font-weight:800;font-size:1rem;margin-bottom:12px}
   .flowstrip{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
   .flownode{flex:1 1 150px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
@@ -114,11 +118,12 @@
   .stage .body p{margin:0 0 10px}
   .stage.hidden{display:none}
   .stepctrl{display:flex;gap:10px;align-items:center;margin-top:18px}
-  .btn{background:var(--brand);color:#fff;font-weight:800;padding:11px 20px;border-radius:12px;box-shadow:var(--shadow-sm);
-    transition:transform .1s,filter .1s;font-size:.95rem}
-  .btn:hover{filter:brightness(1.05)}
+  .btn{background:linear-gradient(135deg,var(--brand),#5b86ff);color:#fff;font-weight:800;padding:12px 22px;border-radius:14px;
+    box-shadow:0 6px 16px rgba(59,110,246,.28);transition:transform .1s,filter .1s,box-shadow .1s;font-size:.96rem}
+  .btn:hover{filter:brightness(1.06);box-shadow:0 8px 20px rgba(59,110,246,.34)}
   .btn:active{transform:scale(.97)}
-  .btn.ghost{background:#eef2fb;color:var(--ink)}
+  .btn.ghost{background:#eef2fb;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .btn.ghost:hover{box-shadow:var(--shadow-sm)}
   .btn.sm{padding:8px 14px;font-size:.86rem}
   .btn[disabled]{opacity:.4;cursor:default}
   .progdots{display:flex;gap:6px;margin-left:auto}
@@ -219,12 +224,48 @@
   .chip{font-size:.74rem;font-weight:700;padding:4px 10px;border-radius:999px;background:#eef2fb;color:var(--muted)}
   .chip.on{background:#e3f8ee;color:var(--good)}
   .chip.off{opacity:.5;text-decoration:line-through}
-  footer{text-align:center;color:var(--muted);font-size:.8rem;margin-top:40px}
+  footer{text-align:center;color:var(--muted);font-size:.82rem;margin-top:44px;line-height:1.6}
+
+  /* Decision-clue callout (lesson header) */
+  .cluepill{display:inline-flex;align-items:center;gap:8px;background:#fff4ea;border:1px solid #ffdfc2;
+    border-radius:999px;padding:6px 14px 6px 7px;margin-top:10px;font-size:.9rem;font-weight:600;color:var(--ink)}
+  .cluelabel{font-size:.66rem;font-weight:900;letter-spacing:.5px;text-transform:uppercase;color:#fff;
+    background:var(--accent);border-radius:999px;padding:4px 10px;white-space:nowrap}
+
+  /* readability bumps */
+  .hcard p{font-size:.9rem}
+  .udsc .step p,.flownode p{font-size:.82rem}
+  .tabs button{min-height:42px}
+  .lvlbox button{min-width:34px}
+
+  /* Responsive */
+  @media(max-width:880px){ .wrap{padding:0 14px 70px} }
   @media(max-width:680px){
     .udsc{grid-template-columns:1fr 1fr}
     .tool-row{grid-template-columns:1fr}
     .mcgrid{grid-template-columns:1fr}
-    .hero h1{font-size:1.4rem}
+    .grid{grid-template-columns:1fr}
+    .hero{padding:22px 18px 20px;border-radius:22px}
+    .hero h1{font-size:1.5rem}
+    .hero p{font-size:.96rem}
+    .bar{gap:10px;padding:10px 14px}
+    .logo{font-size:1.05rem}
+    .sectlabel{font-size:1.08rem}
+    .detailhead h2{font-size:1.3rem}
+    .detailhead .badge{width:46px;height:46px;font-size:1.1rem}
+    .panel{padding:18px 16px}
+    .dq{padding:16px}
+    .dq .q{font-size:1.05rem}
+  }
+  @media(max-width:480px){
+    .lvllabel{display:none}
+    .lvlbox{padding:3px}
+    .lvlbox button{width:32px;height:32px;min-width:32px}
+    .modetog button{padding:6px 11px;font-size:.82rem}
+    .flowstrip{flex-direction:column}
+    .flownode{flex:1 1 auto}
+    .stepnav{flex-wrap:wrap;gap:8px}
+    .dq .choices{flex-direction:column}
   }
 </style>
 </head>
@@ -654,7 +695,8 @@ function renderHeur(id){
   app.innerHTML=`<div class="back" style="cursor:pointer" onclick="go('home')">← All heuristics</div>
    <div class="detailhead"><div class="badge" style="background:${h.color}">${h.id}</div>
     <div><div class="tag">${h.tag}</div><h2>${h.name}</h2></div></div>
-   <p class="lead">${h.when} <span class="chip" style="margin-left:6px">Decision clue: ${h.decision}</span></p>
+   <p class="lead">${h.when}</p>
+   <div class="cluepill"><span class="cluelabel">Decision clue</span> ${h.decision}</div>
    <div class="levelbar">Set to <b>Level ${lv.n} · ${lv.grade}</b> (ages ${lv.age}) — Practice scope: ${lv.scope}</div>
    <div class="tabs">${tabs.map(t=>`<button class="${state.tab===t[0]?'on':''}" onclick="setTab('${t[0]}')">${t[1]}</button>`).join('')}</div>
    <div id="tabbody"></div>`;
