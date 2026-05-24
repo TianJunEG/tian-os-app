@@ -930,19 +930,23 @@ function genMoneyChange(skill) {
   return decProblem(skill, `A ${item} costs ${money(cost)}. You pay with a ${money(paid)} note. How much change, in dollars?`, (paid - cost) / 100, 'moneyChange', { paid, cost });
 }
 
-// Read a bar / picture graph: value, difference, or total.
+// Read a bar / picture / pie / line graph: value, difference, or total.
 function genBarChart(skill) {
   const mode = skill.spec.mode || 'bar', r = randInt;
-  const set = pickFrom([
-    { theme: 'the number of marbles of each colour', labels: ['Red', 'Blue', 'Green', 'Yellow'] },
-    { theme: 'the pets owned by a class', labels: ['Cats', 'Dogs', 'Fish', 'Birds'] },
-    { theme: 'the number of books read each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'] },
-    { theme: 'the fruit sold at a stall', labels: ['Apples', 'Pears', 'Plums', 'Grapes'] },
-  ]);
-  const n = Math.min(set.labels.length, r(3, 4)), scale = pickFrom([1, 2, 5, 10]), cap = mode === 'picture' ? 7 : 5;
+  const sets = [
+    { theme: 'the number of marbles of each colour', labels: ['Red', 'Blue', 'Green', 'Yellow'], time: false },
+    { theme: 'the pets owned by a class', labels: ['Cats', 'Dogs', 'Fish', 'Birds'], time: false },
+    { theme: 'the fruit sold at a stall', labels: ['Apples', 'Pears', 'Plums', 'Grapes'], time: false },
+    { theme: 'the number of books read each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'], time: true },
+    { theme: 'the temperature recorded each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'], time: true },
+  ];
+  // Line graphs use time series; pie charts partition a whole (no time series).
+  const pool = mode === 'line' ? sets.filter((s) => s.time) : mode === 'pie' ? sets.filter((s) => !s.time) : sets;
+  const set = pickFrom(pool);
+  const n = Math.min(set.labels.length, r(3, 4)), scale = skill.spec.scale || pickFrom([1, 2, 5, 10]), cap = mode === 'picture' ? 7 : 5;
   const cats = Array.from({ length: n }, (_, i) => ({ label: set.labels[i], value: scale * r(1, cap) }));
-  const chart = { mode, cats, scale }, noun = mode === 'picture' ? 'picture graph' : 'bar graph';
-  const q = pickFrom(['value', 'diff', 'total']);
+  const chart = { mode, cats, scale }, noun = { picture: 'picture graph', pie: 'pie chart', line: 'line graph', bar: 'bar graph' }[mode];
+  const q = pickFrom(mode === 'line' ? ['value', 'diff'] : ['value', 'diff', 'total']);
   if (q === 'value') {
     const i = r(0, n - 1);
     return problem(skill, `The ${noun} shows ${set.theme}. What is the value for ${cats[i].label}?`, cats[i].value, 'barChart', { chart, q, i });

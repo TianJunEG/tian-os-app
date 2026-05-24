@@ -21,6 +21,7 @@ export default {
     { id: 'md', name: 'Multiplication & Division', subtitle: 'Multiply within 40, divide within 20' },
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
     { id: 'money', name: 'Money', subtitle: 'Counting coins' },
+    { id: 'stat', name: 'Statistics', subtitle: 'Picture graphs' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -123,6 +124,13 @@ export default {
       example: 'count the coins shown → e.g. 160 cents', timeTarget: 22,
       hint: 'Add up the value of each coin — count in fives, tens, twenties and fifties.',
       spec: { kind: 'moneyCount' } },
+
+    // --- Statistics (picture graph diagram) ---
+    { id: 'sg-p1-stat', group: 'stat', code: 'Stat 1.1', name: 'Reading a picture graph',
+      objective: 'reading and interpreting data from picture graphs',
+      example: 'count the icons in a row → e.g. 6', timeTarget: 20,
+      hint: 'Each picture stands for one — count the pictures in the row.',
+      spec: { kind: 'barChart', mode: 'picture', scale: 1 } },
   ],
 
   // Officially in P1 but needing item types beyond a single-integer answer.
@@ -133,6 +141,6 @@ export default {
     'Money 1.1 recognising coins/notes from pictures (counting by value now drillable)',
     'Measurement: length & time (needs measurement items)',
     'Geometry: 2D shapes (needs shape item)',
-    'Statistics: picture graphs (needs chart item)',
+    'Statistics: naming the most/least category (text answer; reading picture-graph values now drillable)',
   ],
 };

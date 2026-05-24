@@ -20,6 +20,7 @@ export default {
     { id: 'fr', name: 'Fractions', subtitle: 'Mixed numbers, sets, unlike fractions' },
     { id: 'dec', name: 'Decimals', subtitle: 'Up to 3 decimal places' },
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
+    { id: 'stat', name: 'Statistics', subtitle: 'Line graphs & pie charts' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -147,6 +148,19 @@ export default {
       example: '$1850 − $640 − $475 → $735 left', timeTarget: 50,
       hint: 'The whole bar is split into the amounts spent and the amount left.',
       spec: { kind: 'barModel', structure: 'twoStepRemain', min: 150, max: 2500 } },
+
+    // --- Statistics (line graph & pie chart diagrams) ---
+    { id: 'sg-p4-stat-line', group: 'stat', code: 'Stat 1.2', name: 'Reading a line graph',
+      objective: 'reading and interpreting data from line graphs',
+      example: 'value on Wed, or the change between days', timeTarget: 24,
+      hint: 'Read each point against the value axis, then compare or total.',
+      spec: { kind: 'barChart', mode: 'line' } },
+
+    { id: 'sg-p4-stat-pie', group: 'stat', code: 'Stat 1.2', name: 'Reading a pie chart',
+      objective: 'reading and interpreting data from pie charts',
+      example: 'value of a labelled sector, or the total', timeTarget: 24,
+      hint: 'Match each sector to the legend, then read its value.',
+      spec: { kind: 'barChart', mode: 'pie' } },
   ],
 
   // In the P4 syllabus but needing item types beyond a single number answer.
@@ -158,7 +172,7 @@ export default {
     'Money: adding & subtracting money in decimal notation (covered numerically by decimals; context item pending)',
     'Measurement: time (24-hour clock, duration), area & perimeter of composite figures',
     'Geometry: angles, symmetry, properties of squares/rectangles, nets',
-    'Statistics: reading & interpreting tables and line graphs (needs chart item)',
+    'Statistics: reading tables & naming the most/least category (line graphs & pie charts now drillable)',
     'Multi-step (3+ step) word problems (fraction-of-quantity & two-step bar models now drillable)',
   ],
 };

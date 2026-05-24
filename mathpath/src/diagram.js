@@ -235,13 +235,58 @@ function moneyTokens(tokens) {
   return svg(Math.min(maxW, Math.max(usedW + padX, 60)), y + rowH + padY, 'Coins and notes', body);
 }
 
+const polar = (cx, cy, r, deg) => `${(cx + r * Math.cos((deg * Math.PI) / 180)).toFixed(1)} ${(cy + r * Math.sin((deg * Math.PI) / 180)).toFixed(1)}`;
+const CHART_COLORS = ['#5b8cff', '#8a6dff', '#34d399', '#fbbf24', '#f87171'];
+
+// Pie chart with a legend. `c` = { cats:[{label,value}] }; each sector is labelled with its value.
+function pieChart(c) {
+  const cats = c.cats, total = cats.reduce((s, d) => s + d.value, 0);
+  const cx = 78, cy = 88, R = 62;
+  let ang = -90, body = '';
+  cats.forEach((d, i) => {
+    const a1 = ang + (d.value / total) * 360, large = a1 - ang > 180 ? 1 : 0, col = CHART_COLORS[i % CHART_COLORS.length];
+    body += `<path d="M ${cx} ${cy} L ${polar(cx, cy, R, ang)} A ${R} ${R} 0 ${large} 1 ${polar(cx, cy, R, a1)} Z" fill="${col}" fill-opacity="0.95" stroke="#0f1729" stroke-width="1.5"/>`;
+    const lp = polar(cx, cy, R * 0.62, (ang + a1) / 2).split(' ');
+    body += `<text x="${lp[0]}" y="${lp[1]}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="#0f1729">${d.value}</text>`;
+    ang = a1;
+  });
+  let ly = 26;
+  cats.forEach((d, i) => {
+    body += `<rect x="156" y="${ly - 9}" width="11" height="11" rx="2" fill="${CHART_COLORS[i % CHART_COLORS.length]}"/>`;
+    body += `<text x="172" y="${ly}" font-size="11" font-weight="600" fill="#eef2ff" font-family="sans-serif">${d.label}</text>`;
+    ly += 18;
+  });
+  return svg(232, 176, 'Pie chart', body);
+}
+
+// Line graph: points joined by a line, with a value axis. `c` = { cats:[{label,value}], scale }.
+function lineChart(c) {
+  const cats = c.cats, n = cats.length, W = 220, x0 = 26, yBase = 110, plotH = 84, scale = c.scale;
+  const top = Math.max(scale, Math.ceil(Math.max(...cats.map((d) => d.value)) / scale) * scale);
+  const sx = (W - x0 - 14) / (n - 1 || 1);
+  const px = (i) => x0 + sx * i, py = (v) => yBase - (v / top) * plotH;
+  let body = '';
+  for (let v = 0; v <= top; v += scale) { const y = yBase - (v / top) * plotH; body += `<line x1="${x0}" y1="${y.toFixed(1)}" x2="${W - 6}" y2="${y.toFixed(1)}" class="d-grid"/>`; body += `<text x="${x0 - 4}" y="${(y + 3).toFixed(1)}" class="d-axisn" text-anchor="end">${v}</text>`; }
+  body += `<line x1="${x0}" y1="${yBase}" x2="${W - 6}" y2="${yBase}" class="d-axis"/><line x1="${x0}" y1="${yBase - plotH}" x2="${x0}" y2="${yBase}" class="d-axis"/>`;
+  body += `<polyline points="${cats.map((d, i) => `${px(i).toFixed(1)},${py(d.value).toFixed(1)}`).join(' ')}" fill="none" stroke="#5b8cff" stroke-width="2"/>`;
+  cats.forEach((d, i) => {
+    body += `<circle cx="${px(i).toFixed(1)}" cy="${py(d.value).toFixed(1)}" r="3" fill="#5b8cff"/>`;
+    body += `<text x="${px(i).toFixed(1)}" y="${(py(d.value) - 7).toFixed(1)}" class="d-axisn" text-anchor="middle">${d.value}</text>`;
+    body += `<text x="${px(i).toFixed(1)}" y="${yBase + 13}" class="d-cap" text-anchor="middle">${d.label}</text>`;
+  });
+  return svg(W, 150, 'Line graph', body);
+}
+
 export function diagramFor(p) {
   if (!p || !p.parts) return '';
   const a = p.parts;
   switch (p.kind) {
     case 'barModel': return barModel(a.model);
     case 'moneyCount': return moneyTokens(a.tokens);
-    case 'barChart': return a.chart.mode === 'picture' ? pictureGraph(a.chart) : barChart(a.chart);
+    case 'barChart': {
+      const m = a.chart.mode;
+      return m === 'picture' ? pictureGraph(a.chart) : m === 'pie' ? pieChart(a.chart) : m === 'line' ? lineChart(a.chart) : barChart(a.chart);
+    }
     case 'rectArea':
     case 'rectPerimeter': return rectangle(a.l, a.w);
     case 'triArea': return triangle(a.base, a.height);
