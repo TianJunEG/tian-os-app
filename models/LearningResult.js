@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 // (Spelling keeps its own richer SpellingAttempt model and is folded in separately.)
 const learningResultSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  child: { type: mongoose.Schema.Types.ObjectId, default: null, index: true }, // which child (null = owner)
   source: { type: String, required: true },   // 'math-heuristics' | 'mathpath' | 'science' | …
   subject: { type: String, required: true },  // 'emath' | 'amath' | 'chem' | 'bio' | 'phys' | …
   topic: { type: String, default: '' },        // free-text topic/skill name

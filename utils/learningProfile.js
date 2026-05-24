@@ -9,6 +9,9 @@ export const PROFILE_SUBJECTS = {
 };
 const band = (score) => (score >= 75 ? 'on track' : score >= 50 ? 'building' : 'at risk');
 
+// Authorization: does this parent's children list contain the given child id?
+export const ownsChild = (children, childId) => (children || []).some((c) => String(c._id) === String(childId));
+
 // Spelling app (per-word stats from utils/spellingStats) → an English/Chinese contribution.
 // `stats` shape mirrors GET /api/spelling/stats.
 export function spellingContribution(stats, subjectId = 'eng') {

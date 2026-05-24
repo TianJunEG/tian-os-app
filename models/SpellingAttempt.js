@@ -9,6 +9,12 @@ const spellingAttemptSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  // Which of the parent's children this attempt belongs to (null = the account owner).
+  child: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: null,
+    index: true
+  },
   list: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SpellingList',
