@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import StudentDashboardPage from './pages/StudentDashboardPage';
 import TutorSearchPage from './pages/TutorSearchPage';
 import BookingPage from './pages/BookingPage';
 import PaymentPage from './pages/PaymentPage';
@@ -144,6 +145,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/learning"
+            element={
+              <ProtectedRoute>
+                <StudentDashboardPage />
               </ProtectedRoute>
             }
           />

@@ -127,4 +127,10 @@ export const reviewsAPI = {
   deleteReview: (id) => api.delete(`/reviews/${id}`)
 };
 
+// Learning API — the unified cross-app progress profile (Spelling + Math apps + Science).
+export const learningAPI = {
+  getProfile: () => api.get('/learning/profile'),
+  postResult: (data) => api.post('/learning/result', data)
+};
+
 export default api;
