@@ -4,6 +4,7 @@
 // that the student and parent immediately see). Persists to localStorage.
 
 import { seed, SUBJECTS, TOPICS, topicsOf, STATUS } from './data.js';
+import * as Learning from './learning.js';
 
 const KEY = 'eduos.v1';
 const hasLS = typeof localStorage !== 'undefined';
@@ -28,6 +29,10 @@ function load() {
 }
 function save() { if (hasLS) localStorage.setItem(KEY, JSON.stringify({ db: state.db, user: state.user })); }
 load();
+try { if (Learning.ingest(state.db)) save(); } catch { /* no shared log yet */ }
+
+// Pull any new MathPath practice into the shared profile (called when the app regains focus).
+export function syncLearning() { try { const n = Learning.ingest(state.db); if (n) save(); return n; } catch { return 0; } }
 
 export function resetAll() { state.db = seed(); state.user = null; save(); }
 export const db = () => state.db;

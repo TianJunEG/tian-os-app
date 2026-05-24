@@ -8,6 +8,7 @@ import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('.', import.meta.url));
+const MATHPATH = join(ROOT, '..', 'mathpath'); // served same-origin under /mathpath so the two apps share storage
 const PORT = process.env.PORT || 8090;
 
 const TYPES = {
@@ -24,8 +25,15 @@ const server = http.createServer(async (req, res) => {
     const url = decodeURIComponent(req.url.split('?')[0]);
     let rel = normalize(url).replace(/^(\.\.[/\\])+/, ''); // block path traversal
     if (rel === '/' || rel === '\\') rel = '/index.html';
-    const file = join(ROOT, rel);
-    if (!file.startsWith(ROOT)) { res.writeHead(403); res.end('Forbidden'); return; }
+    let file;
+    if (rel === '/mathpath' || rel.startsWith('/mathpath/')) {
+      const sub = rel.replace(/^\/mathpath\/?/, '') || 'index.html';
+      file = join(MATHPATH, sub);
+      if (!file.startsWith(MATHPATH)) { res.writeHead(403); res.end('Forbidden'); return; }
+    } else {
+      file = join(ROOT, rel);
+      if (!file.startsWith(ROOT)) { res.writeHead(403); res.end('Forbidden'); return; }
+    }
     const body = await readFile(file);
     res.writeHead(200, { 'Content-Type': TYPES[extname(file)] || 'application/octet-stream' });
     res.end(body);

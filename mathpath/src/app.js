@@ -7,6 +7,7 @@ import * as S from './session.js';
 import * as Store from './storage.js';
 import { checkAnswer } from './generator.js';
 import { diagramFor } from './diagram.js';
+import { emitResult, mountReturnBanner } from './bridge.js';
 
 const app = document.getElementById('app');
 const rungIndicator = document.getElementById('rung-indicator');
@@ -339,6 +340,14 @@ function finishDrill() {
   Store.applySessionResult(cp(), score, C.nextSkillId(score.skillId));
   Store.saveProgress(state.progress);
   state.lastScore = score;
+  emitResult({
+    curriculumId: C.getActiveCurriculum().id,
+    skillId: score.skillId,
+    skillName: (C.getSkill(score.skillId) || {}).name || '',
+    accuracy: score.accuracy * 100,
+    mastered: score.mastered,
+    questions: score.total,
+  });
   go('results');
 }
 
@@ -447,6 +456,8 @@ function renderProgress() {
 }
 
 // ---- boot ----
+mountReturnBanner(); // shows a "back to Education OS" bar when launched from a dashboard
+
 const tmLink = document.getElementById('tutormatch-link');
 if (tmLink) tmLink.addEventListener('click', (e) => e.preventDefault()); // cross-promo placeholder
 

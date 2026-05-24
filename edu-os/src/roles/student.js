@@ -99,6 +99,8 @@ function subjectMap(me, subjectId) {
       <div class="list">${topics.map((t) => topicRow(me, t)).join('')}</div>
     </div>
 
+    <a class="btn primary block" href="/mathpath/?student=${me.id}&subject=${subjectId}&return=/" target="_blank" rel="noopener">${icon('play')} Practise ${su.name} in MathPath</a>
+
     ${tutorSupport(me, subjectId)}
   </div>`;
 }
