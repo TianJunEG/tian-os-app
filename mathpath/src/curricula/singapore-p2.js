@@ -111,6 +111,12 @@ export default {
       hint: '$1 = 100 cents — multiply dollars by 100, or split cents into dollars and cents.',
       spec: { kind: 'moneyConvert' } },
 
+    { id: 'sg-p2-money-count', group: 'money', code: 'Money 1.1', name: 'Counting notes & coins',
+      objective: 'counting an amount of money in dollars and cents (shown as notes and coins)',
+      example: '$5 + $2 + 50¢ → $7.50', timeTarget: 24,
+      hint: 'Add the notes (in dollars), then the coins (in cents), and combine.',
+      spec: { kind: 'moneyCount', withNotes: true } },
+
     { id: 'sg-p2-money-compare', group: 'money', code: 'Money 1.3', name: 'Comparing amounts of money',
       objective: 'comparing two or three amounts of money',
       example: '$4.50 vs $4.05 → $4.50', timeTarget: 14,

@@ -883,17 +883,26 @@ function genMoneyConvert(skill) {
   return decProblem(skill, `${cents} cents = $ ?`, cents / 100, 'moneyConvert', { cents, dir: 'toDollars' });
 }
 
-const COIN_WORD = { 5: 'five-cent', 10: 'ten-cent', 20: 'twenty-cent', 50: 'fifty-cent', 100: 'one-dollar' };
 const money = (c) => `$${(c / 100).toFixed(2)}`;
 
-// Counting money: "3 fifty-cent coins and 2 ten-cent coins = ? cents" → 170
+// Counting money from shown coins/notes. Coins mode → answer in cents; with notes → dollars.
 function genMoneyCount(skill) {
-  const denoms = [10, 20, 50, 100];
+  const r = randInt;
+  if (skill.spec.withNotes) {
+    const notes = [200, 500, 1000], coins = [10, 20, 50, 100], tokens = [];
+    for (let i = 0, nN = r(1, 2); i < nN; i++) tokens.push({ value: pickFrom(notes), kind: 'note' });
+    for (let i = 0, nC = r(1, 2); i < nC; i++) tokens.push({ value: pickFrom(coins), kind: 'coin' });
+    const totalC = tokens.reduce((s, t) => s + t.value, 0);
+    return decProblem(skill, `How much money is shown? Give your answer in dollars.`, totalC / 100, 'moneyCount', { tokens, mode: 'dollars' });
+  }
+  const denoms = [5, 10, 20, 50];
   let d1 = pickFrom(denoms), d2 = pickFrom(denoms);
   while (d2 === d1) d2 = pickFrom(denoms);
-  const a = randInt(1, 5), b = randInt(1, 5);
-  const coins = (n, d) => `${n} ${COIN_WORD[d]} ${n === 1 ? 'coin' : 'coins'}`;
-  return problem(skill, `How much is ${coins(a, d1)} and ${coins(b, d2)}? Give your answer in cents.`, a * d1 + b * d2, 'moneyCount', { a, d1, b, d2 });
+  const tokens = [];
+  for (let i = 0, a = r(1, 4); i < a; i++) tokens.push({ value: d1, kind: 'coin' });
+  for (let i = 0, b = r(1, 4); i < b; i++) tokens.push({ value: d2, kind: 'coin' });
+  const totalC = tokens.reduce((s, t) => s + t.value, 0);
+  return problem(skill, `How much money is shown? Give your answer in cents.`, totalC, 'moneyCount', { tokens, mode: 'cents' });
 }
 
 // Comparing two or three amounts: "Which is greatest: $4.50, $4.05?" → 4.5

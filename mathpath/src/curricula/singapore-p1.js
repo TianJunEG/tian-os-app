@@ -118,10 +118,10 @@ export default {
       spec: { kind: 'barModel', structure: 'missingPart', wholeMin: 12, wholeMax: 40 } },
 
     // --- Money ---
-    { id: 'sg-p1-money', group: 'money', code: 'Money 1.1', name: 'Counting money',
-      objective: 'counting amount of money in cents',
-      example: '3 fifty-cent + 2 ten-cent → 170 cents', timeTarget: 22,
-      hint: 'Add up the value of each coin — count in fives, tens or fifties.',
+    { id: 'sg-p1-money', group: 'money', code: 'Money 1.1', name: 'Counting coins',
+      objective: 'counting an amount of money in cents (shown as coins)',
+      example: 'count the coins shown → e.g. 160 cents', timeTarget: 22,
+      hint: 'Add up the value of each coin — count in fives, tens, twenties and fifties.',
       spec: { kind: 'moneyCount' } },
   ],
 

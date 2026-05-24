@@ -209,11 +209,38 @@ function pictureGraph(c) {
   return svg(W, H, 'Picture graph', body);
 }
 
+// Stylised coins (circles) and notes (rounded rectangles). These are generic, labelled
+// tokens — NOT reproductions of real currency. `tokens` = [{ value (cents), kind:'coin'|'note' }].
+// Note colours evoke Singapore denominations ($2 purple, $5 green, $10 red, $50 blue, $100 amber).
+const NOTE_FILL = { 200: '#8a6dff', 500: '#34d399', 1000: '#f87171', 5000: '#5b8cff', 10000: '#fbbf24' };
+const tokenLabel = (v) => (v >= 100 ? `$${v / 100}` : `${v}¢`);
+function moneyTokens(tokens) {
+  const maxW = 232, padX = 6, padY = 8, gap = 7;
+  const tw = (t) => (t.kind === 'note' ? 52 : 34), th = (t) => (t.kind === 'note' ? 30 : 34);
+  let x = padX, y = padY, rowH = 0, usedW = 0, body = '';
+  tokens.forEach((t) => {
+    const w = tw(t), h = th(t);
+    if (x + w > maxW - padX) { x = padX; y += rowH + gap; rowH = 0; }
+    if (t.kind === 'note') {
+      const col = NOTE_FILL[t.value] || '#5b8cff';
+      body += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${col}" fill-opacity="0.85" stroke="${col}" stroke-width="1.5"/>`;
+      body += `<text x="${x + w / 2}" y="${y + h / 2 + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#0f1729">${tokenLabel(t.value)}</text>`;
+    } else {
+      const r = h / 2 - 1, cx = x + w / 2, cy = y + h / 2, col = t.value === 100 ? '#e3c454' : '#cfd6e0';
+      body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}" stroke="#8a8f9c" stroke-width="1.5"/>`;
+      body += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="#1e2a48">${tokenLabel(t.value)}</text>`;
+    }
+    x += w + gap; rowH = Math.max(rowH, h); usedW = Math.max(usedW, x - gap);
+  });
+  return svg(Math.min(maxW, Math.max(usedW + padX, 60)), y + rowH + padY, 'Coins and notes', body);
+}
+
 export function diagramFor(p) {
   if (!p || !p.parts) return '';
   const a = p.parts;
   switch (p.kind) {
     case 'barModel': return barModel(a.model);
+    case 'moneyCount': return moneyTokens(a.tokens);
     case 'barChart': return a.chart.mode === 'picture' ? pictureGraph(a.chart) : barChart(a.chart);
     case 'rectArea':
     case 'rectPerimeter': return rectangle(a.l, a.w);
