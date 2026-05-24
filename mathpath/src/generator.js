@@ -1032,11 +1032,49 @@ function genClockRead(skill) {
   return choiceProblem(skill, `What time is shown on the clock?`, answer, shuffle(choices), 'clockRead', { h, m });
 }
 
+// Ordinal position: a row of shapes with one highlighted → "which position?" (first…tenth).
+const ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth'];
+function genOrdinal(skill) {
+  const n = randInt(4, 8), pos = randInt(1, n), answer = ORDINALS[pos - 1];
+  const seen = new Set([answer]), choices = [answer];
+  while (choices.length < 4) { const w = ORDINALS[randInt(1, Math.min(10, n + 2)) - 1]; if (!seen.has(w)) { seen.add(w); choices.push(w); } }
+  return choiceProblem(skill, `What position is the highlighted shape, counting from the left?`, answer, shuffle(choices), 'ordinal', { n, pos });
+}
+
+// 3D solid recognition → multiple choice over solid names (shows an oblique sketch).
+const SOLIDS = ['cube', 'cuboid', 'cone', 'cylinder', 'sphere'];
+function genSolidName(skill) {
+  const shape = pickFrom(SOLIDS), others = shuffle(SOLIDS.filter((s) => s !== shape)).slice(0, 3);
+  return choiceProblem(skill, `What is the name of this solid?`, cap1(shape), shuffle([cap1(shape), ...others.map(cap1)]), 'solidName', { shape });
+}
+
+// 24-hour clock: convert a 12-hour time with a.m./p.m. to 24-hour notation.
+function genClock24(skill) {
+  const r = randInt, h12 = r(1, 12), m = r(0, 11) * 5, pm = Math.random() < 0.5;
+  const h24 = pm ? (h12 === 12 ? 12 : h12 + 12) : (h12 === 12 ? 0 : h12);
+  const fmt = (h, mm) => `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+  const answer = fmt(h24, m), seen = new Set([answer]), choices = [answer];
+  for (const c of [fmt(h12, m), fmt((h24 + 12) % 24, m), fmt((h24 + 1) % 24, m), fmt(h12 === 12 ? 0 : h12, m)]) { if (choices.length < 4 && !seen.has(c)) { seen.add(c); choices.push(c); } }
+  while (choices.length < 4) { const c = fmt(r(0, 23), m); if (!seen.has(c)) { seen.add(c); choices.push(c); } }
+  return choiceProblem(skill, `Write ${h12}:${String(m).padStart(2, '0')} ${pm ? 'p.m.' : 'a.m.'} in 24-hour time.`, answer, shuffle(choices), 'clock24', { h12, m, pm });
+}
+
+// Fraction as part of a whole: a bar split into d parts with n shaded → "what fraction is shaded?"
+function genFractionOfWhole(skill) {
+  const r = randInt, d = r(2, 8), n = r(1, d - 1), answer = `${n}/${d}`, val = n / d;
+  const seen = new Set([answer]), choices = [answer];
+  const add = (num, den) => { if (num >= 1 && den >= 2 && num < den && Math.abs(num / den - val) > 1e-9) { const s = `${num}/${den}`; if (!seen.has(s)) { seen.add(s); choices.push(s); } } };
+  add(d - n, d); add(n, d + 1); add(n + 1, d); add(n, Math.max(2, d - 1)); add(n - 1, d);
+  while (choices.length < 4) { add(r(1, 8), r(2, 9)); }
+  return choiceProblem(skill, `What fraction of the shape is shaded?`, answer, shuffle(choices.slice(0, 4)), 'fractionOfWhole', { d, n });
+}
+
 const KINDS = {
   barModel: genBarModel,
   compoundToUnit: genCompoundToUnit, duration: genDuration, moneyConvert: genMoneyConvert, barChart: genBarChart,
   moneyCount: genMoneyCount, moneyCompare: genMoneyCompare, moneyAddSub: genMoneyAddSub, moneyChange: genMoneyChange,
   numberInWords: genNumberInWords, shapeName: genShapeName, chartCategory: genChartCategory, clockRead: genClockRead,
+  ordinal: genOrdinal, solidName: genSolidName, clock24: genClock24, fractionOfWhole: genFractionOfWhole,
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,

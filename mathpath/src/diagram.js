@@ -307,6 +307,39 @@ function clockFace(h, m) {
   return svg(146, 150, 'Clock face', body);
 }
 
+// A named 3D solid (oblique sketch) for solid-recognition multiple-choice items.
+function solid3D(name) {
+  const box = (w, h) => {
+    const x = (140 - w - 24) / 2, y = (132 - h - 24) / 2 + 6, d = 24;
+    return `<polygon points="${x},${y} ${x + w},${y} ${x + w + d},${y - d} ${x + d},${y - d}" class="d-shape d-face2"/>
+      <polygon points="${x + w},${y} ${x + w + d},${y - d} ${x + w + d},${y - d + h} ${x + w},${y + h}" class="d-shape d-face2"/>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" class="d-shape"/>`;
+  };
+  let body;
+  if (name === 'cube') body = box(72, 72);
+  else if (name === 'cuboid') body = box(94, 54);
+  else if (name === 'sphere') body = `<circle cx="70" cy="66" r="46" class="d-shape"/><ellipse cx="70" cy="66" rx="46" ry="15" class="d-dash" fill="none"/>`;
+  else if (name === 'cylinder') body = `<ellipse cx="70" cy="98" rx="30" ry="10" class="d-shape"/><rect x="40" y="30" width="60" height="68" class="d-shape"/><ellipse cx="70" cy="30" rx="30" ry="10" class="d-shape"/>`;
+  else body = `<ellipse cx="70" cy="100" rx="32" ry="10" class="d-shape"/><path d="M 38 100 L 70 22 L 102 100" class="d-shape"/>`; // cone
+  return svg(140, 132, `A ${name}`, body);
+}
+
+// A row of shapes with one highlighted, for ordinal-position multiple-choice items.
+function ordinalRow(n, pos) {
+  const r = 13, gap = 10, x0 = 14, y = 26;
+  let body = '';
+  for (let i = 0; i < n; i++) body += `<circle cx="${x0 + i * (2 * r + gap) + r}" cy="${y}" r="${r}" class="d-cell${i === pos - 1 ? ' d-cell-accent' : ''}"/>`;
+  return svg(x0 * 2 + n * (2 * r + gap) - gap, 52, `A row of ${n} shapes with position ${pos} highlighted`, body);
+}
+
+// A bar split into d equal parts with n shaded, for "what fraction is shaded?" items.
+function fractionShape(d, n) {
+  const x0 = 12, y = 32, W = 120, H = 50, cw = W / d;
+  let body = '';
+  for (let i = 0; i < d; i++) body += `<rect x="${(x0 + i * cw).toFixed(1)}" y="${y}" width="${cw.toFixed(1)}" height="${H}" class="d-cell${i < n ? ' d-cell-accent' : ''}"/>`;
+  return svg(x0 * 2 + W, y + H + 14, `A shape split into ${d} equal parts with ${n} shaded`, body);
+}
+
 export function diagramFor(p) {
   if (!p || !p.parts) return '';
   const a = p.parts;
@@ -314,6 +347,9 @@ export function diagramFor(p) {
     case 'barModel': return barModel(a.model);
     case 'moneyCount': return moneyTokens(a.tokens);
     case 'shapeName': return shape2D(a.shape);
+    case 'solidName': return solid3D(a.shape);
+    case 'ordinal': return ordinalRow(a.n, a.pos);
+    case 'fractionOfWhole': return fractionShape(a.d, a.n);
     case 'clockRead': return clockFace(a.h, a.m);
     case 'barChart':
     case 'chartCategory': {

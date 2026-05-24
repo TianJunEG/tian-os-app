@@ -152,12 +152,17 @@ export default {
       example: 'hands at 3 and 6 → 3:30', timeTarget: 18,
       hint: 'The short hand shows the hour; the long hand shows the minutes.',
       spec: { kind: 'clockRead', gran: 30 } },
+
+    { id: 'sg-p1-ordinal', group: 'wn', code: 'WN 1.7', name: 'Ordinal numbers (position)',
+      objective: 'ordinal numbers (first, second, up to tenth)',
+      example: 'the 3rd shape → third', timeTarget: 16,
+      hint: 'Count the shapes from the left: 1st, 2nd, 3rd, 4th …',
+      spec: { kind: 'ordinal' } },
   ],
 
   // Officially in P1 but needing item types beyond a single-integer answer.
   pending: [
     'WN 1.1 counting objects (needs pictorial item)',
-    'WN 1.7 ordinal numbers (needs context item)',
     'Money 1.1 recognising coins/notes from pictures (counting by value now drillable)',
     'Measurement: comparing length & mass (needs measurement item)',
     'Statistics: naming the most/least category (text answer; reading picture-graph values now drillable)',

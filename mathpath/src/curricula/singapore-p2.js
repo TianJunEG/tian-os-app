@@ -20,6 +20,7 @@ export default {
     { id: 'money', name: 'Money', subtitle: 'Dollars & cents' },
     { id: 'stat', name: 'Statistics', subtitle: 'Picture graphs' },
     { id: 'time', name: 'Time', subtitle: 'To 5 minutes' },
+    { id: 'geo', name: 'Shapes', subtitle: '3D solids' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -149,15 +150,26 @@ export default {
       example: 'hands at 7 and 9 → 7:45', timeTarget: 18,
       hint: 'Count the long hand in fives around the clock from the 12.',
       spec: { kind: 'clockRead', gran: 5 } },
+
+    { id: 'sg-p2-frac-whole', group: 'fr', code: 'Fr 1.1', name: 'Fraction of a whole',
+      objective: 'fraction as part of a whole',
+      example: '3 of 4 equal parts shaded → 3/4', timeTarget: 16,
+      hint: 'Top = shaded parts, bottom = total equal parts.',
+      spec: { kind: 'fractionOfWhole' } },
+
+    { id: 'sg-p2-solid', group: 'geo', code: 'Geometry 2', name: 'Naming 3D solids',
+      objective: 'identifying, naming and classifying 3D shapes (cube, cuboid, cone, cylinder, sphere)',
+      example: 'a can shape → cylinder', timeTarget: 16,
+      hint: 'A box = cube/cuboid, a ball = sphere, a can = cylinder, a party hat = cone.',
+      spec: { kind: 'solidName' } },
   ],
 
   // In the P2 syllabus but needing item types beyond a single-integer answer.
   pending: [
     'WN 1.1 counting in tens/hundreds (needs pictorial item)',
-    'Fractions 1.1–1.3 fraction of a whole, notation, comparing/ordering fractions (needs fraction/pictorial item)',
+    'Fractions 1.2/1.3 fraction notation & comparing/ordering fractions (fraction-of-a-whole now drillable)',
     'Money 1.1 counting coins/notes from pictures (notation, conversion & comparing now drillable)',
     'Measurement: comparing length, mass & volume (needs measurement item)',
-    'Geometry: 3D solids, lines and curves (2D shape naming now drillable)',
     'Multi-step (2–3 step) word problems (single-step bar models now drillable)',
   ],
 };

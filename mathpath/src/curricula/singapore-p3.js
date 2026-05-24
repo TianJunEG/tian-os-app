@@ -157,6 +157,12 @@ export default {
       hint: 'Read the hour from the short hand, then the exact minutes from the long hand.',
       spec: { kind: 'clockRead', gran: 1 } },
 
+    { id: 'sg-p3-clock24', group: 'meas', code: 'ME 2.3', name: '24-hour clock',
+      objective: 'telling time using the 24-hour clock',
+      example: '3:45 p.m. → 15:45', timeTarget: 18,
+      hint: 'For p.m. times after noon, add 12 to the hour; 12 a.m. is 00.',
+      spec: { kind: 'clock24' } },
+
     // --- Money ---
     { id: 'sg-p3-money-addsub', group: 'money', code: 'Money 1.1', name: 'Adding & subtracting money',
       objective: 'adding and subtracting money in decimal notation',
@@ -190,7 +196,6 @@ export default {
     'WN 1.3 reading & writing numbers in words (needs text item)',
     'Fractions 1.2 simplest form, 1.3 comparing/ordering unlike fractions (needs fraction item)',
     'Money: multi-step money word problems (adding, subtracting & making change now drillable)',
-    'Measurement: the 24-hour clock (telling time to the minute, durations & conversions now drillable)',
     'Area & Perimeter of rectilinear/composite figures (rectangle & square now drillable with diagrams)',
     'Geometry: angles, perpendicular & parallel lines (needs geometry item)',
     'Multi-step (3+ step) word problems (single- and two-step bar models now drillable)',
