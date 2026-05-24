@@ -33,3 +33,19 @@ export const activitiesForLanguage = (activities, code) =>
 // Placeholder for the word input in the editor.
 export const wordPlaceholder = (code) =>
   code === 'zh' ? '字 / 词' : code === 'ms' ? 'perkataan' : 'word';
+
+// Per-language overrides for activity card label/description. Chinese is
+// handwritten and dictation-style, so the wording reflects writing, not
+// typing/spelling.
+const ZH_ACTIVITY_COPY = {
+  mock: { label: '听写', desc: 'Listen & write' },
+  scramble: { desc: 'Rearrange characters' },
+  lookcover: { desc: 'Look, cover, write' }
+};
+
+// Returns the { label, desc } to show for an activity in a given language,
+// falling back to the activity's own English copy.
+export const activityCopy = (activity, code) => {
+  const o = code === 'zh' ? ZH_ACTIVITY_COPY[activity.key] : null;
+  return { label: o?.label ?? activity.label, desc: o?.desc ?? activity.desc };
+};

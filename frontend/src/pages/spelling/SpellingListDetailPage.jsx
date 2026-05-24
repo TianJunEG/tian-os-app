@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import SpellingHeader from '../../components/spelling/SpellingHeader';
 import { spellingAPI } from '../../services/api';
-import { activitiesForLanguage, langLabel } from '../../utils/spellingLang';
+import { activitiesForLanguage, activityCopy, langLabel } from '../../utils/spellingLang';
 import MockTest from '../../components/spelling/MockTest';
 import Dictation from '../../components/spelling/Dictation';
 import ScrambleGame from '../../components/spelling/ScrambleGame';
@@ -118,19 +118,22 @@ export default function SpellingListDetailPage() {
         {!active && (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {shownActivities.map((a) => (
-                <button
-                  key={a.key}
-                  onClick={() => setActive(a.key)}
-                  className="p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition text-left border border-gray-100"
-                >
-                  <span className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${a.color}`}>
-                    <a.icon className="w-5 h-5 text-white" />
-                  </span>
-                  <h3 className="font-semibold text-gray-900 text-sm">{a.label}</h3>
-                  <p className="text-xs text-gray-500">{a.desc}</p>
-                </button>
-              ))}
+              {shownActivities.map((a) => {
+                const copy = activityCopy(a, lang);
+                return (
+                  <button
+                    key={a.key}
+                    onClick={() => setActive(a.key)}
+                    className="p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition text-left border border-gray-100"
+                  >
+                    <span className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 ${a.color}`}>
+                      <a.icon className="w-5 h-5 text-white" />
+                    </span>
+                    <h3 className="font-semibold text-gray-900 text-sm">{copy.label}</h3>
+                    <p className="text-xs text-gray-500">{copy.desc}</p>
+                  </button>
+                );
+              })}
               <button onClick={() => setActive('words')} className="p-5 bg-white rounded-xl shadow-sm hover:shadow-md transition text-left border border-gray-100">
                 <span className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-gray-500">
                   <ListChecks className="w-5 h-5 text-white" />
@@ -185,7 +188,7 @@ export default function SpellingListDetailPage() {
                   <span className={`w-7 h-7 rounded flex items-center justify-center ${activity.color}`}>
                     <activity.icon className="w-4 h-4 text-white" />
                   </span>
-                  {activity.label}
+                  {activityCopy(activity, lang).label}
                 </h2>
                 <activity.Comp words={words} onAttempt={recordAttempt(activity.mode)} lang={lang} />
               </>
