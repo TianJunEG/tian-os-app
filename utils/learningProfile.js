@@ -45,9 +45,34 @@ export function topicContribution(source, subjectId, topics = []) {
   };
 }
 
+// Group generic LearningResult records (Math Heuristics / MathPath / Science) into per-subject
+// contributions, treating each distinct `topic` as a topic of that subject.
+export function resultsToContributions(results = []) {
+  const bySubject = {};
+  for (const r of results) {
+    const s = bySubject[r.subject] || (bySubject[r.subject] = { source: r.source, topics: {} });
+    const key = r.topic || '(general)';
+    const t = s.topics[key] || (s.topics[key] = { name: key, accSum: 0, n: 0, mastered: false });
+    t.accSum += r.accuracy || 0; t.n += 1; t.mastered = t.mastered || !!r.mastered;
+  }
+  return Object.entries(bySubject).map(([subjectId, s]) => topicContribution(
+    s.source || 'learning-apps', subjectId,
+    Object.values(s.topics).map((t) => {
+      const acc = Math.round(t.accSum / t.n);
+      return { name: t.name, accuracy: acc, status: t.mastered || acc >= 85 ? 'mastered' : acc >= 65 ? 'learning' : 'needs-revision' };
+    }),
+  ));
+}
+
 // Assemble contributions (from any sources) into the unified profile the dashboards consume.
+// If two sources cover the same subject, keep the richer (higher-volume) one.
 export function buildProfile(userId, contributions = []) {
-  const subjects = contributions.filter(Boolean).map((c) => {
+  const bySub = {};
+  for (const c of contributions.filter(Boolean)) {
+    const e = bySub[c.subjectId];
+    if (!e || (c.volume || 0) > (e.volume || 0)) bySub[c.subjectId] = c;
+  }
+  const subjects = Object.values(bySub).map((c) => {
     const readiness = Math.round(0.6 * c.masteryPct + 0.4 * c.accuracy);
     return {
       subjectId: c.subjectId,

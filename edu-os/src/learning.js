@@ -19,6 +19,7 @@ const isSubject = (id) => SUBJECTS.some((s) => s.id === id);
 // `live:false` renders a "coming soon" slot (dormant module) until the app's folder is dropped in.
 export const SOURCES = {
   mathpath: { id: 'mathpath', label: 'MathPath', subjects: ['emath', 'amath'], path: '/mathpath/', live: true },
+  'math-heuristics': { id: 'math-heuristics', label: 'Math Heuristics Lab', subjects: ['emath', 'amath'], path: '/math-heuristics/', live: false },
   spelling: { id: 'spelling', label: 'Spell Master', subjects: ['eng', 'chi'], path: '/spelling/', live: false },
   science: { id: 'science', label: 'Science Lab', subjects: ['chem', 'bio', 'phys'], path: '/science/', live: false },
 };
