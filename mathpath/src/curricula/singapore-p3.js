@@ -19,6 +19,8 @@ export default {
     { id: 'fr', name: 'Fractions', subtitle: 'Equivalent & related fractions' },
     { id: 'mg', name: 'Area & Perimeter', subtitle: 'Rectangle & square' },
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
+    { id: 'meas', name: 'Measurement', subtitle: 'Compound units & time' },
+    { id: 'stat', name: 'Statistics', subtitle: 'Bar graphs' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -134,6 +136,26 @@ export default {
       example: '$650 − $180 − $240 → $230 left', timeTarget: 50,
       hint: 'The whole bar is split into the parts spent and the part left over.',
       spec: { kind: 'barModel', structure: 'twoStepRemain', min: 30, max: 320 } },
+
+    // --- Measurement ---
+    { id: 'sg-p3-compound', group: 'meas', code: 'ME 1.3', name: 'Compound units → smaller unit',
+      objective: 'converting a measurement in compound units to the smaller unit',
+      example: '2 m 30 cm = 230 cm', timeTarget: 16,
+      hint: 'Convert the big unit (×100 or ×1000), then add on the small unit.',
+      spec: { kind: 'compoundToUnit' } },
+
+    { id: 'sg-p3-duration', group: 'meas', code: 'ME 2.2', name: 'Time: finding a duration',
+      objective: 'finding the duration given the starting and finishing times',
+      example: '09:15 → 10:50 is 95 minutes', timeTarget: 22,
+      hint: 'Count on from the start to the next hour, then on to the finish.',
+      spec: { kind: 'duration' } },
+
+    // --- Statistics (bar graph diagram) ---
+    { id: 'sg-p3-stat', group: 'stat', code: 'Stat 1.1/1.2', name: 'Reading a bar graph',
+      objective: 'reading and interpreting data from bar graphs, with different scales',
+      example: 'Red 15, Blue 10 → 5 more red', timeTarget: 24,
+      hint: 'Read each bar against the scale on the axis, then compare or total.',
+      spec: { kind: 'barChart', mode: 'bar' } },
   ],
 
   // In the P3 syllabus but needing item types beyond a single-integer answer.
@@ -141,11 +163,11 @@ export default {
     'WN 1.1 counting in hundreds/thousands (needs pictorial item)',
     'WN 1.3 reading & writing numbers in words (needs text item)',
     'Fractions 1.2 simplest form, 1.3 comparing/ordering unlike fractions (needs fraction item)',
-    'Money 1.1 adding & subtracting money in decimal notation (needs money item)',
-    'Measurement: length/mass/volume in compound units & conversions; time (seconds, duration, 24-hour clock)',
+    'Money 1.1 adding & subtracting money in decimal notation (covered numerically by decimals)',
+    'Measurement: telling time on a clock face & the 24-hour clock (compound-unit conversion & duration now drillable)',
     'Area & Perimeter of rectilinear/composite figures (rectangle & square now drillable with diagrams)',
     'Geometry: angles, perpendicular & parallel lines (needs geometry item)',
-    'Statistics: reading bar graphs with scales (needs chart item)',
+    'Statistics: naming the most/least category & trends (reading bar-graph values now drillable)',
     'Multi-step (3+ step) word problems (single- and two-step bar models now drillable)',
   ],
 };

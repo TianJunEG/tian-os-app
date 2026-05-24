@@ -133,6 +133,10 @@ body {
 .diagram .d-cell-accent { fill: var(--brand-2); fill-opacity: .22; stroke: var(--brand-2); }
 .diagram .d-cap { fill: var(--ink-soft); font-size: 12.5px; font-weight: 600; }
 .diagram .d-brace { stroke: var(--ink-soft); stroke-width: 1.6; }
+.diagram .d-axis { stroke: var(--ink-soft); stroke-width: 1.4; }
+.diagram .d-grid { stroke: var(--line); stroke-width: 1; }
+.diagram .d-axisn { fill: var(--ink-soft); font-size: 10px; font-weight: 600; }
+.diagram .d-icon { fill: var(--brand); fill-opacity: .85; stroke: var(--brand); stroke-width: 1; }
 
 /* ---- feedback ---- */
 .feedback { min-height: 28px; text-align: center; font-weight: 700; font-size: 18px; }

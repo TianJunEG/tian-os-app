@@ -124,12 +124,17 @@ function lshape(W, H, nw, nh) {
 function barModel(m) {
   const rows = m.rows, braces = m.braces || [];
   const capW = rows.some((r) => r.caption) ? 50 : 6;
-  const x0 = capW, barMax = 150, rightPad = 14, rowH = 30, rowGap = 12;
+  const x0 = capW, barMax = 150, rightPad = 14, rowH = 30, rowGap = 20;
   const maxTotal = Math.max(...rows.map((r) => r.cells.reduce((s, c) => s + c.value, 0)));
   const ppu = barMax / maxTotal;
-  const cw = (c) => Math.max(14, c.value * ppu);
-  const topBand = braces.some((b) => b.side === 'top') ? 22 : 6;
-  const botBand = braces.some((b) => b.side === 'bottom') ? 26 : 6;
+  const cw = (c) => Math.max(16, c.value * ppu);
+  const rowHasTop = (ri) => braces.some((b) => b.side === 'top' && b.row === ri);
+  // A narrow labelled cell is placed opposite its row's top brace: below if the row has a
+  // top brace, otherwise above — so cell labels never collide with brace labels.
+  let anyAbove = false, anyBelow = false;
+  rows.forEach((row, ri) => row.cells.forEach((c) => { if (c.label && cw(c) < 20) { if (rowHasTop(ri)) anyBelow = true; else anyAbove = true; } }));
+  const topBand = Math.max(braces.some((b) => b.side === 'top') ? 22 : 0, anyAbove ? 16 : 0, 6);
+  const botBand = Math.max(braces.some((b) => b.side === 'bottom') ? 26 : 0, anyBelow ? 18 : 0, 6);
   const rowTop = (i) => topBand + i * (rowH + rowGap);
   const W = x0 + barMax + rightPad, H = topBand + rows.length * rowH + (rows.length - 1) * rowGap + botBand;
   let body = '';
@@ -141,9 +146,10 @@ function barModel(m) {
       const w = cw(c);
       body += `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${rowH}" class="d-cell${c.accent ? ' d-cell-accent' : ''}"/>`;
       if (c.label) {
-        body += w >= 22
-          ? `<text x="${(x + w / 2).toFixed(1)}" y="${y + rowH / 2}" class="d-label" text-anchor="middle" dominant-baseline="middle">${c.label}</text>`
-          : `<text x="${(x + w / 2).toFixed(1)}" y="${y - 4}" class="d-label" text-anchor="middle">${c.label}</text>`;
+        const cxm = (x + w / 2).toFixed(1);
+        if (w >= 20) body += `<text x="${cxm}" y="${y + rowH / 2}" class="d-label" text-anchor="middle" dominant-baseline="middle">${c.label}</text>`;
+        else if (rowHasTop(ri)) body += `<text x="${cxm}" y="${y + rowH + 13}" class="d-label" text-anchor="middle">${c.label}</text>`;
+        else body += `<text x="${cxm}" y="${y - 4}" class="d-label" text-anchor="middle">${c.label}</text>`;
       }
       x += w;
     });
@@ -164,11 +170,51 @@ function barModel(m) {
   return svg(W, H, 'Bar model for the word problem', body);
 }
 
+// Bar graph: vertical bars with a value axis. `c` = { cats:[{label,value}], scale }.
+function barChart(c) {
+  const cats = c.cats, n = cats.length, W = 210, x0 = 26, yBase = 112, plotH = 86, scale = c.scale;
+  const top = Math.max(scale, Math.ceil(Math.max(...cats.map((d) => d.value)) / scale) * scale);
+  const sx = (W - x0 - 10) / n;
+  let body = '';
+  for (let v = 0; v <= top; v += scale) {
+    const y = yBase - (v / top) * plotH;
+    body += `<line x1="${x0}" y1="${y.toFixed(1)}" x2="${W - 6}" y2="${y.toFixed(1)}" class="d-grid"/>`;
+    body += `<text x="${x0 - 4}" y="${(y + 3).toFixed(1)}" class="d-axisn" text-anchor="end">${v}</text>`;
+  }
+  body += `<line x1="${x0}" y1="${yBase}" x2="${W - 6}" y2="${yBase}" class="d-axis"/>`;
+  body += `<line x1="${x0}" y1="${yBase - plotH}" x2="${x0}" y2="${yBase}" class="d-axis"/>`;
+  cats.forEach((d, i) => {
+    const cx = x0 + sx * (i + 0.5), bw = Math.min(32, sx * 0.6), h = (d.value / top) * plotH;
+    body += `<rect x="${(cx - bw / 2).toFixed(1)}" y="${(yBase - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" class="d-cell"/>`;
+    body += `<text x="${cx.toFixed(1)}" y="${(yBase - h - 3).toFixed(1)}" class="d-axisn" text-anchor="middle">${d.value}</text>`;
+    body += `<text x="${cx.toFixed(1)}" y="${yBase + 13}" class="d-cap" text-anchor="middle">${d.label}</text>`;
+  });
+  return svg(W, 150, 'Bar graph', body);
+}
+
+// Picture graph: rows of unit icons with a key ("= scale"). `c` = { cats:[{label,value}], scale }.
+function pictureGraph(c) {
+  const cats = c.cats, scale = c.scale, x0 = 58, icon = 13, gap = 4, rowH = 22;
+  const maxCount = Math.max(...cats.map((d) => d.value / scale));
+  const W = Math.max(180, x0 + maxCount * (icon + gap) + 8), H = 12 + cats.length * rowH + 26;
+  let body = '';
+  cats.forEach((d, i) => {
+    const y = 12 + i * rowH;
+    body += `<text x="${x0 - 6}" y="${y + icon - 2}" class="d-cap" text-anchor="end">${d.label}</text>`;
+    for (let k = 0; k < d.value / scale; k++) body += `<rect x="${x0 + k * (icon + gap)}" y="${y}" width="${icon}" height="${icon}" rx="2" class="d-icon"/>`;
+  });
+  const ky = 12 + cats.length * rowH + 6;
+  body += `<rect x="${x0}" y="${ky}" width="${icon}" height="${icon}" rx="2" class="d-icon"/>`;
+  body += `<text x="${x0 + icon + 6}" y="${ky + icon - 2}" class="d-axisn">= ${scale}</text>`;
+  return svg(W, H, 'Picture graph', body);
+}
+
 export function diagramFor(p) {
   if (!p || !p.parts) return '';
   const a = p.parts;
   switch (p.kind) {
     case 'barModel': return barModel(a.model);
+    case 'barChart': return a.chart.mode === 'picture' ? pictureGraph(a.chart) : barChart(a.chart);
     case 'rectArea':
     case 'rectPerimeter': return rectangle(a.l, a.w);
     case 'triArea': return triangle(a.base, a.height);

@@ -795,7 +795,7 @@ function genBarModel(skill) {
     if (a < b) { const t = a; a = b; b = t; }
     const item = pickFrom(['books', 'sweets', 'beads', 'points']);
     const display = `${A} has ${a} ${item}. ${B} has ${b} ${item}. How many more ${item} does ${A} have than ${B}?`;
-    const model = { rows: [{ caption: A, cells: [cell(b, ''), cell(a - b, '?', true)] }, { caption: B, cells: [cell(b, `${b}`)] }], braces: [{ row: 0, start: 0, end: 1, label: `${a}`, side: 'top' }] };
+    const model = { rows: [{ caption: A, cells: [cell(a, `${a}`)] }, { caption: B, cells: [cell(b, `${b}`)] }] };
     return barModelProblem(skill, display, a - b, { structure: st, a, b, model });
   }
   if (st === 'unitsTotal') {
@@ -809,7 +809,7 @@ function genBarModel(skill) {
     const n = r(2, s.nMax || 6), each = r(2, s.eachMax || 12), total = n * each;
     const c = pickFrom([['children', 'sweets'], ['friends', 'stickers'], ['plates', 'biscuits'], ['boxes', 'pens']]);
     const display = `${total} ${c[1]} are shared equally among ${n} ${c[0]}. How many ${c[1]} does each get?`;
-    const model = { rows: [{ cells: Array.from({ length: n }, () => cell(each, '?')) }], braces: [{ row: 0, start: 0, end: n - 1, label: `${total}`, side: 'top' }] };
+    const model = { rows: [{ cells: Array.from({ length: n }, (_, i) => cell(each, i === 0 ? '?' : '')) }], braces: [{ row: 0, start: 0, end: n - 1, label: `${total}`, side: 'top' }] };
     return barModelProblem(skill, display, each, { structure: st, total, n, model });
   }
   if (st === 'fractionOfQuantity') {
@@ -826,11 +826,11 @@ function genBarModel(skill) {
     const part = (pct * whole) / 100;
     const c = pickFrom([['students', 'girls'], ['apples', 'ripe'], ['books', 'fiction'], ['cars', 'red']]);
     const display = `${pct}% of the ${whole} ${c[0]} are ${c[1]}. How many ${c[0]} are ${c[1]}?`;
-    const model = { rows: [{ cells: [cell(part, '?', true), cell(whole - part, '')] }], braces: [{ row: 0, start: 0, end: 1, label: `${whole}`, side: 'top' }] };
+    const model = { rows: [{ cells: [cell(part, '', true), cell(whole - part, '')] }], braces: [{ row: 0, start: 0, end: 1, label: `${whole}`, side: 'top' }, { row: 0, start: 0, end: 0, label: '?', side: 'bottom' }] };
     return barModelProblem(skill, display, part, { structure: st, whole, pct, model });
   }
   if (st === 'ratioShare') {
-    let a = r(1, 5), b = r(1, 5); if (a + b < 3) b += 2;
+    let a = r(1, 5), b = r(1, 5); if (a === b) b = (b % 5) + 1; if (a + b < 3) b += 2;
     const unit = r(2, s.eachMax || 12), total = (a + b) * unit, [A, B] = twoNames();
     const item = pickFrom(['sweets', 'marbles', 'stickers', 'coins']);
     const display = `${total} ${item} are shared between ${A} and ${B} in the ratio ${a} : ${b}. How many ${item} does ${A} get?`;
@@ -843,7 +843,7 @@ function genBarModel(skill) {
     do { pct = pickFrom([5, 10, 20, 25, 40, 50, 75, 80]); whole = pickFrom([20, 40, 50, 60, 80, 100, 120, 150, 200, 240, 400, 500]); } while ((pct * whole) % 100 !== 0);
     const part = (pct * whole) / 100;
     const display = `${pct}% of a number is ${part}. What is the number?`;
-    const model = { rows: [{ cells: [cell(part, `${part}`, true), cell(whole - part, '')] }], braces: [{ row: 0, start: 0, end: 1, label: '?', side: 'top' }] };
+    const model = { rows: [{ cells: [cell(part, '', true), cell(whole - part, '')] }], braces: [{ row: 0, start: 0, end: 1, label: '?', side: 'top' }, { row: 0, start: 0, end: 0, label: `${part}`, side: 'bottom' }] };
     return barModelProblem(skill, display, whole, { structure: st, whole, pct, part, model });
   }
 
@@ -856,8 +856,60 @@ function genBarModel(skill) {
   return barModelProblem(skill, display, remain, { structure: 'twoStepRemain', total, s1, s2, model });
 }
 
+// ---------- Measurement, money & statistics ----------
+
+// Compound units to the smaller unit: "2 m 30 cm = ? cm" → 230
+function genCompoundToUnit(skill) {
+  const [big, small, factor] = pickFrom([['m', 'cm', 100], ['km', 'm', 1000], ['kg', 'g', 1000], ['l', 'ml', 1000]]);
+  const bigN = randInt(1, 8);
+  const smallN = factor === 100 ? randInt(1, 19) * 5 : randInt(1, 19) * 50;
+  return problem(skill, `${bigN} ${big} ${smallN} ${small} = ? ${small}`, bigN * factor + smallN, 'compoundToUnit', { bigN, smallN, factor });
+}
+
+// Time duration: "starts 09:15, ends 10:50 → 95 minutes"
+function genDuration(skill) {
+  const start = randInt(6 * 12, 20 * 12) * 5; // on a 5-minute grid, 06:00–20:00
+  const dur = randInt(2, 36) * 5; // 10–180 minutes
+  const end = start + dur;
+  const fmt = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+  const ctx = pickFrom(['lesson', 'film', 'football match', 'train ride']);
+  return problem(skill, `A ${ctx} starts at ${fmt(start)} and ends at ${fmt(end)}. How many minutes does it last?`, dur, 'duration', { start, end });
+}
+
+// Money in decimal notation ↔ cents: "$4.85 = ? cents" → 485  ·  "560 cents = $?" → 5.6
+function genMoneyConvert(skill) {
+  const cents = randInt(105, 5000);
+  if (Math.random() < 0.5) return problem(skill, `$${(cents / 100).toFixed(2)} = ? cents`, cents, 'moneyConvert', { cents, dir: 'toCents' });
+  return decProblem(skill, `${cents} cents = $ ?`, cents / 100, 'moneyConvert', { cents, dir: 'toDollars' });
+}
+
+// Read a bar / picture graph: value, difference, or total.
+function genBarChart(skill) {
+  const mode = skill.spec.mode || 'bar', r = randInt;
+  const set = pickFrom([
+    { theme: 'the number of marbles of each colour', labels: ['Red', 'Blue', 'Green', 'Yellow'] },
+    { theme: 'the pets owned by a class', labels: ['Cats', 'Dogs', 'Fish', 'Birds'] },
+    { theme: 'the number of books read each day', labels: ['Mon', 'Tue', 'Wed', 'Thu'] },
+    { theme: 'the fruit sold at a stall', labels: ['Apples', 'Pears', 'Plums', 'Grapes'] },
+  ]);
+  const n = Math.min(set.labels.length, r(3, 4)), scale = pickFrom([1, 2, 5, 10]), cap = mode === 'picture' ? 7 : 5;
+  const cats = Array.from({ length: n }, (_, i) => ({ label: set.labels[i], value: scale * r(1, cap) }));
+  const chart = { mode, cats, scale }, noun = mode === 'picture' ? 'picture graph' : 'bar graph';
+  const q = pickFrom(['value', 'diff', 'total']);
+  if (q === 'value') {
+    const i = r(0, n - 1);
+    return problem(skill, `The ${noun} shows ${set.theme}. What is the value for ${cats[i].label}?`, cats[i].value, 'barChart', { chart, q, i });
+  }
+  if (q === 'total') return problem(skill, `The ${noun} shows ${set.theme}. What is the total?`, cats.reduce((p, d) => p + d.value, 0), 'barChart', { chart, q });
+  let hi = 0, lo = 0;
+  cats.forEach((d, i) => { if (d.value > cats[hi].value) hi = i; if (d.value < cats[lo].value) lo = i; });
+  if (cats[hi].value === cats[lo].value) return genBarChart(skill);
+  return problem(skill, `The ${noun} shows ${set.theme}. How many more for ${cats[hi].label} than ${cats[lo].label}?`, cats[hi].value - cats[lo].value, 'barChart', { chart, q, i: hi, j: lo });
+}
+
 const KINDS = {
   barModel: genBarModel,
+  compoundToUnit: genCompoundToUnit, duration: genDuration, moneyConvert: genMoneyConvert, barChart: genBarChart,
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,

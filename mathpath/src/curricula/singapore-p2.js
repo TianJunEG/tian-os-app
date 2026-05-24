@@ -17,6 +17,8 @@ export default {
     { id: 'md', name: 'Multiplication & Division', subtitle: 'Tables of 2, 3, 4, 5 and 10' },
     { id: 'fr', name: 'Fractions', subtitle: 'Like fractions within one whole' },
     { id: 'wp', name: 'Word Problems', subtitle: 'Model method (bar models)' },
+    { id: 'money', name: 'Money', subtitle: 'Dollars & cents' },
+    { id: 'stat', name: 'Statistics', subtitle: 'Picture graphs' },
   ],
   skills: [
     // --- Whole Numbers ---
@@ -101,6 +103,20 @@ export default {
       example: '4 bags × 5 marbles → 20', timeTarget: 34,
       hint: 'Each equal bar is one group — there are as many bars as groups.',
       spec: { kind: 'barModel', structure: 'unitsTotal', nMax: 5, eachMax: 10 } },
+
+    // --- Money ---
+    { id: 'sg-p2-money', group: 'money', code: 'Money 1.2/1.4', name: 'Money: dollars & cents',
+      objective: 'reading and writing money in decimal notation; converting dollars and cents',
+      example: '$4.85 = 485 cents', timeTarget: 14,
+      hint: '$1 = 100 cents — multiply dollars by 100, or split cents into dollars and cents.',
+      spec: { kind: 'moneyConvert' } },
+
+    // --- Statistics (picture graph diagram) ---
+    { id: 'sg-p2-stat', group: 'stat', code: 'Stat 1.1', name: 'Reading a picture graph',
+      objective: 'reading and interpreting data from picture graphs with scales',
+      example: '5 icons × 2 each → 10', timeTarget: 22,
+      hint: 'Count the icons for a row, then multiply by what each icon stands for.',
+      spec: { kind: 'barChart', mode: 'picture' } },
   ],
 
   // In the P2 syllabus but needing item types beyond a single-integer answer.
@@ -108,10 +124,10 @@ export default {
     'WN 1.1 counting in tens/hundreds (needs pictorial item)',
     'WN 1.3 reading & writing numbers in words (needs text item)',
     'Fractions 1.1–1.3 fraction of a whole, notation, comparing/ordering fractions (needs fraction/pictorial item)',
-    'Money 1.1–1.4 money in dollars & cents, decimal notation, conversion (needs money item)',
+    'Money 1.1 counting/comparing money (decimal notation & cents conversion now drillable)',
     'Measurement: length, mass, volume, time (needs measurement items)',
     'Geometry: 2D/3D shapes, lines and curves (needs shape item)',
-    'Statistics: picture graphs with scales (needs chart item)',
+    'Statistics: naming the most/least category (text answer; reading picture-graph values now drillable)',
     'Multi-step (2–3 step) word problems (single-step bar models now drillable)',
   ],
 };
