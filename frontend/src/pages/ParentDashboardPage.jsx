@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, ChevronRight, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Plus, GraduationCap } from 'lucide-react';
 import { learningAPI } from '../services/api';
+import ProgressRing from '../components/ProgressRing';
 
 // Education OS — Parent dashboard. Overview of every child, each with a headline readiness.
 // Tap a child for their full cross-app profile. Reads GET /api/learning/children.
@@ -58,7 +59,7 @@ export default function ParentDashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900">My Children</h1>
             <p className="text-gray-600">Each child's progress across every learning app.</p>
           </div>
-          <button onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">
+          <button onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-navy-700 text-white rounded-lg text-sm font-semibold hover:bg-navy-600 transition">
             <Plus className="w-4 h-4" /> Add child
           </button>
         </div>
@@ -75,7 +76,7 @@ export default function ParentDashboardPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Level (optional)</label>
               <input value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="e.g. Primary 5" />
             </div>
-            <button type="submit" disabled={saving} className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-60">{saving ? 'Saving…' : 'Save'}</button>
+            <button type="submit" disabled={saving} className="px-5 py-2 bg-navy-700 text-white rounded-lg font-semibold hover:bg-navy-600 disabled:opacity-60 transition">{saving ? 'Saving…' : 'Save'}</button>
           </form>
         )}
 
@@ -84,12 +85,12 @@ export default function ParentDashboardPage() {
 
         {!loading && !error && children.length === 0 && (
           <div className="bg-white rounded-2xl shadow p-10 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 grid place-items-center mx-auto mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-navy-100 text-navy-700 grid place-items-center mx-auto mb-3">
               <GraduationCap className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Add your first child</h3>
+            <h3 className="text-lg font-semibold text-navy-900">Add your first child</h3>
             <p className="text-gray-600 text-sm mt-1 mb-5 max-w-sm mx-auto">Add a child to track their progress across the learning apps in one place.</p>
-            <button onClick={() => setAdding(true)} className="inline-flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700">
+            <button onClick={() => setAdding(true)} className="inline-flex items-center gap-2 px-5 py-3 bg-navy-700 text-white rounded-xl font-semibold hover:bg-navy-600 transition">
               <Plus className="w-4 h-4" /> Add child
             </button>
           </div>
@@ -98,16 +99,18 @@ export default function ParentDashboardPage() {
         {!loading && !error && children.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {children.map((c) => (
-              <button key={c.id} onClick={() => navigate(`/children/${c.id}`)} className="bg-white rounded-2xl shadow p-5 text-left hover:shadow-lg transition flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 grid place-items-center font-bold text-lg">
+              <button key={c.id} onClick={() => navigate(`/children/${c.id}`)} className="bg-white border border-navy-100 rounded-2xl shadow-sm p-5 text-left hover:shadow-lg hover:border-navy-200 transition flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-navy-100 text-navy-700 grid place-items-center font-bold text-lg">
                   {c.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-gray-900 truncate">{c.name}</div>
-                  <div className="text-xs text-gray-400">{c.level || '—'} · {c.subjects} subject{c.subjects === 1 ? '' : 's'}</div>
-                  <span className={`inline-block mt-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${bandStyles[c.band] || 'bg-gray-100 text-gray-700'}`}>{c.overall}% · {c.band}</span>
+                  <div className="font-bold text-navy-900 truncate">{c.name}</div>
+                  <div className="text-xs text-navy-400">{c.level || '—'} · {c.subjects} subject{c.subjects === 1 ? '' : 's'}</div>
+                  <span className={`inline-block mt-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${bandStyles[c.band] || 'bg-gray-100 text-gray-700'}`}>{c.band}</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300" />
+                <div className="text-navy-900 shrink-0">
+                  <ProgressRing value={c.overall} size={56} stroke={6} trackClass="stroke-navy-100" />
+                </div>
               </button>
             ))}
           </div>

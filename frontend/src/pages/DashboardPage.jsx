@@ -48,9 +48,12 @@ export default function DashboardPage() {
       <header className="bg-white shadow sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Welcome, {user?.name}</p>
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-navy-900 grid place-items-center text-gold-400 font-extrabold">E</span>
+              <div>
+                <h1 className="text-xl font-extrabold text-navy-900 tracking-tight leading-none">Edu<span className="text-gold-500">OS</span></h1>
+                <p className="text-gray-500 text-sm">Welcome, {user?.name}</p>
+              </div>
             </div>
             <button
               onClick={handleLogout}
@@ -70,7 +73,7 @@ export default function DashboardPage() {
             onClick={() => navigate(user?.role === 'parent' ? '/children' : '/learning')}
             className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
           >
-            <TrendingUp className="w-8 h-8 text-indigo-600 mb-2" />
+            <TrendingUp className="w-8 h-8 text-navy-700 mb-2" />
             <h3 className="font-semibold text-gray-900">{user?.role === 'parent' ? 'My Children' : 'My Learning'}</h3>
             <p className="text-sm text-gray-600">{user?.role === 'parent' ? 'Each child’s progress' : 'Progress across all apps'}</p>
           </button>
@@ -80,7 +83,7 @@ export default function DashboardPage() {
                 onClick={() => navigate('/search')}
                 className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
               >
-                <Search className="w-8 h-8 text-purple-600 mb-2" />
+                <Search className="w-8 h-8 text-navy-700 mb-2" />
                 <h3 className="font-semibold text-gray-900">Find Tutors</h3>
                 <p className="text-sm text-gray-600">Search & book tutors</p>
               </button>
@@ -93,7 +96,7 @@ export default function DashboardPage() {
                 onClick={() => navigate('/tutor/profile')}
                 className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
               >
-                <BookOpen className="w-8 h-8 text-purple-600 mb-2" />
+                <BookOpen className="w-8 h-8 text-navy-700 mb-2" />
                 <h3 className="font-semibold text-gray-900">My Profile</h3>
                 <p className="text-sm text-gray-600">Edit your profile</p>
               </button>
@@ -142,7 +145,7 @@ export default function DashboardPage() {
               {user?.role === 'parent' && (
                 <button
                   onClick={() => navigate('/search')}
-                  className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
+                  className="mt-4 text-navy-700 hover:text-navy-900 font-medium"
                 >
                   Find a tutor →
                 </button>

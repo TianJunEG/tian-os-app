@@ -1,7 +1,7 @@
 {
-  "name": "tutor-match-backend",
+  "name": "edu-os-backend",
   "version": "1.0.0",
-  "description": "Tutor Match Platform API",
+  "description": "Edu OS — AI-native learning ecosystem API",
   "main": "server.js",
   "type": "module",
   "scripts": {

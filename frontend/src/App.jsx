@@ -38,7 +38,7 @@ const ProtectedRoute = ({ children }) => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-700"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
@@ -60,7 +60,7 @@ const PublicRoute = ({ children }) => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-700"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
@@ -76,41 +76,57 @@ const PublicRoute = ({ children }) => {
 
 // Landing Page
 const LandingPage = () => (
-  <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-    <header className="bg-white shadow">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-purple-600">Tutor Match</h1>
-          <div className="space-x-4">
-            <a href="/login" className="text-gray-700 hover:text-purple-600 font-medium">
-              Login
-            </a>
-            <a href="/register" className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-              Sign Up
-            </a>
-          </div>
+  <div className="min-h-screen bg-white">
+    <header className="bg-white/80 backdrop-blur border-b border-navy-100 sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <span className="w-8 h-8 rounded-lg bg-navy-900 grid place-items-center text-gold-400 font-extrabold">E</span>
+          <span className="text-xl font-extrabold text-navy-900 tracking-tight">Edu<span className="text-gold-500">OS</span></span>
+        </div>
+        <div className="space-x-4">
+          <a href="/login" className="text-navy-700 hover:text-navy-900 font-medium">Login</a>
+          <a href="/register" className="px-4 py-2 bg-navy-900 text-white rounded-lg hover:bg-navy-800 transition">Sign Up</a>
         </div>
       </div>
     </header>
 
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center">
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">
-          Find Your Perfect Tutor
-        </h2>
-        <p className="text-xl text-gray-600 mb-8">
-          Connect with expert tutors and start learning today
-        </p>
-        <div className="space-x-4">
-          <a href="/register?role=parent" className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 inline-block font-medium">
-            Find a Tutor
-          </a>
-          <a href="/register?role=tutor" className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 inline-block font-medium">
-            Become a Tutor
-          </a>
+    <main>
+      <section className="relative overflow-hidden bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 text-white">
+        <div className="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-gold-400/10 blur-3xl pointer-events-none" />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28 text-center">
+          <div className="text-gold-300 text-xs font-semibold tracking-[0.2em] uppercase mb-5">Tian Jun Education Group</div>
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1]">
+            AI-Native Learning.<br /><span className="text-gold-400">Built for Every Student.</span>
+          </h1>
+          <p className="text-lg sm:text-xl text-white/70 mt-6 max-w-2xl mx-auto">
+            Powered by teachers. Designed for parents. Personalized by AI.
+          </p>
+          <div className="mt-10 flex flex-wrap gap-4 justify-center">
+            <a href="/register?role=parent" className="px-7 py-3.5 bg-gold-400 text-navy-900 rounded-xl hover:bg-gold-300 font-bold inline-block transition">Find a Tutor</a>
+            <a href="/register?role=tutor" className="px-7 py-3.5 bg-white/10 ring-1 ring-white/25 text-white rounded-xl hover:bg-white/15 font-semibold inline-block transition">Become a Tutor</a>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid sm:grid-cols-3 gap-6">
+          {[
+            ['Personalized by AI', 'Every mistake becomes targeted mastery — worksheets and revision adapt to each child.'],
+            ['One connected profile', 'Spelling, maths and science progress unify into a single readiness picture for parents.'],
+            ['Powered by teachers', 'Expert tutors and an enrichment marketplace, matched to how your child learns.'],
+          ].map(([t, d]) => (
+            <div key={t} className="bg-white border border-navy-100 rounded-2xl shadow-sm p-6">
+              <h3 className="font-bold text-navy-900 mb-1.5">{t}</h3>
+              <p className="text-sm text-gray-600">{d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </main>
+
+    <footer className="border-t border-navy-100 py-8 text-center text-sm text-navy-400">
+      <span className="font-semibold text-navy-700">Edu OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
+    </footer>
   </div>
 );
 

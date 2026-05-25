@@ -44,10 +44,10 @@ export default function ChildProfilePage() {
         {!loading && error && <div className="bg-red-50 text-red-700 rounded-xl p-4 text-sm">{error}</div>}
         {!loading && !error && subjects.length === 0 && (
           <div className="bg-white rounded-2xl shadow p-10 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 grid place-items-center mx-auto mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-navy-100 text-navy-700 grid place-items-center mx-auto mb-3">
               <Sparkles className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">No progress yet</h3>
+            <h3 className="text-lg font-semibold text-navy-900">No progress yet</h3>
             <p className="text-gray-600 text-sm mt-1 max-w-sm mx-auto">Once {data?.child?.name || 'your child'} practises in the learning apps, their mastery and weak topics show here.</p>
           </div>
         )}

@@ -1,7 +1,7 @@
 {
-  "name": "tutor-match-frontend",
+  "name": "edu-os-frontend",
   "version": "1.0.0",
-  "description": "Tutor Match Platform Frontend",
+  "description": "Edu OS — AI-native learning ecosystem frontend",
   "type": "module",
   "scripts": {
     "dev": "vite",
