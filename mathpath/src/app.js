@@ -33,6 +33,12 @@ function solvedDisplay(p) {
   return p.display.trim().endsWith('=') ? `${p.display} ${p.answer}` : p.display;
 }
 
+// Short numeric prompts ("16 + 9 =") get the big display style; long word problems
+// would be unreadable at that size, so they get a smaller, normally-spaced variant.
+function problemClass(display) {
+  return String(display).trim().length > 24 ? 'problem problem--text' : 'problem';
+}
+
 // Enter-key handling for screens without a text input (feedback "continue").
 let activeKeyHandler = null;
 function setEnterHandler(fn) {
@@ -236,7 +242,7 @@ function renderDiagnostic() {
         <div class="qcount">Finding the right level…</div>
       </div>
       ${diagramFor(probe.problem)}
-      <div class="problem">${probe.problem.display}</div>
+      <div class="${problemClass(probe.problem.display)}">${probe.problem.display}</div>
       ${answerUI(probe.problem)}
       <div class="feedback muted">Answer what you can. If it gets too hard, that's exactly the signal we need.</div>
     </section>`);
@@ -291,7 +297,7 @@ function renderDrill() {
       <section class="card stack">
         ${head}
         ${diagramFor(s.current)}
-        <div class="problem">${solvedDisplay(s.current)}</div>
+        <div class="${problemClass(solvedDisplay(s.current))}">${solvedDisplay(s.current)}</div>
         <div class="feedback ${ok ? 'ok' : 'bad'}">${ok ? 'Correct!' : `Not quite — the answer is ${s.current.answer}.`}</div>
         <button class="btn btn-primary btn-block" id="cont">${S.isComplete(s) ? 'See results' : 'Next question'}</button>
       </section>`);
@@ -304,7 +310,7 @@ function renderDrill() {
     <section class="card stack">
       ${head}
       ${diagramFor(s.current)}
-      <div class="problem">${s.current.display}</div>
+      <div class="${problemClass(s.current.display)}">${s.current.display}</div>
       ${answerUI(s.current)}
       ${state.hint
         ? `<div class="hint">Hint: ${state.hint}</div>`
