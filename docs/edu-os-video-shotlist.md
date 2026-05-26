@@ -1,4 +1,4 @@
-# Edu OS — Launch Video Shot List
+# Tian OS — Launch Video Shot List
 
 Maps each scene of the launch-video brief to a **real screen we can film**, where it lives, and
 what's still motion-graphics / to-build. Legend: ✅ real & film-ready · 🟡 partial · 🟠 exists but
@@ -6,12 +6,12 @@ not in this repo · ⚪ aspirational (motion-graphics only).
 
 > Tip: seed rich demo data first so dashboards aren't empty on camera —
 > `node scripts/seedDemo.js` (creates a demo parent + children with cross-app progress).
-> Log in as **demo.parent@eduos.test / Passw0rd!** then film `/children`.
+> Log in as **demo.parent@tianos.test / Passw0rd!** then film `/children`.
 
 | # | Scene | What to film | Route / source | Status |
 |---|-------|--------------|----------------|--------|
 | 1 | The Problem | Live-action B-roll (stressed parents, worksheets, late-night tutors). No app UI. | — | n/a |
-| 2 | Enter Edu OS | Landing hero: wordmark, tagline, navy/gold, glass header. | `/` (App.jsx LandingPage) | ✅ |
+| 2 | Enter Tian OS | Landing hero: wordmark, tagline, navy/gold, glass header. | `/` (App.jsx LandingPage) | ✅ |
 | 3 | AI Worksheet Generator | Worksheet generator + MathPath/Heuristics; progress ring as "mastery". The **photo→AI-misconception** moment is motion-graphics unless we build it (see Hero option below). | Worksheet generator app · `/learning` ring | 🟡 |
 | 4 | Adaptive Science | Open-ended Booklet-B revision; concept maps = motion-graphics. | Your local Science app (2,500 Qs) — **push it** to integrate | 🟠 |
 | 5 | English & Spelling | Lists, dictation, surprise/revision, word-mastery streaks; parent monitoring from phone. | `/spelling/*`; parent view via `/children/:id` → English | ✅ |
@@ -42,6 +42,6 @@ Chinese spelling · music notation · revision planner · daily planner · the g
 ## Brand kit (for the editor)
 - Palette: white `#ffffff` · deep navy `#0a1a33`/`#142b4d` · soft gold `#c9a24b`/`#d4af37`.
 - Type: Poppins (headlines) + DM Sans (body) — already loaded in `index.html`.
-- Wordmark: "Edu**OS**" (gold "OS"); square mark = navy tile + gold "E".
+- Wordmark: "Tian**OS**" (gold "OS"); square mark = navy tile + gold "T".
 - Tagline: "AI-Native Learning. Built for Every Student." · Secondary: "Powered by teachers.
   Designed for parents. Personalized by AI." · Footer: "Tian Jun Education Group".

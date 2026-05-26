@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star, SpellCheck, TrendingUp, FlaskConical } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, SpellCheck, TrendingUp, FlaskConical, Calculator, FileText } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -51,7 +51,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2.5">
               <span className="w-8 h-8 rounded-lg bg-navy-900 grid place-items-center text-gold-400 font-extrabold">E</span>
               <div>
-                <h1 className="text-xl font-extrabold text-navy-900 tracking-tight leading-none">Edu<span className="text-gold-500">OS</span></h1>
+                <h1 className="text-xl font-extrabold text-navy-900 tracking-tight leading-none">Tian<span className="text-gold-500">OS</span></h1>
                 <p className="text-gray-500 text-sm">Welcome, {user?.name}</p>
               </div>
             </div>
@@ -121,6 +121,24 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-600">View all bookings</p>
           </button>
 
+          <a
+            href="/mathpath/index.html?return=/dashboard"
+            className="block p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+          >
+            <Calculator className="w-8 h-8 text-navy-700 mb-2" />
+            <h3 className="font-semibold text-gray-900">MathPath</h3>
+            <p className="text-sm text-gray-600">Mastery practice across every skill</p>
+          </a>
+
+          <button
+            onClick={() => navigate('/worksheets')}
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+          >
+            <FileText className="w-8 h-8 text-gold-500 mb-2" />
+            <h3 className="font-semibold text-gray-900">Worksheet Generator</h3>
+            <p className="text-sm text-gray-600">Targeted mastery from marked mistakes</p>
+          </button>
+
           <button
             onClick={() => navigate('/spelling')}
             className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
@@ -140,7 +158,7 @@ export default function DashboardPage() {
           </button>
 
           <a
-            href="/science/"
+            href="/science/index.html"
             target="_blank"
             rel="noopener"
             className="block p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
