@@ -140,19 +140,41 @@ function parentNoteHTML() {
 }
 
 // ---- Curriculum picker ----
+// The "· Primary N" / level part of a label, so grouped chips don't repeat the country.
+function shortLevel(label) {
+  const i = label.lastIndexOf('·');
+  return i === -1 ? label : label.slice(i + 1).trim();
+}
+
 function renderPick() {
-  const items = C.listCurricula().map((c) => `
-    <button class="btn btn-block curpick" data-id="${c.id}">
-      <div style="font-weight:700">${c.label}</div>
-      <div class="muted" style="font-size:13px">${c.country} · ${c.framework}</div>
-    </button>`).join('');
+  // Group by country+framework so a syllabus (e.g. Singapore MOE) shows once, with its
+  // levels as compact chips, instead of one repetitive full-width card per level.
+  const groups = [];
+  C.listCurricula().forEach((c) => {
+    const key = `${c.country}|${c.framework}`;
+    let g = groups.find((x) => x.key === key);
+    if (!g) { g = { key, country: c.country, framework: c.framework, items: [] }; groups.push(g); }
+    g.items.push(c);
+  });
+
+  const groupsHTML = groups.map((g) => {
+    const chips = g.items.map((c) =>
+      `<button class="cur-chip" data-id="${c.id}">${shortLevel(c.label)}</button>`).join('');
+    return `
+      <div class="cur-group">
+        <p class="cur-group-title">${g.country}</p>
+        <p class="cur-group-sub">${g.framework}</p>
+        <div class="cur-levels">${chips}</div>
+      </div>`;
+  }).join('');
+
   paint(`
     <section class="card stack">
       <h1>Choose a curriculum</h1>
       <p class="muted">MathPath maps practice to a country's syllabus — including the Singapore MOE syllabus. Pick where to start; you can switch any time.</p>
-      ${items}
+      ${groupsHTML}
     </section>`);
-  app.querySelectorAll('.curpick').forEach((b) => { b.onclick = () => selectCurriculum(b.dataset.id); });
+  app.querySelectorAll('.cur-chip').forEach((b) => { b.onclick = () => selectCurriculum(b.dataset.id); });
 }
 
 function selectCurriculum(id) {
@@ -441,7 +463,7 @@ function renderProgress() {
         <span class="badge ok">${masteredCount()} / ${totalSkills()} mastered</span>
       </div>
       ${groups}
-      <div class="parent-note"><b>How levels work:</b> like Kumon, learners climb by mastery, not age. A rung turns green only when answers are accurate and quick. Green rungs below the current one were proven during the placement check.</div>
+      <div class="parent-note"><b>How levels work:</b> learners climb by mastery, not age. A rung turns green only when answers are accurate and quick. Green rungs below the current one were proven during the placement check.</div>
       ${pending}
       <div class="row">
         <button class="btn btn-primary grow" id="practise">Practise current rung</button>
