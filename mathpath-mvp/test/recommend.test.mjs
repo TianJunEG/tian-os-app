@@ -43,10 +43,20 @@ check('high accuracy + slow → fluency',
   check('advance → unlocks div-fluency', rec.recommended_skill_id, 'div-fluency');
 }
 
-// 6. Repeated misconception → prerequisite reinforcement (takes precedence over accuracy band).
-check('repeated misconception → misconception mode',
-  chooseRecommendation([P('mul-fluency', { mastery_status: 'developing', accuracy: 0.5, first_try_attempts: 8, median_first_try_seconds: 5, misconceptions: { 'mult/adds': 3, 'mult/recall': 1 } })]).mode,
-  'misconception');
+// 6. Repeated misconception on a low-accuracy skill → remediate, surfacing the misconception
+//    (not a separate "reinforce" mode — there is no unmastered prerequisite to route to here;
+//    in-session graph-aware remediation handles prerequisite routing).
+{
+  const rec = chooseRecommendation([P('mul-fluency', { mastery_status: 'developing', accuracy: 0.5, first_try_attempts: 8, median_first_try_seconds: 5, misconceptions: { 'mult/adds': 4, 'mult/recall': 1 } })]);
+  check('repeated misconception → remediate', rec.mode, 'remediate');
+  check('repeated misconception surfaced', rec.dominant_misconception, 'mult/adds');
+}
+
+// 6b. Regression (from persona review): an IMPROVING learner with old mistakes must not get
+//     stuck — 80% accuracy → independent practice, not blocked on the misconception.
+check('improving learner with past mistakes → independent',
+  chooseRecommendation([P('mul-fluency', { mastery_status: 'practising', accuracy: 0.8, first_try_attempts: 12, median_first_try_seconds: 5, misconceptions: { 'mult/adds': 3 } })]).mode,
+  'independent');
 
 // 7. Unmastered prerequisite → reroute to it before the new skill.
 {

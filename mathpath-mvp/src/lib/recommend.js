@@ -84,28 +84,21 @@ function baseRecommendation(profiles) {
   const acc = prof?.accuracy ?? 0;
   const slow = prof?.median_first_try_seconds != null && prof.median_first_try_seconds > target;
   const tried = (prof?.first_try_attempts ?? 0) >= 4;
+  // Past the prerequisite gate, all prerequisites are mastered, so there is nothing upstream to
+  // "reinforce" here — routing to a weak prerequisite is handled in-session by graph-aware
+  // remediation. A repeating misconception just enriches the reteach below.
   const dom = dominantMisconception(prof);
 
-  // Repeated misconception → prerequisite reinforcement.
-  if (dom) {
-    const reinforce = prerequisitesOf(targetId)[0] || targetId;
-    return {
-      recommended_skill_id: targetId, kind: 'reinforce', mode: 'misconception',
-      reason: `A repeating slip (${dom.tag}) — a quick reinforcement will clear it.`,
-      confidence_status: 'building',
-      remediation_suggestions: [{ skill_id: reinforce, skill_name: getSkill(reinforce).skill_name, why: `Repeated misconception: ${dom.tag}.` }],
-      fluency_drills: [], dominant_misconception: dom.tag, all_mastered: false,
-    };
-  }
-
-  // accuracy < 70% → remediation
+  // accuracy < 70% → remediation (noting a repeating misconception if there is one)
   if (tried && acc < REMEDIATION_ACCURACY) {
     return {
       recommended_skill_id: targetId, kind: 'remediate', mode: 'remediate',
-      reason: `Accuracy is ${Math.round(acc * 100)}% — let's reteach before pushing on.`,
+      reason: dom
+        ? `Accuracy is ${Math.round(acc * 100)}% with a repeating slip — let's reteach it.`
+        : `Accuracy is ${Math.round(acc * 100)}% — let's reteach before pushing on.`,
       confidence_status: 'building',
-      remediation_suggestions: [{ skill_id: targetId, skill_name: skill.skill_name, why: 'Accuracy below 70%.' }],
-      fluency_drills: [], all_mastered: false,
+      remediation_suggestions: [{ skill_id: targetId, skill_name: skill.skill_name, why: dom ? `Repeated misconception: ${dom.tag}.` : 'Accuracy below 70%.' }],
+      fluency_drills: [], dominant_misconception: dom?.tag || null, all_mastered: false,
     };
   }
 
