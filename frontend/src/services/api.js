@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
+// Backend origin (without the /api suffix) for serving uploaded files.
+export const SERVER_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -134,6 +137,20 @@ export const learningAPI = {
   getChildren: () => api.get('/learning/children'),
   addChild: (data) => api.post('/learning/children', data),
   getChildProfile: (childId) => api.get(`/learning/children/${childId}/profile`)
+};
+
+// Resources API (learning resource hub + lead capture)
+export const resourcesAPI = {
+  list: (params) => api.get('/resources', { params }),
+  getBySlug: (slug) => api.get(`/resources/${slug}`),
+  adminList: () => api.get('/resources/admin'),
+  create: (formData) =>
+    api.post('/resources', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  update: (id, formData) =>
+    api.put(`/resources/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  remove: (id) => api.delete(`/resources/${id}`),
+  unlock: (slug, data) => api.post(`/resources/${slug}/unlock`, data),
+  getLeads: () => api.get('/resources/leads')
 };
 
 export default api;

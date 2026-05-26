@@ -16,6 +16,7 @@ import reviewRoutes from './routes/reviews.js';
 import adminRoutes from './routes/admin.js';
 import spellingRoutes from './routes/spelling.js';
 import learningRoutes from './routes/learning.js';
+import resourceRoutes from './routes/resources.js';
 
 dotenv.config();
 
@@ -58,6 +59,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/spelling', spellingRoutes);
 app.use('/api/learning', learningRoutes);
+app.use('/api/resources', resourceRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
