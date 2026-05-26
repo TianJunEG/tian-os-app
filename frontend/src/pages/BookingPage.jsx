@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { bookingsAPI, tutorsAPI } from '../services/api';
-import { Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function BookingPage() {
   const { tutorId } = useParams();
@@ -88,51 +88,60 @@ export default function BookingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Book a Session</h1>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Marketplace</div>
+            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">Book a Session</h1>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Tutor Info Card */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-24">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{tutor.userId?.name}</h3>
-                <p className="text-sm text-gray-600">{tutor.headline}</p>
-              </div>
-
-              <div className="space-y-3 mb-6 pb-6 border-b">
-                <div>
-                  <p className="text-sm text-gray-600">Hourly Rate</p>
-                  <p className="text-2xl font-bold text-navy-600">${tutor.hourlyRate}/hr</p>
+            <div className="bg-white rounded-2xl border border-navy-100 shadow-sm p-6 sticky top-24">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-11 h-11 rounded-full bg-navy-700 text-white grid place-items-center font-bold text-base shrink-0">
+                  {tutor.userId?.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Rating</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    ⭐ {tutor.rating.average} ({tutor.rating.count} reviews)
-                  </p>
+                  <h3 className="font-bold text-navy-900 leading-tight">{tutor.userId?.name}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-1">{tutor.headline}</p>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
                 <div>
-                  <p className="text-sm text-gray-600">Duration</p>
-                  <p className="font-semibold text-gray-900">{formData.duration} hour(s)</p>
+                  <p className="text-xs text-gray-500 mb-0.5">Hourly Rate</p>
+                  <p className="text-2xl font-bold text-navy-800">${tutor.hourlyRate}<span className="text-sm font-normal text-gray-500">/hr</span></p>
                 </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-700">Session Cost</span>
-                    <span className="text-xl font-bold text-navy-600">${totalCost}</span>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Rating</p>
+                  <p className="font-semibold text-navy-900">⭐ {tutor.rating.average} <span className="text-xs text-gray-500">({tutor.rating.count} reviews)</span></p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Duration</p>
+                  <p className="font-semibold text-gray-900">{formData.duration} hour{formData.duration != 1 ? 's' : ''}</p>
+                </div>
+                <div className="border-t border-gray-100 pt-3">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-sm text-gray-600">Session cost</span>
+                    <span className="font-bold text-navy-800">${totalCost}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm text-gray-600">
+                  <div className="flex justify-between items-center text-xs text-gray-400 mb-3">
                     <span>Platform fee (10%)</span>
                     <span>${(totalCost * 0.1).toFixed(2)}</span>
                   </div>
-                  <div className="border-t mt-4 pt-4 flex justify-between items-center">
+                  <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                     <span className="font-semibold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-navy-600">${totalCost}</span>
+                    <span className="text-xl font-bold text-navy-800">${totalCost}</span>
                   </div>
                 </div>
               </div>
@@ -141,7 +150,7 @@ export default function BookingPage() {
 
           {/* Booking Form */}
           <div className="md:col-span-2">
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-white rounded-2xl border border-navy-100 shadow-sm p-6">
               {error && (
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -299,9 +308,9 @@ export default function BookingPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+                  className="w-full bg-navy-800 hover:bg-navy-700 text-white font-semibold py-3 rounded-xl transition disabled:opacity-50"
                 >
-                  {loading ? 'Processing...' : 'Continue to Payment'}
+                  {loading ? 'Processing…' : 'Continue to Payment'}
                 </button>
               </form>
             </div>

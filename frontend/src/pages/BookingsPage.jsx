@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { bookingsAPI } from '../services/api';
-import { Calendar, Clock, User, DollarSign, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function BookingsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -121,8 +123,14 @@ export default function BookingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
+          <button onClick={() => navigate('/dashboard')} className="p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Sessions</div>
+            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">My Bookings</h1>
+          </div>
         </div>
       </header>
 
@@ -133,10 +141,10 @@ export default function BookingsPage() {
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
                 filter === status
-                  ? 'bg-navy-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  ? 'bg-navy-700 text-white'
+                  : 'bg-white text-gray-600 border border-navy-100 hover:bg-navy-50'
               }`}
             >
               {status === 'all' ? 'All' : formatStatus(status)}
@@ -145,7 +153,7 @@ export default function BookingsPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <p className="text-red-700">{error}</p>
           </div>
@@ -153,72 +161,68 @@ export default function BookingsPage() {
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600"></div>
-            <p className="mt-4 text-gray-600">Loading bookings...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-700" />
+            <p className="mt-4 text-gray-600">Loading bookings…</p>
           </div>
         ) : bookings.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-600 mb-4">No bookings found.</p>
+          <div className="bg-white rounded-2xl border border-navy-100 shadow-sm p-12 text-center">
+            <p className="text-gray-500">No bookings found.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => (
-              <div key={booking._id} className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+              <div key={booking._id} className="bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-lg transition overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
                   {/* User Info */}
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
                       {user?.role === 'parent' ? 'Tutor' : 'Student'}
                     </p>
-                    <h3 className="font-semibold text-gray-900">
-                      {user?.role === 'parent'
-                        ? booking.tutorId?.name
-                        : booking.parentId?.name}
+                    <h3 className="font-bold text-navy-900">
+                      {user?.role === 'parent' ? booking.tutorId?.name : booking.parentId?.name}
                     </h3>
                   </div>
 
                   {/* Session Info */}
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">Subject</p>
-                    <p className="font-semibold text-gray-900">{booking.subject}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Subject</p>
+                    <p className="font-semibold text-navy-900">{booking.subject}</p>
                   </div>
 
                   {/* Date & Time */}
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">Schedule</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Schedule</p>
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-gray-900">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">
-                          {new Date(booking.scheduledDate).toLocaleDateString()}
-                        </span>
+                      <div className="flex items-center gap-1.5 text-gray-700 text-sm">
+                        <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                        {new Date(booking.scheduledDate).toLocaleDateString()}
                       </div>
-                      <div className="flex items-center gap-2 text-gray-900">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm">{booking.startTime}</span>
+                      <div className="flex items-center gap-1.5 text-gray-700 text-sm">
+                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                        {booking.startTime}
                       </div>
                     </div>
                   </div>
 
                   {/* Status & Amount */}
                   <div className="flex flex-col justify-between items-end">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(booking.status)}`}>
                       {formatStatus(booking.status)}
                     </span>
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-600">Total</p>
-                      <p className="text-lg font-bold text-navy-600">${booking.totalCost}</p>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">Total</p>
+                      <p className="text-xl font-bold text-navy-800">${booking.totalCost}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
                 {['pending', 'confirmed', 'in_progress'].includes(booking.status) && (
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
+                  <div className="px-6 py-4 bg-navy-50 border-t border-navy-100 flex justify-end gap-2">
                     {user?.role === 'tutor' && booking.status === 'pending' && (
                       <button
                         onClick={() => handleConfirm(booking._id)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-semibold"
                       >
                         Confirm
                       </button>
@@ -226,7 +230,7 @@ export default function BookingsPage() {
                     {user?.role === 'tutor' && booking.status === 'confirmed' && (
                       <button
                         onClick={() => handleCheckin(booking._id)}
-                        className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition text-sm font-medium"
+                        className="px-4 py-2 bg-navy-700 text-white rounded-lg hover:bg-navy-800 transition text-sm font-semibold"
                       >
                         Start Session
                       </button>

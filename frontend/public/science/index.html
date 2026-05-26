@@ -12483,5 +12483,44 @@ async function doSignup() {
     });
   }
 </script>
+
+<!-- Edu OS bridge: syncs Science quiz results to the learning dashboard -->
+<script>
+(function () {
+  var BACKEND = 'http://localhost:5001/api';
+  var TOKEN_KEY = 'token';
+  var _lastPost = 0;
+
+  function postResult(accuracy, mastered) {
+    var tok = localStorage.getItem(TOKEN_KEY);
+    if (!tok) return;
+    var now = Date.now();
+    if (now - _lastPost < 90000) return; // max once per 90 s
+    _lastPost = now;
+    fetch(BACKEND + '/learning/result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok },
+      body: JSON.stringify({ source: 'science', subject: 'science', topic: 'P6 Science', accuracy: accuracy, mastered: !!mastered, minutes: 15 })
+    }).catch(function () {});
+  }
+
+  // Intercept localStorage.setItem to detect when the science app saves progress
+  var _orig = Storage.prototype.setItem;
+  Storage.prototype.setItem = function (key, value) {
+    _orig.call(this, key, value);
+    if (!key || key.indexOf('p6sci_state_v2::') !== 0) return;
+    try {
+      var s = JSON.parse(value);
+      var accuracy = 70;
+      var mastered = false;
+      // Try known fields; science app shape may vary
+      if (typeof s.overallAccuracy === 'number') accuracy = Math.round(s.overallAccuracy);
+      else if (s.stats && typeof s.stats.accuracy === 'number') accuracy = Math.round(s.stats.accuracy);
+      if (typeof s.masteredCount === 'number') mastered = s.masteredCount >= 3;
+      postResult(accuracy, mastered);
+    } catch (e) {}
+  };
+})();
+</script>
 </body>
 </html>

@@ -54,7 +54,7 @@ export default function SpellingHomePage() {
         {stats && stats.total > 0 && (
           <button
             onClick={() => navigate('/spelling/progress')}
-            className="w-full mb-6 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition flex flex-wrap items-center gap-6 text-left"
+            className="w-full mb-6 p-4 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition flex flex-wrap items-center gap-6 text-left"
           >
             <div className="flex items-center gap-2 text-gray-700">
               <TrendingUp className="w-5 h-5 text-navy-600" />
