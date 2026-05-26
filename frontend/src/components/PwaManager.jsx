@@ -108,7 +108,7 @@ export default function PwaManager() {
       {showInstall && (
         <div className="pointer-events-auto w-full max-w-sm flex items-center gap-3 px-4 py-3 rounded-lg bg-white border border-gray-200 shadow-lg">
           <Download className="w-5 h-5 text-navy-600 flex-shrink-0" />
-          <span className="text-sm text-gray-700 flex-1">Install Tutor Match for a faster, full-screen experience.</span>
+          <span className="text-sm text-gray-700 flex-1">Install Edu OS for a faster, full-screen experience.</span>
           <button
             onClick={install}
             className="px-3 py-1.5 text-sm font-medium text-white bg-navy-600 rounded-lg hover:bg-navy-700"
