@@ -8,27 +8,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getSkill } from './graph.js';
 import { reconstruct, diagnose, siblingParams } from './questions.js';
-
-const MESSAGES = {
-  'mult/adds': "Multiplying isn't adding — it's equal groups. Let's rebuild it from a pattern.",
-  'mult/adjacent': "So close — that's a neighbouring fact. Let's anchor on one you know and step to it.",
-  'mult/recall': "No problem — let's rebuild this fact from an easy landmark.",
-  'div/multiplied': 'This is the reverse of multiplying. Find the matching multiplication fact.',
-  'div/off-by-one': "Very close — let's lock in the exact matching fact.",
-  'div/recall': "Let's rebuild it from the multiplication fact it's paired with.",
-  'frac/unshaded': 'Count the shaded parts, not the empty ones — over the total.',
-  'frac/parts': "A fraction is shaded parts over the total parts. Let's recount together.",
-  'frac/added-not-multiplied': 'To keep a fraction equal, multiply top and bottom by the same number.',
-  'frac/scaled-one-part': 'Whatever you do to the bottom, do to the top as well.',
-  'frac/equiv': "Let's rebuild the equivalent fraction step by step.",
-  'frac/bigger-denominator': 'A bigger bottom number means smaller pieces — give them a common denominator first.',
-  'frac/compare': "Let's compare by giving them the same denominator.",
-  'frac/added-denominators': 'When the bottoms match, add only the tops — the bottom stays the same.',
-  'frac/add': "Let's add the tops and keep the denominator.",
-  'frac/not-simplified': 'Keep going — there’s still a number that divides both top and bottom.',
-  'frac/partial-simplify': 'Almost — divide by the *largest* common factor to finish in one step.',
-  'frac/simplify': "Let's find the biggest number that divides both, then divide.",
-};
+import { ALL_MESSAGES as MESSAGES } from './engines.js';
 
 async function aiMessage(skill, question, misconception, given) {
   const fallback = MESSAGES[misconception.tag] || "Let's look at this one together.";
