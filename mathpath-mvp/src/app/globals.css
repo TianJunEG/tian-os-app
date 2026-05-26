@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Tian OS design tokens (light premium system) ── */
+:root {
+  --navy-900: #0E1A36; --navy-700: #1A2A4F; --navy-500: #2E4477;
+  --navy-300: #6B7FA8; --navy-100: #DDE3F0; --navy-050: #F1F4FA;
+  --gold-700: #8E6F1F; --gold-500: #C9A23C; --gold-300: #E3C97A; --gold-100: #F6EBC9;
+  --ink-700: #1F2330; --ink-500: #5B5F6E; --ink-300: #9A9DA9; --ink-100: #C9CBD3;
+  --paper: #FFFFFF; --ivory: #FAFAF7; --bone: #F3F1EA; --hairline: #EFEDE6;
+  --success-500: #2F8F6F; --error-500: #B4453C;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-text: 'Inter', -apple-system, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --ease-calm: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-text);
+  /* The phone column sits on a soft ivory stage; the app surface itself is white. */
+  background: var(--ivory);
+  color: var(--ink-700);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; padding: 0; color: inherit; -webkit-tap-highlight-color: transparent; }
+
+/* The app canvas — a white, phone-width surface centred on the ivory stage. */
+.app-surface {
+  background: var(--paper);
+  min-height: 100dvh;
+}
+@media (min-width: 460px) {
+  .app-surface {
+    margin: 24px auto;
+    min-height: auto;
+    max-width: 412px;
+    border-radius: 36px;
+    box-shadow: 0 24px 64px -16px rgba(26, 42, 79, .18), 0 2px 8px rgba(26, 42, 79, .06);
+    overflow: hidden;
+  }
+}
+
+:focus-visible { outline: 2px solid var(--gold-500); outline-offset: 2px; box-shadow: var(--shadow-focus); }
+
+@keyframes tian-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes tian-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
