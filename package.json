@@ -4,9 +4,14 @@
   "description": "Edu OS — AI-native learning ecosystem API",
   "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build": "npm install --prefix frontend && npm run build --prefix frontend",
+    "seed:demo": "node scripts/seedDemo.js",
     "clear": "node clear-db.js",
     "seed": "node seed-tutors.js",
     "seed:5000": "node seed-tutors.js",

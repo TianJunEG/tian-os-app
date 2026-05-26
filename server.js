@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
@@ -19,6 +22,8 @@ import learningRoutes from './routes/learning.js';
 
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const app = express();
 
 // Connect to MongoDB
@@ -26,7 +31,7 @@ connectDB();
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -58,6 +63,18 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/spelling', spellingRoutes);
 app.use('/api/learning', learningRoutes);
+
+// Serve the built frontend (single-service deploy). The Vite build output in
+// frontend/dist includes the React app and the static /science app.
+const distPath = path.join(__dirname, 'frontend', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  // SPA fallback: hand client-side routes to index.html, but leave API/uploads alone.
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use(notFoundHandler);

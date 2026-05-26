@@ -12487,7 +12487,8 @@ async function doSignup() {
 <!-- Edu OS bridge: syncs Science quiz results to the learning dashboard -->
 <script>
 (function () {
-  var BACKEND = 'http://localhost:5001/api';
+  // Same-origin relative path: works in dev (Vite proxy) and prod (Express serves both).
+  var BACKEND = '/api';
   var TOKEN_KEY = 'token';
   var _lastPost = 0;
 

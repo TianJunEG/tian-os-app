@@ -7,12 +7,14 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: false,
+    // Dev only: forward API calls to the backend so the app can use
+    // same-origin relative URLs (/api) in both dev and production.
+    proxy: {
+      '/api': 'http://localhost:5001',
+    },
   },
   build: {
     outDir: 'dist',
     sourcemap: false,
   },
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify('http://localhost:5001/api')
-  }
 })
