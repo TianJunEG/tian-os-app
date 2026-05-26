@@ -230,7 +230,9 @@ function Remediation({ skillName, data, onDone }) {
 
       <div style={{ padding: '14px 20px 0' }}>
         <Card padding={20}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: T.gold700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Now you try</div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: T.gold700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            Now you try{data.guided.from_prerequisite ? ` · ${data.guided.from_prerequisite}` : ''}
+          </div>
           <div style={{ textAlign: 'center', marginBottom: 14 }}><QuestionView item={tq} /></div>
           {tq.question_type === 'numeric' ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>

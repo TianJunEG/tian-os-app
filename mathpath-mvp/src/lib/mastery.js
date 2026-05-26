@@ -10,7 +10,7 @@
 // Fluency timing counts first-try, un-hinted, correct answers only.
 
 import { collections } from './db.js';
-import { getSkill } from './graph.js';
+import { getSkill, prerequisitesOf } from './graph.js';
 
 const WINDOW = 40;
 const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
@@ -113,4 +113,17 @@ export async function updateMastery(studentId, skillId, items) {
 export async function getProfiles(studentId) {
   const { mastery } = await collections();
   return (await mastery.find({ student_id: studentId })).toArray();
+}
+
+// The non-mastered prerequisite a learner is weakest on (lowest mastery score), or null.
+// Drives graph-aware remediation: when a concept skill is missed, fall back to the foundation
+// that actually broke (SKILL.md §8) rather than only reteaching the same skill.
+export function weakestPrerequisite(skillId, profiles) {
+  const prereqs = prerequisitesOf(skillId);
+  const candidates = prereqs
+    .map((id) => profiles.find((p) => p.skill_id === id))
+    .filter((p) => p && p.mastery_status !== 'mastered');
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => (a.score || 0) - (b.score || 0));
+  return candidates[0].skill_id;
 }

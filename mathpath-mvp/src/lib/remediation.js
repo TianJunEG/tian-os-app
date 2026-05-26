@@ -51,16 +51,40 @@ async function aiMessage(skill, question, misconception, given) {
   }
 }
 
-export async function buildRemediation(skillId, params, given) {
+function asTry(q) {
+  return {
+    question_type: q.question_type,
+    prompt_latex: q.prompt_latex || null,
+    prompt_text: q.prompt_text || null,
+    visual: q.visual || null,
+    choices: q.choices || null,
+    answer: q.answer,
+  };
+}
+
+// `routeTo` (optional) is the weakest non-mastered prerequisite skill_id. For concept skills
+// with a weak foundation, the guided "now you try" comes from that prerequisite instead of the
+// missed skill — falling back to the foundation that broke (SKILL.md §8).
+export async function buildRemediation(skillId, params, given, routeTo = null) {
   const skill = getSkill(skillId);
   const question = reconstruct(skillId, params);
   const misconception = diagnose(skillId, params, given);
-  const message = await aiMessage(skill, question, misconception, given);
-  const sib = reconstruct(skillId, siblingParams(skillId, params));
+  let message = await aiMessage(skill, question, misconception, given);
+
+  const usePrereq = skill.mastery_type === 'concept' && routeTo && getSkill(routeTo);
+  const guidedSkillId = usePrereq ? routeTo : skillId;
+  const sib = usePrereq
+    ? reconstruct(routeTo) // a fresh foundational item from the prerequisite
+    : reconstruct(skillId, siblingParams(skillId, params));
+
+  if (usePrereq) {
+    message += ` This builds on ${getSkill(routeTo).skill_name} — let's shore that up first.`;
+  }
 
   return {
     misconception,
     message,
+    route_to: usePrereq ? routeTo : null,
     worked_example: {
       prompt_latex: question.prompt_latex || null,
       prompt_text: question.prompt_text || null,
@@ -68,14 +92,8 @@ export async function buildRemediation(skillId, params, given) {
       steps: question.worked_solution,
     },
     guided: {
-      try_question: {
-        question_type: sib.question_type,
-        prompt_latex: sib.prompt_latex || null,
-        prompt_text: sib.prompt_text || null,
-        visual: sib.visual || null,
-        choices: sib.choices || null,
-        answer: sib.answer,
-      },
+      from_prerequisite: usePrereq ? getSkill(routeTo).skill_name : null,
+      try_question: { ...asTry(sib), skill_id: guidedSkillId },
     },
   };
 }
