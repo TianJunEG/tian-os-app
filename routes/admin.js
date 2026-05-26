@@ -167,6 +167,7 @@ router.get('/verification-queue', adminOnly, async (req, res) => {
         email: t.userId.email,
         phone: t.userId.phone,
         specialties: t.specialties,
+        grades: t.grades,
         gradeLevel: t.gradeLevel,
         hourlyRate: t.hourlyRate,
         totalHoursTaught: t.totalHoursTaught,

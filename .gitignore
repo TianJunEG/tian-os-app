@@ -8,6 +8,7 @@ node_modules/
 
 # MongoDB local data
 mongodb/
+.mongo-data/
 
 # Runtime uploads
 uploads/

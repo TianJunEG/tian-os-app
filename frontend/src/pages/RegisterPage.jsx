@@ -51,8 +51,8 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 text-center">Get Started</h1>
-        <p className="text-center text-gray-600 mb-8">Join Tutor Match today</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">Get Started</h1>
+        <p className="text-center text-gray-600 mb-8">Join Tian Jun Education Group today</p>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
