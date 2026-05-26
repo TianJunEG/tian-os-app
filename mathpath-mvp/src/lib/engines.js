@@ -134,7 +134,9 @@ export const ENGINES = {
 
   fracEquiv: {
     generate(skill, seed) {
-      const a = seed?.a ?? rand(1, 5), b = seed?.b ?? rand(2, 6), k = seed?.k ?? rand(2, 4);
+      const b = seed?.b ?? rand(3, 6);
+      const a = seed?.a ?? rand(1, b - 1); // proper fraction: numerator below denominator
+      const k = seed?.k ?? rand(2, 4);
       return {
         question_id: id(skill.skill_id), skill_id: skill.skill_id, gen: 'fracEquiv', params: { a, b, k },
         question_type: 'numeric',

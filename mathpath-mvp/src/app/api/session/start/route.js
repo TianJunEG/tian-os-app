@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { ensureStudent } from '@/lib/student.js';
 import { refreshRecommendation } from '@/lib/recommend.js';
 import { buildSession } from '@/lib/questions.js';
-import { getSkill, domainName, QUESTIONS_PER_SESSION } from '@/lib/graph.js';
+import { getSkill, domainName, sessionLengthFor } from '@/lib/graph.js';
 import { collections } from '@/lib/db.js';
 
 // POST /api/session/start { studentId, skillId? }
@@ -18,7 +18,7 @@ export async function POST(req) {
   const skill = getSkill(skillId);
   if (!skill) return NextResponse.json({ error: 'unknown skill' }, { status: 400 });
 
-  const items = buildSession(skill, QUESTIONS_PER_SESSION);
+  const items = buildSession(skill, sessionLengthFor(rec.mode));
   const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   const { sessions } = await collections();

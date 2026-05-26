@@ -15,6 +15,16 @@ export const QUESTIONS_PER_SESSION = 8;
 // A mastered skill becomes "due for review" once it hasn't been practised in this long.
 export const SPACED_REVIEW_DAYS = 3;
 
+// Session shaping: the recommendation mode decides how long/dense a session is.
+// Fluency drills want more, quick reps; remediation/review want short, focused sets.
+const SESSION_LENGTHS = {
+  fluency: 12, remediate: 6, misconception: 6, prerequisite: 6, review: 5,
+  independent: 8, advance: 8, start: 8, continue: 8, maintain: 6,
+};
+export function sessionLengthFor(mode) {
+  return SESSION_LENGTHS[mode] || QUESTIONS_PER_SESSION;
+}
+
 // Each skill declares its `prerequisites` inline; `extends_to` and the `EDGES` list are derived
 // from them at load time, so there's a single place to edit relationships. `example` is a
 // KaTeX-renderable worked instance shown on skill cards.
