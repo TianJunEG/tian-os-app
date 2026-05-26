@@ -126,6 +126,39 @@ export const messagesAPI = {
   deleteMessage: (id) => api.delete(`/messages/${id}`)
 };
 
+// Spelling API
+export const spellingAPI = {
+  getLists: () => api.get('/spelling/lists'),
+  getList: (id) => api.get(`/spelling/lists/${id}`),
+  createList: (data) => api.post('/spelling/lists', data),
+  updateList: (id, data) => api.put(`/spelling/lists/${id}`, data),
+  deleteList: (id) => api.delete(`/spelling/lists/${id}`),
+  shareList: (id, data) => api.put(`/spelling/lists/${id}/share`, data),
+  copyList: (id) => api.post(`/spelling/lists/${id}/copy`),
+  getLibrary: (params) => api.get('/spelling/library', { params }),
+  getMisspelt: (params) => api.get('/spelling/misspelt', { params }),
+  getSurprise: (params) => api.get('/spelling/surprise', { params }),
+  getRevision: (params) => api.get('/spelling/revision', { params }),
+  getDue: (params) => api.get('/spelling/due', { params }),
+  getStats: () => api.get('/spelling/stats'),
+  getGamification: () => api.get('/spelling/gamification'),
+  recordAttempts: (data) => api.post('/spelling/attempts', data),
+  // Uses native fetch so the browser sets the multipart boundary correctly.
+  extractFile: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE_URL}/spelling/extract`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data;
+  }
+};
+
 // Worksheets API (math misconception practice generator)
 export const worksheetsAPI = {
   generate: (formData) => api.post('/worksheets/generate', formData),
@@ -165,6 +198,21 @@ export const reviewsAPI = {
   updateReview: (id, data) => api.put(`/reviews/${id}`, data),
   markHelpful: (id) => api.post(`/reviews/${id}/helpful`),
   deleteReview: (id) => api.delete(`/reviews/${id}`)
+};
+
+// Learning API — the unified cross-app progress profile (Spelling + Math apps + Science).
+export const learningAPI = {
+  getProfile: () => api.get('/learning/profile'),
+  postResult: (data) => api.post('/learning/result', data),
+  getChildren: () => api.get('/learning/children'),
+  addChild: (data) => api.post('/learning/children', data),
+  getChildProfile: (childId) => api.get(`/learning/children/${childId}/profile`)
+};
+
+// Science API — P6 science revision bank (open-ended Q&A).
+export const scienceAPI = {
+  topics: () => api.get('/science/topics'),
+  questions: (topic, limit = 10) => api.get('/science/questions', { params: { topic, limit } })
 };
 
 export default api;

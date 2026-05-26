@@ -1,7 +1,7 @@
 {
-  "name": "tutor-match-backend",
+  "name": "edu-os-backend",
   "version": "1.0.0",
-  "description": "Tutor Match Platform API",
+  "description": "Edu OS — AI-native learning ecosystem API",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -31,10 +31,13 @@
     "express-validator": "^7.0.0",
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.0",
+    "mammoth": "^1.12.0",
     "mongoose": "^7.0.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.7",
+    "pdf-parse": "^2.4.5",
     "stripe": "^11.11.0",
+    "tesseract.js": "^7.0.0",
     "validator": "^13.9.0"
   },
   "devDependencies": {

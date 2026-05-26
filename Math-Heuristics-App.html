@@ -331,6 +331,28 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify({level:state.level,m
 function L(){return LEVELS[state.level-1];}
 function prog(hid){ if(!state.progress[hid]) state.progress[hid]={learned:false,best:0,attempts:0}; return state.progress[hid]; }
 
+/* ---- Education OS bridge: feed practice results into the unified learning profile ---- */
+const MHL_Q=new URLSearchParams(location.search);
+function mhlCtx(){return{student:MHL_Q.get('student')||'ethan',subject:MHL_Q.get('subject')||'emath',ret:MHL_Q.get('return')};}
+function mhlToken(){try{return localStorage.getItem('token')||JSON.parse(localStorage.getItem('user')||'{}').token||'';}catch(e){return'';}}
+function mhlEmit(hid,name,accuracy,total){
+  const c=mhlCtx(),acc=Math.round(accuracy),mastered=acc>=85,minutes=Math.max(5,Math.round(total*0.5));
+  try{ // 1) shared client event-log — the Education OS prototype ingests this on focus
+    const rec={source:'math-heuristics',studentId:c.student,subjectHint:c.subject,skillName:name,topicId:'',accuracy:acc,mastered,minutes,ts:Date.now()};
+    const log=JSON.parse(localStorage.getItem('tutormatch.learning')||'[]');log.push(rec);
+    localStorage.setItem('tutormatch.learning',JSON.stringify(log.slice(-300)));
+  }catch(e){}
+  try{ // 2) backend — real-app path, only when authenticated
+    const tok=mhlToken();if(!tok)return;
+    fetch('/api/learning/result',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+      body:JSON.stringify({source:'math-heuristics',subject:c.subject,topic:name,accuracy:acc,mastered,minutes})}).catch(()=>{});
+  }catch(e){}
+}
+function mhlBanner(){try{const c=mhlCtx();if(!c.ret||document.getElementById('__eduback'))return;
+  const a=document.createElement('a');a.id='__eduback';a.href=c.ret;a.textContent='← Back to Education OS · results sync automatically';
+  a.style.cssText='display:block;text-align:center;background:linear-gradient(135deg,#5b54f0,#8b5cf6);color:#fff;font:600 12.5px system-ui,sans-serif;padding:8px;text-decoration:none';
+  document.body.prepend(a);}catch(e){}}
+
 /* ---------------------- HELPERS ----------------- */
 const rint=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 const pick=a=>a[rint(0,a.length-1)];
@@ -1062,6 +1084,7 @@ function finishAns(ok){
   const id=state.prac.id,q=state.prac.q,sc=state.prac.score;state.prac.answered=true;
   sc.total++;if(ok)sc.right++;
   const p=prog(id);p.attempts++;const pctNow=Math.round(sc.right/sc.total*100);if(pctNow>p.best)p.best=pctNow;save();
+  if(sc.total%5===0){const h=HEUR.find(x=>x.id===id);mhlEmit(id,h?h.name:id,pctNow,sc.total);}
   const fb=document.getElementById('fb');fb.className='feedback show '+(ok?'ok':'no');
   fb.innerHTML=(ok?'<b>Correct!</b> ':'<b>Not quite — here’s how:</b> ')+`<span class="sol">${q.sol}</span>`;
   const sb=document.getElementById('scbar');
@@ -1108,6 +1131,7 @@ document.body.classList.toggle('parent',state.mode==='parent');
 document.querySelectorAll('#modetog button').forEach(b=>b.classList.toggle('on',b.dataset.m===state.mode));
 renderLevelBox();
 render();
+mhlBanner();
 </script>
 </body>
 </html>

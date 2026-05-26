@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star, Sparkles, Users, Shield, TrendingUp, UserCog, ClipboardList } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, SpellCheck, TrendingUp, FlaskConical } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -11,10 +11,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.role === 'student') {
-      setLoading(false);
-      return;
-    }
     loadBookings();
   }, [user]);
 
@@ -52,9 +48,12 @@ export default function DashboardPage() {
       <header className="bg-white shadow sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Welcome, {user?.name}</p>
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-lg bg-navy-900 grid place-items-center text-gold-400 font-extrabold">E</span>
+              <div>
+                <h1 className="text-xl font-extrabold text-navy-900 tracking-tight leading-none">Edu<span className="text-gold-500">OS</span></h1>
+                <p className="text-gray-500 text-sm">Welcome, {user?.name}</p>
+              </div>
             </div>
             <button
               onClick={handleLogout}
@@ -70,118 +69,78 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {user?.role === 'student' && (
-            <button
-              onClick={() => navigate('/worksheets')}
-              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-            >
-              <Sparkles className="w-8 h-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">My Practice</h3>
-              <p className="text-sm text-gray-600">Your plans &amp; mistakes</p>
-            </button>
-          )}
-
+          <button
+            onClick={() => navigate(user?.role === 'parent' ? '/children' : '/learning')}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+          >
+            <TrendingUp className="w-8 h-8 text-navy-700 mb-2" />
+            <h3 className="font-semibold text-gray-900">{user?.role === 'parent' ? 'My Children' : 'My Learning'}</h3>
+            <p className="text-sm text-gray-600">{user?.role === 'parent' ? 'Each child’s progress' : 'Progress across all apps'}</p>
+          </button>
           {user?.role === 'parent' && (
             <>
               <button
                 onClick={() => navigate('/search')}
                 className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
               >
-                <Search className="w-8 h-8 text-purple-600 mb-2" />
+                <Search className="w-8 h-8 text-navy-700 mb-2" />
                 <h3 className="font-semibold text-gray-900">Find Tutors</h3>
                 <p className="text-sm text-gray-600">Search & book tutors</p>
-              </button>
-              <button
-                onClick={() => navigate('/progress')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-              >
-                <TrendingUp className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">Progress</h3>
-                <p className="text-sm text-gray-600">Track learning & notes</p>
-              </button>
-              <button
-                onClick={() => navigate('/parent/profile')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-              >
-                <UserCog className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">Student Profile</h3>
-                <p className="text-sm text-gray-600">Goals & preferences</p>
               </button>
             </>
           )}
 
           {user?.role === 'tutor' && (
-            <button
-              onClick={() => navigate('/tutor/profile')}
-              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-            >
-              <BookOpen className="w-8 h-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">My Profile</h3>
-              <p className="text-sm text-gray-600">Edit your profile</p>
-            </button>
-          )}
-
-          {user?.role !== 'student' && (
             <>
               <button
-                onClick={() => navigate('/worksheets')}
+                onClick={() => navigate('/tutor/profile')}
                 className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
               >
-                <Sparkles className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">Worksheet Generator</h3>
-                <p className="text-sm text-gray-600">Practice from marked work</p>
-              </button>
-
-              <button
-                onClick={() => navigate('/students')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-              >
-                <Users className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">Students</h3>
-                <p className="text-sm text-gray-600">Manage student logins</p>
-              </button>
-
-              <button
-                onClick={() => navigate('/messages')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-              >
-                <MessageSquare className="w-8 h-8 text-blue-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">Messages</h3>
-                <p className="text-sm text-gray-600">Chat with users</p>
-              </button>
-
-              <button
-                onClick={() => navigate('/bookings')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-              >
-                <BookOpen className="w-8 h-8 text-green-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">My Bookings</h3>
-                <p className="text-sm text-gray-600">View all bookings</p>
-              </button>
-              <button
-                onClick={() => navigate('/tutor/onboarding')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-              >
-                <ClipboardList className="w-8 h-8 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900">Onboarding</h3>
-                <p className="text-sm text-gray-600">Complete your application</p>
+                <BookOpen className="w-8 h-8 text-navy-700 mb-2" />
+                <h3 className="font-semibold text-gray-900">My Profile</h3>
+                <p className="text-sm text-gray-600">Edit your profile</p>
               </button>
             </>
           )}
-          {user?.role === 'admin' && (
-            <button
-              onClick={() => navigate('/admin')}
-              className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
-            >
-              <Shield className="w-8 h-8 text-purple-600 mb-2" />
-              <h3 className="font-semibold text-gray-900">Admin Dashboard</h3>
-              <p className="text-sm text-gray-600">Users, verification & disputes</p>
-            </button>
-          )}
+
+          <button
+            onClick={() => navigate('/messages')}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+          >
+            <MessageSquare className="w-8 h-8 text-blue-600 mb-2" />
+            <h3 className="font-semibold text-gray-900">Messages</h3>
+            <p className="text-sm text-gray-600">Chat with users</p>
+          </button>
+
+          <button
+            onClick={() => navigate('/bookings')}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+          >
+            <BookOpen className="w-8 h-8 text-green-600 mb-2" />
+            <h3 className="font-semibold text-gray-900">My Bookings</h3>
+            <p className="text-sm text-gray-600">View all bookings</p>
+          </button>
+
+          <button
+            onClick={() => navigate('/spelling')}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+          >
+            <SpellCheck className="w-8 h-8 text-pink-600 mb-2" />
+            <h3 className="font-semibold text-gray-900">Spelling</h3>
+            <p className="text-sm text-gray-600">Lists, tests & games</p>
+          </button>
+
+          <button
+            onClick={() => navigate('/science')}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+          >
+            <FlaskConical className="w-8 h-8 text-emerald-600 mb-2" />
+            <h3 className="font-semibold text-gray-900">Science</h3>
+            <p className="text-sm text-gray-600">P6 revision Q&amp;A</p>
+          </button>
         </div>
 
         {/* Recent Bookings */}
-        {user?.role !== 'student' && (
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">Recent Bookings</h2>
@@ -195,7 +154,7 @@ export default function DashboardPage() {
               {user?.role === 'parent' && (
                 <button
                   onClick={() => navigate('/search')}
-                  className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
+                  className="mt-4 text-navy-700 hover:text-navy-900 font-medium"
                 >
                   Find a tutor →
                 </button>
@@ -242,7 +201,6 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-        )}
       </main>
     </div>
   );

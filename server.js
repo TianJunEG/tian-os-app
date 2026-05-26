@@ -19,6 +19,9 @@ import worksheetRoutes from './routes/worksheets.js';
 import studentRoutes from './routes/students.js';
 import partnerRoutes from './routes/partners.js';
 import resourceRoutes from './routes/resources.js';
+import spellingRoutes from './routes/spelling.js';
+import learningRoutes from './routes/learning.js';
+import scienceRoutes from './routes/science.js';
 
 dotenv.config();
 
@@ -80,6 +83,9 @@ app.use('/api/worksheets', worksheetRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/spelling', spellingRoutes);
+app.use('/api/learning', learningRoutes);
+app.use('/api/science', scienceRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

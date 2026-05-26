@@ -84,6 +84,12 @@ const userSchema = new mongoose.Schema({
     budget: Number,
     availability: mongoose.Schema.Types.Mixed
   },
+  // Children/learners a parent manages — each gets its own cross-app learning profile.
+  children: [{
+    name: { type: String, required: true, trim: true },
+    level: { type: String, default: '' }, // e.g. "Primary 5", "Secondary 3"
+    createdAt: { type: Date, default: Date.now }
+  }],
   isVerified: {
     type: Boolean,
     default: false
