@@ -1069,6 +1069,223 @@ function genFractionOfWhole(skill) {
   return choiceProblem(skill, `What fraction of the shape is shaded?`, answer, shuffle(choices.slice(0, 4)), 'fractionOfWhole', { d, n });
 }
 
+// ============================================================================
+// Secondary (S1–S4) generators. Singapore lower/upper-secondary mathematics.
+// Answers stay a single value (integer, decimal at 3 dp, or a chosen string).
+// `negProblem` flags items whose answer may be negative so the UI shows a sign key.
+// ============================================================================
+
+function negProblem(skill, display, answer, kind, parts) {
+  const p = problem(skill, display, answer, kind, parts);
+  p.neg = true; // tells the UI to allow a leading minus + show a ± key
+  return p;
+}
+
+const neg = (x) => (x < 0 ? `(${x})` : `${x}`); // bracket negatives in a prompt
+
+// ---- Numbers & arithmetic ----
+
+// Signed addition/subtraction: "−7 + (3) = ?" → −4
+function genIntegerAddSub(skill) {
+  const r = randInt, a = r(-12, 12), b = r(-12, 12);
+  const plus = Math.random() < 0.5;
+  const ans = plus ? a + b : a - b;
+  return negProblem(skill, `${a} ${plus ? PLUS : MINUS} ${neg(b)} = ?`, ans, 'integerAddSub', { a, b, op: plus ? '+' : '-' });
+}
+
+// Signed multiplication/division: "(−6) × 4 = ?" → −24
+function genIntegerMulDiv(skill) {
+  const r = randInt;
+  if (Math.random() < 0.5) {
+    const a = r(-9, 9) || 3, b = r(-9, 9) || 2;
+    return negProblem(skill, `${neg(a)} ${TIMES} ${neg(b)} = ?`, a * b, 'integerMulDiv', { a, b, op: '×' });
+  }
+  const q = r(-9, 9) || 2, d = r(2, 9) * (Math.random() < 0.5 ? -1 : 1), a = q * d;
+  return negProblem(skill, `${neg(a)} ${DIVIDE} ${neg(d)} = ?`, q, 'integerMulDiv', { a, d, op: '÷' });
+}
+
+// Evaluate a power: "3⁴ = ?" → 81 (kept ≤ 4 digits)
+function genIndexEval(skill) {
+  for (let t = 0; t < 50; t++) {
+    const base = randInt(2, 7), exp = randInt(2, 4);
+    if (base ** exp <= 9999) return problem(skill, `${base}<sup>${exp}</sup> = ?`, base ** exp, 'indexEval', { base, exp });
+  }
+  return problem(skill, `2<sup>5</sup> = ?`, 32, 'indexEval', { base: 2, exp: 5 });
+}
+
+// Laws of indices: "2³ × 2⁴ = 2^?" → 7 ; "5⁶ ÷ 5² = 5^?" → 4
+function genIndexLaw(skill) {
+  const base = randInt(2, 9);
+  if (Math.random() < 0.5) {
+    const m = randInt(2, 6), n = randInt(2, 6);
+    return problem(skill, `${base}<sup>${m}</sup> ${TIMES} ${base}<sup>${n}</sup> = ${base}<sup>?</sup>`, m + n, 'indexLaw', { base, m, n, op: '×' });
+  }
+  const small = randInt(2, 5), big = small + randInt(1, 4);
+  return problem(skill, `${base}<sup>${big}</sup> ${DIVIDE} ${base}<sup>${small}</sup> = ${base}<sup>?</sup>`, big - small, 'indexLaw', { base, big, small, op: '÷' });
+}
+
+// Square / cube roots of perfect powers: "√196 = ?" → 14
+function genRootEval(skill) {
+  if (Math.random() < 0.6) { const n = randInt(2, 20); return problem(skill, `√${n * n} = ?`, n, 'rootEval', { n, root: 2 }); }
+  const n = randInt(2, 9);
+  return problem(skill, `∛${n * n * n} = ?`, n, 'rootEval', { n, root: 3 });
+}
+
+// Standard form — find the index: "Write 45 000 as a × 10ⁿ. n = ?" → 4
+function genStandardFormPower(skill) {
+  const lead = randInt(1, 9), dec = randInt(0, 9), n = randInt(3, 6);
+  const value = lead * 10 ** n + dec * 10 ** (n - 1);
+  return problem(skill, `Write ${value.toLocaleString('en-US')} in standard form a × 10ⁿ (1 ≤ a < 10). What is n?`, n, 'standardFormPower', { value, n });
+}
+
+// ---- Algebra ----
+
+// Expand a(bx + c) — coefficient of the letter: "Expand 3(2x + 4): coefficient of x?" → 6
+function genExpandCoeff(skill) {
+  const a = randInt(2, 9), b = randInt(2, 9), c = randInt(1, 9), L = pickFrom(['x', 'y', 'n']);
+  return problem(skill, `Expand ${a}(${b}${L} ${PLUS} ${c}). What is the coefficient of ${L}?`, a * b, 'expandCoeff', { a, b, c });
+}
+
+// Factorise out the HCF — the number outside the bracket: "Factorise 12x + 18" → 6
+function genFactorHcf(skill) {
+  const f = randInt(2, 9), p = randInt(2, 7), q = randInt(2, 9), L = pickFrom(['x', 'y', 'n']);
+  const A = f * p, B = f * q;
+  return problem(skill, `Factorise fully ${A}${L} ${PLUS} ${B}. What number goes outside the bracket?`, gcd(A, B), 'factorHcf', { A, B });
+}
+
+// Solve a linear equation with the letter on both sides: "5x + 2 = 2x + 14" → x = 4
+function genSolveLinear2(skill) {
+  const L = pickFrom(['x', 'y']);
+  for (let t = 0; t < 200; t++) {
+    const x = randInt(2, 9), a = randInt(3, 9), c = randInt(1, a - 1), b = randInt(1, 9), d = (a - c) * x + b;
+    if (d > 0) return problem(skill, `Solve: ${a}${L} ${PLUS} ${b} = ${c}${L} ${PLUS} ${d}.  ${L} = ?`, x, 'solveLinear2', { a, b, c, d, x });
+  }
+  return problem(skill, `Solve: 3${L} ${PLUS} 2 = ${L} ${PLUS} 8.  ${L} = ?`, 3, 'solveLinear2', {});
+}
+
+// Expand (x + a)(x + b) — constant term or coefficient of x
+function genExpandProduct(skill) {
+  const a = randInt(1, 9), b = randInt(1, 9);
+  if (Math.random() < 0.5) return problem(skill, `Expand (x ${PLUS} ${a})(x ${PLUS} ${b}). What is the constant term?`, a * b, 'expandProduct', { a, b, which: 'const' });
+  return problem(skill, `Expand (x ${PLUS} ${a})(x ${PLUS} ${b}). What is the coefficient of x?`, a + b, 'expandProduct', { a, b, which: 'coeff' });
+}
+
+// Factorise x² + bx + c = (x + p)(x + q) — give the larger of p, q
+function genFactorQuad(skill) {
+  const p = randInt(1, 9), q = randInt(1, 9);
+  return problem(skill, `x² ${PLUS} ${p + q}x ${PLUS} ${p * q} = (x ${PLUS} p)(x ${PLUS} q). What is the larger of p and q?`, Math.max(p, q), 'factorQuad', { p, q });
+}
+
+// Solve a factorisable quadratic with positive roots — give the larger root
+function genQuadRoot(skill) {
+  const p = randInt(1, 9), q = randInt(1, 9);
+  return problem(skill, `Solve x² ${MINUS} ${p + q}x ${PLUS} ${p * q} = 0. Give the larger root.`, Math.max(p, q), 'quadRoot', { p, q });
+}
+
+// Solve a 2×2 simultaneous system — report x (chosen to be a positive integer)
+function genSimEqn(skill) {
+  for (let t = 0; t < 300; t++) {
+    const x = randInt(1, 8), y = randInt(1, 8);
+    const a = randInt(1, 4), b = randInt(1, 4), c = a * x + b * y;
+    const d = randInt(1, 4), e = randInt(1, 4), f = d * x + e * y;
+    if (a * e - b * d !== 0) return problem(skill, `Solve: ${a}x ${PLUS} ${b}y = ${c} and ${d}x ${PLUS} ${e}y = ${f}.  x = ?`, x, 'simEqn', { x, y });
+  }
+  return problem(skill, `Solve: x ${PLUS} y = 5 and 2x ${PLUS} y = 7.  x = ?`, 2, 'simEqn', {});
+}
+
+// Gradient of a line through two points (can be negative)
+function genGradient(skill) {
+  for (let t = 0; t < 300; t++) {
+    const x1 = randInt(-4, 4), x2 = randInt(-4, 4); if (x1 === x2) continue;
+    const y1 = randInt(-6, 6), y2 = randInt(-6, 6);
+    if ((y2 - y1) % (x2 - x1) !== 0) continue;
+    return negProblem(skill, `Find the gradient of the line through (${x1}, ${y1}) and (${x2}, ${y2}).`, (y2 - y1) / (x2 - x1), 'gradient', { x1, y1, x2, y2 });
+  }
+  return negProblem(skill, `Find the gradient of the line through (0, 0) and (2, 6).`, 3, 'gradient', {});
+}
+
+// ---- Ratio & proportion ----
+
+// Direct proportion: "5 pens cost $15. Cost of 8 pens?" → 24
+function genProportionDirect(skill) {
+  const unit = randInt(2, 9), n1 = randInt(2, 6), n2 = randInt(2, 9);
+  return problem(skill, `${n1} items cost $${unit * n1}. How much do ${n2} items cost, in $?`, unit * n2, 'proportionDirect', { unit, n1, n2 });
+}
+
+// ---- Geometry & mensuration ----
+
+const TRIPLES = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15], [7, 24, 25], [20, 21, 29], [10, 24, 26]];
+
+// Pythagoras — hypotenuse from a Pythagorean triple
+function genPythagoras(skill) {
+  const [a, b, c] = pickFrom(TRIPLES);
+  return problem(skill, `A right-angled triangle has legs ${a} and ${b}. Find the hypotenuse.`, c, 'pythagoras', { a, b, c });
+}
+
+// Trigonometry — special-angle from a known ratio
+function genTrigAngle(skill) {
+  const cases = [
+    { f: 'sin', v: '½', a: 30 }, { f: 'sin', v: '√3 ⁄ 2', a: 60 }, { f: 'sin', v: '1 ⁄ √2', a: 45 },
+    { f: 'cos', v: '½', a: 60 }, { f: 'cos', v: '√3 ⁄ 2', a: 30 }, { f: 'tan', v: '1', a: 45 }, { f: 'tan', v: '√3', a: 60 },
+  ];
+  const c = pickFrom(cases);
+  return problem(skill, `If ${c.f} θ = ${c.v} and 0° &lt; θ &lt; 90°, find θ in degrees.`, c.a, 'trigAngle', { f: c.f, a: c.a });
+}
+
+// Trigonometry — side opposite a 30° angle (opp = hyp ÷ 2)
+function genTrigSide(skill) {
+  const hyp = randInt(2, 12) * 2;
+  return problem(skill, `In a right-angled triangle the hypotenuse is ${hyp} and one angle is 30°. Find the side opposite the 30° angle.`, hyp / 2, 'trigSide', { hyp });
+}
+
+// Volume of a cylinder (π = 3.14)
+function genCylinderVolume(skill) {
+  const r = randInt(1, 7), h = randInt(2, 10);
+  return decProblem(skill, `Volume of a cylinder with radius ${r} cm and height ${h} cm = ? cm³  (take π = 3.14)`, PI * r * r * h, 'cylinderVolume', { r, h });
+}
+
+// Area of a sector (π = 3.14)
+function genSectorArea(skill) {
+  const r = randInt(2, 10), deg = pickFrom([30, 45, 60, 90, 120, 180]);
+  return decProblem(skill, `Area of a sector with radius ${r} cm and angle ${deg}° = ? cm²  (take π = 3.14)`, (deg / 360) * PI * r * r, 'sectorArea', { r, deg });
+}
+
+// ---- Statistics & probability ----
+
+// Median of a small data set (odd count)
+function genMedian(skill) {
+  const count = pickFrom([3, 5]);
+  const nums = Array.from({ length: count }, () => randInt(1, 30));
+  const sorted = [...nums].sort((a, b) => a - b);
+  return problem(skill, `Find the median of ${nums.join(', ')}`, sorted[(count - 1) / 2], 'median', { nums });
+}
+
+// Mode of a small data set (guaranteed unique)
+function genMode(skill) {
+  for (let t = 0; t < 200; t++) {
+    const base = randInt(2, 9);
+    const nums = shuffle([base, base, base, randInt(1, 9), randInt(1, 9)]);
+    const counts = {};
+    nums.forEach((n) => { counts[n] = (counts[n] || 0) + 1; });
+    const max = Math.max(...Object.values(counts));
+    const modes = Object.keys(counts).filter((k) => counts[k] === max);
+    if (modes.length === 1) return problem(skill, `Find the mode of ${nums.join(', ')}`, Number(modes[0]), 'mode', { nums });
+  }
+  return problem(skill, `Find the mode of 4, 4, 4, 2, 7`, 4, 'mode', {});
+}
+
+// Single-event probability as a simplified fraction (multiple choice)
+function genProbability(skill) {
+  const total = pickFrom([6, 8, 10, 12]), fav = randInt(1, total - 1);
+  const simp = (n, d) => { const g = gcd(n, d); return `${n / g}/${d / g}`; };
+  const answer = simp(fav, total);
+  const seen = new Set([answer]), choices = [answer];
+  const addC = (s) => { if (s && !seen.has(s)) { seen.add(s); choices.push(s); } };
+  addC(simp(total - fav, total)); addC(`${fav}/${total}`); addC(simp(Math.max(1, fav - 1), total)); addC(`${total}/${fav}`);
+  while (choices.length < 4) addC(simp(randInt(1, total - 1), total));
+  return choiceProblem(skill, `A bag has ${total} balls; ${fav} are red. A ball is drawn at random. P(red) = ?`, answer, shuffle(choices.slice(0, 4)), 'probability', { fav, total });
+}
+
 const KINDS = {
   barModel: genBarModel,
   compoundToUnit: genCompoundToUnit, duration: genDuration, moneyConvert: genMoneyConvert, barChart: genBarChart,
@@ -1096,6 +1313,15 @@ const KINDS = {
   angleLine: genAngleLine, anglePoint: genAnglePoint, angleTriangle: genAngleTriangle,
   semicircleArea: genSemicircleArea, semicirclePerimeter: genSemicirclePerimeter,
   quarterArea: genQuarterArea, quarterPerimeter: genQuarterPerimeter, compositeArea: genCompositeArea,
+  // Secondary (S1–S4)
+  integerAddSub: genIntegerAddSub, integerMulDiv: genIntegerMulDiv,
+  indexEval: genIndexEval, indexLaw: genIndexLaw, rootEval: genRootEval, standardFormPower: genStandardFormPower,
+  expandCoeff: genExpandCoeff, factorHcf: genFactorHcf, solveLinear2: genSolveLinear2,
+  expandProduct: genExpandProduct, factorQuad: genFactorQuad, quadRoot: genQuadRoot,
+  simEqn: genSimEqn, gradient: genGradient, proportionDirect: genProportionDirect,
+  pythagoras: genPythagoras, trigAngle: genTrigAngle, trigSide: genTrigSide,
+  cylinderVolume: genCylinderVolume, sectorArea: genSectorArea,
+  median: genMedian, mode: genMode, probability: genProbability,
 };
 
 export function generateProblem(skill) {

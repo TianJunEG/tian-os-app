@@ -12,8 +12,16 @@ import singaporeP3 from './curricula/singapore-p3.js';
 import singaporeP4 from './curricula/singapore-p4.js';
 import singaporeP5 from './curricula/singapore-p5.js';
 import singaporeP6 from './curricula/singapore-p6.js';
+import singaporeS1 from './curricula/singapore-s1.js';
+import singaporeS2 from './curricula/singapore-s2.js';
+import singaporeS3 from './curricula/singapore-s3.js';
+import singaporeS4 from './curricula/singapore-s4.js';
 
-export const CURRICULA = [singaporeP1, singaporeP2, singaporeP3, singaporeP4, singaporeP5, singaporeP6, foundational];
+export const CURRICULA = [
+  singaporeP1, singaporeP2, singaporeP3, singaporeP4, singaporeP5, singaporeP6,
+  singaporeS1, singaporeS2, singaporeS3, singaporeS4,
+  foundational,
+];
 
 // engine constants (framework-independent)
 export const QUESTIONS_PER_SESSION = 10;
