@@ -75,7 +75,7 @@ function buildFracMeaning(skill, n, d) {
   return {
     question_id: id(skill.skill_id), skill_id: skill.skill_id, gen: 'fracMeaning', params: { n, d },
     question_type: 'choice', prompt_text: 'What fraction is shaded?',
-    visual: { kind: 'bar', n, d },
+    visual: { kind: Math.random() < 0.5 ? 'circle' : 'bar', n, d },
     answer: ans, choices,
     worked_solution: [
       { text: `The bar is split into ${d} equal parts; ${n} are shaded.` },
@@ -152,6 +152,34 @@ function buildFracAdd(skill, a, c, d) {
   };
 }
 
+// ── Simplifying fractions: reduce to simplest form (KaTeX choices) ──
+function buildFracSimplify(skill, num, den) {
+  const g = gcd(num, den);
+  const sn = num / g, sd = den / g;
+  const ans = `${sn}/${sd}`;
+  const opts = new Set([ans]);
+  opts.add(`${num}/${den}`);                  // didn't simplify
+  if (g > 2) opts.add(`${num / 2}/${den / 2}`); // partial simplify (if even)
+  opts.add(`${sn + 1}/${sd}`);
+  opts.add(`${sd}/${sn}`);
+  const choices = Array.from(opts).filter((v) => { const [x, y] = v.split('/').map(Number); return x >= 1 && y >= 1; })
+    .slice(0, 4).sort(() => Math.random() - 0.5)
+    .map((v) => ({ value: v, latex: `\\frac{${v.split('/')[0]}}{${v.split('/')[1]}}` }));
+  return {
+    question_id: id(skill.skill_id), skill_id: skill.skill_id, gen: 'fracSimplify', params: { num, den },
+    question_type: 'choice',
+    prompt_text: 'Write this in its simplest form:', prompt_latex: `\\frac{${num}}{${den}}`,
+    answer: ans, choices,
+    worked_solution: [
+      { text: `The largest number that divides both ${num} and ${den} is ${g}.` },
+      { text: 'Divide the top and bottom by it:' },
+      { latex: `\\frac{${num}}{${den}} = \\frac{${num} \\div ${g}}{${den} \\div ${g}} = \\frac{${sn}}{${sd}}` },
+    ],
+    hint_sequence: [{ text: `What is the biggest number that divides both ${num} and ${den}?` }],
+    expected_time_seconds: skill.expected_time_seconds,
+  };
+}
+
 // ── Generation entry points ──
 export function generateQuestion(skill, seed) {
   if (typeof skill === 'string') skill = getSkill(skill);
@@ -160,6 +188,12 @@ export function generateQuestion(skill, seed) {
     case 'div': return buildDiv(skill, seed?.divisor ?? pick([2, 3, 4, 5, 6, 7, 8, 9]), seed?.quotient ?? rand(2, 9));
     case 'fracMeaning': { const d = seed?.d ?? rand(3, 8); return buildFracMeaning(skill, seed?.n ?? rand(1, d - 1), d); }
     case 'fracEquiv': return buildFracEquiv(skill, seed?.a ?? rand(1, 5), seed?.b ?? rand(2, 6), seed?.k ?? rand(2, 4));
+    case 'fracSimplify': {
+      if (seed?.num) return buildFracSimplify(skill, seed.num, seed.den);
+      // a reducible fraction: simplest sn/sd scaled by a common factor g (gcd stays g)
+      const sd = rand(2, 6), sn = rand(1, sd - 1), g = rand(2, 4);
+      return buildFracSimplify(skill, sn * g, sd * g);
+    }
     case 'fracCompare': {
       // two unequal fractions with small denominators
       for (let t = 0; t < 50; t++) {
@@ -194,6 +228,7 @@ export function siblingParams(skillId, p) {
     case 'div': return { divisor: p.divisor, quotient: p.quotient >= 9 ? p.quotient - 1 : p.quotient + 1 };
     case 'fracMeaning': return { n: Math.max(1, p.n - 1 || 1), d: p.d };
     case 'fracEquiv': return { a: p.a, b: p.b, k: p.k >= 4 ? p.k - 1 : p.k + 1 };
+    case 'fracSimplify': return { num: p.num, den: p.den };
     case 'fracCompare': return { a: p.a, b: p.b, c: p.c, d: p.d };
     case 'fracAdd': return { a: p.a, c: p.c, d: p.d };
     default: return p;
@@ -225,6 +260,13 @@ export function diagnose(skillId, params, given) {
     if (n === a + k) return { tag: 'frac/added-not-multiplied', label: 'Added instead of multiplying the top' };
     if (n === a) return { tag: 'frac/scaled-one-part', label: 'Scaled the bottom but not the top' };
     return { tag: 'frac/equiv', label: 'Equivalent-fraction slip' };
+  }
+  if (g === 'fracSimplify') {
+    const { num, den } = params;
+    if (given === `${num}/${den}`) return { tag: 'frac/not-simplified', label: "Didn't simplify the fraction" };
+    const div = gcd(num, den);
+    if (div > 2 && given === `${num / 2}/${den / 2}`) return { tag: 'frac/partial-simplify', label: 'Only simplified part way' };
+    return { tag: 'frac/simplify', label: 'Simplifying slip' };
   }
   if (g === 'fracCompare') {
     const { a, b, c, d } = params;

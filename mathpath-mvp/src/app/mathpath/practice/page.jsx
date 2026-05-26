@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { T } from '@/lib/tokens';
 import { Card, Button, Chip, Ring, ProgressBar } from '@/components/ui';
 import { Math as Tex, Step } from '@/components/Math';
-import FractionBar from '@/components/FractionBar';
+import FractionVisual from '@/components/FractionBar';
 import { IconX, IconCheck, IconClock, IconArrowRight, IconSparkle, IconBolt } from '@/components/icons';
 import Keypad from '@/components/Keypad';
 import { api, studentId, getStudent } from '@/lib/client';
@@ -16,6 +16,7 @@ const MODE_CHIP = {
   misconception: { label: 'Reinforce', tone: 'gold' },
   fluency: { label: 'Fluency drill', tone: 'gold' },
   advance: { label: 'New skill', tone: 'success' },
+  review: { label: 'Review', tone: 'navy' },
 };
 
 // Shared: render a question's prompt (visual bar + KaTeX or plain text).
@@ -25,7 +26,7 @@ function QuestionView({ item, big }) {
       {item.question_type === 'choice' && item.prompt_text && !item.prompt_latex && (
         <div style={{ fontSize: 17, fontWeight: 600, color: T.ink700, marginBottom: 16 }}>{item.prompt_text}</div>
       )}
-      {item.visual?.kind === 'bar' && <div style={{ marginBottom: 18 }}><FractionBar n={item.visual.n} d={item.visual.d} /></div>}
+      {item.visual && <div style={{ marginBottom: 18 }}><FractionVisual visual={item.visual} /></div>}
       {item.prompt_latex
         ? <Tex tex={item.prompt_latex} display size={big ? 2.4 : 1.6} color={T.navy700} />
         : item.question_type === 'numeric'
@@ -215,7 +216,7 @@ function Remediation({ skillName, data, onDone }) {
       <div style={{ padding: '14px 20px 0' }}>
         <Card padding={20}>
           <div style={{ fontSize: 11, fontWeight: 600, color: T.ink500, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>Worked example</div>
-          {data.worked_example.visual?.kind === 'bar' && <div style={{ marginBottom: 12 }}><FractionBar n={data.worked_example.visual.n} d={data.worked_example.visual.d} /></div>}
+          {data.worked_example.visual && <div style={{ marginBottom: 12 }}><FractionVisual visual={data.worked_example.visual} /></div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {data.worked_example.steps.map((s, i) => (
               <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>

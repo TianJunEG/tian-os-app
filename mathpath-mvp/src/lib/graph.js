@@ -12,6 +12,8 @@ export const DOMAINS = {
 export const MASTERY_ACCURACY = 0.9;
 export const REMEDIATION_ACCURACY = 0.7;
 export const QUESTIONS_PER_SESSION = 8;
+// A mastered skill becomes "due for review" once it hasn't been practised in this long.
+export const SPACED_REVIEW_DAYS = 3;
 
 // Each skill declares its `prerequisites` inline; `extends_to` and the `EDGES` list are derived
 // from them at load time, so there's a single place to edit relationships. `example` is a
@@ -40,6 +42,12 @@ const RAW_SKILLS = [
     gen: 'fracEquiv', mastery_type: 'concept', fluency_type: 'procedural',
     expected_time_seconds: 12, mastery_threshold: { accuracy: 0.9, speed_grace: 2.0 },
     prerequisites: ['frac-meaning', 'mul-fluency'], example: '\\frac{1}{2} = \\frac{2}{4}',
+  },
+  {
+    skill_id: 'frac-simplify', domain: 'fr', skill_name: 'Simplifying fractions', level_tag: 'P4',
+    gen: 'fracSimplify', mastery_type: 'concept', fluency_type: 'procedural',
+    expected_time_seconds: 12, mastery_threshold: { accuracy: 0.9, speed_grace: 2.0 },
+    prerequisites: ['frac-equiv', 'div-fluency'], example: '\\frac{6}{8} = \\frac{3}{4}',
   },
   {
     skill_id: 'frac-compare', domain: 'fr', skill_name: 'Comparing fractions', level_tag: 'P4',

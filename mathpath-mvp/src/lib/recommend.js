@@ -11,7 +11,7 @@
 // and any fluency drills.
 
 import { collections } from './db.js';
-import { SKILLS, SKILL_ORDER, getSkill, prerequisitesOf, REMEDIATION_ACCURACY, MASTERY_ACCURACY } from './graph.js';
+import { SKILLS, SKILL_ORDER, getSkill, prerequisitesOf, REMEDIATION_ACCURACY, MASTERY_ACCURACY, SPACED_REVIEW_DAYS } from './graph.js';
 import { getProfiles } from './mastery.js';
 
 const masteryOf = (profiles, id) => profiles.find((p) => p.skill_id === id)?.mastery_status || 'not_started';
@@ -30,7 +30,35 @@ function confidenceFor(acc) {
   return 'building';
 }
 
+// A mastered skill that hasn't been practised within the review window — stalest first.
+function dueForReview(profiles) {
+  const cutoff = Date.now() - SPACED_REVIEW_DAYS * 86400000;
+  const due = profiles
+    .filter((p) => p.mastery_status === 'mastered' && p.last_practiced_at && Date.parse(p.last_practiced_at) < cutoff)
+    .sort((a, b) => Date.parse(a.last_practiced_at) - Date.parse(b.last_practiced_at));
+  return due[0] || null;
+}
+
 export function chooseRecommendation(profiles) {
+  const base = baseRecommendation(profiles);
+  // Spaced review: if the learner is progressing calmly, resurface a mastered skill that is
+  // due for review before it decays. Urgent modes (remediate/fluency/reinforce) take priority.
+  if (['advance', 'continue', 'start', 'maintain'].includes(base.mode)) {
+    const stale = dueForReview(profiles);
+    if (stale) {
+      const s = getSkill(stale.skill_id);
+      return {
+        recommended_skill_id: stale.skill_id, kind: 'review', mode: 'review',
+        reason: `Quick review of ${s.skill_name} to keep it sharp.`,
+        confidence_status: 'confident', remediation_suggestions: [], fluency_drills: [],
+        review_of: stale.skill_id, all_mastered: base.all_mastered,
+      };
+    }
+  }
+  return base;
+}
+
+function baseRecommendation(profiles) {
   const targetId = SKILL_ORDER.find((id) => masteryOf(profiles, id) !== 'mastered');
 
   if (!targetId) {

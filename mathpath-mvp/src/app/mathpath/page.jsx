@@ -14,6 +14,7 @@ const KIND_COPY = {
   fluency: { tag: 'Fluency drill', tone: T.gold700, bg: T.gold100 },
   remediate: { tag: 'Remediation', tone: T.error500, bg: T.error100 },
   reinforce: { tag: 'Reinforce', tone: T.navy700, bg: T.navy050 },
+  review: { tag: 'Review', tone: T.navy700, bg: T.navy050 },
 };
 
 const CONFIDENCE = {

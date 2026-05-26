@@ -25,6 +25,9 @@ const MESSAGES = {
   'frac/compare': "Let's compare by giving them the same denominator.",
   'frac/added-denominators': 'When the bottoms match, add only the tops — the bottom stays the same.',
   'frac/add': "Let's add the tops and keep the denominator.",
+  'frac/not-simplified': 'Keep going — there’s still a number that divides both top and bottom.',
+  'frac/partial-simplify': 'Almost — divide by the *largest* common factor to finish in one step.',
+  'frac/simplify': "Let's find the biggest number that divides both, then divide.",
 };
 
 async function aiMessage(skill, question, misconception, given) {

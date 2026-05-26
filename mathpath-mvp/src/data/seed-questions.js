@@ -81,6 +81,24 @@ export const SEED_QUESTIONS = [
     misconception_tags: ['frac/added-not-multiplied'],
   },
 
+  // ── Simplifying fractions ── (reduce to simplest form)
+  {
+    question_id: 'fsi-001', skill_id: 'frac-simplify', level_tag: 'P4', difficulty: 2,
+    estimated_time_seconds: 12, prompt_text: 'Write this in its simplest form:', prompt_latex: '\\frac{6}{8}', answer: '\\frac{3}{4}',
+    choices: ['\\frac{3}{4}', '\\frac{6}{8}', '\\frac{2}{4}', '\\frac{4}{3}'],
+    worked_solution: ['The largest number dividing 6 and 8 is 2.', '\\frac{6}{8} = \\frac{6 \\div 2}{8 \\div 2} = \\frac{3}{4}'],
+    hint_sequence: ['What is the biggest number that divides both 6 and 8?'],
+    misconception_tags: ['frac/not-simplified', 'frac/partial-simplify'],
+  },
+  {
+    question_id: 'fsi-002', skill_id: 'frac-simplify', level_tag: 'P4', difficulty: 3,
+    estimated_time_seconds: 12, prompt_text: 'Write this in its simplest form:', prompt_latex: '\\frac{9}{12}', answer: '\\frac{3}{4}',
+    choices: ['\\frac{3}{4}', '\\frac{9}{12}', '\\frac{3}{6}', '\\frac{4}{3}'],
+    worked_solution: ['9 and 12 share a factor of 3.', '\\frac{9}{12} = \\frac{3}{4}'],
+    hint_sequence: ['Both 9 and 12 are in the 3 times table.'],
+    misconception_tags: ['frac/not-simplified'],
+  },
+
   // ── Comparing fractions ── (which is greater?)
   {
     question_id: 'fcm-001', skill_id: 'frac-compare', level_tag: 'P4', difficulty: 3,
