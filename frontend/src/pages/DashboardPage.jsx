@@ -35,7 +35,7 @@ export default function DashboardPage() {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-blue-100 text-blue-800',
-      'in-progress': 'bg-purple-100 text-purple-800',
+      'in-progress': 'bg-navy-100 text-navy-800',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800'
     };
@@ -71,7 +71,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => navigate(user?.role === 'parent' ? '/children' : '/learning')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <TrendingUp className="w-8 h-8 text-navy-700 mb-2" />
             <h3 className="font-semibold text-gray-900">{user?.role === 'parent' ? 'My Children' : 'My Learning'}</h3>
@@ -81,7 +81,7 @@ export default function DashboardPage() {
             <>
               <button
                 onClick={() => navigate('/search')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+                className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
               >
                 <Search className="w-8 h-8 text-navy-700 mb-2" />
                 <h3 className="font-semibold text-gray-900">Find Tutors</h3>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
             <>
               <button
                 onClick={() => navigate('/tutor/profile')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+                className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
               >
                 <BookOpen className="w-8 h-8 text-navy-700 mb-2" />
                 <h3 className="font-semibold text-gray-900">My Profile</h3>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/messages')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <MessageSquare className="w-8 h-8 text-blue-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Messages</h3>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/bookings')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <BookOpen className="w-8 h-8 text-green-600 mb-2" />
             <h3 className="font-semibold text-gray-900">My Bookings</h3>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/spelling')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <SpellCheck className="w-8 h-8 text-pink-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Spelling</h3>
@@ -132,9 +132,9 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/science')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
-            <FlaskConical className="w-8 h-8 text-emerald-600 mb-2" />
+            <FlaskConical className="w-8 h-8 text-navy-700 mb-2" />
             <h3 className="font-semibold text-gray-900">Science</h3>
             <p className="text-sm text-gray-600">P6 revision Q&amp;A</p>
           </button>

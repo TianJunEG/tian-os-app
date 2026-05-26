@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Defaults to a same-origin relative path so the same build works in production
+// (Express serves the frontend) and in dev (Vite proxies /api to the backend).
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Backend origin (without the /api suffix) for serving uploaded files.
 export const SERVER_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');

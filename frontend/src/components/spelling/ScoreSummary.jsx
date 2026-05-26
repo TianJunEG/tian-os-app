@@ -30,14 +30,14 @@ export default function ScoreSummary({ correct, total, onRestart, restartLabel =
           />
         ))}
       </div>
-      <div className="text-5xl font-extrabold text-purple-600 mb-1">{pct}%</div>
+      <div className="text-5xl font-extrabold text-navy-600 mb-1">{pct}%</div>
       <p className="text-lg font-semibold text-gray-800 mb-1">{messageFor(pct)}</p>
       <p className="text-gray-500 mb-6">
         {correct} of {total} {unit}
       </p>
       <button
         onClick={onRestart}
-        className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center gap-2"
+        className="px-6 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center gap-2"
       >
         <RotateCcw className="w-5 h-5" /> {restartLabel}
       </button>

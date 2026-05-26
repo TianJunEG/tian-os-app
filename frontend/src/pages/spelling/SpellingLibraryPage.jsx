@@ -55,10 +55,10 @@ export default function SpellingLibraryPage() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search by title…"
-              className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:border-purple-500 outline-none"
+              className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:border-navy-500 outline-none"
             />
           </form>
-          <select value={level} onChange={(e) => setLevel(e.target.value)} className="px-3 py-2.5 border border-gray-300 rounded-lg bg-white focus:border-purple-500 outline-none">
+          <select value={level} onChange={(e) => setLevel(e.target.value)} className="px-3 py-2.5 border border-gray-300 rounded-lg bg-white focus:border-navy-500 outline-none">
             {LEVELS.map(([v, label]) => (
               <option key={v} value={v}>{label}</option>
             ))}
@@ -79,7 +79,7 @@ export default function SpellingLibraryPage() {
                 <h3 className="font-semibold text-gray-900 mb-1 truncate">{list.title}</h3>
                 {list.description && <p className="text-sm text-gray-500 mb-2 line-clamp-2">{list.description}</p>}
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                  <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded">{LEVELS.find(([v]) => v === list.level)?.[1] || 'Other'}</span>
+                  <span className="px-2 py-0.5 bg-navy-50 text-navy-700 rounded">{LEVELS.find(([v]) => v === list.level)?.[1] || 'Other'}</span>
                   <span>{list.words?.length || 0} words</span>
                 </div>
                 <p className="text-xs text-gray-400 mb-4">by {list.owner?.name || 'Unknown'}{list.copyCount ? ` · ${list.copyCount} copies` : ''}</p>
@@ -87,7 +87,7 @@ export default function SpellingLibraryPage() {
                   <button onClick={() => navigate(`/spelling/lists/${list._id}`)} className="flex-1 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 inline-flex items-center justify-center gap-1">
                     <Eye className="w-4 h-4" /> Preview
                   </button>
-                  <button onClick={() => copy(list._id)} disabled={copyingId === list._id} className="flex-1 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 inline-flex items-center justify-center gap-1">
+                  <button onClick={() => copy(list._id)} disabled={copyingId === list._id} className="flex-1 py-2 text-sm bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 inline-flex items-center justify-center gap-1">
                     {copyingId === list._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />} Copy
                   </button>
                 </div>

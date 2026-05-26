@@ -40,7 +40,7 @@ export default function SpellingListsPage() {
         right={
           <button
             onClick={() => navigate('/spelling/lists/new')}
-            className="px-3 min-h-[44px] bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm inline-flex items-center justify-center gap-1"
+            className="px-3 min-h-[44px] bg-navy-600 text-white rounded-lg hover:bg-navy-700 text-sm inline-flex items-center justify-center gap-1"
             aria-label="New list"
             title="New list"
           >
@@ -57,7 +57,7 @@ export default function SpellingListsPage() {
             <p className="text-gray-600 mb-4">You don't have any spelling lists yet.</p>
             <button
               onClick={() => navigate('/spelling/lists/new')}
-              className="px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center gap-2"
+              className="px-5 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center gap-2"
             >
               <Plus className="w-5 h-5" /> Create your first list
             </button>
@@ -79,12 +79,12 @@ export default function SpellingListsPage() {
                     {list.language && list.language !== 'en' && (
                       <span className="px-2 py-0.5 bg-rose-50 text-rose-700 rounded">{langShort(list.language)}</span>
                     )}
-                    <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded">{LEVEL_LABELS[list.level] || 'Other'}</span>
+                    <span className="px-2 py-0.5 bg-navy-50 text-navy-700 rounded">{LEVEL_LABELS[list.level] || 'Other'}</span>
                     <span>{list.words?.length || 0} words</span>
                   </div>
                 </button>
                 <div className="flex border-t border-gray-100 divide-x divide-gray-100">
-                  <button onClick={() => navigate(`/spelling/lists/${list._id}`)} className="flex-1 py-2 text-sm text-purple-600 hover:bg-purple-50 inline-flex items-center justify-center gap-1">
+                  <button onClick={() => navigate(`/spelling/lists/${list._id}`)} className="flex-1 py-2 text-sm text-navy-600 hover:bg-navy-50 inline-flex items-center justify-center gap-1">
                     <BookOpen className="w-4 h-4" /> Practise
                   </button>
                   <button onClick={() => navigate(`/spelling/lists/${list._id}/edit`)} className="flex-1 py-2 text-sm text-gray-600 hover:bg-gray-50 inline-flex items-center justify-center gap-1">

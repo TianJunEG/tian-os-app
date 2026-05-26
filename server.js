@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
@@ -24,6 +27,8 @@ import learningRoutes from './routes/learning.js';
 import scienceRoutes from './routes/science.js';
 
 dotenv.config();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
@@ -86,6 +91,18 @@ app.use('/api/resources', resourceRoutes);
 app.use('/api/spelling', spellingRoutes);
 app.use('/api/learning', learningRoutes);
 app.use('/api/science', scienceRoutes);
+
+// Serve the built frontend (single-service deploy). The Vite build output in
+// frontend/dist includes the React app and the static /science app.
+const distPath = path.join(__dirname, 'frontend', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  // SPA fallback: hand client-side routes to index.html, but leave API/uploads alone.
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use(notFoundHandler);

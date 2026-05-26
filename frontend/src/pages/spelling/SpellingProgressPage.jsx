@@ -41,14 +41,14 @@ export default function SpellingProgressPage() {
           <div className="text-center py-16 bg-white rounded-xl shadow-sm">
             <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-4">No practice yet. Take a test or play a game to start tracking progress.</p>
-            <button onClick={() => navigate('/spelling/lists')} className="px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium">
+            <button onClick={() => navigate('/spelling/lists')} className="px-5 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium">
               Go to my lists
             </button>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <StatCard icon={TrendingUp} label="Accuracy" value={`${stats.accuracy}%`} color="bg-purple-600" />
+              <StatCard icon={TrendingUp} label="Accuracy" value={`${stats.accuracy}%`} color="bg-navy-600" />
               <StatCard icon={BarChart3} label="Words tried" value={stats.total} color="bg-blue-500" />
               <StatCard icon={Star} label="Mastered" value={mastery.mastered} color="bg-green-600" />
               <StatCard icon={Target} label="To revise" value={mastery.weak} color="bg-rose-500" />
@@ -81,7 +81,7 @@ export default function SpellingProgressPage() {
                   <h2 className="font-semibold text-gray-900 inline-flex items-center gap-2">
                     <Target className="w-5 h-5 text-rose-500" /> Words to revise
                   </h2>
-                  <button onClick={() => navigate('/spelling/revision')} className="text-sm text-purple-600 hover:underline inline-flex items-center gap-1">
+                  <button onClick={() => navigate('/spelling/revision')} className="text-sm text-navy-600 hover:underline inline-flex items-center gap-1">
                     Revise now <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
