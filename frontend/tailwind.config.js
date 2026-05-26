@@ -9,6 +9,8 @@ export default {
       fontFamily: {
         sans: ['Manrope', 'system-ui', 'sans-serif'],
         serif: ['Fraunces', 'Georgia', 'serif'],
+        // main's pages use font-display for headers; map it to our brand serif.
+        display: ['Fraunces', 'Georgia', 'serif'],
         hand: ['Caveat', 'cursive'],
       },
       colors: {

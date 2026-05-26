@@ -120,7 +120,8 @@ router.post(
       }
 
       payment.status = 'succeeded';
-      payment.stripeChargeId = paymentIntent.charges.data[0]?.id;
+      payment.stripeChargeId =
+        paymentIntent.latest_charge || paymentIntent.charges?.data?.[0]?.id || null;
       await payment.save();
 
       // Update booking

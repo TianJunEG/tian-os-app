@@ -130,15 +130,24 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-600">Lists, tests & games</p>
           </button>
 
+          <button
+            onClick={() => navigate('/science')}
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+          >
+            <FlaskConical className="w-8 h-8 text-navy-700 mb-2" />
+            <h3 className="font-semibold text-gray-900">Science</h3>
+            <p className="text-sm text-gray-600">P6 revision Q&amp;A · feeds progress</p>
+          </button>
+
           <a
             href="/science/"
             target="_blank"
             rel="noopener"
             className="block p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
-            <FlaskConical className="w-8 h-8 text-navy-700 mb-2" />
-            <h3 className="font-semibold text-gray-900">Science</h3>
-            <p className="text-sm text-gray-600">Adaptive revision & concept maps</p>
+            <FlaskConical className="w-8 h-8 text-gold-500 mb-2" />
+            <h3 className="font-semibold text-gray-900">Science Lab</h3>
+            <p className="text-sm text-gray-600">Interactive revision & concept maps</p>
           </a>
         </div>
 

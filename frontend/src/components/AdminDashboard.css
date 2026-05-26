@@ -129,10 +129,21 @@
 }
 
 /* Tables */
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .admin-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
   font-size: 14px;
+}
+
+.admin-table th,
+.admin-table td {
+  white-space: nowrap;
 }
 
 .admin-table thead {
@@ -390,5 +401,77 @@
 
   .filter-select {
     width: 100%;
+  }
+}
+
+/* Resource management form */
+.resource-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.resource-form .full-width {
+  grid-column: 1 / -1;
+}
+
+.resource-form label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.resource-form input[type='text'],
+.resource-form textarea,
+.resource-form select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.resource-form textarea {
+  resize: vertical;
+}
+
+.resource-form .form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.resource-form .checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resource-form .checkbox-row input {
+  width: auto;
+}
+
+.form-error {
+  grid-column: 1 / -1;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .resource-form {
+    grid-template-columns: 1fr;
   }
 }

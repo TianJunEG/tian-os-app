@@ -1,21 +1,128 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { bookingsAPI, paymentsAPI } from '../services/api';
+import { stripePromise, stripeConfigured } from '../services/stripe';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+
+const CARD_ELEMENT_OPTIONS = {
+  style: {
+    base: {
+      fontSize: '16px',
+      color: '#1f2937',
+      fontFamily: 'ui-monospace, monospace',
+      '::placeholder': { color: '#9ca3af' }
+    },
+    invalid: { color: '#dc2626' }
+  }
+};
+
+function CheckoutForm({ bookingId, amount, onSuccess }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!stripe || !elements) return; // Stripe.js not loaded yet
+
+    setError('');
+    setLoading(true);
+
+    try {
+      // 1. Create the payment intent on the server.
+      const intentResponse = await paymentsAPI.createPaymentIntent({ bookingId });
+      const clientSecret = intentResponse.data.clientSecret;
+
+      // 2. Confirm the card payment client-side with Stripe.js.
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement),
+          billing_details: { name }
+        }
+      });
+
+      if (result.error) {
+        setError(result.error.message || 'Payment failed. Please check your card details.');
+        return;
+      }
+
+      if (result.paymentIntent?.status !== 'succeeded') {
+        setError('Payment was not completed. Please try again.');
+        return;
+      }
+
+      // 3. Tell the server to finalize the booking against the succeeded intent.
+      const confirmResponse = await paymentsAPI.confirmPayment({
+        paymentIntentId: result.paymentIntent.id,
+        bookingId
+      });
+
+      if (confirmResponse.data.success) {
+        onSuccess();
+      } else {
+        setError('Payment succeeded but the booking could not be confirmed. Please contact support.');
+      }
+    } catch (err) {
+      console.error('Payment error:', err);
+      setError(err.response?.data?.error || 'Payment failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-red-700 text-sm">{error}</p>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="John Doe"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Card Details</label>
+        <div className="w-full px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-purple-500">
+          <CardElement options={CARD_ELEMENT_OPTIONS} />
+        </div>
+        <p className="text-xs text-gray-500 mt-1">Test card: 4242 4242 4242 4242, any future expiry, any CVC.</p>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading || !stripe}
+        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+      >
+        {loading ? 'Processing...' : `Pay $${amount}`}
+      </button>
+
+      <p className="text-xs text-gray-500 text-center">
+        By completing this payment, you agree to our Terms of Service
+      </p>
+    </form>
+  );
+}
 
 export default function PaymentPage() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
   const [booking, setBooking] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [cardDetails, setCardDetails] = useState({
-    cardNumber: '',
-    expiry: '',
-    cvc: '',
-    name: ''
-  });
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     loadBooking();
@@ -27,63 +134,24 @@ export default function PaymentPage() {
       setBooking(response.data.booking);
     } catch (error) {
       console.error('Failed to load booking:', error);
-      setError('Booking not found');
+      setLoadError('Booking not found');
     }
   };
 
-  const handleCardChange = (e) => {
-    let { name, value } = e.target;
-
-    if (name === 'cardNumber') {
-      value = value.replace(/\s/g, '').slice(0, 16);
-      value = value.replace(/\d{4}(?=\d)/g, '$& ');
-    } else if (name === 'expiry') {
-      value = value.slice(0, 5);
-      if (value.length === 2 && !value.includes('/')) {
-        value += '/';
-      }
-    } else if (name === 'cvc') {
-      value = value.slice(0, 4);
-    }
-
-    setCardDetails(prev => ({ ...prev, [name]: value }));
+  const handleSuccess = () => {
+    setSuccess(true);
+    setTimeout(() => navigate('/bookings'), 2000);
   };
 
-  const handlePayment = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      // In a real app, you would use @stripe/react-stripe-js
-      // For now, we'll simulate a payment intent
-
-      // Step 1: Create payment intent
-      const intentResponse = await paymentsAPI.createPaymentIntent({
-        bookingId
-      });
-
-      // Step 2: In production, use Stripe.js to confirm the payment
-      // For demo, we'll just confirm it with the backend
-
-      const confirmResponse = await paymentsAPI.confirmPayment({
-        paymentIntentId: intentResponse.data.clientSecret.split('_secret_')[0] + '_secret_' + intentResponse.data.clientSecret.split('_secret_')[1],
-        bookingId
-      });
-
-      if (confirmResponse.data.success) {
-        setSuccess(true);
-        setTimeout(() => {
-          navigate('/bookings');
-        }, 2000);
-      }
-    } catch (err) {
-      console.error('Payment error:', err);
-      setError(err.response?.data?.error || 'Payment failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">{loadError}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!booking) {
     return (
@@ -161,7 +229,7 @@ export default function PaymentPage() {
 
               <div className="border-t pt-4 flex justify-between items-center">
                 <span className="font-semibold text-gray-900">Total Amount Due</span>
-                <span className="text-2xl font-bold text-navy-600">${booking.totalCost}</span>
+                <span className="text-2xl font-bold text-purple-600">${booking.totalCost}</span>
               </div>
             </div>
 
@@ -178,97 +246,23 @@ export default function PaymentPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">Payment Method</h2>
 
-              {error && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-red-700 text-sm">{error}</p>
-                </div>
-              )}
-
-              <form onSubmit={handlePayment} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cardholder Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={cardDetails.name}
-                    onChange={handleCardChange}
-                    placeholder="John Doe"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-                    required
+              {stripeConfigured ? (
+                <Elements stripe={stripePromise}>
+                  <CheckoutForm
+                    bookingId={bookingId}
+                    amount={booking.totalCost}
+                    onSuccess={handleSuccess}
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Card Number
-                  </label>
-                  <input
-                    type="text"
-                    name="cardNumber"
-                    value={cardDetails.cardNumber}
-                    onChange={handleCardChange}
-                    placeholder="4242 4242 4242 4242"
-                    maxLength="19"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent font-mono"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Test: 4242 4242 4242 4242</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      name="expiry"
-                      value={cardDetails.expiry}
-                      onChange={handleCardChange}
-                      placeholder="MM/YY"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent font-mono"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      CVC
-                    </label>
-                    <input
-                      type="text"
-                      name="cvc"
-                      value={cardDetails.cvc}
-                      onChange={handleCardChange}
-                      placeholder="123"
-                      maxLength="4"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent font-mono"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600 mb-6">
-                  <p>
-                    <strong>Demo Mode:</strong> Use test card 4242 4242 4242 4242 with any future expiry and any 3-digit CVC.
+                </Elements>
+              ) : (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-amber-800 text-sm">
+                    Payments are not configured. Set <code>VITE_STRIPE_PUBLISHABLE_KEY</code> in the
+                    frontend environment to enable checkout.
                   </p>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
-                >
-                  {loading ? 'Processing...' : `Pay $${booking.totalCost}`}
-                </button>
-
-                <p className="text-xs text-gray-500 text-center">
-                  By completing this payment, you agree to our Terms of Service
-                </p>
-              </form>
+              )}
             </div>
           </div>
         </div>

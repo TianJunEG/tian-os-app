@@ -18,6 +18,17 @@ import PaymentPage from './pages/PaymentPage';
 import BookingsPage from './pages/BookingsPage';
 import MessagesPage from './pages/MessagesPage';
 import TutorProfilePage from './pages/TutorProfilePage';
+import ResourcesHubPage from './pages/ResourcesHubPage';
+import ResourceDetailPage from './pages/ResourceDetailPage';
+import SciencePracticePage from './pages/SciencePracticePage';
+import WorksheetGeneratorPage from './pages/WorksheetGeneratorPage';
+import StudentsPage from './pages/StudentsPage';
+import ParentProgressPage from './pages/ParentProgressPage';
+import AdminDashboard from './components/AdminDashboard';
+import TutorOnboarding from './components/TutorOnboarding';
+import ParentProfile from './components/ParentProfile';
+import PwaManager from './components/PwaManager';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Spelling app pages
 import SpellingHomePage from './pages/spelling/SpellingHomePage';
@@ -152,10 +163,15 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <PwaManager />
+        <ErrorBoundary>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/founder" element={<FounderStoryPage />} />
+          <Route path="/resources" element={<ResourcesHubPage />} />
+          <Route path="/resources/:slug" element={<ResourceDetailPage />} />
+          <Route path="/science" element={<ProtectedRoute><SciencePracticePage /></ProtectedRoute>} />
 
           {/* Auth Routes */}
           <Route
@@ -266,6 +282,13 @@ function App() {
             }
           />
 
+          <Route path="/worksheets" element={<ProtectedRoute><WorksheetGeneratorPage /></ProtectedRoute>} />
+          <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
+          <Route path="/progress" element={<ProtectedRoute><ParentProgressPage /></ProtectedRoute>} />
+          <Route path="/tutor/onboarding" element={<ProtectedRoute><TutorOnboarding /></ProtectedRoute>} />
+          <Route path="/parent/profile" element={<ProtectedRoute><ParentProfile /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+
           {/* Spelling app */}
           <Route path="/spelling" element={<ProtectedRoute><SpellingHomePage /></ProtectedRoute>} />
           <Route path="/spelling/lists" element={<ProtectedRoute><SpellingListsPage /></ProtectedRoute>} />
@@ -284,6 +307,7 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </ErrorBoundary>
       </AuthProvider>
     </Router>
   );
