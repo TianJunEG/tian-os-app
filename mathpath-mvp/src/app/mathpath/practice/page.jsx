@@ -45,7 +45,10 @@ function Choices({ choices, onPick, chosen, answer, locked }) {
         const border = locked && isAnswer ? T.success500 : locked && isChosen ? T.error500 : T.hairline;
         return (
           <button key={c.value} onClick={() => !locked && onPick(c.value)}
-            style={{ height: 72, borderRadius: 16, background: bg, border: `1.5px solid ${border}`, display: 'grid', placeItems: 'center', boxShadow: T.shadowResting, transition: `all 140ms ${T.easeCalm}` }}>
+            onPointerDown={(e) => { if (!locked) e.currentTarget.style.transform = 'scale(0.96)'; }}
+            onPointerUp={(e) => { e.currentTarget.style.transform = 'none'; }}
+            onPointerLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
+            style={{ height: 76, borderRadius: 16, background: bg, border: `1.5px solid ${border}`, display: 'grid', placeItems: 'center', boxShadow: T.shadowResting, transition: `background 160ms ${T.easeCalm}, border-color 160ms ${T.easeCalm}, transform 100ms ${T.easeCalm}` }}>
             <Tex tex={c.latex} size={1.5} color={T.navy700} />
           </button>
         );
@@ -156,7 +159,7 @@ export default function PracticePage() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 20px' }}>
         <div style={{ fontSize: 11, color: T.ink500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 18 }}>Question {Math.min(idx + 1, total)}</div>
-        <div style={{ opacity: flash && item.question_type === 'numeric' ? 0.55 : 1, transition: `opacity 200ms ${T.easeCalm}`, width: '100%' }}>
+        <div key={`q-${idx}`} style={{ opacity: flash && item.question_type === 'numeric' ? 0.55 : 1, transition: `opacity 200ms ${T.easeCalm}`, width: '100%', animation: `tian-in .3s ${T.easeCalm}` }}>
           <QuestionView item={item} big />
         </div>
 
@@ -173,7 +176,7 @@ export default function PracticePage() {
         )}
       </div>
 
-      <div style={{ padding: '0 20px 28px' }}>
+      <div style={{ padding: '0 20px', paddingBottom: 'calc(28px + env(safe-area-inset-bottom, 0px))' }}>
         {item.question_type === 'numeric'
           ? <Keypad value={value} onChange={setValue} onSubmit={() => submit(value)} disabled={flash != null} />
           : <Choices choices={item.choices} onPick={submit} chosen={chosen} answer={item.answer} locked={flash != null} />}
