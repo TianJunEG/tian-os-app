@@ -71,7 +71,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => navigate(user?.role === 'parent' ? '/children' : '/learning')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <TrendingUp className="w-8 h-8 text-navy-700 mb-2" />
             <h3 className="font-semibold text-gray-900">{user?.role === 'parent' ? 'My Children' : 'My Learning'}</h3>
@@ -81,7 +81,7 @@ export default function DashboardPage() {
             <>
               <button
                 onClick={() => navigate('/search')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+                className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
               >
                 <Search className="w-8 h-8 text-navy-700 mb-2" />
                 <h3 className="font-semibold text-gray-900">Find Tutors</h3>
@@ -94,7 +94,7 @@ export default function DashboardPage() {
             <>
               <button
                 onClick={() => navigate('/tutor/profile')}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+                className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
               >
                 <BookOpen className="w-8 h-8 text-navy-700 mb-2" />
                 <h3 className="font-semibold text-gray-900">My Profile</h3>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/messages')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <MessageSquare className="w-8 h-8 text-blue-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Messages</h3>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/bookings')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <BookOpen className="w-8 h-8 text-green-600 mb-2" />
             <h3 className="font-semibold text-gray-900">My Bookings</h3>
@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/spelling')}
-            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <SpellCheck className="w-8 h-8 text-pink-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Spelling</h3>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
             href="/science/"
             target="_blank"
             rel="noopener"
-            className="block p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+            className="block p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
           >
             <FlaskConical className="w-8 h-8 text-navy-700 mb-2" />
             <h3 className="font-semibold text-gray-900">Science</h3>

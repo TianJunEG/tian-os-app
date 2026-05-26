@@ -6,6 +6,11 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Georgia', 'serif'],
+        hand: ['Caveat', 'cursive'],
+      },
       colors: {
         // Edu OS brand palette — clean white + deep navy + soft gold.
         navy: {

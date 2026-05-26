@@ -56,8 +56,9 @@ export default function ParentDashboardPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">My Children</h1>
-            <p className="text-gray-600">Each child's progress across every learning app.</p>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Progress intelligence</div>
+            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">My Children</h1>
+            <p className="text-gray-500 text-sm">Each child's progress across every learning app.</p>
           </div>
           <button onClick={() => setAdding((v) => !v)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-navy-700 text-white rounded-lg text-sm font-semibold hover:bg-navy-600 transition">
             <Plus className="w-4 h-4" /> Add child
