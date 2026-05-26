@@ -152,7 +152,8 @@ export default function TutorSearchPage() {
       {/* Header */}
       <header className="bg-white shadow sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Find Your Tutor</h1>
+          <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Marketplace</div>
+          <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">Find Your Tutor</h1>
         </div>
       </header>
 
@@ -170,7 +171,7 @@ export default function TutorSearchPage() {
                   placeholder="e.g. Math, English"
                   value={filters.specialty}
                   onChange={(e) => setFilters(prev => ({ ...prev, specialty: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 />
               </div>
 
@@ -181,7 +182,7 @@ export default function TutorSearchPage() {
                 <select
                   value={filters.grade}
                   onChange={(e) => setFilters(prev => ({ ...prev, grade: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 >
                   <option value="">All levels</option>
                   {grades.map(grade => (
@@ -199,7 +200,7 @@ export default function TutorSearchPage() {
                   placeholder="e.g. 75"
                   value={filters.maxRate}
                   onChange={(e) => setFilters(prev => ({ ...prev, maxRate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 />
               </div>
 
@@ -210,7 +211,7 @@ export default function TutorSearchPage() {
                 <select
                   value={filters.teachingStyle}
                   onChange={(e) => setFilters(prev => ({ ...prev, teachingStyle: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 >
                   <option value="">No preference</option>
                   <option value="conceptual">Conceptual (understanding-first)</option>
@@ -228,7 +229,7 @@ export default function TutorSearchPage() {
                   placeholder="e.g. 570123"
                   value={filters.postalCode}
                   onChange={(e) => setFilters(prev => ({ ...prev, postalCode: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 />
               </div>
 
@@ -244,7 +245,7 @@ export default function TutorSearchPage() {
                       onClick={() => toggleDay(day)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                         filters.preferredDays.includes(day)
-                          ? 'bg-purple-600 text-white'
+                          ? 'bg-navy-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -257,7 +258,7 @@ export default function TutorSearchPage() {
               <div className="flex items-end">
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 rounded-lg hover:shadow-lg transition flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-2 rounded-lg hover:shadow-lg transition flex items-center justify-center gap-2"
                 >
                   <Search className="w-4 h-4" />
                   Search
@@ -275,7 +276,7 @@ export default function TutorSearchPage() {
                   <button
                     key={cat.name}
                     onClick={() => handleCategoryClick(cat.name)}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-gray-800 rounded-lg hover:shadow-md transition text-sm font-medium"
+                    className="px-4 py-2 bg-gradient-to-r from-navy-100 to-blue-100 text-gray-800 rounded-lg hover:shadow-md transition text-sm font-medium"
                   >
                     {cat.emoji} {cat.name}
                   </button>
@@ -288,13 +289,13 @@ export default function TutorSearchPage() {
         {/* Results */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600"></div>
             <p className="mt-4 text-gray-600">Finding your best matches...</p>
           </div>
         ) : searched ? (
           <>
             <div className="mb-4 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-600" />
+              <Sparkles className="w-5 h-5 text-navy-600" />
               <h2 className="text-xl font-semibold text-gray-900">
                 {tutors.length} Match{tutors.length !== 1 ? 'es' : ''} Found
               </h2>
@@ -308,7 +309,7 @@ export default function TutorSearchPage() {
                 <p className="text-gray-600 mb-4">No tutors scored above the 70% match threshold for these criteria.</p>
                 <button
                   onClick={() => setSearched(false)}
-                  className="text-purple-600 hover:text-purple-700 font-medium"
+                  className="text-navy-600 hover:text-navy-700 font-medium"
                 >
                   Try different filters
                 </button>
@@ -334,8 +335,8 @@ export default function TutorSearchPage() {
 
                         {/* Match explanation */}
                         {tutor.explanation && (
-                          <div className="mb-3 p-3 bg-purple-50 rounded-lg">
-                            <p className="text-sm text-purple-800">{tutor.explanation}</p>
+                          <div className="mb-3 p-3 bg-navy-50 rounded-lg">
+                            <p className="text-sm text-navy-800">{tutor.explanation}</p>
                           </div>
                         )}
 
@@ -364,7 +365,7 @@ export default function TutorSearchPage() {
                             {(tutor.specialties || []).slice(0, 3).map((specialty) => (
                               <span
                                 key={specialty}
-                                className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium"
+                                className="px-2 py-1 bg-navy-100 text-navy-700 rounded text-xs font-medium"
                               >
                                 {specialty}
                               </span>
@@ -390,7 +391,7 @@ export default function TutorSearchPage() {
                         <button
                           type="button"
                           onClick={() => setExpanded(prev => ({ ...prev, [tutor._id]: !prev[tutor._id] }))}
-                          className="flex items-center gap-1 text-sm font-medium text-purple-600 hover:text-purple-700"
+                          className="flex items-center gap-1 text-sm font-medium text-navy-600 hover:text-navy-700"
                         >
                           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                           Why this match?
@@ -400,14 +401,14 @@ export default function TutorSearchPage() {
                         {/* Rate and Button */}
                         <div className="flex items-center justify-between mt-4">
                           <div>
-                            <p className="text-2xl font-bold text-purple-600">
+                            <p className="text-2xl font-bold text-navy-600">
                               ${tutor.hourlyRate}
                             </p>
                             <p className="text-xs text-gray-600">per hour</p>
                           </div>
                           <button
                             onClick={() => navigate(`/booking/${tutor.userId._id}`)}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium text-sm"
+                            className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition font-medium text-sm"
                           >
                             Book Now
                           </button>

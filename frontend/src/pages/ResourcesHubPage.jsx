@@ -44,8 +44,8 @@ export default function ResourcesHubPage() {
   const pill = (active) =>
     `rounded-full px-4 py-2 text-sm font-medium transition ${
       active
-        ? 'bg-indigo-600 text-white shadow-sm'
-        : 'border border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-700'
+        ? 'bg-navy-600 text-white shadow-sm'
+        : 'border border-slate-200 bg-white text-slate-600 hover:border-navy-200 hover:text-navy-700'
     }`;
 
   return (
@@ -59,7 +59,7 @@ export default function ResourcesHubPage() {
       <SiteHeader />
 
       <main id="main">
-        <section className="bg-gradient-to-b from-indigo-50 via-white to-white">
+        <section className="bg-gradient-to-b from-navy-50 via-white to-white">
           <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
             <span className="eyebrow">Free resources</span>
             <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
@@ -112,7 +112,7 @@ export default function ResourcesHubPage() {
                   className="card group flex flex-col p-6 transition hover:-translate-y-1 hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-navy-700">
                       {categoryName(resource.category)}
                     </span>
                     {resource.gated && (
@@ -126,7 +126,7 @@ export default function ResourcesHubPage() {
                   <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                     {resource.level && <span className="rounded bg-slate-100 px-2 py-1">{resource.level}</span>}
                     {resource.subject && <span className="rounded bg-slate-100 px-2 py-1">{resource.subject}</span>}
-                    <span className="ml-auto inline-flex items-center gap-1 font-semibold text-indigo-600 opacity-0 transition group-hover:opacity-100">
+                    <span className="ml-auto inline-flex items-center gap-1 font-semibold text-navy-600 opacity-0 transition group-hover:opacity-100">
                       Read <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                   </div>

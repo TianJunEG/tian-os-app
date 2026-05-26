@@ -22,11 +22,11 @@ const markdownComponents = {
   ol: ({ node, ...props }) => <ol className="mb-4 list-decimal space-y-1 pl-6 text-slate-700" {...props} />,
   li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
   a: ({ node, ...props }) => (
-    <a className="text-indigo-600 underline hover:text-indigo-700" target="_blank" rel="noopener noreferrer" {...props} />
+    <a className="text-navy-600 underline hover:text-navy-700" target="_blank" rel="noopener noreferrer" {...props} />
   ),
   strong: ({ node, ...props }) => <strong className="font-semibold text-slate-900" {...props} />,
   blockquote: ({ node, ...props }) => (
-    <blockquote className="mb-4 border-l-4 border-indigo-200 pl-4 italic text-slate-600" {...props} />
+    <blockquote className="mb-4 border-l-4 border-navy-200 pl-4 italic text-slate-600" {...props} />
   ),
   code: ({ node, ...props }) => <code className="rounded bg-slate-100 px-1 py-0.5 text-sm" {...props} />,
   table: ({ node, ...props }) => (
@@ -61,8 +61,8 @@ function GateForm({ slug, resourceTitle, onUnlock }) {
   };
 
   return (
-    <div className="mt-2 rounded-xl border border-indigo-100 bg-indigo-50/60 p-6">
-      <div className="flex items-center gap-2 text-indigo-700">
+    <div className="mt-2 rounded-xl border border-navy-100 bg-navy-50/60 p-6">
+      <div className="flex items-center gap-2 text-navy-700">
         <Lock className="h-4 w-4" />
         <h2 className="font-display text-lg font-semibold text-slate-900">Get free access</h2>
       </div>
@@ -133,7 +133,7 @@ export default function ResourceDetailPage() {
       <SiteHeader />
 
       <main id="main" className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <Link to="/resources" className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700">
+        <Link to="/resources" className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-600 hover:text-navy-700">
           <ArrowLeft className="h-4 w-4" /> All resources
         </Link>
 
@@ -142,7 +142,7 @@ export default function ResourceDetailPage() {
         {status === 'notfound' && (
           <div className="mt-16 text-center">
             <h1 className="font-display text-2xl font-bold text-slate-900">Resource not found</h1>
-            <Link to="/resources" className="mt-4 inline-block font-medium text-indigo-600 hover:text-indigo-700">
+            <Link to="/resources" className="mt-4 inline-block font-medium text-navy-600 hover:text-navy-700">
               Browse all resources
             </Link>
           </div>
@@ -150,7 +150,7 @@ export default function ResourceDetailPage() {
 
         {status === 'ready' && resource && (
           <article className="mt-6">
-            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-700">
+            <span className="text-xs font-semibold uppercase tracking-wide text-navy-700">
               {categoryName(resource.category)}
             </span>
             <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">

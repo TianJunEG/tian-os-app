@@ -89,14 +89,14 @@ function CheckoutForm({ bookingId, amount, onSuccess }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="John Doe"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
           required
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Card Details</label>
-        <div className="w-full px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-purple-500">
+        <div className="w-full px-4 py-3 border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-navy-500">
           <CardElement options={CARD_ELEMENT_OPTIONS} />
         </div>
         <p className="text-xs text-gray-500 mt-1">Test card: 4242 4242 4242 4242, any future expiry, any CVC.</p>
@@ -105,7 +105,7 @@ function CheckoutForm({ bookingId, amount, onSuccess }) {
       <button
         type="submit"
         disabled={loading || !stripe}
-        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+        className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
       >
         {loading ? 'Processing...' : `Pay $${amount}`}
       </button>
@@ -184,7 +184,8 @@ export default function PaymentPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <h1 className="text-2xl font-bold text-gray-900">Payment</h1>
+          <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Checkout</div>
+          <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">Payment</h1>
         </div>
       </header>
 
@@ -229,7 +230,7 @@ export default function PaymentPage() {
 
               <div className="border-t pt-4 flex justify-between items-center">
                 <span className="font-semibold text-gray-900">Total Amount Due</span>
-                <span className="text-2xl font-bold text-purple-600">${booking.totalCost}</span>
+                <span className="text-2xl font-bold text-navy-600">${booking.totalCost}</span>
               </div>
             </div>
 

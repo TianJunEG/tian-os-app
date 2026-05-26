@@ -40,8 +40,8 @@ export default function TutoringLandingPage() {
       <SiteHeader />
 
       <main id="main">
-        <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50 via-white to-white">
-          <div aria-hidden="true" className="pointer-events-none absolute -top-24 left-0 h-96 w-96 rounded-full bg-indigo-200/40 blur-3xl" />
+        <section className="relative overflow-hidden bg-gradient-to-b from-navy-50 via-white to-white">
+          <div aria-hidden="true" className="pointer-events-none absolute -top-24 left-0 h-96 w-96 rounded-full bg-navy-200/40 blur-3xl" />
           <div className="relative mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8 lg:py-28">
             <span className="eyebrow">Tutor Matching · A {GROUP_NAME} service</span>
             <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
@@ -73,10 +73,10 @@ export default function TutoringLandingPage() {
             {steps.map(({ icon: Icon, title, body }, i) => (
               <div key={title} className="card p-8">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
                     <Icon className="h-5 w-5" />
                   </span>
-                  <span className="font-display text-sm font-semibold text-indigo-600">Step {i + 1}</span>
+                  <span className="font-display text-sm font-semibold text-navy-600">Step {i + 1}</span>
                 </div>
                 <h3 className="mt-5 font-display text-lg font-semibold text-slate-900">{title}</h3>
                 <p className="mt-2 text-slate-600">{body}</p>
@@ -96,7 +96,7 @@ export default function TutoringLandingPage() {
             <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {features.map(({ icon: Icon, title, body }) => (
                 <div key={title} className="card p-6">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
                     <Icon className="h-5 w-5" />
                   </span>
                   <h3 className="mt-4 font-display font-semibold text-slate-900">{title}</h3>
@@ -108,14 +108,14 @@ export default function TutoringLandingPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="card overflow-hidden bg-indigo-600 p-10 text-center text-white sm:p-14">
+          <div className="card overflow-hidden bg-navy-600 p-10 text-center text-white sm:p-14">
             <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Ready to get started?</h2>
-            <p className="mx-auto mt-3 max-w-xl text-indigo-100">
+            <p className="mx-auto mt-3 max-w-xl text-navy-100">
               Find a tutor today, or join our team of educators — including retired teachers and
               trained youth — and teach with purpose.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link to="/register?role=parent" className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-50">
+              <Link to="/register?role=parent" className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-3 font-semibold text-navy-700 shadow-sm transition hover:bg-navy-50">
                 Find a tutor <ArrowRight className="h-4 w-4" />
               </Link>
               <Link to="/register?role=tutor" className="inline-flex items-center justify-center rounded-lg border border-white/40 px-5 py-3 font-semibold text-white transition hover:bg-white/10">

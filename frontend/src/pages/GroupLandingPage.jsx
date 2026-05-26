@@ -57,10 +57,10 @@ const partnerTypes = [
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50 via-white to-white">
+    <section className="relative overflow-hidden bg-gradient-to-b from-navy-50 via-white to-white">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-indigo-200/40 blur-3xl"
+        className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-navy-200/40 blur-3xl"
       />
       <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className="mx-auto max-w-3xl text-center">
@@ -87,7 +87,7 @@ function Hero() {
           {trustPoints.map(({ icon: Icon, label }) => (
             <div key={label} className="flex flex-col items-center gap-2 text-center">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-                <Icon className="h-5 w-5 text-indigo-600" />
+                <Icon className="h-5 w-5 text-navy-600" />
               </span>
               <span className="text-sm font-medium text-slate-600">{label}</span>
             </div>
@@ -121,7 +121,7 @@ function ServicesSection() {
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
                   <Icon className="h-6 w-6" />
                 </span>
                 {!service.available && (
@@ -133,7 +133,7 @@ function ServicesSection() {
               <h3 className="mt-5 font-display text-xl font-semibold text-slate-900">{service.name}</h3>
               <p className="mt-2 flex-1 text-slate-600">{service.tagline}</p>
               {service.available && (
-                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-indigo-600">
+                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-navy-600">
                   Explore <ArrowRight className="h-4 w-4" />
                 </span>
               )}
@@ -173,7 +173,7 @@ function MissionSection() {
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {missionPillars.map(({ icon: Icon, title, body }) => (
             <div key={title} className="card p-8">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
                 <Icon className="h-6 w-6" />
               </span>
               <h3 className="mt-5 font-display text-lg font-semibold text-slate-900">{title}</h3>
@@ -220,12 +220,12 @@ function PartnershipSection() {
     <section id="partner" className="mx-auto max-w-5xl px-4 py-20 sm:px-6 lg:px-8">
       <div className="card overflow-hidden">
         <div className="grid md:grid-cols-5">
-          <div className="bg-indigo-600 p-8 text-white md:col-span-2">
+          <div className="bg-navy-600 p-8 text-white md:col-span-2">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
               <HeartHandshake className="h-3.5 w-3.5" /> Partnerships
             </span>
             <h2 className="mt-5 font-display text-2xl font-bold">Partner with us</h2>
-            <p className="mt-3 text-sm leading-relaxed text-indigo-100">
+            <p className="mt-3 text-sm leading-relaxed text-navy-100">
               {GROUP_NAME} is building a connected family of education services, and the best ones
               are built together. We're not formally opening partnerships yet — but if this sounds
               like you, introduce yourself and we'll reach out as opportunities open up.
@@ -234,7 +234,7 @@ function PartnershipSection() {
               {partnerTypes.map((p) => (
                 <li key={p.title}>
                   <p className="text-sm font-semibold text-white">{p.title}</p>
-                  <p className="text-sm text-indigo-100">{p.body}</p>
+                  <p className="text-sm text-navy-100">{p.body}</p>
                 </li>
               ))}
             </ul>

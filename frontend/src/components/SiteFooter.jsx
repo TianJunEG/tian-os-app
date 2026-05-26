@@ -10,7 +10,7 @@ export default function SiteFooter() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 max-w-sm">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-600 text-white">
                 <GraduationCap className="h-5 w-5" />
               </span>
               <span className="font-display text-lg font-semibold text-white">{GROUP_NAME}</span>

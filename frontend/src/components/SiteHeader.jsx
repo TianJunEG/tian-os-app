@@ -11,7 +11,7 @@ const navLinks = [
 
 const linkClass = ({ isActive }) =>
   `text-sm font-medium transition ${
-    isActive ? 'text-indigo-700' : 'text-slate-600 hover:text-indigo-700'
+    isActive ? 'text-navy-700' : 'text-slate-600 hover:text-navy-700'
   }`;
 
 export default function SiteHeader() {
@@ -22,7 +22,7 @@ export default function SiteHeader() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-600 text-white">
               <GraduationCap className="h-5 w-5" />
             </span>
             <span className="font-display font-semibold text-slate-900">
@@ -40,12 +40,12 @@ export default function SiteHeader() {
           </nav>
 
           <div className="hidden items-center gap-4 md:flex">
-            <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-700">
+            <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-navy-700">
               Sign in
             </Link>
             <Link
               to="/register"
-              className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+              className="inline-flex items-center rounded-lg bg-navy-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-navy-700"
             >
               Get started
             </Link>
@@ -86,7 +86,7 @@ export default function SiteHeader() {
             <Link
               to="/register"
               onClick={() => setOpen(false)}
-              className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-center text-sm font-semibold text-white"
+              className="flex-1 rounded-lg bg-navy-600 px-4 py-2 text-center text-sm font-semibold text-white"
             >
               Get started
             </Link>
