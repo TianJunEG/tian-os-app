@@ -54,14 +54,14 @@ export default function SpellingHomePage() {
         {stats && stats.total > 0 && (
           <button
             onClick={() => navigate('/spelling/progress')}
-            className="w-full mb-6 p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition flex flex-wrap items-center gap-6 text-left"
+            className="w-full mb-6 p-4 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition flex flex-wrap items-center gap-6 text-left"
           >
             <div className="flex items-center gap-2 text-gray-700">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
+              <TrendingUp className="w-5 h-5 text-navy-600" />
               <span className="font-semibold">{stats.accuracy}%</span> accuracy
             </div>
             {game && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-navy-100 text-navy-700 rounded-full text-xs font-semibold">
                 Level {game.level}
               </span>
             )}
@@ -77,7 +77,7 @@ export default function SpellingHomePage() {
                 <span className="text-rose-500 font-medium">{stats.mastery.weak}</span> to revise
               </div>
             )}
-            <span className="ml-auto text-sm text-purple-600 inline-flex items-center gap-1">
+            <span className="ml-auto text-sm text-navy-600 inline-flex items-center gap-1">
               View progress <ChevronRight className="w-4 h-4" />
             </span>
           </button>
@@ -86,7 +86,7 @@ export default function SpellingHomePage() {
         {dueCount > 0 && (
           <button
             onClick={() => navigate('/spelling/due')}
-            className="w-full mb-6 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col sm:flex-row sm:items-center gap-3 text-left bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
+            className="w-full mb-6 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col sm:flex-row sm:items-center gap-3 text-left bg-gradient-to-r from-navy-600 to-navy-600 text-white"
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <CalendarClock className="w-6 h-6 shrink-0" />
@@ -114,14 +114,14 @@ export default function SpellingHomePage() {
                 ? `${dueCount} word(s) due for review`
                 : "You're all caught up"
             }
-            color="bg-indigo-600"
+            color="bg-navy-600"
             onClick={() => navigate('/spelling/due')}
           />
           <Tile
             icon={ListChecks}
             title="My lists"
             desc={listCount != null ? `${listCount} list(s) — practise & test` : 'Your spelling lists'}
-            color="bg-purple-600"
+            color="bg-navy-600"
             onClick={() => navigate('/spelling/lists')}
           />
           <Tile
@@ -177,7 +177,7 @@ export default function SpellingHomePage() {
             icon={Upload}
             title="Upload a list"
             desc="PDF, Word, photo or text"
-            color="bg-indigo-600"
+            color="bg-navy-600"
             onClick={() => navigate('/spelling/lists/new?upload=1')}
           />
         </div>

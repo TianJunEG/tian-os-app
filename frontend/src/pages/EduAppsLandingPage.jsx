@@ -24,8 +24,8 @@ export default function EduAppsLandingPage() {
       <SiteHeader />
 
       <main id="main">
-        <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50 via-white to-white">
-          <div aria-hidden="true" className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-indigo-200/40 blur-3xl" />
+        <section className="relative overflow-hidden bg-gradient-to-b from-navy-50 via-white to-white">
+          <div aria-hidden="true" className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-navy-200/40 blur-3xl" />
           <div className="relative mx-auto max-w-7xl px-4 py-24 text-center sm:px-6 lg:px-8">
             <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-700">
               Coming soon
@@ -48,7 +48,7 @@ export default function EduAppsLandingPage() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {previews.map(({ icon: Icon, title, body }) => (
               <div key={title} className="card p-8">
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
                   <Icon className="h-6 w-6" />
                 </span>
                 <h3 className="mt-5 font-display text-lg font-semibold text-slate-900">{title}</h3>
@@ -57,7 +57,7 @@ export default function EduAppsLandingPage() {
             ))}
           </div>
           <div className="mt-12 text-center">
-            <Link to="/" className="inline-flex items-center gap-2 font-semibold text-indigo-600 hover:text-indigo-700">
+            <Link to="/" className="inline-flex items-center gap-2 font-semibold text-navy-600 hover:text-navy-700">
               <ArrowLeft className="h-4 w-4" /> Back to {GROUP_NAME}
             </Link>
           </div>

@@ -110,7 +110,7 @@ export default function ParentProgressPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600"></div>
             <p className="mt-4 text-gray-600">Loading progress...</p>
           </div>
         ) : !progress || progress.totalSessions === 0 ? (
@@ -119,7 +119,7 @@ export default function ParentProgressPage() {
             <p className="text-gray-600 mb-4">No completed sessions yet. Progress appears here once your tutor submits session notes.</p>
             <button
               onClick={() => navigate('/search')}
-              className="text-purple-600 hover:text-purple-700 font-medium"
+              className="text-navy-600 hover:text-navy-700 font-medium"
             >
               Find a tutor →
             </button>
@@ -132,7 +132,7 @@ export default function ParentProgressPage() {
                 icon={TrendingUp}
                 label="Average progress"
                 value={`${progress.averageProgress}%`}
-                accent="bg-purple-100 text-purple-600"
+                accent="bg-navy-100 text-navy-600"
               />
               <StatCard
                 icon={BookOpen}
@@ -175,7 +175,7 @@ export default function ParentProgressPage() {
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {progress.topicsCovered.map(topic => (
-                    <span key={topic} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                    <span key={topic} className="px-3 py-1 bg-navy-100 text-navy-700 rounded-full text-sm font-medium">
                       {topic}
                     </span>
                   ))}
@@ -235,7 +235,7 @@ export default function ParentProgressPage() {
                       <button
                         type="button"
                         onClick={() => setExpanded(prev => ({ ...prev, [session._id]: !prev[session._id] }))}
-                        className="mt-3 flex items-center gap-1 text-sm font-medium text-purple-600 hover:text-purple-700"
+                        className="mt-3 flex items-center gap-1 text-sm font-medium text-navy-600 hover:text-navy-700"
                       >
                         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         {isOpen ? 'Hide details' : 'View details'}

@@ -33,8 +33,9 @@ export default function StudentDashboardPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Learning</h1>
-            <p className="text-gray-600">Your progress across every app, {user?.name?.split(' ')[0]}.</p>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Progress intelligence</div>
+            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">My Learning</h1>
+            <p className="text-gray-500 text-sm">Your progress across every app, {user?.name?.split(' ')[0]}.</p>
           </div>
         </div>
       </header>

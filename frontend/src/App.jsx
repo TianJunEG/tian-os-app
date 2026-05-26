@@ -1,8 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { Sparkles, Layers, GraduationCap, ArrowRight } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, EduOSKeyframes } from './components/eduos';
 
 // Pages
+import FounderStoryPage from './pages/FounderStoryPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -85,58 +88,72 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// Landing Page
+// Landing Page — cinematic Edu OS look (matches the launch video / founder story).
+const LANDING_FEATURES = [
+  { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake becomes targeted mastery — worksheets and revision adapt to each child.' },
+  { icon: Layers, title: 'One connected profile', body: 'Spelling, maths and science progress unify into a single readiness picture for parents.' },
+  { icon: GraduationCap, title: 'Powered by teachers', body: 'Expert tutors and an enrichment marketplace, matched to how your child learns.' },
+];
+const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
+
 const LandingPage = () => (
-  <div className="min-h-screen bg-white">
-    <header className="bg-white/80 backdrop-blur border-b border-navy-100 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg bg-navy-900 grid place-items-center text-gold-400 font-extrabold">E</span>
-          <span className="text-xl font-extrabold text-navy-900 tracking-tight">Edu<span className="text-gold-500">OS</span></span>
-        </div>
-        <div className="space-x-4">
-          <a href="/login" className="text-navy-700 hover:text-navy-900 font-medium">Login</a>
-          <a href="/register" className="px-4 py-2 bg-navy-900 text-white rounded-lg hover:bg-navy-800 transition">Sign Up</a>
-        </div>
+  <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
+    <EduOSKeyframes />
+    <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(5,10,20,0.7)', borderBottom: '1px solid rgba(180,200,240,0.12)' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Link to="/"><Wordmark /></Link>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
+          <Link to="/founder" style={navLink}>Our story</Link>
+          <Link to="/login" style={navLink}>Login</Link>
+          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: GOLD, color: '#1a1f2e', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${GOLD}66` }}>Sign Up</Link>
+        </nav>
       </div>
     </header>
 
     <main>
-      <section className="relative overflow-hidden bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 text-white">
-        <div className="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-gold-400/10 blur-3xl pointer-events-none" />
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28 text-center">
-          <div className="text-gold-300 text-xs font-semibold tracking-[0.2em] uppercase mb-5">Tian Jun Education Group</div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1]">
-            AI-Native Learning.<br /><span className="text-gold-400">Built for Every Student.</span>
-          </h1>
-          <p className="text-lg sm:text-xl text-white/70 mt-6 max-w-2xl mx-auto">
-            Powered by teachers. Designed for parents. Personalized by AI.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-4 justify-center">
-            <a href="/register?role=parent" className="px-7 py-3.5 bg-gold-400 text-navy-900 rounded-xl hover:bg-gold-300 font-bold inline-block transition">Find a Tutor</a>
-            <a href="/register?role=tutor" className="px-7 py-3.5 bg-white/10 ring-1 ring-white/25 text-white rounded-xl hover:bg-white/15 font-semibold inline-block transition">Become a Tutor</a>
-          </div>
+      <section style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(ellipse at 50% 38%, #1a2940 0%, #0a1428 58%, #050a14 100%)' }}>
+        <div style={{ position: 'absolute', right: '-6%', top: '-10%', width: 620, height: 620, borderRadius: '50%', background: `radial-gradient(circle, ${GOLD_SOFT} 0%, transparent 60%)`, filter: 'blur(40px)', pointerEvents: 'none', opacity: 0.5 }} />
+        <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
+          <Reveal><Eyebrow>Tian Jun Education Group</Eyebrow></Reveal>
+          <Reveal delay={0.1}>
+            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)' }}>
+              AI-Native Learning.<br /><span style={{ color: GOLD }}>Built for Every Student.</span>
+            </Headline>
+          </Reveal>
+          <Reveal delay={0.2}>
+            <p style={{ marginTop: 24, fontSize: 'clamp(17px, 2.2vw, 21px)', color: INK_SOFT, maxWidth: 620, margin: '24px auto 0', lineHeight: 1.6 }}>
+              Powered by teachers. Designed for parents. Personalized by AI.
+            </p>
+          </Reveal>
+          <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
+            <Link to="/register?role=parent" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: GOLD, color: '#1a1f2e', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${GOLD}66, 0 0 40px ${GOLD_SOFT}` }}>Find a Tutor <ArrowRight size={18} /></Link>
+            <Link to="/register?role=tutor" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.22)', color: INK, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>Become a Tutor</Link>
+          </Reveal>
+          <Reveal delay={0.4}>
+            <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: GOLD, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
+          </Reveal>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-3 gap-6">
-          {[
-            ['Personalized by AI', 'Every mistake becomes targeted mastery — worksheets and revision adapt to each child.'],
-            ['One connected profile', 'Spelling, maths and science progress unify into a single readiness picture for parents.'],
-            ['Powered by teachers', 'Expert tutors and an enrichment marketplace, matched to how your child learns.'],
-          ].map(([t, d]) => (
-            <div key={t} className="bg-white border border-navy-100 rounded-2xl shadow-sm p-6">
-              <h3 className="font-bold text-navy-900 mb-1.5">{t}</h3>
-              <p className="text-sm text-gray-600">{d}</p>
-            </div>
+      <section style={{ maxWidth: 1140, margin: '0 auto', padding: '90px 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22 }}>
+          {LANDING_FEATURES.map((f, i) => (
+            <Reveal key={f.title} delay={i * 0.1}>
+              <GlassCard style={{ padding: 30, height: '100%' }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(212,175,55,0.14)', border: '1px solid rgba(212,175,55,0.4)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
+                  <f.icon size={24} color={GOLD} />
+                </div>
+                <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 24, color: INK, margin: 0 }}>{f.title}</h3>
+                <p style={{ fontSize: 15, color: INK_SOFT, marginTop: 10, lineHeight: 1.6 }}>{f.body}</p>
+              </GlassCard>
+            </Reveal>
           ))}
         </div>
       </section>
     </main>
 
-    <footer className="border-t border-navy-100 py-8 text-center text-sm text-navy-400">
-      <span className="font-semibold text-navy-700">Edu OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
+    <footer style={{ borderTop: '1px solid rgba(180,200,240,0.12)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: INK_SOFT }}>
+      <span style={{ color: INK, fontWeight: 700 }}>Edu OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
     </footer>
   </div>
 );
@@ -151,6 +168,7 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/founder" element={<FounderStoryPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
           <Route path="/science" element={<ProtectedRoute><SciencePracticePage /></ProtectedRoute>} />

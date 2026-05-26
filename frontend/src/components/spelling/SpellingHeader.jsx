@@ -23,7 +23,7 @@ export default function SpellingHeader({ title, subtitle, backTo = '/spelling', 
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="hidden sm:flex items-center gap-2 text-purple-600">
+        <div className="hidden sm:flex items-center gap-2 text-navy-600">
           <SpellCheck className="w-6 h-6" />
         </div>
         <div className="flex-1 min-w-0">

@@ -109,7 +109,7 @@ export default function Crossword({ words, onAttempt }) {
                 setDir(direction);
                 focusCell(entry.row, entry.col);
               }}
-              className="text-left text-gray-600 hover:text-purple-600"
+              className="text-left text-gray-600 hover:text-navy-600"
             >
               <span className="font-semibold text-gray-800">{entry.number}.</span> {entry.clue}
             </button>
@@ -127,7 +127,7 @@ export default function Crossword({ words, onAttempt }) {
             <button
               key={d}
               onClick={() => setDir(d)}
-              className={`px-3 py-1.5 capitalize ${dir === d ? 'bg-purple-600 text-white' : 'bg-white text-gray-600'}`}
+              className={`px-3 py-1.5 capitalize ${dir === d ? 'bg-navy-600 text-white' : 'bg-white text-gray-600'}`}
             >
               {d}
             </button>
@@ -137,7 +137,7 @@ export default function Crossword({ words, onAttempt }) {
           <button onClick={reveal} className="text-gray-500 hover:underline inline-flex items-center gap-1">
             <Eye className="w-4 h-4" /> Reveal
           </button>
-          <button onClick={reset} className="text-purple-600 hover:underline inline-flex items-center gap-1">
+          <button onClick={reset} className="text-navy-600 hover:underline inline-flex items-center gap-1">
             <RotateCcw className="w-4 h-4" /> New
           </button>
         </div>
@@ -172,7 +172,7 @@ export default function Crossword({ words, onAttempt }) {
                       autoComplete="off"
                       spellCheck={false}
                       className={`w-8 h-8 text-center text-sm font-bold uppercase outline-none rounded-sm ${
-                        wrong ? 'bg-red-100 text-red-700' : right ? 'bg-green-100 text-green-700' : 'bg-white text-gray-800 focus:bg-purple-100'
+                        wrong ? 'bg-red-100 text-red-700' : right ? 'bg-green-100 text-green-700' : 'bg-white text-gray-800 focus:bg-navy-100'
                       }`}
                     />
                   </div>
@@ -182,7 +182,7 @@ export default function Crossword({ words, onAttempt }) {
           </div>
           <button
             onClick={check}
-            className="mt-4 w-full py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center justify-center gap-2"
+            className="mt-4 w-full py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2"
           >
             <CheckCircle2 className="w-5 h-5" /> Check
           </button>

@@ -67,7 +67,7 @@ export default function MisspeltWordsPage() {
           <p className="text-center text-gray-500 py-10">Loading…</p>
         ) : activity && ActiveComp ? (
           <div className="bg-white rounded-xl shadow-sm p-5 sm:p-7">
-            <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-purple-600 inline-flex items-center gap-1 mb-5">
+            <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-navy-600 inline-flex items-center gap-1 mb-5">
               <ArrowLeft className="w-4 h-4" /> Back to words
             </button>
             <ActiveComp words={words} onAttempt={record} />
@@ -80,7 +80,7 @@ export default function MisspeltWordsPage() {
                 <button
                   key={key}
                   onClick={() => setActivity(key)}
-                  className="py-3 px-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
+                  className="py-3 px-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 text-sm font-medium"
                 >
                   {label}
                 </button>
@@ -93,7 +93,7 @@ export default function MisspeltWordsPage() {
               <ul className="divide-y divide-gray-50">
                 {words.map((w) => (
                   <li key={w.word} className="flex items-center gap-3 py-2.5">
-                    <button onClick={() => speakOnce(w.word)} className="p-1.5 text-purple-500 hover:bg-purple-50 rounded" aria-label="Hear word">
+                    <button onClick={() => speakOnce(w.word)} className="p-1.5 text-navy-500 hover:bg-navy-50 rounded" aria-label="Hear word">
                       <Volume2 className="w-4 h-4" />
                     </button>
                     <span className="font-medium text-gray-900 w-40">{w.word}</span>

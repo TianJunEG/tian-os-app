@@ -44,7 +44,7 @@ export default function MobileNav() {
               key={to}
               onClick={() => navigate(to)}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] transition ${
-                active ? 'text-purple-600' : 'text-gray-500 hover:text-gray-700'
+                active ? 'text-navy-600' : 'text-gray-500 hover:text-gray-700'
               }`}
               aria-label={label}
             >

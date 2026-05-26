@@ -125,7 +125,7 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
       <p className="text-gray-700 mt-1">
         {parts.map((part, i) =>
           part.toLowerCase() === entry.word.toLowerCase() ? (
-            <span key={i} className="font-bold underline text-purple-700">{part}</span>
+            <span key={i} className="font-bold underline text-navy-700">{part}</span>
           ) : (
             <span key={i}>{part}</span>
           )
@@ -154,12 +154,12 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
       <div className="flex flex-wrap items-center gap-3 mb-6 text-sm">
         {hasSentences && (
           <label className="inline-flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={readSentence} onChange={(e) => setReadSentence(e.target.checked)} className="rounded text-purple-600" />
+            <input type="checkbox" checked={readSentence} onChange={(e) => setReadSentence(e.target.checked)} className="rounded text-navy-600" />
             Read whole sentence
           </label>
         )}
         <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={slow} onChange={(e) => setSlow(e.target.checked)} className="rounded text-purple-600" />
+          <input type="checkbox" checked={slow} onChange={(e) => setSlow(e.target.checked)} className="rounded text-navy-600" />
           Slower voice
         </label>
         <span className="ml-auto flex items-center gap-2 text-gray-500">
@@ -176,12 +176,12 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
       <div className="flex flex-col items-center gap-4 mb-6">
         <button
           onClick={play}
-          className="w-24 h-24 rounded-full bg-purple-600 text-white flex items-center justify-center hover:bg-purple-700 shadow-lg transition active:scale-95"
+          className="w-24 h-24 rounded-full bg-navy-600 text-white flex items-center justify-center hover:bg-navy-700 shadow-lg transition active:scale-95"
           aria-label="Play"
         >
           <Volume2 className="w-10 h-10" />
         </button>
-        <button onClick={play} className="text-sm text-purple-600 hover:underline inline-flex items-center gap-1">
+        <button onClick={play} className="text-sm text-navy-600 hover:underline inline-flex items-center gap-1">
           <RotateCcw className="w-4 h-4" /> Repeat
         </button>
         {!canSpeak && <div className="text-2xl font-bold tracking-wide text-gray-800">{current.word}</div>}
@@ -194,7 +194,7 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
           <HandwritingPad key={index} />
 
           {!revealed ? (
-            <button onClick={reveal} className="mt-4 w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center justify-center gap-2">
+            <button onClick={reveal} className="mt-4 w-full py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
               <Eye className="w-5 h-5" /> Show answer
             </button>
           ) : (
@@ -216,7 +216,7 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
                   </div>
                 </>
               ) : (
-                <button onClick={next} className="mt-4 w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center justify-center gap-2">
+                <button onClick={next} className="mt-4 w-full py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
                   {lastWord ? 'See results' : 'Next word'} <ChevronRight className="w-5 h-5" />
                 </button>
               )}
@@ -236,7 +236,7 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
             spellCheck={false}
             placeholder="Type the word…"
             className={`w-full text-center text-2xl py-4 px-4 border-2 rounded-xl outline-none transition ${
-              result === 'correct' ? 'border-green-500 bg-green-50' : result === 'wrong' ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-purple-500'
+              result === 'correct' ? 'border-green-500 bg-green-50' : result === 'wrong' ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-navy-500'
             }`}
           />
 
@@ -256,9 +256,9 @@ export default function MockTest({ words, onAttempt, lang = 'en' }) {
 
           <div className="mt-6 flex gap-3">
             {!result ? (
-              <button type="submit" className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium">Check</button>
+              <button type="submit" className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium">Check</button>
             ) : (
-              <button type="submit" className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center justify-center gap-2">
+              <button type="submit" className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
                 {lastWord ? 'See results' : 'Next word'} <ChevronRight className="w-5 h-5" />
               </button>
             )}

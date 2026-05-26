@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { Wordmark } from '../components/eduos';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -34,10 +35,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 text-center">Welcome Back</h1>
-        <p className="text-center text-gray-600 mb-8">Sign in to your Tian Jun Education Group account</p>
+    <div className="min-h-screen bg-gradient-to-br from-navy-50 to-gold-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl border border-navy-100 p-8 w-full max-w-md">
+        <div className="flex justify-center mb-6"><Wordmark onDark={false} size={34} /></div>
+        <h1 className="text-3xl font-serif font-medium text-navy-900 mb-1 text-center">Welcome back</h1>
+        <p className="text-center text-gray-500 text-sm mb-8">Sign in to your Edu OS account</p>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -57,7 +59,7 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="john@example.com"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 required
               />
             </div>
@@ -73,7 +75,7 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 required
               />
             </div>
@@ -82,7 +84,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+            className="w-full bg-navy-800 text-white font-semibold py-2.5 rounded-lg hover:bg-navy-700 transition disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
@@ -91,7 +93,7 @@ export default function LoginPage() {
         <div className="mt-6 border-t pt-6">
           <p className="text-center text-gray-600 text-sm">
             Don't have an account?{' '}
-            <Link to="/register" className="text-purple-600 hover:text-purple-700 font-medium">
+            <Link to="/register" className="text-navy-700 hover:text-navy-900 font-semibold">
               Sign up
             </Link>
           </p>
