@@ -82,7 +82,7 @@ export default function LookCoverCheck({ words, onAttempt, lang = 'en' }) {
       {/* Step indicator */}
       <div className="flex justify-center gap-2 mb-8">
         {steps.map((s) => (
-          <span key={s} className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${phase === s ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
+          <span key={s} className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${phase === s ? 'bg-navy-600 text-white' : 'bg-gray-100 text-gray-500'}`}>
             {s}
           </span>
         ))}
@@ -94,11 +94,11 @@ export default function LookCoverCheck({ words, onAttempt, lang = 'en' }) {
             <Eye className="w-4 h-4" /> Look carefully and remember
           </p>
           <div className="text-5xl font-extrabold tracking-wide text-gray-900 mb-2">{current.word}</div>
-          <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="text-purple-600 hover:bg-purple-50 rounded-lg p-2 inline-flex items-center gap-1 text-sm">
+          <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="text-navy-600 hover:bg-navy-50 rounded-lg p-2 inline-flex items-center gap-1 text-sm">
             <Volume2 className="w-4 h-4" /> Hear it
           </button>
           {current.sentence && <p className="text-gray-500 mt-3">{current.sentence}</p>}
-          <button onClick={() => setPhase('write')} className="mt-8 w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center justify-center gap-2">
+          <button onClick={() => setPhase('write')} className="mt-8 w-full py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
             <EyeOff className="w-5 h-5" /> Cover &amp; write
           </button>
         </div>
@@ -115,7 +115,7 @@ export default function LookCoverCheck({ words, onAttempt, lang = 'en' }) {
               <button type="button" onClick={() => setPhase('look')} className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 inline-flex items-center gap-2">
                 <Eye className="w-5 h-5" /> Look again
               </button>
-              <button type="button" onClick={() => setPhase('check')} className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium">
+              <button type="button" onClick={() => setPhase('check')} className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium">
                 Show answer
               </button>
             </div>
@@ -132,13 +132,13 @@ export default function LookCoverCheck({ words, onAttempt, lang = 'en' }) {
               autoComplete="off"
               spellCheck={false}
               placeholder="Type the word…"
-              className="w-full text-center text-2xl py-4 border-2 border-gray-300 focus:border-purple-500 rounded-xl outline-none"
+              className="w-full text-center text-2xl py-4 border-2 border-gray-300 focus:border-navy-500 rounded-xl outline-none"
             />
             <div className="mt-6 flex gap-3">
               <button type="button" onClick={() => setPhase('look')} className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 inline-flex items-center gap-2">
                 <Eye className="w-5 h-5" /> Look again
               </button>
-              <button type="submit" disabled={!input.trim()} className="flex-1 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-40 font-medium">
+              <button type="submit" disabled={!input.trim()} className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-40 font-medium">
                 Check
               </button>
             </div>
@@ -166,7 +166,7 @@ export default function LookCoverCheck({ words, onAttempt, lang = 'en' }) {
                   </div>
                 </>
               ) : (
-                <button onClick={next} className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center justify-center gap-2">
+                <button onClick={next} className="w-full py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
                   {index + 1 >= words.length ? 'See results' : 'Next word'} <ChevronRight className="w-5 h-5" />
                 </button>
               )}
@@ -189,7 +189,7 @@ export default function LookCoverCheck({ words, onAttempt, lang = 'en' }) {
                   </div>
                 )}
               </div>
-              <button onClick={next} className="w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium inline-flex items-center justify-center gap-2">
+              <button onClick={next} className="w-full py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
                 {index + 1 >= words.length ? 'See results' : 'Next word'} <ChevronRight className="w-5 h-5" />
               </button>
             </>

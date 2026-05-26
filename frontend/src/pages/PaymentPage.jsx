@@ -161,7 +161,7 @@ export default function PaymentPage() {
 
               <div className="border-t pt-4 flex justify-between items-center">
                 <span className="font-semibold text-gray-900">Total Amount Due</span>
-                <span className="text-2xl font-bold text-purple-600">${booking.totalCost}</span>
+                <span className="text-2xl font-bold text-navy-600">${booking.totalCost}</span>
               </div>
             </div>
 
@@ -196,7 +196,7 @@ export default function PaymentPage() {
                     value={cardDetails.name}
                     onChange={handleCardChange}
                     placeholder="John Doe"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -212,7 +212,7 @@ export default function PaymentPage() {
                     onChange={handleCardChange}
                     placeholder="4242 4242 4242 4242"
                     maxLength="19"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent font-mono"
                     required
                   />
                   <p className="text-xs text-gray-500 mt-1">Test: 4242 4242 4242 4242</p>
@@ -229,7 +229,7 @@ export default function PaymentPage() {
                       value={cardDetails.expiry}
                       onChange={handleCardChange}
                       placeholder="MM/YY"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent font-mono"
                       required
                     />
                   </div>
@@ -245,7 +245,7 @@ export default function PaymentPage() {
                       onChange={handleCardChange}
                       placeholder="123"
                       maxLength="4"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent font-mono"
                       required
                     />
                   </div>
@@ -260,7 +260,7 @@ export default function PaymentPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+                  className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
                 >
                   {loading ? 'Processing...' : `Pay $${booking.totalCost}`}
                 </button>

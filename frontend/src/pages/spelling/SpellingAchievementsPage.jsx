@@ -60,7 +60,7 @@ export default function SpellingAchievementsPage() {
         ) : (
           <>
             {/* Level + streak banner */}
-            <div className="bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-2xl p-6 mb-6 shadow">
+            <div className="bg-gradient-to-br from-navy-600 to-blue-600 text-white rounded-2xl p-6 mb-6 shadow">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <div className="text-sm opacity-80">Level</div>
@@ -131,7 +131,7 @@ export default function SpellingAchievementsPage() {
                       <div className="text-xs text-gray-500 mb-2">{b.description}</div>
                       {!b.earned && (
                         <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                          <div className="h-full bg-purple-400" style={{ width: `${pct}%` }} />
+                          <div className="h-full bg-navy-400" style={{ width: `${pct}%` }} />
                         </div>
                       )}
                     </div>

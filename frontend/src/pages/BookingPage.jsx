@@ -106,7 +106,7 @@ export default function BookingPage() {
               <div className="space-y-3 mb-6 pb-6 border-b">
                 <div>
                   <p className="text-sm text-gray-600">Hourly Rate</p>
-                  <p className="text-2xl font-bold text-purple-600">${tutor.hourlyRate}/hr</p>
+                  <p className="text-2xl font-bold text-navy-600">${tutor.hourlyRate}/hr</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Rating</p>
@@ -124,7 +124,7 @@ export default function BookingPage() {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-700">Session Cost</span>
-                    <span className="text-xl font-bold text-purple-600">${totalCost}</span>
+                    <span className="text-xl font-bold text-navy-600">${totalCost}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm text-gray-600">
                     <span>Platform fee (10%)</span>
@@ -132,7 +132,7 @@ export default function BookingPage() {
                   </div>
                   <div className="border-t mt-4 pt-4 flex justify-between items-center">
                     <span className="font-semibold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-purple-600">${totalCost}</span>
+                    <span className="text-lg font-bold text-navy-600">${totalCost}</span>
                   </div>
                 </div>
               </div>
@@ -161,7 +161,7 @@ export default function BookingPage() {
                     value={formData.subject}
                     onChange={handleChange}
                     placeholder="e.g. Algebra homework, SAT prep"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -175,7 +175,7 @@ export default function BookingPage() {
                     name="duration"
                     value={formData.duration}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                   >
                     <option value={0.5}>0.5 hours ($25)</option>
                     <option value={1}>1 hour (${tutor.hourlyRate})</option>
@@ -198,7 +198,7 @@ export default function BookingPage() {
                     value={formData.scheduledDate}
                     onChange={handleChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -214,7 +214,7 @@ export default function BookingPage() {
                     name="startTime"
                     value={formData.startTime}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -232,7 +232,7 @@ export default function BookingPage() {
                         value="online"
                         checked={formData.sessionType === 'online'}
                         onChange={handleChange}
-                        className="w-4 h-4 text-purple-600"
+                        className="w-4 h-4 text-navy-600"
                       />
                       <span className="ml-3 text-gray-700">Online (via Zoom/Google Meet)</span>
                     </label>
@@ -243,7 +243,7 @@ export default function BookingPage() {
                         value="in-person"
                         checked={formData.sessionType === 'in-person'}
                         onChange={handleChange}
-                        className="w-4 h-4 text-purple-600"
+                        className="w-4 h-4 text-navy-600"
                       />
                       <span className="ml-3 text-gray-700">In-person</span>
                     </label>
@@ -262,7 +262,7 @@ export default function BookingPage() {
                       value={formData.meetingLink}
                       onChange={handleChange}
                       placeholder="https://zoom.us/j/..."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                     />
                   </div>
                 ) : (
@@ -276,7 +276,7 @@ export default function BookingPage() {
                       value={formData.location}
                       onChange={handleChange}
                       placeholder="123 Main St, City, State"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                     />
                   </div>
                 )}
@@ -292,14 +292,14 @@ export default function BookingPage() {
                     onChange={handleChange}
                     placeholder="Let the tutor know what you want to focus on..."
                     rows="4"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+                  className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
                 >
                   {loading ? 'Processing...' : 'Continue to Payment'}
                 </button>

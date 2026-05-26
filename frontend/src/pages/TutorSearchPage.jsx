@@ -78,7 +78,7 @@ export default function TutorSearchPage() {
                   placeholder="e.g. Math, English"
                   value={filters.specialty}
                   onChange={(e) => setFilters(prev => ({ ...prev, specialty: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 />
               </div>
 
@@ -89,7 +89,7 @@ export default function TutorSearchPage() {
                 <select
                   value={filters.grade}
                   onChange={(e) => setFilters(prev => ({ ...prev, grade: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 >
                   <option value="">All levels</option>
                   {grades.map(grade => (
@@ -107,14 +107,14 @@ export default function TutorSearchPage() {
                   placeholder="e.g. 75"
                   value={filters.maxRate}
                   onChange={(e) => setFilters(prev => ({ ...prev, maxRate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 />
               </div>
 
               <div className="flex items-end">
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 rounded-lg hover:shadow-lg transition flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-2 rounded-lg hover:shadow-lg transition flex items-center justify-center gap-2"
                 >
                   <Search className="w-4 h-4" />
                   Search
@@ -135,7 +135,7 @@ export default function TutorSearchPage() {
                       handleCategoryClick(cat.name);
                       setFilters(prev => ({ ...prev, specialty: cat.name }));
                     }}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-gray-800 rounded-lg hover:shadow-md transition text-sm font-medium"
+                    className="px-4 py-2 bg-gradient-to-r from-navy-100 to-blue-100 text-gray-800 rounded-lg hover:shadow-md transition text-sm font-medium"
                   >
                     {cat.emoji} {cat.name}
                   </button>
@@ -148,7 +148,7 @@ export default function TutorSearchPage() {
         {/* Results */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600"></div>
             <p className="mt-4 text-gray-600">Searching for tutors...</p>
           </div>
         ) : searched ? (
@@ -164,7 +164,7 @@ export default function TutorSearchPage() {
                 <p className="text-gray-600 mb-4">No tutors found matching your criteria.</p>
                 <button
                   onClick={() => setSearched(false)}
-                  className="text-purple-600 hover:text-purple-700 font-medium"
+                  className="text-navy-600 hover:text-navy-700 font-medium"
                 >
                   Try different filters
                 </button>
@@ -210,7 +210,7 @@ export default function TutorSearchPage() {
                           {tutor.specialties.slice(0, 3).map((specialty) => (
                             <span
                               key={specialty}
-                              className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium"
+                              className="px-2 py-1 bg-navy-100 text-navy-700 rounded text-xs font-medium"
                             >
                               {specialty}
                             </span>
@@ -243,7 +243,7 @@ export default function TutorSearchPage() {
                           </div>
                           <div className="w-full bg-gray-300 rounded-full h-2 mt-2">
                             <div
-                              className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full"
+                              className="bg-gradient-to-r from-navy-600 to-blue-600 h-2 rounded-full"
                               style={{ width: `${tutor.compatibilityScore.percentage}%` }}
                             ></div>
                           </div>
@@ -253,14 +253,14 @@ export default function TutorSearchPage() {
                       {/* Rate and Button */}
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-2xl font-bold text-purple-600">
+                          <p className="text-2xl font-bold text-navy-600">
                             ${tutor.hourlyRate}
                           </p>
                           <p className="text-xs text-gray-600">per hour</p>
                         </div>
                         <button
                           onClick={() => navigate(`/booking/${tutor.userId._id}`)}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium text-sm"
+                          className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition font-medium text-sm"
                         >
                           Book Now
                         </button>

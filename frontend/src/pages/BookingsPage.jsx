@@ -106,7 +106,7 @@ export default function BookingsPage() {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-blue-100 text-blue-800',
-      in_progress: 'bg-purple-100 text-purple-800',
+      in_progress: 'bg-navy-100 text-navy-800',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800'
     };
@@ -135,7 +135,7 @@ export default function BookingsPage() {
               onClick={() => setFilter(status)}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 filter === status
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-navy-600 text-white'
                   : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
               }`}
             >
@@ -153,7 +153,7 @@ export default function BookingsPage() {
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600"></div>
             <p className="mt-4 text-gray-600">Loading bookings...</p>
           </div>
         ) : bookings.length === 0 ? (
@@ -207,7 +207,7 @@ export default function BookingsPage() {
                     </span>
                     <div className="mt-4">
                       <p className="text-sm text-gray-600">Total</p>
-                      <p className="text-lg font-bold text-purple-600">${booking.totalCost}</p>
+                      <p className="text-lg font-bold text-navy-600">${booking.totalCost}</p>
                     </div>
                   </div>
                 </div>
@@ -226,7 +226,7 @@ export default function BookingsPage() {
                     {user?.role === 'tutor' && booking.status === 'confirmed' && (
                       <button
                         onClick={() => handleCheckin(booking._id)}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm font-medium"
+                        className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition text-sm font-medium"
                       >
                         Start Session
                       </button>
@@ -275,7 +275,7 @@ export default function BookingsPage() {
                   value={notesForm.topicsCovered}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, topicsCovered: e.target.value }))}
                   placeholder="e.g. Quadratic equations, Factoring"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -287,7 +287,7 @@ export default function BookingsPage() {
                 <select
                   value={notesForm.studentUnderstanding}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, studentUnderstanding: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 >
                   <option value="struggling">Struggling</option>
                   <option value="ok">OK</option>
@@ -304,7 +304,7 @@ export default function BookingsPage() {
                   value={notesForm.homeworkAssigned}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, homeworkAssigned: e.target.value }))}
                   placeholder="e.g. Practice set 3, problems 1-10"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -317,7 +317,7 @@ export default function BookingsPage() {
                   value={notesForm.additionalNotes}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, additionalNotes: e.target.value }))}
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 />
               </div>
 

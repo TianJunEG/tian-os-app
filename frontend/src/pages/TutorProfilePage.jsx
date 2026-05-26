@@ -135,7 +135,7 @@ export default function TutorProfilePage() {
                 value={formData.headline}
                 onChange={handleChange}
                 placeholder="e.g. Expert Math Tutor with 10 Years Experience"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 required
               />
             </div>
@@ -153,7 +153,7 @@ export default function TutorProfilePage() {
                 placeholder="50"
                 min="5"
                 max="500"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
                 required
               />
             </div>
@@ -170,7 +170,7 @@ export default function TutorProfilePage() {
                       type="checkbox"
                       checked={formData.specialties.includes(specialty)}
                       onChange={() => toggleArray('specialties', specialty)}
-                      className="w-4 h-4 text-purple-600"
+                      className="w-4 h-4 text-navy-600"
                     />
                     <span className="ml-2 text-gray-700 text-sm">{specialty}</span>
                   </label>
@@ -190,7 +190,7 @@ export default function TutorProfilePage() {
                       type="checkbox"
                       checked={formData.grades.includes(grade)}
                       onChange={() => toggleArray('grades', grade)}
-                      className="w-4 h-4 text-purple-600"
+                      className="w-4 h-4 text-navy-600"
                     />
                     <span className="ml-2 text-gray-700 text-sm">{grade}</span>
                   </label>
@@ -209,7 +209,7 @@ export default function TutorProfilePage() {
                 onChange={handleChange}
                 placeholder="Tell students about your teaching style and experience..."
                 rows="4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               />
             </div>
 
@@ -224,7 +224,7 @@ export default function TutorProfilePage() {
                 onChange={handleChange}
                 placeholder="Describe your teaching experience..."
                 rows="3"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               />
             </div>
 
@@ -239,7 +239,7 @@ export default function TutorProfilePage() {
                 onChange={handleChange}
                 placeholder="List your degrees, certifications, and qualifications..."
                 rows="3"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               />
             </div>
 
@@ -256,14 +256,14 @@ export default function TutorProfilePage() {
                   ...prev,
                   languages: e.target.value.split(',').map(l => l.trim()).filter(l => l)
                 }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               />
             </div>
 
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-navy-600 to-blue-600 text-white font-medium py-3 rounded-lg hover:shadow-lg transition disabled:opacity-50"
             >
               {saving ? 'Saving...' : 'Save Profile'}
             </button>
