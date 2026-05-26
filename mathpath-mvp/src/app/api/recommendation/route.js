@@ -31,14 +31,16 @@ export async function GET(req) {
 
   const domains = Object.entries(DOMAINS).map(([key, name]) => ({ key, name, skills: chain.filter((c) => c.domain === key) }));
 
-  // Most recent completed session analytics.
+  // Most recent completed session analytics + a confidence trend (last ~14 sessions).
   let last_session = null;
+  let confidence_trend = [];
   try {
     const { sessions } = await collections();
     const rows = await (await sessions.find({ student_id: studentId })).toArray();
-    const done = rows.filter((r) => r.ended_at && r.analytics).sort((a, b) => (a.ended_at < b.ended_at ? 1 : -1));
-    if (done[0]) last_session = { skill_id: done[0].skill_id, ...done[0].analytics };
+    const done = rows.filter((r) => r.ended_at && r.analytics).sort((a, b) => (a.ended_at < b.ended_at ? -1 : 1));
+    if (done.length) last_session = { skill_id: done[done.length - 1].skill_id, ...done[done.length - 1].analytics };
+    confidence_trend = done.slice(-14).map((r) => (r.analytics.confidence ?? r.analytics.accuracy ?? 0));
   } catch { /* best-effort */ }
 
-  return NextResponse.json({ recommendation, chain, domains, last_session });
+  return NextResponse.json({ recommendation, chain, domains, last_session, confidence_trend });
 }

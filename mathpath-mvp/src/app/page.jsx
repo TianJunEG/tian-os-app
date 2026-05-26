@@ -9,6 +9,32 @@ import { api, studentId, getStudent, setStudent } from '@/lib/client';
 
 const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
+// Confidence trend — a calm gold sparkline of recent session mastery (values 0–1).
+function Sparkline({ values }) {
+  const w = 320, h = 40, p = 3;
+  const min = Math.min(...values, 0), max = Math.max(...values, 1);
+  const span = max - min || 1;
+  const pts = values.map((v, i) => [
+    p + (i / Math.max(1, values.length - 1)) * (w - p * 2),
+    h - p - ((v - min) / span) * (h - p * 2),
+  ]);
+  const line = pts.map((pt, i) => `${i ? 'L' : 'M'}${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(' ');
+  const area = `${line} L${pts[pts.length - 1][0].toFixed(1)},${h} L${pts[0][0].toFixed(1)},${h} Z`;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width="100%" preserveAspectRatio="none" style={{ display: 'block' }}>
+      <defs>
+        <linearGradient id="conffill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={T.gold500} stopOpacity="0.18" />
+          <stop offset="100%" stopColor={T.gold500} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#conffill)" />
+      <path d={line} fill="none" stroke={T.gold500} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="3" fill={T.gold500} />
+    </svg>
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [student, setLocal] = useState(null);
@@ -121,6 +147,17 @@ export default function DashboardPage() {
               <span>{Math.round(rec.last_session.accuracy * 100)}% accurate</span>
               {rec.last_session.average_time_seconds != null && <span>· {rec.last_session.average_time_seconds}s avg</span>}
               {rec.last_session.mastery_delta > 0 && <span style={{ color: T.success500, fontWeight: 600 }}>· +{Math.round(rec.last_session.mastery_delta * 100)} mastery</span>}
+            </div>
+          )}
+          {rec?.confidence_trend?.length >= 2 && (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ fontSize: 11, color: T.ink500, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Confidence</span>
+                <span style={{ fontSize: 11, color: T.success500, fontWeight: 600 }}>
+                  {rec.confidence_trend[rec.confidence_trend.length - 1] >= rec.confidence_trend[0] ? 'Rising' : 'Building'}
+                </span>
+              </div>
+              <Sparkline values={rec.confidence_trend} />
             </div>
           )}
         </Card>

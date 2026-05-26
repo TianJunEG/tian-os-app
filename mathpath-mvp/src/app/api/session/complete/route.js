@@ -29,15 +29,18 @@ export async function POST(req) {
     remediation_triggered: items.some((i) => i.misconception_tag),
     mastery_delta: masteryUpdate.score_delta,
     mastery_status: masteryUpdate.mastery_status, fluency_status: masteryUpdate.fluency_status,
+    confidence: masteryUpdate.score, // 0–1, the practised skill's mastery score at session end
     next_recommendation: { skill_id: next.recommended_skill_id, skill_name: next.skill.skill_name, mode: next.mode },
   };
 
+  // Always persist the completed session's analytics (update the open session, or insert one
+  // if this came in without a session_id) so the dashboard's history/trend stays complete.
+  const { sessions } = await collections();
+  const ended_at = new Date().toISOString();
   if (session_id) {
-    const { sessions } = await collections();
-    await sessions.updateOne(
-      { _id: session_id },
-      { $set: { ended_at: new Date().toISOString(), correct_count: correct, items, analytics } },
-    );
+    await sessions.updateOne({ _id: session_id }, { $set: { ended_at, correct_count: correct, items, analytics } });
+  } else {
+    await sessions.insertOne({ _id: `sess_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, student_id: studentId, skill_id, started_at: ended_at, ended_at, correct_count: correct, items, analytics });
   }
 
   return NextResponse.json({
