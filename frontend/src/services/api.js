@@ -153,4 +153,10 @@ export const resourcesAPI = {
   getLeads: () => api.get('/resources/leads')
 };
 
+// Science API — P6 science revision bank (open-ended Q&A).
+export const scienceAPI = {
+  topics: () => api.get('/science/topics'),
+  questions: (topic, limit = 10) => api.get('/science/questions', { params: { topic, limit } })
+};
+
 export default api;

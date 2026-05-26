@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Search, BookOpen, MessageSquare, Star, SpellCheck, TrendingUp } from 'lucide-react';
+import { LogOut, Search, BookOpen, MessageSquare, Star, SpellCheck, TrendingUp, FlaskConical } from 'lucide-react';
 import { bookingsAPI } from '../services/api';
 
 export default function DashboardPage() {
@@ -128,6 +128,15 @@ export default function DashboardPage() {
             <SpellCheck className="w-8 h-8 text-pink-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Spelling</h3>
             <p className="text-sm text-gray-600">Lists, tests & games</p>
+          </button>
+
+          <button
+            onClick={() => navigate('/science')}
+            className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition text-left"
+          >
+            <FlaskConical className="w-8 h-8 text-emerald-600 mb-2" />
+            <h3 className="font-semibold text-gray-900">Science</h3>
+            <p className="text-sm text-gray-600">P6 revision Q&amp;A</p>
           </button>
         </div>
 

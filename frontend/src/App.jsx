@@ -17,6 +17,7 @@ import MessagesPage from './pages/MessagesPage';
 import TutorProfilePage from './pages/TutorProfilePage';
 import ResourcesHubPage from './pages/ResourcesHubPage';
 import ResourceDetailPage from './pages/ResourceDetailPage';
+import SciencePracticePage from './pages/SciencePracticePage';
 
 // Spelling app pages
 import SpellingHomePage from './pages/spelling/SpellingHomePage';
@@ -142,6 +143,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
+          <Route path="/science" element={<ProtectedRoute><SciencePracticePage /></ProtectedRoute>} />
 
           {/* Auth Routes */}
           <Route
