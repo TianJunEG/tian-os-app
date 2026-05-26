@@ -31,6 +31,13 @@ export async function GET(req) {
 
   const domains = Object.entries(DOMAINS).map(([key, name]) => ({ key, name, skills: chain.filter((c) => c.domain === key) }));
 
+  // Overall confidence reflects how the learner is doing on the skills they've actually started
+  // (not the next target, which is "building" right after a new skill unlocks, and not the
+  // not-yet-started skills, which would unfairly drag a strong learner down).
+  const started = chain.filter((c) => c.mastery_status !== 'not_started');
+  const overallScore = started.length ? started.reduce((a, c) => a + c.score, 0) / started.length : 0;
+  const overall_confidence = overallScore >= 0.75 ? 'confident' : overallScore >= 0.45 ? 'steady' : 'building';
+
   // Most recent completed session analytics + a confidence trend (last ~14 sessions).
   let last_session = null;
   let confidence_trend = [];
@@ -42,5 +49,5 @@ export async function GET(req) {
     confidence_trend = done.slice(-14).map((r) => (r.analytics.confidence ?? r.analytics.accuracy ?? 0));
   } catch { /* best-effort */ }
 
-  return NextResponse.json({ recommendation, chain, domains, last_session, confidence_trend });
+  return NextResponse.json({ recommendation, chain, domains, last_session, confidence_trend, overall_confidence });
 }

@@ -52,7 +52,7 @@ export default function MathPathDashboard() {
   const kind = KIND_COPY[rec.kind] || KIND_COPY.continue;
   const overall = Math.round((data.chain.reduce((a, s) => a + s.score, 0) / data.chain.length) * 100);
   const mastered = data.chain.filter((s) => s.mastery_status === 'mastered').length;
-  const conf = CONFIDENCE[rec.confidence_status] || CONFIDENCE.steady;
+  const conf = CONFIDENCE[data.overall_confidence] || CONFIDENCE[rec.confidence_status] || CONFIDENCE.steady;
 
   return (
     <div style={{ paddingBottom: 32, animation: `tian-in .4s ${T.easeCalm}` }}>
