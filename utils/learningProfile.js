@@ -29,7 +29,7 @@ export function spellingContribution(stats, subjectId = 'eng') {
 }
 
 // Topic-based source (Math/Science) → a contribution. `topics`: [{ name, status, accuracy }]
-// where status ∈ not-started|learning|needs-revision|mastered (matches the MathPath/edu-os model).
+// where status ∈ not-started|learning|needs-revision|mastered (matches the MathPath/tian-os model).
 export function topicContribution(source, subjectId, topics = []) {
   const mastered = topics.filter((t) => t.status === 'mastered').length;
   const accs = topics.filter((t) => t.accuracy).map((t) => t.accuracy);

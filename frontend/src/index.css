@@ -1,6 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* =====================================================================
+   Tian OS design tokens — single source of truth for the unified shell.
+   Mirrors the design bundle's colors_and_type.css. Use these CSS vars (or the
+   matching Tailwind colours) everywhere; do not introduce ad-hoc colours.
+   ===================================================================== */
+:root {
+  /* Brand */
+  --navy-900:#0E1A36; --navy-700:#1A2A4F; --navy-500:#2E4477;
+  --navy-300:#6B7FA8; --navy-100:#DDE3F0; --navy-50:#F1F4FA;
+  --gold-700:#8E6F1F; --gold-500:#C9A23C; --gold-300:#E3C97A; --gold-100:#F6EBC9;
+  /* Neutrals (ink/paper/lines) */
+  --ink-900:#0E1320; --ink-700:#1F2330; --ink-500:#5B5F6E; --ink-300:#9A9DA9; --ink-100:#C9CBD3;
+  --paper:#FFFFFF; --ivory:#FAFAF7; --bone:#F3F1EA; --hairline:#EFEDE6;
+  /* Semantic */
+  --success-500:#2F8F6F; --success-100:#DEF0E8;
+  --warn-500:#C9A23C;    --warn-100:#F6EBC9;
+  --error-500:#B4453C;   --error-100:#F4DAD6;
+  /* Mastery heatmap scale */
+  --mastery-0:#F3F1EA; --mastery-1:#DDE3F0; --mastery-2:#B5C2DD;
+  --mastery-3:#6B7FA8; --mastery-4:#2E4477; --mastery-5:#1A2A4F;
+  /* Type */
+  --font-display:'Fraunces',Georgia,serif;
+  --font-text:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  /* Elevation / motion / layout */
+  --shadow-resting:0 1px 2px rgba(26,42,79,.04), 0 8px 24px -12px rgba(26,42,79,.06);
+  --shadow-active:0 4px 16px -4px rgba(26,42,79,.10), 0 12px 40px -8px rgba(26,42,79,.08);
+  --ease-calm:cubic-bezier(0.2,0.8,0.2,1);
+  --nav-h:64px; --bottomnav-h:68px;
+}
 
 * {
   margin: 0;

@@ -1,0 +1,17 @@
+import mongoose from 'mongoose';
+
+// One answered question within a session. Feeds mastery updates and (on
+// incorrect) mistake records.
+const practiceAttemptSchema = new mongoose.Schema({
+  sessionId: { type: mongoose.Schema.Types.ObjectId, ref: 'PracticeSession', required: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
+  questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
+  skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
+  answer: { type: String, default: '' },
+  correct: { type: Boolean, default: false },
+  timeMs: { type: Number, default: null },
+  hintsUsed: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+export default mongoose.model('PracticeAttempt', practiceAttemptSchema);

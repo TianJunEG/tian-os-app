@@ -12,9 +12,23 @@ export default {
         // main's pages use font-display for headers; map it to our brand serif.
         display: ['Fraunces', 'Georgia', 'serif'],
         hand: ['Caveat', 'cursive'],
+        // Tian OS unified shell: Inter for UI/body, JetBrains Mono for numerics.
+        ui: ['Inter', '-apple-system', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'Menlo', 'monospace'],
+      },
+      boxShadow: {
+        resting: '0 1px 2px rgba(26,42,79,.04), 0 8px 24px -12px rgba(26,42,79,.06)',
+        active: '0 4px 16px -4px rgba(26,42,79,.10), 0 12px 40px -8px rgba(26,42,79,.08)',
       },
       colors: {
-        // Edu OS brand palette — clean white + deep navy + soft gold.
+        // Tian OS neutral system — ink (text), paper/ivory/bone (surfaces), hairline (borders).
+        ink: { 900: '#0E1320', 700: '#1F2330', 500: '#5B5F6E', 300: '#9A9DA9', 100: '#C9CBD3' },
+        paper: '#FFFFFF', ivory: '#FAFAF7', bone: '#F3F1EA', hairline: '#EFEDE6',
+        // Mastery heatmap scale (ivory → navy).
+        mastery: { 0: '#F3F1EA', 1: '#DDE3F0', 2: '#B5C2DD', 3: '#6B7FA8', 4: '#2E4477', 5: '#1A2A4F' },
+        success: { 100: '#DEF0E8', 500: '#2F8F6F', 700: '#1F6B53' },
+        error: { 100: '#F4DAD6', 500: '#B4453C', 700: '#8A2F28' },
+        // Tian OS brand palette — clean white + deep navy + soft gold.
         navy: {
           50: '#f3f6fb', 100: '#e2e9f3', 200: '#c5d3e7', 300: '#9fb3d1',
           400: '#5d7aa8', 500: '#2f4f7e', 600: '#1d3a63', 700: '#142b4d',

@@ -5,7 +5,7 @@ import { ArrowLeft, Plus, GraduationCap } from 'lucide-react';
 import { learningAPI } from '../services/api';
 import ProgressRing from '../components/ProgressRing';
 
-// Education OS — Parent dashboard. Overview of every child, each with a headline readiness.
+// Tian OS — Parent dashboard. Overview of every child, each with a headline readiness.
 // Tap a child for their full cross-app profile. Reads GET /api/learning/children.
 const bandStyles = {
   'on track': 'bg-green-100 text-green-800',

@@ -1,6 +1,6 @@
 // diagnostic.js — placement.
 //
-// The Kip McGrath idea: assess first, then practise the *gap*. We probe one question
+// The core idea: assess first, then practise the *gap*. We probe one question
 // per rung from the bottom up. The first miss is where the learner starts (practise the
 // first thing they can't do). The controller stops early after two misses in a row.
 

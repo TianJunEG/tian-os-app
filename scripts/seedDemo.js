@@ -1,9 +1,9 @@
 // Demo seed for the launch video. Creates a parent with two children and realistic cross-app
 // progress (Spelling + Math + Science) engineered to land in varied readiness bands — so the
-// Edu OS dashboards show rich, multi-coloured rings on camera.
+// Tian OS dashboards show rich, multi-coloured rings on camera.
 //
 //   node scripts/seedDemo.js
-//   login: demo.parent@eduos.test / Passw0rd!  → film /children
+//   login: demo.parent@tianos.test / Passw0rd!  → film /children
 //
 // Idempotent: only touches the demo account (re-running resets its data).
 import dotenv from 'dotenv';
@@ -15,7 +15,7 @@ import { buildSpellingAttempts, buildResults, ETHAN_WORDS, MAYA_WORDS, ETHAN_RES
 
 dotenv.config();
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
-const EMAIL = 'demo.parent@eduos.test';
+const EMAIL = 'demo.parent@tianos.test';
 const PASSWORD = 'Passw0rd!';
 
 async function main() {

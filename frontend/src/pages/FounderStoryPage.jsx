@@ -6,10 +6,10 @@ import {
 } from 'lucide-react';
 import {
   GOLD, GOLD_SOFT, INK, INK_SOFT, SERIF, SANS, glassPanel,
-  Reveal, Eyebrow, Headline, Wordmark, Avatar, TrustRing, EduOSKeyframes,
-} from '../components/eduos';
+  Reveal, Eyebrow, Headline, Wordmark, Avatar, TrustRing, TianOSKeyframes,
+} from '../components/tianos';
 
-// Founder Story — "Built by Teachers". The fullest expression of the Edu OS launch-video look.
+// Founder Story — "Built by Teachers". The fullest expression of the Tian OS launch-video look.
 function CurriculumCard() {
   const rows = [
     { wk: 'Wk 1', topic: 'Fractions · part-whole', note: '✓ revise from P4 baseline' },
@@ -58,7 +58,7 @@ const WHY_TM = [
 export default function FounderStoryPage() {
   return (
     <div style={{ background: '#050a14', color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
-      <EduOSKeyframes />
+      <TianOSKeyframes />
 
       <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(5,10,20,0.7)', borderBottom: '1px solid rgba(180,200,240,0.12)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -77,7 +77,7 @@ export default function FounderStoryPage() {
             <Eyebrow>Our story</Eyebrow>
             <Headline style={{ marginTop: 20 }}>Built by teachers<br />who understand learning.</Headline>
             <p style={{ marginTop: 22, maxWidth: 460, fontSize: 19, lineHeight: 1.6, color: INK_SOFT }}>
-              TutorMatch and Edu OS were built from years of real teaching experience — Singapore classrooms, exam pressure, learning gaps, and the different ways students learn.
+              TutorMatch and Tian OS were built from years of real teaching experience — Singapore classrooms, exam pressure, learning gaps, and the different ways students learn.
             </p>
           </Reveal>
           <Reveal delay={0.15} style={{ display: 'flex', justifyContent: 'center' }}>
@@ -181,7 +181,7 @@ export default function FounderStoryPage() {
         </div>
       </section>
 
-      {/* Scene 6 — Why Edu OS (modules) */}
+      {/* Scene 6 — Why Tian OS (modules) */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 24px' }}>
         <Reveal>
           <Eyebrow>Beyond tuition</Eyebrow>
@@ -223,7 +223,7 @@ export default function FounderStoryPage() {
             <Link to="/register?role=parent" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '16px 34px', borderRadius: 999, background: GOLD, color: '#1a1f2e', fontFamily: SANS, fontSize: 16, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none', boxShadow: `0 20px 40px -10px ${GOLD}55, 0 0 40px ${GOLD_SOFT}` }}>
               Join the launch waitlist <ArrowRight size={18} />
             </Link>
-            <div style={{ fontSize: 13, color: INK_SOFT, letterSpacing: '0.06em' }}>eduos.sg · TutorMatch + Edu OS</div>
+            <div style={{ fontSize: 13, color: INK_SOFT, letterSpacing: '0.06em' }}>tianos.sg · TutorMatch + Tian OS</div>
           </Reveal>
         </div>
       </section>

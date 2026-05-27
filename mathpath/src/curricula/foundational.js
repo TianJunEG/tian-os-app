@@ -1,11 +1,11 @@
-// foundational.js — a generic, Kumon-style arithmetic ladder (no national framework).
+// foundational.js — a generic, mastery-based arithmetic ladder (no national framework).
 // Useful as a default and as a template for how a curriculum maps onto the engine:
 // `groups` are the display sections (here, levels) and every skill carries a generator `spec`.
 
 export default {
   id: 'foundational',
   country: 'Generic',
-  framework: 'Foundational arithmetic (Kumon-style levels)',
+  framework: 'Foundational arithmetic (mastery levels)',
   label: 'Foundational Arithmetic',
   source: null,
   groups: [

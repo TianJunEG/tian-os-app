@@ -1,0 +1,16 @@
+<svg width="360" height="120" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120">
+
+        <defs>
+            <style>
+                .grid-line { stroke: #cccccc; stroke-width: 0.5; }
+                .main-line { stroke: black; stroke-width: 2; fill: none; }
+                .thin-line { stroke: black; stroke-width: 1; fill: none; }
+                .label { font-family: Arial, sans-serif; font-size: 14px; }
+                .label-small { font-family: Arial, sans-serif; font-size: 12px; }
+                .shading { fill: #cccccc; }
+                .angle-label { font-family: Arial, sans-serif; font-size: 11px; }
+            </style>
+        </defs>
+        
+<line x1="40" y1="60" x2="340" y2="60" stroke="black" stroke-width="2" stroke-linecap="round"/><line x1="40.0" y1="55" x2="40.0" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="77.5" y1="55" x2="77.5" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="115.0" y1="55" x2="115.0" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="152.5" y1="55" x2="152.5" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="190.0" y1="55" x2="190.0" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="227.5" y1="55" x2="227.5" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="265.0" y1="55" x2="265.0" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="302.5" y1="55" x2="302.5" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="340.0" y1="55" x2="340.0" y2="65" stroke="black" stroke-width="1" stroke-linecap="round"/><text x="40" y="80" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="black">7</text><text x="340" y="80" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="black">9</text><line x1="152.5" y1="45" x2="152.5" y2="25" stroke="black" stroke-width="1.5" stroke-linecap="round"/><polygon points="152.5,25 148.5,32 156.5,32" fill="black" stroke="black" stroke-width="2"/><text x="152.5" y="15" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="black">A</text>
+</svg>

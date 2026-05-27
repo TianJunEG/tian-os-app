@@ -33,6 +33,12 @@ function solvedDisplay(p) {
   return p.display.trim().endsWith('=') ? `${p.display} ${p.answer}` : p.display;
 }
 
+// Short numeric prompts ("16 + 9 =") get the big display style; long word problems
+// would be unreadable at that size, so they get a smaller, normally-spaced variant.
+function problemClass(display) {
+  return String(display).trim().length > 24 ? 'problem problem--text' : 'problem';
+}
+
 // Enter-key handling for screens without a text input (feedback "continue").
 let activeKeyHandler = null;
 function setEnterHandler(fn) {
@@ -71,17 +77,16 @@ function updateRung() {
 
 // ---- shared answer entry (input + on-screen keypad) ----
 // allowDecimal adds a "." key and lets the input accept one decimal point (P4+ decimals).
-function answerEntryHTML(allowDecimal) {
+// allowNeg adds a "±" sign key and lets the input hold a leading minus (S1+ integers).
+function answerEntryHTML(allowDecimal, allowNeg) {
   const digits = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     .map((n) => `<button class="key" data-k="${n}">${n}</button>`).join('');
-  const lastRow = allowDecimal
-    ? `<button class="key clear" data-k="back" aria-label="Backspace">⌫</button>
+  const dot = allowDecimal ? `<button class="key" data-k=".">.</button>` : '';
+  const sign = allowNeg ? `<button class="key" data-k="sign" aria-label="Toggle sign">±</button>` : '';
+  const lastRow = `<button class="key clear" data-k="back" aria-label="Backspace">⌫</button>
        <button class="key" data-k="0">0</button>
-       <button class="key" data-k=".">.</button>
-       <button class="key enter wide" data-k="enter">Enter</button>`
-    : `<button class="key clear" data-k="back" aria-label="Backspace">⌫</button>
-       <button class="key" data-k="0">0</button>
-       <button class="key enter" data-k="enter">Enter</button>`;
+       ${dot}${sign}
+       <button class="key enter${allowDecimal || allowNeg ? ' wide' : ''}" data-k="enter">Enter</button>`;
   return `
     <input id="answer" class="answer" inputmode="${allowDecimal ? 'decimal' : 'numeric'}" autocomplete="off" placeholder="?" aria-label="Your answer" />
     <div class="keypad">
@@ -90,18 +95,20 @@ function answerEntryHTML(allowDecimal) {
     </div>`;
 }
 
-function wireAnswerEntry(onSubmit, allowDecimal) {
+function wireAnswerEntry(onSubmit, allowDecimal, allowNeg) {
   const input = document.getElementById('answer');
   if (!input) return;
   input.focus();
   const maxLen = allowDecimal ? 6 : 4;
   const sanitize = () => {
+    const negative = allowNeg && input.value.trim().startsWith('-');
     let v = input.value.replace(allowDecimal ? /[^0-9.]/g : /[^0-9]/g, '');
     if (allowDecimal) {
       const i = v.indexOf('.');
       if (i !== -1) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/\./g, ''); // keep only the first dot
     }
-    input.value = v.slice(0, maxLen);
+    v = v.slice(0, maxLen);
+    input.value = negative && v ? `-${v}` : v;
   };
   input.addEventListener('input', sanitize);
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); onSubmit(input.value); } });
@@ -109,7 +116,8 @@ function wireAnswerEntry(onSubmit, allowDecimal) {
     btn.addEventListener('click', () => {
       const k = btn.dataset.k;
       if (k === 'enter') { onSubmit(input.value); return; }
-      if (k === 'back') input.value = input.value.slice(0, -1);
+      if (k === 'sign') input.value = input.value.startsWith('-') ? input.value.slice(1) : `-${input.value}`;
+      else if (k === 'back') input.value = input.value.slice(0, -1);
       else input.value += k;
       sanitize();
       input.focus();
@@ -118,35 +126,67 @@ function wireAnswerEntry(onSubmit, allowDecimal) {
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// Render a/b, a/?, ?/b as a stacked vertical fraction (proper math typography) instead of
+// slash notation. Operates on trusted or already-escaped HTML; only digit-or-"?" pairs match,
+// so "km/h", ratios "a : b" and surd ratios (1 ⁄ √2, which use the ⁄ char) are left untouched.
+const FRAC_RE = /(\d+|\?)\/(\d+|\?)/g;
+function mathify(s, { block = false } = {}) {
+  if (s == null) return '';
+  return String(s).replace(FRAC_RE, (_, n, d) =>
+    `<span class="frac${block ? ' frac--block' : ''}"><span class="frac-n">${n}</span><span class="frac-d">${d}</span></span>`);
+}
 function choiceEntryHTML(choices) {
-  return `<div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}">${esc(c)}</button>`).join('')}</div>`;
+  return `<div class="choices">${choices.map((c, i) => `<button class="choice" data-i="${i}">${mathify(esc(c), { block: true })}</button>`).join('')}</div>`;
 }
 function wireChoiceEntry(onSubmit, choices) {
   app.querySelectorAll('.choice').forEach((btn) => btn.addEventListener('click', () => onSubmit(choices[Number(btn.dataset.i)])));
 }
 
 // Pick numeric keypad or multiple-choice buttons based on the problem.
-function answerUI(prob) { return prob.choice ? choiceEntryHTML(prob.choices) : answerEntryHTML(prob.decimal); }
-function wireAnswer(prob, onSubmit) { if (prob.choice) wireChoiceEntry(onSubmit, prob.choices); else wireAnswerEntry(onSubmit, prob.decimal); }
+function answerUI(prob) { return prob.choice ? choiceEntryHTML(prob.choices) : answerEntryHTML(prob.decimal, prob.neg); }
+function wireAnswer(prob, onSubmit) { if (prob.choice) wireChoiceEntry(onSubmit, prob.choices); else wireAnswerEntry(onSubmit, prob.decimal, prob.neg); }
 
 function parentNoteHTML() {
   return `<div class="parent-note"><b>For parents:</b> Sit alongside for the first few sessions and let the software lead. MathPath only moves up a level when answers are both accurate and quick, so a "not yet" just means a little more practice — never failure. Hints appear automatically after a wrong answer.</div>`;
 }
 
 // ---- Curriculum picker ----
+// The "· Primary N" / level part of a label, so grouped chips don't repeat the country.
+function shortLevel(label) {
+  const i = label.lastIndexOf('·');
+  return i === -1 ? label : label.slice(i + 1).trim();
+}
+
 function renderPick() {
-  const items = C.listCurricula().map((c) => `
-    <button class="btn btn-block curpick" data-id="${c.id}">
-      <div style="font-weight:700">${c.label}</div>
-      <div class="muted" style="font-size:13px">${c.country} · ${c.framework}</div>
-    </button>`).join('');
+  // Group by country+framework so a syllabus (e.g. Singapore MOE) shows once, with its
+  // levels as compact chips, instead of one repetitive full-width card per level.
+  const groups = [];
+  C.listCurricula().forEach((c) => {
+    const key = `${c.country}|${c.framework}`;
+    let g = groups.find((x) => x.key === key);
+    if (!g) { g = { key, country: c.country, framework: c.framework, items: [] }; groups.push(g); }
+    g.items.push(c);
+  });
+
+  const groupsHTML = groups.map((g) => {
+    const chips = g.items.map((c) =>
+      `<button class="cur-chip" data-id="${c.id}">${shortLevel(c.label)}</button>`).join('');
+    return `
+      <div class="cur-group">
+        <p class="cur-group-title">${g.country}</p>
+        <p class="cur-group-sub">${g.framework}</p>
+        <div class="cur-levels">${chips}</div>
+      </div>`;
+  }).join('');
+
   paint(`
     <section class="card stack">
       <h1>Choose a curriculum</h1>
       <p class="muted">MathPath maps practice to a country's syllabus — including the Singapore MOE syllabus. Pick where to start; you can switch any time.</p>
-      ${items}
+      ${groupsHTML}
     </section>`);
-  app.querySelectorAll('.curpick').forEach((b) => { b.onclick = () => selectCurriculum(b.dataset.id); });
+  app.querySelectorAll('.cur-chip').forEach((b) => { b.onclick = () => selectCurriculum(b.dataset.id); });
 }
 
 function selectCurriculum(id) {
@@ -188,7 +228,7 @@ function renderHome() {
       <div>
         <div class="muted">You're on</div>
         <h2>${C.skillLabel(p.currentSkillId)}</h2>
-        <div class="example">e.g. ${skill.example}</div>
+        <div class="example">e.g. ${mathify(skill.example)}</div>
       </div>
       <button class="btn btn-primary btn-block" id="go-start">Start practice (${C.QUESTIONS_PER_SESSION} questions)</button>
       <div class="row">
@@ -220,7 +260,7 @@ function renderDiagnostic() {
         <h1>Placement done</h1>
         <p class="muted">Best place to start practising:</p>
         <h2>${C.skillLabel(state.placement)}</h2>
-        <div class="example">e.g. ${skill.example}</div>
+        <div class="example">e.g. ${mathify(skill.example)}</div>
         <button class="btn btn-primary btn-block" id="go-start">Start practising here</button>
         <button class="btn btn-ghost" id="go-home">Back to home</button>
       </section>`);
@@ -236,7 +276,7 @@ function renderDiagnostic() {
         <div class="qcount">Finding the right level…</div>
       </div>
       ${diagramFor(probe.problem)}
-      <div class="problem">${probe.problem.display}</div>
+      <div class="${problemClass(probe.problem.display)}">${mathify(probe.problem.display)}</div>
       ${answerUI(probe.problem)}
       <div class="feedback muted">Answer what you can. If it gets too hard, that's exactly the signal we need.</div>
     </section>`);
@@ -291,8 +331,8 @@ function renderDrill() {
       <section class="card stack">
         ${head}
         ${diagramFor(s.current)}
-        <div class="problem">${solvedDisplay(s.current)}</div>
-        <div class="feedback ${ok ? 'ok' : 'bad'}">${ok ? 'Correct!' : `Not quite — the answer is ${s.current.answer}.`}</div>
+        <div class="${problemClass(solvedDisplay(s.current))}">${mathify(solvedDisplay(s.current))}</div>
+        <div class="feedback ${ok ? 'ok' : 'bad'}">${ok ? 'Correct!' : `Not quite — the answer is ${mathify(String(s.current.answer))}.`}</div>
         <button class="btn btn-primary btn-block" id="cont">${S.isComplete(s) ? 'See results' : 'Next question'}</button>
       </section>`);
     document.getElementById('cont').onclick = onContinue;
@@ -304,10 +344,10 @@ function renderDrill() {
     <section class="card stack">
       ${head}
       ${diagramFor(s.current)}
-      <div class="problem">${s.current.display}</div>
+      <div class="${problemClass(s.current.display)}">${mathify(s.current.display)}</div>
       ${answerUI(s.current)}
       ${state.hint
-        ? `<div class="hint">Hint: ${state.hint}</div>`
+        ? `<div class="hint">Hint: ${mathify(state.hint)}</div>`
         : '<div class="feedback muted">Type your answer, then Enter.</div>'}
     </section>`);
   wireAnswer(s.current, onDrillSubmit);
@@ -435,7 +475,7 @@ function renderProgress() {
         <span class="badge ok">${masteredCount()} / ${totalSkills()} mastered</span>
       </div>
       ${groups}
-      <div class="parent-note"><b>How levels work:</b> like Kumon, learners climb by mastery, not age. A rung turns green only when answers are accurate and quick. Green rungs below the current one were proven during the placement check.</div>
+      <div class="parent-note"><b>How levels work:</b> learners climb by mastery, not age. A rung turns green only when answers are accurate and quick. Green rungs below the current one were proven during the placement check.</div>
       ${pending}
       <div class="row">
         <button class="btn btn-primary grow" id="practise">Practise current rung</button>
@@ -456,7 +496,7 @@ function renderProgress() {
 }
 
 // ---- boot ----
-mountReturnBanner(); // shows a "back to Education OS" bar when launched from a dashboard
+mountReturnBanner(); // shows a "back to Tian OS" bar when launched from a dashboard
 
 const tmLink = document.getElementById('tutormatch-link');
 if (tmLink) tmLink.addEventListener('click', (e) => e.preventDefault()); // cross-promo placeholder

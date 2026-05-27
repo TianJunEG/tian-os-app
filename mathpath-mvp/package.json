@@ -1,0 +1,28 @@
+{
+  "name": "mathpath-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MathPath MVP — multiplication-fluency vertical slice for Tian OS (Next.js)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "node test/recommend.test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.98.0",
+    "framer-motion": "^11.3.0",
+    "katex": "^0.16.11",
+    "mongodb": "^6.8.0",
+    "next": "^14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7"
+  }
+}

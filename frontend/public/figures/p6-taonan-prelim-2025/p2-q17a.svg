@@ -1,0 +1,16 @@
+<svg width="360" height="240" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240">
+
+        <defs>
+            <style>
+                .grid-line { stroke: #cccccc; stroke-width: 0.5; }
+                .main-line { stroke: black; stroke-width: 2; fill: none; }
+                .thin-line { stroke: black; stroke-width: 1; fill: none; }
+                .label { font-family: Arial, sans-serif; font-size: 14px; }
+                .label-small { font-family: Arial, sans-serif; font-size: 12px; }
+                .shading { fill: #cccccc; }
+                .angle-label { font-family: Arial, sans-serif; font-size: 11px; }
+            </style>
+        </defs>
+        
+<rect x="30" y="50" width="300" height="120" fill="none" stroke="black" stroke-width="2"/><line x1="130.0" y1="50" x2="130.0" y2="170" stroke="black" stroke-width="1" stroke-linecap="round"/><line x1="230.0" y1="50" x2="230.0" y2="170" stroke="black" stroke-width="1" stroke-linecap="round"/><polygon points="30,170 330,50 330,170" fill="#cccccc" stroke="black" stroke-width="2"/><text x="180" y="200" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="black">Figure 1</text>
+</svg>

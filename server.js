@@ -22,6 +22,19 @@ import resourceRoutes from './routes/resources.js';
 import spellingRoutes from './routes/spelling.js';
 import learningRoutes from './routes/learning.js';
 import scienceRoutes from './routes/science.js';
+import contextRoutes from './routes/context.js';
+import practiceRoutes from './routes/practice.js';
+import mistakeRoutes from './routes/mistakes.js';
+import masteryRoutes from './routes/mastery.js';
+import assignmentRoutes from './routes/assignments.js';
+import worksheetGenRoutes from './routes/worksheetsGen.js';
+import skillRoutes from './routes/skills.js';
+import familyRoutes from './routes/family.js';
+import tutorWorkspaceRoutes from './routes/tutor.js';
+import teacherRoutes from './routes/teacher.js';
+import lifelabRoutes from './routes/lifelab.js';
+import spellingPracticeRoutes from './routes/spellingPractice.js';
+import mechanismsRoutes from './routes/mechanisms.js';
 
 dotenv.config();
 
@@ -79,6 +92,9 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+// Structured worksheet generator must mount BEFORE the legacy /api/worksheets
+// router so /gen/* is not captured by its /:id route.
+app.use('/api/worksheets/gen', worksheetGenRoutes);
 app.use('/api/worksheets', worksheetRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/partners', partnerRoutes);
@@ -86,6 +102,19 @@ app.use('/api/resources', resourceRoutes);
 app.use('/api/spelling', spellingRoutes);
 app.use('/api/learning', learningRoutes);
 app.use('/api/science', scienceRoutes);
+// Tian OS unified platform — role/workspace context
+app.use('/api/context', contextRoutes);
+app.use('/api/practice', practiceRoutes);
+app.use('/api/mistakes', mistakeRoutes);
+app.use('/api/mastery', masteryRoutes);
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/skills', skillRoutes);
+app.use('/api/family', familyRoutes);
+app.use('/api/tutor', tutorWorkspaceRoutes);
+app.use('/api/teacher', teacherRoutes);
+app.use('/api/lifelab', lifelabRoutes);
+app.use('/api/spelling-practice', spellingPracticeRoutes);
+app.use('/api/mechanisms', mechanismsRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

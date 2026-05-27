@@ -1,0 +1,16 @@
+<svg width="360" height="360" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360">
+
+        <defs>
+            <style>
+                .grid-line { stroke: #cccccc; stroke-width: 0.5; }
+                .main-line { stroke: black; stroke-width: 2; fill: none; }
+                .thin-line { stroke: black; stroke-width: 1; fill: none; }
+                .label { font-family: Arial, sans-serif; font-size: 14px; }
+                .label-small { font-family: Arial, sans-serif; font-size: 12px; }
+                .shading { fill: #cccccc; }
+                .angle-label { font-family: Arial, sans-serif; font-size: 11px; }
+            </style>
+        </defs>
+        
+<circle cx="180" cy="180" r="140" fill="none" stroke="black" stroke-width="2"/><path d="M 180 180 L 180.0 40.0 A 140 140 0 0 1 278.99494936611666 81.00505063388336 Z" fill="none" stroke="black" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><text x="212.14540831866753" y="97.39411926905191" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">Jogging</text><text x="212.14540831866753" y="110.39411926905191" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="black">30</text><path d="M 180 180 L 278.99494936611666 81.00505063388336 A 140 140 0 0 1 304.7409133863715 243.55866996353654 Z" fill="none" stroke="black" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><text x="262.96582060999157" y="161.8595049366206" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">Reading</text><text x="262.96582060999157" y="174.8595049366206" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="black">48</text><path d="M 180 180 L 304.7409133863715 243.55866996353654 A 140 140 0 0 1 109.99999999999997 301.2435565298214 Z" fill="none" stroke="black" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><text x="203.85728895512952" y="255.54085772892824" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">Gaming</text><text x="203.85728895512952" y="268.54085772892824" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="black">62</text><path d="M 180 180 L 109.99999999999997 301.2435565298214 A 140 140 0 0 1 40.0 180.00000000000003 Z" fill="none" stroke="black" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><text x="107.25386608210715" y="217.0" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">Dancing</text><text x="107.25386608210715" y="230.0" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="black">40</text><path d="M 180 180 L 40.0 180.00000000000003 A 140 140 0 0 1 179.99999999999997 40.0 Z" fill="#cccccc" stroke="black" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><text x="120.60303038033" y="115.60303038033001" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">Cycling</text><text x="120.60303038033" y="128.60303038033" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="black">60</text>
+</svg>

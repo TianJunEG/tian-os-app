@@ -1,0 +1,16 @@
+<svg width="360" height="320" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 320">
+
+        <defs>
+            <style>
+                .grid-line { stroke: #cccccc; stroke-width: 0.5; }
+                .main-line { stroke: black; stroke-width: 2; fill: none; }
+                .thin-line { stroke: black; stroke-width: 1; fill: none; }
+                .label { font-family: Arial, sans-serif; font-size: 14px; }
+                .label-small { font-family: Arial, sans-serif; font-size: 12px; }
+                .shading { fill: #cccccc; }
+                .angle-label { font-family: Arial, sans-serif; font-size: 11px; }
+            </style>
+        </defs>
+        
+<line x1="30" y1="30" x2="30" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="60" y1="30" x2="60" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="90" y1="30" x2="90" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="120" y1="30" x2="120" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="150" y1="30" x2="150" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="180" y1="30" x2="180" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="210" y1="30" x2="210" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="240" y1="30" x2="240" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="30" y1="30" x2="240" y2="30" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="30" y1="60" x2="240" y2="60" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="30" y1="90" x2="240" y2="90" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="30" y1="120" x2="240" y2="120" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="30" y1="150" x2="240" y2="150" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="30" y1="180" x2="240" y2="180" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="30" y1="210" x2="240" y2="210" stroke="#999" stroke-width="0.5" stroke-linecap="round"/><line x1="120" y1="80" x2="280" y2="120" stroke="black" stroke-width="2" stroke-linecap="round"/><line x1="280" y1="120" x2="280" y2="180" stroke="black" stroke-width="2" stroke-linecap="round"/><line x1="280" y1="180" x2="90" y2="240" stroke="black" stroke-width="2" stroke-linecap="round"/><line x1="90" y1="240" x2="60" y2="180" stroke="black" stroke-width="2" stroke-linecap="round"/><line x1="60" y1="180" x2="120" y2="80" stroke="black" stroke-width="2" stroke-linecap="round"/><polygon points="266.0,122.0 278.0,122.0 278.0,134.0 266.0,134.0" fill="none" stroke="black" stroke-width="1"/><text x="105" y="80" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="black">A</text><text x="295" y="120" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="black">B</text><text x="295" y="180" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="black">C</text><text x="75" y="240" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="black">D</text><text x="45" y="180" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="black">E</text>
+</svg>

@@ -69,6 +69,28 @@ const worksheetSchema = new mongoose.Schema({
   misconceptions: [misconceptionSchema],
   skillsToReinforce: [String],
   practiceSessions: [practiceSessionSchema],
+
+  // ── Structured generation (Phase 4 Worksheet Generator) ─────────────────
+  // Additive: the legacy photo flow above is untouched. A generated worksheet
+  // stores structured content first (never PDF-only).
+  workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', default: null },
+  generatedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  generatedByRole: { type: String, enum: ['parent', 'tutor', 'teacher', 'system', null], default: null },
+  topicIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Topic', default: [] },
+  skillIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Skill', default: [] },
+  sourceMode: {
+    type: String,
+    enum: ['photo', 'recent_mistakes', 'weak_skills', 'selected_topic', null],
+    default: null
+  },
+  difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
+  questionCount: { type: Number, default: 10 },
+  includesSolutions: { type: Boolean, default: true },
+  includesMistakeReview: { type: Boolean, default: false },
+  // The assembled worksheet: { title, reviewSection: [...], questions: [{ n, stem, choices, answer, workedSolution, skillName, difficulty }] }
+  generatedContent: { type: mongoose.Schema.Types.Mixed, default: null },
+  assignedStatus: { type: String, enum: ['unassigned', 'assigned'], default: 'unassigned' },
+  linkedAssignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', default: null },
   // Denormalized for cheap due-list rendering
   nextDueAt: {
     type: Date,

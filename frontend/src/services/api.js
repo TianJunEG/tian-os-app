@@ -18,6 +18,12 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Tian OS: scope every request to the active workspace. The backend enforces
+  // membership; this is how school vs. private-tutoring data stay separated.
+  const workspaceId = localStorage.getItem('tianos.workspaceId');
+  if (workspaceId) {
+    config.headers['X-Workspace-Id'] = workspaceId;
+  }
   // For file uploads, drop the JSON content-type so the browser sets the
   // correct multipart/form-data boundary.
   if (config.data instanceof FormData) {
@@ -41,6 +47,100 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Tian OS role/workspace context
+export const contextAPI = {
+  get: () => api.get('/context'),
+  switch: (workspaceId) => api.post('/context/switch', { workspaceId })
+};
+
+// MathPath (Phase 2): mastery, topic map, practice sessions, mistakes.
+export const mathpathAPI = {
+  mastery: (params) => api.get('/mastery', { params }),
+  map: (params) => api.get('/mastery/map', { params }),
+  startSession: (data) => api.post('/practice/sessions', data),
+  attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
+  complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),
+  getSession: (sessionId) => api.get(`/practice/sessions/${sessionId}`),
+  mistakes: (params) => api.get('/mistakes', { params }),
+  reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
+  placement: (attempts) => api.post('/mastery/placement', { attempts }),
+  // ref: a slug string, or { skillId } / { skillSlug }
+  remediation: (ref, recentAttempts = []) =>
+    api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })
+};
+
+// Parent / family (Phase 3): children list + rule-based recommendations.
+// (skillsAPI / assignmentsAPI / worksheetGenAPI live in the learning-core block below.)
+export const familyAPI = {
+  children: () => api.get('/family/children'),
+  recommendations: (studentId) => api.get(`/family/children/${studentId}/recommendations`)
+};
+
+// Spelling Practice (Phase 6) — wired into the shared core (sessions, attempts,
+// mastery, mistakes), module 'Spelling Practice' / subject English.
+export const spellingPracticeAPI = {
+  home: () => api.get('/spelling-practice/home'),
+  lists: () => api.get('/spelling-practice/lists'),
+  list: (id) => api.get(`/spelling-practice/lists/${id}`),
+  startSession: (data) => api.post('/spelling-practice/sessions', data),
+  attempt: (sessionId, data) => api.post(`/spelling-practice/sessions/${sessionId}/attempts`, data),
+  complete: (sessionId) => api.post(`/spelling-practice/sessions/${sessionId}/complete`),
+  getSession: (sessionId) => api.get(`/spelling-practice/sessions/${sessionId}`),
+  mistakes: () => api.get('/spelling-practice/mistakes')
+};
+
+// LifeLab (Phase 6) — applied Math/Science activities. Teacher assign/review is
+// workspace-scoped; student submit resolves the logged-in student.
+export const lifelabAPI = {
+  activities: (params) => api.get('/lifelab/activities', { params }),  // optional { subject, competency }
+  assign: (data) => api.post('/lifelab/assign', data),                 // { classId, target, activityId }
+  submissions: (classId) => api.get('/lifelab/submissions', { params: { classId } }),
+  feedback: (id, data) => api.post(`/lifelab/submissions/${id}/feedback`, data),
+  competencies: () => api.get('/lifelab/competencies'),             // canonical E21CC list
+  me: () => api.get('/lifelab/me'),
+  child: (studentId) => api.get(`/lifelab/student/${studentId}`),   // parent/guardian view
+  submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data)
+};
+
+// Mechanisms Playground (Secondary D&T). Completing a mechanism's concept check
+// records practice/mistakes/mastery against the D&T skill in the shared core.
+export const mechanismsAPI = {
+  progress: () => api.get('/mechanisms/progress'),                      // { seeded, progress: { gears: {status,score}, ... } }
+  complete: (key, answers) => api.post(`/mechanisms/${key}/complete`, { answers }), // answers: [{ index, correct }]
+};
+
+// Tutor workspace (Phase 4). All calls are scoped to the active tutor workspace
+// (X-Workspace-Id); the backend enforces membership + tutor role.
+export const tutorAPI = {
+  home: () => api.get('/tutor/home'),
+  students: () => api.get('/tutor/students'),
+  student: (id) => api.get(`/tutor/students/${id}`),
+  lessonPrep: (id) => api.get(`/tutor/students/${id}/lesson-prep`),
+  lessonNotes: (id) => api.get(`/tutor/students/${id}/lesson-notes`),
+  createLessonNote: (id, data) => api.post(`/tutor/students/${id}/lesson-notes`, data),
+  homework: () => api.get('/tutor/homework'),
+  availability: () => api.get('/tutor/availability'),
+  updateAvailability: (data) => api.put('/tutor/availability', data),
+  certification: () => api.get('/tutor/certification')
+};
+
+// Teacher workspace (Phase 5). Scoped to the active school/teacher workspace.
+export const teacherAPI = {
+  home: () => api.get('/teacher/home'),
+  classes: () => api.get('/teacher/classes'),
+  classOverview: (id) => api.get(`/teacher/classes/${id}`),
+  classMastery: (id) => api.get(`/teacher/classes/${id}/mastery`),
+  classStudents: (id) => api.get(`/teacher/classes/${id}/students`),
+  student: (id) => api.get(`/teacher/students/${id}`),
+  groups: (id) => api.get(`/teacher/classes/${id}/groups`),
+  saveGroup: (id, data) => api.post(`/teacher/classes/${id}/groups`, data),
+  assign: (id, data) => api.post(`/teacher/classes/${id}/assign`, data),
+  interventions: (id) => api.get(`/teacher/classes/${id}/interventions`),
+  createIntervention: (id, data) => api.post(`/teacher/classes/${id}/interventions`, data),
+  updateIntervention: (iid, data) => api.put(`/teacher/interventions/${iid}`, data),
+  report: (id, params) => api.get(`/teacher/classes/${id}/reports`, { params })
+};
 
 // Auth API
 export const authAPI = {
@@ -176,6 +276,33 @@ export const studentsAPI = {
   create: (data) => api.post('/students', data),
   list: () => api.get('/students'),
   remove: (id) => api.delete(`/students/${id}`)
+};
+
+// ── Tian OS learning core extensions ──
+// Practice / mistakes / mastery already live on `mathpathAPI` (above). These add
+// the catalog, assignment, and worksheet-generator surfaces. Student-facing calls
+// omit studentId (backend resolves from the logged-in user); parent calls pass it.
+export const skillsAPI = {
+  list: (params) => api.get('/skills', { params })           // { studentId?, group: 'fluency' }
+};
+
+export const mathpathFluencyAPI = {
+  // Fluency is a MathPath feature: start a session with feature='Fluency Practice'.
+  start: (data) => api.post('/practice/sessions', { feature: 'Fluency Practice', mode: 'fluency', ...data })
+};
+
+export const assignmentsAPI = {
+  create: (data) => api.post('/assignments', data),
+  list: (params) => api.get('/assignments', { params }),     // { studentId?, status? }
+  get: (id) => api.get(`/assignments/${id}`)
+};
+
+// Structured Mastery Worksheet Generator (digital first; PDF placeholder).
+export const worksheetGenAPI = {
+  generate: (data) => api.post('/worksheets/gen/generate', data),
+  list: (params) => api.get('/worksheets/gen', { params }),
+  get: (id) => api.get(`/worksheets/gen/${id}`),
+  assign: (id, data) => api.post(`/worksheets/gen/${id}/assign`, data)
 };
 
 // Admin API

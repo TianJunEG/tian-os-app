@@ -1,48 +1,122 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, Outlet } from 'react-router-dom';
 import { Sparkles, Layers, GraduationCap, ArrowRight } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, EduOSKeyframes } from './components/eduos';
+import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, TianOSKeyframes } from './components/tianos';
 
 // Pages
-import FounderStoryPage from './pages/FounderStoryPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import StudentDashboardPage from './pages/StudentDashboardPage';
-import ParentDashboardPage from './pages/ParentDashboardPage';
-import ChildProfilePage from './pages/ChildProfilePage';
-import TutorSearchPage from './pages/TutorSearchPage';
-import BookingPage from './pages/BookingPage';
-import PaymentPage from './pages/PaymentPage';
-import BookingsPage from './pages/BookingsPage';
-import MessagesPage from './pages/MessagesPage';
-import TutorProfilePage from './pages/TutorProfilePage';
-import ResourcesHubPage from './pages/ResourcesHubPage';
-import ResourceDetailPage from './pages/ResourceDetailPage';
-import SciencePracticePage from './pages/SciencePracticePage';
-import WorksheetGeneratorPage from './pages/WorksheetGeneratorPage';
-import StudentsPage from './pages/StudentsPage';
-import ParentProgressPage from './pages/ParentProgressPage';
+const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
+const ParentDashboardPage = lazy(() => import('./pages/ParentDashboardPage'));
+const ChildProfilePage = lazy(() => import('./pages/ChildProfilePage'));
+const TutorSearchPage = lazy(() => import('./pages/TutorSearchPage'));
+const BookingPage = lazy(() => import('./pages/BookingPage'));
+const PaymentPage = lazy(() => import('./pages/PaymentPage'));
+const BookingsPage = lazy(() => import('./pages/BookingsPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const TutorProfilePage = lazy(() => import('./pages/TutorProfilePage'));
+const ResourcesHubPage = lazy(() => import('./pages/ResourcesHubPage'));
+const ResourceDetailPage = lazy(() => import('./pages/ResourceDetailPage'));
+const SciencePracticePage = lazy(() => import('./pages/SciencePracticePage'));
+const WorksheetGeneratorPage = lazy(() => import('./pages/WorksheetGeneratorPage'));
+const StudentsPage = lazy(() => import('./pages/StudentsPage'));
+const ParentProgressPage = lazy(() => import('./pages/ParentProgressPage'));
 import AdminDashboard from './components/AdminDashboard';
 import TutorOnboarding from './components/TutorOnboarding';
 import ParentProfile from './components/ParentProfile';
 import PwaManager from './components/PwaManager';
 import ErrorBoundary from './components/ErrorBoundary';
+import LifeLabLayout from './components/LifeLab/LifeLabLayout';
+
+// Tian OS unified shell (Phase 1 foundation)
+import { WorkspaceProvider } from './context/WorkspaceContext';
+import AppShell from './components/shell/AppShell';
+import { ToastProvider } from './components/ui';
+import { ROLE_HOME } from './config/nav';
+const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
+import Placeholder from './pages/Placeholder';
+// MathPath (Phase 2)
+const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'));
+const TopicDetail = lazy(() => import('./pages/student/mathpath/TopicDetail'));
+const PracticeSession = lazy(() => import('./pages/student/mathpath/PracticeSession'));
+const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResult'));
+const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
+const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
+// Spelling Practice (Phase 6) — shared-core wiring
+const SpellingHome = lazy(() => import('./pages/student/spelling/SpellingHome'));
+const SpellingWordLists = lazy(() => import('./pages/student/spelling/WordLists'));
+const SpellingLearn = lazy(() => import('./pages/student/spelling/LearnMode'));
+const SpellingSelfTest = lazy(() => import('./pages/student/spelling/SelfTest'));
+const SpellingPracticeResults = lazy(() => import('./pages/student/spelling/SpellingResults'));
+const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/SpellingMistakes'));
+const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
+// MathPath features (Phase 4): Fluency + Mistake-to-Mastery
+const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyHome'));
+const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
+const MistakesHome = lazy(() => import('./pages/student/mathpath/MistakesHome'));
+const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'));
+// Science Adaptive Revision (secondary module) — reuses shared practice/result screens
+const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
+const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
+const ScienceMistakes = lazy(() => import('./pages/student/science/ScienceMistakes'));
+// Parent (Phase 3)
+const ParentHome = lazy(() => import('./pages/parent/ParentHome'));
+const ParentChildren = lazy(() => import('./pages/parent/ParentChildren'));
+const ChildProgress = lazy(() => import('./pages/parent/ChildProgress'));
+const ChildLifeLab = lazy(() => import('./pages/parent/ChildLifeLab'));
+const WeakTopics = lazy(() => import('./pages/parent/WeakTopics'));
+const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'));
+const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
+const MistakeHistory = lazy(() => import('./pages/parent/MistakeHistory'));
+const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
+// Tutor (Phase 4)
+const TutorHome = lazy(() => import('./pages/tutor/TutorHome'));
+const AssignedStudents = lazy(() => import('./pages/tutor/AssignedStudents'));
+const TutorStudentProfile = lazy(() => import('./pages/tutor/TutorStudentProfile'));
+const LessonPrep = lazy(() => import('./pages/tutor/LessonPrep'));
+const LessonNotes = lazy(() => import('./pages/tutor/LessonNotes'));
+const AssignHomework = lazy(() => import('./pages/tutor/AssignHomework'));
+const TutorHomework = lazy(() => import('./pages/tutor/TutorHomework'));
+const TutorAvailability = lazy(() => import('./pages/tutor/Availability'));
+const TutorTraining = lazy(() => import('./pages/tutor/Training'));
+// Teacher (Phase 5)
+const TeacherHome = lazy(() => import('./pages/teacher/TeacherHome'));
+const Classes = lazy(() => import('./pages/teacher/Classes'));
+const ClassOverview = lazy(() => import('./pages/teacher/ClassOverview'));
+const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
+const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
+const Grouping = lazy(() => import('./pages/teacher/Grouping'));
+const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
+const Intervention = lazy(() => import('./pages/teacher/Intervention'));
+const Reports = lazy(() => import('./pages/teacher/Reports'));
+const TeacherStudentDetail = lazy(() => import('./pages/teacher/TeacherStudentDetail'));
+const TeacherLifeLab = lazy(() => import('./pages/teacher/LifeLab'));
+const TeacherLifeLabHome = lazy(() => import('./pages/teacher/LifeLabHome'));
+// Parent worksheet generator (Phase 4)
+// Secondary → Mechanisms Playground (D&T lower secondary)
+const MechanismsHome = lazy(() => import('./pages/secondary/mechanisms/MechanismsHome'));
+const MechanismSimulator = lazy(() => import('./pages/secondary/mechanisms/MechanismSimulator'));
+const MechanismPresent = lazy(() => import('./pages/secondary/mechanisms/MechanismPresent'));
+
+const WorksheetHome = lazy(() => import('./pages/parent/WorksheetHome'));
+const WorksheetSetup = lazy(() => import('./pages/parent/WorksheetSetup'));
+const WorksheetPreview = lazy(() => import('./pages/parent/WorksheetPreview'));
 
 // Spelling app pages
-import SpellingHomePage from './pages/spelling/SpellingHomePage';
-import SpellingListsPage from './pages/spelling/SpellingListsPage';
-import SpellingEditorPage from './pages/spelling/SpellingEditorPage';
-import SpellingListDetailPage from './pages/spelling/SpellingListDetailPage';
-import SpellingLibraryPage from './pages/spelling/SpellingLibraryPage';
-import MisspeltWordsPage from './pages/spelling/MisspeltWordsPage';
-import SurpriseSpellingPage from './pages/spelling/SurpriseSpellingPage';
-import SpellingRevisionPage from './pages/spelling/SpellingRevisionPage';
-import SpellingDuePage from './pages/spelling/SpellingDuePage';
-import SpellingProgressPage from './pages/spelling/SpellingProgressPage';
-import SpellingAchievementsPage from './pages/spelling/SpellingAchievementsPage';
-import SpellingPrintPage from './pages/spelling/SpellingPrintPage';
+const SpellingHomePage = lazy(() => import('./pages/spelling/SpellingHomePage'));
+const SpellingListsPage = lazy(() => import('./pages/spelling/SpellingListsPage'));
+const SpellingEditorPage = lazy(() => import('./pages/spelling/SpellingEditorPage'));
+const SpellingListDetailPage = lazy(() => import('./pages/spelling/SpellingListDetailPage'));
+const SpellingLibraryPage = lazy(() => import('./pages/spelling/SpellingLibraryPage'));
+const MisspeltWordsPage = lazy(() => import('./pages/spelling/MisspeltWordsPage'));
+const SurpriseSpellingPage = lazy(() => import('./pages/spelling/SurpriseSpellingPage'));
+const SpellingRevisionPage = lazy(() => import('./pages/spelling/SpellingRevisionPage'));
+const SpellingDuePage = lazy(() => import('./pages/spelling/SpellingDuePage'));
+const SpellingProgressPage = lazy(() => import('./pages/spelling/SpellingProgressPage'));
+const SpellingAchievementsPage = lazy(() => import('./pages/spelling/SpellingAchievementsPage'));
+const SpellingPrintPage = lazy(() => import('./pages/spelling/SpellingPrintPage'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -66,9 +140,9 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Public Route (redirects to dashboard if already logged in)
+// Public Route (redirects logged-in users to their unified role home)
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -82,13 +156,22 @@ const PublicRoute = ({ children }) => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to={ROLE_HOME[user?.role] || '/student'} />;
   }
 
   return children;
 };
 
-// Landing Page — cinematic Edu OS look (matches the launch video / founder story).
+// The legacy /dashboard is retired — send signed-in users to their unified
+// Tian OS role home; send anyone not signed in to login.
+const LegacyDashboardRedirect = () => {
+  const { isAuthenticated, loading, user } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <Navigate to={ROLE_HOME[user?.role] || '/student'} replace />;
+};
+
+// Landing Page — cinematic Tian OS look (matches the launch video / founder story).
 const LANDING_FEATURES = [
   { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake becomes targeted mastery — worksheets and revision adapt to each child.' },
   { icon: Layers, title: 'One connected profile', body: 'Spelling, maths and science progress unify into a single readiness picture for parents.' },
@@ -98,7 +181,7 @@ const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 
 
 const LandingPage = () => (
   <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
-    <EduOSKeyframes />
+    <TianOSKeyframes />
     <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(5,10,20,0.7)', borderBottom: '1px solid rgba(180,200,240,0.12)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/"><Wordmark /></Link>
@@ -153,9 +236,21 @@ const LandingPage = () => (
     </main>
 
     <footer style={{ borderTop: '1px solid rgba(180,200,240,0.12)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: INK_SOFT }}>
-      <span style={{ color: INK, fontWeight: 700 }}>Edu OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
+      <span style={{ color: INK, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
     </footer>
   </div>
+);
+
+// Tian OS unified shell layout — protected, provides role/workspace context,
+// renders the sidebar/topbar/bottom-nav around each role dashboard. Phase 1
+// ships the student dashboard live; other role/feature screens are placeholders
+// wired so navigation is whole. Existing routes (/dashboard etc.) are untouched.
+const ShellLayout = () => (
+  <ProtectedRoute>
+    <WorkspaceProvider>
+      <AppShell><Outlet /></AppShell>
+    </WorkspaceProvider>
+  </ProtectedRoute>
 );
 
 // Main App
@@ -163,8 +258,10 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <ToastProvider>
         <PwaManager />
         <ErrorBoundary>
+        <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><span className="h-8 w-8 animate-spin rounded-full border-2 border-bone border-t-navy-700" /></div>}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
@@ -191,15 +288,8 @@ function App() {
             }
           />
 
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Legacy dashboard retired → unified Tian OS role home */}
+          <Route path="/dashboard" element={<LegacyDashboardRedirect />} />
 
           <Route
             path="/learning"
@@ -304,10 +394,98 @@ function App() {
           <Route path="/spelling/achievements" element={<ProtectedRoute><SpellingAchievementsPage /></ProtectedRoute>} />
           <Route path="/spelling/lists/:id/print" element={<ProtectedRoute><SpellingPrintPage /></ProtectedRoute>} />
 
+          {/* LifeLab */}
+          <Route path="/lifelab" element={<ProtectedRoute><LifeLabLayout /></ProtectedRoute>} />
+
+          {/* ─── Tian OS unified shell (Phase 1 foundation) ─── */}
+          <Route element={<ShellLayout />}>
+            {/* Student — dashboard shell is live */}
+            <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/student/mathpath" element={<MathPathHome />} />
+            <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
+            <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
+            <Route path="/student/mathpath/results/:sessionId" element={<PracticeResult />} />
+            {/* Mistake-to-Mastery (MathPath feature) */}
+            <Route path="/student/mathpath/mistakes" element={<MistakesHome />} />
+            <Route path="/student/mathpath/mistakes/review" element={<MistakeReview />} />
+            <Route path="/student/mathpath/mistakes/:mistakeId" element={<MistakeDetail />} />
+            {/* Fluency (MathPath feature). Practice/results reuse the shared MathPath screens. */}
+            <Route path="/student/mathpath/fluency" element={<FluencyHome />} />
+            <Route path="/student/mathpath/fluency/skills" element={<FluencySkills />} />
+            <Route path="/student/fluency" element={<Navigate to="/student/mathpath/fluency" replace />} />
+            <Route path="/student/worksheets" element={<Placeholder title="Mastery Worksheet" phase="Phase 4" />} />
+            {/* Science Adaptive Revision (secondary module). Practice/results reuse the shared screens. */}
+            <Route path="/student/science" element={<ScienceHome />} />
+            <Route path="/student/science/topics" element={<ScienceTopics />} />
+            <Route path="/student/science/mistakes" element={<ScienceMistakes />} />
+            <Route path="/student/science/practice/:sessionId" element={<PracticeSession />} />
+            <Route path="/student/science/results/:sessionId" element={<PracticeResult />} />
+            <Route path="/student/lifelab" element={<StudentLifeLab />} />
+            {/* Spelling Practice (secondary module, English · Spelling) — shared core */}
+            <Route path="/student/spelling" element={<SpellingHome />} />
+            <Route path="/student/spelling/lists" element={<SpellingWordLists />} />
+            <Route path="/student/spelling/lists/:listId/learn" element={<SpellingLearn />} />
+            <Route path="/student/spelling/practice/:sessionId" element={<SpellingSelfTest />} />
+            <Route path="/student/spelling/results/:sessionId" element={<SpellingPracticeResults />} />
+            <Route path="/student/spelling/mistakes" element={<SpellingPracticeMistakes />} />
+            <Route path="/student/assignments" element={<StudentAssignments />} />
+            <Route path="/student/progress" element={<Placeholder title="Progress & Skill Graph" phase="Phase 2" />} />
+
+            {/* Parent (Phase 3) */}
+            <Route path="/parent" element={<ParentHome />} />
+            <Route path="/parent/children" element={<ParentChildren />} />
+            <Route path="/parent/children/:studentId/progress" element={<ChildProgress />} />
+            <Route path="/parent/children/:studentId/lifelab" element={<ChildLifeLab />} />
+            <Route path="/parent/children/:studentId/weak-topics" element={<WeakTopics />} />
+            <Route path="/parent/children/:studentId/actions" element={<RecommendedActions />} />
+            <Route path="/parent/children/:studentId/assign-practice" element={<AssignPractice />} />
+            <Route path="/parent/children/:studentId/mistakes" element={<MistakeHistory />} />
+            <Route path="/parent/children/:studentId/assignments" element={<ChildAssignments />} />
+            {/* Mastery Worksheet Generator (Phase 4) */}
+            <Route path="/parent/children/:studentId/worksheets" element={<WorksheetHome />} />
+            <Route path="/parent/children/:studentId/worksheets/new" element={<WorksheetSetup />} />
+            <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<WorksheetPreview />} />
+
+            {/* Tutor (Phase 4) */}
+            <Route path="/tutor" element={<TutorHome />} />
+            <Route path="/tutor/students" element={<AssignedStudents />} />
+            <Route path="/tutor/students/:id" element={<TutorStudentProfile />} />
+            <Route path="/tutor/students/:id/lesson-prep" element={<LessonPrep />} />
+            <Route path="/tutor/students/:id/lesson-notes" element={<LessonNotes />} />
+            <Route path="/tutor/students/:id/assign-homework" element={<AssignHomework />} />
+            <Route path="/tutor/homework" element={<TutorHomework />} />
+            <Route path="/tutor/availability" element={<TutorAvailability />} />
+            <Route path="/tutor/training" element={<TutorTraining />} />
+
+            {/* Teacher (Phase 5) */}
+            <Route path="/teacher" element={<TeacherHome />} />
+            <Route path="/teacher/classes" element={<Classes />} />
+            <Route path="/teacher/classes/:id" element={<ClassOverview />} />
+            <Route path="/teacher/classes/:id/mastery" element={<ClassMasteryMap />} />
+            <Route path="/teacher/classes/:id/students" element={<ClassStudents />} />
+            <Route path="/teacher/classes/:id/groups" element={<Grouping />} />
+            <Route path="/teacher/classes/:id/assign" element={<TeacherAssignPractice />} />
+            <Route path="/teacher/classes/:id/interventions" element={<Intervention />} />
+            <Route path="/teacher/classes/:id/lifelab" element={<TeacherLifeLab />} />
+            <Route path="/teacher/classes/:id/reports" element={<Reports />} />
+            <Route path="/teacher/students/:id" element={<TeacherStudentDetail />} />
+            <Route path="/teacher/lifelab" element={<TeacherLifeLabHome />} />
+
+            {/* ─── Secondary → Mechanisms Playground (D&T) ─── */}
+            <Route path="/secondary/mechanisms" element={<MechanismsHome />} />
+            <Route path="/secondary/mechanisms/:mechanism" element={<MechanismSimulator />} />
+            <Route path="/secondary/mechanisms/:mechanism/present" element={<MechanismPresent />} />
+
+            {/* Shared "More" sheet */}
+            <Route path="/more" element={<Placeholder title="More" />} />
+          </Route>
+
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
         </ErrorBoundary>
+        </ToastProvider>
       </AuthProvider>
     </Router>
   );

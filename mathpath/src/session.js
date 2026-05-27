@@ -2,7 +2,7 @@
 //
 // One session drills one skill for QUESTIONS_PER_SESSION items. Scaffolding lives here:
 // a wrong answer earns a hint and a second try; a second miss reveals the worked answer
-// and moves on. Mastery (Kumon-flavoured) needs both accuracy AND speed — and only
+// and moves on. Mastery needs both accuracy AND speed — and only
 // *first-try, un-hinted* correct answers count toward fluency.
 
 import {
