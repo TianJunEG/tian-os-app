@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please provide an email'],
     unique: true,
     lowercase: true,
-    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
+    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,})+$/, 'Please provide a valid email']
   },
   password: {
     type: String,
@@ -23,8 +23,23 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['parent', 'tutor', 'admin', 'student'],
+    enum: ['parent', 'tutor', 'teacher', 'admin', 'student'],
     default: 'parent'
+  },
+  // Tian OS multi-role model: a single account may hold several roles
+  // (e.g. a school teacher who is also a private tutor). `role` above is the
+  // legacy primary role, kept for backward compatibility; `roles` is the source
+  // of truth for feature access going forward. See docs/tian-os-master-product-spec.md §4.
+  roles: {
+    type: [String],
+    enum: ['parent', 'tutor', 'teacher', 'admin', 'student'],
+    default: undefined
+  },
+  // The workspace a user lands in by default after login.
+  defaultWorkspace: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    default: null
   },
   // For student accounts: the parent/tutor who provisioned and owns them.
   linkedTo: {

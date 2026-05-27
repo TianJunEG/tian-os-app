@@ -1,0 +1,228 @@
+import express from 'express';
+import { protect } from '../middleware/auth.js';
+import PracticeSession from '../models/PracticeSession.js';
+import PracticeAttempt from '../models/PracticeAttempt.js';
+import Question from '../models/Question.js';
+import Skill from '../models/Skill.js';
+import Mistake from '../models/Mistake.js';
+import Assignment from '../models/Assignment.js';
+import Worksheet from '../models/Worksheet.js';
+import { resolveStudent } from '../utils/studentContext.js';
+import { recordAttempt } from '../utils/masteryEngine.js';
+import { isCorrect, checkKeyPoints } from '../utils/answerCheck.js';
+import { selectSimilarQuestions } from '../utils/worksheetGen.js';
+
+const router = express.Router();
+
+// Shape a question for the client (never leak the answer mid-session).
+const clientQuestion = (q) => ({
+  questionId: q._id, stem: q.stem, type: q.type, choices: q.choices,
+  difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
+  skillName: q.skillId?.name, topicId: q.skillId?.topicId,
+});
+
+// @route POST /api/practice/sessions
+// @desc  Start a practice session. body: { studentId?, mode, feature?, skillIds[]?,
+//        skillId?, questionCount?, assignmentId?, excludeQuestionId? }
+// @access Private
+router.post('/sessions', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const {
+      mode = 'independent', feature = null, skillId, skillIds = [], topicId = null,
+      questionCount = 10, assignmentId = null, excludeQuestionId = null,
+      questionIds = null,
+    } = req.body;
+
+    let sessionFeature = feature;
+    let questions = [];
+    let targetSkillIds = skillIds.length ? skillIds : (skillId ? [skillId] : []);
+
+    // Topic-level session (e.g. Science): pull across all of a topic's skills for variety.
+    if (topicId && !targetSkillIds.length) {
+      const topicSkills = await Skill.find({ topicId }).select('_id');
+      targetSkillIds = topicSkills.map((s) => String(s._id));
+    }
+
+    // Digital answering of an assigned Mastery Worksheet: run the worksheet's
+    // EXACT generated questions through the shared session (not a re-selection).
+    let explicitIds = questionIds;
+    if (assignmentId) {
+      const a = await Assignment.findById(assignmentId);
+      if (a) {
+        targetSkillIds = a.skillIds.map(String);
+        if (a.module === 'Mastery Worksheet') {
+          sessionFeature = sessionFeature || 'Mastery Worksheet';
+          const ws = await Worksheet.findOne({ linkedAssignmentId: a._id });
+          const wsQ = ws?.generatedContent?.questions || [];
+          if (wsQ.length) explicitIds = wsQ.map((q) => q.questionId).filter(Boolean);
+        }
+      }
+    }
+
+    if (explicitIds?.length) {
+      // Preserve worksheet order.
+      const docs = await Question.find({ _id: { $in: explicitIds } }).populate('skillId');
+      const byId = new Map(docs.map((d) => [String(d._id), d]));
+      questions = explicitIds.map((id) => byId.get(String(id))).filter(Boolean);
+      targetSkillIds = [...new Set(questions.map((q) => String(q.skillId?._id || q.skillId)))];
+    } else {
+      if (!targetSkillIds.length) return res.status(400).json({ error: 'No skill selected.' });
+      questions = await selectSimilarQuestions({
+        studentId: student._id, skillIds: targetSkillIds, difficulty: 'medium',
+        count: questionCount, excludeQuestionIds: excludeQuestionId ? [excludeQuestionId] : [],
+      });
+    }
+    if (!questions.length) return res.status(400).json({ error: 'No questions available for this skill yet.' });
+
+    // Science is its own top-level module; all MathPath features stay 'MathPath'
+    // so their mistakes share the MathPath review bucket.
+    const sessionModule = /science/i.test(sessionFeature || '') ? 'Science Adaptive Revision' : 'MathPath';
+    const session = await PracticeSession.create({
+      studentId: student._id, workspaceId: student.workspaceId,
+      module: sessionModule, feature: sessionFeature, mode, skillIds: targetSkillIds, assignmentId,
+      status: 'active',
+    });
+    if (assignmentId) await Assignment.findByIdAndUpdate(assignmentId, { status: 'in_progress', sessionId: session._id });
+
+    res.json({ session_id: session._id, mode, feature: sessionFeature, items: questions.map(clientQuestion) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start session.' });
+  }
+});
+
+// @route POST /api/practice/sessions/:id/attempts
+// @desc  Log one attempt. body: { questionId, answer, timeMs?, hintsUsed? }
+//        Saves PracticeAttempt, updates mastery, saves a Mistake if wrong.
+// @access Private
+router.post('/sessions/:id/attempts', protect, async (req, res) => {
+  try {
+    const session = await PracticeSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session not found.' });
+    const student = await resolveStudent(req, session.studentId);
+
+    const { questionId, answer, timeMs = null, hintsUsed = 0 } = req.body;
+    const q = await Question.findById(questionId);
+    if (!q) return res.status(404).json({ error: 'Question not found.' });
+
+    // Open-ended (Science): keyword/key-point marking with partial credit.
+    let correct, partial = false, missing = [], openEnded = q.type === 'open_ended';
+    if (openEnded) {
+      const r = checkKeyPoints(answer, q.keyPoints);
+      correct = r.correct; partial = r.partial; missing = r.missing;
+    } else {
+      correct = isCorrect(answer, q.answer);
+    }
+
+    await PracticeAttempt.create({
+      sessionId: session._id, studentId: student._id, questionId: q._id, skillId: q.skillId,
+      answer: String(answer ?? ''), correct, timeMs, hintsUsed,
+    });
+
+    // Mastery counts a fully-correct attempt; partial does not (but is not a "wrong" mistake-only signal).
+    const sessModule = session.module || 'MathPath';
+    const subject = /science/i.test(sessModule) ? 'Science' : 'Math';
+    const mastery = await recordAttempt({ studentId: student._id, skillId: q.skillId, workspaceId: student.workspaceId, correct, module: sessModule, subject });
+
+    // Save a mistake when incorrect, or partially correct on an open-ended item.
+    if (!correct) {
+      await Mistake.create({
+        studentId: student._id, workspaceId: student.workspaceId, questionId: q._id, skillId: q.skillId,
+        module: session.module || 'MathPath',
+        questionStem: q.stem, workedSolution: q.modelAnswer || q.workedSolution,
+        studentAnswer: String(answer ?? ''), correctAnswer: q.modelAnswer || q.answer,
+        mistakeType: 'unknown', misconceptionTag: q.misconceptionTag || '', status: 'open',
+      });
+    }
+
+    res.json({
+      correct, partial,
+      correctAnswer: openEnded ? '' : q.answer,
+      workedSolution: q.workedSolution,
+      // Open-ended feedback:
+      modelAnswer: openEnded ? q.modelAnswer : '',
+      keyPoints: openEnded ? q.keyPoints : [],
+      missingKeyPoints: openEnded ? missing : [],
+      explanation: q.explanation || '',
+      mastery: { skillId: q.skillId, ...mastery.after, masteredNow: mastery.masteredNow },
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to log attempt.' });
+  }
+});
+
+// @route POST /api/practice/sessions/:id/complete
+// @desc  Finalize: compute summary, mark a linked assignment complete.
+// @access Private
+router.post('/sessions/:id/complete', protect, async (req, res) => {
+  try {
+    const session = await PracticeSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session not found.' });
+
+    const attempts = await PracticeAttempt.find({ sessionId: session._id });
+    const total = attempts.length;
+    const correct = attempts.filter((a) => a.correct).length;
+    const times = attempts.map((a) => a.timeMs).filter((t) => typeof t === 'number');
+    const scorePct = total ? Math.round((correct / total) * 100) : 0;
+
+    session.status = 'completed';
+    session.endedAt = new Date();
+    session.summary = { total, correct, scorePct };
+    await session.save();
+
+    if (session.assignmentId) {
+      await Assignment.findByIdAndUpdate(session.assignmentId, {
+        status: 'completed', completionDate: new Date(), score: scorePct,
+      });
+    }
+
+    res.json({
+      session_id: session._id,
+      summary: {
+        total, correct, incorrect: total - correct, scorePct,
+        totalTimeMs: times.reduce((s, t) => s + t, 0),
+        avgTimeMs: times.length ? Math.round(times.reduce((s, t) => s + t, 0) / times.length) : null,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to complete session.' });
+  }
+});
+
+// @route GET /api/practice/sessions/:id
+// @desc  Session + attempts + mistakes saved this session (for the results page).
+// @access Private
+router.get('/sessions/:id', protect, async (req, res) => {
+  try {
+    const session = await PracticeSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session not found.' });
+    const attempts = await PracticeAttempt.find({ sessionId: session._id }).populate({ path: 'skillId', model: Skill });
+    const skillIds = [...new Set(attempts.map((a) => String(a.skillId?._id || a.skillId)))];
+    const mistakes = await Mistake.find({ studentId: session.studentId, skillId: { $in: skillIds }, occurredAt: { $gte: session.startedAt } });
+    const total = attempts.length, correct = attempts.filter((a) => a.correct).length;
+    const times = attempts.map((a) => a.timeMs).filter((t) => typeof t === 'number');
+
+    res.json({
+      session: {
+        id: session._id, module: session.module, mode: session.mode, feature: session.feature, status: session.status,
+        startedAt: session.startedAt, endedAt: session.endedAt, summary: session.summary,
+      },
+      skills: attempts.reduce((acc, a) => {
+        const id = String(a.skillId?._id || a.skillId);
+        if (!acc.find((s) => s.id === id)) acc.push({ id, name: a.skillId?.name || '' });
+        return acc;
+      }, []),
+      stats: {
+        total, correct, incorrect: total - correct,
+        accuracy: total ? Math.round((correct / total) * 100) : 0,
+        avgTimeMs: times.length ? Math.round(times.reduce((s, t) => s + t, 0) / times.length) : null,
+        totalTimeMs: times.reduce((s, t) => s + t, 0),
+      },
+      mistakes: mistakes.map((m) => ({ id: m._id, stem: m.questionStem, yourAnswer: m.studentAnswer, correctAnswer: m.correctAnswer })),
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load session.' });
+  }
+});
+
+export default router;
