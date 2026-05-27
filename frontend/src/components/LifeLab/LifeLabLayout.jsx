@@ -50,9 +50,9 @@ export default function LifeLabLayout() {
       case 'class':
         return <ClassOverviewScreen onBack={() => setActiveScreen('library')} />;
       case 'parent':
-        return <ParentViewScreen onBack={() => setActiveScreen('library')} />;
+        return <ParentViewScreen onBack={() => setActiveScreen('library')} onNavigate={setActiveScreen} />;
       case 'tutor':
-        return <TutorViewScreen onBack={() => setActiveScreen('library')} />;
+        return <TutorViewScreen onBack={() => setActiveScreen('library')} onNavigate={setActiveScreen} />;
       default:
         return <LibraryScreen />;
     }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '../Icon';
 
-export default function TutorViewScreen({ onBack }) {
+export default function TutorViewScreen({ onBack, onNavigate }) {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -11,9 +11,12 @@ export default function TutorViewScreen({ onBack }) {
 
   const fetchAssignments = async () => {
     try {
-      const response = await fetch('/api/lifelab/assignments?role=tutor');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/lifelab/assignments?role=tutor', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await response.json();
-      setAssignments(data);
+      setAssignments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching assignments:', error);
     } finally {
@@ -23,13 +26,12 @@ export default function TutorViewScreen({ onBack }) {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      assigned: { bg: '#EEF2FA', color: '#13315C', label: 'Assigned', icon: '📋' },
-      in_progress: { bg: '#EEF2FA', color: '#13315C', label: 'In Progress', icon: '⏳' },
-      submitted: { bg: '#FBEEDD', color: '#B86B1A', label: 'Submitted', icon: '✅' },
-      reviewed: { bg: '#E7F3EC', color: '#2E7A5A', label: 'Reviewed', icon: '⭐' },
+      assigned: { bg: '#EEF2FA', color: '#13315C', label: 'Assigned' },
+      in_progress: { bg: '#EEF2FA', color: '#13315C', label: 'In Progress' },
+      submitted: { bg: '#FBEEDD', color: '#B86B1A', label: 'Submitted' },
+      reviewed: { bg: '#E7F3EC', color: '#2E7A5A', label: 'Reviewed' },
     };
-    const s = statusMap[status] || statusMap.assigned;
-    return s;
+    return statusMap[status] || statusMap.assigned;
   };
 
   return (
@@ -57,9 +59,17 @@ export default function TutorViewScreen({ onBack }) {
           {loading ? (
             <div className="loading">Loading...</div>
           ) : assignments.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">📚</div>
-              <div className="empty-state-text">No assignments yet</div>
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <Icon name="compass" size={32} color="#13315C" />
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#0B1F3F', marginBottom: 8 }}>No Assignments Yet</div>
+              <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
+                Assign a LifeLab activity from the library to get started. Students will appear here once assigned.
+              </div>
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={onBack}>
+                Browse Library
+              </button>
             </div>
           ) : (
             assignments.map((assignment) => {
@@ -72,7 +82,7 @@ export default function TutorViewScreen({ onBack }) {
                         {assignment.template_id?.title}
                       </div>
                       <div style={{ fontSize: 12, color: '#6B7A95', marginTop: 4 }}>
-                        To: {assignment.assigned_to_student_id?.name || 'Class Group'}
+                        To: {assignment.student_name || 'Student'}
                       </div>
                       <div style={{ fontSize: 11, color: '#A7B1C2', marginTop: 2 }}>
                         {assignment.template_id?.subject} • {assignment.template_id?.duration}
@@ -87,43 +97,22 @@ export default function TutorViewScreen({ onBack }) {
                       fontWeight: 700,
                       whiteSpace: 'nowrap',
                     }}>
-                      {statusInfo.icon} {statusInfo.label}
+                      {statusInfo.label}
                     </span>
                   </div>
 
                   {assignment.due_date && (
                     <div style={{ fontSize: 12, color: '#6B7A95', marginBottom: 8 }}>
-                      <Icon name="calendar" size={14} style={{ marginRight: 4 }} />
-                      Due: {new Date(assignment.due_date).toLocaleDateString()}
+                      Due: {new Date(assignment.due_date).toLocaleDateString('en-SG')}
                     </div>
                   )}
 
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      background: 'white',
-                      border: '1px solid #E8EBF1',
-                      borderRadius: 8,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: '#0B1F3F',
-                      cursor: 'pointer',
-                    }}>
+                    <button className="btn btn-secondary btn-sm" style={{ flex: 1 }}>
                       View
                     </button>
                     {assignment.status === 'submitted' && (
-                      <button style={{
-                        flex: 1,
-                        padding: '8px 12px',
-                        background: '#C8A042',
-                        border: 'none',
-                        borderRadius: 8,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: 'white',
-                        cursor: 'pointer',
-                      }}>
+                      <button className="btn btn-primary btn-sm" style={{ flex: 1, background: '#C8A042' }}>
                         Review
                       </button>
                     )}
@@ -136,11 +125,22 @@ export default function TutorViewScreen({ onBack }) {
       </div>
 
       <div className="bottom-nav">
-        {['home', 'library', 'submit', 'inbox', 'me'].map((item) => (
-          <div key={item} className={`bottom-nav-item ${item === 'inbox' ? 'active' : ''}`}>
-            <Icon name={item === 'submit' ? 'sparkle' : item} size={22} />
-            <span style={{ textTransform: 'capitalize', fontSize: 10 }}>{item}</span>
-          </div>
+        {[
+          { id: 'home',    label: 'Home',    icon: 'home',    action: onBack },
+          { id: 'library', label: 'Library', icon: 'compass', action: onBack },
+          { id: 'submit',  label: 'Submit',  icon: 'sparkle', action: () => onNavigate?.('submission') },
+          { id: 'inbox',   label: 'Inbox',   icon: 'chat',    action: () => onNavigate?.('review') },
+          { id: 'me',      label: 'Me',      icon: 'user',    action: null },
+        ].map(({ id, label, icon, action }) => (
+          <button
+            key={id}
+            className={`bottom-nav-item ${id === 'me' ? 'active' : ''}`}
+            onClick={action || undefined}
+            style={{ background: 'none', border: 'none', cursor: action ? 'pointer' : 'default' }}
+          >
+            <Icon name={icon} size={22} />
+            <span style={{ textTransform: 'capitalize' }}>{label}</span>
+          </button>
         ))}
       </div>
     </div>

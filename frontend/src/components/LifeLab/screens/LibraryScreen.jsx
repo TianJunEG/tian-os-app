@@ -31,8 +31,9 @@ export default function LibraryScreen({ onSelectTemplate, onAssign, onNavigate }
     try {
       const response = await fetch('/api/lifelab/templates');
       const data = await response.json();
-      setTemplates(data);
-      setFilteredTemplates(data);
+      const list = Array.isArray(data) ? data : [];
+      setTemplates(list);
+      setFilteredTemplates(list);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching templates:', error);
@@ -208,7 +209,12 @@ export default function LibraryScreen({ onSelectTemplate, onAssign, onNavigate }
           { id: 'library', label: 'Library', icon: 'compass', action: null },
           { id: 'submit',  label: 'Submit',  icon: 'sparkle', action: () => onNavigate?.('submission') },
           { id: 'inbox',   label: 'Inbox',   icon: 'chat',    action: () => onNavigate?.('review') },
-          { id: 'me',      label: 'Me',      icon: 'user',    action: () => navigate('/dashboard') },
+          { id: 'me',      label: 'Me',      icon: 'user',    action: () => {
+            const role = user?.role;
+            if (role === 'parent') onNavigate?.('parent');
+            else if (role === 'tutor') onNavigate?.('tutor');
+            else navigate('/dashboard');
+          }},
         ].map(({ id, label, icon, action }) => (
           <button
             key={id}
