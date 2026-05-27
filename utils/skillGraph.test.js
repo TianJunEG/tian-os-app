@@ -27,7 +27,6 @@ const levelRank = (s = '') => {
 // Lower-level skill -> higher-level prerequisite it currently depends on. Each is
 // a real cross-level dependency to revisit when re-levelling the curriculum.
 const EXPECTED_CROSS_LEVEL = new Set([
-  'geo.angle-intro -> geo.lines',          // P3 angle types depend on P4 parallel/perpendicular lines
   'mea.unit-convert -> dec.x-div-10-100',  // P4 unit conversion depends on P5 decimal ×÷ by 10/100/1000
   'mea.money -> dec.add-sub',              // P3 money reasoning depends on P4 decimal add/subtract
 ]);
