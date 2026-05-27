@@ -3,13 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
+import { Card, Button, Field, Input, Alert } from '../components/ui';
 import { ROLE_HOME } from '../config/nav';
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
@@ -17,90 +15,53 @@ export default function LoginPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     const result = await login(formData);
     setLoading(false);
-
     if (result.success) {
-      // Land in the unified Tian OS shell for the user's role (not the legacy dashboard).
-      navigate(ROLE_HOME[result.user?.role] || '/dashboard');
+      // Land in the unified Tian OS shell for the user's role.
+      navigate(ROLE_HOME[result.user?.role] || '/student');
     } else {
       setError(result.error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy-50 to-gold-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl border border-navy-100 p-8 w-full max-w-md">
-        <div className="flex justify-center mb-6"><Wordmark onDark={false} size={34} /></div>
-        <h1 className="text-3xl font-serif font-medium text-navy-900 mb-1 text-center">Welcome back</h1>
-        <p className="text-center text-gray-500 text-sm mb-8">Sign in to your Tian OS account</p>
+    <div className="flex min-h-screen items-center justify-center bg-ivory p-4 font-ui">
+      <Card className="w-full max-w-md p-8">
+        <div className="mb-6 flex justify-center"><Wordmark onDark={false} size={34} /></div>
+        <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-navy-700">Welcome back</h1>
+        <p className="mb-8 mt-1 text-center text-sm text-ink-500">Sign in to your Tian OS account</p>
 
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-red-700 text-sm">{error}</p>
-          </div>
-        )}
+        {error && <Alert tone="error" icon={AlertCircle} className="mb-4">{error}</Alert>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="john@example.com"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
-                required
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-navy-800 text-white font-semibold py-2.5 rounded-lg hover:bg-navy-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+        <form onSubmit={handleSubmit}>
+          <Field label="Email">
+            <Input type="email" name="email" value={formData.email} onChange={handleChange}
+              placeholder="you@example.com" icon={Mail} autoComplete="email" required />
+          </Field>
+          <Field label="Password">
+            <Input type="password" name="password" value={formData.password} onChange={handleChange}
+              placeholder="••••••••" icon={Lock} autoComplete="current-password" required />
+          </Field>
+          <Button type="submit" size="m" disabled={loading} className="mt-2 w-full">
+            {loading ? 'Signing in…' : 'Sign in'}
+          </Button>
         </form>
 
-        <div className="mt-6 border-t pt-6">
-          <p className="text-center text-gray-600 text-sm">
+        <div className="mt-6 border-t border-hairline pt-6">
+          <p className="text-center text-sm text-ink-500">
             Don't have an account?{' '}
-            <Link to="/register" className="text-navy-700 hover:text-navy-900 font-semibold">
-              Sign up
-            </Link>
+            <Link to="/register" className="font-semibold text-navy-700 hover:text-navy-800">Sign up</Link>
           </p>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

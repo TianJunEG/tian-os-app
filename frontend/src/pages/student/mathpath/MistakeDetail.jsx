@@ -68,7 +68,7 @@ export default function MistakeDetail() {
         </div>
 
         {m.workedSolution && (
-          <div className="mb-4 rounded-xl bg-navy-050 p-4">
+          <div className="mb-4 rounded-xl bg-navy-50 p-4">
             <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-navy-500">Worked solution</div>
             <div className="text-sm text-navy-800"><MathText text={m.workedSolution} /></div>
           </div>

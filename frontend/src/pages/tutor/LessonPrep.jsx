@@ -74,7 +74,7 @@ export default function LessonPrep() {
         <ol className="space-y-2">
           {prep.teachingSequence.map((step, i) => (
             <li key={i} className="flex gap-3 text-sm text-ink-700">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-navy-050 font-mono text-xs text-navy-700">{i + 1}</span>
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-navy-50 font-mono text-xs text-navy-700">{i + 1}</span>
               {step}
             </li>
           ))}

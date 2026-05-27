@@ -29,7 +29,7 @@ export default function WorksheetHome() {
       <div className="mb-6 space-y-2.5">
         {MODES.map(({ key, label, desc, Icon }) => (
           <Card key={key} interactive role="button" className="flex items-center gap-3 p-4" onClick={() => navigate(`${base}/new?mode=${key}`)}>
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-050 text-navy-700 shrink-0"><Icon className="h-5 w-5" /></span>
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700 shrink-0"><Icon className="h-5 w-5" /></span>
             <span className="flex-1">
               <span className="block font-semibold text-ink-700">{label}</span>
               <span className="block text-xs text-ink-500">{desc}</span>

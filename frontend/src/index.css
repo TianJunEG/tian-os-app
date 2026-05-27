@@ -12,7 +12,7 @@
 :root {
   /* Brand */
   --navy-900:#0E1A36; --navy-700:#1A2A4F; --navy-500:#2E4477;
-  --navy-300:#6B7FA8; --navy-100:#DDE3F0; --navy-050:#F1F4FA;
+  --navy-300:#6B7FA8; --navy-100:#DDE3F0; --navy-50:#F1F4FA;
   --gold-700:#8E6F1F; --gold-500:#C9A23C; --gold-300:#E3C97A; --gold-100:#F6EBC9;
   /* Neutrals (ink/paper/lines) */
   --ink-900:#0E1320; --ink-700:#1F2330; --ink-500:#5B5F6E; --ink-300:#9A9DA9; --ink-100:#C9CBD3;

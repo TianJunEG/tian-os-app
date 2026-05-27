@@ -33,6 +33,7 @@ import LifeLabLayout from './components/LifeLab/LifeLabLayout';
 // Tian OS unified shell (Phase 1 foundation)
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import AppShell from './components/shell/AppShell';
+import { ToastProvider } from './components/ui';
 import { ROLE_HOME } from './config/nav';
 import StudentDashboard from './pages/student/StudentDashboard';
 import Placeholder from './pages/Placeholder';
@@ -256,6 +257,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <ToastProvider>
         <PwaManager />
         <ErrorBoundary>
         <Routes>
@@ -479,6 +481,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         </ErrorBoundary>
+        </ToastProvider>
       </AuthProvider>
     </Router>
   );

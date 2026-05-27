@@ -69,16 +69,16 @@ export default function AssignPractice() {
           <div>
             <label className="mb-2 block text-sm font-semibold text-ink-700">Assign to</label>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setTarget({ type: 'class' })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'class' ? 'border-navy-500 bg-navy-050 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>Whole class</button>
+              <button onClick={() => setTarget({ type: 'class' })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'class' ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>Whole class</button>
               {groups.map((g) => (
-                <button key={g._id} onClick={() => setTarget({ type: 'group', id: g._id })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'group' && target.id === g._id ? 'border-navy-500 bg-navy-050 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>{g.name}</button>
+                <button key={g._id} onClick={() => setTarget({ type: 'group', id: g._id })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'group' && target.id === g._id ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>{g.name}</button>
               ))}
               {groups.length === 0 && <span className="text-sm text-ink-400">No saved groups yet — create some in Groups.</span>}
             </div>
           </div>
           <div>
             <label className="mb-2 block text-sm font-semibold text-ink-700">Module</label>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-navy-500 bg-navy-050 px-3 py-1.5 text-sm font-semibold text-navy-700">MathPath</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-navy-500 bg-navy-50 px-3 py-1.5 text-sm font-semibold text-navy-700">MathPath</span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

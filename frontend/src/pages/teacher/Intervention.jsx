@@ -37,7 +37,7 @@ export default function Intervention() {
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {STATUSES.map((s) => (
                   <button key={s} onClick={() => update(i.id, s)}
-                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${i.status === s ? 'border-navy-500 bg-navy-050 text-navy-700' : 'border-hairline text-ink-500 hover:text-navy-700'}`}>
+                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${i.status === s ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-500 hover:text-navy-700'}`}>
                     {s.replace(/_/g, ' ')}
                   </button>
                 ))}

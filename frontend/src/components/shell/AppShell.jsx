@@ -29,7 +29,7 @@ function WorkspaceSwitcher() {
   return (
     <div className="relative">
       <button onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-xl border border-hairline bg-paper px-3 py-2 text-sm font-semibold text-navy-700 hover:bg-navy-050">
+        className="flex items-center gap-2 rounded-xl border border-hairline bg-paper px-3 py-2 text-sm font-semibold text-navy-700 hover:bg-navy-50">
         <span className="max-w-[10rem] truncate">{activeWorkspace?.name || 'Workspace'}</span>
         {hasMultipleWorkspaces && <ChevronDown className="h-4 w-4 text-ink-300" />}
       </button>
@@ -37,7 +37,7 @@ function WorkspaceSwitcher() {
         <div className="absolute right-0 z-50 mt-1 w-64 overflow-hidden rounded-xl border border-hairline bg-paper shadow-active">
           {workspaces.map((w) => (
             <button key={w.id} onClick={() => { switchWorkspace(w.id); setOpen(false); }}
-              className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm hover:bg-navy-050">
+              className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm hover:bg-navy-50">
               <span className="min-w-0">
                 <span className="block truncate font-medium text-ink-700">{w.name}</span>
                 <span className="block text-xs uppercase tracking-wide text-ink-300">{w.role} · {w.type}</span>
@@ -67,7 +67,7 @@ function RoleSwitcher() {
 }
 
 const navItemClass = ({ isActive }) =>
-  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-navy-050 text-navy-700' : 'text-ink-500 hover:bg-navy-050 hover:text-navy-700'}`;
+  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-navy-50 text-navy-700' : 'text-ink-500 hover:bg-navy-50 hover:text-navy-700'}`;
 
 export default function AppShell({ children }) {
   const { loading, role } = useWorkspace();
@@ -91,7 +91,7 @@ export default function AppShell({ children }) {
             </NavLink>
           ))}
         </nav>
-        <button onClick={handleLogout} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink-500 hover:bg-navy-050">
+        <button onClick={handleLogout} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink-500 hover:bg-navy-50">
           <LogOut className="h-[18px] w-[18px]" />Sign out
         </button>
       </aside>
@@ -114,7 +114,7 @@ export default function AppShell({ children }) {
         style={{ height: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {set.bottom.map((item) => (
           <NavLink key={item.to} to={item.to} end
-            className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 transition ${isActive ? 'bg-navy-050 text-navy-700' : 'text-ink-300'}`}>
+            className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 transition ${isActive ? 'bg-navy-50 text-navy-700' : 'text-ink-300'}`}>
             <item.icon className="h-5 w-5" />
             <span className="text-[10px] font-semibold">{item.label}</span>
           </NavLink>

@@ -70,7 +70,7 @@ export default function PracticeSession() {
               const selected = answer === c;
               return (
                 <button key={c} disabled={!!result} onClick={() => setAnswer(c)}
-                  className={`flex items-center rounded-xl border px-4 py-3 text-left transition ${selected ? 'border-navy-500 bg-navy-050' : 'border-hairline hover:bg-navy-050'} ${result ? 'opacity-70' : ''}`}>
+                  className={`flex items-center rounded-xl border px-4 py-3 text-left transition ${selected ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'} ${result ? 'opacity-70' : ''}`}>
                   <MathText text={c} />
                 </button>
               );

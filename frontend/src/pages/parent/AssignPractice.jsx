@@ -93,7 +93,7 @@ export default function AssignPractice() {
             <div className="flex flex-wrap gap-2">
               {MODULES.map((m) => (
                 <button key={m.key} disabled={!m.enabled} onClick={() => m.enabled && setModule(m.key)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-050 font-semibold text-navy-700' : m.enabled ? 'border-hairline text-ink-700' : 'border-hairline text-ink-300'}`}>
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : m.enabled ? 'border-hairline text-ink-700' : 'border-hairline text-ink-300'}`}>
                   {m.label}{!m.enabled && <Badge tone="neutral">soon</Badge>}
                 </button>
               ))}
