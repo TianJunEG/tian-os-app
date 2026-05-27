@@ -11,12 +11,11 @@ const labelFor = (status, fluency) => ({
   not_started: 'needs practice', needs_review: 'needs practice', learning: 'learning',
   mastered: fluency ? 'fluent' : 'mastered',
 }[status] || status);
-const FLUENCY_TOPIC = 'Number Fluency';
-
 // @route GET /api/skills?studentId=&subject=math|science&group=fluency
 // @desc  Skill catalog (for a subject) merged with the student's mastery status.
-//        subject defaults to 'math'. group=fluency limits to the Number Fluency
-//        topic (MathPath Fluency feature). Science reuses this for its topic list.
+//        subject defaults to 'math'. group=fluency limits to the speed-and-
+//        accuracy ("timed") skills across all domains (MathPath Fluency feature).
+//        Science reuses this for its topic list.
 // @access Private
 router.get('/', protect, async (req, res) => {
   try {
@@ -26,11 +25,12 @@ router.get('/', protect, async (req, res) => {
     const subject = await Subject.findOne({ key: subjectKey });
     if (!subject) return res.json({ studentId: student._id, skills: [] });
 
-    let topicFilter = { subjectId: subject._id };
-    if (fluency) topicFilter.name = FLUENCY_TOPIC;
-    const topics = await Topic.find(topicFilter).sort({ order: 1 });
+    const topics = await Topic.find({ subjectId: subject._id }).sort({ order: 1 });
     const topicById = Object.fromEntries(topics.map((t) => [String(t._id), t]));
-    const skills = await Skill.find({ topicId: { $in: topics.map((t) => t._id) } }).sort({ order: 1 });
+    // Fluency = the "timed" (speed + accuracy) skills, flagged by the domain spec.
+    const skillFilter = { topicId: { $in: topics.map((t) => t._id) } };
+    if (fluency) skillFilter['metadata.fluencyType'] = 'timed';
+    const skills = await Skill.find(skillFilter).sort({ order: 1 });
 
     const records = await MasteryRecord.find({ studentId: student._id, skillId: { $in: skills.map((s) => s._id) } });
     const recBySkill = Object.fromEntries(records.map((r) => [String(r.skillId), r]));
@@ -42,6 +42,8 @@ router.get('/', protect, async (req, res) => {
         skillId: s._id, name: s.name, moeLevel: s.moeLevel,
         topicId: s.topicId, topicName: topicById[String(s.topicId)]?.name || '',
         score: r?.score || 0, status, statusLabel: labelFor(status, fluency),
+        fluencyStatus: r?.fluencyStatus || 'unknown', streak: r?.streak || 0, bestStreak: r?.bestStreak || 0,
+        targetSeconds: s.metadata?.fluency?.targetSeconds ?? null,
       };
     });
     res.json({ studentId: student._id, subject: subjectKey, skills: out });

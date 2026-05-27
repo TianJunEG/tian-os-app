@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Check, Dumbbell, AlertTriangle } from 'lucide-react';
+import { Check, Dumbbell, AlertTriangle, Lightbulb } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
+import RemediationPanel from '../../../components/mathpath/RemediationPanel';
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation error',
@@ -18,6 +19,7 @@ export default function MistakeDetail() {
   const [m, setM] = useState(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [error, setError] = useState(null);
 
   const load = async () => {
@@ -76,9 +78,18 @@ export default function MistakeDetail() {
 
         <div className="flex flex-wrap gap-2">
           {!reviewed && <Button variant="secondary" icon={Check} onClick={review}>Mark as reviewed</Button>}
+          {!showHelp && <Button variant="secondary" icon={Lightbulb} onClick={() => setShowHelp(true)}>Get help</Button>}
           <Button icon={Dumbbell} disabled={starting} onClick={practise}>Practise similar</Button>
         </div>
       </Card>
+
+      {showHelp && (
+        <RemediationPanel
+          skillId={m.skillId}
+          recentAttempts={[{ correct: false, misconceptionTag: m.misconceptionTag }]}
+          onPractise={practise}
+        />
+      )}
     </>
   );
 }

@@ -33,8 +33,10 @@ async function main() {
 
   const topicLevel = Object.fromEntries(topics.map((t) => [String(t._id), t.moeLevel]));
   let inserted = 0;
+  const skipped = [];
   for (const skill of skills) {
     const qs = generateQuestionsForSkill(skill.name, PER_DIFFICULTY);
+    if (!qs.length) { skipped.push(skill.name); continue; }
     const docs = qs.map((q) => ({
       subjectId: math._id,
       topicId: skill.topicId,
@@ -55,7 +57,11 @@ async function main() {
 
   console.log('✅ Question bank seeded');
   console.log(`   Removed ${removed.deletedCount} old seed questions`);
-  console.log(`   Inserted ${inserted} questions across ${skills.length} Math skills`);
+  console.log(`   Inserted ${inserted} questions across ${skills.length - skipped.length} of ${skills.length} Math skills`);
+  if (skipped.length) {
+    console.log(`   ${skipped.length} skills have NO rule-based template (rely on authored/exam items):`);
+    console.log(`     ${skipped.join(', ')}`);
+  }
   await mongoose.disconnect();
 }
 

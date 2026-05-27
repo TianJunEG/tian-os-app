@@ -7,6 +7,8 @@ import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../.
 // MathPath › Fluency — home. Recommended skill, weak fluency skills, quick practice.
 // Fluency is a FEATURE of MathPath: it reuses the shared practice/result screens.
 const TONE = { mastered: 'success', fluent: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
+// Speed labels for the fluency (timed) skills.
+const FLUENCY_LABEL = { automatic: 'fast & accurate', developing: 'getting quicker', effortful: 'building speed' };
 
 export default function FluencyHome() {
   const navigate = useNavigate();
@@ -38,8 +40,10 @@ export default function FluencyHome() {
   if (loading) return <Spinner label="Loading Fluency…" />;
   if (error) return <EmptyState icon={AlertTriangle} message={error} />;
 
-  const recommended = [...skills].sort((a, b) => a.score - b.score)[0];
+  // Recommend the weakest skill you have NOT yet mastered — never a mastered one,
+  // even when it happens to be the lowest-scored. Mirrors the `weak` list below.
   const weak = skills.filter((s) => s.status !== 'mastered');
+  const recommended = [...weak].sort((a, b) => a.score - b.score)[0] || null;
 
   return (
     <>
@@ -47,11 +51,17 @@ export default function FluencyHome() {
 
       <Card className="mb-6 bg-gradient-to-br from-navy-700 to-navy-900 p-5 text-paper">
         <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-gold-300">Recommended now</div>
-        <div className="font-display text-xl font-semibold">{recommended?.name || 'Times tables'}</div>
-        <p className="mb-4 mt-1 text-sm text-paper/70">A short drill tuned to where you are.</p>
-        <Button variant="gold" icon={Zap} disabled={starting || !recommended} onClick={() => start(recommended?.skillId)}>
-          {starting ? 'Starting…' : 'Start quick practice'}
-        </Button>
+        {recommended ? (
+          <>
+            <div className="font-display text-xl font-semibold">{recommended.name}</div>
+            <p className="mb-4 mt-1 text-sm text-paper/70">A short drill tuned to where you are.</p>
+            <Button variant="gold" icon={Zap} disabled={starting} onClick={() => start(recommended.skillId)}>
+              {starting ? 'Starting…' : 'Start quick practice'}
+            </Button>
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-paper/70">Every fluency skill is sharp. Come back later to keep them fresh.</p>
+        )}
       </Card>
 
       <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Skills to sharpen</h3>
@@ -61,7 +71,11 @@ export default function FluencyHome() {
           <Card key={s.skillId} interactive className="flex items-center justify-between p-4" onClick={() => start(s.skillId)} role="button">
             <div>
               <div className="font-semibold text-ink-700">{s.name}</div>
-              <div className="text-xs text-ink-500">{s.topicName}</div>
+              <div className="text-xs text-ink-500">
+                {s.topicName}
+                {FLUENCY_LABEL[s.fluencyStatus] && <> · {FLUENCY_LABEL[s.fluencyStatus]}</>}
+                {s.streak > 1 && <> · 🔥 {s.streak} in a row</>}
+              </div>
             </div>
             <Badge tone={TONE[s.status] || 'neutral'}>{s.statusLabel}</Badge>
           </Card>

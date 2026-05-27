@@ -1,0 +1,16 @@
+<svg width="360" height="360" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360">
+
+        <defs>
+            <style>
+                .grid-line { stroke: #cccccc; stroke-width: 0.5; }
+                .main-line { stroke: black; stroke-width: 2; fill: none; }
+                .thin-line { stroke: black; stroke-width: 1; fill: none; }
+                .label { font-family: Arial, sans-serif; font-size: 14px; }
+                .label-small { font-family: Arial, sans-serif; font-size: 12px; }
+                .shading { fill: #cccccc; }
+                .angle-label { font-family: Arial, sans-serif; font-size: 11px; }
+            </style>
+        </defs>
+        
+<polygon points="180,100 260,100 180,180" fill="none" stroke="black" stroke-width="2"/><polygon points="183.0,103.0 193.0,103.0 193.0,113.0 183.0,113.0" fill="none" stroke="black" stroke-width="1"/><polygon points="180,100 260,100 180,180" fill="none" stroke="black" stroke-width="2"/><polygon points="183.0,103.0 193.0,103.0 193.0,113.0 183.0,113.0" fill="none" stroke="black" stroke-width="1"/><polygon points="249.2820323027551,220.0 110.7179676972449,220.0 180,180" fill="none" stroke="black" stroke-width="2"/><polygon points="110.71796769724492,140.0 179.99999999999997,100.0 180,180" fill="none" stroke="black" stroke-width="2"/><text x="145" y="140" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">24 cm</text><text x="215" y="140" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">20 cm</text>
+</svg>

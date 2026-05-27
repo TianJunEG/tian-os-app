@@ -24,6 +24,16 @@ const questionSchema = new mongoose.Schema({
   // Misconception this item is good at surfacing/diagnosing (slug). Optional.
   misconceptionTag: { type: String, default: '' },
   source: { type: String, default: 'seed' },       // seed | authored | generated
+  // Provenance for authored items lifted from a specific paper, e.g.
+  // 'P6_TaoNan_Prelim_2025'. Lets an ingest seed delete+reinsert just its own
+  // questions (idempotent) without touching template/seed items.
+  sourceRef: { type: String, default: '' },
+  // Figure support: many exam items depend on a diagram (number line, pie/bar/
+  // line graph, geometry figure). `figureUrl` is a served asset path; until the
+  // image is produced it may be blank while `figureAlt` describes what's needed.
+  hasFigure: { type: Boolean, default: false },
+  figureUrl: { type: String, default: '' },
+  figureAlt: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now }
 });
 

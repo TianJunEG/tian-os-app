@@ -20,6 +20,16 @@ const masteryRecordSchema = new mongoose.Schema({
     default: 'not_started'
   },
   attempts: { type: Number, default: 0 },
+  // Fluency = speed + accuracy. We keep a rolling window of correct-attempt
+  // response times to derive a median and a fluency status against the skill's
+  // target (set by the domain spec). Lets the app trigger fluency drills, not
+  // just remediation.
+  recentTimesMs: { type: [Number], default: [] },
+  medianTimeMs: { type: Number, default: null },
+  fluencyStatus: { type: String, enum: ['unknown', 'effortful', 'developing', 'automatic'], default: 'unknown' },
+  // Consecutive-correct streak (motivation + confidence signal).
+  streak: { type: Number, default: 0 },
+  bestStreak: { type: Number, default: 0 },
   lastPracticedAt: { type: Date, default: null }
 });
 

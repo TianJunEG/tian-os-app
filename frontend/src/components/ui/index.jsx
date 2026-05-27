@@ -139,8 +139,9 @@ export function ModuleCard({ module, footer }) {
 // ─── Form controls ──────────────────────────────────────────────────
 // One shared input style so every form matches: rounded, hairline border, gold
 // focus ring, ink text. Use <Field> to add a label/hint/error around any control.
+// text-base (16px) on mobile prevents iOS auto-zoom on focus; tighten to 14px ≥sm.
 const CONTROL_BASE =
-  'w-full rounded-xl bg-paper text-sm text-ink-700 placeholder:text-ink-300 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 disabled:cursor-not-allowed disabled:opacity-50';
+  'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 disabled:cursor-not-allowed disabled:opacity-50';
 const controlBorder = (invalid) =>
   invalid ? 'border border-error-500 focus-visible:border-error-500' : 'border border-hairline focus-visible:border-navy-400';
 

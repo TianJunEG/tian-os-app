@@ -1,28 +1,28 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, Outlet } from 'react-router-dom';
 import { Sparkles, Layers, GraduationCap, ArrowRight } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, TianOSKeyframes } from './components/tianos';
 
 // Pages
-import FounderStoryPage from './pages/FounderStoryPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import StudentDashboardPage from './pages/StudentDashboardPage';
-import ParentDashboardPage from './pages/ParentDashboardPage';
-import ChildProfilePage from './pages/ChildProfilePage';
-import TutorSearchPage from './pages/TutorSearchPage';
-import BookingPage from './pages/BookingPage';
-import PaymentPage from './pages/PaymentPage';
-import BookingsPage from './pages/BookingsPage';
-import MessagesPage from './pages/MessagesPage';
-import TutorProfilePage from './pages/TutorProfilePage';
-import ResourcesHubPage from './pages/ResourcesHubPage';
-import ResourceDetailPage from './pages/ResourceDetailPage';
-import SciencePracticePage from './pages/SciencePracticePage';
-import WorksheetGeneratorPage from './pages/WorksheetGeneratorPage';
-import StudentsPage from './pages/StudentsPage';
-import ParentProgressPage from './pages/ParentProgressPage';
+const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
+const ParentDashboardPage = lazy(() => import('./pages/ParentDashboardPage'));
+const ChildProfilePage = lazy(() => import('./pages/ChildProfilePage'));
+const TutorSearchPage = lazy(() => import('./pages/TutorSearchPage'));
+const BookingPage = lazy(() => import('./pages/BookingPage'));
+const PaymentPage = lazy(() => import('./pages/PaymentPage'));
+const BookingsPage = lazy(() => import('./pages/BookingsPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const TutorProfilePage = lazy(() => import('./pages/TutorProfilePage'));
+const ResourcesHubPage = lazy(() => import('./pages/ResourcesHubPage'));
+const ResourceDetailPage = lazy(() => import('./pages/ResourceDetailPage'));
+const SciencePracticePage = lazy(() => import('./pages/SciencePracticePage'));
+const WorksheetGeneratorPage = lazy(() => import('./pages/WorksheetGeneratorPage'));
+const StudentsPage = lazy(() => import('./pages/StudentsPage'));
+const ParentProgressPage = lazy(() => import('./pages/ParentProgressPage'));
 import AdminDashboard from './components/AdminDashboard';
 import TutorOnboarding from './components/TutorOnboarding';
 import ParentProfile from './components/ParentProfile';
@@ -35,87 +35,88 @@ import { WorkspaceProvider } from './context/WorkspaceContext';
 import AppShell from './components/shell/AppShell';
 import { ToastProvider } from './components/ui';
 import { ROLE_HOME } from './config/nav';
-import StudentDashboard from './pages/student/StudentDashboard';
+const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 import Placeholder from './pages/Placeholder';
 // MathPath (Phase 2)
-import MathPathHome from './pages/student/mathpath/MathPathHome';
-import TopicDetail from './pages/student/mathpath/TopicDetail';
-import PracticeSession from './pages/student/mathpath/PracticeSession';
-import PracticeResult from './pages/student/mathpath/PracticeResult';
-import MistakeReview from './pages/student/mathpath/MistakeReview';
-import StudentAssignments from './pages/student/StudentAssignments';
+const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'));
+const TopicDetail = lazy(() => import('./pages/student/mathpath/TopicDetail'));
+const PracticeSession = lazy(() => import('./pages/student/mathpath/PracticeSession'));
+const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResult'));
+const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
+const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
 // Spelling Practice (Phase 6) — shared-core wiring
-import SpellingHome from './pages/student/spelling/SpellingHome';
-import SpellingWordLists from './pages/student/spelling/WordLists';
-import SpellingLearn from './pages/student/spelling/LearnMode';
-import SpellingSelfTest from './pages/student/spelling/SelfTest';
-import SpellingPracticeResults from './pages/student/spelling/SpellingResults';
-import SpellingPracticeMistakes from './pages/student/spelling/SpellingMistakes';
-import StudentLifeLab from './pages/student/StudentLifeLab';
+const SpellingHome = lazy(() => import('./pages/student/spelling/SpellingHome'));
+const SpellingWordLists = lazy(() => import('./pages/student/spelling/WordLists'));
+const SpellingLearn = lazy(() => import('./pages/student/spelling/LearnMode'));
+const SpellingSelfTest = lazy(() => import('./pages/student/spelling/SelfTest'));
+const SpellingPracticeResults = lazy(() => import('./pages/student/spelling/SpellingResults'));
+const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/SpellingMistakes'));
+const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
 // MathPath features (Phase 4): Fluency + Mistake-to-Mastery
-import FluencyHome from './pages/student/mathpath/fluency/FluencyHome';
-import FluencySkills from './pages/student/mathpath/fluency/FluencySkills';
-import MistakesHome from './pages/student/mathpath/MistakesHome';
-import MistakeDetail from './pages/student/mathpath/MistakeDetail';
+const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyHome'));
+const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
+const MistakesHome = lazy(() => import('./pages/student/mathpath/MistakesHome'));
+const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
-import ScienceHome from './pages/student/science/ScienceHome';
-import ScienceTopics from './pages/student/science/ScienceTopics';
-import ScienceMistakes from './pages/student/science/ScienceMistakes';
+const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
+const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
+const ScienceMistakes = lazy(() => import('./pages/student/science/ScienceMistakes'));
 // Parent (Phase 3)
-import ParentHome from './pages/parent/ParentHome';
-import ParentChildren from './pages/parent/ParentChildren';
-import ChildProgress from './pages/parent/ChildProgress';
-import WeakTopics from './pages/parent/WeakTopics';
-import RecommendedActions from './pages/parent/RecommendedActions';
-import AssignPractice from './pages/parent/AssignPractice';
-import MistakeHistory from './pages/parent/MistakeHistory';
-import ChildAssignments from './pages/parent/ChildAssignments';
+const ParentHome = lazy(() => import('./pages/parent/ParentHome'));
+const ParentChildren = lazy(() => import('./pages/parent/ParentChildren'));
+const ChildProgress = lazy(() => import('./pages/parent/ChildProgress'));
+const ChildLifeLab = lazy(() => import('./pages/parent/ChildLifeLab'));
+const WeakTopics = lazy(() => import('./pages/parent/WeakTopics'));
+const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'));
+const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
+const MistakeHistory = lazy(() => import('./pages/parent/MistakeHistory'));
+const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
 // Tutor (Phase 4)
-import TutorHome from './pages/tutor/TutorHome';
-import AssignedStudents from './pages/tutor/AssignedStudents';
-import TutorStudentProfile from './pages/tutor/TutorStudentProfile';
-import LessonPrep from './pages/tutor/LessonPrep';
-import LessonNotes from './pages/tutor/LessonNotes';
-import AssignHomework from './pages/tutor/AssignHomework';
-import TutorHomework from './pages/tutor/TutorHomework';
-import TutorAvailability from './pages/tutor/Availability';
-import TutorTraining from './pages/tutor/Training';
+const TutorHome = lazy(() => import('./pages/tutor/TutorHome'));
+const AssignedStudents = lazy(() => import('./pages/tutor/AssignedStudents'));
+const TutorStudentProfile = lazy(() => import('./pages/tutor/TutorStudentProfile'));
+const LessonPrep = lazy(() => import('./pages/tutor/LessonPrep'));
+const LessonNotes = lazy(() => import('./pages/tutor/LessonNotes'));
+const AssignHomework = lazy(() => import('./pages/tutor/AssignHomework'));
+const TutorHomework = lazy(() => import('./pages/tutor/TutorHomework'));
+const TutorAvailability = lazy(() => import('./pages/tutor/Availability'));
+const TutorTraining = lazy(() => import('./pages/tutor/Training'));
 // Teacher (Phase 5)
-import TeacherHome from './pages/teacher/TeacherHome';
-import Classes from './pages/teacher/Classes';
-import ClassOverview from './pages/teacher/ClassOverview';
-import ClassMasteryMap from './pages/teacher/ClassMasteryMap';
-import ClassStudents from './pages/teacher/ClassStudents';
-import Grouping from './pages/teacher/Grouping';
-import TeacherAssignPractice from './pages/teacher/AssignPractice';
-import Intervention from './pages/teacher/Intervention';
-import Reports from './pages/teacher/Reports';
-import TeacherStudentDetail from './pages/teacher/TeacherStudentDetail';
-import TeacherLifeLab from './pages/teacher/LifeLab';
-import TeacherLifeLabHome from './pages/teacher/LifeLabHome';
+const TeacherHome = lazy(() => import('./pages/teacher/TeacherHome'));
+const Classes = lazy(() => import('./pages/teacher/Classes'));
+const ClassOverview = lazy(() => import('./pages/teacher/ClassOverview'));
+const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
+const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
+const Grouping = lazy(() => import('./pages/teacher/Grouping'));
+const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
+const Intervention = lazy(() => import('./pages/teacher/Intervention'));
+const Reports = lazy(() => import('./pages/teacher/Reports'));
+const TeacherStudentDetail = lazy(() => import('./pages/teacher/TeacherStudentDetail'));
+const TeacherLifeLab = lazy(() => import('./pages/teacher/LifeLab'));
+const TeacherLifeLabHome = lazy(() => import('./pages/teacher/LifeLabHome'));
 // Parent worksheet generator (Phase 4)
 // Secondary → Mechanisms Playground (D&T lower secondary)
-import MechanismsHome from './pages/secondary/mechanisms/MechanismsHome';
-import MechanismSimulator from './pages/secondary/mechanisms/MechanismSimulator';
-import MechanismPresent from './pages/secondary/mechanisms/MechanismPresent';
+const MechanismsHome = lazy(() => import('./pages/secondary/mechanisms/MechanismsHome'));
+const MechanismSimulator = lazy(() => import('./pages/secondary/mechanisms/MechanismSimulator'));
+const MechanismPresent = lazy(() => import('./pages/secondary/mechanisms/MechanismPresent'));
 
-import WorksheetHome from './pages/parent/WorksheetHome';
-import WorksheetSetup from './pages/parent/WorksheetSetup';
-import WorksheetPreview from './pages/parent/WorksheetPreview';
+const WorksheetHome = lazy(() => import('./pages/parent/WorksheetHome'));
+const WorksheetSetup = lazy(() => import('./pages/parent/WorksheetSetup'));
+const WorksheetPreview = lazy(() => import('./pages/parent/WorksheetPreview'));
 
 // Spelling app pages
-import SpellingHomePage from './pages/spelling/SpellingHomePage';
-import SpellingListsPage from './pages/spelling/SpellingListsPage';
-import SpellingEditorPage from './pages/spelling/SpellingEditorPage';
-import SpellingListDetailPage from './pages/spelling/SpellingListDetailPage';
-import SpellingLibraryPage from './pages/spelling/SpellingLibraryPage';
-import MisspeltWordsPage from './pages/spelling/MisspeltWordsPage';
-import SurpriseSpellingPage from './pages/spelling/SurpriseSpellingPage';
-import SpellingRevisionPage from './pages/spelling/SpellingRevisionPage';
-import SpellingDuePage from './pages/spelling/SpellingDuePage';
-import SpellingProgressPage from './pages/spelling/SpellingProgressPage';
-import SpellingAchievementsPage from './pages/spelling/SpellingAchievementsPage';
-import SpellingPrintPage from './pages/spelling/SpellingPrintPage';
+const SpellingHomePage = lazy(() => import('./pages/spelling/SpellingHomePage'));
+const SpellingListsPage = lazy(() => import('./pages/spelling/SpellingListsPage'));
+const SpellingEditorPage = lazy(() => import('./pages/spelling/SpellingEditorPage'));
+const SpellingListDetailPage = lazy(() => import('./pages/spelling/SpellingListDetailPage'));
+const SpellingLibraryPage = lazy(() => import('./pages/spelling/SpellingLibraryPage'));
+const MisspeltWordsPage = lazy(() => import('./pages/spelling/MisspeltWordsPage'));
+const SurpriseSpellingPage = lazy(() => import('./pages/spelling/SurpriseSpellingPage'));
+const SpellingRevisionPage = lazy(() => import('./pages/spelling/SpellingRevisionPage'));
+const SpellingDuePage = lazy(() => import('./pages/spelling/SpellingDuePage'));
+const SpellingProgressPage = lazy(() => import('./pages/spelling/SpellingProgressPage'));
+const SpellingAchievementsPage = lazy(() => import('./pages/spelling/SpellingAchievementsPage'));
+const SpellingPrintPage = lazy(() => import('./pages/spelling/SpellingPrintPage'));
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -260,6 +261,7 @@ function App() {
         <ToastProvider>
         <PwaManager />
         <ErrorBoundary>
+        <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><span className="h-8 w-8 animate-spin rounded-full border-2 border-bone border-t-navy-700" /></div>}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
@@ -433,6 +435,7 @@ function App() {
             <Route path="/parent" element={<ParentHome />} />
             <Route path="/parent/children" element={<ParentChildren />} />
             <Route path="/parent/children/:studentId/progress" element={<ChildProgress />} />
+            <Route path="/parent/children/:studentId/lifelab" element={<ChildLifeLab />} />
             <Route path="/parent/children/:studentId/weak-topics" element={<WeakTopics />} />
             <Route path="/parent/children/:studentId/actions" element={<RecommendedActions />} />
             <Route path="/parent/children/:studentId/assign-practice" element={<AssignPractice />} />
@@ -480,6 +483,7 @@ function App() {
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        </Suspense>
         </ErrorBoundary>
         </ToastProvider>
       </AuthProvider>

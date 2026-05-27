@@ -122,7 +122,7 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
     // Mastery counts a fully-correct attempt; partial does not (but is not a "wrong" mistake-only signal).
     const sessModule = session.module || 'MathPath';
     const subject = /science/i.test(sessModule) ? 'Science' : 'Math';
-    const mastery = await recordAttempt({ studentId: student._id, skillId: q.skillId, workspaceId: student.workspaceId, correct, module: sessModule, subject });
+    const mastery = await recordAttempt({ studentId: student._id, skillId: q.skillId, workspaceId: student.workspaceId, correct, timeMs, module: sessModule, subject });
 
     // Save a mistake when incorrect, or partially correct on an open-ended item.
     if (!correct) {

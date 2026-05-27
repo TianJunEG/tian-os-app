@@ -59,6 +59,7 @@ export default function MathPathHome() {
             <div className="min-w-0">
               <h2 className="font-display text-xl font-semibold text-navy-700">{recommended.skillName}</h2>
               <p className="mt-1 text-sm text-ink-500">{recommended.topicName} · <StatusBadge status={recommended.status} /></p>
+              {recommended.reason && <p className="mt-1 text-sm text-ink-600">{recommended.reason}</p>}
             </div>
             <Button size="l" icon={ArrowRight} disabled={starting} onClick={() => startPractice(recommended.skillId)} className="shrink-0">
               {starting ? 'Starting…' : 'Start recommended practice'}

@@ -63,7 +63,11 @@ export const mathpathAPI = {
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),
   getSession: (sessionId) => api.get(`/practice/sessions/${sessionId}`),
   mistakes: (params) => api.get('/mistakes', { params }),
-  reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data)
+  reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
+  placement: (attempts) => api.post('/mastery/placement', { attempts }),
+  // ref: a slug string, or { skillId } / { skillSlug }
+  remediation: (ref, recentAttempts = []) =>
+    api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })
 };
 
 // Parent / family (Phase 3): children list + rule-based recommendations.
@@ -89,11 +93,13 @@ export const spellingPracticeAPI = {
 // LifeLab (Phase 6) — applied Math/Science activities. Teacher assign/review is
 // workspace-scoped; student submit resolves the logged-in student.
 export const lifelabAPI = {
-  activities: () => api.get('/lifelab/activities'),
+  activities: (params) => api.get('/lifelab/activities', { params }),  // optional { subject, competency }
   assign: (data) => api.post('/lifelab/assign', data),                 // { classId, target, activityId }
   submissions: (classId) => api.get('/lifelab/submissions', { params: { classId } }),
   feedback: (id, data) => api.post(`/lifelab/submissions/${id}/feedback`, data),
+  competencies: () => api.get('/lifelab/competencies'),             // canonical E21CC list
   me: () => api.get('/lifelab/me'),
+  child: (studentId) => api.get(`/lifelab/student/${studentId}`),   // parent/guardian view
   submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data)
 };
 
