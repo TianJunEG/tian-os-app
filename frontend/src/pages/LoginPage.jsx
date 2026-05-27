@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
+import { ROLE_HOME } from '../config/nav';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -28,7 +29,8 @@ export default function LoginPage() {
     setLoading(false);
 
     if (result.success) {
-      navigate('/dashboard');
+      // Land in the unified Tian OS shell for the user's role (not the legacy dashboard).
+      navigate(ROLE_HOME[result.user?.role] || '/dashboard');
     } else {
       setError(result.error);
     }

@@ -34,6 +34,7 @@ import LifeLabLayout from './components/LifeLab/LifeLabLayout';
 // Tian OS unified shell (Phase 1 foundation)
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import AppShell from './components/shell/AppShell';
+import { ROLE_HOME } from './config/nav';
 import StudentDashboard from './pages/student/StudentDashboard';
 import Placeholder from './pages/Placeholder';
 // MathPath (Phase 2)
@@ -138,9 +139,9 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Public Route (redirects to dashboard if already logged in)
+// Public Route (redirects logged-in users to their unified role home)
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -154,7 +155,7 @@ const PublicRoute = ({ children }) => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to={ROLE_HOME[user?.role] || '/dashboard'} />;
   }
 
   return children;

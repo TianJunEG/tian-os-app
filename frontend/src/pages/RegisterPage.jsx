@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
+import { ROLE_HOME } from '../config/nav';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -43,7 +44,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (result.success) {
-      navigate('/dashboard');
+      navigate(ROLE_HOME[result.user?.role] || '/dashboard');
     } else {
       setError(result.error);
     }
