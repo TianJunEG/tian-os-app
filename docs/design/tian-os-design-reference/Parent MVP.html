@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tian OS · Parent MVP — 10 screens</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: #FAFAF7; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #DDE3F0; border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Shared tokens + primitives + icons from student-app -->
+  <script type="text/babel" src="ui_kits/student-app/tokens.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/icons.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/primitives.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/ios-frame.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/design-canvas.jsx"></script>
+
+  <!-- Parent-specific -->
+  <script type="text/babel" src="ui_kits/parent-app/parent-shared.jsx"></script>
+  <script type="text/babel" src="ui_kits/parent-app/parent-screens-a.jsx"></script>
+  <script type="text/babel" src="ui_kits/parent-app/parent-screens-b.jsx"></script>
+  <script type="text/babel" src="ui_kits/parent-app/parent-screens-c.jsx"></script>
+
+  <script type="text/babel">
+const noop = () => {};
+
+function Phone({ children, tab = null }) {
+  return (
+    <IOSDevice width={390} height={844}>
+      <div style={{
+        position: 'relative', width: '100%', height: '100%',
+        background: T.paper, fontFamily: T.fontText, overflow: 'hidden',
+      }}>
+        <div style={{ height: '100%', overflow: 'auto' }}>
+          {children}
+        </div>
+        {tab && <ParentBottomNav tab={tab} onChange={noop} />}
+      </div>
+    </IOSDevice>
+  );
+}
+
+// 10 screens in order, with their bottom-nav tab (if any)
+const SCREENS = [
+  { id: 'home',         label: 'Parent home',          group: 'Home',        tab: 'home',
+    render: () => <ParentHome onActions={noop} onWeak={noop} onProgress={noop} onMistake={noop} /> },
+  { id: 'progress',     label: 'Progress overview',    group: 'Insight',     tab: 'progress',
+    render: () => <ParentProgress onBack={noop} /> },
+  { id: 'weak',         label: 'Weak topics',          group: 'Insight',     tab: 'progress',
+    render: () => <ParentWeakTopics onBack={noop} onAssign={noop} onMistakes={noop} onWorksheet={noop} /> },
+  { id: 'actions',      label: 'Recommended actions',  group: 'Action',      tab: 'actions',
+    render: () => <ParentActions onBack={noop} onAssign={noop} onWorksheet={noop} onTutor={noop} onMistakes={noop} /> },
+  { id: 'assign',       label: 'Assign practice',      group: 'Action',      tab: null,
+    render: () => <ParentAssign onBack={noop} onAssigned={noop} /> },
+  { id: 'mistakes',     label: 'Mistake history',      group: 'Action',      tab: null,
+    render: () => <ParentMistakes onBack={noop} onAssign={noop} /> },
+  { id: 'worksheet',    label: 'Worksheet generator',  group: 'Resources',   tab: 'worksheets',
+    render: () => <ParentWorksheet onBack={noop} onGenerated={noop} /> },
+  { id: 'training',     label: 'Parent training',      group: 'Resources',   tab: 'more',
+    render: () => <ParentTraining onBack={noop} /> },
+  { id: 'tutor',        label: 'Tutor & consults',     group: 'Resources',   tab: 'more',
+    render: () => <ParentTutor onBack={noop} /> },
+  { id: 'settings',     label: 'Settings & profile',   group: 'Resources',   tab: 'more',
+    render: () => <ParentSettings onBack={noop} /> },
+];
+
+const GROUPS = [
+  { id: 'Home',      title: 'Home',                     sub: 'Entry to the app — calm overview, today\'s recommended action, weak-topic flag.' },
+  { id: 'Insight',   title: 'Insight — how Aria is doing', sub: 'Progress overview by subject and the weak-topics view that drives action.' },
+  { id: 'Action',    title: 'Action — do something useful', sub: 'AI recommendations · assign practice · review mistakes. One main action per screen.' },
+  { id: 'Resources', title: 'Resources — when you want more', sub: 'Printable worksheets · optional parent training · tutor booking · settings.' },
+];
+
+// UX flow narrative
+function FlowNarrative() {
+  const steps = [
+    { n: 1, t: 'See progress',         d: 'Parent opens the app — sees Aria is steady, mastery up 3 this week. No alarms.' },
+    { n: 2, t: 'Notice a weak topic',  d: '"Aria slipped on regrouping 3 times" appears as a quiet gold card on Home.' },
+    { n: 3, t: 'Tap into actions',     d: 'Parent taps "View recommended actions" — sees 4 specific, parent-friendly steps.' },
+    { n: 4, t: 'Assign practice',      d: '5-tap form: subject → topic → difficulty → length → when. Tap Assign.' },
+    { n: 5, t: 'Get progress update',  d: 'Next morning, the same card shows "Aria practised 8 mins · mastery 38 → 67%". Loop closed.' },
+  ];
+  return (
+    <div style={{
+      maxWidth: 980, margin: '20px auto 0', padding: '24px 28px',
+      background: T.paper, border: `1px solid ${T.hairline}`,
+      borderRadius: 20, boxShadow: T.shadowResting,
+    }}>
+      <div style={{
+        fontSize: 11, fontWeight: 700, color: T.gold700,
+        textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8,
+      }}>The parent journey</div>
+      <h2 style={{
+        fontFamily: T.fontDisplay, fontSize: 22, fontWeight: 600,
+        color: T.navy700, letterSpacing: '-0.02em', margin: '0 0 18px',
+      }}>Child progress → Weak topic → Action → Practice → Progress update</h2>
+
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: 0, overflowX: 'auto' }}>
+        {steps.map((s, i) => (
+          <React.Fragment key={s.n}>
+            <div style={{ flex: 1, minWidth: 160, padding: '0 14px' }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: T.navy700, color: T.gold500,
+                display: 'grid', placeItems: 'center',
+                fontFamily: T.fontText, fontWeight: 700, fontSize: 13, marginBottom: 12,
+              }}>{s.n}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.navy700, marginBottom: 6 }}>{s.t}</div>
+              <div style={{ fontSize: 12, color: T.ink500, lineHeight: 1.55 }}>{s.d}</div>
+            </div>
+            {i < steps.length - 1 && (
+              <div style={{
+                width: 1, alignSelf: 'stretch', background: T.hairline,
+                margin: '8px 0',
+              }} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <div style={{
+        marginTop: 22, padding: '12px 14px',
+        background: T.gold100, borderRadius: 12,
+        fontSize: 12, color: T.ink700, lineHeight: 1.55,
+        display: 'flex', gap: 10, alignItems: 'flex-start',
+      }}>
+        <IconLightbulb size={14} color={T.gold700} style={{ flexShrink: 0, marginTop: 1 }} />
+        <span>
+          <b style={{ color: T.navy700 }}>The loop is the product.</b> Every screen earns its place by either
+          showing the parent <i>where</i> their child is, surfacing <i>one</i> specific action, or carrying that action through to completion.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ParentMVP() {
+  return (
+    <DesignCanvas
+      title="Tian OS — Parent MVP"
+      subtitle="10 mobile screens · iPhone 14 Pro · 390 × 844 · v0.1"
+    >
+      {GROUPS.map(g => {
+        const items = SCREENS.filter(s => s.group === g.id);
+        return (
+          <DCSection key={g.id} id={g.id} title={g.title}>
+            <div style={{ fontSize: 13, color: '#5B5F6E', margin: '-4px 0 12px', maxWidth: 640 }}>{g.sub}</div>
+            {items.map(s => (
+              <DCArtboard key={s.id} id={s.id} label={`${SCREENS.indexOf(s) + 1}. ${s.label}`} width={420} height={870}>
+                <div style={{ display: 'grid', placeItems: 'center', width: '100%', height: '100%' }}>
+                  <Phone tab={s.tab}>{s.render()}</Phone>
+                </div>
+              </DCArtboard>
+            ))}
+          </DCSection>
+        );
+      })}
+
+      <DCSection id="flow" title="The flow that ties it together">
+        <div style={{ fontSize: 13, color: '#5B5F6E', margin: '-4px 0 12px', maxWidth: 640 }}>
+          A parent's typical journey through the app — from passive insight to a completed action and a measurable mastery gain.
+        </div>
+        <DCArtboard id="narrative" label="Parent journey · 5 steps" width={1040} height={360}>
+          <FlowNarrative />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<ParentMVP />);
+  </script>
+</body>
+</html>

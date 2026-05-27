@@ -1,0 +1,266 @@
+/* =====================================================================
+   Tian OS — Design Tokens
+   Colors, Type, Spacing, Radii, Shadows, Motion
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ------------------------------------------------------------------
+     COLOR — Brand
+  ------------------------------------------------------------------ */
+  --navy-900: #0E1A36;     /* Deepest navy — pressed states, deepest mastery */
+  --navy-700: #1A2A4F;     /* PRIMARY navy — text, wordmark, buttons */
+  --navy-500: #2E4477;     /* Mid navy — secondary brand, info bars */
+  --navy-300: #6B7FA8;     /* Muted navy — secondary text on navy bg */
+  --navy-100: #DDE3F0;     /* Pale navy — selected cell bg, info chip */
+  --navy-050: #F1F4FA;     /* Wash — hover row tint, ghost button bg */
+
+  --gold-700: #8E6F1F;     /* Pressed gold */
+  --gold-500: #C9A23C;     /* PRIMARY gold — accent, focus halo, premium */
+  --gold-300: #E3C97A;     /* Lighter gold — highlight, "near mastery" */
+  --gold-100: #F6EBC9;     /* Pale gold wash — milestone tint */
+
+  /* ------------------------------------------------------------------
+     COLOR — Neutrals (ink, paper, lines)
+  ------------------------------------------------------------------ */
+  --ink-900: #0E1320;      /* Deepest text — rarely used */
+  --ink-700: #1F2330;      /* Body text */
+  --ink-500: #5B5F6E;      /* Secondary / caption */
+  --ink-300: #9A9DA9;      /* Tertiary / disabled */
+  --ink-100: #C9CBD3;      /* Tertiary line */
+
+  --paper:   #FFFFFF;      /* Pure white card surface */
+  --ivory:   #FAFAF7;      /* Page wash, ambient surface */
+  --bone:    #F3F1EA;      /* Recessed surface, divider tint */
+  --hairline:#EFEDE6;      /* 1px hairline border */
+
+  /* ------------------------------------------------------------------
+     COLOR — Semantic
+  ------------------------------------------------------------------ */
+  --success-700: #1F6B53;
+  --success-500: #2F8F6F;  /* Forest — "correct", "on track" */
+  --success-100: #DEF0E8;
+
+  --warn-700:    #8E6F1F;
+  --warn-500:    #C9A23C;  /* doubles as gold accent */
+  --warn-100:    #F6EBC9;
+
+  --error-700:   #8A2F28;
+  --error-500:   #B4453C;  /* Terra — "incorrect" */
+  --error-100:   #F4DAD6;
+
+  --info-500:    #2E4477;  /* doubles as navy-500 */
+
+  /* ------------------------------------------------------------------
+     COLOR — Speed / Accuracy fluency dials
+     (separate scale: green = fast/accurate, amber = slow, red = wrong)
+  ------------------------------------------------------------------ */
+  --fluency-fast:    #2F8F6F;
+  --fluency-medium:  #C9A23C;
+  --fluency-slow:    #B4453C;
+
+  /* ------------------------------------------------------------------
+     COLOR — Mastery heatmap scale (5 steps)
+     Used in MathPath skill grid, science topic map, etc.
+  ------------------------------------------------------------------ */
+  --mastery-0: #F3F1EA;    /* Unlearned */
+  --mastery-1: #DDE3F0;    /* Introduced */
+  --mastery-2: #B5C2DD;    /* Practising */
+  --mastery-3: #6B7FA8;    /* Approaching */
+  --mastery-4: #2E4477;    /* Proficient */
+  --mastery-5: #1A2A4F;    /* Mastered */
+  --mastery-gold: #C9A23C; /* Mastered with distinction (overlay) */
+
+  /* ------------------------------------------------------------------
+     COLOR — Module accents (used only on the module's own surface,
+     never mixed with another module's color in the same view)
+  ------------------------------------------------------------------ */
+  --mod-mathpath:  #1A2A4F;   /* navy */
+  --mod-science:   #2F6B7E;   /* deep teal */
+  --mod-spelling:  #6B4F7E;   /* deep aubergine */
+  --mod-reading:   #7E5A2F;   /* warm bronze */
+  --mod-planner:   #2F7E5A;   /* deep moss */
+
+  /* ------------------------------------------------------------------
+     TYPE — Families
+  ------------------------------------------------------------------ */
+  --font-display: 'Fraunces', 'Times New Roman', Georgia, serif;
+  --font-text:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ------------------------------------------------------------------
+     TYPE — Scale (mobile-first; desktop scales larger via media queries)
+  ------------------------------------------------------------------ */
+  --fs-display-xl: 56px;   /* Marketing hero */
+  --fs-display-l:  44px;
+  --fs-display-m:  36px;
+  --fs-display-s:  28px;
+  --fs-h1: 24px;
+  --fs-h2: 20px;
+  --fs-h3: 17px;
+  --fs-body: 15px;
+  --fs-body-l: 17px;
+  --fs-small: 13px;
+  --fs-micro: 11px;
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.25;
+  --lh-normal: 1.5;
+  --lh-loose: 1.65;
+
+  --tracking-display: -0.02em;
+  --tracking-tight:   -0.01em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.04em;
+  --tracking-caps:     0.08em;
+
+  /* ------------------------------------------------------------------
+     SPACING — 4/8pt grid
+  ------------------------------------------------------------------ */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+  --s-9:  96px;
+
+  /* ------------------------------------------------------------------
+     RADII
+  ------------------------------------------------------------------ */
+  --r-xs: 6px;     /* tag, chip */
+  --r-s:  10px;    /* input, small button */
+  --r-m:  14px;    /* button, small card */
+  --r-l:  20px;    /* card */
+  --r-xl: 28px;    /* hero, large surface */
+  --r-pill: 999px;
+
+  /* ------------------------------------------------------------------
+     ELEVATION
+  ------------------------------------------------------------------ */
+  --shadow-resting: 0 1px 2px rgba(26,42,79,.04), 0 8px 24px -12px rgba(26,42,79,.06);
+  --shadow-active:  0 4px 16px -4px rgba(26,42,79,.10), 0 12px 40px -8px rgba(26,42,79,.08);
+  --shadow-overlay: 0 12px 32px -8px rgba(26,42,79,.16), 0 24px 64px -16px rgba(26,42,79,.12);
+  --shadow-inner:   inset 0 1px 0 rgba(26,42,79,.04);
+  --shadow-focus:   0 0 0 4px rgba(201,162,60,.18);
+
+  /* ------------------------------------------------------------------
+     MOTION
+  ------------------------------------------------------------------ */
+  --ease-calm:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out:     cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-linear:  linear;
+  --dur-quick:    140ms;
+  --dur-base:     200ms;
+  --dur-slow:     320ms;
+  --dur-fluency:  600ms;
+
+  /* ------------------------------------------------------------------
+     LAYOUT
+  ------------------------------------------------------------------ */
+  --container:    1200px;
+  --container-narrow: 720px;
+  --nav-h:        64px;
+  --bottomnav-h:  68px;
+}
+
+/* =====================================================================
+   Semantic typography classes
+   ===================================================================== */
+.t-display-xl, h1.display, .hero-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-display-xl);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--navy-700);
+}
+.t-display-l {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-display-l);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--navy-700);
+}
+.t-display-m, h2.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-display-m);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-display);
+  color: var(--navy-700);
+}
+.t-display-s {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-display-s);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--navy-700);
+}
+
+.t-h1, h1 {
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-size: var(--fs-h1);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink-700);
+}
+.t-h2, h2 {
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-size: var(--fs-h2);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink-700);
+}
+.t-h3, h3 {
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-size: var(--fs-h3);
+  line-height: var(--lh-snug);
+  color: var(--ink-700);
+}
+.t-body, p, body {
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  color: var(--ink-700);
+}
+.t-body-l { font-size: var(--fs-body-l); line-height: var(--lh-loose); }
+.t-small  { font-size: var(--fs-small); color: var(--ink-500); }
+.t-micro  { font-size: var(--fs-micro); color: var(--ink-500); letter-spacing: var(--tracking-caps); text-transform: uppercase; font-weight: 600; }
+
+.t-mono, code, kbd, pre, .t-numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.t-tabular { font-variant-numeric: tabular-nums; }
+
+/* =====================================================================
+   Base reset / opinionated defaults
+   ===================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-text);
+  background: var(--paper);
+  color: var(--ink-700);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
+a { color: var(--navy-700); text-decoration: none; }
+a:hover { color: var(--navy-900); }
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--r-s);
+}

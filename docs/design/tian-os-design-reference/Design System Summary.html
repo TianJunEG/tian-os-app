@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tian OS · Design System Summary</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  :root {
+    --navy900: #0E1A36; --navy700: #1A2A4F; --navy500: #2E4477; --navy300: #6B7FA8;
+    --navy100: #DDE3F0; --navy050: #F1F4FA;
+    --gold700: #8E6F1F; --gold500: #C9A23C; --gold300: #E3C97A; --gold100: #F6EBC9;
+    --ink900: #0E1320; --ink700: #1F2330; --ink500: #5B5F6E; --ink300: #9A9DA9;
+    --paper: #FFFFFF; --ivory: #FAFAF7; --bone: #F3F1EA; --hairline: #EFEDE6;
+    --success: #2F8F6F; --error: #B4453C;
+  }
+  html, body { margin: 0; padding: 0; background: var(--ivory); }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--ink700); line-height: 1.55;
+  }
+  .page { max-width: 1100px; margin: 0 auto; padding: 56px 40px 80px; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; color: var(--navy700);
+    letter-spacing: -0.02em; margin: 0; font-weight: 600; }
+  h1 { font-size: 42px; line-height: 1.1; margin-bottom: 8px; }
+  h2 { font-size: 22px; margin: 56px 0 20px; padding-top: 24px; border-top: 1px solid var(--hairline); }
+  h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink500); font-family: 'Inter', sans-serif; font-weight: 700;
+    margin-bottom: 12px; }
+  .lead { font-size: 16px; color: var(--ink500); max-width: 620px; line-height: 1.55; }
+  .header-eyebrow { font-size: 12px; font-weight: 700; color: var(--gold700);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: var(--navy700); color: var(--gold500);
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px;
+  }
+  .grid { display: grid; gap: 14px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-6 { grid-template-columns: repeat(6, 1fr); }
+
+  .card {
+    background: var(--paper); border: 1px solid var(--hairline);
+    border-radius: 18px; padding: 18px;
+    box-shadow: 0 1px 2px rgba(26,42,79,.04), 0 8px 24px -12px rgba(26,42,79,.06);
+  }
+
+  /* Swatch */
+  .swatch { aspect-ratio: 1.4; border-radius: 14px; position: relative;
+    border: 1px solid var(--hairline); overflow: hidden; }
+  .swatch-meta { padding: 12px 4px 0; }
+  .swatch-name { font-size: 13px; font-weight: 600; color: var(--ink700); }
+  .swatch-hex { font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink500); margin-top: 2px; }
+
+  /* Type specimens */
+  .type-row { display: flex; align-items: baseline; gap: 24px;
+    padding: 16px 0; border-top: 1px solid var(--hairline); }
+  .type-row:first-child { border-top: none; }
+  .type-meta { width: 130px; flex-shrink: 0; }
+  .type-name { font-size: 13px; font-weight: 600; color: var(--ink700); }
+  .type-spec { font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink500); margin-top: 2px; }
+
+  /* Spacing scale */
+  .spacing-row { display: flex; align-items: center; gap: 18px;
+    padding: 12px 0; border-top: 1px solid var(--hairline); }
+  .spacing-bar { background: var(--navy700); height: 18px; border-radius: 4px; }
+
+  /* Buttons */
+  .btn {
+    height: 44px; padding: 0 18px; border-radius: 14px;
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid transparent; cursor: pointer; letter-spacing: -0.01em;
+  }
+  .btn-primary { background: var(--navy700); color: var(--paper); }
+  .btn-secondary { background: var(--paper); color: var(--navy700); border-color: var(--hairline); }
+  .btn-gold { background: var(--gold500); color: var(--navy900); }
+  .btn-ghost { background: transparent; color: var(--navy700); }
+
+  /* Chips */
+  .chip { display: inline-flex; align-items: center; gap: 4px;
+    height: 24px; padding: 0 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; }
+  .chip-navy { background: var(--navy050); color: var(--navy700); }
+  .chip-gold { background: var(--gold100); color: var(--gold700); }
+  .chip-success { background: #DEF0E8; color: var(--success); }
+  .chip-error { background: #F4DAD6; color: var(--error); }
+  .chip-outline { background: var(--paper); color: var(--ink700); border: 1px solid var(--hairline); }
+
+  /* Card variants */
+  .demo-card { padding: 18px; border-radius: 20px;
+    border: 1px solid var(--hairline); background: var(--paper);
+    box-shadow: 0 1px 2px rgba(26,42,79,.04), 0 8px 24px -12px rgba(26,42,79,.06); }
+  .demo-card-ivory { background: var(--ivory); }
+  .demo-card-navy { background: linear-gradient(135deg, var(--navy700), var(--navy900));
+    color: var(--paper); border: none; }
+  .demo-card-gold { background: var(--gold100); border-color: var(--gold300); }
+
+  /* Icon row */
+  .icon-row { display: flex; gap: 18px; align-items: center; }
+  .icon-row svg { color: var(--navy700); }
+
+  /* Nav demo */
+  .nav-demo { background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--hairline); border-radius: 28px;
+    box-shadow: 0 4px 16px -4px rgba(26,42,79,.10);
+    height: 64px; display: flex; align-items: center; justify-content: space-around;
+    padding: 0 8px;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px;
+    color: var(--ink300); padding: 8px 14px; border-radius: 20px; }
+  .nav-item-active { color: var(--navy700); background: var(--navy050); }
+  .nav-item span { font-size: 10px; font-weight: 600; }
+
+  /* Rule list */
+  .rules { display: grid; gap: 12px; }
+  .rule { display: flex; gap: 14px; padding: 14px 16px;
+    background: var(--paper); border: 1px solid var(--hairline); border-radius: 14px; }
+  .rule-num {
+    width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
+    background: var(--navy700); color: var(--gold500);
+    display: grid; place-items: center; font-family: 'Inter';
+    font-weight: 700; font-size: 12px; letter-spacing: 0;
+  }
+  .rule-text { font-size: 13px; color: var(--ink700); line-height: 1.55; }
+  .rule-text b { color: var(--navy700); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header-eyebrow">
+    <div class="logo">天</div>
+    <span>Tian OS · Design System Summary</span>
+  </div>
+  <h1>One language across every module.</h1>
+  <p class="lead">The visual rules that make MathPath, Fluency, Mistake-to-Mastery, Spelling and Science feel like one calm, intelligent platform — not a folder of separate apps.</p>
+
+  <!-- ─── COLOURS ────────────────────────────────────────── -->
+  <h2>Colours</h2>
+  <h3>Primary — navy</h3>
+  <div class="grid grid-6">
+    <div><div class="swatch" style="background:#0E1A36"></div><div class="swatch-meta"><div class="swatch-name">Navy 900</div><div class="swatch-hex">#0E1A36</div></div></div>
+    <div><div class="swatch" style="background:#1A2A4F"></div><div class="swatch-meta"><div class="swatch-name">Navy 700 ◆</div><div class="swatch-hex">#1A2A4F</div></div></div>
+    <div><div class="swatch" style="background:#2E4477"></div><div class="swatch-meta"><div class="swatch-name">Navy 500</div><div class="swatch-hex">#2E4477</div></div></div>
+    <div><div class="swatch" style="background:#6B7FA8"></div><div class="swatch-meta"><div class="swatch-name">Navy 300</div><div class="swatch-hex">#6B7FA8</div></div></div>
+    <div><div class="swatch" style="background:#DDE3F0"></div><div class="swatch-meta"><div class="swatch-name">Navy 100</div><div class="swatch-hex">#DDE3F0</div></div></div>
+    <div><div class="swatch" style="background:#F1F4FA"></div><div class="swatch-meta"><div class="swatch-name">Navy 050</div><div class="swatch-hex">#F1F4FA</div></div></div>
+  </div>
+
+  <div style="height:24px"></div>
+  <h3>Accent — gold</h3>
+  <div class="grid grid-6">
+    <div><div class="swatch" style="background:#8E6F1F"></div><div class="swatch-meta"><div class="swatch-name">Gold 700</div><div class="swatch-hex">#8E6F1F</div></div></div>
+    <div><div class="swatch" style="background:#C9A23C"></div><div class="swatch-meta"><div class="swatch-name">Gold 500 ◆</div><div class="swatch-hex">#C9A23C</div></div></div>
+    <div><div class="swatch" style="background:#E3C97A"></div><div class="swatch-meta"><div class="swatch-name">Gold 300</div><div class="swatch-hex">#E3C97A</div></div></div>
+    <div><div class="swatch" style="background:#F6EBC9"></div><div class="swatch-meta"><div class="swatch-name">Gold 100</div><div class="swatch-hex">#F6EBC9</div></div></div>
+    <div style="grid-column: span 2;" class="card" style="display:flex; align-items:center;">
+      <div style="font-size:12px; color:var(--ink500); line-height:1.5;"><b style="color:var(--navy700);">Use gold sparingly</b> — only for things the system itself surfaces: AI flags, mastery moments, recommended actions. Never for chrome.</div>
+    </div>
+  </div>
+
+  <div style="height:24px"></div>
+  <h3>Surfaces & ink</h3>
+  <div class="grid grid-6">
+    <div><div class="swatch" style="background:#FFFFFF; border:1px solid #EFEDE6"></div><div class="swatch-meta"><div class="swatch-name">Paper</div><div class="swatch-hex">#FFFFFF</div></div></div>
+    <div><div class="swatch" style="background:#FAFAF7"></div><div class="swatch-meta"><div class="swatch-name">Ivory</div><div class="swatch-hex">#FAFAF7</div></div></div>
+    <div><div class="swatch" style="background:#F3F1EA"></div><div class="swatch-meta"><div class="swatch-name">Bone</div><div class="swatch-hex">#F3F1EA</div></div></div>
+    <div><div class="swatch" style="background:#1F2330"></div><div class="swatch-meta"><div class="swatch-name">Ink 700</div><div class="swatch-hex">#1F2330</div></div></div>
+    <div><div class="swatch" style="background:#5B5F6E"></div><div class="swatch-meta"><div class="swatch-name">Ink 500</div><div class="swatch-hex">#5B5F6E</div></div></div>
+    <div><div class="swatch" style="background:#9A9DA9"></div><div class="swatch-meta"><div class="swatch-name">Ink 300</div><div class="swatch-hex">#9A9DA9</div></div></div>
+  </div>
+
+  <div style="height:24px"></div>
+  <h3>Semantic</h3>
+  <div class="grid grid-4">
+    <div><div class="swatch" style="background:#2F8F6F"></div><div class="swatch-meta"><div class="swatch-name">Success</div><div class="swatch-hex">#2F8F6F</div></div></div>
+    <div><div class="swatch" style="background:#C9A23C"></div><div class="swatch-meta"><div class="swatch-name">Warning (gold)</div><div class="swatch-hex">#C9A23C</div></div></div>
+    <div><div class="swatch" style="background:#B4453C"></div><div class="swatch-meta"><div class="swatch-name">Error</div><div class="swatch-hex">#B4453C</div></div></div>
+    <div><div class="swatch" style="background:linear-gradient(90deg, #DDE3F0, #6B7FA8, #1A2A4F)"></div><div class="swatch-meta"><div class="swatch-name">Mastery scale</div><div class="swatch-hex">m1 → m5</div></div></div>
+  </div>
+
+  <!-- ─── TYPOGRAPHY ─────────────────────────────────────── -->
+  <h2>Typography</h2>
+  <div class="card">
+    <div class="type-row">
+      <div class="type-meta"><div class="type-name">Display H1</div><div class="type-spec">Fraunces · 600 · 32/1.1 · −0.02em</div></div>
+      <div style="font-family:'Fraunces', serif; font-size:32px; font-weight:600; color:var(--navy700); letter-spacing:-0.02em; line-height:1.1;">Mastery, made calm.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><div class="type-name">Display H2</div><div class="type-spec">Fraunces · 600 · 24/1.2</div></div>
+      <div style="font-family:'Fraunces', serif; font-size:24px; font-weight:600; color:var(--navy700); letter-spacing:-0.02em;">Today's plan</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><div class="type-name">Section title</div><div class="type-spec">Inter · 700 · 13 · UPPER · 0.08em</div></div>
+      <div style="font-size:13px; font-weight:700; color:var(--ink500); text-transform:uppercase; letter-spacing:0.08em;">Today's tasks</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><div class="type-name">Body</div><div class="type-spec">Inter · 400/500 · 14/1.5</div></div>
+      <div style="font-size:14px; color:var(--ink700);">When you regroup across a zero, the zero doesn't stay a zero — it becomes a nine.</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><div class="type-name">Meta</div><div class="type-spec">Inter · 500 · 12 · ink-500</div></div>
+      <div style="font-size:12px; color:var(--ink500);">P4 · 54% mastered · 4 sub-skills</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><div class="type-name">Numeric</div><div class="type-spec">Inter · 600 · tabular-nums</div></div>
+      <div style="font-family:'Inter'; font-variant-numeric:tabular-nums; font-size:22px; font-weight:600; color:var(--navy700);">68% · 1.6s · 12 streak</div>
+    </div>
+    <div class="type-row">
+      <div class="type-meta"><div class="type-name">Mono</div><div class="type-spec">JetBrains Mono · 13</div></div>
+      <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--ink700);">305 − 178 = 127</div>
+    </div>
+  </div>
+
+  <!-- ─── SPACING ─────────────────────────────────────── -->
+  <h2>Spacing & radii</h2>
+  <div class="grid" style="grid-template-columns: 2fr 1fr; gap:24px;">
+    <div class="card">
+      <h3 style="margin-top:0">Spacing scale (4-based)</h3>
+      <div class="spacing-row"><div style="width:60px; font-family:monospace; font-size:11px; color:var(--ink500);">4px</div><div class="spacing-bar" style="width:4px"></div><div style="font-size:12px; color:var(--ink500);">Inline gaps · icon-text</div></div>
+      <div class="spacing-row"><div style="width:60px; font-family:monospace; font-size:11px; color:var(--ink500);">8px</div><div class="spacing-bar" style="width:8px"></div><div style="font-size:12px; color:var(--ink500);">Stacked elements</div></div>
+      <div class="spacing-row"><div style="width:60px; font-family:monospace; font-size:11px; color:var(--ink500);">12px</div><div class="spacing-bar" style="width:12px"></div><div style="font-size:12px; color:var(--ink500);">List rows</div></div>
+      <div class="spacing-row"><div style="width:60px; font-family:monospace; font-size:11px; color:var(--ink500);">16px</div><div class="spacing-bar" style="width:16px"></div><div style="font-size:12px; color:var(--ink500);">Card padding (inner)</div></div>
+      <div class="spacing-row"><div style="width:60px; font-family:monospace; font-size:11px; color:var(--ink500);">20px</div><div class="spacing-bar" style="width:20px"></div><div style="font-size:12px; color:var(--ink500);">Screen padding (gutter)</div></div>
+      <div class="spacing-row"><div style="width:60px; font-family:monospace; font-size:11px; color:var(--ink500);">24px</div><div class="spacing-bar" style="width:24px"></div><div style="font-size:12px; color:var(--ink500);">Hero card padding</div></div>
+      <div class="spacing-row"><div style="width:60px; font-family:monospace; font-size:11px; color:var(--ink500);">32px</div><div class="spacing-bar" style="width:32px"></div><div style="font-size:12px; color:var(--ink500);">Section separation</div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Radii</h3>
+      <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:18px;">
+        <div style="width:44px; height:44px; background:var(--bone); border-radius:6px;"></div>
+        <div style="width:48px; height:48px; background:var(--bone); border-radius:10px;"></div>
+        <div style="width:52px; height:52px; background:var(--bone); border-radius:14px;"></div>
+        <div style="width:60px; height:60px; background:var(--bone); border-radius:20px;"></div>
+        <div style="width:72px; height:72px; background:var(--bone); border-radius:28px;"></div>
+      </div>
+      <div style="font-family:monospace; font-size:11px; color:var(--ink500); line-height:1.8;">
+        <div>xs: 6px — chips, badges</div>
+        <div>s: 10px — small buttons</div>
+        <div>m: 14px — buttons, inputs</div>
+        <div>l: 20px — cards (default)</div>
+        <div>xl: 28px — hero cards, sheets</div>
+        <div>full: 999px — pill chips</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── CARDS ─────────────────────────────────────── -->
+  <h2>Cards</h2>
+  <div class="grid grid-3">
+    <div class="demo-card">
+      <div style="font-size:11px; font-weight:700; color:var(--ink500); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Default · paper</div>
+      <div style="font-family:'Fraunces', serif; font-size:18px; font-weight:600; color:var(--navy700);">Equivalent fractions</div>
+      <div style="font-size:12px; color:var(--ink500); margin-top:4px;">P4 · 54% mastered</div>
+    </div>
+    <div class="demo-card demo-card-ivory">
+      <div style="font-size:11px; font-weight:700; color:var(--ink500); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Ivory · context shift</div>
+      <div style="font-family:'Fraunces', serif; font-size:18px; font-weight:600; color:var(--navy700);">Skill detail</div>
+      <div style="font-size:12px; color:var(--ink500); margin-top:4px;">For nested context</div>
+    </div>
+    <div class="demo-card demo-card-navy">
+      <div style="font-size:11px; font-weight:700; color:var(--gold300); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Navy · hero</div>
+      <div style="font-family:'Fraunces', serif; font-size:18px; font-weight:600;">Continue learning</div>
+      <div style="font-size:12px; color:rgba(255,255,255,.7); margin-top:4px;">Reserved for primary CTAs</div>
+    </div>
+  </div>
+
+  <p style="font-size:13px; color:var(--ink500); margin-top:14px; max-width: 720px;">
+    All cards share a <b style="color:var(--navy700)">1px hairline border (#EFEDE6)</b>, a soft <b style="color:var(--navy700)">resting shadow</b> (1px ambient + 24px blur, both navy at 4–6% opacity), and a <b style="color:var(--navy700)">20px radius</b> by default. Hero cards step up to 24–28px.
+  </p>
+
+  <!-- ─── BUTTONS ─────────────────────────────────────── -->
+  <h2>Buttons</h2>
+  <div class="card">
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+      <button class="btn btn-primary">Primary action</button>
+      <button class="btn btn-gold">Gold accent</button>
+      <button class="btn btn-secondary">Secondary</button>
+      <button class="btn btn-ghost">Ghost / dismiss</button>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <span class="chip chip-navy">Navy</span>
+      <span class="chip chip-gold">★ Gold · AI</span>
+      <span class="chip chip-success">✓ Success</span>
+      <span class="chip chip-error">✕ Error</span>
+      <span class="chip chip-outline">Outline</span>
+    </div>
+    <p style="font-size:13px; color:var(--ink500); margin: 16px 0 0; max-width: 720px;">
+      <b style="color:var(--navy700)">One primary action per screen.</b> Sizes: <code style="font-family:monospace; font-size:11px;">s 36 · m 48 · l 56px</code> tall. All buttons use 14px radius. Gold is reserved for the single moment the system is surfacing something (AI recommendation, mastery, reward).
+    </p>
+  </div>
+
+  <!-- ─── ICONS ─────────────────────────────────────── -->
+  <h2>Icons</h2>
+  <div class="card">
+    <div class="icon-row" style="margin-bottom:14px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 0 0-4-10z"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 6h6a4 4 0 0 1 4 4v6"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 0-6 0 3 3 0 0 0-2 5 3 3 0 0 0 1 5 3 3 0 0 0 4 4 3 3 0 0 0 3-1 3 3 0 0 0 3 1 3 3 0 0 0 4-4 3 3 0 0 0 1-5 3 3 0 0 0-2-5 3 3 0 0 0-6 0z"/></svg>
+    </div>
+    <div style="font-size:13px; color:var(--ink500); line-height:1.6; max-width: 720px;">
+      <b style="color:var(--navy700)">Stroked line icons, 1.75 weight, rounded joins.</b> Lucide-style. 24×24 viewBox, drawn at 16–22px in the product. Two-tone module marks (e.g. Σ, Aa, ⌬) use Fraunces in the brand colours — they're identity, not icons.
+      No emoji in chrome (acceptable in user-generated content). No filled icons unless semantic state requires it (e.g. star filled = bookmarked).
+    </div>
+  </div>
+
+  <!-- ─── NAVIGATION ─────────────────────────────────────── -->
+  <h2>Navigation</h2>
+  <div class="grid" style="grid-template-columns: 1fr 1.5fr; gap:24px;">
+    <div>
+      <div class="nav-demo">
+        <div class="nav-item nav-item-active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+          <span>Home</span>
+        </div>
+        <div class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>MathPath</span>
+        </div>
+        <div class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8 6h6a4 4 0 0 1 4 4v6"/></svg>
+          <span>Pathway</span>
+        </div>
+        <div class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          <span>Profile</span>
+        </div>
+      </div>
+      <div style="font-size:11px; color:var(--ink500); margin-top:8px; text-align:center;">Floating glass nav · backdrop blur · 64px tall</div>
+    </div>
+    <div class="rules">
+      <div class="rule"><div class="rule-num">1</div><div class="rule-text"><b>Four tabs, never five.</b> Home, MathPath, Pathway, Profile. Modules launch from Home's "All practice" — never crowd the global nav.</div></div>
+      <div class="rule"><div class="rule-num">2</div><div class="rule-text"><b>Practice screens hide the nav.</b> When the student is mid-question or mid-fluency, chrome disappears. Calm focus.</div></div>
+      <div class="rule"><div class="rule-num">3</div><div class="rule-text"><b>Back, not down.</b> Topic and practice screens use a <b>back arrow + title</b>, not a tab swap. Modal-style.</div></div>
+      <div class="rule"><div class="rule-num">4</div><div class="rule-text"><b>Sticky CTA at 88px from bottom.</b> Above the floating nav, with a soft white-fade gradient that protects the button from list content beneath.</div></div>
+    </div>
+  </div>
+
+  <!-- ─── PRINCIPLES ─────────────────────────────────────── -->
+  <h2>Operating principles</h2>
+  <div class="rules">
+    <div class="rule"><div class="rule-num">1</div><div class="rule-text"><b>One main action per screen.</b> The next step is always obvious. Secondary actions are quiet (ghost or chip-sized).</div></div>
+    <div class="rule"><div class="rule-num">2</div><div class="rule-text"><b>Gold is a signal, not a colour.</b> Reserve it for AI flags, mastery moments, and recommended CTAs. If it's gold, the system is talking to the student.</div></div>
+    <div class="rule"><div class="rule-num">3</div><div class="rule-text"><b>Calm over celebratory.</b> No confetti. No big "WELL DONE!". Mastery is acknowledged with a quiet ring fill, a +N delta, and a knock-on effects card.</div></div>
+    <div class="rule"><div class="rule-num">4</div><div class="rule-text"><b>Numbers are tabular.</b> Every percentage, time, and streak uses <code>tabular-nums</code> so they don't shift between screens.</div></div>
+    <div class="rule"><div class="rule-num">5</div><div class="rule-text"><b>Mastery > level.</b> The system displays "P4 · 54% mastered" — not a school year alone. Progress is granular and visible.</div></div>
+    <div class="rule"><div class="rule-num">6</div><div class="rule-text"><b>Worked example before independent practice.</b> Remediation always goes: worked → guided → independent → fluency. Calm and unhurried.</div></div>
+    <div class="rule"><div class="rule-num">7</div><div class="rule-text"><b>Singapore Math vocabulary.</b> Regroup (not borrow). Heuristic (not trick). Concrete → pictorial → abstract.</div></div>
+    <div class="rule"><div class="rule-num">8</div><div class="rule-text"><b>The dashboard is "today", not "everything".</b> 3–4 tasks max. Module sprawl lives behind the Practice launcher.</div></div>
+  </div>
+
+  <div style="margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--hairline); font-size: 12px; color: var(--ink500); display: flex; justify-content: space-between;">
+    <span>Tian OS Design System · v0.1 · Student MVP</span>
+    <span>For the full system, see <code>README.md</code> + <code>colors_and_type.css</code></span>
+  </div>
+
+</div>
+</body>
+</html>

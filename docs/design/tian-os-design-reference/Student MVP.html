@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tian OS · Student MVP — 10 screens</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: #FAFAF7; }
+  body { font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #DDE3F0; border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="ui_kits/student-app/tokens.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/icons.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/primitives.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/ios-frame.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/design-canvas.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/screens-1-2.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/animated-subtraction.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/screens-3-4.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/screens-5.jsx"></script>
+  <script type="text/babel" src="ui_kits/student-app/screens-mvp.jsx"></script>
+
+  <script type="text/babel">
+const { useState } = React;
+const noop = () => {};
+
+// Phone wrapper — fixed 390×844 iOS bezel with internal scroll
+function Phone({ children, navTab = null }) {
+  return (
+    <IOSDevice width={390} height={844}>
+      <div style={{
+        position: 'relative', width: '100%', height: '100%',
+        background: T.paper, fontFamily: T.fontText, overflow: 'hidden',
+      }}>
+        <div style={{ height: '100%', overflow: 'auto' }}>
+          {children}
+        </div>
+        {navTab && <BottomNav tab={navTab} onChange={noop} />}
+      </div>
+    </IOSDevice>
+  );
+}
+
+const SCREENS = [
+  { id: 'today',       label: 'Today',                   group: 'Home',     navTab: 'home',
+    render: () => <ScreenToday onOpenLauncher={noop} onContinue={noop} onOpenAssignments={noop} /> },
+  { id: 'launcher',    label: 'Practice launcher',       group: 'Home',     navTab: null,
+    render: () => <ScreenLauncher onBack={noop} onOpenMathPath={noop} onOpenFluency={noop} onOpenRemediation={noop} /> },
+  { id: 'mathpath',    label: 'MathPath',                group: 'MathPath', navTab: 'mathpath',
+    render: () => <ScreenMathPath onBack={noop} onOpenFluency={noop} onOpenPathway={noop} onOpenRemediation={noop} /> },
+  { id: 'topic',       label: 'Topic detail',            group: 'MathPath', navTab: null,
+    render: () => <ScreenTopicDetail onBack={noop} onStartPractice={noop} /> },
+  { id: 'question',    label: 'Question practice',       group: 'Practice', navTab: null,
+    render: () => <ScreenQuestion onBack={noop} onMistake={noop} /> },
+  { id: 'fluency',     label: 'Fluency practice',        group: 'Practice', navTab: null,
+    render: () => <ScreenFluency onBack={noop} onMistake={noop} onFinish={noop} /> },
+  { id: 'mistake',     label: 'Mistake review',          group: 'Practice', navTab: null,
+    render: () => <ScreenMistakeReview onBack={noop} onPractice={noop} /> },
+  { id: 'assignments', label: 'Assignments',             group: 'Track',    navTab: 'home',
+    render: () => <ScreenAssignments onBack={noop} /> },
+  { id: 'progress',    label: 'Progress overview',       group: 'Track',    navTab: 'profile',
+    render: () => <ScreenProgress onBack={noop} onOpenPathway={noop} /> },
+  { id: 'pathway',     label: 'Skill graph',             group: 'Track',    navTab: 'pathway',
+    render: () => <ScreenPathway onBack={noop} onOpenRemediation={noop} /> },
+];
+
+// Group order for canvas sections
+const GROUPS = [
+  { id: 'Home',     title: 'Home & launch',    sub: 'Entry to the platform — focused today view + the launcher into all modules.' },
+  { id: 'MathPath', title: 'MathPath',         sub: 'Adaptive math mastery. Module dashboard → topic → practice.' },
+  { id: 'Practice', title: 'Practice surfaces', sub: 'One-question and timed flows, plus calm mistake review.' },
+  { id: 'Track',    title: 'Track & grow',     sub: 'Assignments, progress overview, and the full skill graph.' },
+];
+
+function StudentMVP() {
+  return (
+    <DesignCanvas
+      title="Tian OS — Student MVP"
+      subtitle="10 mobile screens · iPhone 14 Pro · 390 × 844 · v0.1"
+    >
+      {GROUPS.map(g => {
+        const items = SCREENS.filter(s => s.group === g.id);
+        return (
+          <DCSection key={g.id} id={g.id} title={g.title}>
+            <div style={{ fontSize: 13, color: '#5B5F6E', margin: '-4px 0 12px', maxWidth: 640 }}>{g.sub}</div>
+            {items.map((s, i) => (
+              <DCArtboard key={s.id} id={s.id} label={`${SCREENS.indexOf(s) + 1}. ${s.label}`} width={420} height={870}>
+                <div style={{ display: 'grid', placeItems: 'center', width: '100%', height: '100%' }}>
+                  <Phone navTab={s.navTab}>
+                    {s.render()}
+                  </Phone>
+                </div>
+              </DCArtboard>
+            ))}
+          </DCSection>
+        );
+      })}
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<StudentMVP />);
+  </script>
+</body>
+</html>
