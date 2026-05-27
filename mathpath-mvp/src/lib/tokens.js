@@ -53,7 +53,6 @@ export const MODULE_COLORS = {
   mathpath: '#1A2A4F',
   science: '#2F6B7E',
   spelling: '#6B4F7E',
-  reading: '#7E5A2F',
   planner: '#2F7E5A',
 };
 

@@ -94,11 +94,12 @@ export default function DashboardPage() {
   const nextSkill = rec?.recommendation?.skill?.skill_name || 'Loading…';
   const initial = student.name[0]?.toUpperCase() || 'A';
 
+  // Module order: Math core first, then secondary (Spelling → Science). English = Spelling only;
+  // no Reading/Comprehension/Writing in the MVP (see docs/tian-os-mvp-scope.md).
   const modules = [
     { id: 'mathpath', name: 'MathPath', color: MODULE_COLORS.mathpath, mastery: masteryPct, next: nextSkill, live: true, Icon: IconBolt },
-    { id: 'science', name: 'Science', color: MODULE_COLORS.science, next: 'Diagnostic ready', activity: 'Coming soon', Icon: IconChart },
     { id: 'spelling', name: 'Spelling', color: MODULE_COLORS.spelling, next: 'List review', activity: 'Coming soon', Icon: IconBook },
-    { id: 'reading', name: 'Reading', color: MODULE_COLORS.reading, next: 'Inference passage', activity: 'Coming soon', Icon: IconBook },
+    { id: 'science', name: 'Science', color: MODULE_COLORS.science, next: 'Diagnostic ready', activity: 'Coming soon', Icon: IconChart },
   ];
 
   return (

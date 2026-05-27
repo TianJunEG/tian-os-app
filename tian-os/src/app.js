@@ -45,7 +45,7 @@ function safe(fn) { try { return fn(); } catch (e) { console.error(e); return `<
 
 function topbar(u, unread) {
   return `<div class="topbar"><div class="topbar-in">
-    <div class="brand"><span class="logo">${icon('cap')}</span><div>Education OS<small>Tutor Match</small></div></div>
+    <div class="brand"><span class="logo">${icon('cap')}</span><div>Tian OS<small>Tutor Match</small></div></div>
     <div class="spacer"></div>
     <button class="iconbtn" data-act="notifications" aria-label="Notifications">${icon('bell')}${unread ? '<span class="dot"></span>' : ''}</button>
     <button class="iconbtn" data-act="account" aria-label="Account">${U.avatar(u.name, 28)}</button>
@@ -53,7 +53,7 @@ function topbar(u, unread) {
 }
 function sidebar(u, mod, tab) {
   return `<aside class="sidebar only-desktop">
-    <div class="brand sbrand"><span class="logo">${icon('cap')}</span><div>Education OS<small>${roleLabel(u.role)}</small></div></div>
+    <div class="brand sbrand"><span class="logo">${icon('cap')}</span><div>Tian OS<small>${roleLabel(u.role)}</small></div></div>
     ${mod.nav.map((n) => `<a class="snav ${n.id === tab ? 'on' : ''}" href="#/${u.role}/${n.id}">${icon(n.icon)} ${n.label}</a>`).join('')}
     <div style="flex:1"></div>
     <a class="snav" data-act="account">${icon('swap')} Switch role</a>
@@ -70,7 +70,7 @@ const roleLabel = (r) => ({ parent: 'Parent', student: 'Student', tutor: 'Tutor'
 function renderLogin() {
   app.innerHTML = `<div class="login">
     <div class="center" style="margin-bottom:26px">
-      <div class="brand" style="justify-content:center;font-size:20px"><span class="logo" style="width:38px;height:38px">${icon('cap')}</span> Education OS</div>
+      <div class="brand" style="justify-content:center;font-size:20px"><span class="logo" style="width:38px;height:38px">${icon('cap')}</span> Tian OS</div>
       <p class="muted" style="margin-top:10px;font-size:14px">One connected learning platform.<br/>Choose how you'd like to sign in.</p>
     </div>
     <div class="stack">

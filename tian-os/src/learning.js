@@ -1,4 +1,4 @@
-// learning.js — the MathPath ↔ Education OS bridge (ingest side).
+// learning.js — the MathPath ↔ Tian OS bridge (ingest side).
 // MathPath writes practice results to a shared event log (localStorage key, the same shape a
 // real backend would store). Here we map each result onto the unified student profile so the
 // Progress/Revision engines — and therefore every dashboard — reflect actual practice.
@@ -26,7 +26,7 @@ export const SOURCES = {
 const KNOWN_SOURCES = new Set(Object.keys(SOURCES));
 export const sourceForSubject = (subjectId) => Object.values(SOURCES).find((s) => s.subjects.includes(subjectId)) || null;
 
-// Pick the Education OS subject a result belongs to (honours the launch hint, else the source's
+// Pick the Tian OS subject a result belongs to (honours the launch hint, else the source's
 // subjects the student is enrolled in).
 export function mapSubject(db, rec) {
   const s = db.students.find((x) => x.id === rec.studentId);

@@ -1,5 +1,5 @@
 // serve.js — a tiny, dependency-free static server so `npm start` just works.
-// Education OS is a static front end (vanilla ES modules); this only exists to serve
+// Tian OS is a static front end (vanilla ES modules); this only exists to serve
 // the right MIME types. Swap for any static host, or front it with the Tutor Match API.
 
 import http from 'node:http';
@@ -48,5 +48,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Education OS running →  http://localhost:${PORT}`);
+  console.log(`Tian OS running →  http://localhost:${PORT}`);
 });

@@ -6,7 +6,7 @@
 import { seed, SUBJECTS, TOPICS, topicsOf, STATUS } from './data.js';
 import * as Learning from './learning.js';
 
-const KEY = 'eduos.v1';
+const KEY = 'tianos.v1';
 const hasLS = typeof localStorage !== 'undefined';
 
 export const PERSONAS = [

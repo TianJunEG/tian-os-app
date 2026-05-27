@@ -167,6 +167,36 @@ body {
 .answer::placeholder { color: var(--line-strong); }
 .answer:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(79, 124, 255, .15); background: #fff; }
 
+/* ---- stacked fractions (proper math typography) ----
+   Numerator over denominator with a horizontal bar, instead of slash notation. Sizes are in
+   em so a fraction scales with whatever context it sits in: the billboard problem line, an
+   inline hint, a choice button or a worked example. The bar uses currentColor so it inherits
+   the surrounding text colour (ink, feedback green/red, etc.). */
+.frac {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  vertical-align: middle; margin: 0 .16em; line-height: 1; font-weight: inherit;
+  font-variant-numeric: tabular-nums; letter-spacing: normal;
+  animation: frac-in .28s cubic-bezier(.2, .7, .2, 1);
+}
+.frac > .frac-n,
+.frac > .frac-d { display: block; padding: 0 .24em; font-size: .74em; }
+.frac > .frac-n { padding-bottom: .04em; }
+.frac > .frac-d {
+  border-top: .08em solid currentColor; padding-top: .04em;
+}
+/* Standalone fractions (a fraction that is the whole answer/choice) read a touch larger. */
+.frac--block { margin: 0 .22em; }
+.frac--block > .frac-n,
+.frac--block > .frac-d { font-size: .9em; }
+
+@keyframes frac-in {
+  from { opacity: 0; transform: translateY(.14em) scale(.9); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frac { animation: none; }
+}
+
 /* ---- keypad ---- */
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; margin-top: 4px; }
 .key {

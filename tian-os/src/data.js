@@ -17,7 +17,7 @@ export const SUBJECTS = [
 const T = {
   emath: ['Algebra', 'Fractions & Ratio', 'Percentage', 'Geometry', 'Trigonometry', 'Statistics'],
   amath: ['Polynomials', 'Indices & Surds', 'Quadratic Functions', 'Trigonometry', 'Differentiation', 'Integration'],
-  eng: ['Comprehension', 'Composition', 'Grammar', 'Oral', 'Summary Writing'],
+  eng: ['Spelling'], // MVP: English = Spelling only (no Comprehension/Composition/Writing yet — docs/tian-os-mvp-scope.md)
   chem: ['Atomic Structure', 'Chemical Bonding', 'Acids & Bases', 'The Mole', 'Organic Chemistry', 'Redox'],
   bio: ['Cell Structure', 'Transport', 'Genetics', 'Ecology', 'Enzymes'],
   phys: ['Kinematics', 'Forces', 'Energy', 'Electricity', 'Waves'],
@@ -75,7 +75,7 @@ export function seed() {
       }),
       ...buildProgress('maya', ['emath', 'eng', 'chi'], {
         emath: { 0: 'learning@64', 1: 'needs-revision@50' },
-        eng: { 0: 'learning@72', 1: 'needs-revision@55', 2: 'learning@68' },
+        eng: { 0: 'needs-revision@55' }, // English = Spelling only (eng-0)
         chi: { 0: 'learning@60', 3: 'needs-revision@48' },
       }),
       ...buildProgress('daniel', ['chem', 'phys', 'amath'], {
@@ -97,7 +97,7 @@ export function seed() {
       { id: 'w3', studentId: 'ethan', topicId: 'amath-0', date: '2025-05-24', status: 'done', score: 48, type: 'Practice' },
       { id: 'w4', studentId: 'ethan', topicId: 'chem-2', date: null, status: 'assigned', score: null, type: 'Remediation' },
       { id: 'w5', studentId: 'maya', topicId: 'emath-1', date: '2025-05-21', status: 'done', score: 50, type: 'Practice' },
-      { id: 'w6', studentId: 'maya', topicId: 'eng-1', date: null, status: 'assigned', score: null, type: 'Practice' },
+      { id: 'w6', studentId: 'maya', topicId: 'eng-0', date: null, status: 'assigned', score: null, type: 'Practice' },
       { id: 'w7', studentId: 'daniel', topicId: 'chem-5', date: '2025-05-24', status: 'done', score: 56, type: 'Remediation' },
     ],
     reports: [
