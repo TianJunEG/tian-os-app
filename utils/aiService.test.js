@@ -37,18 +37,22 @@ beforeAll(async () => {
   process.env.ANTHROPIC_API_KEY = 'sk-ant-test-key';
   process.env.WORKSHEET_PRIMARY_MODEL = 'claude-haiku-4-5';
   process.env.WORKSHEET_ESCALATION_MODEL = 'claude-sonnet-4-6';
+  delete process.env.WORKSHEET_AI_PROVIDER; // auto-select → Anthropic (key present)
+  delete process.env.OPENAI_API_KEY;
   svc = await import('./aiService.js');
 });
 beforeEach(() => { h.state.calls = []; h.state.queue = []; });
 
 describe('configuration & input guards', () => {
-  it('throws 503 when ANTHROPIC_API_KEY is missing', async () => {
-    const saved = process.env.ANTHROPIC_API_KEY;
+  it('throws 503 when no provider key is configured', async () => {
+    const savedA = process.env.ANTHROPIC_API_KEY, savedO = process.env.OPENAI_API_KEY;
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.OPENAI_API_KEY;
     await expect(svc.generateReinforcement({ topic: 'fractions', misconceptions: [] }))
       .rejects.toMatchObject({ status: 503 });
     expect(h.state.calls).toHaveLength(0); // never reached the model
-    process.env.ANTHROPIC_API_KEY = saved;
+    process.env.ANTHROPIC_API_KEY = savedA;
+    if (savedO === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = savedO;
   });
 
   it('rejects an unsupported image type with 400 before calling the model', async () => {
