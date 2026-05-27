@@ -20,6 +20,7 @@
     "seed:tutor": "node scripts/seedTutor.js",
     "seed:teacher": "node scripts/seedTeacher.js",
     "seed:spelling": "node scripts/seedSpelling.js",
+    "seed:lifelab": "node scripts/seedLifeLab.js",
     "clear": "node clear-db.js",
     "seed": "node seed-tutors.js",
     "seed:5000": "node seed-tutors.js",

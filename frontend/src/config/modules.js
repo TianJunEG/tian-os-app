@@ -43,7 +43,7 @@ export const MODULES = [
   },
   {
     key: 'lifelab', name: 'LifeLab', icon: Sprout, path: '/student/lifelab',
-    purpose: 'Real-life Math and Science activities.', status: 'soon',
+    purpose: 'Real-life Math and Science activities.', status: 'live',
   },
   {
     key: 'mechanisms', name: 'Mechanisms Playground', icon: Cog, path: '/secondary/mechanisms',

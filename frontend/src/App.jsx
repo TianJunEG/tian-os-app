@@ -91,6 +91,7 @@ import Intervention from './pages/teacher/Intervention';
 import Reports from './pages/teacher/Reports';
 import TeacherStudentDetail from './pages/teacher/TeacherStudentDetail';
 import TeacherLifeLab from './pages/teacher/LifeLab';
+import TeacherLifeLabHome from './pages/teacher/LifeLabHome';
 // Parent worksheet generator (Phase 4)
 // Secondary → Mechanisms Playground (D&T lower secondary)
 import MechanismsHome from './pages/secondary/mechanisms/MechanismsHome';
@@ -458,9 +459,10 @@ function App() {
             <Route path="/teacher/classes/:id/groups" element={<Grouping />} />
             <Route path="/teacher/classes/:id/assign" element={<TeacherAssignPractice />} />
             <Route path="/teacher/classes/:id/interventions" element={<Intervention />} />
+            <Route path="/teacher/classes/:id/lifelab" element={<TeacherLifeLab />} />
             <Route path="/teacher/classes/:id/reports" element={<Reports />} />
             <Route path="/teacher/students/:id" element={<TeacherStudentDetail />} />
-            <Route path="/teacher/lifelab" element={<Placeholder title="LifeLab" phase="Phase 6 (secondary)" home="/teacher" />} />
+            <Route path="/teacher/lifelab" element={<TeacherLifeLabHome />} />
 
             {/* ─── Secondary → Mechanisms Playground (D&T) ─── */}
             <Route path="/secondary/mechanisms" element={<MechanismsHome />} />
