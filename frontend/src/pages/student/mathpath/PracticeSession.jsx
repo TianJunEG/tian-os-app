@@ -68,7 +68,9 @@ export default function PracticeSession() {
       </div>
       <ProgressBar value={idx + (result ? 1 : 0)} max={items.length} className="mb-6" />
 
-      <Card className="p-6">
+      {/* Fixed min-height + button pinned to the bottom keeps the card the same
+          size across question types (MCQ vs short answer) and Check/answered states. */}
+      <Card className="flex min-h-[34rem] flex-col p-6">
         <div className="mb-6 text-lg leading-relaxed text-ink-900"><MathText text={q.stem} /></div>
 
         {/* Answer input */}
@@ -99,9 +101,10 @@ export default function PracticeSession() {
           />
         )}
 
-        {/* Feedback */}
+        {/* Feedback — reserved slot keeps the card height (and button position) stable between Check and answered states */}
+        <div className="mt-5 min-h-[64px]">
         {result && (
-          <div className={`mt-5 rounded-xl p-4 ${result.correct ? 'bg-success-100' : result.partial ? 'bg-gold-100' : 'bg-error-100'}`}>
+          <div className={`rounded-xl p-4 ${result.correct ? 'bg-success-100' : result.partial ? 'bg-gold-100' : 'bg-error-100'}`}>
             <div className={`flex items-center gap-2 font-semibold ${result.correct ? 'text-success-700' : result.partial ? 'text-gold-700' : 'text-error-700'}`}>
               {result.correct ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
               {result.correct ? 'Correct' : result.partial ? 'Partly there' : 'Not quite'}
@@ -123,6 +126,7 @@ export default function PracticeSession() {
             {result.explanation && <p className="mt-2 text-sm text-ink-500">{result.explanation}</p>}
           </div>
         )}
+        </div>
 
         {err && (
           <p className="mt-4 rounded-xl border-l-4 border-l-error-500 bg-error-100 p-3 text-sm text-error-700">
@@ -130,8 +134,8 @@ export default function PracticeSession() {
           </p>
         )}
 
-        {/* Action — single primary button */}
-        <div className="mt-6">
+        {/* Action — single primary button, pinned to the card's bottom edge */}
+        <div className="mt-auto pt-6">
           {!result ? (
             <Button size="l" disabled={busy || answer === ''} onClick={check} className="w-full">Check answer</Button>
           ) : (
