@@ -5,7 +5,7 @@ import { ArrowLeft, Sparkles, Play } from 'lucide-react';
 import { learningAPI } from '../services/api';
 import LearningProfile from '../components/LearningProfile';
 
-// Education OS — Student learning dashboard. Reads the ONE unified profile
+// Tian OS — Student learning dashboard. Reads the ONE unified profile
 // (GET /api/learning/profile) that every learning app feeds, rendered via <LearningProfile/>.
 export default function StudentDashboardPage() {
   const { user } = useAuth();

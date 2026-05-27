@@ -4,7 +4,7 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { learningAPI } from '../services/api';
 import LearningProfile from '../components/LearningProfile';
 
-// Education OS — a single child's unified profile, opened from the Parent dashboard.
+// Tian OS — a single child's unified profile, opened from the Parent dashboard.
 export default function ChildProfilePage() {
   const { childId } = useParams();
   const navigate = useNavigate();

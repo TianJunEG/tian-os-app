@@ -1,4 +1,4 @@
-// Edu OS service worker — offline app shell.
+// Tian OS service worker — offline app shell.
 // Strategy: app-shell precache + network-first navigation (SPA fallback)
 // + stale-while-revalidate for same-origin static assets. API and
 // cross-origin requests are left to the network.

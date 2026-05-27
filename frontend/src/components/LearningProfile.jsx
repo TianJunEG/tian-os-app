@@ -4,7 +4,7 @@ import { AlertTriangle, Play, Sparkles } from 'lucide-react';
 import ProgressRing from './ProgressRing';
 
 // Shared renderer for a unified learning profile (used by the Student dashboard and by each
-// child in the Parent dashboard). Edu OS look: deep-navy hero, soft-gold accents, glass cards,
+// child in the Parent dashboard). Tian OS look: deep-navy hero, soft-gold accents, glass cards,
 // progress rings. Assumes profile.subjects is non-empty; callers handle the empty state.
 const APP_ROUTE = { eng: '/spelling', chi: '/spelling' };
 const bandStyles = {

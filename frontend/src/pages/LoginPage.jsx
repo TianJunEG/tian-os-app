@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
-import { Wordmark } from '../components/eduos';
+import { Wordmark } from '../components/tianos';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -39,7 +39,7 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-xl border border-navy-100 p-8 w-full max-w-md">
         <div className="flex justify-center mb-6"><Wordmark onDark={false} size={34} /></div>
         <h1 className="text-3xl font-serif font-medium text-navy-900 mb-1 text-center">Welcome back</h1>
-        <p className="text-center text-gray-500 text-sm mb-8">Sign in to your Edu OS account</p>
+        <p className="text-center text-gray-500 text-sm mb-8">Sign in to your Tian OS account</p>
 
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">

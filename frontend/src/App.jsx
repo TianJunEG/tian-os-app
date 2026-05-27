@@ -1,8 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, Outlet } from 'react-router-dom';
 import { Sparkles, Layers, GraduationCap, ArrowRight } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, EduOSKeyframes } from './components/eduos';
+import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, TianOSKeyframes } from './components/tianos';
 
 // Pages
 import FounderStoryPage from './pages/FounderStoryPage';
@@ -29,6 +29,72 @@ import TutorOnboarding from './components/TutorOnboarding';
 import ParentProfile from './components/ParentProfile';
 import PwaManager from './components/PwaManager';
 import ErrorBoundary from './components/ErrorBoundary';
+import LifeLabLayout from './components/LifeLab/LifeLabLayout';
+
+// Tian OS unified shell (Phase 1 foundation)
+import { WorkspaceProvider } from './context/WorkspaceContext';
+import AppShell from './components/shell/AppShell';
+import StudentDashboard from './pages/student/StudentDashboard';
+import Placeholder from './pages/Placeholder';
+// MathPath (Phase 2)
+import MathPathHome from './pages/student/mathpath/MathPathHome';
+import TopicDetail from './pages/student/mathpath/TopicDetail';
+import PracticeSession from './pages/student/mathpath/PracticeSession';
+import PracticeResult from './pages/student/mathpath/PracticeResult';
+import MistakeReview from './pages/student/mathpath/MistakeReview';
+import StudentAssignments from './pages/student/StudentAssignments';
+// Spelling Practice (Phase 6) — shared-core wiring
+import SpellingHome from './pages/student/spelling/SpellingHome';
+import SpellingWordLists from './pages/student/spelling/WordLists';
+import SpellingLearn from './pages/student/spelling/LearnMode';
+import SpellingSelfTest from './pages/student/spelling/SelfTest';
+import SpellingPracticeResults from './pages/student/spelling/SpellingResults';
+import SpellingPracticeMistakes from './pages/student/spelling/SpellingMistakes';
+import StudentLifeLab from './pages/student/StudentLifeLab';
+// MathPath features (Phase 4): Fluency + Mistake-to-Mastery
+import FluencyHome from './pages/student/mathpath/fluency/FluencyHome';
+import FluencySkills from './pages/student/mathpath/fluency/FluencySkills';
+import MistakesHome from './pages/student/mathpath/MistakesHome';
+import MistakeDetail from './pages/student/mathpath/MistakeDetail';
+// Science Adaptive Revision (secondary module) — reuses shared practice/result screens
+import ScienceHome from './pages/student/science/ScienceHome';
+import ScienceTopics from './pages/student/science/ScienceTopics';
+import ScienceMistakes from './pages/student/science/ScienceMistakes';
+// Parent (Phase 3)
+import ParentHome from './pages/parent/ParentHome';
+import ParentChildren from './pages/parent/ParentChildren';
+import ChildProgress from './pages/parent/ChildProgress';
+import WeakTopics from './pages/parent/WeakTopics';
+import RecommendedActions from './pages/parent/RecommendedActions';
+import AssignPractice from './pages/parent/AssignPractice';
+import MistakeHistory from './pages/parent/MistakeHistory';
+import ChildAssignments from './pages/parent/ChildAssignments';
+// Tutor (Phase 4)
+import TutorHome from './pages/tutor/TutorHome';
+import AssignedStudents from './pages/tutor/AssignedStudents';
+import TutorStudentProfile from './pages/tutor/TutorStudentProfile';
+import LessonPrep from './pages/tutor/LessonPrep';
+import LessonNotes from './pages/tutor/LessonNotes';
+import AssignHomework from './pages/tutor/AssignHomework';
+import TutorHomework from './pages/tutor/TutorHomework';
+import TutorAvailability from './pages/tutor/Availability';
+import TutorTraining from './pages/tutor/Training';
+// Teacher (Phase 5)
+import TeacherHome from './pages/teacher/TeacherHome';
+import Classes from './pages/teacher/Classes';
+import ClassOverview from './pages/teacher/ClassOverview';
+import ClassMasteryMap from './pages/teacher/ClassMasteryMap';
+import ClassStudents from './pages/teacher/ClassStudents';
+import Grouping from './pages/teacher/Grouping';
+import TeacherAssignPractice from './pages/teacher/AssignPractice';
+import Intervention from './pages/teacher/Intervention';
+import Reports from './pages/teacher/Reports';
+import TeacherStudentDetail from './pages/teacher/TeacherStudentDetail';
+import TeacherLifeLab from './pages/teacher/LifeLab';
+// Parent worksheet generator (Phase 4)
+import WorksheetHome from './pages/parent/WorksheetHome';
+import WorksheetSetup from './pages/parent/WorksheetSetup';
+import WorksheetPreview from './pages/parent/WorksheetPreview';
 
 // Spelling app pages
 import SpellingHomePage from './pages/spelling/SpellingHomePage';
@@ -88,7 +154,7 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-// Landing Page — cinematic Edu OS look (matches the launch video / founder story).
+// Landing Page — cinematic Tian OS look (matches the launch video / founder story).
 const LANDING_FEATURES = [
   { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake becomes targeted mastery — worksheets and revision adapt to each child.' },
   { icon: Layers, title: 'One connected profile', body: 'Spelling, maths and science progress unify into a single readiness picture for parents.' },
@@ -98,7 +164,7 @@ const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 
 
 const LandingPage = () => (
   <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
-    <EduOSKeyframes />
+    <TianOSKeyframes />
     <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(5,10,20,0.7)', borderBottom: '1px solid rgba(180,200,240,0.12)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/"><Wordmark /></Link>
@@ -153,9 +219,21 @@ const LandingPage = () => (
     </main>
 
     <footer style={{ borderTop: '1px solid rgba(180,200,240,0.12)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: INK_SOFT }}>
-      <span style={{ color: INK, fontWeight: 700 }}>Edu OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
+      <span style={{ color: INK, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
     </footer>
   </div>
+);
+
+// Tian OS unified shell layout — protected, provides role/workspace context,
+// renders the sidebar/topbar/bottom-nav around each role dashboard. Phase 1
+// ships the student dashboard live; other role/feature screens are placeholders
+// wired so navigation is whole. Existing routes (/dashboard etc.) are untouched.
+const ShellLayout = () => (
+  <ProtectedRoute>
+    <WorkspaceProvider>
+      <AppShell><Outlet /></AppShell>
+    </WorkspaceProvider>
+  </ProtectedRoute>
 );
 
 // Main App
@@ -303,6 +381,85 @@ function App() {
           <Route path="/spelling/progress" element={<ProtectedRoute><SpellingProgressPage /></ProtectedRoute>} />
           <Route path="/spelling/achievements" element={<ProtectedRoute><SpellingAchievementsPage /></ProtectedRoute>} />
           <Route path="/spelling/lists/:id/print" element={<ProtectedRoute><SpellingPrintPage /></ProtectedRoute>} />
+
+          {/* LifeLab */}
+          <Route path="/lifelab" element={<ProtectedRoute><LifeLabLayout /></ProtectedRoute>} />
+
+          {/* ─── Tian OS unified shell (Phase 1 foundation) ─── */}
+          <Route element={<ShellLayout />}>
+            {/* Student — dashboard shell is live */}
+            <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/student/mathpath" element={<MathPathHome />} />
+            <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
+            <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
+            <Route path="/student/mathpath/results/:sessionId" element={<PracticeResult />} />
+            {/* Mistake-to-Mastery (MathPath feature) */}
+            <Route path="/student/mathpath/mistakes" element={<MistakesHome />} />
+            <Route path="/student/mathpath/mistakes/review" element={<MistakeReview />} />
+            <Route path="/student/mathpath/mistakes/:mistakeId" element={<MistakeDetail />} />
+            {/* Fluency (MathPath feature). Practice/results reuse the shared MathPath screens. */}
+            <Route path="/student/mathpath/fluency" element={<FluencyHome />} />
+            <Route path="/student/mathpath/fluency/skills" element={<FluencySkills />} />
+            <Route path="/student/fluency" element={<Navigate to="/student/mathpath/fluency" replace />} />
+            <Route path="/student/worksheets" element={<Placeholder title="Mastery Worksheet" phase="Phase 4" />} />
+            {/* Science Adaptive Revision (secondary module). Practice/results reuse the shared screens. */}
+            <Route path="/student/science" element={<ScienceHome />} />
+            <Route path="/student/science/topics" element={<ScienceTopics />} />
+            <Route path="/student/science/mistakes" element={<ScienceMistakes />} />
+            <Route path="/student/science/practice/:sessionId" element={<PracticeSession />} />
+            <Route path="/student/science/results/:sessionId" element={<PracticeResult />} />
+            <Route path="/student/lifelab" element={<StudentLifeLab />} />
+            {/* Spelling Practice (secondary module, English · Spelling) — shared core */}
+            <Route path="/student/spelling" element={<SpellingHome />} />
+            <Route path="/student/spelling/lists" element={<SpellingWordLists />} />
+            <Route path="/student/spelling/lists/:listId/learn" element={<SpellingLearn />} />
+            <Route path="/student/spelling/practice/:sessionId" element={<SpellingSelfTest />} />
+            <Route path="/student/spelling/results/:sessionId" element={<SpellingPracticeResults />} />
+            <Route path="/student/spelling/mistakes" element={<SpellingPracticeMistakes />} />
+            <Route path="/student/assignments" element={<StudentAssignments />} />
+            <Route path="/student/progress" element={<Placeholder title="Progress & Skill Graph" phase="Phase 2" />} />
+
+            {/* Parent (Phase 3) */}
+            <Route path="/parent" element={<ParentHome />} />
+            <Route path="/parent/children" element={<ParentChildren />} />
+            <Route path="/parent/children/:studentId/progress" element={<ChildProgress />} />
+            <Route path="/parent/children/:studentId/weak-topics" element={<WeakTopics />} />
+            <Route path="/parent/children/:studentId/actions" element={<RecommendedActions />} />
+            <Route path="/parent/children/:studentId/assign-practice" element={<AssignPractice />} />
+            <Route path="/parent/children/:studentId/mistakes" element={<MistakeHistory />} />
+            <Route path="/parent/children/:studentId/assignments" element={<ChildAssignments />} />
+            {/* Mastery Worksheet Generator (Phase 4) */}
+            <Route path="/parent/children/:studentId/worksheets" element={<WorksheetHome />} />
+            <Route path="/parent/children/:studentId/worksheets/new" element={<WorksheetSetup />} />
+            <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<WorksheetPreview />} />
+
+            {/* Tutor (Phase 4) */}
+            <Route path="/tutor" element={<TutorHome />} />
+            <Route path="/tutor/students" element={<AssignedStudents />} />
+            <Route path="/tutor/students/:id" element={<TutorStudentProfile />} />
+            <Route path="/tutor/students/:id/lesson-prep" element={<LessonPrep />} />
+            <Route path="/tutor/students/:id/lesson-notes" element={<LessonNotes />} />
+            <Route path="/tutor/students/:id/assign-homework" element={<AssignHomework />} />
+            <Route path="/tutor/homework" element={<TutorHomework />} />
+            <Route path="/tutor/availability" element={<TutorAvailability />} />
+            <Route path="/tutor/training" element={<TutorTraining />} />
+
+            {/* Teacher (Phase 5) */}
+            <Route path="/teacher" element={<TeacherHome />} />
+            <Route path="/teacher/classes" element={<Classes />} />
+            <Route path="/teacher/classes/:id" element={<ClassOverview />} />
+            <Route path="/teacher/classes/:id/mastery" element={<ClassMasteryMap />} />
+            <Route path="/teacher/classes/:id/students" element={<ClassStudents />} />
+            <Route path="/teacher/classes/:id/groups" element={<Grouping />} />
+            <Route path="/teacher/classes/:id/assign" element={<TeacherAssignPractice />} />
+            <Route path="/teacher/classes/:id/interventions" element={<Intervention />} />
+            <Route path="/teacher/classes/:id/reports" element={<Reports />} />
+            <Route path="/teacher/students/:id" element={<TeacherStudentDetail />} />
+            <Route path="/teacher/lifelab" element={<Placeholder title="LifeLab" phase="Phase 6 (secondary)" home="/teacher" />} />
+
+            {/* Shared "More" sheet */}
+            <Route path="/more" element={<Placeholder title="More" />} />
+          </Route>
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
