@@ -8,7 +8,6 @@ import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headl
 import FounderStoryPage from './pages/FounderStoryPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
 import ParentDashboardPage from './pages/ParentDashboardPage';
 import ChildProfilePage from './pages/ChildProfilePage';
@@ -155,10 +154,19 @@ const PublicRoute = ({ children }) => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to={ROLE_HOME[user?.role] || '/dashboard'} />;
+    return <Navigate to={ROLE_HOME[user?.role] || '/student'} />;
   }
 
   return children;
+};
+
+// The legacy /dashboard is retired — send signed-in users to their unified
+// Tian OS role home; send anyone not signed in to login.
+const LegacyDashboardRedirect = () => {
+  const { isAuthenticated, loading, user } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <Navigate to={ROLE_HOME[user?.role] || '/student'} replace />;
 };
 
 // Landing Page — cinematic Tian OS look (matches the launch video / founder story).
@@ -276,15 +284,8 @@ function App() {
             }
           />
 
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Legacy dashboard retired → unified Tian OS role home */}
+          <Route path="/dashboard" element={<LegacyDashboardRedirect />} />
 
           <Route
             path="/learning"
