@@ -92,6 +92,11 @@ import Reports from './pages/teacher/Reports';
 import TeacherStudentDetail from './pages/teacher/TeacherStudentDetail';
 import TeacherLifeLab from './pages/teacher/LifeLab';
 // Parent worksheet generator (Phase 4)
+// Secondary → Mechanisms Playground (D&T lower secondary)
+import MechanismsHome from './pages/secondary/mechanisms/MechanismsHome';
+import MechanismSimulator from './pages/secondary/mechanisms/MechanismSimulator';
+import MechanismPresent from './pages/secondary/mechanisms/MechanismPresent';
+
 import WorksheetHome from './pages/parent/WorksheetHome';
 import WorksheetSetup from './pages/parent/WorksheetSetup';
 import WorksheetPreview from './pages/parent/WorksheetPreview';
@@ -456,6 +461,11 @@ function App() {
             <Route path="/teacher/classes/:id/reports" element={<Reports />} />
             <Route path="/teacher/students/:id" element={<TeacherStudentDetail />} />
             <Route path="/teacher/lifelab" element={<Placeholder title="LifeLab" phase="Phase 6 (secondary)" home="/teacher" />} />
+
+            {/* ─── Secondary → Mechanisms Playground (D&T) ─── */}
+            <Route path="/secondary/mechanisms" element={<MechanismsHome />} />
+            <Route path="/secondary/mechanisms/:mechanism" element={<MechanismSimulator />} />
+            <Route path="/secondary/mechanisms/:mechanism/present" element={<MechanismPresent />} />
 
             {/* Shared "More" sheet */}
             <Route path="/more" element={<Placeholder title="More" />} />

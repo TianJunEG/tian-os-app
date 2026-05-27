@@ -3,7 +3,7 @@ import { ArrowRight, Sparkles, ClipboardList, AlertTriangle, Wrench } from 'luci
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { mathpathAPI, assignmentsAPI } from '../../services/api';
-import { MODULES } from '../../config/modules';
+import { SECTIONS } from '../../config/modules';
 import { Card, Button, ModuleCard, StatTile, ProgressBar, PageHeader, EmptyState, StatusBadge } from '../../components/ui';
 
 // Student dashboard. Today's Learning surfaces the single recommended next
@@ -109,11 +109,17 @@ export default function StudentDashboard() {
         )}
       </div>
 
-      {/* Module grid */}
-      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Your modules</h3>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {MODULES.map((m) => <ModuleCard key={m.key} module={m} />)}
-      </div>
+      {/* Module grid — grouped by section (core, then Secondary) */}
+      {SECTIONS.filter((s) => s.modules.length > 0).map((section) => (
+        <div key={section.key} className="mb-8 last:mb-0">
+          <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">
+            {section.label || 'Your modules'}
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {section.modules.map((m) => <ModuleCard key={m.key} module={m} />)}
+          </div>
+        </div>
+      ))}
     </>
   );
 }

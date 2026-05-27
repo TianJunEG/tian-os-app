@@ -5,10 +5,12 @@
 // MVP scope: Math is the core. English = Spelling only (no Reading/Comprehension/
 // Writing/Cloze — ever). See docs/tian-os-master-product-spec.md §2.
 import {
-  Calculator, Timer, Wrench, FileText, Network, SpellCheck, FlaskConical, Sprout,
+  Calculator, Timer, Wrench, FileText, Network, SpellCheck, FlaskConical, Sprout, Cog,
 } from 'lucide-react';
 
 // status: 'live' (built) | 'soon' (placeholder/coming soon)
+// section: groups modules on the dashboard. Omitted = the core (Primary) set;
+// 'Secondary' = lower-secondary subject tools (e.g. D&T Mechanisms Playground).
 export const MODULES = [
   {
     key: 'mathpath', name: 'MathPath', icon: Calculator, path: '/student/mathpath',
@@ -43,4 +45,16 @@ export const MODULES = [
     key: 'lifelab', name: 'LifeLab', icon: Sprout, path: '/student/lifelab',
     purpose: 'Real-life Math and Science activities.', status: 'soon',
   },
+  {
+    key: 'mechanisms', name: 'Mechanisms Playground', icon: Cog, path: '/secondary/mechanisms',
+    purpose: 'Explore gears, levers, pulleys and linkages through interactive D&T simulations.',
+    status: 'live', section: 'Secondary',
+  },
+];
+
+// Modules grouped by dashboard section, in display order. Core (Primary) first,
+// then Secondary subject tools.
+export const SECTIONS = [
+  { key: 'core', label: null, modules: MODULES.filter((m) => !m.section) },
+  { key: 'secondary', label: 'Secondary', modules: MODULES.filter((m) => m.section === 'Secondary') },
 ];
