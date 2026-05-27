@@ -26,17 +26,20 @@ export function buildRecommendations({
       action: 'Follow up on overdue assignment' });
   }
 
-  // 3+ recent mistakes in a skill → review (high).
+  // 3+ recent mistakes in a named skill → review (high). A nameless skill (e.g.
+  // a non-MathPath record whose ref doesn't resolve) would render blank text and
+  // a mis-routed link, so skip it.
   for (const m of mistakesBySkill) {
-    if (m.count >= 3) {
+    if (m.count >= 3 && m.skillName) {
       recs.push({ actionType: 'review_mistakes', priority: 'high',
         reason: `${m.count} recent mistakes in ${m.skillName}.`,
         action: 'Review recent mistakes', relatedSkillId: m.skillId, relatedSkillName: m.skillName });
     }
   }
 
-  // Weak skill (attempted, mastery < 40) → assign practice (high).
-  const weak = records.filter((r) => r.attempts > 0 && r.score < 40).sort((a, b) => a.score - b.score);
+  // Weak skill (attempted, mastery < 40) → assign practice (high). Require a name
+  // for the same reason as the mistakes rule above.
+  const weak = records.filter((r) => r.attempts > 0 && r.score < 40 && r.skillName).sort((a, b) => a.score - b.score);
   for (const w of weak.slice(0, 2)) {
     recs.push({ actionType: 'assign_practice', priority: 'high',
       reason: `${w.skillName} mastery is low (${w.score}%).`,
