@@ -25,6 +25,35 @@ function deriveStatus(score, attempts) {
   return 'learning';
 }
 
+// ── Unified, user-facing vocabulary ──────────────────────────────────────────
+// The numeric score/attempts/fluency are the single source of truth; the 5-state
+// mastery ladder and the 3-state fluency label are DERIVED from them, so there's
+// no enum migration of existing records and one place defines the words.
+export const MASTERY_STATES = ['not_started', 'developing', 'practising', 'fluent', 'mastered'];
+export const MASTERY_LABEL = { not_started: 'Not started', developing: 'Developing', practising: 'Practising', fluent: 'Fluent', mastered: 'Mastered' };
+export const FLUENCY_LABEL = { unknown: '—', effortful: 'slow', developing: 'steady', automatic: 'fast' };
+const DECAY_DAYS = 60;   // a top skill unpractised this long steps back for a gentle refresh
+
+export const fluencyLabel = (fluencyStatus) => FLUENCY_LABEL[fluencyStatus] || 'steady';
+
+// 5-state mastery ladder, derived (with decay) from a record-like object.
+export function deriveMastery(rec = {}, now = Date.now()) {
+  const { score = 0, attempts = 0, fluencyStatus = 'unknown', lastPracticedAt = null } = rec;
+  if (attempts === 0) return 'not_started';
+  let state;
+  if (score < REVIEW_BELOW) state = 'developing';
+  else if (score < MASTERED_AT || attempts < MIN_ATTEMPTS_FOR_MASTERY) state = 'practising';
+  else state = fluencyStatus === 'automatic' ? 'mastered' : 'fluent';   // ≥80 = fluent; mastered once also fast
+  if ((state === 'mastered' || state === 'fluent') && lastPracticedAt
+    && (now - new Date(lastPracticedAt).getTime()) / 86400000 > DECAY_DAYS) state = 'practising';
+  return state;
+}
+// True when a mastered skill has gone stale (overdue for a refresh).
+export function isStale(rec = {}, now = Date.now()) {
+  return rec.lastPracticedAt && rec.score >= MASTERED_AT
+    && (now - new Date(rec.lastPracticedAt).getTime()) / 86400000 > DECAY_DAYS;
+}
+
 // Update mastery for one (student, skill) from a single graded attempt.
 // Returns { before, after, masteredNow }.
 export async function recordAttempt({ studentId, skillId, workspaceId, correct, timeMs = null, module = 'MathPath', subject = 'Math' }) {
@@ -41,6 +70,15 @@ export async function recordAttempt({ studentId, skillId, workspaceId, correct, 
   // streak (consecutive correct)
   rec.streak = correct ? (rec.streak || 0) + 1 : 0;
   rec.bestStreak = Math.max(rec.bestStreak || 0, rec.streak);
+
+  // consistency: rolling window of recent outcomes — fewer correct/wrong flips
+  // means steadier performance (and a more trustworthy estimate).
+  const outcomes = [...(rec.recentOutcomes || []), !!correct].slice(-10);
+  rec.recentOutcomes = outcomes;
+  let flips = 0; for (let i = 1; i < outcomes.length; i++) if (outcomes[i] !== outcomes[i - 1]) flips++;
+  rec.consistency = outcomes.length >= 2 ? Math.round((1 - flips / (outcomes.length - 1)) * 100) / 100 : 1;
+  // confidence in the estimate: grows with evidence (attempts) and consistency.
+  rec.confidence = Math.round(Math.min(1, Math.min(1, rec.attempts / 8) * 0.6 + rec.consistency * 0.4) * 100) / 100;
 
   // fluency: track speed of CORRECT attempts (a wrong-but-fast guess isn't fluent)
   if (correct && typeof timeMs === 'number' && timeMs > 0) {
@@ -102,7 +140,8 @@ export async function recommendNextSkill(studentId) {
 
   const records = await MasteryRecord.find({ studentId, module: 'MathPath' });
   const recBySkill = new Map(records.map((r) => [String(r.skillId), r]));
-  const masteredIds = new Set(records.filter((r) => r.status === 'mastered').map((r) => String(r.skillId)));
+  // Stale-mastered skills are treated as un-mastered so they resurface for a refresh.
+  const masteredIds = new Set(records.filter((r) => r.status === 'mastered' && !isStale(r)).map((r) => String(r.skillId)));
 
   const resolveReadyGap = (startId) => {
     const seen = new Set();
@@ -138,16 +177,26 @@ export async function recommendNextSkill(studentId) {
   const record = recBySkill.get(String(skill._id)) || null;
   const target = skillById.get(targetId);
 
-  // A plain-language reason so the recommendation is explainable to the learner.
-  let reason;
+  // A plain-language reason so the recommendation is explainable to the learner,
+  // plus the recommended MODE the UI should open in.
+  let reason, mode;
   if (gapId !== targetId) {
-    reason = `Strengthen the prerequisite “${skill.name}” first — it unlocks “${target?.name}”.`;
+    reason = `Strengthen the prerequisite “${skill.name}” first — it unlocks “${target?.name}”.`; mode = 'remediation';
+  } else if (isStale(record || {})) {
+    reason = `Time to refresh “${skill.name}” — it’s been a while, so let’s keep it sharp.`; mode = 'fluency';
   } else if (record?.status === 'needs_review') {
-    reason = `Review “${skill.name}” — accuracy here has slipped, so let’s shore it up.`;
+    reason = `Review “${skill.name}” — accuracy here has slipped, so let’s shore it up.`; mode = 'remediation';
   } else if (record?.status === 'learning') {
-    reason = `Keep building “${skill.name}” — you’re partway to mastering it.`;
+    reason = `Keep building “${skill.name}” — you’re partway to mastering it.`; mode = 'independent';
+  } else if (record?.status === 'mastered' && record?.fluencyStatus && record.fluencyStatus !== 'automatic') {
+    reason = `Speed up “${skill.name}” — you’re accurate, now let’s make it automatic.`; mode = 'fluency';
   } else {
-    reason = `You’re ready to start “${skill.name}”.`;
+    reason = `You’re ready to start “${skill.name}”.`; mode = 'independent';
   }
-  return { skill, record, target: target ? { slug: target.slug, name: target.name } : null, reason };
+  const masteryState = deriveMastery(record || {});
+  const confidence = record?.confidence ?? (record ? 0.3 : 0);
+  return {
+    skill, record, target: target ? { slug: target.slug, name: target.name } : null,
+    reason, mode, masteryState, confidence,
+  };
 }

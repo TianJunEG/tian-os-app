@@ -58,7 +58,7 @@ export default function MathPathHome() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <h2 className="font-display text-xl font-semibold text-navy-700">{recommended.skillName}</h2>
-              <p className="mt-1 text-sm text-ink-500">{recommended.topicName} · <StatusBadge status={recommended.status} /></p>
+              <p className="mt-1 text-sm text-ink-500">{recommended.topicName} · <StatusBadge status={recommended.masteryState || recommended.status} /></p>
               {recommended.reason && <p className="mt-1 text-sm text-ink-600">{recommended.reason}</p>}
             </div>
             <Button size="l" icon={ArrowRight} disabled={starting} onClick={() => startPractice(recommended.skillId)} className="shrink-0">

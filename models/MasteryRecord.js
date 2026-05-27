@@ -30,6 +30,11 @@ const masteryRecordSchema = new mongoose.Schema({
   // Consecutive-correct streak (motivation + confidence signal).
   streak: { type: Number, default: 0 },
   bestStreak: { type: Number, default: 0 },
+  // Rolling window of recent outcomes → consistency (steadiness) and confidence
+  // (how trustworthy the mastery estimate is, given evidence + steadiness).
+  recentOutcomes: { type: [Boolean], default: [] },
+  consistency: { type: Number, default: 1 },
+  confidence: { type: Number, default: 0 },
   lastPracticedAt: { type: Date, default: null }
 });
 

@@ -6,8 +6,9 @@ import Subject from '../models/Subject.js';
 import Topic from '../models/Topic.js';
 import Mistake from '../models/Mistake.js';
 import { resolveStudent } from '../utils/studentContext.js';
-import { weakSkills, recommendNextSkill } from '../utils/masteryEngine.js';
+import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLabel, isStale } from '../utils/masteryEngine.js';
 import { runPlacement } from '../utils/placementEngine.js';
+import { studentMathAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
 
 const router = express.Router();
@@ -27,12 +28,18 @@ router.get('/', protect, async (req, res) => {
     if (req.query.skillIds) recFilter.skillId = { $in: req.query.skillIds.split(',') };
     const records = await MasteryRecord.find(recFilter).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
 
-    const shaped = records.map((r) => ({
-      skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
-      moeLevel: r.skillId?.moeLevel || '', score: r.score, attempts: r.attempts,
-      status: r.status, statusLabel: STATUS_LABEL[r.status] || r.status, lastPracticedAt: r.lastPracticedAt,
-      fluencyStatus: r.fluencyStatus || 'unknown', streak: r.streak || 0, bestStreak: r.bestStreak || 0,
-    }));
+    const shaped = records.map((r) => {
+      const masteryState = deriveMastery(r);
+      return {
+        skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
+        moeLevel: r.skillId?.moeLevel || '', score: r.score, attempts: r.attempts,
+        status: r.status, statusLabel: STATUS_LABEL[r.status] || r.status, lastPracticedAt: r.lastPracticedAt,
+        // mastery v2 (derived): 5-state ladder + 3-state fluency label + estimate quality
+        masteryState, masteryLabel: MASTERY_LABEL[masteryState], fluency: fluencyLabel(r.fluencyStatus),
+        fluencyStatus: r.fluencyStatus || 'unknown', streak: r.streak || 0, bestStreak: r.bestStreak || 0,
+        confidence: r.confidence ?? 0, consistency: r.consistency ?? 1, stale: isStale(r),
+      };
+    });
 
     const weak = await weakSkills(student._id, { limit: 5 });
     const weakShaped = weak.map((r) => ({
@@ -50,7 +57,8 @@ router.get('/', protect, async (req, res) => {
     const recommended = rec ? {
       skillId: rec.skill._id, skillName: rec.skill.name, topicName: rec.skill.topicId?.name || '',
       score: rec.record?.score ?? 0, status: recStatus, statusLabel: STATUS_LABEL[recStatus] || recStatus,
-      reason: rec.reason, target: rec.target,
+      reason: rec.reason, target: rec.target, mode: rec.mode, masteryState: rec.masteryState,
+      masteryLabel: MASTERY_LABEL[rec.masteryState], confidence: rec.confidence,
     } : null;
     const recentMistakes = await Mistake.countDocuments({ studentId: student._id, module: 'MathPath', status: { $ne: 'resolved' } });
 
@@ -80,7 +88,7 @@ router.get('/map', protect, async (req, res) => {
       const ts = skills.filter((s) => String(s.topicId) === String(t._id)).map((s) => {
         const r = recMap.get(String(s._id));
         const status = r?.status || 'not_started';
-        return { skillId: s._id, name: s.name, moeLevel: s.moeLevel, score: r?.score || 0, attempts: r?.attempts || 0, status, statusLabel: STATUS_LABEL[status] || status, fluencyStatus: r?.fluencyStatus || 'unknown', streak: r?.streak || 0 };
+        return { skillId: s._id, name: s.name, moeLevel: s.moeLevel, score: r?.score || 0, attempts: r?.attempts || 0, status, statusLabel: STATUS_LABEL[status] || status, masteryState: deriveMastery(r || {}), fluency: fluencyLabel(r?.fluencyStatus), fluencyStatus: r?.fluencyStatus || 'unknown', streak: r?.streak || 0 };
       });
       const attempted = ts.filter((s) => s.attempts > 0);
       return {
@@ -128,6 +136,21 @@ router.post('/remediation', protect, async (req, res) => {
     res.json(buildRemediationPlan({ skill, recentAttempts, prereqSkills }));
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Remediation failed.' });
+  }
+});
+
+// @route GET /api/mastery/analytics?studentId=&days=30
+// @desc  Lightweight, dashboard-ready MathPath analytics (response times,
+//        accuracy, consistency, mastery velocity, fluency trends, top
+//        misconceptions, remediation triggers) for parent/tutor views + AI.
+// @access Private
+router.get('/analytics', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const sinceDays = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
+    res.json({ studentId: student._id, ...(await studentMathAnalytics(student._id, { sinceDays })) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Analytics failed.' });
   }
 });
 

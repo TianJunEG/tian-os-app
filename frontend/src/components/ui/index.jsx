@@ -55,6 +55,8 @@ const STATUS_MAP = {
   not_started: ['neutral', 'Not started'], in_progress: ['navy', 'In progress'],
   completed: ['success', 'Completed'], overdue: ['error', 'Overdue'],
   prepared: ['success', 'Prepared'], improving: ['success', 'Improving'], stable: ['navy', 'Stable'],
+  // mastery v2 vocabulary (derived 5-state ladder)
+  developing: ['gold', 'Developing'], practising: ['navy', 'Practising'], fluent: ['success', 'Fluent'],
 };
 export function StatusBadge({ status }) {
   const [tone, label] = STATUS_MAP[status] || ['neutral', String(status || '').replace(/_/g, ' ')];

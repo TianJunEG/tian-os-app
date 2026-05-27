@@ -5,6 +5,7 @@ import Topic from '../models/Topic.js';
 import Skill from '../models/Skill.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import { deriveMastery, fluencyLabel } from '../utils/masteryEngine.js';
 
 const router = express.Router();
 const labelFor = (status, fluency) => ({
@@ -42,6 +43,7 @@ router.get('/', protect, async (req, res) => {
         skillId: s._id, name: s.name, moeLevel: s.moeLevel,
         topicId: s.topicId, topicName: topicById[String(s.topicId)]?.name || '',
         score: r?.score || 0, status, statusLabel: labelFor(status, fluency),
+        masteryState: deriveMastery(r || {}), fluency: fluencyLabel(r?.fluencyStatus),
         fluencyStatus: r?.fluencyStatus || 'unknown', streak: r?.streak || 0, bestStreak: r?.bestStreak || 0,
         targetSeconds: s.metadata?.fluency?.targetSeconds ?? null,
       };

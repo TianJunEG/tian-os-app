@@ -7,8 +7,6 @@ import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../.
 // MathPath › Fluency — home. Recommended skill, weak fluency skills, quick practice.
 // Fluency is a FEATURE of MathPath: it reuses the shared practice/result screens.
 const TONE = { mastered: 'success', fluent: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
-// Speed labels for the fluency (timed) skills.
-const FLUENCY_LABEL = { automatic: 'fast & accurate', developing: 'getting quicker', effortful: 'building speed' };
 
 export default function FluencyHome() {
   const navigate = useNavigate();
@@ -73,7 +71,7 @@ export default function FluencyHome() {
               <div className="font-semibold text-ink-700">{s.name}</div>
               <div className="text-xs text-ink-500">
                 {s.topicName}
-                {FLUENCY_LABEL[s.fluencyStatus] && <> · {FLUENCY_LABEL[s.fluencyStatus]}</>}
+                {s.fluency && s.fluency !== '—' && <> · {s.fluency}</>}
                 {s.streak > 1 && <> · 🔥 {s.streak} in a row</>}
               </div>
             </div>
