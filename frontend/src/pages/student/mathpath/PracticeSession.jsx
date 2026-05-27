@@ -22,6 +22,7 @@ export default function PracticeSession() {
   const [answer, setAnswer] = useState('');
   const [result, setResult] = useState(null); // { correct, partial, correctAnswer, workedSolution, modelAnswer, keyPoints, missingKeyPoints }
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
   const [startedAt, setStartedAt] = useState(Date.now());
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
@@ -37,18 +38,22 @@ export default function PracticeSession() {
 
   const check = async () => {
     if (busy || answer === '') return;
-    setBusy(true);
+    setBusy(true); setErr('');
     try {
       const { data } = await mathpathAPI.attempt(sessionId, {
         questionId: q.questionId, answer, timeMs: Date.now() - startedAt, hintsUsed: 0,
       });
       setResult(data);
-    } catch (_) { /* keep the student in place; allow retry */ }
-    finally { setBusy(false); }
+    } catch (e) {
+      const msg = e.response?.data?.error;
+      setErr(msg === 'Question not found.' || msg === 'Session not found.'
+        ? 'This practice set is out of date — please start a new session from MathPath.'
+        : (msg || 'Could not check your answer. Please try again.'));
+    } finally { setBusy(false); }
   };
 
   const next = async () => {
-    if (!isLast) { setIdx((i) => i + 1); setAnswer(''); setResult(null); return; }
+    if (!isLast) { setIdx((i) => i + 1); setAnswer(''); setResult(null); setErr(''); return; }
     setBusy(true);
     try { await mathpathAPI.complete(sessionId); } catch (_) { /* still navigate */ }
     navigate(`${resultsBase}/results/${sessionId}`, { replace: true });
@@ -117,6 +122,12 @@ export default function PracticeSession() {
             {result.workedSolution && !result.modelAnswer && <p className="mt-2 text-sm text-ink-500"><MathText text={result.workedSolution} /></p>}
             {result.explanation && <p className="mt-2 text-sm text-ink-500">{result.explanation}</p>}
           </div>
+        )}
+
+        {err && (
+          <p className="mt-4 rounded-xl border-l-4 border-l-error-500 bg-error-100 p-3 text-sm text-error-700">
+            {err} {(/out of date/.test(err)) && <button onClick={() => navigate(homeBase, { replace: true })} className="font-semibold underline">Back to MathPath</button>}
+          </p>
         )}
 
         {/* Action — single primary button */}
