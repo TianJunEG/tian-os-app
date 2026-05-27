@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Play, Pause, RotateCcw, Shuffle, Check, X, AlertTriangle, Lightbulb, ClipboardCheck, Eye, MessagesSquare } from 'lucide-react';
-import { Card, Button, Badge } from '../../../components/ui';
+import { Card, Button, Badge, Segmented as UiSegmented } from '../../../components/ui';
 import { mechanismsAPI } from '../../../services/api';
 
 // Shared building blocks for the Mechanisms Playground. Tian OS design language
@@ -368,23 +368,13 @@ export function DiscussionCard({ prompt }) {
   );
 }
 
-// Segmented — a compact tab control for a mechanism's sub-modes (lever class,
-// pulley type, linkage type). Keyboard accessible; active state not colour-only.
-export function Segmented({ label, value, options, onChange }) {
-  return (
-    <div className="inline-flex rounded-xl border border-hairline bg-paper p-0.5" role="tablist" aria-label={label}>
-      {options.map((o) => {
-        const active = o.value === value;
-        return (
-          <button key={o.value} type="button" role="tab" aria-selected={active}
-            onClick={() => onChange(o.value)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 ${active ? 'bg-navy-700 text-white' : 'text-ink-500 hover:text-navy-700'}`}>
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
+// Segmented — a tab control for a mechanism's sub-modes (lever class, pulley type,
+// linkage type) and the Present-view mechanism switcher. Thin wrapper over the
+// shared Tian OS primitive, defaulting to the compact size the playground uses;
+// pass size="m" for the projector (Present) view. Single source of truth for the
+// look so it never drifts from the rest of the platform.
+export function Segmented(props) {
+  return <UiSegmented size="s" {...props} />;
 }
 
 // KeyConcepts — chips listing the vocabulary for the mechanism.
