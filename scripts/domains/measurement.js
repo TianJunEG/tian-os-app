@@ -4,7 +4,8 @@
 // and conversions; reasoning-heavy on time durations and volume-rate problems.
 //
 // Cross-domain connections:
-//   • Decimals : mea.unit-convert ← dec.x-div-10-100; mea.compare-measures ← dec.compare
+//   • Operations: mea.unit-convert ← op.mult.by-10-100 (whole-number place-value scaling)
+//   • Decimals : mea.compare-measures ← dec.compare
 //   • Geometry : mea.perimeter-apply ← geo.perimeter; mea.area-apply ← geo.area-rect;
 //                mea.volume-cuboid ← geo.3d-shapes; mea.nets-volume ← geo.nets-views
 //   • Ratio/Rate: mea.volume-rate ← rr.rate (water-level / flow problems)
@@ -65,11 +66,11 @@ export default {
 
     // ── Unit conversion ──
     { slug: 'mea.unit-convert', name: 'Unit conversions (length, mass, volume)', level: 'Primary 4',
-      prerequisites: ['dec.x-div-10-100'], masteryType: 'procedural', fluencyType: 'timed',
+      prerequisites: ['op.mult.by-10-100'], masteryType: 'procedural', fluencyType: 'timed',
       fluency: { targetSeconds: 6, targetAccuracy: 90 }, render: 'katex', visualModels: ['scale'],
       misconceptions: [{ tag: 'mea/convert-direction', label: 'Multiplies when it should divide between units (and vice-versa)' }],
       practiceModes: ['fluency_drill', 'mcq', 'short_answer'],
-      remediation: { onRepeatedFail: 'worked-example', reinforce: ['dec.x-div-10-100'], strategy: 'bigger unit → smaller unit means multiply' },
+      remediation: { onRepeatedFail: 'worked-example', reinforce: ['op.mult.by-10-100'], strategy: 'bigger unit → smaller unit means multiply' },
       questionStructures: [{ mode: 'fluency_drill', type: 'short_answer', difficulty: 'medium', stem: 'Convert {x} kg to g.', answerRule: 'x*1000', misconceptionTag: 'mea/convert-direction' }] },
     { slug: 'mea.compare-measures', name: 'Comparing and converting measurements', level: 'Primary 5',
       prerequisites: ['mea.unit-convert', 'dec.compare'], masteryType: 'procedural', fluencyType: 'accuracy',
@@ -119,7 +120,7 @@ export default {
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'Water flows at {r} cm³/s into a tank with base {s} cm². How long until it is {d} cm deep?', answerRule: 's*d/r', misconceptionTag: 'mea/rate-volume-confuse' }] },
 
     // ── Money (measurement context) ──
-    { slug: 'mea.money', name: 'Money word problems and reasoning', level: 'Primary 3',
+    { slug: 'mea.money', name: 'Money word problems and reasoning', level: 'Primary 4',
       prerequisites: ['op.add.regroup', 'dec.add-sub'], masteryType: 'application', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['bar'],
       misconceptions: [{ tag: 'mea/money-decimal-place', label: 'Misplaces dollars and cents (treats $2.5 as 2 dollars 5 cents)' }],
