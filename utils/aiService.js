@@ -1,10 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { getActiveProvider } from './aiProvider.js';
 
-// Cheap model handles every call; escalate to the stronger model only when the
-// cheap model reports it could not read the handwriting clearly. Both are
-// env-configurable so cost/quality can be tuned without code changes.
-const PRIMARY_MODEL = process.env.WORKSHEET_PRIMARY_MODEL || 'claude-haiku-4-5';
-const ESCALATION_MODEL = process.env.WORKSHEET_ESCALATION_MODEL || 'claude-sonnet-4-6';
+// The active provider (Anthropic or OpenAI) is chosen by getActiveProvider from
+// the configured API key. A cheap "primary" model handles every call; we escalate
+// to the provider's stronger model only when the primary reports it could not read
+// the handwriting clearly. Model ids per provider are env-overridable.
 
 const MEDIA_TYPES = {
   'image/jpeg': 'image/jpeg',
@@ -14,62 +13,30 @@ const MEDIA_TYPES = {
   'image/webp': 'image/webp'
 };
 
-let client;
-function getClient() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const err = new Error('AI is not configured: ANTHROPIC_API_KEY is missing on the server.');
-    err.status = 503;
-    throw err;
-  }
-  if (!client) {
-    client = new Anthropic();
-  }
-  return client;
-}
-
-// effort + adaptive thinking are only valid on Opus 4.5+/Sonnet 4.6.
-// Haiku 4.5 rejects the effort parameter, so omit both there.
-function supportsTuning(model) {
-  return /claude-(opus-4-(5|6|7)|sonnet-4-6)/.test(model);
-}
-
+// Run one structured call through the active provider and turn its neutral
+// outcome into the worksheet flow's HTTP-status errors / parsed JSON.
 async function callStructured({ model, system, messages, schema, effort, maxTokens }) {
-  const anthropic = getClient();
+  const provider = getActiveProvider();
+  const { text, stop } = await provider.complete({ model, system, messages, schema, effort, maxTokens });
 
-  const params = {
-    model,
-    max_tokens: maxTokens,
-    system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-    messages,
-    output_config: { format: { type: 'json_schema', schema } }
-  };
-  if (supportsTuning(model)) {
-    params.thinking = { type: 'adaptive' };
-    if (effort) params.output_config.effort = effort;
-  }
-
-  const message = await anthropic.messages.stream(params).finalMessage();
-
-  if (message.stop_reason === 'refusal') {
+  if (stop === 'refusal') {
     const err = new Error('The model declined this request.');
     err.status = 422;
     throw err;
   }
-  if (message.stop_reason === 'max_tokens') {
+  if (stop === 'truncated') {
     const err = new Error('The response was cut off. Try requesting fewer questions.');
     err.status = 502;
     throw err;
   }
-
-  const textBlock = message.content.find((block) => block.type === 'text');
-  if (!textBlock) {
+  if (stop === 'empty') {
     const err = new Error('The model returned no data.');
     err.status = 502;
     throw err;
   }
 
   try {
-    return JSON.parse(textBlock.text);
+    return JSON.parse(text);
   } catch (e) {
     const err = new Error('Could not parse the model response.');
     err.status = 502;
@@ -78,14 +45,15 @@ async function callStructured({ model, system, messages, schema, effort, maxToke
 }
 
 // Run on the primary (cheap) model; if it reports it could not read the
-// handwriting, retry the same call once on the stronger model.
+// handwriting, retry the same call once on the provider's stronger model.
 async function callWithEscalation(opts, needsEscalation) {
-  const result = await callStructured({ ...opts, model: PRIMARY_MODEL });
-  if (PRIMARY_MODEL !== ESCALATION_MODEL && needsEscalation(result)) {
-    const escalated = await callStructured({ ...opts, model: ESCALATION_MODEL });
-    return { result: escalated, modelUsed: ESCALATION_MODEL, escalated: true };
+  const { primary, escalation } = getActiveProvider().models();
+  const result = await callStructured({ ...opts, model: primary });
+  if (primary !== escalation && needsEscalation(result)) {
+    const escalated = await callStructured({ ...opts, model: escalation });
+    return { result: escalated, modelUsed: escalation, escalated: true };
   }
-  return { result, modelUsed: PRIMARY_MODEL, escalated: false };
+  return { result, modelUsed: primary, escalated: false };
 }
 
 // ---------------------------------------------------------------------------
@@ -299,7 +267,7 @@ export async function generateReinforcement({ topic, misconceptions, gradeLevel,
   ].filter(Boolean).join('\n');
 
   const result = await callStructured({
-    model: PRIMARY_MODEL,
+    model: getActiveProvider().models().primary,
     system: REINFORCE_SYSTEM,
     messages: [{ role: 'user', content: instructions }],
     schema: REINFORCE_SCHEMA,
