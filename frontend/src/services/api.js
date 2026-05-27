@@ -97,6 +97,13 @@ export const lifelabAPI = {
   submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data)
 };
 
+// Mechanisms Playground (Secondary D&T). Completing a mechanism's concept check
+// records practice/mistakes/mastery against the D&T skill in the shared core.
+export const mechanismsAPI = {
+  progress: () => api.get('/mechanisms/progress'),                      // { seeded, progress: { gears: {status,score}, ... } }
+  complete: (key, answers) => api.post(`/mechanisms/${key}/complete`, { answers }), // answers: [{ index, correct }]
+};
+
 // Tutor workspace (Phase 4). All calls are scoped to the active tutor workspace
 // (X-Workspace-Id); the backend enforces membership + tutor role.
 export const tutorAPI = {

@@ -146,7 +146,7 @@ export default function GearsSim({ reveal, showDiscussion, presentation }) {
     <ObservationCard key="o" prompt="Set the driven gear larger than the driver, run it, and note what happens to the driven gear's speed and direction." />,
     <ExplanationCard key="e" ran={ran} reveal={reveal}>{explanation}</ExplanationCard>,
     <MisconceptionCard key="m" items={M.misconceptions} />,
-    <ConceptCheck key="c" questions={QUIZ} />,
+    <ConceptCheck key="c" questions={QUIZ} mechanismKey={M.key} />,
     ...(showDiscussion ? [<DiscussionCard key="d" prompt={M.discussionPrompt} />] : []),
   ];
 

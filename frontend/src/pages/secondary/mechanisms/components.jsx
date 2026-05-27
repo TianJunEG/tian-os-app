@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Play, Pause, RotateCcw, Shuffle, Check, X, AlertTriangle, Lightbulb, ClipboardCheck, Eye, MessagesSquare } from 'lucide-react';
 import { Card, Button, Badge } from '../../../components/ui';
+import { mechanismsAPI } from '../../../services/api';
 
 // Shared building blocks for the Mechanisms Playground. Tian OS design language
 // (navy/gold, hairline borders, rounded cards) with a secondary "technical"
@@ -268,16 +269,35 @@ export function MisconceptionCard({ items }) {
   );
 }
 
-// ConceptCheck — short multiple-choice quiz ("Check understanding").
-export function ConceptCheck({ questions }) {
+// ConceptCheck — short multiple-choice quiz ("Check understanding"). When given a
+// `mechanismKey`, finishing records the result to the shared mastery core (D&T
+// skill) so it counts on the student's progress like any other module.
+export function ConceptCheck({ questions, mechanismKey }) {
   const [idx, setIdx] = useState(0);
   const [picks, setPicks] = useState({});
   const [done, setDone] = useState(false);
+  const [record, setRecord] = useState('idle'); // idle | saving | saved | skipped | error
 
   const q = questions[idx];
   const pick = picks[idx];
   const allAnswered = Object.keys(picks).length === questions.length;
   const score = Object.entries(picks).filter(([i, p]) => questions[i].correct === p).length;
+
+  const finish = () => {
+    setDone(true);
+    if (!mechanismKey) { setRecord('skipped'); return; }
+    setRecord('saving');
+    const answers = questions.map((qq, i) => ({ index: i, correct: picks[i] === qq.correct }));
+    mechanismsAPI.complete(mechanismKey, answers)
+      .then(() => setRecord('saved'))
+      .catch(() => setRecord('error'));
+  };
+
+  const RECORD_NOTE = {
+    saving: 'Saving your result…',
+    saved: '✓ Recorded to your progress.',
+    error: "Couldn't save to your progress (you can still review your answers).",
+  };
 
   if (done) {
     return (
@@ -294,7 +314,10 @@ export function ConceptCheck({ questions }) {
             </li>
           ))}
         </ul>
-        <Button size="s" variant="secondary" className="mt-4" onClick={() => { setPicks({}); setIdx(0); setDone(false); }}>Take it again</Button>
+        {RECORD_NOTE[record] && (
+          <p className={`mt-3 text-xs font-medium ${record === 'saved' ? 'text-success-700' : record === 'error' ? 'text-error-700' : 'text-ink-500'}`}>{RECORD_NOTE[record]}</p>
+        )}
+        <Button size="s" variant="secondary" className="mt-4" onClick={() => { setPicks({}); setIdx(0); setDone(false); setRecord('idle'); }}>Take it again</Button>
       </Card>
     );
   }
@@ -329,7 +352,7 @@ export function ConceptCheck({ questions }) {
           className="text-sm font-semibold text-navy-700 disabled:opacity-30">← Previous</button>
         {idx < questions.length - 1
           ? <Button size="s" disabled={pick === undefined} onClick={() => setIdx(idx + 1)}>Next →</Button>
-          : <Button size="s" variant="gold" disabled={!allAnswered} onClick={() => setDone(true)}>See results</Button>}
+          : <Button size="s" variant="gold" disabled={!allAnswered} onClick={finish}>See results</Button>}
       </div>
     </Card>
   );

@@ -89,13 +89,37 @@ Breadcrumb on every page: **Tian OS → Secondary → Mechanisms Playground → 
   stylesheet yet).
 - **Save note** (observation) → saved to component state only (no backend persistence).
 
+## Shared-core mastery wiring (added)
+The concept check now records into the shared Tian OS core, so D&T mechanisms count
+on a student's progress like every other module:
+
+- **Seed** `scripts/seedMechanisms.js` (`npm run seed:mechanisms`): Subject **dt**
+  (Design & Technology) → Topic **Mechanisms** → 4 Skills (Gears/Levers/Pulleys/
+  Linkages) → 12 MCQ concept-check questions (3 per skill), mirroring the in-app
+  checks. `Subject.key` enum extended with `'dt'` (additive). Run after foundation.
+- **Route** `routes/mechanisms.js` (`/api/mechanisms`, mounted in `server.js`):
+  - `GET /progress` → per-mechanism `{ status, score }` for the student (+ `seeded`).
+  - `POST /:key/complete` → body `{ answers: [{ index, correct }] }`; creates a
+    `PracticeSession` (module `Mechanisms Playground`, subject `Design & Technology`,
+    `skillIds:[skill]`), calls `recordAttempt` per answer (the ONE mastery writer),
+    and writes a `PracticeAttempt` + (on wrong) a `Mistake` mapped to the seeded
+    `Question` by answer index. Mastery/mistakes stay **isolated from MathPath**
+    (which filters `module:'MathPath'`), exactly like Spelling/Science.
+- **Frontend**: `mechanismsAPI` (`progress`, `complete`); `ConceptCheck` posts its
+  result on completion when given a `mechanismKey` and shows a "Recorded to your
+  progress" note; `MechanismsHome` + `MechanismSimulator` show each mechanism's
+  mastery `StatusBadge`. The interactive sims and predict/observe/explain cards stay
+  client-side; only the concept check is graded into the core. Grading is taken from
+  the client (low-stakes self-check); mastery is updated server-side by the engine.
+
 ## What remains incomplete / TODO
-- Persist student observations, predictions and concept-check scores to the shared
-  Tian OS core (currently local component state — no `practice_sessions`/`mistakes`).
+- Predictions and observations are still local — only the concept check feeds mastery.
 - Real **Assign task** flow once a Secondary/D&T teacher dashboard + assignment
   module exist; a proper print/PDF **worksheet export** (dedicated print layout).
-- A Secondary-level skill map so D&T mechanisms can feed mastery like the other
-  modules.
+- Surface D&T mastery on parent/teacher dashboards (the records exist; the dashboards
+  just need a D&T filter, like Science).
+- Run `npm run seed:mechanisms` per environment (the route returns a 409 "not seeded"
+  hint until then; the UI degrades gracefully and still shows the local score).
 - The original `Mechanisms playground/` prototype at repo root is now superseded by
   this module and can be removed (left in place for reference; never committed).
 

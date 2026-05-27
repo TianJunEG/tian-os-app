@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Presentation, ChevronRight } from 'lucide-react';
-import { Card, Button, PageHeader, Badge } from '../../../components/ui';
+import { Card, Button, PageHeader, Badge, StatusBadge } from '../../../components/ui';
+import { mechanismsAPI } from '../../../services/api';
 import { MECHANISMS, MECHANISM_ORDER } from './content.js';
 
 // Tian OS → Secondary → Mechanisms Playground overview. A clean, secondary-school
@@ -20,6 +21,11 @@ function Breadcrumb() {
 }
 
 export default function MechanismsHome() {
+  const [progress, setProgress] = useState({});
+  useEffect(() => {
+    mechanismsAPI.progress().then((r) => setProgress(r.data.progress || {})).catch(() => setProgress({}));
+  }, []);
+
   return (
     <>
       <Breadcrumb />
@@ -38,6 +44,9 @@ export default function MechanismsHome() {
               <div className="mb-3 flex items-center gap-3">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700"><Icon className="h-5 w-5" /></span>
                 <h3 className="font-display text-lg font-semibold text-navy-700">{m.name}</h3>
+                {progress[key] && progress[key].status !== 'not_started' && (
+                  <span className="ml-auto"><StatusBadge status={progress[key].status} /></span>
+                )}
               </div>
               <p className="text-sm text-ink-500">{m.blurb}</p>
               <div className="mt-3">

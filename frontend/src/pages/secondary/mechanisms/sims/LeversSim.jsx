@@ -195,7 +195,7 @@ export default function LeversSim({ reveal, showDiscussion, presentation }) {
     <ObservationCard key="o" prompt="Drag the fulcrum and watch the load and effort arms. Note how the mechanical advantage changes." />,
     <ExplanationCard key="e" ran={ran} reveal={reveal}>{explanation}</ExplanationCard>,
     <MisconceptionCard key="m" items={M.misconceptions} />,
-    <ConceptCheck key="c" questions={QUIZ} />,
+    <ConceptCheck key="c" questions={QUIZ} mechanismKey={M.key} />,
     ...(showDiscussion ? [<DiscussionCard key="d" prompt={M.discussionPrompt} />] : []),
   ];
 

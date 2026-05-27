@@ -34,6 +34,7 @@ import tutorWorkspaceRoutes from './routes/tutor.js';
 import teacherRoutes from './routes/teacher.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
+import mechanismsRoutes from './routes/mechanisms.js';
 
 dotenv.config();
 
@@ -113,6 +114,7 @@ app.use('/api/tutor', tutorWorkspaceRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/lifelab', lifelabRoutes);
 app.use('/api/spelling-practice', spellingPracticeRoutes);
+app.use('/api/mechanisms', mechanismsRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

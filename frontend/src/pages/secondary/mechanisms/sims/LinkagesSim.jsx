@@ -212,7 +212,7 @@ export default function LinkagesSim({ reveal, showDiscussion, presentation }) {
     <ObservationCard key="o" prompt="Run the linkage and describe how the output motion differs from the input motion." />,
     <ExplanationCard key="e" ran={ran} reveal={reveal}>{explanation}</ExplanationCard>,
     <MisconceptionCard key="m" items={M.misconceptions} />,
-    <ConceptCheck key="c" questions={QUIZ} />,
+    <ConceptCheck key="c" questions={QUIZ} mechanismKey={M.key} />,
     ...(showDiscussion ? [<DiscussionCard key="d" prompt={M.discussionPrompt} />] : []),
   ];
 

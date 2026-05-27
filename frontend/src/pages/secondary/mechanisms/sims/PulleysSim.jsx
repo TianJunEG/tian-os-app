@@ -201,7 +201,7 @@ export default function PulleysSim({ reveal, showDiscussion, presentation }) {
     <ObservationCard key="o" prompt="Pull the rope to 100% and compare how far the rope moved with how far the load rose." />,
     <ExplanationCard key="e" ran={ran} reveal={reveal}>{explanation}</ExplanationCard>,
     <MisconceptionCard key="m" items={M.misconceptions} />,
-    <ConceptCheck key="c" questions={QUIZ} />,
+    <ConceptCheck key="c" questions={QUIZ} mechanismKey={M.key} />,
     ...(showDiscussion ? [<DiscussionCard key="d" prompt={M.discussionPrompt} />] : []),
   ];
 

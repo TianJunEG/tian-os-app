@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Navigate, Link } from 'react-router-dom';
 import {
   ChevronRight, GraduationCap, BookOpen, Eye, EyeOff, Presentation,
   ClipboardList, FileDown, MessagesSquare, Info,
 } from 'lucide-react';
-import { PageHeader, Button, Card, Badge } from '../../../components/ui';
+import { PageHeader, Button, Card, Badge, StatusBadge } from '../../../components/ui';
 import { Segmented, KeyConcepts } from './components.jsx';
+import { mechanismsAPI } from '../../../services/api';
 import { MECHANISMS, MECHANISM_ORDER } from './content.js';
 import { SIMS } from './sims/index.js';
 
@@ -34,6 +35,15 @@ export default function MechanismSimulator() {
   const [reveal, setReveal] = useState(false);
   const [showDiscussion, setShowDiscussion] = useState(false);
   const [notice, setNotice] = useState('');
+  const [mastery, setMastery] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    mechanismsAPI.progress()
+      .then((r) => { if (alive) setMastery(r.data.progress?.[mechanism] || null); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [mechanism]);
 
   const m = MECHANISMS[mechanism];
   const Sim = SIMS[mechanism];
@@ -97,7 +107,12 @@ export default function MechanismSimulator() {
 
       {/* Key concepts footer */}
       <div className="mt-6">
-        <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Key concepts</div>
+        <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">
+          Key concepts
+          {mastery && mastery.status !== 'not_started' && (
+            <span className="ml-auto flex items-center gap-1.5 normal-case tracking-normal text-ink-500">Your progress: <StatusBadge status={mastery.status} /></span>
+          )}
+        </div>
         <KeyConcepts items={m.keyConcepts} />
       </div>
 
