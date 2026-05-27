@@ -14,4 +14,9 @@ const practiceAttemptSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+// Session completion reads every attempt for a session (practice + spelling).
+practiceAttemptSchema.index({ sessionId: 1 });
+// Analytics + worksheet recency read a student's attempts over a time window.
+practiceAttemptSchema.index({ studentId: 1, createdAt: -1 });
+
 export default mongoose.model('PracticeAttempt', practiceAttemptSchema);
