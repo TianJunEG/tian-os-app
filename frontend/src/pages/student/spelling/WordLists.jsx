@@ -18,13 +18,17 @@ export default function WordLists() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {lists.map((l) => (
-            <Card key={l.listId} className="p-5">
-              <div className="mb-2 flex items-center justify-between">
-                <div><h3 className="font-semibold text-ink-700">{l.title}</h3><p className="text-sm text-ink-500">{l.level} · {l.wordCount} words</p></div>
+            <Card key={l.listId} className="flex h-full flex-col p-5">
+              <div className="mb-2 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-ink-700">{l.title}</h3>
+                  <p className="text-sm text-ink-500">{l.wordCount} words</p>
+                </div>
                 <Badge tone="navy">{l.level}</Badge>
               </div>
+              {l.description && <p className="mb-3 flex-1 text-sm text-ink-500">{l.description}</p>}
               <div className="mb-3"><StatusBadge status={l.status} /></div>
-              <Button size="s" onClick={() => navigate(`/student/spelling/lists/${l.listId}/learn`)}>Practise</Button>
+              <Button size="s" onClick={() => navigate(`/student/spelling/lists/${l.listId}/learn`)} className="mt-auto self-start">Practise</Button>
             </Card>
           ))}
         </div>
