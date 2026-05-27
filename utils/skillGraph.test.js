@@ -24,12 +24,11 @@ const levelRank = (s = '') => {
   return 0;
 };
 
-// Lower-level skill -> higher-level prerequisite it currently depends on. Each is
-// a real cross-level dependency to revisit when re-levelling the curriculum.
-const EXPECTED_CROSS_LEVEL = new Set([
-  'mea.unit-convert -> dec.x-div-10-100',  // P4 unit conversion depends on P5 decimal ×÷ by 10/100/1000
-  'mea.money -> dec.add-sub',              // P3 money reasoning depends on P4 decimal add/subtract
-]);
+// Lower-level skill -> higher-level prerequisite it currently depends on. The
+// graph is now fully level-consistent, so this is empty: any cross-level edge is
+// a regression. (History: geo.angle-intro/geo.lines flipped, mea.unit-convert
+// repointed to op.mult.by-10-100, mea.money re-levelled to P4.)
+const EXPECTED_CROSS_LEVEL = new Set([]);
 
 async function loadGraph() {
   const bases = fs.readdirSync(domainsDir).filter((f) => f.endsWith('.js')).map((f) => f.slice(0, -3));
