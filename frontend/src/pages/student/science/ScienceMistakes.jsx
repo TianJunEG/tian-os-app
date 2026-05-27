@@ -40,14 +40,19 @@ export default function ScienceMistakes() {
                 <Badge tone="gold">Review</Badge>
               </div>
               <div className="text-ink-900">{m.questionStem}</div>
-              <div className="mt-2 text-sm">
-                <span className="text-error-700">Your answer: {m.studentAnswer || '—'}</span>
-              </div>
-              {m.correctAnswer && (
-                <div className="mt-1 rounded-xl bg-success-100 p-3 text-sm text-success-700">
-                  <span className="font-semibold">Model answer:</span> {m.correctAnswer}
+              {/* Symmetric answer boxes — matches MathPath's MistakeDetail. */}
+              <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="rounded-xl bg-error-100 p-3">
+                  <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-error-700">Your answer</div>
+                  <div className="text-ink-900">{m.studentAnswer || '—'}</div>
                 </div>
-              )}
+                {m.correctAnswer && (
+                  <div className="rounded-xl bg-success-100 p-3">
+                    <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-success-700">Model answer</div>
+                    <div className="text-ink-900">{m.correctAnswer}</div>
+                  </div>
+                )}
+              </div>
               <div className="mt-3">
                 <Button size="s" icon={Dumbbell} onClick={() => practise(m)}>Practise similar</Button>
               </div>

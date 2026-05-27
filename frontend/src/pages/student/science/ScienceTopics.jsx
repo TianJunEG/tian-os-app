@@ -54,12 +54,12 @@ export default function ScienceTopics() {
             </div>
             <div className="space-y-2">
               {ts.map((s) => (
-                <Card key={s.skillId} className="flex items-center justify-between p-4">
-                  <div>
-                    <div className="font-semibold text-ink-700">{s.name}</div>
+                <Card key={s.skillId} className="flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold text-ink-700">{s.name}</div>
                     <Badge tone={TONE[s.status] || 'neutral'} className="mt-1">{s.statusLabel}</Badge>
                   </div>
-                  <Button size="s" icon={ArrowRight} disabled={busy === s.skillId} onClick={() => practise(s.skillId)}>Practise</Button>
+                  <Button size="s" icon={ArrowRight} disabled={busy === s.skillId} onClick={() => practise(s.skillId)} className="shrink-0">Practise</Button>
                 </Card>
               ))}
             </div>
