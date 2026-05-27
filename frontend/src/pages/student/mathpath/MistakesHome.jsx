@@ -45,12 +45,12 @@ export default function MistakesHome() {
     <>
       <PageHeader title="Mistake-to-Mastery" subtitle="MathPath · turn recent slips into mastery" />
 
-      <Card className="mb-6 bg-gradient-to-br from-navy-700 to-navy-900 p-5 text-paper">
+      <Card className="mb-6 border-0 bg-gradient-to-br from-navy-700 to-navy-900 p-5 text-white">
         <div className="mb-1 flex items-center gap-2 text-gold-300"><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
-        <div className="font-display text-2xl font-semibold">{data ? data.mistakes.length : 0} to review</div>
-        {recommended && <p className="mb-4 mt-1 text-sm text-paper/70">Recommended: practise <b className="text-gold-300">{recommended.skillName}</b></p>}
+        <div className="font-display text-2xl font-semibold text-white">{data ? data.mistakes.length : 0} to review</div>
+        {recommended && <p className="mb-4 mt-1 text-sm text-white/80">Recommended: practise <b className="font-semibold text-gold-300">{recommended.skillName}</b></p>}
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" to="/student/mathpath/mistakes/review">Review mistakes</Button>
+          <Button variant="outlineLight" to="/student/mathpath/mistakes/review">Review mistakes</Button>
           {recommended && <Button variant="gold" icon={Dumbbell} disabled={starting} onClick={() => practise(recommended.skillId)}>Practise similar</Button>}
         </div>
       </Card>

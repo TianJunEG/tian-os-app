@@ -31,6 +31,9 @@ export default function PracticeSession() {
 
   const q = items[idx];
   const isLast = idx === items.length - 1;
+  // Defensive: a question's options should be unique. De-dupe so bad data never
+  // renders a value twice (which also collides React keys → ghost selections).
+  const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
 
   const check = async () => {
     if (busy || answer === '') return;
@@ -66,10 +69,10 @@ export default function PracticeSession() {
         {/* Answer input */}
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
-            {(q.choices || []).map((c) => {
+            {choices.map((c, i) => {
               const selected = answer === c;
               return (
-                <button key={c} disabled={!!result} onClick={() => setAnswer(c)}
+                <button key={`${i}-${c}`} disabled={!!result} onClick={() => setAnswer(c)}
                   className={`flex items-center rounded-xl border px-4 py-3 text-left transition ${selected ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'} ${result ? 'opacity-70' : ''}`}>
                   <MathText text={c} />
                 </button>

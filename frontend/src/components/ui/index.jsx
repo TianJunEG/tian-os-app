@@ -25,6 +25,8 @@ const BTN_VARIANTS = {
   secondary: 'bg-paper text-navy-700 border border-hairline hover:bg-navy-50',
   ghost: 'bg-transparent text-navy-700 hover:bg-navy-50',
   gold: 'bg-gold-400 text-navy-900 hover:bg-gold-500',
+  // For use on dark/navy surfaces (e.g. hero cards).
+  outlineLight: 'bg-transparent text-white border border-white/40 hover:bg-white/10',
 };
 const BTN_SIZES = { s: 'h-9 px-3.5 text-[13px]', m: 'h-12 px-5 text-[15px]', l: 'h-14 px-6 text-base' };
 

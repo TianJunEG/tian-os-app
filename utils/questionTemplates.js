@@ -9,10 +9,26 @@ const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
 const shuffle = (arr) => arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
 
-// Build an MCQ from a numeric answer + plausible distractors.
+// Build an MCQ from a numeric answer + plausible distractors. Distractors are
+// de-duplicated against each other and the answer; if collisions leave fewer than
+// 3, we top up with nearby values so every MCQ has exactly 4 distinct options.
 function mcq(stem, answer, distractors, workedSolution, misconceptionTag, difficulty) {
-  const choices = shuffle([String(answer), ...distractors.map(String)]);
-  return { type: 'mcq', stem, choices, answer: String(answer), workedSolution, misconceptionTag, difficulty };
+  const ans = String(answer);
+  const seen = new Set([ans]);
+  const opts = [];
+  for (const d of distractors.map(String)) {
+    if (!seen.has(d)) { seen.add(d); opts.push(d); }
+  }
+  const n = Number(answer);
+  for (let delta = 1; opts.length < 3 && delta < 60; delta++) {
+    for (const cand of [n + delta, n - delta]) {
+      const s = String(cand);
+      if (cand > 0 && Number.isFinite(cand) && !seen.has(s)) { seen.add(s); opts.push(s); }
+      if (opts.length >= 3) break;
+    }
+  }
+  const choices = shuffle([ans, ...opts.slice(0, 3)]);
+  return { type: 'mcq', stem, choices, answer: ans, workedSolution, misconceptionTag, difficulty };
 }
 function short(stem, answer, workedSolution, misconceptionTag, difficulty) {
   return { type: 'short_answer', stem, choices: [], answer: String(answer), workedSolution, misconceptionTag, difficulty };
