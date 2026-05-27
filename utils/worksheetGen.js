@@ -36,7 +36,7 @@ export async function selectSimilarQuestions({ studentId, skillIds, difficulty =
     }))
     .sort((a, b) => a.score - b.score);
 
-  // Round-robin across skills for variety, dedupe by stem.
+  // Take the best-ranked questions in order, de-duplicating by stem, up to `count`.
   const seenStems = new Set();
   const out = [];
   for (const { q } of ranked) {
