@@ -316,6 +316,313 @@ function buildOne(skillName, difficulty) {
     return short(`On a number line, the distance from ${start} to ${start + 1} is split into ${parts} equal parts. What value is ${n} part${n > 1 ? 's' : ''} to the right of ${start}?`,
       val, `Each part = 1 ÷ ${parts} = ${Number((1 / parts).toFixed(3))}. ${n} parts = ${per}, so ${start} + ${per} = ${val}.`, 'decimal/number-line', difficulty);
   }
+  // ──────────────────────────────────────────────────────────────────────────
+  // Figure-free coverage for the developmental skill graph. Each branch below is
+  // a numeric/algebraic skill that can be generated honestly without a visual
+  // stimulus. Skills that intrinsically need a figure (2D/3D shape ID, symmetry,
+  // nets, graphs, charts, reading scales) are deliberately left to authored items
+  // rather than faked here. Compound keywords are ordered most-specific-first.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // ---- Number Sense ----
+  if (name.includes('ordering number')) {
+    const lo = name.includes('100 000') ? 1000 : 10, hi = name.includes('100 000') ? 99999 : 99;
+    const set = new Set(); while (set.size < 4) set.add(rnd(lo, hi));
+    const arr = [...set], sorted = [...arr].sort((a, b) => a - b);
+    return short(`Arrange these from smallest to largest: ${arr.join(', ')}.`, sorted.join(', '),
+      `Compare place values from the left: ${sorted.join(' < ')}.`, 'order/place-value', difficulty);
+  }
+  if (name.includes('estimating sum')) {
+    const a = rnd(120, 880), b = rnd(120, 880), ra = Math.round(a / 100) * 100, rb = Math.round(b / 100) * 100;
+    return short(`Estimate ${a} + ${b} by first rounding each number to the nearest hundred.`, ra + rb,
+      `${a} ≈ ${ra}, ${b} ≈ ${rb}, so ${ra} + ${rb} = ${ra + rb}.`, 'estimate/round-first', difficulty);
+  }
+  if (name.includes('estimating product')) {
+    const a = rnd(18, 92), b = rnd(18, 92), ra = Math.round(a / 10) * 10, rb = Math.round(b / 10) * 10;
+    return short(`Estimate ${a} × ${b} by first rounding each number to the nearest ten.`, ra * rb,
+      `${a} ≈ ${ra}, ${b} ≈ ${rb}, so ${ra} × ${rb} = ${ra * rb}.`, 'estimate/round-first', difficulty);
+  }
+  if (name.includes('reasonableness') || name.includes('estimation to check')) {
+    const a = rnd(180, 820), b = rnd(180, 820), ra = Math.round(a / 100) * 100, rb = Math.round(b / 100) * 100;
+    return short(`A pupil worked out ${a} + ${b} = ${a + b}. Estimate the sum (rounding each to the nearest hundred) to check this is reasonable.`,
+      ra + rb, `${a} ≈ ${ra}, ${b} ≈ ${rb}; estimate ${ra} + ${rb} = ${ra + rb}, close to ${a + b}, so it is reasonable.`, 'estimate/check', difficulty);
+  }
+  if (name.includes('integer')) {
+    const set = new Set(); while (set.size < 4) set.add(rnd(-20, 20));
+    const arr = [...set], sorted = [...arr].sort((a, b) => a - b);
+    return short(`Arrange these integers from least to greatest: ${arr.join(', ')}.`, sorted.join(', '),
+      `On a number line, more-negative numbers are smaller: ${sorted.join(' < ')}.`, 'integer/negative-order', difficulty);
+  }
+  if (name.includes('negative number')) {
+    const start = rnd(-5, 8), drop = rnd(6, 15);
+    return short(`The temperature was ${start}°C. It then fell by ${drop}°C. What is the new temperature (°C)?`,
+      start - drop, `${start} − ${drop} = ${start - drop}°C.`, 'integer/subtract-context', difficulty);
+  }
+
+  // ---- Operations (column methods) ----
+  if (name.includes('add') && (name.includes('digit') || name.includes('regroup'))) {
+    const noRegroup = name.includes('no regroup'), wide = name.includes('3') || name.includes('4');
+    let a, b;
+    if (noRegroup) {
+      const a1 = rnd(1, 4), a0 = rnd(1, 4), b1 = rnd(1, 5 - a1), b0 = rnd(1, 5 - a0);
+      a = a1 * 10 + a0; b = b1 * 10 + b0;
+    } else if (wide) { a = rnd(200, 9999); b = rnd(200, 9999); }
+    else { a = rnd(15, 89); b = rnd(15, 89); }
+    return short(`${a} + ${b} = ?`, a + b,
+      `Add the ones first, then the tens${wide ? ', hundreds and thousands' : ''}: ${a} + ${b} = ${a + b}.`,
+      noRegroup ? 'add/column' : 'add/forgot-carry', difficulty);
+  }
+  if (name.includes('multiplying by 10')) {
+    const n = rnd(2, 99), p = [10, 100, 1000][rnd(0, 2)];
+    return short(`${n} × ${p} = ?`, n * p,
+      `Multiplying by ${p} shifts the digits ${String(p).length - 1} place${p > 10 ? 's' : ''} left: ${n} × ${p} = ${n * p}.`, 'mult/place-shift', difficulty);
+  }
+  if (name.includes('multiplying') && name.includes('digit')) {
+    const a = rnd(12, difficulty === 'hard' ? 999 : 99), b = rnd(2, 9);
+    return short(`${a} × ${b} = ?`, a * b, `${a} × ${b} = ${a * b}.`, 'mult/long', difficulty);
+  }
+
+  // ---- Fractions (figure-free) ----
+  if (name.includes('unit fraction')) {
+    const d = rnd(2, 8);
+    return short(`A pizza is cut into ${d} equal slices. What fraction is one slice? (Give as a fraction.)`,
+      `1/${d}`, `One of ${d} equal parts is 1/${d}.`, 'frac/unit', difficulty);
+  }
+  if (name.includes('parts of a whole')) {
+    const d = rnd(3, 8), n = rnd(1, d - 1);
+    return short(`A bar is divided into ${d} equal parts and ${n} are shaded. What fraction is shaded? (Give as a fraction.)`,
+      `${n}/${d}`, `${n} shaded out of ${d} equal parts = ${n}/${d}.`, 'frac/part-whole', difficulty);
+  }
+  if (name.includes('fraction of a set')) {
+    const d = rnd(2, 6), per = rnd(2, 6), total = d * per, n = rnd(1, d - 1);
+    return short(`There are ${total} sweets and ${n}/${d} of them are red. How many are red?`,
+      n * per, `${total} ÷ ${d} = ${per}, then × ${n} = ${n * per}.`, 'frac/of-set', difficulty);
+  }
+  if (name.includes('comparing fraction') && name.includes('same denominator')) {
+    const d = rnd(4, 9); let a = rnd(1, d - 1), b = rnd(1, d - 1); if (a === b) b = (b % (d - 1)) + 1;
+    const bigger = Math.max(a, b);
+    return short(`Which is greater: ${a}/${d} or ${b}/${d}? Write the greater fraction.`,
+      `${bigger}/${d}`, `Same denominator — the larger numerator wins: ${bigger}/${d}.`, 'frac/compare-denom', difficulty);
+  }
+  if (name.includes('comparing fraction') && name.includes('same numerator')) {
+    const n = rnd(1, 4); let d1 = rnd(n + 1, 9), d2 = rnd(n + 1, 9); if (d1 === d2) d2 = d1 + 1;
+    const smaller = Math.min(d1, d2);
+    return short(`Which is greater: ${n}/${d1} or ${n}/${d2}? Write the greater fraction.`,
+      `${n}/${smaller}`, `Same numerator — the smaller denominator gives bigger pieces: ${n}/${smaller}.`, 'frac/compare-numer', difficulty);
+  }
+  if (name.includes('comparing unlike')) {
+    const d1 = rnd(2, 4), d2 = d1 * rnd(2, 3); let a = rnd(1, d1 - 1), b = rnd(1, d2 - 1);
+    if (a * d2 === b * d1) b = Math.max(1, b - 1);
+    const greater = a * d2 > b * d1 ? `${a}/${d1}` : `${b}/${d2}`;
+    return short(`Which is greater: ${a}/${d1} or ${b}/${d2}? Write the greater fraction.`,
+      greater, `Cross-multiply: ${a}×${d2} = ${a * d2} vs ${b}×${d1} = ${b * d1}. Greater is ${greater}.`, 'frac/compare-unlike', difficulty);
+  }
+  if (name.includes('ordering fraction')) {
+    const d = rnd(5, 10), picks = shuffle(Array.from({ length: d - 1 }, (_, i) => i + 1)).slice(0, 3);
+    const sorted = [...picks].sort((a, b) => a - b);
+    return short(`Arrange from smallest to largest: ${picks.map((n) => `${n}/${d}`).join(', ')}.`,
+      sorted.map((n) => `${n}/${d}`).join(', '), `Same denominator — order by numerator: ${sorted.map((n) => `${n}/${d}`).join(' < ')}.`, 'frac/order-denom', difficulty);
+  }
+  if (name.includes('fraction by a whole')) {
+    const d = rnd(3, 8), n = rnd(1, d - 1), w = rnd(2, 6);
+    return short(`${n}/${d} × ${w} = ?  (give as a fraction over ${d})`,
+      `${n * w}/${d}`, `Multiply the numerator by ${w}: ${n}×${w} = ${n * w}, keep /${d}.`, 'frac/mult-whole', difficulty);
+  }
+  if (name.includes('fraction by a fraction')) {
+    const a = rnd(1, 4), b = rnd(a + 1, 6), c = rnd(1, 4), e = rnd(c + 1, 6);
+    return short(`${a}/${b} × ${c}/${e} = ?  (give as a fraction; you need not simplify)`,
+      `${a * c}/${b * e}`, `Multiply tops and bottoms: ${a}×${c} = ${a * c}, ${b}×${e} = ${b * e} → ${a * c}/${b * e}.`, 'frac/mult-frac', difficulty);
+  }
+
+  // ---- Decimals (figure-free) ----
+  if (name.includes('decimals by 10') || (name.includes('decimal') && name.includes('100, 1000'))) {
+    const whole = rnd(1, 99), dec = rnd(1, 9), val = whole + dec / 10, p = [10, 100][rnd(0, 1)], ans = Math.round(val * p);
+    return short(`${val.toFixed(1)} × ${p} = ?`, ans,
+      `Multiplying by ${p} moves the point ${String(p).length - 1} place${p > 10 ? 's' : ''} right: ${val.toFixed(1)} × ${p} = ${ans}.`, 'decimal/place-shift', difficulty);
+  }
+  if (name.includes('multiplying a decimal by a whole')) {
+    const whole = rnd(1, 20), dec = rnd(1, 9), val = whole + dec / 10, w = rnd(2, 9), ans = Math.round(val * w * 10) / 10;
+    return short(`${val.toFixed(1)} × ${w} = ?`, ans.toFixed(1),
+      `${val.toFixed(1)} × ${w} = ${ans.toFixed(1)} (keep one decimal place).`, 'decimal/mult-whole', difficulty);
+  }
+  if (name.includes('decimal by a decimal')) {
+    const a = rnd(2, 9), b = rnd(2, 9), ans = (a * b) / 100;
+    return short(`0.${a} × 0.${b} = ?`, ans.toFixed(2),
+      `${a} × ${b} = ${a * b}; two decimal places → ${ans.toFixed(2)}.`, 'decimal/mult-place', difficulty);
+  }
+  if (name.includes('dividing a decimal by a whole')) {
+    const w = rnd(2, 9), q = rnd(11, 99), val = (w * q) / 10;
+    return short(`${val.toFixed(1)} ÷ ${w} = ?`, (q / 10).toFixed(1),
+      `${val.toFixed(1)} ÷ ${w} = ${(q / 10).toFixed(1)}.`, 'decimal/div-whole', difficulty);
+  }
+  if (name.includes('dividing by a decimal')) {
+    const dt = rnd(2, 9), q = rnd(2, 12), dividend = (dt * q) / 10;
+    return short(`${dividend.toFixed(1)} ÷ 0.${dt} = ?`, q,
+      `0.${dt} = ${dt}/10, so ${dividend.toFixed(1)} ÷ 0.${dt} = ${dividend.toFixed(1)} × 10 ÷ ${dt} = ${q}.`, 'decimal/div-by-decimal', difficulty);
+  }
+  if (name.includes('decimals to fraction')) {
+    const opts = [['0.5', '1/2'], ['0.25', '1/4'], ['0.75', '3/4'], ['0.2', '1/5'], ['0.1', '1/10'], ['0.4', '2/5'], ['0.05', '1/20']];
+    const [d, f] = opts[rnd(0, opts.length - 1)];
+    return short(`Write ${d} as a fraction in its lowest terms.`, f, `${d} = ${f}.`, 'decimal/to-fraction', difficulty);
+  }
+  if (name.includes('fractions to decimal')) {
+    const opts = [['1/2', '0.5'], ['1/4', '0.25'], ['3/4', '0.75'], ['1/5', '0.2'], ['1/10', '0.1'], ['2/5', '0.4'], ['3/5', '0.6']];
+    const [f, d] = opts[rnd(0, opts.length - 1)];
+    return short(`Write ${f} as a decimal.`, d, `${f} = ${d}.`, 'decimal/from-fraction', difficulty);
+  }
+  if (name.includes('comparing decimal')) {
+    let a = rnd(1, 99) / 10, b = rnd(1, 99) / 10; if (a === b) b += 0.1;
+    return short(`Which is greater: ${a.toFixed(1)} or ${b.toFixed(1)}? Write the greater number.`,
+      Math.max(a, b).toFixed(1), `Compare the whole-number parts first, then the tenths: ${Math.max(a, b).toFixed(1)} is greater.`, 'decimal/compare-length', difficulty);
+  }
+  if (name.includes('ordering decimal')) {
+    const set = new Set(); while (set.size < 4) set.add((rnd(10, 99) / 10).toFixed(1));
+    const arr = [...set].map(Number), sorted = [...arr].sort((a, b) => a - b);
+    return short(`Arrange from smallest to largest: ${arr.map((x) => x.toFixed(1)).join(', ')}.`,
+      sorted.map((x) => x.toFixed(1)).join(', '), `Compare the tenths: ${sorted.map((x) => x.toFixed(1)).join(' < ')}.`, 'decimal/order', difficulty);
+  }
+  if (name.includes('measurement conversions with decimal')) {
+    const totalCm = rnd(1, 9) * 100 + rnd(1, 9) * 10;
+    return short(`Write ${totalCm} cm in metres.`, (totalCm / 100).toFixed(2),
+      `100 cm = 1 m, so ${totalCm} cm = ${(totalCm / 100).toFixed(2)} m.`, 'measure/decimal-convert', difficulty);
+  }
+
+  // ---- Measurement (figure-free) ----
+  if (name.includes('unit conversion')) {
+    const pick = rnd(0, 2);
+    if (pick === 0) { const km = rnd(1, 9), m = rnd(1, 9) * 100; return short(`Convert ${km} km ${m} m into metres.`, km * 1000 + m, `1 km = 1000 m, so ${km} km ${m} m = ${km * 1000 + m} m.`, 'measure/convert', difficulty); }
+    if (pick === 1) { const kg = rnd(1, 9), g = rnd(1, 9) * 100; return short(`Convert ${kg} kg ${g} g into grams.`, kg * 1000 + g, `1 kg = 1000 g, so ${kg} kg ${g} g = ${kg * 1000 + g} g.`, 'measure/convert', difficulty); }
+    const L = rnd(1, 9), ml = rnd(1, 9) * 100; return short(`Convert ${L} L ${ml} ml into millilitres.`, L * 1000 + ml, `1 L = 1000 ml, so ${L} L ${ml} ml = ${L * 1000 + ml} ml.`, 'measure/convert', difficulty);
+  }
+  if (name.includes('length') && name.includes('unit')) {
+    const m = rnd(2, 9), cm = rnd(1, 9) * 10;
+    return short(`A rope is ${m} m ${cm} cm long. How long is it in centimetres?`, m * 100 + cm,
+      `1 m = 100 cm, so ${m} m ${cm} cm = ${m * 100 + cm} cm.`, 'measure/length', difficulty);
+  }
+  if (name.includes('mass')) {
+    const kg = rnd(2, 9), g = rnd(1, 9) * 100;
+    return short(`A bag has a mass of ${kg} kg ${g} g. What is its mass in grams?`, kg * 1000 + g,
+      `1 kg = 1000 g, so ${kg} kg ${g} g = ${kg * 1000 + g} g.`, 'measure/mass', difficulty);
+  }
+  if (name.includes('capacity')) {
+    const L = rnd(2, 9), ml = rnd(1, 9) * 100;
+    return short(`A jug holds ${L} L ${ml} ml of water. What is this in millilitres?`, L * 1000 + ml,
+      `1 L = 1000 ml, so ${L} L ${ml} ml = ${L * 1000 + ml} ml.`, 'measure/capacity', difficulty);
+  }
+  if (name.includes('24-hour') || name.includes('telling time')) {
+    const h = rnd(1, 11), m = [0, 15, 30, 45][rnd(0, 3)], mm = String(m).padStart(2, '0');
+    return short(`Write ${h}.${mm} p.m. in 24-hour time (4 digits).`, `${h + 12}${mm}`,
+      `For p.m., add 12 to the hour: ${h} + 12 = ${h + 12}, giving ${h + 12}${mm}.`, 'time/24hr', difficulty);
+  }
+  if (name.includes('comparing and converting')) {
+    const m = rnd(1, 5), cm = rnd(1, 9) * 10, aTotal = m * 100 + cm; let bTotal = rnd(120, 580);
+    if (bTotal === aTotal) bTotal += 10;
+    return short(`Which is longer: ${m} m ${cm} cm or ${bTotal} cm? Write the longer length in centimetres.`,
+      Math.max(aTotal, bTotal), `${m} m ${cm} cm = ${aTotal} cm. The longer length is ${Math.max(aTotal, bTotal)} cm.`, 'measure/compare-mixed-units', difficulty);
+  }
+  if (name.includes('perimeter') && name.includes('measurement')) {
+    const l = rnd(4, 20), w = rnd(3, 18);
+    return short(`A rectangular garden is ${l} m long and ${w} m wide. A fence runs all the way round it. What length of fence is needed (m)?`,
+      2 * (l + w), `Perimeter = 2 × (${l} + ${w}) = ${2 * (l + w)} m.`, 'measure/perimeter-context', difficulty);
+  }
+  if (name.includes('area') && name.includes('measurement')) {
+    const l = rnd(3, 20), w = rnd(2, 15);
+    return short(`A rectangular field is ${l} m by ${w} m. What is its area (m²)?`, l * w,
+      `Area = ${l} × ${w} = ${l * w} m².`, 'measure/area-context', difficulty);
+  }
+  if (name.includes('money')) {
+    const each = Math.round((rnd(2, 9) + rnd(1, 19) * 0.05) * 100) / 100, change = Math.round((20 - each) * 100) / 100;
+    return short(`A toy costs $${each.toFixed(2)}. You pay with a $20 note. How much change do you get?`,
+      change.toFixed(2), `$20.00 − $${each.toFixed(2)} = $${change.toFixed(2)}.`, 'money/change', difficulty);
+  }
+
+  // ---- Percentage (figure-free) ----
+  if (name.includes('discount')) {
+    const orig = rnd(2, 9) * 10, pct = [10, 15, 20, 25, 30][rnd(0, 4)], pay = orig - orig * pct / 100;
+    return short(`A bag costs $${orig}. It is sold at a ${pct}% discount. What is the selling price?`,
+      pay, `Discount = ${pct}% × $${orig} = $${orig * pct / 100}. Price = $${orig} − $${orig * pct / 100} = $${pay}.`, 'percent/discount', difficulty);
+  }
+  if (name.includes('gst') || name.includes('tax')) {
+    const before = rnd(2, 9) * 100, pct = [7, 8, 9][rnd(0, 2)], after = before + before * pct / 100;
+    return short(`A meal costs $${before} before ${pct}% GST. What is the total bill after GST?`,
+      after, `GST = ${pct}% × $${before} = $${before * pct / 100}. Total = $${before} + $${before * pct / 100} = $${after}.`, 'percent/gst', difficulty);
+  }
+  if (name.includes('interest')) {
+    const p = rnd(2, 9) * 1000, rate = [1, 2, 3, 5][rnd(0, 3)], yrs = rnd(1, 3), interest = p * rate / 100 * yrs;
+    return short(`$${p} is saved at ${rate}% simple interest per year. How much interest is earned in ${yrs} year${yrs > 1 ? 's' : ''}?`,
+      interest, `Interest per year = ${rate}% × $${p} = $${p * rate / 100}. Over ${yrs} year${yrs > 1 ? 's' : ''}: $${interest}.`, 'percent/interest', difficulty);
+  }
+
+  // ---- Ratio & Rate ----
+  if (name.includes('proportion')) {
+    const perUnit = rnd(2, 9), units = rnd(2, 8), q = rnd(2, 9);
+    return short(`${units} identical books cost $${perUnit * units}. How much do ${q} of the same books cost?`,
+      perUnit * q, `1 book = $${perUnit * units} ÷ ${units} = $${perUnit}. ${q} books = ${q} × $${perUnit} = $${perUnit * q}.`, 'proportion/unitary', difficulty);
+  }
+
+  // ---- Algebra (figure-free) ----
+  if (name.includes('missing number') || name.includes('unknowns in arithmetic')) {
+    const a = rnd(2, 9), c = rnd(a + 2, a + 20);
+    return short(`Find the missing number: ${a} + ___ = ${c}.`, c - a, `${c} − ${a} = ${c - a}.`, 'algebra/missing-number', difficulty);
+  }
+  if (name.includes('letter for an unknown')) {
+    const known = rnd(2, 9), total = rnd(known + 2, known + 15);
+    return short(`Sam has x apples. He gets ${known} more and now has ${total}. What is x?`,
+      total - known, `x + ${known} = ${total}, so x = ${total} − ${known} = ${total - known}.`, 'algebra/letter', difficulty);
+  }
+  if (name.includes('algebraic notation')) {
+    const k = rnd(2, 9);
+    return mcq(`How do we write "${k} multiplied by n" in algebra?`, `${k}n`, [`n${k}`, `${k}+n`, `${k}-n`],
+      `${k} × n is written ${k}n.`, 'algebra/notation', difficulty);
+  }
+  if (name.includes('forming expression')) {
+    const k = rnd(2, 9);
+    return mcq(`Mei has ${k} more stickers than Raj, who has p stickers. Which expression shows how many Mei has?`,
+      `p + ${k}`, [`p − ${k}`, `${k}p`, `p × ${k}`], `"${k} more than p" means add: p + ${k}.`, 'algebra/form-expression', difficulty);
+  }
+  if (name.includes('substitution')) {
+    const a = rnd(2, 6), b = rnd(1, 9), x = rnd(2, 9);
+    return short(`If x = ${x}, find the value of ${a}x + ${b}.`, a * x + b,
+      `${a} × ${x} + ${b} = ${a * x} + ${b} = ${a * x + b}.`, 'algebra/substitute', difficulty);
+  }
+  if (name.includes('one-step') && name.includes('equation')) {
+    const x = rnd(2, 12), a = rnd(2, 9);
+    return short(`Solve for x: ${a}x = ${a * x}.`, x, `x = ${a * x} ÷ ${a} = ${x}.`, 'algebra/one-step', difficulty);
+  }
+  if (name.includes('two-step') && name.includes('equation')) {
+    const x = rnd(2, 9), a = rnd(2, 6), b = rnd(1, 12), c = a * x + b;
+    return short(`Solve for x: ${a}x + ${b} = ${c}.`, x,
+      `${a}x = ${c} − ${b} = ${c - b}; x = ${c - b} ÷ ${a} = ${x}.`, 'algebra/two-step', difficulty);
+  }
+  if (name.includes('forming and solving')) {
+    const x = rnd(3, 12), a = rnd(2, 5), b = rnd(2, 9), total = a * x + b;
+    return short(`There are ${a} equal boxes of pencils plus ${b} loose pencils — ${total} pencils in all. Let x be the number per box. Form an equation and find x.`,
+      x, `${a}x + ${b} = ${total} → ${a}x = ${total - b} → x = ${x}.`, 'algebra/form-solve', difficulty);
+  }
+
+  // ---- Geometry (numeric angle/area work only; shape ID, symmetry, nets, views
+  //      need a figure and are left to authored items) ----
+  if (name.includes('angles on a line')) {
+    if (Math.random() < 0.5) {
+      const a = rnd(20, 150);
+      return short(`Two angles sit on a straight line. One is ${a}°. Find the other angle.`,
+        180 - a, `Angles on a straight line add to 180°: 180 − ${a} = ${180 - a}°.`, 'geo/angles-line', difficulty);
+    }
+    const a = rnd(40, 150), b = rnd(40, 300 - a);
+    return short(`Three angles meet at a point. Two of them are ${a}° and ${b}°. Find the third angle.`,
+      360 - a - b, `Angles at a point add to 360°: 360 − ${a} − ${b} = ${360 - a - b}°.`, 'geo/angles-point', difficulty);
+  }
+  if (name.includes('angles in special')) {
+    const a = rnd(50, 130);
+    return short(`In a parallelogram, one angle is ${a}°. Find the angle next to it (co-interior).`,
+      180 - a, `Co-interior angles in a parallelogram add to 180°: 180 − ${a} = ${180 - a}°.`, 'geo/quad-angles', difficulty);
+  }
+  if (name.includes('composite figure')) {
+    const a = rnd(6, 12), b = rnd(5, 10), c = rnd(2, a - 1), d = rnd(2, b - 1);
+    return short(`An L-shaped figure is a ${a} cm by ${b} cm rectangle with a ${c} cm by ${d} cm rectangle cut from one corner. Find its area (cm²).`,
+      a * b - c * d, `Area = ${a}×${b} − ${c}×${d} = ${a * b} − ${c * d} = ${a * b - c * d} cm².`, 'geo/composite-area', difficulty);
+  }
+
   // No rule-based template fits this skill — return null so the seed skips it
   // (the skill relies on authored/exam-sourced items instead of a wrong stub).
   return null;
