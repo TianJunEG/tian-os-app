@@ -11,14 +11,15 @@ export function Fraction({ n, d }) {
   );
 }
 
-// Renders text, converting bare "a/b" tokens into stacked fractions. Keeps the
-// rest of the string intact (so question stems read naturally).
+// Renders text, converting bare "a/b" tokens into stacked fractions. Either side
+// may be a number or a "?" placeholder (for fill-in questions like 3/6 = ?/18),
+// so the unknown also stacks. Keeps the rest of the string intact.
 export function MathText({ text, className = '' }) {
-  const parts = String(text ?? '').split(/(\d+\s*\/\s*\d+)/g);
+  const parts = String(text ?? '').split(/((?:\d+|\?)\s*\/\s*(?:\d+|\?))/g);
   return (
     <span className={className}>
       {parts.map((p, i) => {
-        const m = p.match(/^(\d+)\s*\/\s*(\d+)$/);
+        const m = p.match(/^(\d+|\?)\s*\/\s*(\d+|\?)$/);
         return m ? <Fraction key={i} n={m[1]} d={m[2]} /> : <React.Fragment key={i}>{p}</React.Fragment>;
       })}
     </span>
