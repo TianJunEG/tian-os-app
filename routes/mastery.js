@@ -37,8 +37,33 @@ router.get('/', protect, async (req, res) => {
       score: r.score, status: r.status, statusLabel: STATUS_LABEL[r.status] || r.status,
     }));
 
-    // Recommendation: lowest-scoring weak skill, else first record, else null.
-    const recommended = weakShaped[0] || shaped[0] || null;
+    // Recommendation: an in-progress weak skill first; otherwise the NEXT
+    // un-mastered skill in curriculum order (topic order → skill order) so that
+    // mastering a skill advances you instead of recommending it again. Skills you
+    // have never practised have no MasteryRecord, so they must be read from the
+    // catalog, not from `records`.
+    let recommended = weakShaped[0] || null;
+    if (!recommended) {
+      const math = await Subject.findOne({ key: 'math' });
+      if (math) {
+        const topics = await Topic.find({ subjectId: math._id }).sort({ order: 1 });
+        const topicById = new Map(topics.map((t) => [String(t._id), t]));
+        const allSkills = await Skill.find({ topicId: { $in: topics.map((t) => t._id) } });
+        allSkills.sort((a, b) =>
+          ((topicById.get(String(a.topicId))?.order ?? 0) - (topicById.get(String(b.topicId))?.order ?? 0))
+          || (a.order - b.order));
+        const masteredRecs = await MasteryRecord.find({ studentId: student._id, module: 'MathPath', status: 'mastered' });
+        const masteredIds = new Set(masteredRecs.map((r) => String(r.skillId)));
+        const next = allSkills.find((s) => !masteredIds.has(String(s._id)));
+        if (next) {
+          const t = topicById.get(String(next.topicId));
+          recommended = {
+            skillId: next._id, skillName: next.name, topicName: t?.name || '',
+            score: 0, status: 'not_started', statusLabel: STATUS_LABEL.not_started,
+          };
+        }
+      }
+    }
     const recentMistakes = await Mistake.countDocuments({ studentId: student._id, module: 'MathPath', status: { $ne: 'resolved' } });
 
     res.json({ studentId: student._id, records: shaped, weakSkills: weakShaped, recommended, recentMistakeCount: recentMistakes });
