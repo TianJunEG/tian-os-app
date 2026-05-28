@@ -12,11 +12,13 @@ import { buildRecommendations } from '../utils/parentRecommendations.js';
 
 const router = express.Router();
 
-// Modules the parent can actually act on from the recommendation screens:
-// MathPath (assign a skill) and Spelling Practice (assign a word list). Both
-// route through AssignPractice. Science writes the same mastery/mistake store
-// but has no parent assign/mistakes destination yet, so it's not surfaced here.
-const REC_MODULES = ['MathPath', 'Spelling Practice'];
+// Modules whose weak skills become an "assign practice" action — the parent can
+// act on these from AssignPractice (MathPath = a skill, Spelling = a word list).
+const ASSIGN_MODULES = ['MathPath', 'Spelling Practice'];
+// Modules surfaced for mistake review. Science is included now that there's a
+// parent Science surface to review on (it has no assign flow, so it only
+// appears as a review action, not assign).
+const REVIEW_MODULES = [...ASSIGN_MODULES, 'Science Adaptive Revision'];
 
 // Light mastery summary for one student (used in the children list + home).
 async function masterySummary(studentId) {
@@ -54,16 +56,19 @@ router.get('/children/:studentId/recommendations', protect, async (req, res) => 
   try {
     const student = await resolveStudent(req, req.params.studentId);
 
-    // Gather mastery + mistakes across the parent-actionable modules. Skill names
-    // resolve per module: a MathPath record's skillId references a Skill, a
-    // Spelling Practice record's references a SpellingList — populating either
-    // against the wrong collection would yield blank-named, mis-routed actions.
-    const masteryRaw = await MasteryRecord.find({ studentId: student._id, module: { $in: REC_MODULES } });
-    const mistakesRaw = await Mistake.find({ studentId: student._id, module: { $in: REC_MODULES }, status: { $ne: 'resolved' } });
+    // Mastery (weak skills + celebrate) comes from the assignable modules; mistakes
+    // (review) also include Science. Skill names resolve per module: MathPath and
+    // Science skillIds reference a Skill, a Spelling Practice one references a
+    // SpellingList — populating against the wrong collection would yield
+    // blank-named, mis-routed actions.
+    const masteryRaw = await MasteryRecord.find({ studentId: student._id, module: { $in: ASSIGN_MODULES } });
+    const mistakesRaw = await Mistake.find({ studentId: student._id, module: { $in: REVIEW_MODULES }, status: { $ne: 'resolved' } });
 
-    const idsFor = (mod) => [...masteryRaw, ...mistakesRaw].filter((x) => x.module === mod).map((x) => x.skillId);
-    const skills = await Skill.find({ _id: { $in: idsFor('MathPath') } }).populate('topicId');
-    const lists = await SpellingList.find({ _id: { $in: idsFor('Spelling Practice') } });
+    const all = [...masteryRaw, ...mistakesRaw];
+    const skillBackedIds = all.filter((x) => x.module !== 'Spelling Practice').map((x) => x.skillId);
+    const listIds = all.filter((x) => x.module === 'Spelling Practice').map((x) => x.skillId);
+    const skills = await Skill.find({ _id: { $in: skillBackedIds } }).populate('topicId');
+    const lists = await SpellingList.find({ _id: { $in: listIds } });
     const skillById = new Map(skills.map((s) => [String(s._id), s]));
     const listById = new Map(lists.map((l) => [String(l._id), l]));
 

@@ -25,9 +25,10 @@ function destination(studentId, rec) {
     case 'assign_practice':
     case 'restart_practice':
       return assignPractice(base, rec);
-    // MathPath has a parent mistakes view; for Spelling the parent's lever is
-    // assigning targeted practice on the word list.
+    // Route review by module: Science → its parent surface, Spelling → assign
+    // targeted practice on the word list, MathPath → the parent mistakes view.
     case 'review_mistakes':
+      if (rec.module === 'Science Adaptive Revision') return `${base}/science`;
       return rec.module === 'Spelling Practice' ? assignPractice(base, rec) : `${base}/mistakes`;
     case 'follow_up_assignment': return `${base}/assignments`;
     case 'celebrate': return `${base}/progress`;

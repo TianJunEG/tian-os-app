@@ -67,6 +67,7 @@ const ScienceMistakes = lazy(() => import('./pages/student/science/ScienceMistak
 const ParentHome = lazy(() => import('./pages/parent/ParentHome'));
 const ParentChildren = lazy(() => import('./pages/parent/ParentChildren'));
 const ChildProgress = lazy(() => import('./pages/parent/ChildProgress'));
+const ChildScience = lazy(() => import('./pages/parent/ChildScience'));
 const ChildLifeLab = lazy(() => import('./pages/parent/ChildLifeLab'));
 const WeakTopics = lazy(() => import('./pages/parent/WeakTopics'));
 const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'));
@@ -437,6 +438,7 @@ function App() {
             <Route path="/parent" element={<ParentHome />} />
             <Route path="/parent/children" element={<ParentChildren />} />
             <Route path="/parent/children/:studentId/progress" element={<ChildProgress />} />
+            <Route path="/parent/children/:studentId/science" element={<ChildScience />} />
             <Route path="/parent/children/:studentId/lifelab" element={<ChildLifeLab />} />
             <Route path="/parent/children/:studentId/weak-topics" element={<WeakTopics />} />
             <Route path="/parent/children/:studentId/actions" element={<RecommendedActions />} />

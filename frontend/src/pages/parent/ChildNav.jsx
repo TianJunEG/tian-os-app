@@ -12,6 +12,8 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
   const tabs = [
     ['Progress', `${base}/progress`],
     ['Weak topics', `${base}/weak-topics`],
+    ['Science', `${base}/science`],
+    ['LifeLab', `${base}/lifelab`],
     ['Actions', `${base}/actions`],
     ['Mistakes', `${base}/mistakes`],
     ['Assignments', `${base}/assignments`],
