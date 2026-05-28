@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Wand2 } from 'lucide-react';
 import { mathpathAPI, assignmentsAPI, spellingPracticeAPI, skillsAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, Spinner } from '../../components/ui';
+import { Card, Button, Spinner, ErrorState } from '../../components/ui';
 import { shapeScienceAsTopics } from '../../utils/scienceCatalog';
 
 // Parent assigns practice. MathPath (topic/skill), Science Adaptive Revision
@@ -36,17 +36,23 @@ export default function AssignPractice() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState(null);
+  // Separate from `error` (which is the submit error shown inline under the
+  // form). A catalog-fetch failure is a load-time problem — the form can't
+  // render at all — so it gets its own ErrorState with a Retry button.
+  const [loadError, setLoadError] = useState(null);
 
-  // Spelling lists are independent of module choice — fetched once.
+  // Spelling lists are independent of module choice — fetched once. This is
+  // enrichment for Spelling-only flows; failing here doesn't kill the page
+  // (Spelling submit will still show "Choose a word list" with an empty list).
   useEffect(() => {
     spellingPracticeAPI.lists().then((r) => setLists(r.data.lists || [])).catch(() => setLists([]));
   }, []);
 
   // Math and Science share the same picker shape but draw from different
   // catalogs. Reload when module changes (or on first mount with a deep-link).
-  useEffect(() => {
-    if (module === 'Spelling Practice') { setTopics([]); return; }
-    setTopics(null); setTopicId(''); setSkillId('');
+  const loadCatalog = useCallback(() => {
+    if (module === 'Spelling Practice') { setTopics([]); setLoadError(null); return; }
+    setLoadError(null); setTopics(null); setTopicId(''); setSkillId('');
     const fetcher = module === 'Science Adaptive Revision'
       ? skillsAPI.list({ subject: 'science', studentId }).then((r) => shapeScienceAsTopics(r.data.skills || []))
       : mathpathAPI.map({ studentId }).then((r) => r.data.topics || []);
@@ -60,8 +66,9 @@ export default function AssignPractice() {
       const matched = pre ? ts.find((x) => x.skills.some((s) => String(s.skillId) === String(pre))) : null;
       if (matched) { setTopicId(String(matched.topicId)); setSkillId(pre); }
       else if (ts[0]) setTopicId(String(ts[0].topicId));
-    }).catch(() => setTopics([]));
-  }, [studentId, module]); // eslint-disable-line
+    }).catch((e) => setLoadError(e));
+  }, [studentId, module, params]);
+  useEffect(() => { loadCatalog(); }, [loadCatalog]);
 
   const skills = useMemo(() => topics?.find((t) => String(t.topicId) === String(topicId))?.skills || [], [topics, topicId]);
 
@@ -128,7 +135,9 @@ export default function AssignPractice() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
-      {!topics ? <Spinner label="Loading…" /> : (
+      {loadError ? (
+        <ErrorState message="Couldn't load the skill catalogue." onRetry={loadCatalog} />
+      ) : !topics ? <Spinner label="Loading…" /> : (
         <Card className="space-y-5 p-5">
           {/* Module */}
           <div>
