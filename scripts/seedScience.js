@@ -17,6 +17,7 @@ import Subject from '../models/Subject.js';
 import Topic from '../models/Topic.js';
 import Skill from '../models/Skill.js';
 import Question from '../models/Question.js';
+import { cleanupOrphanMastery } from './cleanupOrphanMastery.js';
 
 dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -104,9 +105,15 @@ async function main() {
     qCount += docs.length;
   }
 
+  // Replacing the placeholder topics deletes their Skills, which leaves
+  // MasteryRecord rows pointing at IDs that no longer exist. Sweep them up
+  // here so the next ParentHome render isn't reporting phantom progress.
+  const { orphans } = await cleanupOrphanMastery({ deleteOrphans: true, subject: 'Science' });
+
   console.log('✅ Science Adaptive Revision content seeded');
   if (removedPlaceholders) console.log(`   Removed ${removedPlaceholders} placeholder topic(s)`);
   console.log(`   Subject: Science · ${topicCount} topics (P3–P6), ${skillCount} new skills, ${qCount} questions imported`);
+  if (orphans.length) console.log(`   Cleaned up ${orphans.length} orphan MasteryRecord(s) pointing at deleted skills`);
   await mongoose.disconnect();
 }
 

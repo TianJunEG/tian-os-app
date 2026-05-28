@@ -25,8 +25,17 @@ const REVIEW_MODULES = [...ASSIGN_MODULES, 'Science Adaptive Revision'];
 // side-by-side rather than collapsing everything into one cross-subject number.
 // Subjects with zero records are omitted (don't render "Science 0%" for a kid
 // who hasn't touched Science yet).
+//
+// Orphan-safe: filters records whose populated skillId is null. These occur
+// when a seed script swaps a subject's skill catalog (the new Skills get fresh
+// ObjectIds, old MasteryRecords keep pointing at the deleted ones) — they'd
+// otherwise inflate the per-subject totals here while being invisible to
+// routes/skills.js's join-based query, producing the per-screen divergence
+// flagged in the post-Batch-4 verify. scripts/cleanupOrphanMastery.js
+// removes them; this filter is the second line of defence.
 async function masterySummary(studentId) {
-  const records = await MasteryRecord.find({ studentId }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
+  const raw = await MasteryRecord.find({ studentId }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
+  const records = raw.filter((r) => r.skillId);
   const mastered = records.filter((r) => r.status === 'mastered').length;
   const weak = records.filter((r) => r.attempts > 0 && r.score < 40).sort((a, b) => a.score - b.score)[0];
   const overall = records.length ? Math.round(records.reduce((s, r) => s + r.score, 0) / records.length) : 0;
