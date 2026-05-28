@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Navigate, Link } from 'react-router-dom';
 import {
-  ChevronRight, GraduationCap, BookOpen, Eye, EyeOff, Presentation,
+  GraduationCap, BookOpen, Eye, EyeOff, Presentation,
   ClipboardList, FileDown, MessagesSquare, Info,
 } from 'lucide-react';
-import { PageHeader, Button, Card, Badge, StatusBadge } from '../../../components/ui';
+import { PageHeader, Button, Card, StatusBadge, Breadcrumb, Alert } from '../../../components/ui';
 import { Segmented, KeyConcepts } from './components.jsx';
 import { mechanismsAPI } from '../../../services/api';
 import { MECHANISMS, MECHANISM_ORDER } from './content.js';
@@ -13,20 +13,6 @@ import { SIMS } from './sims/index.js';
 // Tian OS → Secondary → Mechanisms Playground → {mechanism}. Owns the Student /
 // Teacher mode split and the teacher tools; the simulator component owns the
 // live physics and learning cards.
-
-function Breadcrumb({ name }) {
-  return (
-    <nav aria-label="Breadcrumb" className="mb-3 flex flex-wrap items-center gap-1.5 text-xs font-medium text-ink-500">
-      <Link to="/student" className="hover:text-navy-700">Tian OS</Link>
-      <ChevronRight className="h-3.5 w-3.5 text-ink-300" />
-      <span>Secondary</span>
-      <ChevronRight className="h-3.5 w-3.5 text-ink-300" />
-      <Link to="/secondary/mechanisms" className="hover:text-navy-700">Mechanisms Playground</Link>
-      <ChevronRight className="h-3.5 w-3.5 text-ink-300" />
-      <span className="font-semibold text-navy-700">{name}</span>
-    </nav>
-  );
-}
 
 export default function MechanismSimulator() {
   const { mechanism } = useParams();
@@ -54,7 +40,12 @@ export default function MechanismSimulator() {
 
   return (
     <>
-      <Breadcrumb name={m.name} />
+      <Breadcrumb items={[
+        { label: 'Tian OS', to: '/student' },
+        { label: 'Secondary' },
+        { label: 'Mechanisms Playground', to: '/secondary/mechanisms' },
+        { label: m.name },
+      ]} />
       <PageHeader
         title={m.name}
         subtitle={m.objective}
@@ -97,11 +88,7 @@ export default function MechanismSimulator() {
         </Card>
       )}
 
-      {notice && (
-        <Card className="mb-4 flex items-center gap-2.5 border-l-4 border-l-navy-500 p-3 text-sm text-ink-700">
-          <Info className="h-4 w-4 shrink-0 text-navy-700" />{notice}
-        </Card>
-      )}
+      {notice && <Alert tone="info" icon={Info} className="mb-4">{notice}</Alert>}
 
       <Sim reveal={reveal} showDiscussion={showDiscussion} />
 

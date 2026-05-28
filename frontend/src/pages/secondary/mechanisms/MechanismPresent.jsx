@@ -36,6 +36,7 @@ export default function MechanismPresent() {
       <div className="flex flex-wrap items-center gap-3">
         <Segmented
           label="Mechanism"
+          size="m"
           value={active}
           options={MECHANISM_ORDER.map((k) => ({ value: k, label: MECHANISMS[k].name }))}
           onChange={(k) => { setActive(k); setReveal(false); setShowDiscussion(false); }}

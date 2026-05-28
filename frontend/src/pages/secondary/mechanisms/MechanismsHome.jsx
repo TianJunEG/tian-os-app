@@ -1,24 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Presentation, ChevronRight } from 'lucide-react';
-import { Card, Button, PageHeader, Badge, StatusBadge } from '../../../components/ui';
+import { ArrowRight, Presentation } from 'lucide-react';
+import { Card, Button, PageHeader, Badge, StatusBadge, Breadcrumb } from '../../../components/ui';
 import { mechanismsAPI } from '../../../services/api';
 import { MECHANISMS, MECHANISM_ORDER } from './content.js';
 
 // Tian OS → Secondary → Mechanisms Playground overview. A clean, secondary-school
 // appropriate landing: the four mechanisms as cards, plus a Teacher Mode entry.
 
-function Breadcrumb() {
-  return (
-    <nav aria-label="Breadcrumb" className="mb-3 flex items-center gap-1.5 text-xs font-medium text-ink-500">
-      <Link to="/student" className="hover:text-navy-700">Tian OS</Link>
-      <ChevronRight className="h-3.5 w-3.5 text-ink-300" />
-      <span className="text-ink-500">Secondary</span>
-      <ChevronRight className="h-3.5 w-3.5 text-ink-300" />
-      <span className="font-semibold text-navy-700">Mechanisms Playground</span>
-    </nav>
-  );
-}
+const CRUMBS = [
+  { label: 'Tian OS', to: '/student' },
+  { label: 'Secondary' },
+  { label: 'Mechanisms Playground' },
+];
 
 export default function MechanismsHome() {
   const [progress, setProgress] = useState({});
@@ -28,7 +21,7 @@ export default function MechanismsHome() {
 
   return (
     <>
-      <Breadcrumb />
+      <Breadcrumb items={CRUMBS} />
       <PageHeader
         title="Mechanisms Playground"
         subtitle="Interactive lower secondary D&T simulations for mechanisms."
