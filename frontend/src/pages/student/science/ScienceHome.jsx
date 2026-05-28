@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FlaskConical, ArrowRight, ListChecks, AlertTriangle } from 'lucide-react';
+import { FlaskConical, ArrowRight, ListChecks, AlertTriangle, StickyNote } from 'lucide-react';
 import { mathpathAPI, skillsAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 
@@ -83,6 +83,7 @@ export default function ScienceHome() {
       </div>
 
       <Button variant="secondary" icon={ListChecks} to="/student/science/topics" className="w-full">View all topics</Button>
+      <Button variant="ghost" icon={StickyNote} to="/student/science/notes" className="mt-2 w-full">My notes</Button>
     </>
   );
 }

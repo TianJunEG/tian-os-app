@@ -14,6 +14,8 @@ import Topic from '../models/Topic.js';
 import Skill from '../models/Skill.js';
 import Question from '../models/Question.js';
 import Subject from '../models/Subject.js';
+import StudentNote from '../models/StudentNote.js';
+import { resolveStudent } from '../utils/studentContext.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const loadJson = (rel) => JSON.parse(fs.readFileSync(path.join(__dirname, rel), 'utf8'));
@@ -119,6 +121,50 @@ router.get('/diagrams/:key', (req, res) => {
   const svg = DIAGRAMS[req.params.key];
   if (!svg) return res.status(404).json({ error: 'Diagram not found.' });
   res.json({ key: req.params.key, svg });
+});
+
+// --- Personal study notes (per-student, per-concept heading) ---
+
+// @route GET /api/science/student-notes
+// @desc  All Science notes for the resolved student, returned as a map keyed
+//        by heading so the client can hydrate every visible NoteWidget at once.
+router.get('/student-notes', async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const notes = await StudentNote.find({ studentId: student._id, subjectKey: 'science' })
+      .select('heading topicName text updatedAt')
+      .sort({ updatedAt: -1 });
+    const byHeading = {};
+    for (const n of notes) byHeading[n.heading] = { text: n.text, topicName: n.topicName, updatedAt: n.updatedAt };
+    res.json({ notes: byHeading, list: notes });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load notes.' });
+  }
+});
+
+// @route PUT /api/science/student-notes
+// @desc  Upsert a single note. body: { heading, text, topicName? }.
+//        Empty/whitespace text deletes the note (so saving an empty textarea
+//        from the widget naturally clears it).
+router.put('/student-notes', async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const { heading, text = '', topicName = '' } = req.body || {};
+    if (!heading || typeof heading !== 'string') return res.status(400).json({ error: 'heading is required.' });
+    const trimmed = String(text).trim();
+    if (!trimmed) {
+      await StudentNote.deleteOne({ studentId: student._id, subjectKey: 'science', heading });
+      return res.json({ heading, deleted: true });
+    }
+    const note = await StudentNote.findOneAndUpdate(
+      { studentId: student._id, subjectKey: 'science', heading },
+      { $set: { text: trimmed, topicName }, $setOnInsert: { workspaceId: student.workspaceId } },
+      { new: true, upsert: true }
+    );
+    res.json({ heading: note.heading, text: note.text, topicName: note.topicName, updatedAt: note.updatedAt });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to save note.' });
+  }
 });
 
 export default router;

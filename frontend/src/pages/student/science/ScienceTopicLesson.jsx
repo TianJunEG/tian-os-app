@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, AlertTriangle, BookOpen } from 'lucide-react';
 import api from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
+import NoteWidget from './NoteWidget';
 
 // Paged lesson reader. The backend returns either a curated structured lesson
 // (one page per authored section) or an auto-built one assembled from the
@@ -15,10 +16,14 @@ export default function ScienceTopicLesson() {
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notesByHeading, setNotesByHeading] = useState({});
 
   useEffect(() => {
-    api.get(`/science/lessons?topicId=${topicId}`)
-      .then((r) => setData(r.data))
+    Promise.all([
+      api.get(`/science/lessons?topicId=${topicId}`),
+      api.get('/science/student-notes').catch(() => ({ data: { notes: {} } })),
+    ])
+      .then(([lesson, notes]) => { setData(lesson.data); setNotesByHeading(notes.data?.notes || {}); })
       .catch((e) => setError(e.response?.data?.error || 'Could not load lesson.'))
       .finally(() => setLoading(false));
   }, [topicId]);
@@ -72,6 +77,17 @@ export default function ScienceTopicLesson() {
             <div className="flex flex-wrap gap-2">
               {terms.map((t) => <Badge key={t} tone="neutral">{t}</Badge>)}
             </div>
+          </div>
+        )}
+        {page.heading && (
+          <div className="mt-5 border-t border-ink-100 pt-4">
+            <NoteWidget
+              key={page.heading}
+              heading={page.heading}
+              topicName={data.topic}
+              initialText={notesByHeading[page.heading]?.text || ''}
+              onChange={(text) => setNotesByHeading((m) => ({ ...m, [page.heading]: { ...(m[page.heading] || {}), text } }))}
+            />
           </div>
         )}
       </Card>
