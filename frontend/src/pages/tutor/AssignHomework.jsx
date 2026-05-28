@@ -5,6 +5,7 @@ import { mathpathAPI, skillsAPI, assignmentsAPI } from '../../services/api';
 import { useTutorStudent } from './useTutorStudent';
 import TutorStudentNav from './TutorStudentNav';
 import { Card, Button, Badge, Spinner } from '../../components/ui';
+import { shapeScienceAsTopics } from '../../utils/scienceCatalog';
 
 const MODULES = [
   { key: 'MathPath', label: 'MathPath', enabled: true },
@@ -15,24 +16,6 @@ const MODULES = [
   { key: 'Spelling Practice', label: 'Spelling Practice', enabled: false },
 ];
 
-// /api/skills?subject=science returns flat skills with topicId/topicName/moeLevel.
-// Shape them into the same { topicId, name, skills: [{ skillId, name }] } form
-// the rest of this page expects, with the level suffixed onto each topic name
-// so duplicates across levels (e.g. "Digestive System" at P4 and P5) are
-// distinguishable in the dropdown.
-function shapeScienceAsTopics(skills) {
-  const byTopic = new Map();
-  for (const s of skills) {
-    const id = String(s.topicId);
-    if (!byTopic.has(id)) byTopic.set(id, {
-      topicId: s.topicId,
-      name: `${s.topicName}${s.moeLevel ? ' · ' + s.moeLevel.replace('Primary ', 'P') : ''}`,
-      skills: [],
-    });
-    byTopic.get(id).skills.push({ skillId: s.skillId, name: s.name });
-  }
-  return [...byTopic.values()];
-}
 const HW_TYPES = ['Digital practice', 'Mistake review', 'Fluency drill'];
 
 export default function AssignHomework() {

@@ -5,29 +5,12 @@ import { teacherAPI, mathpathAPI, skillsAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
 import { Card, Button, Badge, Spinner } from '../../components/ui';
+import { shapeScienceAsTopics } from '../../utils/scienceCatalog';
 
 const MODULES = [
   { key: 'MathPath', label: 'MathPath', subject: 'Math' },
   { key: 'Science Adaptive Revision', label: 'Science', subject: 'Science' },
 ];
-
-// /api/skills?subject=science returns flat skills; reshape into the same
-// { topicId, name, skills: [{ skillId, name }] } form that mathpathAPI.map
-// produces, with level suffixed so same-name topics across levels are
-// distinguishable in the dropdown.
-function shapeScienceAsTopics(skills) {
-  const byTopic = new Map();
-  for (const s of skills) {
-    const id = String(s.topicId);
-    if (!byTopic.has(id)) byTopic.set(id, {
-      topicId: s.topicId,
-      name: `${s.topicName}${s.moeLevel ? ' · ' + s.moeLevel.replace('Primary ', 'P') : ''}`,
-      skills: [],
-    });
-    byTopic.get(id).skills.push({ skillId: s.skillId, name: s.name });
-  }
-  return [...byTopic.values()];
-}
 
 // Assign targeted practice to the whole class or a saved group. Math or Science.
 export default function AssignPractice() {

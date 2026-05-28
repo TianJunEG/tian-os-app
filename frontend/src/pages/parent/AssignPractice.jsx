@@ -1,16 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Wand2 } from 'lucide-react';
-import { mathpathAPI, assignmentsAPI, spellingPracticeAPI } from '../../services/api';
+import { mathpathAPI, assignmentsAPI, spellingPracticeAPI, skillsAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, Badge, Spinner } from '../../components/ui';
+import { Card, Button, Spinner } from '../../components/ui';
+import { shapeScienceAsTopics } from '../../utils/scienceCatalog';
 
-// Parent assigns practice. MathPath (topic/skill) or Spelling Practice (word
-// list). Math is the core; Spelling is the one English module (no others).
+// Parent assigns practice. MathPath (topic/skill), Science Adaptive Revision
+// (topic/skill), or Spelling Practice (word list).
 const MODULES = [
-  { key: 'MathPath', label: 'MathPath', enabled: true },
-  { key: 'Spelling Practice', label: 'Spelling Practice', enabled: true },
+  { key: 'MathPath', label: 'MathPath', subject: 'Math' },
+  { key: 'Science Adaptive Revision', label: 'Science', subject: 'Science' },
+  { key: 'Spelling Practice', label: 'Spelling Practice', subject: 'English' },
 ];
 
 export default function AssignPractice() {
@@ -19,9 +21,9 @@ export default function AssignPractice() {
   const navigate = useNavigate();
   const child = useChild(studentId);
 
-  // A recommendation can deep-link here with ?module=&skill= (MathPath) or
-  // ?module=Spelling Practice&list= to pre-select the right module + target.
-  const initialModule = MODULES.find((m) => m.key === params.get('module') && m.enabled)?.key || 'MathPath';
+  // A recommendation can deep-link here with ?module=&skill= (MathPath/Science)
+  // or ?module=Spelling Practice&list= to pre-select the right module + target.
+  const initialModule = MODULES.find((m) => m.key === params.get('module'))?.key || 'MathPath';
   const [module, setModule] = useState(initialModule);
   const [topics, setTopics] = useState(null);
   const [topicId, setTopicId] = useState('');
@@ -35,16 +37,31 @@ export default function AssignPractice() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState(null);
 
+  // Spelling lists are independent of module choice — fetched once.
   useEffect(() => {
-    mathpathAPI.map({ studentId }).then((r) => {
-      const ts = r.data.topics || [];
+    spellingPracticeAPI.lists().then((r) => setLists(r.data.lists || [])).catch(() => setLists([]));
+  }, []);
+
+  // Math and Science share the same picker shape but draw from different
+  // catalogs. Reload when module changes (or on first mount with a deep-link).
+  useEffect(() => {
+    if (module === 'Spelling Practice') { setTopics([]); return; }
+    setTopics(null); setTopicId(''); setSkillId('');
+    const fetcher = module === 'Science Adaptive Revision'
+      ? skillsAPI.list({ subject: 'science', studentId }).then((r) => shapeScienceAsTopics(r.data.skills || []))
+      : mathpathAPI.map({ studentId }).then((r) => r.data.topics || []);
+    fetcher.then((ts) => {
       setTopics(ts);
+      // Honour ?skill= only if it exists in the *new* catalog; otherwise fall
+      // through to the first-topic default. Without the fallback, switching
+      // module from Math → Science with a math skill in the URL left the
+      // topic dropdown blank.
       const pre = params.get('skill');
-      if (pre) { const t = ts.find((x) => x.skills.some((s) => String(s.skillId) === String(pre))); if (t) setTopicId(String(t.topicId)); }
+      const matched = pre ? ts.find((x) => x.skills.some((s) => String(s.skillId) === String(pre))) : null;
+      if (matched) { setTopicId(String(matched.topicId)); setSkillId(pre); }
       else if (ts[0]) setTopicId(String(ts[0].topicId));
     }).catch(() => setTopics([]));
-    spellingPracticeAPI.lists().then((r) => setLists(r.data.lists || [])).catch(() => setLists([]));
-  }, [studentId]); // eslint-disable-line
+  }, [studentId, module]); // eslint-disable-line
 
   const skills = useMemo(() => topics?.find((t) => String(t.topicId) === String(topicId))?.skills || [], [topics, topicId]);
 
@@ -76,7 +93,13 @@ export default function AssignPractice() {
       } else {
         if (!skillId) { setError('Choose a skill to practise.'); return; }
         setSaving(true);
-        await assignmentsAPI.create({ studentId, module: 'MathPath', subject: 'Math', assignedByRole: 'parent', topicId, skillIds: [skillId], difficulty, questionCount: Number(questionCount), dueDate: dueDate || null });
+        const subject = MODULES.find((m) => m.key === module)?.subject || 'Math';
+        // Science questions are open-ended and don't carry a difficulty band,
+        // so only pass `difficulty` for MathPath. The backend tolerates extra
+        // fields but the picker would be misleading for Science.
+        const body = { studentId, module, subject, assignedByRole: 'parent', topicId, skillIds: [skillId], questionCount: Number(questionCount), dueDate: dueDate || null };
+        if (module === 'MathPath') body.difficulty = difficulty;
+        await assignmentsAPI.create(body);
       }
       setDone(true);
     } catch (e) { setError(e.response?.data?.error || 'Could not assign practice.'); setSaving(false); }
@@ -100,6 +123,7 @@ export default function AssignPractice() {
   }
 
   const isSpelling = module === 'Spelling Practice';
+  const isMathPath = module === 'MathPath';
 
   return (
     <>
@@ -111,9 +135,9 @@ export default function AssignPractice() {
             <label className="mb-2 block text-sm font-semibold text-ink-700">Module</label>
             <div className="flex flex-wrap gap-2">
               {MODULES.map((m) => (
-                <button key={m.key} disabled={!m.enabled} onClick={() => m.enabled && setModule(m.key)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : m.enabled ? 'border-hairline text-ink-700' : 'border-hairline text-ink-300'}`}>
-                  {m.label}{!m.enabled && <Badge tone="neutral">soon</Badge>}
+                <button key={m.key} onClick={() => setModule(m.key)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>
+                  {m.label}
                 </button>
               ))}
             </div>
@@ -128,48 +152,48 @@ export default function AssignPractice() {
               </select>
             </div>
           ) : (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
-                  <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                    {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <div className="mb-1.5 flex items-center justify-between gap-2">
-                    <label className="text-sm font-semibold text-ink-700">Skill</label>
-                    <button
-                      type="button"
-                      onClick={suggestWeakest}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
-                    >
-                      <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
-                    </button>
-                  </div>
-                  <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                    <option value="">Choose a skill…</option>
-                    {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
-                  </select>
-                </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
+                <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                  {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
+                </select>
               </div>
-            </>
+              <div>
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <label className="text-sm font-semibold text-ink-700">Skill</label>
+                  <button
+                    type="button"
+                    onClick={suggestWeakest}
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
+                  >
+                    <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
+                  </button>
+                </div>
+                <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                  <option value="">Choose a skill…</option>
+                  {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
+                </select>
+              </div>
+            </div>
           )}
 
+          {/* Question count + difficulty only meaningful for MathPath (Science
+              questions are open-ended at one level, Spelling is list-based). */}
           <div className="grid gap-4 sm:grid-cols-3">
+            {isMathPath && (
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
+                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                  <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+                </select>
+              </div>
+            )}
             {!isSpelling && (
-              <>
-                <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
-                  <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                    <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
-                  <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5 font-mono" />
-                </div>
-              </>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
+                <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5 font-mono" />
+              </div>
             )}
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Due date</label>
