@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Wand2 } from 'lucide-react';
 import { mathpathAPI, assignmentsAPI, spellingPracticeAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
@@ -47,6 +47,23 @@ export default function AssignPractice() {
   }, [studentId]); // eslint-disable-line
 
   const skills = useMemo(() => topics?.find((t) => String(t.topicId) === String(topicId))?.skills || [], [topics, topicId]);
+
+  // "Suggest the weakest" — for a parent who doesn't know what to pick, this
+  // selects the lowest-scoring attempted skill across all topics. Falls back
+  // to the first not-yet-attempted skill if the child hasn't started anything
+  // yet (a new account); falls back further to the very first skill in the
+  // map so the button always does something visible.
+  const suggestWeakest = () => {
+    if (!topics?.length) return;
+    const allSkills = topics.flatMap((t) => (t.skills || []).map((s) => ({ ...s, topicId: t.topicId })));
+    const attempted = allSkills.filter((s) => s.attempts > 0 || (s.status && s.status !== 'not_started'));
+    const pick = attempted.length
+      ? attempted.sort((a, b) => (a.score || 0) - (b.score || 0))[0]
+      : (allSkills[0] || null);
+    if (!pick) return;
+    setTopicId(String(pick.topicId));
+    setSkillId(String(pick.skillId));
+  };
 
   const submit = async () => {
     if (saving) return;
@@ -111,21 +128,32 @@ export default function AssignPractice() {
               </select>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
-                <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                  {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
-                </select>
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
+                  <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                    {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <label className="text-sm font-semibold text-ink-700">Skill</label>
+                    <button
+                      type="button"
+                      onClick={suggestWeakest}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
+                    >
+                      <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
+                    </button>
+                  </div>
+                  <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                    <option value="">Choose a skill…</option>
+                    {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Skill</label>
-                <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                  <option value="">Choose a skill…</option>
-                  {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
-                </select>
-              </div>
-            </div>
+            </>
           )}
 
           <div className="grid gap-4 sm:grid-cols-3">

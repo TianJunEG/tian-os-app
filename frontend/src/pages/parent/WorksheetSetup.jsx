@@ -37,6 +37,20 @@ export default function WorksheetSetup() {
     } catch (e) { setError(e.response?.data?.error || 'Could not generate worksheet.'); setBusy(false); }
   };
 
+  // "Suggest the weakest" for the selected_topic mode — picks the lowest-
+  // scoring attempted skill, falling back to the first skill in the list if
+  // the child hasn't attempted anything yet. The "weak_skills" mode already
+  // does this algorithmically across many skills; this is the equivalent
+  // shortcut when the parent specifically wants a single targeted skill.
+  const suggestWeakest = () => {
+    if (!skills.length) return;
+    const attempted = skills.filter((s) => s.status && s.status !== 'not_started');
+    const pick = attempted.length
+      ? attempted.sort((a, b) => (a.score || 0) - (b.score || 0))[0]
+      : skills[0];
+    if (pick) setSkillId(String(pick.skillId));
+  };
+
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
@@ -50,12 +64,22 @@ export default function WorksheetSetup() {
         </Field>
 
         {mode === 'selected_topic' && (
-          <Field label="Topic / skill">
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Topic / skill</span>
+              <button
+                type="button"
+                onClick={suggestWeakest}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
+              >
+                <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
+              </button>
+            </div>
             <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="h-12 w-full rounded-xl border border-hairline bg-paper px-3 text-ink-800">
               <option value="">Choose a skill…</option>
               {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.topicName} · {s.name}</option>)}
             </select>
-          </Field>
+          </div>
         )}
 
         <Field label="Number of questions">
