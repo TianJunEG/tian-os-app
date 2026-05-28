@@ -113,7 +113,10 @@ export default function PracticeSession() {
             {!result.correct && result.correctAnswer && (
               <p className="mt-1 text-sm text-ink-700">Answer: <MathText text={result.correctAnswer} className="font-mono font-semibold" /></p>
             )}
-            {/* Open-ended: model answer + which key points were missing. */}
+            {/* Open-ended: AI feedback (when available) then model answer + which key points were missing. */}
+            {result.aiFeedback && (
+              <p className="mt-2 text-sm font-medium text-ink-700">{result.aiFeedback}</p>
+            )}
             {result.modelAnswer && (
               <div className="mt-2 text-sm text-ink-700">
                 <span className="font-semibold">Model answer:</span> {result.modelAnswer}

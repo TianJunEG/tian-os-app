@@ -44,9 +44,12 @@ async function callStructured({ model, system, messages, schema, effort, maxToke
   }
 }
 
-// Run on the primary (cheap) model; if it reports it could not read the
-// handwriting, retry the same call once on the provider's stronger model.
-async function callWithEscalation(opts, needsEscalation) {
+// Run on the primary (cheap) model; if `needsEscalation` returns true on its
+// result (e.g. the primary reports it could not read the handwriting, or a
+// marking call returns low confidence), retry the same call once on the
+// provider's stronger model. Exported so other AI flows (e.g. open-ended
+// marking) can reuse the escalation contract without duplicating it.
+export async function callWithEscalation(opts, needsEscalation) {
   const { primary, escalation } = getActiveProvider().models();
   const result = await callStructured({ ...opts, model: primary });
   if (primary !== escalation && needsEscalation(result)) {

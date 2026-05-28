@@ -10,6 +10,7 @@ import Worksheet from '../models/Worksheet.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
 import { isCorrect, checkKeyPoints } from '../utils/answerCheck.js';
+import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 
 const router = express.Router();
@@ -115,11 +116,27 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
     const q = await Question.findById(questionId);
     if (!q) return res.status(404).json({ error: 'Question not found.' });
 
-    // Open-ended (Science): keyword/key-point marking with partial credit.
-    let correct, partial = false, missing = [], openEnded = q.type === 'open_ended';
+    // Open-ended (Science): try AI marking first — it handles paraphrases,
+    // synonyms, and spelling slips far better than keyword matching, and
+    // returns warm per-answer feedback. Falls back to the keyword path when
+    // no AI provider is configured or the call fails, so the route stays
+    // resilient with or without an API key.
+    let correct, partial = false, missing = [], openEnded = q.type === 'open_ended', aiFeedback = '';
     if (openEnded) {
-      const r = checkKeyPoints(answer, q.keyPoints);
+      let r = null;
+      try {
+        r = await markOpenEnded({
+          question: q.stem, modelAnswer: q.modelAnswer || q.answer || '',
+          keyPoints: q.keyPoints || [], studentAnswer: answer,
+        });
+      } catch (e) {
+        // Provider configured but the call failed — log and fall back so the
+        // student isn't blocked from submitting.
+        console.warn('[ai-marking] provider error, falling back to keyword match:', e.message);
+      }
+      if (!r) r = checkKeyPoints(answer, q.keyPoints);
       correct = r.correct; partial = r.partial; missing = r.missing;
+      aiFeedback = r.aiFeedback || '';
     } else {
       correct = isCorrect(answer, q.answer);
     }
@@ -153,6 +170,7 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
       modelAnswer: openEnded ? q.modelAnswer : '',
       keyPoints: openEnded ? q.keyPoints : [],
       missingKeyPoints: openEnded ? missing : [],
+      aiFeedback: openEnded ? aiFeedback : '',
       explanation: q.explanation || '',
       mastery: { skillId: q.skillId, ...mastery.after, masteredNow: mastery.masteredNow },
     });
