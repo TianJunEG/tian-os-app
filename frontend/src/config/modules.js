@@ -31,7 +31,7 @@ export const MODULES = [
   },
   {
     key: 'progress', name: 'Skill Graph', icon: Network, path: '/student/progress',
-    purpose: 'See your mastery map and what unlocks next.', status: 'soon',
+    purpose: 'See your mastery map and what unlocks next.', status: 'live',
   },
   {
     key: 'spelling', name: 'Spelling Practice', icon: SpellCheck, path: '/student/spelling',

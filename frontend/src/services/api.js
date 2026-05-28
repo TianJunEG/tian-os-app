@@ -58,6 +58,7 @@ export const contextAPI = {
 export const mathpathAPI = {
   mastery: (params) => api.get('/mastery', { params }),
   map: (params) => api.get('/mastery/map', { params }),
+  graph: (params) => api.get('/mastery/graph', { params }),
   startSession: (data) => api.post('/practice/sessions', data),
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),
