@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, BookOpen, FileText } from 'lucide-react';
 import { mathpathAPI, skillsAPI } from '../../../services/api';
@@ -6,17 +6,32 @@ import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../c
 
 const TONE = { mastered: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
 
-// Science topic list — skills grouped by topic, with mastery status. Practise per skill.
+// Levels present in the legacy P3–P6 bank, in display order.
+const LEVELS = ['Primary 3', 'Primary 4', 'Primary 5', 'Primary 6'];
+
+// Science topic list — skills grouped by level, with a level filter that
+// defaults to the student's own level so a P4 student isn't dropped into 44
+// topics across four years of the syllabus.
 export default function ScienceTopics() {
   const navigate = useNavigate();
   const [skills, setSkills] = useState([]);
+  const [studentLevel, setStudentLevel] = useState('');
+  const [activeLevel, setActiveLevel] = useState(null); // null = uninitialised; set after load
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     skillsAPI.list({ subject: 'science' })
-      .then((r) => setSkills(r.data.skills || []))
+      .then((r) => {
+        const lvl = r.data.studentLevel || '';
+        setSkills(r.data.skills || []);
+        setStudentLevel(lvl);
+        // Default the filter to the student's level if we have skills for it;
+        // otherwise fall back to "All" so the page is never empty.
+        const hasLevel = (r.data.skills || []).some((s) => s.moeLevel === lvl);
+        setActiveLevel(hasLevel ? lvl : 'all');
+      })
       .catch((e) => setError(e.response?.data?.error || 'Could not load topics.'))
       .finally(() => setLoading(false));
   }, []);
@@ -31,24 +46,59 @@ export default function ScienceTopics() {
     } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setBusy(null); }
   };
 
+  // Only show level pills for levels that actually have skills in the bank.
+  const availableLevels = useMemo(() => {
+    const present = new Set(skills.map((s) => s.moeLevel).filter(Boolean));
+    return LEVELS.filter((l) => present.has(l));
+  }, [skills]);
+
+  const visibleSkills = useMemo(() => {
+    if (!activeLevel || activeLevel === 'all') return skills;
+    return skills.filter((s) => s.moeLevel === activeLevel);
+  }, [skills, activeLevel]);
+
   if (loading) return <Spinner label="Loading topics…" />;
   if (error) return <EmptyState icon={AlertTriangle} message={error} />;
 
-  // Group topics by level. Each topic has one skill (same name) under the
-  // legacy-bank import, so render one card per topic with a single Practise
-  // button. The same topic name can recur across levels (e.g. Digestive
-  // System at P4 and P5), so the level section keeps them visually distinct.
+  // Group filtered skills by level for section headers.
   const byLevel = {};
-  for (const s of skills) {
+  for (const s of visibleSkills) {
     const level = s.moeLevel || 'Other';
     (byLevel[level] ||= []).push(s);
   }
   const orderedLevels = Object.keys(byLevel).sort();
 
+  const pill = (key, label) => {
+    const selected = activeLevel === key;
+    const isOwn = key === studentLevel;
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={() => setActiveLevel(key)}
+        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+          selected ? 'border-[#2F6B7E] bg-[#2F6B7E] text-paper' : 'border-ink-100 bg-paper text-ink-600 hover:border-ink-300'
+        }`}
+        aria-pressed={selected}
+      >
+        {label}{isOwn ? ' · You' : ''}
+      </button>
+    );
+  };
+
   return (
     <>
-      <PageHeader title="Science topics" subtitle="Primary Science · pick a topic to revise" />
+      <PageHeader title="Science topics" subtitle={studentLevel ? `Primary Science · ${studentLevel}` : 'Primary Science · pick a topic to revise'} />
       {skills.length === 0 && <EmptyState icon={AlertTriangle} message="No Science topics yet. Run npm run seed:science." />}
+
+      {skills.length > 0 && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Showing</span>
+          {availableLevels.map((l) => pill(l, l.replace('Primary ', 'P')))}
+          {pill('all', 'All levels')}
+        </div>
+      )}
+
       <div className="space-y-8">
         {orderedLevels.map((level) => (
           <section key={level}>
