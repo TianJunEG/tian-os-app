@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, StatTile, ProgressBar, Spinner } from '../../components/ui';
+import { Card, Button, StatTile, ProgressBar, Spinner, ErrorState } from '../../components/ui';
 import { summariseMastery, statusTone } from './masterySummary';
 
 // Math-first progress overview for one child.
@@ -13,18 +13,23 @@ export default function ChildProgress() {
   const child = useChild(studentId);
   const [mastery, setMastery] = useState(null);
   const [topics, setTopics] = useState([]);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    mathpathAPI.mastery({ studentId }).then((r) => setMastery(r.data)).catch(() => {});
-    mathpathAPI.map({ studentId }).then((r) => setTopics(r.data.topics || [])).catch(() => {});
+  const load = useCallback(() => {
+    setError(null); setMastery(null); setTopics([]);
+    Promise.all([
+      mathpathAPI.mastery({ studentId }).then((r) => setMastery(r.data)),
+      mathpathAPI.map({ studentId }).then((r) => setTopics(r.data.topics || [])),
+    ]).catch((e) => setError(e));
   }, [studentId]);
+  useEffect(() => { load(); }, [load]);
 
   const { mastered, learning, overall } = summariseMastery(mastery?.records || []);
 
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!mastery ? <Spinner label="Loading…" /> : (
+      {error ? <ErrorState message="Couldn't load mastery data." onRetry={load} /> : !mastery ? <Spinner label="Loading…" /> : (
         <>
           <Card className="mb-6 p-5">
             <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Maths · MathPath</div>

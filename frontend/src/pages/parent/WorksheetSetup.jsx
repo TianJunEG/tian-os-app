@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Wand2 } from 'lucide-react';
 import { worksheetGenAPI, skillsAPI } from '../../services/api';
-import { Card, Button, PageHeader } from '../../components/ui';
+import { Card, Button } from '../../components/ui';
+import { useChild } from './useChild';
+import ChildNav from './ChildNav';
 
 // Parent › Worksheet Generator › setup. Mode, optional skill, count, difficulty, toggles.
 export default function WorksheetSetup() {
   const { studentId } = useParams();
   const navigate = useNavigate();
+  const child = useChild(studentId);
   const [sp] = useSearchParams();
   // All form fields seed from the URL so the WorksheetPreview "Regenerate"
   // link can round-trip the prior choices (count, difficulty, skill, toggles).
@@ -36,7 +39,9 @@ export default function WorksheetSetup() {
 
   return (
     <>
-      <PageHeader title="New worksheet" subtitle="Math · choose what to practise" />
+      <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
+      <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">New worksheet</h2>
+      <p className="mb-5 text-sm text-ink-500">Math · choose what to practise.</p>
       {error && <Card className="mb-4 border-l-4 border-l-error-500 p-4 text-sm text-error-700">{error}</Card>}
 
       <div className="space-y-4">

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import { assignmentsAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, StatusBadge, Spinner, EmptyState } from '../../components/ui';
+import { Card, StatusBadge, Spinner, EmptyState, ErrorState } from '../../components/ui';
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 
@@ -13,10 +13,13 @@ export default function ChildAssignments() {
   const { studentId } = useParams();
   const child = useChild(studentId);
   const [items, setItems] = useState(null);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    assignmentsAPI.list({ studentId }).then((r) => setItems(r.data.assignments || [])).catch(() => setItems([]));
+  const load = useCallback(() => {
+    setError(null); setItems(null);
+    assignmentsAPI.list({ studentId }).then((r) => setItems(r.data.assignments || [])).catch((e) => setError(e));
   }, [studentId]);
+  useEffect(() => { load(); }, [load]);
 
   const Row = ({ a }) => (
     <Card className="flex items-center justify-between gap-3 p-4">
@@ -33,7 +36,7 @@ export default function ChildAssignments() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!items ? <Spinner label="Loading…" /> : items.length === 0 ? (
+      {error ? <ErrorState message="Couldn't load assignments." onRetry={load} /> : !items ? <Spinner label="Loading…" /> : items.length === 0 ? (
         <EmptyState icon={ClipboardList} message="No assignments yet. Use Assign practice to set targeted work.">
         </EmptyState>
       ) : (

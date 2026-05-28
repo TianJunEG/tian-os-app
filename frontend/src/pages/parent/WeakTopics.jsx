@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, StatusBadge, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, StatusBadge, Spinner, EmptyState, ErrorState } from '../../components/ui';
 
 // Weak-skill cards with the two parent actions: assign practice / review mistakes.
 export default function WeakTopics() {
@@ -13,20 +13,25 @@ export default function WeakTopics() {
   const child = useChild(studentId);
   const [weak, setWeak] = useState(null);
   const [mistakeCounts, setMistakeCounts] = useState({});
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    mathpathAPI.mastery({ studentId }).then((r) => setWeak(r.data.weakSkills || [])).catch(() => setWeak([]));
+  const load = useCallback(() => {
+    setError(null); setWeak(null); setMistakeCounts({});
+    // The primary list (weak skills) drives the page; the mistakeCounts overlay
+    // is enrichment, so a failure there shouldn't kill the page — swallow it.
+    mathpathAPI.mastery({ studentId }).then((r) => setWeak(r.data.weakSkills || [])).catch((e) => setError(e));
     mathpathAPI.mistakes({ studentId }).then((r) => {
       const map = {};
       (r.data.weakSkills || []).forEach((w) => { map[String(w.skillId)] = w.count; });
       setMistakeCounts(map);
     }).catch(() => {});
   }, [studentId]);
+  useEffect(() => { load(); }, [load]);
 
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!weak ? <Spinner label="Loading…" /> : weak.length === 0 ? (
+      {error ? <ErrorState message="Couldn't load weak topics." onRetry={load} /> : !weak ? <Spinner label="Loading…" /> : weak.length === 0 ? (
         <EmptyState icon={CheckCircle2} message="No weak topics right now. Nicely on track." />
       ) : (
         <div className="space-y-3">

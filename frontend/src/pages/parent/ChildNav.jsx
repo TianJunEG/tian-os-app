@@ -13,14 +13,17 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
   // common landing question — "what should I do?" — so it leads. The four
   // tabs that fit on a narrow viewport without horizontal scroll should each
   // be useful by themselves; subject-specific surfaces sit at the end.
+  // [label, to, exactMatch?] — Worksheets has subroutes (/new, /:id) so it
+  // matches by prefix, not exact path; the others match exactly.
   const tabs = [
-    ['Actions', `${base}/actions`],
-    ['Progress', `${base}/progress`],
-    ['Mistakes', `${base}/mistakes`],
-    ['Weak topics', `${base}/weak-topics`],
-    ['Assignments', `${base}/assignments`],
-    ['Science', `${base}/science`],
-    ['LifeLab', `${base}/lifelab`],
+    ['Actions', `${base}/actions`, true],
+    ['Progress', `${base}/progress`, true],
+    ['Mistakes', `${base}/mistakes`, true],
+    ['Weak topics', `${base}/weak-topics`, true],
+    ['Assignments', `${base}/assignments`, true],
+    ['Worksheets', `${base}/worksheets`, false],
+    ['Science', `${base}/science`, true],
+    ['LifeLab', `${base}/lifelab`, true],
   ];
   return (
     <div className="mb-5">
@@ -37,8 +40,8 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
         )}
       </div>
       <div className="mt-4 flex gap-1 overflow-x-auto border-b border-hairline">
-        {tabs.map(([label, to]) => (
-          <NavLink key={to} to={to} end
+        {tabs.map(([label, to, exact]) => (
+          <NavLink key={to} to={to} end={exact}
             className={({ isActive }) => `whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition ${isActive ? 'border-navy-700 text-navy-700' : 'border-transparent text-ink-500 hover:text-navy-700'}`}>
             {label}
           </NavLink>
