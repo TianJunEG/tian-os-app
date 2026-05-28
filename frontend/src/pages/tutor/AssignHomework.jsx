@@ -1,18 +1,38 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
-import { mathpathAPI, assignmentsAPI } from '../../services/api';
+import { mathpathAPI, skillsAPI, assignmentsAPI } from '../../services/api';
 import { useTutorStudent } from './useTutorStudent';
 import TutorStudentNav from './TutorStudentNav';
 import { Card, Button, Badge, Spinner } from '../../components/ui';
 
 const MODULES = [
   { key: 'MathPath', label: 'MathPath', enabled: true },
+  { key: 'Science Adaptive Revision', label: 'Science', enabled: true },
   { key: 'Mistake-to-Mastery', label: 'Mistake-to-Mastery', enabled: true },
   { key: 'Fluency Practice', label: 'Fluency Practice', enabled: true },
   { key: 'Mastery Worksheet', label: 'Mastery Worksheet', enabled: false },
   { key: 'Spelling Practice', label: 'Spelling Practice', enabled: false },
 ];
+
+// /api/skills?subject=science returns flat skills with topicId/topicName/moeLevel.
+// Shape them into the same { topicId, name, skills: [{ skillId, name }] } form
+// the rest of this page expects, with the level suffixed onto each topic name
+// so duplicates across levels (e.g. "Digestive System" at P4 and P5) are
+// distinguishable in the dropdown.
+function shapeScienceAsTopics(skills) {
+  const byTopic = new Map();
+  for (const s of skills) {
+    const id = String(s.topicId);
+    if (!byTopic.has(id)) byTopic.set(id, {
+      topicId: s.topicId,
+      name: `${s.topicName}${s.moeLevel ? ' · ' + s.moeLevel.replace('Primary ', 'P') : ''}`,
+      skills: [],
+    });
+    byTopic.get(id).skills.push({ skillId: s.skillId, name: s.name });
+  }
+  return [...byTopic.values()];
+}
 const HW_TYPES = ['Digital practice', 'Mistake review', 'Fluency drill'];
 
 export default function AssignHomework() {
@@ -32,10 +52,12 @@ export default function AssignHomework() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    mathpathAPI.map({ studentId: id }).then((r) => {
-      const ts = r.data.topics || []; setTopics(ts); if (ts[0]) setTopicId(String(ts[0].topicId));
-    }).catch(() => setTopics([]));
-  }, [id]);
+    setTopics(null); setTopicId(''); setSkillId('');
+    const load = module === 'Science Adaptive Revision'
+      ? skillsAPI.list({ subject: 'science', studentId: id }).then((r) => shapeScienceAsTopics(r.data.skills || []))
+      : mathpathAPI.map({ studentId: id }).then((r) => r.data.topics || []);
+    load.then((ts) => { setTopics(ts); if (ts[0]) setTopicId(String(ts[0].topicId)); }).catch(() => setTopics([]));
+  }, [id, module]);
 
   const skills = useMemo(() => topics?.find((t) => String(t.topicId) === String(topicId))?.skills || [], [topics, topicId]);
 
@@ -44,7 +66,9 @@ export default function AssignHomework() {
     setSaving(true); setError(null);
     try {
       await assignmentsAPI.create({
-        studentId: id, module, subject: 'Math', assignedByRole: 'tutor',
+        studentId: id, module,
+        subject: module === 'Science Adaptive Revision' ? 'Science' : 'Math',
+        assignedByRole: 'tutor',
         topicId, skillIds: [skillId], difficulty, questionCount: Number(questionCount), dueDate: dueDate || null,
       });
       setDone(true);
