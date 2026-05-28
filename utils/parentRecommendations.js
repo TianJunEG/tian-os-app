@@ -1,13 +1,15 @@
 // Rule-based parent recommendations (master spec §13: keep it explainable,
 // deterministic — no AI engine yet). Pure function so it is unit-testable; the
-// route gathers the data and calls it.
+// route gathers the data (across the parent-actionable modules) and calls it.
 //
 // Input (all from the shared mastery/mistake/assignment data):
-//   records:        [{ skillId, skillName, topicName, score, status, attempts }]
-//   mistakesBySkill:[{ skillId, skillName, count }]
+//   records:        [{ skillId, skillName, topicName, module, score, status, attempts }]
+//   mistakesBySkill:[{ skillId, skillName, module, count }]
 //   assignments:    [{ status, dueDate }]
 //   lastPracticedAt: Date | null
-// Output: [{ actionType, priority, reason, action, relatedSkillId?, relatedSkillName? }]
+// `module` (e.g. 'MathPath', 'Spelling Practice') flows through to skill-specific
+// actions so the UI can label and route them to the right module's screen.
+// Output: [{ actionType, priority, reason, action, module?, relatedSkillId?, relatedSkillName? }]
 
 const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
 
@@ -33,7 +35,7 @@ export function buildRecommendations({
     if (m.count >= 3 && m.skillName) {
       recs.push({ actionType: 'review_mistakes', priority: 'high',
         reason: `${m.count} recent mistakes in ${m.skillName}.`,
-        action: 'Review recent mistakes', relatedSkillId: m.skillId, relatedSkillName: m.skillName });
+        action: 'Review recent mistakes', module: m.module, relatedSkillId: m.skillId, relatedSkillName: m.skillName });
     }
   }
 
@@ -43,19 +45,20 @@ export function buildRecommendations({
   for (const w of weak.slice(0, 2)) {
     recs.push({ actionType: 'assign_practice', priority: 'high',
       reason: `${w.skillName} mastery is low (${w.score}%).`,
-      action: 'Assign practice for this weak skill', relatedSkillId: w.skillId, relatedSkillName: w.skillName });
+      action: 'Assign practice for this weak skill', module: w.module, relatedSkillId: w.skillId, relatedSkillName: w.skillName });
   }
 
-  // Inactivity → restart practice (medium).
+  // Inactivity → restart practice (medium). Module-agnostic — records may span
+  // several modules now, so don't name one.
   if (lastPracticedAt) {
     const days = Math.floor((now - new Date(lastPracticedAt)) / 86400000);
     if (days >= 7) {
       recs.push({ actionType: 'restart_practice', priority: 'medium',
-        reason: `No practice in ${days} days.`, action: 'Restart a 10-minute MathPath practice' });
+        reason: `No practice in ${days} days.`, action: 'Restart a 10-minute practice session' });
     }
   } else if (records.length === 0) {
     recs.push({ actionType: 'restart_practice', priority: 'medium',
-      reason: 'No practice yet.', action: 'Start a 10-minute MathPath practice' });
+      reason: 'No practice yet.', action: 'Start a 10-minute practice session' });
   }
 
   // Progress → celebrate + continue (low).
