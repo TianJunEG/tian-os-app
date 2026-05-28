@@ -21,14 +21,39 @@ const ASSIGN_MODULES = ['MathPath', 'Spelling Practice'];
 const REVIEW_MODULES = [...ASSIGN_MODULES, 'Science Adaptive Revision'];
 
 // Light mastery summary for one student (used in the children list + home).
+// Adds a per-subject breakdown so ParentHome can show Math + Science + English
+// side-by-side rather than collapsing everything into one cross-subject number.
+// Subjects with zero records are omitted (don't render "Science 0%" for a kid
+// who hasn't touched Science yet).
 async function masterySummary(studentId) {
   const records = await MasteryRecord.find({ studentId }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
   const mastered = records.filter((r) => r.status === 'mastered').length;
   const weak = records.filter((r) => r.attempts > 0 && r.score < 40).sort((a, b) => a.score - b.score)[0];
   const overall = records.length ? Math.round(records.reduce((s, r) => s + r.score, 0) / records.length) : 0;
+
+  // Per-subject buckets. Average over attempted records only — matches the
+  // frontend's summariseMastery() definition so the same kid shows the same
+  // numbers on ParentHome and on the per-subject screens.
+  const bySubject = {};
+  for (const r of records) {
+    const subj = r.subject || 'Math';
+    const b = bySubject[subj] || (bySubject[subj] = { subject: subj, total: 0, attempted: 0, mastered: 0, scoreSum: 0 });
+    b.total += 1;
+    if (r.status !== 'not_started') { b.attempted += 1; b.scoreSum += (r.score || 0); }
+    if (r.status === 'mastered') b.mastered += 1;
+  }
+  const subjects = Object.values(bySubject).map((b) => ({
+    subject: b.subject,
+    total: b.total,
+    attempted: b.attempted,
+    mastered: b.mastered,
+    overall: b.attempted ? Math.round(b.scoreSum / b.attempted) : 0,
+  })).sort((a, b) => b.overall - a.overall);
+
   return {
     overallMastery: overall, skillsSeen: records.length, masteredCount: mastered,
     weakestTopic: weak?.skillId?.topicId?.name || null, weakestSkill: weak?.skillId?.name || null,
+    subjects,
   };
 }
 
