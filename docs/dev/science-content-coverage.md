@@ -7,7 +7,7 @@
 ## Headline
 
 - **44** topic+level pairs · **2600** questions
-- **43** of 44 rows have a topic mind-map (covering **20** unique topic names — notes are level-agnostic and shared across P3–P6)
+- **44** of 44 rows have a topic mind-map (covering **21** unique topic names — notes are level-agnostic and shared across P3–P6)
 - **1** of 44 rows have a curated structured lesson
 - **94** of 2600 questions carry an inline diagram (~4%)
 
@@ -17,46 +17,46 @@ Sorted worst-covered first. Lesson + Notes columns: a topic without a structured
 
 | # | Level | Topic | Questions | Mind map | Structured lesson | Diagrams |
 |---|-------|-------|-----------|----------|-------------------|----------|
-| 1 | P6 | Reproductive System | 60 | — | — | 2 / 60 (3%) |
-| 2 | P3 | Cycles - Life Cycle | 32 | ✓ | — | 3 / 32 (9%) |
-| 3 | P3 | Diversity and Classification | 161 | ✓ | — | 4 / 161 (2%) |
-| 4 | P3 | Magnets and Electromagnets | 39 | ✓ | — | 2 / 39 (5%) |
-| 5 | P4 | Cycles - Life Cycle | 2 | ✓ | — | 0 / 2 |
-| 6 | P4 | Digestive System | 40 | ✓ | — | 1 / 40 (3%) |
-| 7 | P4 | Diversity and Classification | 25 | ✓ | — | 0 / 25 |
-| 8 | P4 | Heat | 130 | ✓ | — | 4 / 130 (3%) |
-| 9 | P4 | Light | 128 | ✓ | — | 3 / 128 (2%) |
-| 10 | P4 | Magnets and Electromagnets | 59 | ✓ | — | 0 / 59 |
-| 11 | P4 | Matter | 156 | ✓ | — | 5 / 156 (3%) |
-| 12 | P5 | Circulatory System | 42 | ✓ | — | 5 / 42 (12%) |
-| 13 | P5 | Cycles - Life Cycle | 44 | ✓ | — | 1 / 44 (2%) |
-| 14 | P5 | Digestive System | 29 | ✓ | — | 1 / 29 (3%) |
-| 15 | P5 | Diversity and Classification | 20 | ✓ | — | 1 / 20 (5%) |
-| 16 | P5 | Electrical Systems | 141 | ✓ | — | 10 / 141 (7%) |
-| 17 | P5 | Heat | 49 | ✓ | — | 3 / 49 (6%) |
-| 18 | P5 | Light | 35 | ✓ | — | 2 / 35 (6%) |
-| 19 | P5 | Magnets and Electromagnets | 27 | ✓ | — | 2 / 27 (7%) |
-| 20 | P5 | Matter | 25 | ✓ | — | 0 / 25 |
-| 21 | P5 | Plant Transport System | 119 | ✓ | — | 6 / 119 (5%) |
-| 22 | P5 | Reproduction in Plants | 90 | ✓ | — | 3 / 90 (3%) |
-| 23 | P5 | Respiratory System | 54 | ✓ | — | 1 / 54 (2%) |
-| 24 | P5 | Scientific Investigation Skills | 6 | ✓ | — | 1 / 6 (17%) |
-| 25 | P5 | Water Cycle and Changes of State | 114 | ✓ | — | 4 / 114 (4%) |
-| 26 | P6 | Adaptations for Survival | 194 | ✓ | — | 3 / 194 (2%) |
-| 27 | P6 | Circulatory System | 46 | ✓ | — | 1 / 46 (2%) |
-| 28 | P6 | Cycles - Life Cycle | 2 | ✓ | — | 0 / 2 |
-| 29 | P6 | Digestive System | 38 | ✓ | — | 0 / 38 |
-| 30 | P6 | Diversity and Classification | 6 | ✓ | — | 0 / 6 |
-| 31 | P6 | Electrical Systems | 6 | ✓ | — | 0 / 6 |
-| 32 | P6 | Energy Conversion | 123 | ✓ | — | 3 / 123 (2%) |
-| 33 | P6 | Food Chains, Habitats and Ecology | 116 | ✓ | — | 10 / 116 (9%) |
-| 34 | P6 | Forces and Motion | 153 | ✓ | — | 6 / 153 (4%) |
-| 35 | P6 | Heat | 1 | ✓ | — | 0 / 1 |
-| 36 | P6 | Light | 1 | ✓ | — | 0 / 1 |
-| 37 | P6 | Matter | 2 | ✓ | — | 0 / 2 |
-| 38 | P6 | Photosynthesis and Food Production | 80 | ✓ | — | 3 / 80 (4%) |
-| 39 | P6 | Plant Transport System | 1 | ✓ | — | 0 / 1 |
-| 40 | P6 | Reproduction in Plants | 8 | ✓ | — | 0 / 8 |
+| 1 | P3 | Cycles - Life Cycle | 32 | ✓ | — | 3 / 32 (9%) |
+| 2 | P3 | Diversity and Classification | 161 | ✓ | — | 4 / 161 (2%) |
+| 3 | P3 | Magnets and Electromagnets | 39 | ✓ | — | 2 / 39 (5%) |
+| 4 | P4 | Cycles - Life Cycle | 2 | ✓ | — | 0 / 2 |
+| 5 | P4 | Digestive System | 40 | ✓ | — | 1 / 40 (3%) |
+| 6 | P4 | Diversity and Classification | 25 | ✓ | — | 0 / 25 |
+| 7 | P4 | Heat | 130 | ✓ | — | 4 / 130 (3%) |
+| 8 | P4 | Light | 128 | ✓ | — | 3 / 128 (2%) |
+| 9 | P4 | Magnets and Electromagnets | 59 | ✓ | — | 0 / 59 |
+| 10 | P4 | Matter | 156 | ✓ | — | 5 / 156 (3%) |
+| 11 | P5 | Circulatory System | 42 | ✓ | — | 5 / 42 (12%) |
+| 12 | P5 | Cycles - Life Cycle | 44 | ✓ | — | 1 / 44 (2%) |
+| 13 | P5 | Digestive System | 29 | ✓ | — | 1 / 29 (3%) |
+| 14 | P5 | Diversity and Classification | 20 | ✓ | — | 1 / 20 (5%) |
+| 15 | P5 | Electrical Systems | 141 | ✓ | — | 10 / 141 (7%) |
+| 16 | P5 | Heat | 49 | ✓ | — | 3 / 49 (6%) |
+| 17 | P5 | Light | 35 | ✓ | — | 2 / 35 (6%) |
+| 18 | P5 | Magnets and Electromagnets | 27 | ✓ | — | 2 / 27 (7%) |
+| 19 | P5 | Matter | 25 | ✓ | — | 0 / 25 |
+| 20 | P5 | Plant Transport System | 119 | ✓ | — | 6 / 119 (5%) |
+| 21 | P5 | Reproduction in Plants | 90 | ✓ | — | 3 / 90 (3%) |
+| 22 | P5 | Respiratory System | 54 | ✓ | — | 1 / 54 (2%) |
+| 23 | P5 | Scientific Investigation Skills | 6 | ✓ | — | 1 / 6 (17%) |
+| 24 | P5 | Water Cycle and Changes of State | 114 | ✓ | — | 4 / 114 (4%) |
+| 25 | P6 | Adaptations for Survival | 194 | ✓ | — | 3 / 194 (2%) |
+| 26 | P6 | Circulatory System | 46 | ✓ | — | 1 / 46 (2%) |
+| 27 | P6 | Cycles - Life Cycle | 2 | ✓ | — | 0 / 2 |
+| 28 | P6 | Digestive System | 38 | ✓ | — | 0 / 38 |
+| 29 | P6 | Diversity and Classification | 6 | ✓ | — | 0 / 6 |
+| 30 | P6 | Electrical Systems | 6 | ✓ | — | 0 / 6 |
+| 31 | P6 | Energy Conversion | 123 | ✓ | — | 3 / 123 (2%) |
+| 32 | P6 | Food Chains, Habitats and Ecology | 116 | ✓ | — | 10 / 116 (9%) |
+| 33 | P6 | Forces and Motion | 153 | ✓ | — | 6 / 153 (4%) |
+| 34 | P6 | Heat | 1 | ✓ | — | 0 / 1 |
+| 35 | P6 | Light | 1 | ✓ | — | 0 / 1 |
+| 36 | P6 | Matter | 2 | ✓ | — | 0 / 2 |
+| 37 | P6 | Photosynthesis and Food Production | 80 | ✓ | — | 3 / 80 (4%) |
+| 38 | P6 | Plant Transport System | 1 | ✓ | — | 0 / 1 |
+| 39 | P6 | Reproduction in Plants | 8 | ✓ | — | 0 / 8 |
+| 40 | P6 | Reproductive System | 60 | ✓ | — | 2 / 60 (3%) |
 | 41 | P6 | Respiratory System | 34 | ✓ | — | 0 / 34 |
 | 42 | P6 | Scientific Investigation Skills | 58 | ✓ | — | 0 / 58 |
 | 43 | P6 | Water Cycle and Changes of State | 1 | ✓ | — | 0 / 1 |
