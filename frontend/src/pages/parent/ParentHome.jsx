@@ -46,12 +46,13 @@ export default function ParentHome() {
   const top = recs[0];
   const completed = assignments.filter((a) => a.status === 'completed').length;
 
+  const multiChild = children.length > 1;
   return (
     <>
       <PageHeader
-        title="Family overview"
+        title={multiChild ? 'Family overview' : child.name}
         subtitle="A calm, clear picture of how learning is going."
-        action={children.length > 1 ? (
+        action={multiChild ? (
           <select value={child.studentId} onChange={(e) => setParams({ child: e.target.value })}
             className="rounded-xl border border-hairline bg-paper px-3 py-2 text-sm font-semibold text-navy-700">
             {children.map((c) => <option key={c.studentId} value={c.studentId}>{c.name}</option>)}
@@ -70,8 +71,11 @@ export default function ParentHome() {
         <ProgressBar value={child.overallMastery} className="mt-4" />
       </Card>
 
-      {/* Today's recommended action */}
-      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Today's recommended action</h3>
+      {/* Today's recommended action (top of the list — full list on the actions page) */}
+      <h3 className="mb-3 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">
+        <span>Today's recommended action</span>
+        {recs.length > 1 && <span className="font-mono text-ink-300">1 of {recs.length}</span>}
+      </h3>
       {top ? (
         <Card className="mb-6 p-5">
           <div className="mb-2 flex items-center gap-2">

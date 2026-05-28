@@ -11,7 +11,6 @@ import { Card, Button, Badge, Spinner } from '../../components/ui';
 const MODULES = [
   { key: 'MathPath', label: 'MathPath', enabled: true },
   { key: 'Spelling Practice', label: 'Spelling Practice', enabled: true },
-  { key: 'Mastery Worksheet', label: 'Mastery Worksheet', enabled: false },
 ];
 
 export default function AssignPractice() {
@@ -88,7 +87,7 @@ export default function AssignPractice() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
-      {!topics ? <Spinner /> : (
+      {!topics ? <Spinner label="Loading…" /> : (
         <Card className="space-y-5 p-5">
           {/* Module */}
           <div>

@@ -32,7 +32,7 @@ export default function ChildScience() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!skills || !mistakes ? <Spinner /> : skills.length === 0 ? (
+      {!skills || !mistakes ? <Spinner label="Loading…" /> : skills.length === 0 ? (
         <EmptyState icon={FlaskConical} message="No Science activity yet for this child." />
       ) : (
         <>
