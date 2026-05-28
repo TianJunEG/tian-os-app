@@ -35,5 +35,42 @@
         "terms": "public transport, electric car, methane, NEWater, solar power, conservation"
       }
     ]
+  },
+  "Adaptations for Survival": {
+    "sections": [
+      {
+        "title": "What is an adaptation?",
+        "body": "An adaptation is a special feature of a living thing — either a body part (structural) or a behaviour (something the organism does) — that helps it survive and reproduce in its habitat. Plants and animals that fit well to their environment can find food, avoid predators, keep their body conditions stable, and pass on their adaptations to their young. Living things in very different places (polar regions, deserts, rainforests, the ocean) have developed very different adaptations because each habitat poses different challenges. When the environment changes faster than living things can adapt — for example, when a habitat is destroyed or the climate shifts — many species struggle to survive.",
+        "terms": "adaptation, structural, behavioural, habitat, survive, reproduce"
+      },
+      {
+        "title": "Structural and behavioural adaptations",
+        "body": "Structural adaptations are about an organism's body — the shape, parts, or covering it is born with. Body coverings like fur, feathers, scales, or thick skin keep the body at the right temperature. Mouthparts are shaped for what an animal eats: sharp teeth for tearing meat, flat teeth for grinding plants, long beaks for sipping nectar, or sharp beaks for cracking seeds. Body colour and patterns help with camouflage, communication or warning. Behavioural adaptations are the things an organism does. Animals that migrate move to where conditions are better when seasons change. Some hibernate through the cold months, using stored fat for energy. Other behaviours include hunting in groups, building shelters, caring for young, or burrowing during the hot part of the day. Many living things rely on both structural and behavioural adaptations together to survive.",
+        "terms": "structural adaptation, behavioural adaptation, camouflage, migration, hibernation"
+      },
+      {
+        "title": "Cold-climate adaptations",
+        "body": "Animals that live near the poles must keep heat from escaping their bodies and find food when the surroundings are frozen. The polar bear is a classic example. Its thick fur traps a layer of air, and air is a poor conductor of heat — so heat from its body cannot escape easily. Underneath the fur, a thick layer of fat called blubber gives more insulation and stores energy. The fur is white, helping the bear camouflage against the snow and ice as it stalks seals. Its ears are small and rounded — less surface area means less heat is lost to the cold air. Wide paws spread the bear's weight on snow and act like paddles when it swims. Penguins use a similar set of tricks: feathers that overlap tightly to trap warm air, blubber underneath, and huddling together as a behaviour to share warmth and protect chicks from the wind.",
+        "diagram": "lesson_polar_bear_adapt_v1",
+        "terms": "polar bear, thick fur, blubber, insulator, camouflage, small ears"
+      },
+      {
+        "title": "Desert plant adaptations",
+        "body": "A desert is hot during the day, cold at night, and gets very little rain. Plants there must reduce the water they lose and store as much as they can collect. The cactus is a model desert plant. Its leaves have been reduced to sharp spines, which means the plant has a much smaller surface area for water to escape from — and the spines also stop thirsty animals from eating the plant. A thick, fleshy stem with a waxy coating stores water from the rare rains and reduces evaporation. Cactus roots are wide but shallow, so they can soak up surface water quickly whenever it does rain. Some desert plants stay as seeds in the soil for years, only sprouting after a heavy rainfall — that way the young plants grow when there is enough water to survive.",
+        "diagram": "lesson_cactus_adapt_v1",
+        "terms": "spines, waxy coating, water storage, shallow roots, evaporation"
+      },
+      {
+        "title": "Desert animal adaptations",
+        "body": "Desert animals also have to deal with high temperatures and little water. The camel — sometimes called the 'ship of the desert' — has several adaptations that work together. Its humps store fat (not water, as is commonly thought); the camel breaks down this fat for energy and to make water inside its body when food is scarce. Long eyelashes and slit-like nostrils keep blowing sand out. Big, wide feet stop it from sinking into soft sand. A camel can drink huge amounts of water at once and lose a large fraction of its body water before becoming unwell — most other mammals cannot. Many smaller desert animals (lizards, foxes, scorpions) use behavioural adaptations instead, burrowing during the hot day and coming out at night when it is cool.",
+        "diagram": "lesson_camel_adapt_v1",
+        "terms": "hump, fat storage, long eyelashes, wide feet, nocturnal, burrow"
+      },
+      {
+        "title": "Avoiding predators: camouflage, mimicry and warning colours",
+        "body": "Living things have many ways to avoid being eaten. Camouflage makes the animal hard to see against its surroundings — a green grasshopper on a leaf, or a brown moth on tree bark — so predators do not spot it. Some animals use mimicry: a moth wing with large eye-spots looks like the face of a bigger animal, scaring or confusing predators that might attack. Brightly coloured frogs, snakes and insects often have a different trick called warning colouration — predators learn that the bright colours mean a bad taste or a poison and avoid those animals. Hard sharp spines (like on a hedgehog or sea urchin), shells (like on a tortoise or snail), and tough skin all give physical protection. Some sea creatures are nearly transparent so predators look right through them, and large numbers of fish swim in shoals so any one fish has a smaller chance of being caught.",
+        "terms": "camouflage, mimicry, warning colouration, spines, shoal"
+      }
+    ]
   }
 }

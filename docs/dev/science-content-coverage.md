@@ -8,7 +8,7 @@
 
 - **44** topic+level pairs · **2600** questions
 - **44** of 44 rows have a topic mind-map (covering **21** unique topic names — notes are level-agnostic and shared across P3–P6)
-- **1** of 44 rows have a curated structured lesson
+- **2** of 44 rows have a curated structured lesson
 - **94** of 2600 questions carry an inline diagram (~4%)
 
 ## Per-topic backlog
@@ -41,23 +41,23 @@ Sorted worst-covered first. Lesson + Notes columns: a topic without a structured
 | 22 | P5 | Respiratory System | 54 | ✓ | — | 1 / 54 (2%) |
 | 23 | P5 | Scientific Investigation Skills | 6 | ✓ | — | 1 / 6 (17%) |
 | 24 | P5 | Water Cycle and Changes of State | 114 | ✓ | — | 4 / 114 (4%) |
-| 25 | P6 | Adaptations for Survival | 194 | ✓ | — | 3 / 194 (2%) |
-| 26 | P6 | Circulatory System | 46 | ✓ | — | 1 / 46 (2%) |
-| 27 | P6 | Cycles - Life Cycle | 2 | ✓ | — | 0 / 2 |
-| 28 | P6 | Digestive System | 38 | ✓ | — | 0 / 38 |
-| 29 | P6 | Diversity and Classification | 6 | ✓ | — | 0 / 6 |
-| 30 | P6 | Electrical Systems | 6 | ✓ | — | 0 / 6 |
-| 31 | P6 | Energy Conversion | 123 | ✓ | — | 3 / 123 (2%) |
-| 32 | P6 | Food Chains, Habitats and Ecology | 116 | ✓ | — | 10 / 116 (9%) |
-| 33 | P6 | Forces and Motion | 153 | ✓ | — | 6 / 153 (4%) |
-| 34 | P6 | Heat | 1 | ✓ | — | 0 / 1 |
-| 35 | P6 | Light | 1 | ✓ | — | 0 / 1 |
-| 36 | P6 | Matter | 2 | ✓ | — | 0 / 2 |
-| 37 | P6 | Photosynthesis and Food Production | 80 | ✓ | — | 3 / 80 (4%) |
-| 38 | P6 | Plant Transport System | 1 | ✓ | — | 0 / 1 |
-| 39 | P6 | Reproduction in Plants | 8 | ✓ | — | 0 / 8 |
-| 40 | P6 | Reproductive System | 60 | ✓ | — | 2 / 60 (3%) |
-| 41 | P6 | Respiratory System | 34 | ✓ | — | 0 / 34 |
-| 42 | P6 | Scientific Investigation Skills | 58 | ✓ | — | 0 / 58 |
-| 43 | P6 | Water Cycle and Changes of State | 1 | ✓ | — | 0 / 1 |
+| 25 | P6 | Circulatory System | 46 | ✓ | — | 1 / 46 (2%) |
+| 26 | P6 | Cycles - Life Cycle | 2 | ✓ | — | 0 / 2 |
+| 27 | P6 | Digestive System | 38 | ✓ | — | 0 / 38 |
+| 28 | P6 | Diversity and Classification | 6 | ✓ | — | 0 / 6 |
+| 29 | P6 | Electrical Systems | 6 | ✓ | — | 0 / 6 |
+| 30 | P6 | Energy Conversion | 123 | ✓ | — | 3 / 123 (2%) |
+| 31 | P6 | Food Chains, Habitats and Ecology | 116 | ✓ | — | 10 / 116 (9%) |
+| 32 | P6 | Forces and Motion | 153 | ✓ | — | 6 / 153 (4%) |
+| 33 | P6 | Heat | 1 | ✓ | — | 0 / 1 |
+| 34 | P6 | Light | 1 | ✓ | — | 0 / 1 |
+| 35 | P6 | Matter | 2 | ✓ | — | 0 / 2 |
+| 36 | P6 | Photosynthesis and Food Production | 80 | ✓ | — | 3 / 80 (4%) |
+| 37 | P6 | Plant Transport System | 1 | ✓ | — | 0 / 1 |
+| 38 | P6 | Reproduction in Plants | 8 | ✓ | — | 0 / 8 |
+| 39 | P6 | Reproductive System | 60 | ✓ | — | 2 / 60 (3%) |
+| 40 | P6 | Respiratory System | 34 | ✓ | — | 0 / 34 |
+| 41 | P6 | Scientific Investigation Skills | 58 | ✓ | — | 0 / 58 |
+| 42 | P6 | Water Cycle and Changes of State | 1 | ✓ | — | 0 / 1 |
+| 43 | P6 | Adaptations for Survival | 194 | ✓ | ✓ | 3 / 194 (2%) |
 | 44 | P6 | Human Impact and Environment | 103 | ✓ | ✓ | 4 / 103 (4%) |
