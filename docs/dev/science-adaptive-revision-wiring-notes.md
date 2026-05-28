@@ -86,14 +86,18 @@ dominating.
 
 ## Adult-role surfaces (shipped)
 - **Parent** — `pages/parent/ChildScience.jsx` (mastery + by-topic + recent mistakes), plus a Science
-  block on the parent home per-subject breakdown.
+  block on the parent home per-subject breakdown. Parent `AssignPractice` and `WorksheetSetup` both
+  expose Science.
 - **Tutor / Teacher** — `components/StudentSciencePanel.jsx` on `TutorStudentProfile.jsx` and
   `TeacherStudentDetail.jsx`. Class-level Science aggregate on `pages/teacher/ClassOverview.jsx`
-  (backend: `GET /api/teacher/classes/:id` now returns a `science` block).
-- **Assign Science practice** — Tutor `AssignHomework` and Teacher `AssignPractice` both accept
-  `module: 'Science Adaptive Revision'` + `subject: 'Science'`; `/api/skills?subject=science` is
-  reshaped client-side into the same `{ topicId, name, skills }` form math uses (with the MOE
-  level suffixed onto each topic so duplicates across P3–P6 stay distinguishable).
+  (backend: `GET /api/teacher/classes/:id` returns a `science` block). `ClassMasteryMap.jsx` has a
+  Math/Science toggle (backend: `GET /api/teacher/classes/:id/mastery?subject=…`); same-name
+  Science topics across levels are disambiguated with a `· P5` style suffix from `topic.moeLevel`.
+- **Assign Science practice** — Parent `AssignPractice`, Tutor `AssignHomework`, and Teacher
+  `AssignPractice` all accept `module: 'Science Adaptive Revision'` + `subject: 'Science'`;
+  `/api/skills?subject=science` is reshaped via `frontend/src/utils/scienceCatalog.js` into the
+  same `{ topicId, name, skills }` form math uses (with the MOE level suffixed onto each topic
+  name so duplicates across P3–P6 stay distinguishable).
 
 ## Content layers (notes / lessons / diagrams)
 The new `/student/science` module surfaces three content layers extracted from the legacy
@@ -115,13 +119,29 @@ standalone Science Lab and exposed via `routes/science.js`:
 heading (legacy convention), embedded in each lesson page via `NoteWidget.jsx`. Listing page at
 `/student/science/notes`.
 
+## Mistake-to-Mastery (Mastery Worksheet) for Science
+The rule-based worksheet generator (`utils/worksheetGen.js`, `routes/worksheetsGen.js`) is now
+subject-aware:
+- `resolveSkills` accepts `subject` and filters `Mistake` by `module: 'Science Adaptive Revision'`
+  on `recent_mistakes`, and `MasteryRecord` by `subject: 'Science'` on `weak_skills`. Math callers
+  on the default subject stay unchanged.
+- The Worksheet doc persists `subject`; when assigned, the Assignment carries it too.
+- `routes/practice.js` recognises a `Mastery Worksheet` assignment whose linked Worksheet has
+  `subject='Science'` and sets `sessionFeature='Science Adaptive Revision'` so the
+  `sessionModule` regex buckets attempts under Science.
+- Parent `WorksheetSetup` has a Math/Science toggle above the mode selector; the catalog reloads
+  on subject switch and the selected skill resets to avoid cross-subject leakage.
+
 ## What remains incomplete
-- No AI marking, no Science worksheet generator (the rule-based path doesn't run Science yet).
-- Mistake-to-Mastery worksheet generation is Math-only — Science mistakes accumulate but don't yet
-  feed a remediation worksheet.
-- `pages/teacher/ClassMasteryMap.jsx` still hardcodes Math; needs a subject toggle.
+- No AI marking for Science open-ended answers (still keyword-based — see "Science answer checking
+  rules (MVP)" above).
+- No Science-specific photo worksheet generator (the AI photo flow at `routes/worksheets.js` is
+  still hard-wired to Math).
+- Tutor/Teacher worksheet visibility on per-student pages — parents see + assign worksheets, but
+  tutors and teachers can't yet see what's been generated for a student.
 - Lesson coverage is thin: only **1 of 44** topic+level pairs has a structured lesson, and only
-  **94 of 2,600** questions carry an inline diagram (see the coverage report).
+  **94 of 2,600** questions carry an inline diagram (see the coverage report). One topic (P6
+  Reproductive System) has no mind map either.
 
 ## Commands
 ```bash
@@ -135,11 +155,20 @@ cd frontend && npx vite build       # build check (passes)
 ```
 
 ## Next recommended build step
-Highest-impact remaining work:
-1. **Mistake-to-Mastery for Science** — let the rule-based worksheet generator accept Science as a
-   module so students can practise their actual Science gaps.
-2. **ClassMasteryMap subject toggle** — drill into Science topic-by-topic mastery across a class.
-3. **Authoring backlog** — see `docs/dev/science-content-coverage.md`. Top priorities: a curated
-   structured lesson for Reproductive System (P6, 60 questions, no mind map at all yet), and
-   raising diagram coverage on the high-volume topics (Adaptations for Survival, Diversity and
-   Classification, Heat, Light, Matter).
+The "must-fix" wiring items from earlier passes have all landed (per-student panels, class
+overview, class mastery map, assign flows for all three adult roles, Mistake-to-Mastery for
+Science). Highest-impact remaining work, in rough priority order:
+1. **Tutor + Teacher worksheet visibility** — tutors and teachers can assign worksheets but
+   can't yet see what's been generated for a student. Drop a Worksheet list onto
+   `TutorStudentProfile.jsx` and `TeacherStudentDetail.jsx`.
+2. **Authoring backlog** — see `docs/dev/science-content-coverage.md`. Top priorities:
+   - A mind map for **P6 Reproductive System** (the only topic+level pair with no curated
+     content at all today). Add it to `data/scienceNotes.json` (keyed by topic name; one map
+     covers all levels of the same topic).
+   - A second structured lesson — Adaptations for Survival or Forces and Motion are the highest-
+     volume P6 topics that would benefit. Add to `data/scienceLessons.json`.
+   - Raise diagram coverage on Adaptations for Survival, Diversity and Classification, Heat,
+     Light, Matter — all have <5% of questions illustrated today.
+3. **AI marking for Science open-ended answers** — replace the keyword-match `checkKeyPoints`
+   path with an LLM-judged version (Haiku → Sonnet escalation, same pattern as the photo
+   worksheet flow) so partial-credit feedback is more reliable.
