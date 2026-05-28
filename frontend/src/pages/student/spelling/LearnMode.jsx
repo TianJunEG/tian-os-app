@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Volume2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { spellingPracticeAPI } from '../../../services/api';
 import { Card, Button, PageHeader, Spinner } from '../../../components/ui';
 
@@ -36,7 +36,6 @@ export default function LearnMode() {
           <Card key={w.wordId} className="p-4">
             <div className="flex items-center justify-between gap-3">
               <span className="font-display text-xl font-semibold text-navy-700">{w.word}</span>
-              <button title="Listen (coming soon)" disabled className="rounded-lg p-2 text-ink-300"><Volume2 className="h-5 w-5" /></button>
             </div>
             {w.sentence && <p className="mt-1 text-sm text-ink-500">{w.sentence}</p>}
             {w.definition && <p className="mt-0.5 text-xs text-ink-400">{w.definition}</p>}

@@ -47,8 +47,8 @@ export default function ScienceHome() {
   if (skills.length === 0) {
     return (
       <>
-        <PageHeader title="Science Revision" subtitle="Adaptive revision across Primary Science topics." />
-        <EmptyState icon={FlaskConical} message="Science revision is ready. Start with a topic.">
+        <PageHeader title="Science Adaptive Revision" subtitle="Adaptive revision across Primary Science topics." />
+        <EmptyState icon={FlaskConical} message="Science Adaptive Revision is ready. Start with a topic.">
           <Button to="/student/science/topics" icon={ArrowRight}>View topics</Button>
         </EmptyState>
       </>
@@ -67,7 +67,7 @@ export default function ScienceHome() {
 
   return (
     <>
-      <PageHeader title="Science Revision" subtitle={studentLevel ? `${studentLevel} · adaptive revision` : 'A secondary module — revise alongside MathPath.'} />
+      <PageHeader title="Science Adaptive Revision" subtitle={studentLevel ? `${studentLevel} · adaptive revision` : 'A secondary module — revise alongside MathPath.'} />
 
       <Card className="mb-6 bg-gradient-to-br from-[#2F6B7E] to-[#1d4452] p-5 text-paper">
         <div className="mb-1 flex items-center gap-2 text-paper/80"><FlaskConical className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Recommended topic</span></div>

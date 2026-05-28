@@ -4,6 +4,7 @@
 import {
   Home, Calculator, GitBranch, ClipboardList, Users, CalendarDays, GraduationCap,
   LayoutGrid, BookOpen, FlaskConical, MoreHorizontal, SpellCheck, Sprout, Cog,
+  FileText,
 } from 'lucide-react';
 import { MODULES } from './modules';
 
@@ -24,33 +25,14 @@ const STUDENT_SIDEBAR = [
   studentModuleNav('mathpath', 'MathPath', { end: false }),
   studentModuleNav('fluency', 'Fluency Practice', { end: false }),
   studentModuleNav('mistakes', 'Mistake-to-Mastery', { end: false }),
-  studentModuleNav('worksheets', 'Worksheets', { end: true }),
+  studentModuleNav('worksheets', 'Mastery Worksheet', { end: true }),
+  { to: '/student/assignments', label: 'Assignments', icon: ClipboardList, end: true },
   studentModuleNav('progress', 'Progress', { end: true }),
-  { to: '/student/assignments', label: 'Tasks', icon: ClipboardList, end: true },
   studentModuleNav('science', 'Science Adaptive Revision', { end: false }),
   studentModuleNav('spelling', 'Spelling Practice', { end: false }),
   studentModuleNav('lifelab', 'LifeLab', { end: false }),
   studentModuleNav('mechanisms', 'Mechanisms Playground', { end: false }),
 ].filter(Boolean);
-
-const studentSidebarGroups = [
-  {
-    label: 'Core Learning',
-    items: STUDENT_SIDEBAR.slice(0, 5),
-  },
-  {
-    label: 'Progress',
-    items: STUDENT_SIDEBAR.slice(5, 7),
-  },
-  {
-    label: 'Other Subjects',
-    items: STUDENT_SIDEBAR.slice(7, 10),
-  },
-  {
-    label: 'Secondary',
-    items: [STUDENT_SIDEBAR[10]],
-  },
-];
 
 // `bottom` = mobile bottom-nav items (max 5). `sidebar` = desktop/tablet items.
 export const NAV = {
@@ -62,7 +44,7 @@ export const NAV = {
       { to: '/student/progress', label: 'Progress', icon: GitBranch, end: true },
       { to: '/more', label: 'More', icon: MoreHorizontal, end: true },
     ],
-    sidebar: studentSidebarGroups,
+    sidebar: STUDENT_SIDEBAR,
   },
   parent: {
     bottom: [
@@ -77,8 +59,12 @@ export const NAV = {
       { to: '/parent/profile', label: 'Profile', icon: BookOpen },
     ],
     more: [
-      { to: '/parent/children', label: 'Children', icon: Users, description: 'Open a child profile to access assignments, progress and worksheets.' },
-      { to: '/parent/profile', label: 'Parent profile', icon: BookOpen, description: 'Update your family account and settings.' },
+      { to: '/parent/children', label: 'Children', icon: Users, description: 'Open a student profile to assign practice and view progress.' },
+      { to: '/parent/children', label: 'Progress', icon: GitBranch, description: 'View your child’s progress, weak topics and mastery map.' },
+      { to: '/parent/children', label: 'Assign Practice', icon: ClipboardList, description: 'Assign Maths or Science practice to your child.' },
+      { to: '/parent/children', label: 'Worksheets', icon: FileText, description: 'Generate mastery worksheets for your child.' },
+      { to: '/parent/children', label: 'Recommended Actions', icon: CalendarDays, description: 'See personalised actions for your child’s learning path.' },
+      { to: '/parent/children', label: 'LifeLab', icon: Sprout, description: 'Open practical activities and enrichment for your child.' },
     ],
   },
   tutor: {
@@ -96,20 +82,18 @@ export const NAV = {
           { to: '/tutor', label: 'Home', icon: Home },
           { to: '/tutor/students', label: 'Students', icon: Users },
           { to: '/tutor/homework', label: 'Homework', icon: ClipboardList },
-        ],
-      },
-      {
-        label: 'Support',
-        items: [
           { to: '/tutor/availability', label: 'Availability', icon: CalendarDays },
           { to: '/tutor/training', label: 'Training', icon: GraduationCap },
         ],
       },
     ],
     more: [
+      { to: '/tutor/students', label: 'Students', icon: Users, description: 'Open assigned learners and session histories.' },
+      { to: '/tutor/homework', label: 'Homework', icon: ClipboardList, description: 'Review and assign work for your students.' },
       { to: '/tutor/availability', label: 'Availability', icon: CalendarDays, description: 'Manage your teaching schedule.' },
       { to: '/tutor/training', label: 'Training', icon: GraduationCap, description: 'Continue tutor development and certification.' },
-      { to: '/tutor/students', label: 'Lesson Notes & Prep', icon: Users, description: 'Open a student profile to access lesson notes and prep tools.' },
+      { to: '/tutor/students', label: 'Lesson Prep', icon: BookOpen, description: 'Open a student profile to prepare lessons.' },
+      { to: '/tutor/students', label: 'Lesson Notes', icon: BookOpen, description: 'Open a student profile to view lesson notes.' },
     ],
   },
   teacher: {

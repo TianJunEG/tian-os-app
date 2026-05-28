@@ -30,7 +30,7 @@ export const MODULES = [
     purpose: 'Focused practice sets from your weak skills.', status: 'live',
   },
   {
-    key: 'progress', name: 'Skill Graph', icon: Network, path: '/student/progress',
+    key: 'progress', name: 'Progress', icon: Network, path: '/student/progress',
     purpose: 'See your mastery map and what unlocks next.', status: 'live',
   },
   {

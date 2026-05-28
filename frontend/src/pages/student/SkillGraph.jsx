@@ -52,15 +52,15 @@ export default function SkillGraph() {
   if (!summary || summary.total === 0) {
     return (
       <>
-        <PageHeader title="Skill Graph" subtitle="Your mastery map across MathPath." />
-        <EmptyState icon={Network} message="Your skill graph will appear once the MathPath curriculum is set up." />
+        <PageHeader title="Progress" subtitle="Your mastery map across MathPath." />
+        <EmptyState icon={Network} message="Your progress map will appear once you begin MathPath practice." />
       </>
     );
   }
 
   return (
     <>
-      <PageHeader title="Skill Graph" subtitle="Your mastery map across MathPath — what you've mastered and what unlocks next." />
+      <PageHeader title="Progress" subtitle="Your mastery map across MathPath — what you've mastered and what unlocks next." />
 
       {/* Standing */}
       <Card className="mb-6 p-5">
