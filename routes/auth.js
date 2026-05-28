@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { protect, getSignedToken } from '../middleware/auth.js';
+import { authRateLimit } from '../middleware/rateLimiter.js';
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ const router = express.Router();
 // @access  Public
 router.post(
   '/register',
+  authRateLimit,
   [
     body('name', 'Name is required').trim().notEmpty(),
     body('email', 'Please provide a valid email').isEmail(),
@@ -67,6 +69,7 @@ router.post(
 // @access  Public
 router.post(
   '/login',
+  authRateLimit,
   [
     body('email', 'Please provide a valid email').isEmail(),
     body('password', 'Password is required').notEmpty()
