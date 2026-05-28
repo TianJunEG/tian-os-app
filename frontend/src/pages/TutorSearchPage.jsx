@@ -147,6 +147,9 @@ export default function TutorSearchPage() {
 
   const grades = ['Elementary', 'Middle School', 'High School', 'College', 'All Levels'];
 
+  // Matching is on only when the server returns scores; otherwise it's a directory.
+  const matchingOn = tutors.some((t) => t.matchScore != null);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -286,27 +289,30 @@ export default function TutorSearchPage() {
           )}
         </div>
 
-        {/* Results */}
+        {/* Results. Auto-matching is gated server-side; when it's off the tutors
+            come back without a matchScore, so we render a plain directory. */}
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-600"></div>
-            <p className="mt-4 text-gray-600">Finding your best matches...</p>
+            <p className="mt-4 text-gray-600">{matchingOn ? 'Finding your best matches...' : 'Finding tutors...'}</p>
           </div>
         ) : searched ? (
           <>
             <div className="mb-4 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-navy-600" />
               <h2 className="text-xl font-semibold text-gray-900">
-                {tutors.length} Match{tutors.length !== 1 ? 'es' : ''} Found
+                {matchingOn
+                  ? `${tutors.length} Match${tutors.length !== 1 ? 'es' : ''} Found`
+                  : `${tutors.length} Tutor${tutors.length !== 1 ? 's' : ''}`}
               </h2>
               {tutors.length > 0 && (
-                <span className="text-sm text-gray-500">ranked by compatibility</span>
+                <span className="text-sm text-gray-500">{matchingOn ? 'ranked by compatibility' : 'sorted by rating'}</span>
               )}
             </div>
 
             {tutors.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-12 text-center">
-                <p className="text-gray-600 mb-4">No tutors scored above the 70% match threshold for these criteria.</p>
+                <p className="text-gray-600 mb-4">No tutors match these filters yet.</p>
                 <button
                   onClick={() => setSearched(false)}
                   className="text-navy-600 hover:text-navy-700 font-medium"
@@ -330,7 +336,7 @@ export default function TutorSearchPage() {
                               <p className="text-sm text-gray-600">{tutor.headline}</p>
                             )}
                           </div>
-                          <MatchScore score={tutor.matchScore} confidence={tutor.matchConfidence} />
+                          {tutor.matchScore != null && <MatchScore score={tutor.matchScore} confidence={tutor.matchConfidence} />}
                         </div>
 
                         {/* Match explanation */}
@@ -387,16 +393,20 @@ export default function TutorSearchPage() {
                           </div>
                         </div>
 
-                        {/* Why this match toggle */}
-                        <button
-                          type="button"
-                          onClick={() => setExpanded(prev => ({ ...prev, [tutor._id]: !prev[tutor._id] }))}
-                          className="flex items-center gap-1 text-sm font-medium text-navy-600 hover:text-navy-700"
-                        >
-                          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                          Why this match?
-                        </button>
-                        {isOpen && <CriteriaBreakdown scores={tutor.criteriaScores} />}
+                        {/* Why this match toggle — only when matching is on */}
+                        {tutor.matchScore != null && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setExpanded(prev => ({ ...prev, [tutor._id]: !prev[tutor._id] }))}
+                              className="flex items-center gap-1 text-sm font-medium text-navy-600 hover:text-navy-700"
+                            >
+                              {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              Why this match?
+                            </button>
+                            {isOpen && <CriteriaBreakdown scores={tutor.criteriaScores} />}
+                          </>
+                        )}
 
                         {/* Rate and Button */}
                         <div className="flex items-center justify-between mt-4">

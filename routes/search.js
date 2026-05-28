@@ -4,6 +4,35 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// The 9-criteria auto-matching is gated until launch — until then the search
+// endpoints return a plain tutor directory (ranked by rating/experience, no
+// match scores). Flip MATCHING_ENABLED=true to turn scoring + ranking back on.
+const MATCHING_ENABLED = process.env.MATCHING_ENABLED === 'true';
+
+// Plain directory card (no match score) — shared by the matching-disabled paths.
+const directoryCard = (tutor) => ({
+  _id: tutor._id,
+  userId: {
+    _id: tutor.userId?._id,
+    name: tutor.userId?.name || 'Unnamed',
+    email: tutor.userId?.email,
+    avatar: tutor.userId?.avatar,
+    bio: tutor.userId?.bio,
+    location: tutor.userId?.location || tutor.postalCode,
+    phone: tutor.userId?.phone,
+  },
+  headline: tutor.headline,
+  specialties: tutor.specialties,
+  grades: tutor.grades,
+  hourlyRate: tutor.hourlyRate,
+  rating: tutor.rating,
+  totalHoursTaught: tutor.totalHoursTaught,
+  responseTime: tutor.responseTime,
+  availability: tutor.availability,
+});
+const byRating = (a, b) =>
+  (b.rating?.average || 0) - (a.rating?.average || 0) || (b.totalHoursTaught || 0) - (a.totalHoursTaught || 0);
+
 // Normalize a subject label to a canonical specialty, so synonyms like
 // "Mathematics" and the seeded specialty "Math" align.
 const SUBJECT_SYNONYMS = {
@@ -326,6 +355,16 @@ router.post('/tutors', protect, async (req, res) => {
       .populate('userId', 'name email avatar bio location phone')
       .limit(100); // Get top 100 to score
 
+    // Matching not launched yet → return a plain directory (no scores), so the
+    // soft filters still narrow the list but tutors aren't ranked/hidden by score.
+    if (!MATCHING_ENABLED) {
+      const directory = tutorProfiles.map(directoryCard).sort(byRating).slice(0, Math.max(20, limit));
+      return res.json({
+        success: true, matching: false, count: directory.length, tutors: directory,
+        searchCriteria: { specialty, grade, budget: budget || maxRate, preferredDays, specialNeeds },
+      });
+    }
+
     // Create parent profile object from request
     const parentProfile = {
       postalCode,
@@ -428,6 +467,16 @@ router.get('/recommendations', protect, async (req, res) => {
 // @access  Private
 router.post('/match', protect, async (req, res) => {
   try {
+    // Matching not launched yet → top-rated tutors as a directory, no scoring.
+    if (!MATCHING_ENABLED) {
+      const profiles = await TutorProfile.find({ isActive: true })
+        .populate('userId', 'name email avatar bio location phone')
+        .sort({ 'rating.average': -1, totalHoursTaught: -1 })
+        .limit(req.body?.matchCount || 5);
+      const directory = profiles.map(directoryCard);
+      return res.json({ success: true, matching: false, matchesFound: directory.length, tutors: directory });
+    }
+
     const {
       specialty,
       grade,
