@@ -27,7 +27,7 @@ export default function ChildLifeLab() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!subs ? <Spinner /> : (
+      {!subs ? <Spinner label="Loading…" /> : (
         <>
           <CompetencyGrowth competencies={comps} title={`Competencies ${firstName} is building`} className="mb-6" />
 

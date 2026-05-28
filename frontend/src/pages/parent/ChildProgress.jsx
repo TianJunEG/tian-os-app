@@ -26,7 +26,7 @@ export default function ChildProgress() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!mastery ? <Spinner /> : (
+      {!mastery ? <Spinner label="Loading…" /> : (
         <>
           <Card className="mb-6 p-5">
             <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Maths · MathPath</div>

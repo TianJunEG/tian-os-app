@@ -9,7 +9,7 @@ export default function ParentChildren() {
   const [children, setChildren] = useState(null);
   useEffect(() => { familyAPI.children().then((r) => setChildren(r.data.children || [])).catch(() => setChildren([])); }, []);
 
-  if (!children) return <Spinner />;
+  if (!children) return <Spinner label="Loading…" />;
   return (
     <>
       <PageHeader title="Your children" subtitle="Tap a child to see progress and assign practice." />

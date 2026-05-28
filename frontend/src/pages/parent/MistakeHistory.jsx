@@ -22,7 +22,7 @@ export default function MistakeHistory() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!mistakes ? <Spinner /> : mistakes.length === 0 ? (
+      {!mistakes ? <Spinner label="Loading…" /> : mistakes.length === 0 ? (
         <EmptyState icon={CheckCircle2} message="No recent mistakes. Great consistency." />
       ) : (
         <div className="space-y-4">
@@ -40,7 +40,7 @@ export default function MistakeHistory() {
               </div>
               {m.workedSolution && <p className="mt-2 text-sm text-ink-500"><MathText text={m.workedSolution} /></p>}
               <div className="mt-4">
-                <Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/assign-practice?skill=${m.skillId}`)}>Assign similar practice</Button>
+                <Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/assign-practice?skill=${m.skillId}`)}>Assign practice</Button>
               </div>
             </Card>
           ))}

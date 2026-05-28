@@ -33,7 +33,7 @@ export default function ChildAssignments() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!items ? <Spinner /> : items.length === 0 ? (
+      {!items ? <Spinner label="Loading…" /> : items.length === 0 ? (
         <EmptyState icon={ClipboardList} message="No assignments yet. Use Assign practice to set targeted work.">
         </EmptyState>
       ) : (

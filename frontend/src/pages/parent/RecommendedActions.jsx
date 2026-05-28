@@ -8,6 +8,17 @@ import { Card, Button, Badge, Spinner, EmptyState } from '../../components/ui';
 
 const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
 
+// Contextual button verbs by actionType. Avoids the prior duplication where
+// the card title (the full recommendation) and the button label said the same
+// thing; the button should say what *kind* of action we're taking.
+const BUTTON_LABEL = {
+  assign_practice: 'Assign',
+  restart_practice: 'Assign',
+  review_mistakes: 'Review',
+  follow_up_assignment: 'Open',
+  celebrate: 'View progress',
+};
+
 // Routes each recommendation to the right screen, honouring its module so a
 // Spelling action lands on the Spelling assign flow (word list) rather than the
 // MathPath one (skill).
@@ -49,7 +60,7 @@ export default function RecommendedActions() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!recs ? <Spinner /> : recs.length === 0 ? (
+      {!recs ? <Spinner label="Loading…" /> : recs.length === 0 ? (
         <EmptyState icon={Sparkles} message={`Nothing urgent for ${child?.name || 'your child'} right now.`} />
       ) : (
         <div className="space-y-3">
@@ -63,7 +74,7 @@ export default function RecommendedActions() {
               <p className="font-semibold text-ink-700">{rec.action}</p>
               <p className="mt-0.5 text-sm text-ink-500">{rec.reason}</p>
               <div className="mt-3">
-                <Button size="s" onClick={() => navigate(destination(studentId, rec))}>{rec.action}</Button>
+                <Button size="s" onClick={() => navigate(destination(studentId, rec))}>{BUTTON_LABEL[rec.actionType] || 'Open'}</Button>
               </div>
             </Card>
           ))}

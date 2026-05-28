@@ -88,8 +88,8 @@ export default function WorksheetPreview() {
 
       <div className="mt-4 flex flex-wrap gap-2 print:hidden">
         {assigned
-          ? <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-success-100 px-5 py-3 font-semibold text-success-700"><Check className="h-4 w-4" /> Assigned to child</span>
-          : <Button icon={Send} disabled={assigning} onClick={assign} className="flex-1">{assigning ? 'Assigning…' : 'Assign to child'}</Button>}
+          ? <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-success-100 px-5 py-3 font-semibold text-success-700"><Check className="h-4 w-4" /> Worksheet assigned</span>
+          : <Button icon={Send} disabled={assigning} onClick={assign} className="flex-1">{assigning ? 'Assigning…' : 'Assign worksheet'}</Button>}
         <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print / Export</Button>
         <Button variant="secondary" icon={RotateCcw} onClick={() => navigate(`/parent/children/${studentId}/worksheets/new?mode=${w.sourceMode}`)}>Regenerate</Button>
       </div>

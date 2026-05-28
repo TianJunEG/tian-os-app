@@ -26,7 +26,7 @@ export default function WeakTopics() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!weak ? <Spinner /> : weak.length === 0 ? (
+      {!weak ? <Spinner label="Loading…" /> : weak.length === 0 ? (
         <EmptyState icon={CheckCircle2} message="No weak topics right now. Nicely on track." />
       ) : (
         <div className="space-y-3">
