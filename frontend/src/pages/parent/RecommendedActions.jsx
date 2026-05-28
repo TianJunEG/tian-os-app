@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { familyAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, Badge, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Badge, Spinner, EmptyState, ErrorState } from '../../components/ui';
 
 const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
 
@@ -52,15 +52,18 @@ export default function RecommendedActions() {
   const navigate = useNavigate();
   const child = useChild(studentId);
   const [recs, setRecs] = useState(null);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    familyAPI.recommendations(studentId).then((r) => setRecs(r.data.recommendations || [])).catch(() => setRecs([]));
+  const load = useCallback(() => {
+    setError(null); setRecs(null);
+    familyAPI.recommendations(studentId).then((r) => setRecs(r.data.recommendations || [])).catch((e) => setError(e));
   }, [studentId]);
+  useEffect(() => { load(); }, [load]);
 
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!recs ? <Spinner label="Loading…" /> : recs.length === 0 ? (
+      {error ? <ErrorState message="Couldn't load recommendations." onRetry={load} /> : !recs ? <Spinner label="Loading…" /> : recs.length === 0 ? (
         <EmptyState icon={Sparkles} message={`Nothing urgent for ${child?.name || 'your child'} right now.`} />
       ) : (
         <div className="space-y-3">

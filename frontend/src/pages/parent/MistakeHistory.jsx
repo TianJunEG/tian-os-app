@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, X } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Spinner, EmptyState, ErrorState } from '../../components/ui';
 import MistakeCard from './MistakeCard';
 
 // Read-only mistake history for the parent, with a one-tap route to assign
@@ -17,12 +17,15 @@ export default function MistakeHistory() {
   const [params] = useSearchParams();
   const child = useChild(studentId);
   const [mistakes, setMistakes] = useState(null);
+  const [error, setError] = useState(null);
 
   const skillFilter = params.get('skill') || '';
 
-  useEffect(() => {
-    mathpathAPI.mistakes({ studentId }).then((r) => setMistakes(r.data.mistakes || [])).catch(() => setMistakes([]));
+  const load = useCallback(() => {
+    setError(null); setMistakes(null);
+    mathpathAPI.mistakes({ studentId }).then((r) => setMistakes(r.data.mistakes || [])).catch((e) => setError(e));
   }, [studentId]);
+  useEffect(() => { load(); }, [load]);
 
   const visible = useMemo(() => {
     if (!mistakes) return null;
@@ -51,7 +54,7 @@ export default function MistakeHistory() {
         </Card>
       )}
 
-      {!visible ? <Spinner label="Loading…" /> : visible.length === 0 ? (
+      {error ? <ErrorState message="Couldn't load mistakes." onRetry={load} /> : !visible ? <Spinner label="Loading…" /> : visible.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
           message={skillFilter ? 'No recent mistakes for this skill.' : 'No recent mistakes. Great consistency.'}

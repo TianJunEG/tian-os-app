@@ -109,6 +109,28 @@ export function EmptyState({ icon: Icon, message, children }) {
   );
 }
 
+// ─── ErrorState ─────────────────────────────────────────────────────
+// Distinct from EmptyState because "no data yet" and "we failed to fetch"
+// are different signals to the user. Pages that previously swallowed errors
+// (.catch(() => setData([]))) ended up showing reassuring empty messages
+// when the real state was "the API errored" — actively misleading.
+export function ErrorState({ message = "Couldn't load this. Try again?", onRetry }) {
+  return (
+    <Card className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-error-100 text-error-700">!</span>
+      <p className="max-w-sm text-sm text-ink-600">{message}</p>
+      {onRetry && (
+        <button
+          onClick={onRetry}
+          className="rounded-xl border border-hairline px-3 py-1.5 text-sm font-semibold text-navy-700 hover:bg-navy-50"
+        >
+          Retry
+        </button>
+      )}
+    </Card>
+  );
+}
+
 // ─── Spinner ────────────────────────────────────────────────────────
 export function Spinner({ label = 'Loading…' }) {
   return (

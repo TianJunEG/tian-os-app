@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, Users } from 'lucide-react';
 import { familyAPI, assignmentsAPI } from '../../services/api';
 import { Card, Button, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, Badge } from '../../components/ui';
@@ -8,8 +8,16 @@ const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
 
 // Parent home — clear, confidence-building, action-oriented. Child selector +
 // overall status + the single top recommended action.
+//
+// IA: this page is per-child by design. With a single child it's the natural
+// landing. With multiple children, landing on /parent without picking one
+// would default to "first child" silently — confusing. So when multi-child
+// and no ?child= is set, we redirect to /parent/children (the explicit
+// "all children" grid). Once a child is picked there, the user arrives back
+// here with ?child=… set.
 export default function ParentHome() {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const [children, setChildren] = useState(null);
   const [recs, setRecs] = useState([]);
   const [assignments, setAssignments] = useState([]);
@@ -21,7 +29,13 @@ export default function ParentHome() {
     familyAPI.children().then((r) => {
       const list = r.data.children || [];
       setChildren(list);
-      if (!activeId && list[0]) setParams({ child: String(list[0].studentId) }, { replace: true });
+      if (!activeId) {
+        if (list.length > 1) {
+          navigate('/parent/children', { replace: true });
+          return;
+        }
+        if (list[0]) setParams({ child: String(list[0].studentId) }, { replace: true });
+      }
       setLoading(false);
     }).catch(() => { setChildren([]); setLoading(false); });
   }, []); // eslint-disable-line

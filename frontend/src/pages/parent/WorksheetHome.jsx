@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AlertCircle, TrendingDown, BookOpen, FileText, Plus } from 'lucide-react';
 import { worksheetGenAPI } from '../../services/api';
-import { Card, Badge, PageHeader, Spinner } from '../../components/ui';
+import { Card, Badge, Spinner } from '../../components/ui';
+import { useChild } from './useChild';
+import ChildNav from './ChildNav';
 
 const MODES = [
   { key: 'recent_mistakes', label: 'From recent mistakes', desc: 'Target the slips your child just made.', Icon: AlertCircle },
@@ -14,6 +16,7 @@ const MODES = [
 export default function WorksheetHome() {
   const { studentId } = useParams();
   const navigate = useNavigate();
+  const child = useChild(studentId);
   const [worksheets, setWorksheets] = useState([]);
   const [loading, setLoading] = useState(true);
   const base = `/parent/children/${studentId}/worksheets`;
@@ -24,7 +27,9 @@ export default function WorksheetHome() {
 
   return (
     <>
-      <PageHeader title="Worksheet Generator" subtitle="Create targeted Math practice — digital first" />
+      <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
+      <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">Worksheet Generator</h2>
+      <p className="mb-5 text-sm text-ink-500">Create targeted Math practice — digital first.</p>
 
       <div className="mb-6 space-y-2.5">
         {MODES.map(({ key, label, desc, Icon }) => (

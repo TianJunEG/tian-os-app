@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FlaskConical } from 'lucide-react';
 import { skillsAPI, mathpathAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, StatTile, ProgressBar, Spinner, EmptyState } from '../../components/ui';
+import { Card, StatTile, ProgressBar, Spinner, EmptyState, ErrorState } from '../../components/ui';
 import { summariseMastery, statusTone } from './masterySummary';
 import MistakeCard from './MistakeCard';
 
@@ -15,11 +15,16 @@ export default function ChildScience() {
   const child = useChild(studentId);
   const [skills, setSkills] = useState(null);
   const [mistakes, setMistakes] = useState(null);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    skillsAPI.list({ subject: 'science', studentId }).then((r) => setSkills(r.data.skills || [])).catch(() => setSkills([]));
-    mathpathAPI.mistakes({ studentId, module: 'Science Adaptive Revision' }).then((r) => setMistakes(r.data.mistakes || [])).catch(() => setMistakes([]));
+  const load = useCallback(() => {
+    setError(null); setSkills(null); setMistakes(null);
+    Promise.all([
+      skillsAPI.list({ subject: 'science', studentId }).then((r) => setSkills(r.data.skills || [])),
+      mathpathAPI.mistakes({ studentId, module: 'Science Adaptive Revision' }).then((r) => setMistakes(r.data.mistakes || [])),
+    ]).catch((e) => setError(e));
   }, [studentId]);
+  useEffect(() => { load(); }, [load]);
 
   // Group skills by topic for the standing list.
   const byTopic = {};
@@ -29,7 +34,7 @@ export default function ChildScience() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!skills || !mistakes ? <Spinner label="Loading…" /> : skills.length === 0 ? (
+      {error ? <ErrorState message="Couldn't load Science data." onRetry={load} /> : !skills || !mistakes ? <Spinner label="Loading…" /> : skills.length === 0 ? (
         <EmptyState icon={FlaskConical} message="No Science activity yet for this child." />
       ) : (
         <>

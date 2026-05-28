@@ -1,14 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import { familyAPI } from '../../services/api';
-import { Card, ProgressBar, Badge, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, ProgressBar, Badge, PageHeader, Spinner, EmptyState, ErrorState } from '../../components/ui';
 
 // List of the parent's children — each links into the per-child screens.
 export default function ParentChildren() {
   const [children, setChildren] = useState(null);
-  useEffect(() => { familyAPI.children().then((r) => setChildren(r.data.children || [])).catch(() => setChildren([])); }, []);
+  const [error, setError] = useState(null);
 
+  const load = useCallback(() => {
+    setError(null);
+    setChildren(null);
+    familyAPI.children().then((r) => setChildren(r.data.children || [])).catch((e) => setError(e));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  if (error) return <ErrorState message="Couldn't load your children." onRetry={load} />;
   if (!children) return <Spinner label="Loading…" />;
   return (
     <>

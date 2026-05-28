@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Send, Printer, RotateCcw, Check, AlertTriangle } from 'lucide-react';
 import { worksheetGenAPI } from '../../services/api';
-import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Spinner, EmptyState } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
+import { useChild } from './useChild';
+import ChildNav from './ChildNav';
 
 // Parent › Worksheet Generator › preview. Clean printable layout + assign/print/regenerate.
 export default function WorksheetPreview() {
   const { studentId, worksheetId } = useParams();
   const navigate = useNavigate();
+  const child = useChild(studentId);
   const [w, setW] = useState(null);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
@@ -24,16 +27,25 @@ export default function WorksheetPreview() {
     finally { setAssigning(false); }
   };
 
-  if (loading) return <Spinner label="Loading worksheet…" />;
-  if (error) return <EmptyState icon={AlertTriangle} message={error} />;
-  if (!w) return <EmptyState icon={AlertTriangle} message="Worksheet not found." />;
+  // Keep the child context (back link + tabs) visible across loading/error
+  // states so the worksheet preview is recognisably part of the child's surface.
+  const Frame = ({ children }) => (
+    <>
+      <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
+      {children}
+    </>
+  );
+  if (loading) return <Frame><Spinner label="Loading worksheet…" /></Frame>;
+  if (error) return <Frame><EmptyState icon={AlertTriangle} message={error} /></Frame>;
+  if (!w) return <Frame><EmptyState icon={AlertTriangle} message="Worksheet not found." /></Frame>;
 
   const c = w.content || {};
   const assigned = w.assignedStatus === 'assigned';
 
   return (
-    <>
-      <PageHeader title="Worksheet preview" subtitle={(c.skillNames || []).join(', ')} />
+    <Frame>
+      <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">Worksheet preview</h2>
+      <p className="mb-5 text-sm text-ink-500">{(c.skillNames || []).join(', ')}</p>
 
       <Card className="p-6 print:border-0 print:shadow-none">
         <div className="mb-4 border-b border-hairline pb-3">
@@ -94,7 +106,7 @@ export default function WorksheetPreview() {
         <Button variant="secondary" icon={RotateCcw} onClick={() => navigate(`/parent/children/${studentId}/worksheets/new?${regenParams(w)}`)}>Regenerate</Button>
       </div>
       <p className="mt-2 text-xs text-ink-500 print:hidden">PDF export uses your browser's print dialog for now — native download is planned.</p>
-    </>
+    </Frame>
   );
 }
 

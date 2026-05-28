@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Sprout, CheckCircle2 } from 'lucide-react';
 import { lifelabAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, StatusBadge, Spinner, EmptyState } from '../../components/ui';
+import { Card, StatusBadge, Spinner, EmptyState, ErrorState } from '../../components/ui';
 import E21ccTags from '../../components/LifeLab/E21ccTags';
 import CompetencyGrowth from '../../components/LifeLab/CompetencyGrowth';
 
@@ -15,19 +15,22 @@ export default function ChildLifeLab() {
   const child = useChild(studentId);
   const [subs, setSubs] = useState(null);
   const [comps, setComps] = useState([]);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setError(null); setSubs(null); setComps([]);
     lifelabAPI.child(studentId)
       .then((r) => { setSubs(r.data.submissions || []); setComps(r.data.competencies || []); })
-      .catch(() => setSubs([]));
+      .catch((e) => setError(e));
   }, [studentId]);
+  useEffect(() => { load(); }, [load]);
 
   const firstName = (child?.name || 'Your child').split(' ')[0];
 
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {!subs ? <Spinner label="Loading…" /> : (
+      {error ? <ErrorState message="Couldn't load LifeLab activities." onRetry={load} /> : !subs ? <Spinner label="Loading…" /> : (
         <>
           <CompetencyGrowth competencies={comps} title={`Competencies ${firstName} is building`} className="mb-6" />
 
