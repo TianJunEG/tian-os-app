@@ -74,8 +74,8 @@ export default function ParentHome() {
         ) : null}
       />
 
-      {/* Overall status */}
-      <Card className="mb-6 p-5">
+      {/* Overall status — kept as the cross-subject headline */}
+      <Card className="mb-4 p-5">
         <div className="mb-1 text-sm font-semibold text-ink-700">{child.name} <span className="font-normal text-ink-500">· {child.level}</span></div>
         <div className="mt-3 flex items-center gap-6">
           <StatTile label="Overall mastery" value={child.overallMastery} suffix="%" />
@@ -84,6 +84,29 @@ export default function ParentHome() {
         </div>
         <ProgressBar value={child.overallMastery} className="mt-4" />
       </Card>
+
+      {/* By subject — surfaces Maths / Science / English separately so the
+          headline "Overall mastery" isn't quietly hiding a strong-in-one,
+          weak-in-another picture. Each card links to that subject's screen
+          when one exists. Subjects with no activity are omitted server-side. */}
+      {(child.subjects?.length || 0) > 0 && (
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {child.subjects.map((s) => {
+            const to = subjectLink(child.studentId, s.subject);
+            const Body = (
+              <Card className="p-4">
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="text-sm font-semibold text-ink-700">{s.subject}</p>
+                  <span className="font-mono text-xs tabular-nums text-ink-500">{s.mastered}/{s.total}</span>
+                </div>
+                <div className="mt-1 font-display text-xl font-semibold text-navy-700">{s.overall}%</div>
+                <ProgressBar value={s.overall} className="mt-2" />
+              </Card>
+            );
+            return to ? <Link key={s.subject} to={to} className="block">{Body}</Link> : <div key={s.subject}>{Body}</div>;
+          })}
+        </div>
+      )}
 
       {/* Today's recommended action (top of the list — full list on the actions page) */}
       <h3 className="mb-3 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">
@@ -134,4 +157,14 @@ export default function ParentHome() {
       </div>
     </>
   );
+}
+
+// Per-subject card destinations. Math + Science have parent surfaces; English
+// (Spelling Practice) is assign-only today, so leave it unlinked rather than
+// 404-routing the parent through a non-existent page.
+function subjectLink(studentId, subject) {
+  const base = `/parent/children/${studentId}`;
+  if (subject === 'Math') return `${base}/progress`;
+  if (subject === 'Science') return `${base}/science`;
+  return null;
 }
