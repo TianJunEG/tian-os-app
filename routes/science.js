@@ -24,6 +24,10 @@ const LEGACY_QUESTIONS = loadJson('../data/p6Science.json');
 const TOPIC_MIND_MAPS = loadJson('../data/scienceNotes.json');
 const STRUCTURED_LESSONS = loadJson('../data/scienceLessons.json');
 const DIAGRAMS = loadJson('../data/scienceDiagrams.json');
+// Map of `${topic}::${heading}` → diagram key. Built from the legacy
+// QUESTIONS array which carries q.diagram on ~94 questions; the join lets the
+// auto-built lesson reader pick up the right inline SVG per concept page.
+const QUESTION_DIAGRAMS = loadJson('../data/scienceQuestionDiagrams.json');
 
 const LEGACY_TOPICS = [...new Set(LEGACY_QUESTIONS.map((q) => q.topic))]
   .sort()
@@ -102,13 +106,17 @@ router.get('/lessons', async (req, res) => {
     const qs = await Question.find({ skillId: { $in: skillIds } })
       .select('stem answer explanation modelAnswer keyPoints difficulty');
     qs.sort((a, b) => (a.explanation || '').localeCompare(b.explanation || ''));
-    const pages = qs.map((q, i) => ({
-      index: i, total: qs.length,
-      kind: 'concept', heading: q.explanation || '',
-      title: q.stem, body: q.modelAnswer || q.answer || '',
-      terms: Array.isArray(q.keyPoints) ? q.keyPoints.join(', ') : '',
-      diagram: null,
-    }));
+    const pages = qs.map((q, i) => {
+      const heading = q.explanation || '';
+      const dKey = QUESTION_DIAGRAMS[`${topic.name}::${heading}`];
+      return {
+        index: i, total: qs.length,
+        kind: 'concept', heading,
+        title: q.stem, body: q.modelAnswer || q.answer || '',
+        terms: Array.isArray(q.keyPoints) ? q.keyPoints.join(', ') : '',
+        diagram: dKey && DIAGRAMS[dKey] ? DIAGRAMS[dKey] : null,
+      };
+    });
     res.json({ topic: topic.name, moeLevel: topic.moeLevel, kind: pages.length ? 'auto' : 'empty', pages });
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load lesson.' });
