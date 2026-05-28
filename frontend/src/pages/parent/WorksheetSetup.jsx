@@ -9,13 +9,16 @@ export default function WorksheetSetup() {
   const { studentId } = useParams();
   const navigate = useNavigate();
   const [sp] = useSearchParams();
+  // All form fields seed from the URL so the WorksheetPreview "Regenerate"
+  // link can round-trip the prior choices (count, difficulty, skill, toggles).
+  // Falls back to the previous defaults when a param is absent.
   const [mode, setMode] = useState(sp.get('mode') || 'weak_skills');
   const [skills, setSkills] = useState([]);
-  const [skillId, setSkillId] = useState('');
-  const [questionCount, setQuestionCount] = useState('10');
-  const [difficulty, setDifficulty] = useState('medium');
-  const [includesSolutions, setIncludesSolutions] = useState(true);
-  const [includesMistakeReview, setIncludesMistakeReview] = useState(false);
+  const [skillId, setSkillId] = useState(sp.get('skill') || '');
+  const [questionCount, setQuestionCount] = useState(sp.get('count') || '10');
+  const [difficulty, setDifficulty] = useState(sp.get('difficulty') || 'medium');
+  const [includesSolutions, setIncludesSolutions] = useState(sp.get('solutions') !== '0');
+  const [includesMistakeReview, setIncludesMistakeReview] = useState(sp.get('review') === '1');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
