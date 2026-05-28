@@ -48,7 +48,7 @@ router.get('/', protect, async (req, res) => {
         targetSeconds: s.metadata?.fluency?.targetSeconds ?? null,
       };
     });
-    res.json({ studentId: student._id, subject: subjectKey, skills: out });
+    res.json({ studentId: student._id, studentLevel: student.level || '', subject: subjectKey, skills: out });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load skills.' });
   }
