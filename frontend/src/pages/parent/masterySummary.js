@@ -19,9 +19,14 @@ export function summariseMastery(records = []) {
 
 // Tailwind background classes for the per-skill status tile bars. Kept here
 // so Math and Science by-topic strips stay visually identical.
+//
+// not_started gets an inset ring so a topic with zero attempts (the common
+// brand-new-account case) still reads as "this is a 23-tile bar" instead of
+// blending into the card background. The post-Batch-4 verify caught this:
+// the segmented tiles change was invisible to a fresh student.
 export function statusTone(status) {
   if (status === 'mastered') return 'bg-navy-700';
   if (status === 'learning') return 'bg-navy-300';
   if (status === 'needs_review') return 'bg-error-300';
-  return 'bg-ink-100'; // not_started
+  return 'bg-ink-100 ring-1 ring-inset ring-ink-200'; // not_started
 }
