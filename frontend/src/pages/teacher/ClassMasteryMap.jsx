@@ -14,19 +14,44 @@ const SEG = [
   ['not_started', 'Not started', 'bg-mastery-1'],
 ];
 
+const SUBJECTS = [
+  { key: 'math', label: 'Math' },
+  { key: 'science', label: 'Science' },
+];
+
 export default function ClassMasteryMap() {
   const { id } = useParams();
   const navigate = useNavigate();
   const meta = useClass(id);
   const [topics, setTopics] = useState(null);
+  const [subject, setSubject] = useState('math');
   const [open, setOpen] = useState(null);
 
-  useEffect(() => { teacherAPI.classMastery(id).then((r) => setTopics(r.data.topics || [])).catch(() => setTopics([])); }, [id]);
+  useEffect(() => {
+    setTopics(null); setOpen(null);
+    teacherAPI.classMastery(id, subject).then((r) => setTopics(r.data.topics || [])).catch(() => setTopics([]));
+  }, [id, subject]);
 
   if (!topics) return <Spinner />;
   return (
     <>
       <ClassNav classId={id} name={meta?.name || 'Class'} level={meta?.level} />
+
+      {/* Subject toggle */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Subject</span>
+        {SUBJECTS.map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            onClick={() => setSubject(s.key)}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${subject === s.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700 hover:border-ink-300'}`}
+            aria-pressed={subject === s.key}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
 
       {/* Legend */}
       <div className="mb-4 flex flex-wrap gap-3 text-xs text-ink-500">
@@ -35,6 +60,12 @@ export default function ClassMasteryMap() {
         ))}
       </div>
 
+      {topics.length === 0 && (
+        <Card className="mb-6 p-4 text-sm text-ink-500">
+          No {subject === 'science' ? 'Science' : 'Math'} topics for this class yet.
+        </Card>
+      )}
+
       <div className="mb-6 space-y-2">
         {topics.map((t) => {
           const total = Object.values(t.counts).reduce((a, b) => a + b, 0) || 1;
@@ -42,7 +73,10 @@ export default function ClassMasteryMap() {
             <Card key={t.topicId} className="p-4">
               <button onClick={() => setOpen(open === t.topicId ? null : t.topicId)} className="w-full text-left">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="font-medium text-ink-700">{t.name}</span>
+                  <span className="font-medium text-ink-700">
+                    {t.name}
+                    {t.moeLevel && <span className="ml-2 text-xs font-normal text-ink-400">· {t.moeLevel.replace('Primary ', 'P')}</span>}
+                  </span>
                   {t.counts.needs_support > 0 && <span className="inline-flex items-center gap-1 text-xs font-semibold text-error-700"><Users className="h-3.5 w-3.5" />{t.counts.needs_support}</span>}
                 </div>
                 {/* stacked bar */}
