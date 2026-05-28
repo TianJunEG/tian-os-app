@@ -11,6 +11,7 @@ import { applyMarks } from '../utils/marking.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
 import { logDiagnosedMisconceptions } from '../utils/misconceptionLog.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
+import { commonMistakes } from '../utils/commonMistakes.js';
 
 const router = express.Router();
 
@@ -203,6 +204,27 @@ router.get('/misconceptions', protect, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(200);
     return res.json({ success: true, count: misconceptions.length, misconceptions });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// @route   GET /api/worksheets/common-mistakes
+// @desc    The misconceptions that recur most across a parent/tutor/teacher's
+//          students (optionally one student via ?studentId, or one ?topic).
+// @access  Private (not students)
+router.get('/common-mistakes', protect, async (req, res) => {
+  try {
+    if (req.user.role === 'student') {
+      return res.status(403).json({ error: 'The common-mistakes view is for parents, tutors and teachers.' });
+    }
+    const rows = await commonMistakes({
+      ownerUserId: req.user.id,
+      studentUserId: req.query.studentId || null,
+      topic: req.query.topic || null,
+      limit: req.query.limit,
+    });
+    return res.json({ success: true, count: rows.length, commonMistakes: rows });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
