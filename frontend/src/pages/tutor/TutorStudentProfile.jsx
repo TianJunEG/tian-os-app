@@ -5,6 +5,7 @@ import { tutorAPI } from '../../services/api';
 import TutorStudentNav from './TutorStudentNav';
 import { Card, Button, Badge, StatusBadge, StatTile, Spinner } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
+import StudentSciencePanel from '../../components/StudentSciencePanel';
 
 // One student, understood quickly: mastery, recent mistakes, homework, notes.
 export default function TutorStudentProfile() {
@@ -59,6 +60,8 @@ export default function TutorStudentProfile() {
           )}
         </Card>
       </div>
+
+      <StudentSciencePanel studentId={id} />
 
       <Card className="mt-5 p-5">
         <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Last lesson notes</h3>
