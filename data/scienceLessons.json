@@ -1,0 +1,39 @@
+{
+  "Human Impact and Environment": {
+    "sections": [
+      {
+        "title": "Pollution: air, water and land",
+        "body": "Pollution means harmful substances being released into the environment, where they damage living things and their habitats. There are three main types. Air pollution comes mainly from burning fossil fuels — vehicle exhaust and smoke from factories and power stations — as well as haze and construction dust. Water pollution comes from chemical waste and oil spills, sewage, fertilisers washed off farms, and plastic rubbish. Land pollution comes from rubbish and hazardous waste left on the ground. Pollutants harm living things in many ways: tiny particles in the air irritate the windpipe and air sacs and cause breathing problems; chemicals in a river can poison fish directly or use up the dissolved oxygen so the fish suffocate; and poisons can build up along a food chain, becoming most concentrated in the top predators.",
+        "diagram": "pollution_types_v1",
+        "terms": "pollution, air pollution, water pollution, land pollution, pollutants, dissolved oxygen"
+      },
+      {
+        "title": "The greenhouse effect and global warming",
+        "body": "Some gases in the air, called greenhouse gases, trap heat from the Sun like a blanket around the Earth. Carbon dioxide is the most important one. A natural amount keeps the Earth warm enough for life, but humans add extra carbon dioxide — mostly by burning fossil fuels in vehicles, factories and power stations, and by cutting down and burning forests. More greenhouse gas traps more heat, so the Earth slowly warms; this is global warming. Its effects are serious: polar ice melts and sea levels rise, flooding low-lying coasts; weather becomes more extreme; and warmer conditions even let mosquitoes breed and spread disease faster. This is why switching off lights, using less electricity and planting trees all help — they cut the carbon dioxide we add to the air.",
+        "diagram": "lesson_greenhouse_effect_v1",
+        "terms": "greenhouse gas, carbon dioxide, global warming, fossil fuels, climate change"
+      },
+      {
+        "title": "Deforestation and habitat loss",
+        "body": "Deforestation is the clearing of large areas of forest for farmland, cities or wood, and it harms the environment in several linked ways. With fewer trees, less carbon dioxide is removed from the air and less oxygen is produced, which worsens global warming. Fewer trees also mean less transpiration, so less water vapour enters the air — reducing cloud formation and rainfall in that region. Tree roots normally hold the soil together; without them, rain washes the soil away, causing soil erosion. Most importantly, forests — especially tropical rainforests — are home to a huge variety of living things, so clearing them destroys habitats and threatens countless species.",
+        "terms": "deforestation, habitat, transpiration, soil erosion, rainforest, biodiversity"
+      },
+      {
+        "title": "Protecting living things and biodiversity",
+        "body": "Biodiversity is the great variety of living things in an ecosystem. Every species has a role — in food chains, in pollinating plants, or in dispersing seeds — so losing even one can affect many others, and once a species is extinct it is gone forever. That is why people protect endangered animals such as tigers and pandas, and special habitats such as coral reefs and mangroves, which shelter thousands of sea species and protect coastlines from waves. Bees and birds matter too, because they pollinate many of our food crops. Countries also set rules limiting how many fish may be caught, so that enough breeding fish are left for populations to recover instead of collapsing from overfishing.",
+        "terms": "biodiversity, ecosystem, extinction, endangered species, coral reef, overfishing"
+      },
+      {
+        "title": "Conserving resources: Reduce, Reuse, Recycle",
+        "body": "Many of Earth's resources are limited, so we should not waste them. The three R's help cut down waste. Reduce means using less in the first place, such as switching off lights you do not need. Reuse means using the same item again — for example carrying a refillable water bottle instead of buying new plastic ones; reusing is the best choice because no energy is needed to remake the item. Recycle means turning old materials into new ones: recycling paper saves trees, and recycling metal cans uses only a small fraction of the energy needed to make new metal. Saving water and electricity matters too — take shorter showers, fix leaks, use LED bulbs and a fan instead of air-conditioning. Plastic is a special problem because it does not break down for hundreds of years and harms wildlife, so reducing plastic use is very important.",
+        "diagram": "recycle_3rs_v1",
+        "terms": "reduce, reuse, recycle, conserve, plastic, resources"
+      },
+      {
+        "title": "Greener choices and Singapore's efforts",
+        "body": "Everyday choices add up. Travelling by bicycle, or by shared public transport like the MRT, uses far less fuel per person than driving, so less carbon dioxide and pollution are released. Electric cars produce no exhaust gases at all. Eating less meat helps too, because producing meat uses a lot of land and water and releases methane, a greenhouse gas. Singapore, being small with limited land and water, makes special efforts: it plants many trees to absorb carbon dioxide, cool the city and shelter wildlife; it collects rainwater in reservoirs, recycles used water into NEWater, and saves water carefully; and it builds vertical farms and uses more solar power to produce food and clean energy locally. Each of these choices reduces our impact on the environment.",
+        "terms": "public transport, electric car, methane, NEWater, solar power, conservation"
+      }
+    ]
+  }
+}

@@ -63,6 +63,8 @@ const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
 const ScienceMistakes = lazy(() => import('./pages/student/science/ScienceMistakes'));
+const ScienceTopicNotes = lazy(() => import('./pages/student/science/ScienceTopicNotes'));
+const ScienceTopicLesson = lazy(() => import('./pages/student/science/ScienceTopicLesson'));
 // Parent (Phase 3)
 const ParentHome = lazy(() => import('./pages/parent/ParentHome'));
 const ParentChildren = lazy(() => import('./pages/parent/ParentChildren'));
@@ -421,6 +423,8 @@ function App() {
             <Route path="/student/science" element={<ScienceHome />} />
             <Route path="/student/science/topics" element={<ScienceTopics />} />
             <Route path="/student/science/mistakes" element={<ScienceMistakes />} />
+            <Route path="/student/science/topic/:topicId/notes" element={<ScienceTopicNotes />} />
+            <Route path="/student/science/topic/:topicId/lesson" element={<ScienceTopicLesson />} />
             <Route path="/student/science/practice/:sessionId" element={<PracticeSession />} />
             <Route path="/student/science/results/:sessionId" element={<PracticeResult />} />
             <Route path="/student/lifelab" element={<StudentLifeLab />} />
