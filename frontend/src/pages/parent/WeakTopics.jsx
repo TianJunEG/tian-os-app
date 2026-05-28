@@ -45,7 +45,7 @@ export default function WeakTopics() {
               </p>
               <div className="mt-3 flex gap-2">
                 <Button size="s" onClick={() => navigate(`/parent/children/${studentId}/assign-practice?skill=${w.skillId}`)}>Assign practice</Button>
-                <Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mistakes`)}>Review mistakes</Button>
+                <Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mistakes?skill=${w.skillId}`)}>Review mistakes</Button>
               </div>
             </Card>
           ))}

@@ -91,9 +91,24 @@ export default function WorksheetPreview() {
           ? <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-success-100 px-5 py-3 font-semibold text-success-700"><Check className="h-4 w-4" /> Worksheet assigned</span>
           : <Button icon={Send} disabled={assigning} onClick={assign} className="flex-1">{assigning ? 'Assigning…' : 'Assign worksheet'}</Button>}
         <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print / Export</Button>
-        <Button variant="secondary" icon={RotateCcw} onClick={() => navigate(`/parent/children/${studentId}/worksheets/new?mode=${w.sourceMode}`)}>Regenerate</Button>
+        <Button variant="secondary" icon={RotateCcw} onClick={() => navigate(`/parent/children/${studentId}/worksheets/new?${regenParams(w)}`)}>Regenerate</Button>
       </div>
       <p className="mt-2 text-xs text-ink-500 print:hidden">PDF export uses your browser's print dialog for now — native download is planned.</p>
     </>
   );
+}
+
+// Roundtrip the worksheet's choices into the Regenerate link so the setup page
+// pre-fills with the same options. Without this, every tweak meant re-picking
+// the topic, count, difficulty, and toggles from scratch.
+function regenParams(w) {
+  const p = new URLSearchParams();
+  if (w.sourceMode) p.set('mode', w.sourceMode);
+  if (w.difficulty) p.set('difficulty', w.difficulty);
+  if (w.questionCount) p.set('count', String(w.questionCount));
+  const firstSkill = Array.isArray(w.content?.skillIds) ? w.content.skillIds[0] : (w.skillIds?.[0]);
+  if (firstSkill) p.set('skill', String(firstSkill));
+  if (w.includesSolutions === false) p.set('solutions', '0');
+  if (w.includesMistakeReview) p.set('review', '1');
+  return p.toString();
 }

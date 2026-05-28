@@ -4,7 +4,8 @@ import { ArrowRight } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, StatTile, ProgressBar, StatusBadge, Spinner } from '../../components/ui';
+import { Card, Button, StatTile, ProgressBar, Spinner } from '../../components/ui';
+import { summariseMastery, statusTone } from './masterySummary';
 
 // Math-first progress overview for one child.
 export default function ChildProgress() {
@@ -18,10 +19,7 @@ export default function ChildProgress() {
     mathpathAPI.map({ studentId }).then((r) => setTopics(r.data.topics || [])).catch(() => {});
   }, [studentId]);
 
-  const records = mastery?.records || [];
-  const mastered = records.filter((r) => r.status === 'mastered').length;
-  const learning = records.filter((r) => r.status === 'learning').length;
-  const overall = records.length ? Math.round(records.reduce((s, r) => s + r.score, 0) / records.length) : 0;
+  const { mastered, learning, overall } = summariseMastery(mastery?.records || []);
 
   return (
     <>
@@ -41,12 +39,23 @@ export default function ChildProgress() {
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">By topic</h3>
           <div className="mb-6 space-y-3">
             {topics.map((t) => (
-              <Card key={t.topicId} className="flex items-center justify-between gap-3 p-4">
-                <div className="min-w-0 flex-1">
+              <Card key={t.topicId} className="p-4">
+                <div className="flex items-baseline justify-between gap-3">
                   <p className="font-medium text-ink-700">{t.name}</p>
-                  <ProgressBar value={t.masteredCount} max={Math.max(t.total, 1)} className="mt-2" />
+                  <span className="font-mono text-xs tabular-nums text-ink-500">{t.masteredCount}/{t.total} mastered</span>
                 </div>
-                <span className="font-mono text-sm tabular-nums text-ink-500">{t.masteredCount}/{t.total}</span>
+                {/* One tile per skill, coloured by status. A flat 0/N progress bar
+                    would read "no progress" for a topic full of in-flight skills;
+                    this shows what's been started, what's stuck, what's mastered. */}
+                <div className="mt-2 flex gap-0.5" aria-label={`Skill mastery for ${t.name}`}>
+                  {(t.skills || []).map((s, i) => (
+                    <span
+                      key={s.skillId || i}
+                      className={`h-2 flex-1 rounded ${statusTone(s.status)}`}
+                      title={`${s.name} — ${s.statusLabel || s.status}`}
+                    />
+                  ))}
+                </div>
               </Card>
             ))}
           </div>

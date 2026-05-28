@@ -4,9 +4,9 @@ import { FlaskConical } from 'lucide-react';
 import { skillsAPI, mathpathAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, StatTile, ProgressBar, Badge, Spinner, EmptyState } from '../../components/ui';
-
-const TONE = { mastered: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
+import { Card, StatTile, ProgressBar, Spinner, EmptyState } from '../../components/ui';
+import { summariseMastery, statusTone } from './masterySummary';
+import MistakeCard from './MistakeCard';
 
 // Parent view of a child's Science Adaptive Revision: mastery by topic + recent
 // mistakes (read-only — Science has no parent assign flow yet).
@@ -24,10 +24,7 @@ export default function ChildScience() {
   // Group skills by topic for the standing list.
   const byTopic = {};
   for (const s of skills || []) (byTopic[s.topicName] ||= []).push(s);
-  const attempted = (skills || []).filter((s) => s.status !== 'not_started');
-  const overall = attempted.length ? Math.round(attempted.reduce((a, s) => a + (s.score || 0), 0) / attempted.length) : 0;
-  const mastered = (skills || []).filter((s) => s.status === 'mastered').length;
-  const learning = (skills || []).filter((s) => s.status === 'learning' || s.status === 'needs_review').length;
+  const { mastered, learning, overall } = summariseMastery(skills || []);
 
   return (
     <>
@@ -41,7 +38,7 @@ export default function ChildScience() {
             <div className="mt-2 flex items-center gap-6">
               <StatTile label="Overall mastery" value={overall} suffix="%" />
               <StatTile label="Mastered" value={mastered} />
-              <StatTile label="Practising" value={learning} />
+              <StatTile label="Learning" value={learning} />
             </div>
             <ProgressBar value={overall} className="mt-4" />
           </Card>
@@ -51,12 +48,20 @@ export default function ChildScience() {
             {Object.entries(byTopic).map(([topic, ts]) => {
               const done = ts.filter((s) => s.status === 'mastered').length;
               return (
-                <Card key={topic} className="flex items-center justify-between gap-3 p-4">
-                  <div className="min-w-0 flex-1">
+                <Card key={topic} className="p-4">
+                  <div className="flex items-baseline justify-between gap-3">
                     <p className="truncate font-medium text-ink-700">{topic}</p>
-                    <ProgressBar value={done} max={Math.max(ts.length, 1)} className="mt-2" />
+                    <span className="shrink-0 font-mono text-xs tabular-nums text-ink-500">{done}/{ts.length} mastered</span>
                   </div>
-                  <span className="shrink-0 font-mono text-sm tabular-nums text-ink-500">{done}/{ts.length}</span>
+                  <div className="mt-2 flex gap-0.5" aria-label={`Skill mastery for ${topic}`}>
+                    {ts.map((s, i) => (
+                      <span
+                        key={s.skillId || i}
+                        className={`h-2 flex-1 rounded ${statusTone(s.status)}`}
+                        title={`${s.name} — ${s.statusLabel || s.status}`}
+                      />
+                    ))}
+                  </div>
                 </Card>
               );
             })}
@@ -67,27 +72,7 @@ export default function ChildScience() {
             <Card className="p-4 text-sm text-ink-500">No recent Science mistakes.</Card>
           ) : (
             <div className="space-y-3">
-              {mistakes.map((m) => (
-                <Card key={m.id} className="p-5">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-ink-700">{m.skillName}</span>
-                    {m.topicName && <Badge tone="neutral">{m.topicName}</Badge>}
-                  </div>
-                  <div className="text-ink-900">{m.questionStem}</div>
-                  <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                    <div className="rounded-xl bg-error-100 p-3">
-                      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-error-700">Answered</div>
-                      <div className="text-ink-900">{m.studentAnswer || '—'}</div>
-                    </div>
-                    {m.correctAnswer && (
-                      <div className="rounded-xl bg-success-100 p-3">
-                        <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-success-700">Model answer</div>
-                        <div className="text-ink-900">{m.correctAnswer}</div>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
+              {mistakes.map((m) => <MistakeCard key={m.id} mistake={m} />)}
             </div>
           )}
         </>
