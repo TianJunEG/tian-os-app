@@ -9,14 +9,18 @@ import { Button } from '../../components/ui';
 export default function ChildNav({ studentId, name, level, showAssign = true }) {
   const navigate = useNavigate();
   const base = `/parent/children/${studentId}`;
+  // Ordered by parent intent, not by build order. "Actions" answers the most
+  // common landing question — "what should I do?" — so it leads. The four
+  // tabs that fit on a narrow viewport without horizontal scroll should each
+  // be useful by themselves; subject-specific surfaces sit at the end.
   const tabs = [
+    ['Actions', `${base}/actions`],
     ['Progress', `${base}/progress`],
+    ['Mistakes', `${base}/mistakes`],
     ['Weak topics', `${base}/weak-topics`],
+    ['Assignments', `${base}/assignments`],
     ['Science', `${base}/science`],
     ['LifeLab', `${base}/lifelab`],
-    ['Actions', `${base}/actions`],
-    ['Mistakes', `${base}/mistakes`],
-    ['Assignments', `${base}/assignments`],
   ];
   return (
     <div className="mb-5">
