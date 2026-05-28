@@ -86,6 +86,18 @@ describe('selectSimilarQuestions', () => {
     const [first] = await selectSimilarQuestions({ studentId, skillIds: [skillA._id], difficulty: 'medium', count: 1 });
     expect(first.stem).toBe('fresh');
   });
+
+  it('spreads picks across skills instead of draining one bucket first', async () => {
+    // skillA has a deep pool, skillB has a thin one. A naive top-N picker
+    // would saturate the result with skillA; the round-robin should still
+    // include skillB's question early.
+    for (let i = 0; i < 6; i++) await makeQ(skillA._id, 'medium', `a${i}`);
+    await makeQ(skillB._id, 'medium', 'b0');
+    const out = await selectSimilarQuestions({ studentId, skillIds: [skillA._id, skillB._id], difficulty: 'medium', count: 4 });
+    const skillsHit = new Set(out.map((q) => String(q.skillId._id || q.skillId)));
+    expect(skillsHit.has(String(skillB._id))).toBe(true);
+    expect(out.length).toBe(4);
+  });
 });
 
 describe('generateWorksheet — modes', () => {

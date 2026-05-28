@@ -49,8 +49,13 @@
   `/student/science/practice/:sessionId`, `/student/science/results/:sessionId`.
 
 ## Science seed data added
-`npm run seed:science` → Subject(Science) · topics **Cycles, Systems, Energy, Interactions,
-Diversity** · 15 skills · 30 questions (MCQ + short + open-ended with key points/model answers).
+`npm run seed:science` imports the MOE-aligned legacy bank at `data/p6Science.json` into the
+shared core: Subject(Science) · **44 Topics** spanning **Primary 3–6** (3 P3 / 7 P4 / 14 P5 /
+20 P6) · 44 Skills (one per topic) · **~2,600 questions** (all open-ended, with `keyPoints`
+derived from the legacy `keywords` field driving partial-credit marking via
+`utils/answerCheck.js → checkKeyPoints()`). Idempotent on `source: 'legacy-bank'`; the seed also
+removes the earlier 5-topic placeholder set (Cycles / Systems / Energy / Interactions / Diversity)
+so the module surface shows only the real curriculum.
 
 ## Science answer checking rules (MVP)
 - **MCQ**: exact option match. **Short answer**: normalised text / numeric (shared `isCorrect`).
@@ -71,10 +76,17 @@ Diversity** · 15 skills · 30 questions (MCQ + short + open-ended with key poin
   endpoints (`?subject=science` / `?module=Science Adaptive Revision`) when those dashboards add a
   Science filter. No Science dashboards were added; MathPath dashboards are unaffected.
 
+## Topic-level sessions
+The session start (`POST /api/practice/sessions`) accepts `topicId` and resolves it to all skills
+under the topic. With the legacy-bank import there's one Skill per Topic (so a topic session
+draws from that skill's ~60-question pool) — but `utils/worksheetGen.js → selectSimilarQuestions`
+also round-robins across skill buckets, so any multi-skill caller (rule-based worksheet generator
+on weak-skills / recent-mistakes modes) still gets balanced selection instead of one bucket
+dominating.
+
 ## What remains incomplete
-- Parent/Tutor/Teacher Science views & Science assignment creation UI.
-- Richer sessions (currently per-skill; a topic-level mix would need the session start to pull across
-  a topic's skills). Authored question depth (2/skill).
+- Tutor/Teacher Science views & Science assignment creation UI. (Parent Science surface landed —
+  see `pages/parent/ChildScience.jsx`.)
 - No AI marking, no Science worksheet generator, no diagrams (by guardrail).
 
 ## Commands
@@ -87,7 +99,8 @@ cd frontend && npx vite build   # build check (passes)
 ```
 
 ## Next recommended build step
-Make Science sessions **topic-level** (pull questions across a topic's skills for variety), add a
-Science option to the existing Parent "Assign practice" flow (`module: 'Science Adaptive Revision'`),
-and surface a read-only Science mastery row on the Parent dashboard using
-`GET /api/skills?subject=science&studentId=…`.
+The catalog is now the full P3–P6 MOE bank. Next: filter the topic list by the student's own
+`moeLevel` (so a P5 student sees only P5 topics by default, with a toggle to browse other levels);
+add a Science option to the existing Tutor / Teacher "Assign practice" flow
+(`module: 'Science Adaptive Revision'`); and extend the Tutor / Teacher dashboards with a Science
+mastery row using `GET /api/skills?subject=science&studentId=…`.

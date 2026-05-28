@@ -36,14 +36,32 @@ export async function selectSimilarQuestions({ studentId, skillIds, difficulty =
     }))
     .sort((a, b) => a.score - b.score);
 
-  // Take the best-ranked questions in order, de-duplicating by stem, up to `count`.
+  // When the caller targets multiple skills (topic-level session), round-robin
+  // across skill buckets so the set is balanced instead of being dominated by
+  // whichever skill happens to have the deepest matching pool. Within each
+  // bucket the ranking is preserved.
+  const buckets = new Map(skillIds.map((id) => [String(id), []]));
+  for (const item of ranked) {
+    const key = String(item.q.skillId?._id || item.q.skillId);
+    if (buckets.has(key)) buckets.get(key).push(item.q);
+  }
+
   const seenStems = new Set();
   const out = [];
-  for (const { q } of ranked) {
-    if (seenStems.has(q.stem)) continue;
-    seenStems.add(q.stem);
-    out.push(q);
-    if (out.length >= count) break;
+  let madeProgress = true;
+  while (out.length < count && madeProgress) {
+    madeProgress = false;
+    for (const list of buckets.values()) {
+      if (out.length >= count) break;
+      while (list.length) {
+        const q = list.shift();
+        if (seenStems.has(q.stem)) continue;
+        seenStems.add(q.stem);
+        out.push(q);
+        madeProgress = true;
+        break;
+      }
+    }
   }
   return out;
 }
