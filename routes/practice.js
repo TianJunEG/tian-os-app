@@ -46,6 +46,9 @@ router.post('/sessions', protect, async (req, res) => {
 
     // Digital answering of an assigned Mastery Worksheet: run the worksheet's
     // EXACT generated questions through the shared session (not a re-selection).
+    // Also nudge sessionFeature so the module-derivation below picks the right
+    // module for the assignment — without this, a Science assignment opened
+    // without an explicit feature would default to MathPath.
     let explicitIds = questionIds;
     if (assignmentId) {
       const a = await Assignment.findById(assignmentId);
@@ -56,6 +59,8 @@ router.post('/sessions', protect, async (req, res) => {
           const ws = await Worksheet.findOne({ linkedAssignmentId: a._id });
           const wsQ = ws?.generatedContent?.questions || [];
           if (wsQ.length) explicitIds = wsQ.map((q) => q.questionId).filter(Boolean);
+        } else if (a.module === 'Science Adaptive Revision') {
+          sessionFeature = sessionFeature || 'Science Adaptive Revision';
         }
       }
     }

@@ -22,6 +22,13 @@ export default function StudentAssignments() {
       if (a.module === 'Spelling Practice') {
         const { data } = await spellingPracticeAPI.startSession({ assignmentId: a.id });
         navigate(`/student/spelling/practice/${data.session_id}`, { state: { items: data.items, listTitle: data.listTitle } });
+      } else if (a.module === 'Science Adaptive Revision') {
+        // Science assignments share the practice/session backend but render in
+        // the Science practice shell (open-ended answer entry, model-answer
+        // reveal). The backend now also picks the right module from the
+        // assignment, so the mastery delta is recorded as Science either way.
+        const { data } = await mathpathAPI.startSession({ assignmentId: a.id, feature: 'Science Adaptive Revision', questionCount: a.questionCount || 10 });
+        navigate(`/student/science/practice/${data.session_id}`, { state: { items: data.items } });
       } else {
         const { data } = await mathpathAPI.startSession({ assignmentId: a.id, questionCount: a.questionCount || 10 });
         navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items } });
