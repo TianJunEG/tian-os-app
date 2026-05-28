@@ -84,11 +84,24 @@ export default function AppShell({ children }) {
       {/* Sidebar — desktop/tablet */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-hairline bg-paper px-4 py-5 md:flex">
         <div className="px-2"><Wordmark /></div>
-        <nav className="mt-8 flex flex-1 flex-col gap-1">
-          {set.sidebar.map((item) => (
-            <NavLink key={item.to} to={item.to} end className={navItemClass}>
-              <item.icon className="h-[18px] w-[18px]" />{item.label}
-            </NavLink>
+        <nav className="mt-8 flex flex-1 flex-col gap-4">
+          {set.sidebar.map((entry) => (
+            entry.items ? (
+              <div key={entry.label} className="space-y-3">
+                <p className="px-3 text-[11px] uppercase tracking-[0.18em] text-ink-300">{entry.label}</p>
+                <div className="space-y-1">
+                  {entry.items.map((item) => (
+                    <NavLink key={item.to} to={item.to} end={item.end !== false} className={navItemClass}>
+                      <item.icon className="h-[18px] w-[18px]" />{item.label}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <NavLink key={entry.to} to={entry.to} end={entry.end !== false} className={navItemClass}>
+                <entry.icon className="h-[18px] w-[18px]" />{entry.label}
+              </NavLink>
+            )
           ))}
         </nav>
         <button onClick={handleLogout} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink-500 hover:bg-navy-50">
@@ -113,7 +126,7 @@ export default function AppShell({ children }) {
       <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-3xl border border-hairline bg-paper/90 px-2 shadow-active backdrop-blur md:hidden"
         style={{ height: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {set.bottom.map((item) => (
-          <NavLink key={item.to} to={item.to} end
+          <NavLink key={item.to} to={item.to} end={item.end !== false}
             className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 transition ${isActive ? 'bg-navy-50 text-navy-700' : 'text-ink-300'}`}>
             <item.icon className="h-5 w-5" />
             <span className="text-[10px] font-semibold">{item.label}</span>

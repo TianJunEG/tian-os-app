@@ -36,7 +36,7 @@ import AppShell from './components/shell/AppShell';
 import { ToastProvider } from './components/ui';
 import { ROLE_HOME } from './config/nav';
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
-import Placeholder from './pages/Placeholder';
+const MorePage = lazy(() => import('./pages/MorePage'));
 // MathPath (Phase 2)
 const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'));
 const TopicDetail = lazy(() => import('./pages/student/mathpath/TopicDetail'));
@@ -487,7 +487,7 @@ function App() {
             <Route path="/secondary/mechanisms/:mechanism/present" element={<MechanismPresent />} />
 
             {/* Shared "More" sheet */}
-            <Route path="/more" element={<Placeholder title="More" />} />
+            <Route path="/more" element={<MorePage />} />
           </Route>
 
           {/* 404 */}
