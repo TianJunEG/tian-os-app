@@ -125,6 +125,12 @@ describe('OpenAI adapter via the worksheet flow', () => {
     expect(img.image_url.url).toBe('data:image/png;base64,PHOTO');
   });
 
+  it('clamps max_completion_tokens to the OpenAI ceiling (analyze asks for 20000)', async () => {
+    h.state.queue.push(oaOk({ topic: 't', overallSummary: 's', readable: true, handwritingClear: true, misconceptions: [], skillsToReinforce: [], questions: [] }));
+    await svc.analyzeAndGenerateWorksheet({ imageBase64: 'PHOTO', mimeType: 'image/png', numQuestions: 8 });
+    expect(h.state.calls[0].max_completion_tokens).toBe(16384); // not the Claude-sized 20000
+  });
+
   it('escalates from the cheap to the strong OpenAI model when handwriting is unclear', async () => {
     h.state.queue.push(oaOk({ topic: 't', overallSummary: 's', readable: true, handwritingClear: false, misconceptions: [], skillsToReinforce: [], questions: [] }));
     h.state.queue.push(oaOk({ topic: 't', overallSummary: 's', readable: true, handwritingClear: true, misconceptions: [], skillsToReinforce: [], questions: [] }));

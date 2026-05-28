@@ -20,6 +20,12 @@ import OpenAI from 'openai';
 
 let anthropicClient, openaiClient;
 
+// Current OpenAI chat models (gpt-4o / gpt-4o-mini) cap completion tokens at
+// 16384. The worksheet flows request more (tuned for Claude's larger ceiling),
+// so the OpenAI adapter clamps to this limit — the worksheet outputs (≤18
+// questions) fit comfortably within it.
+const OPENAI_MAX_OUTPUT_TOKENS = 16384;
+
 // effort + adaptive thinking are only valid on Opus 4.5+/Sonnet 4.6; Haiku 4.5
 // rejects them, so omit both there.
 const anthropicSupportsTuning = (model) => /claude-(opus-4-(5|6|7)|sonnet-4-6)/.test(model);
@@ -81,7 +87,7 @@ const openai = {
     ];
     const resp = await openaiClient.chat.completions.create({
       model,
-      max_completion_tokens: maxTokens,
+      max_completion_tokens: Math.min(maxTokens, OPENAI_MAX_OUTPUT_TOKENS),
       messages: oaMessages,
       response_format: { type: 'json_schema', json_schema: { name: 'worksheet', schema, strict: true } },
     });
