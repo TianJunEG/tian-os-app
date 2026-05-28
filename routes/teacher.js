@@ -136,12 +136,16 @@ router.get('/classes/:id', async (req, res) => {
 });
 
 // Class mastery map: topic × status counts, with affected (needs-support) students.
+// Subject defaults to math for back-compat; pass ?subject=science to drill into
+// the Science Adaptive Revision standing across the class.
 router.get('/classes/:id/mastery', async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = await rosterIds(c._id);
-  const math = await Subject.findOne({ key: 'math' });
-  const topics = await Topic.find({ subjectId: math?._id }).sort({ order: 1 });
+  const subjectKey = (req.query.subject || 'math').toLowerCase();
+  const subject = await Subject.findOne({ key: subjectKey });
+  if (!subject) return res.json({ classId: c._id, subject: subjectKey, topics: [] });
+  const topics = await Topic.find({ subjectId: subject._id }).sort({ order: 1 });
   const byStudent = await studentMastery(ids);
   const students = await Student.find({ _id: { $in: ids } });
   const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
@@ -155,9 +159,12 @@ router.get('/classes/:id/mastery', async (req, res) => {
       counts[status]++;
       if (status === 'needs_support') affected.push({ studentId: sid, name: nameById[String(sid)] });
     }
-    return { topicId: t._id, name: t.name, counts, affected };
+    // Science topics carry the MOE level on the Topic itself (e.g. "Digestive
+    // System" at P4 and P5); include it so the same-name topics across levels
+    // are distinguishable in the UI.
+    return { topicId: t._id, name: t.name, moeLevel: t.moeLevel || '', counts, affected };
   });
-  res.json({ classId: c._id, topics: map });
+  res.json({ classId: c._id, subject: subjectKey, topics: map });
 });
 
 router.get('/classes/:id/students', async (req, res) => {
