@@ -53,6 +53,7 @@ const SpellingPracticeResults = lazy(() => import('./pages/student/spelling/Spel
 const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/SpellingMistakes'));
 const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
 const SkillGraph = lazy(() => import('./pages/student/SkillGraph'));
+const StudentWorksheets = lazy(() => import('./pages/student/StudentWorksheets'));
 // MathPath features (Phase 4): Fluency + Mistake-to-Mastery
 const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyHome'));
 const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
@@ -414,7 +415,7 @@ function App() {
             <Route path="/student/mathpath/fluency" element={<FluencyHome />} />
             <Route path="/student/mathpath/fluency/skills" element={<FluencySkills />} />
             <Route path="/student/fluency" element={<Navigate to="/student/mathpath/fluency" replace />} />
-            <Route path="/student/worksheets" element={<Placeholder title="Mastery Worksheet" phase="Phase 4" />} />
+            <Route path="/student/worksheets" element={<StudentWorksheets />} />
             {/* Science Adaptive Revision (secondary module). Practice/results reuse the shared screens. */}
             <Route path="/student/science" element={<ScienceHome />} />
             <Route path="/student/science/topics" element={<ScienceTopics />} />

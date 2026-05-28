@@ -27,7 +27,7 @@ export const MODULES = [
   },
   {
     key: 'worksheets', name: 'Mastery Worksheet', icon: FileText, path: '/student/worksheets',
-    purpose: 'Focused practice sets from your weak skills.', status: 'soon',
+    purpose: 'Focused practice sets from your weak skills.', status: 'live',
   },
   {
     key: 'progress', name: 'Skill Graph', icon: Network, path: '/student/progress',
