@@ -47,7 +47,12 @@ router.get('/children/:studentId/recommendations', protect, async (req, res) => 
   try {
     const student = await resolveStudent(req, req.params.studentId);
 
-    const recordsRaw = await MasteryRecord.find({ studentId: student._id })
+    // Scope to MathPath: its skill text/destinations are MathPath-shaped, and a
+    // MasteryRecord/Mistake from another module (e.g. Spelling) carries a skillId
+    // that references that module's own collection (a SpellingList), not Skill —
+    // so populating against Skill would yield blank-named, mis-routed actions.
+    // Matches masteryEngine.recommendNextSkill, which excludes non-MathPath too.
+    const recordsRaw = await MasteryRecord.find({ studentId: student._id, module: 'MathPath' })
       .populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
     const records = recordsRaw.map((r) => ({
       skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
@@ -56,7 +61,7 @@ router.get('/children/:studentId/recommendations', protect, async (req, res) => 
     const lastPracticedAt = recordsRaw
       .map((r) => r.lastPracticedAt).filter(Boolean).sort((a, b) => b - a)[0] || null;
 
-    const mistakes = await Mistake.find({ studentId: student._id, status: { $ne: 'resolved' } })
+    const mistakes = await Mistake.find({ studentId: student._id, module: 'MathPath', status: { $ne: 'resolved' } })
       .populate({ path: 'skillId', model: Skill });
     const bySkill = {};
     for (const m of mistakes) {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Wrench } from 'lucide-react';
 import { spellingPracticeAPI } from '../../../services/api';
-import { Card, Button, StatTile, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
+import { Card, Button, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 
 export default function SpellingResults() {
   const { sessionId } = useParams();

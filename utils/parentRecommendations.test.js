@@ -34,4 +34,17 @@ describe('buildRecommendations — rule-based parent actions', () => {
     const celebrate = recs.find((r) => r.actionType === 'celebrate');
     expect(celebrate.priority).toBe('low');
   });
+
+  // A non-MathPath record (e.g. Spelling) whose skillId ref doesn't resolve
+  // against Skill arrives with a blank skillName — it must not produce a
+  // blank-text, mis-routed action.
+  it('skips a nameless weak skill (no assign-practice with empty name)', () => {
+    const recs = buildRecommendations({ records: [{ skillId: 'list1', skillName: '', score: 10, attempts: 3, status: 'needs_review' }] });
+    expect(recs.some((r) => r.actionType === 'assign_practice')).toBe(false);
+  });
+
+  it('skips nameless skills with 3+ mistakes (no review action with empty name)', () => {
+    const recs = buildRecommendations({ mistakesBySkill: [{ skillId: 'list1', skillName: '', count: 5 }] });
+    expect(recs.some((r) => r.actionType === 'review_mistakes')).toBe(false);
+  });
 });

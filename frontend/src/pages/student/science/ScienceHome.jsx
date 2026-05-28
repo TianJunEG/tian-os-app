@@ -72,12 +72,12 @@ export default function ScienceHome() {
       <div className="mb-6 space-y-2">
         {weak.length === 0 && <Card className="p-4 text-sm text-ink-500">{practised.length ? 'Your Science topics are looking strong.' : 'Start a topic to build your Science profile.'}</Card>}
         {weak.map((s) => (
-          <Card key={s.skillId} interactive role="button" className="flex items-center justify-between p-4" onClick={() => start({ skillId: s.skillId })}>
-            <div>
-              <div className="font-semibold text-ink-700">{s.name}</div>
-              <div className="text-xs text-ink-500">{s.topicName}</div>
+          <Card key={s.skillId} interactive role="button" aria-label={`Practise ${s.name}`} className="flex items-center justify-between gap-3 p-4" onClick={() => start({ skillId: s.skillId })}>
+            <div className="min-w-0">
+              <div className="truncate font-semibold text-ink-700">{s.name}</div>
+              <div className="truncate text-xs text-ink-500">{s.topicName}</div>
             </div>
-            <Badge tone={TONE[s.status] || 'neutral'}>{s.statusLabel}</Badge>
+            <Badge tone={TONE[s.status] || 'neutral'} className="shrink-0">{s.statusLabel}</Badge>
           </Card>
         ))}
       </div>
