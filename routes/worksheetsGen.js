@@ -21,11 +21,17 @@ router.post('/generate', protect, async (req, res) => {
       mode = 'weak_skills', skillIds = [], topicId = null,
       difficulty = 'medium', questionCount = 10,
       includesSolutions = true, includesMistakeReview = false,
+      subject: subjectInput,
     } = req.body;
+
+    // Normalize the subject so 'science'/'Science' both resolve, and anything
+    // else falls back to Math (the historical default).
+    const subject = /^science$/i.test(String(subjectInput || '')) ? 'Science' : 'Math';
 
     const { skillIds: targetSkillIds, topicIds, content } = await generateWorksheet({
       mode, studentId: student._id, studentName: student.name,
       skillIds, topicId, difficulty, questionCount, includesSolutions, includesMistakeReview,
+      subject,
     });
 
     if (!content.questions.length) {
@@ -36,7 +42,7 @@ router.post('/generate', protect, async (req, res) => {
       userId: req.user.id,
       studentId: student._id,
       studentName: student.name,
-      subject: 'Math',
+      subject,
       workspaceId: student.workspaceId,
       generatedByUserId: req.user.id,
       generatedByRole: req.user.role || 'parent',
@@ -88,13 +94,17 @@ router.post('/:id/assign', protect, async (req, res) => {
     if (!w || !w.sourceMode) return res.status(404).json({ error: 'Worksheet not found.' });
     const student = await resolveStudent(req, w.studentId);
 
+    // Mastery Worksheet stays the module so practice.js can pull the exact
+    // generated questions via linkedAssignmentId; the worksheet's subject
+    // travels onto the assignment so attempts route to the right bucket when
+    // answered.
     const assignment = await Assignment.create({
       workspaceId: w.workspaceId || student.workspaceId,
       studentId: student._id,
       assignedByUserId: req.user.id,
       assignedByRole: req.user.role || 'parent',
       module: 'Mastery Worksheet',
-      subject: 'Math',
+      subject: w.subject || 'Math',
       topicId: w.topicIds[0] || null,
       skillIds: w.skillIds,
       questionCount: w.questionCount,

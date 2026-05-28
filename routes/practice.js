@@ -55,8 +55,13 @@ router.post('/sessions', protect, async (req, res) => {
       if (a) {
         targetSkillIds = a.skillIds.map(String);
         if (a.module === 'Mastery Worksheet') {
-          sessionFeature = sessionFeature || 'Mastery Worksheet';
           const ws = await Worksheet.findOne({ linkedAssignmentId: a._id });
+          // Science worksheets carry subject='Science' on the Worksheet (and
+          // on the Assignment). Route the session through the Science feature
+          // so the sessionModule regex below buckets mistakes/mastery under
+          // Science Adaptive Revision instead of MathPath.
+          const isScience = ws?.subject === 'Science' || a.subject === 'Science';
+          sessionFeature = sessionFeature || (isScience ? 'Science Adaptive Revision' : 'Mastery Worksheet');
           const wsQ = ws?.generatedContent?.questions || [];
           if (wsQ.length) explicitIds = wsQ.map((q) => q.questionId).filter(Boolean);
         } else if (a.module === 'Science Adaptive Revision') {
