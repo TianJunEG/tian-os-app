@@ -1,12 +1,35 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
-import { teacherAPI, mathpathAPI } from '../../services/api';
+import { teacherAPI, mathpathAPI, skillsAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
 import { Card, Button, Badge, Spinner } from '../../components/ui';
 
-// Assign targeted practice to the whole class or a saved group. Math only.
+const MODULES = [
+  { key: 'MathPath', label: 'MathPath', subject: 'Math' },
+  { key: 'Science Adaptive Revision', label: 'Science', subject: 'Science' },
+];
+
+// /api/skills?subject=science returns flat skills; reshape into the same
+// { topicId, name, skills: [{ skillId, name }] } form that mathpathAPI.map
+// produces, with level suffixed so same-name topics across levels are
+// distinguishable in the dropdown.
+function shapeScienceAsTopics(skills) {
+  const byTopic = new Map();
+  for (const s of skills) {
+    const id = String(s.topicId);
+    if (!byTopic.has(id)) byTopic.set(id, {
+      topicId: s.topicId,
+      name: `${s.topicName}${s.moeLevel ? ' · ' + s.moeLevel.replace('Primary ', 'P') : ''}`,
+      skills: [],
+    });
+    byTopic.get(id).skills.push({ skillId: s.skillId, name: s.name });
+  }
+  return [...byTopic.values()];
+}
+
+// Assign targeted practice to the whole class or a saved group. Math or Science.
 export default function AssignPractice() {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -16,6 +39,7 @@ export default function AssignPractice() {
   const [groups, setGroups] = useState([]);
   const [topics, setTopics] = useState(null);
   const [target, setTarget] = useState(params.get('group') ? { type: 'group', id: params.get('group') } : { type: 'class' });
+  const [module, setModule] = useState('MathPath');
   const [topicId, setTopicId] = useState('');
   const [skillId, setSkillId] = useState('');
   const [difficulty, setDifficulty] = useState('medium');
@@ -27,12 +51,23 @@ export default function AssignPractice() {
 
   useEffect(() => {
     teacherAPI.groups(id).then((r) => setGroups(r.data.saved || [])).catch(() => {});
+  }, [id]);
+
+  // Reload the catalog whenever the class or module changes. Both Math and
+  // Science endpoints are seeded by picking the first student in the class;
+  // skills are the same across the class (they're a catalog, not per-student),
+  // so a single fetch via that student is fine.
+  useEffect(() => {
+    setTopics(null); setTopicId(''); setSkillId('');
     teacherAPI.classStudents(id).then((r) => {
       const first = r.data.students?.[0]?.studentId;
       if (!first) { setTopics([]); return; }
-      mathpathAPI.map({ studentId: first }).then((m) => { const ts = m.data.topics || []; setTopics(ts); if (ts[0]) setTopicId(String(ts[0].topicId)); }).catch(() => setTopics([]));
+      const fetch = module === 'Science Adaptive Revision'
+        ? skillsAPI.list({ subject: 'science', studentId: first }).then((m) => shapeScienceAsTopics(m.data.skills || []))
+        : mathpathAPI.map({ studentId: first }).then((m) => m.data.topics || []);
+      fetch.then((ts) => { setTopics(ts); if (ts[0]) setTopicId(String(ts[0].topicId)); }).catch(() => setTopics([]));
     }).catch(() => setTopics([]));
-  }, [id]);
+  }, [id, module]);
 
   const skills = useMemo(() => topics?.find((t) => String(t.topicId) === String(topicId))?.skills || [], [topics, topicId]);
 
@@ -40,7 +75,8 @@ export default function AssignPractice() {
     if (!skillId) { setError('Choose a skill.'); return; }
     setSaving(true); setError(null);
     try {
-      const { data } = await teacherAPI.assign(id, { target, module: 'MathPath', subject: 'Math', topicId, skillIds: [skillId], difficulty, questionCount: Number(questionCount), dueDate: dueDate || null });
+      const subject = MODULES.find((m) => m.key === module)?.subject || 'Math';
+      const { data } = await teacherAPI.assign(id, { target, module, subject, topicId, skillIds: [skillId], difficulty, questionCount: Number(questionCount), dueDate: dueDate || null });
       setDone(data.assigned);
     } catch (e) { setError(e.response?.data?.error || 'Could not assign.'); setSaving(false); }
   };
@@ -78,7 +114,18 @@ export default function AssignPractice() {
           </div>
           <div>
             <label className="mb-2 block text-sm font-semibold text-ink-700">Module</label>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-navy-500 bg-navy-50 px-3 py-1.5 text-sm font-semibold text-navy-700">MathPath</span>
+            <div className="flex flex-wrap gap-2">
+              {MODULES.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => setModule(m.key)}
+                  className={`rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
