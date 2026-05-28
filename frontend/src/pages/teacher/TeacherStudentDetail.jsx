@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { Card, Badge, StatusBadge, StatTile, PageHeader, Spinner } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
+import StudentSciencePanel from '../../components/StudentSciencePanel';
 
 export default function TeacherStudentDetail() {
   const { id } = useParams();
@@ -57,6 +58,8 @@ export default function TeacherStudentDetail() {
           )}
         </Card>
       </div>
+
+      <StudentSciencePanel studentId={id} />
 
       {mistakes.length > 0 && (
         <Card className="mt-5 p-5">
