@@ -52,6 +52,7 @@ const SpellingSelfTest = lazy(() => import('./pages/student/spelling/SelfTest'))
 const SpellingPracticeResults = lazy(() => import('./pages/student/spelling/SpellingResults'));
 const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/SpellingMistakes'));
 const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
+const SkillGraph = lazy(() => import('./pages/student/SkillGraph'));
 // MathPath features (Phase 4): Fluency + Mistake-to-Mastery
 const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyHome'));
 const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
@@ -429,7 +430,7 @@ function App() {
             <Route path="/student/spelling/results/:sessionId" element={<SpellingPracticeResults />} />
             <Route path="/student/spelling/mistakes" element={<SpellingPracticeMistakes />} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
-            <Route path="/student/progress" element={<Placeholder title="Progress & Skill Graph" phase="Phase 2" />} />
+            <Route path="/student/progress" element={<SkillGraph />} />
 
             {/* Parent (Phase 3) */}
             <Route path="/parent" element={<ParentHome />} />

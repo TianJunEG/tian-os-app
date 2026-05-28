@@ -7,6 +7,7 @@ import Topic from '../models/Topic.js';
 import Mistake from '../models/Mistake.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLabel, isStale } from '../utils/masteryEngine.js';
+import { buildSkillGraphView } from '../utils/skillGraphView.js';
 import { runPlacement } from '../utils/placementEngine.js';
 import { studentMathAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
@@ -151,6 +152,41 @@ router.get('/analytics', protect, async (req, res) => {
     res.json({ studentId: student._id, ...(await studentMathAnalytics(student._id, { sinceDays })) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Analytics failed.' });
+  }
+});
+
+// @route GET /api/mastery/graph?studentId=
+// @desc  The Math curriculum graph + this student's mastery, with prerequisite-
+//        aware lock/ready state and a "ready to learn next" list. Powers the
+//        student Skill Graph page. Math (MathPath) only — that's where the
+//        prerequisite graph is authored. A skill is `ready` when all its
+//        prerequisites are mastered (stale mastery doesn't count, matching
+//        recommendNextSkill), and `locked` when it's not yet started and a
+//        prerequisite is still missing.
+// @access Private
+router.get('/graph', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const empty = { total: 0, mastered: 0, inProgress: 0, notStarted: 0, locked: 0, ready: 0, avgScore: 0 };
+    const math = await Subject.findOne({ key: 'math' });
+    if (!math) return res.json({ studentId: student._id, summary: empty, readyNext: [], topics: [] });
+
+    const topics = await Topic.find({ subjectId: math._id }).sort({ order: 1 });
+    const skills = await Skill.find({ topicId: { $in: topics.map((t) => t._id) } }).sort({ order: 1 });
+    const records = await MasteryRecord.find({ studentId: student._id, module: 'MathPath' });
+    const recordsBySkill = new Map(records.map((r) => [String(r.skillId), r]));
+    // Mastered & fresh only — stale mastery shouldn't count as a met prerequisite.
+    const masteredIds = new Set(records.filter((r) => r.status === 'mastered' && !isStale(r)).map((r) => String(r.skillId)));
+
+    const topicsWithSkills = topics.map((t) => ({
+      topicId: t._id, name: t.name, moeLevel: t.moeLevel,
+      skills: skills.filter((s) => String(s.topicId) === String(t._id)),
+    }));
+    const view = buildSkillGraphView({ topics: topicsWithSkills, recordsBySkill, masteredIds });
+
+    res.json({ studentId: student._id, ...view });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load skill graph.' });
   }
 });
 
