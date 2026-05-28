@@ -66,29 +66,43 @@ export async function selectSimilarQuestions({ studentId, skillIds, difficulty =
   return out;
 }
 
-// Resolve target skills for each generation mode.
-async function resolveSkills({ mode, studentId, skillIds, topicId }) {
+// Resolve target skills for each generation mode. `subject` ('Math' | 'Science')
+// scopes mistakes/mastery to the requested subject — without it a Science
+// remediation worksheet would happily pull in Math mistakes and vice-versa.
+async function resolveSkills({ mode, studentId, skillIds, topicId, subject = 'Math' }) {
+  const isScience = subject === 'Science';
+
   if (mode === 'selected_topic') {
     if (skillIds?.length) return skillIds;
     if (topicId) return (await Skill.find({ topicId }).select('_id')).map((s) => s._id);
     return [];
   }
   if (mode === 'recent_mistakes') {
-    const mistakes = await Mistake.find({ studentId, status: { $ne: 'resolved' } }).sort({ occurredAt: -1 }).limit(30);
+    // Mistakes carry the originating module; Science practice tags its
+    // mistakes with module 'Science Adaptive Revision', so we filter to that
+    // bucket for a Science worksheet and exclude it (everything else =
+    // MathPath family) for a Math one.
+    const moduleFilter = isScience
+      ? { module: 'Science Adaptive Revision' }
+      : { module: { $ne: 'Science Adaptive Revision' } };
+    const mistakes = await Mistake.find({ studentId, status: { $ne: 'resolved' }, ...moduleFilter })
+      .sort({ occurredAt: -1 }).limit(30);
     // Weight by frequency.
     const freq = {};
     mistakes.forEach((m) => { freq[m.skillId] = (freq[m.skillId] || 0) + 1; });
     return Object.entries(freq).sort((a, b) => b[1] - a[1]).map(([id]) => id).slice(0, 4);
   }
   // weak_skills
-  const recs = await MasteryRecord.find({ studentId, status: { $in: ['needs_review', 'learning', 'not_started'] } })
-    .sort({ score: 1 }).limit(4);
+  const recs = await MasteryRecord.find({
+    studentId, status: { $in: ['needs_review', 'learning', 'not_started'] },
+    subject: isScience ? 'Science' : { $ne: 'Science' },
+  }).sort({ score: 1 }).limit(4);
   return recs.map((r) => r.skillId);
 }
 
 // Build the structured worksheet content. Returns { skillIds, topicIds, content }.
-export async function generateWorksheet({ mode, studentId, studentName, skillIds = [], topicId = null, difficulty = 'medium', questionCount = 10, includesSolutions = true, includesMistakeReview = false }) {
-  const targetSkillIds = (await resolveSkills({ mode, studentId, skillIds, topicId })).map(String);
+export async function generateWorksheet({ mode, studentId, studentName, skillIds = [], topicId = null, difficulty = 'medium', questionCount = 10, includesSolutions = true, includesMistakeReview = false, subject = 'Math' }) {
+  const targetSkillIds = (await resolveSkills({ mode, studentId, skillIds, topicId, subject })).map(String);
   const skills = await Skill.find({ _id: { $in: targetSkillIds } }).populate('topicId');
   const skillNameById = Object.fromEntries(skills.map((s) => [String(s._id), s.name]));
   const topicIds = [...new Set(skills.map((s) => s.topicId?._id).filter(Boolean).map(String))];

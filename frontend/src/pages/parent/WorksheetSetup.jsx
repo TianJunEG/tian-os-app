@@ -15,6 +15,7 @@ export default function WorksheetSetup() {
   // All form fields seed from the URL so the WorksheetPreview "Regenerate"
   // link can round-trip the prior choices (count, difficulty, skill, toggles).
   // Falls back to the previous defaults when a param is absent.
+  const [subject, setSubject] = useState(sp.get('subject') === 'science' ? 'science' : 'math');
   const [mode, setMode] = useState(sp.get('mode') || 'weak_skills');
   const [skills, setSkills] = useState([]);
   const [skillId, setSkillId] = useState(sp.get('skill') || '');
@@ -25,12 +26,21 @@ export default function WorksheetSetup() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { skillsAPI.list({ studentId }).then((r) => setSkills(r.data.skills || [])).catch(() => {}); }, [studentId]);
+  // Reload the topic/skill catalog whenever the subject changes; the selected
+  // skill from one subject won't exist in the other, so clear it too.
+  useEffect(() => {
+    setSkills([]); setSkillId('');
+    skillsAPI.list({ subject, studentId }).then((r) => setSkills(r.data.skills || [])).catch(() => {});
+  }, [studentId, subject]);
 
   const generate = async () => {
     setBusy(true); setError('');
     try {
-      const body = { studentId, mode, difficulty, questionCount: Number(questionCount), includesSolutions, includesMistakeReview };
+      const body = {
+        studentId, mode, difficulty,
+        subject: subject === 'science' ? 'Science' : 'Math',
+        questionCount: Number(questionCount), includesSolutions, includesMistakeReview,
+      };
       if (mode === 'selected_topic' && skillId) body.skillIds = [skillId];
       const { data } = await worksheetGenAPI.generate(body);
       navigate(`/parent/children/${studentId}/worksheets/${data.worksheet.id}`);
@@ -55,10 +65,13 @@ export default function WorksheetSetup() {
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
       <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">New worksheet</h2>
-      <p className="mb-5 text-sm text-ink-500">Math · choose what to practise.</p>
+      <p className="mb-5 text-sm text-ink-500">{subject === 'science' ? 'Science' : 'Math'} · choose what to practise.</p>
       {error && <Card className="mb-4 border-l-4 border-l-error-500 p-4 text-sm text-error-700">{error}</Card>}
 
       <div className="space-y-4">
+        <Field label="Subject">
+          <Segmented value={subject} onChange={setSubject} options={[{ v: 'math', l: 'Math' }, { v: 'science', l: 'Science' }]} />
+        </Field>
         <Field label="Generate from">
           <Segmented value={mode} onChange={setMode} options={[{ v: 'recent_mistakes', l: 'Recent mistakes' }, { v: 'weak_skills', l: 'Weak skills' }, { v: 'selected_topic', l: 'A topic' }]} />
         </Field>

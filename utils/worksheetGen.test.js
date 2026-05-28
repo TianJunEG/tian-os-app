@@ -133,6 +133,31 @@ describe('generateWorksheet — modes', () => {
     const r = await generateWorksheet({ mode: 'weak_skills', studentId, questionCount: 5 });
     expect(r.skillIds).toEqual([String(skillA._id)]);
   });
+
+  it('recent_mistakes with subject=Science only pulls Science-module mistakes', async () => {
+    await makeQ(skillA._id, 'medium', 'qA');
+    await makeQ(skillB._id, 'medium', 'qB');
+    // Math mistake on skillA, Science mistake on skillB — Science worksheet
+    // should target only skillB.
+    await Mistake.create({ studentId, workspaceId: ws, questionId: new mongoose.Types.ObjectId(), skillId: skillA._id, module: 'MathPath', status: 'open' });
+    await Mistake.create({ studentId, workspaceId: ws, questionId: new mongoose.Types.ObjectId(), skillId: skillB._id, module: 'Science Adaptive Revision', status: 'open' });
+    const sci = await generateWorksheet({ mode: 'recent_mistakes', studentId, subject: 'Science', questionCount: 5 });
+    expect(sci.skillIds).toEqual([String(skillB._id)]);
+    // The Math worksheet stays Math-only — Science mistakes are excluded.
+    const math = await generateWorksheet({ mode: 'recent_mistakes', studentId, subject: 'Math', questionCount: 5 });
+    expect(math.skillIds).toEqual([String(skillA._id)]);
+  });
+
+  it('weak_skills with subject=Science only pulls Science mastery records', async () => {
+    await makeQ(skillA._id, 'medium', 'qA');
+    await makeQ(skillB._id, 'medium', 'qB');
+    await MasteryRecord.create({ studentId, skillId: skillA._id, workspaceId: ws, module: 'MathPath', subject: 'Math', status: 'needs_review', score: 20 });
+    await MasteryRecord.create({ studentId, skillId: skillB._id, workspaceId: ws, module: 'Science Adaptive Revision', subject: 'Science', status: 'needs_review', score: 30 });
+    const sci = await generateWorksheet({ mode: 'weak_skills', studentId, subject: 'Science', questionCount: 5 });
+    expect(sci.skillIds).toEqual([String(skillB._id)]);
+    const math = await generateWorksheet({ mode: 'weak_skills', studentId, subject: 'Math', questionCount: 5 });
+    expect(math.skillIds).toEqual([String(skillA._id)]);
+  });
 });
 
 describe('generateWorksheet — content options', () => {
