@@ -64,13 +64,26 @@ for (const q of QUESTIONS) {
 }
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
-fs.writeFileSync(path.join(OUT_DIR, 'scienceNotes.json'), JSON.stringify(TOPIC_MIND_MAPS, null, 2));
-fs.writeFileSync(path.join(OUT_DIR, 'scienceLessons.json'), JSON.stringify(STRUCTURED_LESSONS, null, 2));
+
+// Merge legacy extractions into any existing file so hand-authored content
+// (e.g. mind maps for topics absent from the legacy HTML, like P6
+// Reproductive System) survives a re-run. Legacy keys still win on conflict
+// so the extraction stays the source of truth for topics it covers.
+function mergeWrite(file, fresh) {
+  const target = path.join(OUT_DIR, file);
+  let existing = {};
+  try { existing = JSON.parse(fs.readFileSync(target, 'utf8')); } catch { /* first run */ }
+  const merged = { ...existing, ...fresh };
+  fs.writeFileSync(target, JSON.stringify(merged, null, 2));
+  return { kept: Object.keys(existing).length, total: Object.keys(merged).length };
+}
+const notesStats = mergeWrite('scienceNotes.json', TOPIC_MIND_MAPS);
+const lessonsStats = mergeWrite('scienceLessons.json', STRUCTURED_LESSONS);
 fs.writeFileSync(path.join(OUT_DIR, 'scienceDiagrams.json'), JSON.stringify(DIAGRAMS, null, 2));
 fs.writeFileSync(path.join(OUT_DIR, 'scienceQuestionDiagrams.json'), JSON.stringify(questionDiagrams, null, 2));
 
 console.log(`✅ Extracted from legacy Science Lab`);
-console.log(`   ${Object.keys(TOPIC_MIND_MAPS).length} topic mind maps → data/scienceNotes.json`);
-console.log(`   ${Object.keys(STRUCTURED_LESSONS).length} structured lessons → data/scienceLessons.json`);
+console.log(`   ${Object.keys(TOPIC_MIND_MAPS).length} legacy mind maps (${notesStats.total} total after merge) → data/scienceNotes.json`);
+console.log(`   ${Object.keys(STRUCTURED_LESSONS).length} legacy structured lessons (${lessonsStats.total} total after merge) → data/scienceLessons.json`);
 console.log(`   ${Object.keys(DIAGRAMS).length} inline SVG diagrams → data/scienceDiagrams.json`);
 console.log(`   ${qWithDiagram} question→diagram mappings → data/scienceQuestionDiagrams.json`);
