@@ -84,23 +84,62 @@ also round-robins across skill buckets, so any multi-skill caller (rule-based wo
 on weak-skills / recent-mistakes modes) still gets balanced selection instead of one bucket
 dominating.
 
+## Adult-role surfaces (shipped)
+- **Parent** — `pages/parent/ChildScience.jsx` (mastery + by-topic + recent mistakes), plus a Science
+  block on the parent home per-subject breakdown.
+- **Tutor / Teacher** — `components/StudentSciencePanel.jsx` on `TutorStudentProfile.jsx` and
+  `TeacherStudentDetail.jsx`. Class-level Science aggregate on `pages/teacher/ClassOverview.jsx`
+  (backend: `GET /api/teacher/classes/:id` now returns a `science` block).
+- **Assign Science practice** — Tutor `AssignHomework` and Teacher `AssignPractice` both accept
+  `module: 'Science Adaptive Revision'` + `subject: 'Science'`; `/api/skills?subject=science` is
+  reshaped client-side into the same `{ topicId, name, skills }` form math uses (with the MOE
+  level suffixed onto each topic so duplicates across P3–P6 stay distinguishable).
+
+## Content layers (notes / lessons / diagrams)
+The new `/student/science` module surfaces three content layers extracted from the legacy
+standalone Science Lab and exposed via `routes/science.js`:
+- **Topic mind-maps** (`data/scienceNotes.json`, 20 unique topic names) → rendered by
+  `ScienceTopicNotes.jsx` as a nested tree parsed from the Mermaid `graph LR` source.
+- **Structured lessons** (`data/scienceLessons.json`, 1 curated lesson for Human Impact and
+  Environment) → page-by-page reader in `ScienceTopicLesson.jsx`. Topics without a curated lesson
+  fall back to an auto-built lesson assembled from their questions.
+- **Inline SVG diagrams** (`data/scienceDiagrams.json`, 76 SVGs) joined per question via
+  `data/scienceQuestionDiagrams.json` (94 question→diagram mappings).
+
+`scripts/extractScienceContent.mjs` re-extracts all four JSONs from the legacy HTML.
+`scripts/scienceCoverageReport.mjs` writes `docs/dev/science-content-coverage.md` — the
+**per-topic authoring backlog** sorted worst-covered first.
+
+## Personal study notes
+`POST/GET /api/science/student-notes` + `models/StudentNote.js` — sticky notes keyed by concept
+heading (legacy convention), embedded in each lesson page via `NoteWidget.jsx`. Listing page at
+`/student/science/notes`.
+
 ## What remains incomplete
-- Tutor/Teacher Science views & Science assignment creation UI. (Parent Science surface landed —
-  see `pages/parent/ChildScience.jsx`.)
-- No AI marking, no Science worksheet generator, no diagrams (by guardrail).
+- No AI marking, no Science worksheet generator (the rule-based path doesn't run Science yet).
+- Mistake-to-Mastery worksheet generation is Math-only — Science mistakes accumulate but don't yet
+  feed a remediation worksheet.
+- `pages/teacher/ClassMasteryMap.jsx` still hardcodes Math; needs a subject toggle.
+- Lesson coverage is thin: only **1 of 44** topic+level pairs has a structured lesson, and only
+  **94 of 2,600** questions carry an inline diagram (see the coverage report).
 
 ## Commands
 ```bash
-npm run seed:foundation     # if not already seeded
-npm run seed:science        # Science subject/topics/skills/questions
-npm run dev                 # backend
+npm run seed:foundation             # if not already seeded
+npm run seed:science                # Science subject/topics/skills/questions
+node scripts/extractScienceContent.mjs       # re-extract notes/lessons/diagrams from legacy HTML
+node scripts/scienceCoverageReport.mjs       # regenerate the authoring-backlog report
+npm run dev                         # backend
 npm --prefix frontend run dev
-cd frontend && npx vite build   # build check (passes)
+cd frontend && npx vite build       # build check (passes)
 ```
 
 ## Next recommended build step
-The catalog is now the full P3–P6 MOE bank. Next: filter the topic list by the student's own
-`moeLevel` (so a P5 student sees only P5 topics by default, with a toggle to browse other levels);
-add a Science option to the existing Tutor / Teacher "Assign practice" flow
-(`module: 'Science Adaptive Revision'`); and extend the Tutor / Teacher dashboards with a Science
-mastery row using `GET /api/skills?subject=science&studentId=…`.
+Highest-impact remaining work:
+1. **Mistake-to-Mastery for Science** — let the rule-based worksheet generator accept Science as a
+   module so students can practise their actual Science gaps.
+2. **ClassMasteryMap subject toggle** — drill into Science topic-by-topic mastery across a class.
+3. **Authoring backlog** — see `docs/dev/science-content-coverage.md`. Top priorities: a curated
+   structured lesson for Reproductive System (P6, 60 questions, no mind map at all yet), and
+   raising diagram coverage on the high-volume topics (Adaptations for Survival, Diversity and
+   Classification, Heat, Light, Matter).
