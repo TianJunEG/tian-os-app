@@ -27,9 +27,12 @@ export default function PracticeResult() {
   if (!data) return <EmptyState message="Could not load these results." />;
 
   const { stats, skills, mistakes } = data;
-  // Route follow-on actions by module so a Science session returns to Science.
+  // Route follow-on actions by module/feature so a session returns where it began
+  // (Science → Science, an assigned Mastery Worksheet → the worksheets list).
   const isScience = data.session?.module === 'Science Adaptive Revision';
-  const homeBase = isScience ? '/student/science' : '/student/mathpath';
+  const isWorksheet = data.session?.feature === 'Mastery Worksheet';
+  const homeBase = isScience ? '/student/science' : isWorksheet ? '/student/worksheets' : '/student/mathpath';
+  const homeLabel = isScience ? 'Continue Science Revision' : isWorksheet ? 'Back to worksheets' : 'Continue MathPath';
   const mistakesBase = isScience ? '/student/science/mistakes' : '/student/mathpath/mistakes';
 
   return (
@@ -82,7 +85,7 @@ export default function PracticeResult() {
         {mistakes.length > 0 && (
           <Button variant="secondary" icon={Wrench} onClick={() => navigate(mistakesBase)} className="flex-1">Review mistakes</Button>
         )}
-        <Button icon={ArrowRight} onClick={() => navigate(homeBase)} className="flex-1">{isScience ? 'Continue Science Revision' : 'Continue MathPath'}</Button>
+        <Button icon={ArrowRight} onClick={() => navigate(homeBase)} className="flex-1">{homeLabel}</Button>
       </div>
     </div>
   );
