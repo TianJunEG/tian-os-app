@@ -69,6 +69,7 @@ Your job has three parts:
 
 Rules:
 - Be mathematically rigorous. Every answer and worked solution must be correct — double-check your arithmetic.
+- For each generated question, work out the full solution FIRST, then write the final answer. The "answer" field must be exactly the result reached at the end of "workedSolution" — they must never disagree.
 - Make questions and language age/level appropriate.
 - Generated questions must be NEW (not copies of the ones in the photo) but probe the same skill and misconception.
 - Worked solutions must show the steps a learner should follow.
@@ -102,12 +103,12 @@ const WORKSHEET_SCHEMA = {
         type: 'object',
         properties: {
           prompt: { type: 'string' },
-          answer: { type: 'string' },
-          workedSolution: { type: 'string' },
+          workedSolution: { type: 'string', description: 'The full step-by-step solution. Work this out FIRST.' },
+          answer: { type: 'string', description: 'The final answer — must be exactly the result reached at the end of workedSolution.' },
           targetsMisconception: { type: 'string' },
           difficulty: { type: 'string', enum: ['easier', 'similar', 'harder'] }
         },
-        required: ['prompt', 'answer', 'workedSolution', 'targetsMisconception', 'difficulty'],
+        required: ['prompt', 'workedSolution', 'answer', 'targetsMisconception', 'difficulty'],
         additionalProperties: false
       }
     }
@@ -176,11 +177,11 @@ const MARK_SCHEMA = {
         type: 'object',
         properties: {
           index: { type: 'integer', description: 'The item index given in the prompt.' },
+          readAs: { type: 'string', description: 'What the student wrote (transcribed for images, echoed for text). Determine this BEFORE deciding correctness.' },
           correct: { type: 'boolean' },
-          readAs: { type: 'string', description: 'What the student wrote (transcribed for images, echoed for text).' },
           feedback: { type: 'string', description: 'One short feedback sentence; never reveals the answer.' }
         },
-        required: ['index', 'correct', 'readAs', 'feedback'],
+        required: ['index', 'readAs', 'correct', 'feedback'],
         additionalProperties: false
       }
     }
@@ -226,7 +227,7 @@ export async function markAnswers({ items }) {
 // Reinforcement: fresh questions from known misconceptions (no image)
 // ---------------------------------------------------------------------------
 
-const REINFORCE_SYSTEM = `You are an expert math teacher generating targeted practice. You are given a topic and one or more diagnosed misconceptions. Produce fresh practice questions that directly confront those misconceptions, spread across easier / similar / harder difficulty. Be mathematically rigorous: every answer and worked solution must be correct. Make questions distinct (vary numbers and surface form) and age/level appropriate.`;
+const REINFORCE_SYSTEM = `You are an expert math teacher generating targeted practice. You are given a topic and one or more diagnosed misconceptions. Produce fresh practice questions that directly confront those misconceptions, spread across easier / similar / harder difficulty. Be mathematically rigorous: every answer and worked solution must be correct. For each question, work out the full solution FIRST, then state the final answer — the "answer" must be exactly the result reached at the end of "workedSolution", never disagreeing. Make questions distinct (vary numbers and surface form) and age/level appropriate.`;
 
 const REINFORCE_SCHEMA = {
   type: 'object',
@@ -237,12 +238,12 @@ const REINFORCE_SCHEMA = {
         type: 'object',
         properties: {
           prompt: { type: 'string' },
-          answer: { type: 'string' },
-          workedSolution: { type: 'string' },
+          workedSolution: { type: 'string', description: 'The full step-by-step solution. Work this out FIRST.' },
+          answer: { type: 'string', description: 'The final answer — must be exactly the result reached at the end of workedSolution.' },
           targetsMisconception: { type: 'string' },
           difficulty: { type: 'string', enum: ['easier', 'similar', 'harder'] }
         },
-        required: ['prompt', 'answer', 'workedSolution', 'targetsMisconception', 'difficulty'],
+        required: ['prompt', 'workedSolution', 'answer', 'targetsMisconception', 'difficulty'],
         additionalProperties: false
       }
     }
