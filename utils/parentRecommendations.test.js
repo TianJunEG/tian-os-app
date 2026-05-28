@@ -47,4 +47,26 @@ describe('buildRecommendations — rule-based parent actions', () => {
     const recs = buildRecommendations({ mistakesBySkill: [{ skillId: 'list1', skillName: '', count: 5 }] });
     expect(recs.some((r) => r.actionType === 'review_mistakes')).toBe(false);
   });
+
+  // Multi-module: each skill-specific action carries its module so the UI can
+  // label and route it (e.g. a Spelling weak list → the Spelling assign flow).
+  it('carries the module through to assign-practice and review actions', () => {
+    const recs = buildRecommendations({
+      records: [{ skillId: 'l1', skillName: 'Primary 4 common words', module: 'Spelling Practice', score: 20, attempts: 5, status: 'needs_review' }],
+      mistakesBySkill: [{ skillId: 'l1', skillName: 'Primary 4 common words', module: 'Spelling Practice', count: 4 }],
+    });
+    expect(recs.find((r) => r.actionType === 'assign_practice')?.module).toBe('Spelling Practice');
+    expect(recs.find((r) => r.actionType === 'review_mistakes')?.module).toBe('Spelling Practice');
+  });
+
+  it('surfaces weak skills across modules, worst-first', () => {
+    const recs = buildRecommendations({
+      records: [
+        { skillId: 'm1', skillName: 'Long division', module: 'MathPath', score: 35, attempts: 4, status: 'needs_review' },
+        { skillId: 'l1', skillName: 'Science vocab', module: 'Spelling Practice', score: 15, attempts: 3, status: 'needs_review' },
+      ],
+    });
+    const assigns = recs.filter((r) => r.actionType === 'assign_practice');
+    expect(assigns.map((r) => r.module)).toEqual(['Spelling Practice', 'MathPath']); // 15% before 35%
+  });
 });

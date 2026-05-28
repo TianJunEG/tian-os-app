@@ -20,12 +20,15 @@ export default function AssignPractice() {
   const navigate = useNavigate();
   const child = useChild(studentId);
 
-  const [module, setModule] = useState('MathPath');
+  // A recommendation can deep-link here with ?module=&skill= (MathPath) or
+  // ?module=Spelling Practice&list= to pre-select the right module + target.
+  const initialModule = MODULES.find((m) => m.key === params.get('module') && m.enabled)?.key || 'MathPath';
+  const [module, setModule] = useState(initialModule);
   const [topics, setTopics] = useState(null);
   const [topicId, setTopicId] = useState('');
   const [skillId, setSkillId] = useState(params.get('skill') || '');
   const [lists, setLists] = useState([]);
-  const [listId, setListId] = useState('');
+  const [listId, setListId] = useState(params.get('list') || '');
   const [difficulty, setDifficulty] = useState('medium');
   const [questionCount, setQuestionCount] = useState(10);
   const [dueDate, setDueDate] = useState('');

@@ -4,12 +4,19 @@ import Student from '../models/Student.js';
 import StudentGuardian from '../models/StudentGuardian.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Skill from '../models/Skill.js';
+import SpellingList from '../models/SpellingList.js';
 import Mistake from '../models/Mistake.js';
 import Assignment from '../models/Assignment.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { buildRecommendations } from '../utils/parentRecommendations.js';
 
 const router = express.Router();
+
+// Modules the parent can actually act on from the recommendation screens:
+// MathPath (assign a skill) and Spelling Practice (assign a word list). Both
+// route through AssignPractice. Science writes the same mastery/mistake store
+// but has no parent assign/mistakes destination yet, so it's not surfaced here.
+const REC_MODULES = ['MathPath', 'Spelling Practice'];
 
 // Light mastery summary for one student (used in the children list + home).
 async function masterySummary(studentId) {
@@ -47,26 +54,34 @@ router.get('/children/:studentId/recommendations', protect, async (req, res) => 
   try {
     const student = await resolveStudent(req, req.params.studentId);
 
-    // Scope to MathPath: its skill text/destinations are MathPath-shaped, and a
-    // MasteryRecord/Mistake from another module (e.g. Spelling) carries a skillId
-    // that references that module's own collection (a SpellingList), not Skill —
-    // so populating against Skill would yield blank-named, mis-routed actions.
-    // Matches masteryEngine.recommendNextSkill, which excludes non-MathPath too.
-    const recordsRaw = await MasteryRecord.find({ studentId: student._id, module: 'MathPath' })
-      .populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
-    const records = recordsRaw.map((r) => ({
-      skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
+    // Gather mastery + mistakes across the parent-actionable modules. Skill names
+    // resolve per module: a MathPath record's skillId references a Skill, a
+    // Spelling Practice record's references a SpellingList — populating either
+    // against the wrong collection would yield blank-named, mis-routed actions.
+    const masteryRaw = await MasteryRecord.find({ studentId: student._id, module: { $in: REC_MODULES } });
+    const mistakesRaw = await Mistake.find({ studentId: student._id, module: { $in: REC_MODULES }, status: { $ne: 'resolved' } });
+
+    const idsFor = (mod) => [...masteryRaw, ...mistakesRaw].filter((x) => x.module === mod).map((x) => x.skillId);
+    const skills = await Skill.find({ _id: { $in: idsFor('MathPath') } }).populate('topicId');
+    const lists = await SpellingList.find({ _id: { $in: idsFor('Spelling Practice') } });
+    const skillById = new Map(skills.map((s) => [String(s._id), s]));
+    const listById = new Map(lists.map((l) => [String(l._id), l]));
+
+    const nameOf = (x) => x.module === 'Spelling Practice'
+      ? (listById.get(String(x.skillId))?.title || '')
+      : (skillById.get(String(x.skillId))?.name || '');
+    const topicOf = (x) => x.module === 'MathPath' ? (skillById.get(String(x.skillId))?.topicId?.name || '') : '';
+
+    const records = masteryRaw.map((r) => ({
+      skillId: r.skillId, skillName: nameOf(r), topicName: topicOf(r), module: r.module,
       score: r.score, status: r.status, attempts: r.attempts,
     }));
-    const lastPracticedAt = recordsRaw
-      .map((r) => r.lastPracticedAt).filter(Boolean).sort((a, b) => b - a)[0] || null;
+    const lastPracticedAt = masteryRaw.map((r) => r.lastPracticedAt).filter(Boolean).sort((a, b) => b - a)[0] || null;
 
-    const mistakes = await Mistake.find({ studentId: student._id, module: 'MathPath', status: { $ne: 'resolved' } })
-      .populate({ path: 'skillId', model: Skill });
     const bySkill = {};
-    for (const m of mistakes) {
-      const k = String(m.skillId?._id);
-      if (!bySkill[k]) bySkill[k] = { skillId: m.skillId?._id, skillName: m.skillId?.name || '', count: 0 };
+    for (const m of mistakesRaw) {
+      const k = String(m.skillId);
+      if (!bySkill[k]) bySkill[k] = { skillId: m.skillId, skillName: nameOf(m), module: m.module, count: 0 };
       bySkill[k].count++;
     }
 

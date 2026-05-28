@@ -8,14 +8,27 @@ import { Card, Button, Badge, Spinner, EmptyState } from '../../components/ui';
 
 const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
 
-// Routes each recommendation to the right screen.
+// Routes each recommendation to the right screen, honouring its module so a
+// Spelling action lands on the Spelling assign flow (word list) rather than the
+// MathPath one (skill).
+function assignPractice(base, rec) {
+  const p = new URLSearchParams();
+  const mod = rec.module || 'MathPath';
+  p.set('module', mod);
+  if (rec.relatedSkillId) p.set(mod === 'Spelling Practice' ? 'list' : 'skill', rec.relatedSkillId);
+  return `${base}/assign-practice?${p.toString()}`;
+}
+
 function destination(studentId, rec) {
   const base = `/parent/children/${studentId}`;
   switch (rec.actionType) {
     case 'assign_practice':
     case 'restart_practice':
-      return `${base}/assign-practice${rec.relatedSkillId ? `?skill=${rec.relatedSkillId}` : ''}`;
-    case 'review_mistakes': return `${base}/mistakes`;
+      return assignPractice(base, rec);
+    // MathPath has a parent mistakes view; for Spelling the parent's lever is
+    // assigning targeted practice on the word list.
+    case 'review_mistakes':
+      return rec.module === 'Spelling Practice' ? assignPractice(base, rec) : `${base}/mistakes`;
     case 'follow_up_assignment': return `${base}/assignments`;
     case 'celebrate': return `${base}/progress`;
     default: return base;
@@ -41,8 +54,9 @@ export default function RecommendedActions() {
         <div className="space-y-3">
           {recs.map((rec, i) => (
             <Card key={i} className="p-4">
-              <div className="mb-1.5 flex items-center gap-2">
+              <div className="mb-1.5 flex flex-wrap items-center gap-2">
                 <Badge tone={PRIORITY_TONE[rec.priority]}>{rec.priority}</Badge>
+                {rec.module && <Badge tone="outline">{rec.module}</Badge>}
                 {rec.relatedSkillName && <span className="text-sm text-ink-500">{rec.relatedSkillName}</span>}
               </div>
               <p className="font-semibold text-ink-700">{rec.action}</p>
