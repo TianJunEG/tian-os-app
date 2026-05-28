@@ -83,7 +83,12 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', authRateLimit, authRoutes);
+// authRateLimit (10 req / 15min) is applied inside routes/auth.js only to the
+// brute-force-sensitive endpoints (/login, /register, /forgot-password).
+// Token-protected reads like /auth/me inherit the standard apiRateLimit
+// (100/15min). Putting the strict limit on the whole /api/auth prefix used
+// to log users out after ~10 page reloads since every app boot fires /me.
+app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/parents', parentRoutes);
 app.use('/api/search', searchRoutes);
