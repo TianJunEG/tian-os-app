@@ -9,6 +9,8 @@ import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/prac
 import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
 import { applyMarks } from '../utils/marking.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
+import { logDiagnosedMisconceptions } from '../utils/misconceptionLog.js';
+import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 
 const router = express.Router();
 
@@ -91,6 +93,20 @@ router.post(
       recomputeSchedule(worksheet);
       await worksheet.save();
 
+      // Log the diagnosed misconceptions against this student (best-effort —
+      // never fail the worksheet if this write has a problem).
+      try {
+        await logDiagnosedMisconceptions({
+          result,
+          ownerUserId: req.user.id,
+          studentUserId: assignedStudent ? assignedStudent._id : null,
+          studentName: worksheet.studentName || '',
+          worksheetId: worksheet._id,
+        });
+      } catch (logErr) {
+        console.error('Diagnosed-misconception logging failed (non-fatal):', logErr.message);
+      }
+
       return res.status(201).json({
         success: true,
         worksheet,
@@ -166,6 +182,27 @@ router.get('/mistakes', protect, async (req, res) => {
     mistakes.sort((a, b) => new Date(b.markedAt || 0) - new Date(a.markedAt || 0));
 
     return res.json({ success: true, count: mistakes.length, mistakes });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// @route   GET /api/worksheets/misconceptions
+// @desc    The AI-diagnosed misconceptions logged from photo analysis — a
+//          student's own, or all of a parent/tutor's (optionally ?studentId).
+// @access  Private
+router.get('/misconceptions', protect, async (req, res) => {
+  try {
+    const filter = req.user.role === 'student'
+      ? { studentUserId: req.user.id }
+      : { ownerUserId: req.user.id };
+    if (req.user.role !== 'student' && req.query.studentId) {
+      filter.studentUserId = req.query.studentId;
+    }
+    const misconceptions = await DiagnosedMisconception.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(200);
+    return res.json({ success: true, count: misconceptions.length, misconceptions });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
