@@ -95,8 +95,44 @@ router.get('/classes/:id', async (req, res) => {
   // Students needing support.
   const byStudent = await studentMastery(ids);
   const students = await Student.find({ _id: { $in: ids } });
+  const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
   const needSupport = students.filter((s) => (byStudent.get(String(s._id)) || []).some((r) => r.status === 'needs_review')).map((s) => ({ studentId: s._id, name: s.name }));
-  res.json({ class: { id: c._id, name: c.name, level: c.level, modules: c.modules }, studentCount: ids.length, overallMastery: overall, topWeakTopics: topWeak, studentsNeedingSupport: needSupport });
+
+  // Science Adaptive Revision aggregate — same shape, scoped to Science topics
+  // so a teacher can see how the class is doing on Science alongside Math
+  // without leaving the overview page.
+  let science = { available: false, attemptedCount: 0, overallMastery: 0, topWeakTopics: [], needsSupport: [] };
+  const sciSubject = await Subject.findOne({ key: 'science' });
+  if (sciSubject) {
+    const sciTopics = await Topic.find({ subjectId: sciSubject._id }).select('_id name');
+    const sciTopicIds = new Set(sciTopics.map((t) => String(t._id)));
+    const sciTopicNameById = Object.fromEntries(sciTopics.map((t) => [String(t._id), t.name]));
+    const sciRecs = recs.filter((r) => sciTopicIds.has(String(r.skillId?.topicId?._id)));
+    if (sciRecs.length) {
+      const sciOverall = Math.round(sciRecs.reduce((s, r) => s + r.score, 0) / sciRecs.length);
+      const sciByTopic = {};
+      for (const r of sciRecs) {
+        const t = sciTopicNameById[String(r.skillId?.topicId?._id)] || '—';
+        (sciByTopic[t] ||= []).push(r.score);
+      }
+      const sciTopWeak = Object.entries(sciByTopic)
+        .map(([t, arr]) => ({ topic: t, avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) }))
+        .sort((a, b) => a.avg - b.avg).slice(0, 3);
+      const attemptedIds = new Set(sciRecs.map((r) => String(r.studentId)));
+      const needSciSupport = [];
+      for (const sid of attemptedIds) {
+        const studentSciRecs = sciRecs.filter((r) => String(r.studentId) === sid);
+        if (studentSciRecs.some((r) => r.status === 'needs_review')) {
+          needSciSupport.push({ studentId: sid, name: nameById[sid] || '' });
+        }
+      }
+      science = { available: true, attemptedCount: attemptedIds.size, overallMastery: sciOverall, topWeakTopics: sciTopWeak, needsSupport: needSciSupport };
+    } else {
+      science.available = true; // subject seeded but no class activity yet
+    }
+  }
+
+  res.json({ class: { id: c._id, name: c.name, level: c.level, modules: c.modules }, studentCount: ids.length, overallMastery: overall, topWeakTopics: topWeak, studentsNeedingSupport: needSupport, science });
 });
 
 // Class mastery map: topic × status counts, with affected (needs-support) students.
