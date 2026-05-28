@@ -12,13 +12,17 @@ const TONE = { mastered: 'success', learning: 'gold', needs_review: 'error', not
 export default function ScienceHome() {
   const navigate = useNavigate();
   const [skills, setSkills] = useState([]);
+  const [studentLevel, setStudentLevel] = useState('');
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     skillsAPI.list({ subject: 'science' })
-      .then((r) => setSkills(r.data.skills || []))
+      .then((r) => {
+        setSkills(r.data.skills || []);
+        setStudentLevel(r.data.studentLevel || '');
+      })
       .catch((e) => setError(e.response?.data?.error || 'Could not load Science.'))
       .finally(() => setLoading(false));
   }, []);
@@ -51,13 +55,19 @@ export default function ScienceHome() {
     );
   }
 
-  const practised = skills.filter((s) => s.status !== 'not_started');
-  const recommended = [...skills].sort((a, b) => a.score - b.score)[0];
-  const weak = skills.filter((s) => s.status === 'needs_review' || s.status === 'learning').slice(0, 4);
+  // Constrain the home surface to the student's own level so a P4 student
+  // doesn't get a P6 "recommended topic" or P5 weak-skill suggestions. Falls
+  // back to the full pool only when the student's level has no skills (so the
+  // page is never empty for a student outside the seeded range).
+  const levelSkills = studentLevel ? skills.filter((s) => s.moeLevel === studentLevel) : skills;
+  const pool = levelSkills.length ? levelSkills : skills;
+  const practised = pool.filter((s) => s.status !== 'not_started');
+  const recommended = [...pool].sort((a, b) => a.score - b.score)[0];
+  const weak = pool.filter((s) => s.status === 'needs_review' || s.status === 'learning').slice(0, 4);
 
   return (
     <>
-      <PageHeader title="Science Revision" subtitle="A secondary module — revise alongside MathPath." />
+      <PageHeader title="Science Revision" subtitle={studentLevel ? `${studentLevel} · adaptive revision` : 'A secondary module — revise alongside MathPath.'} />
 
       <Card className="mb-6 bg-gradient-to-br from-[#2F6B7E] to-[#1d4452] p-5 text-paper">
         <div className="mb-1 flex items-center gap-2 text-paper/80"><FlaskConical className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Recommended topic</span></div>
