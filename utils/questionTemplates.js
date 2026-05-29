@@ -33,6 +33,18 @@ function mcq(stem, answer, distractors, workedSolution, misconceptionTag, diffic
 function short(stem, answer, workedSolution, misconceptionTag, difficulty) {
   return { type: 'short_answer', stem, choices: [], answer: String(answer), workedSolution, misconceptionTag, difficulty };
 }
+function shortVisual(stem, answer, workedSolution, misconceptionTag, difficulty, visual) {
+  return {
+    type: 'short_answer',
+    stem,
+    choices: [],
+    answer: String(answer),
+    workedSolution,
+    misconceptionTag,
+    difficulty,
+    visual,
+  };
+}
 
 const addingUnlikeFractionsSample = {
   type: 'short_answer',
@@ -208,6 +220,88 @@ function buildOne(skillName, difficulty) {
     const ans = (p / 100) * base;
     return short(`What is ${p}% of ${base}?`,
       ans, `${p}% of ${base} = ${p}/100 × ${base} = ${ans}.`, 'percent/of-quantity', difficulty);
+  }
+  if (name.includes('reading tables')) {
+    const cats = ['Red', 'Blue', 'Green', 'Yellow'];
+    const vals = shuffle([rnd(8, 24), rnd(8, 24), rnd(8, 24), rnd(8, 24)]);
+    const pick = rnd(0, cats.length - 1);
+    return shortVisual(
+      `Use the table. How many students chose ${cats[pick]}?`,
+      vals[pick],
+      `From the table, ${cats[pick]} corresponds to ${vals[pick]} students.`,
+      'data/read-cell',
+      difficulty,
+      {
+        type: 'table',
+        version: 'v1',
+        alt: 'Table of favourite colour and number of students',
+        payload: {
+          headers: ['Category', 'Count'],
+          rows: cats.map((c, i) => [c, String(vals[i])]),
+        },
+      }
+    );
+  }
+  if (name.includes('interpreting and comparing data')) {
+    const labels = ['Class A', 'Class B', 'Class C', 'Class D'];
+    const vals = shuffle([rnd(12, 35), rnd(12, 35), rnd(12, 35), rnd(12, 35)]);
+    const hi = vals.indexOf(Math.max(...vals));
+    const lo = vals.indexOf(Math.min(...vals));
+    if (Math.random() < 0.5) {
+      return shortVisual(
+        `Use the table. Which class has the highest score? Write the class name.`,
+        labels[hi],
+        `${labels[hi]} has the highest value (${vals[hi]}).`,
+        'data/compare-max',
+        difficulty,
+        {
+          type: 'table',
+          version: 'v1',
+          alt: 'Table of class and score',
+          payload: {
+            headers: ['Class', 'Score'],
+            rows: labels.map((l, i) => [l, String(vals[i])]),
+          },
+        }
+      );
+    }
+    return shortVisual(
+      `Use the table. How many more points did ${labels[hi]} score than ${labels[lo]}?`,
+      vals[hi] - vals[lo],
+      `${labels[hi]} scored ${vals[hi]} and ${labels[lo]} scored ${vals[lo]}. Difference = ${vals[hi] - vals[lo]}.`,
+      'data/compare-difference',
+      difficulty,
+      {
+        type: 'table',
+        version: 'v1',
+        alt: 'Table of class and score',
+        payload: {
+          headers: ['Class', 'Score'],
+          rows: labels.map((l, i) => [l, String(vals[i])]),
+        },
+      }
+    );
+  }
+  if (name.includes('bar graph')) {
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu'];
+    const vals = shuffle([rnd(2, 10), rnd(2, 10), rnd(2, 10), rnd(2, 10)]);
+    const ask = rnd(0, labels.length - 1);
+    return shortVisual(
+      `A bar graph is shown as table data below. How many books were read on ${labels[ask]}?`,
+      vals[ask],
+      `From the table-based bar data, ${labels[ask]} has value ${vals[ask]}.`,
+      'graph/read-value',
+      difficulty,
+      {
+        type: 'table',
+        version: 'v1',
+        alt: 'Bar graph data shown in a table: day and books read',
+        payload: {
+          headers: ['Day', 'Books Read (bar value)'],
+          rows: labels.map((l, i) => [l, String(vals[i])]),
+        },
+      }
+    );
   }
 
   // ── Foundational counting & number facts (so the earliest recommended skills

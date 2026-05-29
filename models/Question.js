@@ -34,6 +34,20 @@ const questionSchema = new mongoose.Schema({
   hasFigure: { type: Boolean, default: false },
   figureUrl: { type: String, default: '' },
   figureAlt: { type: String, default: '' },
+  // Optional structured visual payload for safe client-side rendering (Phase
+  // v0.1.2). Backward-compatible with existing figureUrl-based items.
+  visual: {
+    type: new mongoose.Schema({
+      type: {
+        type: String,
+        enum: ['table', 'chart', 'image', 'svg'],
+      },
+      payload: { type: mongoose.Schema.Types.Mixed },
+      alt: { type: String, default: '' },
+      version: { type: String, default: 'v1' },
+    }, { _id: false }),
+    default: undefined,
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

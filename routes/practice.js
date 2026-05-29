@@ -20,6 +20,10 @@ const clientQuestion = (q) => ({
   questionId: q._id, stem: q.stem, type: q.type, choices: q.choices,
   difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
   skillName: q.skillId?.name, topicId: q.skillId?.topicId,
+  visual: q.visual || null,
+  hasFigure: !!q.hasFigure,
+  figureUrl: q.figureUrl || '',
+  figureAlt: q.figureAlt || '',
 });
 
 // @route POST /api/practice/sessions

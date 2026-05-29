@@ -5,6 +5,45 @@ import { mathpathAPI } from '../../../services/api';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 
+function VisualTable({ payload }) {
+  const headers = Array.isArray(payload?.headers) ? payload.headers : [];
+  const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+  if (!headers.length || !rows.length) return null;
+
+  return (
+    <div className="mb-5 overflow-x-auto rounded-xl border border-hairline">
+      <table className="min-w-full border-collapse text-left text-sm text-ink-800">
+        <thead className="bg-navy-50">
+          <tr>
+            {headers.map((h, i) => (
+              <th key={`h-${i}`} className="border-b border-hairline px-3 py-2 font-semibold">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, rIdx) => (
+            <tr key={`r-${rIdx}`} className="odd:bg-white even:bg-slate-50">
+              {Array.isArray(row) ? row.map((cell, cIdx) => (
+                <td key={`c-${rIdx}-${cIdx}`} className="border-b border-hairline px-3 py-2">{cell}</td>
+              )) : null}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function VisualBlock({ visual }) {
+  if (!visual || !visual.type) return null;
+  if (visual.type === 'table') return <VisualTable payload={visual.payload} />;
+  return (
+    <div className="mb-5 rounded-xl border border-hairline bg-slate-50 px-4 py-3 text-sm text-ink-600">
+      Visual unavailable
+    </div>
+  );
+}
+
 // One question at a time. Answers are graded server-side; we never receive the
 // correct answer until after Check. Items are passed via navigation state when
 // the session is created (a refresh sends the student back to MathPath home).
@@ -78,6 +117,7 @@ export default function PracticeSession() {
           size across question types (MCQ vs short answer) and Check/answered states. */}
       <Card className="flex min-h-[34rem] flex-col p-6">
         <div className="mb-6 text-lg leading-relaxed text-ink-900"><MathText text={q.stem} /></div>
+        <VisualBlock visual={q.visual} />
 
         {/* Answer input */}
         {q.type === 'mcq' ? (

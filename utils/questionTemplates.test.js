@@ -21,8 +21,7 @@ const FIGURE_ONLY = new Set([
   'Line symmetry', 'Completing symmetric figures',
   'Identifying 3D solids (faces, edges, vertices)', 'Nets and views of solids',
   'Position and compass directions', 'Drawing and constructing figures',
-  'Reading measuring scales', 'Reading tables', 'Picture graphs', 'Bar graphs',
-  'Line graphs', 'Interpreting and comparing data', 'Pie charts',
+  'Reading measuring scales', 'Picture graphs', 'Line graphs', 'Pie charts',
 ]);
 
 describe('question generator coverage', async () => {
