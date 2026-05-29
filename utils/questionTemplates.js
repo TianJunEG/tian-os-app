@@ -108,6 +108,108 @@ function buildOne(skillName, difficulty) {
       `Discount = ${pct}% × $${orig} = $${orig * pct / 100}. Selling price = $${orig} − $${orig * pct / 100} = $${pay}.`, 'percent/discount', difficulty);
   }
 
+  // ---- v0.1.1 P4/P5 coverage hardening batch (explicit skill-name branches) ----
+  if (name.includes('comparing decimals')) {
+    const whole = rnd(1, 9);
+    const tenthsA = rnd(1, 9);
+    let tenthsB = rnd(1, 9); if (tenthsB === tenthsA) tenthsB = (tenthsB % 9) + 1;
+    const hundredthsA = rnd(0, 9);
+    const hundredthsB = rnd(0, 9);
+    const a = Number(`${whole}.${tenthsA}${hundredthsA}`);
+    const b = Number(`${whole}.${tenthsB}${hundredthsB}`);
+    const ans = Math.max(a, b).toFixed(2);
+    return short(`Which is greater: ${a.toFixed(2)} or ${b.toFixed(2)}? Write the greater number.`, ans,
+      `Compare tenths first (${tenthsA} vs ${tenthsB}). If needed, compare hundredths. The greater number is ${ans}.`, 'decimal/compare-length', difficulty);
+  }
+  if (name.includes('decimals on a number line')) {
+    const start = rnd(2, 8);
+    const parts = [4, 5, 10][rnd(0, 2)];
+    const n = rnd(1, parts - 1);
+    const step = 1 / parts;
+    const val = Number((start + n * step).toFixed(2));
+    return short(`On a number line, the distance from ${start} to ${start + 1} is split into ${parts} equal parts. What value is ${n} part${n > 1 ? 's' : ''} to the right of ${start}?`,
+      val.toFixed(2), `Each part is 1/${parts} = ${step.toFixed(2)}. ${n} parts is ${(n * step).toFixed(2)}. So ${start} + ${(n * step).toFixed(2)} = ${val.toFixed(2)}.`, 'decimal/number-line', difficulty);
+  }
+  if (name.includes('ordering decimals')) {
+    const set = new Set();
+    while (set.size < 4) set.add((rnd(10, 99) / 10).toFixed(1));
+    const arr = [...set].map(Number);
+    const sorted = [...arr].sort((x, y) => x - y);
+    return short(`Arrange from smallest to largest: ${arr.map((x) => x.toFixed(1)).join(', ')}.`,
+      sorted.map((x) => x.toFixed(1)).join(', '), `Compare whole numbers first, then tenths: ${sorted.map((x) => x.toFixed(1)).join(' < ')}.`, 'decimal/order', difficulty);
+  }
+  if (name.includes('comparing fractions (same numerator)')) {
+    const n = rnd(1, 5);
+    let d1 = rnd(n + 2, 10), d2 = rnd(n + 2, 10);
+    if (d1 === d2) d2 = d1 + 1;
+    const greater = d1 < d2 ? `${n}/${d1}` : `${n}/${d2}`;
+    return short(`Which is greater: ${n}/${d1} or ${n}/${d2}? Write the greater fraction.`,
+      greater, `Same numerator means the smaller denominator gives larger parts. So the greater fraction is ${greater}.`, 'frac/compare-numer', difficulty);
+  }
+  if (name.includes('mixed numbers and improper fractions')) {
+    const whole = rnd(1, 5);
+    const d = rnd(2, 8);
+    const n = rnd(1, d - 1);
+    return short(`Write ${whole} ${n}/${d} as an improper fraction.`,
+      `${whole * d + n}/${d}`, `${whole} ${n}/${d} = (${whole} × ${d} + ${n})/${d} = ${whole * d + n}/${d}.`, 'frac/mixed-improper', difficulty);
+  }
+  if (name.includes('place value to 1 000 000')) {
+    const n = rnd(100000, 999999);
+    const places = [['hundred-thousands', 100000], ['ten-thousands', 10000], ['thousands', 1000], ['hundreds', 100]];
+    const [label, value] = places[rnd(0, places.length - 1)];
+    const digit = Math.floor(n / value) % 10;
+    return short(`In ${n.toLocaleString()}, what is the digit in the ${label} place?`,
+      digit, `${n.toLocaleString()} → the ${label} digit is ${digit}.`, 'place-value', difficulty);
+  }
+  if (name.includes('rounding to nearest 1000') || name.includes('rounding to the nearest 1000')) {
+    const n = rnd(2000, 99999);
+    const ans = Math.round(n / 1000) * 1000;
+    return short(`Round ${n.toLocaleString()} to the nearest thousand.`,
+      ans.toLocaleString(), `Check the hundreds digit of ${n.toLocaleString()}. Round to ${ans.toLocaleString()}.`, 'rounding', difficulty);
+  }
+  if (name.includes('rounding decimals')) {
+    const a = rnd(1, 20), b = rnd(0, 9), c = rnd(0, 9);
+    const n = Number(`${a}.${b}${c}`);
+    const ans = n.toFixed(1);
+    return short(`Round ${n.toFixed(2)} to 1 decimal place.`,
+      ans, `Look at the hundredths digit (${c}). Rounded to 1 decimal place: ${ans}.`, 'rounding', difficulty);
+  }
+  if (name.includes('comparing unlike fractions')) {
+    const d1 = rnd(2, 5), d2 = rnd(3, 8);
+    const a = rnd(1, d1 - 1), b = rnd(1, d2 - 1);
+    if (a * d2 === b * d1) return buildOne(skillName, difficulty);
+    const greater = a * d2 > b * d1 ? `${a}/${d1}` : `${b}/${d2}`;
+    return short(`Which is greater: ${a}/${d1} or ${b}/${d2}? Write the greater fraction.`,
+      greater, `Cross-multiply: ${a}×${d2} = ${a * d2}, ${b}×${d1} = ${b * d1}. The greater fraction is ${greater}.`, 'frac/compare-unlike', difficulty);
+  }
+  if (name.includes('ordering fractions')) {
+    const d = rnd(6, 12);
+    const picks = shuffle(Array.from({ length: d - 1 }, (_, i) => i + 1)).slice(0, 4);
+    const sorted = [...picks].sort((x, y) => x - y);
+    return short(`Arrange from smallest to largest: ${picks.map((x) => `${x}/${d}`).join(', ')}.`,
+      sorted.map((x) => `${x}/${d}`).join(', '), `Same denominator, so order by numerator: ${sorted.map((x) => `${x}/${d}`).join(' < ')}.`, 'frac/order-denom', difficulty);
+  }
+  if (name.includes('adding/subtracting mixed numbers') || name.includes('adding and subtracting mixed numbers')) {
+    const d = rnd(3, 8);
+    const w1 = rnd(1, 4), n1 = rnd(1, d - 1);
+    const w2 = rnd(1, 3), n2 = rnd(1, d - 1);
+    if (Math.random() < 0.5) {
+      const num = (w1 * d + n1) + (w2 * d + n2);
+      return short(`${w1} ${n1}/${d} + ${w2} ${n2}/${d} = ? (give your answer as an improper fraction over ${d})`,
+        `${num}/${d}`, `Convert each mixed number: ${w1} ${n1}/${d} = ${(w1 * d + n1)}/${d}, ${w2} ${n2}/${d} = ${(w2 * d + n2)}/${d}. Add numerators: ${num}/${d}.`, 'frac/mixed-add-sub', difficulty);
+    }
+    const left = (w1 * d + n1) + (w2 * d + n2);
+    return short(`${left}/${d} − ${w2} ${n2}/${d} = ? (give your answer as an improper fraction over ${d})`,
+      `${w1 * d + n1}/${d}`, `Convert ${w2} ${n2}/${d} to ${(w2 * d + n2)}/${d}. Then ${left}/${d} − ${(w2 * d + n2)}/${d} = ${(w1 * d + n1)}/${d}.`, 'frac/mixed-add-sub', difficulty);
+  }
+  if (name.includes('percentage of a quantity')) {
+    const p = [10, 20, 25, 40, 50, 75][rnd(0, 5)];
+    const base = p === 25 || p === 75 ? rnd(2, 12) * 4 : p === 20 || p === 40 ? rnd(2, 12) * 5 : rnd(2, 12) * 10;
+    const ans = (p / 100) * base;
+    return short(`What is ${p}% of ${base}?`,
+      ans, `${p}% of ${base} = ${p}/100 × ${base} = ${ans}.`, 'percent/of-quantity', difficulty);
+  }
+
   // ── Foundational counting & number facts (so the earliest recommended skills
   //     are actually practiceable) ──
   if (name.includes('counting') || name.includes('skip count')) {
