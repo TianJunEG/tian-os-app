@@ -75,7 +75,7 @@ const worksheetSchema = new mongoose.Schema({
   // stores structured content first (never PDF-only).
   workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', default: null },
   generatedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-  generatedByRole: { type: String, enum: ['parent', 'tutor', 'teacher', 'system', null], default: null },
+  generatedByRole: { type: String, enum: ['student', 'parent', 'tutor', 'teacher', 'system', null], default: null },
   topicIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Topic', default: [] },
   skillIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Skill', default: [] },
   sourceMode: {

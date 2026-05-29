@@ -1,5 +1,8 @@
 // Centralized feature flags for v0.1 (MathPath student beta)
 // Toggle values here control UI visibility and route guarding.
+const envTrue = (v) => String(v || '').toLowerCase() === 'true' || String(v || '') === '1';
+const WORKSHEETS_ENABLED = envTrue(import.meta.env.VITE_ENABLE_WORKSHEETS) || envTrue(import.meta.env.ENABLE_WORKSHEETS);
+
 export const FEATURE_FLAGS = {
   // Core student features (enabled)
   mathpath: true,
@@ -8,8 +11,8 @@ export const FEATURE_FLAGS = {
   progress: true,
 
   // Features shown as "Coming Soon" (still disabled but visible)
-  worksheets: false,
-  worksheetsComingSoon: true,
+  worksheets: WORKSHEETS_ENABLED,
+  worksheetsComingSoon: false,
   parent: false,
   parentComingSoon: true,
 

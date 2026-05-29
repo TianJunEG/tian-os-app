@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FileText, ArrowRight } from 'lucide-react';
-import { assignmentsAPI, mathpathAPI } from '../../services/api';
-import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState, Alert } from '../../components/ui';
+import { Link, useNavigate } from 'react-router-dom';
+import { FileText, ArrowRight, TrendingDown, BookOpen, AlertTriangle } from 'lucide-react';
+import { assignmentsAPI, mathpathAPI, worksheetGenAPI } from '../../services/api';
+import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState, Alert, Badge } from '../../components/ui';
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : null);
 
@@ -14,14 +14,24 @@ const fmt = (d) => (d ? new Date(d).toLocaleDateString() : null);
 export default function StudentWorksheets() {
   const navigate = useNavigate();
   const [items, setItems] = useState(null);
+  const [generated, setGenerated] = useState([]);
+  const [weakSkill, setWeakSkill] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
 
   useEffect(() => {
-    assignmentsAPI.list()
-      .then((r) => setItems((r.data.assignments || []).filter((a) => a.module === 'Mastery Worksheet')))
+    Promise.all([
+      assignmentsAPI.list(),
+      worksheetGenAPI.list(),
+      mathpathAPI.mastery(),
+    ])
+      .then(([a, w, m]) => {
+        setItems((a.data.assignments || []).filter((x) => x.module === 'Mastery Worksheet'));
+        setGenerated(w.data.worksheets || []);
+        setWeakSkill(m.data.recommended || null);
+      })
       .catch(() => {
         setLoadError(true);
         setItems([]);
@@ -48,15 +58,68 @@ export default function StudentWorksheets() {
 
   return (
     <>
-      <PageHeader title="Mastery Worksheets" subtitle="Targeted practice sets from your weak skills and recent mistakes." />
+      <PageHeader title="Worksheet Generator" subtitle="Create short practice from weak skills, selected skills, or mistake types." />
       {startError && <Alert tone="error" className="mb-4">{startError}</Alert>}
       {loadError && <Alert tone="error" className="mb-4">Unable to load worksheets right now. Please try again later.</Alert>}
-      {items.length === 0 ? (
-        <EmptyState icon={FileText} message="No worksheets yet. When a parent or teacher assigns one, it shows up here." />
-      ) : (
-        <div className="space-y-6">
+      <div className="mb-6 grid gap-3 sm:grid-cols-3">
+        <Link to="/student/worksheets/new?mode=weak_skills" className="focus-visible:outline-none">
+          <Card interactive className="flex items-start gap-3 p-4">
+            <TrendingDown className="mt-1 h-4 w-4 text-navy-700" />
+            <div>
+              <p className="font-semibold text-ink-800">Use Weak Skill</p>
+              <p className="text-xs text-ink-500">{weakSkill?.skillName || 'Generate from your current recommended skill.'}</p>
+            </div>
+          </Card>
+        </Link>
+        <Link to="/student/worksheets/new?mode=selected_topic" className="focus-visible:outline-none">
+          <Card interactive className="flex items-start gap-3 p-4">
+            <BookOpen className="mt-1 h-4 w-4 text-navy-700" />
+            <div>
+              <p className="font-semibold text-ink-800">Choose Skill</p>
+              <p className="text-xs text-ink-500">Pick a specific MathPath skill.</p>
+            </div>
+          </Card>
+        </Link>
+        <Link to="/student/worksheets/new?mode=recent_mistakes" className="focus-visible:outline-none">
+          <Card interactive className="flex items-start gap-3 p-4">
+            <AlertTriangle className="mt-1 h-4 w-4 text-navy-700" />
+            <div>
+              <p className="font-semibold text-ink-800">Use Mistake Type</p>
+              <p className="text-xs text-ink-500">Target recent misconception patterns.</p>
+            </div>
+          </Card>
+        </Link>
+      </div>
+
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent Generated</h3>
+          {generated.length === 0 ? (
+            <Card className="p-4 text-sm text-ink-500">No generated worksheets yet.</Card>
+          ) : (
+            <div className="space-y-2">
+              {generated.slice(0, 8).map((w) => (
+                <Link key={w.id} to={`/student/worksheets/${w.id}`} className="block focus-visible:outline-none">
+                  <Card interactive className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-ink-700">{w.title}</p>
+                      <p className="mt-0.5 text-sm text-ink-500">{w.questionCount} questions · {w.difficulty}</p>
+                    </div>
+                    <Badge tone={w.assignedStatus === 'assigned' ? 'success' : 'neutral'}>{w.assignedStatus}</Badge>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {items.length === 0 ? (
+          <EmptyState icon={FileText} message="No assigned worksheets yet. Generated worksheets appear above; assigned ones can be started below when available." />
+        ) : (
+          <div className="space-y-6">
           {pending.length > 0 && (
             <div className="space-y-3">
+              <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Assigned To You</h3>
               {pending.map((a) => (
                 <Card key={a.id} className="flex items-center justify-between gap-3 p-4">
                   <div className="min-w-0">
@@ -84,8 +147,9 @@ export default function StudentWorksheets() {
               </div>
             </div>
           )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </>
   );
 }

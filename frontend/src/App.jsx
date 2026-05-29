@@ -55,6 +55,8 @@ const SpellingPracticeMistakes = lazy(() => import('./pages/student/spelling/Spe
 const StudentLifeLab = lazy(() => import('./pages/student/StudentLifeLab'));
 const SkillGraph = lazy(() => import('./pages/student/SkillGraph'));
 const StudentWorksheets = lazy(() => import('./pages/student/StudentWorksheets'));
+const StudentWorksheetSetup = lazy(() => import('./pages/student/worksheets/WorksheetSetup'));
+const StudentWorksheetPreview = lazy(() => import('./pages/student/worksheets/WorksheetPreview'));
 // MathPath features (Phase 4): Fluency + Mistake-to-Mastery
 const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyHome'));
 const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
@@ -365,7 +367,7 @@ function App() {
             }
           />
 
-          <Route path="/worksheets" element={<ProtectedRoute><FeatureGuard feature="worksheets" comingSoonAllowed={true}><WorksheetGeneratorPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/worksheets" element={<ProtectedRoute><FeatureGuard feature="worksheets"><WorksheetGeneratorPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
           <Route path="/progress" element={<ProtectedRoute><ParentProgressPage /></ProtectedRoute>} />
           <Route path="/tutor/onboarding" element={<ProtectedRoute><TutorOnboarding /></ProtectedRoute>} />
@@ -406,7 +408,9 @@ function App() {
             <Route path="/student/mathpath/fluency" element={<FluencyHome />} />
             <Route path="/student/mathpath/fluency/skills" element={<FluencySkills />} />
             <Route path="/student/fluency" element={<Navigate to="/student/mathpath/fluency" replace />} />
-            <Route path="/student/worksheets" element={<FeatureGuard feature="worksheets" comingSoonAllowed={true}><StudentWorksheets /></FeatureGuard>} />
+            <Route path="/student/worksheets" element={<FeatureGuard feature="worksheets"><StudentWorksheets /></FeatureGuard>} />
+            <Route path="/student/worksheets/new" element={<FeatureGuard feature="worksheets"><StudentWorksheetSetup /></FeatureGuard>} />
+            <Route path="/student/worksheets/:worksheetId" element={<FeatureGuard feature="worksheets"><StudentWorksheetPreview /></FeatureGuard>} />
             {/* Science Adaptive Revision (secondary module). Practice/results reuse the shared screens. */}
             <Route path="/student/science" element={<FeatureGuard feature="science"><ScienceHome /></FeatureGuard>} />
             <Route path="/student/science/topics" element={<FeatureGuard feature="science"><ScienceTopics /></FeatureGuard>} />

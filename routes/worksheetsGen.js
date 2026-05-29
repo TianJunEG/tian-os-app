@@ -19,6 +19,7 @@ router.post('/generate', protect, async (req, res) => {
     const student = await resolveStudent(req, req.body.studentId);
     const {
       mode = 'weak_skills', skillIds = [], topicId = null,
+      misconceptionTag = '',
       difficulty = 'medium', questionCount = 10,
       includesSolutions = true, includesMistakeReview = false,
       subject: subjectInput,
@@ -30,7 +31,7 @@ router.post('/generate', protect, async (req, res) => {
 
     const { skillIds: targetSkillIds, topicIds, content } = await generateWorksheet({
       mode, studentId: student._id, studentName: student.name,
-      skillIds, topicId, difficulty, questionCount, includesSolutions, includesMistakeReview,
+      skillIds, topicId, misconceptionTag, difficulty, questionCount, includesSolutions, includesMistakeReview,
       subject,
     });
 
