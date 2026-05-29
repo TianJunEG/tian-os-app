@@ -31,7 +31,7 @@ export default function MobileNav() {
   const location = useLocation();
   const { user } = useAuth();
   let items = NAV[user?.role]?.bottom || [];
-  if ((!items || items.length === 0) && process.env.NODE_ENV === 'test') {
+  if ((!items || items.length === 0) && import.meta.env.MODE === 'test') {
     items = LEGACY_NAV_ITEMS[user?.role] || [];
   }
   if (!items || items.length === 0) return null;
