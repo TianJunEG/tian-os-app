@@ -30,7 +30,16 @@ export default function MistakesHome() {
     setStarting(true);
     try {
       const { data: s } = await mathpathAPI.startSession({ feature: 'Mistake-to-Mastery', skillId, questionCount: 5 });
-      navigate(`/student/mathpath/practice/${s.session_id}`, { state: { items: s.items, backTo: '/student/mathpath/mistakes' } });
+      navigate(`/student/mathpath/practice/${s.session_id}`, {
+        state: {
+          items: s.items,
+          resultsBase: '/student/mathpath',
+          backTo: '/student/mathpath/mistakes',
+          homeBase: '/student/mathpath/mistakes',
+          homeLabel: 'Back to mistake review',
+          mistakesBase: '/student/mathpath/mistakes',
+        },
+      });
     } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setStarting(false); }
   };
 

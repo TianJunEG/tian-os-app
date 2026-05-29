@@ -32,12 +32,21 @@ export default function MistakeDetail() {
   };
   useEffect(() => { load(); }, [mistakeId]);
 
-  const review = async () => { await mathpathAPI.reviewMistake(mistakeId, { source: 'student' }); load(); };
+  const review = async () => { await mathpathAPI.reviewMistake(mistakeId, { source: 'student' }); setShowHelp(true); load(); };
   const practise = async () => {
     if (starting) return; setStarting(true);
     try {
       const { data } = await mathpathAPI.startSession({ feature: 'Mistake-to-Mastery', skillId: m.skillId, questionCount: 5 });
-      navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items, backTo: '/student/mathpath/mistakes' } });
+      navigate(`/student/mathpath/practice/${data.session_id}`, {
+        state: {
+          items: data.items,
+          resultsBase: '/student/mathpath',
+          backTo: '/student/mathpath/mistakes',
+          homeBase: '/student/mathpath/mistakes',
+          homeLabel: 'Back to mistake review',
+          mistakesBase: '/student/mathpath/mistakes',
+        },
+      });
     } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setStarting(false); }
   };
 
@@ -52,7 +61,7 @@ export default function MistakeDetail() {
       <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} />
       <Card className="p-5">
         <div className="mb-2 flex items-center justify-between">
-          <Badge tone="neutral">{TYPE_LABEL[m.mistakeType] || m.mistakeType}</Badge>
+          <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || m.mistakeType}</Badge>
           <Badge tone={reviewed ? 'success' : 'gold'}>{m.status === 'resolved' ? 'Resolved' : reviewed ? 'Reviewed' : 'New'}</Badge>
         </div>
 

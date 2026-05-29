@@ -4,6 +4,7 @@ import { ArrowRight, PartyPopper } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
+import RemediationPanel from '../../../components/mathpath/RemediationPanel';
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation', careless: 'Careless',
@@ -17,6 +18,7 @@ export default function MistakeReview() {
   const [mistakes, setMistakes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [openHelp, setOpenHelp] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -29,8 +31,17 @@ export default function MistakeReview() {
     if (starting) return;
     setStarting(true);
     try {
-      const { data } = await mathpathAPI.startSession({ skillId, questionCount: 10, feature: 'Mistake-to-Mastery' });
-      navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items } });
+      const { data } = await mathpathAPI.startSession({ skillId, questionCount: 5, feature: 'Mistake-to-Mastery' });
+      navigate(`/student/mathpath/practice/${data.session_id}`, {
+        state: {
+          items: data.items,
+          resultsBase: '/student/mathpath',
+          backTo: '/student/mathpath/mistakes',
+          homeBase: '/student/mathpath/mistakes',
+          homeLabel: 'Back to mistake review',
+          mistakesBase: '/student/mathpath/mistakes',
+        },
+      });
     } catch (_) { setStarting(false); }
   };
 
@@ -47,7 +58,7 @@ export default function MistakeReview() {
             <Card key={m.id} className="p-5">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-ink-700">{m.skillName}</span>
-                <Badge tone="neutral">{TYPE_LABEL[m.mistakeType] || 'To review'}</Badge>
+                <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || 'To review'}</Badge>
               </div>
               <div className="text-ink-900"><MathText text={m.questionStem} /></div>
               <div className="mt-2 text-sm">
@@ -57,8 +68,17 @@ export default function MistakeReview() {
               </div>
               {m.workedSolution && <p className="mt-2 text-sm text-ink-500"><MathText text={m.workedSolution} /></p>}
               <div className="mt-4">
-                <Button variant="secondary" size="s" icon={ArrowRight} disabled={starting} onClick={() => practiseSimilar(m.skillId)}>Practise similar questions</Button>
+                <Button variant="secondary" size="s" icon={ArrowRight} onClick={() => setOpenHelp(openHelp === m.id ? null : m.id)}>
+                  {openHelp === m.id ? 'Hide help' : 'Review steps'}
+                </Button>
               </div>
+              {openHelp === m.id && (
+                <RemediationPanel
+                  skillId={m.skillId}
+                  recentAttempts={[{ correct: false, misconceptionTag: m.misconceptionTag }]}
+                  onPractise={() => practiseSimilar(m.skillId)}
+                />
+              )}
             </Card>
           ))}
         </div>

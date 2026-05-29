@@ -16,7 +16,13 @@ export default function PracticeSession() {
   // Where to send the student afterwards — defaults to MathPath; Science (and any
   // other module reusing this screen) passes resultsBase/homeBase via nav state.
   const resultsBase = location.state?.resultsBase || '/student/mathpath';
-  const homeBase = location.state?.homeBase || '/student/mathpath';
+  const homeBase = location.state?.homeBase || location.state?.backTo || '/student/mathpath';
+  const resultState = {
+    backTo: location.state?.backTo,
+    homeBase: location.state?.homeBase || location.state?.backTo,
+    homeLabel: location.state?.homeLabel,
+    mistakesBase: location.state?.mistakesBase,
+  };
 
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
@@ -56,7 +62,7 @@ export default function PracticeSession() {
     if (!isLast) { setIdx((i) => i + 1); setAnswer(''); setResult(null); setErr(''); return; }
     setBusy(true);
     try { await mathpathAPI.complete(sessionId); } catch (_) { /* still navigate */ }
-    navigate(`${resultsBase}/results/${sessionId}`, { replace: true });
+    navigate(`${resultsBase}/results/${sessionId}`, { replace: true, state: resultState });
   };
 
   return (

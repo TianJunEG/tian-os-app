@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Wrench } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
@@ -9,6 +9,8 @@ import { MathText } from '../../../components/ui/Fraction';
 export default function PracticeResult() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state || {};
   const [data, setData] = useState(null);
   const [recommended, setRecommended] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,9 +33,15 @@ export default function PracticeResult() {
   // (Science → Science, an assigned Mastery Worksheet → the worksheets list).
   const isScience = data.session?.module === 'Science Adaptive Revision';
   const isWorksheet = data.session?.feature === 'Mastery Worksheet';
-  const homeBase = isScience ? '/student/science' : isWorksheet ? '/student/worksheets' : '/student/mathpath';
-  const homeLabel = isScience ? 'Continue Science Revision' : isWorksheet ? 'Back to worksheets' : 'Continue MathPath';
-  const mistakesBase = isScience ? '/student/science/mistakes' : '/student/mathpath/mistakes';
+  const explicitHomeBase = state.homeBase || state.backTo;
+  const homeBase = explicitHomeBase || (isScience ? '/student/science' : isWorksheet ? '/student/worksheets' : '/student/mathpath');
+  const defaultHomeLabel = isScience ? 'Continue Science Revision' : isWorksheet ? 'Back to worksheets' : 'Continue MathPath';
+  const homeLabel = state.homeLabel || (explicitHomeBase
+    ? explicitHomeBase.includes('/mistakes') ? 'Back to mistake review'
+      : explicitHomeBase.includes('/fluency') ? 'Continue Fluency'
+      : defaultHomeLabel
+    : defaultHomeLabel);
+  const mistakesBase = state.mistakesBase || (isScience ? '/student/science/mistakes' : '/student/mathpath/mistakes');
 
   return (
     <div className="mx-auto max-w-xl">
@@ -84,6 +92,9 @@ export default function PracticeResult() {
       <div className="flex flex-col gap-2 sm:flex-row">
         {mistakes.length > 0 && (
           <Button variant="secondary" icon={Wrench} onClick={() => navigate(mistakesBase)} className="flex-1">Review mistakes</Button>
+        )}
+        {!isScience && !isWorksheet && (
+          <Button variant="secondary" onClick={() => navigate('/student/progress')} className="flex-1">View progress</Button>
         )}
         <Button icon={ArrowRight} onClick={() => navigate(homeBase)} className="flex-1">{homeLabel}</Button>
       </div>

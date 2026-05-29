@@ -102,6 +102,11 @@ async function main() {
     studentId: child._id, guardianUserId: parent._id, workspaceId: parentWs._id, relation: 'parent'
   });
 
+  // Link the demo student login to the parent account and landing workspace.
+  student.linkedTo = parent._id;
+  student.defaultWorkspace = parentWs._id;
+  await student.save();
+
   // ---- subject / topic / skill map (Math) ----
   let mathSubject = await Subject.findOne({ key: 'math' });
   if (!mathSubject) mathSubject = await Subject.create({ key: 'math', name: 'Mathematics', order: 0 });

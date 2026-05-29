@@ -34,6 +34,16 @@ function short(stem, answer, workedSolution, misconceptionTag, difficulty) {
   return { type: 'short_answer', stem, choices: [], answer: String(answer), workedSolution, misconceptionTag, difficulty };
 }
 
+const addingUnlikeFractionsSample = {
+  type: 'short_answer',
+  stem: '1/2 + 1/3 = ?',
+  choices: [],
+  answer: '5/6',
+  workedSolution: 'Find a common denominator of 6.\n1/2 = 3/6.\n1/3 = 2/6.\n3/6 + 2/6 = 5/6.',
+  misconceptionTag: 'frac/add-without-common',
+  difficulty: 'medium',
+};
+
 // One question for a given skill keyword + difficulty.
 function buildOne(skillName, difficulty) {
   const name = skillName.toLowerCase();
@@ -153,10 +163,11 @@ function buildOne(skillName, difficulty) {
       `Same denominator: add the tops. ${a}+${b}=${a + b}, keep /${d}.`, 'frac/add-denominators', difficulty);
   }
   if (name.includes('adding unlike') || (name.includes('add') && name.includes('unlike'))) {
+    if (difficulty === 'medium') return { ...addingUnlikeFractionsSample };
     const d1 = rnd(2, 4), d2 = d1 * rnd(2, 3), a = rnd(1, d1 - 1), b = rnd(1, d2 - 1);
     const num = a * (d2 / d1) + b;
     return short(`${a}/${d1} + ${b}/${d2} = ?  (over ${d2})`, `${num}/${d2}`,
-      `Make denominators equal (${d2}): ${a}/${d1} = ${a * (d2 / d1)}/${d2}, then add ${b}/${d2} → ${num}/${d2}.`, 'frac/add-denominators', difficulty);
+      `Make denominators equal (${d2}): ${a}/${d1} = ${a * (d2 / d1)}/${d2}, then add ${b}/${d2} → ${num}/${d2}.`, 'frac/add-without-common', difficulty);
   }
   if (name.includes('subtract')) {
     const d1 = rnd(2, 4), d2 = d1 * rnd(2, 3), b = rnd(1, d2 - 1), a = rnd(2, d1 - 1);
@@ -649,6 +660,13 @@ export function generateQuestionsForSkill(skillName, perDifficulty = 4) {
       if (seen.has(q.stem)) continue;       // avoid duplicate stems in one skill
       seen.add(q.stem);
       out.push(q);
+    }
+  }
+  if (skillName.toLowerCase().includes('adding unlike')) {
+    const i = out.findIndex((q) => q.stem === addingUnlikeFractionsSample.stem);
+    if (i > 0) {
+      const [sample] = out.splice(i, 1);
+      out.unshift(sample);
     }
   }
   return out;

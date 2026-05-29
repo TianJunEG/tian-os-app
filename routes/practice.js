@@ -153,12 +153,15 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
 
     // Save a mistake when incorrect, or partially correct on an open-ended item.
     if (!correct) {
+      const mistakeType = q.misconceptionTag === 'frac/add-without-common' || q.misconceptionTag === 'frac/add-denominators'
+        ? 'method_error'
+        : 'unknown';
       await Mistake.create({
         studentId: student._id, workspaceId: student.workspaceId, questionId: q._id, skillId: q.skillId,
         module: session.module || 'MathPath',
         questionStem: q.stem, workedSolution: q.modelAnswer || q.workedSolution,
         studentAnswer: String(answer ?? ''), correctAnswer: q.modelAnswer || q.answer,
-        mistakeType: 'unknown', misconceptionTag: q.misconceptionTag || '', status: 'open',
+        mistakeType, misconceptionTag: q.misconceptionTag || '', status: 'open',
       });
     }
 

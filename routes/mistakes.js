@@ -6,6 +6,11 @@ import { resolveStudent } from '../utils/studentContext.js';
 
 const router = express.Router();
 
+const MISCONCEPTION_LABELS = {
+  'frac/add-without-common': 'Added numerators and denominators directly',
+  'frac/add-denominators': 'Added numerators and denominators directly',
+};
+
 // @route GET /api/mistakes?studentId=&status=&skillId=
 // @desc  Recent mistakes for a student (grouped by skill), for Mistake-to-Mastery.
 // @access Private
@@ -28,6 +33,7 @@ router.get('/', protect, async (req, res) => {
       topicName: m.skillId?.topicId?.name || '', module: m.module,
       questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag,
+      mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt,
     }));
 
@@ -57,6 +63,7 @@ router.get('/:id', protect, async (req, res) => {
       id: m._id, skillId: m.skillId?._id, skillName: m.skillId?.name || '', topicName: m.skillId?.topicId?.name || '',
       questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag,
+      mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt,
     });
   } catch (err) {
