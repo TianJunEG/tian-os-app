@@ -5,9 +5,12 @@ import 'katex/dist/katex.min.css';
 // Renders a fraction vertically (numerator over denominator) rather than slash
 // notation, per the Tian OS math display rule. Uses JetBrains Mono.
 export function Fraction({ n, d }) {
+  const isBlankNumerator = String(n).trim() === '?';
   return (
     <span className="mx-0.5 inline-flex flex-col items-center align-middle font-mono leading-none">
-      <span className="px-1">{n}</span>
+      <span className="px-1">
+        {isBlankNumerator ? <span className="inline-flex h-6 w-6 items-center justify-center border border-current align-middle text-sm">?</span> : n}
+      </span>
       <span className="border-t border-current px-1 pt-px">{d}</span>
     </span>
   );
@@ -30,6 +33,8 @@ export const MathText = React.memo(function MathText({ text, className = '' }) {
   // on the text — re-renders of the parent (e.g. a timer tick) won't re-parse.
   const parts = React.useMemo(() => {
     let s = String(text ?? '');
+    // Legacy authored prompt format: "? (over 4)" -> proper fraction token.
+    s = s.replace(/\?\s*\(\s*over\s*(\d+|\?)\s*\)/gi, '?/$1');
     // Inline TeX symbols in prose (outside \frac) → unicode.
     s = s.replace(/\\times/g, '×').replace(/\\div/g, '÷').replace(/\\square/g, '□')
       .replace(/\\%/g, '%').replace(/\\,/g, ' ').replace(/\\cdot/g, '·');
