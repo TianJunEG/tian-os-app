@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, MessagesSquare, X } from 'lucide-react';
 import { Button, Badge } from '../../../components/ui';
@@ -15,6 +15,12 @@ export default function MechanismPresent() {
   const [active, setActive] = useState(mechanism);
   const [reveal, setReveal] = useState(false);
   const [showDiscussion, setShowDiscussion] = useState(false);
+
+  useEffect(() => {
+    setActive(mechanism);
+    setReveal(false);
+    setShowDiscussion(false);
+  }, [mechanism]);
 
   const m = MECHANISMS[active];
   const Sim = SIMS[active];

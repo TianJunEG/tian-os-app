@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Sprout, CheckCircle2, MessageSquare } from 'lucide-react';
 import { lifelabAPI } from '../../services/api';
 import { useClass } from './useClass';

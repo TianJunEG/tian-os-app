@@ -11,11 +11,82 @@ import { resolveStudent } from '../utils/studentContext.js';
 
 const router = express.Router();
 
+const buildCompetencyStats = (subs) => {
+  const rows = {};
+  const normalizeArray = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+  subs.forEach((s) => {
+    const act = s.activityId;
+    if (!act || s.status === 'not_started') return;
+    const primary = normalizeArray(act.primaryE21cc);
+    const secondary = normalizeArray(act.secondaryE21cc);
+    const competencies = [...new Set([...primary, ...secondary])];
+    competencies.forEach((competency) => {
+      if (!competency) return;
+      if (!rows[competency]) {
+        rows[competency] = {
+          competency,
+          primary: primary.includes(competency),
+          secondary: secondary.includes(competency),
+          activities: 0,
+          score: 0,
+        };
+      }
+      rows[competency].activities += 1;
+      rows[competency].score += 1;
+    });
+  });
+  return Object.values(rows).sort((a, b) => b.score - a.score);
+};
+
 // ── Activity library (any signed-in user, for pickers) ────────────
 router.get('/activities', protect, async (req, res) => {
-  const filter = { $or: [{ isLibrary: true }] };
+  const filter = { isLibrary: true };
+  if (req.query.competency) {
+    filter.$or = [
+      { primaryE21cc: req.query.competency },
+      { secondaryE21cc: req.query.competency },
+    ];
+  }
+  if (req.query.subject) {
+    filter.subject = req.query.subject;
+  }
   const acts = await LifeLabActivity.find(filter).sort({ subject: 1, title: 1 });
   res.json({ activities: acts });
+});
+
+router.get('/competencies', protect, async (req, res) => {
+  const docs = await LifeLabActivity.find({
+    $or: [
+      { primaryE21cc: { $exists: true, $ne: [] } },
+      { secondaryE21cc: { $exists: true, $ne: [] } },
+    ],
+  }).select('primaryE21cc secondaryE21cc');
+
+  const competencies = new Set();
+  docs.forEach((doc) => {
+    const primary = Array.isArray(doc.primaryE21cc) ? doc.primaryE21cc : doc.primaryE21cc ? [doc.primaryE21cc] : [];
+    const secondary = Array.isArray(doc.secondaryE21cc) ? doc.secondaryE21cc : doc.secondaryE21cc ? [doc.secondaryE21cc] : [];
+    primary.forEach((c) => competencies.add(c));
+    secondary.forEach((c) => competencies.add(c));
+  });
+
+  res.json({ competencies: Array.from(competencies).sort() });
+});
+
+router.get('/student/:studentId', protect, async (req, res) => {
+  const student = await resolveStudent(req, req.params.studentId);
+  const subs = await LifeLabSubmission.find({ studentId: student._id }).populate({ path: 'activityId', model: LifeLabActivity }).sort({ createdAt: -1 });
+  res.json({
+    submissions: subs.map((s) => ({
+      id: s._id,
+      status: s.status,
+      teacherFeedback: s.teacherFeedback,
+      activity: s.activityId,
+      dataRecorded: s.dataRecorded,
+      reflectionResponse: s.reflectionResponse,
+    })),
+    competencies: buildCompetencyStats(subs),
+  });
 });
 
 // ── Teacher: assign an activity to a class / group / student ──────
@@ -50,11 +121,14 @@ router.get('/submissions', protect, requireWorkspace, async (req, res) => {
   const subs = await LifeLabSubmission.find({ classId }).populate({ path: 'activityId', model: LifeLabActivity });
   const students = await Student.find({ _id: { $in: subs.map((s) => s.studentId) } });
   const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
-  res.json({ submissions: subs.map((s) => ({
-    id: s._id, studentName: nameById[String(s.studentId)] || '', activityTitle: s.activityId?.title,
-    subject: s.activityId?.subject, dataRecorded: s.dataRecorded, reflectionResponse: s.reflectionResponse,
-    evidenceUrl: s.evidenceUrl, teacherFeedback: s.teacherFeedback, status: s.status,
-  })) });
+  res.json({
+    submissions: subs.map((s) => ({
+      id: s._id, studentName: nameById[String(s.studentId)] || '', activityTitle: s.activityId?.title,
+      subject: s.activityId?.subject, dataRecorded: s.dataRecorded, reflectionResponse: s.reflectionResponse,
+      evidenceUrl: s.evidenceUrl, teacherFeedback: s.teacherFeedback, status: s.status,
+    })),
+    competencies: buildCompetencyStats(subs),
+  });
 });
 
 // ── Teacher: give feedback ────────────────────────────────────────
@@ -74,10 +148,17 @@ router.get('/me', protect, async (req, res) => {
   const student = await resolveStudent(req).catch(() => null);
   if (!student) return res.json({ submissions: [] });
   const subs = await LifeLabSubmission.find({ studentId: student._id }).populate({ path: 'activityId', model: LifeLabActivity }).sort({ createdAt: -1 });
-  res.json({ submissions: subs.map((s) => ({
-    id: s._id, status: s.status, teacherFeedback: s.teacherFeedback,
-    activity: s.activityId, dataRecorded: s.dataRecorded, reflectionResponse: s.reflectionResponse,
-  })) });
+  res.json({
+    submissions: subs.map((s) => ({
+      id: s._id,
+      status: s.status,
+      teacherFeedback: s.teacherFeedback,
+      activity: s.activityId,
+      dataRecorded: s.dataRecorded,
+      reflectionResponse: s.reflectionResponse,
+    })),
+    competencies: buildCompetencyStats(subs),
+  });
 });
 
 // ── Student: submit a response ────────────────────────────────────

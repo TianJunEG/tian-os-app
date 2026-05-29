@@ -49,6 +49,7 @@ export default function ChildLifeLab() {
                     </div>
                     <p className="text-sm text-ink-500">{a.subject} · {a.topic}</p>
                     <E21ccTags primary={a.primaryE21cc} secondary={a.secondaryE21cc} className="mt-2" />
+                    {a.realLifeContext && <p className="mt-2 text-sm text-ink-500 italic">{a.realLifeContext}</p>}
                     {s.reflectionResponse && (
                       <p className="mt-2 text-sm text-ink-700"><span className="text-ink-400">Reflection:</span> {s.reflectionResponse}</p>
                     )}

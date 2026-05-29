@@ -2,14 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sprout, ArrowRight } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
-import { Card, Badge, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Badge, PageHeader, Spinner, EmptyState, ErrorState } from '../../components/ui';
 
 // Teacher LifeLab landing — pick a class to assign and review LifeLab activities.
 // The per-class LifeLab tab lives at /teacher/classes/:id/lifelab.
 export default function LifeLabHome() {
   const [classes, setClasses] = useState(null);
-  useEffect(() => { teacherAPI.classes().then((r) => setClasses(r.data.classes || [])).catch(() => setClasses([])); }, []);
+  const [loadError, setLoadError] = useState(false);
 
+  const load = () => {
+    setLoadError(false);
+    setClasses(null);
+    teacherAPI.classes().then((r) => setClasses(r.data.classes || [])).catch(() => { setLoadError(true); setClasses(null); });
+  };
+
+  useEffect(() => { load(); }, []);
+
+  if (loadError) return <ErrorState message="Couldn't load LifeLab classes." onRetry={load} />;
   if (!classes) return <Spinner />;
   return (
     <>

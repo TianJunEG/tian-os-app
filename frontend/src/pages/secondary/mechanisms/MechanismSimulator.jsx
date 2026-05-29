@@ -24,6 +24,10 @@ export default function MechanismSimulator() {
   const [mastery, setMastery] = useState(null);
 
   useEffect(() => {
+    setMode(searchParams.get('mode') === 'teacher' ? 'teacher' : 'student');
+  }, [searchParams]);
+
+  useEffect(() => {
     let alive = true;
     mechanismsAPI.progress()
       .then((r) => { if (alive) setMastery(r.data.progress?.[mechanism] || null); })
