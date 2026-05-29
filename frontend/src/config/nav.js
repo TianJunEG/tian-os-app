@@ -7,6 +7,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { MODULES } from './modules';
+import FEATURE_FLAGS from './featureFlags';
 
 const moduleByKey = (key) => MODULES.find((module) => module.key === key);
 const studentModuleNav = (key, labelOverride, options = {}) => {
@@ -59,12 +60,12 @@ export const NAV = {
       { to: '/parent/profile', label: 'Profile', icon: BookOpen },
     ],
     more: [
-      { to: '/parent/children', label: 'Children', icon: Users, description: 'Open a student profile to assign practice and view progress.' },
-      { to: '/parent/children', label: 'Progress', icon: GitBranch, description: 'View your child’s progress, weak topics and mastery map.' },
-      { to: '/parent/children', label: 'Assign Practice', icon: ClipboardList, description: 'Assign Maths or Science practice to your child.' },
-      { to: '/parent/children', label: 'Worksheets', icon: FileText, description: 'Generate mastery worksheets for your child.' },
-      { to: '/parent/children', label: 'Recommended Actions', icon: CalendarDays, description: 'See personalised actions for your child’s learning path.' },
-      { to: '/parent/children', label: 'LifeLab', icon: Sprout, description: 'Open practical activities and enrichment for your child.' },
+        { to: '/parent/children', label: 'Children', icon: Users, description: 'Open a student profile to assign practice and view progress.' },
+        { to: '/parent/children', label: 'Progress', icon: GitBranch, description: 'View your child’s progress, weak topics and mastery map.' },
+        { to: '/parent/children', label: 'Assign Practice', icon: ClipboardList, description: 'Assign Maths or Science practice to your child.' },
+        ...(FEATURE_FLAGS.worksheets || FEATURE_FLAGS.worksheetsComingSoon ? [{ to: '/parent/children', label: 'Worksheets', icon: FileText, description: 'Generate mastery worksheets for your child.' }] : []),
+        { to: '/parent/children', label: 'Recommended Actions', icon: CalendarDays, description: 'See personalised actions for your child’s learning path.' },
+        ...(FEATURE_FLAGS.lifelab ? [{ to: '/parent/children', label: 'LifeLab', icon: Sprout, description: 'Open practical activities and enrichment for your child.' }] : []),
     ],
   },
   tutor: {

@@ -7,11 +7,12 @@
 import {
   Calculator, Timer, Wrench, FileText, Network, SpellCheck, FlaskConical, Sprout, Cog,
 } from 'lucide-react';
+import { FEATURE_FLAGS } from './featureFlags';
 
 // status: 'live' (built) | 'soon' (placeholder/coming soon)
 // section: groups modules on the dashboard. Omitted = the core (Primary) set;
 // 'Secondary' = lower-secondary subject tools (e.g. D&T Mechanisms Playground).
-export const MODULES = [
+const ALL_MODULES = [
   {
     key: 'mathpath', name: 'MathPath', icon: Calculator, path: '/student/mathpath',
     purpose: 'Adaptive math mastery — your personalised pathway.', status: 'live',
@@ -27,7 +28,7 @@ export const MODULES = [
   },
   {
     key: 'worksheets', name: 'Mastery Worksheet', icon: FileText, path: '/student/worksheets',
-    purpose: 'Focused practice sets from your weak skills.', status: 'live',
+    purpose: 'Focused practice sets from your weak skills.', status: 'soon',
   },
   {
     key: 'progress', name: 'Progress', icon: Network, path: '/student/progress',
@@ -35,22 +36,40 @@ export const MODULES = [
   },
   {
     key: 'spelling', name: 'Spelling Practice', icon: SpellCheck, path: '/student/spelling',
-    purpose: 'Spelling fluency and retention. English · Spelling.', status: 'live',
+    purpose: 'Spelling fluency and retention. English · Spelling.', status: 'soon',
   },
   {
     key: 'science', name: 'Science Adaptive Revision', icon: FlaskConical, path: '/student/science',
-    purpose: 'Open-ended science mastery and revision.', status: 'live',
+    purpose: 'Open-ended science mastery and revision.', status: 'soon',
   },
   {
     key: 'lifelab', name: 'LifeLab', icon: Sprout, path: '/student/lifelab',
-    purpose: 'Real-life Math and Science activities.', status: 'live',
+    purpose: 'Real-life Math and Science activities.', status: 'soon',
   },
   {
     key: 'mechanisms', name: 'Mechanisms Playground', icon: Cog, path: '/secondary/mechanisms',
     purpose: 'Explore gears, levers, pulleys and linkages through interactive D&T simulations.',
-    status: 'live', section: 'Secondary',
+    status: 'soon', section: 'Secondary',
   },
 ];
+
+// Filter modules based on FEATURE_FLAGS. For v0.1 we expose MathPath+core
+// modules. Worksheets show as "soon" but remain visible so users see what's
+// coming. Everything else is hidden.
+export const MODULES = ALL_MODULES.filter((m) => {
+  switch (m.key) {
+    case 'mathpath': return FEATURE_FLAGS.mathpath;
+    case 'fluency': return FEATURE_FLAGS.fluency;
+    case 'mistakes': return FEATURE_FLAGS.mistakes;
+    case 'progress': return FEATURE_FLAGS.progress;
+    case 'worksheets': return FEATURE_FLAGS.worksheets || FEATURE_FLAGS.worksheetsComingSoon;
+    case 'spelling': return FEATURE_FLAGS.spelling;
+    case 'science': return FEATURE_FLAGS.science;
+    case 'lifelab': return FEATURE_FLAGS.lifelab;
+    case 'mechanisms': return FEATURE_FLAGS.mechanisms;
+    default: return false;
+  }
+});
 
 // Modules grouped by dashboard section, in display order. Core (Primary) first,
 // then Secondary subject tools.
