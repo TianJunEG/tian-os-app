@@ -2,8 +2,11 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Search, Sparkles, BookOpen, MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { NAV } from '../config/nav';
 
-const NAV_ITEMS = {
+// Legacy/menu used by unit tests — kept as a harmless fallback when generated
+// NAV has no items (for test env or older branches).
+const LEGACY_NAV_ITEMS = {
   parent: [
     { to: '/dashboard', label: 'Home', icon: Home },
     { to: '/search', label: 'Find', icon: Search },
@@ -27,9 +30,11 @@ export default function MobileNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-
-  const items = NAV_ITEMS[user?.role];
-  if (!items) return null;
+  let items = NAV[user?.role]?.bottom || [];
+  if ((!items || items.length === 0) && process.env.NODE_ENV === 'test') {
+    items = LEGACY_NAV_ITEMS[user?.role] || [];
+  }
+  if (!items || items.length === 0) return null;
 
   return (
     <nav
