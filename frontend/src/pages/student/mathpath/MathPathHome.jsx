@@ -118,7 +118,6 @@ export default function MathPathHome() {
   if (loading) return <Spinner label="Loading MathPath…" />;
   if (error) return <EmptyState icon={AlertTriangle} message={error} />;
 
-  const defaultLevels = ['Primary 4', 'Primary 5'];
   const previewFlagOn = import.meta.env.VITE_ENABLE_MATHPATH_FULL_PREVIEW === '1'
     || import.meta.env.VITE_ENABLE_MATHPATH_FULL_PREVIEW === 'true';
   const isPreviewMode = previewFlagOn && (import.meta.env.DEV || user?.role === 'admin');
@@ -127,9 +126,7 @@ export default function MathPathHome() {
   const learning = records.filter((r) => r.status === 'learning');
   const recommended = mastery?.recommended;
   const weak = mastery?.weakSkills || [];
-  const visibleTopics = isPreviewMode
-    ? topics
-    : topics.filter((t) => defaultLevels.includes(t.moeLevel));
+  const visibleTopics = topics;
   const previewLevels = [...new Set(
     (topics || [])
       .flatMap((t) => (t.skills || []).map((s) => s.moeLevel))
