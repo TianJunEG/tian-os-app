@@ -35,6 +35,7 @@ import teacherRoutes from './routes/teacher.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
+import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
 
@@ -99,14 +100,14 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 // Structured worksheet generator must mount BEFORE the legacy /api/worksheets
 // router so /gen/* is not captured by its /:id route.
-app.use('/api/worksheets/gen', worksheetGenRoutes);
-app.use('/api/worksheets', worksheetRoutes);
+app.use('/api/worksheets/gen', featureGate({ feature: 'worksheets', minVersion: 'v0.2' }), worksheetGenRoutes);
+app.use('/api/worksheets', featureGate({ feature: 'worksheets', minVersion: 'v0.2' }), worksheetRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/spelling', spellingRoutes);
 app.use('/api/learning', learningRoutes);
-app.use('/api/science', scienceRoutes);
+app.use('/api/science', featureGate({ feature: 'science', minVersion: 'v0.6' }), scienceRoutes);
 // Tian OS unified platform — role/workspace context
 app.use('/api/context', contextRoutes);
 app.use('/api/practice', practiceRoutes);
@@ -114,12 +115,12 @@ app.use('/api/mistakes', mistakeRoutes);
 app.use('/api/mastery', masteryRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/skills', skillRoutes);
-app.use('/api/family', familyRoutes);
-app.use('/api/tutor', tutorWorkspaceRoutes);
-app.use('/api/teacher', teacherRoutes);
-app.use('/api/lifelab', lifelabRoutes);
-app.use('/api/spelling-practice', spellingPracticeRoutes);
-app.use('/api/mechanisms', mechanismsRoutes);
+app.use('/api/family', featureGate({ feature: 'parent', minVersion: 'v0.3' }), familyRoutes);
+app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
+app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
+app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);
+app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
+app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
