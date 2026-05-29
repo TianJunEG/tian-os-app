@@ -2,15 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
-import { Card, StatusBadge, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, StatusBadge, PageHeader, Spinner, ErrorState } from '../../components/ui';
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 
 // All homework this tutor has assigned, across students.
 export default function TutorHomework() {
   const [items, setItems] = useState(null);
-  useEffect(() => { tutorAPI.homework().then((r) => setItems(r.data.homework || [])).catch(() => setItems([])); }, []);
+  const [loadError, setLoadError] = useState(false);
+  const load = () => {
+    setLoadError(false);
+    setItems(null);
+    tutorAPI.homework().then((r) => setItems(r.data.homework || [])).catch(() => setLoadError(true));
+  };
+  useEffect(() => { load(); }, []);
 
+  if (loadError) return <ErrorState message="Couldn’t load homework." onRetry={load} />;
   if (!items) return <Spinner />;
   return (
     <>

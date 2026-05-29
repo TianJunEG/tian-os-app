@@ -4,7 +4,7 @@ import { Users } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, Spinner } from '../../components/ui';
+import { Card, Button, Spinner, ErrorState } from '../../components/ui';
 
 // Status → mastery-scale colour (calm heatmap, not rainbow).
 const SEG = [
@@ -24,14 +24,19 @@ export default function ClassMasteryMap() {
   const navigate = useNavigate();
   const meta = useClass(id);
   const [topics, setTopics] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [subject, setSubject] = useState('math');
   const [open, setOpen] = useState(null);
 
-  useEffect(() => {
+  const load = () => {
     setTopics(null); setOpen(null);
-    teacherAPI.classMastery(id, subject).then((r) => setTopics(r.data.topics || [])).catch(() => setTopics([]));
-  }, [id, subject]);
+    setLoadError(false);
+    teacherAPI.classMastery(id, subject).then((r) => setTopics(r.data.topics || [])).catch(() => setLoadError(true));
+  };
 
+  useEffect(() => { load(); }, [id, subject]); // eslint-disable-line
+
+  if (loadError) return <ErrorState message="Couldn't load mastery map." onRetry={load} />;
   if (!topics) return <Spinner />;
   return (
     <>

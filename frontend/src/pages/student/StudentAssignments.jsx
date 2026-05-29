@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import { assignmentsAPI, mathpathAPI, spellingPracticeAPI } from '../../services/api';
-import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState, Alert } from '../../components/ui';
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : null);
 
@@ -11,12 +11,24 @@ const fmt = (d) => (d ? new Date(d).toLocaleDateString() : null);
 export default function StudentAssignments() {
   const navigate = useNavigate();
   const [items, setItems] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState('');
 
-  useEffect(() => { assignmentsAPI.list().then((r) => setItems(r.data.assignments || [])).catch(() => setItems([])); }, []);
+  useEffect(() => {
+    assignmentsAPI.list()
+      .then((r) => setItems(r.data.assignments || []))
+      .catch(() => {
+        setLoadError(true);
+        setItems([]);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const start = async (a) => {
     if (starting) return;
+    setStartError('');
     setStarting(true);
     try {
       if (a.module === 'Spelling Practice') {
@@ -33,17 +45,22 @@ export default function StudentAssignments() {
         const { data } = await mathpathAPI.startSession({ assignmentId: a.id, questionCount: a.questionCount || 10 });
         navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items } });
       }
-    } catch (_) { setStarting(false); }
+    } catch (_) {
+      setStartError('Couldn’t start this assignment. Please try again.');
+      setStarting(false);
+    }
   };
 
-  if (!items) return <Spinner />;
-  const pending = items.filter((a) => a.status === 'not_started' || a.status === 'in_progress' || a.status === 'overdue');
-  const done = items.filter((a) => a.status === 'completed');
+  if (!items && loading) return <Spinner />;
+  const pending = (items || []).filter((a) => a.status === 'not_started' || a.status === 'in_progress' || a.status === 'overdue');
+  const done = (items || []).filter((a) => a.status === 'completed');
 
   return (
     <>
       <PageHeader title="Your assignments" subtitle="Work set by a parent or teacher." />
-      {items.length === 0 ? (
+      {loadError && <Alert tone="error" className="mb-4">Unable to load assignments right now. Please try again later.</Alert>}
+      {startError && <Alert tone="error" className="mb-4">{startError}</Alert>}
+      {items?.length === 0 ? (
         <EmptyState icon={ClipboardList} message="No assignments yet. When someone assigns practice, it shows up here." />
       ) : (
         <div className="space-y-6">

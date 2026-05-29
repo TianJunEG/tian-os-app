@@ -4,7 +4,7 @@ import { ArrowRight, Lightbulb } from 'lucide-react';
 import { tutorAPI, assignmentsAPI } from '../../services/api';
 import { useTutorStudent } from './useTutorStudent';
 import TutorStudentNav from './TutorStudentNav';
-import { Card, Button, Badge, Spinner } from '../../components/ui';
+import { Card, Button, Badge, Spinner, ErrorState } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
 
 // Rule-based lesson prep from the student's mastery + mistakes.
@@ -13,9 +13,15 @@ export default function LessonPrep() {
   const navigate = useNavigate();
   const meta = useTutorStudent(id);
   const [prep, setPrep] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [assigned, setAssigned] = useState(false);
 
-  useEffect(() => { tutorAPI.lessonPrep(id).then((r) => setPrep(r.data)).catch(() => setPrep(null)); }, [id]);
+  const load = () => {
+    setLoadError(false);
+    setPrep(null);
+    tutorAPI.lessonPrep(id).then((r) => setPrep(r.data)).catch(() => setLoadError(true));
+  };
+  useEffect(() => { load(); }, [id]);
 
   const assignSuggested = async () => {
     if (!prep?.suggestedHomework) return;
@@ -26,6 +32,7 @@ export default function LessonPrep() {
     setAssigned(true);
   };
 
+  if (loadError) return <ErrorState message="Couldn’t load lesson prep." onRetry={load} />;
   if (!prep) return <Spinner />;
 
   return (

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
-import { Card, Badge, StatusBadge, StatTile, PageHeader, Spinner } from '../../components/ui';
+import { Card, Badge, StatusBadge, StatTile, PageHeader, Spinner, ErrorState } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
 import StudentSciencePanel from '../../components/StudentSciencePanel';
 
@@ -10,8 +10,11 @@ export default function TeacherStudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
-  useEffect(() => { teacherAPI.student(id).then((r) => setData(r.data)).catch(() => setData(null)); }, [id]);
+  const [loadError, setLoadError] = useState(false);
+  const load = () => { setLoadError(false); setData(null); teacherAPI.student(id).then((r) => setData(r.data)).catch(() => setLoadError(true)); };
+  useEffect(() => { load(); }, [id]);
 
+  if (loadError) return <ErrorState message="Couldn't load student details." onRetry={load} />;
   if (!data) return <Spinner />;
   const { student, overallMastery, weakTopics, mistakes, assignments } = data;
 

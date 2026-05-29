@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { mathpathAPI, assignmentsAPI } from '../../services/api';
 import { SECTIONS } from '../../config/modules';
-import { Card, Button, ModuleCard, StatTile, ProgressBar, PageHeader, EmptyState, StatusBadge } from '../../components/ui';
+import { Card, Button, ModuleCard, StatTile, ProgressBar, PageHeader, EmptyState, StatusBadge, Alert, Spinner } from '../../components/ui';
 
 // Student dashboard. Today's Learning surfaces the single recommended next
 // action from the mastery engine; numbers come from MathPath once practised.
@@ -12,19 +12,31 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   const firstName = (user?.name || 'there').split(' ')[0];
   const [mastery, setMastery] = useState(null);
+  const [masteryError, setMasteryError] = useState(false);
+  const [masteryLoading, setMasteryLoading] = useState(true);
   const [pending, setPending] = useState([]);
+  const [assignmentsError, setAssignmentsError] = useState(false);
+  const [assignmentsLoading, setAssignmentsLoading] = useState(true);
 
   useEffect(() => {
-    mathpathAPI.mastery().then((r) => setMastery(r.data)).catch(() => setMastery(null));
-    assignmentsAPI.list().then((r) => setPending((r.data.assignments || []).filter((a) => a.status !== 'completed'))).catch(() => setPending([]));
+    mathpathAPI.mastery()
+      .then((r) => setMastery(r.data))
+      .catch(() => setMasteryError(true))
+      .finally(() => setMasteryLoading(false));
+
+    assignmentsAPI.list()
+      .then((r) => setPending((r.data.assignments || []).filter((a) => a.status !== 'completed')))
+      .catch(() => setAssignmentsError(true))
+      .finally(() => setAssignmentsLoading(false));
   }, []);
 
-  const records = mastery?.records || [];
+  const masteryData = mastery || { records: [], weakSkills: [], recommended: null, recentMistakeCount: 0 };
+  const records = masteryData.records || [];
   const mastered = records.filter((r) => r.status === 'mastered').length;
-  const needsReview = (mastery?.weakSkills || []).filter((w) => w.status === 'needs_review').length;
+  const needsReview = (masteryData.weakSkills || []).filter((w) => w.status === 'needs_review').length;
   const total = Math.max(records.length, 1);
-  const recommended = mastery?.recommended;
-  const weak = mastery?.weakSkills?.[0];
+  const recommended = masteryData.recommended;
+  const weak = masteryData.weakSkills?.[0];
 
   return (
     <>
@@ -48,7 +60,9 @@ export default function StudentDashboard() {
         </div>
       </Card>
 
-      {/* Progress preview */}
+      {masteryError && (
+        <Alert tone="error" className="mb-4">Unable to load your progress metrics right now. Your dashboard remains available while we refresh.</Alert>
+      )}
       <Card className="mb-6 p-5">
         <div className="mb-4 flex items-center gap-6">
           <StatTile label="Mastered" value={mastered} />
@@ -56,7 +70,11 @@ export default function StudentDashboard() {
           <StatTile label="Skills seen" value={records.length} />
         </div>
         <ProgressBar value={mastered} max={total} />
-        {records.length === 0 && <p className="mt-3 text-xs text-ink-300">Your progress appears here after your first practice session.</p>}
+        {masteryLoading ? (
+          <p className="mt-3 text-sm text-ink-500">Loading progress…</p>
+        ) : records.length === 0 ? (
+          <p className="mt-3 text-xs text-ink-300">Your progress appears here after your first practice session.</p>
+        ) : null}
       </Card>
 
       {/* Weak-topic alert */}
@@ -92,7 +110,11 @@ export default function StudentDashboard() {
         {pending.length > 0 && <Link to="/student/assignments" className="text-sm font-semibold text-navy-700">See all →</Link>}
       </div>
       <div className="mb-8">
-        {pending.length === 0 ? (
+        {assignmentsLoading ? (
+          <Spinner label="Loading assignments…" />
+        ) : assignmentsError ? (
+          <Alert tone="error">Unable to load assignments right now. Please try again in a moment.</Alert>
+        ) : pending.length === 0 ? (
           <EmptyState icon={ClipboardList} message="No assignments yet. When a parent or teacher assigns practice, it shows up here." />
         ) : (
           <div className="space-y-2">

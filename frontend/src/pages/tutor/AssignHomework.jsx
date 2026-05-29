@@ -4,16 +4,12 @@ import { CheckCircle2 } from 'lucide-react';
 import { mathpathAPI, skillsAPI, assignmentsAPI } from '../../services/api';
 import { useTutorStudent } from './useTutorStudent';
 import TutorStudentNav from './TutorStudentNav';
-import { Card, Button, Badge, Spinner } from '../../components/ui';
+import { Card, Button, Badge, Spinner, ErrorState } from '../../components/ui';
 import { shapeScienceAsTopics } from '../../utils/scienceCatalog';
 
 const MODULES = [
   { key: 'MathPath', label: 'MathPath', enabled: true },
   { key: 'Science Adaptive Revision', label: 'Science', enabled: true },
-  { key: 'Mistake-to-Mastery', label: 'Mistake-to-Mastery', enabled: true },
-  { key: 'Fluency Practice', label: 'Fluency Practice', enabled: true },
-  { key: 'Mastery Worksheet', label: 'Mastery Worksheet', enabled: false },
-  { key: 'Spelling Practice', label: 'Spelling Practice', enabled: false },
 ];
 
 const HW_TYPES = ['Digital practice', 'Mistake review', 'Fluency drill'];
@@ -23,6 +19,7 @@ export default function AssignHomework() {
   const navigate = useNavigate();
   const meta = useTutorStudent(id);
   const [topics, setTopics] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [module, setModule] = useState('MathPath');
   const [hwType, setHwType] = useState('Digital practice');
   const [topicId, setTopicId] = useState('');
@@ -34,13 +31,15 @@ export default function AssignHomework() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const loadTopics = () => {
+    setLoadError(false);
     setTopics(null); setTopicId(''); setSkillId('');
-    const load = module === 'Science Adaptive Revision'
+    const fetcher = module === 'Science Adaptive Revision'
       ? skillsAPI.list({ subject: 'science', studentId: id }).then((r) => shapeScienceAsTopics(r.data.skills || []))
       : mathpathAPI.map({ studentId: id }).then((r) => r.data.topics || []);
-    load.then((ts) => { setTopics(ts); if (ts[0]) setTopicId(String(ts[0].topicId)); }).catch(() => setTopics([]));
-  }, [id, module]);
+    fetcher.then((ts) => { setTopics(ts); if (ts[0]) setTopicId(String(ts[0].topicId)); }).catch(() => setLoadError(true));
+  };
+  useEffect(() => { loadTopics(); }, [id, module]);
 
   const skills = useMemo(() => topics?.find((t) => String(t.topicId) === String(topicId))?.skills || [], [topics, topicId]);
 
@@ -77,7 +76,9 @@ export default function AssignHomework() {
   return (
     <>
       <TutorStudentNav studentId={id} name={meta?.name || 'Student'} level={meta?.level} />
-      {!topics ? <Spinner /> : (
+      {loadError ? (
+        <ErrorState message="Couldn't load topic catalogue." onRetry={loadTopics} />
+      ) : !topics ? <Spinner /> : (
         <Card className="space-y-5 p-5">
           <div>
             <label className="mb-2 block text-sm font-semibold text-ink-700">Module</label>
@@ -115,12 +116,14 @@ export default function AssignHomework() {
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
-              </select>
-            </div>
+            {module === 'MathPath' && (
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
+                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                  <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+                </select>
+              </div>
+            )}
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
               <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5 font-mono" />

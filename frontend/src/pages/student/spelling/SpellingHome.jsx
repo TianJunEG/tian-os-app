@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, SpellCheck, ListChecks, Wrench } from 'lucide-react';
 import { spellingPracticeAPI } from '../../../services/api';
 import { Card, Button, PageHeader, Spinner, EmptyState } from '../../../components/ui';
@@ -48,16 +48,20 @@ export default function SpellingHome() {
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card interactive className="p-5" onClick={() => navigate('/student/spelling/lists')} role="button">
-          <ListChecks className="mb-2 h-6 w-6 text-navy-700" />
-          <h3 className="font-semibold text-ink-700">Word lists</h3>
-          <p className="text-sm text-ink-500">Browse and practise any list.</p>
-        </Card>
-        <Card interactive className="p-5" onClick={() => navigate('/student/spelling/mistakes')} role="button">
-          <Wrench className="mb-2 h-6 w-6 text-gold-700" />
-          <h3 className="font-semibold text-ink-700">Misspelled words</h3>
-          <p className="text-sm text-ink-500">{home.misspeltCount || 0} to review.</p>
-        </Card>
+        <Link to="/student/spelling/lists" className="block focus-visible:outline-none">
+          <Card interactive className="p-5">
+            <ListChecks className="mb-2 h-6 w-6 text-navy-700" />
+            <h3 className="font-semibold text-ink-700">Word lists</h3>
+            <p className="text-sm text-ink-500">Browse and practise any list.</p>
+          </Card>
+        </Link>
+        <Link to="/student/spelling/mistakes" className="block focus-visible:outline-none">
+          <Card interactive className="p-5">
+            <Wrench className="mb-2 h-6 w-6 text-gold-700" />
+            <h3 className="font-semibold text-ink-700">Misspelled words</h3>
+            <p className="text-sm text-ink-500">{home.misspeltCount || 0} to review.</p>
+          </Card>
+        </Link>
       </div>
     </>
   );

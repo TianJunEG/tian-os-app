@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, Users } from 'lucide-react';
 import { familyAPI, assignmentsAPI } from '../../services/api';
-import { Card, Button, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, Badge } from '../../components/ui';
+import { Card, Button, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, Badge, Alert } from '../../components/ui';
 
 const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
 
@@ -20,7 +20,9 @@ export default function ParentHome() {
   const navigate = useNavigate();
   const [children, setChildren] = useState(null);
   const [recs, setRecs] = useState([]);
+  const [recsError, setRecsError] = useState(false);
   const [assignments, setAssignments] = useState([]);
+  const [assignmentsError, setAssignmentsError] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const activeId = params.get('child');
@@ -42,8 +44,18 @@ export default function ParentHome() {
 
   useEffect(() => {
     if (!activeId) return;
-    familyAPI.recommendations(activeId).then((r) => setRecs(r.data.recommendations || [])).catch(() => setRecs([]));
-    assignmentsAPI.list({ studentId: activeId }).then((r) => setAssignments(r.data.assignments || [])).catch(() => setAssignments([]));
+    familyAPI.recommendations(activeId)
+      .then((r) => setRecs(r.data.recommendations || []))
+      .catch(() => {
+        setRecsError(true);
+        setRecs([]);
+      });
+    assignmentsAPI.list({ studentId: activeId })
+      .then((r) => setAssignments(r.data.assignments || []))
+      .catch(() => {
+        setAssignmentsError(true);
+        setAssignments([]);
+      });
   }, [activeId]);
 
   if (loading) return <Spinner label="Loading…" />;
@@ -113,6 +125,7 @@ export default function ParentHome() {
         <span>Today's recommended action</span>
         {recs.length > 1 && <span className="font-mono text-ink-300">1 of {recs.length}</span>}
       </h3>
+      {recsError && <Alert tone="error" className="mb-4">Couldn’t load recommendations.</Alert>}
       {top ? (
         <Card className="mb-6 p-5">
           <div className="mb-2 flex items-center gap-2">
@@ -145,6 +158,9 @@ export default function ParentHome() {
               </div>
             </div>
           </Card>
+        )}
+        {assignmentsError && (
+          <Alert tone="error" className="p-4 text-sm text-ink-700">Couldn’t load assignments.</Alert>
         )}
         <Card className="p-4">
           <p className="text-sm font-semibold text-ink-700">Assignments</p>

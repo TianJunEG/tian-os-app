@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, ArrowRight } from 'lucide-react';
 import { assignmentsAPI, mathpathAPI } from '../../services/api';
-import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState, Alert } from '../../components/ui';
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : null);
 
@@ -14,30 +14,43 @@ const fmt = (d) => (d ? new Date(d).toLocaleDateString() : null);
 export default function StudentWorksheets() {
   const navigate = useNavigate();
   const [items, setItems] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState('');
 
   useEffect(() => {
     assignmentsAPI.list()
       .then((r) => setItems((r.data.assignments || []).filter((a) => a.module === 'Mastery Worksheet')))
-      .catch(() => setItems([]));
+      .catch(() => {
+        setLoadError(true);
+        setItems([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   const start = async (a) => {
     if (starting) return;
+    setStartError('');
     setStarting(true);
     try {
       const { data } = await mathpathAPI.startSession({ assignmentId: a.id, questionCount: a.questionCount || 10 });
       navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items } });
-    } catch (_) { setStarting(false); }
+    } catch (_) {
+      setStartError('Couldn’t start this worksheet. Please try again.');
+      setStarting(false);
+    }
   };
 
-  if (!items) return <Spinner label="Loading worksheets…" />;
+  if (!items && loading) return <Spinner label="Loading worksheets…" />;
   const pending = items.filter((a) => a.status === 'not_started' || a.status === 'in_progress' || a.status === 'overdue');
   const done = items.filter((a) => a.status === 'completed');
 
   return (
     <>
       <PageHeader title="Mastery Worksheets" subtitle="Targeted practice sets from your weak skills and recent mistakes." />
+      {startError && <Alert tone="error" className="mb-4">{startError}</Alert>}
+      {loadError && <Alert tone="error" className="mb-4">Unable to load worksheets right now. Please try again later.</Alert>}
       {items.length === 0 ? (
         <EmptyState icon={FileText} message="No worksheets yet. When a parent or teacher assigns one, it shows up here." />
       ) : (

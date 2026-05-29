@@ -4,7 +4,7 @@ import { CheckCircle2, Wand2 } from 'lucide-react';
 import { mathpathAPI, assignmentsAPI, spellingPracticeAPI, skillsAPI } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
-import { Card, Button, Spinner, ErrorState } from '../../components/ui';
+import { Card, Button, Spinner, ErrorState, Field, Select, Input } from '../../components/ui';
 import { shapeScienceAsTopics } from '../../utils/scienceCatalog';
 
 // Parent assigns practice. MathPath (topic/skill), Science Adaptive Revision
@@ -141,10 +141,10 @@ export default function AssignPractice() {
         <Card className="space-y-5 p-5">
           {/* Module */}
           <div>
-            <label className="mb-2 block text-sm font-semibold text-ink-700">Module</label>
+            <div className="mb-2 text-sm font-semibold text-ink-700">Module</div>
             <div className="flex flex-wrap gap-2">
               {MODULES.map((m) => (
-                <button key={m.key} onClick={() => setModule(m.key)}
+                <button key={m.key} type="button" onClick={() => setModule(m.key)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>
                   {m.label}
                 </button>
@@ -154,23 +154,25 @@ export default function AssignPractice() {
 
           {isSpelling ? (
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Word list</label>
-              <select value={listId} onChange={(e) => setListId(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                <option value="">Choose a word list…</option>
-                {lists.map((l) => <option key={l.listId} value={l.listId}>{l.title} ({l.wordCount} words)</option>)}
-              </select>
+              <Field label="Word list">
+                <Select value={listId} onChange={(e) => setListId(e.target.value)}>
+                  <option value="">Choose a word list…</option>
+                  {lists.map((l) => <option key={l.listId} value={l.listId}>{l.title} ({l.wordCount} words)</option>)}
+                </Select>
+              </Field>
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
-                <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                  {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
-                </select>
+                <Field label="Topic">
+                  <Select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }}>
+                    {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
+                  </Select>
+                </Field>
               </div>
               <div>
                 <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <label className="text-sm font-semibold text-ink-700">Skill</label>
+                  <div className="text-sm font-semibold text-ink-700">Skill</div>
                   <button
                     type="button"
                     onClick={suggestWeakest}
@@ -179,10 +181,10 @@ export default function AssignPractice() {
                     <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
                   </button>
                 </div>
-                <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                <Select value={skillId} onChange={(e) => setSkillId(e.target.value)}>
                   <option value="">Choose a skill…</option>
                   {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
-                </select>
+                </Select>
               </div>
             </div>
           )}
@@ -192,21 +194,26 @@ export default function AssignPractice() {
           <div className="grid gap-4 sm:grid-cols-3">
             {isMathPath && (
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
-                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
-                  <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
-                </select>
+                <Field label="Difficulty">
+                  <Select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </Select>
+                </Field>
               </div>
             )}
             {!isSpelling && (
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
-                <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5 font-mono" />
+                <Field label="Questions">
+                  <Input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="font-mono" />
+                </Field>
               </div>
             )}
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Due date</label>
-              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5" />
+                <Field label="Due date">
+                  <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                </Field>
             </div>
           </div>
 

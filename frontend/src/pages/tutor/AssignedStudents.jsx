@@ -2,19 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
-import { Card, Button, Badge, ProgressBar, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Badge, ProgressBar, PageHeader, Spinner, ErrorState } from '../../components/ui';
 
 // Tutor's assigned students (tutor-workspace scope only).
 export default function AssignedStudents() {
   const [students, setStudents] = useState(null);
-  useEffect(() => { tutorAPI.students().then((r) => setStudents(r.data.students || [])).catch(() => setStudents([])); }, []);
+  const [loadError, setLoadError] = useState(false);
 
+  const load = () => {
+    setLoadError(false);
+    setStudents(null);
+    tutorAPI.students()
+      .then((r) => setStudents(r.data.students || []))
+      .catch(() => setLoadError(true));
+  };
+
+  useEffect(() => { load(); }, []);
+
+  if (loadError) return <ErrorState message="Couldn’t load assigned students." onRetry={load} />;
   if (!students) return <Spinner />;
   return (
     <>
       <PageHeader title="Assigned students" subtitle="Private students in this workspace." />
       {students.length === 0 ? (
-        <EmptyState icon={Users} message="No students assigned yet." />
+        <Card className="p-6 text-sm text-ink-500">No students assigned yet.</Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {students.map((s) => (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Sprout, CheckCircle2 } from 'lucide-react';
 import { lifelabAPI } from '../../services/api';
-import { Card, Button, Textarea, StatusBadge, PageHeader, Spinner, EmptyState, Alert } from '../../components/ui';
+import { Card, Button, Textarea, StatusBadge, PageHeader, Spinner, EmptyState, Alert, ErrorState } from '../../components/ui';
 import E21ccTags from '../../components/LifeLab/E21ccTags';
 import CompetencyGrowth from '../../components/LifeLab/CompetencyGrowth';
 
@@ -13,10 +13,15 @@ export default function StudentLifeLab() {
   const [form, setForm] = useState({ dataRecorded: '', reflectionResponse: '' });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [loadError, setLoadError] = useState(false);
 
-  const load = () => lifelabAPI.me()
-    .then((r) => { setSubs(r.data.submissions || []); setComps(r.data.competencies || []); })
-    .catch(() => setSubs([]));
+  const load = () => {
+    setLoadError(false);
+    setSubs(null);
+    return lifelabAPI.me()
+      .then((r) => { setSubs(r.data.submissions || []); setComps(r.data.competencies || []); })
+      .catch(() => { setLoadError(true); setSubs(null); });
+  };
   useEffect(() => { load(); }, []);
 
   const submit = async (id) => {
@@ -24,12 +29,14 @@ export default function StudentLifeLab() {
     setBusy(true); setErr('');
     try {
       await lifelabAPI.submit(id, form);
-      setOpenId(null); setForm({ dataRecorded: '', reflectionResponse: '' }); load();
+      setOpenId(null); setForm({ dataRecorded: '', reflectionResponse: '' });
+      load();
     } catch (e) {
       setErr(e.response?.data?.error || 'Could not submit your activity. Please try again.');
     } finally { setBusy(false); }
   };
 
+  if (loadError) return <ErrorState message="Couldn't load LifeLab activities." onRetry={load} />;
   if (!subs) return <Spinner />;
   return (
     <>
@@ -50,6 +57,7 @@ export default function StudentLifeLab() {
                 <p className="text-sm text-ink-500">{a.subject} · {a.topic}</p>
                 <E21ccTags primary={a.primaryE21cc} secondary={a.secondaryE21cc} className="mt-2" />
                 {a.instructions && <p className="mt-2 text-sm text-ink-700">{a.instructions}</p>}
+                {a.realLifeContext && <p className="mt-2 text-sm text-ink-500 italic">{a.realLifeContext}</p>}
                 {a.materials?.length > 0 && <p className="mt-1 text-xs text-ink-400">Materials: {a.materials.join(', ')}</p>}
 
                 {s.status === 'reviewed' && s.teacherFeedback && (

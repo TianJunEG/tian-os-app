@@ -27,7 +27,7 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
   ];
   return (
     <div className="mb-5">
-      <button onClick={() => navigate('/parent')} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
+      <button onClick={() => navigate('/parent/children')} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
         <ArrowLeft className="h-4 w-4" /> All children
       </button>
       <div className="flex items-start justify-between gap-3">

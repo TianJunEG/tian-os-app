@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, LayoutGrid } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
-import { Card, Button, Badge, StatTile, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Badge, StatTile, PageHeader, Spinner, ErrorState } from '../../components/ui';
 
 // Teacher home — quick scan of classes + what needs attention today.
 export default function TeacherHome() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => { teacherAPI.home().then((r) => setData(r.data)).catch(() => setData({ classCount: 0, activeInterventions: 0, attention: [] })); }, []);
+  const load = () => {
+    setLoadError(false);
+    setData(null);
+    teacherAPI.home().then((r) => setData(r.data)).catch(() => setLoadError(true));
+  };
+  useEffect(() => { load(); }, []);
 
+  if (loadError) return <ErrorState message="Couldn't load Teacher dashboard." onRetry={load} />;
   if (!data) return <Spinner />;
   const first = data.attention[0];
 
@@ -32,9 +39,7 @@ export default function TeacherHome() {
 
       <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Classes needing attention</h3>
       {data.attention.length === 0 ? (
-        <EmptyState icon={LayoutGrid} message="No urgent class needs today.">
-          <Button to="/teacher/classes" variant="secondary" size="s">View classes</Button>
-        </EmptyState>
+        <Card className="p-6 text-sm text-ink-500">No urgent class needs today.</Card>
       ) : (
         <div className="space-y-2">
           {data.attention.map((c) => (

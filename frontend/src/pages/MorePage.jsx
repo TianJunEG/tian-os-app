@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { NAV } from '../config/nav';
 import { MODULES } from '../config/modules';
-import { Card, PageHeader, ModuleCard } from '../components/ui';
+import { Card, PageHeader, ModuleCard, EmptyState, Button } from '../components/ui';
 
 const STUDENT_MORE_ORDER = [
   'fluency',
@@ -28,9 +28,16 @@ export default function MorePage() {
   const studentModules = MODULES.filter((module) => STUDENT_MORE_ORDER.includes(module.key))
     .sort((a, b) => STUDENT_MORE_ORDER.indexOf(a.key) - STUDENT_MORE_ORDER.indexOf(b.key));
 
+  const moreItems = roleNav.more || [];
+  const homeLink = roleNav.bottom?.[0]?.to || '/';
+  const pageTitle = role === 'student' ? 'More learning tools' : 'More tools';
+  const pageSubtitle = role === 'student'
+    ? 'Practise fluency, review mistakes, revise Science, spelling, LifeLab and Secondary tools.'
+    : 'Discover secondary learning tools and support features for your role.';
+
   return (
     <div className="space-y-6">
-      <PageHeader title="More" subtitle="Discover secondary learning tools and support features for your role." />
+      <PageHeader title={pageTitle} subtitle={pageSubtitle} />
 
       {role === 'student' ? (
         <div className="space-y-8">
@@ -54,10 +61,10 @@ export default function MorePage() {
             );
           })}
         </div>
-      ) : (
+      ) : moreItems.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {roleNav.more?.map((item) => (
-            <Link key={item.to} to={item.to} className="block focus-visible:outline-none">
+          {moreItems.map((item) => (
+            <Link key={`${role}-${item.to}-${item.label}`} to={item.to} className="block focus-visible:outline-none">
               <Card interactive className="h-full p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700">
@@ -70,6 +77,12 @@ export default function MorePage() {
             </Link>
           ))}
         </div>
+      ) : (
+        <EmptyState
+          message="No extra tools for this role yet. Check back as Tian OS expands your workspace."
+        >
+          <Button to={homeLink} variant="secondary" size="s">Back to dashboard</Button>
+        </EmptyState>
       )}
     </div>
   );

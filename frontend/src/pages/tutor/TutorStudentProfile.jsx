@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
 import TutorStudentNav from './TutorStudentNav';
-import { Card, Button, Badge, StatusBadge, StatTile, Spinner } from '../../components/ui';
+import { Card, Button, Badge, StatusBadge, StatTile, Spinner, ErrorState } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
 import StudentSciencePanel from '../../components/StudentSciencePanel';
 
@@ -12,9 +12,16 @@ export default function TutorStudentProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => { tutorAPI.student(id).then((r) => setData(r.data)).catch(() => setData(null)); }, [id]);
+  const load = () => {
+    setLoadError(false);
+    setData(null);
+    tutorAPI.student(id).then((r) => setData(r.data)).catch(() => setLoadError(true));
+  };
+  useEffect(() => { load(); }, [id]);
 
+  if (loadError) return <ErrorState message="Couldn’t load student profile." onRetry={load} />;
   if (!data) return <Spinner />;
   const { student, mastery, mistakes, assignments, lessonNotes } = data;
 

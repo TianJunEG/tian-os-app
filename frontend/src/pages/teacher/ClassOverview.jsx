@@ -4,16 +4,19 @@ import { ArrowRight, FlaskConical } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, Badge, StatTile, Spinner } from '../../components/ui';
+import { Card, Button, Badge, StatTile, Spinner, ErrorState } from '../../components/ui';
 
 export default function ClassOverview() {
   const { id } = useParams();
   const navigate = useNavigate();
   const meta = useClass(id);
   const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => { teacherAPI.classOverview(id).then((r) => setData(r.data)).catch(() => setData(null)); }, [id]);
+  const load = () => { setLoadError(false); setData(null); teacherAPI.classOverview(id).then((r) => setData(r.data)).catch(() => setLoadError(true)); };
+  useEffect(() => { load(); }, [id]);
 
+  if (loadError) return <ErrorState message="Couldn't load class overview." onRetry={load} />;
   if (!data) return <Spinner />;
   return (
     <>

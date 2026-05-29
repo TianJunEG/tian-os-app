@@ -2,13 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LayoutGrid } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
-import { Card, Badge, ProgressBar, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Badge, ProgressBar, PageHeader, Spinner, ErrorState, EmptyState } from '../../components/ui';
 
 // All classes assigned to the teacher.
 export default function Classes() {
   const [classes, setClasses] = useState(null);
-  useEffect(() => { teacherAPI.classes().then((r) => setClasses(r.data.classes || [])).catch(() => setClasses([])); }, []);
+  const [loadError, setLoadError] = useState(false);
 
+  const load = () => { setLoadError(false); setClasses(null); teacherAPI.classes().then((r) => setClasses(r.data.classes || [])).catch(() => setLoadError(true)); };
+  useEffect(() => { load(); }, []);
+
+  if (loadError) return <ErrorState message="Couldn't load classes." onRetry={load} />;
   if (!classes) return <Spinner />;
   return (
     <>

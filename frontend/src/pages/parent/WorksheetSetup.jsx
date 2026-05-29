@@ -4,6 +4,7 @@ import { Wand2 } from 'lucide-react';
 import { worksheetGenAPI, skillsAPI } from '../../services/api';
 import { Card, Button } from '../../components/ui';
 import { useChild } from './useChild';
+import { Select, Spinner, ErrorState } from '../../components/ui';
 import ChildNav from './ChildNav';
 
 // Parent › Worksheet Generator › setup. Mode, optional skill, count, difficulty, toggles.
@@ -25,13 +26,26 @@ export default function WorksheetSetup() {
   const [includesMistakeReview, setIncludesMistakeReview] = useState(sp.get('review') === '1');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [skillsLoading, setSkillsLoading] = useState(true);
+  const [skillsLoadError, setSkillsLoadError] = useState(false);
 
   // Reload the topic/skill catalog whenever the subject changes; the selected
   // skill from one subject won't exist in the other, so clear it too.
   useEffect(() => {
     setSkills([]); setSkillId('');
-    skillsAPI.list({ subject, studentId }).then((r) => setSkills(r.data.skills || [])).catch(() => {});
+    loadSkills();
   }, [studentId, subject]);
+
+  const loadSkills = () => {
+    setSkillsLoading(true);
+    setSkillsLoadError(false);
+    setSkills([]);
+    setSkillId('');
+    skillsAPI.list({ subject, studentId })
+      .then((r) => setSkills(r.data.skills || []))
+      .catch(() => setSkillsLoadError(true))
+      .finally(() => setSkillsLoading(false));
+  };
 
   const generate = async () => {
     setBusy(true); setError('');
@@ -66,6 +80,9 @@ export default function WorksheetSetup() {
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
       <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">New worksheet</h2>
       <p className="mb-5 text-sm text-ink-500">{subject === 'science' ? 'Science' : 'Math'} · choose what to practise.</p>
+      {skillsLoadError && (
+        <ErrorState message="Couldn’t load topics and skills." onRetry={loadSkills} />
+      )}
       {error && <Card className="mb-4 border-l-4 border-l-error-500 p-4 text-sm text-error-700">{error}</Card>}
 
       <div className="space-y-4">
@@ -88,19 +105,29 @@ export default function WorksheetSetup() {
                 <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
               </button>
             </div>
-            <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="h-12 w-full rounded-xl border border-hairline bg-paper px-3 text-ink-800">
-              <option value="">Choose a skill…</option>
-              {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.topicName} · {s.name}</option>)}
-            </select>
+            {skillsLoading ? (
+              <Spinner label="Loading skills…" />
+            ) : skillsLoadError ? (
+              <ErrorState message="Couldn’t load skills for this subject." onRetry={loadSkills} />
+            ) : (
+              <Select value={skillId} onChange={(e) => setSkillId(e.target.value)}>
+                <option value="">Choose a skill…</option>
+                {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.topicName} · {s.name}</option>)}
+              </Select>
+            )}
           </div>
         )}
 
         <Field label="Number of questions">
           <Segmented value={questionCount} onChange={setQuestionCount} options={[{ v: '6', l: '6' }, { v: '10', l: '10' }, { v: '15', l: '15' }]} />
         </Field>
-        <Field label="Difficulty">
-          <Segmented value={difficulty} onChange={setDifficulty} options={[{ v: 'easy', l: 'Easier' }, { v: 'medium', l: 'On level' }, { v: 'hard', l: 'Harder' }]} />
-        </Field>
+        {subject !== 'science' ? (
+          <Field label="Difficulty">
+            <Segmented value={difficulty} onChange={setDifficulty} options={[{ v: 'easy', l: 'Easier' }, { v: 'medium', l: 'On level' }, { v: 'hard', l: 'Harder' }]} />
+          </Field>
+        ) : (
+          <p className="text-sm text-ink-500">Science questions are open-ended, so difficulty is set by learning depth rather than an easy/medium/hard band.</p>
+        )}
 
         <Toggle label="Include worked solutions" checked={includesSolutions} onChange={setIncludesSolutions} />
         <Toggle label="Include a mistake-review section" checked={includesMistakeReview} onChange={setIncludesMistakeReview} />

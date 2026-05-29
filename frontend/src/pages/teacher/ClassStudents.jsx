@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, Badge, StatusBadge, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, StatusBadge, Spinner, ErrorState, EmptyState } from '../../components/ui';
 
 export default function ClassStudents() {
   const { id } = useParams();
   const meta = useClass(id);
   const [students, setStudents] = useState(null);
-  useEffect(() => { teacherAPI.classStudents(id).then((r) => setStudents(r.data.students || [])).catch(() => setStudents([])); }, [id]);
+  const [loadError, setLoadError] = useState(false);
+  const load = () => { setLoadError(false); setStudents(null); teacherAPI.classStudents(id).then((r) => setStudents(r.data.students || [])).catch(() => setLoadError(true)); };
+  useEffect(() => { load(); }, [id]);
 
+  if (loadError) return <ErrorState message="Couldn't load class students." onRetry={load} />;
   if (!students) return <Spinner />;
   return (
     <>

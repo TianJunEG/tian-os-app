@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GraduationCap, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
-import { Card, Button, Badge, StatusBadge, PageHeader, Spinner } from '../../components/ui';
+import { Card, Button, Badge, StatusBadge, PageHeader, Spinner, ErrorState } from '../../components/ui';
 
 const STATUS_LABEL = { not_started: 'Not started', in_training: 'In training', assessment_pending: 'Assessment pending', interview_pending: 'Interview pending', approved: 'Approved', suspended: 'Suspended' };
 const ICON = { completed: CheckCircle2, in_progress: Clock, not_started: Circle };
@@ -9,8 +9,11 @@ const ICON = { completed: CheckCircle2, in_progress: Clock, not_started: Circle 
 // Certified-tutor route status. MVP: seeded modules, no full LMS.
 export default function Training() {
   const [cert, setCert] = useState(null);
-  useEffect(() => { tutorAPI.certification().then((r) => setCert(r.data.certification)).catch(() => setCert(null)); }, []);
+  const [loadError, setLoadError] = useState(false);
+  const load = () => { setLoadError(false); setCert(null); tutorAPI.certification().then((r) => setCert(r.data.certification)).catch(() => setLoadError(true)); };
+  useEffect(() => { load(); }, []);
 
+  if (loadError) return <ErrorState message="Couldn't load training status." onRetry={load} />;
   if (!cert) return <Spinner />;
   const nextModule = cert.trainingModules.find((m) => m.status !== 'completed');
 
@@ -61,7 +64,11 @@ export default function Training() {
       </div>
 
       {nextModule && (
-        <div className="mt-6"><Button>Continue training — {nextModule.title}</Button></div>
+        <Card className="mt-6 p-4">
+          <p className="font-semibold text-ink-700">Training modules are tracked here.</p>
+          <p className="mt-1 text-sm text-ink-500">Full training content will be added during the certification phase. For now, progress and module status are displayed above.</p>
+          <div className="mt-3"><Button disabled variant="secondary">Training content coming soon</Button></div>
+        </Card>
       )}
     </>
   );

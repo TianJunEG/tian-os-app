@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, Badge, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Badge, Spinner, ErrorState } from '../../components/ui';
 
 // Rule-suggested remediation groups; teacher saves a group then assigns to it.
 export default function Grouping() {
@@ -13,18 +13,26 @@ export default function Grouping() {
   const meta = useClass(id);
   const [data, setData] = useState(null);
   const [savedIds, setSavedIds] = useState({});
+  const [loadError, setLoadError] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
-  const load = () => teacherAPI.groups(id).then((r) => setData(r.data)).catch(() => setData({ suggested: [], saved: [] }));
+  const load = () => { setLoadError(false); setData(null); teacherAPI.groups(id).then((r) => setData(r.data)).catch(() => setLoadError(true)); };
   useEffect(() => { load(); }, [id]); // eslint-disable-line
 
   const saveGroup = async (g) => {
-    const { data: res } = await teacherAPI.saveGroup(id, {
-      name: g.name, basis: g.basis, targetSkillId: g.targetSkillId, studentIds: g.students.map((s) => s.studentId),
-    });
-    setSavedIds((m) => ({ ...m, [g.targetSkillId]: res.group._id }));
-    load();
+    setSaveError(null);
+    try {
+      const { data: res } = await teacherAPI.saveGroup(id, {
+        name: g.name, basis: g.basis, targetSkillId: g.targetSkillId, studentIds: g.students.map((s) => s.studentId),
+      });
+      setSavedIds((m) => ({ ...m, [g.targetSkillId]: res.group._id }));
+      load();
+    } catch (e) {
+      setSaveError("Couldn't save group. Please try again.");
+    }
   };
 
+  if (loadError) return <ErrorState message="Couldn't load grouping suggestions." onRetry={load} />;
   if (!data) return <Spinner />;
   return (
     <>
@@ -32,7 +40,7 @@ export default function Grouping() {
 
       <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Suggested groups</h3>
       {data.suggested.length === 0 ? (
-        <EmptyState icon={Users} message="No grouping suggestions yet. Run a diagnostic or assign practice first." />
+        <Card className="p-6 text-sm text-ink-500">No grouping suggestions yet. Run a diagnostic or assign practice first.</Card>
       ) : (
         <div className="mb-6 space-y-3">
           {data.suggested.map((g) => (
@@ -53,6 +61,8 @@ export default function Grouping() {
           ))}
         </div>
       )}
+
+      {saveError && <p className="text-sm text-error-700">{saveError}</p>}
 
       {data.saved.length > 0 && (
         <>

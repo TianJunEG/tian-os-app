@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, StatusBadge, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, StatusBadge, Spinner, ErrorState } from '../../components/ui';
 
 const STATUSES = ['needs_support', 'improving', 'stable', 'mastered'];
 
@@ -12,18 +12,21 @@ export default function Intervention() {
   const { id } = useParams();
   const meta = useClass(id);
   const [items, setItems] = useState(null);
+  const [loadError, setLoadError] = useState(false);
+  const [updateError, setUpdateError] = useState(null);
 
-  const load = () => teacherAPI.interventions(id).then((r) => setItems(r.data.interventions || [])).catch(() => setItems([]));
+  const load = () => { setLoadError(false); setItems(null); teacherAPI.interventions(id).then((r) => setItems(r.data.interventions || [])).catch(() => setLoadError(true)); };
   useEffect(() => { load(); }, [id]); // eslint-disable-line
 
-  const update = async (iid, status) => { await teacherAPI.updateIntervention(iid, { status }); load(); };
+  const update = async (iid, status) => { setUpdateError(null); try { await teacherAPI.updateIntervention(iid, { status }); load(); } catch (e) { setUpdateError("Couldn't update intervention status."); } };
 
+  if (loadError) return <ErrorState message="Couldn't load interventions." onRetry={load} />;
   if (!items) return <Spinner />;
   return (
     <>
       <ClassNav classId={id} name={meta?.name || 'Class'} level={meta?.level} />
       {items.length === 0 ? (
-        <EmptyState message="No active interventions yet. Flag a student from the mastery map or student detail." />
+        <Card className="p-6 text-sm text-ink-500">No active interventions yet. Flag a student from the mastery map or student detail.</Card>
       ) : (
         <div className="space-y-3">
           {items.map((i) => (
@@ -46,6 +49,7 @@ export default function Intervention() {
           ))}
         </div>
       )}
+      {updateError && <p className="text-sm text-error-700">{updateError}</p>}
     </>
   );
 }

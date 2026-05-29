@@ -4,7 +4,7 @@ import { FileText } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, Badge, StatTile, Spinner } from '../../components/ui';
+import { Card, Button, Badge, StatTile, Spinner, ErrorState } from '../../components/ui';
 
 const TYPES = [
   ['class_progress', 'Class progress'],
@@ -19,8 +19,13 @@ export default function Reports() {
   const [type, setType] = useState('class_progress');
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [reportError, setReportError] = useState(false);
 
-  const generate = (t) => { setLoading(true); teacherAPI.report(id, { type: t }).then((r) => setReport(r.data)).catch(() => setReport(null)).finally(() => setLoading(false)); };
+  const generate = (t) => {
+    setReportError(false);
+    setLoading(true);
+    teacherAPI.report(id, { type: t }).then((r) => setReport(r.data)).catch(() => { setReport(null); setReportError(true); }).finally(() => setLoading(false));
+  };
   useEffect(() => { generate('class_progress'); }, [id]); // eslint-disable-line
 
   return (
@@ -33,7 +38,7 @@ export default function Reports() {
         ))}
       </div>
 
-      {loading || !report ? <Spinner /> : (
+      {loading ? <Spinner /> : reportError ? <ErrorState message="Couldn't generate report." onRetry={() => generate(type)} /> : !report ? <Card className="p-5 text-sm text-ink-500">No report available.</Card> : (
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2"><FileText className="h-5 w-5 text-ink-300" /><h3 className="font-semibold text-ink-700">{TYPES.find(([k]) => k === type)?.[1]}</h3></div>

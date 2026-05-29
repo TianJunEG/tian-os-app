@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, GraduationCap, FileText } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
-import { Card, Button, Badge, StatTile, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Badge, StatTile, PageHeader, Spinner, ErrorState } from '../../components/ui';
 
 const CERT_LABEL = { not_started: 'Not started', in_training: 'In training', assessment_pending: 'Assessment pending', interview_pending: 'Interview pending', approved: 'Approved', suspended: 'Suspended' };
 
@@ -13,11 +13,14 @@ export default function TutorHome() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const load = () => {
+    setError(null);
+    setData(null);
     tutorAPI.home().then((r) => setData(r.data)).catch((e) => setError(e.response?.data?.error || 'Could not load.'));
-  }, []);
+  };
+  useEffect(() => { load(); }, []);
 
-  if (error) return <EmptyState icon={AlertTriangle} message={error} />;
+  if (error) return <ErrorState message={error} onRetry={load} />;
   if (!data) return <Spinner />;
 
   const prepTarget = data.attention[0]?.studentId;
