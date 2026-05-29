@@ -411,11 +411,11 @@ function App() {
             <Route path="/student/science" element={<FeatureGuard feature="science"><ScienceHome /></FeatureGuard>} />
             <Route path="/student/science/topics" element={<FeatureGuard feature="science"><ScienceTopics /></FeatureGuard>} />
             <Route path="/student/science/mistakes" element={<FeatureGuard feature="science"><ScienceMistakes /></FeatureGuard>} />
-            <Route path="/student/science/topic/:topicId/notes" element={<ScienceTopicNotes />} />
-            <Route path="/student/science/topic/:topicId/lesson" element={<ScienceTopicLesson />} />
-            <Route path="/student/science/notes" element={<ScienceNotes />} />
-            <Route path="/student/science/practice/:sessionId" element={<PracticeSession />} />
-            <Route path="/student/science/results/:sessionId" element={<PracticeResult />} />
+            <Route path="/student/science/topic/:topicId/notes" element={<FeatureGuard feature="science"><ScienceTopicNotes /></FeatureGuard>} />
+            <Route path="/student/science/topic/:topicId/lesson" element={<FeatureGuard feature="science"><ScienceTopicLesson /></FeatureGuard>} />
+            <Route path="/student/science/notes" element={<FeatureGuard feature="science"><ScienceNotes /></FeatureGuard>} />
+            <Route path="/student/science/practice/:sessionId" element={<FeatureGuard feature="science"><PracticeSession /></FeatureGuard>} />
+            <Route path="/student/science/results/:sessionId" element={<FeatureGuard feature="science"><PracticeResult /></FeatureGuard>} />
             <Route path="/student/lifelab" element={<FeatureGuard feature="lifelab"><StudentLifeLab /></FeatureGuard>} />
             {/* Spelling Practice (secondary module, English · Spelling) — shared core */}
             <Route path="/student/spelling" element={<FeatureGuard feature="spelling"><SpellingHome /></FeatureGuard>} />
@@ -439,9 +439,9 @@ function App() {
             <Route path="/parent/children/:studentId/mistakes" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><MistakeHistory /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/assignments" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildAssignments /></FeatureGuard>} />
             {/* Mastery Worksheet Generator (Phase 4) */}
-            <Route path="/parent/children/:studentId/worksheets" element={<WorksheetHome />} />
-            <Route path="/parent/children/:studentId/worksheets/new" element={<WorksheetSetup />} />
-            <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<WorksheetPreview />} />
+            <Route path="/parent/children/:studentId/worksheets" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetHome /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/worksheets/new" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetSetup /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetPreview /></FeatureGuard>} />
 
             {/* Tutor (Phase 4) */}
             <Route path="/tutor" element={<FeatureGuard feature="tutor"><TutorHome /></FeatureGuard>} />
