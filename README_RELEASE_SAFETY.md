@@ -26,6 +26,7 @@ Do not expose unfinished future modules in v0.1.
 - Future modules must remain hidden behind their configured version and feature flags until explicitly released.
 - Do not bypass navigation guards to make a hidden feature visible.
 - Do not add new navigation entries unless the release scope explicitly requires it.
+- MathPath full-curriculum preview is development/admin-only via `VITE_ENABLE_MATHPATH_FULL_PREVIEW=true`; it must remain off for beta production users unless explicitly enabled for admin review.
 
 ## Release Rules
 
