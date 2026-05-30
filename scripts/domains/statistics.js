@@ -66,11 +66,11 @@ export default {
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['stat.average-intro'], strategy: 'total = mean × number of values; then find the missing one' },
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'hard', stem: 'The mean of {n} numbers is {m}. {k} of them total {t}. Find the last value.', answerRule: 'm*n - t', misconceptionTag: 'stat/mean-reverse' }] },
     { slug: 'stat.pie-charts', name: 'Pie charts', level: 'Primary 6',
-      prerequisites: ['stat.bar-graphs', 'pct.of-quantity', 'fr.of-set'], masteryType: 'application', fluencyType: 'accuracy',
+      prerequisites: ['stat.bar-graphs', 'pct.of-quantity', 'fr.of-quantity'], masteryType: 'application', fluencyType: 'accuracy',
       figureDependent: true, render: 'katex', visualModels: ['pie-chart'],
       misconceptions: [{ tag: 'stat/pie-angle-fraction', label: 'Reads a sector as a count, not a fraction/angle of the whole' }],
       practiceModes: ['visual_model', 'short_answer', 'diagnostic'],
-      remediation: { onRepeatedFail: 'worked-example', reinforce: ['fr.of-set', 'pct.of-quantity'], strategy: 'a sector is a fraction of 360° (or 100%) of the total' },
+      remediation: { onRepeatedFail: 'worked-example', reinforce: ['fr.of-quantity', 'pct.of-quantity'], strategy: 'a sector is a fraction of 360° (or 100%) of the total' },
       questionStructures: [{ mode: 'visual_model', type: 'short_answer', difficulty: 'hard', stem: 'A sector is {p}% of the pie chart. If the total is {total}, how many does it represent?', answerRule: 'p/100*total', misconceptionTag: 'stat/pie-angle-fraction' }] },
   ],
 };

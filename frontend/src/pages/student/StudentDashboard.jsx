@@ -1,147 +1,271 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowRight, Sparkles, ClipboardList, AlertTriangle, Wrench } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, BookOpen, Gauge, RefreshCw, ClipboardCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { mathpathAPI, assignmentsAPI } from '../../services/api';
-import { SECTIONS } from '../../config/modules';
-import { Card, Button, ModuleCard, StatTile, ProgressBar, PageHeader, EmptyState, StatusBadge, Alert, Spinner } from '../../components/ui';
+import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
+import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
+import { Card, Button, ProgressBar, PageHeader, Spinner, ErrorState, Badge } from '../../components/ui';
 
-// Student dashboard. Today's Learning surfaces the single recommended next
-// action from the mastery engine; numbers come from MathPath once practised.
+function actionMeta(nextAction = {}) {
+  const map = {
+    continuePractice: { label: 'Continue Practice', to: '/student/mathpath' },
+    startFluency: { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' },
+    completeRetentionReview: { label: 'Complete Review', to: '/student/mathpath' },
+    attemptAssessment: { label: 'Try Assessment', to: '/student/mathpath/assessment' },
+    uploadWorking: { label: 'Upload Working', to: '/student/mathpath/working/upload?source=manual' },
+    followRemediationPlan: { label: 'Follow Plan', to: '/student/mathpath/mistakes' },
+    advanceSkill: { label: 'Move To Next Skill', to: '/student/mathpath' },
+  };
+  return map[nextAction.action] || { label: 'Start MathPath', to: '/student/mathpath' };
+}
+
+function buildMockPipelinePayload(studentId = 'demo-student') {
+  return runMathPathDomainPipeline({
+    studentId,
+    domainId: 'fractions',
+    mode: 'full',
+    studentLevel: 'P5',
+    diagnosticResult: {
+      masteredSkillIds: ['F001', 'F002', 'F003'],
+      weakSkillIds: ['F010', 'F018'],
+      recommendedStartingSkillId: 'F010',
+    },
+    practiceState: {
+      masteredSkillIds: ['F001', 'F002', 'F003'],
+      weakSkillIds: ['F010'],
+      currentSkillId: 'F010',
+    },
+    fluencyState: {
+      questionFamilyResults: [
+        { status: 'accurateButSlow', skillId: 'F010', questionFamilyId: 'QF_F010_001', displayName: 'Equivalent Fractions' },
+        { status: 'fluent', skillId: 'F007', questionFamilyId: 'QF_F007_001', displayName: 'Compare Same Denominator' },
+      ],
+      fluentSkillIds: ['F001', 'F003', 'F007'],
+      accurateButSlowAreas: ['Equivalent Fractions'],
+      fluentAreas: ['Compare Same Denominator'],
+      automaticAreas: [],
+    },
+    retentionState: {
+      retainedSkillIds: ['F001'],
+      skillsDueForReview: ['F003'],
+      skillsNeedingRefresh: ['F010'],
+    },
+    assessmentResults: [
+      {
+        percentage: 63,
+        readinessScore: { readinessScore: 64, readinessBand: 'approaching' },
+        skillBreakdown: { F010: { percentage: 60 }, F018: { percentage: 48 } },
+        fluencyBreakdown: {},
+        workingSummary: {},
+      },
+    ],
+    workingAnalysisSummary: {
+      missingWorkingCount: 1,
+      averageWorkingQuality: 62,
+    },
+    mistakePlans: [
+      {
+        focusMistakes: [{ mistakeCode: 'M001', count: 2, highestSeverity: 'high' }],
+        rootCauseSkillIds: ['F010'],
+        remediationQueue: [{ skillId: 'F010' }],
+      },
+    ],
+  });
+}
+
+function CurrentSkillCard({ domain, currentSkill }) {
+  return (
+    <Card className="p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Domain</p>
+      <h2 className="mt-1 font-display text-xl font-semibold text-navy-700">{domain}</h2>
+      <div className="mt-4 rounded-xl border border-hairline p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Skill</p>
+        <p className="mt-1 font-semibold text-ink-700">{currentSkill?.skillName || 'Start Fractions Diagnostic'}</p>
+        <div className="mt-2">
+          <Badge tone="navy">{currentSkill?.status || 'learning'}</Badge>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function NextActionCard({ nextAction }) {
+  const action = actionMeta(nextAction);
+  return (
+    <Card className="p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Next Action</p>
+      <p className="mt-2 text-sm text-ink-600">
+        {nextAction?.explanation || "Start your Fractions Diagnostic to find your best starting point."}
+      </p>
+      <Button to={action.to} size="l" icon={ArrowRight} className="mt-4 w-full">
+        {action.label}
+      </Button>
+    </Card>
+  );
+}
+
+function MasteryProgressCard({ masteryProgress }) {
+  const mastered = masteryProgress?.percentageMastered || 0;
+  const fluent = masteryProgress?.percentageFluent || 0;
+  const retained = masteryProgress?.percentageRetained || 0;
+  return (
+    <Card className="p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Mastery Progress</p>
+      <div className="mt-3 space-y-3">
+        <div>
+          <div className="mb-1 flex items-center justify-between text-sm"><span>Mastered</span><span>{mastered}%</span></div>
+          <ProgressBar value={mastered} />
+        </div>
+        <div>
+          <div className="mb-1 flex items-center justify-between text-sm"><span>Fluent</span><span>{fluent}%</span></div>
+          <ProgressBar value={fluent} />
+        </div>
+        <div>
+          <div className="mb-1 flex items-center justify-between text-sm"><span>Retained</span><span>{retained}%</span></div>
+          <ProgressBar value={retained} />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function FluencyStatusCard({ fluency }) {
+  const slow = fluency?.accurateButSlowAreas || [];
+  const fluent = fluency?.fluentAreas || [];
+  return (
+    <Card className="p-5">
+      <div className="mb-2 flex items-center gap-2 text-ink-700"><Gauge className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fluency</p></div>
+      <p className="text-sm text-ink-600">{slow.length ? `Accurate but slow: ${slow.slice(0, 2).join(', ')}` : 'No fluency bottlenecks currently flagged.'}</p>
+      {fluent.length > 0 && <p className="mt-2 text-sm text-ink-500">Fluent: {fluent.slice(0, 2).join(', ')}</p>}
+    </Card>
+  );
+}
+
+function RetentionReviewCard({ retention }) {
+  const due = retention?.skillsDueForReview || [];
+  return (
+    <Card className="p-5">
+      <div className="mb-2 flex items-center gap-2 text-ink-700"><RefreshCw className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Retention Reviews</p></div>
+      {due.length ? (
+        <p className="text-sm text-ink-600">Review due: {due.slice(0, 3).join(', ')}</p>
+      ) : (
+        <p className="text-sm text-ink-600">No review due right now.</p>
+      )}
+    </Card>
+  );
+}
+
+function PracticeStartCard() {
+  return (
+    <Card className="p-5">
+      <div className="mb-2 flex items-center gap-2 text-ink-700"><BookOpen className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Practice</p></div>
+      <p className="text-sm text-ink-600">Continue your guided MathPath practice session.</p>
+      <Button to="/student/mathpath" variant="secondary" className="mt-4 w-full">Open Practice</Button>
+    </Card>
+  );
+}
+
+function AssessmentStartCard({ readinessBand }) {
+  const ready = ['ready', 'strong', 'advanced', 'approaching'].includes(String(readinessBand || '').toLowerCase());
+  return (
+    <Card className="p-5">
+      <div className="mb-2 flex items-center gap-2 text-ink-700"><ClipboardCheck className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Assessment</p></div>
+      <p className="text-sm text-ink-600">
+        {ready ? 'You are close to assessment readiness. Try a progress check.' : 'Build more skill confidence before your next assessment.'}
+      </p>
+      <Button to="/student/mathpath/assessment" variant="secondary" className="mt-4 w-full" disabled={!ready}>
+        {ready ? 'Try Assessment' : 'Not Ready Yet'}
+      </Button>
+    </Card>
+  );
+}
+
 export default function StudentDashboard() {
   const { user } = useAuth();
   const firstName = (user?.name || 'there').split(' ')[0];
-  const [mastery, setMastery] = useState(null);
-  const [masteryError, setMasteryError] = useState(false);
-  const [masteryLoading, setMasteryLoading] = useState(true);
-  const [pending, setPending] = useState([]);
-  const [assignmentsError, setAssignmentsError] = useState(false);
-  const [assignmentsLoading, setAssignmentsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [payload, setPayload] = useState(null);
+
+  // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
+  // see real pipeline output, not synthetic dashboard data.
+  const useMock = String(import.meta.env.VITE_USE_MATHPATH_MOCK || '').toLowerCase() === 'true';
 
   useEffect(() => {
-    mathpathAPI.mastery()
-      .then((r) => setMastery(r.data))
-      .catch(() => setMasteryError(true))
-      .finally(() => setMasteryLoading(false));
+    setLoading(true);
+    setError('');
+    try {
+      const result = useMock
+        ? buildMockPipelinePayload(user?.id || user?._id || 'demo-student')
+        : runMathPathDomainPipeline({
+            studentId: user?.id || user?._id || 'demo-student',
+            domainId: 'fractions',
+            mode: 'full',
+          });
+      setPayload(result);
+    } catch (e) {
+      setError('Couldn’t load MathPath dashboard.');
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, user?._id, useMock]);
 
-    assignmentsAPI.list()
-      .then((r) => setPending((r.data.assignments || []).filter((a) => a.status !== 'completed')))
-      .catch(() => setAssignmentsError(true))
-      .finally(() => setAssignmentsLoading(false));
-  }, []);
+  const vm = useMemo(() => {
+    const p = payload || {};
+    const state = p.studentProgress || {};
+    const currentSkillName = getSkill(state.currentSkill)?.name || 'Start Fractions Diagnostic';
+    return {
+      domain: 'Fractions',
+      currentSkill: state.currentSkill ? {
+        skillName: currentSkillName,
+        status: state.skillStatuses?.[state.currentSkill] || 'learning',
+      } : null,
+      nextAction: state.nextRecommendedAction || p.nextRecommendedAction || null,
+      masteryProgress: state.masteryProgress || {},
+      fluency: {
+        accurateButSlowAreas: state.fluencyProgress?.accurateButSlowAreas || p.parentDashboard?.fluencySummary?.accurateButSlowAreas || [],
+        fluentAreas: p.parentDashboard?.fluencySummary?.fluentAreas || [],
+      },
+      retention: {
+        skillsDueForReview: state.retentionProgress?.skillsDueForReview || p.parentDashboard?.retentionSummary?.skillsDueForReview || [],
+      },
+      readinessBand: state.readinessLevel?.readinessBand || p.parentDashboard?.assessmentSummary?.readinessBand || 'developing',
+      warnings: p.warnings || [],
+    };
+  }, [payload]);
 
-  const masteryData = mastery || { records: [], weakSkills: [], recommended: null, recentMistakeCount: 0 };
-  const records = masteryData.records || [];
-  const mastered = records.filter((r) => r.status === 'mastered').length;
-  const needsReview = (masteryData.weakSkills || []).filter((w) => w.status === 'needs_review').length;
-  const total = Math.max(records.length, 1);
-  const recommended = masteryData.recommended;
-  const weak = masteryData.weakSkills?.[0];
+  if (loading) return <Spinner label="Loading MathPath dashboard…" />;
+  if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
 
+  const primaryAction = actionMeta(vm.nextAction);
   return (
     <>
-      <PageHeader title={`Hi, ${firstName}`} subtitle="Here's your learning today." />
+      <PageHeader title={`Hi, ${firstName}`} subtitle="Your MathPath dashboard for today." />
 
-      {/* Today's Learning — next best action */}
-      <Card className="mb-6">
-        <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">
-              <Sparkles className="h-3.5 w-3.5" /> Today's learning
-            </div>
-            <h2 className="font-display text-xl font-semibold text-navy-700">
-              {recommended ? recommended.skillName : 'Start your recommended practice'}
-            </h2>
-            <p className="mt-1 text-sm text-ink-500">
-              {recommended ? `${recommended.topicName} · MathPath` : 'MathPath will pick the next best skill once you begin.'}
-            </p>
-          </div>
-          <Button to="/student/mathpath" size="l" icon={ArrowRight} className="shrink-0">Open MathPath</Button>
-        </div>
-      </Card>
-
-      {masteryError && (
-        <Alert tone="error" className="mb-4">Unable to load your progress metrics right now. Your dashboard remains available while we refresh.</Alert>
-      )}
-      <Card className="mb-6 p-5">
-        <div className="mb-4 flex items-center gap-6">
-          <StatTile label="Mastered" value={mastered} />
-          <StatTile label="To review" value={needsReview} />
-          <StatTile label="Skills seen" value={records.length} />
-        </div>
-        <ProgressBar value={mastered} max={total} />
-        {masteryLoading ? (
-          <p className="mt-3 text-sm text-ink-500">Loading progress…</p>
-        ) : records.length === 0 ? (
-          <p className="mt-3 text-xs text-ink-300">Your progress appears here after your first practice session.</p>
-        ) : null}
-      </Card>
-
-      {/* Weak-topic alert */}
-      {weak && (
-        <Card className="mb-6 border-l-4 border-l-error-500 p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-error-500" />
-            <div>
-              <p className="text-sm font-semibold text-ink-700">Worth a look</p>
-              <p className="text-sm text-ink-500">{weak.skillName} in {weak.topicName} could use practice.</p>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Mistakes to review */}
-      {mastery?.recentMistakeCount > 0 && (
-        <Card interactive className="mb-6 flex items-center justify-between gap-3 p-4" role="button">
-          <Link to="/student/mathpath/mistakes" className="flex flex-1 items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700"><Wrench className="h-5 w-5" /></span>
-            <span>
-              <span className="block font-semibold text-ink-700">{mastery.recentMistakeCount} mistake{mastery.recentMistakeCount > 1 ? 's' : ''} to review</span>
-              <span className="block text-sm text-ink-500">Turn recent slips into mastery.</span>
-            </span>
-          </Link>
-          <Button size="s" to="/student/mathpath/mistakes">Review</Button>
-        </Card>
-      )}
-
-      {/* Assignments */}
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Assigned to you</h3>
-        {pending.length > 0 && <Link to="/student/assignments" className="text-sm font-semibold text-navy-700">See all →</Link>}
-      </div>
-      <div className="mb-8">
-        {assignmentsLoading ? (
-          <Spinner label="Loading assignments…" />
-        ) : assignmentsError ? (
-          <Alert tone="error">Unable to load assignments right now. Please try again in a moment.</Alert>
-        ) : pending.length === 0 ? (
-          <EmptyState icon={ClipboardList} message="No assignments yet. When a parent or teacher assigns practice, it shows up here." />
-        ) : (
-          <div className="space-y-2">
-            {pending.slice(0, 3).map((a) => (
-              <Card key={a.id} className="flex items-center justify-between gap-3 p-4">
-                <div className="min-w-0">
-                  <p className="truncate font-medium text-ink-700">{a.skillNames?.join(', ') || a.module}</p>
-                  <p className="text-sm text-ink-500">{a.questionCount} questions</p>
-                </div>
-                <Button size="s" to="/student/assignments">Start</Button>
-              </Card>
-            ))}
-          </div>
-        )}
+      <div className="mb-4">
+        <Button to={primaryAction.to} size="l" icon={ArrowRight} className="w-full">
+          {primaryAction.label}
+        </Button>
       </div>
 
-      {/* Module grid — grouped by section (core, then Secondary) */}
-      {SECTIONS.filter((s) => s.modules.length > 0).map((section) => (
-        <div key={section.key} className="mb-8 last:mb-0">
-          <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">
-            {section.label || 'Your modules'}
-          </h3>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {section.modules.map((m) => <ModuleCard key={m.key} module={m} />)}
-          </div>
-        </div>
-      ))}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <CurrentSkillCard domain={vm.domain} currentSkill={vm.currentSkill} />
+        <NextActionCard nextAction={vm.nextAction} />
+        <MasteryProgressCard masteryProgress={vm.masteryProgress} />
+        <FluencyStatusCard fluency={vm.fluency} />
+        <RetentionReviewCard retention={vm.retention} />
+        <PracticeStartCard />
+        <AssessmentStartCard readinessBand={vm.readinessBand} />
+      </div>
+
+      {vm.warnings.length > 0 && (
+        <Card className="mt-4 p-4">
+          <p className="text-sm text-ink-500">
+            {vm.warnings.includes('no diagnostic available')
+              ? "Start your Fractions Diagnostic to find your best starting point."
+              : 'Some dashboard data is still loading. You can continue with today’s recommended action.'}
+          </p>
+        </Card>
+      )}
     </>
   );
 }

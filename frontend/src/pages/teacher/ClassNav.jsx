@@ -8,6 +8,7 @@ export default function ClassNav({ classId, name, level }) {
   const base = `/teacher/classes/${classId}`;
   const tabs = [
     ['Overview', base],
+    ['MathPath', `${base}/mathpath`],
     ['Mastery map', `${base}/mastery`],
     ['Students', `${base}/students`],
     ['Groups', `${base}/groups`],

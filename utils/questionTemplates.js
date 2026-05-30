@@ -70,6 +70,30 @@ function buildOne(skillName, difficulty) {
     return short(`A baker had ${total} ${item} at first. In the morning he used some. In the afternoon he used 1/${f} of the remaining ${item}. After that, ${left} ${item} were left. How many ${item} did he use in the morning?`,
       morning, `After the afternoon, ${f - 1}/${f} of the remainder = ${left}, so the remainder after the morning = ${remBefore}. Morning used = ${total} − ${remBefore} = ${morning}.`, 'frac/remainder', difficulty);
   }
+  if (name.includes('exam-style fraction applications')) {
+    const d1 = [2, 3, 4][rnd(0, 2)];
+    const d2 = [4, 6, 8][rnd(0, 2)];
+    const n1 = rnd(1, d1 - 1);
+    const n2 = rnd(1, d2 - 1);
+    const common = d1 * d2;
+    const totalNum = n1 * d2 + n2 * d1;
+    return short(`A student completed ${n1}/${d1} of a worksheet in the morning and ${n2}/${d2} in the afternoon. What fraction was completed in total?`,
+      `${totalNum}/${common}`,
+      `Use common denominator ${common}: ${n1}/${d1} = ${n1 * d2}/${common}, ${n2}/${d2} = ${n2 * d1}/${common}. Add to get ${totalNum}/${common}.`,
+      'frac/add-without-common', difficulty);
+  }
+  if (name.includes('fractions mastery challenge')) {
+    const den = [6, 8, 10, 12][rnd(0, 3)];
+    const a = rnd(1, Math.floor(den / 2) - 1);
+    const b = rnd(1, Math.floor(den / 2) - 1);
+    const c = rnd(1, Math.floor(den / 3));
+    const result = a + b - c;
+    if (result <= 0) return buildOne(skillName, difficulty);
+    return short(`Solve: ${a}/${den} + ${b}/${den} − ${c}/${den} = ?`,
+      `${result}/${den}`,
+      `Same denominator ${den}, so combine numerators: ${a} + ${b} − ${c} = ${result}. Answer ${result}/${den}.`,
+      'frac/challenge-procedure', difficulty);
+  }
   if (name.includes('before and after') && name.includes('ratio')) {
     const [a, b] = [[1, 3], [1, 2], [2, 3], [3, 4], [2, 5]][rnd(0, 4)];
     const unit = rnd(3, 9) * 10, x = rnd(1, 4) * 10;
@@ -353,7 +377,12 @@ function buildOne(skillName, difficulty) {
     return short(`Simplify ${num}/${den} to its lowest terms.`, `${num / g}/${den / g}`,
       `Divide top and bottom by ${g}: ${num}/${den} = ${num / g}/${den / g}.`, 'frac/incomplete-simplify', difficulty);
   }
-  if (name.includes('adding like') || (name.includes('adding') && name.includes('like') && !name.includes('unlike'))) {
+  if (
+    name.includes('adding like') ||
+    (name.includes('adding') && name.includes('like') && !name.includes('unlike')) ||
+    name.includes('add fractions with same denominator') ||
+    name.includes('add same denominator')
+  ) {
     const d = rnd(4, 10), a = rnd(1, d - 2), b = rnd(1, d - a - 1);
     return short(`${a}/${d} + ${b}/${d} = ?  (give your answer as a fraction)`, `${a + b}/${d}`,
       `Same denominator: add the tops. ${a}+${b}=${a + b}, keep /${d}.`, 'frac/add-denominators', difficulty);
@@ -595,12 +624,21 @@ function buildOne(skillName, difficulty) {
     return short(`A pizza is cut into ${d} equal slices. What fraction is one slice? (Give as a fraction.)`,
       `1/${d}`, `One of ${d} equal parts is 1/${d}.`, 'frac/unit', difficulty);
   }
-  if (name.includes('parts of a whole')) {
+  if (name.includes('numerator and denominator') || (name.includes('numerator') && name.includes('denominator'))) {
+    const d = rnd(3, 9), n = rnd(1, d - 1);
+    if (Math.random() < 0.5) {
+      return short(`In the fraction ${n}/${d}, what is the numerator?`,
+        n, `In ${n}/${d}, the numerator is the top number: ${n}.`, 'frac/num-den', difficulty);
+    }
+    return short(`In the fraction ${n}/${d}, what is the denominator?`,
+      d, `In ${n}/${d}, the denominator is the bottom number: ${d}.`, 'frac/num-den', difficulty);
+  }
+  if (name.includes('parts of a whole') || name.includes('fraction of a whole') || name.includes('recognise fraction')) {
     const d = rnd(3, 8), n = rnd(1, d - 1);
     return short(`A bar is divided into ${d} equal parts and ${n} are shaded. What fraction is shaded? (Give as a fraction.)`,
       `${n}/${d}`, `${n} shaded out of ${d} equal parts = ${n}/${d}.`, 'frac/part-whole', difficulty);
   }
-  if (name.includes('fraction of a set')) {
+  if (name.includes('fraction of a set') || name.includes('fraction of a quantity')) {
     const d = rnd(2, 6), per = rnd(2, 6), total = d * per, n = rnd(1, d - 1);
     return short(`There are ${total} sweets and ${n}/${d} of them are red. How many are red?`,
       n * per, `${total} ÷ ${d} = ${per}, then × ${n} = ${n * per}.`, 'frac/of-set', difficulty);

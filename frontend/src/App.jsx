@@ -43,6 +43,8 @@ const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'))
 const TopicDetail = lazy(() => import('./pages/student/mathpath/TopicDetail'));
 const PracticeSession = lazy(() => import('./pages/student/mathpath/PracticeSession'));
 const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResult'));
+const QuestionReviewPage = lazy(() => import('./pages/student/mathpath/QuestionReviewPage'));
+const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
 // Spelling Practice (Phase 6) — shared-core wiring
@@ -62,6 +64,17 @@ const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyH
 const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
 const MistakesHome = lazy(() => import('./pages/student/mathpath/MistakesHome'));
 const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'));
+const DiagnosticIntroScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticIntroScreen'));
+const DiagnosticQuestionScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticQuestionScreen'));
+const DiagnosticResultScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticResultScreen'));
+const AssessmentIntroScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentIntroScreen'));
+const AssessmentQuestionScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentQuestionScreen'));
+const AssessmentReviewScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentReviewScreen'));
+const AssessmentWorkingPromptScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentWorkingPromptScreen'));
+const AssessmentResultScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentResultScreen'));
+const WorkingUploadScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadScreen'));
+const WorkingUploadReviewScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadReviewScreen'));
+const WorkingUploadSuccessScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadSuccessScreen'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
@@ -73,6 +86,7 @@ const ScienceNotes = lazy(() => import('./pages/student/science/ScienceNotes'));
 const ParentHome = lazy(() => import('./pages/parent/ParentHome'));
 const ParentChildren = lazy(() => import('./pages/parent/ParentChildren'));
 const ChildProgress = lazy(() => import('./pages/parent/ChildProgress'));
+const ParentMathPathDashboardPage = lazy(() => import('./pages/parent/ParentMathPathDashboardPage'));
 const ChildScience = lazy(() => import('./pages/parent/ChildScience'));
 const ChildLifeLab = lazy(() => import('./pages/parent/ChildLifeLab'));
 const WeakTopics = lazy(() => import('./pages/parent/WeakTopics'));
@@ -84,6 +98,7 @@ const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
 const TutorHome = lazy(() => import('./pages/tutor/TutorHome'));
 const AssignedStudents = lazy(() => import('./pages/tutor/AssignedStudents'));
 const TutorStudentProfile = lazy(() => import('./pages/tutor/TutorStudentProfile'));
+const TutorMathPathDashboardPage = lazy(() => import('./pages/tutor/TutorMathPathDashboardPage'));
 const LessonPrep = lazy(() => import('./pages/tutor/LessonPrep'));
 const LessonNotes = lazy(() => import('./pages/tutor/LessonNotes'));
 const AssignHomework = lazy(() => import('./pages/tutor/AssignHomework'));
@@ -94,6 +109,7 @@ const TutorTraining = lazy(() => import('./pages/tutor/Training'));
 const TeacherHome = lazy(() => import('./pages/teacher/TeacherHome'));
 const Classes = lazy(() => import('./pages/teacher/Classes'));
 const ClassOverview = lazy(() => import('./pages/teacher/ClassOverview'));
+const TeacherMathPathDashboardPage = lazy(() => import('./pages/teacher/TeacherMathPathDashboardPage'));
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
@@ -400,10 +416,23 @@ function App() {
             <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
             <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
             <Route path="/student/mathpath/results/:sessionId" element={<PracticeResult />} />
+            <Route path="/student/mathpath/review" element={<QuestionReviewPage />} />
+            <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
             {/* Mistake-to-Mastery (MathPath feature) */}
             <Route path="/student/mathpath/mistakes" element={<MistakesHome />} />
             <Route path="/student/mathpath/mistakes/review" element={<MistakeReview />} />
             <Route path="/student/mathpath/mistakes/:mistakeId" element={<MistakeDetail />} />
+            <Route path="/student/mathpath/diagnostic" element={<DiagnosticIntroScreen />} />
+            <Route path="/student/mathpath/diagnostic/session/:diagnosticSessionId" element={<DiagnosticQuestionScreen />} />
+            <Route path="/student/mathpath/diagnostic/results/:diagnosticSessionId" element={<DiagnosticResultScreen />} />
+            <Route path="/student/mathpath/assessment" element={<AssessmentIntroScreen />} />
+            <Route path="/student/mathpath/assessment/session/:assessmentSessionId" element={<AssessmentQuestionScreen />} />
+            <Route path="/student/mathpath/assessment/review/:assessmentSessionId" element={<AssessmentReviewScreen />} />
+            <Route path="/student/mathpath/assessment/working/:assessmentSessionId" element={<AssessmentWorkingPromptScreen />} />
+            <Route path="/student/mathpath/assessment/results/:assessmentSessionId" element={<AssessmentResultScreen />} />
+            <Route path="/student/mathpath/working/upload" element={<WorkingUploadScreen />} />
+            <Route path="/student/mathpath/working/review" element={<WorkingUploadReviewScreen />} />
+            <Route path="/student/mathpath/working/success" element={<WorkingUploadSuccessScreen />} />
             {/* Fluency (MathPath feature). Practice/results reuse the shared MathPath screens. */}
             <Route path="/student/mathpath/fluency" element={<FluencyHome />} />
             <Route path="/student/mathpath/fluency/skills" element={<FluencySkills />} />
@@ -435,6 +464,7 @@ function App() {
             <Route path="/parent" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentHome /></FeatureGuard>} />
             <Route path="/parent/children" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentChildren /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/progress" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildProgress /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/mathpath" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/science" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildScience /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/lifelab" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildLifeLab /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/weak-topics" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WeakTopics /></FeatureGuard>} />
@@ -451,6 +481,7 @@ function App() {
             <Route path="/tutor" element={<FeatureGuard feature="tutor"><TutorHome /></FeatureGuard>} />
             <Route path="/tutor/students" element={<FeatureGuard feature="tutor"><AssignedStudents /></FeatureGuard>} />
             <Route path="/tutor/students/:id" element={<FeatureGuard feature="tutor"><TutorStudentProfile /></FeatureGuard>} />
+            <Route path="/tutor/students/:id/mathpath" element={<FeatureGuard feature="tutor"><TutorMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/lesson-prep" element={<FeatureGuard feature="tutor"><LessonPrep /></FeatureGuard>} />
             <Route path="/tutor/students/:id/lesson-notes" element={<FeatureGuard feature="tutor"><LessonNotes /></FeatureGuard>} />
             <Route path="/tutor/students/:id/assign-homework" element={<FeatureGuard feature="tutor"><AssignHomework /></FeatureGuard>} />
@@ -462,6 +493,7 @@ function App() {
             <Route path="/teacher" element={<FeatureGuard feature="teacher"><TeacherHome /></FeatureGuard>} />
             <Route path="/teacher/classes" element={<FeatureGuard feature="teacher"><Classes /></FeatureGuard>} />
             <Route path="/teacher/classes/:id" element={<FeatureGuard feature="teacher"><ClassOverview /></FeatureGuard>} />
+            <Route path="/teacher/classes/:id/mathpath" element={<FeatureGuard feature="teacher"><TeacherMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/mastery" element={<FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/students" element={<FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<FeatureGuard feature="teacher"><Grouping /></FeatureGuard>} />

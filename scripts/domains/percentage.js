@@ -6,7 +6,7 @@
 // the core procedures.
 //
 // Cross-domain connections:
-//   • Fractions : pct.convert ↔ fr.equivalent / fr.simplify; pct.of-quantity ↔ fr.of-set
+//   • Fractions : pct.convert ↔ fr.equivalent / fr.simplify; pct.of-quantity ↔ fr.of-quantity
 //   • Decimals  : pct.convert ↔ dec.from-fraction; pct.of-quantity ↔ dec.mult-whole
 //   • Ratio     : "express A as a % of B" mirrors part-to-whole ratio (linked when
 //                 the Ratio & Rate domain lands; see pct.express)
@@ -46,12 +46,12 @@ export default {
 
     // ── Core applications ──
     { slug: 'pct.of-quantity', name: 'Percentage of a quantity', level: 'Primary 5',
-      prerequisites: ['pct.convert', 'fr.of-set', 'dec.mult-whole'], masteryType: 'procedural', fluencyType: 'timed',
+      prerequisites: ['pct.convert', 'fr.of-quantity', 'dec.mult-whole'], masteryType: 'procedural', fluencyType: 'timed',
       fluency: { targetSeconds: 8, targetAccuracy: 90 },
       render: 'katex', visualModels: ['bar', 'hundred-grid'],
       misconceptions: [{ tag: 'pct/forgot-divide-100', label: 'Multiplies by the percent number without dividing by 100' }],
       practiceModes: ['fluency_drill', 'short_answer', 'mcq'],
-      remediation: { onRepeatedFail: 'worked-example', reinforce: ['pct.convert', 'fr.of-set'], strategy: 'percent ÷ 100 × quantity (or use a bar model)' },
+      remediation: { onRepeatedFail: 'worked-example', reinforce: ['pct.convert', 'fr.of-quantity'], strategy: 'percent ÷ 100 × quantity (or use a bar model)' },
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'What is {p}\\% of {q}?', answerRule: 'p/100*q', misconceptionTag: 'pct/forgot-divide-100' }] },
     { slug: 'pct.express', name: 'Expressing one quantity as a percentage of another', level: 'Primary 6',
       prerequisites: ['pct.convert', 'fr.simplify'], masteryType: 'procedural', fluencyType: 'accuracy',

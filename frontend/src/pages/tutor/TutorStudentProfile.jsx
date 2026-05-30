@@ -36,6 +36,7 @@ export default function TutorStudentProfile() {
           <StatTile label="Focus" value={student.focusArea} />
         </div>
         <div className="mt-4"><Button icon={ArrowRight} onClick={() => navigate(`/tutor/students/${id}/lesson-prep`)}>Plan lesson</Button></div>
+        <div className="mt-2"><Button variant="secondary" onClick={() => navigate(`/tutor/students/${id}/mathpath`)}>Open MathPath dashboard</Button></div>
       </Card>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

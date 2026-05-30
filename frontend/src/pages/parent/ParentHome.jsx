@@ -95,6 +95,11 @@ export default function ParentHome() {
           <StatTile label="Skills seen" value={child.skillsSeen} />
         </div>
         <ProgressBar value={child.overallMastery} className="mt-4" />
+        <div className="mt-3">
+          <Link to={`/parent/children/${child.studentId}/mathpath`} className="text-sm font-semibold text-navy-700">
+            Open Parent MathPath dashboard →
+          </Link>
+        </div>
       </Card>
 
       {/* By subject — surfaces Maths / Science / English separately so the

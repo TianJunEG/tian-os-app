@@ -8,6 +8,7 @@ export default function TutorStudentNav({ studentId, name, level }) {
   const base = `/tutor/students/${studentId}`;
   const tabs = [
     ['Profile', base],
+    ['MathPath', `${base}/mathpath`],
     ['Lesson prep', `${base}/lesson-prep`],
     ['Lesson notes', `${base}/lesson-notes`],
     ['Assign homework', `${base}/assign-homework`],

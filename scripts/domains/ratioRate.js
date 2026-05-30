@@ -6,7 +6,7 @@
 // base, averaging speeds) attack.
 //
 // Conceptual dependencies / cross-domain links:
-//   • Fractions  : rr.meaning ← fr.meaning.parts; rr.ratio-fraction ↔ fr.of-set
+//   • Fractions  : rr.meaning ← fr.meaning.parts; rr.ratio-fraction ↔ fr.of-quantity
 //                  (part:part vs part:whole)
 //   • Percentage : rr.ratio-percent ← pct.convert (a ratio is a comparison → %)
 //   • Operations : equivalent/simplify ← mult/div facts; divide-in-ratio ← op.div.short
@@ -58,11 +58,11 @@ export default {
 
     // ── Relating ratio to fractions & percentages ──
     { slug: 'rr.ratio-fraction', name: 'Relating ratio to fractions (part of a whole)', level: 'Primary 6',
-      prerequisites: ['rr.meaning', 'fr.of-set'], masteryType: 'conceptual', fluencyType: 'accuracy',
+      prerequisites: ['rr.meaning', 'fr.of-quantity'], masteryType: 'conceptual', fluencyType: 'accuracy',
       render: 'katex', visualModels: ['bar'],
       misconceptions: [{ tag: 'rr/part-part-as-fraction', label: 'Uses \\frac{a}{b} instead of \\frac{a}{a+b} for the part-of-whole fraction' }],
       practiceModes: ['visual_model', 'short_answer', 'diagnostic'],
-      remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.meaning', 'fr.of-set'], strategy: 'total units = a+b; each part is that many out of the total' },
+      remediation: { onRepeatedFail: 'worked-example', reinforce: ['rr.meaning', 'fr.of-quantity'], strategy: 'total units = a+b; each part is that many out of the total' },
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Red to blue is {a} : {b}. What fraction of the counters are red?', answerRule: 'a/(a+b)', misconceptionTag: 'rr/part-part-as-fraction' }] },
     { slug: 'rr.ratio-percent', name: 'Relating ratio to percentage', level: 'Primary 6',
       prerequisites: ['rr.ratio-fraction', 'pct.convert'], masteryType: 'procedural', fluencyType: 'accuracy',

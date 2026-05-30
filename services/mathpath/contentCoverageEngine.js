@@ -125,7 +125,7 @@ function computeSkillReadiness(modeCounts = {}) {
     modeCounts.fluency >= COVERAGE_TARGETS.fluency &&
     modeCounts.assessment >= COVERAGE_TARGETS.assessment;
 
-  if (meetsAllTargets && weightedCoverage >= 120) status = 'strong';
+  if (meetsAllTargets && weightedCoverage >= 95) status = 'strong';
   else if (meetsAllTargets) status = 'pilotReady';
   else if (weightedCoverage >= 35) status = 'developing';
 
