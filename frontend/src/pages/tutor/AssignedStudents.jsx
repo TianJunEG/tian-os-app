@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users } from 'lucide-react';
-import { tutorAPI } from '../../services/api';
+import { Copy, Link2, Users } from 'lucide-react';
+import { tutorAPI, tutorInviteAPI } from '../../services/api';
 import { Card, Button, Badge, ProgressBar, PageHeader, Spinner, ErrorState } from '../../components/ui';
 
 // Tutor's assigned students (tutor-workspace scope only).
 export default function AssignedStudents() {
   const [students, setStudents] = useState(null);
   const [loadError, setLoadError] = useState(false);
+  const [inviteUrl, setInviteUrl] = useState('');
+  const [creatingInvite, setCreatingInvite] = useState(false);
 
   const load = () => {
     setLoadError(false);
@@ -19,11 +21,38 @@ export default function AssignedStudents() {
 
   useEffect(() => { load(); }, []);
 
+  const createInvite = async () => {
+    setCreatingInvite(true);
+    try {
+      const res = await tutorInviteAPI.create({ focusArea: 'MathPath' });
+      setInviteUrl(res.data?.inviteUrl || '');
+    } finally {
+      setCreatingInvite(false);
+    }
+  };
+
+  const copyInvite = async () => {
+    if (!inviteUrl) return;
+    try { await navigator.clipboard.writeText(inviteUrl); } catch (_) { /* noop */ }
+  };
+
   if (loadError) return <ErrorState message="Couldn’t load assigned students." onRetry={load} />;
   if (!students) return <Spinner />;
   return (
     <>
-      <PageHeader title="Assigned students" subtitle="Private students in this workspace." />
+      <PageHeader
+        title="Assigned students"
+        subtitle="Private students in this workspace."
+        action={<Button size="s" icon={Link2} onClick={createInvite} disabled={creatingInvite}>{creatingInvite ? 'Creating…' : 'Invite Student'}</Button>}
+      />
+      {inviteUrl && (
+        <Card className="mb-4 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="min-w-0 flex-1 truncate text-sm text-ink-600">{inviteUrl}</p>
+            <Button size="s" variant="secondary" icon={Copy} onClick={copyInvite}>Copy Link</Button>
+          </div>
+        </Card>
+      )}
       {students.length === 0 ? (
         <Card className="p-6 text-sm text-ink-500">No students assigned yet.</Card>
       ) : (

@@ -31,6 +31,7 @@ import worksheetGenRoutes from './routes/worksheetsGen.js';
 import skillRoutes from './routes/skills.js';
 import familyRoutes from './routes/family.js';
 import tutorWorkspaceRoutes from './routes/tutor.js';
+import tutorInviteRoutes from './routes/tutorInvites.js';
 import teacherRoutes from './routes/teacher.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
@@ -115,7 +116,9 @@ app.use('/api/mistakes', mistakeRoutes);
 app.use('/api/mastery', masteryRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/skills', skillRoutes);
-app.use('/api/family', featureGate({ feature: 'parent', minVersion: 'v0.3' }), familyRoutes);
+// Pilot hotfix: keep family endpoints reachable in v0.1 baseline builds.
+app.use('/api/family', featureGate({ feature: 'parent', minVersion: 'v0.1' }), familyRoutes);
+app.use('/api/tutor/invites', featureGate({ feature: 'tutor', minVersion: 'v0.1' }), tutorInviteRoutes);
 app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
 app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
 app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);

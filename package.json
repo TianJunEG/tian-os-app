@@ -21,6 +21,7 @@
     "seed:fluency": "node scripts/seedFluency.js",
     "seed:science": "node scripts/seedScience.js",
     "seed:mathpath": "node scripts/seedFoundation.js && node scripts/seedQuestions.js && node scripts/seedFluency.js",
+    "seed:fractions-alpha-pack": "node scripts/seedFractionsAlphaPack.js",
     "seed:tutor": "node scripts/seedTutor.js",
     "seed:teacher": "node scripts/seedTeacher.js",
     "seed:spelling": "node scripts/seedSpelling.js",

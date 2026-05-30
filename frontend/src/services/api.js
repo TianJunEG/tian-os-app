@@ -129,6 +129,12 @@ export const tutorAPI = {
   certification: () => api.get('/tutor/certification')
 };
 
+export const tutorInviteAPI = {
+  create: (data = {}) => api.post('/tutor/invites', data),
+  preview: (token) => api.get(`/tutor/invites/${token}`),
+  accept: (token, data = {}) => api.post(`/tutor/invites/${token}/accept`, data),
+};
+
 // Teacher workspace (Phase 5). Scoped to the active school/teacher workspace.
 export const teacherAPI = {
   home: () => api.get('/teacher/home'),

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
@@ -18,6 +18,11 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const nextPath = useMemo(() => {
+    const p = new URLSearchParams(location.search).get('next');
+    return p && p.startsWith('/') ? p : null;
+  }, [location.search]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,7 +50,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (result.success) {
-      navigate(ROLE_HOME[result.user?.role] || '/dashboard');
+      navigate(nextPath || ROLE_HOME[result.user?.role] || '/dashboard');
     } else {
       setError(result.error);
     }
@@ -91,7 +96,7 @@ export default function RegisterPage() {
         <div className="mt-6 border-t border-hairline pt-6">
           <p className="text-center text-sm text-ink-500">
             Already have an account?{' '}
-            <Link to="/login" className="font-semibold text-navy-700 hover:text-navy-800">Sign in</Link>
+            <Link to={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'} className="font-semibold text-navy-700 hover:text-navy-800">Sign in</Link>
           </p>
         </div>
       </Card>

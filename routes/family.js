@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import Student from '../models/Student.js';
+import User from '../models/User.js';
 import StudentGuardian from '../models/StudentGuardian.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Skill from '../models/Skill.js';
@@ -71,7 +72,44 @@ async function masterySummary(studentId) {
 // @access Private
 router.get('/children', protect, async (req, res) => {
   try {
-    const links = await StudentGuardian.find({ guardianUserId: req.user.id });
+    let links = await StudentGuardian.find({ guardianUserId: req.user.id });
+
+    // Pilot hotfix: if guardian links are missing/stale, self-heal from
+    // parent-owned student records and linked student user accounts.
+    if (!links.length) {
+      const linkedUsers = await User.find({ linkedTo: req.user.id, role: 'student' }).select('_id');
+      const linkedUserIds = linkedUsers.map((u) => u._id);
+      const fallbackStudents = await Student.find({
+        $or: [
+          { createdByUserId: req.user.id },
+          { userId: { $in: linkedUserIds } },
+        ],
+      }).select('_id workspaceId');
+
+      if (fallbackStudents.length) {
+        await Promise.all(fallbackStudents.map(async (student) => {
+          try {
+            await StudentGuardian.updateOne(
+              { studentId: student._id, guardianUserId: req.user.id },
+              {
+                $setOnInsert: {
+                  studentId: student._id,
+                  guardianUserId: req.user.id,
+                  workspaceId: student.workspaceId,
+                  relation: 'parent',
+                },
+              },
+              { upsert: true }
+            );
+          } catch (_) {
+            // Ignore duplicate-race/noise: subsequent query is source of truth.
+          }
+        }));
+      }
+
+      links = await StudentGuardian.find({ guardianUserId: req.user.id });
+    }
+
     const students = await Student.find({ _id: { $in: links.map((l) => l.studentId) } });
     const children = await Promise.all(students.map(async (s) => ({
       studentId: s._id, name: s.name, level: s.level,

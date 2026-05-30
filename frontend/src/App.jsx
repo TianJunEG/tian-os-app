@@ -110,6 +110,7 @@ const TeacherHome = lazy(() => import('./pages/teacher/TeacherHome'));
 const Classes = lazy(() => import('./pages/teacher/Classes'));
 const ClassOverview = lazy(() => import('./pages/teacher/ClassOverview'));
 const TeacherMathPathDashboardPage = lazy(() => import('./pages/teacher/TeacherMathPathDashboardPage'));
+const TutorInviteConnectPage = lazy(() => import('./pages/TutorInviteConnectPage'));
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
@@ -312,6 +313,7 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route path="/connect/tutor/:token" element={<TutorInviteConnectPage />} />
 
           {/* Legacy dashboard retired → unified Tian OS role home */}
           <Route path="/dashboard" element={<LegacyDashboardRedirect />} />

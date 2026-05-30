@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
@@ -12,6 +12,11 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const nextPath = useMemo(() => {
+    const p = new URLSearchParams(location.search).get('next');
+    return p && p.startsWith('/') ? p : null;
+  }, [location.search]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,7 +31,7 @@ export default function LoginPage() {
     setLoading(false);
     if (result.success) {
       // Land in the unified Tian OS shell for the user's role.
-      navigate(ROLE_HOME[result.user?.role] || '/student');
+      navigate(nextPath || ROLE_HOME[result.user?.role] || '/student');
     } else {
       setError(result.error);
     }
@@ -58,7 +63,7 @@ export default function LoginPage() {
         <div className="mt-6 border-t border-hairline pt-6">
           <p className="text-center text-sm text-ink-500">
             Don't have an account?{' '}
-            <Link to="/register" className="font-semibold text-navy-700 hover:text-navy-800">Sign up</Link>
+            <Link to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} className="font-semibold text-navy-700 hover:text-navy-800">Sign up</Link>
           </p>
         </div>
       </Card>
