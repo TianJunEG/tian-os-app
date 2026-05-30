@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server-core';
-import { isCorrect } from './answerCheck.js';
+import { isCorrect, isCorrectWithContext } from './answerCheck.js';
 import { recordAttempt } from './masteryEngine.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Mistake from '../models/Mistake.js';
@@ -25,6 +25,11 @@ describe('isCorrect — answer checking', () => {
   });
   it('matches exact text/MCQ answers case-insensitively', () => {
     expect(isCorrect('Yes', 'yes')).toBe(true);
+  });
+  it('accepts numerator-only input when stem fixes denominator', () => {
+    const stem = '1/2 + 3/4 = ? (over 4)';
+    expect(isCorrectWithContext('5', '5/4', stem)).toBe(true);
+    expect(isCorrectWithContext('4', '5/4', stem)).toBe(false);
   });
 });
 

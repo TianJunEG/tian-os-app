@@ -127,6 +127,8 @@ export default function MathPathHome() {
   const recommended = mastery?.recommended;
   const weak = mastery?.weakSkills || [];
   const visibleTopics = topics;
+  const studentLevel = user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || '';
+  const isEarlyLevel = ['P1', 'P2'].includes(String(studentLevel).toUpperCase());
   const previewLevels = [...new Set(
     (topics || [])
       .flatMap((t) => (t.skills || []).map((s) => s.moeLevel))
@@ -165,6 +167,13 @@ export default function MathPathHome() {
           </div>
         ) : (
           <p className="text-sm text-ink-500">Pick a topic below to begin your first practice.</p>
+        )}
+        {!isEarlyLevel && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="secondary" size="m" to="/student/mathpath/path">View Fractions Learning Path</Button>
+            <Button variant="secondary" size="m" to="/student/mathpath/diagnostic">Start Fractions Diagnostic</Button>
+            <Button variant="secondary" size="m" to="/student/mathpath/assessment">Start Fractions Assessment</Button>
+          </div>
         )}
       </Card>
 

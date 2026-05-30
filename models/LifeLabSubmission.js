@@ -8,6 +8,8 @@ const lifeLabSubmissionSchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
   classId: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', default: null },
   assignedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  assignedByRole: { type: String, enum: ['teacher', 'tutor', 'parent', 'admin', 'student', ''], default: '' },
+  targetType: { type: String, enum: ['class', 'group', 'student'], default: 'student' },
   dataRecorded: { type: String, default: '' },
   reflectionResponse: { type: String, default: '' },
   evidenceUrl: { type: String, default: '' },

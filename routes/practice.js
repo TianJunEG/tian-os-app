@@ -9,7 +9,7 @@ import Assignment from '../models/Assignment.js';
 import Worksheet from '../models/Worksheet.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
-import { isCorrect, checkKeyPoints } from '../utils/answerCheck.js';
+import { isCorrectWithContext, checkKeyPoints } from '../utils/answerCheck.js';
 import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 
@@ -142,7 +142,7 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
       correct = r.correct; partial = r.partial; missing = r.missing;
       aiFeedback = r.aiFeedback || '';
     } else {
-      correct = isCorrect(answer, q.answer);
+      correct = isCorrectWithContext(answer, q.answer, q.stem);
     }
 
     await PracticeAttempt.create({

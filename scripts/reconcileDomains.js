@@ -42,10 +42,10 @@ const LEGACY_MAP = {
   'Understanding fractions': 'fr.meaning.parts',
   'Equivalent fractions': 'fr.equivalent',
   'Simplifying fractions': 'fr.simplify',
-  'Adding like fractions': 'fr.add.like',
+  'Adding like fractions': 'fr.add.same-denom',
   'Adding unlike fractions': 'fr.add.unlike',
-  'Subtracting unlike fractions': 'fr.add.unlike',
-  'Multiplying fractions by whole numbers': 'fr.mult.whole',
+  'Subtracting unlike fractions': 'fr.sub.unlike',
+  'Multiplying fractions by whole numbers': 'fr.mult.fraction',
   'Mixed numbers and improper fractions': 'fr.mixed-improper',
   'Dividing by a fraction in context': 'fr.div.fraction',
   // Decimals (legacy ad-hoc skills → canonical Decimals-domain slugs)
@@ -115,8 +115,8 @@ const LEGACY_MAP = {
   'Money word problems and reasoning': 'mea.money',
   // Fraction word problems → Fractions
   'Fraction word problems': 'fr.word-problems',
-  'Fraction word problems (remainder concept)': 'fr.word-remainder',
-  'Fraction word problems (equal units)': 'fr.word-equal-units',
+  'Fraction word problems (remainder concept)': 'fr.word-multi-step',
+  'Fraction word problems (equal units)': 'fr.exam-applications',
 };
 
 // Skills that MOVED between domains (have a slug already) → new canonical slug.

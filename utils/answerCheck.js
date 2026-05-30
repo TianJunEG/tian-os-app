@@ -39,6 +39,33 @@ export function isCorrect(given, expected) {
   return false;
 }
 
+// Accept numerator-only input for prompts that explicitly fix the denominator,
+// e.g. "? / 4". In those cases expected can be "5/4" and entering "5" should
+// count as correct (the UI is asking for the numerator, not the full fraction).
+function isNumeratorOnlyMatch(given, expected, stem = '') {
+  const g = String(given || '').trim();
+  const e = String(expected || '').trim();
+  const s = String(stem || '');
+  if (!g || !e) return false;
+  const fixedDen = s.match(/\?\s*\/\s*(\d+)/) || s.match(/\(\s*over\s*(\d+)\s*\)/i);
+  if (!fixedDen) return false;
+  const ef = parseFraction(e);
+  if (!ef) return false;
+  const [num, den] = ef;
+  const denFromStem = Number(fixedDen[1]);
+  // For this input mode, denominator in expected should match fixed stem denominator.
+  if (den <= 0 || Number.isNaN(denFromStem) || denFromStem !== den) return false;
+  const gn = Number(g);
+  return !Number.isNaN(gn) && Math.abs(gn - num) < 1e-9;
+}
+
+// Backward-compatible wrapper: existing callers can still pass (given, expected),
+// while practice can pass the stem for numerator-only acceptance.
+export function isCorrectWithContext(given, expected, stem = '') {
+  if (isCorrect(given, expected)) return true;
+  return isNumeratorOnlyMatch(given, expected, stem);
+}
+
 // Open-ended (Science) MVP marking: does the answer contain the required key
 // points/keywords? Each keyPoint may be a phrase; matching is case-insensitive
 // and ignores punctuation. Returns { matched, missing, ratio, correct, partial }.

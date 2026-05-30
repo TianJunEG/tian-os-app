@@ -5,16 +5,98 @@ import Skill from '../models/Skill.js';
 import Subject from '../models/Subject.js';
 import Topic from '../models/Topic.js';
 import Mistake from '../models/Mistake.js';
+import Question from '../models/Question.js';
+import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
+import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLabel, isStale } from '../utils/masteryEngine.js';
 import { buildSkillGraphView } from '../utils/skillGraphView.js';
 import { runPlacement } from '../utils/placementEngine.js';
 import { studentMathAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
+import { isCorrectWithContext } from '../utils/answerCheck.js';
 
 const router = express.Router();
 
 const STATUS_LABEL = { not_started: 'needs practice', needs_review: 'needs practice', learning: 'learning', mastered: 'fluent' };
+const DIAG_MODE_RANGES = {
+  basic: ['F001', 'F005'],
+  core: ['F001', 'F019'],
+  full: ['F001', 'F026'],
+};
+const DIAG_COUNTS = { basic: 12, core: 18, full: 24 };
+
+const normalizeLevelTag = (value = '') => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const upper = raw.toUpperCase();
+  if (/^P\d$/.test(upper)) return upper;
+  const p = upper.match(/PRIMARY\s*(\d)/);
+  if (p) return `P${p[1]}`;
+  const s = upper.match(/SEC(ONDARY)?\s*(\d)/);
+  if (s) return `Sec${s[2]}`;
+  return raw;
+};
+
+const modeForLevel = (level = '') => {
+  const tag = normalizeLevelTag(level).toUpperCase();
+  if (tag === 'P3') return 'basic';
+  if (tag === 'P4') return 'core';
+  if (tag === 'P1' || tag === 'P2') return 'basic';
+  return 'full';
+};
+
+const skillNum = (id = '') => Number(String(id).replace(/^F/i, '')) || 0;
+const inSkillRange = (id, [start, end]) => {
+  const n = skillNum(id);
+  return n >= skillNum(start) && n <= skillNum(end);
+};
+
+function mapPlacementReadiness(profile = []) {
+  if (!profile.length) return 'Beginner';
+  const mastered = profile.filter((p) => p.mastery === 'mastered').length;
+  const developing = profile.filter((p) => p.mastery === 'developing').length;
+  const notSecure = profile.filter((p) => p.mastery === 'not-secure').length;
+  const ratio = mastered / profile.length;
+  if (ratio >= 0.85 && notSecure <= 1) return 'Advanced';
+  if (ratio >= 0.65 && notSecure <= 2) return 'Ready';
+  if (ratio >= 0.4 || developing >= 3) return 'Progressing';
+  if (notSecure >= Math.ceil(profile.length * 0.5)) return 'Beginner';
+  return 'Developing';
+}
+
+function parentPlacementSummary({ recommendedStartingSkill, weakSkills = [] }) {
+  const weakNames = weakSkills.slice(0, 2).map((s) => s.name).filter(Boolean);
+  const weakText = weakNames.length
+    ? `needs more support with ${weakNames.join(' and ')}`
+    : 'has some areas that need support';
+  return `Your child understands parts of fractions but ${weakText}. We recommend starting at ${recommendedStartingSkill?.name || 'the recommended skill'} before moving to harder operations.`;
+}
+
+function buildStudentPlacementReport(payload = {}) {
+  const strengths = (payload.masteredSkills || []).slice(0, 4).map((s) => s.name);
+  const improve = (payload.weakSkills || []).slice(0, 4).map((s) => s.name);
+  const start = payload.recommendedStartingSkill?.name || 'Fractions Foundations';
+  return {
+    strengths,
+    areasToImprove: improve,
+    recommendedStartingPoint: start,
+    estimatedDifficulty: payload.readinessLevel || 'Developing',
+    suggestedFirstSession: `Start with ${start} practice (8–10 questions).`,
+  };
+}
+
+async function loadFractionsSkills() {
+  const skills = await Skill.find({ slug: /^fr\./i }).sort({ order: 1 });
+  const byFrameworkId = new Map();
+  const byObjectId = new Map();
+  for (const s of skills) {
+    const fid = s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '';
+    if (fid) byFrameworkId.set(String(fid).toUpperCase(), s);
+    byObjectId.set(String(s._id), s);
+  }
+  return { skills, byFrameworkId, byObjectId };
+}
 
 // @route GET /api/mastery?studentId=&skillIds=a,b
 // @desc  Mastery records + weak skills + a recommended next skill. Used by the
@@ -119,6 +201,291 @@ router.post('/placement', protect, async (req, res) => {
     res.json({ studentId: student._id, ...(result || { masteryProfile: [] }) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Placement failed.' });
+  }
+});
+
+// @route POST /api/mastery/diagnostic/start
+// @desc  Start fractions diagnostic from existing question bank + persist session.
+// @access Private
+router.post('/diagnostic/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const { requestedMode, studentLevel } = req.body || {};
+    const levelTag = normalizeLevelTag(studentLevel || student.level || '');
+    const requested = String(requestedMode || '').toLowerCase();
+    const mode = ['basic', 'core', 'full'].includes(requested) ? requested : modeForLevel(levelTag);
+
+    const { skills, byFrameworkId } = await loadFractionsSkills();
+    if (!skills.length) return res.status(400).json({ error: 'Fractions skills are not seeded yet.' });
+
+    const [rangeStart, rangeEnd] = DIAG_MODE_RANGES[mode] || DIAG_MODE_RANGES.core;
+    const targetSkills = skills
+      .filter((s) => {
+        const fid = String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '').toUpperCase();
+        return fid && inSkillRange(fid, [rangeStart, rangeEnd]);
+      })
+      .sort((a, b) => {
+        const af = String(a.metadata?.mathPathSkillId || a.metadata?.frameworkCode || '');
+        const bf = String(b.metadata?.mathPathSkillId || b.metadata?.frameworkCode || '');
+        return skillNum(af) - skillNum(bf);
+      });
+    if (!targetSkills.length) return res.status(400).json({ error: 'No fraction skills available for this diagnostic mode.' });
+
+    const targetSkillIds = targetSkills.map((s) => String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || ''));
+    const count = DIAG_COUNTS[mode] || 18;
+    const questions = await Question.aggregate([
+      { $match: { skillId: { $in: targetSkills.map((s) => s._id) } } },
+      { $sample: { size: Math.max(count, Math.min(count + 8, 32)) } },
+      { $limit: count },
+    ]);
+    if (!questions.length) return res.status(400).json({ error: 'No diagnostic questions available yet for Fractions.' });
+
+    const sessionCode = `fracdiag_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const qSkillIds = [];
+    const qFamilyIds = [];
+    const mappedQuestions = questions.map((q) => {
+      const skill = byFrameworkId.get(String(targetSkills.find((s) => String(s._id) === String(q.skillId))?.metadata?.mathPathSkillId || '').toUpperCase())
+        || targetSkills.find((s) => String(s._id) === String(q.skillId));
+      const fid = String(skill?.metadata?.mathPathSkillId || skill?.metadata?.frameworkCode || '');
+      const qf = `QF_${fid || 'UNK'}_${String(q._id).slice(-4).toUpperCase()}`;
+      if (fid) qSkillIds.push(fid);
+      qFamilyIds.push(qf);
+      return {
+        questionId: String(q._id),
+        skillId: fid || '',
+        questionFamilyId: qf,
+        prompt: q.stem,
+        type: q.type,
+        choices: q.choices || [],
+        workingRequired: !/mental/i.test(String(q.type || '')),
+      };
+    }).filter((q) => q.skillId);
+
+    const doc = await MathPathDiagnosticSession.create({
+      diagnosticSessionId: sessionCode,
+      studentId: String(student._id),
+      domainId: 'fractions',
+      mode,
+      studentLevel: levelTag || '',
+      targetSkillIds: [...new Set(qSkillIds)],
+      targetQuestionFamilyIds: [...new Set(qFamilyIds)],
+      status: 'inProgress',
+      startedAt: new Date(),
+      result: {
+        questionIds: mappedQuestions.map((q) => q.questionId),
+        questionMeta: mappedQuestions.map((q) => ({
+          questionId: q.questionId,
+          skillId: q.skillId,
+          questionFamilyId: q.questionFamilyId,
+        })),
+      },
+    });
+
+    const enrichmentOnly = ['P1', 'P2'].includes((levelTag || '').toUpperCase());
+    return res.json({
+      session: {
+        sessionId: doc.diagnosticSessionId,
+        mode,
+        studentLevel: levelTag || '',
+        enrichmentOnly,
+        targetSkillIds: doc.targetSkillIds,
+        targetQuestionFamilyIds: doc.targetQuestionFamilyIds,
+        estimatedQuestionCount: mappedQuestions.length,
+      },
+      questions: mappedQuestions,
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to start diagnostic.' });
+  }
+});
+
+// @route POST /api/mastery/diagnostic/:sessionId/submit
+// @desc  Save diagnostic attempts, execute existing placement engine, persist result.
+// @access Private
+router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const session = await MathPathDiagnosticSession.findOne({
+      diagnosticSessionId: req.params.sessionId,
+      studentId: String(student._id),
+      domainId: 'fractions',
+    });
+    if (!session) return res.status(404).json({ error: 'Diagnostic session not found.' });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    if (!responses.length) return res.status(400).json({ error: 'No diagnostic responses submitted.' });
+
+    const questionIds = responses.map((r) => r.questionId).filter(Boolean);
+    const questions = await Question.find({ _id: { $in: questionIds } }).populate('skillId');
+    const qMap = new Map(questions.map((q) => [String(q._id), q]));
+    const attemptsForPlacement = [];
+    const masteryProfileHints = [];
+    const savedAttempts = [];
+
+    for (const r of responses) {
+      const q = qMap.get(String(r.questionId));
+      if (!q || !q.skillId) continue;
+      const skill = q.skillId;
+      const skillFid = String(skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode || '').toUpperCase();
+      const studentAnswer = String(r.studentAnswer ?? '');
+      const correct = r.skipped ? false : isCorrectWithContext(studentAnswer, q.answer, q.stem);
+      const retries = Math.max(0, Number(r.attemptNumber || 1) - 1);
+      const responseMs = Math.max(0, Number(r.timeTaken || 0) * 1000);
+      const confidence = String(r.confidence || '');
+      const questionFamilyId = String(r.questionFamilyId || `QF_${skillFid || 'UNK'}_${String(q._id).slice(-4).toUpperCase()}`);
+
+      attemptsForPlacement.push({
+        slug: skill.slug,
+        correct,
+        responseMs,
+        hesitationMs: 0,
+        retries,
+        misconceptionTag: correct ? '' : (q.misconceptionTag || ''),
+      });
+
+      masteryProfileHints.push({
+        skillId: skillFid,
+        skillName: skill.name,
+        correct,
+        confidence,
+        skipped: Boolean(r.skipped),
+        timeTaken: Number(r.timeTaken || 0),
+      });
+
+      savedAttempts.push({
+        studentId: String(student._id),
+        domainId: 'fractions',
+        skillId: skillFid || skill.slug || String(skill._id),
+        questionFamilyId,
+        questionId: String(q._id),
+        sessionId: session.diagnosticSessionId,
+        sessionType: 'diagnostic',
+        studentAnswer,
+        correctAnswer: String(q.answer || ''),
+        correct,
+        timeTaken: Number(r.timeTaken || 0) || null,
+        confidence,
+        attemptNumber: Number(r.attemptNumber || 1),
+      });
+    }
+
+    if (!savedAttempts.length) return res.status(400).json({ error: 'Submitted responses do not match valid diagnostic questions.' });
+    await MathPathAttempt.insertMany(savedAttempts);
+
+    const placement = await runPlacement(student._id, attemptsForPlacement);
+    const { byFrameworkId } = await loadFractionsSkills();
+    const mapSlugToF = (slug) => {
+      const skill = [...byFrameworkId.values()].find((s) => s.slug === slug);
+      return skill ? {
+        skillId: String(skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode || ''),
+        name: skill.name,
+        slug: skill.slug,
+      } : { skillId: '', name: slug, slug };
+    };
+
+    const recommended = placement?.recommendedStartSkills?.[0] ? mapSlugToF(placement.recommendedStartSkills[0].slug) : null;
+    const masteredSkills = (placement?.masteryProfile || [])
+      .filter((p) => p.mastery === 'mastered')
+      .map((p) => mapSlugToF(p.slug))
+      .filter((s) => s.skillId);
+    const weakSkills = (placement?.masteryProfile || [])
+      .filter((p) => p.mastery === 'not-secure' || p.mastery === 'developing')
+      .map((p) => mapSlugToF(p.slug))
+      .filter((s) => s.skillId);
+    const fluencyRecommendations = (placement?.fluencyRecommendations || []).map((f) => mapSlugToF(f.slug));
+    const prerequisiteGaps = (placement?.prerequisiteGaps || []).map((g) => ({
+      skill: mapSlugToF(g.slug),
+      rootGap: mapSlugToF(g.rootGap),
+    }));
+    const remediationRecommendations = (placement?.remediationPathways || []).map((r) => ({
+      skill: mapSlugToF(r.slug),
+      reinforce: (r.reinforce || []).map((slug) => mapSlugToF(slug)).filter((s) => s.skillId),
+      misconception: r.misconception || null,
+    }));
+    const readinessLevel = mapPlacementReadiness(placement?.masteryProfile || []);
+
+    const result = {
+      recommendedStartingSkill: recommended,
+      recommendedStartingTopic: 'Fractions',
+      masteryProfile: placement?.masteryProfile || [],
+      masteredSkills,
+      weakSkills,
+      prerequisiteGaps,
+      fluencyRecommendations,
+      remediationRecommendations,
+      confidenceScore: placement?.overallConfidence || 0,
+      readinessLevel,
+      completedAt: new Date().toISOString(),
+    };
+    result.studentPlacementReport = buildStudentPlacementReport(result);
+    result.parentPlacementSummary = parentPlacementSummary(result);
+
+    session.status = 'completed';
+    session.completedAt = new Date();
+    session.result = result;
+    await session.save();
+
+    return res.json({
+      sessionId: session.diagnosticSessionId,
+      mode: session.mode,
+      studentLevel: session.studentLevel,
+      ...result,
+      recommendedStartingSkillId: recommended?.skillId || null,
+      studentFriendlySummary: `You are doing well in parts of fractions. Start with ${recommended?.name || 'the recommended skill'} to build stronger confidence.`,
+      parentFriendlySummary: result.parentPlacementSummary,
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to complete diagnostic.' });
+  }
+});
+
+// @route GET /api/mastery/diagnostic/:sessionId
+// @desc  Read persisted diagnostic session result.
+// @access Private
+router.get('/diagnostic/:sessionId', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const session = await MathPathDiagnosticSession.findOne({
+      diagnosticSessionId: req.params.sessionId,
+      studentId: String(student._id),
+      domainId: 'fractions',
+    });
+    if (!session) return res.status(404).json({ error: 'Diagnostic session not found.' });
+    let questions = [];
+    const storedIds = Array.isArray(session.result?.questionIds) ? session.result.questionIds : [];
+    if (storedIds.length) {
+      const docs = await Question.find({ _id: { $in: storedIds } });
+      const byId = new Map(docs.map((q) => [String(q._id), q]));
+      const metaById = new Map((session.result?.questionMeta || []).map((m) => [String(m.questionId), m]));
+      questions = storedIds
+        .map((qid) => {
+          const q = byId.get(String(qid));
+          if (!q) return null;
+          const meta = metaById.get(String(qid)) || {};
+          return {
+            questionId: String(q._id),
+            skillId: meta.skillId || '',
+            questionFamilyId: meta.questionFamilyId || '',
+            prompt: q.stem,
+            type: q.type,
+            choices: q.choices || [],
+            workingRequired: !/mental/i.test(String(q.type || '')),
+          };
+        })
+        .filter(Boolean);
+    }
+
+    return res.json({
+      sessionId: session.diagnosticSessionId,
+      mode: session.mode,
+      studentLevel: session.studentLevel,
+      status: session.status,
+      result: session.result || {},
+      completedAt: session.completedAt,
+      questions,
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to load diagnostic session.' });
   }
 });
 
