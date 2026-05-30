@@ -1,0 +1,2 @@
+bug_id,reported_at,reported_by_role,student_id,page_or_route,step_to_reproduce,expected,actual,severity,status,owner,target_fix_date,screenshot_url,verification_notes
+MP-001,,,,,,,,medium,open,,,, 

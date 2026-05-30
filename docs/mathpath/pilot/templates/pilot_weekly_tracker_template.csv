@@ -1,0 +1,6 @@
+week_start,student_id,sessions_planned,sessions_completed,questions_answered,avg_accuracy,avg_time_seconds,mastered_skills,fluent_skills,retained_skills,assessment_score,readiness_band,blocking_issue,severity,owner,next_action
+2026-06-01,S001,2,0,0,0,0,0,0,0,,,None,,, 
+2026-06-01,S002,2,0,0,0,0,0,0,0,,,None,,, 
+2026-06-01,S003,2,0,0,0,0,0,0,0,,,None,,, 
+2026-06-01,S004,2,0,0,0,0,0,0,0,,,None,,, 
+2026-06-01,S005,2,0,0,0,0,0,0,0,,,None,,, 
