@@ -6,6 +6,9 @@ import Subject from '../models/Subject.js';
 import Topic from '../models/Topic.js';
 import Mistake from '../models/Mistake.js';
 import Question from '../models/Question.js';
+import User from '../models/User.js';
+import PracticeSession from '../models/PracticeSession.js';
+import PracticeAttempt from '../models/PracticeAttempt.js';
 import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
 import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
@@ -15,7 +18,7 @@ import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLa
 import { buildSkillGraphView } from '../utils/skillGraphView.js';
 import { runPlacement } from '../utils/placementEngine.js';
 import { normalizeDiagnosticModeForLevel, resolveFractionsStartingSkill } from '../utils/fractionPlacementResolver.js';
-import { studentMathAnalytics } from '../utils/analytics.js';
+import { studentMathAnalytics, studentMathPathTimingAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
 import { evaluateDiagnosticReplayPolicy } from '../utils/diagnosticReplayPolicy.js';
@@ -56,9 +59,34 @@ function canTrainQuestionPatterns(user = {}) {
 
 function answerInputTypeFor(answer = '') {
   const raw = String(answer || '').trim();
+  if (raw.includes(',') && /\d+\s*\/\s*\d+/.test(raw)) return 'ordering';
   if (/^-?\d+\s+\d+\s*\/\s*\d+$/.test(raw)) return 'mixed';
   if (/^-?\d+\s*\/\s*-?\d+$/.test(raw)) return 'fraction';
+  if (/^-?\d+\.\d+$/.test(raw)) return 'decimal';
+  if (/^-?\d+$/.test(raw)) return 'whole_number';
   return '';
+}
+
+function hasPrimaryLevelNegativeFractionQuestion(question = {}) {
+  const text = `${question.stem || ''} ${question.answer || ''}`;
+  return /\(\s*-\d+\s*\/\s*\d+\s*\)|-\d+\s*\/\s*\d+/.test(text);
+}
+
+function toDateLike(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function normalizeTimeSpentSeconds(value, questionStartedAt, questionEndedAt) {
+  const raw = Number(value);
+  if (Number.isFinite(raw) && raw >= 0) {
+    return raw;
+  }
+  const start = toDateLike(questionStartedAt);
+  const end = toDateLike(questionEndedAt) || new Date();
+  if (!start) return null;
+  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
 }
 
 router.get('/fractions/model-trainer', protect, async (req, res) => {
@@ -201,11 +229,21 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
           questionId: result.variantId,
           sessionId: req.params.sessionId,
           sessionType: 'practice',
+          answer: result.studentAnswer || '',
           studentAnswer: result.studentAnswer || '',
           correctAnswer: result.correctAnswer || '',
           correct: Boolean(result.correct),
-          timeTaken: result.timeTaken || null,
-          attemptNumber: 1,
+          timeTaken: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+          timeSpentSeconds: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+          confidenceLevel: result.confidenceLevel || '',
+          confidence: result.confidence || '',
+          timestamp: toDateLike(result.timestamp) || toDateLike(result.questionEndedAt) || new Date(),
+          attemptNumber: Number(result.attemptNumber || 1),
+          skipped: Boolean(result.skipped),
+          timedOut: Boolean(result.timedOut),
+          questionStartedAt: toDateLike(result.questionStartedAt) || null,
+          questionEndedAt: toDateLike(result.questionEndedAt) || null,
+          workingUploaded: Boolean(result.workingUploaded),
         })),
         { ordered: false }
       );
@@ -479,11 +517,12 @@ router.post('/diagnostic/start', protect, async (req, res) => {
       domainId: 'fractions',
       status: 'completed',
     }).sort({ completedAt: -1, createdAt: -1 });
+    const requester = await User.findById(req.user.id).select('is_test_account email');
     const replayPolicy = evaluateDiagnosticReplayPolicy({
       diagnosticPurpose: purpose,
       latestCompletedSession: latestCompleted,
     });
-    if (!replayPolicy.allowed) {
+    if (!requester?.is_test_account && !/^test\.student\d+@tianos\.test$/i.test(requester?.email || '') && !replayPolicy.allowed) {
       return res.status(409).json({
         error: 'Diagnostic replay is currently blocked. Continue from your saved placement or run a re-check.',
         code: 'DIAGNOSTIC_REPLAY_BLOCKED',
@@ -516,11 +555,34 @@ router.post('/diagnostic/start', protect, async (req, res) => {
 
     const targetSkillIds = targetSkills.map((s) => String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || ''));
     const count = resolveDiagnosticCount(mode, purpose);
-    const questions = await Question.aggregate([
+    const sampleSize = Math.max(count * 3, Math.min(count + 16, 48));
+    let questions = await Question.aggregate([
       { $match: { skillId: { $in: targetSkills.map((s) => s._id) } } },
-      { $sample: { size: Math.max(count, Math.min(count + 8, 32)) } },
-      { $limit: count },
+      { $sample: { size: sampleSize } },
     ]);
+    if (/^P[1-6]$/i.test(levelTag || '')) {
+      questions = questions.filter((q) => !hasPrimaryLevelNegativeFractionQuestion(q));
+    }
+    const selectedQuestions = [];
+    const seenFamilies = new Set();
+    const seenStems = new Set();
+    for (const q of questions) {
+      const familyKey = String(q.questionFamilyId || q.stem || q._id);
+      const stemKey = String(q.stem || '').trim().toLowerCase();
+      if (seenFamilies.has(familyKey) || seenStems.has(stemKey)) continue;
+      seenFamilies.add(familyKey);
+      seenStems.add(stemKey);
+      selectedQuestions.push(q);
+      if (selectedQuestions.length >= count) break;
+    }
+    if (selectedQuestions.length < count) {
+      for (const q of questions) {
+        if (selectedQuestions.some((picked) => String(picked._id) === String(q._id))) continue;
+        selectedQuestions.push(q);
+        if (selectedQuestions.length >= count) break;
+      }
+    }
+    questions = selectedQuestions.slice(0, count);
     if (!questions.length) return res.status(400).json({ error: 'No diagnostic questions available yet for Fractions.' });
 
     const sessionCode = `fracdiag_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -540,8 +602,12 @@ router.post('/diagnostic/start', protect, async (req, res) => {
         prompt: q.stem,
         type: q.type,
         choices: q.choices || [],
+        visual: q.visual || null,
+        hasFigure: !!q.hasFigure,
+        figureUrl: q.figureUrl || '',
+        figureAlt: q.figureAlt || '',
         answerInputType: answerInputTypeFor(q.answer),
-        workingRequired: !/mental/i.test(String(q.type || '')),
+        workingRequired: true,
       };
     }).filter((q) => q.skillId);
 
@@ -617,11 +683,18 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       const skillFid = String(skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode || '').toUpperCase();
       const studentAnswer = String(r.studentAnswer ?? '');
       const skipped = Boolean(r.skipped);
+      const timedOut = Boolean(r.timedOut);
       const correct = skipped ? false : isCorrectWithContext(studentAnswer, q.answer, q.stem);
       const retries = Math.max(0, Number(r.attemptNumber || 1) - 1);
-      const responseMs = Math.max(0, Number(r.timeTaken || 0) * 1000);
+      const timeTakenSeconds = normalizeTimeSpentSeconds(r.timeTaken, r.questionStartedAt, r.questionEndedAt);
+      const responseMs = Math.max(0, Number(timeTakenSeconds || 0) * 1000);
       const confidence = String(r.confidence || '');
+      const confidenceCalibration = String(r.confidenceCalibration || '');
+      const possibleMisconception = Boolean(r.possibleMisconception || (!correct && /very/i.test(confidence)));
       const questionFamilyId = String(r.questionFamilyId || `QF_${skillFid || 'UNK'}_${String(q._id).slice(-4).toUpperCase()}`);
+      const startedAt = toDateLike(r.questionStartedAt);
+      const endedAt = toDateLike(r.questionEndedAt) || new Date();
+      const eventTimestamp = toDateLike(r.timestamp) || endedAt || new Date();
 
       attemptsForPlacement.push({
         slug: skill.slug,
@@ -638,7 +711,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         correct,
         confidence,
         skipped,
-        timeTaken: Number(r.timeTaken || 0),
+        timeTaken: Number(timeTakenSeconds || 0),
+        timedOut,
       });
 
       savedAttempts.push({
@@ -649,13 +723,25 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         questionId: String(q._id),
         sessionId: session.diagnosticSessionId,
         sessionType: 'diagnostic',
+        answer: studentAnswer,
         studentAnswer,
         correctAnswer: String(q.answer || ''),
         correct,
-        timeTaken: Number(r.timeTaken || 0) || null,
+        timeTaken: Number.isFinite(Number(timeTakenSeconds)) ? Number(timeTakenSeconds) : null,
+        timeSpentSeconds: Number.isFinite(Number(timeTakenSeconds)) ? Number(timeTakenSeconds) : null,
+        timestamp: eventTimestamp,
+        confidenceLevel: confidence,
         confidence,
+        confidenceCalibration,
+        possibleMisconception,
         attemptNumber: Number(r.attemptNumber || 1),
-      });
+        skipped,
+        timedOut,
+        questionStartedAt: startedAt || null,
+        questionEndedAt: endedAt || null,
+        workingUploaded: Boolean(r.workingUploaded),
+        workingExpected: true,
+        });
 
       if (!correct) {
         const misconceptionTag = q.misconceptionTag || '';
@@ -676,6 +762,9 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
           correctAnswer: String(q.modelAnswer || q.answer || ''),
           mistakeType,
           misconceptionTag,
+          confidence,
+          confidenceCalibration,
+          possibleMisconception,
           status: 'open',
           occurredAt: new Date(),
           source: skipped ? 'diagnostic-skipped' : 'diagnostic-incorrect',
@@ -699,7 +788,7 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
           $inc: { frequency: 1 },
           $set: {
             mistakeName: mistake.mistakeType || 'Diagnostic mistake',
-            severity: 'medium',
+            severity: mistake.possibleMisconception ? 'high' : 'medium',
             lastSeenAt: new Date(),
           },
           $push: {
@@ -709,6 +798,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
               prompt: mistake.questionStem,
               studentAnswer: mistake.studentAnswer,
               correctAnswer: mistake.correctAnswer,
+              confidence: mistake.confidence || '',
+              confidenceCalibration: mistake.confidenceCalibration || '',
               seenAt: new Date(),
             },
           },
@@ -770,6 +861,9 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
     };
 
     const totalExpected = Array.isArray(session.result?.questionIds) ? session.result.questionIds.length : savedAttempts.length;
+    const correctCount = savedAttempts.filter((attempt) => attempt.correct).length;
+    const answeredCount = savedAttempts.filter((attempt) => !attempt.skipped).length;
+    const readinessScore = savedAttempts.length ? Math.round((correctCount / savedAttempts.length) * 100) : 0;
     const completionRatio = totalExpected > 0 ? Math.min(1, savedAttempts.length / totalExpected) : 1;
     const confidenceScore = Math.round(Math.min(1, (placement?.overallConfidence || 0) * completionRatio) * 100) / 100;
     const fluencyGaps = fluencyRecommendations.filter((f) => f?.skillId);
@@ -787,6 +881,16 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       fluencyGaps,
       remediationRecommendations,
       confidenceScore,
+      overallFractionReadinessScore: readinessScore,
+      questionsCorrect: correctCount,
+      questionsAnswered: answeredCount,
+      totalQuestions: savedAttempts.length,
+      confidenceCalibrationSummary: {
+        masterySignals: savedAttempts.filter((a) => a.correct && /very/i.test(a.confidence || '')).length,
+        luckyCorrect: savedAttempts.filter((a) => a.correct && /guess/i.test(a.confidence || '')).length,
+        misconceptionAlerts: savedAttempts.filter((a) => !a.correct && /very/i.test(a.confidence || '')).length,
+        learningGaps: savedAttempts.filter((a) => !a.correct && /unsure/i.test(a.confidence || '')).length,
+      },
       readinessLevel,
       diagnosticCompleted: true,
       diagnosticCompletedAt: new Date().toISOString(),
@@ -855,10 +959,63 @@ router.get('/diagnostic/latest', protect, async (req, res) => {
       studentLevel: latest.studentLevel,
       completedAt: latest.completedAt,
       lastSessionAt: latest.completedAt,
+      timingAnalytics: latest.diagnosticSessionId
+        ? await studentMathPathTimingAnalytics(student._id, { sessionId: latest.diagnosticSessionId })
+        : null,
       result: latest.result || null,
     });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load latest diagnostic.' });
+  }
+});
+
+// @route POST /api/mastery/test/reset-state
+// @desc  Reset MathPath state for seeded QA/test student accounts.
+// @access Private (the test student themself or admin)
+router.post('/test/reset-state', protect, async (req, res) => {
+  try {
+    const requester = await User.findById(req.user.id);
+    const requesterRoles = new Set([requester?.role, ...(Array.isArray(requester?.roles) ? requester.roles : [])].filter(Boolean));
+    const isAdmin = requesterRoles.has('admin');
+    const targetStudent = isAdmin && req.body?.studentId
+      ? await resolveStudent(req, req.body.studentId)
+      : await resolveStudent(req);
+    const targetUser = targetStudent?.userId ? await User.findById(targetStudent.userId) : null;
+    const allowed = isAdmin || Boolean(requester?.is_test_account) || Boolean(targetUser?.is_test_account);
+    if (!allowed) {
+      return res.status(403).json({ error: 'Reset Student State is available only for admin or test accounts.' });
+    }
+
+    const studentId = String(targetStudent._id);
+    const mathPathSessions = await PracticeSession.find({ studentId: targetStudent._id, module: 'MathPath' }).select('_id');
+    const mathPathSessionIds = mathPathSessions.map((session) => session._id);
+    const [diagnostics, attempts, mistakes, mistakeRecords, skillStates, sessions, practiceAttempts, masteryRecords] = await Promise.all([
+      MathPathDiagnosticSession.deleteMany({ studentId, domainId: 'fractions' }),
+      MathPathAttempt.deleteMany({ studentId, domainId: 'fractions' }),
+      Mistake.deleteMany({ studentId: targetStudent._id, module: 'MathPath' }),
+      MathPathMistakeRecord.deleteMany({ studentId, domainId: 'fractions' }),
+      MathPathStudentSkillState.deleteMany({ studentId, domainId: 'fractions' }),
+      PracticeSession.deleteMany({ studentId: targetStudent._id, module: 'MathPath' }),
+      PracticeAttempt.deleteMany({ studentId: targetStudent._id, sessionId: { $in: mathPathSessionIds } }),
+      MasteryRecord.deleteMany({ studentId: targetStudent._id, module: 'MathPath' }),
+    ]);
+
+    return res.json({
+      ok: true,
+      studentId,
+      deleted: {
+        diagnostics: diagnostics.deletedCount || 0,
+        attempts: attempts.deletedCount || 0,
+        mistakes: mistakes.deletedCount || 0,
+        mistakeRecords: mistakeRecords.deletedCount || 0,
+        skillStates: skillStates.deletedCount || 0,
+        sessions: sessions.deletedCount || 0,
+        practiceAttempts: practiceAttempts.deletedCount || 0,
+        masteryRecords: masteryRecords.deletedCount || 0,
+      },
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to reset student state.' });
   }
 });
 
@@ -892,8 +1049,12 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
             prompt: q.stem,
             type: q.type,
             choices: q.choices || [],
+            visual: q.visual || null,
+            hasFigure: !!q.hasFigure,
+            figureUrl: q.figureUrl || '',
+            figureAlt: q.figureAlt || '',
             answerInputType: answerInputTypeFor(q.answer),
-            workingRequired: !/mental/i.test(String(q.type || '')),
+            workingRequired: true,
           };
         })
         .filter(Boolean);
@@ -904,6 +1065,7 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
       mode: session.mode,
       studentLevel: session.studentLevel,
       status: session.status,
+      timingAnalytics: await studentMathPathTimingAnalytics(student._id, { sessionId: session.diagnosticSessionId }),
       result: session.result || {},
       completedAt: session.completedAt,
       questions,
@@ -940,7 +1102,11 @@ router.get('/analytics', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const sinceDays = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
-    res.json({ studentId: student._id, ...(await studentMathAnalytics(student._id, { sinceDays })) });
+    const [summary, timingAnalytics] = await Promise.all([
+      studentMathAnalytics(student._id, { sinceDays }),
+      studentMathPathTimingAnalytics(student._id, { sinceDays }),
+    ]);
+    res.json({ studentId: student._id, ...summary, timingAnalytics });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Analytics failed.' });
   }

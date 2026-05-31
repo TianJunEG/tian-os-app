@@ -5,6 +5,12 @@ import { mathpathAPI } from '../../../services/api';
 import { Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
+import AnswerInputRenderer from './components/AnswerInputRenderer';
+
+function expectsFractionAnswer(question = {}) {
+  const text = `${question.prompt || ''} ${question.answerType || ''} ${question.answerCheckStrategy || ''}`.toLowerCase();
+  return /fraction|simplest form|what fraction|fraction remains|fraction is left/.test(text);
+}
 
 export default function SimilarQuestionPractice() {
   const { practiceSetId } = useParams();
@@ -19,6 +25,7 @@ export default function SimilarQuestionPractice() {
   const [responses, setResponses] = useState([]);
   const [submitted, setSubmitted] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
 
   useEffect(() => {
     let live = true;
@@ -38,6 +45,11 @@ export default function SimilarQuestionPractice() {
     return () => { live = false; };
   }, [practiceSetId]);
 
+  useEffect(() => {
+    if (submitted || !questions.length) return;
+    setQuestionStartedAt(Date.now());
+  }, [idx, questions.length, submitted]);
+
   if (loading) return <Spinner label="Loading similar practice..." />;
   if (error) return <EmptyState message={error}><Button onClick={() => navigate('/student/mathpath')}>Back to MathPath</Button></EmptyState>;
   if (!questions.length) return <EmptyState message="No generated questions are available yet." />;
@@ -46,10 +58,24 @@ export default function SimilarQuestionPractice() {
   const isLast = idx === questions.length - 1;
   const progress = submitted ? questions.length : idx;
   const expressionQuestion = Boolean(extractFractionExpression(q.prompt || ''));
+  const fractionAnswer = !expressionQuestion && expectsFractionAnswer(q);
 
   const saveAndNext = async () => {
     if (!answer.trim()) return;
-    const nextResponses = [...responses, { variantId: q.variantId, answer }];
+    const questionEndedAt = Date.now();
+    const timeTaken = Math.max(1, Math.floor((questionEndedAt - questionStartedAt) / 1000));
+    const response = {
+      variantId: q.variantId,
+      answer,
+      timeTaken,
+      questionStartedAt: new Date(questionStartedAt).toISOString(),
+      questionEndedAt: new Date(questionEndedAt).toISOString(),
+      timedOut: false,
+      skipped: false,
+      timestamp: new Date(questionEndedAt).toISOString(),
+      attemptNumber: 1,
+    };
+    const nextResponses = [...responses, response];
     setResponses(nextResponses);
     setAnswer('');
     if (!isLast) {
@@ -119,7 +145,16 @@ export default function SimilarQuestionPractice() {
         ) : (
           <div className="text-lg leading-7 text-ink-900"><MathText text={q.prompt} /></div>
         )}
-        {!expressionQuestion && (
+        {!expressionQuestion && fractionAnswer ? (
+          <div className="mt-5">
+            <AnswerInputRenderer
+              question={{ ...q, answerInputType: 'fraction' }}
+              value={answer}
+              onChange={setAnswer}
+              onEnter={saveAndNext}
+            />
+          </div>
+        ) : !expressionQuestion && (
           <input
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}

@@ -1,0 +1,115 @@
+import React, { useMemo } from 'react';
+import FractionAnswerInput, { shouldUseFractionAnswerInput } from './FractionAnswerInput';
+
+function normalizeType(question = {}) {
+  if (question.type === 'mcq') return 'multiple_choice';
+  const explicit = String(question.answerInputType || question.expectedAnswerType || question.answerType || '').toLowerCase();
+  if (['mixed', 'mixed_number'].includes(explicit)) return 'mixed_number';
+  if (explicit === 'fraction') return 'fraction';
+  if (['whole', 'whole_number', 'number', 'integer'].includes(explicit)) return 'whole_number';
+  if (explicit === 'decimal') return 'decimal';
+  if (['ordering', 'order', 'list'].includes(explicit)) return 'ordering';
+  if (question.answer?.type === 'mixed') return 'mixed_number';
+  if (question.answer?.type === 'fraction') return 'fraction';
+  if (question.answer?.type === 'whole') return 'whole_number';
+  if (question.answer?.type === 'decimal') return 'decimal';
+  if (question.answer?.type === 'list') return 'ordering';
+  const answerDisplay = String(question.answer?.display || question.answer?.value || question.answer || '');
+  if (answerDisplay.includes(',') && /\d+\s*\/\s*\d+/.test(answerDisplay)) return 'ordering';
+  if (/^-?\d+\s+\d+\s*\/\s*\d+$/.test(answerDisplay)) return 'mixed_number';
+  if (shouldUseFractionAnswerInput(question)) return 'fraction';
+  if (/^-?\d+\.\d+$/.test(answerDisplay)) return 'decimal';
+  if (/^-?\d+$/.test(answerDisplay)) return 'whole_number';
+  return 'text';
+}
+
+function extractOrderingItems(question = {}) {
+  const prompt = String(question.prompt || question.stem || '');
+  const match = prompt.match(/:\s*([^.?]+)[.?]?$/);
+  const source = match?.[1] || prompt;
+  const items = source
+    .split(',')
+    .map((item) => item.trim().replace(/\.$/, ''))
+    .filter((item) => /\d+\s*\/\s*\d+/.test(item));
+  const answerItems = String(question.answer?.display || question.answer || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length >= 2 ? items : answerItems;
+}
+
+function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
+  const items = useMemo(() => extractOrderingItems(question), [question]);
+  const parts = String(value || '').split(',').map((item) => item.trim());
+  const setPart = (index, nextValue) => {
+    const next = Array.from({ length: Math.max(items.length, parts.length, index + 1) }, (_, i) => parts[i] || '');
+    next[index] = nextValue;
+    onChange?.(next.join(', '));
+  };
+
+  return (
+    <div className="rounded-xl border border-hairline bg-white p-4">
+      <p className="mb-3 text-sm font-semibold text-ink-700">Enter the order from smallest to largest.</p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {Array.from({ length: Math.max(2, items.length || 3) }, (_, index) => (
+          <label key={index} className="min-w-0">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Position {index + 1}</span>
+            <input
+              value={parts[index] || ''}
+              onChange={(event) => setPart(index, event.target.value)}
+              disabled={disabled}
+              placeholder={items[index] ? 'Drag mentally, type here' : 'Fraction'}
+              className="h-12 w-full rounded-xl border border-hairline px-3 text-center font-mono text-base text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+              onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+            />
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function AnswerInputRenderer({
+  question,
+  value,
+  onChange,
+  disabled = false,
+  onEnter,
+}) {
+  const type = normalizeType(question);
+
+  if (type === 'fraction' || type === 'mixed_number') {
+    return (
+      <FractionAnswerInput
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        onEnter={onEnter}
+        allowWhole={type === 'mixed_number'}
+      />
+    );
+  }
+
+  if (type === 'ordering') {
+    return <OrderingAnswerInput question={question} value={value} onChange={onChange} disabled={disabled} onEnter={onEnter} />;
+  }
+
+  const inputMode = type === 'decimal' ? 'decimal' : type === 'whole_number' ? 'numeric' : 'text';
+  const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : 'Answer';
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</span>
+      <input
+        value={value}
+        onChange={(event) => onChange?.(event.target.value)}
+        disabled={disabled}
+        inputMode={inputMode}
+        placeholder={type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer'}
+        className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+        onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+      />
+    </label>
+  );
+}
+
+export { normalizeType as getAnswerInputType };

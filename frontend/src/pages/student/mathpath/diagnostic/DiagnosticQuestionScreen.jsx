@@ -6,9 +6,10 @@ import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import { mathpathAPI } from '../../../../services/api';
-import FractionAnswerInput, { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
+import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
 import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
+import AnswerInputRenderer from '../components/AnswerInputRenderer';
 
 const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
 
@@ -54,11 +55,12 @@ export default function DiagnosticQuestionScreen() {
 
   useEffect(() => {
     if (!questions.length || !session) return;
-    setStartedAt(Date.now());
+    const questionStart = Date.now();
+    setStartedAt(questionStart);
     setElapsed(0);
-    const t = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 250);
+    const t = setInterval(() => setElapsed(Math.floor((Date.now() - questionStart) / 1000)), 250);
     return () => clearInterval(t);
-  }, [idx, questions.length, startedAt, session]);
+  }, [idx, questions.length, session]);
 
   if (hydrating && (!session || !questions.length)) return <Spinner label="Loading diagnostic…" />;
 
@@ -71,6 +73,15 @@ export default function DiagnosticQuestionScreen() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem));
+
+  const confidenceCalibration = (correct, level) => {
+    const normalized = String(level || '').toLowerCase();
+    if (correct && normalized.includes('very')) return 'mastery_signal';
+    if (correct && normalized.includes('guess')) return 'lucky_correct_not_secure';
+    if (!correct && normalized.includes('very')) return 'possible_misconception';
+    if (!correct && normalized.includes('unsure')) return 'learning_gap';
+    return correct ? 'correct_with_moderate_confidence' : 'needs_review';
+  };
 
   const saveCurrentAnd = (skipped) => {
     const timeTaken = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
@@ -88,7 +99,15 @@ export default function DiagnosticQuestionScreen() {
       studentAnswer: skipped ? '' : answer,
       correct: correctness.correct,
       timeTaken,
+      questionStartedAt: new Date(startedAt).toISOString(),
+      questionEndedAt: new Date().toISOString(),
+      timedOut: false,
       confidence,
+      confidenceLevel: confidence,
+      confidenceCalibration: confidenceCalibration(correctness.correct, confidence),
+      possibleMisconception: !correctness.correct && String(confidence).toLowerCase().includes('very'),
+      workingUploaded: false,
+      timestamp: new Date().toISOString(),
       attemptNumber: 1,
       skipped,
     };
@@ -102,7 +121,7 @@ export default function DiagnosticQuestionScreen() {
     if (!isLast) {
       setIdx((i) => i + 1);
       setAnswer('');
-      setConfidence('Confident');
+      setConfidence('');
       setStartedAt(Date.now());
       return;
     }
@@ -139,11 +158,9 @@ export default function DiagnosticQuestionScreen() {
       <Card className="p-6">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
         <p className="mb-1 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
-        {q.workingRequired && (
-          <p className="mb-4 rounded-lg bg-gold-100 px-3 py-2 text-xs text-gold-900">
-            Do your working on paper. You may be asked to upload working after the session.
-          </p>
-        )}
+        <p className="mb-4 rounded-lg bg-gold-100 px-3 py-2 text-xs text-gold-900">
+          Do your working on paper if you need it. After the session, you can choose whether to upload working or mark that you did not need it.
+        </p>
         <div className="mb-5">
           {expressionQuestion ? (
             <FractionExpressionQuestion
@@ -168,11 +185,11 @@ export default function DiagnosticQuestionScreen() {
             ))}
           </div>
         ) : useFractionInput && !expressionQuestion ? (
-          <FractionAnswerInput
+          <AnswerInputRenderer
+            question={q}
             value={answer}
             onChange={setAnswer}
             onEnter={() => nextQuestion(false)}
-            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
           />
         ) : (
           <input
