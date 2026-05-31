@@ -1,10 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Gauge, RefreshCw, Compass, GraduationCap, ClipboardCheck } from 'lucide-react';
+import {
+  ArrowRight,
+  Calculator,
+  CheckCircle2,
+  Flame,
+  Gauge,
+  Lock,
+  Network,
+  RefreshCw,
+  Timer,
+  Trophy,
+  Wrench,
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
-import { Card, Button, ProgressBar, PageHeader, Spinner, ErrorState, Badge } from '../../components/ui';
+import { mathpathAPI } from '../../services/api';
+import { Card, Button, ProgressBar, Spinner, ErrorState, Badge } from '../../components/ui';
 
 function actionMeta(nextAction = {}) {
   const map = {
@@ -13,7 +26,7 @@ function actionMeta(nextAction = {}) {
     completeRetentionReview: { label: 'Complete Review', to: '/student/mathpath' },
     attemptAssessment: { label: 'Try Assessment', to: '/student/mathpath/assessment' },
     uploadWorking: { label: 'Upload Working', to: '/student/mathpath/working/upload?source=manual' },
-    followRemediationPlan: { label: 'Follow Plan', to: '/student/mathpath/mistakes' },
+    followRemediationPlan: { label: 'Start Practice', to: '/student/mathpath/practice/recommended-diagnostic' },
     advanceSkill: { label: 'Move To Next Skill', to: '/student/mathpath' },
   };
   return map[nextAction.action] || { label: 'Start MathPath', to: '/student/mathpath' };
@@ -73,33 +86,174 @@ function buildMockPipelinePayload(studentId = 'demo-student') {
   });
 }
 
-function CurrentSkillCard({ domain, currentSkill }) {
+function skillIds(rows = []) {
+  return (Array.isArray(rows) ? rows : [])
+    .map((row) => row?.skillId || row)
+    .filter(Boolean);
+}
+
+function shapeLatestDiagnostic(latest = {}) {
+  if (!latest?.hasPlacement || !latest?.result) return {};
+  const result = latest.result || {};
+  const recommendedStartingSkillId = result.recommendedStartingSkill?.skillId
+    || result.recommendedStartingSkillId
+    || result.currentSkillId
+    || result.nextPracticePayload?.skillId
+    || null;
+
+  return {
+    ...result,
+    diagnosticCompleted: true,
+    diagnosticCompletedAt: result.diagnosticCompletedAt || result.completedAt || latest.completedAt || null,
+    completedAt: result.completedAt || latest.completedAt || null,
+    recommendedStartingSkillId,
+    masteredSkillIds: skillIds(result.masteredSkills),
+    weakSkillIds: skillIds(result.weakSkills),
+  };
+}
+
+const COURSE_THEMES = {
+  mathpath: 'from-sky-100 via-navy-50 to-gold-100 text-navy-700',
+  fluency: 'from-success-100 via-paper to-gold-100 text-success-700',
+  mistakes: 'from-error-100 via-paper to-navy-50 text-error-700',
+  progress: 'from-navy-50 via-paper to-success-100 text-navy-700',
+  worksheet: 'from-gold-100 via-paper to-navy-50 text-gold-700',
+};
+
+function CourseArt({ icon: Icon, theme = COURSE_THEMES.mathpath, symbol = '+' }) {
   return (
-    <Card className="p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Domain</p>
-      <h2 className="mt-1 font-display text-xl font-semibold text-navy-700">{domain}</h2>
-      <div className="mt-4 rounded-xl border border-hairline p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Skill</p>
-        <p className="mt-1 font-semibold text-ink-700">{currentSkill?.skillName || 'Start Fractions Diagnostic'}</p>
-        <div className="mt-2">
-          <Badge tone="navy">{currentSkill?.status || 'learning'}</Badge>
+    <div className={`relative h-32 overflow-hidden rounded-lg bg-gradient-to-br ${theme}`}>
+      <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/45" />
+      <div className="absolute -bottom-10 left-8 h-28 w-28 rounded-full bg-white/35" />
+      <span className="absolute left-5 top-5 grid h-14 w-14 place-items-center rounded-2xl bg-paper/80 shadow-resting">
+        <Icon className="h-7 w-7" />
+      </span>
+      <span className="absolute bottom-4 right-5 font-mono text-6xl font-semibold text-current opacity-25">{symbol}</span>
+    </div>
+  );
+}
+
+function JourneyStatusBadge({ status }) {
+  if (status === 'done') return <Badge tone="success">Completed</Badge>;
+  if (status === 'active') return <Badge tone="navy">Current</Badge>;
+  if (status === 'next') return <Badge tone="gold">Upcoming</Badge>;
+  return <Badge tone="neutral">Locked</Badge>;
+}
+
+function CertificateStrip({ courseProgress }) {
+  const milestones = [
+    { icon: Calculator, step: 'Step 1', label: 'Learn Fractions', status: courseProgress >= 25 ? 'done' : 'active' },
+    { icon: Timer, step: 'Step 2', label: 'Build Fluency', status: courseProgress >= 45 ? 'done' : courseProgress >= 25 ? 'active' : 'next' },
+    { icon: Wrench, step: 'Step 3', label: 'Review Mistakes', status: courseProgress >= 65 ? 'done' : courseProgress >= 45 ? 'active' : 'locked' },
+    { icon: Network, step: 'Step 4', label: 'Track Progress', status: courseProgress >= 85 ? 'done' : courseProgress >= 65 ? 'active' : 'locked' },
+    { icon: Trophy, step: 'Step 5', label: 'Mastery Test', status: courseProgress >= 100 ? 'done' : courseProgress >= 85 ? 'active' : 'locked' },
+  ];
+
+  return (
+    <section className="mb-6 rounded-2xl bg-navy-50 px-4 py-4 sm:px-5">
+      <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-ink-900">Math Mastery Journey</h1>
+          <p className="mt-1 text-sm text-ink-500 sm:text-base">Your roadmap through learning, fluency, review, progress, and the mastery test.</p>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Progress tracker · navigation stays in the sidebar</p>
+        </div>
+        <div className="grid gap-2 rounded-xl bg-paper p-2 sm:grid-cols-5">
+          {milestones.map(({ icon: Icon, step, label, status }) => {
+            const active = status === 'active';
+            const done = status === 'done';
+            return (
+              <div
+                key={label}
+                className={`flex min-h-[8rem] flex-col rounded-lg border p-2 text-center ${
+                  active ? 'border-navy-400 bg-navy-50' : done ? 'border-success-100 bg-paper' : 'border-transparent bg-paper'
+                }`}
+              >
+                <span className="block h-4 text-[11px] font-semibold uppercase leading-4 tracking-[0.08em] text-ink-400">{step}</span>
+                <span className="flex h-12 items-center justify-center">
+                  <span className={`grid h-10 w-10 place-items-center rounded-xl ${done ? 'bg-success-500 text-white' : active ? 'bg-navy-700 text-white' : 'bg-bone text-ink-300'}`}>
+                    {status === 'locked' ? <Lock className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                  </span>
+                </span>
+                <span className={`flex min-h-[2rem] items-center justify-center text-xs font-semibold leading-4 ${active ? 'text-navy-700' : done ? 'text-success-700' : 'text-ink-400'}`}>{label}</span>
+                <span className="mt-auto flex min-h-[1.75rem] items-end justify-center pt-2"><JourneyStatusBadge status={status} /></span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CurrentCourseCard({ currentSkill, nextAction, courseProgress, hasPlacement }) {
+  const action = actionMeta(nextAction);
+  const primaryTo = hasPlacement ? action.to : '/student/mathpath/diagnostic';
+  const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
+    ? {
+        skillId: currentSkill?.skillId || null,
+        questionCount: 8,
+        sessionType: 'practice',
+        source: 'student-dashboard',
+        backTo: '/student',
+        homeBase: '/student',
+      }
+    : undefined;
+  const lessonsCompleted = Math.max(0, Math.min(12, Math.round((courseProgress / 100) * 12)));
+  return (
+    <Card className="p-4 sm:p-5">
+      <div className="grid gap-5 sm:grid-cols-[13rem_1fr] sm:items-center">
+        <CourseArt icon={Calculator} symbol="=" />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold uppercase text-navy-700">Current Course</p>
+          <h2 className="mt-1 font-display text-3xl font-semibold text-ink-900">Fractions</h2>
+          <p className="mt-1 text-sm text-ink-500">{currentSkill?.skillName || 'Start with your Fractions Diagnostic'}</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 sm:items-stretch">
+            <Button to={primaryTo} state={primaryState} size="l" icon={ArrowRight} className="w-full min-w-0 flex-wrap px-4 text-center leading-tight">
+              {hasPlacement ? action.label : 'Start Diagnostic'}
+            </Button>
+            <Button to="/student/mathpath/path" size="l" variant="secondary" icon={Network} className="w-full min-w-0 flex-wrap px-4 text-center leading-tight">
+              View Path
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div className="mt-5">
+        <ProgressBar value={courseProgress} />
+        <div className="mt-2 flex items-center justify-between text-sm font-semibold text-ink-500">
+          <span>{lessonsCompleted}/12 lessons completed</span>
+          <span className="text-navy-700">{courseProgress}%</span>
         </div>
       </div>
     </Card>
   );
 }
 
-function NextActionCard({ nextAction }) {
-  const action = actionMeta(nextAction);
+function WeeklyStreakCard({ hasActivity }) {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return (
     <Card className="p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Next Action</p>
-      <p className="mt-2 text-sm text-ink-600">
-        {nextAction?.explanation || "Start your Fractions Diagnostic to find your best starting point."}
-      </p>
-      <Button to={action.to} size="l" icon={ArrowRight} className="mt-4 w-full">
-        {action.label}
-      </Button>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold uppercase text-navy-700">Weekly Streaks</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold text-ink-900">{hasActivity ? 'Help you build learning habit' : 'Start your first streak'}</h2>
+        </div>
+        {!hasActivity && <Badge tone="neutral" className="shrink-0">No activity yet</Badge>}
+      </div>
+      <div className="mt-6 grid grid-cols-7 gap-1.5 sm:gap-2">
+        {days.map((day, index) => (
+          <div key={day} className="text-center">
+            <span className={`mx-auto grid h-8 w-full max-w-10 place-items-center rounded-full border text-[11px] font-semibold sm:h-9 ${
+              hasActivity && index === 0
+                ? 'border-success-100 bg-success-100 text-success-700'
+                : 'border-hairline bg-bone/60 text-ink-400'
+            }`}>
+              {hasActivity && index === 0 ? <CheckCircle2 className="h-4 w-4" /> : day.slice(0, 1)}
+            </span>
+            <span className="mt-2 block text-[11px] font-semibold text-ink-600 sm:text-xs">{day}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-6 text-sm text-ink-700">{hasActivity ? "Today's task is ready." : 'Complete one activity to begin your streak.'}</p>
     </Card>
   );
 }
@@ -155,35 +309,6 @@ function RetentionReviewCard({ retention }) {
   );
 }
 
-function LearningModesCard({ nextAction, hasPlacement, readinessBand }) {
-  const ready = ['ready', 'strong', 'advanced', 'approaching'].includes(String(readinessBand || '').toLowerCase());
-  const continueAction = actionMeta(nextAction);
-  return (
-    <Card className="p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Learning Modes v2</p>
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-        <div className="rounded-xl border border-hairline p-3">
-          <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><GraduationCap className="h-4 w-4" /> Continue Learning</p>
-          <p className="mt-1 text-xs text-ink-500">Follow your recommended skill pathway.</p>
-          <Button to={continueAction.to} className="mt-3 w-full">{hasPlacement ? continueAction.label : 'Start Fractions Diagnostic'}</Button>
-        </div>
-        <div className="rounded-xl border border-hairline p-3">
-          <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><Compass className="h-4 w-4" /> Explore Skills</p>
-          <p className="mt-1 text-xs text-ink-500">Open any skill with readiness indicators.</p>
-          <Button to="/student/mathpath/path" variant="secondary" className="mt-3 w-full">Explore Fractions Path</Button>
-        </div>
-        <div className="rounded-xl border border-hairline p-3">
-          <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><ClipboardCheck className="h-4 w-4" /> Test Mode</p>
-          <p className="mt-1 text-xs text-ink-500">Run quick checks, topic tests, or timed papers.</p>
-          <Button to="/student/mathpath/assessment" variant="secondary" className="mt-3 w-full" disabled={!hasPlacement || !ready}>
-            {hasPlacement && ready ? 'Start Test Mode' : 'Unlock After Placement'}
-          </Button>
-        </div>
-      </div>
-    </Card>
-  );
-}
-
 export default function StudentDashboard() {
   const { user } = useAuth();
   const firstName = (user?.name || 'there').split(' ')[0];
@@ -196,22 +321,36 @@ export default function StudentDashboard() {
   const useMock = String(import.meta.env.VITE_USE_MATHPATH_MOCK || '').toLowerCase() === 'true';
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
     setError('');
-    try {
-      const result = useMock
-        ? buildMockPipelinePayload(user?.id || user?._id || 'demo-student')
-        : runMathPathDomainPipeline({
-            studentId: user?.id || user?._id || 'demo-student',
-            domainId: 'fractions',
-            mode: 'full',
-          });
-      setPayload(result);
-    } catch (e) {
-      setError('Couldn’t load MathPath dashboard.');
-    } finally {
-      setLoading(false);
-    }
+    (async () => {
+      try {
+        const studentId = user?.id || user?._id || 'demo-student';
+        const latest = useMock ? null : (await mathpathAPI.getLatestDiagnostic()).data;
+        const diagnosticResult = shapeLatestDiagnostic(latest);
+        const result = useMock
+          ? buildMockPipelinePayload(studentId)
+          : runMathPathDomainPipeline({
+              studentId,
+              domainId: 'fractions',
+              mode: 'full',
+              diagnosticResult,
+              practiceState: {
+                currentSkillId: diagnosticResult.recommendedStartingSkillId || null,
+                masteredSkillIds: diagnosticResult.masteredSkillIds || [],
+                weakSkillIds: diagnosticResult.weakSkillIds || [],
+                lastSessionAt: diagnosticResult.completedAt || diagnosticResult.diagnosticCompletedAt || null,
+              },
+            });
+        if (active) setPayload(result);
+      } catch (e) {
+        if (active) setError('Couldn’t load MathPath dashboard.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
   }, [user?.id, user?._id, useMock]);
 
   const vm = useMemo(() => {
@@ -222,10 +361,12 @@ export default function StudentDashboard() {
     }
     const state = p.studentProgress || {};
     const currentSkillName = getSkill(state.currentSkill)?.name || 'Start Fractions Diagnostic';
+    const hasPlacement = Boolean(p?.studentProgress?.diagnosticCompleted || p?.diagnostic?.summary?.recommendedStartingSkillId);
     return {
       domain: 'Fractions',
-      hasPlacement: Boolean(p?.diagnostic?.hasPlacement || p?.studentProgress?.currentSkill),
-      currentSkill: state.currentSkill ? {
+      hasPlacement,
+      currentSkill: hasPlacement && state.currentSkill ? {
+        skillId: state.currentSkill,
         skillName: currentSkillName,
         status: state.skillStatuses?.[state.currentSkill] || 'learning',
       } : null,
@@ -247,35 +388,62 @@ export default function StudentDashboard() {
   if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
   if (vm.contractError) return <ErrorState message={`MathPath dashboard payload contract mismatch: ${vm.contractError}`} onRetry={() => window.location.reload()} />;
 
-  const primaryAction = actionMeta(vm.nextAction);
+  const warningSet = Array.isArray(vm.warnings) ? vm.warnings : [];
+  const showDiagnosticPrompt = warningSet.includes('no diagnostic available');
+  const hasOtherWarnings = warningSet.some((warning) => warning !== 'no diagnostic available');
+
+  const courseProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageMastered || 0)));
+  const fluencyProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageFluent || 0)));
+  const hasActivity = courseProgress > 0 || fluencyProgress > 0 || Math.round(vm.masteryProgress?.percentageRetained || 0) > 0;
   return (
     <>
-      <PageHeader title={`Hi, ${firstName}`} subtitle="Your MathPath dashboard for today." />
-
-      <div className="mb-4">
-        <Button to={primaryAction.to} size="l" icon={ArrowRight} className="w-full">
-          {primaryAction.label}
-        </Button>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-ink-500">Hi, {firstName}</p>
+          <h1 className="font-display text-3xl font-semibold text-ink-900">Home</h1>
+        </div>
+        <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2 text-sm font-semibold text-ink-700">
+          <Flame className="h-4 w-4 text-gold-500" />
+          {hasActivity ? 1 : 0}
+        </div>
       </div>
 
-      <div className="mb-4">
-        <LearningModesCard nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} readinessBand={vm.readinessBand} />
+      <CertificateStrip courseProgress={courseProgress} />
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_0.95fr]">
+        <CurrentCourseCard
+          currentSkill={vm.currentSkill}
+          nextAction={vm.nextAction}
+          courseProgress={courseProgress}
+          hasPlacement={vm.hasPlacement}
+        />
+        <WeeklyStreakCard hasActivity={hasActivity} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <CurrentSkillCard domain={vm.domain} currentSkill={vm.currentSkill} />
-        <NextActionCard nextAction={vm.nextAction} />
+      <section className="mt-7">
+        <div className="mb-4">
+          <h2 className="font-display text-2xl font-semibold text-ink-900">Recent Progress</h2>
+          <p className="mt-1 text-sm text-ink-500">A quick summary only. Use Progress in the sidebar for the full report.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <MasteryProgressCard masteryProgress={vm.masteryProgress} />
         <FluencyStatusCard fluency={vm.fluency} />
         <RetentionReviewCard retention={vm.retention} />
-      </div>
+        </div>
+      </section>
 
-      {vm.warnings.length > 0 && (
+      {showDiagnosticPrompt && (
+        <Card className="mt-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
+          <Button to="/student/mathpath/diagnostic" size="s" icon={ArrowRight}>
+            Start Diagnostic
+          </Button>
+        </Card>
+      )}
+      {hasOtherWarnings && !showDiagnosticPrompt && (
         <Card className="mt-4 p-4">
           <p className="text-sm text-ink-500">
-            {vm.warnings.includes('no diagnostic available')
-              ? "Start your Fractions Diagnostic to find your best starting point."
-              : 'Some dashboard data is still loading. You can continue with today’s recommended action.'}
+            Your dashboard is ready, but some advanced metrics are based on limited history and will fill in as you complete more practice, fluency, and assessments.
           </p>
         </Card>
       )}
