@@ -84,6 +84,16 @@ function mapDbSkillToFrameworkCode(dbSkill = {}, maps = {}) {
 }
 
 function classifyQuestionForModes(question = {}) {
+  const category = String(question.questionCategory || '').toLowerCase();
+  if (category) {
+    return {
+      diagnostic: category === 'diagnostic',
+      practice: ['practice', 'remediation', 'challenge'].includes(category),
+      fluency: category === 'fluency',
+      assessment: category === 'assessment',
+    };
+  }
+
   const difficulty = String(question.difficulty || '').toLowerCase();
   const hasVisual = !!question.visual;
   const isTextFirst = !hasVisual;
@@ -416,6 +426,7 @@ export async function runFractionsContentCoverageAudit(options = {}) {
     const families = getQuestionFamiliesBySkill(skill.id);
     const rows = sourcePayload.questionsByFCode?.[skill.id] || [];
 
+    const familyCounts = {};
     const modeCounts = rows.reduce((acc, question) => {
       const mode = classifyQuestionForModes(question);
       acc.total += 1;
@@ -423,6 +434,8 @@ export async function runFractionsContentCoverageAudit(options = {}) {
       if (mode.practice) acc.practice += 1;
       if (mode.fluency) acc.fluency += 1;
       if (mode.assessment) acc.assessment += 1;
+      const familyId = String(question.questionFamilyId || '').trim();
+      if (familyId) familyCounts[familyId] = toNum(familyCounts[familyId], 0) + 1;
       return acc;
     }, { total: 0, diagnostic: 0, practice: 0, fluency: 0, assessment: 0 });
 
@@ -458,7 +471,7 @@ export async function runFractionsContentCoverageAudit(options = {}) {
       skillName: skill.name,
       families,
       totalQuestions: modeCounts.total,
-      exactFamilyCounts: null,
+      exactFamilyCounts: Object.keys(familyCounts).length ? familyCounts : null,
     });
 
     return {

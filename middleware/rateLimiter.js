@@ -28,6 +28,11 @@ setInterval(() => {
  */
 export const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
   return (req, res, next) => {
+    // QA-only bypass for local pilot automation. Keep disabled in production.
+    if (process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1') {
+      return next();
+    }
+
     const ip = req.ip || req.connection.remoteAddress;
     const key = `${ip}:${req.path}`;
     const now = Date.now();

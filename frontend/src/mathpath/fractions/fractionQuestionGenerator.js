@@ -63,6 +63,17 @@ function mixedStr(m) {
 function parseAnswer(raw) {
   const input = String(raw ?? '').trim();
   if (!input) return null;
+  if (/^-?\d+(\.\d+)?$/.test(input)) {
+    const n = Number(input);
+    if (Number.isInteger(n)) {
+      return { type: 'whole', whole: n, fraction: { numerator: n, denominator: 1 } };
+    }
+    const sign = n < 0 ? -1 : 1;
+    const [i, d = ''] = String(Math.abs(n)).split('.');
+    const den = 10 ** d.length;
+    const num = sign * (Number(i) * den + Number(d));
+    return { type: 'decimal', value: n, fraction: simplifyFraction(num, den) };
+  }
   if (/^-?\d+$/.test(input)) {
     const n = Number(input);
     return { type: 'whole', whole: n, fraction: { numerator: n, denominator: 1 } };
@@ -131,12 +142,12 @@ function seq(seed, min, max) {
 
 function templateContext(skillId, questionFamilyId, difficulty = 2, mode = 'practice', variant = 0) {
   const seed = hash(`${skillId}|${questionFamilyId}|${difficulty}|${mode}|${variant}`);
-  return { seed, difficulty, mode, variant };
+  return { seed, difficulty, mode, variant, questionFamilyId };
 }
 
 const SKILL_MISTAKES = {
   F001: ['M003'],
-  F002: ['M003'],
+  F002: ['M003', 'M001', 'M010'],
   F003: ['M003'],
   F004: ['M003'],
   F005: ['M003'],
@@ -145,22 +156,22 @@ const SKILL_MISTAKES = {
   F008: ['M002', 'M003'],
   F009: ['M002', 'M004'],
   F010: ['M004'],
-  F011: ['M004'],
-  F012: ['M005'],
+  F011: ['M004', 'M003', 'M002', 'M010'],
+  F012: ['M005', 'M002', 'M003', 'M010'],
   F013: ['M006'],
   F014: ['M006'],
-  F015: ['M006'],
+  F015: ['M006', 'M007', 'M005', 'M010'],
   F016: ['M007', 'M010'],
   F017: ['M007', 'M010'],
-  F018: ['M001', 'M004', 'M007'],
+  F018: ['M001', 'M004', 'M007', 'M005', 'M010'],
   F019: ['M004', 'M007'],
   F020: ['M008', 'M010'],
   F021: ['M009', 'M010'],
   F022: ['M009', 'M010'],
-  F023: ['M008', 'M010'],
+  F023: ['M008', 'M010', 'M012', 'M003'],
   F024: ['M008', 'M010'],
-  F025: ['M008', 'M010'],
-  F026: ['M008', 'M010'],
+  F025: ['M008', 'M010', 'M011'],
+  F026: ['M008', 'M010', 'M013'],
 };
 
 function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, workingRequired, mentalMathEligible, solutionSteps }) {
@@ -187,6 +198,7 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
 
 function templateForSkill(skillId, variant, ctx) {
   const s = ctx.seed;
+  const familyId = String(ctx.questionFamilyId || '');
   switch (skillId) {
     case 'F001': {
       const d = seq(s, 2, 8);
@@ -298,6 +310,30 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F011': {
+      if (familyId.endsWith('_004')) {
+        const d = seq(s, 3, 12);
+        const a = seq(s + 1, 1, d - 1);
+        const b = seq(s + 4, 1, d - 1);
+        const relation = a === b ? '=' : (a > b ? '>' : '<');
+        return {
+          prompt: `Fill in the correct symbol: ${a}/${d} __ ${b}/${d}`,
+          answer: { type: 'text', value: relation, display: relation },
+          acceptedAnswers: [relation],
+          solutionSteps: ['Denominators are the same, so compare numerators.', `Since ${a} ${relation} ${b}, the symbol is "${relation}".`],
+        };
+      }
+      if (familyId.endsWith('_005')) {
+        const d = seq(s, 4, 10);
+        const a = seq(s + 1, 1, d - 1);
+        const b = seq(s + 6, 1, d - 1);
+        const greater = a >= b ? `${a}/${d}` : `${b}/${d}`;
+        return {
+          prompt: `A model shows ${a}/${d} and ${b}/${d}. Which fraction is greater (or equal if same)?`,
+          answer: { type: 'text', value: greater, display: greater },
+          acceptedAnswers: [greater],
+          solutionSteps: ['Both fractions have equal-sized parts.', 'Compare the number of parts shaded.', `Answer: ${greater}.`],
+        };
+      }
       const n = seq(s, 1, 6);
       const d = seq(s + 6, n + 1, 12);
       const k = [2, 3][Math.abs(s) % 2];
@@ -309,6 +345,30 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F012': {
+      if (familyId.endsWith('_004')) {
+        const n = seq(s, 1, 6);
+        const a = seq(s + 2, n + 1, 12);
+        const b = seq(s + 7, n + 1, 12);
+        const relation = a === b ? '=' : (a < b ? '>' : '<');
+        return {
+          prompt: `Fill in the correct symbol: ${n}/${a} __ ${n}/${b}`,
+          answer: { type: 'text', value: relation, display: relation },
+          acceptedAnswers: [relation],
+          solutionSteps: ['Numerators are equal.', 'Smaller denominator means larger fraction.', `So the symbol is "${relation}".`],
+        };
+      }
+      if (familyId.endsWith('_005')) {
+        const n = seq(s, 1, 5);
+        const a = seq(s + 1, n + 1, 10);
+        const b = seq(s + 5, n + 1, 10);
+        const greater = a <= b ? `${n}/${a}` : `${n}/${b}`;
+        return {
+          prompt: `Two bars each show ${n} equal parts shaded, with totals ${a} and ${b} parts. Which fraction is larger?`,
+          answer: { type: 'text', value: greater, display: greater },
+          acceptedAnswers: [greater],
+          solutionSteps: ['Same numerator means same number of parts selected.', 'Larger part size comes from smaller denominator.', `Answer: ${greater}.`],
+        };
+      }
       const g = [2, 3, 4][Math.abs(s) % 3];
       const n = seq(s, 2, 8) * g;
       const d = seq(s + 5, n / g + 1, 12) * g;
@@ -340,6 +400,18 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F015': {
+      if (familyId.endsWith('_004') || familyId.endsWith('_005')) {
+        const d = seq(s, 3, 10);
+        const a = seq(s + 2, 1, d - 1);
+        const b = seq(s + 6, 1, d - 1);
+        const ans = frac(a + b, d);
+        return {
+          prompt: `Add and simplify if needed: ${a}/${d} + ${b}/${d}`,
+          answer: answerPayloadFraction(ans.numerator, ans.denominator),
+          acceptedAnswers: [fracStr(ans)],
+          solutionSteps: ['Keep denominator the same.', `Add numerators: ${a} + ${b} = ${a + b}.`, `Simplify to ${fracStr(ans)} if possible.`],
+        };
+      }
       const d = seq(s, 2, 8); const w = seq(s + 2, 1, 4); const n = seq(s + 5, 1, d - 1);
       const imp = frac(w * d + n, d);
       return {
@@ -360,6 +432,16 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F017': {
+      if (familyId.endsWith('_004')) {
+        const d = seq(s, 4, 12); const a = seq(s + 1, 1, d - 1); const b = seq(s + 4, 1, d - 1);
+        const ans = frac(a - b, d);
+        return {
+          prompt: `Compute: ${a}/${d} + (${(-b)}/${d})`,
+          answer: answerPayloadFraction(ans.numerator, ans.denominator),
+          acceptedAnswers: [fracStr(ans)],
+          solutionSteps: ['Use the same denominator.', `Add signed numerators: ${a} + (${(-b)}) = ${a - b}.`, `Answer: ${fracStr(ans)}.`],
+        };
+      }
       const d = seq(s, 4, 12); const b = seq(s + 1, 1, d - 2); const a = seq(s + 5, b + 1, d - 1);
       const ans = frac(a - b, d);
       return {
@@ -370,6 +452,30 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F018': {
+      if (familyId.endsWith('_005')) {
+        const a = frac(seq(s, 1, 4), 2 + (Math.abs(s) % 4));
+        const b = frac(seq(s + 7, 1, 4), 3 + (Math.abs(s + 2) % 4));
+        const cd = lcm(a.denominator, b.denominator);
+        const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
+        return {
+          prompt: `Compute: ${fracStr(a)} - ${fracStr(b)}`,
+          answer: answerPayloadFraction(ans.numerator, ans.denominator),
+          acceptedAnswers: [fracStr(ans)],
+          solutionSteps: ['Find a common denominator.', `Convert fractions to denominator ${cd}.`, `Subtract numerators and simplify to ${fracStr(ans)}.`],
+        };
+      }
+      if (familyId.endsWith('_006')) {
+        const a = frac(seq(s, 2, 6), 3 + (Math.abs(s) % 4));
+        const b = frac(seq(s + 4, 1, 5), 2 + (Math.abs(s + 1) % 4));
+        const cd = lcm(a.denominator, b.denominator);
+        const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
+        return {
+          prompt: `Compute and write in lowest terms: ${fracStr(a)} - ${fracStr(b)}`,
+          answer: answerPayloadFraction(ans.numerator, ans.denominator),
+          acceptedAnswers: [fracStr(ans)],
+          solutionSteps: ['Find the least common denominator.', `Convert both fractions to denominator ${cd}.`, `Subtract numerators and simplify to ${fracStr(ans)}.`],
+        };
+      }
       const a = frac(seq(s, 1, 4), 2 + (Math.abs(s) % 4));
       const b = frac(seq(s + 7, 1, 4), 3 + (Math.abs(s + 2) % 4));
       const cd = lcm(a.denominator, b.denominator);
@@ -407,6 +513,18 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F021': {
+      if (familyId.endsWith('_005')) {
+        const a = frac(seq(s, 1, 4), [2, 4, 5, 8][Math.abs(s) % 4]);
+        const decimal = ['0.5', '0.25', '0.2'][Math.abs(s + 3) % 3];
+        const b = decimal === '0.5' ? frac(1, 2) : decimal === '0.25' ? frac(1, 4) : frac(1, 5);
+        const ans = frac(a.numerator * b.numerator, a.denominator * b.denominator);
+        return {
+          prompt: `Compute and give your answer as a simplified fraction: ${fracStr(a)} × ${decimal}`,
+          answer: answerPayloadFraction(ans.numerator, ans.denominator),
+          acceptedAnswers: [fracStr(ans)],
+          solutionSteps: [`Convert ${decimal} to ${fracStr(b)}.`, `Multiply fractions and simplify to ${fracStr(ans)}.`],
+        };
+      }
       if (variant % 2 === 0) {
         const a = frac(seq(s, 1, 5), seq(s + 2, 2, 8));
         const w = seq(s + 4, 2, 6);
@@ -429,6 +547,17 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F022': {
+      if (familyId.endsWith('_005')) {
+        const a = frac(-seq(s, 1, 5), seq(s + 2, 2, 8));
+        const b = frac(seq(s + 4, 1, 4), seq(s + 6, 2, 8));
+        const ans = frac(a.numerator * b.denominator, a.denominator * b.numerator);
+        return {
+          prompt: `Compute: (${fracStr(a)}) ÷ ${fracStr(b)}`,
+          answer: answerPayloadFraction(ans.numerator, ans.denominator),
+          acceptedAnswers: [fracStr(ans)],
+          solutionSteps: ['Keep the first fraction.', 'Invert the second fraction.', `Multiply and simplify to ${fracStr(ans)}.`],
+        };
+      }
       const a = frac(seq(s, 1, 5), seq(s + 2, 2, 8));
       const b = frac(seq(s + 4, 1, 4), seq(s + 6, 2, 8));
       const ans = frac(a.numerator * b.denominator, a.denominator * b.numerator);
@@ -440,6 +569,32 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F023': {
+      if (familyId.endsWith('_005')) {
+        const a = frac([1, 2, 3][Math.abs(s) % 3], [2, 4, 5][Math.abs(s + 2) % 3]);
+        const b = frac([1, 2, 3][Math.abs(s + 3) % 3], [2, 5, 10][Math.abs(s + 4) % 3]);
+        const ratioValue = frac(a.numerator * b.denominator, a.denominator * b.numerator);
+        return {
+          prompt: `In the ratio A:B = ${fracStr(a)} : ${fracStr(b)}, find A/B as a simplified fraction.`,
+          answer: answerPayloadFraction(ratioValue.numerator, ratioValue.denominator),
+          acceptedAnswers: [fracStr(ratioValue)],
+          solutionSteps: ['A/B equals first term divided by second term.', `${fracStr(a)} ÷ ${fracStr(b)} = ${fracStr(ratioValue)}.`],
+        };
+      }
+      if (familyId.endsWith('_006')) {
+        const groups = seq(s, 3, 9);
+        const perGroup = seq(s + 2, 2, 8);
+        const total = groups * perGroup;
+        const n = [1, 2, 3][Math.abs(s + 5) % 3];
+        const d = [2, 3, 4][Math.abs(s + 7) % 3];
+        const scaledTotal = total * d;
+        const ans = (scaledTotal / d) * n;
+        return {
+          prompt: `A set has ${scaledTotal} items. Find ${n}/${d} of the set.`,
+          answer: answerPayloadWhole(ans),
+          acceptedAnswers: [String(ans)],
+          solutionSteps: [`Find 1/${d} of ${scaledTotal}: ${scaledTotal / d}.`, `Multiply by ${n}: ${ans}.`],
+        };
+      }
       const total = seq(s, 20, 60);
       const used = frac(1, [2, 3, 4][Math.abs(s) % 3]);
       const rem = frac(total * (used.denominator - used.numerator), used.denominator);
@@ -464,6 +619,20 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F025': {
+      if (familyId.endsWith('_005')) {
+        const p = [10, 20, 25, 40, 50, 75][Math.abs(s) % 6];
+        const askFraction = variant % 2 === 0;
+        const f = simplifyFraction(p, 100);
+        const dec = p / 100;
+        return {
+          prompt: askFraction
+            ? `Express ${p}% as a fraction in simplest form.`
+            : `Express ${p}% as a decimal.`,
+          answer: askFraction ? answerPayloadFraction(f.numerator, f.denominator) : { type: 'decimal', value: dec, display: String(dec) },
+          acceptedAnswers: askFraction ? [fracStr(f)] : [String(dec)],
+          solutionSteps: ['Percent means out of 100.', askFraction ? `${p}/100 simplifies to ${fracStr(f)}.` : `${p}/100 = ${dec}.`],
+        };
+      }
       const a = frac(seq(s, 1, 4), 6);
       const b = frac(seq(s + 3, 1, 5), 8);
       const c = frac(seq(s + 5, 1, 5), 12);
@@ -479,6 +648,24 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F026': {
+      if (familyId.endsWith('_005')) {
+        const y = seq(s, 2, 12);
+        const asFraction = frac(3 + y, 5);
+        if (variant % 2 === 0) {
+          return {
+            prompt: `If y = ${y}, evaluate (3 + y)/5 as a simplified fraction.`,
+            answer: answerPayloadFraction(asFraction.numerator, asFraction.denominator),
+            acceptedAnswers: [fracStr(asFraction)],
+            solutionSteps: [`Substitute y = ${y}.`, `Compute 3 + ${y} = ${3 + y}.`, `Result is ${fracStr(asFraction)}.`],
+          };
+        }
+        return {
+          prompt: `Rewrite ${y} ÷ 5 in fraction form.`,
+          answer: answerPayloadFraction(y, 5),
+          acceptedAnswers: [`${y}/5`],
+          solutionSteps: ['Division can be written as a fraction.', `${y} ÷ 5 = ${y}/5.`],
+        };
+      }
       const total = seq(s, 30, 90);
       const f = frac([1, 2, 3][Math.abs(s) % 3], [3, 4, 5][Math.abs(s + 1) % 3]);
       const ans = (total * f.numerator) / f.denominator;

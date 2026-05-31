@@ -38,6 +38,7 @@ import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
 import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
+import assessmentUploadRoutes from './routes/assessmentUploads.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -128,6 +129,7 @@ app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion:
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
+app.use('/api/assessment-uploads', assessmentUploadRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

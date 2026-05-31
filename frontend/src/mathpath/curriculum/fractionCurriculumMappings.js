@@ -3,12 +3,29 @@ import {
   getUniversalSkillByFrameworkId,
 } from './fractionUniversalSkills.js';
 
-const LEVEL_ORDER = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+const LEVEL_ORDER = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'S1'];
+const LEVEL_ALIASES = {
+  PRIMARY1: 'P1',
+  PRIMARY2: 'P2',
+  PRIMARY3: 'P3',
+  PRIMARY4: 'P4',
+  PRIMARY5: 'P5',
+  PRIMARY6: 'P6',
+  SEC1: 'S1',
+  S1G1: 'S1',
+  SECONDARY1: 'S1',
+  'SECONDARY 1': 'S1',
+};
 
 function parseLevels(value) {
   return String(value || '')
     .split('/')
-    .map((part) => String(part || '').trim().toUpperCase())
+    .map((part) => {
+      const raw = String(part || '').trim().toUpperCase();
+      if (LEVEL_ORDER.includes(raw)) return raw;
+      const compact = raw.replace(/[^A-Z0-9]/g, '');
+      return LEVEL_ALIASES[compact] || null;
+    })
     .filter((part) => LEVEL_ORDER.includes(part));
 }
 
@@ -31,6 +48,20 @@ const SG_BASE = {
   subStrand: 'Fractions',
   syllabusTopic: 'Fractions',
   sourceDocument: 'Singapore MOE Primary Mathematics Syllabus (2021, updated October 2025)',
+};
+
+const SG_SECONDARY_G1_BASE = {
+  country: 'SG',
+  curriculum: 'MOE_SECONDARY_G1_MATH_2021',
+  subject: 'Mathematics',
+  phase: 'Secondary',
+  stream: 'G1',
+  domain: 'fractions',
+  topic: 'Fractions',
+  strand: 'Number and Algebra',
+  subStrand: 'Fractions',
+  syllabusTopic: 'Secondary 1 G1 Fraction-Related Skills',
+  sourceDocument: 'Singapore MOE G1 Mathematics Teaching and Learning Syllabus (Secondary 1)',
 };
 
 const SG_FRACTIONS_MAPPING_ROWS = [
@@ -62,7 +93,20 @@ const SG_FRACTIONS_MAPPING_ROWS = [
   { frameworkSkillId: 'F026', title: 'Multi-step fraction word problems', introducedLevel: 'P4/P5', masteryLevel: 'P5/P6', syllabusOutcome: 'Solve multi-step fraction word problems with structured reasoning.', syllabusRef: 'P5-P6 Multi-step fractional reasoning', notes: 'Pre-PSLE readiness pattern.' },
 ];
 
-export const fractionCurriculumMappings = SG_FRACTIONS_MAPPING_ROWS.map((row) => {
+const SG_SECONDARY_G1_MAPPING_ROWS = [
+  { frameworkSkillId: 'F010', title: 'Simplifying fractions in Secondary 1 contexts', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Use equivalent forms and simplest form in arithmetic and contextual settings.', syllabusRef: 'N1.3', notes: 'Includes negative values in checks.' },
+  { frameworkSkillId: 'F013', title: 'Comparing unlike fractions (including negatives)', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Compare and order positive/negative fractions and decimals where appropriate.', syllabusRef: 'N1.3', notes: 'Sign reasoning emphasis.' },
+  { frameworkSkillId: 'F014', title: 'Ordering fractions and decimals', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Order fractions (and simple decimal equivalents) on number lines and in lists.', syllabusRef: 'N1.3', notes: 'Supports mixed-format ordering.' },
+  { frameworkSkillId: 'F017', title: 'Adding unlike fractions (including negative fractions)', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Perform addition of fractions and decimals, including negative values.', syllabusRef: 'N1.3', notes: 'Core four-operations extension.' },
+  { frameworkSkillId: 'F018', title: 'Subtracting unlike fractions (including negative fractions)', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Perform subtraction of fractions and decimals, including negative values.', syllabusRef: 'N1.3', notes: 'Core four-operations extension.' },
+  { frameworkSkillId: 'F021', title: 'Fraction multiplication and mixed-format operations', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Perform multiplication with fractions/decimals and interpret as scaling.', syllabusRef: 'N1.3', notes: 'Sec 1 G1 procedural fluency.' },
+  { frameworkSkillId: 'F022', title: 'Fraction division and reciprocal interpretation', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Perform division on fractions/decimals and apply reciprocal interpretation.', syllabusRef: 'N1.3', notes: 'Includes sign handling.' },
+  { frameworkSkillId: 'F023', title: 'Ratio with fractions and decimals', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Represent and solve ratios involving fractions/decimals.', syllabusRef: 'N2.3', notes: 'Ratio simplification and comparison.' },
+  { frameworkSkillId: 'F025', title: 'Percentage as fraction or decimal', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Express percentages as fractions and decimals and convert between forms.', syllabusRef: 'N3.1', notes: 'Bidirectional conversion fluency.' },
+  { frameworkSkillId: 'F026', title: 'Interpreting algebraic fraction notation', introducedLevel: 'S1', masteryLevel: 'S1', syllabusOutcome: 'Interpret notation such as a/b, a ÷ b, a × 1/b, (3 + y)/5.', syllabusRef: 'N5.2', notes: 'Notation interpretation only; no advanced manipulation.' },
+];
+
+const primaryMappings = SG_FRACTIONS_MAPPING_ROWS.map((row) => {
   const universalSkill = getUniversalSkillByFrameworkId(row.frameworkSkillId);
   const levelBand = buildLevelBand(row.introducedLevel, row.masteryLevel);
   return {
@@ -79,6 +123,29 @@ export const fractionCurriculumMappings = SG_FRACTIONS_MAPPING_ROWS.map((row) =>
     title: row.title,
   };
 });
+
+const secondaryG1Mappings = SG_SECONDARY_G1_MAPPING_ROWS.map((row) => {
+  const universalSkill = getUniversalSkillByFrameworkId(row.frameworkSkillId);
+  const levelBand = buildLevelBand(row.introducedLevel, row.masteryLevel);
+  return {
+    ...SG_SECONDARY_G1_BASE,
+    frameworkSkillId: row.frameworkSkillId,
+    skillId: universalSkill?.skillId || '',
+    level: levelBand[levelBand.length - 1] || row.masteryLevel,
+    introducedLevel: row.introducedLevel,
+    masteryLevel: row.masteryLevel,
+    levelBand,
+    syllabusOutcome: row.syllabusOutcome,
+    syllabusRef: row.syllabusRef,
+    notes: row.notes || '',
+    title: row.title,
+  };
+});
+
+export const fractionCurriculumMappings = [
+  ...primaryMappings,
+  ...secondaryG1Mappings,
+];
 
 const mappingByFrameworkId = new Map(
   fractionCurriculumMappings.map((mapping) => [`${mapping.country}::${mapping.curriculum}::${mapping.frameworkSkillId}`, mapping])
@@ -122,6 +189,7 @@ export function getAvailableFractionLevels(options = {}) {
 
 export const fractionCurriculumMeta = {
   levelOrder: LEVEL_ORDER,
+  levelAliases: LEVEL_ALIASES,
   availableCurricula: getAvailableFractionCurricula(),
 };
 

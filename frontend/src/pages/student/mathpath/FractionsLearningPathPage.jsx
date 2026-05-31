@@ -7,7 +7,9 @@ import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } fro
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
 import { runMathPathDomainPipeline } from '../../../mathpath/orchestration/mathPathDomainOrchestrator';
 import {
+  normalizeCurriculum,
   getSkillCurriculumMapping,
+  getUniversalSkillByFrameworkId,
   getVisibleSkillsForStudentLevel,
 } from '../../../mathpath/curriculum';
 
@@ -22,6 +24,10 @@ const STRAND_GROUPS = [
 ];
 
 const skillById = new Map((fractionSkillGraph.skills || []).map((skill) => [skill.id, skill]));
+
+function displaySkillName(skillId, fallback = '') {
+  return getUniversalSkillByFrameworkId(skillId)?.title || fallback || skillId;
+}
 
 function isCompleteStatus(status) {
   return ['accurate', 'fluent', 'retained'].includes(status);
@@ -104,6 +110,8 @@ function SkillNodeCard({
   needsReview,
   prerequisitesMet,
   missingPrerequisiteNames,
+  syllabusRef,
+  strand,
   onAction,
 }) {
   const actionLabel = isLocked ? 'Locked' : needsReview ? 'Review' : isCurrent ? 'Continue' : statusLabel === 'Not Started' ? 'Start' : 'Practise';
@@ -115,7 +123,7 @@ function SkillNodeCard({
     <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold-400/60' : ''} ${isLocked ? 'opacity-70' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-ink-800">{skill.name}</p>
+          <p className="text-sm font-semibold text-ink-800">{skill.displayName || skill.name}</p>
           <p className="mt-0.5 text-xs text-ink-500">{skill.description}</p>
         </div>
         {isLocked ? <Lock className="h-4 w-4 text-ink-400" /> : isRetained ? <CheckCircle2 className="h-4 w-4 text-success-700" /> : null}
@@ -130,6 +138,7 @@ function SkillNodeCard({
       <div className="mt-2 text-xs text-ink-500">
         <p>{prerequisiteText}</p>
         <p>Introduced: {skill.introducedLevel || '-'} | Mastery: {skill.masteryLevel || '-'}</p>
+        <p>{strand || 'Number and Algebra'}{syllabusRef ? ` · ${syllabusRef}` : ''}</p>
       </div>
       <div className="mt-4">
         <Button size="s" variant={isLocked ? 'secondary' : 'primary'} disabled={isLocked} onClick={onAction}>
@@ -160,6 +169,8 @@ function SkillStrandSection({ label, skills, onSkillAction }) {
             needsReview={skillItem.needsReview}
             prerequisitesMet={skillItem.prerequisitesMet}
             missingPrerequisiteNames={skillItem.missingPrerequisiteNames}
+            syllabusRef={skillItem.syllabusRef}
+            strand={skillItem.strand}
             onAction={() => onSkillAction(skillItem)}
           />
         ))}
@@ -250,19 +261,26 @@ export default function FractionsLearningPathPage() {
   const needsReviewSet = new Set((studentProgress.weakSkills || []).map((w) => w.skillId));
   const completedSet = new Set(Object.entries(skillStatuses).filter(([, status]) => isCompleteStatus(status)).map(([skillId]) => skillId));
   const studentLevel = user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || 'P4';
+  const studentStream = user?.stream || user?.profile?.stream || '';
+  const curriculum = normalizeCurriculum(
+    String(studentLevel || '').toUpperCase().startsWith('S') && String(studentStream || '').toUpperCase() === 'G1'
+      ? 'MOE_SECONDARY_G1_MATH_2021'
+      : '',
+    studentLevel
+  );
 
   const visibleSkillRows = useMemo(() => {
     const weakSkillIds = (studentProgress.weakSkills || []).map((row) => row.skillId).filter(Boolean);
     const rows = getVisibleSkillsForStudentLevel({
       country: 'SG',
-      curriculum: 'MOE_PRIMARY_MATH_2021',
+      curriculum,
       domain: 'fractions',
       studentLevel,
       weakSkillIds,
       currentSkillId,
     });
     return rows.length ? rows : [];
-  }, [studentProgress.weakSkills, studentLevel, currentSkillId]);
+  }, [studentProgress.weakSkills, studentLevel, currentSkillId, curriculum]);
 
   const visibleSkillIds = useMemo(() => {
     const ids = visibleSkillRows.map((row) => row.frameworkSkillId).filter(Boolean);
@@ -274,35 +292,38 @@ export default function FractionsLearningPathPage() {
       const items = group.ids
         .filter((skillId) => visibleSkillIds.has(skillId))
         .map((skillId) => {
-        const skill = skillById.get(skillId);
-        const status = skillStatuses[skillId] || 'notStarted';
-        const locked = !isCompleteStatus(status) && (skill?.prerequisites || []).some((req) => !completedSet.has(req));
-        const needsReview = needsReviewSet.has(skillId) || status === 'needsReview' || status === 'weak';
-        const curriculumMapping = getSkillCurriculumMapping(skillId, {
-          country: 'SG',
-          curriculum: 'MOE_PRIMARY_MATH_2021',
-        });
-        const missingPrerequisites = (skill?.prerequisites || []).filter((req) => !completedSet.has(req));
-        const missingPrerequisiteNames = missingPrerequisites.map((req) => skillById.get(req)?.name || req);
-        return {
-          ...(skill || { id: skillId, name: skillId, description: '' }),
-          status,
-          statusLabel: normalizeStatus(status, locked, needsReview),
-          locked,
-          current: skillId === currentSkillId,
-          fluent: fluentSkillIds.has(skillId),
-          retained: retainedSkillIds.has(skillId),
-          needsReview,
-          prerequisitesMet: missingPrerequisites.length === 0,
-          missingPrerequisiteNames,
-          introducedLevel: curriculumMapping?.introducedLevel || skill?.introducedLevel || '',
-          masteryLevel: curriculumMapping?.masteryLevel || skill?.masteryLevel || '',
-          levelBand: curriculumMapping?.levelBand || skill?.singaporeLevel || [],
-        };
+          const skill = skillById.get(skillId);
+          const status = skillStatuses[skillId] || 'notStarted';
+          const locked = !isCompleteStatus(status) && (skill?.prerequisites || []).some((req) => !completedSet.has(req));
+          const needsReview = needsReviewSet.has(skillId) || status === 'needsReview' || status === 'weak';
+          const curriculumMapping = getSkillCurriculumMapping(skillId, {
+            country: 'SG',
+            curriculum,
+          });
+          const missingPrerequisites = (skill?.prerequisites || []).filter((req) => !completedSet.has(req));
+          const missingPrerequisiteNames = missingPrerequisites.map((req) => displaySkillName(req, skillById.get(req)?.name || req));
+          return {
+            ...(skill || { id: skillId, name: skillId, description: '' }),
+            displayName: displaySkillName(skillId, skill?.name || skillId),
+            status,
+            statusLabel: normalizeStatus(status, locked, needsReview),
+            locked,
+            current: skillId === currentSkillId,
+            fluent: fluentSkillIds.has(skillId),
+            retained: retainedSkillIds.has(skillId),
+            needsReview,
+            prerequisitesMet: missingPrerequisites.length === 0,
+            missingPrerequisiteNames,
+            introducedLevel: curriculumMapping?.introducedLevel || skill?.introducedLevel || '',
+            masteryLevel: curriculumMapping?.masteryLevel || skill?.masteryLevel || '',
+            levelBand: curriculumMapping?.levelBand || skill?.singaporeLevel || [],
+            syllabusRef: curriculumMapping?.syllabusRef || '',
+            strand: curriculumMapping?.strand || 'Number and Algebra',
+          };
         });
       return { ...group, items };
     });
-  }, [skillStatuses, completedSet, needsReviewSet, currentSkillId, fluentSkillIds, retainedSkillIds, visibleSkillIds]);
+  }, [skillStatuses, completedSet, needsReviewSet, currentSkillId, fluentSkillIds, retainedSkillIds, visibleSkillIds, curriculum]);
 
   if (loading) return <Spinner label="Loading learning path…" />;
   if (error) return <EmptyState message={error} />;
@@ -327,7 +348,7 @@ export default function FractionsLearningPathPage() {
   }
 
   const nextCta = actionFromNext(nextAction);
-  const currentSkillName = skillById.get(currentSkillId)?.name || 'Fractions starter skill';
+  const currentSkillName = displaySkillName(currentSkillId, skillById.get(currentSkillId)?.name || 'Fractions starter skill');
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">

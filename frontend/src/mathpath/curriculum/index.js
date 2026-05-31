@@ -14,6 +14,7 @@ export {
 } from './fractionCurriculumMappings.js';
 
 export {
+  normalizeCurriculum,
   getSkillCurriculumMapping,
   getSkillsByCountryCurriculumLevel,
   getPrerequisiteSkills,

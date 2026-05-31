@@ -21,7 +21,9 @@ const makeQ = (skillId, difficulty, stem, extra = {}) =>
   Question.create({ subjectId: subject._id, topicId: topic._id, skillId, difficulty, stem, answer: '42', ...extra });
 
 beforeAll(async () => {
-  mongo = await MongoMemoryServer.create();
+  mongo = await MongoMemoryServer.create({
+    instance: { ip: '127.0.0.1' },
+  });
   await mongoose.connect(mongo.getUri());
   subject = await Subject.create({ key: 'math', name: 'Mathematics', order: 0 });
   topic = await Topic.create({ subjectId: subject._id, name: 'Fractions', moeLevel: 'Primary 5', order: 0 });

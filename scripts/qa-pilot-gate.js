@@ -29,66 +29,69 @@ function tail(text, lines = 30) {
 }
 
 async function main() {
+  const qaEnv = {
+    QA_DISABLE_RATE_LIMIT: '1',
+  };
   const checks = [];
   const push = (area, check, result, artifact = '') => {
     checks.push({ area, check, pass: result.ok, status: result.status, artifact, result });
   };
 
-  const preflight = runCommand('node', ['scripts/qa-pilot-preflight.js']);
+  const preflight = runCommand('node', ['scripts/qa-pilot-preflight.js'], { env: qaEnv });
   push('1.environment', 'preflight + seed account smoke', preflight);
 
-  const backendFlow = runCommand('node', ['scripts/qa-e2e-safe.js']);
+  const backendFlow = runCommand('node', ['scripts/qa-e2e-safe.js'], { env: qaEnv });
   push('2.seeded-accounts', 'backend safe student/parent smoke', backendFlow);
 
   const diagnostic = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.diagnostic-placement.spec.js'],
-    { cwd: path.join(ROOT, 'frontend') }
+    { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
   push('3.diagnostic', 'fractions diagnostic ui flow', diagnostic, 'frontend/playwright-report-pilot');
 
   const placementReuse = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.diagnostic-placement.spec.js'],
-    { cwd: path.join(ROOT, 'frontend') }
+    { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
   push('4.placement-persistence', 'placement persistence + reuse', placementReuse, 'frontend/playwright-report-pilot');
 
   const practice = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.practice.spec.js'],
-    { cwd: path.join(ROOT, 'frontend') }
+    { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
   push('5.practice', 'fractions practice ui flow', practice, 'frontend/playwright-report-pilot');
 
   const working = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.working-upload.spec.js'],
-    { cwd: path.join(ROOT, 'frontend') }
+    { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
   push('6.working-upload', 'working upload ui flow', working, 'frontend/playwright-report-pilot');
 
   const assessment = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.assessment.spec.js'],
-    { cwd: path.join(ROOT, 'frontend') }
+    { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
   push('7.assessment', 'assessment ui flow', assessment, 'frontend/playwright-report-pilot');
 
   const review = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.review-screen.spec.js'],
-    { cwd: path.join(ROOT, 'frontend') }
+    { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
   push('8.review-screen', 'question review screen', review, 'frontend/playwright-report-pilot');
 
-  const crossDash = runCommand('node', ['scripts/qa-mathpath-dashboard-contract.js']);
+  const crossDash = runCommand('node', ['scripts/qa-mathpath-dashboard-contract.js'], { env: qaEnv });
   push('9.cross-dashboard', 'student/parent/tutor/teacher consistency contract', crossDash);
 
   const routeGuard = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.route-guard.spec.js'],
-    { cwd: path.join(ROOT, 'frontend') }
+    { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
   push('10.route-guard', 'tutor/teacher route availability and unauthorized block', routeGuard, 'frontend/playwright-report-pilot');
 
@@ -129,4 +132,3 @@ main().catch((err) => {
   console.error('qa-pilot-gate failed:', err?.message || err);
   process.exit(1);
 });
-

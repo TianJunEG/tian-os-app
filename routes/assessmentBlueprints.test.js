@@ -215,6 +215,14 @@ describe('assessmentBlueprints routes (API contract)', () => {
     expect(archiveRes.status).toBe(200);
     expect(archiveRes.data.blueprint.status).toBe('archived');
 
+    const versionsRes = await request(`/${id}/versions`);
+    expect(versionsRes.status).toBe(200);
+    expect(Array.isArray(versionsRes.data.versions)).toBe(true);
+    expect(versionsRes.data.versions.length).toBeGreaterThanOrEqual(3);
+    expect(versionsRes.data.versions.map((v) => v.changeType)).toEqual(
+      expect.arrayContaining(['create', 'update', 'archive'])
+    );
+
     const testBlueprintRes = await request(`/${id}/test-blueprint`);
     expect(testBlueprintRes.status).toBe(200);
     expect(testBlueprintRes.data.testBlueprint).toHaveProperty('sections');

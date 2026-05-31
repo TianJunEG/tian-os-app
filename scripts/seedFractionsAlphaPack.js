@@ -8,6 +8,7 @@ import Skill from '../models/Skill.js';
 import Question from '../models/Question.js';
 import GeneratedQuestion from '../models/mathpath/GeneratedQuestion.js';
 import fractionsDomain from './domains/fractions.js';
+import { seedDomain } from './seedDomain.js';
 import {
   generateQuestionsForSkill,
   getCoverageBySkill,
@@ -16,29 +17,24 @@ import {
 
 dotenv.config();
 
-const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
+const LOCAL_URI = process.env.MONGODB_URI_LOCAL || 'mongodb://127.0.0.1:27017/tutor-match';
+const URI = process.env.MONGODB_URI || LOCAL_URI;
 const DOMAIN_ID = 'fractions';
 const SOURCE = 'generated';
 const SOURCE_REF = process.env.MATHPATH_SOURCE_REF || 'fractions-alpha-pack-v1';
 
-const DEFAULT_PRIORITY_SKILLS = [
-  'F001', 'F002', 'F003', 'F004',
-  'F010', 'F011', 'F012',
-  'F016', 'F017', 'F018',
-  'F020',
-  'F023',
-];
+const DEFAULT_PRIORITY_SKILLS = Array.from({ length: 26 }, (_, i) => `F${String(i + 1).padStart(3, '0')}`);
 const PRIORITY_SKILLS = (process.env.MATHPATH_SKILLS
   ? process.env.MATHPATH_SKILLS.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean)
   : DEFAULT_PRIORITY_SKILLS);
 
 const LEGACY_SKILL_SLUG_FALLBACKS = {
   F001: ['fr.meaning.parts'],
-  F002: ['fr.meaning.num-den', 'fr.meaning.parts', 'fr.meaning.unit'],
-  F003: ['fr.meaning.whole', 'fr.of-set', 'fr.meaning.parts'],
+  F002: ['fr.meaning.num-den'],
+  F003: ['fr.meaning.whole'],
   F004: ['fr.meaning.unit'],
   F005: ['fr.meaning.number-line'],
-  F006: ['fr.compare.unlike', 'fr.compare.same-denom'],
+  F006: ['fr.compare.unit'],
   F007: ['fr.compare.same-denom'],
   F008: ['fr.compare.same-num'],
   F009: ['fr.order'],
@@ -46,19 +42,19 @@ const LEGACY_SKILL_SLUG_FALLBACKS = {
   F011: ['fr.equivalent.generate', 'fr.equivalent'],
   F012: ['fr.simplify'],
   F013: ['fr.mixed-improper'],
-  F014: ['fr.mixed-improper', 'fr.add.mixed'],
-  F015: ['fr.mixed-improper', 'fr.add.mixed'],
+  F014: ['fr.mixed-proper', 'fr.mixed-improper'],
+  F015: ['fr.mixed-convert', 'fr.mixed-proper', 'fr.mixed-improper'],
   F016: ['fr.add.same-denom', 'fr.add.like'],
   F017: ['fr.sub.like', 'fr.add.like'],
   F018: ['fr.add.unlike'],
-  F019: ['fr.add.unlike'],
-  F020: ['fr.of-quantity', 'fr.of-set'],
-  F021: ['fr.mult.fraction', 'fr.mult.whole'],
-  F022: ['fr.div.fraction', 'fr.div.whole'],
-  F023: ['fr.word-problems', 'fr.word-equal-units', 'fr.word-remainder'],
-  F024: ['fr.word-problems'],
-  F025: ['fr.word-problems'],
-  F026: ['fr.word-problems'],
+  F019: ['fr.sub.unlike', 'fr.add.unlike'],
+  F020: ['fr.of-quantity'],
+  F021: ['fr.mult.fraction'],
+  F022: ['fr.div.fraction'],
+  F023: ['fr.word-problems'],
+  F024: ['fr.word-multi-step', 'fr.word-problems'],
+  F025: ['fr.exam-applications', 'fr.word-multi-step'],
+  F026: ['fr.mastery-challenge', 'fr.exam-applications'],
 };
 
 const ALPHA_TARGETS = {
@@ -66,7 +62,7 @@ const ALPHA_TARGETS = {
   practice: 30,
   fluency: 15,
   assessment: 10,
-  remediation: 0,
+  remediation: 3,
   challenge: 0,
 };
 
@@ -137,6 +133,9 @@ function toQuestionDoc({ mathSubjectId, dbSkill, generated }) {
     explanation: generated.explanation || workedSolution,
     commonMistakes: misconceptionTags,
     misconceptionTag,
+    questionFamilyId: generated.questionFamilyId || '',
+    questionCategory: generated.questionCategory || '',
+    worksheetCompatible: generated.questionCategory !== 'fluency',
     source: SOURCE,
     sourceRef: `${SOURCE_REF}:${generated.questionCategory}`,
   };
@@ -306,10 +305,22 @@ function buildMarkdownReport({ generatedBySkill = [], before = [], after = [] })
 }
 
 async function main() {
-  await mongoose.connect(URI, { serverSelectionTimeoutMS: 10000 });
+  let connectedUri = URI;
+  try {
+    await mongoose.connect(connectedUri, { serverSelectionTimeoutMS: 10000 });
+  } catch (error) {
+    const remoteSrvDown = String(error?.code || '') === 'ECONNREFUSED'
+      && String(error?.hostname || '').includes('mongodb.net');
+    const canFallback = connectedUri !== LOCAL_URI;
+    if (!remoteSrvDown || !canFallback) throw error;
+    console.warn(`⚠️ Remote Mongo unavailable (${error.hostname}). Falling back to local Mongo: ${LOCAL_URI}`);
+    connectedUri = LOCAL_URI;
+    await mongoose.connect(connectedUri, { serverSelectionTimeoutMS: 10000 });
+  }
   try {
     const math = await Subject.findOne({ key: 'math' });
     if (!math) throw new Error('Math subject not found. Run foundation seed first.');
+    await seedDomain(fractionsDomain, { subjectId: math._id });
 
     const allCandidateSlugs = Array.from(new Set(
       PRIORITY_SKILLS.flatMap((skillId) => {
@@ -347,7 +358,7 @@ async function main() {
       const skillId = row.skillId;
       const generated = generateQuestionsForSkill(skillId, {
         targetByCategory: ALPHA_TARGETS,
-        categories: ['diagnostic', 'practice', 'fluency', 'assessment'],
+        categories: ['diagnostic', 'practice', 'fluency', 'assessment', 'remediation'],
       });
 
       const valid = [];
@@ -417,6 +428,7 @@ async function main() {
 
     console.log('✅ Fractions alpha content pack seeded');
     console.log(JSON.stringify({
+      mongoUriUsed: connectedUri,
       sourceRef: SOURCE_REF,
       prioritySkills: PRIORITY_SKILLS,
       targets: ALPHA_TARGETS,

@@ -4,6 +4,13 @@ import { ArrowRight, Wrench } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
+import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
+
+function canonicalSkillName(skillId, fallback = '') {
+  const normalized = String(skillId || '').toUpperCase();
+  if (!/^F\d{3}$/.test(normalized)) return fallback || String(skillId || '');
+  return getUniversalSkillByFrameworkId(normalized)?.title || fallback || normalized;
+}
 
 // End-of-session summary: score, skills practised, mistakes, recommended next.
 export default function PracticeResult() {
@@ -85,7 +92,7 @@ export default function PracticeResult() {
       {recommended && (
         <Card className="mb-5 border-l-4 border-l-gold-400 p-4">
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended next</div>
-          <p className="mt-0.5 text-sm text-ink-700">{recommended.skillName} <span className="text-ink-500">· {recommended.topicName}</span></p>
+          <p className="mt-0.5 text-sm text-ink-700">{canonicalSkillName(recommended.skillId, recommended.skillName)} <span className="text-ink-500">· {recommended.topicName}</span></p>
         </Card>
       )}
 

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
 import { Card, Button, PageHeader, Badge } from '../../../../components/ui';
@@ -20,9 +20,11 @@ function inferLevel(user) {
 
 export default function AssessmentIntroScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [entryMode, setEntryMode] = useState('free');
-  const [assessmentType, setAssessmentType] = useState('progress');
+  const initialAssessmentType = TYPES.includes(location.state?.assessmentType) ? location.state.assessmentType : 'progress';
+  const [assessmentType, setAssessmentType] = useState(initialAssessmentType);
   const [level, setLevel] = useState(inferLevel(user));
   const [paperType, setPaperType] = useState('paper1');
   const [timed, setTimed] = useState(true);

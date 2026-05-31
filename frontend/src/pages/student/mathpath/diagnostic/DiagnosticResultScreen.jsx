@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Card, Button, Badge, ErrorState, PageHeader, Spinner } from '../../../../components/ui';
-import { getSkill } from '../../../../mathpath/fractions/fractionSkillGraph';
+import { getUniversalSkillByFrameworkId } from '../../../../mathpath/curriculum';
 import { mathpathAPI } from '../../../../services/api';
 
 function skillName(skillId) {
-  return getSkill(skillId)?.name || skillId;
+  const normalized = String(skillId || '').toUpperCase();
+  if (!/^F\d{3}$/.test(normalized)) return skillId;
+  return getUniversalSkillByFrameworkId(normalized)?.title || normalized;
 }
 
 function readinessBand(score = 0) {
@@ -135,7 +137,12 @@ export default function DiagnosticResultScreen() {
             size="l"
             icon={ArrowRight}
             onClick={() => navigate('/student/mathpath/practice/recommended-diagnostic', {
-              state: { skillId: startingSkillId, questionCount: 8, source: 'diagnostic-placement' },
+              state: {
+                skillId: startingSkillId,
+                questionCount: shaped.nextPracticePayload?.questionCount || 8,
+                sessionType: 'practice',
+                source: 'diagnostic-placement',
+              },
             })}
           >
             Start Recommended Practice

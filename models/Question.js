@@ -8,6 +8,14 @@ const questionSchema = new mongoose.Schema({
   subjectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
   topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', required: true },
   skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
+  // Optional MathPath metadata for precise coverage/reporting by F-skill family.
+  questionFamilyId: { type: String, default: '' },
+  questionCategory: {
+    type: String,
+    enum: ['', 'diagnostic', 'practice', 'fluency', 'assessment', 'remediation', 'challenge'],
+    default: '',
+  },
+  worksheetCompatible: { type: Boolean, default: true },
   moeLevel: { type: String, default: '' },
   difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
   type: { type: String, enum: ['mcq', 'short_answer', 'open_ended'], default: 'short_answer' },
@@ -53,5 +61,6 @@ const questionSchema = new mongoose.Schema({
 
 questionSchema.index({ skillId: 1, difficulty: 1 });
 questionSchema.index({ topicId: 1 });
+questionSchema.index({ questionFamilyId: 1, questionCategory: 1 });
 
 export default mongoose.model('Question', questionSchema);

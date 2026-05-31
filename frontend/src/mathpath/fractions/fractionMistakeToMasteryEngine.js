@@ -84,6 +84,30 @@ const MISTAKE_TAXONOMY = {
     rootCauseSkillIds: [],
     defaultAction: 'advanceIfCarelessOnly',
   },
+  M011: {
+    code: 'M011',
+    title: 'Fraction-Decimal-Percentage Conversion Error',
+    description: 'Student converts between fraction, decimal, and percentage incorrectly.',
+    remediationSkillIds: ['F010', 'F021', 'F025'],
+    rootCauseSkillIds: ['F010', 'F025'],
+    defaultAction: 'assignRemediationPractice',
+  },
+  M012: {
+    code: 'M012',
+    title: 'Ratio with Fraction/Decimal Error',
+    description: 'Student sets up or simplifies ratios with fractions/decimals incorrectly.',
+    remediationSkillIds: ['F017', 'F018', 'F023'],
+    rootCauseSkillIds: ['F023'],
+    defaultAction: 'assignRemediationPractice',
+  },
+  M013: {
+    code: 'M013',
+    title: 'Algebraic Fraction Notation Misread',
+    description: 'Student misinterprets notation such as a/b, a ÷ b, or (3+y)/5.',
+    remediationSkillIds: ['F010', 'F026'],
+    rootCauseSkillIds: ['F026'],
+    defaultAction: 'reteachConcept',
+  },
 };
 
 function toNumber(value, fallback = 0) {
@@ -145,6 +169,13 @@ function inferMistakeByRules(input = {}) {
     }
   }
 
+  if (skillId === 'F015' && ops.length >= 2 && sFrac) {
+    const [a, b] = ops;
+    if (a && b && sFrac.n === a.n + b.n && sFrac.d === a.d + b.d) {
+      return { code: 'M007', evidence: 'Student added denominators in a like-denominator addition item.' };
+    }
+  }
+
   if (skillId === 'F019' && ops.length >= 2 && sFrac) {
     const [a, b] = ops;
     if (a && b && sFrac.d === a.d * b.d && sFrac.n === a.n - b.n) {
@@ -163,12 +194,24 @@ function inferMistakeByRules(input = {}) {
     return { code: 'M004', evidence: 'Equivalent-fraction relationship appears weak.' };
   }
 
+  if (skillId === 'F011' && sFrac && cFrac && !fractionEqual(sFrac, cFrac)) {
+    return { code: 'M003', evidence: 'Same-denominator comparison appears inconsistent with numerator reasoning.' };
+  }
+
   if (skillId === 'F012' && sFrac && cFrac && !fractionEqual(sFrac, cFrac)) {
-    return { code: 'M005', evidence: 'Simplification process appears incorrect.' };
+    return { code: 'M002', evidence: 'Same-numerator comparison appears to ignore denominator size.' };
   }
 
   if (['F013', 'F014', 'F015'].includes(skillId)) {
     return { code: 'M006', evidence: 'Mixed/improper conversion procedure likely incorrect.' };
+  }
+
+  if (skillId === 'F001') {
+    return { code: 'M003', evidence: 'Part-whole recognition appears weak (equal partition concept not secure).' };
+  }
+
+  if (skillId === 'F002') {
+    return { code: 'M003', evidence: 'Numerator/denominator meaning appears confused.' };
   }
 
   if (['F020', 'F023', 'F024'].includes(skillId)) {
@@ -177,6 +220,18 @@ function inferMistakeByRules(input = {}) {
 
   if (['F021', 'F022'].includes(skillId)) {
     return { code: 'M009', evidence: 'Multiplication/division fraction procedure likely incorrect.' };
+  }
+
+  if (skillId === 'F025') {
+    return { code: 'M011', evidence: 'Conversion between percentage, fraction, and decimal appears incorrect.' };
+  }
+
+  if (skillId === 'F023') {
+    return { code: 'M012', evidence: 'Fraction-of-quantity or ratio setup appears inconsistent.' };
+  }
+
+  if (skillId === 'F026') {
+    return { code: 'M013', evidence: 'Algebraic fraction notation interpretation appears incorrect.' };
   }
 
   if (questionFamilyId && skillId && studentAnswer && correctAnswer && String(studentAnswer) !== String(correctAnswer)) {
@@ -375,7 +430,7 @@ export function buildMistakeToMasteryPlan(options = {}) {
 
 export function validateFractionMistakeToMasteryEngine() {
   const taxonomy = getFractionMistakeTaxonomy();
-  const allCodesExist = ['M001', 'M002', 'M003', 'M004', 'M005', 'M006', 'M007', 'M008', 'M009', 'M010']
+  const allCodesExist = ['M001', 'M002', 'M003', 'M004', 'M005', 'M006', 'M007', 'M008', 'M009', 'M010', 'M011', 'M012', 'M013']
     .every((code) => taxonomy.some((t) => t.code === code));
 
   const remediationMapped = taxonomy

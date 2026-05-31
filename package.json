@@ -38,7 +38,8 @@
     "qa:pilot:preflight": "node scripts/qa-pilot-preflight.js",
     "qa:pilot:backend": "node scripts/qa-e2e-safe.js && node scripts/qa-founder-bundle-safe.js && node scripts/qa-mathpath-dashboard-contract.js",
     "qa:pilot:frontend": "npm --prefix frontend run test:pilot-gate",
-    "qa:pilot": "node scripts/qa-pilot-gate.js"
+    "qa:pilot": "node scripts/qa-pilot-gate.js",
+    "qa:fractions:closure": "node scripts/fractions-final-pilot-closure.js"
   },
   "keywords": [
     "tutoring",

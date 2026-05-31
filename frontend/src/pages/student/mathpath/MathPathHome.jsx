@@ -5,6 +5,7 @@ import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
 import {
+  normalizeCurriculum,
   getUniversalSkillByFrameworkId,
   getVisibleSkillsForStudentLevel,
 } from '../../../mathpath/curriculum';
@@ -35,7 +36,6 @@ export default function MathPathHome() {
   const [skillPreviewError, setSkillPreviewError] = useState('');
   const selectedSkillId = selectedSkill?.skillId || '';
   const curriculumCountry = 'SG';
-  const curriculumId = 'MOE_PRIMARY_MATH_2021';
 
   const isFrameworkSkillId = (value) => /^F\d{3}$/i.test(String(value || ''));
   const canonicalSkillName = (skillId, fallback = '') => {
@@ -237,6 +237,17 @@ export default function MathPathHome() {
   const placementSkill = latestPlacement?.result?.recommendedStartingSkill || null;
   const visibleTopics = topics;
   const studentLevel = user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || '';
+  const studentStream = user?.stream || user?.profile?.stream || '';
+  const normalizedLevel = String(studentLevel || '').toUpperCase();
+  const curriculumId = normalizeCurriculum(
+    normalizedLevel.startsWith('S') && String(studentStream || '').toUpperCase() === 'G1'
+      ? 'MOE_SECONDARY_G1_MATH_2021'
+      : '',
+    studentLevel
+  );
+  const curriculumLabel = curriculumId === 'MOE_SECONDARY_G1_MATH_2021'
+    ? 'Sec 1 G1 · Number and Algebra'
+    : 'Primary · Number and Algebra';
   const isEarlyLevel = ['P1', 'P2'].includes(String(studentLevel).toUpperCase());
   const quickWarmupSkillId = domainProgress?.weakSkills?.[0]?.skillId || recommended?.skillId || placementSkill?.skillId || null;
   const unitCompleted = Boolean(domainProgress?.unitCompleted);
@@ -268,6 +279,7 @@ export default function MathPathHome() {
       ...row,
       skillId,
       displayName: row.title || canonicalSkillName(skillId, row.title || skillId),
+      curriculumLabel,
       completed,
       current,
       weakSkill,
@@ -433,7 +445,7 @@ export default function MathPathHome() {
       <Card className="mb-6 p-5">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Visible Fractions Pathway</h3>
-          <span className="text-xs text-ink-400">{curriculumCountry} · MOE Primary Math 2021 · {effectiveStudentLevel}</span>
+          <span className="text-xs text-ink-400">{curriculumCountry} · {curriculumLabel} · {effectiveStudentLevel}</span>
         </div>
         {pathwayRows.length ? (
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -447,6 +459,9 @@ export default function MathPathHome() {
                   </div>
                   <p className="mt-1 text-xs text-ink-500">
                     Introduced {row.introducedLevel || '-'} · Mastery {row.masteryLevel || '-'}
+                  </p>
+                  <p className="mt-1 text-[11px] text-ink-400">
+                    {row.strand || 'Number and Algebra'} {row.syllabusRef ? `· ${row.syllabusRef}` : ''}
                   </p>
                 </div>
               );

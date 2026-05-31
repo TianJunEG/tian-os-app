@@ -73,6 +73,7 @@ const AssessmentReviewScreen = lazy(() => import('./pages/student/mathpath/asses
 const AssessmentWorkingPromptScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentWorkingPromptScreen'));
 const AssessmentResultScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentResultScreen'));
 const TestSpecificationPage = lazy(() => import('./pages/mathpath/TestSpecificationPage'));
+const AssessmentUploadPage = lazy(() => import('./pages/mathpath/AssessmentUploadPage'));
 const WorkingUploadScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadScreen'));
 const WorkingUploadReviewScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadReviewScreen'));
 const WorkingUploadSuccessScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadSuccessScreen'));
@@ -392,6 +393,7 @@ function App() {
           <Route path="/tutor/onboarding" element={<ProtectedRoute><TutorOnboarding /></ProtectedRoute>} />
           <Route path="/parent/profile" element={<ProtectedRoute><ParentProfile /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><FeatureGuard feature="admin"><AdminDashboard /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/mathpath/assessment-upload" element={<ProtectedRoute><FeatureGuard feature="admin"><AssessmentUploadPage /></FeatureGuard></ProtectedRoute>} />
 
           {/* Spelling app */}
           <Route path="/spelling" element={<ProtectedRoute><FeatureGuard feature="spelling"><SpellingHomePage /></FeatureGuard></ProtectedRoute>} />
@@ -470,6 +472,7 @@ function App() {
             <Route path="/parent/children/:studentId/progress" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildProgress /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/test-spec" element={<FeatureGuard feature="parent"><TestSpecificationPage /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/mathpath/assessment-upload" element={<FeatureGuard feature="parent"><AssessmentUploadPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/science" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildScience /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/lifelab" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildLifeLab /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/weak-topics" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WeakTopics /></FeatureGuard>} />
@@ -488,6 +491,7 @@ function App() {
             <Route path="/tutor/students/:id" element={<FeatureGuard feature="tutor"><TutorStudentProfile /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath" element={<FeatureGuard feature="tutor"><TutorMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath/test-spec" element={<FeatureGuard feature="tutor"><TestSpecificationPage /></FeatureGuard>} />
+            <Route path="/tutor/students/:id/mathpath/assessment-upload" element={<FeatureGuard feature="tutor"><AssessmentUploadPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/lesson-prep" element={<FeatureGuard feature="tutor"><LessonPrep /></FeatureGuard>} />
             <Route path="/tutor/students/:id/lesson-notes" element={<FeatureGuard feature="tutor"><LessonNotes /></FeatureGuard>} />
             <Route path="/tutor/students/:id/assign-homework" element={<FeatureGuard feature="tutor"><AssignHomework /></FeatureGuard>} />
@@ -501,6 +505,7 @@ function App() {
             <Route path="/teacher/classes/:id" element={<FeatureGuard feature="teacher"><ClassOverview /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/mathpath" element={<FeatureGuard feature="teacher"><TeacherMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/mathpath/test-spec" element={<FeatureGuard feature="teacher"><TestSpecificationPage /></FeatureGuard>} />
+            <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/mastery" element={<FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/students" element={<FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<FeatureGuard feature="teacher"><Grouping /></FeatureGuard>} />

@@ -19,6 +19,13 @@ import {
 import { buildStudentProgressState } from '../state/mathPathStudentProgressEngine.js';
 
 const PRACTICE_FLOW_STORE = new Map();
+const SESSION_TYPE_CONFIG = {
+  diagnostic: { min: 8, max: 12, defaultCount: 10, label: 'Fractions Check-In' },
+  warmup: { min: 2, max: 3, defaultCount: 3, label: 'Quick Warm-up' },
+  practice: { min: 4, max: 12, defaultCount: 6, label: 'Practice' },
+  remediation: { min: 4, max: 8, defaultCount: 5, label: 'Remediation' },
+  mastery_check: { min: 8, max: 12, defaultCount: 10, label: 'Mastery Check' },
+};
 
 function nowIso() {
   return new Date().toISOString();
@@ -31,6 +38,18 @@ function makeId(prefix) {
 function average(values = []) {
   if (!values.length) return 0;
   return Math.round((values.reduce((sum, n) => sum + Number(n || 0), 0) / values.length) * 10) / 10;
+}
+
+function normalizeSessionType(value) {
+  const key = String(value || 'practice').toLowerCase();
+  return SESSION_TYPE_CONFIG[key] ? key : 'practice';
+}
+
+function resolveSessionCount(sessionType, requestedLength) {
+  const cfg = SESSION_TYPE_CONFIG[sessionType] || SESSION_TYPE_CONFIG.practice;
+  const wanted = Number(requestedLength);
+  if (!Number.isFinite(wanted)) return cfg.defaultCount;
+  return Math.max(cfg.min, Math.min(cfg.max, Math.floor(wanted)));
 }
 
 function toFamilySummary(results = []) {
@@ -89,21 +108,28 @@ export function startFractionPracticeFlow(options = {}) {
   const {
     studentId,
     domainId = 'fractions',
+    sessionType = 'practice',
     requestedSkillId = null,
     requestedQuestionFamilyId = null,
     sessionLength = 6,
+    weakSkillIds = [],
+    recentMistakeTypes = [],
   } = options;
 
   if (!studentId) throw new Error('studentId is required.');
   if (domainId !== 'fractions') throw new Error('Only fractions domain is supported.');
+  const resolvedSessionType = normalizeSessionType(sessionType);
+  const effectiveSessionLength = resolveSessionCount(resolvedSessionType, sessionLength);
+  const preferredSkillId = requestedSkillId
+    || ((resolvedSessionType === 'warmup' || resolvedSessionType === 'remediation') ? weakSkillIds[0] : null);
 
   const practiceSession = buildFractionPracticeSession({
     studentId,
-    currentSkillId: requestedSkillId || null,
-    sessionLength,
+    currentSkillId: preferredSkillId || null,
+    sessionLength: effectiveSessionLength,
   });
 
-  const targetSkillId = requestedSkillId || practiceSession.targetSkillId;
+  const targetSkillId = preferredSkillId || practiceSession.targetSkillId;
   const targetQuestionFamilyIds = requestedQuestionFamilyId
     ? [requestedQuestionFamilyId]
     : (practiceSession.targetQuestionFamilyIds || []).filter(Boolean);
@@ -116,7 +142,7 @@ export function startFractionPracticeFlow(options = {}) {
 
   const questions = generatePracticeQuestionSet({
     practiceQueue,
-    count: Math.max(4, Number(sessionLength) || 6),
+    count: effectiveSessionLength,
   });
 
   const workingRequiredMap = {};
@@ -145,6 +171,8 @@ export function startFractionPracticeFlow(options = {}) {
     domainId,
     targetSkillId,
     targetQuestionFamilyIds,
+    sessionType: resolvedSessionType,
+    recentMistakeTypes: Array.isArray(recentMistakeTypes) ? recentMistakeTypes : [],
     questions,
     workingExpectedMap: workingRequiredMap,
     workingExpected,
@@ -157,6 +185,8 @@ export function startFractionPracticeFlow(options = {}) {
     practiceSessionId: practiceSession.sessionId,
     targetSkillId,
     targetQuestionFamilyIds,
+    sessionType: resolvedSessionType,
+    sessionLabel: SESSION_TYPE_CONFIG[resolvedSessionType]?.label || 'Practice',
     questions,
     workingExpected,
     workingSessionId: workingSession.workingSessionId,
@@ -168,6 +198,7 @@ export function submitFractionPracticeAttempt(options = {}) {
   const {
     practiceSessionId,
     studentId,
+    sessionType = null,
     responses = [],
   } = options;
 
@@ -175,6 +206,7 @@ export function submitFractionPracticeAttempt(options = {}) {
   const session = PRACTICE_FLOW_STORE.get(practiceSessionId);
   if (!session) throw new Error('Practice session not found.');
   if (session.studentId !== studentId) throw new Error('studentId does not match practice session.');
+  const resolvedSessionType = normalizeSessionType(sessionType || session.sessionType || 'practice');
 
   const questionById = new Map(session.questions.map((q) => [q.questionId, q]));
   const updateResults = [];
@@ -261,8 +293,11 @@ export function submitFractionPracticeAttempt(options = {}) {
     })),
   };
 
-  const workingUploadRequired = Boolean(session.workingExpected);
-  const nextRecommendedAction = computeNextAction({ familyFluencySummary, updateResults });
+  const workingUploadRequired = Boolean(session.workingExpected && resolvedSessionType !== 'warmup');
+  let nextRecommendedAction = computeNextAction({ familyFluencySummary, updateResults });
+  if (resolvedSessionType === 'warmup') nextRecommendedAction = 'continuePractice';
+  if (resolvedSessionType === 'remediation' && accuracySummary.accuracyPercentage >= 85) nextRecommendedAction = 'continuePractice';
+  if (resolvedSessionType === 'mastery_check') nextRecommendedAction = accuracySummary.accuracyPercentage >= 85 ? 'advanceSkill' : 'reviewNeeded';
 
   const studentProgressState = buildStudentProgressState({
     studentId,
@@ -293,6 +328,8 @@ export function submitFractionPracticeAttempt(options = {}) {
   });
 
   return {
+    sessionType: resolvedSessionType,
+    sessionLabel: SESSION_TYPE_CONFIG[resolvedSessionType]?.label || 'Practice',
     results,
     accuracySummary,
     fluencySummary,

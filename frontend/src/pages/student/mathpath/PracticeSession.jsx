@@ -5,13 +5,65 @@ import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
+import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 import {
   startFractionPracticeFlow,
   submitFractionPracticeAttempt,
 } from '../../../mathpath/fractions/fractionPracticeFlow';
 import { checkFractionAnswer } from '../../../mathpath/fractions/fractionQuestionGenerator';
+import {
+  getMathPathDomainProgressState,
+  setMathPathDomainProgressState,
+} from '../../../mathpath/state/mathPathDomainProgressState';
 
 const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
+const SESSION_META = {
+  diagnostic: {
+    label: 'Fractions Check-In',
+    helper: 'Short baseline placement session.',
+    finishLabel: 'Finish Check-In',
+  },
+  warmup: {
+    label: 'Quick Warm-up',
+    helper: '2–3 retrieval questions before main practice.',
+    finishLabel: 'Finish Warm-up',
+  },
+  practice: {
+    label: 'Practice',
+    helper: 'Build mastery, fluency, and confidence.',
+    finishLabel: 'Finish Session',
+  },
+  remediation: {
+    label: 'Remediation',
+    helper: 'Target weak skills and common mistakes.',
+    finishLabel: 'Finish Remediation',
+  },
+  mastery_check: {
+    label: 'Mastery Check',
+    helper: 'Confirm readiness to move forward.',
+    finishLabel: 'Finish Mastery Check',
+  },
+};
+
+function normalizeSessionType(value) {
+  const key = String(value || 'practice').toLowerCase();
+  return SESSION_META[key] ? key : 'practice';
+}
+
+function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [] }) {
+  if (!studentId) return;
+  const existing = getMathPathDomainProgressState(studentId, 'fractions') || {};
+  setMathPathDomainProgressState(studentId, 'fractions', {
+    ...existing,
+    lastSessionAt: new Date().toISOString(),
+    currentSkillId: currentSkillId || existing.currentSkillId || null,
+    weakSkills: weakSkillIds,
+    masteryCheckCompleted: sessionType === 'mastery_check' ? true : Boolean(existing.masteryCheckCompleted),
+    masteryCheckCompletedAt: sessionType === 'mastery_check'
+      ? new Date().toISOString()
+      : existing.masteryCheckCompletedAt || null,
+  });
+}
 
 function VisualTable({ payload }) {
   const headers = Array.isArray(payload?.headers) ? payload.headers : [];
@@ -48,11 +100,20 @@ function getFeedback({ correct, timeTaken, estimatedSeconds, skipped }) {
   return "Correct. Let's practise for speed.";
 }
 
+function canonicalSkillName(skillId, fallback = '') {
+  const normalized = String(skillId || '').toUpperCase();
+  if (!/^F\d{3}$/.test(normalized)) return fallback || String(skillId || '');
+  return getUniversalSkillByFrameworkId(normalized)?.title || fallback || normalized;
+}
+
 function LegacyPracticeSession() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const items = useMemo(() => location.state?.items || [], [location.state]);
+  const sessionType = normalizeSessionType(location.state?.sessionType);
+  const sessionMeta = SESSION_META[sessionType];
+  const studentId = location.state?.studentId || null;
   const resultsBase = location.state?.resultsBase || '/student/mathpath';
   const homeBase = location.state?.homeBase || location.state?.backTo || '/student/mathpath';
   const resultState = {
@@ -60,6 +121,7 @@ function LegacyPracticeSession() {
     homeBase: location.state?.homeBase || location.state?.backTo,
     homeLabel: location.state?.homeLabel,
     mistakesBase: location.state?.mistakesBase,
+    sessionType,
   };
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
@@ -90,14 +152,30 @@ function LegacyPracticeSession() {
   const next = async () => {
     if (!isLast) { setIdx((i) => i + 1); setAnswer(''); setResult(null); setErr(''); return; }
     setBusy(true);
-    try { await mathpathAPI.complete(sessionId); } catch (_) { /* noop */ }
+    let completion = null;
+    try {
+      const { data } = await mathpathAPI.complete(sessionId);
+      completion = data?.summary || null;
+    } catch (_) { /* noop */ }
+    persistDomainSessionProgress({
+      studentId,
+      sessionType,
+      currentSkillId: String(q.skillId || ''),
+      weakSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) < 80
+        ? [{ skillId: String(q.skillId || ''), skillName: canonicalSkillName(q.skillId, q.skillName || '') }]
+        : [],
+    });
     navigate(`${resultsBase}/results/${sessionId}`, { replace: true, state: resultState });
   };
 
   return (
     <div className="mx-auto max-w-xl">
+      <div className="mb-3 rounded-xl border border-hairline bg-white px-3 py-2 text-sm text-ink-700">
+        <p className="font-semibold">{sessionMeta.label}</p>
+        <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
+      </div>
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
-        <span className="font-mono tabular-nums">Question {idx + 1} of {items.length}</span><span>{q.skillName}</span>
+        <span className="font-mono tabular-nums">Question {idx + 1} of {items.length}</span><span>{canonicalSkillName(q.skillId, q.skillName || '')}</span>
       </div>
       <ProgressBar value={idx + (result ? 1 : 0)} max={items.length} className="mb-6" />
       <Card className="flex min-h-[30rem] flex-col p-6">
@@ -120,7 +198,7 @@ function LegacyPracticeSession() {
           </div>
         )}
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
-        <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? 'Finish' : 'Next question'}</Button>}</div>
+        <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
       </Card>
     </div>
   );
@@ -133,7 +211,11 @@ export default function PracticeSession() {
   const { user } = useAuth();
   const isMathPathRoute = location.pathname.startsWith('/student/mathpath/practice/');
   const hasLegacyItems = Boolean(location.state?.items?.length);
+  const sessionType = normalizeSessionType(location.state?.sessionType);
+  const sessionMeta = SESSION_META[sessionType];
 
+  // Compatibility shim: older non-framework sessions still navigate with pre-baked
+  // `items` payload. Keep this path until all callers route through skillId/sessionType.
   if (!isMathPathRoute || hasLegacyItems) return <LegacyPracticeSession />;
 
   const studentId = user?._id || user?.id || user?.email || 'demo-student';
@@ -158,9 +240,20 @@ export default function PracticeSession() {
         const started = await startFractionPracticeFlow({
           studentId,
           domainId: 'fractions',
+          sessionType,
           requestedSkillId: location.state?.skillId || null,
           requestedQuestionFamilyId: location.state?.questionFamilyId || null,
-          sessionLength: location.state?.questionCount || 5,
+          sessionLength:
+            location.state?.questionCount
+            || (sessionType === 'warmup'
+              ? 3
+              : sessionType === 'diagnostic' || sessionType === 'mastery_check'
+                ? 10
+                : sessionType === 'remediation'
+                  ? 5
+                  : 6),
+          weakSkillIds: Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [],
+          recentMistakeTypes: Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [],
         });
         if (!mounted) return;
         setFlowSession(started);
@@ -174,7 +267,7 @@ export default function PracticeSession() {
       }
     })();
     return () => { mounted = false; };
-  }, [studentId, location.state]);
+  }, [studentId, location.state, sessionType]);
 
   useEffect(() => {
     if (summary || loading || !questions.length) return undefined;
@@ -270,7 +363,17 @@ export default function PracticeSession() {
       const submitted = await submitFractionPracticeAttempt({
         practiceSessionId: flowSession.practiceSessionId || routeSessionId,
         studentId,
+        sessionType,
         responses: payload,
+      });
+      const weakSkillRows = submitted.accuracySummary?.accuracyPercentage < 80
+        ? [{ skillId: flowSession?.targetSkillId || q.skillId, skillName: canonicalSkillName(flowSession?.targetSkillId || q.skillId, '') }]
+        : [];
+      persistDomainSessionProgress({
+        studentId,
+        sessionType,
+        currentSkillId: flowSession?.targetSkillId || q.skillId || null,
+        weakSkillIds: weakSkillRows,
       });
       setSummary(submitted);
     } catch (e) {
@@ -309,7 +412,7 @@ export default function PracticeSession() {
     return (
       <div className="mx-auto max-w-xl">
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-ink-900">Session Complete</h2>
+          <h2 className="text-xl font-semibold text-ink-900">{sessionMeta.label} Complete</h2>
           <div className="mt-4 space-y-2 text-sm text-ink-700">
             <p><span className="font-semibold">Accuracy:</span> {summary.accuracySummary?.accuracyPercentage ?? 0}%</p>
             <p><span className="font-semibold">Average time:</span> {summary.accuracySummary?.averageSeconds ?? 0}s</p>
@@ -324,7 +427,7 @@ export default function PracticeSession() {
                 variant="secondary"
                 onClick={() => navigate('/student/mathpath/working/upload', {
                   state: {
-                    sessionType: 'practice',
+                    sessionType,
                     studentId,
                     practiceSessionId: flowSession?.practiceSessionId || routeSessionId,
                     workingSessionId: summary.workingSessionId || flowSession?.workingSessionId || null,
@@ -362,6 +465,10 @@ export default function PracticeSession() {
 
   return (
     <div className="mx-auto max-w-xl">
+      <div className="mb-3 rounded-xl border border-hairline bg-white px-3 py-2 text-sm text-ink-700">
+        <p className="font-semibold">{sessionMeta.label}</p>
+        <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
+      </div>
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono tabular-nums">Question {idx + 1} of {questions.length}</span>
         <span className="font-mono">{elapsedSec}s</span>
@@ -431,7 +538,7 @@ export default function PracticeSession() {
             </>
           ) : (
             <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
-              {isLast ? 'Finish session' : 'Next question'}
+              {isLast ? sessionMeta.finishLabel : 'Next question'}
             </Button>
           )}
         </div>

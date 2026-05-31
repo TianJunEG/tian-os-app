@@ -39,7 +39,9 @@ describe('masteryEngine.recordAttempt', () => {
   const workspaceId = new mongoose.Types.ObjectId();
 
   beforeAll(async () => {
-    mongo = await MongoMemoryServer.create();
+    mongo = await MongoMemoryServer.create({
+      instance: { ip: '127.0.0.1' },
+    });
     await mongoose.connect(mongo.getUri());
   }, 60000);
   afterAll(async () => { await mongoose.disconnect(); if (mongo) await mongo.stop(); });

@@ -8,6 +8,36 @@ import PracticeAttempt from '../models/PracticeAttempt.js';
 import Skill from '../models/Skill.js';
 
 const DIFF_NEIGHBOURS = { easy: ['easy', 'medium'], medium: ['easy', 'medium', 'hard'], hard: ['medium', 'hard'] };
+const SEC1_G1_FRACTIONS_SKILL_IDS = ['F010', 'F013', 'F014', 'F017', 'F018', 'F021', 'F022', 'F023', 'F025', 'F026'];
+
+export function getSec1G1FractionsWorksheetSkillPlan() {
+  return {
+    arithmeticFractions: ['F017', 'F018', 'F021', 'F022'],
+    negativeFractions: ['F013', 'F017', 'F018', 'F022'],
+    fractionDecimalApplications: ['F021', 'F023', 'F025'],
+    ratioFractionsDecimals: ['F023'],
+    percentFractionDecimal: ['F025'],
+    algebraicFractionNotation: ['F026'],
+    allSkillIds: [...SEC1_G1_FRACTIONS_SKILL_IDS],
+  };
+}
+
+export function getFractionsMvpDepthWorksheetPlan() {
+  return {
+    foundationalShallow: ['F001', 'F002', 'F011', 'F012', 'F015'],
+    highRiskMvp: ['F018', 'F023'],
+    mixedReview: ['F005', 'F006', 'F007', 'F008', 'F009', 'F013', 'F014', 'F019', 'F021', 'F022', 'F024', 'F025', 'F026'],
+    difficultyProgression: {
+      F001: ['easy', 'medium'],
+      F002: ['easy', 'medium'],
+      F011: ['easy', 'medium'],
+      F012: ['easy', 'medium'],
+      F015: ['easy', 'medium', 'hard'],
+      F018: ['medium', 'hard'],
+      F023: ['medium', 'hard'],
+    },
+  };
+}
 
 // Find similar questions for a set of skills: same skill, near difficulty,
 // prefer not-recently-attempted, no duplicates, optional exclude.
@@ -21,7 +51,11 @@ export async function selectSimilarQuestions({ studentId, skillIds, difficulty =
   const recentSet = new Set(recent.map((a) => String(a.questionId)));
   const excludeSet = new Set(excludeQuestionIds.map(String));
 
-  const pool = await Question.find({ skillId: { $in: skillIds }, difficulty: { $in: allowed } })
+  const pool = await Question.find({
+    skillId: { $in: skillIds },
+    difficulty: { $in: allowed },
+    worksheetCompatible: { $ne: false },
+  })
     .populate({ path: 'skillId', populate: { path: 'topicId' } });
 
   // Score: matching difficulty first, then unseen, then a mix of skills.

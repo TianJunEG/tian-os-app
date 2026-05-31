@@ -14,9 +14,21 @@ const DEFAULT_COUNTRY = 'SG';
 const DEFAULT_CURRICULUM = 'MOE_PRIMARY_MATH_2021';
 const DEFAULT_DOMAIN = 'fractions';
 const LEVEL_ORDER = fractionCurriculumMeta.levelOrder || ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+const LEVEL_ALIASES = fractionCurriculumMeta.levelAliases || {};
+
+export function normalizeCurriculum(value, level = '') {
+  const raw = String(value || '').trim().toUpperCase();
+  if (raw) return raw;
+  const lv = normalizeLevel(level);
+  if (lv.startsWith('S')) return 'MOE_SECONDARY_G1_MATH_2021';
+  return DEFAULT_CURRICULUM;
+}
 
 function normalizeLevel(level) {
-  return String(level || '').trim().toUpperCase();
+  const raw = String(level || '').trim().toUpperCase();
+  if (LEVEL_ORDER.includes(raw)) return raw;
+  const compact = raw.replace(/[^A-Z0-9]/g, '');
+  return LEVEL_ALIASES[compact] || raw;
 }
 
 function levelRank(level) {
@@ -72,7 +84,7 @@ function buildEnrichedUniversalSkill(universalSkill, mapping = null) {
 
 export function getSkillCurriculumMapping(skillRef, options = {}) {
   const country = String(options.country || DEFAULT_COUNTRY).toUpperCase();
-  const curriculum = String(options.curriculum || DEFAULT_CURRICULUM).toUpperCase();
+  const curriculum = normalizeCurriculum(options.curriculum, options.level || options.studentLevel);
   const frameworkSkillId = skillRefToFrameworkSkillId(skillRef);
   if (frameworkSkillId) {
     return getFractionCurriculumMappingByFrameworkId(frameworkSkillId, { country, curriculum });
@@ -83,7 +95,7 @@ export function getSkillCurriculumMapping(skillRef, options = {}) {
 
 export function getSkillsByCountryCurriculumLevel(options = {}) {
   const country = String(options.country || DEFAULT_COUNTRY).toUpperCase();
-  const curriculum = String(options.curriculum || DEFAULT_CURRICULUM).toUpperCase();
+  const curriculum = normalizeCurriculum(options.curriculum, options.level || options.studentLevel);
   const domain = String(options.domain || DEFAULT_DOMAIN).toLowerCase();
   const level = normalizeLevel(options.level);
   const includeFutureLevels = Boolean(options.includeFutureLevels);
@@ -147,7 +159,7 @@ export function getRemediationSkillsForWeakPrerequisites(options = {}) {
 
 export function getVisibleSkillsForStudentLevel(options = {}) {
   const country = String(options.country || DEFAULT_COUNTRY).toUpperCase();
-  const curriculum = String(options.curriculum || DEFAULT_CURRICULUM).toUpperCase();
+  const curriculum = normalizeCurriculum(options.curriculum, options.studentLevel || options.level);
   const domain = String(options.domain || DEFAULT_DOMAIN).toLowerCase();
   const studentLevel = normalizeLevel(options.studentLevel || options.level);
   const weakSkillIds = Array.isArray(options.weakSkillIds) ? options.weakSkillIds : [];
@@ -180,7 +192,7 @@ export function getVisibleSkillsForStudentLevel(options = {}) {
 
 export function getCurriculumCoverageSummary(options = {}) {
   const country = String(options.country || DEFAULT_COUNTRY).toUpperCase();
-  const curriculum = String(options.curriculum || DEFAULT_CURRICULUM).toUpperCase();
+  const curriculum = normalizeCurriculum(options.curriculum, options.studentLevel || options.level);
   const domain = String(options.domain || DEFAULT_DOMAIN).toLowerCase();
   const levels = [...new Set(
     fractionCurriculumMappings
@@ -203,6 +215,7 @@ export function getCurriculumCoverageSummary(options = {}) {
 }
 
 export default {
+  normalizeCurriculum,
   getSkillCurriculumMapping,
   getSkillsByCountryCurriculumLevel,
   getPrerequisiteSkills,

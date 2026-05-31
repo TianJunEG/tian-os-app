@@ -17,6 +17,13 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function daysSince(value) {
+  if (!value) return null;
+  const ts = new Date(value).getTime();
+  if (!Number.isFinite(ts)) return null;
+  return Math.floor((Date.now() - ts) / (24 * 60 * 60 * 1000));
+}
+
 function computeSkillStatuses(input = {}) {
   const {
     masteredSkillIds = [],
@@ -319,6 +326,25 @@ export function buildStudentProgressState(options = {}) {
   const strengths = getStrengthSkills({ ...baseState, masteryProgress });
   const remediationQueue = buildRemediationQueue({ ...baseState, weakSkills, mistakePlans });
   const retentionDue = buildRetentionQueue({ ...baseState, retentionState });
+  const diagnosticCompleted = Boolean(
+    diagnosticResult?.diagnosticCompleted
+    || diagnosticResult?.recommendedStartingSkillId
+    || diagnosticResult?.recommendedStartingSkill?.skillId
+  );
+  const diagnosticCompletedAt = diagnosticResult?.diagnosticCompletedAt || diagnosticResult?.completedAt || null;
+  const lastSessionAt = practiceState?.lastSessionAt || practiceState?.updatedAt || null;
+  const recentMistakeTypes = dedupe(
+    (mistakePlans || [])
+      .flatMap((p) => (p.focusMistakes || []).map((m) => m.mistakeCode || m.mistakeName || '').filter(Boolean))
+  );
+  const masteryCheckCompleted = (assessmentResults || []).some(
+    (r) => String(r?.assessmentType || '').toLowerCase() === 'mastery'
+  );
+  const needsRecheck = diagnosticCompleted && (
+    (daysSince(lastSessionAt || diagnosticCompletedAt) || 0) >= 45
+    || weakSkills.length >= 4
+    || recentMistakeTypes.length >= 3
+  );
   const assessmentProgress = {
     assessmentResults,
     latestScore: assessmentResults.at(-1)?.percentage ?? null,
@@ -347,6 +373,15 @@ export function buildStudentProgressState(options = {}) {
     activeMistakes: mistakePlans.flatMap((p) => p.focusMistakes || []),
     remediationQueue,
     retentionDue,
+    domainId: 'fractions',
+    diagnosticCompleted,
+    diagnosticCompletedAt,
+    lastSessionAt,
+    currentSkillId: baseState.currentSkill,
+    skillMasteryStatus: skillStatuses,
+    recentMistakeTypes,
+    needsRecheck,
+    masteryCheckCompleted,
     generatedAt: nowIso(),
   };
 

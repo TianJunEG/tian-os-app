@@ -181,6 +181,17 @@ export const assessmentBlueprintAPI = {
   schoolProfiles: (params = {}) => api.get('/assessment-blueprints/school-profiles', { params }),
 };
 
+export const assessmentUploadAPI = {
+  list: (params = {}) => api.get('/assessment-uploads', { params }),
+  upload: (formData) => api.post('/assessment-uploads', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  status: (uploadId) => api.get(`/assessment-uploads/${uploadId}/status`),
+  blueprint: (uploadId) => api.get(`/assessment-uploads/${uploadId}/blueprint`),
+  metadata: (uploadId) => api.get(`/assessment-uploads/${uploadId}/metadata`),
+  deletionLogs: (uploadId) => api.get(`/assessment-uploads/${uploadId}/deletion-logs`),
+};
+
 // Auth API
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),

@@ -52,6 +52,21 @@ export default function TestSpecificationPage() {
     () => specs.find((s) => String(s._id) === String(selectedSpecId)) || null,
     [specs, selectedSpecId]
   );
+  const uploadRoute = useMemo(() => {
+    if (ownerType === 'parent') {
+      const id = form.targetStudentId || studentId || routeId;
+      return id ? `/parent/children/${id}/mathpath/assessment-upload` : '';
+    }
+    if (ownerType === 'tutor') {
+      const id = form.targetStudentId || routeId;
+      return id ? `/tutor/students/${id}/mathpath/assessment-upload` : '';
+    }
+    if (ownerType === 'teacher') {
+      const id = form.targetClassId || classId;
+      return id ? `/teacher/classes/${id}/mathpath/assessment-upload` : '';
+    }
+    return '';
+  }, [ownerType, form.targetStudentId, form.targetClassId, studentId, routeId, classId]);
 
   const totalTopicMarks = useMemo(
     () => form.topics.reduce((sum, row) => sum + Number(row.marks || 0), 0),
@@ -193,6 +208,14 @@ export default function TestSpecificationPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <PageHeader title="School-Aligned Test (TOS)" subtitle="Create a Table of Specification and generate a balanced revision test." />
+      {uploadRoute && (
+        <Card className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-ink-600">Have a school paper PDF? Analyse it once and convert it to blueprint metadata.</p>
+            <Button to={uploadRoute} variant="secondary">Open Assessment Upload</Button>
+          </div>
+        </Card>
+      )}
 
       {error && <ErrorState message={error} />}
 
