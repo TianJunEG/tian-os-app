@@ -17,6 +17,11 @@ import { studentMathAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
 import { evaluateDiagnosticReplayPolicy } from '../utils/diagnosticReplayPolicy.js';
+import {
+  getFractionsModelTrainerForSkill,
+  getFractionsModelTrainerTemplate,
+  listFractionsModelTrainerTemplates,
+} from '../services/mathpath/fractionsModelTrainer.js';
 
 const router = express.Router();
 
@@ -32,6 +37,37 @@ const DIAG_COUNTS = {
   assigned: { basic: 12, core: 18, full: 24 },
 };
 const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
+
+router.get('/fractions/model-trainer', protect, async (req, res) => {
+  try {
+    res.json({
+      templates: listFractionsModelTrainerTemplates({ skillId: req.query.skillId }),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load model trainer templates.' });
+  }
+});
+
+router.get('/fractions/model-trainer/skill/:skillId', protect, async (req, res) => {
+  try {
+    res.json({
+      skillId: String(req.params.skillId || '').toUpperCase(),
+      templates: getFractionsModelTrainerForSkill(req.params.skillId),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load model trainer templates.' });
+  }
+});
+
+router.get('/fractions/model-trainer/:templateId', protect, async (req, res) => {
+  try {
+    const template = getFractionsModelTrainerTemplate(req.params.templateId);
+    if (!template) return res.status(404).json({ error: 'Model trainer template not found.' });
+    res.json({ template });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load model trainer template.' });
+  }
+});
 
 const normalizeLevelTag = (value = '') => {
   const raw = String(value || '').trim();

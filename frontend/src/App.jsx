@@ -45,6 +45,7 @@ const PracticeSession = lazy(() => import('./pages/student/mathpath/PracticeSess
 const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResult'));
 const QuestionReviewPage = lazy(() => import('./pages/student/mathpath/QuestionReviewPage'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
+const FractionsModelTrainer = lazy(() => import('./pages/student/mathpath/FractionsModelTrainer'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
 // Spelling Practice (Phase 6) — shared-core wiring
@@ -165,6 +166,16 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" />;
   }
 
+  return children;
+};
+
+const RoleGuard = ({ role, children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  const roles = Array.isArray(user?.roles) && user.roles.length ? user.roles : [user?.role].filter(Boolean);
+  if (!roles.includes(role)) {
+    return <Navigate to={ROLE_HOME[user?.role] || '/student'} replace />;
+  }
   return children;
 };
 
@@ -423,6 +434,8 @@ function App() {
             <Route path="/student/mathpath/results/:sessionId" element={<PracticeResult />} />
             <Route path="/student/mathpath/review" element={<QuestionReviewPage />} />
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
+            <Route path="/student/mathpath/fractions/model-trainer" element={<FractionsModelTrainer />} />
+            <Route path="/student/mathpath/fractions/model-trainer/:templateId" element={<FractionsModelTrainer />} />
             {/* Mistake-to-Mastery (MathPath feature) */}
             <Route path="/student/mathpath/mistakes" element={<MistakesHome />} />
             <Route path="/student/mathpath/mistakes/review" element={<MistakeReview />} />
@@ -500,21 +513,21 @@ function App() {
             <Route path="/tutor/training" element={<FeatureGuard feature="tutor"><TutorTraining /></FeatureGuard>} />
 
             {/* Teacher (Phase 5) */}
-            <Route path="/teacher" element={<FeatureGuard feature="teacher"><TeacherHome /></FeatureGuard>} />
-            <Route path="/teacher/classes" element={<FeatureGuard feature="teacher"><Classes /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id" element={<FeatureGuard feature="teacher"><ClassOverview /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/mathpath" element={<FeatureGuard feature="teacher"><TeacherMathPathDashboardPage /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/mathpath/test-spec" element={<FeatureGuard feature="teacher"><TestSpecificationPage /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/mastery" element={<FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/students" element={<FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/groups" element={<FeatureGuard feature="teacher"><Grouping /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/assign" element={<FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/interventions" element={<FeatureGuard feature="teacher"><Intervention /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/lifelab" element={<FeatureGuard feature="teacher"><TeacherLifeLab /></FeatureGuard>} />
-            <Route path="/teacher/classes/:id/reports" element={<FeatureGuard feature="teacher"><Reports /></FeatureGuard>} />
-            <Route path="/teacher/students/:id" element={<FeatureGuard feature="teacher"><TeacherStudentDetail /></FeatureGuard>} />
-            <Route path="/teacher/lifelab" element={<FeatureGuard feature="teacher"><TeacherLifeLabHome /></FeatureGuard>} />
+            <Route path="/teacher" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherHome /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Classes /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassOverview /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/mathpath" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherMathPathDashboardPage /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/mathpath/test-spec" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TestSpecificationPage /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/mastery" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/interventions" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Intervention /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLab /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/reports" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Reports /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/students/:id" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherStudentDetail /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLabHome /></FeatureGuard></RoleGuard>} />
 
             {/* ─── Secondary → Mechanisms Playground (D&T) ─── */}
             <Route path="/secondary/mechanisms" element={<FeatureGuard feature="mechanisms"><MechanismsHome /></FeatureGuard>} />

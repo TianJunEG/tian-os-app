@@ -63,16 +63,27 @@ export const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
   };
 };
 
+function envNumber(name, fallback) {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
 /**
  * Stricter rate limiting for auth routes
  * Prevents brute force attacks
  */
-export const authRateLimit = rateLimit(10, 15 * 60 * 1000); // 10 requests per 15 minutes
+export const authRateLimit = rateLimit(
+  envNumber('AUTH_RATE_LIMIT_MAX', 10),
+  envNumber('AUTH_RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000)
+); // defaults to 10 requests per 15 minutes
 
 /**
  * Standard API rate limiting
  */
-export const apiRateLimit = rateLimit(100, 15 * 60 * 1000); // 100 requests per 15 minutes
+export const apiRateLimit = rateLimit(
+  envNumber('API_RATE_LIMIT_MAX', 100),
+  envNumber('API_RATE_LIMIT_WINDOW_MS', 15 * 60 * 1000)
+); // defaults to 100 requests per 15 minutes
 
 /**
  * Strict rate limiting for sensitive operations

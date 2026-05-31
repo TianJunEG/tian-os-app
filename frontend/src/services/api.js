@@ -70,6 +70,9 @@ export const mathpathAPI = {
   mistakes: (params) => api.get('/mistakes', { params }),
   reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
   placement: (attempts) => api.post('/mastery/placement', { attempts }),
+  modelTrainerTemplates: (params) => api.get('/mastery/fractions/model-trainer', { params }),
+  modelTrainerForSkill: (skillId) => api.get(`/mastery/fractions/model-trainer/skill/${skillId}`),
+  modelTrainerTemplate: (templateId) => api.get(`/mastery/fractions/model-trainer/${templateId}`),
   // ref: a slug string, or { skillId } / { skillSlug }
   remediation: (ref, recentAttempts = []) =>
     api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })

@@ -1,6 +1,12 @@
 import { fractionSkillGraph, getSkill } from './fractionSkillGraph.js';
 import { getQuestionFamiliesBySkill } from './fractionQuestionFamilies.js';
 
+const MODEL_DRAWING_REMEDIATION = {
+  M003: 'fraction_of_whole_left',
+  M008: 'fraction_of_remainder_subdivision',
+  M012: 'fraction_of_remainder_subdivision',
+};
+
 const SKILL_IDS = new Set(fractionSkillGraph.skillIds);
 
 const MISTAKE_TAXONOMY = {
@@ -323,6 +329,15 @@ export function getRemediationForMistake(mistakeCode) {
   const recommendedQuestionFamilyIds = tax.remediationSkillIds.flatMap((skillId) =>
     getQuestionFamiliesBySkill(skillId).slice(0, 2).map((f) => f.id)
   );
+  const modelTemplateId = MODEL_DRAWING_REMEDIATION[mistakeCode] || null;
+  const modelDrawingTrainer = modelTemplateId ? {
+    type: 'model_drawing_trainer',
+    label: mistakeCode === 'M008' || mistakeCode === 'M012'
+      ? 'Try the model drawing trainer for fraction remainder.'
+      : 'Try the model drawing trainer for part-whole fractions.',
+    template_id: modelTemplateId,
+    href: `/student/mathpath/fractions/model-trainer/${modelTemplateId}`,
+  } : null;
 
   const explanationForStudent =
     mistakeCode === 'M010'
@@ -338,6 +353,7 @@ export function getRemediationForMistake(mistakeCode) {
     mistakeCode: tax.code,
     remediationSkillIds: [...tax.remediationSkillIds],
     recommendedQuestionFamilyIds,
+    modelDrawingTrainer,
     explanationForStudent,
     explanationForParent,
     explanationForTutor,
