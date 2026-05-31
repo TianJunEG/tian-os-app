@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, FlaskConical } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Button, Badge, StatTile, Spinner, ErrorState } from '../../components/ui';
+import { Card, Button, Badge, StatTile, Spinner, ErrorState, CollapsibleSection } from '../../components/ui';
 
 export default function ClassOverview() {
   const { id } = useParams();
@@ -57,10 +57,11 @@ export default function ClassOverview() {
       </div>
 
       {data.science?.available && (
-        <Card className="mt-5 p-5">
-          <div className="mb-3 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">
-            <FlaskConical className="h-3.5 w-3.5" /> Science · Adaptive Revision
-          </div>
+        <CollapsibleSection
+          title="Science Adaptive Revision"
+          summary={data.science.attemptedCount === 0 ? 'No students have started yet.' : `${data.science.attemptedCount}/${data.studentCount} students started`}
+          className="mt-5"
+        >
           {data.science.attemptedCount === 0 ? (
             <p className="text-sm text-ink-500">No students in this class have started Science Adaptive Revision yet.</p>
           ) : (
@@ -97,7 +98,7 @@ export default function ClassOverview() {
               </div>
             </>
           )}
-        </Card>
+        </CollapsibleSection>
       )}
     </>
   );

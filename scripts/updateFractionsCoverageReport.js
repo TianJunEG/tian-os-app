@@ -13,7 +13,9 @@ async function main() {
   console.log(JSON.stringify({
     out,
     pilotReadinessScore: report.pilotReadinessScore,
-    skillsBelowThreshold: report.skillsBelowThreshold?.length || 0,
+    fullCoverageScore: report.fullCoverageScore,
+    skillsBelowPilotMinimum: report.skillsBelowPilotMinimum?.length || 0,
+    skillsBelowFullCoverageTarget: report.skillsBelowFullCoverageTarget?.length || 0,
   }, null, 2));
 }
 
@@ -21,4 +23,3 @@ main().catch((err) => {
   console.error('Failed to update coverage report:', err?.message || err);
   process.exit(1);
 });
-

@@ -46,6 +46,7 @@ const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResul
 const QuestionReviewPage = lazy(() => import('./pages/student/mathpath/QuestionReviewPage'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
 const FractionsModelTrainer = lazy(() => import('./pages/student/mathpath/FractionsModelTrainer'));
+const SimilarQuestionPractice = lazy(() => import('./pages/student/mathpath/SimilarQuestionPractice'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
 // Spelling Practice (Phase 6) — shared-core wiring
@@ -436,6 +437,7 @@ function App() {
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
             <Route path="/student/mathpath/fractions/model-trainer" element={<FractionsModelTrainer />} />
             <Route path="/student/mathpath/fractions/model-trainer/:templateId" element={<FractionsModelTrainer />} />
+            <Route path="/student/mathpath/fractions/similar-practice/:practiceSetId" element={<SimilarQuestionPractice />} />
             {/* Mistake-to-Mastery (MathPath feature) */}
             <Route path="/student/mathpath/mistakes" element={<MistakesHome />} />
             <Route path="/student/mathpath/mistakes/review" element={<MistakeReview />} />

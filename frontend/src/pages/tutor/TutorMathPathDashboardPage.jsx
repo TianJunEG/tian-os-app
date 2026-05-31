@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Clock3, FileText, Target, Upload } from 'lucide-react';
-import { Button, Card, ErrorState, PageHeader, Spinner, Badge } from '../../components/ui';
+import { Clock3, FileText, Target, Upload } from 'lucide-react';
+import { Button, Card, ErrorState, PageHeader, Spinner, Badge, CollapsibleSection } from '../../components/ui';
 import TutorStudentNav from './TutorStudentNav';
 import { useTutorStudent } from './useTutorStudent';
 import { tutorAPI, mathpathAPI } from '../../services/api';
@@ -320,12 +320,7 @@ export default function TutorMathPathDashboardPage() {
       <PageHeader
         title="Tutor MathPath Dashboard"
         subtitle="Root causes, fluency bottlenecks, retention risk, and session planning."
-        action={(
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => navigate(`/tutor/students/${id}/mathpath/test-spec`)}>School-Aligned Test</Button>
-            <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
-          </div>
-        )}
+        action={<Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>}
       />
       {!!placement?.recommendedStartingSkill?.name && (
         <Card className="mb-4 p-4">
@@ -338,23 +333,29 @@ export default function TutorMathPathDashboardPage() {
       <div className="space-y-4">
         <TutorOverviewCard studentName={studentMeta?.name || 'Student'} dashboard={dashboard} currentSkill={dashboard.tutorNotes?.currentSkill} />
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          <RootCauseAnalysisCard rows={dashboard.rootCauseAnalysis || []} />
-          <MistakeClusterCard rows={dashboard.mistakeClusters || []} />
-          <FluencyBottleneckCard rows={dashboard.fluencyBottlenecks || []} />
-          <RetentionRiskCard rows={dashboard.retentionRisks || []} />
-          <WorkingQualityTutorCard data={dashboard.workingQualityConcerns || {}} />
-          <NextSessionPlanCard plan={dashboard.nextSessionPlan || {}} />
-        </div>
-
-        <SuggestedAssignmentsCard rows={dashboard.suggestedAssignments || []} />
-
-        <Card className="p-4">
-          <div className="flex flex-wrap gap-2">
-            <Button size="s" variant="secondary" icon={ArrowRight} onClick={() => navigate(`/tutor/students/${id}/lesson-prep`)}>Start Recommended Session</Button>
-            <Button size="s" variant="secondary" onClick={() => navigate(`/tutor/students/${id}/assign-homework`)}>Assign Targeted Practice</Button>
+        <CollapsibleSection
+          title="Intervention details"
+          summary="Root causes, mistake clusters, fluency, retention, working quality, and next session plan."
+          surface={false}
+          action={<Button size="s" variant="secondary" onClick={() => navigate(`/tutor/students/${id}/mathpath/test-spec`)}>School Test</Button>}
+        >
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <RootCauseAnalysisCard rows={dashboard.rootCauseAnalysis || []} />
+            <MistakeClusterCard rows={dashboard.mistakeClusters || []} />
+            <FluencyBottleneckCard rows={dashboard.fluencyBottlenecks || []} />
+            <RetentionRiskCard rows={dashboard.retentionRisks || []} />
+            <WorkingQualityTutorCard data={dashboard.workingQualityConcerns || {}} />
+            <NextSessionPlanCard plan={dashboard.nextSessionPlan || {}} />
           </div>
-        </Card>
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Suggested assignments"
+          summary={`${(dashboard.suggestedAssignments || []).length} generated assignment suggestion${(dashboard.suggestedAssignments || []).length === 1 ? '' : 's'}`}
+          surface={false}
+        >
+          <SuggestedAssignmentsCard rows={dashboard.suggestedAssignments || []} />
+        </CollapsibleSection>
       </div>
     </>
   );

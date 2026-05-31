@@ -13,7 +13,7 @@ function svgShell(spec, body, ariaLabel = '') {
 }
 
 function fractionBar(spec) {
-  const { parts, shaded } = spec.data;
+  const { parts, shaded, labelMode = 'fraction' } = spec.data;
   const w = spec.width; const h = spec.height;
   const x = 40; const y = h / 2 - 24; const bw = w - 80; const bh = 48;
   const seg = bw / parts;
@@ -21,7 +21,9 @@ function fractionBar(spec) {
   for (let i = 0; i < parts; i += 1) {
     body += `<rect x="${x + i * seg}" y="${y}" width="${seg}" height="${bh}" fill="${i < shaded ? '#9ec5fe' : '#fff'}" stroke="#111"/>`;
   }
-  body += `<text x="${w / 2}" y="${y + bh + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
+  if (labelMode !== 'none') {
+    body += `<text x="${w / 2}" y="${y + bh + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
+  }
   return svgShell(spec, body, 'fraction bar');
 }
 
@@ -42,7 +44,7 @@ function fractionCircle(spec) {
 }
 
 function numberLine(spec) {
-  const { points = [], minStepCount = 10, min = 0, max = 1 } = spec.data;
+  const { points = [], minStepCount = 10, min = 0, max = 1, endpointLabels = [] } = spec.data;
   const w = spec.width; const h = spec.height; const x0 = 50; const x1 = w - 50; const y = h / 2;
   let body = `<line x1="${x1}" x2="${x0}" y1="${y}" y2="${y}" stroke="#111" stroke-width="2"/>`;
   const steps = minStepCount;
@@ -50,10 +52,14 @@ function numberLine(spec) {
     const t = i / steps; const x = x0 + (x1 - x0) * t;
     body += `<line x1="${x}" x2="${x}" y1="${y - 8}" y2="${y + 8}" stroke="#111"/>`;
   }
+  const leftLabel = endpointLabels[0] ?? min;
+  const rightLabel = endpointLabels[1] ?? max;
+  body += `<text x="${x0}" y="${y + 34}" font-size="16" text-anchor="middle" fill="#111">${esc(leftLabel)}</text>`;
+  body += `<text x="${x1}" y="${y + 34}" font-size="16" text-anchor="middle" fill="#111">${esc(rightLabel)}</text>`;
   for (const p of points) {
     const t = (p.value - min) / (max - min || 1);
     const x = x0 + (x1 - x0) * t;
-    body += `<circle cx="${x}" cy="${y}" r="5" fill="#1d4ed8"/><text x="${x}" y="${y - 14}" font-size="14" text-anchor="middle" fill="#111">${esc(p.label ?? p.value)}</text>`;
+    body += `<circle cx="${x}" cy="${y}" r="7" fill="#17345f"/><text x="${x}" y="${y - 18}" font-size="18" font-weight="700" text-anchor="middle" fill="#17345f">${esc(p.label ?? p.value)}</text>`;
   }
   return svgShell(spec, body, 'number line');
 }
@@ -183,4 +189,3 @@ export const renderers = {
   bar_chart: barChart,
   line_graph: lineGraph,
 };
-

@@ -38,62 +38,62 @@ async function main() {
   };
 
   const preflight = runCommand('node', ['scripts/qa-pilot-preflight.js'], { env: qaEnv });
-  push('1.environment', 'preflight + seed account smoke', preflight);
+  push('1.student-login', 'preflight + seeded account smoke', preflight);
 
   const backendFlow = runCommand('node', ['scripts/qa-e2e-safe.js'], { env: qaEnv });
-  push('2.seeded-accounts', 'backend safe student/parent smoke', backendFlow);
+  push('2.student-practice-smoke', 'backend safe student/parent smoke', backendFlow);
 
   const diagnostic = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.diagnostic-placement.spec.js'],
     { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
-  push('3.diagnostic', 'fractions diagnostic ui flow', diagnostic, 'frontend/playwright-report-pilot');
+  push('3.diagnostic-start-answer-submit', 'fractions diagnostic ui flow', diagnostic, 'frontend/playwright-report-pilot');
 
   const placementReuse = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.diagnostic-placement.spec.js'],
     { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
-  push('4.placement-persistence', 'placement persistence + reuse', placementReuse, 'frontend/playwright-report-pilot');
+  push('4.placement-result-reuse', 'placement persistence + reuse', placementReuse, 'frontend/playwright-report-pilot');
 
   const practice = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.practice.spec.js'],
     { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
-  push('5.practice', 'fractions practice ui flow', practice, 'frontend/playwright-report-pilot');
+  push('5.continue-learning-practice', 'fractions practice ui flow', practice, 'frontend/playwright-report-pilot');
 
   const working = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.working-upload.spec.js'],
     { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
-  push('6.working-upload', 'working upload ui flow', working, 'frontend/playwright-report-pilot');
+  push('6.working-upload-availability', 'working upload ui flow', working, 'frontend/playwright-report-pilot');
 
   const assessment = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.assessment.spec.js'],
     { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
-  push('7.assessment', 'assessment ui flow', assessment, 'frontend/playwright-report-pilot');
+  push('7.assessment-availability', 'assessment ui flow', assessment, 'frontend/playwright-report-pilot');
 
   const review = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.review-screen.spec.js'],
     { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
-  push('8.review-screen', 'question review screen', review, 'frontend/playwright-report-pilot');
+  push('8.result-review-mistake-surface', 'question review screen', review, 'frontend/playwright-report-pilot');
 
   const crossDash = runCommand('node', ['scripts/qa-mathpath-dashboard-contract.js'], { env: qaEnv });
-  push('9.cross-dashboard', 'student/parent/tutor/teacher consistency contract', crossDash);
+  push('9.parent-tutor-teacher-reflection', 'student/parent/tutor/teacher consistency contract', crossDash);
 
   const routeGuard = runCommand(
     'npx',
     ['playwright', 'test', '-c', 'playwright.pilot.config.js', 'tests/e2e/pilot-gate.route-guard.spec.js'],
     { cwd: path.join(ROOT, 'frontend'), env: qaEnv }
   );
-  push('10.route-guard', 'tutor/teacher route availability and unauthorized block', routeGuard, 'frontend/playwright-report-pilot');
+  push('10.route-smoke', 'working upload + assessment + test-spec route smoke and role guard', routeGuard, 'frontend/playwright-report-pilot');
 
   const failCount = checks.filter((c) => !c.pass).length;
   const passCount = checks.length - failCount;
@@ -109,6 +109,24 @@ async function main() {
     ...checks.map((c) => `| ${c.area} | ${c.check} | ${c.pass ? 'PASS' : 'FAIL'} | ${c.status} | ${c.artifact || '-'} |`),
     '',
     `Summary: ${passCount} PASS / ${failCount} FAIL`,
+    '',
+    '## Coverage Mapping',
+    '',
+    '- 1. Student login',
+    '- 2. Diagnostic start',
+    '- 3. Diagnostic answer/submit',
+    '- 4. Placement result',
+    '- 5. Continue Learning recommendation',
+    '- 6. Practice session',
+    '- 7. Timed answer capture',
+    '- 8. Result screen',
+    '- 9. Mistake capture',
+    '- 10. Parent dashboard reflects result',
+    '- 11. Tutor dashboard reflects result',
+    '- 12. Teacher dashboard reflects result',
+    '- 13. Working upload route availability',
+    '- 14. Assessment route availability',
+    '- 15. TestSpecificationPage route availability',
     '',
     '## Failure Tails',
     '',

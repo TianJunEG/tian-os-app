@@ -277,3 +277,23 @@ If you need to:
 **Created**: May 22, 2026  
 **Version**: 1.0  
 **Status**: Ready for Development & Testing
+
+---
+
+## MathPath Pilot Seed Commands (Fractions)
+
+For the current 5-student pilot setup, run these from repo root:
+
+```bash
+npm run seed:foundation
+npm run seed:domains
+npm run seed:test-accounts
+npm run seed:fractions-alpha-pack
+```
+
+Optional pilot checks right after seeding:
+
+```bash
+npm run qa:pilot:preflight
+npm run qa:fractions:closure
+```

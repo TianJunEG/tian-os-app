@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { Card, Button, Badge, ErrorState, PageHeader } from '../../../../components/ui';
+import { Card, Button, Badge, ErrorState, PageHeader, CollapsibleSection } from '../../../../components/ui';
 import { getSkill } from '../../../../mathpath/fractions/fractionSkillGraph';
 
 function nameOfSkill(skillId) {
@@ -51,28 +51,34 @@ export default function AssessmentResultScreen() {
             {report?.studentSummary || 'You are developing well in Fractions. Keep practising to improve speed and confidence.'}
           </p>
         </Card>
-
-        <Card className="p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CollapsibleSection
+          title="Detailed report"
+          summary="Strengths, weak areas, fluency notes, and working upload status."
+        >
+          <div className="space-y-5">
             <div>
-              <p className="text-sm font-semibold text-ink-700">Strengths</p>
-              {strengths.length ? <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">{strengths.map((s) => <li key={s}>{s}</li>)}</ul> : <p className="mt-2 text-sm text-ink-500">Strengths will appear as you attempt more items.</p>}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-sm font-semibold text-ink-700">Strengths</p>
+                  {strengths.length ? <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">{strengths.map((s) => <li key={s}>{s}</li>)}</ul> : <p className="mt-2 text-sm text-ink-500">Strengths will appear as you attempt more items.</p>}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-ink-700">Weak Areas</p>
+                  {weakAreas.length ? <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">{weakAreas.map((s) => <li key={s}>{s}</li>)}</ul> : <p className="mt-2 text-sm text-ink-500">No major weak areas detected in this attempt.</p>}
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-ink-700">Weak Areas</p>
-              {weakAreas.length ? <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">{weakAreas.map((s) => <li key={s}>{s}</li>)}</ul> : <p className="mt-2 text-sm text-ink-500">No major weak areas detected in this attempt.</p>}
+
+            <div className="border-t border-hairline pt-4">
+              <p className="text-sm font-semibold text-ink-700">Fluency Notes</p>
+              <p className="mt-1 text-sm text-ink-600">{readiness.explanation || 'Build speed while keeping your answers accurate.'}</p>
+              <p className="mt-3 text-sm font-semibold text-ink-700">Working Upload Status</p>
+              <Badge tone={workingUploadStatus === 'pending' ? 'gold' : workingUploadStatus === 'uploaded' ? 'success' : 'neutral'}>
+                {workingUploadStatus}
+              </Badge>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-5">
-          <p className="text-sm font-semibold text-ink-700">Fluency Notes</p>
-          <p className="mt-1 text-sm text-ink-600">{readiness.explanation || 'Build speed while keeping your answers accurate.'}</p>
-          <p className="mt-3 text-sm font-semibold text-ink-700">Working Upload Status</p>
-          <Badge tone={workingUploadStatus === 'pending' ? 'gold' : workingUploadStatus === 'uploaded' ? 'success' : 'neutral'}>
-            {workingUploadStatus}
-          </Badge>
-        </Card>
+        </CollapsibleSection>
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <Button

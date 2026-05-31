@@ -1,10 +1,17 @@
 # Fractions Content Coverage Report
 
-Generated: 2026-05-31T06:17:16.162Z
+Generated: 2026-05-31T11:15:14.502Z
 Domain: fractions
 Data source: database
 
-## Coverage Targets
+## Pilot Minimum Targets
+
+- Diagnostic per skill: 3
+- Practice per skill: 10
+- Remediation per skill: 3
+- Worksheet-compatible per skill: 5
+
+## Full Coverage Targets
 
 - Diagnostic per skill: 10
 - Practice per skill: 50
@@ -14,46 +21,47 @@ Data source: database
 
 ## Pilot Readiness Summary
 
-- Pilot readiness score: **53.7/100**
+- Pilot readiness score: **100/100**
 - Total skills audited: **26**
-- Pilot-ready skills: **0**
-- Estimated missing questions: **1000**
-- Estimated average additional questions needed per skill: **38.5**
+- Pilot-ready skills: **26**
+- Pilot-minimum missing items: **0**
+- Average additional pilot-minimum items needed per skill: **0**
+- Full coverage score: **53.7/100**
 
 ## Skill Coverage
 
-| Skill ID | Skill Name | Total | Diagnostic | Practice | Fluency | Assessment | Coverage | Status |
-|---|---|---:|---:|---:|---:|---:|---:|---|
-| F001 | Recognise Fractions | 60 | 9 | 30 | 12 | 9 | 63% | developing |
-| F002 | Numerator and Denominator | 65 | 9 | 32 | 15 | 9 | 67.6% | developing |
-| F003 | Fraction of a Whole | 66 | 10 | 32 | 14 | 10 | 69.5% | developing |
-| F004 | Unit Fractions | 58 | 10 | 24 | 15 | 9 | 62.7% | developing |
-| F005 | Fractions on Number Line | 52 | 10 | 22 | 11 | 9 | 57.2% | developing |
-| F006 | Compare Unit Fractions | 47 | 10 | 17 | 14 | 6 | 53% | developing |
-| F007 | Compare Same Denominator | 61 | 10 | 26 | 15 | 10 | 65.4% | developing |
-| F008 | Compare Same Numerator | 57 | 10 | 25 | 12 | 10 | 61.7% | developing |
-| F009 | Order Fractions | 66 | 10 | 31 | 15 | 10 | 69.6% | developing |
-| F010 | Equivalent Fractions | 67 | 10 | 32 | 15 | 10 | 70.5% | developing |
-| F011 | Generate Equivalent Fractions | 62 | 9 | 29 | 14 | 10 | 65% | developing |
-| F012 | Simplify Fractions | 61 | 9 | 31 | 13 | 8 | 63.9% | developing |
-| F013 | Improper Fractions | 61 | 10 | 30 | 11 | 10 | 65% | developing |
-| F014 | Mixed Numbers | 64 | 10 | 30 | 14 | 10 | 67.8% | developing |
-| F015 | Convert Mixed ↔ Improper | 63 | 10 | 28 | 15 | 10 | 67.1% | developing |
-| F016 | Add Same Denominator | 62 | 10 | 27 | 15 | 10 | 66.2% | developing |
-| F017 | Subtract Same Denominator | 61 | 8 | 29 | 14 | 10 | 63.1% | developing |
-| F018 | Add Different Denominators | 52 | 10 | 19 | 15 | 8 | 57.5% | developing |
-| F019 | Subtract Different Denominators | 62 | 10 | 27 | 15 | 10 | 66.2% | developing |
-| F020 | Fraction of Quantity | 67 | 10 | 32 | 15 | 10 | 70.5% | developing |
-| F021 | Multiply Fractions | 60 | 8 | 30 | 14 | 8 | 62% | developing |
-| F022 | Divide Fractions | 62 | 7 | 33 | 15 | 7 | 62.6% | developing |
-| F023 | Fraction Word Problems | 67 | 10 | 33 | 15 | 9 | 70.4% | developing |
-| F024 | Multi-Step Fraction Problems | 68 | 10 | 33 | 15 | 10 | 71.3% | developing |
-| F025 | Exam-Style Fraction Applications | 61 | 9 | 28 | 15 | 9 | 64.2% | developing |
-| F026 | Fractions Mastery Challenge | 68 | 10 | 33 | 15 | 10 | 71.3% | developing |
+| Skill ID | Skill Name | Total | Diagnostic | Practice | Remediation | Fluency | Assessment | Worksheet | Pilot Minimum | Full Coverage | Full Status |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---|
+| F001 | Recognise Fractions | 60 | 9 | 30 | 3 | 12 | 9 | 48 | ready | 63% | developing |
+| F002 | Numerator and Denominator | 65 | 9 | 32 | 3 | 15 | 9 | 50 | ready | 67.6% | developing |
+| F003 | Fraction of a Whole | 66 | 10 | 32 | 3 | 14 | 10 | 52 | ready | 69.5% | developing |
+| F004 | Unit Fractions | 58 | 10 | 24 | 3 | 15 | 9 | 43 | ready | 62.7% | developing |
+| F005 | Fractions on Number Line | 52 | 10 | 22 | 3 | 11 | 9 | 41 | ready | 57.2% | developing |
+| F006 | Compare Unit Fractions | 47 | 10 | 17 | 3 | 14 | 6 | 33 | ready | 53% | developing |
+| F007 | Compare Same Denominator | 61 | 10 | 26 | 3 | 15 | 10 | 46 | ready | 65.4% | developing |
+| F008 | Compare Same Numerator | 57 | 10 | 25 | 3 | 12 | 10 | 45 | ready | 61.7% | developing |
+| F009 | Order Fractions | 66 | 10 | 31 | 3 | 15 | 10 | 51 | ready | 69.6% | developing |
+| F010 | Equivalent Fractions | 67 | 10 | 32 | 3 | 15 | 10 | 52 | ready | 70.5% | developing |
+| F011 | Generate Equivalent Fractions | 62 | 9 | 29 | 3 | 14 | 10 | 48 | ready | 65% | developing |
+| F012 | Simplify Fractions | 61 | 9 | 31 | 3 | 13 | 8 | 48 | ready | 63.9% | developing |
+| F013 | Improper Fractions | 61 | 10 | 30 | 3 | 11 | 10 | 50 | ready | 65% | developing |
+| F014 | Mixed Numbers | 64 | 10 | 30 | 3 | 14 | 10 | 50 | ready | 67.8% | developing |
+| F015 | Convert Mixed ↔ Improper | 63 | 10 | 28 | 3 | 15 | 10 | 48 | ready | 67.1% | developing |
+| F016 | Add Same Denominator | 62 | 10 | 27 | 3 | 15 | 10 | 47 | ready | 66.2% | developing |
+| F017 | Subtract Same Denominator | 61 | 8 | 29 | 3 | 14 | 10 | 47 | ready | 63.1% | developing |
+| F018 | Add Different Denominators | 52 | 10 | 19 | 3 | 15 | 8 | 37 | ready | 57.5% | developing |
+| F019 | Subtract Different Denominators | 62 | 10 | 27 | 3 | 15 | 10 | 47 | ready | 66.2% | developing |
+| F020 | Fraction of Quantity | 67 | 10 | 32 | 3 | 15 | 10 | 52 | ready | 70.5% | developing |
+| F021 | Multiply Fractions | 60 | 8 | 30 | 3 | 14 | 8 | 46 | ready | 62% | developing |
+| F022 | Divide Fractions | 62 | 7 | 33 | 3 | 15 | 7 | 47 | ready | 62.6% | developing |
+| F023 | Fraction Word Problems | 67 | 10 | 33 | 3 | 15 | 9 | 52 | ready | 70.4% | developing |
+| F024 | Multi-Step Fraction Problems | 68 | 10 | 33 | 3 | 15 | 10 | 53 | ready | 71.3% | developing |
+| F025 | Exam-Style Fraction Applications | 61 | 9 | 28 | 3 | 15 | 9 | 46 | ready | 64.2% | developing |
+| F026 | Fractions Mastery Challenge | 68 | 10 | 33 | 3 | 15 | 10 | 53 | ready | 71.3% | developing |
 
 ## Question Family Coverage
 
-> Note: `Estimated = Yes` means the current Question schema does not persist `questionFamilyId`, so family-level totals are proportionally estimated from skill totals.
+> Note: `Estimated = Yes` means that audited rows did not include persisted `questionFamilyId`, so family-level totals were proportionally estimated from skill totals.
 
 | Question Family | Skill | Total | Target | Coverage | Estimated |
 |---|---|---:|---:|---:|---|
@@ -186,7 +194,11 @@ Data source: database
 | M012 | Ratio with Fraction/Decimal Error | missing | 0 | 0 | — |
 | M013 | Algebraic Fraction Notation Misread | missing | 0 | 0 | — |
 
-## Skills Below Threshold
+## Skills Below Pilot Minimum
+
+- None
+
+## Skills Below Full Coverage Target
 
 - F001 Recognise Fractions: 60/100 (missing 40)
 - F002 Numerator and Denominator: 65/100 (missing 35)
@@ -221,48 +233,49 @@ Data source: database
 
 | Skill ID | Skill Name | Coverage | Missing | Reason |
 |---|---|---:|---:|---|
-| F006 | Compare Unit Fractions | 53% | 53 | High-impact coverage gap. |
-| F005 | Fractions on Number Line | 57.2% | 48 | High-impact coverage gap. |
-| F018 | Add Different Denominators | 57.5% | 48 | High-impact coverage gap. |
-| F008 | Compare Same Numerator | 61.7% | 43 | High-impact coverage gap. |
-| F021 | Multiply Fractions | 62% | 40 | High-impact coverage gap. |
-| F022 | Divide Fractions | 62.6% | 38 | High-impact coverage gap. |
-| F004 | Unit Fractions | 62.7% | 42 | High-impact coverage gap. |
-| F001 | Recognise Fractions | 63% | 40 | High-impact coverage gap. |
+| F006 | Compare Unit Fractions | 53% | 53 | High-impact full-bank coverage gap. |
+| F005 | Fractions on Number Line | 57.2% | 48 | High-impact full-bank coverage gap. |
+| F018 | Add Different Denominators | 57.5% | 48 | High-impact full-bank coverage gap. |
+| F008 | Compare Same Numerator | 61.7% | 43 | High-impact full-bank coverage gap. |
+| F021 | Multiply Fractions | 62% | 40 | High-impact full-bank coverage gap. |
+| F022 | Divide Fractions | 62.6% | 38 | High-impact full-bank coverage gap. |
+| F004 | Unit Fractions | 62.7% | 42 | High-impact full-bank coverage gap. |
+| F001 | Recognise Fractions | 63% | 40 | High-impact full-bank coverage gap. |
 
 ### Priority 2
 
 | Skill ID | Skill Name | Coverage | Missing | Reason |
 |---|---|---:|---:|---|
-| F017 | Subtract Same Denominator | 63.1% | 39 | Developing coverage but not yet pilot-ready. |
-| F012 | Simplify Fractions | 63.9% | 39 | Developing coverage but not yet pilot-ready. |
-| F025 | Exam-Style Fraction Applications | 64.2% | 39 | Developing coverage but not yet pilot-ready. |
-| F011 | Generate Equivalent Fractions | 65% | 38 | Developing coverage but not yet pilot-ready. |
-| F013 | Improper Fractions | 65% | 39 | Developing coverage but not yet pilot-ready. |
-| F007 | Compare Same Denominator | 65.4% | 39 | Developing coverage but not yet pilot-ready. |
-| F016 | Add Same Denominator | 66.2% | 38 | Developing coverage but not yet pilot-ready. |
-| F019 | Subtract Different Denominators | 66.2% | 38 | Developing coverage but not yet pilot-ready. |
-| F015 | Convert Mixed ↔ Improper | 67.1% | 37 | Developing coverage but not yet pilot-ready. |
+| F017 | Subtract Same Denominator | 63.1% | 39 | Developing full-bank coverage. |
+| F012 | Simplify Fractions | 63.9% | 39 | Developing full-bank coverage. |
+| F025 | Exam-Style Fraction Applications | 64.2% | 39 | Developing full-bank coverage. |
+| F011 | Generate Equivalent Fractions | 65% | 38 | Developing full-bank coverage. |
+| F013 | Improper Fractions | 65% | 39 | Developing full-bank coverage. |
+| F007 | Compare Same Denominator | 65.4% | 39 | Developing full-bank coverage. |
+| F016 | Add Same Denominator | 66.2% | 38 | Developing full-bank coverage. |
+| F019 | Subtract Different Denominators | 66.2% | 38 | Developing full-bank coverage. |
+| F015 | Convert Mixed ↔ Improper | 67.1% | 37 | Developing full-bank coverage. |
 
 ### Priority 3
 
 | Skill ID | Skill Name | Coverage | Missing | Reason |
 |---|---|---:|---:|---|
-| F002 | Numerator and Denominator | 67.6% | 35 | Lower urgency relative to current pilot thresholds. |
-| F014 | Mixed Numbers | 67.8% | 36 | Lower urgency relative to current pilot thresholds. |
-| F003 | Fraction of a Whole | 69.5% | 34 | Lower urgency relative to current pilot thresholds. |
-| F009 | Order Fractions | 69.6% | 34 | Lower urgency relative to current pilot thresholds. |
-| F023 | Fraction Word Problems | 70.4% | 33 | Lower urgency relative to current pilot thresholds. |
-| F010 | Equivalent Fractions | 70.5% | 33 | Lower urgency relative to current pilot thresholds. |
-| F020 | Fraction of Quantity | 70.5% | 33 | Lower urgency relative to current pilot thresholds. |
-| F024 | Multi-Step Fraction Problems | 71.3% | 32 | Lower urgency relative to current pilot thresholds. |
-| F026 | Fractions Mastery Challenge | 71.3% | 32 | Lower urgency relative to current pilot thresholds. |
+| F002 | Numerator and Denominator | 67.6% | 35 | Lower urgency relative to current full-bank targets. |
+| F014 | Mixed Numbers | 67.8% | 36 | Lower urgency relative to current full-bank targets. |
+| F003 | Fraction of a Whole | 69.5% | 34 | Lower urgency relative to current full-bank targets. |
+| F009 | Order Fractions | 69.6% | 34 | Lower urgency relative to current full-bank targets. |
+| F023 | Fraction Word Problems | 70.4% | 33 | Lower urgency relative to current full-bank targets. |
+| F010 | Equivalent Fractions | 70.5% | 33 | Lower urgency relative to current full-bank targets. |
+| F020 | Fraction of Quantity | 70.5% | 33 | Lower urgency relative to current full-bank targets. |
+| F024 | Multi-Step Fraction Problems | 71.3% | 32 | Lower urgency relative to current full-bank targets. |
+| F026 | Fractions Mastery Challenge | 71.3% | 32 | Lower urgency relative to current full-bank targets. |
 
 ## Validation
 
 - Every fraction skill audited: PASS
 - Every question family audited: PASS
 - Missing content identified: PASS
+- Missing pilot minimum identified: FAIL
 - Misconception coverage measured: PASS
 - Pilot readiness calculated: PASS
 - Content generation priorities created: PASS

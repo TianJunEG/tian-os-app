@@ -55,15 +55,20 @@ app.use(helmet({
 }));
 
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+// Vercel preview domains are also allowed by pattern.
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
   .split(',')
   .map((o) => o.trim())
   .filter(Boolean);
+const frontendUrl = (process.env.FRONTEND_URL || '').trim();
+if (frontendUrl) allowedOrigins.push(frontendUrl);
+const vercelPreviewRegex = /^https:\/\/[a-z0-9-]+(\-[a-z0-9-]+)*\.vercel\.app$/i;
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow same-origin/non-browser requests (no Origin header) and whitelisted origins.
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow same-origin/non-browser requests (no Origin header), explicit allowlist,
+    // and Vercel preview deployments (*.vercel.app).
+    if (!origin || allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
@@ -85,6 +90,11 @@ app.use('/uploads', express.static('uploads'));
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Backend is running', timestamp: new Date() });
+});
+
+// Ops-friendly root health endpoint for Render checks and quick curl tests.
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ ok: true, service: 'tian-os-api', timestamp: new Date() });
 });
 
 // Routes

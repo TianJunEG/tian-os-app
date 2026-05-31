@@ -14,6 +14,11 @@ describe('isCorrect — answer checking', () => {
     expect(isCorrect('3/6', '1/2')).toBe(true);
     expect(isCorrect('2/4', '1/2')).toBe(true);
   });
+  it('accepts mixed fraction input', () => {
+    expect(isCorrect('1 1/2', '3/2')).toBe(true);
+    expect(isCorrect('2 1/6', '13/6')).toBe(true);
+    expect(isCorrect('-1 1/2', '-3/2')).toBe(true);
+  });
   it('accepts numeric/decimal formatting variants', () => {
     expect(isCorrect('0.50', '0.5')).toBe(true);
     expect(isCorrect(' 12 ', '12')).toBe(true);

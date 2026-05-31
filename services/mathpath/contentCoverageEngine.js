@@ -7,18 +7,28 @@ import { generateQuestionsForSkill, isGeneratable } from '../../utils/questionTe
 import { fractionSkillGraph, getDependents } from '../../frontend/src/mathpath/fractions/fractionSkillGraph.js';
 import { fractionQuestionFamilies, getQuestionFamiliesBySkill } from '../../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
 import { getFractionMistakeTaxonomy } from '../../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
+import {
+  resolveFractionSkillId,
+  getCanonicalFractionSkillLinks,
+} from './fractionSkillResolver.js';
 
 dotenv.config();
 
 const DEFAULT_DOMAIN_ID = 'fractions';
 const DEFAULT_MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
 const DEFAULT_PER_DIFFICULTY = 5; // Mirrors scripts/seedQuestions.js default.
-const COVERAGE_TARGETS = {
+const FULL_COVERAGE_TARGETS = {
   diagnostic: 10,
   practice: 50,
   fluency: 20,
   assessment: 20,
   total: 100,
+};
+const PILOT_MINIMUM_TARGETS = {
+  diagnostic: 3,
+  practice: 10,
+  remediation: 3,
+  worksheetCompatible: 5,
 };
 
 const MISTAKE_TAXONOMY = getFractionMistakeTaxonomy();
@@ -70,8 +80,11 @@ function buildDomainSkillMap() {
 }
 
 function mapDbSkillToFrameworkCode(dbSkill = {}, maps = {}) {
-  const metaCode = dbSkill?.metadata?.mathPathSkillId;
-  if (metaCode && /^F\d{3}$/.test(String(metaCode))) return String(metaCode);
+  const metaCode = resolveFractionSkillId(dbSkill?.metadata?.mathPathSkillId);
+  if (metaCode) return metaCode;
+
+  const codeFromSlug = resolveFractionSkillId(dbSkill?.slug);
+  if (codeFromSlug) return codeFromSlug;
 
   if (dbSkill.slug && maps.bySlug?.[dbSkill.slug]?.frameworkCode) {
     return maps.bySlug[dbSkill.slug].frameworkCode;
@@ -116,11 +129,11 @@ function mapTagToMistakeCodes(tag) {
 }
 
 function computeSkillReadiness(modeCounts = {}) {
-  const totalRatio = Math.min(1, toNum(modeCounts.total, 0) / COVERAGE_TARGETS.total);
-  const diagnosticRatio = Math.min(1, toNum(modeCounts.diagnostic, 0) / COVERAGE_TARGETS.diagnostic);
-  const practiceRatio = Math.min(1, toNum(modeCounts.practice, 0) / COVERAGE_TARGETS.practice);
-  const fluencyRatio = Math.min(1, toNum(modeCounts.fluency, 0) / COVERAGE_TARGETS.fluency);
-  const assessmentRatio = Math.min(1, toNum(modeCounts.assessment, 0) / COVERAGE_TARGETS.assessment);
+  const totalRatio = Math.min(1, toNum(modeCounts.total, 0) / FULL_COVERAGE_TARGETS.total);
+  const diagnosticRatio = Math.min(1, toNum(modeCounts.diagnostic, 0) / FULL_COVERAGE_TARGETS.diagnostic);
+  const practiceRatio = Math.min(1, toNum(modeCounts.practice, 0) / FULL_COVERAGE_TARGETS.practice);
+  const fluencyRatio = Math.min(1, toNum(modeCounts.fluency, 0) / FULL_COVERAGE_TARGETS.fluency);
+  const assessmentRatio = Math.min(1, toNum(modeCounts.assessment, 0) / FULL_COVERAGE_TARGETS.assessment);
 
   const weightedCoverage = round(
     (totalRatio * 0.45 + diagnosticRatio * 0.15 + practiceRatio * 0.2 + fluencyRatio * 0.1 + assessmentRatio * 0.1) * 100,
@@ -129,11 +142,11 @@ function computeSkillReadiness(modeCounts = {}) {
 
   let status = 'notReady';
   const meetsAllTargets =
-    modeCounts.total >= COVERAGE_TARGETS.total &&
-    modeCounts.diagnostic >= COVERAGE_TARGETS.diagnostic &&
-    modeCounts.practice >= COVERAGE_TARGETS.practice &&
-    modeCounts.fluency >= COVERAGE_TARGETS.fluency &&
-    modeCounts.assessment >= COVERAGE_TARGETS.assessment;
+    modeCounts.total >= FULL_COVERAGE_TARGETS.total &&
+    modeCounts.diagnostic >= FULL_COVERAGE_TARGETS.diagnostic &&
+    modeCounts.practice >= FULL_COVERAGE_TARGETS.practice &&
+    modeCounts.fluency >= FULL_COVERAGE_TARGETS.fluency &&
+    modeCounts.assessment >= FULL_COVERAGE_TARGETS.assessment;
 
   if (meetsAllTargets && weightedCoverage >= 95) status = 'strong';
   else if (meetsAllTargets) status = 'pilotReady';
@@ -142,9 +155,43 @@ function computeSkillReadiness(modeCounts = {}) {
   return { weightedCoverage, status };
 }
 
+function computePilotMinimumReadiness({
+  modeCounts = {},
+  categoryCounts = {},
+  worksheetCompatibleQuestions = 0,
+  persistence = {},
+  progressMasterySupported = false,
+} = {}) {
+  const checks = {
+    diagnostic: toNum(modeCounts.diagnostic, 0) >= PILOT_MINIMUM_TARGETS.diagnostic,
+    practice: toNum(categoryCounts.practice, 0) >= PILOT_MINIMUM_TARGETS.practice,
+    remediation: toNum(categoryCounts.remediation, 0) >= PILOT_MINIMUM_TARGETS.remediation,
+    worksheetCompatible: toNum(worksheetCompatibleQuestions, 0) >= PILOT_MINIMUM_TARGETS.worksheetCompatible,
+    questionFamilyId: !!persistence.questionFamilyId,
+    questionCategory: !!persistence.questionCategory,
+    mistakeTags: !!persistence.mistakeTags,
+    answerChecking: !!persistence.answerChecking,
+    progressMastery: !!progressMasterySupported,
+  };
+  const gaps = {
+    diagnostic: Math.max(0, PILOT_MINIMUM_TARGETS.diagnostic - toNum(modeCounts.diagnostic, 0)),
+    practice: Math.max(0, PILOT_MINIMUM_TARGETS.practice - toNum(categoryCounts.practice, 0)),
+    remediation: Math.max(0, PILOT_MINIMUM_TARGETS.remediation - toNum(categoryCounts.remediation, 0)),
+    worksheetCompatible: Math.max(0, PILOT_MINIMUM_TARGETS.worksheetCompatible - toNum(worksheetCompatibleQuestions, 0)),
+  };
+  const passed = Object.values(checks).filter(Boolean).length;
+  const total = Object.keys(checks).length;
+  return {
+    ready: passed === total,
+    checks,
+    gaps,
+    score: total ? round((passed / total) * 100, 1) : 0,
+  };
+}
+
 function buildFamilyCoverageRows({ skillId, skillName, families = [], totalQuestions = 0, exactFamilyCounts = null }) {
   const familyCount = families.length || 1;
-  const targetPerFamily = Math.ceil(COVERAGE_TARGETS.total / familyCount);
+  const targetPerFamily = Math.ceil(FULL_COVERAGE_TARGETS.total / familyCount);
 
   let totals = {};
   let estimated = true;
@@ -193,7 +240,7 @@ function buildPriorityQueues(skillCoverage = []) {
     .map((row) => ({
       ...row,
       dependencyImpact: countDependentsRecursive(row.skillId, new Set()),
-      deficit: Math.max(0, COVERAGE_TARGETS.total - toNum(row.totalQuestions, 0)),
+      deficit: Math.max(0, FULL_COVERAGE_TARGETS.total - toNum(row.totalQuestions, 0)),
     }))
     .sort((a, b) => {
       if (a.readinessStatus !== b.readinessStatus) {
@@ -210,22 +257,22 @@ function buildPriorityQueues(skillCoverage = []) {
     coveragePercentage: row.coveragePercentage,
     missingQuestions: row.missingQuestions.total,
     reason: row.readinessStatus === 'notReady'
-      ? 'Below minimum pilot threshold with high dependency impact.'
-      : 'High-impact coverage gap.',
+      ? 'Below full-bank coverage target with high dependency impact.'
+      : 'High-impact full-bank coverage gap.',
   }));
   const priority2 = ranked.slice(8, 17).map((row) => ({
     skillId: row.skillId,
     skillName: row.skillName,
     coveragePercentage: row.coveragePercentage,
     missingQuestions: row.missingQuestions.total,
-    reason: 'Developing coverage but not yet pilot-ready.',
+    reason: 'Developing full-bank coverage.',
   }));
   const priority3 = ranked.slice(17).map((row) => ({
     skillId: row.skillId,
     skillName: row.skillName,
     coveragePercentage: row.coveragePercentage,
     missingQuestions: row.missingQuestions.total,
-    reason: 'Lower urgency relative to current pilot thresholds.',
+    reason: 'Lower urgency relative to current full-bank targets.',
   }));
 
   return { priority1, priority2, priority3 };
@@ -240,9 +287,15 @@ async function loadFractionQuestionRowsFromDatabase({ mongoUri = DEFAULT_MONGO_U
   }
 
   try {
+    const canonicalRows = fractionSkillGraph.skills
+      .map((skill) => getCanonicalFractionSkillLinks(skill.id))
+      .filter(Boolean);
+    const knownSlugs = unique(canonicalRows.flatMap((row) => row.allKnownSlugs || []));
     const dbSkills = await Skill.find({
       $or: [
+        { slug: { $in: knownSlugs } },
         { slug: /^fr\./i },
+        { slug: /^fractions\./i },
         { 'metadata.mathPathSkillId': /^F\d{3}$/ },
       ],
     }).lean();
@@ -266,15 +319,32 @@ async function loadFractionQuestionRowsFromDatabase({ mongoUri = DEFAULT_MONGO_U
       ? await Question.find({ skillId: { $in: skillIds } }).lean()
       : [];
 
+    const dbSkillIdToFramework = new Map();
+    Object.entries(skillDocsByFCode).forEach(([frameworkCode, docs]) => {
+      docs.forEach((doc) => dbSkillIdToFramework.set(String(doc._id), frameworkCode));
+    });
+
+    const questionRowsByFCode = fractionSkillGraph.skills.reduce((acc, skill) => {
+      acc[skill.id] = [];
+      return acc;
+    }, {});
+
+    questions.forEach((question) => {
+      const bySkillDoc = dbSkillIdToFramework.get(String(question.skillId));
+      const byQuestionMeta = resolveFractionSkillId(
+        question.frameworkSkillId ||
+        question.officialSkillCode ||
+        question.universalSkillSlug
+      );
+      const resolved = bySkillDoc || byQuestionMeta;
+      if (!resolved || !questionRowsByFCode[resolved]) return;
+      questionRowsByFCode[resolved].push(question);
+    });
+
     return {
       source: 'database',
       skillDocsByFCode,
-      questionsByFCode: fractionSkillGraph.skills.reduce((acc, skill) => {
-        const docs = skillDocsByFCode[skill.id] || [];
-        const idSet = new Set(docs.map((s) => String(s._id)));
-        acc[skill.id] = questions.filter((q) => idSet.has(String(q.skillId)));
-        return acc;
-      }, {}),
+      questionsByFCode: questionRowsByFCode,
       connectedHere,
     };
   } finally {
@@ -345,16 +415,26 @@ function buildMisconceptionAudit(skillCoverage = []) {
 
 function buildPilotReadinessSummary(skillCoverage = []) {
   const totalSkills = skillCoverage.length;
-  const pilotReadySkills = skillCoverage.filter((s) => ['pilotReady', 'strong'].includes(s.readinessStatus)).length;
-  const missingQuestions = skillCoverage.reduce((sum, s) => sum + s.missingQuestions.total, 0);
+  const pilotReadySkills = skillCoverage.filter((s) => s.pilotMinimumReady).length;
+  const missingQuestions = skillCoverage.reduce((sum, s) => (
+    sum +
+    toNum(s.pilotMinimumGaps?.diagnostic, 0) +
+    toNum(s.pilotMinimumGaps?.practice, 0) +
+    toNum(s.pilotMinimumGaps?.remediation, 0) +
+    toNum(s.pilotMinimumGaps?.worksheetCompatible, 0)
+  ), 0);
   const weakestSkills = [...skillCoverage]
     .sort((a, b) => a.coveragePercentage - b.coveragePercentage)
     .slice(0, 6)
     .map((s) => ({
       skillId: s.skillId,
       skillName: s.skillName,
-      coveragePercentage: s.coveragePercentage,
-      missingQuestions: s.missingQuestions.total,
+      coveragePercentage: s.pilotMinimumScore,
+      missingQuestions:
+        toNum(s.pilotMinimumGaps?.diagnostic, 0) +
+        toNum(s.pilotMinimumGaps?.practice, 0) +
+        toNum(s.pilotMinimumGaps?.remediation, 0) +
+        toNum(s.pilotMinimumGaps?.worksheetCompatible, 0),
     }));
   const strongestSkills = [...skillCoverage]
     .sort((a, b) => b.coveragePercentage - a.coveragePercentage)
@@ -362,7 +442,7 @@ function buildPilotReadinessSummary(skillCoverage = []) {
     .map((s) => ({
       skillId: s.skillId,
       skillName: s.skillName,
-      coveragePercentage: s.coveragePercentage,
+      coveragePercentage: s.pilotMinimumScore,
       totalQuestions: s.totalQuestions,
     }));
 
@@ -389,6 +469,10 @@ function buildReadinessScore({ skillCoverage = [], misconceptionAudit = [] }) {
   );
 
   return round(skillCoveragePct * 0.5 + modeCoveragePct * 0.3 + misconceptionPct * 0.2, 1);
+}
+
+function buildPilotMinimumReadinessScore(skillCoverage = []) {
+  return round(average(skillCoverage.map((s) => s.pilotMinimumScore)), 1);
 }
 
 function average(values = []) {
@@ -426,9 +510,21 @@ export async function runFractionsContentCoverageAudit(options = {}) {
     const families = getQuestionFamiliesBySkill(skill.id);
     const rows = sourcePayload.questionsByFCode?.[skill.id] || [];
 
+    const categoryCounts = {
+      diagnostic: 0,
+      practice: 0,
+      fluency: 0,
+      assessment: 0,
+      remediation: 0,
+      challenge: 0,
+    };
     const familyCounts = {};
     const modeCounts = rows.reduce((acc, question) => {
       const mode = classifyQuestionForModes(question);
+      const category = String(question.questionCategory || '').toLowerCase();
+      if (Object.prototype.hasOwnProperty.call(categoryCounts, category)) {
+        categoryCounts[category] += 1;
+      }
       acc.total += 1;
       if (mode.diagnostic) acc.diagnostic += 1;
       if (mode.practice) acc.practice += 1;
@@ -439,6 +535,18 @@ export async function runFractionsContentCoverageAudit(options = {}) {
       return acc;
     }, { total: 0, diagnostic: 0, practice: 0, fluency: 0, assessment: 0 });
 
+    const worksheetCompatibleQuestions = rows.filter((q) => q.worksheetCompatible === true).length;
+    const persistence = {
+      questionFamilyId: rows.length > 0 && rows.every((q) => String(q.questionFamilyId || '').trim()),
+      questionCategory: rows.length > 0 && rows.every((q) => String(q.questionCategory || '').trim()),
+      mistakeTags: rows.length > 0 && rows.every((q) => (
+        String(q.misconceptionTag || '').trim() ||
+        (Array.isArray(q.commonMistakes) && q.commonMistakes.length > 0)
+      )),
+      answerChecking: rows.length > 0 && rows.every((q) => String(q.answer || '').trim()),
+    };
+    const progressMasterySupported = !!(sourcePayload.skillDocsByFCode?.[skill.id] || []).length;
+
     const tagQuestionCounts = {};
     rows.forEach((q) => {
       const tag = String(q.misconceptionTag || '').trim();
@@ -448,20 +556,27 @@ export async function runFractionsContentCoverageAudit(options = {}) {
     const misconceptionTags = Object.keys(tagQuestionCounts);
 
     const readiness = computeSkillReadiness(modeCounts);
+    const pilotMinimum = computePilotMinimumReadiness({
+      modeCounts,
+      categoryCounts,
+      worksheetCompatibleQuestions,
+      persistence,
+      progressMasterySupported,
+    });
     const missingQuestions = {
-      diagnostic: Math.max(0, COVERAGE_TARGETS.diagnostic - modeCounts.diagnostic),
-      practice: Math.max(0, COVERAGE_TARGETS.practice - modeCounts.practice),
-      fluency: Math.max(0, COVERAGE_TARGETS.fluency - modeCounts.fluency),
-      assessment: Math.max(0, COVERAGE_TARGETS.assessment - modeCounts.assessment),
-      total: Math.max(0, COVERAGE_TARGETS.total - modeCounts.total),
+      diagnostic: Math.max(0, FULL_COVERAGE_TARGETS.diagnostic - modeCounts.diagnostic),
+      practice: Math.max(0, FULL_COVERAGE_TARGETS.practice - modeCounts.practice),
+      fluency: Math.max(0, FULL_COVERAGE_TARGETS.fluency - modeCounts.fluency),
+      assessment: Math.max(0, FULL_COVERAGE_TARGETS.assessment - modeCounts.assessment),
+      total: Math.max(0, FULL_COVERAGE_TARGETS.total - modeCounts.total),
     };
 
     const modeCoveragePercentage = round(
       (
-        Math.min(1, modeCounts.diagnostic / COVERAGE_TARGETS.diagnostic) * 0.2 +
-        Math.min(1, modeCounts.practice / COVERAGE_TARGETS.practice) * 0.4 +
-        Math.min(1, modeCounts.fluency / COVERAGE_TARGETS.fluency) * 0.2 +
-        Math.min(1, modeCounts.assessment / COVERAGE_TARGETS.assessment) * 0.2
+        Math.min(1, modeCounts.diagnostic / FULL_COVERAGE_TARGETS.diagnostic) * 0.2 +
+        Math.min(1, modeCounts.practice / FULL_COVERAGE_TARGETS.practice) * 0.4 +
+        Math.min(1, modeCounts.fluency / FULL_COVERAGE_TARGETS.fluency) * 0.2 +
+        Math.min(1, modeCounts.assessment / FULL_COVERAGE_TARGETS.assessment) * 0.2
       ) * 100,
       1
     );
@@ -485,6 +600,17 @@ export async function runFractionsContentCoverageAudit(options = {}) {
       practiceQuestions: modeCounts.practice,
       fluencyQuestions: modeCounts.fluency,
       assessmentQuestions: modeCounts.assessment,
+      remediationQuestions: categoryCounts.remediation,
+      worksheetCompatibleQuestions,
+      questionFamilyIdPersisted: persistence.questionFamilyId,
+      questionCategoryPersisted: persistence.questionCategory,
+      mistakeTagsPersisted: persistence.mistakeTags,
+      answerCheckingCompatible: persistence.answerChecking,
+      progressMasterySupported,
+      pilotMinimumReady: pilotMinimum.ready,
+      pilotMinimumChecks: pilotMinimum.checks,
+      pilotMinimumGaps: pilotMinimum.gaps,
+      pilotMinimumScore: pilotMinimum.score,
       misconceptionTags,
       tagQuestionCounts,
       readinessStatus: readiness.status,
@@ -499,10 +625,23 @@ export async function runFractionsContentCoverageAudit(options = {}) {
   const misconceptionAudit = buildMisconceptionAudit(skillCoverage);
   const pilotReadiness = buildPilotReadinessSummary(skillCoverage);
   const generationQueue = buildPriorityQueues(skillCoverage);
-  const pilotReadinessScore = buildReadinessScore({ skillCoverage, misconceptionAudit });
+  const fullCoverageScore = buildReadinessScore({ skillCoverage, misconceptionAudit });
+  const pilotReadinessScore = buildPilotMinimumReadinessScore(skillCoverage);
 
-  const skillsBelowThreshold = skillCoverage
-    .filter((skill) => skill.totalQuestions < COVERAGE_TARGETS.total)
+  const skillsBelowPilotMinimum = skillCoverage
+    .filter((skill) => !skill.pilotMinimumReady)
+    .map((skill) => ({
+      skillId: skill.skillId,
+      skillName: skill.skillName,
+      pilotMinimumScore: skill.pilotMinimumScore,
+      gaps: skill.pilotMinimumGaps,
+      failedChecks: Object.entries(skill.pilotMinimumChecks || {})
+        .filter(([, pass]) => !pass)
+        .map(([name]) => name),
+    }));
+
+  const skillsBelowFullCoverageTarget = skillCoverage
+    .filter((skill) => skill.totalQuestions < FULL_COVERAGE_TARGETS.total)
     .map((skill) => ({
       skillId: skill.skillId,
       skillName: skill.skillName,
@@ -515,22 +654,28 @@ export async function runFractionsContentCoverageAudit(options = {}) {
     domainId,
     generatedAt: new Date().toISOString(),
     source: sourcePayload.source,
-    coverageTargets: { ...COVERAGE_TARGETS },
+    coverageTargets: { ...FULL_COVERAGE_TARGETS },
+    fullCoverageTargets: { ...FULL_COVERAGE_TARGETS },
+    pilotMinimumTargets: { ...PILOT_MINIMUM_TARGETS },
     validation: {
       everyFractionSkillAudited: skillCoverage.length === fractionSkillGraph.skills.length,
       everyQuestionFamilyAudited: questionFamilyCoverage.length === fractionQuestionFamilies.length,
-      missingContentIdentified: skillsBelowThreshold.length > 0,
+      missingContentIdentified: skillsBelowFullCoverageTarget.length > 0,
+      missingPilotMinimumIdentified: skillsBelowPilotMinimum.length > 0,
       misconceptionCoverageMeasured: misconceptionAudit.length === MISTAKE_CODES.length,
       pilotReadinessCalculated: typeof pilotReadinessScore === 'number',
       contentGenerationPrioritiesCreated:
         generationQueue.priority1.length + generationQueue.priority2.length + generationQueue.priority3.length === skillCoverage.length,
     },
     pilotReadinessScore,
+    fullCoverageScore,
     skillCoverage,
     questionFamilyCoverage,
     misconceptionAudit,
     pilotReadiness,
-    skillsBelowThreshold,
+    skillsBelowThreshold: skillsBelowPilotMinimum,
+    skillsBelowPilotMinimum,
+    skillsBelowFullCoverageTarget,
     highestPriorityContentGaps: generationQueue.priority1.slice(0, 5),
     generationQueue,
     warnings,
@@ -543,7 +688,7 @@ export async function runFractionsContentCoverageAudit(options = {}) {
 
 function renderSkillTableRows(skillCoverage = []) {
   return skillCoverage.map((skill) =>
-    `| ${skill.skillId} | ${skill.skillName} | ${skill.totalQuestions} | ${skill.diagnosticQuestions} | ${skill.practiceQuestions} | ${skill.fluencyQuestions} | ${skill.assessmentQuestions} | ${skill.coveragePercentage}% | ${skill.readinessStatus} |`
+    `| ${skill.skillId} | ${skill.skillName} | ${skill.totalQuestions} | ${skill.diagnosticQuestions} | ${skill.practiceQuestions} | ${skill.remediationQuestions} | ${skill.fluencyQuestions} | ${skill.assessmentQuestions} | ${skill.worksheetCompatibleQuestions} | ${skill.pilotMinimumReady ? 'ready' : 'not ready'} | ${skill.coveragePercentage}% | ${skill.readinessStatus} |`
   ).join('\n');
 }
 
@@ -567,8 +712,11 @@ function renderPriorityRows(rows = []) {
 
 export function buildFractionsCoverageMarkdown(report = {}) {
   const score = toNum(report.pilotReadinessScore, 0);
+  const fullScore = toNum(report.fullCoverageScore, 0);
   const source = report.source || 'unknown';
   const warnings = (report.warnings || []).map((w) => `- ${w}`).join('\n') || '- None';
+  const pilotTargets = report.pilotMinimumTargets || PILOT_MINIMUM_TARGETS;
+  const fullTargets = report.fullCoverageTargets || FULL_COVERAGE_TARGETS;
 
   return `# Fractions Content Coverage Report
 
@@ -576,31 +724,39 @@ Generated: ${report.generatedAt || new Date().toISOString()}
 Domain: ${report.domainId || DEFAULT_DOMAIN_ID}
 Data source: ${source}
 
-## Coverage Targets
+## Pilot Minimum Targets
 
-- Diagnostic per skill: ${COVERAGE_TARGETS.diagnostic}
-- Practice per skill: ${COVERAGE_TARGETS.practice}
-- Fluency per skill: ${COVERAGE_TARGETS.fluency}
-- Assessment per skill: ${COVERAGE_TARGETS.assessment}
-- Total per skill: ${COVERAGE_TARGETS.total}
+- Diagnostic per skill: ${pilotTargets.diagnostic}
+- Practice per skill: ${pilotTargets.practice}
+- Remediation per skill: ${pilotTargets.remediation}
+- Worksheet-compatible per skill: ${pilotTargets.worksheetCompatible}
+
+## Full Coverage Targets
+
+- Diagnostic per skill: ${fullTargets.diagnostic}
+- Practice per skill: ${fullTargets.practice}
+- Fluency per skill: ${fullTargets.fluency}
+- Assessment per skill: ${fullTargets.assessment}
+- Total per skill: ${fullTargets.total}
 
 ## Pilot Readiness Summary
 
 - Pilot readiness score: **${score}/100**
 - Total skills audited: **${report.pilotReadiness?.totalSkills || 0}**
 - Pilot-ready skills: **${report.pilotReadiness?.pilotReadySkills || 0}**
-- Estimated missing questions: **${report.pilotReadiness?.missingQuestions || 0}**
-- Estimated average additional questions needed per skill: **${report.pilotReadiness?.estimatedContentGap?.averageAdditionalQuestionsPerSkill || 0}**
+- Pilot-minimum missing items: **${report.pilotReadiness?.missingQuestions || 0}**
+- Average additional pilot-minimum items needed per skill: **${report.pilotReadiness?.estimatedContentGap?.averageAdditionalQuestionsPerSkill || 0}**
+- Full coverage score: **${fullScore}/100**
 
 ## Skill Coverage
 
-| Skill ID | Skill Name | Total | Diagnostic | Practice | Fluency | Assessment | Coverage | Status |
-|---|---|---:|---:|---:|---:|---:|---:|---|
+| Skill ID | Skill Name | Total | Diagnostic | Practice | Remediation | Fluency | Assessment | Worksheet | Pilot Minimum | Full Coverage | Full Status |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---|
 ${renderSkillTableRows(report.skillCoverage || [])}
 
 ## Question Family Coverage
 
-> Note: \`Estimated = Yes\` means the current Question schema does not persist \`questionFamilyId\`, so family-level totals are proportionally estimated from skill totals.
+> Note: \`Estimated = Yes\` means that audited rows did not include persisted \`questionFamilyId\`, so family-level totals were proportionally estimated from skill totals.
 
 | Question Family | Skill | Total | Target | Coverage | Estimated |
 |---|---|---:|---:|---:|---|
@@ -612,11 +768,19 @@ ${renderFamilyRows(report.questionFamilyCoverage || [])}
 |---|---|---|---:|---:|---|
 ${renderMistakeRows(report.misconceptionAudit || [])}
 
-## Skills Below Threshold
+## Skills Below Pilot Minimum
 
-${(report.skillsBelowThreshold || []).length
-    ? (report.skillsBelowThreshold || [])
-      .map((row) => `- ${row.skillId} ${row.skillName}: ${row.totalQuestions}/${COVERAGE_TARGETS.total} (missing ${row.missingQuestions})`)
+${(report.skillsBelowPilotMinimum || report.skillsBelowThreshold || []).length
+    ? (report.skillsBelowPilotMinimum || report.skillsBelowThreshold || [])
+      .map((row) => `- ${row.skillId} ${row.skillName}: failed ${row.failedChecks?.join(', ') || 'pilot checks'}`)
+      .join('\n')
+    : '- None'}
+
+## Skills Below Full Coverage Target
+
+${(report.skillsBelowFullCoverageTarget || []).length
+    ? (report.skillsBelowFullCoverageTarget || [])
+      .map((row) => `- ${row.skillId} ${row.skillName}: ${row.totalQuestions}/${fullTargets.total} (missing ${row.missingQuestions})`)
       .join('\n')
     : '- None'}
 
@@ -645,6 +809,7 @@ ${renderPriorityRows(report.generationQueue?.priority3 || [])}
 - Every fraction skill audited: ${report.validation?.everyFractionSkillAudited ? 'PASS' : 'FAIL'}
 - Every question family audited: ${report.validation?.everyQuestionFamilyAudited ? 'PASS' : 'FAIL'}
 - Missing content identified: ${report.validation?.missingContentIdentified ? 'PASS' : 'FAIL'}
+- Missing pilot minimum identified: ${report.validation?.missingPilotMinimumIdentified ? 'PASS' : 'FAIL'}
 - Misconception coverage measured: ${report.validation?.misconceptionCoverageMeasured ? 'PASS' : 'FAIL'}
 - Pilot readiness calculated: ${report.validation?.pilotReadinessCalculated ? 'PASS' : 'FAIL'}
 - Content generation priorities created: ${report.validation?.contentGenerationPrioritiesCreated ? 'PASS' : 'FAIL'}

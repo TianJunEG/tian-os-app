@@ -3,6 +3,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Flag } from 'lucide-react';
 import { Card, Button, ProgressBar, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
+import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
+import FractionAnswerInput, { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
+import QuestionDiagram from '../components/QuestionDiagram';
+import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 
 const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
 
@@ -10,7 +14,8 @@ export default function AssessmentQuestionScreen() {
   const location = useLocation();
   const navigate = useNavigate();
   const session = location.state?.session;
-  const questions = location.state?.questions || [];
+  const rawQuestions = location.state?.questions || [];
+  const questions = useMemo(() => repairFractionQuestions(rawQuestions), [rawQuestions]);
 
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -35,6 +40,8 @@ export default function AssessmentQuestionScreen() {
 
   const q = questions[idx];
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
+  const useFractionInput = shouldUseFractionAnswerInput(q);
+  const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
 
   const stampTimeForCurrent = () => {
     const elapsed = Math.max(1, Math.floor((Date.now() - enteredAt) / 1000));
@@ -76,7 +83,22 @@ export default function AssessmentQuestionScreen() {
           <p className="text-xs text-ink-500">{session.calculatorAllowed ? 'Calculator is allowed for this assessment.' : 'Calculator is not allowed for this assessment.'}</p>
         </div>
         {q.workingRequired && <p className="mb-3 rounded-lg bg-gold-100 px-3 py-2 text-xs text-gold-900">Do your working on paper. Upload after assessment.</p>}
-        <div className="mb-4 text-lg text-ink-900"><MathText text={q.prompt || q.stem} /></div>
+        <div className="mb-4 text-lg text-ink-900">
+          {expressionQuestion ? (
+            <FractionExpressionQuestion
+              prompt={q.prompt || q.stem}
+              value={answers[q.questionId] || ''}
+              onChange={(value) => setAnswers((p) => ({ ...p, [q.questionId]: value }))}
+              onEnter={() => {
+                go(idx + 1);
+              }}
+              disabled={false}
+            />
+          ) : (
+            <MathText text={q.prompt || q.stem} />
+          )}
+        </div>
+        <QuestionDiagram question={q} />
 
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
@@ -86,6 +108,12 @@ export default function AssessmentQuestionScreen() {
               </button>
             ))}
           </div>
+        ) : useFractionInput && !expressionQuestion ? (
+          <FractionAnswerInput
+            value={answers[q.questionId] || ''}
+            onChange={(value) => setAnswers((p) => ({ ...p, [q.questionId]: value }))}
+            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
+          />
         ) : (
           <input
             value={answers[q.questionId] || ''}

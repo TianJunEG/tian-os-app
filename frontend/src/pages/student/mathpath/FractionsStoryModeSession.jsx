@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { Button, Card, ProgressBar } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
+import FractionAnswerInput, { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
+import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import {
   buildFractionsStorySession,
   evaluateFractionsStorySession,
@@ -32,6 +34,10 @@ export default function FractionsStoryModeSession() {
   const step = story.steps[idx];
   const isLast = idx === story.steps.length - 1;
   const progressValue = result ? story.steps.length : idx + 1;
+  const needsTextInput = !Array.isArray(step?.choices);
+  const stepExpectedAnswer = step?.answer?.display || step?.answer?.value || step?.answer || '';
+  const needsFractionInput = needsTextInput && isFractionLikeAnswerValue(stepExpectedAnswer);
+  const expressionQuestion = needsTextInput && Boolean(extractFractionExpression(String(step?.prompt || '')));
 
   const ensureBackendSession = async () => {
     if (backendSession?.sessionId) return backendSession;
@@ -132,7 +138,6 @@ export default function FractionsStoryModeSession() {
     );
   }
 
-  const needsTextInput = !Array.isArray(step?.choices);
   return (
     <div className="mx-auto max-w-xl px-3 pb-28 pt-3 sm:px-0">
       <Card className="mb-3 p-4">
@@ -150,15 +155,29 @@ export default function FractionsStoryModeSession() {
         {idx === 0 ? (
           <div className="mb-4 rounded-xl border border-navy-200 bg-navy-50 p-3 text-sm text-navy-800">{story.prompt}</div>
         ) : null}
-        <p className="text-lg leading-relaxed text-ink-900">{step?.prompt}</p>
+        {expressionQuestion ? (
+          <FractionExpressionQuestion
+            prompt={step?.prompt || ''}
+            value={answer}
+            onChange={setAnswer}
+          />
+        ) : (
+          <p className="text-lg leading-relaxed text-ink-900">{step?.prompt}</p>
+        )}
 
         {needsTextInput ? (
-          <input
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Type your answer"
-            className="mt-4 h-12 w-full rounded-xl border border-hairline px-4 text-base"
-          />
+          expressionQuestion ? null : needsFractionInput ? (
+            <div className="mt-4">
+              <FractionAnswerInput value={answer} onChange={setAnswer} />
+            </div>
+          ) : (
+            <input
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="Type your answer"
+              className="mt-4 h-12 w-full rounded-xl border border-hairline px-4 text-base"
+            />
+          )
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-2">
             {(step?.choices || []).map((choice) => (

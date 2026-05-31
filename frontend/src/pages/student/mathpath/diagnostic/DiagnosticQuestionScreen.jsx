@@ -4,7 +4,11 @@ import { ArrowRight } from 'lucide-react';
 import { Card, Button, ProgressBar, Spinner, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
+import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import { mathpathAPI } from '../../../../services/api';
+import FractionAnswerInput, { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
+import QuestionDiagram from '../components/QuestionDiagram';
+import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 
 const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
 
@@ -23,7 +27,7 @@ export default function DiagnosticQuestionScreen() {
   const [hydrating, setHydrating] = useState(false);
 
   const [session, setSession] = useState(location.state?.session || null);
-  const [questions, setQuestions] = useState(location.state?.questions || []);
+  const [questions, setQuestions] = useState(() => repairFractionQuestions(location.state?.questions || []));
 
   useEffect(() => {
     let mounted = true;
@@ -40,7 +44,7 @@ export default function DiagnosticQuestionScreen() {
           mode: data.mode,
           studentLevel: data.studentLevel,
         });
-        setQuestions(q);
+        setQuestions(repairFractionQuestions(q));
       } finally {
         if (mounted) setHydrating(false);
       }
@@ -65,6 +69,8 @@ export default function DiagnosticQuestionScreen() {
   const q = questions[idx];
   const isLast = idx === questions.length - 1;
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
+  const useFractionInput = shouldUseFractionAnswerInput(q);
+  const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem));
 
   const saveCurrentAnd = (skipped) => {
     const timeTaken = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
@@ -138,7 +144,20 @@ export default function DiagnosticQuestionScreen() {
             Do your working on paper. You may be asked to upload working after the session.
           </p>
         )}
-        <div className="mb-5 text-lg text-ink-900"><MathText text={q.prompt || q.stem} /></div>
+        <div className="mb-5">
+          {expressionQuestion ? (
+            <FractionExpressionQuestion
+              prompt={q.prompt || q.stem}
+              value={answer}
+              onChange={setAnswer}
+              onEnter={() => nextQuestion(false)}
+              disabled={false}
+            />
+          ) : (
+            <div className="text-lg text-ink-900"><MathText text={q.prompt || q.stem} /></div>
+          )}
+        </div>
+        <QuestionDiagram question={q} />
 
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
@@ -148,6 +167,13 @@ export default function DiagnosticQuestionScreen() {
               </button>
             ))}
           </div>
+        ) : useFractionInput && !expressionQuestion ? (
+          <FractionAnswerInput
+            value={answer}
+            onChange={setAnswer}
+            onEnter={() => nextQuestion(false)}
+            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
+          />
         ) : (
           <input
             value={answer}

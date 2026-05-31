@@ -8,6 +8,10 @@ const questionSchema = new mongoose.Schema({
   subjectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
   topicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Topic', required: true },
   skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
+  // Canonical cross-layer identifiers for robust analytics/coverage joins.
+  frameworkSkillId: { type: String, default: '' },   // e.g. F025
+  officialSkillCode: { type: String, default: '' },  // alias for frameworkSkillId
+  universalSkillSlug: { type: String, default: '' }, // e.g. fractions.word_problems_basic
   // Optional MathPath metadata for precise coverage/reporting by F-skill family.
   questionFamilyId: { type: String, default: '' },
   questionCategory: {
@@ -60,6 +64,7 @@ const questionSchema = new mongoose.Schema({
 });
 
 questionSchema.index({ skillId: 1, difficulty: 1 });
+questionSchema.index({ frameworkSkillId: 1, questionCategory: 1 });
 questionSchema.index({ topicId: 1 });
 questionSchema.index({ questionFamilyId: 1, questionCategory: 1 });
 

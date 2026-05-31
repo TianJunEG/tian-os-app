@@ -73,6 +73,13 @@ export const mathpathAPI = {
   modelTrainerTemplates: (params) => api.get('/mastery/fractions/model-trainer', { params }),
   modelTrainerForSkill: (skillId) => api.get(`/mastery/fractions/model-trainer/skill/${skillId}`),
   modelTrainerTemplate: (templateId) => api.get(`/mastery/fractions/model-trainer/${templateId}`),
+  analyzeQuestionPattern: (data) => api.post('/mastery/fractions/question-patterns/analyze', data),
+  generateQuestionPattern: (data) => api.post('/mastery/fractions/question-patterns/generate', data),
+  approveQuestionPattern: (data) => api.post('/mastery/fractions/question-patterns/approve', data),
+  similarPracticeSets: (params) => api.get('/mastery/fractions/similar-practice-sets', { params }),
+  similarPracticeSet: (practiceSetId) => api.get(`/mastery/fractions/similar-practice-sets/${practiceSetId}`),
+  startSimilarPractice: (practiceSetId, data = {}) => api.post(`/mastery/fractions/similar-practice-sets/${practiceSetId}/start`, data),
+  submitSimilarPractice: (sessionId, data) => api.post(`/mastery/fractions/similar-practice/${sessionId}/submit`, data),
   // ref: a slug string, or { skillId } / { skillSlug }
   remediation: (ref, recentAttempts = []) =>
     api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })

@@ -3,6 +3,7 @@ import {
   DIAGRAM_SCHEMA_VERSION,
   DIAGRAM_TYPE_BY_TYPE,
   DIAGRAM_TYPES,
+  LEGACY_DIAGRAM_TYPE_ALIASES,
 } from './diagramTypes.js';
 
 function isObject(value) {
@@ -181,8 +182,10 @@ export const diagramValidators = validators;
 
 export function normalizeDiagramSpec(rawSpec = {}) {
   const spec = createDiagramSpec(rawSpec);
+  const normalizedType = LEGACY_DIAGRAM_TYPE_ALIASES[spec.type] || spec.type;
   return {
     ...spec,
+    type: normalizedType,
     labels: isObject(spec.labels) ? spec.labels : {},
     metadata: isObject(spec.metadata) ? spec.metadata : {},
     data: isObject(spec.data) ? spec.data : {},

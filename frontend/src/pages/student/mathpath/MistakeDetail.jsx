@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Check, Dumbbell, AlertTriangle, Lightbulb } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
-import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
+import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
 
@@ -88,10 +88,14 @@ export default function MistakeDetail() {
         </div>
 
         {m.workedSolution && (
-          <div className="mb-4 rounded-xl bg-navy-50 p-4">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-navy-500">Worked solution</div>
+          <CollapsibleSection
+            title="Worked solution"
+            summary="Open to check the full method."
+            className="mb-4"
+            surface={false}
+          >
             <div className="text-sm text-navy-800"><MathText text={m.workedSolution} /></div>
-          </div>
+          </CollapsibleSection>
         )}
 
         <div className="flex flex-wrap gap-2">
@@ -102,11 +106,13 @@ export default function MistakeDetail() {
       </Card>
 
       {showHelp && (
-        <RemediationPanel
-          skillId={m.skillId}
-          recentAttempts={[{ correct: false, misconceptionTag: m.misconceptionTag }]}
-          onPractise={practise}
-        />
+        <CollapsibleSection title="Remediation help" summary="Hints and model drawing pathways for this mistake." defaultOpen surface={false}>
+          <RemediationPanel
+            skillId={m.skillId}
+            recentAttempts={[{ correct: false, misconceptionTag: m.misconceptionTag }]}
+            onPractise={practise}
+          />
+        </CollapsibleSection>
       )}
     </>
   );

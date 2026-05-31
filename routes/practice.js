@@ -16,6 +16,13 @@ import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 const router = express.Router();
 const FRAMEWORK_SKILL_ID_PATTERN = /^F\d{3}$/i;
 
+function answerInputTypeFor(answer = '') {
+  const raw = String(answer || '').trim();
+  if (/^-?\d+\s+\d+\s*\/\s*\d+$/.test(raw)) return 'mixed';
+  if (/^-?\d+\s*\/\s*-?\d+$/.test(raw)) return 'fraction';
+  return '';
+}
+
 async function resolveSkillRefToIds(refs = []) {
   const out = [];
   for (const refRaw of refs || []) {
@@ -44,6 +51,7 @@ const clientQuestion = (q) => ({
   difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
   skillName: q.skillId?.name, topicId: q.skillId?.topicId,
   visual: q.visual || null,
+  answerInputType: answerInputTypeFor(q.answer),
   hasFigure: !!q.hasFigure,
   figureUrl: q.figureUrl || '',
   figureAlt: q.figureAlt || '',

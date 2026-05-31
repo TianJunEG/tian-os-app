@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, AlertTriangle } from 'lucide-react';
 import { Card, Button, PageHeader, ErrorState } from '../../../../components/ui';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
+import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import {
   buildAssessmentReport,
   scoreFractionAssessmentSubmission,
@@ -18,7 +19,8 @@ export default function AssessmentReviewScreen() {
   const [error, setError] = useState('');
 
   const session = location.state?.session;
-  const questions = location.state?.questions || [];
+  const rawQuestions = location.state?.questions || [];
+  const questions = useMemo(() => repairFractionQuestions(rawQuestions), [rawQuestions]);
   const answers = location.state?.answers || {};
   const conf = location.state?.conf || {};
   const flagged = location.state?.flagged || {};

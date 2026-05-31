@@ -16,10 +16,17 @@ export const DIAGRAM_TYPE_DEFINITIONS = [
   { code: 'DG013', type: 'dot_grid', name: 'Dot Grid' },
   { code: 'DG014', type: 'clock', name: 'Clock' },
   { code: 'DG015', type: 'length_measurement', name: 'Length Measurement' },
-  { code: 'DG016', type: 'comparison_models', name: 'Comparison Models' },
+  { code: 'DG016', type: 'comparison_model', name: 'Comparison Model' },
 ];
 
-export const DIAGRAM_TYPES = DIAGRAM_TYPE_DEFINITIONS.map((d) => d.type);
+export const LEGACY_DIAGRAM_TYPE_ALIASES = {
+  comparison_models: 'comparison_model',
+};
+
+export const DIAGRAM_TYPES = [
+  ...DIAGRAM_TYPE_DEFINITIONS.map((d) => d.type),
+  ...Object.keys(LEGACY_DIAGRAM_TYPE_ALIASES),
+];
 
 export const DIAGRAM_TYPE_BY_CODE = new Map(DIAGRAM_TYPE_DEFINITIONS.map((d) => [d.code, d]));
 export const DIAGRAM_TYPE_BY_TYPE = new Map(DIAGRAM_TYPE_DEFINITIONS.map((d) => [d.type, d]));
@@ -39,7 +46,7 @@ export const RESERVED_SPEC_FIELDS = new Set([
 export function createDiagramSpec(spec = {}) {
   const {
     id,
-    type,
+    type: rawType,
     title = '',
     labels = {},
     metadata = {},
@@ -52,7 +59,7 @@ export function createDiagramSpec(spec = {}) {
 
   return {
     id,
-    type,
+    type: LEGACY_DIAGRAM_TYPE_ALIASES[rawType] || rawType,
     title,
     labels,
     metadata,

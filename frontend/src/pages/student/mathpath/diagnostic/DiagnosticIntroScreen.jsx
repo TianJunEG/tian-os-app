@@ -17,6 +17,18 @@ function modeForLevel(level) {
   return 'full';
 }
 
+const MODE_LABELS = {
+  basic: 'Quick Check-In',
+  core: 'Core Diagnostic',
+  full: 'Full Diagnostic',
+};
+
+const PURPOSE_LABELS = {
+  baseline: 'Baseline Check',
+  recheck: 'Recheck',
+  assigned: 'Assigned Diagnostic',
+};
+
 export default function DiagnosticIntroScreen() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -100,15 +112,15 @@ export default function DiagnosticIntroScreen() {
               <label className="text-sm text-ink-600">
                 Diagnostic Mode
                 <select value={mode} onChange={(e) => setMode(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
-                  <option value="basic">basic</option>
-                  <option value="core">core</option>
-                  <option value="full">full</option>
+                  <option value="basic">{MODE_LABELS.basic}</option>
+                  <option value="core">{MODE_LABELS.core}</option>
+                  <option value="full">{MODE_LABELS.full}</option>
                 </select>
               </label>
             ) : (
               <div className="text-sm text-ink-600">
                 Diagnostic Mode
-                <div className="mt-1 rounded-lg border border-hairline bg-slate-50 px-3 py-2 text-sm capitalize">{mode}</div>
+                <div className="mt-1 rounded-lg border border-hairline bg-slate-50 px-3 py-2 text-sm">{MODE_LABELS[mode] || mode}</div>
               </div>
             )}
             <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-ink-600">
@@ -117,6 +129,9 @@ export default function DiagnosticIntroScreen() {
               <p>{estimate.durationMin} min</p>
             </div>
           </div>
+          <p className="mt-3 text-xs text-ink-500">
+            {PURPOSE_LABELS[diagnosticPurpose] || 'Diagnostic'} · {MODE_LABELS[mode] || mode}. Question count is fixed for this mode.
+          </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge tone="navy">Calculator: not allowed</Badge>
             <Badge tone="neutral">One question at a time</Badge>

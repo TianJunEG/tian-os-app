@@ -207,7 +207,7 @@ export default function TestSpecificationPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <PageHeader title="School-Aligned Test (TOS)" subtitle="Create a Table of Specification and generate a balanced revision test." />
+      <PageHeader title="School-Aligned Test" subtitle="Create a school-style blueprint and generate a balanced revision test." />
       {uploadRoute && (
         <Card className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -231,8 +231,8 @@ export default function TestSpecificationPage() {
           </label>
           <label className="text-sm text-ink-600">Paper Type
             <select className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.paperType} onChange={(e) => setForm((p) => ({ ...p, paperType: e.target.value }))}>
-              <option value="paper1">paper1</option>
-              <option value="paper2">paper2</option>
+              <option value="paper1">Practice Paper 1</option>
+              <option value="paper2">Practice Paper 2</option>
             </select>
           </label>
           <label className="text-sm text-ink-600">Target Type

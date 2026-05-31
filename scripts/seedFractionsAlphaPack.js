@@ -14,6 +14,7 @@ import {
   getCoverageBySkill,
   validateGeneratedQuestion,
 } from '../services/mathpath/fractionContentGenerationEngine.js';
+import { getCanonicalFractionSkillLinks } from '../services/mathpath/fractionSkillResolver.js';
 
 dotenv.config();
 
@@ -119,10 +120,14 @@ function toQuestionDoc({ mathSubjectId, dbSkill, generated }) {
   const workedSolution = (generated.solutionSteps || []).join(' ');
   const safeVisual = visualFromPrompt(stem);
 
+  const links = getCanonicalFractionSkillLinks(generated.skillId);
   const doc = {
     subjectId: mathSubjectId,
     topicId: dbSkill.topicId,
     skillId: dbSkill._id,
+    frameworkSkillId: links?.frameworkSkillId || generated.skillId || '',
+    officialSkillCode: links?.officialSkillCode || generated.skillId || '',
+    universalSkillSlug: links?.universalSkillSlug || '',
     moeLevel: dbSkill.moeLevel || '',
     difficulty: difficultyToQuestionDifficulty(generated.difficultyLevel, generated.questionCategory),
     type: 'short_answer',
@@ -145,15 +150,26 @@ function toQuestionDoc({ mathSubjectId, dbSkill, generated }) {
 
 function summarizeSkill(row = {}) {
   const combined = row.combinedCoverage || {};
+  const diagnostic = toNum(combined.diagnosticQuestions, 0);
+  const practice = toNum(combined.practiceQuestions, 0);
+  const fluency = toNum(combined.fluencyQuestions, 0);
+  const assessment = toNum(combined.assessmentQuestions, 0);
+  const total = toNum(combined.totalQuestions, 0);
+  const alphaReady =
+    diagnostic >= ALPHA_TARGETS.diagnostic &&
+    practice >= ALPHA_TARGETS.practice &&
+    fluency >= ALPHA_TARGETS.fluency &&
+    assessment >= ALPHA_TARGETS.assessment &&
+    total >= REQUIRED_TOTAL;
   return {
     skillId: row.skillId,
     skillName: row.skillName,
-    diagnostic: toNum(combined.diagnosticQuestions, 0),
-    practice: toNum(combined.practiceQuestions, 0),
-    fluency: toNum(combined.fluencyQuestions, 0),
-    assessment: toNum(combined.assessmentQuestions, 0),
-    total: toNum(combined.totalQuestions, 0),
-    pilotReady: Boolean(row.pilotReady),
+    diagnostic,
+    practice,
+    fluency,
+    assessment,
+    total,
+    pilotReady: alphaReady,
     missing: row.missingContent || {},
   };
 }
@@ -324,9 +340,10 @@ async function main() {
 
     const allCandidateSlugs = Array.from(new Set(
       PRIORITY_SKILLS.flatMap((skillId) => {
+        const links = getCanonicalFractionSkillLinks(skillId);
         const canonical = slugForSkillId(skillId);
         const fallbacks = LEGACY_SKILL_SLUG_FALLBACKS[skillId] || [];
-        return [canonical, ...fallbacks].filter(Boolean);
+        return [links?.domainSkillSlug, links?.universalSkillSlug, canonical, ...fallbacks].filter(Boolean);
       })
     ));
     const dbSkills = await Skill.find({
@@ -336,9 +353,10 @@ async function main() {
 
     const missingSkillMappings = [];
     const targetSkillRows = PRIORITY_SKILLS.map((skillId) => {
+      const links = getCanonicalFractionSkillLinks(skillId);
       const canonical = slugForSkillId(skillId);
       const fallbacks = LEGACY_SKILL_SLUG_FALLBACKS[skillId] || [];
-      const candidateSlugs = [canonical, ...fallbacks].filter(Boolean);
+      const candidateSlugs = [links?.domainSkillSlug, links?.universalSkillSlug, canonical, ...fallbacks].filter(Boolean);
       const dbSkill = candidateSlugs.map((s) => bySlug.get(s)).find(Boolean) || null;
       if (!dbSkill) missingSkillMappings.push({ skillId, slug: canonical || '' });
       return { skillId, slug: canonical, dbSkill, candidateSlugs };

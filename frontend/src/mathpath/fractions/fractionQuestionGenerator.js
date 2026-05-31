@@ -1,5 +1,6 @@
 import { fractionSkillGraph, getSkill } from './fractionSkillGraph.js';
 import { getQuestionFamily, getQuestionFamiliesBySkill } from './fractionQuestionFamilies.js';
+import { getSkillCurriculumMapping } from '../curriculum/curriculumMappingSelectors.js';
 
 const DOMAIN_ID = 'fractions';
 
@@ -116,9 +117,23 @@ function answerPayloadMixed(whole, numerator, denominator) {
   return { type: 'mixed', whole, numerator, denominator, display: mixedStr({ whole, numerator, denominator }) };
 }
 
-function checkZeroDenominatorInQuestion(question) {
-  const allNums = JSON.stringify(question);
-  if (/:0(,|})/.test(allNums) && /denominator/.test(allNums)) throw new Error('Generated denominator is zero.');
+function assertValidDenominators(value, path = '') {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => assertValidDenominators(item, `${path}[${index}]`));
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+  Object.entries(value).forEach(([key, child]) => {
+    const nextPath = path ? `${path}.${key}` : key;
+    if (key === 'denominator') {
+      const den = Number(child);
+      if (!Number.isFinite(den) || den <= 0) {
+        throw new Error(`Invalid generated denominator at ${nextPath}.`);
+      }
+      return;
+    }
+    assertValidDenominators(child, nextPath);
+  });
 }
 
 function modeMarks(mode = 'practice') {
@@ -138,6 +153,29 @@ function estimateSeconds(mode = 'practice', difficulty = 2, base = 18) {
 function seq(seed, min, max) {
   const width = max - min + 1;
   return min + (Math.abs(seed) % width);
+}
+
+function distinctSeq(seed, min, max, avoid) {
+  let value = seq(seed, min, max);
+  if (value === avoid) value = value < max ? value + 1 : value - 1;
+  return value;
+}
+
+function ordinalWord(n) {
+  return ({
+    1: 'first',
+    2: 'second',
+    3: 'third',
+    4: 'fourth',
+    5: 'fifth',
+    6: 'sixth',
+    7: 'seventh',
+    8: 'eighth',
+    9: 'ninth',
+    10: 'tenth',
+    11: 'eleventh',
+    12: 'twelfth',
+  })[n] || `${n}th`;
 }
 
 function templateContext(skillId, questionFamilyId, difficulty = 2, mode = 'practice', variant = 0) {
@@ -174,25 +212,57 @@ const SKILL_MISTAKES = {
   F026: ['M008', 'M010', 'M013'],
 };
 
-function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, workingRequired, mentalMathEligible, solutionSteps }) {
+function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
+  const primaryMapping = getSkillCurriculumMapping(skillId, {
+    country: 'SG',
+    curriculum: 'MOE_PRIMARY_MATH_2021',
+  });
+  const secondaryMapping = getSkillCurriculumMapping(skillId, {
+    country: 'SG',
+    curriculum: 'MOE_SECONDARY_G1_MATH_2021',
+  });
+  const workedSolution = Array.isArray(solutionSteps) ? solutionSteps.join(' ') : '';
+
   const question = {
     questionId: makeId('fq', `${skillId}|${questionFamilyId}|${prompt}`),
     domainId: DOMAIN_ID,
     skillId,
     questionFamilyId,
+    questionCategory: mode,
+    questionType: 'short_answer',
     prompt,
     answer,
     acceptedAnswers,
     workingRequired,
     mentalMathEligible,
     difficulty,
+    difficultyBand: difficulty <= 2 ? 'easy' : difficulty <= 4 ? 'medium' : 'hard',
     estimatedSeconds: estimateSeconds(mode, difficulty),
     marks: modeMarks(mode),
     solutionSteps,
+    workedSolution,
+    diagramSpec,
     commonMistakePatterns: SKILL_MISTAKES[skillId] || ['M010'],
+    mistakeTags: SKILL_MISTAKES[skillId] || ['M010'],
+    singaporeMetadata: {
+      country: 'SG',
+      subject: 'Mathematics',
+      mappings: [primaryMapping, secondaryMapping].filter(Boolean).map((mapping) => ({
+        curriculum: mapping.curriculum,
+        phase: mapping.phase,
+        stream: mapping.stream,
+        level: mapping.level,
+        introducedLevel: mapping.introducedLevel,
+        masteryLevel: mapping.masteryLevel,
+        strand: mapping.strand,
+        subStrand: mapping.subStrand,
+        syllabusRef: mapping.syllabusRef,
+      })),
+    },
     createdAt: nowIso(),
   };
-  checkZeroDenominatorInQuestion(question);
+  assertValidDenominators(question.answer);
+  if (question.diagramSpec) assertValidDenominators(question.diagramSpec);
   return question;
 }
 
@@ -214,47 +284,76 @@ function templateForSkill(skillId, variant, ctx) {
       const n = seq(s, 1, 7);
       const d = seq(s + 9, n + 1, 12);
       const askNum = variant % 2 === 0;
+      const target = askNum ? 'shaded' : 'equal';
       return {
-        prompt: `In the fraction ${n}/${d}, what is the ${askNum ? 'numerator' : 'denominator'}?`,
+        prompt: askNum
+          ? `A bar is split into ${d} equal parts. ${n} parts are shaded. How many parts are shaded?`
+          : `A bar is split into ${d} equal parts. ${n} parts are shaded. How many equal parts are in the whole bar?`,
         answer: answerPayloadWhole(askNum ? n : d),
         acceptedAnswers: [String(askNum ? n : d)],
-        solutionSteps: [askNum ? 'Numerator is the top number.' : 'Denominator is the bottom number.', `So the answer is ${askNum ? n : d}.`],
+        diagramSpec: {
+          type: 'fraction_bar',
+          width: 640,
+          height: 180,
+          data: { parts: d, shaded: n, labelMode: 'none' },
+        },
+        solutionSteps: [`Count the ${target} parts.`, `So the answer is ${askNum ? n : d}.`],
       };
     }
     case 'F003': {
-      const total = seq(s, 6, 20);
       const d = [2, 3, 4, 5][Math.abs(s) % 4];
       const n = seq(s + 3, 1, d - 1);
-      const shaded = (total / d) * n;
+      const groups = seq(s + 11, 2, 6);
+      const total = d * groups;
+      const unit = total / d;
+      const shaded = unit * n;
       return {
         prompt: `A set has ${total} objects. ${n}/${d} of them are selected. How many are selected?`,
         answer: answerPayloadWhole(shaded),
         acceptedAnswers: [String(shaded)],
-        solutionSteps: [`Find 1/${d} of ${total}: ${total}/${d} = ${total / d}.`, `Multiply by ${n}: ${(total / d) * n}.`],
+        solutionSteps: [`Find 1/${d} of ${total}: ${total}/${d} = ${unit}.`, `Multiply by ${n}: ${shaded}.`],
       };
     }
     case 'F004': {
       const d = seq(s, 2, 12);
       return {
-        prompt: `Write the unit fraction with denominator ${d}.`,
+        prompt: `A bar is split into ${d} equal parts. 1 part is shaded. What fraction is shaded?`,
         answer: answerPayloadFraction(1, d),
         acceptedAnswers: [`1/${d}`],
-        solutionSteps: ['A unit fraction has numerator 1.', `So the fraction is 1/${d}.`],
+        diagramSpec: {
+          type: 'fraction_bar',
+          width: 640,
+          height: 180,
+          data: { parts: d, shaded: 1, labelMode: 'none' },
+        },
+        solutionSteps: ['Count the shaded parts.', 'Count the total equal parts.', `So the fraction is 1/${d}.`],
       };
     }
     case 'F005': {
       const d = [2, 3, 4, 5, 6, 8][Math.abs(s) % 6];
       const pos = seq(s + 2, 1, d - 1);
       return {
-        prompt: `On a number line from 0 to 1 split into ${d} equal parts, what fraction is at the ${pos}th mark after 0?`,
+        prompt: `On a number line from 0 to 1 divided into ${d} equal parts, what fraction is at the ${ordinalWord(pos)} mark after 0?`,
         answer: answerPayloadFraction(pos, d),
         acceptedAnswers: [`${pos}/${d}`],
+        diagramSpec: {
+          type: 'number_line',
+          width: 640,
+          height: 180,
+          data: {
+            min: 0,
+            max: 1,
+            minStepCount: d,
+            points: [{ value: pos / d, label: '?' }],
+            endpointLabels: ['0', '1'],
+          },
+        },
         solutionSteps: ['Each mark is one equal part.', `The ${pos}th mark is ${pos}/${d}.`],
       };
     }
     case 'F006': {
       const a = seq(s, 2, 9);
-      const b = seq(s + 5, 2, 9);
+      const b = distinctSeq(s + 5, 2, 9, a);
       const bigger = a < b ? `1/${a}` : `1/${b}`;
       return {
         prompt: `Which is greater: 1/${a} or 1/${b}?`,
@@ -266,7 +365,7 @@ function templateForSkill(skillId, variant, ctx) {
     case 'F007': {
       const d = seq(s, 3, 12);
       const a = seq(s + 1, 1, d - 1);
-      const b = seq(s + 4, 1, d - 1);
+      const b = distinctSeq(s + 4, 1, d - 1, a);
       const greater = a > b ? `${a}/${d}` : `${b}/${d}`;
       return {
         prompt: `Which is greater: ${a}/${d} or ${b}/${d}?`,
@@ -278,7 +377,7 @@ function templateForSkill(skillId, variant, ctx) {
     case 'F008': {
       const n = seq(s, 1, 6);
       const a = seq(s + 2, n + 1, 12);
-      const b = seq(s + 5, n + 1, 12);
+      const b = distinctSeq(s + 5, n + 1, 12, a);
       const greater = a < b ? `${n}/${a}` : `${n}/${b}`;
       return {
         prompt: `Which is greater: ${n}/${a} or ${n}/${b}?`,
@@ -288,11 +387,18 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F009': {
-      const d1 = 4; const d2 = 6; const d3 = 8;
-      const f1 = frac(seq(s, 1, 3), d1); const f2 = frac(seq(s + 4, 1, 5), d2); const f3 = frac(seq(s + 7, 1, 7), d3);
-      const arr = [f1, f2, f3].sort((x, y) => x.numerator / x.denominator - y.numerator / y.denominator).map(fracStr);
+      const triples = [
+        [frac(1, 4), frac(1, 2), frac(3, 4)],
+        [frac(1, 3), frac(1, 2), frac(2, 3)],
+        [frac(2, 5), frac(1, 2), frac(4, 5)],
+        [frac(3, 8), frac(1, 4), frac(5, 8)],
+        [frac(2, 3), frac(1, 6), frac(1, 2)],
+      ];
+      const picked = triples[Math.abs(s) % triples.length];
+      const shown = [...picked].sort((a, b) => hash(`${s}|${fracStr(a)}`) - hash(`${s}|${fracStr(b)}`));
+      const arr = [...picked].sort((x, y) => x.numerator / x.denominator - y.numerator / y.denominator).map(fracStr);
       return {
-        prompt: `Order these fractions from smallest to largest: ${fracStr(f1)}, ${fracStr(f2)}, ${fracStr(f3)}.`,
+        prompt: `Order these fractions from smallest to largest: ${shown.map(fracStr).join(', ')}.`,
         answer: { type: 'list', value: arr, display: arr.join(', ') },
         acceptedAnswers: [arr.join(','), arr.join(', ')],
         solutionSteps: ['Convert to comparable values (or common denominator).', `Order: ${arr.join(', ')}.`],
@@ -393,7 +499,7 @@ function templateForSkill(skillId, variant, ctx) {
     case 'F014': {
       const w = seq(s, 1, 5); const n = seq(s + 3, 1, 5); const d = seq(s + 5, n + 1, 8);
       return {
-        prompt: `Write this mixed number as words-friendly value: ${w} ${n}/${d}. (Enter the same mixed number.)`,
+        prompt: `Write the mixed number shown: ${w} ${n}/${d}.`,
         answer: answerPayloadMixed(w, n, d),
         acceptedAnswers: [mixedStr({ whole: w, numerator: n, denominator: d })],
         solutionSteps: ['Keep whole part and fraction part together.', `Answer remains ${w} ${n}/${d}.`],
@@ -714,6 +820,7 @@ export function generateFractionQuestion(options = {}) {
     workingRequired,
     mentalMathEligible: !!family.mentalMathEligible,
     solutionSteps: payload.solutionSteps,
+    diagramSpec: payload.diagramSpec,
   });
 }
 
@@ -800,21 +907,46 @@ export function generateAssessmentQuestionSet(options = {}) {
   for (let i = 0; i < count; i += 1) {
     const skillId = skills[i % skills.length];
     const familyId = families.find((fid) => getQuestionFamily(fid)?.skillId === skillId) || families[i % families.length];
-    out.push(
-      generateFractionQuestion({
-        skillId,
-        questionFamilyId: familyId,
-        difficulty: 2 + (i % 3),
-        mode: 'assessment',
-        variant: i,
-      })
-    );
+    let generated = null;
+    for (let attempt = 0; attempt < 4 && !generated; attempt += 1) {
+      try {
+        generated = generateFractionQuestion({
+          skillId,
+          questionFamilyId: familyId,
+          difficulty: 2 + (i % 3),
+          mode: 'assessment',
+          variant: i + attempt * count,
+        });
+      } catch (err) {
+        if (!/denominator/i.test(String(err?.message || ''))) throw err;
+      }
+    }
+    if (generated) out.push(generated);
   }
   return out.map((q) => ({ ...q, marks: q.marks || 2 }));
 }
 
 export function checkFractionAnswer(options = {}) {
   const { studentAnswer, correctAnswer, acceptedAnswers = [] } = options;
+  const normalizeListAnswer = (raw) => String(raw || '')
+    .split(',')
+    .map((part) => part.trim().replace(/\s+/g, ''))
+    .filter(Boolean)
+    .join(',');
+
+  if (correctAnswer?.type === 'list') {
+    const normalizedStudent = normalizeListAnswer(studentAnswer);
+    const normalizedAccepted = [
+      correctAnswer.display,
+      ...(Array.isArray(acceptedAnswers) ? acceptedAnswers : []),
+    ].map(normalizeListAnswer);
+    return {
+      correct: normalizedAccepted.includes(normalizedStudent),
+      normalizedStudentAnswer: normalizedStudent || null,
+      normalizedCorrectAnswer: normalizeListAnswer(correctAnswer.display),
+    };
+  }
+
   const parsedStudent = parseAnswer(studentAnswer);
   const parsedCorrect = typeof correctAnswer === 'string'
     ? parseAnswer(correctAnswer)

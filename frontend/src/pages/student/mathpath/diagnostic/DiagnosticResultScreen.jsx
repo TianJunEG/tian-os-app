@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { Card, Button, Badge, ErrorState, PageHeader, Spinner } from '../../../../components/ui';
+import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../../../components/ui';
 import { getUniversalSkillByFrameworkId } from '../../../../mathpath/curriculum';
 import { mathpathAPI } from '../../../../services/api';
 
@@ -101,37 +101,43 @@ export default function DiagnosticResultScreen() {
           </p>
         </Card>
 
-        <Card className="p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CollapsibleSection
+          title="Detailed placement report"
+          summary="Strengths, areas to work on, and placement confidence."
+        >
+          <div className="space-y-5">
             <div>
-              <p className="text-sm font-semibold text-ink-700">Strengths</p>
-              {masteredNames.length ? (
-                <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">
-                  {masteredNames.map((name) => <li key={name}>{name}</li>)}
-                </ul>
-              ) : <p className="mt-2 text-sm text-ink-500">Keep going — strengths will grow with practice.</p>}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-sm font-semibold text-ink-700">Strengths</p>
+                  {masteredNames.length ? (
+                    <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">
+                      {masteredNames.map((name) => <li key={name}>{name}</li>)}
+                    </ul>
+                  ) : <p className="mt-2 text-sm text-ink-500">Keep going — strengths will grow with practice.</p>}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-ink-700">Areas to Work On</p>
+                  {weakNames.length ? (
+                    <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">
+                      {weakNames.map((name) => <li key={name}>{name}</li>)}
+                    </ul>
+                  ) : <p className="mt-2 text-sm text-ink-500">No major weak areas detected in this scan.</p>}
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-ink-700">Areas to Work On</p>
-              {weakNames.length ? (
-                <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">
-                  {weakNames.map((name) => <li key={name}>{name}</li>)}
-                </ul>
-              ) : <p className="mt-2 text-sm text-ink-500">No major weak areas detected in this scan.</p>}
+            <div className="border-t border-hairline pt-4">
+              <p className="text-sm font-semibold text-ink-700">Placement Confidence</p>
+              <p className="mt-2 text-sm text-ink-600">
+                Readiness level: <span className="font-semibold">{shaped.readinessLevel || readinessBand(score)}</span>
+                {' '}· Confidence score: <span className="font-semibold">{Math.round((Number(shaped.confidenceScore || 0) || 0) * 100)}%</span>
+              </p>
+              {shaped.studentPlacementReport?.suggestedFirstSession && (
+                <p className="mt-2 text-sm text-ink-600">{shaped.studentPlacementReport.suggestedFirstSession}</p>
+              )}
             </div>
           </div>
-        </Card>
-        <Card className="p-5">
-          <p className="text-sm font-semibold text-ink-700">Placement Confidence</p>
-          <p className="mt-2 text-sm text-ink-600">
-            Readiness level: <span className="font-semibold">{shaped.readinessLevel || readinessBand(score)}</span>
-            {' '}· Confidence score: <span className="font-semibold">{Math.round((Number(shaped.confidenceScore || 0) || 0) * 100)}%</span>
-          </p>
-          {shaped.studentPlacementReport?.suggestedFirstSession && (
-            <p className="mt-2 text-sm text-ink-600">{shaped.studentPlacementReport.suggestedFirstSession}</p>
-          )}
-        </Card>
-
+        </CollapsibleSection>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <Button
             size="l"

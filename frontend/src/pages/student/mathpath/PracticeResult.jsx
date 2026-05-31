@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Wrench } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
-import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
+import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 
@@ -68,16 +68,22 @@ export default function PracticeResult() {
         </div>
       </Card>
 
-      <div className="mb-5">
-        <h3 className="mb-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Skills practised</h3>
+      <CollapsibleSection
+        title="Skills practised"
+        summary={`${skills.length} skill${skills.length === 1 ? '' : 's'} covered in this session`}
+        className="mb-5"
+      >
         <div className="flex flex-wrap gap-2">
           {skills.map((s) => <Badge key={s.id} tone="navy">{s.name}</Badge>)}
         </div>
-      </div>
+      </CollapsibleSection>
 
       {mistakes.length > 0 && (
-        <Card className="mb-5 p-5">
-          <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Mistakes to review ({mistakes.length})</h3>
+        <CollapsibleSection
+          title={`Mistakes to review (${mistakes.length})`}
+          summary="Open when you are ready to check the exact questions."
+          className="mb-5"
+        >
           <ul className="space-y-3">
             {mistakes.map((m) => (
               <li key={m.id} className="text-sm">
@@ -86,7 +92,7 @@ export default function PracticeResult() {
               </li>
             ))}
           </ul>
-        </Card>
+        </CollapsibleSection>
       )}
 
       {recommended && (

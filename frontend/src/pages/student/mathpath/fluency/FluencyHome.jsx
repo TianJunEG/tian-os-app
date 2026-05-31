@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, ArrowRight, ListChecks, AlertTriangle } from 'lucide-react';
 import { mathpathAPI, skillsAPI } from '../../../../services/api';
-import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../../components/ui';
+import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../../components/ui';
 
 // MathPath › Fluency — home. Recommended skill, weak fluency skills, quick practice.
 // Fluency is a FEATURE of MathPath: it reuses the shared practice/result screens.
@@ -42,6 +42,13 @@ export default function FluencyHome() {
   // even when it happens to be the lowest-scored. Mirrors the `weak` list below.
   const weak = skills.filter((s) => s.status !== 'mastered');
   const recommended = [...weak].sort((a, b) => a.score - b.score)[0] || null;
+  const topWeak = [...weak].sort((a, b) => a.score - b.score).slice(0, 3);
+  const grouped = weak.reduce((acc, skill) => {
+    const key = skill.topicName || 'Fractions';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(skill);
+    return acc;
+  }, {});
 
   return (
     <>
@@ -62,10 +69,10 @@ export default function FluencyHome() {
         )}
       </Card>
 
-      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Skills to sharpen</h3>
+      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Top skills to sharpen</h3>
       <div className="mb-6 space-y-2">
         {weak.length === 0 && <Card className="p-4 text-sm text-ink-500">All your fluency skills are sharp. Nice work.</Card>}
-        {weak.map((s) => (
+        {topWeak.map((s) => (
           <Card key={s.skillId} interactive className="flex items-center justify-between p-4" onClick={() => start(s.skillId)} role="button">
             <div>
               <div className="font-semibold text-ink-700">{s.name}</div>
@@ -79,6 +86,30 @@ export default function FluencyHome() {
           </Card>
         ))}
       </div>
+
+      {weak.length > topWeak.length && (
+        <CollapsibleSection
+          title="All fluency skills by topic"
+          summary={`${weak.length} skills available for extra practice`}
+          surface={false}
+          className="mb-6"
+        >
+          <div className="space-y-3">
+            {Object.entries(grouped).map(([topic, rows]) => (
+              <CollapsibleSection key={topic} title={topic} summary={`${rows.length} skill${rows.length === 1 ? '' : 's'}`} surface={false}>
+                <div className="space-y-2">
+                  {rows.map((s) => (
+                    <button key={s.skillId} type="button" onClick={() => start(s.skillId)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-hairline px-3 py-2 text-left">
+                      <span className="min-w-0 truncate text-sm font-semibold text-ink-700">{s.name}</span>
+                      <Badge tone={TONE[s.status] || 'neutral'}>{s.statusLabel}</Badge>
+                    </button>
+                  ))}
+                </div>
+              </CollapsibleSection>
+            ))}
+          </div>
+        </CollapsibleSection>
+      )}
 
       <Button variant="secondary" icon={ListChecks} to="/student/mathpath/fluency/skills" className="w-full">View all fluency skills</Button>
       {mastery?.recentMistakeCount > 0 && (

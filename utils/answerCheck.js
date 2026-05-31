@@ -4,7 +4,22 @@
 const gcd = (a, b) => (b === 0 ? Math.abs(a) : gcd(b, a % b));
 
 function parseFraction(s) {
-  const m = String(s).trim().match(/^(-?\d+)\s*\/\s*(\d+)$/);
+  const input = String(s).trim();
+  if (!input) return null;
+
+  // Mixed number: "1 2/3" or "-1 2/3".
+  const mixedMatch = input.match(/^(-?\d+)\s+(\d+)\s*\/\s*(-?\d+)$/);
+  if (mixedMatch) {
+    const whole = Number(mixedMatch[1]);
+    const numerator = Number(mixedMatch[2]);
+    const denominator = Number(mixedMatch[3]);
+    if (denominator === 0) return null;
+    const sign = whole < 0 ? -1 : 1;
+    return [whole * denominator + sign * numerator, denominator];
+  }
+
+  // Improper fraction: "2/3" or "-1/2" or "1/-2".
+  const m = input.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
   if (!m) return null;
   const num = parseInt(m[1], 10), den = parseInt(m[2], 10);
   if (den === 0) return null;

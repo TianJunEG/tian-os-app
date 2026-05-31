@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, Map as MapIcon, ChevronRight, GraduationCap, Compass, ClipboardCheck, PencilLine } from 'lucide-react';
+import { ArrowRight, AlertTriangle, ChevronRight, ChevronDown, GraduationCap, Compass, ClipboardCheck, PencilLine, Wand2 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, Spinner, EmptyState } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
@@ -37,6 +37,8 @@ export default function MathPathHome() {
   const [skillPreview, setSkillPreview] = useState(null);
   const [skillPreviewLoading, setSkillPreviewLoading] = useState(false);
   const [skillPreviewError, setSkillPreviewError] = useState('');
+  const [showTopicMapSection, setShowTopicMapSection] = useState(false);
+  const [showLevelsSkillsSection, setShowLevelsSkillsSection] = useState(false);
   const selectedSkillId = selectedSkill?.skillId || '';
   const curriculumCountry = 'SG';
 
@@ -260,6 +262,8 @@ export default function MathPathHome() {
   const welcomeTitle = hasPlacement ? 'Welcome back' : 'Let’s find your starting point';
   const continueSkillId = currentFrameworkSkillId || recommended?.skillId || placementSkill?.skillId || domainProgress?.currentSkillId || null;
   const storyModeEnabled = isFractionsStoryModeEnabled();
+  const roles = new Set([user?.role, ...(Array.isArray(user?.roles) ? user.roles : [])].filter(Boolean));
+  const canTrainQuestionPatterns = ['admin', 'teacher', 'tutor'].some((role) => roles.has(role));
   const storySkillId = (['F026', 'F025'].find((id) => placementWeakSet.has(id)) || continueSkillId || 'F025');
   const effectiveStudentLevel = studentLevel || latestPlacement?.studentLevel || domainProgress?.studentLevel || 'P4';
   const visiblePathwaySkills = getVisibleSkillsForStudentLevel({
@@ -316,8 +320,10 @@ export default function MathPathHome() {
     return { ...row, readinessLabel: label };
   });
   const previewLevels = [...new Set(
-    (topics || [])
-      .flatMap((t) => (t.skills || []).map((s) => s.moeLevel))
+    [
+      ...(topics || []).map((t) => t.moeLevel).filter(Boolean),
+      ...(topics || []).flatMap((t) => (t.skills || []).map((s) => s.moeLevel)),
+    ]
       .filter(Boolean)
   )].sort((a, b) => {
     const na = parseInt(String(a).replace(/\D+/g, ''), 10);
@@ -325,6 +331,9 @@ export default function MathPathHome() {
     if (Number.isNaN(na) || Number.isNaN(nb)) return String(a).localeCompare(String(b));
     return na - nb;
   });
+  const topicMapSummaryCount = Math.min(2, visibleTopics.length);
+  const previewLevelSummaryCount = Math.min(2, previewLevels.length);
+  const previewSkillCount = topics.reduce((total, topic) => total + ((topic.skills || []).length), 0);
 
   return (
     <>
@@ -376,16 +385,27 @@ export default function MathPathHome() {
           <h2 className="font-display text-2xl font-semibold text-ink-900">Explore Learning Modes</h2>
           <Button to="/student/mathpath/path" variant="secondary" size="s">View All</Button>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <Card interactive className="p-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="flex h-full flex-col p-4">
             <GraduationCap className="h-7 w-7 text-navy-700" />
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Continue Learning</h3>
-            <p className="mt-1 text-sm text-ink-500">Follow your recommended pathway.</p>
+            <p className="mt-1 flex-1 text-sm text-ink-500">Follow your recommended pathway.</p>
+            <Button
+              variant="secondary"
+              className="mt-4 w-full"
+              disabled={!hasPlacement && startingDiagnostic}
+              onClick={() => {
+                if (!hasPlacement) return startDiagnostic('baseline');
+                if (continueSkillId) return startLearningSession({ skillId: continueSkillId, sessionType: 'practice', questionCount: 10 });
+              }}
+            >
+              Continue
+            </Button>
           </Card>
-          <Card interactive className="p-4">
+          <Card className="flex h-full flex-col p-4">
             <Compass className="h-7 w-7 text-success-700" />
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Explore Skills</h3>
-            <p className="mt-1 text-sm text-ink-500">Browse readiness across fractions.</p>
+            <p className="mt-1 flex-1 text-sm text-ink-500">Browse readiness across fractions.</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {modePreviewRows.length ? modePreviewRows.slice(0, 3).map((row) => (
                 <Badge
@@ -396,11 +416,12 @@ export default function MathPathHome() {
                 </Badge>
               )) : <Badge tone="neutral">Ready</Badge>}
             </div>
+            <Button to="/student/mathpath/path" variant="secondary" className="mt-4 w-full">Explore</Button>
           </Card>
-          <Card interactive className="p-4">
+          <Card className="flex h-full flex-col p-4">
             <ClipboardCheck className="h-7 w-7 text-gold-700" />
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Test Mode</h3>
-            <p className="mt-1 text-sm text-ink-500">Quick checks and topic tests.</p>
+            <p className="mt-1 flex-1 text-sm text-ink-500">Quick checks and topic tests.</p>
             <Button
               to="/student/mathpath/assessment"
               variant="secondary"
@@ -411,14 +432,24 @@ export default function MathPathHome() {
               Open Test Mode
             </Button>
           </Card>
-          <Card interactive className="p-4">
+          <Card className="flex h-full flex-col p-4">
             <PencilLine className="h-7 w-7 text-navy-700" />
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Model Drawing</h3>
-            <p className="mt-1 text-sm text-ink-500">Learn bar models for fraction word problems.</p>
+            <p className="mt-1 flex-1 text-sm text-ink-500">Learn bar models for fraction word problems.</p>
             <Button to="/student/mathpath/fractions/model-trainer" variant="secondary" className="mt-4 w-full">
               Open Trainer
             </Button>
           </Card>
+          {canTrainQuestionPatterns && (
+            <Card className="flex h-full flex-col p-4">
+              <Wand2 className="h-7 w-7 text-gold-700" />
+              <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Similar Questions</h3>
+              <p className="mt-1 flex-1 text-sm text-ink-500">Generate reusable practice sets from sample questions.</p>
+              <Button to="/student/mathpath/fractions/model-trainer#similar-question-generator" variant="secondary" className="mt-4 w-full">
+                Open Generator
+              </Button>
+            </Card>
+          )}
         </div>
       </section>
       {isPreviewMode && (
@@ -584,10 +615,17 @@ export default function MathPathHome() {
       {/* Topic map */}
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Topic map</h3>
-        <span className="inline-flex items-center gap-1 text-xs text-ink-300"><MapIcon className="h-3.5 w-3.5" /> {visibleTopics.length} topics</span>
+        <button
+          type="button"
+          onClick={() => setShowTopicMapSection((prev) => !prev)}
+          className="inline-flex items-center gap-1 rounded-full border border-hairline px-2.5 py-1 text-xs font-semibold text-ink-500 transition hover:bg-navy-50"
+        >
+          <span>{showTopicMapSection ? 'Hide details' : `Show all (${visibleTopics.length})`}</span>
+          {showTopicMapSection ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        </button>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {visibleTopics.map((t) => (
+        {(showTopicMapSection ? visibleTopics : visibleTopics.slice(0, topicMapSummaryCount)).map((t) => (
           <Link key={t.topicId} to={`/student/mathpath/topics/${t.topicId}`} className="block">
             <Card interactive className="p-4">
               <div className="mb-2 flex items-center justify-between">
@@ -600,11 +638,23 @@ export default function MathPathHome() {
           </Link>
         ))}
       </div>
+      {!showTopicMapSection && visibleTopics.length > topicMapSummaryCount && (
+        <p className="mt-2 text-xs text-ink-400">
+          Showing {topicMapSummaryCount} of {visibleTopics.length} topics.
+        </p>
+      )}
       {isPreviewMode && (
         <>
           <div className="mt-8 mb-3 flex items-center justify-between">
             <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Levels and skills</h3>
-            <span className="text-xs text-ink-300">{previewLevels.length} levels</span>
+            <button
+              type="button"
+              onClick={() => setShowLevelsSkillsSection((prev) => !prev)}
+              className="inline-flex items-center gap-1 rounded-full border border-hairline px-2.5 py-1 text-xs font-semibold text-ink-500 transition hover:bg-navy-50"
+            >
+              <span>{showLevelsSkillsSection ? 'Hide details' : `Show all (${previewLevels.length} levels · ${previewSkillCount} skills)`}</span>
+              {showLevelsSkillsSection ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+            </button>
           </div>
           {selectedSkill && (
             <Card className="mb-4 border-l-4 border-l-gold-500 p-4">
@@ -645,7 +695,7 @@ export default function MathPathHome() {
             </Card>
           )}
           <div className="space-y-3">
-            {previewLevels.map((level) => {
+            {(showLevelsSkillsSection ? previewLevels : previewLevels.slice(0, previewLevelSummaryCount)).map((level) => {
               const levelTopics = topics
                 .map((t) => ({
                   ...t,
@@ -683,6 +733,9 @@ export default function MathPathHome() {
                 </Card>
               );
             })}
+            {!showLevelsSkillsSection && previewLevels.length > previewLevelSummaryCount && (
+              <p className="text-xs text-ink-400">Showing {previewLevelSummaryCount} of {previewLevels.length} levels.</p>
+            )}
           </div>
         </>
       )}

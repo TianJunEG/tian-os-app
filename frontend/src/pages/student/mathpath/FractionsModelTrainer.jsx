@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, PencilLine, RotateCcw } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
+import FractionAnswerInput, { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
+import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
+import { useAuth } from '../../../context/AuthContext';
 
 const MODE_META = {
   i_do: { label: 'I Do', helper: 'Watch each model step.' },
@@ -22,6 +25,9 @@ function BarModel({ model = {} }) {
   const subdivide = Math.max(1, Number(model.subdivideRemainingBy || 1));
   const removedSubparts = new Set((model.removedSubparts || []).map(Number));
   const finalSubpartsLeft = new Set((model.finalSubpartsLeft || []).map(Number));
+  const hatchStyle = {
+    backgroundImage: 'repeating-linear-gradient(135deg, rgba(185, 28, 28, 0.18) 0 6px, rgba(255, 255, 255, 0.9) 6px 12px)',
+  };
   let runningSubpart = 0;
 
   return (
@@ -38,14 +44,23 @@ function BarModel({ model = {} }) {
           const selected = selectedRegion.has(part);
           const shouldSubdivide = subdivide > 1 && remaining;
           const partClass = removed
-            ? 'bg-error-100 text-error-700 line-through'
+            ? 'text-error-700'
             : selected || (model.highlightRemaining && remaining)
               ? 'bg-gold-100 text-gold-800'
               : remaining
                 ? 'bg-success-100 text-success-700'
                 : 'bg-paper text-ink-500';
           return (
-            <div key={part} className={`relative flex flex-1 items-stretch justify-center border-r border-navy-200 last:border-r-0 ${partClass}`}>
+            <div
+              key={part}
+              className={`relative flex flex-1 items-stretch justify-center border-r border-navy-200 last:border-r-0 ${partClass}`}
+              style={removed ? hatchStyle : undefined}
+            >
+              {removed && (
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className="h-[2px] w-[72%] rotate-[-18deg] rounded-full bg-error-500/60" />
+                </span>
+              )}
               {shouldSubdivide ? (
                 <div className="flex w-full">
                   {Array.from({ length: subdivide }, () => {
@@ -55,10 +70,16 @@ function BarModel({ model = {} }) {
                     return (
                       <div
                         key={runningSubpart}
-                        className={`flex flex-1 items-center justify-center border-r border-navy-200 text-xs font-semibold last:border-r-0 ${
-                          subRemoved ? 'bg-error-100 text-error-700 line-through' : subLeft ? 'bg-success-100 text-success-700' : ''
+                        className={`relative flex flex-1 items-center justify-center border-r border-navy-200 text-xs font-semibold last:border-r-0 ${
+                          subRemoved ? 'text-error-700' : subLeft ? 'bg-success-100 text-success-700' : ''
                         }`}
+                        style={subRemoved ? hatchStyle : undefined}
                       >
+                        {subRemoved && (
+                          <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                            <span className="h-[2px] w-[72%] rotate-[-18deg] rounded-full bg-error-500/60" />
+                          </span>
+                        )}
                         {runningSubpart}
                       </div>
                     );
@@ -126,6 +147,226 @@ function TemplatePicker({ templates = [], onOpen }) {
   );
 }
 
+const SAMPLE_TEXT = `Ali ate 2/5 of a cake. What fraction is left?
+Sarah used 3/8 of a ribbon. What fraction is left?
+A tank is 5/12 full. What fraction is empty?
+Ben spent 7/10 of his money. What fraction remains?`;
+
+function PatternTrainerLab() {
+  const { user } = useAuth();
+  const role = user?.role || '';
+  const canTrain = ['admin', 'teacher', 'tutor'].includes(role) || (user?.roles || []).some((r) => ['admin', 'teacher', 'tutor'].includes(r));
+  const [sampleText, setSampleText] = useState(SAMPLE_TEXT);
+  const [skillId, setSkillId] = useState('F023');
+  const [level, setLevel] = useState('P5');
+  const [variantCount, setVariantCount] = useState(40);
+  const [difficultyMix, setDifficultyMix] = useState({ easy: 10, medium: 10, hard: 10, wordProblem: 5, misconception: 5 });
+  const [includeWordProblems, setIncludeWordProblems] = useState(true);
+  const [includeMisconceptions, setIncludeMisconceptions] = useState(true);
+  const [worksheetCompatible, setWorksheetCompatible] = useState(true);
+  const [analysis, setAnalysis] = useState(null);
+  const [generated, setGenerated] = useState([]);
+  const [approvedSet, setApprovedSet] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  if (!canTrain) return null;
+
+  const sourceQuestions = sampleText
+    .split(/\n+/)
+    .map((prompt) => ({ prompt: prompt.trim() }))
+    .filter((row) => row.prompt);
+
+  const payload = () => ({
+    sourceQuestions,
+    skillId,
+    subject: 'Math',
+    level,
+    curriculum: 'MOE_PRIMARY_MATH_2021',
+    topic: 'Fractions',
+    variantCount: Number(variantCount || 40),
+    worksheetCompatible,
+    generatedVariantTarget: {
+      easy: Number(difficultyMix.easy || 0),
+      medium: Number(difficultyMix.medium || 0),
+      hard: Number(difficultyMix.hard || 0),
+      wordProblem: includeWordProblems ? Number(difficultyMix.wordProblem || 0) : 0,
+      misconception: includeMisconceptions ? Number(difficultyMix.misconception || 0) : 0,
+    },
+  });
+
+  const analyze = async () => {
+    setBusy(true);
+    setMessage('');
+    setApprovedSet(null);
+    try {
+      const { data } = await mathpathAPI.analyzeQuestionPattern(payload());
+      setAnalysis(data);
+      setGenerated(data.preview || []);
+    } catch (err) {
+      setMessage(err.response?.data?.error || 'Could not analyse the sample questions.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const regenerate = async () => {
+    if (!analysis?.pattern) return analyze();
+    setBusy(true);
+    setMessage('');
+    setApprovedSet(null);
+    try {
+      const { data } = await mathpathAPI.generateQuestionPattern({
+        pattern: {
+          ...analysis.pattern,
+          generatedVariantTarget: payload().generatedVariantTarget,
+          worksheetCompatible,
+        },
+      });
+      setAnalysis({ pattern: data.pattern, quality: data.quality, preview: data.variants.slice(0, 12) });
+      setGenerated(data.variants || []);
+    } catch (err) {
+      setMessage(err.response?.data?.error || 'Could not regenerate variants.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const updateVariant = (variantId, field, value) => {
+    setGenerated((prev) => prev.map((item) => item.variantId === variantId ? { ...item, [field]: value } : item));
+  };
+
+  const rejectVariant = (variantId) => {
+    setGenerated((prev) => prev.filter((item) => item.variantId !== variantId));
+  };
+
+  const approve = async () => {
+    if (!analysis?.pattern || !generated.length) return;
+    setBusy(true);
+    setMessage('');
+    setApprovedSet(null);
+    try {
+      const { data } = await mathpathAPI.approveQuestionPattern({
+        pattern: analysis.pattern,
+        variants: generated,
+        title: `${analysis.pattern.subtopic || 'Similar Questions'} Practice`,
+      });
+      setMessage(`Approved practice set: ${data.practiceSet.practiceSetId}`);
+      setApprovedSet(data.practiceSet);
+    } catch (err) {
+      setMessage(err.response?.data?.error || 'Could not approve practice set.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card id="similar-question-generator" className="mt-6 scroll-mt-6 p-5">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-navy-700">Similar Question Generator</h2>
+          <p className="mt-1 text-sm text-ink-500">Paste representative questions, extract a reusable pattern, then approve a generated practice bank.</p>
+        </div>
+        <Badge tone="gold">Teacher/Admin</Badge>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1fr,18rem]">
+        <textarea
+          value={sampleText}
+          onChange={(event) => setSampleText(event.target.value)}
+          className="min-h-[180px] rounded-xl border border-hairline px-3 py-2 text-sm"
+          placeholder="One sample question per line"
+        />
+        <div className="grid gap-3">
+          <label className="text-sm font-semibold text-ink-700">Target skill
+            <input value={skillId} onChange={(event) => setSkillId(event.target.value.toUpperCase())} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 font-mono text-sm" />
+          </label>
+          <label className="text-sm font-semibold text-ink-700">Level
+            <select value={level} onChange={(event) => setLevel(event.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+              {['P3', 'P4', 'P5', 'P6', 'Sec1 G1'].map((row) => <option key={row}>{row}</option>)}
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-ink-700">Total variants
+            <input type="number" min="10" max="80" value={variantCount} onChange={(event) => setVariantCount(event.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" />
+          </label>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-5">
+        {['easy', 'medium', 'hard', 'wordProblem', 'misconception'].map((key) => (
+          <label key={key} className="text-xs font-semibold uppercase tracking-wide text-ink-500">
+            {key.replace(/([A-Z])/g, ' $1')}
+            <input
+              type="number"
+              min="0"
+              value={difficultyMix[key]}
+              onChange={(event) => setDifficultyMix((prev) => ({ ...prev, [key]: event.target.value }))}
+              className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+            />
+          </label>
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-3 text-sm text-ink-700">
+        <label><input type="checkbox" checked={includeWordProblems} onChange={(e) => setIncludeWordProblems(e.target.checked)} /> Include word problems</label>
+        <label><input type="checkbox" checked={includeMisconceptions} onChange={(e) => setIncludeMisconceptions(e.target.checked)} /> Include misconception variants</label>
+        <label><input type="checkbox" checked={worksheetCompatible} onChange={(e) => setWorksheetCompatible(e.target.checked)} /> Worksheet compatible</label>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button onClick={analyze} disabled={busy || sourceQuestions.length === 0}>{busy ? 'Working...' : 'Analyse and Generate'}</Button>
+        <Button variant="secondary" onClick={regenerate} disabled={busy}>Regenerate</Button>
+        <Button variant="secondary" onClick={approve} disabled={busy || !generated.length}>Approve and Save</Button>
+      </div>
+
+      {message && <p className="mt-3 text-sm font-semibold text-navy-700">{message}</p>}
+      {approvedSet?.practiceSetId && (
+        <div className="mt-3">
+          <Button as={Link} to={`/student/mathpath/fractions/similar-practice/${approvedSet.practiceSetId}`} variant="secondary">
+            Open student practice
+          </Button>
+        </div>
+      )}
+      {analysis?.pattern && (
+        <div className="mt-5 rounded-xl bg-navy-50 p-4 text-sm">
+          <div className="grid gap-2 md:grid-cols-4">
+            <p><span className="font-semibold">Skill:</span> {analysis.pattern.inferredSkillIds?.join(', ')}</p>
+            <p><span className="font-semibold">Archetype:</span> {analysis.pattern.archetype}</p>
+            <p><span className="font-semibold">Answer check:</span> {analysis.pattern.answerCheckStrategy}</p>
+            <p><span className="font-semibold">Accepted:</span> {analysis.quality?.acceptedCount || generated.length}</p>
+          </div>
+          {(analysis.quality?.warnings || analysis.pattern.qualityWarnings || []).map((warning) => (
+            <p key={warning} className="mt-2 text-gold-800">Warning: {warning}</p>
+          ))}
+        </div>
+      )}
+
+      {generated.length > 0 && (
+        <div className="mt-5 space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-ink-500">Generated practice bank preview ({generated.length})</h3>
+          {generated.slice(0, 20).map((item) => (
+            <Card key={item.variantId} className="p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Badge tone="navy">{item.difficulty}</Badge>
+                  <Badge tone="neutral">{item.questionCategory}</Badge>
+                  {item.worksheetCompatible && <Badge tone="success">worksheet</Badge>}
+                </div>
+                <Button size="s" variant="ghost" onClick={() => rejectVariant(item.variantId)}>Reject</Button>
+              </div>
+              <textarea value={item.prompt} onChange={(e) => updateVariant(item.variantId, 'prompt', e.target.value)} className="mt-2 min-h-[64px] w-full rounded-lg border border-hairline px-2 py-1 text-sm" />
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                <input value={item.answer} onChange={(e) => updateVariant(item.variantId, 'answer', e.target.value)} className="rounded-lg border border-hairline px-2 py-1 text-sm" />
+                <input value={item.workedSolution} onChange={(e) => updateVariant(item.variantId, 'workedSolution', e.target.value)} className="rounded-lg border border-hairline px-2 py-1 text-sm" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function FractionsModelTrainer() {
   const navigate = useNavigate();
   const { templateId } = useParams();
@@ -136,6 +377,7 @@ export default function FractionsModelTrainer() {
   const [studentAnswer, setStudentAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
   const [youDoAnswer, setYouDoAnswer] = useState('');
+  const [showYouDoModel, setShowYouDoModel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -169,6 +411,12 @@ export default function FractionsModelTrainer() {
   const progressValue = Math.min(stepIndex + 1, Math.max(1, steps.length));
   const expectedAnswer = prompt?.expected_answer || '';
   const canCheck = Boolean(prompt && studentAnswer.trim());
+  const isFractionAnswer = Boolean(
+    prompt?.type !== 'choice'
+    && prompt?.type !== 'number'
+    && isFractionLikeAnswerValue(prompt?.expected_answer)
+  );
+  const expressionQuestion = isFractionAnswer && Boolean(extractFractionExpression(prompt?.question || ''));
   const checkedCorrect = feedback === 'correct';
 
   const modeHelper = useMemo(() => {
@@ -179,11 +427,15 @@ export default function FractionsModelTrainer() {
   const resetStepInput = () => {
     setStudentAnswer('');
     setFeedback('');
+    setShowYouDoModel(false);
   };
 
   const goToStep = (nextIndex) => {
     setStepIndex(Math.max(0, Math.min(steps.length - 1, nextIndex)));
     resetStepInput();
+    if (mode === 'you_do') {
+      setShowYouDoModel(false);
+    }
   };
 
   const checkPrompt = () => {
@@ -203,6 +455,7 @@ export default function FractionsModelTrainer() {
           action={<Button variant="secondary" icon={ArrowLeft} onClick={() => navigate('/student/mathpath')}>MathPath</Button>}
         />
         <TemplatePicker templates={templates} onOpen={(id) => navigate(`/student/mathpath/fractions/model-trainer/${id}`)} />
+        <PatternTrainerLab />
       </div>
     );
   }
@@ -223,7 +476,12 @@ export default function FractionsModelTrainer() {
         {Object.entries(MODE_META).map(([key, meta]) => (
           <button
             key={key}
-            onClick={() => { setMode(key); resetStepInput(); }}
+            onClick={() => {
+              setMode(key);
+              resetStepInput();
+              setYouDoAnswer('');
+              if (key === 'you_do') setShowYouDoModel(false);
+            }}
             className={`rounded-xl border px-3 py-2 text-left text-sm font-semibold ${
               mode === key ? 'border-navy-700 bg-navy-50 text-navy-700' : 'border-hairline bg-white text-ink-600'
             }`}
@@ -251,8 +509,18 @@ export default function FractionsModelTrainer() {
             <div>
               <p className="mb-4 rounded-xl bg-bone px-4 py-3 text-base leading-7 text-ink-800">{currentStep.instruction}</p>
               {mode === 'we_do' && prompt && (
-                <div className="rounded-xl border border-hairline bg-white p-4">
+              <div className="rounded-xl border border-hairline bg-white p-4">
+                {expressionQuestion ? (
+                  <div className="mb-3">
+                    <FractionExpressionQuestion
+                      prompt={prompt.question}
+                      value={studentAnswer}
+                      onChange={setStudentAnswer}
+                    />
+                  </div>
+                ) : (
                   <p className="mb-3 text-sm font-semibold text-navy-700">{prompt.question}</p>
+                )}
                   {prompt.type === 'choice' ? (
                     <div className="grid gap-2">
                       {(prompt.choices || []).map((choice) => (
@@ -265,6 +533,11 @@ export default function FractionsModelTrainer() {
                         </button>
                       ))}
                     </div>
+                  ) : expressionQuestion ? null : isFractionAnswer ? (
+                    <FractionAnswerInput
+                      value={studentAnswer}
+                      onChange={setStudentAnswer}
+                    />
                   ) : (
                     <input
                       value={studentAnswer}
@@ -304,8 +577,16 @@ export default function FractionsModelTrainer() {
                 value={youDoAnswer}
                 onChange={(event) => setYouDoAnswer(event.target.value)}
                 className="mt-4 min-h-[120px] w-full rounded-xl border border-hairline px-3 py-2 text-sm"
-                placeholder="Write your final answer and a short note about your model."
+                placeholder="Write your final answer and notes about your model. Leave this blank between attempts if you want a fresh workspace."
               />
+              <Button
+                size="s"
+                variant="secondary"
+                className="mt-3"
+                onClick={() => setShowYouDoModel(true)}
+              >
+                Reveal model answer
+              </Button>
               <div className="mt-4 rounded-xl bg-white p-3 text-sm text-ink-700">
                 <p className="font-semibold text-navy-700">Sense check</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
@@ -314,8 +595,17 @@ export default function FractionsModelTrainer() {
               </div>
             </div>
             <div>
-              <BarModel model={steps[steps.length - 1]?.model || {}} />
-              <BranchingModel branchModel={steps[steps.length - 1]?.model?.branchModel} />
+              {showYouDoModel ? (
+                <>
+                  <BarModel model={steps[steps.length - 1]?.model || {}} />
+                  <BranchingModel branchModel={steps[steps.length - 1]?.model?.branchModel} />
+                </>
+              ) : (
+                <div className="rounded-xl border border-dashed border-hairline bg-white p-4 text-sm text-ink-600">
+                  <p className="font-semibold text-navy-700">Model answer hidden</p>
+                  <p className="mt-1">Reveal your own model first, then tap “Reveal model answer” when you’re ready to compare.</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -323,7 +613,7 @@ export default function FractionsModelTrainer() {
         <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
           <Button variant="secondary" icon={ArrowLeft} disabled={stepIndex === 0 || mode === 'you_do'} onClick={() => goToStep(stepIndex - 1)}>Back</Button>
           <div className="flex gap-2">
-            <Button variant="ghost" icon={RotateCcw} onClick={() => { setStepIndex(0); resetStepInput(); setYouDoAnswer(''); }}>Reset</Button>
+            <Button variant="ghost" icon={RotateCcw} onClick={() => { setStepIndex(0); setYouDoAnswer(''); resetStepInput(); }}>Reset</Button>
             <Button icon={ArrowRight} disabled={stepIndex >= steps.length - 1 || (mode === 'we_do' && prompt && !checkedCorrect)} onClick={() => goToStep(stepIndex + 1)}>Next</Button>
           </div>
         </div>

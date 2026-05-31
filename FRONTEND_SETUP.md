@@ -89,7 +89,7 @@ npm install
 Create `.env` file in frontend directory:
 
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5001/api
 ```
 
 ### 3. Start Development Server
@@ -114,7 +114,7 @@ cd /path/to/Tuition
 npm install
 npm run dev
 ```
-Backend runs on `http://localhost:5000`
+Backend runs on `http://localhost:5001`
 
 ### Terminal 2 - Frontend
 ```bash
@@ -226,7 +226,7 @@ Replace `STRIPE_PUBLIC_KEY` in Payment component with live key
 - Run `npm install` to ensure all dependencies installed
 
 **"API requests failing"**
-- Check backend is running on port 5000
+- Check backend is running on port 5001
 - Verify VITE_API_URL points to correct backend
 
 **"Login not working"**
@@ -242,8 +242,8 @@ Replace `STRIPE_PUBLIC_KEY` in Payment component with live key
 1. ✅ Frontend is ready for testing
 2. Run both backend and frontend
 3. Test full user journeys
-4. Deploy backend (Heroku, AWS, etc.)
-5. Deploy frontend (Vercel, Netlify, etc.)
+4. Deploy backend (Render recommended for pilot)
+5. Deploy frontend (Vercel recommended for pilot)
 
 ## Support
 

@@ -48,7 +48,9 @@ export default function MistakesHome() {
 
   const recent = (data?.mistakes || []).slice(0, 3);
   const weak = data?.weakSkills || [];
-  const recommended = mastery?.recommended;
+  const recommended = weak[0]
+    ? { skillId: weak[0].skillId, skillName: weak[0].skillName }
+    : mastery?.recommended;
 
   return (
     <>

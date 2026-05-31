@@ -54,6 +54,13 @@ function canTrainQuestionPatterns(user = {}) {
   return roles.has('admin') || roles.has('teacher') || roles.has('tutor');
 }
 
+function answerInputTypeFor(answer = '') {
+  const raw = String(answer || '').trim();
+  if (/^-?\d+\s+\d+\s*\/\s*\d+$/.test(raw)) return 'mixed';
+  if (/^-?\d+\s*\/\s*-?\d+$/.test(raw)) return 'fraction';
+  return '';
+}
+
 router.get('/fractions/model-trainer', protect, async (req, res) => {
   try {
     res.json({
@@ -533,6 +540,7 @@ router.post('/diagnostic/start', protect, async (req, res) => {
         prompt: q.stem,
         type: q.type,
         choices: q.choices || [],
+        answerInputType: answerInputTypeFor(q.answer),
         workingRequired: !/mental/i.test(String(q.type || '')),
       };
     }).filter((q) => q.skillId);
@@ -551,10 +559,11 @@ router.post('/diagnostic/start', protect, async (req, res) => {
         diagnosticPurpose: purpose,
         questionIds: mappedQuestions.map((q) => q.questionId),
         questionMeta: mappedQuestions.map((q) => ({
-          questionId: q.questionId,
-          skillId: q.skillId,
-          questionFamilyId: q.questionFamilyId,
-        })),
+            questionId: q.questionId,
+            skillId: q.skillId,
+            questionFamilyId: q.questionFamilyId,
+            answerInputType: q.answerInputType || '',
+          })),
       },
     });
 
@@ -655,24 +664,22 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
           : (misconceptionTag === 'frac/add-without-common' || misconceptionTag === 'frac/add-denominators')
             ? 'method_error'
             : 'unknown';
-        if (student.workspaceId && q.skillId) {
-          mistakesFromDiagnostic.push({
-            studentId: student._id,
-            workspaceId: student.workspaceId,
-            questionId: q._id,
-            skillId: q.skillId._id || q.skillId,
-            module: 'MathPath',
-            questionStem: q.stem,
-            workedSolution: q.modelAnswer || q.workedSolution || '',
-            studentAnswer,
-            correctAnswer: String(q.modelAnswer || q.answer || ''),
-            mistakeType,
-            misconceptionTag,
-            status: 'open',
-            occurredAt: new Date(),
-            source: skipped ? 'diagnostic-skipped' : 'diagnostic-incorrect',
-          });
-        }
+        mistakesFromDiagnostic.push({
+          studentId: student._id,
+          workspaceId: student.workspaceId,
+          questionId: q._id,
+          skillId: q.skillId._id || q.skillId,
+          module: 'MathPath',
+          questionStem: q.stem,
+          workedSolution: q.modelAnswer || q.workedSolution || '',
+          studentAnswer,
+          correctAnswer: String(q.modelAnswer || q.answer || ''),
+          mistakeType,
+          misconceptionTag,
+          status: 'open',
+          occurredAt: new Date(),
+          source: skipped ? 'diagnostic-skipped' : 'diagnostic-incorrect',
+        });
       }
     }
 
@@ -680,6 +687,34 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
     await MathPathAttempt.insertMany(savedAttempts);
     if (mistakesFromDiagnostic.length) {
       await Mistake.insertMany(mistakesFromDiagnostic);
+      await Promise.all(mistakesFromDiagnostic.map((mistake) => MathPathMistakeRecord.findOneAndUpdate(
+        {
+          studentId: String(student._id),
+          domainId: 'fractions',
+          mistakeCode: mistake.misconceptionTag || 'M010',
+          skillId: savedAttempts.find((attempt) => String(attempt.questionId) === String(mistake.questionId))?.skillId || '',
+          questionFamilyId: savedAttempts.find((attempt) => String(attempt.questionId) === String(mistake.questionId))?.questionFamilyId || '',
+        },
+        {
+          $inc: { frequency: 1 },
+          $set: {
+            mistakeName: mistake.mistakeType || 'Diagnostic mistake',
+            severity: 'medium',
+            lastSeenAt: new Date(),
+          },
+          $push: {
+            evidence: {
+              source: mistake.source,
+              questionId: String(mistake.questionId),
+              prompt: mistake.questionStem,
+              studentAnswer: mistake.studentAnswer,
+              correctAnswer: mistake.correctAnswer,
+              seenAt: new Date(),
+            },
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      )));
     }
 
     const placement = await runPlacement(student._id, attemptsForPlacement);
@@ -857,6 +892,7 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
             prompt: q.stem,
             type: q.type,
             choices: q.choices || [],
+            answerInputType: answerInputTypeFor(q.answer),
             workingRequired: !/mental/i.test(String(q.type || '')),
           };
         })

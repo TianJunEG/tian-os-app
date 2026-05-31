@@ -5,7 +5,7 @@ import { teacherAPI, mathpathAPI } from '../../services/api';
 import { buildTeacherMathPathDashboard } from '../../mathpath/dashboard/teacherMathPathDashboardEngine';
 import ClassNav from './ClassNav';
 import { useClass } from './useClass';
-import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Spinner } from '../../components/ui';
+import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
 
 function toneForIssue(issueType) {
   if (issueType === 'accurateButSlow') return 'gold';
@@ -386,7 +386,7 @@ export default function TeacherMathPathDashboardPage() {
       <PageHeader
         title="Teacher MathPath Dashboard"
         subtitle="Class-level mastery, fluency, retention, readiness, and actions."
-        action={<Button variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath/test-spec`)}>School-Aligned Test</Button>}
+        action={<Button onClick={() => navigate(`/teacher/classes/${id}/assign`)}>Assign Intervention</Button>}
       />
       <Card className="mb-4 p-4">
         <p className="text-sm text-ink-600">Students with saved Fractions placement: <span className="font-semibold text-ink-700">{placedCount}/{students.length}</span></p>
@@ -398,27 +398,34 @@ export default function TeacherMathPathDashboardPage() {
         <div className="space-y-4">
           <TeacherClassOverviewCard data={dashboard.classOverview} />
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            <SkillMasteryHeatmapCard rows={dashboard.skillMasteryHeatmap} />
-            <InterventionGroupsCard groups={dashboard.interventionGroups} />
-            <ClassFluencyBottlenecksCard rows={dashboard.fluencyBottlenecks} />
-            <RetentionRisksCard rows={dashboard.retentionRisks} />
-            <AssessmentReadinessCard data={dashboard.assessmentReadiness} />
-            <CommonMistakePatternsCard rows={dashboard.commonMistakePatterns} />
-            <WorkingQualityOverviewCard data={dashboard.workingQualityOverview} />
-          </div>
-
           <RecommendedTeacherActionsCard
             rows={dashboard.recommendedTeacherActions}
             onAssign={() => navigate(`/teacher/classes/${id}/assign`)}
           />
 
-          <Card className="p-4">
+          <CollapsibleSection
+            title="Class diagnostic details"
+            summary="Skill heatmap, intervention groups, fluency, retention, assessment readiness, mistakes, and working quality."
+            surface={false}
+            action={<Button size="s" variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath/test-spec`)}>School Test</Button>}
+          >
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <SkillMasteryHeatmapCard rows={dashboard.skillMasteryHeatmap} />
+              <InterventionGroupsCard groups={dashboard.interventionGroups} />
+              <ClassFluencyBottlenecksCard rows={dashboard.fluencyBottlenecks} />
+              <RetentionRisksCard rows={dashboard.retentionRisks} />
+              <AssessmentReadinessCard data={dashboard.assessmentReadiness} />
+              <CommonMistakePatternsCard rows={dashboard.commonMistakePatterns} />
+              <WorkingQualityOverviewCard data={dashboard.workingQualityOverview} />
+            </div>
+          </CollapsibleSection>
+
+          <CollapsibleSection title="Secondary actions" summary="Review groups and mini lesson tools." surface={false}>
             <div className="flex flex-wrap gap-2">
               <Button size="s" variant="secondary" icon={Users} onClick={() => navigate(`/teacher/classes/${id}/groups`)}>Assign Review Groups</Button>
               <Button size="s" variant="secondary" icon={Clock3} onClick={() => navigate(`/teacher/classes/${id}/interventions`)}>Start Mini Lesson</Button>
             </div>
-          </Card>
+          </CollapsibleSection>
         </div>
       )}
     </>

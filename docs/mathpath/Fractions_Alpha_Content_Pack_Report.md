@@ -1,6 +1,6 @@
 # Fractions Alpha Content Pack Report
 
-Generated: 2026-05-31T06:17:01.033Z
+Generated: 2026-05-31T07:34:32.856Z
 Scope: F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026
 
 ## Targets Per Priority Skill
@@ -46,67 +46,67 @@ Scope: F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F
 
 | Skill ID | Before Total | After Total | Before Status | After Status |
 |---|---:|---:|---|---|
-| F001 | 0 | 128 | not-ready | not-ready |
-| F002 | 0 | 133 | not-ready | not-ready |
-| F003 | 0 | 134 | not-ready | not-ready |
-| F004 | 0 | 126 | not-ready | not-ready |
-| F005 | 0 | 120 | not-ready | not-ready |
-| F006 | 0 | 115 | not-ready | not-ready |
-| F007 | 0 | 129 | not-ready | not-ready |
-| F008 | 0 | 125 | not-ready | not-ready |
-| F009 | 0 | 134 | not-ready | not-ready |
-| F010 | 0 | 135 | not-ready | not-ready |
-| F011 | 0 | 130 | not-ready | not-ready |
-| F012 | 0 | 129 | not-ready | not-ready |
-| F013 | 0 | 129 | not-ready | not-ready |
-| F014 | 0 | 132 | not-ready | not-ready |
-| F015 | 0 | 131 | not-ready | not-ready |
-| F016 | 0 | 130 | not-ready | not-ready |
-| F017 | 0 | 129 | not-ready | not-ready |
-| F018 | 0 | 120 | not-ready | not-ready |
-| F019 | 0 | 130 | not-ready | not-ready |
-| F020 | 0 | 135 | not-ready | not-ready |
-| F021 | 0 | 128 | not-ready | not-ready |
-| F022 | 0 | 130 | not-ready | not-ready |
-| F023 | 0 | 135 | not-ready | not-ready |
-| F024 | 0 | 136 | not-ready | not-ready |
-| F025 | 0 | 129 | not-ready | not-ready |
-| F026 | 0 | 136 | not-ready | not-ready |
+| F001 | 208 | 208 | ready | ready |
+| F002 | 198 | 198 | ready | ready |
+| F003 | 134 | 134 | ready | ready |
+| F004 | 141 | 141 | ready | ready |
+| F005 | 184 | 184 | ready | ready |
+| F006 | 115 | 115 | ready | ready |
+| F007 | 202 | 202 | ready | ready |
+| F008 | 194 | 194 | ready | ready |
+| F009 | 212 | 212 | ready | ready |
+| F010 | 150 | 150 | ready | ready |
+| F011 | 198 | 198 | ready | ready |
+| F012 | 209 | 209 | ready | ready |
+| F013 | 342 | 342 | ready | ready |
+| F014 | 167 | 167 | ready | ready |
+| F015 | 199 | 199 | ready | ready |
+| F016 | 130 | 130 | ready | ready |
+| F017 | 162 | 162 | ready | ready |
+| F018 | 255 | 255 | ready | ready |
+| F019 | 145 | 145 | ready | ready |
+| F020 | 135 | 135 | ready | ready |
+| F021 | 251 | 251 | ready | ready |
+| F022 | 253 | 253 | ready | ready |
+| F023 | 283 | 283 | ready | ready |
+| F024 | 136 | 136 | ready | ready |
+| F025 | 129 | 129 | ready | ready |
+| F026 | 136 | 136 | ready | ready |
 
 ## Remaining Content Gaps
 
 | Skill ID | Missing Diagnostic | Missing Practice | Missing Fluency | Missing Assessment | Missing Total |
 |---|---:|---:|---:|---:|---:|
-| F001 | 0 | 0 | 0 | 1 | 0 |
-| F002 | 0 | 0 | 0 | 1 | 0 |
+| F001 | 0 | 0 | 0 | 0 | 0 |
+| F002 | 0 | 0 | 0 | 0 | 0 |
 | F003 | 0 | 0 | 0 | 0 | 0 |
-| F004 | 0 | 0 | 0 | 1 | 0 |
-| F005 | 0 | 0 | 0 | 1 | 0 |
+| F004 | 0 | 0 | 0 | 0 | 0 |
+| F005 | 0 | 0 | 0 | 0 | 0 |
 | F006 | 0 | 3 | 0 | 4 | 0 |
 | F007 | 0 | 0 | 0 | 0 | 0 |
 | F008 | 0 | 0 | 0 | 0 | 0 |
 | F009 | 0 | 0 | 0 | 0 | 0 |
 | F010 | 0 | 0 | 0 | 0 | 0 |
 | F011 | 0 | 0 | 0 | 0 | 0 |
-| F012 | 0 | 0 | 0 | 2 | 0 |
+| F012 | 0 | 0 | 0 | 0 | 0 |
 | F013 | 0 | 0 | 0 | 0 | 0 |
 | F014 | 0 | 0 | 0 | 0 | 0 |
 | F015 | 0 | 0 | 0 | 0 | 0 |
 | F016 | 0 | 0 | 0 | 0 | 0 |
 | F017 | 0 | 0 | 0 | 0 | 0 |
-| F018 | 0 | 1 | 0 | 2 | 0 |
+| F018 | 0 | 0 | 0 | 0 | 0 |
 | F019 | 0 | 0 | 0 | 0 | 0 |
 | F020 | 0 | 0 | 0 | 0 | 0 |
-| F021 | 0 | 0 | 0 | 2 | 0 |
-| F022 | 0 | 0 | 0 | 3 | 0 |
-| F023 | 0 | 0 | 0 | 1 | 0 |
+| F021 | 0 | 0 | 0 | 0 | 0 |
+| F022 | 0 | 0 | 0 | 0 | 0 |
+| F023 | 0 | 0 | 0 | 0 | 0 |
 | F024 | 0 | 0 | 0 | 0 | 0 |
 | F025 | 0 | 0 | 0 | 1 | 0 |
 | F026 | 0 | 0 | 0 | 0 | 0 |
 
 ## Skills Still Not Ready
 
-- F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026
+- None
 
 ## Recommended Next Content Batch
 

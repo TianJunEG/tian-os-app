@@ -87,10 +87,10 @@ export const diagramExamples = {
     ex('DG015_EX2', 'length_measurement', { start: 0, end: 20, unit: 'cm', objects: [{ label: 'Ribbon', start: 4, end: 16 }] }, 'Ribbon Length'),
     ex('DG015_EX3', 'length_measurement', { start: 0, end: 15, unit: 'cm', objects: [{ label: 'Paperclip Chain', start: 1, end: 7 }, { label: 'Eraser', start: 8, end: 12 }] }, 'Two Object Lengths'),
   ],
-  comparison_models: [
-    ex('DG016_EX1', 'comparison_models', { leftLabel: 'Ali', rightLabel: 'Ben', leftValue: 8, rightValue: 5, mode: 'difference' }, 'Difference Bar Model'),
-    ex('DG016_EX2', 'comparison_models', { leftLabel: 'Red', rightLabel: 'Blue', leftValue: 12, rightValue: 9, mode: 'more' }, 'More Than Model'),
-    ex('DG016_EX3', 'comparison_models', { leftLabel: 'Before', rightLabel: 'After', leftValue: 15, rightValue: 10, mode: 'less' }, 'Less Than Model'),
+  comparison_model: [
+    ex('DG016_EX1', 'comparison_model', { leftLabel: 'Ali', rightLabel: 'Ben', leftValue: 8, rightValue: 5, mode: 'difference' }, 'Difference Bar Model'),
+    ex('DG016_EX2', 'comparison_model', { leftLabel: 'Red', rightLabel: 'Blue', leftValue: 12, rightValue: 9, mode: 'more' }, 'More Than Model'),
+    ex('DG016_EX3', 'comparison_model', { leftLabel: 'Before', rightLabel: 'After', leftValue: 15, rightValue: 10, mode: 'less' }, 'Less Than Model'),
   ],
 };
 

@@ -1,11 +1,12 @@
-# Render Blueprint — provisions the API and the static frontend together.
+# Render Blueprint — backend API only.
+# Frontend is deployed on Vercel for pilot.
 # Import this repo at https://dashboard.render.com → New → Blueprint.
 # Values marked `sync: false` are secrets/per-environment and are set in the
 # Render dashboard (they are intentionally not stored in the repo).
 services:
   # ---- Express API ----
   - type: web
-    name: tutor-match-api
+    name: tian-os-api
     runtime: node
     rootDir: .
     plan: starter # always-on; required for the persistent disk below
@@ -26,7 +27,9 @@ services:
       - key: JWT_EXPIRE
         value: 7d
       - key: CORS_ORIGIN
-        sync: false # set to the deployed frontend URL, e.g. https://tutor-match-web.onrender.com
+        sync: false # set to Vercel URL(s), comma-separated
+      - key: FRONTEND_URL
+        sync: false # canonical Vercel production URL
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_PUBLIC_KEY
@@ -43,23 +46,3 @@ services:
         sync: false
       - key: PARTNERSHIPS_NOTIFICATION_EMAIL
         sync: false
-
-  # ---- React (Vite) static frontend ----
-  - type: web
-    name: tutor-match-web
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        sync: false # set to the deployed API URL + /api, e.g. https://tutor-match-api.onrender.com/api
-      - key: VITE_STRIPE_PUBLISHABLE_KEY
-        sync: false
-      - key: VITE_PLAUSIBLE_DOMAIN
-        sync: false # optional: your site domain as registered in Plausible
-    routes:
-      # SPA fallback so client-side routes (e.g. /resources/:slug) resolve to index.html
-      - type: rewrite
-        source: /*
-        destination: /index.html

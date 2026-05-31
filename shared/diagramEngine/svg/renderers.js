@@ -459,5 +459,6 @@ export const diagramSvgRenderers = {
   dot_grid: renderDotGrid,
   clock: renderClock,
   length_measurement: renderLengthMeasurement,
+  comparison_model: renderComparisonModels,
   comparison_models: renderComparisonModels,
 };

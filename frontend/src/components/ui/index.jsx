@@ -19,6 +19,43 @@ export function Card({ children, className = '', interactive = false, ...rest })
   );
 }
 
+export function CollapsibleSection({
+  title,
+  summary,
+  children,
+  defaultOpen = false,
+  className = '',
+  contentClassName = '',
+  action,
+  surface = true,
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  const Wrapper = surface ? Card : 'section';
+  const wrapperClass = surface ? className : `rounded-2xl border border-hairline bg-transparent ${className}`;
+  return (
+    <Wrapper className={wrapperClass}>
+      <div className="flex items-start justify-between gap-3 p-4 sm:p-5">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-start gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+          aria-expanded={open}
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          <span className="mt-0.5 shrink-0 text-ink-400">
+            {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold text-ink-700">{title}</span>
+            {summary && <span className="mt-1 block text-sm text-ink-500">{summary}</span>}
+          </span>
+        </button>
+        {action && <div className="shrink-0">{action}</div>}
+      </div>
+      {open && <div className={`border-t border-hairline p-4 sm:p-5 ${contentClassName}`}>{children}</div>}
+    </Wrapper>
+  );
+}
+
 // ─── Button ─────────────────────────────────────────────────────────
 const BTN_VARIANTS = {
   primary: 'bg-navy-700 text-white hover:bg-navy-800',

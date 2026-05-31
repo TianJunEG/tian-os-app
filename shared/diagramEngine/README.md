@@ -39,7 +39,7 @@ Deterministic, validator-first SVG diagram pipeline for MathPath, worksheets, di
 - `dot_grid`
 - `clock`
 - `length_measurement`
-- `comparison_models`
+- `comparison_model`
 
 ## Integration notes
 

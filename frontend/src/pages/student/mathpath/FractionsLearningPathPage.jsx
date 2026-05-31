@@ -73,9 +73,9 @@ function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, on
     <Card className="p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Domain</p>
-          <h2 className="font-display text-2xl font-semibold text-navy-700">Fractions</h2>
-          <p className="mt-1 text-sm text-ink-600">Current skill: {currentSkillName || 'Start your diagnostic'}</p>
+          <p className="text-sm font-semibold uppercase text-navy-700">Current Course</p>
+          <h2 className="font-display text-3xl font-semibold text-ink-900">Fractions</h2>
+          <p className="mt-1 text-sm text-ink-500">{currentSkillName || 'Start your diagnostic'}</p>
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
           <Button icon={ArrowRight} onClick={onPrimary}>{nextCta.label}</Button>
@@ -90,19 +90,10 @@ function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, on
           )}
         </div>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div>
-          <p className="text-xs text-ink-500">Mastered</p>
-          <p className="font-mono text-xl text-navy-700">{progress.percentageMastered || 0}%</p>
-        </div>
-        <div>
-          <p className="text-xs text-ink-500">Fluent</p>
-          <p className="font-mono text-xl text-navy-700">{progress.percentageFluent || 0}%</p>
-        </div>
-        <div>
-          <p className="text-xs text-ink-500">Retained</p>
-          <p className="font-mono text-xl text-navy-700">{progress.percentageRetained || 0}%</p>
-        </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Badge tone="navy">{progress.percentageMastered || 0}% mastered</Badge>
+        <Badge tone="neutral">{progress.percentageFluent || 0}% fluent</Badge>
+        <Badge tone="success">{progress.percentageRetained || 0}% retained</Badge>
       </div>
       <ProgressBar className="mt-4" value={progress.masteredSkills?.length || 0} max={progress.totalSkills || 26} />
     </Card>
@@ -121,38 +112,28 @@ function SkillNodeCard({
   isFluent,
   isRetained,
   needsReview,
-  prerequisitesMet,
   missingPrerequisiteNames,
-  syllabusRef,
-  strand,
   onAction,
 }) {
   const actionLabel = isLocked ? 'Locked' : needsReview ? 'Review' : isCurrent ? 'Continue' : statusLabel === 'Not Started' ? 'Start' : 'Practise';
   const levelTag = skill.levelBand?.length ? skill.levelBand.join('/') : (skill.moeLevel || '');
-  const prerequisiteText = prerequisitesMet
-    ? 'Prerequisites ready'
-    : `Needs prerequisite${missingPrerequisiteNames.length > 1 ? 's' : ''}: ${missingPrerequisiteNames.join(', ')}`;
+  const prerequisiteName = missingPrerequisiteNames[0] || '';
   return (
-    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold-400/60' : ''} ${isLocked ? 'opacity-70' : ''}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-sm font-semibold text-ink-800">{skill.displayName || skill.name}</p>
-          <p className="mt-0.5 text-xs text-ink-500">{skill.description}</p>
-        </div>
-        {isLocked ? <Lock className="h-4 w-4 text-ink-400" /> : isRetained ? <CheckCircle2 className="h-4 w-4 text-success-700" /> : null}
+    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold-400/60' : ''} ${isLocked ? 'bg-paper/80 opacity-75' : ''}`}>
+      <div className="flex min-h-[3.25rem] items-start justify-between gap-3">
+        <p className="text-base font-semibold leading-snug text-ink-800">{skill.displayName || skill.name}</p>
+        <span className="shrink-0">
+          {isLocked ? <Lock className="h-4 w-4 text-ink-300" /> : isRetained ? <CheckCircle2 className="h-4 w-4 text-success-700" /> : null}
+        </span>
       </div>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-2">
         <SkillStatusBadge label={statusLabel} />
-        {isFluent && <Badge tone="navy">Fluent</Badge>}
-        {isRetained && <Badge tone="success">Retained</Badge>}
         {needsReview && <Badge tone="error">Review</Badge>}
         {levelTag && <Badge tone="gold">{levelTag}</Badge>}
       </div>
-      <div className="mt-2 text-xs text-ink-500">
-        <p>{prerequisiteText}</p>
-        <p>Introduced: {skill.introducedLevel || '-'} | Mastery: {skill.masteryLevel || '-'}</p>
-        <p>{strand || 'Number and Algebra'}{syllabusRef ? ` · ${syllabusRef}` : ''}</p>
-      </div>
+      {isLocked && prerequisiteName && (
+        <p className="mt-3 line-clamp-1 text-xs text-ink-400">Unlocks after {prerequisiteName}</p>
+      )}
       <div className="mt-4">
         <Button size="s" variant={isLocked ? 'secondary' : 'primary'} disabled={isLocked} onClick={onAction}>
           {actionLabel}
@@ -180,10 +161,7 @@ function SkillStrandSection({ label, skills, onSkillAction }) {
             isFluent={skillItem.fluent}
             isRetained={skillItem.retained}
             needsReview={skillItem.needsReview}
-            prerequisitesMet={skillItem.prerequisitesMet}
             missingPrerequisiteNames={skillItem.missingPrerequisiteNames}
-            syllabusRef={skillItem.syllabusRef}
-            strand={skillItem.strand}
             onAction={() => onSkillAction(skillItem)}
           />
         ))}
@@ -195,15 +173,21 @@ function SkillStrandSection({ label, skills, onSkillAction }) {
 function NextActionPanel({ nextAction, onPrimary }) {
   const cta = actionFromNext(nextAction);
   return (
-    <Card className="p-5">
-      <div className="flex items-start gap-3">
-        <Target className="mt-0.5 h-5 w-5 text-gold-700" />
+    <Card className="p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700">
+            <Target className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Next Action</p>
+            <p className="truncate text-sm font-semibold text-ink-700">{nextAction?.explanation || 'Continue your recommended Fractions step.'}</p>
+          </div>
+        </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Next Action</p>
-          <p className="mt-1 text-sm text-ink-700">{nextAction?.explanation || 'Continue with your next recommended Fractions step.'}</p>
+          <Button className="w-full sm:w-auto" icon={ArrowRight} onClick={() => onPrimary(cta.to)}>{cta.label}</Button>
         </div>
       </div>
-      <Button className="mt-4" icon={ArrowRight} onClick={() => onPrimary(cta.to)}>{cta.label}</Button>
     </Card>
   );
 }
@@ -364,8 +348,8 @@ export default function FractionsLearningPathPage() {
   const currentSkillName = displaySkillName(currentSkillId, skillById.get(currentSkillId)?.name || 'Fractions starter skill');
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4">
-      <PageHeader title="Fractions Learning Path" subtitle="See your current skill, progress, and what to do next." />
+    <div className="mx-auto max-w-5xl space-y-5">
+      <PageHeader title="Fractions Learning Path" />
       <LearningPathHeader
         progress={masteryProgress}
         currentSkillName={currentSkillName}
@@ -379,9 +363,9 @@ export default function FractionsLearningPathPage() {
       <NextActionPanel nextAction={nextAction} onPrimary={(to) => navigate(to)} />
 
       {studentProgress.retentionProgress?.skillsDueForReview?.length ? (
-        <Card className="p-4">
-          <div className="flex items-start gap-2">
-            <RotateCcw className="mt-0.5 h-4 w-4 text-gold-700" />
+        <Card className="p-3">
+          <div className="flex items-center gap-2">
+            <RotateCcw className="h-4 w-4 text-gold-700" />
             <p className="text-sm text-ink-700">
               {studentProgress.retentionProgress.skillsDueForReview.length} review
               {studentProgress.retentionProgress.skillsDueForReview.length === 1 ? '' : 's'} due.
@@ -389,7 +373,7 @@ export default function FractionsLearningPathPage() {
           </div>
         </Card>
       ) : (
-        <Card className="p-4">
+        <Card className="p-3">
           <p className="text-sm text-ink-600">No review due today.</p>
         </Card>
       )}

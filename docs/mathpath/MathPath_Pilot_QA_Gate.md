@@ -2,6 +2,14 @@
 
 This document defines the standard automated pilot-readiness QA gate for Tian OS MathPath (Fractions).
 
+## Single Pilot QA Bundle
+
+Primary command (repo root):
+
+- `npm run qa:pilot`
+
+This runs one consolidated pilot gate and writes a timestamped PASS/FAIL report.
+
 ## Commands
 
 From repo root:
@@ -11,20 +19,25 @@ From repo root:
 - `npm run qa:pilot:frontend`
 - `npm run qa:pilot` (full gate + consolidated report)
 
-## What `qa:pilot` checks
+## What `qa:pilot` checks (Fractions MVP 5-student pilot path)
 
 The gate reports PASS/FAIL for these areas:
 
-1. Environment preflight (API reachability, frontend API config, CORS, Mongo config)
-2. Seeded account smoke (`demo.student`, `demo.parent`, `demo.tutor`, `demo.teacher`)
-3. Fractions Diagnostic UI flow
-4. Placement persistence + reuse
-5. Fractions Practice UI flow
-6. Working Upload UI flow
-7. Assessment UI flow
-8. Question Review screen
-9. Cross-dashboard consistency contract
-10. Tutor/Teacher route guard coverage
+1. Student login
+2. Diagnostic start
+3. Diagnostic answer/submit
+4. Placement result
+5. Continue Learning recommendation
+6. Practice session
+7. Timed answer capture
+8. Result screen
+9. Mistake capture
+10. Parent dashboard reflects result
+11. Tutor dashboard reflects result
+12. Teacher dashboard reflects result
+13. Working upload route availability
+14. Assessment route availability
+15. TestSpecificationPage route availability
 
 The full gate writes a timestamped report to:
 
@@ -90,3 +103,8 @@ node scripts/seedTestAccounts.js
    - Re-run `node scripts/qa-mathpath-dashboard-contract.js`.
    - Inspect latest `docs/mathpath/pilot/logs/dashboard-contract-*.md`.
 
+6. **TestSpecificationPage route fails**
+   - Confirm these routes are present in `frontend/src/App.jsx`:
+     - `/parent/children/:studentId/mathpath/test-spec`
+     - `/tutor/students/:id/mathpath/test-spec`
+     - `/teacher/classes/:id/mathpath/test-spec`

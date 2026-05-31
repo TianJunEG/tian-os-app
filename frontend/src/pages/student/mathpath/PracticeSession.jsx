@@ -17,6 +17,9 @@ import {
 } from '../../../mathpath/state/mathPathDomainProgressState';
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import FractionsStoryModeSession from './FractionsStoryModeSession';
+import FractionAnswerInput, { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
+import QuestionDiagram from './components/QuestionDiagram';
+import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 
 const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
 const SESSION_META = {
@@ -144,6 +147,8 @@ function LegacyPracticeSession() {
   const q = items[idx];
   const isLast = idx === items.length - 1;
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
+  const useFractionInput = shouldUseFractionAnswerInput(q);
+  const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.stem || q.prompt || ''));
 
   const check = async () => {
     if (busy || answer === '') return;
@@ -186,7 +191,24 @@ function LegacyPracticeSession() {
       </div>
       <ProgressBar value={idx + (result ? 1 : 0)} max={items.length} className="mb-6" />
       <Card className="flex min-h-[30rem] flex-col p-6">
-        <div className="mb-6 text-lg leading-relaxed text-ink-900"><MathText text={q.stem} /></div>
+        <div className="mb-6 text-lg leading-relaxed text-ink-900">
+          {expressionQuestion ? (
+            <FractionExpressionQuestion
+              prompt={q.stem || q.prompt || ''}
+              value={answer}
+              onChange={setAnswer}
+              disabled={!!result}
+                onEnter={() => {
+                if (!result) {
+                  if (!answer) return;
+                  check();
+                }
+              }}
+            />
+          ) : (
+            <MathText text={q.stem} />
+          )}
+        </div>
         <VisualBlock visual={q.visual} />
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
@@ -196,6 +218,13 @@ function LegacyPracticeSession() {
               </button>
             ))}
           </div>
+        ) : useFractionInput && !expressionQuestion ? (
+          <FractionAnswerInput
+            value={answer}
+            onChange={setAnswer}
+            disabled={!!result}
+            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
+          />
         ) : (
           <input value={answer} onChange={(e) => setAnswer(e.target.value)} disabled={!!result} className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg" />
         )}
@@ -312,6 +341,8 @@ export default function PracticeSession() {
   const isLast = idx === questions.length - 1;
   const answered = Boolean(feedback);
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
+  const useFractionInput = shouldUseFractionAnswerInput(q);
+  const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
 
   const onSubmitCurrent = () => {
     if (busy || answered) return;
@@ -496,7 +527,22 @@ export default function PracticeSession() {
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" />
 
       <Card className="flex min-h-[34rem] flex-col p-6">
-        <div className="mb-6 text-lg leading-relaxed text-ink-900"><MathText text={q.prompt || q.stem} /></div>
+        <div className="mb-6 text-lg leading-relaxed text-ink-900">
+          {expressionQuestion ? (
+            <FractionExpressionQuestion
+              prompt={q.prompt || q.stem || ''}
+              value={answer}
+              onChange={setAnswer}
+              disabled={answered}
+              onEnter={() => {
+                if (!answered) onSubmitCurrent();
+              }}
+            />
+          ) : (
+            <MathText text={q.prompt || q.stem} />
+          )}
+        </div>
+        <QuestionDiagram question={q} />
         <VisualBlock visual={q.visual} />
         {q.workingRequired && <p className="mb-4 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Working is expected for this question. Upload at session end.</p>}
 
@@ -508,6 +554,13 @@ export default function PracticeSession() {
               </button>
             ))}
           </div>
+        ) : useFractionInput && !expressionQuestion ? (
+          <FractionAnswerInput
+            value={answer}
+            onChange={setAnswer}
+            disabled={answered}
+            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
+          />
         ) : (
           <input
             value={answer}

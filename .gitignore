@@ -32,3 +32,4 @@ build/
 # Nested standalone project moved in by hand (its own git repo + node_modules).
 # Kept out of this repo so it can't be committed as a broken embedded repo.
 Tuition/
+.vercel

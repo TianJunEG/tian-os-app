@@ -8,6 +8,17 @@ import { generateAssessmentQuestionSet } from '../../../../mathpath/fractions/fr
 import { assessmentSpecificationAPI } from '../../../../services/api';
 
 const TYPES = ['baseline', 'progress', 'mastery', 'curriculum', 'mockPaper'];
+const TYPE_LABELS = {
+  baseline: 'Baseline Check',
+  progress: 'Progress Check',
+  mastery: 'Mastery Check',
+  curriculum: 'School-Aligned Test',
+  mockPaper: 'Practice Paper',
+};
+const PAPER_LABELS = {
+  paper1: 'Practice Paper 1',
+  paper2: 'Practice Paper 2',
+};
 const OWNER_TYPE_BY_ROLE = {
   parent: 'parent',
   tutor: 'tutor',
@@ -133,14 +144,14 @@ export default function AssessmentIntroScreen() {
       const count = Math.max(8, Math.min(20, session.targetQuestionFamilyIds.length || 10));
       const questions = generateAssessmentQuestionSet({ assessmentSession: session, count });
       if (!questions.length) {
-        setError("Couldn't generate assessment questions.");
+        setError("We couldn't prepare this practice test yet. Try a different test type or start again.");
         return;
       }
       navigate(`/student/mathpath/assessment/session/${session.assessmentSessionId}`, {
         state: { session, questions, assessmentType, level },
       });
     } catch (e) {
-      setError(e.message || "Couldn't start assessment.");
+      setError("We couldn't start this practice test yet. Please try again.");
     }
   };
 
@@ -182,15 +193,15 @@ export default function AssessmentIntroScreen() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Test Mode" subtitle="Free Test or school-aligned revision using Table of Specification." />
+      <PageHeader title="Test Mode" subtitle="Choose a practice test or a school-aligned test." />
       <div className="space-y-4">
         <Card className="p-4">
           <div className="grid gap-2 sm:grid-cols-2">
             <button type="button" onClick={() => setEntryMode('free')} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${entryMode === 'free' ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-600'}`}>
-              Free Test
+              Practice Test
             </button>
             <button type="button" onClick={() => { setEntryMode('tos'); loadSpecifications(); }} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${entryMode === 'tos' ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-600'}`}>
-              School-Aligned Test (TOS)
+              School-Aligned Test
             </button>
           </div>
         </Card>
@@ -199,9 +210,9 @@ export default function AssessmentIntroScreen() {
         <Card className="p-5">
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm text-ink-600">
-              Assessment Type
+              Test Type
               <select value={assessmentType} onChange={(e) => setAssessmentType(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
-                {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                {TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t] || t}</option>)}
               </select>
             </label>
             <label className="text-sm text-ink-600">
@@ -213,8 +224,8 @@ export default function AssessmentIntroScreen() {
             <label className="text-sm text-ink-600">
               Paper Type
               <select value={paperType} onChange={(e) => setPaperType(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
-                <option value="paper1">paper1</option>
-                <option value="paper2">paper2</option>
+                <option value="paper1">{PAPER_LABELS.paper1}</option>
+                <option value="paper2">{PAPER_LABELS.paper2}</option>
               </select>
             </label>
             <label className="text-sm text-ink-600">
@@ -246,7 +257,7 @@ export default function AssessmentIntroScreen() {
 
         {entryMode === 'tos' && (
           <Card className="p-5">
-            <p className="mb-3 text-sm font-semibold text-ink-700">Table of Specification</p>
+            <p className="mb-3 text-sm font-semibold text-ink-700">School-Aligned Test Setup</p>
             {!ownerType && (
               <div className="mb-3 rounded-lg border border-gold-200 bg-gold-50 p-3 text-sm text-ink-700">
                 School-aligned test setup is available to parent, tutor, or teacher accounts.
@@ -276,24 +287,24 @@ export default function AssessmentIntroScreen() {
               <label className="text-sm text-ink-600">
                 Difficulty
                 <select value={tosForm.difficulty} onChange={(e) => setTosForm((p) => ({ ...p, difficulty: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
-                  <option value="easy">easy</option>
-                  <option value="medium">medium</option>
-                  <option value="hard">hard</option>
-                  <option value="mixed">mixed</option>
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                  <option value="mixed">Mixed</option>
                 </select>
               </label>
               <label className="text-sm text-ink-600">
                 Paper Type
                 <select value={tosForm.paperType} onChange={(e) => setTosForm((p) => ({ ...p, paperType: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
-                  <option value="paper1">paper1</option>
-                  <option value="paper2">paper2</option>
+                  <option value="paper1">{PAPER_LABELS.paper1}</option>
+                  <option value="paper2">{PAPER_LABELS.paper2}</option>
                 </select>
               </label>
               <label className="text-sm text-ink-600">
                 Timing
                 <select value={tosForm.timed ? 'timed' : 'untimed'} onChange={(e) => setTosForm((p) => ({ ...p, timed: e.target.value === 'timed' }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
-                  <option value="timed">timed</option>
-                  <option value="untimed">untimed</option>
+                  <option value="timed">Timed</option>
+                  <option value="untimed">Untimed</option>
                 </select>
               </label>
               <label className="inline-flex items-center gap-2 text-sm text-ink-600">
@@ -327,7 +338,7 @@ export default function AssessmentIntroScreen() {
 
         {error && <Card className="p-3 text-sm text-error-700">{error}</Card>}
         {entryMode === 'free' ? (
-          <Button size="l" icon={ArrowRight} className="w-full" onClick={start}>Start Free Test</Button>
+          <Button size="l" icon={ArrowRight} className="w-full" onClick={start}>Start Practice Test</Button>
         ) : (
           <Button size="l" icon={ArrowRight} className="w-full" onClick={startFromSpecification} disabled={!ownerType}>Start School-Aligned Test</Button>
         )}

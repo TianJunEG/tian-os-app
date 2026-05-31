@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Clock3, FileText, Target, Upload, AlertTriangle } from 'lucide-react';
-import { Card, Button, Badge, ErrorState, PageHeader, Spinner } from '../../components/ui';
+import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
 import ChildNav from './ChildNav';
 import { useChild } from './useChild';
 import { mathpathAPI } from '../../services/api';
@@ -274,10 +274,7 @@ export default function ParentMathPathDashboardPage() {
         title="Parent MathPath Dashboard"
         subtitle="A clear weekly view of mastery, fluency, retention, and next actions."
         action={(
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mathpath/test-spec`)}>School-Aligned Test</Button>
-            <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
-          </div>
+          <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
         )}
       />
 
@@ -291,22 +288,29 @@ export default function ParentMathPathDashboardPage() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <MasteryProgressCard mastery={summary.masteryProgress || {}} />
-          <CurrentWeaknessCard weaknesses={summary.currentWeaknesses || []} actions={summary.recommendedNextActions || []} />
-          <FluencySummaryCard fluency={summary.fluencySummary || {}} />
-          <RetentionSummaryCard retention={summary.retentionSummary || {}} />
-          <AssessmentProgressCard
-            assessment={summary.assessmentSummary || {}}
-            onStartBaseline={() => navigate('/student/mathpath/assessment')}
-          />
-          <WorkingQualityCard
-            working={summary.workingSummary || {}}
-            onUpload={() => navigate('/student/mathpath/working/upload')}
-          />
-        </div>
-
         <WeeklyActionPlanCard plan={summary.weeklyActionPlan || {}} onPrimary={() => navigate('/student/mathpath')} />
+
+        <CollapsibleSection
+          title="Progress details"
+          summary="Mastery, weak areas, fluency, retention, assessment, and working quality."
+          surface={false}
+          action={<Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mathpath/test-spec`)}>School Test</Button>}
+        >
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <MasteryProgressCard mastery={summary.masteryProgress || {}} />
+            <CurrentWeaknessCard weaknesses={summary.currentWeaknesses || []} actions={summary.recommendedNextActions || []} />
+            <FluencySummaryCard fluency={summary.fluencySummary || {}} />
+            <RetentionSummaryCard retention={summary.retentionSummary || {}} />
+            <AssessmentProgressCard
+              assessment={summary.assessmentSummary || {}}
+              onStartBaseline={() => navigate('/student/mathpath/assessment')}
+            />
+            <WorkingQualityCard
+              working={summary.workingSummary || {}}
+              onUpload={() => navigate('/student/mathpath/working/upload')}
+            />
+          </div>
+        </CollapsibleSection>
 
         {!!summary.warnings?.length && (
           <Card className="p-4">

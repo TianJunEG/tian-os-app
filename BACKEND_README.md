@@ -54,7 +54,7 @@ Update with your values:
 npm run dev
 ```
 
-Server runs on `http://localhost:5000`
+Server runs on `http://localhost:5001` by default (or `PORT` if set)
 
 ## Core Features
 

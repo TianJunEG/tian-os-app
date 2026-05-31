@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, Lock, Network, Sparkles } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
-import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../components/ui';
 
 // Student Skill Graph / Progress — the mastery map across MathPath: what's
 // mastered, what's in progress, and what unlocks next. Read-only over the
@@ -100,38 +100,39 @@ export default function SkillGraph() {
         </div>
       )}
 
-      {/* The map — topic by topic, with each skill's place in the graph */}
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">The map</h3>
-        <span className="inline-flex items-center gap-1 text-xs text-ink-300"><Network className="h-3.5 w-3.5" /> {topics.length} topics</span>
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {topics.map((t) => (
-          <Card key={t.topicId} className="p-5">
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <Link to={`/student/mathpath/topics/${t.topicId}`} className="truncate font-semibold text-ink-700 hover:text-navy-700">{t.name}</Link>
-              <Badge tone="neutral" className="shrink-0">{t.masteredCount}/{t.total}</Badge>
-            </div>
-            <p className="mb-3 text-xs text-ink-300">{t.moeLevel}</p>
-            <ul className="divide-y divide-hairline">
-              {t.skills.map((s) => (
-                <li key={s.skillId} className={`flex items-center justify-between gap-3 py-2 ${s.locked ? 'opacity-60' : ''}`}>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      {s.locked && <Lock className="h-3.5 w-3.5 shrink-0 text-ink-300" aria-hidden />}
-                      <span className="truncate text-sm font-medium text-ink-700">{s.name}</span>
+      <CollapsibleSection
+        title="Full skill map"
+        summary={`${topics.length} topic${topics.length === 1 ? '' : 's'} with prerequisites and lock status`}
+        surface={false}
+      >
+        <div className="space-y-3">
+          {topics.map((t) => (
+            <CollapsibleSection
+              key={t.topicId}
+              title={t.name}
+              summary={`${t.masteredCount}/${t.total} mastered${t.moeLevel ? ` · ${t.moeLevel}` : ''}`}
+              surface={false}
+              action={<Badge tone="neutral" className="shrink-0">{t.total} skills</Badge>}
+            >
+              <Link to={`/student/mathpath/topics/${t.topicId}`} className="mb-3 inline-block text-sm font-semibold text-navy-700 hover:underline">Open topic</Link>
+              <ul className="divide-y divide-hairline">
+                {t.skills.map((s) => (
+                  <li key={s.skillId} className={`flex items-center justify-between gap-3 py-2 ${s.locked ? 'opacity-60' : ''}`}>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        {s.locked && <Lock className="h-3.5 w-3.5 shrink-0 text-ink-300" aria-hidden />}
+                        <span className="truncate text-sm font-medium text-ink-700">{s.name}</span>
+                      </div>
+                      {s.locked && s.missingPrereqs.length > 0 && <p className="mt-0.5 text-xs text-ink-400">Prerequisites needed</p>}
                     </div>
-                    {s.locked && s.missingPrereqs.length > 0 && (
-                      <p className="mt-0.5 truncate text-xs text-ink-400">Unlocks after {s.missingPrereqs.join(', ')}</p>
-                    )}
-                  </div>
-                  <span className="shrink-0">{stateBadge(s)}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        ))}
-      </div>
+                    <span className="shrink-0">{stateBadge(s)}</span>
+                  </li>
+                ))}
+              </ul>
+            </CollapsibleSection>
+          ))}
+        </div>
+      </CollapsibleSection>
     </>
   );
 }
