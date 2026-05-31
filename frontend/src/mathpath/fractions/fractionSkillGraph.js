@@ -1,3 +1,8 @@
+import {
+  getSkillCurriculumMapping,
+  getUniversalSkillByFrameworkId,
+} from '../curriculum/index.js';
+
 const RETENTION_REVIEW_DAYS = [3, 7, 30, 90];
 
 const fractionSkills = [
@@ -367,13 +372,56 @@ const fractionSkills = [
   },
 ];
 
-const skillById = new Map(fractionSkills.map((skill) => [skill.id, skill]));
+function enrichSkillWithCurriculum(skill) {
+  const universal = getUniversalSkillByFrameworkId(skill.id);
+  const sgMapping = getSkillCurriculumMapping(skill.id, {
+    country: 'SG',
+    curriculum: 'MOE_PRIMARY_MATH_2021',
+  });
+  const levelBand = sgMapping?.levelBand?.length
+    ? sgMapping.levelBand
+    : (Array.isArray(skill.singaporeLevel) ? skill.singaporeLevel : []);
+
+  return {
+    ...skill,
+    singaporeLevel: levelBand,
+    universalSkillId: universal?.skillId || '',
+    universalSkillTitle: universal?.title || skill.name,
+    universalDescription: universal?.description || skill.description || '',
+    difficultyBand: universal?.difficultyBand || '',
+    questionTypes: universal?.questionTypes || [],
+    mistakeTypes: universal?.mistakeTypes || [],
+    pathwayOrder: universal?.pathwayOrder ?? (Number(skill.id.replace(/\D/g, '')) || 0),
+    introducedLevel: sgMapping?.introducedLevel || null,
+    masteryLevel: sgMapping?.masteryLevel || null,
+    curriculumTags: sgMapping ? {
+      country: sgMapping.country,
+      curriculum: sgMapping.curriculum,
+      subject: sgMapping.subject,
+      phase: sgMapping.phase,
+      level: sgMapping.level,
+      stream: sgMapping.stream,
+      strand: sgMapping.strand,
+      subStrand: sgMapping.subStrand,
+      syllabusTopic: sgMapping.syllabusTopic,
+      syllabusOutcome: sgMapping.syllabusOutcome,
+      sourceDocument: sgMapping.sourceDocument,
+      syllabusRef: sgMapping.syllabusRef,
+      notes: sgMapping.notes,
+    } : null,
+    curriculumMappings: sgMapping ? [sgMapping] : [],
+  };
+}
+
+const skills = fractionSkills.map((skill) => enrichSkillWithCurriculum(skill));
+
+const skillById = new Map(skills.map((skill) => [skill.id, skill]));
 
 const dependentMap = new Map();
-fractionSkills.forEach((skill) => {
+skills.forEach((skill) => {
   dependentMap.set(skill.id, []);
 });
-fractionSkills.forEach((skill) => {
+skills.forEach((skill) => {
   skill.prerequisites.forEach((prereqId) => {
     if (dependentMap.has(prereqId)) {
       dependentMap.get(prereqId).push(skill.id);
@@ -421,7 +469,7 @@ export function getSkillPath(skillId) {
 }
 
 export function getDependencyMap() {
-  return fractionSkills.reduce((acc, skill) => {
+  return skills.reduce((acc, skill) => {
     acc[skill.id] = {
       prerequisites: [...skill.prerequisites],
       dependents: getDependents(skill.id),
@@ -460,26 +508,26 @@ function detectCycles(skills) {
 
 export function validateFractionSkillGraph() {
   const expectedIds = Array.from({ length: 26 }, (_, i) => `F${String(i + 1).padStart(3, '0')}`);
-  const actualIds = fractionSkills.map((s) => s.id);
+  const actualIds = skills.map((s) => s.id);
 
   const missingSkills = expectedIds.filter((id) => !skillById.has(id));
   const duplicateIds = actualIds.filter((id, index) => actualIds.indexOf(id) !== index);
 
-  const invalidPrereqReferences = fractionSkills.flatMap((skill) =>
+  const invalidPrereqReferences = skills.flatMap((skill) =>
     skill.prerequisites
       .filter((prereqId) => !skillById.has(prereqId))
       .map((invalidPrereqId) => ({ skillId: skill.id, invalidPrereqId }))
   );
 
-  const invalidRemediationReferences = fractionSkills.flatMap((skill) =>
+  const invalidRemediationReferences = skills.flatMap((skill) =>
     skill.remediationIfWeak
       .filter((targetId) => !skillById.has(targetId))
       .map((invalidTargetId) => ({ skillId: skill.id, invalidTargetId }))
   );
 
-  const cycles = detectCycles(fractionSkills);
+  const cycles = detectCycles(skills);
 
-  const foundationIds = fractionSkills.filter((skill) => skill.prerequisites.length === 0).map((skill) => skill.id);
+  const foundationIds = skills.filter((skill) => skill.prerequisites.length === 0).map((skill) => skill.id);
   const reachable = new Set();
   const queue = [...foundationIds];
   while (queue.length) {
@@ -488,7 +536,7 @@ export function validateFractionSkillGraph() {
     reachable.add(current);
     getDependents(current).forEach((dependentId) => queue.push(dependentId));
   }
-  const unreachableSkills = fractionSkills.filter((skill) => !reachable.has(skill.id)).map((skill) => skill.id);
+  const unreachableSkills = skills.filter((skill) => !reachable.has(skill.id)).map((skill) => skill.id);
 
   const errors = unique([
     ...(missingSkills.length ? ['Missing required skill IDs.'] : []),
@@ -502,7 +550,7 @@ export function validateFractionSkillGraph() {
   return {
     isValid: errors.length === 0,
     summary: {
-      totalSkills: fractionSkills.length,
+      totalSkills: skills.length,
       foundationSkills: foundationIds,
       missingSkills,
       duplicateIds: unique(duplicateIds),
@@ -519,8 +567,8 @@ export const fractionSkillGraph = {
   domainId: 'fractions',
   domainName: 'Fractions',
   version: '1.0.0',
-  skillIds: fractionSkills.map((s) => s.id),
-  skills: fractionSkills,
+  skillIds: skills.map((s) => s.id),
+  skills,
 };
 
 export default fractionSkillGraph;

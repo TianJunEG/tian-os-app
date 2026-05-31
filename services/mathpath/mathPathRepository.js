@@ -16,6 +16,32 @@ function sanitizeList(items = []) {
   return [...new Set((Array.isArray(items) ? items : []).filter(Boolean))];
 }
 
+function sanitizeCurriculumMappings(items = []) {
+  if (!Array.isArray(items)) return [];
+  return items
+    .filter((row) => row && typeof row === 'object')
+    .map((row) => ({
+      skillId: String(row.skillId || '').trim(),
+      country: String(row.country || '').trim().toUpperCase(),
+      curriculum: String(row.curriculum || '').trim().toUpperCase(),
+      subject: String(row.subject || '').trim(),
+      phase: String(row.phase || '').trim(),
+      level: String(row.level || '').trim().toUpperCase(),
+      stream: row.stream == null ? null : String(row.stream),
+      strand: String(row.strand || '').trim(),
+      subStrand: String(row.subStrand || '').trim(),
+      syllabusTopic: String(row.syllabusTopic || '').trim(),
+      syllabusOutcome: String(row.syllabusOutcome || '').trim(),
+      introducedLevel: String(row.introducedLevel || '').trim().toUpperCase(),
+      masteryLevel: String(row.masteryLevel || '').trim().toUpperCase(),
+      levelBand: sanitizeList((row.levelBand || []).map((v) => String(v || '').toUpperCase())),
+      sourceDocument: String(row.sourceDocument || '').trim(),
+      syllabusRef: String(row.syllabusRef || '').trim(),
+      notes: String(row.notes || '').trim(),
+    }))
+    .filter((row) => row.country && row.curriculum);
+}
+
 export async function upsertMathPathSkills(skills = []) {
   if (!Array.isArray(skills) || !skills.length) return { matched: 0, modified: 0, upserted: 0 };
   const ops = skills.map((skill) => ({
@@ -23,11 +49,22 @@ export async function upsertMathPathSkills(skills = []) {
       filter: { domainId: skill.domainId, skillId: skill.skillId },
       update: {
         $set: {
+          universalSkillId: skill.universalSkillId || '',
+          universalDomain: skill.universalDomain || skill.domainId || 'fractions',
+          universalTitle: skill.universalTitle || skill.name,
+          universalDescription: skill.universalDescription || skill.description || '',
+          difficultyBand: skill.difficultyBand || '',
+          questionTypes: sanitizeList(skill.questionTypes),
+          mistakeTypes: sanitizeList(skill.mistakeTypes),
+          pathwayOrder: Number(skill.pathwayOrder || 1),
           name: skill.name,
           description: skill.description || '',
           strand: skill.strand || '',
           difficulty: skill.difficulty ?? 1,
           singaporeLevel: sanitizeList(skill.singaporeLevel),
+          introducedLevel: skill.introducedLevel || '',
+          masteryLevel: skill.masteryLevel || '',
+          curriculumMappings: sanitizeCurriculumMappings(skill.curriculumMappings),
           prerequisites: sanitizeList(skill.prerequisites),
           dependents: sanitizeList(skill.dependents),
           mastery: skill.mastery || { minimumAccuracy: 90, minimumQuestions: 20 },
@@ -50,6 +87,42 @@ export function getMathPathSkillsByDomain(domainId) {
 
 export function getMathPathSkill(domainId, skillId) {
   return MathPathSkill.findOne({ domainId, skillId }).lean();
+}
+
+export function getMathPathSkillsByCountryCurriculumLevel({
+  domainId = 'fractions',
+  country = 'SG',
+  curriculum = 'MOE_PRIMARY_MATH_2021',
+  level = null,
+} = {}) {
+  const query = {
+    domainId,
+    isActive: true,
+    'curriculumMappings.country': String(country || '').toUpperCase(),
+    'curriculumMappings.curriculum': String(curriculum || '').toUpperCase(),
+  };
+  if (level) {
+    query['curriculumMappings.levelBand'] = String(level || '').toUpperCase();
+  }
+  return MathPathSkill.find(query).sort({ pathwayOrder: 1, skillId: 1 }).lean();
+}
+
+export async function getMathPathSkillCurriculumMapping({
+  domainId = 'fractions',
+  skillId,
+  country = 'SG',
+  curriculum = 'MOE_PRIMARY_MATH_2021',
+} = {}) {
+  if (!skillId) return null;
+  const row = await MathPathSkill.findOne({ domainId, skillId }).lean();
+  if (!row) return null;
+  const c = String(country || '').toUpperCase();
+  const cur = String(curriculum || '').toUpperCase();
+  return (row.curriculumMappings || []).find(
+    (mapping) =>
+      String(mapping.country || '').toUpperCase() === c
+      && String(mapping.curriculum || '').toUpperCase() === cur
+  ) || null;
 }
 
 export async function upsertQuestionFamilies(questionFamilies = []) {
@@ -239,6 +312,8 @@ export const mathPathRepository = {
   upsertMathPathSkills,
   getMathPathSkillsByDomain,
   getMathPathSkill,
+  getMathPathSkillsByCountryCurriculumLevel,
+  getMathPathSkillCurriculumMapping,
   upsertQuestionFamilies,
   getQuestionFamiliesByDomain,
   getQuestionFamiliesBySkill,
@@ -263,4 +338,3 @@ export const mathPathRepository = {
 };
 
 export default mathPathRepository;
-
