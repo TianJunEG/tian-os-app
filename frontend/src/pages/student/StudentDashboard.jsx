@@ -21,7 +21,7 @@ import { Card, Button, ProgressBar, Spinner, ErrorState, Badge } from '../../com
 
 function actionMeta(nextAction = {}) {
   const map = {
-    continuePractice: { label: 'Continue Practice', to: '/student/mathpath' },
+    continuePractice: { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-dashboard' },
     startFluency: { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' },
     completeRetentionReview: { label: 'Complete Review', to: '/student/mathpath' },
     attemptAssessment: { label: 'Try Assessment', to: '/student/mathpath/assessment' },
@@ -315,6 +315,7 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [payload, setPayload] = useState(null);
+  const [resetting, setResetting] = useState(false);
 
   // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
   // see real pipeline output, not synthetic dashboard data.
@@ -395,6 +396,18 @@ export default function StudentDashboard() {
   const courseProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageMastered || 0)));
   const fluencyProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageFluent || 0)));
   const hasActivity = courseProgress > 0 || fluencyProgress > 0 || Math.round(vm.masteryProgress?.percentageRetained || 0) > 0;
+  const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));
+  const resetStudentState = async () => {
+    if (!canResetStudentState || resetting) return;
+    setResetting(true);
+    try {
+      await mathpathAPI.resetTestStudentState();
+      window.location.reload();
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Could not reset student state.');
+      setResetting(false);
+    }
+  };
   return (
     <>
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -402,9 +415,16 @@ export default function StudentDashboard() {
           <p className="text-sm font-semibold text-ink-500">Hi, {firstName}</p>
           <h1 className="font-display text-3xl font-semibold text-ink-900">Home</h1>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2 text-sm font-semibold text-ink-700">
-          <Flame className="h-4 w-4 text-gold-500" />
-          {hasActivity ? 1 : 0}
+        <div className="flex items-center gap-2">
+          {canResetStudentState && (
+            <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
+              {resetting ? 'Resetting...' : 'Reset Student State'}
+            </Button>
+          )}
+          <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2 text-sm font-semibold text-ink-700">
+            <Flame className="h-4 w-4 text-gold-500" />
+            {hasActivity ? 1 : 0}
+          </div>
         </div>
       </div>
 

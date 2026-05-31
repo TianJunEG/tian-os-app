@@ -337,7 +337,24 @@ function buildOne(skillName, difficulty) {
     }
     const cap = name.includes('1000') ? 999 : name.includes('100') ? 99 : 19;
     const n = rnd(5, cap);
-    return short(`What number comes after ${n}?`, n + 1, `${n} + 1 = ${n + 1}.`, 'count/next', difficulty);
+    const templates = [
+      () => short(`What number comes after ${n}?`, n + 1, `${n} + 1 = ${n + 1}.`, 'count/next', difficulty),
+      () => short(`What number comes before ${n}?`, n - 1, `${n} - 1 = ${n - 1}.`, 'count/before', difficulty),
+      () => short(`What number is between ${n - 1} and ${n + 1}?`, n, `${n} sits between ${n - 1} and ${n + 1}.`, 'count/between', difficulty),
+      () => short(`Fill in the missing number: ${n - 1}, ___, ${n + 1}`, n, `The count goes ${n - 1}, ${n}, ${n + 1}.`, 'count/missing-number', difficulty),
+      () => short(`Count forward: ${n}, ${n + 1}, ___`, n + 2, `Counting forward adds 1 each time.`, 'count/forward', difficulty),
+      () => short(`Count backward: ${n}, ${n - 1}, ___`, n - 2, `Counting backward subtracts 1 each time.`, 'count/backward', difficulty),
+      () => {
+        const a = rnd(1, cap - 2);
+        const b = a + rnd(1, 3);
+        return short(`Which number is greater, ${a} or ${b}?`, Math.max(a, b), `${Math.max(a, b)} is greater than ${Math.min(a, b)}.`, 'count/compare', difficulty);
+      },
+      () => {
+        const arr = [n + 1, n - 1, n];
+        return short(`Order these numbers from smallest to largest: ${arr.join(', ')}.`, `${n - 1}, ${n}, ${n + 1}`, `Smallest to largest: ${n - 1}, ${n}, ${n + 1}.`, 'count/order', difficulty);
+      },
+    ];
+    return templates[rnd(0, templates.length - 1)]();
   }
   if (name.includes('number bond') || (name.includes('addition') && name.includes('fact'))) {
     const a = rnd(1, 10), b = rnd(1, Math.min(10, 20 - a));

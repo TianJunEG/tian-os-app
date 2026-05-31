@@ -4,11 +4,17 @@ import { ArrowLeft, ArrowRight, Flag } from 'lucide-react';
 import { Card, Button, ProgressBar, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
-import FractionAnswerInput, { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
+import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
 import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
+import AnswerInputRenderer from '../components/AnswerInputRenderer';
+import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
 
-const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
+const REFLECTION_OPTIONS = [
+  { value: 'i_know_this', label: 'I know this' },
+  { value: 'not_sure', label: "I'm not sure" },
+  { value: 'dont_know', label: "I don't know" },
+];
 
 export default function AssessmentQuestionScreen() {
   const location = useLocation();
@@ -20,7 +26,9 @@ export default function AssessmentQuestionScreen() {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [conf, setConf] = useState({});
+  const [helpRequests, setHelpRequests] = useState({});
   const [flagged, setFlagged] = useState({});
+  const [workings, setWorkings] = useState({});
   const [timeByQuestion, setTimeByQuestion] = useState({});
   const [enteredAt, setEnteredAt] = useState(Date.now());
   const [startedAt] = useState(Date.now());
@@ -42,6 +50,10 @@ export default function AssessmentQuestionScreen() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
+  const workingRequirement = resolveWorkingRequirement(q, 'mastery_check');
+  const currentWorking = workings[q.questionId] || {};
+  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
+  const reflectionReady = Boolean(conf[q.questionId]);
 
   const stampTimeForCurrent = () => {
     const elapsed = Math.max(1, Math.floor((Date.now() - enteredAt) / 1000));
@@ -62,7 +74,9 @@ export default function AssessmentQuestionScreen() {
         questions,
         answers,
         conf,
+        helpRequests,
         flagged,
+        workings,
         timeByQuestion,
         totalTimeSeconds: Math.max(1, Math.floor((Date.now() - startedAt) / 1000)),
       },
@@ -82,7 +96,6 @@ export default function AssessmentQuestionScreen() {
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Marks: {q.marks || 1}</p>
           <p className="text-xs text-ink-500">{session.calculatorAllowed ? 'Calculator is allowed for this assessment.' : 'Calculator is not allowed for this assessment.'}</p>
         </div>
-        {q.workingRequired && <p className="mb-3 rounded-lg bg-gold-100 px-3 py-2 text-xs text-gold-900">Do your working on paper. Upload after assessment.</p>}
         <div className="mb-4 text-lg text-ink-900">
           {expressionQuestion ? (
             <FractionExpressionQuestion
@@ -90,7 +103,7 @@ export default function AssessmentQuestionScreen() {
               value={answers[q.questionId] || ''}
               onChange={(value) => setAnswers((p) => ({ ...p, [q.questionId]: value }))}
               onEnter={() => {
-                go(idx + 1);
+                if (workingReady && reflectionReady) go(idx + 1);
               }}
               disabled={false}
             />
@@ -99,6 +112,12 @@ export default function AssessmentQuestionScreen() {
           )}
         </div>
         <QuestionDiagram question={q} />
+        <WorkingCanvas
+          questionId={q.questionId}
+          required={workingRequirement.required}
+          allowNoWorking={workingRequirement.allowNoWorking}
+          onSubmit={(payload) => setWorkings((prev) => ({ ...prev, [q.questionId]: payload }))}
+        />
 
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
@@ -109,10 +128,13 @@ export default function AssessmentQuestionScreen() {
             ))}
           </div>
         ) : useFractionInput && !expressionQuestion ? (
-          <FractionAnswerInput
+          <AnswerInputRenderer
+            question={q}
             value={answers[q.questionId] || ''}
             onChange={(value) => setAnswers((p) => ({ ...p, [q.questionId]: value }))}
-            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
+            onEnter={() => {
+              if (workingReady && reflectionReady) go(idx + 1);
+            }}
           />
         ) : (
           <input
@@ -124,13 +146,20 @@ export default function AssessmentQuestionScreen() {
         )}
 
         <div className="mt-4">
-          <label className="mb-2 block text-sm font-semibold text-ink-700">Confidence</label>
+          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
           <div className="grid grid-cols-2 gap-2">
-            {CONFIDENCE_OPTIONS.map((opt) => (
-              <button key={opt} onClick={() => setConf((p) => ({ ...p, [q.questionId]: opt }))} className={`rounded-lg border px-3 py-2 text-sm ${conf[q.questionId] === opt ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
-                {opt}
+            {REFLECTION_OPTIONS.map((opt) => (
+              <button key={opt.value} onClick={() => setConf((p) => ({ ...p, [q.questionId]: opt.value }))} className={`rounded-lg border px-3 py-2 text-sm ${conf[q.questionId] === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
+                {opt.label}
               </button>
             ))}
+          </div>
+          <div className="mt-3 rounded-lg border border-hairline p-3">
+            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setHelpRequests((p) => ({ ...p, [q.questionId]: false }))} className={`rounded-lg border px-3 py-2 text-sm ${helpRequests[q.questionId] === false ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
+              <button type="button" onClick={() => setHelpRequests((p) => ({ ...p, [q.questionId]: true }))} className={`rounded-lg border px-3 py-2 text-sm ${helpRequests[q.questionId] ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
+            </div>
           </div>
         </div>
 
@@ -140,9 +169,9 @@ export default function AssessmentQuestionScreen() {
             {flagged[q.questionId] ? 'Unflag' : 'Flag'}
           </Button>
           {idx === questions.length - 1 ? (
-            <Button icon={ArrowRight} onClick={toReview}>Review & Submit</Button>
+            <Button icon={ArrowRight} disabled={!workingReady || !reflectionReady} onClick={toReview}>Review & Submit</Button>
           ) : (
-            <Button icon={ArrowRight} onClick={() => go(idx + 1)}>Next</Button>
+            <Button icon={ArrowRight} disabled={!workingReady || !reflectionReady} onClick={() => go(idx + 1)}>Next</Button>
           )}
         </div>
       </Card>

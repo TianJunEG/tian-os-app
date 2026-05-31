@@ -74,18 +74,13 @@ export default function WorkingUploadScreen() {
 
   const onToggleNoWorking = (q, checked) => {
     if (!q?.questionId) return;
-    const allowed = q.mentalMathEligible || !q.workingRequired;
-    if (!allowed && checked) {
-      setWarning('No-working-required is only allowed for mental-math or non-working questions.');
-      return;
-    }
     setWarning('');
     setNoWorkingChecked((prev) => ({ ...prev, [q.questionId]: checked }));
   };
 
   const goReview = () => {
     if (!canContinue) {
-      setWarning('Please upload at least one page or mark no-working-required where appropriate.');
+      setWarning('Please upload at least one page or mark that you did not need working for the relevant question.');
       return;
     }
     navigate('/student/mathpath/working/review', {

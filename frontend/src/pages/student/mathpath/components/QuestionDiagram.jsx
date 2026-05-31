@@ -42,11 +42,29 @@ function inferNumberLineDiagram(prompt = '') {
   };
 }
 
+function inferShadedFractionDiagram(prompt = '') {
+  const match = String(prompt).match(
+    /(?:shape|bar|strip)\s+is\s+(?:split|divided)\s+into\s+(\d+)\s+equal parts\.\s+(\d+)\s+part(?:\(s\)|s)?\s+(?:is|are)\s+shaded/i
+  );
+  if (!match) return null;
+  const parts = Number(match[1]);
+  const shaded = Number(match[2]);
+  if (!Number.isFinite(parts) || !Number.isFinite(shaded) || parts <= 0 || shaded < 0 || shaded > parts) return null;
+  return {
+    type: 'fraction_bar',
+    width: 640,
+    height: 180,
+    data: { parts, shaded, labelMode: 'none' },
+  };
+}
+
 export default function QuestionDiagram({ question }) {
   const spec = useMemo(() => {
     if (question?.diagramSpec) return question.diagramSpec;
     if (question?.diagram) return question.diagram;
-    return inferNumberLineDiagram(question?.prompt || question?.stem || '');
+    if (question?.visual?.type === 'svg' && question.visual?.payload?.type) return question.visual.payload;
+    const prompt = question?.prompt || question?.stem || '';
+    return inferNumberLineDiagram(prompt) || inferShadedFractionDiagram(prompt);
   }, [question]);
 
   if (!spec?.type || !renderers[spec.type]) return null;

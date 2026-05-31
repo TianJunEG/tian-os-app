@@ -6,6 +6,7 @@ import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } fro
 import FractionAnswerInput, { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import { useAuth } from '../../../context/AuthContext';
+import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 
 const MODE_META = {
   i_do: { label: 'I Do', helper: 'Watch each model step.' },
@@ -377,6 +378,7 @@ export default function FractionsModelTrainer() {
   const [studentAnswer, setStudentAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
   const [youDoAnswer, setYouDoAnswer] = useState('');
+  const [youDoWorking, setYouDoWorking] = useState({});
   const [showYouDoModel, setShowYouDoModel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -428,6 +430,7 @@ export default function FractionsModelTrainer() {
     setStudentAnswer('');
     setFeedback('');
     setShowYouDoModel(false);
+    setYouDoWorking({});
   };
 
   const goToStep = (nextIndex) => {
@@ -572,7 +575,14 @@ export default function FractionsModelTrainer() {
                 <PencilLine className="h-5 w-5" />
                 <h2 className="font-semibold">Independent drawing placeholder</h2>
               </div>
-              <p className="text-sm leading-6 text-ink-600">Use paper, a tablet stylus, or your exercise book to draw the model before checking the revealed version.</p>
+              <p className="text-sm leading-6 text-ink-600">Draw your model before checking the revealed version.</p>
+              <WorkingCanvas
+                questionId={`${template.template_id || templateId}-you-do`}
+                required
+                allowNoWorking={false}
+                label="Draw your model"
+                onSubmit={setYouDoWorking}
+              />
               <textarea
                 value={youDoAnswer}
                 onChange={(event) => setYouDoAnswer(event.target.value)}
@@ -580,11 +590,12 @@ export default function FractionsModelTrainer() {
                 placeholder="Write your final answer and notes about your model. Leave this blank between attempts if you want a fresh workspace."
               />
               <Button
-                size="s"
-                variant="secondary"
-                className="mt-3"
-                onClick={() => setShowYouDoModel(true)}
-              >
+	                size="s"
+	                variant="secondary"
+	                className="mt-3"
+	                disabled={!youDoWorking.workingSubmitted}
+	                onClick={() => setShowYouDoModel(true)}
+	              >
                 Reveal model answer
               </Button>
               <div className="mt-4 rounded-xl bg-white p-3 text-sm text-ink-700">

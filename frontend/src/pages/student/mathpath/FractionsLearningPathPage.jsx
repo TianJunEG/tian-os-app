@@ -59,12 +59,12 @@ function statusTone(label) {
 function actionFromNext(nextAction) {
   const action = String(nextAction?.action || 'continuePractice');
   if (action === 'startFluency') return { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' };
-  if (action === 'completeRetentionReview') return { label: 'Review Due Skill', to: '/student/mathpath' };
+  if (action === 'completeRetentionReview') return { label: 'Review Due Skill', to: '/student/mathpath/practice/recommended-review' };
   if (action === 'attemptAssessment') return { label: 'Start Assessment', to: '/student/mathpath/assessment' };
   if (action === 'uploadWorking') return { label: 'Upload Working', to: '/student/mathpath/working/upload' };
-  if (action === 'followRemediationPlan') return { label: 'Practise This Skill', to: '/student/mathpath' };
-  if (action === 'advanceSkill') return { label: 'Move to Next Skill', to: '/student/mathpath' };
-  return { label: 'Continue Practice', to: '/student/mathpath' };
+  if (action === 'followRemediationPlan') return { label: 'Practise This Skill', to: '/student/mathpath/practice/recommended-remediation' };
+  if (action === 'advanceSkill') return { label: 'Move to Next Skill', to: '/student/mathpath/practice/recommended-next' };
+  return { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-path' };
 }
 
 function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, onStory }) {
@@ -346,6 +346,22 @@ export default function FractionsLearningPathPage() {
 
   const nextCta = actionFromNext(nextAction);
   const currentSkillName = displaySkillName(currentSkillId, skillById.get(currentSkillId)?.name || 'Fractions starter skill');
+  const launchPrimary = (to = nextCta.to) => {
+    if (String(to).startsWith('/student/mathpath/practice/')) {
+      navigate(to, {
+        state: {
+          skillId: currentSkillId || 'F001',
+          questionCount: 8,
+          sessionType: 'practice',
+          source: 'fractions-pathway',
+          backTo: '/student/mathpath/path',
+          homeBase: '/student/mathpath/path',
+        },
+      });
+      return;
+    }
+    navigate(to);
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -354,13 +370,13 @@ export default function FractionsLearningPathPage() {
         progress={masteryProgress}
         currentSkillName={currentSkillName}
         nextCta={nextCta}
-        onPrimary={(to) => navigate(to || nextCta.to)}
+        onPrimary={launchPrimary}
         onStory={() => navigate('/student/mathpath/practice/recommended-story', {
           state: { sessionType: 'story', skillId: 'F026', source: 'fractions-pathway' },
         })}
       />
 
-      <NextActionPanel nextAction={nextAction} onPrimary={(to) => navigate(to)} />
+      <NextActionPanel nextAction={nextAction} onPrimary={launchPrimary} />
 
       {studentProgress.retentionProgress?.skillsDueForReview?.length ? (
         <Card className="p-3">
@@ -385,8 +401,15 @@ export default function FractionsLearningPathPage() {
           skills={strand.items}
           onSkillAction={(skill) => {
             if (skill.locked) return;
-            navigate('/student/mathpath', {
-              state: { focusSkillId: skill.id },
+            navigate(`/student/mathpath/practice/skill-${skill.id}`, {
+              state: {
+                skillId: skill.id,
+                questionCount: 8,
+                sessionType: 'practice',
+                source: 'fractions-pathway-skill-card',
+                backTo: '/student/mathpath/path',
+                homeBase: '/student/mathpath/path',
+              },
             });
           }}
         />

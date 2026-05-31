@@ -10,8 +10,13 @@ import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput'
 import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 import AnswerInputRenderer from '../components/AnswerInputRenderer';
+import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
 
-const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
+const REFLECTION_OPTIONS = [
+  { value: 'i_know_this', label: 'I know this' },
+  { value: 'not_sure', label: "I'm not sure" },
+  { value: 'dont_know', label: "I don't know" },
+];
 
 export default function DiagnosticQuestionScreen() {
   const { diagnosticSessionId } = useParams();
@@ -19,13 +24,15 @@ export default function DiagnosticQuestionScreen() {
   const location = useLocation();
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
-  const [confidence, setConfidence] = useState('Confident');
+  const [reflection, setReflection] = useState('');
+  const [helpRequested, setHelpRequested] = useState(false);
   const [startedAt, setStartedAt] = useState(Date.now());
   const [elapsed, setElapsed] = useState(0);
   const [responses, setResponses] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [hydrating, setHydrating] = useState(false);
+  const [workingByQuestion, setWorkingByQuestion] = useState({});
 
   const [session, setSession] = useState(location.state?.session || null);
   const [questions, setQuestions] = useState(() => repairFractionQuestions(location.state?.questions || []));
@@ -73,14 +80,17 @@ export default function DiagnosticQuestionScreen() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem));
+  const workingRequirement = resolveWorkingRequirement(q, 'diagnostic');
+  const currentWorking = workingByQuestion[q.questionId] || {};
+  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
 
-  const confidenceCalibration = (correct, level) => {
-    const normalized = String(level || '').toLowerCase();
-    if (correct && normalized.includes('very')) return 'mastery_signal';
-    if (correct && normalized.includes('guess')) return 'lucky_correct_not_secure';
-    if (!correct && normalized.includes('very')) return 'possible_misconception';
-    if (!correct && normalized.includes('unsure')) return 'learning_gap';
-    return correct ? 'correct_with_moderate_confidence' : 'needs_review';
+  const confidenceCalibration = (correct, value) => {
+    if (correct && value === 'i_know_this') return 'mastery_signal';
+    if (correct && value === 'dont_know') return 'possible_guess';
+    if (!correct && value === 'i_know_this') return 'overconfidence';
+    if (!correct && value === 'not_sure') return 'student_aware_of_weakness';
+    if (!correct && value === 'dont_know') return 'knowledge_gap';
+    return correct ? 'low_confidence_correct' : 'needs_review';
   };
 
   const saveCurrentAnd = (skipped) => {
@@ -102,11 +112,18 @@ export default function DiagnosticQuestionScreen() {
       questionStartedAt: new Date(startedAt).toISOString(),
       questionEndedAt: new Date().toISOString(),
       timedOut: false,
-      confidence,
-      confidenceLevel: confidence,
-      confidenceCalibration: confidenceCalibration(correctness.correct, confidence),
-      possibleMisconception: !correctness.correct && String(confidence).toLowerCase().includes('very'),
-      workingUploaded: false,
+      confidence: reflection,
+      confidenceLevel: reflection,
+      reflection,
+      helpRequested,
+      confidenceCalibration: confidenceCalibration(correctness.correct, reflection),
+      possibleMisconception: !correctness.correct && reflection === 'i_know_this',
+      workingImage: currentWorking.workingImage || '',
+      workingStrokes: currentWorking.workingStrokes || [],
+      workingSubmitted: Boolean(currentWorking.workingSubmitted),
+      workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+      workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingUploaded: Boolean(currentWorking.workingSubmitted),
       timestamp: new Date().toISOString(),
       attemptNumber: 1,
       skipped,
@@ -115,13 +132,14 @@ export default function DiagnosticQuestionScreen() {
   };
 
   const nextQuestion = (skipped = false) => {
-    if (!skipped && !answer) return;
+    if (!skipped && (!answer || !reflection)) return;
     const nextResponses = saveCurrentAnd(skipped);
     setResponses(nextResponses);
     if (!isLast) {
       setIdx((i) => i + 1);
       setAnswer('');
-      setConfidence('');
+      setReflection('');
+      setHelpRequested(false);
       setStartedAt(Date.now());
       return;
     }
@@ -158,9 +176,6 @@ export default function DiagnosticQuestionScreen() {
       <Card className="p-6">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
         <p className="mb-1 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
-        <p className="mb-4 rounded-lg bg-gold-100 px-3 py-2 text-xs text-gold-900">
-          Do your working on paper if you need it. After the session, you can choose whether to upload working or mark that you did not need it.
-        </p>
         <div className="mb-5">
           {expressionQuestion ? (
             <FractionExpressionQuestion
@@ -175,6 +190,12 @@ export default function DiagnosticQuestionScreen() {
           )}
         </div>
         <QuestionDiagram question={q} />
+        <WorkingCanvas
+          questionId={q.questionId}
+          required={workingRequirement.required}
+          allowNoWorking={workingRequirement.allowNoWorking}
+          onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+        />
 
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
@@ -202,13 +223,20 @@ export default function DiagnosticQuestionScreen() {
         )}
 
         <div className="mt-4">
-          <label className="mb-2 block text-sm font-semibold text-ink-700">Confidence</label>
+          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
           <div className="grid grid-cols-2 gap-2">
-            {CONFIDENCE_OPTIONS.map((opt) => (
-              <button key={opt} onClick={() => setConfidence(opt)} className={`rounded-lg border px-3 py-2 text-sm ${confidence === opt ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
-                {opt}
+            {REFLECTION_OPTIONS.map((opt) => (
+              <button key={opt.value} onClick={() => setReflection(opt.value)} className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
+                {opt.label}
               </button>
             ))}
+          </div>
+          <div className="mt-3 rounded-lg border border-hairline p-3">
+            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setHelpRequested(false)} className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
+              <button type="button" onClick={() => setHelpRequested(true)} className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
+            </div>
           </div>
         </div>
 
@@ -216,7 +244,7 @@ export default function DiagnosticQuestionScreen() {
 
         <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
-          <Button icon={ArrowRight} disabled={!answer} onClick={() => nextQuestion(false)}>
+          <Button icon={ArrowRight} disabled={!answer || !reflection} onClick={() => nextQuestion(false)}>
             {isLast ? 'Submit Diagnostic' : 'Next Question'}
           </Button>
         </div>

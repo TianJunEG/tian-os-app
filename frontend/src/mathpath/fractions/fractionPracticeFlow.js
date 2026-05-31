@@ -66,7 +66,7 @@ function toFamilySummary(results = []) {
         correct: r.correct,
         timeTaken: r.timeTaken,
         confidence: r.confidence,
-        skipped: false,
+        skipped: Boolean(r.skipped),
       })),
       family
     );
@@ -221,11 +221,14 @@ export function submitFractionPracticeAttempt(options = {}) {
       };
     }
 
-    const answerCheck = checkFractionAnswer({
-      studentAnswer: response.studentAnswer,
-      correctAnswer: question.answer,
-      acceptedAnswers: question.acceptedAnswers || [],
-    });
+    const skipped = Boolean(response.skipped || response._skipped || !String(response.studentAnswer || '').trim());
+    const answerCheck = skipped
+      ? { correct: false, normalizedStudentAnswer: null, normalizedCorrectAnswer: question.answer?.display || null }
+      : checkFractionAnswer({
+          studentAnswer: response.studentAnswer,
+          correctAnswer: question.answer,
+          acceptedAnswers: question.acceptedAnswers || [],
+        });
 
     const stateUpdate = updateFractionPracticeState({
       studentId,
@@ -234,6 +237,7 @@ export function submitFractionPracticeAttempt(options = {}) {
       correct: answerCheck.correct,
       timeTaken: Number(response.timeTaken || 0),
       confidence: response.confidence ?? null,
+      skipped,
       workingUploaded: false,
       attemptNumber: Number(response.attemptNumber || 1),
     });
@@ -250,6 +254,18 @@ export function submitFractionPracticeAttempt(options = {}) {
       correct: answerCheck.correct,
       timeTaken: Number(response.timeTaken || 0),
       confidence: response.confidence ?? null,
+      reflection: response.reflection || response.confidence || '',
+      helpRequested: Boolean(response.helpRequested),
+      confidenceCalibration: response.confidenceCalibration || '',
+      possibleMisconception: Boolean(response.possibleMisconception),
+      workingImage: response.workingImage || '',
+      workingStrokes: Array.isArray(response.workingStrokes) ? response.workingStrokes : [],
+      workingSubmitted: Boolean(response.workingSubmitted),
+      workingSubmittedAt: response.workingSubmittedAt || null,
+      workingNotNeeded: Boolean(response.workingNotNeeded),
+      workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted),
+      skipped,
+      answeredAt: response.timestamp || nowIso(),
       fluencyFlag: stateUpdate.fluencyFlag,
       feedback: buildFractionPracticeFeedback({
         correct: answerCheck.correct,

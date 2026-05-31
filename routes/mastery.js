@@ -689,8 +689,10 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       const timeTakenSeconds = normalizeTimeSpentSeconds(r.timeTaken, r.questionStartedAt, r.questionEndedAt);
       const responseMs = Math.max(0, Number(timeTakenSeconds || 0) * 1000);
       const confidence = String(r.confidence || '');
+      const reflection = String(r.reflection || r.confidence || '');
+      const helpRequested = Boolean(r.helpRequested || r.help_requested);
       const confidenceCalibration = String(r.confidenceCalibration || '');
-      const possibleMisconception = Boolean(r.possibleMisconception || (!correct && /very/i.test(confidence)));
+      const possibleMisconception = Boolean(r.possibleMisconception || (!correct && (reflection === 'i_know_this' || /very/i.test(confidence))));
       const questionFamilyId = String(r.questionFamilyId || `QF_${skillFid || 'UNK'}_${String(q._id).slice(-4).toUpperCase()}`);
       const startedAt = toDateLike(r.questionStartedAt);
       const endedAt = toDateLike(r.questionEndedAt) || new Date();
@@ -732,6 +734,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         timestamp: eventTimestamp,
         confidenceLevel: confidence,
         confidence,
+        reflection,
+        helpRequested,
         confidenceCalibration,
         possibleMisconception,
         attemptNumber: Number(r.attemptNumber || 1),
@@ -739,7 +743,12 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         timedOut,
         questionStartedAt: startedAt || null,
         questionEndedAt: endedAt || null,
-        workingUploaded: Boolean(r.workingUploaded),
+        workingUploaded: Boolean(r.workingUploaded || r.workingSubmitted),
+        workingSubmitted: Boolean(r.workingSubmitted),
+        workingSubmittedAt: toDateLike(r.workingSubmittedAt),
+        workingImage: String(r.workingImage || ''),
+        workingStrokes: Array.isArray(r.workingStrokes) ? r.workingStrokes : [],
+        workingNotNeeded: Boolean(r.workingNotNeeded),
         workingExpected: true,
         });
 
@@ -763,6 +772,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
           mistakeType,
           misconceptionTag,
           confidence,
+          reflection,
+          helpRequested,
           confidenceCalibration,
           possibleMisconception,
           status: 'open',
@@ -799,6 +810,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
               studentAnswer: mistake.studentAnswer,
               correctAnswer: mistake.correctAnswer,
               confidence: mistake.confidence || '',
+              reflection: mistake.reflection || '',
+              helpRequested: Boolean(mistake.helpRequested),
               confidenceCalibration: mistake.confidenceCalibration || '',
               seenAt: new Date(),
             },

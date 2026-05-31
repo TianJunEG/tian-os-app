@@ -17,9 +17,9 @@ function fractionBar(spec) {
   const w = spec.width; const h = spec.height;
   const x = 40; const y = h / 2 - 24; const bw = w - 80; const bh = 48;
   const seg = bw / parts;
-  let body = '';
+  let body = `<defs><pattern id="fractionHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#dbeafe"/><line x1="0" y1="0" x2="0" y2="10" stroke="#2563eb" stroke-width="3" opacity="0.55"/></pattern></defs>`;
   for (let i = 0; i < parts; i += 1) {
-    body += `<rect x="${x + i * seg}" y="${y}" width="${seg}" height="${bh}" fill="${i < shaded ? '#9ec5fe' : '#fff'}" stroke="#111"/>`;
+    body += `<rect x="${x + i * seg}" y="${y}" width="${seg}" height="${bh}" fill="${i < shaded ? 'url(#fractionHatch)' : '#fff'}" stroke="#111"/>`;
   }
   if (labelMode !== 'none') {
     body += `<text x="${w / 2}" y="${y + bh + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;

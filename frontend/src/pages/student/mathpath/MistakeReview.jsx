@@ -55,29 +55,49 @@ export default function MistakeReview() {
       ) : (
         <div className="space-y-4">
           {mistakes.map((m) => (
-            <Card key={m.id} className="p-5">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-ink-700">{m.skillName}</span>
+            <Card key={m.id} className="p-5 sm:p-6">
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <span className="text-base font-semibold text-navy-700">{m.skillName}</span>
                 <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || 'To review'}</Badge>
               </div>
-              <div className="text-ink-900"><MathText text={m.questionStem} /></div>
-              <div className="mt-2 text-sm">
-                <span className="text-error-700">Your answer: <MathText text={m.studentAnswer} className="font-mono" /></span>
-                <span className="mx-2 text-ink-300">·</span>
-                <span className="text-success-700">Correct: <MathText text={m.correctAnswer} className="font-mono" /></span>
+              <div className="space-y-4">
+                <section>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-error-700">Mistake</p>
+                  <div className="mt-2 text-xl leading-8 text-ink-900"><MathText text={m.questionStem} /></div>
+                  <p className="mt-2 rounded-xl bg-error-100 px-3 py-2 text-base font-semibold text-error-700">
+                    Your answer: <MathText text={m.studentAnswer || '-'} className="font-mono" />
+                  </p>
+                </section>
+                <section>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-success-700">Correct Answer</p>
+                  <p className="mt-2 rounded-xl bg-success-100 px-3 py-2 text-base font-semibold text-success-700">
+                    <MathText text={m.correctAnswer || '-'} className="font-mono" />
+                  </p>
+                </section>
+                <section>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Why</p>
+                  {m.workedSolution ? (
+                    <p className="mt-2 text-base leading-7 text-ink-700"><MathText text={m.workedSolution} /></p>
+                  ) : (
+                    <p className="mt-2 text-base leading-7 text-ink-600">Review the method, then try a similar question with guidance.</p>
+                  )}
+                </section>
               </div>
-              {m.workedSolution && <p className="mt-2 text-sm text-ink-500"><MathText text={m.workedSolution} /></p>}
-              <div className="mt-4">
+              <div className="mt-5 flex flex-wrap gap-2">
                 <Button variant="secondary" size="s" icon={ArrowRight} onClick={() => setOpenHelp(openHelp === m.id ? null : m.id)}>
-                  {openHelp === m.id ? 'Hide help' : 'Review steps'}
+                  {openHelp === m.id ? 'Hide Try Together' : 'Try Together'}
                 </Button>
+                <Button size="s" onClick={() => practiseSimilar(m.skillId)} disabled={starting}>Try Again</Button>
               </div>
               {openHelp === m.id && (
-                <RemediationPanel
-                  skillId={m.skillId}
-                  recentAttempts={[{ correct: false, misconceptionTag: m.misconceptionTag }]}
-                  onPractise={() => practiseSimilar(m.skillId)}
-                />
+                <div className="mt-4 rounded-xl border border-hairline bg-navy-50 p-4">
+                  <p className="mb-3 text-sm font-semibold text-navy-700">Try Together</p>
+                  <RemediationPanel
+                    skillId={m.skillId}
+                    recentAttempts={[{ correct: false, misconceptionTag: m.misconceptionTag }]}
+                    onPractise={() => practiseSimilar(m.skillId)}
+                  />
+                </div>
               )}
             </Card>
           ))}

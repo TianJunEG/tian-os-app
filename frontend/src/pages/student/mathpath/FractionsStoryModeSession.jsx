@@ -12,6 +12,8 @@ import {
   FRACTIONS_STORY_SUPPORTED_SKILLS,
 } from '../../../mathpath/fractions/fractionStoryModeEngine';
 import { setMathPathDomainProgressState, getMathPathDomainProgressState } from '../../../mathpath/state/mathPathDomainProgressState';
+import StoryAudioControls from './story/StoryAudioControls';
+import SentenceHighlighter from './story/SentenceHighlighter';
 
 function StepBadge({ type }) {
   return <span className="rounded-full bg-navy-50 px-2 py-1 text-xs font-semibold uppercase tracking-[0.04em] text-navy-700">{String(type || '').replace(/_/g, ' ')}</span>;
@@ -30,6 +32,7 @@ export default function FractionsStoryModeSession() {
   const [result, setResult] = useState(null);
   const [backendSession, setBackendSession] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [activeStorySentence, setActiveStorySentence] = useState(-1);
 
   const step = story.steps[idx];
   const isLast = idx === story.steps.length - 1;
@@ -111,7 +114,13 @@ export default function FractionsStoryModeSession() {
             <CheckCircle2 className="h-6 w-6" />
             <h2 className="text-xl font-semibold">Story Complete</h2>
           </div>
-          <p className="text-sm text-ink-700">{feedback.message}</p>
+          <StoryAudioControls
+            storyText={story.prompt}
+            stepText="Story complete"
+            feedbackText={feedback.message}
+            onStorySentenceChange={setActiveStorySentence}
+          />
+          <p className="mt-4 text-sm text-ink-700">{feedback.message}</p>
           <div className="mt-4 space-y-1 text-sm text-ink-700">
             <p><span className="font-semibold">Skill:</span> {story.skillId} · {story.title}</p>
             <p><span className="font-semibold">Strategy used:</span> {result.strategyUsed || '—'}</p>
@@ -145,6 +154,15 @@ export default function FractionsStoryModeSession() {
         <p className="mt-1 text-xs text-ink-500">{story.skillId} · {story.title}</p>
       </Card>
 
+      <div className="mb-3">
+        <StoryAudioControls
+          storyText={story.prompt}
+          stepText={step?.prompt || ''}
+          hintText={story.schemaHint || ''}
+          onStorySentenceChange={setActiveStorySentence}
+        />
+      </div>
+
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span>Step {idx + 1} of {story.steps.length}</span>
         <StepBadge type={step?.type} />
@@ -153,7 +171,14 @@ export default function FractionsStoryModeSession() {
 
       <Card className="p-5">
         {idx === 0 ? (
-          <div className="mb-4 rounded-xl border border-navy-200 bg-navy-50 p-3 text-sm text-navy-800">{story.prompt}</div>
+          <div className="mb-4 rounded-xl border border-navy-200 bg-navy-50 p-3 text-sm text-navy-800">
+            <SentenceHighlighter text={story.prompt} activeIndex={activeStorySentence} />
+          </div>
+        ) : null}
+        {idx === 0 && story.schemaHint ? (
+          <div className="mb-4 rounded-xl border border-gold-200 bg-gold-100/60 p-3 text-sm text-gold-900">
+            {story.schemaHint}
+          </div>
         ) : null}
         {expressionQuestion ? (
           <FractionExpressionQuestion

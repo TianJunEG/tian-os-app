@@ -23,7 +23,9 @@ export default function AssessmentReviewScreen() {
   const questions = useMemo(() => repairFractionQuestions(rawQuestions), [rawQuestions]);
   const answers = location.state?.answers || {};
   const conf = location.state?.conf || {};
+  const helpRequests = location.state?.helpRequests || {};
   const flagged = location.state?.flagged || {};
+  const workings = location.state?.workings || {};
   const timeByQuestion = location.state?.timeByQuestion || {};
   const totalTimeSeconds = location.state?.totalTimeSeconds || 0;
 
@@ -60,6 +62,7 @@ export default function AssessmentReviewScreen() {
           acceptedAnswers: q.acceptedAnswers || [],
         });
         const correct = Boolean(checked.correct);
+        const working = workings[q.questionId] || {};
         return {
           questionId: q.questionId,
           skillId: q.skillId,
@@ -68,8 +71,17 @@ export default function AssessmentReviewScreen() {
           marksAwarded: correct ? (q.marks || 1) : 0,
           totalMarks: q.marks || 1,
           timeTaken: Number(timeByQuestion[q.questionId] || 0),
-          confidence: conf[q.questionId] || 'Unsure',
-          workingUploaded: false,
+          confidence: conf[q.questionId] || '',
+          reflection: conf[q.questionId] || '',
+          helpRequested: Boolean(helpRequests[q.questionId]),
+          skipped: studentAnswer === '',
+          timestamp: new Date().toISOString(),
+          workingImage: working.workingImage || '',
+          workingStrokes: working.workingStrokes || [],
+          workingSubmitted: Boolean(working.workingSubmitted),
+          workingSubmittedAt: working.workingSubmittedAt || null,
+          workingNotNeeded: Boolean(working.workingNotNeeded),
+          workingUploaded: Boolean(working.workingSubmitted),
           studentAnswer,
           correctAnswer: q.answer?.display || '',
         };
@@ -105,12 +117,19 @@ export default function AssessmentReviewScreen() {
           correctAnswer: r.correctAnswer,
           correct: r.correct,
           confidence: r.confidence,
+          reflection: r.reflection || r.confidence || '',
+          helpRequested: Boolean(r.helpRequested),
           timeTaken: r.timeTaken,
           fluencyFlag: fluency.fluencyFlag,
           targetSeconds: fluency.benchmarkSeconds,
           solutionSteps: q.solutionSteps || [],
           workingRequired: Boolean(q.workingRequired),
-          workingUploaded: false,
+          workingImage: r.workingImage || '',
+          workingStrokes: r.workingStrokes || [],
+          workingSubmitted: Boolean(r.workingSubmitted),
+          workingSubmittedAt: r.workingSubmittedAt || null,
+          workingNotNeeded: Boolean(r.workingNotNeeded),
+          workingUploaded: Boolean(r.workingUploaded),
         };
       });
 

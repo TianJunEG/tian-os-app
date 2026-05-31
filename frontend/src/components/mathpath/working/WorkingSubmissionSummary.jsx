@@ -14,23 +14,20 @@ export default function WorkingSubmissionSummary({
     <Card className="p-4">
       <p className="text-sm font-semibold text-ink-700">Submission Summary</p>
       <p className="mt-1 text-xs text-ink-500">
-        Questions requiring working: {questionRefs.filter((q) => q.workingRequired).length}. Mark no-working-required only where allowed.
+        Questions shown: {questionRefs.length}. For each question, upload working or choose that you did not need working.
       </p>
 
       <div className="mt-3 space-y-2">
         {questionRefs.map((q, idx) => {
-          const canMarkNoWorking = q.mentalMathEligible || !q.workingRequired;
           return (
           <div key={q.questionId} className="rounded-lg border border-hairline px-3 py-2">
             <p className="truncate text-xs text-ink-600">Q{idx + 1}: {q.prompt}</p>
             <p className="mt-1 text-[11px] text-ink-500">
-              {q.workingRequired ? 'Working required' : 'Working optional'}
-              {q.mentalMathEligible ? ' · Mental math eligible' : ''}
+              Student choice required: upload working or mark no working needed.
             </p>
             <Checkbox
               className="mt-2"
               checked={Boolean(noWorkingChecked[q.questionId])}
-              disabled={!canMarkNoWorking}
               onChange={(e) => onToggleNoWorking?.(q, e.target.checked)}
               label="I did not need working for this question"
             />

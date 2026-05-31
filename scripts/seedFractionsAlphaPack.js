@@ -88,6 +88,60 @@ function difficultyToQuestionDifficulty(level = 3, category = 'practice') {
 
 function visualFromPrompt(prompt = '') {
   const lower = String(prompt).toLowerCase();
+  const numberLine = String(prompt).match(
+    /number line from\s+(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)\s+(?:split|divided) into\s+(\d+)\s+equal parts.*?((?:\d+)(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+mark/i
+  );
+  if (numberLine) {
+    const markWords = {
+      first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6,
+      seventh: 7, eighth: 8, ninth: 9, tenth: 10, eleventh: 11, twelfth: 12,
+    };
+    const min = Number(numberLine[1]);
+    const max = Number(numberLine[2]);
+    const steps = Number(numberLine[3]);
+    const mark = markWords[String(numberLine[4]).toLowerCase()] || Number(String(numberLine[4]).replace(/\D/g, ''));
+    if (Number.isFinite(min) && Number.isFinite(max) && steps > 0 && mark >= 0 && mark <= steps) {
+      return {
+        type: 'svg',
+        version: 'v1',
+        alt: 'Number line fraction diagram',
+        payload: {
+          type: 'number_line',
+          width: 640,
+          height: 180,
+          data: {
+            min,
+            max,
+            minStepCount: steps,
+            points: [{ value: min + ((max - min) * mark) / steps, label: '?' }],
+            endpointLabels: [String(min), String(max)],
+          },
+        },
+      };
+    }
+  }
+
+  const shaded = String(prompt).match(
+    /(?:shape|bar|strip)\s+is\s+(?:split|divided)\s+into\s+(\d+)\s+equal parts\.\s+(\d+)\s+part(?:\(s\)|s)?\s+(?:is|are)\s+shaded/i
+  );
+  if (shaded) {
+    const parts = Number(shaded[1]);
+    const shadedParts = Number(shaded[2]);
+    if (parts > 0 && shadedParts >= 0 && shadedParts <= parts) {
+      return {
+        type: 'svg',
+        version: 'v1',
+        alt: 'Shaded fraction bar diagram',
+        payload: {
+          type: 'fraction_bar',
+          width: 640,
+          height: 180,
+          data: { parts, shaded: shadedParts, labelMode: 'none' },
+        },
+      };
+    }
+  }
+
   if (!lower.includes('table')) return undefined;
   return {
     type: 'table',

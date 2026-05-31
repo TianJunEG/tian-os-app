@@ -50,6 +50,14 @@ function frac(n, d) {
   return simplifyFraction(n, d);
 }
 
+function compareFractions(a, b) {
+  return a.numerator * b.denominator - b.numerator * a.denominator;
+}
+
+function orderedSubtractionPair(a, b) {
+  return compareFractions(a, b) >= 0 ? [a, b] : [b, a];
+}
+
 function fracStr(f) {
   const s = simplifyFraction(f.numerator, f.denominator);
   if (s.denominator === 1) return String(s.numerator);
@@ -178,6 +186,17 @@ function ordinalWord(n) {
   })[n] || `${n}th`;
 }
 
+function deterministicShuffle(items = [], seed = 0) {
+  return [...items].sort((a, b) => hash(`${seed}|${fracStr(a)}|shown`) - hash(`${seed}|${fracStr(b)}|shown`));
+}
+
+function ensureNotAlreadySorted(shown = [], sorted = []) {
+  const shownKey = shown.map(fracStr).join('|');
+  const sortedKey = sorted.map(fracStr).join('|');
+  if (shownKey !== sortedKey) return shown;
+  return shown.length > 1 ? [shown[1], ...shown.slice(2), shown[0]] : shown;
+}
+
 function templateContext(skillId, questionFamilyId, difficulty = 2, mode = 'practice', variant = 0) {
   const seed = hash(`${skillId}|${questionFamilyId}|${difficulty}|${mode}|${variant}`);
   return { seed, difficulty, mode, variant, questionFamilyId };
@@ -212,6 +231,20 @@ const SKILL_MISTAKES = {
   F026: ['M008', 'M010', 'M013'],
 };
 
+function workingTypeForSkill(skillId, workingRequired, mentalMathEligible) {
+  if (workingRequired && ['F023', 'F024', 'F025', 'F026'].includes(skillId)) return 'model';
+  if (workingRequired && ['F015', 'F016', 'F017', 'F018', 'F019', 'F020', 'F021', 'F022'].includes(skillId)) return 'calculation';
+  if (mentalMathEligible || !workingRequired) return 'optional';
+  return 'drawing';
+}
+
+function shouldRequireWorkingForGeneratedQuestion(skillId, mode, family) {
+  const normalizedMode = String(mode || '').toLowerCase();
+  if (normalizedMode === 'warmup' || normalizedMode === 'fluency') return false;
+  if (['F015', 'F017', 'F018', 'F023', 'F025', 'F026'].includes(skillId)) return true;
+  return family.mentalMathEligible ? false : !!family.workingRequired;
+}
+
 function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
   const primaryMapping = getSkillCurriculumMapping(skillId, {
     country: 'SG',
@@ -234,6 +267,11 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     answer,
     acceptedAnswers,
     workingRequired,
+    requiresWorking: workingRequired,
+    workingOptional: !workingRequired,
+    allowNoWorking: !workingRequired,
+    workingType: workingTypeForSkill(skillId, workingRequired, mentalMathEligible),
+    workingPrompt: workingRequired ? 'Show your working before submitting your answer.' : 'Show working if it helps.',
     mentalMathEligible,
     difficulty,
     difficultyBand: difficulty <= 2 ? 'easy' : difficulty <= 4 ? 'medium' : 'hard',
@@ -274,9 +312,15 @@ function templateForSkill(skillId, variant, ctx) {
       const d = seq(s, 2, 8);
       const shaded = variant === 0 ? 1 : seq(s, 1, d - 1);
       return {
-        prompt: `A shape is split into ${d} equal parts. ${shaded} part(s) are shaded. What fraction is shaded?`,
+        prompt: 'What fraction of the shape is shaded?',
         answer: answerPayloadFraction(shaded, d),
         acceptedAnswers: [fracStr({ numerator: shaded, denominator: d })],
+        diagramSpec: {
+          type: 'fraction_bar',
+          width: 640,
+          height: 180,
+          data: { parts: d, shaded, labelMode: 'none' },
+        },
         solutionSteps: ['Count shaded parts.', 'Count total equal parts.', `Write fraction as ${shaded}/${d}.`],
       };
     }
@@ -395,8 +439,9 @@ function templateForSkill(skillId, variant, ctx) {
         [frac(2, 3), frac(1, 6), frac(1, 2)],
       ];
       const picked = triples[Math.abs(s) % triples.length];
-      const shown = [...picked].sort((a, b) => hash(`${s}|${fracStr(a)}`) - hash(`${s}|${fracStr(b)}`));
-      const arr = [...picked].sort((x, y) => x.numerator / x.denominator - y.numerator / y.denominator).map(fracStr);
+      const sortedFractions = [...picked].sort((x, y) => compareFractions(x, y));
+      const shown = ensureNotAlreadySorted(deterministicShuffle(picked, s), sortedFractions);
+      const arr = sortedFractions.map(fracStr);
       return {
         prompt: `Order these fractions from smallest to largest: ${shown.map(fracStr).join(', ')}.`,
         answer: { type: 'list', value: arr, display: arr.join(', ') },
@@ -539,13 +584,13 @@ function templateForSkill(skillId, variant, ctx) {
     }
     case 'F017': {
       if (familyId.endsWith('_004')) {
-        const d = seq(s, 4, 12); const a = seq(s + 1, 1, d - 1); const b = seq(s + 4, 1, d - 1);
+        const d = seq(s, 4, 12); const b = seq(s + 1, 1, d - 2); const a = seq(s + 5, b + 1, d - 1);
         const ans = frac(a - b, d);
         return {
-          prompt: `Compute: ${a}/${d} + (${(-b)}/${d})`,
+          prompt: `Compute: ${a}/${d} - ${b}/${d}`,
           answer: answerPayloadFraction(ans.numerator, ans.denominator),
           acceptedAnswers: [fracStr(ans)],
-          solutionSteps: ['Use the same denominator.', `Add signed numerators: ${a} + (${(-b)}) = ${a - b}.`, `Answer: ${fracStr(ans)}.`],
+          solutionSteps: ['Use the same denominator.', `Subtract numerators: ${a} - ${b} = ${a - b}.`, `Answer: ${fracStr(ans)}.`],
         };
       }
       const d = seq(s, 4, 12); const b = seq(s + 1, 1, d - 2); const a = seq(s + 5, b + 1, d - 1);
@@ -559,8 +604,10 @@ function templateForSkill(skillId, variant, ctx) {
     }
     case 'F018': {
       if (familyId.endsWith('_005')) {
-        const a = frac(seq(s, 1, 4), 2 + (Math.abs(s) % 4));
-        const b = frac(seq(s + 7, 1, 4), 3 + (Math.abs(s + 2) % 4));
+        const [a, b] = orderedSubtractionPair(
+          frac(seq(s, 1, 4), 2 + (Math.abs(s) % 4)),
+          frac(seq(s + 7, 1, 4), 3 + (Math.abs(s + 2) % 4))
+        );
         const cd = lcm(a.denominator, b.denominator);
         const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
         return {
@@ -571,8 +618,10 @@ function templateForSkill(skillId, variant, ctx) {
         };
       }
       if (familyId.endsWith('_006')) {
-        const a = frac(seq(s, 2, 6), 3 + (Math.abs(s) % 4));
-        const b = frac(seq(s + 4, 1, 5), 2 + (Math.abs(s + 1) % 4));
+        const [a, b] = orderedSubtractionPair(
+          frac(seq(s, 2, 6), 3 + (Math.abs(s) % 4)),
+          frac(seq(s + 4, 1, 5), 2 + (Math.abs(s + 1) % 4))
+        );
         const cd = lcm(a.denominator, b.denominator);
         const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
         return {
@@ -594,8 +643,10 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F019': {
-      const a = frac(seq(s, 2, 6), 3 + (Math.abs(s) % 5));
-      const b = frac(seq(s + 3, 1, a.numerator - 1), 2 + (Math.abs(s + 1) % 5));
+      const [a, b] = orderedSubtractionPair(
+        frac(seq(s, 2, 6), 3 + (Math.abs(s) % 5)),
+        frac(seq(s + 3, 1, 5), 2 + (Math.abs(s + 1) % 5))
+      );
       const cd = lcm(a.denominator, b.denominator);
       const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
       return {
@@ -654,7 +705,7 @@ function templateForSkill(skillId, variant, ctx) {
     }
     case 'F022': {
       if (familyId.endsWith('_005')) {
-        const a = frac(-seq(s, 1, 5), seq(s + 2, 2, 8));
+        const a = frac(seq(s, 1, 5), seq(s + 2, 2, 8));
         const b = frac(seq(s + 4, 1, 4), seq(s + 6, 2, 8));
         const ans = frac(a.numerator * b.denominator, a.denominator * b.numerator);
         return {
@@ -741,7 +792,7 @@ function templateForSkill(skillId, variant, ctx) {
       }
       const a = frac(seq(s, 1, 4), 6);
       const b = frac(seq(s + 3, 1, 5), 8);
-      const c = frac(seq(s + 5, 1, 5), 12);
+      const c = frac(seq(s + 5, 1, 3), 12);
       const ans = frac(a.numerator * lcm(lcm(a.denominator, b.denominator), c.denominator) / a.denominator +
         b.numerator * lcm(lcm(a.denominator, b.denominator), c.denominator) / b.denominator -
         c.numerator * lcm(lcm(a.denominator, b.denominator), c.denominator) / c.denominator,
@@ -807,7 +858,7 @@ export function generateFractionQuestion(options = {}) {
 
   const ctx = templateContext(skillId, questionFamilyId, difficulty, mode, variant);
   const payload = templateForSkill(skillId, variant % 3, ctx);
-  const workingRequired = family.mentalMathEligible ? false : !!family.workingRequired;
+  const workingRequired = shouldRequireWorkingForGeneratedQuestion(skillId, mode, family);
 
   return buildQuestionCore({
     skillId,

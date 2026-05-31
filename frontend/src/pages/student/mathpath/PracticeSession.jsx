@@ -20,8 +20,23 @@ import FractionsStoryModeSession from './FractionsStoryModeSession';
 import FractionAnswerInput, { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
 import QuestionDiagram from './components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
+import AnswerInputRenderer from './components/AnswerInputRenderer';
+import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
 
-const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
+const REFLECTION_OPTIONS = [
+  { value: 'i_know_this', label: 'I know this' },
+  { value: 'not_sure', label: "I'm not sure" },
+  { value: 'dont_know', label: "I don't know" },
+];
+
+function calibrationFromReflection(correct, reflection) {
+  if (correct && reflection === 'i_know_this') return 'mastery_signal';
+  if (correct && reflection === 'dont_know') return 'possible_guess';
+  if (!correct && reflection === 'i_know_this') return 'overconfidence';
+  if (!correct && reflection === 'not_sure') return 'student_aware_of_weakness';
+  if (!correct && reflection === 'dont_know') return 'knowledge_gap';
+  return correct ? 'low_confidence_correct' : 'needs_review';
+}
 const SESSION_META = {
   diagnostic: {
     label: 'Fractions Check-In',
@@ -139,6 +154,7 @@ function LegacyPracticeSession() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [startedAt, setStartedAt] = useState(Date.now());
+  const [workingState, setWorkingState] = useState({});
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
   useEffect(() => { setStartedAt(Date.now()); }, [idx]);
@@ -149,12 +165,25 @@ function LegacyPracticeSession() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.stem || q.prompt || ''));
+  const workingRequirement = resolveWorkingRequirement(q, sessionType);
+  const currentWorking = workingState[q.questionId] || {};
+  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
 
   const check = async () => {
     if (busy || answer === '') return;
     setBusy(true); setErr('');
     try {
-      const { data } = await mathpathAPI.attempt(sessionId, { questionId: q.questionId, answer, timeMs: Date.now() - startedAt, hintsUsed: 0 });
+      const { data } = await mathpathAPI.attempt(sessionId, {
+        questionId: q.questionId,
+        answer,
+        timeMs: Date.now() - startedAt,
+        hintsUsed: 0,
+        workingImage: currentWorking.workingImage || '',
+        workingStrokes: currentWorking.workingStrokes || [],
+        workingSubmitted: Boolean(currentWorking.workingSubmitted),
+        workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+        workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      });
       setResult(data);
     } catch (e) {
       setErr(e.response?.data?.error || 'Could not check your answer. Please try again.');
@@ -234,6 +263,12 @@ function LegacyPracticeSession() {
           </div>
         )}
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
+        <WorkingCanvas
+          questionId={q.questionId}
+          required={workingRequirement.required}
+          allowNoWorking={workingRequirement.allowNoWorking}
+          onSubmit={(payload) => setWorkingState((prev) => ({ ...prev, [q.questionId]: payload }))}
+        />
         <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
       </Card>
     </div>
@@ -274,13 +309,15 @@ export default function PracticeSession() {
   const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
-  const [confidence, setConfidence] = useState('Confident');
+  const [reflection, setReflection] = useState('');
+  const [helpRequested, setHelpRequested] = useState(false);
   const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
   const [elapsedSec, setElapsedSec] = useState(0);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [workingByQuestion, setWorkingByQuestion] = useState({});
 
   useEffect(() => {
     let mounted = true;
@@ -343,10 +380,13 @@ export default function PracticeSession() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
+  const workingRequirement = resolveWorkingRequirement(q, sessionType);
+  const currentWorking = workingByQuestion[q.questionId] || {};
+  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
 
   const onSubmitCurrent = () => {
     if (busy || answered) return;
-    if (!answer) return;
+    if (!answer || !reflection) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
     const answerCheck = checkFractionAnswer({
       studentAnswer: answer,
@@ -357,7 +397,20 @@ export default function PracticeSession() {
       questionId: q.questionId,
       studentAnswer: answer,
       timeTaken,
-      confidence,
+      confidence: reflection,
+      confidenceLevel: reflection,
+      reflection,
+      helpRequested,
+      confidenceCalibration: calibrationFromReflection(answerCheck.correct, reflection),
+      possibleMisconception: !answerCheck.correct && reflection === 'i_know_this',
+      workingImage: currentWorking.workingImage || '',
+      workingStrokes: currentWorking.workingStrokes || [],
+      workingSubmitted: Boolean(currentWorking.workingSubmitted),
+      workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+      workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingUploaded: Boolean(currentWorking.workingSubmitted),
+      skipped: false,
+      timestamp: new Date().toISOString(),
       attemptNumber: 1,
       _skipped: false,
       _correct: answerCheck.correct,
@@ -378,7 +431,20 @@ export default function PracticeSession() {
       questionId: q.questionId,
       studentAnswer: '',
       timeTaken,
-      confidence: 'Guessing',
+      confidence: '',
+      confidenceLevel: '',
+      reflection: '',
+      helpRequested,
+      confidenceCalibration: 'skipped',
+      possibleMisconception: false,
+      workingImage: currentWorking.workingImage || '',
+      workingStrokes: currentWorking.workingStrokes || [],
+      workingSubmitted: Boolean(currentWorking.workingSubmitted),
+      workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+      workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingUploaded: Boolean(currentWorking.workingSubmitted),
+      skipped: true,
+      timestamp: new Date().toISOString(),
       attemptNumber: 1,
       _skipped: true,
       _correct: false,
@@ -396,7 +462,8 @@ export default function PracticeSession() {
     if (!isLast) {
       setIdx((i) => i + 1);
       setAnswer('');
-      setConfidence('Confident');
+      setReflection('');
+      setHelpRequested(false);
       setFeedback(null);
       setQuestionStartedAt(Date.now());
       return;
@@ -409,6 +476,18 @@ export default function PracticeSession() {
         studentAnswer: r.studentAnswer,
         timeTaken: r.timeTaken,
         confidence: r.confidence,
+        reflection: r.reflection || r.confidence || '',
+        helpRequested: Boolean(r.helpRequested),
+        confidenceCalibration: r.confidenceCalibration,
+        possibleMisconception: r.possibleMisconception,
+        workingImage: r.workingImage || '',
+        workingStrokes: r.workingStrokes || [],
+        workingSubmitted: Boolean(r.workingSubmitted),
+        workingSubmittedAt: r.workingSubmittedAt || null,
+        workingNotNeeded: Boolean(r.workingNotNeeded),
+        workingUploaded: Boolean(r.workingUploaded),
+        skipped: Boolean(r.skipped || r._skipped),
+        timestamp: r.timestamp,
         attemptNumber: r.attemptNumber,
       }));
       const submitted = await submitFractionPracticeAttempt({
@@ -544,7 +623,12 @@ export default function PracticeSession() {
         </div>
         <QuestionDiagram question={q} />
         <VisualBlock visual={q.visual} />
-        {q.workingRequired && <p className="mb-4 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Working is expected for this question. Upload at session end.</p>}
+        <WorkingCanvas
+          questionId={q.questionId}
+          required={workingRequirement.required}
+          allowNoWorking={workingRequirement.allowNoWorking}
+          onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+        />
 
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
@@ -555,11 +639,14 @@ export default function PracticeSession() {
             ))}
           </div>
         ) : useFractionInput && !expressionQuestion ? (
-          <FractionAnswerInput
+          <AnswerInputRenderer
+            question={q}
             value={answer}
             onChange={setAnswer}
             disabled={answered}
-            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
+            onEnter={() => {
+              if (!answered && reflection) onSubmitCurrent();
+            }}
           />
         ) : (
           <input
@@ -572,19 +659,40 @@ export default function PracticeSession() {
         )}
 
         <div className="mt-4">
-          <label className="mb-2 block text-sm font-semibold text-ink-700">Confidence</label>
+          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
           <div className="grid grid-cols-2 gap-2">
-            {CONFIDENCE_OPTIONS.map((opt) => (
+            {REFLECTION_OPTIONS.map((opt) => (
               <button
-                key={opt}
+                key={opt.value}
                 type="button"
                 disabled={answered}
-                onClick={() => setConfidence(opt)}
-                className={`rounded-lg border px-3 py-2 text-sm ${confidence === opt ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                onClick={() => setReflection(opt.value)}
+                className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
               >
-                {opt}
+                {opt.label}
               </button>
             ))}
+          </div>
+          <div className="mt-3 rounded-lg border border-hairline p-3">
+            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={answered}
+                onClick={() => setHelpRequested(false)}
+                className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+              >
+                No
+              </button>
+              <button
+                type="button"
+                disabled={answered}
+                onClick={() => setHelpRequested(true)}
+                className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+              >
+                Yes, I need help
+              </button>
+            </div>
           </div>
         </div>
 
@@ -607,7 +715,7 @@ export default function PracticeSession() {
           {!answered ? (
             <>
               <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
-              <Button disabled={busy || !answer} onClick={onSubmitCurrent}>Submit answer</Button>
+              <Button disabled={busy || !answer || !reflection} onClick={onSubmitCurrent}>Submit answer</Button>
             </>
           ) : (
             <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>

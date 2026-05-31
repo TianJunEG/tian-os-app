@@ -70,7 +70,8 @@ export default function WorkingUploadReviewScreen() {
         if (!noWorkingChecked[q.questionId]) continue;
         markNoWorkingRequired(q.questionId, 'Student marked no working required.', {
           questionFamilyId: q.questionFamilyId,
-          systemAllowsNoWorking: Boolean(q.mentalMathEligible || !q.workingRequired),
+          systemAllowsNoWorking: true,
+          studentDecision: true,
         });
       }
 

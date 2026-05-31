@@ -73,6 +73,7 @@ async function upsertStudentAccount({ parent, workspace, spec }) {
   user.name = spec.name;
   user.role = 'student';
   user.roles = ['student'];
+  user.is_test_account = true;
   user.linkedTo = parent._id;
   user.defaultWorkspace = workspace._id;
   user.password = PASSWORD; // Keep deterministic for pilot test logins.
@@ -145,4 +146,3 @@ if (isMain) {
     process.exit(1);
   });
 }
-

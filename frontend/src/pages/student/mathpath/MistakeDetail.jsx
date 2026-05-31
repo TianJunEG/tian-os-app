@@ -65,7 +65,7 @@ export default function MistakeDetail() {
   return (
     <>
       <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} />
-      <Card className="p-5">
+      <Card className="p-5 sm:p-6">
         <div className="mb-2 flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || m.mistakeType}</Badge>
@@ -74,34 +74,31 @@ export default function MistakeDetail() {
           <Badge tone={reviewed ? 'success' : 'gold'}>{m.status === 'resolved' ? 'Resolved' : reviewed ? 'Reviewed' : 'New'}</Badge>
         </div>
 
-        <div className="mb-4 text-xl text-ink-900"><MathText text={m.questionStem} /></div>
-
-        <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-xl bg-error-100 p-3">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-error-700">Your answer</div>
-            <MathText text={String(m.studentAnswer || '—')} className="font-semibold" />
-          </div>
+        <div className="space-y-5">
+          <section>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-error-700">Mistake</p>
+            <div className="mt-2 text-xl leading-8 text-ink-900"><MathText text={m.questionStem} /></div>
+            <p className="mt-2 rounded-xl bg-error-100 px-3 py-2 text-base font-semibold text-error-700">
+              Your answer: <MathText text={String(m.studentAnswer || '—')} className="font-mono" />
+            </p>
+          </section>
           <div className="rounded-xl bg-success-100 p-3">
-            <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-success-700">Correct answer</div>
-            <MathText text={String(m.correctAnswer)} className="font-semibold" />
+            <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-success-700">Correct Answer</div>
+            <MathText text={String(m.correctAnswer)} className="text-lg font-semibold" />
           </div>
+
+          <section>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Why</p>
+            <div className="mt-2 text-base leading-7 text-navy-800">
+              {m.workedSolution ? <MathText text={m.workedSolution} /> : 'Review the method, then try a guided similar question.'}
+            </div>
+          </section>
         </div>
 
-        {m.workedSolution && (
-          <CollapsibleSection
-            title="Worked solution"
-            summary="Open to check the full method."
-            className="mb-4"
-            surface={false}
-          >
-            <div className="text-sm text-navy-800"><MathText text={m.workedSolution} /></div>
-          </CollapsibleSection>
-        )}
-
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
           {!reviewed && <Button variant="secondary" icon={Check} onClick={review}>Mark as reviewed</Button>}
-          {!showHelp && <Button variant="secondary" icon={Lightbulb} onClick={() => setShowHelp(true)}>Get help</Button>}
-          <Button icon={Dumbbell} disabled={starting} onClick={practise}>Practise similar</Button>
+          {!showHelp && <Button variant="secondary" icon={Lightbulb} onClick={() => setShowHelp(true)}>Try Together</Button>}
+          <Button icon={Dumbbell} disabled={starting} onClick={practise}>Try Again</Button>
         </div>
       </Card>
 

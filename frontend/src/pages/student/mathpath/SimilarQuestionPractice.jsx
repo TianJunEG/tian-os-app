@@ -6,6 +6,13 @@ import { Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../.
 import { MathText } from '../../../components/ui/Fraction';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
+import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
+
+const REFLECTION_OPTIONS = [
+  { value: 'i_know_this', label: 'I know this' },
+  { value: 'not_sure', label: "I'm not sure" },
+  { value: 'dont_know', label: "I don't know" },
+];
 
 function expectsFractionAnswer(question = {}) {
   const text = `${question.prompt || ''} ${question.answerType || ''} ${question.answerCheckStrategy || ''}`.toLowerCase();
@@ -22,10 +29,13 @@ export default function SimilarQuestionPractice() {
   const [questions, setQuestions] = useState([]);
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
+  const [reflection, setReflection] = useState('');
+  const [helpRequested, setHelpRequested] = useState(false);
   const [responses, setResponses] = useState([]);
   const [submitted, setSubmitted] = useState(null);
   const [busy, setBusy] = useState(false);
   const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
+  const [workingByQuestion, setWorkingByQuestion] = useState({});
 
   useEffect(() => {
     let live = true;
@@ -59,25 +69,39 @@ export default function SimilarQuestionPractice() {
   const progress = submitted ? questions.length : idx;
   const expressionQuestion = Boolean(extractFractionExpression(q.prompt || ''));
   const fractionAnswer = !expressionQuestion && expectsFractionAnswer(q);
+  const workingRequirement = resolveWorkingRequirement(q, 'practice');
+  const currentWorking = workingByQuestion[q.variantId] || {};
+  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
 
   const saveAndNext = async () => {
-    if (!answer.trim()) return;
+    if (!answer.trim() || !reflection) return;
     const questionEndedAt = Date.now();
     const timeTaken = Math.max(1, Math.floor((questionEndedAt - questionStartedAt) / 1000));
     const response = {
       variantId: q.variantId,
       answer,
+      confidence: reflection,
+      reflection,
+      helpRequested,
       timeTaken,
       questionStartedAt: new Date(questionStartedAt).toISOString(),
       questionEndedAt: new Date(questionEndedAt).toISOString(),
       timedOut: false,
       skipped: false,
+      workingImage: currentWorking.workingImage || '',
+      workingStrokes: currentWorking.workingStrokes || [],
+      workingSubmitted: Boolean(currentWorking.workingSubmitted),
+      workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+      workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingUploaded: Boolean(currentWorking.workingSubmitted),
       timestamp: new Date(questionEndedAt).toISOString(),
       attemptNumber: 1,
     };
     const nextResponses = [...responses, response];
     setResponses(nextResponses);
     setAnswer('');
+    setReflection('');
+    setHelpRequested(false);
     if (!isLast) {
       setIdx((current) => current + 1);
       return;
@@ -162,7 +186,30 @@ export default function SimilarQuestionPractice() {
             placeholder="Type your answer"
           />
         )}
-        <Button className="mt-5 w-full" icon={isLast ? Check : ArrowRight} disabled={busy || !answer.trim()} onClick={saveAndNext}>
+        <WorkingCanvas
+          questionId={q.variantId}
+          required={workingRequirement.required}
+          allowNoWorking={workingRequirement.allowNoWorking}
+          onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.variantId]: payload }))}
+        />
+        <div className="mt-4">
+          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
+          <div className="grid grid-cols-2 gap-2">
+            {REFLECTION_OPTIONS.map((opt) => (
+              <button key={opt.value} type="button" onClick={() => setReflection(opt.value)} className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-3 rounded-lg border border-hairline p-3">
+            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setHelpRequested(false)} className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
+              <button type="button" onClick={() => setHelpRequested(true)} className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
+            </div>
+          </div>
+        </div>
+        <Button className="mt-5 w-full" icon={isLast ? Check : ArrowRight} disabled={busy || !answer.trim() || !reflection} onClick={saveAndNext}>
           {isLast ? 'Submit practice' : 'Next question'}
         </Button>
         {responses.some((r) => r.variantId === q.variantId) && <X className="hidden" />}

@@ -63,6 +63,7 @@ export const mathpathAPI = {
   submitDiagnostic: (sessionId, data) => api.post(`/mastery/diagnostic/${sessionId}/submit`, data),
   getDiagnostic: (sessionId) => api.get(`/mastery/diagnostic/${sessionId}`),
   getLatestDiagnostic: (params) => api.get('/mastery/diagnostic/latest', { params }),
+  resetTestStudentState: (data = {}) => api.post('/mastery/test/reset-state', data),
   startSession: (data) => api.post('/practice/sessions', data),
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),

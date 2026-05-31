@@ -112,6 +112,7 @@ router.post(
           name: user.name,
           email: user.email,
           role: user.role,
+          is_test_account: Boolean(user.is_test_account),
           avatar: user.avatar
         }
       });

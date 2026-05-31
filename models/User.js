@@ -72,6 +72,10 @@ const userSchema = new mongoose.Schema({
     enum: ['active', 'pending_verification', 'verified', 'suspended'],
     default: 'active'
   },
+  is_test_account: {
+    type: Boolean,
+    default: false
+  },
   parentProfile: {
     studentName: String,
     studentAge: Number,

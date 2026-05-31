@@ -223,7 +223,7 @@ export default function MathPathHome() {
   const records = mastery?.records || [];
   const mastered = records.filter((r) => r.status === 'mastered');
   const learning = records.filter((r) => r.status === 'learning');
-  const recommended = mastery?.recommended;
+  const recommended = isFrameworkSkillId(mastery?.recommended?.skillId) ? mastery.recommended : null;
   const weak = mastery?.weakSkills || [];
   const placementResult = latestPlacement?.result || {};
   const placementCurrentSkillId = placementResult?.recommendedStartingSkill?.skillId
