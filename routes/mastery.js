@@ -16,6 +16,7 @@ import { normalizeDiagnosticModeForLevel, resolveFractionsStartingSkill } from '
 import { studentMathAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
+import { evaluateDiagnosticReplayPolicy } from '../utils/diagnosticReplayPolicy.js';
 
 const router = express.Router();
 
@@ -25,7 +26,12 @@ const DIAG_MODE_RANGES = {
   core: ['F001', 'F019'],
   full: ['F001', 'F026'],
 };
-const DIAG_COUNTS = { basic: 12, core: 18, full: 24 };
+const DIAG_COUNTS = {
+  baseline: { basic: 10, core: 10, full: 12 },
+  recheck: { basic: 12, core: 18, full: 24 },
+  assigned: { basic: 12, core: 18, full: 24 },
+};
+const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
 
 const normalizeLevelTag = (value = '') => {
   const raw = String(value || '').trim();
@@ -56,6 +62,13 @@ function mapPlacementReadiness(profile = []) {
   if (ratio >= 0.4 || developing >= 3) return 'Progressing';
   if (notSecure >= Math.ceil(profile.length * 0.5)) return 'Beginner';
   return 'Developing';
+}
+
+function resolveDiagnosticCount(mode = 'core', purpose = 'baseline') {
+  const p = DIAG_PURPOSES.has(String(purpose || '').toLowerCase())
+    ? String(purpose || '').toLowerCase()
+    : 'baseline';
+  return DIAG_COUNTS[p]?.[mode] || DIAG_COUNTS.baseline[mode] || 10;
 }
 
 function parentPlacementSummary({ recommendedStartingSkill, weakSkills = [] }) {
@@ -212,10 +225,37 @@ router.post('/placement', protect, async (req, res) => {
 router.post('/diagnostic/start', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
-    const { requestedMode, studentLevel } = req.body || {};
+    const { requestedMode, studentLevel, diagnosticPurpose } = req.body || {};
     const levelTag = normalizeLevelTag(studentLevel || student.level || '');
     const requested = String(requestedMode || '').toLowerCase();
+    const purpose = DIAG_PURPOSES.has(String(diagnosticPurpose || '').toLowerCase())
+      ? String(diagnosticPurpose || '').toLowerCase()
+      : 'baseline';
     const mode = normalizeDiagnosticModeForLevel(levelTag, requested);
+
+    const latestCompleted = await MathPathDiagnosticSession.findOne({
+      studentId: String(student._id),
+      domainId: 'fractions',
+      status: 'completed',
+    }).sort({ completedAt: -1, createdAt: -1 });
+    const replayPolicy = evaluateDiagnosticReplayPolicy({
+      diagnosticPurpose: purpose,
+      latestCompletedSession: latestCompleted,
+    });
+    if (!replayPolicy.allowed) {
+      return res.status(409).json({
+        error: 'Diagnostic replay is currently blocked. Continue from your saved placement or run a re-check.',
+        code: 'DIAGNOSTIC_REPLAY_BLOCKED',
+        replayPolicy,
+        latestPlacement: latestCompleted
+          ? {
+              sessionId: latestCompleted.diagnosticSessionId,
+              completedAt: latestCompleted.completedAt,
+              result: latestCompleted.result || {},
+            }
+          : null,
+      });
+    }
 
     const { skills, byFrameworkId } = await loadFractionsSkills();
     if (!skills.length) return res.status(400).json({ error: 'Fractions skills are not seeded yet.' });
@@ -234,7 +274,7 @@ router.post('/diagnostic/start', protect, async (req, res) => {
     if (!targetSkills.length) return res.status(400).json({ error: 'No fraction skills available for this diagnostic mode.' });
 
     const targetSkillIds = targetSkills.map((s) => String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || ''));
-    const count = DIAG_COUNTS[mode] || 18;
+    const count = resolveDiagnosticCount(mode, purpose);
     const questions = await Question.aggregate([
       { $match: { skillId: { $in: targetSkills.map((s) => s._id) } } },
       { $sample: { size: Math.max(count, Math.min(count + 8, 32)) } },
@@ -274,6 +314,7 @@ router.post('/diagnostic/start', protect, async (req, res) => {
       status: 'inProgress',
       startedAt: new Date(),
       result: {
+        diagnosticPurpose: purpose,
         questionIds: mappedQuestions.map((q) => q.questionId),
         questionMeta: mappedQuestions.map((q) => ({
           questionId: q.questionId,
@@ -288,6 +329,7 @@ router.post('/diagnostic/start', protect, async (req, res) => {
       session: {
         sessionId: doc.diagnosticSessionId,
         mode,
+        diagnosticPurpose: purpose,
         studentLevel: levelTag || '',
         enrichmentOnly,
         targetSkillIds: doc.targetSkillIds,
@@ -445,6 +487,18 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       remediationRecommendations,
       confidenceScore,
       readinessLevel,
+      diagnosticCompleted: true,
+      diagnosticCompletedAt: new Date().toISOString(),
+      lastSessionAt: new Date().toISOString(),
+      currentSkillId: safeRecommended?.skillId || null,
+      skillMasteryStatus: (placement?.masteryProfile || []).reduce((acc, row) => {
+        const key = mapSlugToF(row.slug)?.skillId;
+        if (key) acc[key] = row.mastery || 'developing';
+        return acc;
+      }, {}),
+      recentMistakeTypes: [],
+      needsRecheck: false,
+      masteryCheckCompleted: false,
       completedAt: new Date().toISOString(),
       nextPracticePayload: {
         skillId: safeRecommended?.skillId || 'F001',
@@ -544,10 +598,12 @@ router.get('/diagnostic/latest', protect, async (req, res) => {
 
     return res.json({
       hasPlacement: true,
+      diagnosticCompleted: true,
       sessionId: latest.diagnosticSessionId,
       mode: latest.mode,
       studentLevel: latest.studentLevel,
       completedAt: latest.completedAt,
+      lastSessionAt: latest.completedAt,
       result: latest.result || null,
     });
   } catch (err) {

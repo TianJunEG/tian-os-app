@@ -4,16 +4,28 @@ import { ArrowRight, AlertTriangle, Map as MapIcon, ChevronRight, GraduationCap,
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
+import {
+  getUniversalSkillByFrameworkId,
+  getVisibleSkillsForStudentLevel,
+} from '../../../mathpath/curriculum';
+import {
+  buildMathPathDomainProgressState,
+  getMathPathDomainProgressState,
+  setMathPathDomainProgressState,
+} from '../../../mathpath/state/mathPathDomainProgressState';
 
 // MathPath home — current standing + the single recommended next action, then
 // the topic map. "One bright thing in the room": Start recommended practice.
 export default function MathPathHome() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const studentId = user?._id || user?.id || user?.email || 'demo-student';
   const [mastery, setMastery] = useState(null);
   const [topics, setTopics] = useState([]);
+  const [domainProgress, setDomainProgress] = useState(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [startingWarmup, setStartingWarmup] = useState(false);
   const [startingDiagnostic, setStartingDiagnostic] = useState(false);
   const [error, setError] = useState(null);
   const [latestPlacement, setLatestPlacement] = useState(null);
@@ -22,36 +34,109 @@ export default function MathPathHome() {
   const [skillPreviewLoading, setSkillPreviewLoading] = useState(false);
   const [skillPreviewError, setSkillPreviewError] = useState('');
   const selectedSkillId = selectedSkill?.skillId || '';
+  const curriculumCountry = 'SG';
+  const curriculumId = 'MOE_PRIMARY_MATH_2021';
+
+  const isFrameworkSkillId = (value) => /^F\d{3}$/i.test(String(value || ''));
+  const canonicalSkillName = (skillId, fallback = '') => {
+    if (!isFrameworkSkillId(skillId)) return fallback || String(skillId || '');
+    return getUniversalSkillByFrameworkId(String(skillId).toUpperCase())?.title || fallback || String(skillId).toUpperCase();
+  };
 
   useEffect(() => {
     (async () => {
       try {
-        const [m, map, latest] = await Promise.all([mathpathAPI.mastery(), mathpathAPI.map(), mathpathAPI.getLatestDiagnostic()]);
-        setMastery(m.data);
-        setTopics(map.data.topics || []);
-        setLatestPlacement(latest.data || null);
+        const [masteryRes, mapRes, latestRes, mistakesRes] = await Promise.allSettled([
+          mathpathAPI.mastery(),
+          mathpathAPI.map(),
+          mathpathAPI.getLatestDiagnostic(),
+          mathpathAPI.mistakes({ status: 'all' }),
+        ]);
+
+        if (masteryRes.status !== 'fulfilled' || mapRes.status !== 'fulfilled' || latestRes.status !== 'fulfilled') {
+          throw new Error('Could not load MathPath.');
+        }
+
+        const masteryData = masteryRes.value?.data || {};
+        const mapData = mapRes.value?.data || {};
+        const latestData = latestRes.value?.data || {};
+        const mistakesData = mistakesRes.status === 'fulfilled' ? mistakesRes.value?.data || {} : {};
+        const existingState = getMathPathDomainProgressState(studentId, 'fractions') || {};
+        const derivedState = buildMathPathDomainProgressState({
+          studentId,
+          domainId: 'fractions',
+          latestDiagnostic: latestData,
+          masteryPayload: masteryData,
+          mistakesPayload: mistakesData,
+          topicMapPayload: mapData,
+          existingState,
+        });
+
+        setMastery(masteryData);
+        setTopics(mapData.topics || []);
+        setLatestPlacement(latestData || null);
+        setDomainProgress(derivedState);
+        setMathPathDomainProgressState(studentId, 'fractions', derivedState);
       } catch (e) {
         setError(e.response?.data?.error || 'Could not load MathPath.');
-      } finally { setLoading(false); }
+      } finally {
+        setLoading(false);
+      }
     })();
-  }, []);
+  }, [studentId]);
 
-  const startPractice = async (skillId) => {
-    if (!skillId || starting) return;
-    setStarting(true);
+  const startLearningSession = async ({ skillId, sessionType = 'practice', questionCount = 10, feature = null } = {}) => {
+    if (!skillId || starting || startingWarmup) return;
+    const warmup = sessionType === 'warmup';
+    if (warmup) setStartingWarmup(true);
+    else setStarting(true);
     try {
-      const { data } = await mathpathAPI.startSession({ skillId, questionCount: 10 });
-      navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items } });
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(),
+            questionCount,
+            sessionType,
+            source: 'mathpath-home',
+          },
+        });
+        return;
+      }
+
+      const payload = {
+        skillId,
+        questionCount,
+        mode: sessionType === 'warmup' ? 'warmup' : 'independent',
+        feature: feature || (sessionType === 'warmup' ? 'Quick Warm-up' : sessionType === 'remediation' ? 'Remediation Practice' : 'MathPath Practice'),
+      };
+      const { data } = await mathpathAPI.startSession(payload);
+      navigate(`/student/mathpath/practice/${data.session_id}`, {
+        state: {
+          items: data.items,
+          sessionType,
+          source: 'mathpath-home',
+          backTo: '/student/mathpath',
+          homeBase: '/student/mathpath',
+        },
+      });
     } catch (e) {
-      setError(e.response?.data?.error || 'Could not start practice.');
-      setStarting(false);
+      setError(e.response?.data?.error || `Could not start ${sessionType} session.`);
+    } finally {
+      if (warmup) setStartingWarmup(false);
+      else setStarting(false);
     }
   };
 
-  const startDiagnostic = async () => {
+  const startDiagnostic = async (diagnosticPurpose = 'baseline') => {
     if (startingDiagnostic) return;
     setStartingDiagnostic(true);
-    navigate('/student/mathpath/diagnostic');
+    navigate('/student/mathpath/diagnostic', {
+      state: {
+        diagnosticPurpose,
+        source: 'mathpath-home',
+      },
+    });
   };
 
   const openSkillPreview = async (skill, topicName) => {
@@ -135,11 +220,60 @@ export default function MathPathHome() {
   const learning = records.filter((r) => r.status === 'learning');
   const recommended = mastery?.recommended;
   const weak = mastery?.weakSkills || [];
-  const hasPlacement = Boolean(latestPlacement?.hasPlacement && latestPlacement?.result?.recommendedStartingSkill?.skillId);
+  const placementResult = latestPlacement?.result || {};
+  const placementCurrentSkillId = placementResult?.recommendedStartingSkill?.skillId
+    || placementResult?.recommendedStartingSkillId
+    || placementResult?.nextPracticePayload?.skillId
+    || null;
+  const placementMasteredSet = new Set((placementResult?.masteredSkills || []).map((row) => row?.skillId).filter(Boolean));
+  const placementWeakSet = new Set((placementResult?.weakSkills || []).map((row) => row?.skillId).filter(Boolean));
+  const currentFrameworkSkillId = isFrameworkSkillId(domainProgress?.currentSkillId)
+    ? String(domainProgress.currentSkillId).toUpperCase()
+    : (isFrameworkSkillId(placementCurrentSkillId) ? String(placementCurrentSkillId).toUpperCase() : null);
+  const hasPlacement = Boolean(
+    domainProgress?.diagnosticCompleted
+      || (latestPlacement?.hasPlacement && latestPlacement?.result?.recommendedStartingSkill?.skillId)
+  );
   const placementSkill = latestPlacement?.result?.recommendedStartingSkill || null;
   const visibleTopics = topics;
   const studentLevel = user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || '';
   const isEarlyLevel = ['P1', 'P2'].includes(String(studentLevel).toUpperCase());
+  const quickWarmupSkillId = domainProgress?.weakSkills?.[0]?.skillId || recommended?.skillId || placementSkill?.skillId || null;
+  const unitCompleted = Boolean(domainProgress?.unitCompleted);
+  const masteryCheckCompleted = Boolean(domainProgress?.masteryCheckCompleted);
+  const showMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted;
+  const showWarmup = hasPlacement && !showMasteryCheck && Boolean(quickWarmupSkillId) && (domainProgress?.weakSkills?.length || 0) > 0;
+  const welcomeTitle = hasPlacement ? 'Welcome back' : 'Let’s find your starting point';
+  const continueSkillId = currentFrameworkSkillId || recommended?.skillId || placementSkill?.skillId || domainProgress?.currentSkillId || null;
+  const effectiveStudentLevel = studentLevel || latestPlacement?.studentLevel || domainProgress?.studentLevel || 'P4';
+  const visiblePathwaySkills = getVisibleSkillsForStudentLevel({
+    country: curriculumCountry,
+    curriculum: curriculumId,
+    domain: 'fractions',
+    studentLevel: effectiveStudentLevel,
+    weakSkillIds: [...placementWeakSet],
+    currentSkillId: currentFrameworkSkillId || placementCurrentSkillId || null,
+  });
+  const visiblePathwaySkillIds = new Set(visiblePathwaySkills.map((row) => row.frameworkSkillId).filter(Boolean));
+  const pathwayRows = visiblePathwaySkills.map((row) => {
+    const skillId = row.frameworkSkillId;
+    const placementStatus = placementResult?.skillMasteryStatus?.[skillId];
+    const lower = String(placementStatus || '').toLowerCase();
+    const completed = placementMasteredSet.has(skillId) || ['mastered', 'accurate', 'fluent', 'retained'].includes(lower);
+    const current = skillId === currentFrameworkSkillId;
+    const weakSkill = placementWeakSet.has(skillId) || ['not-secure', 'developing', 'needsreview', 'weak'].includes(lower);
+    const prereqs = Array.isArray(row.prerequisites) ? row.prerequisites : [];
+    const locked = !current && !completed && prereqs.some((pre) => !placementMasteredSet.has(pre) && !visiblePathwaySkillIds.has(pre));
+    return {
+      ...row,
+      skillId,
+      displayName: row.title || canonicalSkillName(skillId, row.title || skillId),
+      completed,
+      current,
+      weakSkill,
+      locked,
+    };
+  });
   const previewLevels = [...new Set(
     (topics || [])
       .flatMap((t) => (t.skills || []).map((s) => s.moeLevel))
@@ -153,19 +287,20 @@ export default function MathPathHome() {
 
   return (
     <>
-      <PageHeader title="MathPath" subtitle="Your adaptive maths pathway." />
+      <PageHeader title="MathPath" subtitle="A personalised learning journey, one step at a time." />
       <Card className="mb-6 p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Learning Modes v2</p>
+        <p className="mt-1 text-sm text-ink-600">{welcomeTitle}. Keep building your fractions mastery.</p>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-xl border border-hairline p-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><GraduationCap className="h-4 w-4" /> Continue Learning</p>
-            <p className="mt-1 text-xs text-ink-500">Follow your recommended path from diagnostic and placement.</p>
+            <p className="mt-1 text-xs text-ink-500">Diagnostic once, then continue from your existing pathway.</p>
             <Button className="mt-3 w-full" icon={ArrowRight} disabled={!hasPlacement && startingDiagnostic} onClick={() => {
-              if (!hasPlacement) return startDiagnostic();
-              if (recommended?.skillId) return startPractice(recommended.skillId);
-              if (placementSkill?.skillId) return startPractice(placementSkill.skillId);
+              if (!hasPlacement) return startDiagnostic('baseline');
+              if (showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
+              if (continueSkillId) return startLearningSession({ skillId: continueSkillId, sessionType: 'practice', questionCount: 10 });
             }}>
-              {!hasPlacement ? 'Start Fractions Diagnostic' : 'Continue Learning'}
+              {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : 'Continue Learning'}
             </Button>
           </div>
           <div className="rounded-xl border border-hairline p-3">
@@ -194,32 +329,70 @@ export default function MathPathHome() {
         {!hasPlacement ? (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-semibold text-navy-700">Start Fractions Diagnostic</h2>
-              <p className="mt-1 text-sm text-ink-600">Take a short diagnostic first so MathPath can place you at the right starting skill.</p>
+              <h2 className="font-display text-xl font-semibold text-navy-700">Fractions Check-In</h2>
+              <p className="mt-1 text-sm text-ink-600">A short low-pressure check-in (8–12 questions) helps us find your best starting point.</p>
             </div>
-            <Button size="l" icon={ArrowRight} disabled={startingDiagnostic} onClick={startDiagnostic} className="shrink-0">
-              {startingDiagnostic ? 'Starting…' : 'Start Fractions Diagnostic'}
+            <Button size="l" icon={ArrowRight} disabled={startingDiagnostic} onClick={() => startDiagnostic('baseline')} className="shrink-0">
+              {startingDiagnostic ? 'Starting…' : 'Start Fractions Check-In'}
+            </Button>
+          </div>
+        ) : showMasteryCheck ? (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-semibold text-navy-700">Fractions Mastery Check</h2>
+              <p className="mt-1 text-sm text-ink-600">You’ve completed this unit’s pathway. Let’s confirm readiness and spot any final gaps.</p>
+            </div>
+            <Button size="l" icon={ArrowRight} onClick={() => navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } })} className="shrink-0">
+              Start Mastery Check
             </Button>
           </div>
         ) : recommended ? (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-semibold text-navy-700">{recommended.skillName}</h2>
+              <h2 className="font-display text-xl font-semibold text-navy-700">Up next: {canonicalSkillName(recommended.skillId, recommended.skillName)}</h2>
               <p className="mt-1 text-sm text-ink-500">{recommended.topicName} · <StatusBadge status={recommended.masteryState || recommended.status} /></p>
               {recommended.reason && <p className="mt-1 text-sm text-ink-600">{recommended.reason}</p>}
             </div>
-            <Button size="l" icon={ArrowRight} disabled={starting} onClick={() => startPractice(recommended.skillId)} className="shrink-0">
-              {starting ? 'Starting…' : 'Start recommended practice'}
+            <Button size="l" icon={ArrowRight} disabled={starting} onClick={() => startLearningSession({ skillId: recommended.skillId, sessionType: 'practice', questionCount: 10 })} className="shrink-0">
+              {starting ? 'Starting…' : 'Continue Learning'}
             </Button>
           </div>
         ) : (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-semibold text-navy-700">{placementSkill?.name || 'Recommended Fractions Skill'}</h2>
+              <h2 className="font-display text-xl font-semibold text-navy-700">Up next: {canonicalSkillName(placementSkill?.skillId, placementSkill?.name) || 'Recommended Fractions Skill'}</h2>
               <p className="mt-1 text-sm text-ink-600">Start recommended practice from your saved diagnostic placement.</p>
             </div>
-            <Button size="l" icon={ArrowRight} disabled={starting || !placementSkill?.skillId} onClick={() => startPractice(placementSkill?.skillId)} className="shrink-0">
-              {starting ? 'Starting…' : 'Start recommended practice'}
+            <Button size="l" icon={ArrowRight} disabled={starting || !placementSkill?.skillId} onClick={() => startLearningSession({ skillId: placementSkill?.skillId, sessionType: 'practice', questionCount: 10 })} className="shrink-0">
+              {starting ? 'Starting…' : 'Continue Learning'}
+            </Button>
+          </div>
+        )}
+        {showWarmup && (
+          <div className="mt-4 rounded-xl border border-navy-200 bg-navy-50 p-4">
+            <p className="text-sm font-semibold text-navy-800">Quick warm-up recommended</p>
+            <p className="mt-1 text-sm text-ink-600">Try 2–3 retrieval questions before your main practice.</p>
+            <Button
+              className="mt-3"
+              variant="secondary"
+              disabled={startingWarmup}
+              onClick={() => startLearningSession({
+                skillId: quickWarmupSkillId,
+                sessionType: 'warmup',
+                questionCount: 3,
+                feature: 'Quick Warm-up',
+              })}
+            >
+              {startingWarmup ? 'Starting warm-up…' : 'Start Quick Warm-up'}
+            </Button>
+          </div>
+        )}
+        {hasPlacement && domainProgress?.needsRecheck && (
+          <div className="mt-4 rounded-xl border border-gold-300 bg-gold-100 p-4">
+            <p className="text-sm font-semibold text-gold-900">Re-check suggested</p>
+            <p className="mt-1 text-sm text-gold-900">You’ve had a long break or repeated struggles. A short check-in can refresh your placement.</p>
+            <Button className="mt-3" variant="secondary" onClick={() => startDiagnostic('recheck')}>
+              Run Check-In Again
             </Button>
           </div>
         )}
@@ -227,6 +400,9 @@ export default function MathPathHome() {
           <div className="mt-3 flex flex-wrap gap-2">
             <Button variant="secondary" size="m" to="/student/mathpath/path">Explore Skills</Button>
             <Button variant="secondary" size="m" to="/student/mathpath/assessment">Open Test Mode</Button>
+            <Button variant="secondary" size="m" onClick={() => startDiagnostic('recheck')} disabled={startingDiagnostic}>
+              Run Check-In Again
+            </Button>
           </div>
         )}
       </Card>
@@ -248,11 +424,38 @@ export default function MathPathHome() {
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-error-500" />
             <div>
               <p className="text-sm font-semibold text-ink-700">Needs attention</p>
-              <p className="text-sm text-ink-500">{weak[0].skillName} in {weak[0].topicName} could use practice.</p>
+              <p className="text-sm text-ink-500">{canonicalSkillName(weak[0].skillId, weak[0].skillName)} in {weak[0].topicName} could use practice.</p>
             </div>
           </div>
         </Card>
       )}
+
+      <Card className="mb-6 p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Visible Fractions Pathway</h3>
+          <span className="text-xs text-ink-400">{curriculumCountry} · MOE Primary Math 2021 · {effectiveStudentLevel}</span>
+        </div>
+        {pathwayRows.length ? (
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {pathwayRows.map((row) => {
+              const tone = row.current ? 'navy' : row.completed ? 'success' : row.weakSkill ? 'error' : row.locked ? 'neutral' : 'gold';
+              return (
+                <div key={row.skillId} className={`rounded-lg border px-3 py-2 ${row.current ? 'border-navy-400 bg-navy-50' : 'border-hairline bg-white'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-ink-700">{row.displayName}</p>
+                    <Badge tone={tone}>{row.skillId}</Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-ink-500">
+                    Introduced {row.introducedLevel || '-'} · Mastery {row.masteryLevel || '-'}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-ink-500">No visible curriculum skills found for this level yet.</p>
+        )}
+      </Card>
 
       {/* Topic map */}
       <div className="mb-3 flex items-center justify-between">
