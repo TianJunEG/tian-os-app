@@ -23,15 +23,15 @@ export function WorkspaceProvider({ children }) {
     if (!isAuthenticated) { setLoading(false); return; }
     try {
       const { data } = await contextAPI.get();
-      setRoles(data.user.roles || []);
+      const resolvedRoles = data.user?.roles?.length ? data.user.roles : (data.user?.role ? [data.user.role] : ['student']);
+      setRoles(resolvedRoles);
       setWorkspaces(data.workspaces || []);
       // Choose an active workspace: persisted (if still valid) → default → first.
       const valid = (data.workspaces || []).map((w) => String(w.id));
-      let wsId = activeWorkspaceId;
-      if (!wsId || !valid.includes(String(wsId))) {
-        wsId = data.defaultWorkspaceId || (data.workspaces[0] && data.workspaces[0].id) || null;
-      }
-      applyWorkspace(wsId, data.workspaces || []);
+      const wsId = (activeWorkspaceId && valid.includes(String(activeWorkspaceId)))
+        ? activeWorkspaceId
+        : (data.defaultWorkspaceId || (data.workspaces[0] && data.workspaces[0].id) || null);
+      applyWorkspace(wsId, data.workspaces || [], resolvedRoles);
     } catch (err) {
       // Graceful fallback (e.g. backend not seeded yet): derive from the user
       // object so the shell still renders in development.
@@ -46,16 +46,24 @@ export function WorkspaceProvider({ children }) {
 
   useEffect(() => { load(); }, [load]);
 
-  function applyWorkspace(wsId, wsList) {
+  function resolveRoleForWorkspace(wsRole, candidateRoles) {
+    if (wsRole && candidateRoles.includes(wsRole)) return wsRole;
+    if (activeRole && candidateRoles.includes(activeRole)) return activeRole;
+    return candidateRoles[0] || 'student';
+  }
+
+  function applyWorkspace(wsId, wsList, candidateRoles = roles) {
     const ws = (wsList || workspaces).find((w) => String(w.id) === String(wsId));
     setActiveWorkspaceId(wsId || null);
     if (wsId) localStorage.setItem(WS_KEY, wsId); else localStorage.removeItem(WS_KEY);
-    if (ws) { setActiveRole(ws.role); localStorage.setItem(ROLE_KEY, ws.role); }
+    const nextRole = resolveRoleForWorkspace(ws?.role, candidateRoles || ['student']);
+    setActiveRole(nextRole);
+    localStorage.setItem(ROLE_KEY, nextRole);
   }
 
   const switchWorkspace = useCallback(async (workspaceId) => {
     try { await contextAPI.switch(workspaceId); } catch (_) { /* still apply locally */ }
-    applyWorkspace(workspaceId, workspaces);
+    applyWorkspace(workspaceId, workspaces, roles);
   }, [workspaces]);
 
   // Switching role jumps to the first workspace matching that role.
