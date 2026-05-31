@@ -18,6 +18,27 @@ function readinessBand(score = 0) {
   return 'Needs Support';
 }
 
+function fluencySignal({ accuracyRate, speedScore, skipRate }) {
+  const accuracy = Number(accuracyRate ?? 0);
+  const skip = Number(skipRate ?? 0);
+  const speed = Number(speedScore ?? 0);
+
+  if (skip >= 35 && accuracy >= 70 && speed >= 55) return 'Skip + Fast';
+  if (skip >= 35 && (speed === 0 || speed < 55)) return 'Skip + Slow';
+  if (accuracy >= 85 && speed >= 65) return 'Fluent';
+  if (accuracy >= 85 && speed < 65) return 'Understanding but not yet fluent';
+  if (accuracy < 70 && speed >= 55) return 'Possible misconception';
+  return 'Struggling';
+}
+
+function formatPercent(value) {
+  return value == null ? '-' : `${Number(value).toFixed(0)}%`;
+}
+
+function formatSeconds(value) {
+  return value == null ? '-' : `${Number(value).toFixed(1)}s`;
+}
+
 export default function DiagnosticResultScreen() {
   const { diagnosticSessionId } = useParams();
   const navigate = useNavigate();
@@ -86,6 +107,8 @@ export default function DiagnosticResultScreen() {
         fluency: row.fluency_score,
         consistency: row.consistency,
         attempts: row.total_attempts,
+        confidenceCalibration: row.confidence_calibration,
+        speedScore: row.speed_score,
       }))
       .filter((row) => row.skillId);
   }, [shaped]);
@@ -163,15 +186,19 @@ export default function DiagnosticResultScreen() {
                 {timingBySkill.map((row) => (
                   <div key={row.skillId} className="grid gap-2 rounded-xl bg-white border border-hairline px-3 py-2 text-sm">
                     <p className="font-semibold text-ink-900">{skillName(row.skillId)}</p>
-                    <div className="grid gap-2 sm:grid-cols-4">
-                      <span>Accuracy: <b>{row.accuracy == null ? '-' : `${row.accuracy.toFixed(0)}%`}</b></span>
+            <div className="grid gap-2 sm:grid-cols-4">
+                      <span>Accuracy: <b>{formatPercent(row.accuracy)}</b></span>
                       <span>Attempts: <b>{row.attempts}</b></span>
-                      <span>Time: <b>{row.avgSeconds == null ? '-' : `${row.avgSeconds.toFixed(1)}s`}</b></span>
+                      <span>Time: <b>{formatSeconds(row.avgSeconds)}</b></span>
                       <span>Fluency: <b>{row.fluency == null ? '-' : `${row.fluency.toFixed(0)}`}</b></span>
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
-                      <span>Skip: <b>{row.skipRate == null ? '-' : `${row.skipRate.toFixed(0)}%`}</b></span>
+                      <span>Skip: <b>{formatPercent(row.skipRate)}</b></span>
                       <span>Consistency: <b>{row.consistency == null ? '-' : `${row.consistency.toFixed(0)}%`}</b></span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <span>Confidence calibration: <b>{row.confidenceCalibration == null ? '-' : `${row.confidenceCalibration.toFixed(0)}%`}</b></span>
+                      <span>Signal: <b>{fluencySignal(row)}</b></span>
                     </div>
                   </div>
                 ))}
