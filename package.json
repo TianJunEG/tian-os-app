@@ -25,6 +25,7 @@
     "seed:tutor": "node scripts/seedTutor.js",
     "seed:teacher": "node scripts/seedTeacher.js",
     "seed:test-accounts": "node scripts/seedTestAccounts.js",
+    "seed:caden-p5-weak": "node scripts/seedCadenP5WeakStudent.js",
     "seed:spelling": "node scripts/seedSpelling.js",
     "seed:lifelab": "node scripts/seedLifeLab.js",
     "seed:mechanisms": "node scripts/seedMechanisms.js",
@@ -39,7 +40,11 @@
     "qa:pilot:backend": "node scripts/qa-e2e-safe.js && node scripts/qa-founder-bundle-safe.js && node scripts/qa-mathpath-dashboard-contract.js",
     "qa:pilot:frontend": "npm --prefix frontend run test:pilot-gate",
     "qa:pilot": "node scripts/qa-pilot-gate.js",
-    "qa:fractions:closure": "node scripts/fractions-final-pilot-closure.js"
+    "qa:fractions:closure": "node scripts/fractions-final-pilot-closure.js",
+    "postgres:prisma:generate": "prisma generate",
+    "postgres:health": "node scripts/postgres/checkPrismaHealth.js",
+    "postgres:phase1:backfill": "node scripts/postgres/backfillMathPathReferenceData.js",
+    "postgres:phase1:parity": "node scripts/postgres/checkMathPathReferenceParity.js"
   },
   "keywords": [
     "tutoring",
@@ -63,6 +68,9 @@
     "nodemailer": "^6.9.7",
     "openai": "^6.39.0",
     "pdf-parse": "^2.4.5",
+    "pg": "^8.16.3",
+    "prisma": "^5.22.0",
+    "@prisma/client": "^5.22.0",
     "stripe": "^11.11.0",
     "tesseract.js": "^7.0.0",
     "validator": "^13.9.0"

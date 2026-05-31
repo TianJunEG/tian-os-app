@@ -8,7 +8,11 @@ const practiceSessionSchema = new mongoose.Schema({
   // MathPath sub-feature this session belongs to (e.g. 'Fluency Practice',
   // 'Mistake-to-Mastery'). null = core MathPath practice.
   feature: { type: String, default: null },
-  mode: { type: String, enum: ['independent', 'guided', 'fluency'], default: 'independent' },
+  mode: {
+    type: String,
+    enum: ['independent', 'guided', 'fluency', 'diagnostic', 'warmup', 'practice', 'remediation', 'mastery_check', 'story'],
+    default: 'independent',
+  },
   skillIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Skill', default: [] },
   // Set when this session was launched from an assignment.
   assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', default: null },

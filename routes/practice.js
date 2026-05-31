@@ -14,6 +14,29 @@ import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 
 const router = express.Router();
+const FRAMEWORK_SKILL_ID_PATTERN = /^F\d{3}$/i;
+
+async function resolveSkillRefToIds(refs = []) {
+  const out = [];
+  for (const refRaw of refs || []) {
+    if (!refRaw) continue;
+    const ref = String(refRaw).trim();
+    if (!ref) continue;
+    if (FRAMEWORK_SKILL_ID_PATTERN.test(ref)) {
+      const code = ref.toUpperCase();
+      const matched = await Skill.findOne({
+        $or: [
+          { 'metadata.mathPathSkillId': code },
+          { 'metadata.frameworkCode': code },
+        ],
+      }).select('_id');
+      if (matched?._id) out.push(String(matched._id));
+      continue;
+    }
+    out.push(ref);
+  }
+  return [...new Set(out)];
+}
 
 // Shape a question for the client (never leak the answer mid-session).
 const clientQuestion = (q) => ({
@@ -42,11 +65,12 @@ router.post('/sessions', protect, async (req, res) => {
     let sessionFeature = feature;
     let questions = [];
     let targetSkillIds = skillIds.length ? skillIds : (skillId ? [skillId] : []);
+    targetSkillIds = await resolveSkillRefToIds(targetSkillIds);
 
     // Topic-level session (e.g. Science): pull across all of a topic's skills for variety.
     if (topicId && !targetSkillIds.length) {
       const topicSkills = await Skill.find({ topicId }).select('_id');
-      targetSkillIds = topicSkills.map((s) => String(s._id));
+      targetSkillIds = await resolveSkillRefToIds(topicSkills.map((s) => String(s._id)));
     }
 
     // Digital answering of an assigned Mastery Worksheet: run the worksheet's
@@ -58,7 +82,7 @@ router.post('/sessions', protect, async (req, res) => {
     if (assignmentId) {
       const a = await Assignment.findById(assignmentId);
       if (a) {
-        targetSkillIds = a.skillIds.map(String);
+        targetSkillIds = await resolveSkillRefToIds(a.skillIds.map(String));
         if (a.module === 'Mastery Worksheet') {
           const ws = await Worksheet.findOne({ linkedAssignmentId: a._id });
           // Science worksheets carry subject='Science' on the Worksheet (and
@@ -82,6 +106,7 @@ router.post('/sessions', protect, async (req, res) => {
       questions = explicitIds.map((id) => byId.get(String(id))).filter(Boolean);
       targetSkillIds = [...new Set(questions.map((q) => String(q.skillId?._id || q.skillId)))];
     } else {
+      targetSkillIds = await resolveSkillRefToIds(targetSkillIds);
       if (!targetSkillIds.length) return res.status(400).json({ error: 'No skill selected.' });
       questions = await selectSimilarQuestions({
         studentId: student._id, skillIds: targetSkillIds, difficulty: 'medium',

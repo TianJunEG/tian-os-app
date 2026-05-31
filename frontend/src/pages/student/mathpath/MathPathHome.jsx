@@ -8,7 +8,10 @@ import {
   normalizeCurriculum,
   getUniversalSkillByFrameworkId,
   getVisibleSkillsForStudentLevel,
+  getPrerequisiteSkills,
+  getRemediationSkillsForWeakPrerequisites,
 } from '../../../mathpath/curriculum';
+import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import {
   buildMathPathDomainProgressState,
   getMathPathDomainProgressState,
@@ -254,6 +257,8 @@ export default function MathPathHome() {
   const masteryCheckCompleted = Boolean(domainProgress?.masteryCheckCompleted);
   const showMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted;
   const showWarmup = hasPlacement && !showMasteryCheck && Boolean(quickWarmupSkillId) && (domainProgress?.weakSkills?.length || 0) > 0;
+  const storyModeEnabled = isFractionsStoryModeEnabled();
+  const storySkillId = (['F026', 'F025'].find((id) => placementWeakSet.has(id)) || continueSkillId || 'F025');
   const welcomeTitle = hasPlacement ? 'Welcome back' : 'Let’s find your starting point';
   const continueSkillId = currentFrameworkSkillId || recommended?.skillId || placementSkill?.skillId || domainProgress?.currentSkillId || null;
   const effectiveStudentLevel = studentLevel || latestPlacement?.studentLevel || domainProgress?.studentLevel || 'P4';
@@ -285,6 +290,30 @@ export default function MathPathHome() {
       weakSkill,
       locked,
     };
+  });
+  const weakSkillIds = [...placementWeakSet];
+  const remediationPrereqSkills = getRemediationSkillsForWeakPrerequisites({
+    weakSkillIds,
+    country: curriculumCountry,
+    curriculum: curriculumId,
+  });
+  const currentSkillPrereqs = currentFrameworkSkillId
+    ? getPrerequisiteSkills(currentFrameworkSkillId, {
+        country: curriculumCountry,
+        curriculum: curriculumId,
+      })
+    : [];
+  const remediationPrereqSet = new Set(remediationPrereqSkills.map((row) => row.frameworkSkillId).filter(Boolean));
+  const currentPrereqSet = new Set(currentSkillPrereqs.map((row) => row.frameworkSkillId).filter(Boolean));
+  const modePreviewRows = pathwayRows.slice(0, 4).map((row) => {
+    const label = row.current
+      ? 'Recommended'
+      : row.completed || currentPrereqSet.has(row.skillId)
+        ? 'Ready'
+        : remediationPrereqSet.has(row.skillId)
+          ? 'Not Recommended Yet'
+          : 'Challenge';
+    return { ...row, readinessLabel: label };
   });
   const previewLevels = [...new Set(
     (topics || [])
@@ -318,12 +347,32 @@ export default function MathPathHome() {
           <div className="rounded-xl border border-hairline p-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><Compass className="h-4 w-4" /> Explore Skills</p>
             <p className="mt-1 text-xs text-ink-500">Browse any fractions skill and check readiness.</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {modePreviewRows.length ? modePreviewRows.map((row) => (
+                <Badge
+                  key={`preview-${row.skillId}`}
+                  tone={row.readinessLabel === 'Recommended' ? 'navy' : row.readinessLabel === 'Ready' ? 'success' : row.readinessLabel === 'Challenge' ? 'gold' : 'neutral'}
+                >
+                  {row.readinessLabel}
+                </Badge>
+              )) : (
+                <Badge tone="neutral">Ready</Badge>
+              )}
+            </div>
             <Button to="/student/mathpath/path" variant="secondary" className="mt-3 w-full">Explore Skills</Button>
           </div>
           <div className="rounded-xl border border-hairline p-3">
             <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><ClipboardCheck className="h-4 w-4" /> Test Mode</p>
-            <p className="mt-1 text-xs text-ink-500">Run quick checks, topic tests, and timed practice.</p>
-            <Button to="/student/mathpath/assessment" variant="secondary" className="mt-3 w-full" disabled={!hasPlacement}>Open Test Mode</Button>
+            <p className="mt-1 text-xs text-ink-500">Quick Check, Topic Test, or Mini Paper. Choose timed or untimed.</p>
+            <Button
+              to="/student/mathpath/assessment"
+              variant="secondary"
+              className="mt-3 w-full"
+              disabled={!hasPlacement}
+              state={{ mode: 'test', options: ['Quick Check', 'Topic Test', 'Mini Paper'] }}
+            >
+              Open Test Mode
+            </Button>
           </div>
         </div>
       </Card>
@@ -412,6 +461,21 @@ export default function MathPathHome() {
           <div className="mt-3 flex flex-wrap gap-2">
             <Button variant="secondary" size="m" to="/student/mathpath/path">Explore Skills</Button>
             <Button variant="secondary" size="m" to="/student/mathpath/assessment">Open Test Mode</Button>
+            {storyModeEnabled && (
+              <Button
+                variant="secondary"
+                size="m"
+                onClick={() => navigate('/student/mathpath/practice/recommended-story', {
+                  state: {
+                    sessionType: 'story',
+                    skillId: /^F0(25|26)$/i.test(String(storySkillId || '')) ? String(storySkillId).toUpperCase() : 'F025',
+                    source: 'mathpath-home-story',
+                  },
+                })}
+              >
+                Try a Story Problem
+              </Button>
+            )}
             <Button variant="secondary" size="m" onClick={() => startDiagnostic('recheck')} disabled={startingDiagnostic}>
               Run Check-In Again
             </Button>

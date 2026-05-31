@@ -12,6 +12,7 @@ import {
   getUniversalSkillByFrameworkId,
   getVisibleSkillsForStudentLevel,
 } from '../../../mathpath/curriculum';
+import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 
 const STRAND_GROUPS = [
   { key: 'foundation', label: 'Foundation', ids: ['F001', 'F002', 'F003', 'F004', 'F005'] },
@@ -66,7 +67,8 @@ function actionFromNext(nextAction) {
   return { label: 'Continue Practice', to: '/student/mathpath' };
 }
 
-function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary }) {
+function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, onStory }) {
+  const storyEnabled = isFractionsStoryModeEnabled();
   return (
     <Card className="p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -75,7 +77,18 @@ function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary }) 
           <h2 className="font-display text-2xl font-semibold text-navy-700">Fractions</h2>
           <p className="mt-1 text-sm text-ink-600">Current skill: {currentSkillName || 'Start your diagnostic'}</p>
         </div>
-        <Button icon={ArrowRight} onClick={onPrimary}>{nextCta.label}</Button>
+        <div className="flex flex-col gap-2 sm:items-end">
+          <Button icon={ArrowRight} onClick={onPrimary}>{nextCta.label}</Button>
+          {storyEnabled && (
+            <Button
+              variant="secondary"
+              size="s"
+              onClick={onStory}
+            >
+              Try a Story Problem
+            </Button>
+          )}
+        </div>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div>
@@ -357,7 +370,10 @@ export default function FractionsLearningPathPage() {
         progress={masteryProgress}
         currentSkillName={currentSkillName}
         nextCta={nextCta}
-        onPrimary={() => navigate(nextCta.to)}
+        onPrimary={(to) => navigate(to || nextCta.to)}
+        onStory={() => navigate('/student/mathpath/practice/recommended-story', {
+          state: { sessionType: 'story', skillId: 'F026', source: 'fractions-pathway' },
+        })}
       />
 
       <NextActionPanel nextAction={nextAction} onPrimary={(to) => navigate(to)} />

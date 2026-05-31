@@ -15,6 +15,8 @@ import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
+import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
+import FractionsStoryModeSession from './FractionsStoryModeSession';
 
 const CONFIDENCE_OPTIONS = ['Very Confident', 'Confident', 'Unsure', 'Guessing'];
 const SESSION_META = {
@@ -42,6 +44,11 @@ const SESSION_META = {
     label: 'Mastery Check',
     helper: 'Confirm readiness to move forward.',
     finishLabel: 'Finish Mastery Check',
+  },
+  story: {
+    label: 'Problem Solving Story',
+    helper: 'Guided story-based fraction problem solving.',
+    finishLabel: 'Finish Story',
   },
 };
 
@@ -212,7 +219,20 @@ export default function PracticeSession() {
   const isMathPathRoute = location.pathname.startsWith('/student/mathpath/practice/');
   const hasLegacyItems = Boolean(location.state?.items?.length);
   const sessionType = normalizeSessionType(location.state?.sessionType);
+  const storyModeEnabled = isFractionsStoryModeEnabled();
   const sessionMeta = SESSION_META[sessionType];
+
+  if (sessionType === 'story') {
+    if (!storyModeEnabled) {
+      return (
+        <Card className="mx-auto max-w-xl p-6">
+          <p className="text-sm text-ink-700">Problem Solving Story is not enabled yet.</p>
+          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
+        </Card>
+      );
+    }
+    return <FractionsStoryModeSession />;
+  }
 
   // Compatibility shim: older non-framework sessions still navigate with pre-baked
   // `items` payload. Keep this path until all callers route through skillId/sessionType.
