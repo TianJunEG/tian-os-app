@@ -10,6 +10,12 @@ const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation error',
   careless: 'Careless slip', method_error: 'Method error', unknown: 'To review',
 };
+const SOURCE_LABEL = {
+  'diagnostic-skipped': 'Diagnostic skipped',
+  'diagnostic-incorrect': 'Diagnostic incorrect',
+  'practice-incorrect': 'Practice incorrect',
+  other: 'Other',
+};
 
 // MathPath › Mistake-to-Mastery › single mistake. Loads from the list so it does
 // not depend on a per-id API method.
@@ -61,7 +67,10 @@ export default function MistakeDetail() {
       <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} />
       <Card className="p-5">
         <div className="mb-2 flex items-center justify-between">
-          <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || m.mistakeType}</Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || m.mistakeType}</Badge>
+            <Badge tone="navy">{SOURCE_LABEL[m.source] || 'Source: ' + (m.source || 'other')}</Badge>
+          </div>
           <Badge tone={reviewed ? 'success' : 'gold'}>{m.status === 'resolved' ? 'Resolved' : reviewed ? 'Reviewed' : 'New'}</Badge>
         </div>
 

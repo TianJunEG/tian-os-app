@@ -11,7 +11,7 @@ const MISCONCEPTION_LABELS = {
   'frac/add-denominators': 'Added numerators and denominators directly',
 };
 
-// @route GET /api/mistakes?studentId=&status=&skillId=
+// @route GET /api/mistakes?studentId=&status=&skillId=&source=
 // @desc  Recent mistakes for a student (grouped by skill), for Mistake-to-Mastery.
 // @access Private
 router.get('/', protect, async (req, res) => {
@@ -21,6 +21,7 @@ router.get('/', protect, async (req, res) => {
     if (req.query.status && req.query.status !== 'all') filter.status = req.query.status;
     else if (!req.query.status) filter.status = { $ne: 'resolved' };
     if (req.query.skillId) filter.skillId = req.query.skillId;
+    if (req.query.source) filter.source = req.query.source;
     // Default to MathPath mistakes; other modules (e.g. Spelling) pass ?module=.
     filter.module = req.query.module || 'MathPath';
 
@@ -32,7 +33,7 @@ router.get('/', protect, async (req, res) => {
       id: m._id, skillId: m.skillId?._id, skillName: m.skillId?.name || '',
       topicName: m.skillId?.topicId?.name || '', module: m.module,
       questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
-      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag,
+      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt,
     }));
@@ -62,7 +63,7 @@ router.get('/:id', protect, async (req, res) => {
     res.json({
       id: m._id, skillId: m.skillId?._id, skillName: m.skillId?.name || '', topicName: m.skillId?.topicId?.name || '',
       questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
-      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag,
+      workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt,
     });

@@ -24,6 +24,11 @@ const mistakeSchema = new mongoose.Schema({
   reviewed: { type: Boolean, default: false },
   reviewedAt: { type: Date, default: null },
   reviewedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  source: {
+    type: String,
+    enum: ['diagnostic-incorrect', 'diagnostic-skipped', 'practice-incorrect', 'other'],
+    default: 'other',
+  },
   reviewSource: {
     type: String,
     enum: ['student', 'parent', 'tutor', 'teacher', null],

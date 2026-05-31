@@ -191,6 +191,7 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
         questionStem: q.stem, workedSolution: q.modelAnswer || q.workedSolution,
         studentAnswer: String(answer ?? ''), correctAnswer: q.modelAnswer || q.answer,
         mistakeType, misconceptionTag: q.misconceptionTag || '', status: 'open',
+        source: 'practice-incorrect',
       });
     }
 
