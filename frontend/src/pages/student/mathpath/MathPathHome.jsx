@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, Map as MapIcon, ChevronRight } from 'lucide-react';
+import { ArrowRight, AlertTriangle, Map as MapIcon, ChevronRight, GraduationCap, Compass, ClipboardCheck } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
@@ -14,7 +14,9 @@ export default function MathPathHome() {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [startingDiagnostic, setStartingDiagnostic] = useState(false);
   const [error, setError] = useState(null);
+  const [latestPlacement, setLatestPlacement] = useState(null);
   const [selectedSkill, setSelectedSkill] = useState(null);
   const [skillPreview, setSkillPreview] = useState(null);
   const [skillPreviewLoading, setSkillPreviewLoading] = useState(false);
@@ -24,9 +26,10 @@ export default function MathPathHome() {
   useEffect(() => {
     (async () => {
       try {
-        const [m, map] = await Promise.all([mathpathAPI.mastery(), mathpathAPI.map()]);
+        const [m, map, latest] = await Promise.all([mathpathAPI.mastery(), mathpathAPI.map(), mathpathAPI.getLatestDiagnostic()]);
         setMastery(m.data);
         setTopics(map.data.topics || []);
+        setLatestPlacement(latest.data || null);
       } catch (e) {
         setError(e.response?.data?.error || 'Could not load MathPath.');
       } finally { setLoading(false); }
@@ -43,6 +46,12 @@ export default function MathPathHome() {
       setError(e.response?.data?.error || 'Could not start practice.');
       setStarting(false);
     }
+  };
+
+  const startDiagnostic = async () => {
+    if (startingDiagnostic) return;
+    setStartingDiagnostic(true);
+    navigate('/student/mathpath/diagnostic');
   };
 
   const openSkillPreview = async (skill, topicName) => {
@@ -126,6 +135,8 @@ export default function MathPathHome() {
   const learning = records.filter((r) => r.status === 'learning');
   const recommended = mastery?.recommended;
   const weak = mastery?.weakSkills || [];
+  const hasPlacement = Boolean(latestPlacement?.hasPlacement && latestPlacement?.result?.recommendedStartingSkill?.skillId);
+  const placementSkill = latestPlacement?.result?.recommendedStartingSkill || null;
   const visibleTopics = topics;
   const studentLevel = user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || '';
   const isEarlyLevel = ['P1', 'P2'].includes(String(studentLevel).toUpperCase());
@@ -143,6 +154,32 @@ export default function MathPathHome() {
   return (
     <>
       <PageHeader title="MathPath" subtitle="Your adaptive maths pathway." />
+      <Card className="mb-6 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Learning Modes v2</p>
+        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-hairline p-3">
+            <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><GraduationCap className="h-4 w-4" /> Continue Learning</p>
+            <p className="mt-1 text-xs text-ink-500">Follow your recommended path from diagnostic and placement.</p>
+            <Button className="mt-3 w-full" icon={ArrowRight} disabled={!hasPlacement && startingDiagnostic} onClick={() => {
+              if (!hasPlacement) return startDiagnostic();
+              if (recommended?.skillId) return startPractice(recommended.skillId);
+              if (placementSkill?.skillId) return startPractice(placementSkill.skillId);
+            }}>
+              {!hasPlacement ? 'Start Fractions Diagnostic' : 'Continue Learning'}
+            </Button>
+          </div>
+          <div className="rounded-xl border border-hairline p-3">
+            <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><Compass className="h-4 w-4" /> Explore Skills</p>
+            <p className="mt-1 text-xs text-ink-500">Browse any fractions skill and check readiness.</p>
+            <Button to="/student/mathpath/path" variant="secondary" className="mt-3 w-full">Explore Skills</Button>
+          </div>
+          <div className="rounded-xl border border-hairline p-3">
+            <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><ClipboardCheck className="h-4 w-4" /> Test Mode</p>
+            <p className="mt-1 text-xs text-ink-500">Run quick checks, topic tests, and timed practice.</p>
+            <Button to="/student/mathpath/assessment" variant="secondary" className="mt-3 w-full" disabled={!hasPlacement}>Open Test Mode</Button>
+          </div>
+        </div>
+      </Card>
       {isPreviewMode && (
         <Card className="mb-6 border-l-4 border-l-gold-500 p-4">
           <p className="text-sm font-semibold text-gold-800">Curriculum Preview — not visible to beta users</p>
@@ -154,7 +191,17 @@ export default function MathPathHome() {
       {/* Recommended next action */}
       <Card className="mb-6 p-5">
         <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended next</div>
-        {recommended ? (
+        {!hasPlacement ? (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-semibold text-navy-700">Start Fractions Diagnostic</h2>
+              <p className="mt-1 text-sm text-ink-600">Take a short diagnostic first so MathPath can place you at the right starting skill.</p>
+            </div>
+            <Button size="l" icon={ArrowRight} disabled={startingDiagnostic} onClick={startDiagnostic} className="shrink-0">
+              {startingDiagnostic ? 'Starting…' : 'Start Fractions Diagnostic'}
+            </Button>
+          </div>
+        ) : recommended ? (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <h2 className="font-display text-xl font-semibold text-navy-700">{recommended.skillName}</h2>
@@ -166,13 +213,20 @@ export default function MathPathHome() {
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-ink-500">Pick a topic below to begin your first practice.</p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-semibold text-navy-700">{placementSkill?.name || 'Recommended Fractions Skill'}</h2>
+              <p className="mt-1 text-sm text-ink-600">Start recommended practice from your saved diagnostic placement.</p>
+            </div>
+            <Button size="l" icon={ArrowRight} disabled={starting || !placementSkill?.skillId} onClick={() => startPractice(placementSkill?.skillId)} className="shrink-0">
+              {starting ? 'Starting…' : 'Start recommended practice'}
+            </Button>
+          </div>
         )}
-        {!isEarlyLevel && (
+        {!isEarlyLevel && hasPlacement && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant="secondary" size="m" to="/student/mathpath/path">View Fractions Learning Path</Button>
-            <Button variant="secondary" size="m" to="/student/mathpath/diagnostic">Start Fractions Diagnostic</Button>
-            <Button variant="secondary" size="m" to="/student/mathpath/assessment">Start Fractions Assessment</Button>
+            <Button variant="secondary" size="m" to="/student/mathpath/path">Explore Skills</Button>
+            <Button variant="secondary" size="m" to="/student/mathpath/assessment">Open Test Mode</Button>
           </div>
         )}
       </Card>

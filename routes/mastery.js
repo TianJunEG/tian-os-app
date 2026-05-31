@@ -12,6 +12,7 @@ import { resolveStudent } from '../utils/studentContext.js';
 import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLabel, isStale } from '../utils/masteryEngine.js';
 import { buildSkillGraphView } from '../utils/skillGraphView.js';
 import { runPlacement } from '../utils/placementEngine.js';
+import { normalizeDiagnosticModeForLevel, resolveFractionsStartingSkill } from '../utils/fractionPlacementResolver.js';
 import { studentMathAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
@@ -36,14 +37,6 @@ const normalizeLevelTag = (value = '') => {
   const s = upper.match(/SEC(ONDARY)?\s*(\d)/);
   if (s) return `Sec${s[2]}`;
   return raw;
-};
-
-const modeForLevel = (level = '') => {
-  const tag = normalizeLevelTag(level).toUpperCase();
-  if (tag === 'P3') return 'basic';
-  if (tag === 'P4') return 'core';
-  if (tag === 'P1' || tag === 'P2') return 'basic';
-  return 'full';
 };
 
 const skillNum = (id = '') => Number(String(id).replace(/^F/i, '')) || 0;
@@ -84,6 +77,15 @@ function buildStudentPlacementReport(payload = {}) {
     estimatedDifficulty: payload.readinessLevel || 'Developing',
     suggestedFirstSession: `Start with ${start} practice (8–10 questions).`,
   };
+}
+
+function readinessBandFromLevel(level = '') {
+  const l = String(level || '').toLowerCase();
+  if (l === 'advanced') return 'advanced';
+  if (l === 'ready') return 'ready';
+  if (l === 'progressing') return 'progressing';
+  if (l === 'developing') return 'developing';
+  return 'beginner';
 }
 
 async function loadFractionsSkills() {
@@ -213,7 +215,7 @@ router.post('/diagnostic/start', protect, async (req, res) => {
     const { requestedMode, studentLevel } = req.body || {};
     const levelTag = normalizeLevelTag(studentLevel || student.level || '');
     const requested = String(requestedMode || '').toLowerCase();
-    const mode = ['basic', 'core', 'full'].includes(requested) ? requested : modeForLevel(levelTag);
+    const mode = normalizeDiagnosticModeForLevel(levelTag, requested);
 
     const { skills, byFrameworkId } = await loadFractionsSkills();
     if (!skills.length) return res.status(400).json({ error: 'Fractions skills are not seeded yet.' });
@@ -383,7 +385,9 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       } : { skillId: '', name: slug, slug };
     };
 
-    const recommended = placement?.recommendedStartSkills?.[0] ? mapSlugToF(placement.recommendedStartSkills[0].slug) : null;
+    const placementRecommended = placement?.recommendedStartSkills?.[0]
+      ? mapSlugToF(placement.recommendedStartSkills[0].slug)
+      : null;
     const masteredSkills = (placement?.masteryProfile || [])
       .filter((p) => p.mastery === 'mastered')
       .map((p) => mapSlugToF(p.slug))
@@ -404,21 +408,54 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
     }));
     const readinessLevel = mapPlacementReadiness(placement?.masteryProfile || []);
 
+    const recommendedSkillId = resolveFractionsStartingSkill({
+      mode: session.mode,
+      weakSkills,
+      prerequisiteGaps,
+      placementRecommended,
+      targetSkillIds: session.targetSkillIds || [],
+    });
+    const recommended = mapSlugToF(
+      [...byFrameworkId.values()].find(
+        (s) => String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '').toUpperCase() === String(recommendedSkillId).toUpperCase()
+      )?.slug || ''
+    );
+    const safeRecommended = recommended?.skillId ? recommended : {
+      skillId: recommendedSkillId,
+      name: byFrameworkId.get(String(recommendedSkillId).toUpperCase())?.name || recommendedSkillId,
+      slug: byFrameworkId.get(String(recommendedSkillId).toUpperCase())?.slug || '',
+    };
+
+    const totalExpected = Array.isArray(session.result?.questionIds) ? session.result.questionIds.length : savedAttempts.length;
+    const completionRatio = totalExpected > 0 ? Math.min(1, savedAttempts.length / totalExpected) : 1;
+    const confidenceScore = Math.round(Math.min(1, (placement?.overallConfidence || 0) * completionRatio) * 100) / 100;
+    const fluencyGaps = fluencyRecommendations.filter((f) => f?.skillId);
+
     const result = {
-      recommendedStartingSkill: recommended,
+      readinessBand: readinessBandFromLevel(readinessLevel),
+      recommendedStartingSkill: safeRecommended,
+      recommendedStartingSkillName: safeRecommended?.name || '',
       recommendedStartingTopic: 'Fractions',
       masteryProfile: placement?.masteryProfile || [],
       masteredSkills,
       weakSkills,
       prerequisiteGaps,
       fluencyRecommendations,
+      fluencyGaps,
       remediationRecommendations,
-      confidenceScore: placement?.overallConfidence || 0,
+      confidenceScore,
       readinessLevel,
       completedAt: new Date().toISOString(),
+      nextPracticePayload: {
+        skillId: safeRecommended?.skillId || 'F001',
+        source: 'diagnostic-placement',
+        mode: session.mode,
+        questionCount: 8,
+      },
     };
     result.studentPlacementReport = buildStudentPlacementReport(result);
     result.parentPlacementSummary = parentPlacementSummary(result);
+    result.parentSummary = result.parentPlacementSummary;
 
     session.status = 'completed';
     session.completedAt = new Date();
@@ -430,8 +467,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       mode: session.mode,
       studentLevel: session.studentLevel,
       ...result,
-      recommendedStartingSkillId: recommended?.skillId || null,
-      studentFriendlySummary: `You are doing well in parts of fractions. Start with ${recommended?.name || 'the recommended skill'} to build stronger confidence.`,
+      recommendedStartingSkillId: safeRecommended?.skillId || null,
+      studentFriendlySummary: `You are doing well in parts of fractions. Start with ${safeRecommended?.name || 'the recommended skill'} to build stronger confidence.`,
       parentFriendlySummary: result.parentPlacementSummary,
     });
   } catch (err) {
@@ -486,6 +523,35 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
     });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load diagnostic session.' });
+  }
+});
+
+// @route GET /api/mastery/diagnostic/latest?studentId=
+// @desc  Latest completed Fractions diagnostic/placement result for dashboard use.
+// @access Private (student self, parent guardian, tutor/teacher workspace member)
+router.get('/diagnostic/latest', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const latest = await MathPathDiagnosticSession.findOne({
+      studentId: String(student._id),
+      domainId: 'fractions',
+      status: 'completed',
+    }).sort({ completedAt: -1, createdAt: -1 });
+
+    if (!latest) {
+      return res.json({ hasPlacement: false, result: null });
+    }
+
+    return res.json({
+      hasPlacement: true,
+      sessionId: latest.diagnosticSessionId,
+      mode: latest.mode,
+      studentLevel: latest.studentLevel,
+      completedAt: latest.completedAt,
+      result: latest.result || null,
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to load latest diagnostic.' });
   }
 });
 

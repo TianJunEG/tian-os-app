@@ -36,6 +36,8 @@ import teacherRoutes from './routes/teacher.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
+import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
+import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -124,6 +126,8 @@ app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }),
 app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
+app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
+app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

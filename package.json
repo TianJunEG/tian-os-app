@@ -24,6 +24,7 @@
     "seed:fractions-alpha-pack": "node scripts/seedFractionsAlphaPack.js",
     "seed:tutor": "node scripts/seedTutor.js",
     "seed:teacher": "node scripts/seedTeacher.js",
+    "seed:test-accounts": "node scripts/seedTestAccounts.js",
     "seed:spelling": "node scripts/seedSpelling.js",
     "seed:lifelab": "node scripts/seedLifeLab.js",
     "seed:mechanisms": "node scripts/seedMechanisms.js",
@@ -33,7 +34,11 @@
     "seed:reviews": "node seed-reviews.js",
     "seed:all": "node seed-tutors.js && node seed-reviews.js",
     "seed:fresh": "node clear-db.js && node seed-tutors.js && node seed-reviews.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "qa:pilot:preflight": "node scripts/qa-pilot-preflight.js",
+    "qa:pilot:backend": "node scripts/qa-e2e-safe.js && node scripts/qa-founder-bundle-safe.js && node scripts/qa-mathpath-dashboard-contract.js",
+    "qa:pilot:frontend": "npm --prefix frontend run test:pilot-gate",
+    "qa:pilot": "node scripts/qa-pilot-gate.js"
   },
   "keywords": [
     "tutoring",
@@ -62,6 +67,7 @@
     "validator": "^13.9.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "mongodb-memory-server-core": "^11.1.0",
     "nodemon": "^3.1.14",
     "vitest": "^4.1.7"

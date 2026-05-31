@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, Clock3, Users } from 'lucide-react';
-import { teacherAPI } from '../../services/api';
+import { teacherAPI, mathpathAPI } from '../../services/api';
 import { buildTeacherMathPathDashboard } from '../../mathpath/dashboard/teacherMathPathDashboardEngine';
 import ClassNav from './ClassNav';
 import { useClass } from './useClass';
@@ -333,6 +333,7 @@ export default function TeacherMathPathDashboardPage() {
   const [students, setStudents] = useState(null);
   const [error, setError] = useState(false);
   const [dashboard, setDashboard] = useState(null);
+  const [placedCount, setPlacedCount] = useState(0);
 
   const load = useCallback(async () => {
     setError(false);
@@ -342,6 +343,17 @@ export default function TeacherMathPathDashboardPage() {
       const studentsRes = await teacherAPI.classStudents(id);
       const list = studentsRes?.data?.students || [];
       setStudents(list);
+      const placementRows = await Promise.all(
+        list.map(async (s) => {
+          try {
+            const r = await mathpathAPI.getLatestDiagnostic({ studentId: s.studentId });
+            return Boolean(r?.data?.hasPlacement);
+          } catch (_) {
+            return false;
+          }
+        })
+      );
+      setPlacedCount(placementRows.filter(Boolean).length);
       const studentProgressStates = buildSyntheticStudentProgressStates(list);
       const assessmentResults = buildSyntheticAssessment(list);
       const mistakePlans = buildSyntheticMistakePlans(list);
@@ -371,7 +383,14 @@ export default function TeacherMathPathDashboardPage() {
   return (
     <>
       <ClassNav classId={id} name={meta?.name || 'Class'} level={meta?.level} />
-      <PageHeader title="Teacher MathPath Dashboard" subtitle="Class-level mastery, fluency, retention, readiness, and actions." />
+      <PageHeader
+        title="Teacher MathPath Dashboard"
+        subtitle="Class-level mastery, fluency, retention, readiness, and actions."
+        action={<Button variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath/test-spec`)}>School-Aligned Test</Button>}
+      />
+      <Card className="mb-4 p-4">
+        <p className="text-sm text-ink-600">Students with saved Fractions placement: <span className="font-semibold text-ink-700">{placedCount}/{students.length}</span></p>
+      </Card>
 
       {!hasData ? (
         <EmptyState message="No MathPath data available for this class yet." />

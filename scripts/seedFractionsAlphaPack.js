@@ -19,29 +19,46 @@ dotenv.config();
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
 const DOMAIN_ID = 'fractions';
 const SOURCE = 'generated';
-const SOURCE_REF = 'fractions-alpha-pack-v1';
+const SOURCE_REF = process.env.MATHPATH_SOURCE_REF || 'fractions-alpha-pack-v1';
 
-const PRIORITY_SKILLS = [
+const DEFAULT_PRIORITY_SKILLS = [
   'F001', 'F002', 'F003', 'F004',
   'F010', 'F011', 'F012',
   'F016', 'F017', 'F018',
   'F020',
   'F023',
 ];
+const PRIORITY_SKILLS = (process.env.MATHPATH_SKILLS
+  ? process.env.MATHPATH_SKILLS.split(',').map((s) => s.trim().toUpperCase()).filter(Boolean)
+  : DEFAULT_PRIORITY_SKILLS);
 
 const LEGACY_SKILL_SLUG_FALLBACKS = {
   F001: ['fr.meaning.parts'],
   F002: ['fr.meaning.num-den', 'fr.meaning.parts', 'fr.meaning.unit'],
   F003: ['fr.meaning.whole', 'fr.of-set', 'fr.meaning.parts'],
   F004: ['fr.meaning.unit'],
+  F005: ['fr.meaning.number-line'],
+  F006: ['fr.compare.unlike', 'fr.compare.same-denom'],
+  F007: ['fr.compare.same-denom'],
+  F008: ['fr.compare.same-num'],
+  F009: ['fr.order'],
   F010: ['fr.equivalent'],
   F011: ['fr.equivalent.generate', 'fr.equivalent'],
   F012: ['fr.simplify'],
+  F013: ['fr.mixed-improper'],
+  F014: ['fr.mixed-improper', 'fr.add.mixed'],
+  F015: ['fr.mixed-improper', 'fr.add.mixed'],
   F016: ['fr.add.same-denom', 'fr.add.like'],
   F017: ['fr.sub.like', 'fr.add.like'],
   F018: ['fr.add.unlike'],
+  F019: ['fr.add.unlike'],
   F020: ['fr.of-quantity', 'fr.of-set'],
+  F021: ['fr.mult.fraction', 'fr.mult.whole'],
+  F022: ['fr.div.fraction', 'fr.div.whole'],
   F023: ['fr.word-problems', 'fr.word-equal-units', 'fr.word-remainder'],
+  F024: ['fr.word-problems'],
+  F025: ['fr.word-problems'],
+  F026: ['fr.word-problems'],
 };
 
 const ALPHA_TARGETS = {
@@ -387,7 +404,7 @@ async function main() {
       .filter((row) => PRIORITY_SKILLS.includes(row.skillId));
     const alphaCoverage = await summarizeAlphaCoverageByPrioritySkills();
 
-    const reportPath = path.resolve('docs/mathpath/Fractions_Alpha_Content_Pack_Report.md');
+    const reportPath = path.resolve(process.env.MATHPATH_REPORT_PATH || 'docs/mathpath/Fractions_Alpha_Content_Pack_Report.md');
     const markdown = buildMarkdownReport({
       generatedBySkill,
       before: beforeCoverage,

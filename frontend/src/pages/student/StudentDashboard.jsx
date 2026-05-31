@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, BookOpen, Gauge, RefreshCw, ClipboardCheck } from 'lucide-react';
+import { ArrowRight, Gauge, RefreshCw, Compass, GraduationCap, ClipboardCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
+import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
 import { Card, Button, ProgressBar, PageHeader, Spinner, ErrorState, Badge } from '../../components/ui';
 
@@ -154,27 +155,31 @@ function RetentionReviewCard({ retention }) {
   );
 }
 
-function PracticeStartCard() {
-  return (
-    <Card className="p-5">
-      <div className="mb-2 flex items-center gap-2 text-ink-700"><BookOpen className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Practice</p></div>
-      <p className="text-sm text-ink-600">Continue your guided MathPath practice session.</p>
-      <Button to="/student/mathpath" variant="secondary" className="mt-4 w-full">Open Practice</Button>
-    </Card>
-  );
-}
-
-function AssessmentStartCard({ readinessBand }) {
+function LearningModesCard({ nextAction, hasPlacement, readinessBand }) {
   const ready = ['ready', 'strong', 'advanced', 'approaching'].includes(String(readinessBand || '').toLowerCase());
+  const continueAction = actionMeta(nextAction);
   return (
     <Card className="p-5">
-      <div className="mb-2 flex items-center gap-2 text-ink-700"><ClipboardCheck className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Assessment</p></div>
-      <p className="text-sm text-ink-600">
-        {ready ? 'You are close to assessment readiness. Try a progress check.' : 'Build more skill confidence before your next assessment.'}
-      </p>
-      <Button to="/student/mathpath/assessment" variant="secondary" className="mt-4 w-full" disabled={!ready}>
-        {ready ? 'Try Assessment' : 'Not Ready Yet'}
-      </Button>
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Learning Modes v2</p>
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="rounded-xl border border-hairline p-3">
+          <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><GraduationCap className="h-4 w-4" /> Continue Learning</p>
+          <p className="mt-1 text-xs text-ink-500">Follow your recommended skill pathway.</p>
+          <Button to={continueAction.to} className="mt-3 w-full">{hasPlacement ? continueAction.label : 'Start Fractions Diagnostic'}</Button>
+        </div>
+        <div className="rounded-xl border border-hairline p-3">
+          <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><Compass className="h-4 w-4" /> Explore Skills</p>
+          <p className="mt-1 text-xs text-ink-500">Open any skill with readiness indicators.</p>
+          <Button to="/student/mathpath/path" variant="secondary" className="mt-3 w-full">Explore Fractions Path</Button>
+        </div>
+        <div className="rounded-xl border border-hairline p-3">
+          <p className="flex items-center gap-2 text-sm font-semibold text-ink-700"><ClipboardCheck className="h-4 w-4" /> Test Mode</p>
+          <p className="mt-1 text-xs text-ink-500">Run quick checks, topic tests, or timed papers.</p>
+          <Button to="/student/mathpath/assessment" variant="secondary" className="mt-3 w-full" disabled={!hasPlacement || !ready}>
+            {hasPlacement && ready ? 'Start Test Mode' : 'Unlock After Placement'}
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }
@@ -211,10 +216,15 @@ export default function StudentDashboard() {
 
   const vm = useMemo(() => {
     const p = payload || {};
+    const contract = validateStudentDashboardPayload(p);
+    if (!contract.valid) {
+      return { contractError: contract.errors.join(' | ') };
+    }
     const state = p.studentProgress || {};
     const currentSkillName = getSkill(state.currentSkill)?.name || 'Start Fractions Diagnostic';
     return {
       domain: 'Fractions',
+      hasPlacement: Boolean(p?.diagnostic?.hasPlacement || p?.studentProgress?.currentSkill),
       currentSkill: state.currentSkill ? {
         skillName: currentSkillName,
         status: state.skillStatuses?.[state.currentSkill] || 'learning',
@@ -222,19 +232,20 @@ export default function StudentDashboard() {
       nextAction: state.nextRecommendedAction || p.nextRecommendedAction || null,
       masteryProgress: state.masteryProgress || {},
       fluency: {
-        accurateButSlowAreas: state.fluencyProgress?.accurateButSlowAreas || p.parentDashboard?.fluencySummary?.accurateButSlowAreas || [],
-        fluentAreas: p.parentDashboard?.fluencySummary?.fluentAreas || [],
+        accurateButSlowAreas: state.fluencyProgress?.accurateButSlowAreas || [],
+        fluentAreas: state.fluencyProgress?.fluentSkillIds || [],
       },
       retention: {
-        skillsDueForReview: state.retentionProgress?.skillsDueForReview || p.parentDashboard?.retentionSummary?.skillsDueForReview || [],
+        skillsDueForReview: state.retentionProgress?.skillsDueForReview || [],
       },
-      readinessBand: state.readinessLevel?.readinessBand || p.parentDashboard?.assessmentSummary?.readinessBand || 'developing',
+      readinessBand: state.readinessLevel?.readinessBand || 'developing',
       warnings: p.warnings || [],
     };
   }, [payload]);
 
   if (loading) return <Spinner label="Loading MathPath dashboard…" />;
   if (error) return <ErrorState message={error} onRetry={() => window.location.reload()} />;
+  if (vm.contractError) return <ErrorState message={`MathPath dashboard payload contract mismatch: ${vm.contractError}`} onRetry={() => window.location.reload()} />;
 
   const primaryAction = actionMeta(vm.nextAction);
   return (
@@ -247,14 +258,16 @@ export default function StudentDashboard() {
         </Button>
       </div>
 
+      <div className="mb-4">
+        <LearningModesCard nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} readinessBand={vm.readinessBand} />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <CurrentSkillCard domain={vm.domain} currentSkill={vm.currentSkill} />
         <NextActionCard nextAction={vm.nextAction} />
         <MasteryProgressCard masteryProgress={vm.masteryProgress} />
         <FluencyStatusCard fluency={vm.fluency} />
         <RetentionReviewCard retention={vm.retention} />
-        <PracticeStartCard />
-        <AssessmentStartCard readinessBand={vm.readinessBand} />
       </div>
 
       {vm.warnings.length > 0 && (

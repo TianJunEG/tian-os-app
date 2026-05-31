@@ -1,6 +1,6 @@
 # Fractions Alpha Content Pack Report
 
-Generated: 2026-05-30T15:03:54.920Z
+Generated: 2026-05-30T15:35:10.330Z
 Scope: F001, F002, F003, F004, F010, F011, F012, F016, F017, F018, F020, F023
 
 ## Targets Per Priority Skill
@@ -32,17 +32,17 @@ Scope: F001, F002, F003, F004, F010, F011, F012, F016, F017, F018, F020, F023
 
 | Skill ID | Before Total | After Total | Before Status | After Status |
 |---|---:|---:|---|---|
-| F001 | 261 | 198 | not-ready | not-ready |
+| F001 | 198 | 198 | not-ready | not-ready |
 | F002 | 65 | 65 | not-ready | not-ready |
 | F003 | 65 | 65 | not-ready | not-ready |
 | F004 | 135 | 135 | not-ready | not-ready |
 | F010 | 194 | 194 | not-ready | not-ready |
 | F011 | 65 | 65 | not-ready | not-ready |
 | F012 | 138 | 138 | not-ready | not-ready |
-| F016 | 0 | 65 | not-ready | not-ready |
-| F017 | 0 | 65 | not-ready | not-ready |
-| F018 | 121 | 121 | not-ready | not-ready |
-| F020 | 0 | 65 | not-ready | not-ready |
+| F016 | 65 | 65 | not-ready | not-ready |
+| F017 | 65 | 65 | not-ready | not-ready |
+| F018 | 180 | 180 | not-ready | not-ready |
+| F020 | 65 | 65 | not-ready | not-ready |
 | F023 | 145 | 145 | not-ready | not-ready |
 
 ## Remaining Content Gaps

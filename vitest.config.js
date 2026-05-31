@@ -5,6 +5,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['utils/**/*.test.js', 'routes/**/*.test.js', 'middleware/**/*.test.js'],
+    include: [
+      'utils/**/*.test.js',
+      'routes/**/*.test.js',
+      'middleware/**/*.test.js',
+      'shared/diagramEngine/tests/**/*.test.js',
+    ],
   },
 });

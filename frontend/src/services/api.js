@@ -62,6 +62,7 @@ export const mathpathAPI = {
   startDiagnostic: (data) => api.post('/mastery/diagnostic/start', data),
   submitDiagnostic: (sessionId, data) => api.post(`/mastery/diagnostic/${sessionId}/submit`, data),
   getDiagnostic: (sessionId) => api.get(`/mastery/diagnostic/${sessionId}`),
+  getLatestDiagnostic: (params) => api.get('/mastery/diagnostic/latest', { params }),
   startSession: (data) => api.post('/practice/sessions', data),
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),
@@ -150,6 +151,34 @@ export const teacherAPI = {
   createIntervention: (id, data) => api.post(`/teacher/classes/${id}/interventions`, data),
   updateIntervention: (iid, data) => api.put(`/teacher/interventions/${iid}`, data),
   report: (id, params) => api.get(`/teacher/classes/${id}/reports`, { params })
+};
+
+// School-aligned Test Mode specifications (Table of Specification).
+export const assessmentSpecificationAPI = {
+  listMine: (params) => api.get('/assessment-specifications/mine', { params }),
+  create: (data) => api.post('/assessment-specifications', data),
+  update: (id, data) => api.put(`/assessment-specifications/${id}`, data),
+  generateTest: (id, data = {}) => api.post(`/assessment-specifications/${id}/generate`, data),
+  classResults: (id) => api.get(`/assessment-specifications/${id}/class-results`),
+  generatedPaperBlueprint: (id, params = {}) => api.get(`/assessment-specifications/${id}/generated-paper-blueprint`, { params }),
+};
+
+export const assessmentBlueprintAPI = {
+  list: (params = {}) => api.get('/assessment-blueprints', { params }),
+  get: (id, params = {}) => api.get(`/assessment-blueprints/${id}`, { params }),
+  create: (data) => api.post('/assessment-blueprints', data),
+  update: (id, data) => api.put(`/assessment-blueprints/${id}`, data),
+  archive: (id) => api.post(`/assessment-blueprints/${id}/archive`),
+  duplicate: (id, data = {}) => api.post(`/assessment-blueprints/${id}/duplicate`, data),
+  validate: (data) => api.post('/assessment-blueprints/validate', data),
+  versions: (id) => api.get(`/assessment-blueprints/${id}/versions`),
+  testBlueprint: (id) => api.get(`/assessment-blueprints/${id}/test-blueprint`),
+  libraryExamples: () => api.get('/assessment-blueprints/library/examples'),
+  seedLibrary: () => api.post('/assessment-blueprints/library/seed'),
+  uploadAnalyze: (formData) => api.post('/assessment-blueprints/upload-analyze', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  schoolProfiles: (params = {}) => api.get('/assessment-blueprints/school-profiles', { params }),
 };
 
 // Auth API

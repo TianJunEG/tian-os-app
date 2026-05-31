@@ -216,14 +216,19 @@ export default function ParentMathPathDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [summary, setSummary] = useState(null);
+  const [placement, setPlacement] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const masteryRes = await mathpathAPI.mastery({ studentId });
+      const [masteryRes, latestRes] = await Promise.all([
+        mathpathAPI.mastery({ studentId }),
+        mathpathAPI.getLatestDiagnostic({ studentId }),
+      ]);
       const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {});
       setSummary(parentPayload);
+      setPlacement(latestRes?.data?.result || null);
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Could not load parent MathPath dashboard.');
     } finally {
@@ -260,6 +265,7 @@ export default function ParentMathPathDashboardPage() {
   }
 
   const currentFocus = summary.masteryProgress?.weakSkills?.[0] || summary.masteryProgress?.inProgressSkills?.[0] || 'Fractions diagnostic';
+  const placementSkill = placement?.recommendedStartingSkill?.name || null;
 
   return (
     <>
@@ -267,11 +273,23 @@ export default function ParentMathPathDashboardPage() {
       <PageHeader
         title="Parent MathPath Dashboard"
         subtitle="A clear weekly view of mastery, fluency, retention, and next actions."
-        action={<Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>}
+        action={(
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mathpath/test-spec`)}>School-Aligned Test</Button>
+            <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
+          </div>
+        )}
       />
 
       <div className="space-y-4">
-        <ParentOverviewCard summary={summary} currentFocus={currentFocus} />
+        <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} />
+        {!!placementSkill && (
+          <Card className="p-4">
+            <p className="text-sm text-ink-600">
+              Latest placement recommends starting at <span className="font-semibold text-ink-700">{placementSkill}</span>.
+            </p>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <MasteryProgressCard mastery={summary.masteryProgress || {}} />

@@ -253,14 +253,16 @@ export default function TutorMathPathDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dashboard, setDashboard] = useState(null);
+  const [placement, setPlacement] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [studentRes, masteryRes] = await Promise.all([
+      const [studentRes, masteryRes, latestRes] = await Promise.all([
         tutorAPI.student(id),
         mathpathAPI.mastery({ studentId: id }),
+        mathpathAPI.getLatestDiagnostic({ studentId: id }),
       ]);
       const studentPayload = studentRes?.data || {};
       const masteryPayload = masteryRes?.data || {};
@@ -290,6 +292,7 @@ export default function TutorMathPathDashboardPage() {
         workingAnalysisSummary: pipeline.working?.summary || {},
       });
       setDashboard(tutorDashboard);
+      setPlacement(latestRes?.data?.result || null);
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Could not load tutor MathPath dashboard.');
     } finally {
@@ -317,8 +320,20 @@ export default function TutorMathPathDashboardPage() {
       <PageHeader
         title="Tutor MathPath Dashboard"
         subtitle="Root causes, fluency bottlenecks, retention risk, and session planning."
-        action={<Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>}
+        action={(
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => navigate(`/tutor/students/${id}/mathpath/test-spec`)}>School-Aligned Test</Button>
+            <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
+          </div>
+        )}
       />
+      {!!placement?.recommendedStartingSkill?.name && (
+        <Card className="mb-4 p-4">
+          <p className="text-sm text-ink-600">
+            Latest placement: start at <span className="font-semibold text-ink-700">{placement.recommendedStartingSkill.name}</span>.
+          </p>
+        </Card>
+      )}
 
       <div className="space-y-4">
         <TutorOverviewCard studentName={studentMeta?.name || 'Student'} dashboard={dashboard} currentSkill={dashboard.tutorNotes?.currentSkill} />
