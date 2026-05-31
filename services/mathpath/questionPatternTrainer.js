@@ -6,6 +6,7 @@ const DEFAULT_SESSION_TYPES = ['diagnostic', 'practice', 'remediation', 'mastery
 const DEFAULT_TARGET = { easy: 10, medium: 10, hard: 10, wordProblem: 5, misconception: 5 };
 const PRACTICE_SET_STORE = new Map();
 const PRACTICE_SESSION_STORE = new Map();
+const FRACTION_DENOMINATORS = [2, 3, 4, 5, 6, 8, 10, 12];
 const FRACTION_SKILL_HINTS = [
   { skillId: 'F005', topic: 'Fractions', subtopic: 'Number line fractions', patterns: [/number line/i, /mark after 0/i] },
   { skillId: 'F018', topic: 'Fractions', subtopic: 'Add different denominators', patterns: [/add/i, /\+\s*\d+\s*\//, /sum/i] },
@@ -70,6 +71,14 @@ function fractionText(frac) {
 
 function normalizeAnswer(value = '') {
   return String(value).trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function hasUnresolvedTemplateTokens(value = '') {
+  return /\{[^}]+\}/.test(String(value || ''));
+}
+
+function stablePrompt(text = '') {
+  return String(text || '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function parseAnswerFraction(value = '') {
@@ -217,6 +226,41 @@ function valuesForVariant(index, difficulty) {
   return { firstDenominator, firstNumerator, secondDenominator, secondNumerator, total };
 }
 
+function buildSafeSubtractionPair(v) {
+  const aCandidateDenominators = [
+    v.firstDenominator,
+    ...FRACTION_DENOMINATORS,
+    ...FRACTION_DENOMINATORS,
+  ];
+  const bCandidateDenominators = [
+    v.secondDenominator,
+    ...FRACTION_DENOMINATORS,
+    ...FRACTION_DENOMINATORS,
+  ];
+
+  for (let i = 0; i < aCandidateDenominators.length; i += 1) {
+    const aDenominator = Math.max(2, Number(aCandidateDenominators[i]) || 2);
+    for (let aNumerator = 1; aNumerator < aDenominator; aNumerator += 1) {
+      const rotatedNumerator = 1 + ((v.firstNumerator + aNumerator - 1) % (aDenominator - 1));
+      for (let j = 0; j < bCandidateDenominators.length; j += 1) {
+        const bDenominator = Math.max(2, Number(bCandidateDenominators[j]) || 2);
+        const maxSecondNumerator = Math.floor((rotatedNumerator * bDenominator - 1) / aDenominator);
+        if (maxSecondNumerator < 1) continue;
+        const bNumerator = 1 + ((v.secondNumerator + rotatedNumerator - 1) % Math.min(bDenominator - 1, maxSecondNumerator));
+        return {
+          a: { numerator: rotatedNumerator, denominator: aDenominator },
+          b: { numerator: bNumerator, denominator: bDenominator },
+        };
+      }
+    }
+  }
+
+  return {
+    a: { numerator: 2, denominator: 2 },
+    b: { numerator: 1, denominator: 4 },
+  };
+}
+
 function buildVariant(pattern, index, bucket = 'practice', difficulty = 'medium') {
   const ctx = contextFor(index);
   const v = valuesForVariant(index, difficulty);
@@ -248,14 +292,21 @@ function buildVariant(pattern, index, bucket = 'practice', difficulty = 'medium'
       .replace('{aNumerator}', String(a.numerator)).replace('{aDenominator}', String(a.denominator))
       .replace('{bNumerator}', String(b.numerator)).replace('{bDenominator}', String(b.denominator));
   } else if (pattern.archetype === 'subtract_unlike_fractions') {
-    const aDen = Math.max(v.firstDenominator, v.secondDenominator);
-    const bDen = Math.min(v.firstDenominator, v.secondDenominator);
-    const a = { numerator: Math.max(2, v.firstNumerator), denominator: aDen };
-    const b = { numerator: 1, denominator: bDen };
+    const pair = buildSafeSubtractionPair(v);
+    const a = pair.a;
+    const b = pair.b;
     answer = fractionText({ numerator: a.numerator * b.denominator - b.numerator * a.denominator, denominator: a.denominator * b.denominator });
     prompt = makeQuestionTemplate('subtract_unlike_fractions')
       .replace('{aNumerator}', String(a.numerator)).replace('{aDenominator}', String(a.denominator))
       .replace('{bNumerator}', String(b.numerator)).replace('{bDenominator}', String(b.denominator));
+  } else if (pattern.archetype === 'fraction_word_problem_pattern') {
+    const numerator = finalFraction.numerator;
+    const denominator = finalFraction.denominator;
+    prompt = makeQuestionTemplate('fraction_word_problem_pattern')
+      .replace('{context}', `${ctx.name} had a whole of 1.`)
+      .replace('{numerator}', String(numerator))
+      .replace('{denominator}', String(denominator));
+    answer = fractionText(finalFraction);
   } else {
     prompt = prompt
       .replace('{name}', ctx.name)
@@ -315,14 +366,47 @@ function buildVariant(pattern, index, bucket = 'practice', difficulty = 'medium'
 
 function validateVariant(variant, seen) {
   const errors = [];
-  const normalizedPrompt = String(variant.prompt || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const normalizedPrompt = stablePrompt(variant.prompt);
   if (!normalizedPrompt || normalizedPrompt.length < 20) errors.push('wording is too short');
   if (!variant.answer) errors.push('answer cannot be computed');
   if (!variant.answerCheckStrategy) errors.push('answer check metadata is missing');
+  if (hasUnresolvedTemplateTokens(variant.prompt)) errors.push('template placeholders were not replaced');
   if (seen.has(normalizedPrompt)) errors.push('duplicate or near-duplicate prompt');
   if (!variant.questionCategory) errors.push('session category missing');
   if (variant.worksheetCompatible && /diagramRequired:true/.test(String(variant.prompt))) errors.push('diagram metadata missing');
   return { ok: errors.length === 0, errors, key: normalizedPrompt };
+}
+
+function normalizeClientGeneratedVariants(pattern, requestedVariants = []) {
+  if (!Array.isArray(requestedVariants) || !requestedVariants.length) return null;
+  const generatedFromServer = generateVariantsFromPattern(pattern, { generatedVariantTarget: pattern.generatedVariantTarget || {} });
+  const canonicalByVariantId = new Map((generatedFromServer.variants || []).map((q) => [q.variantId, q]));
+
+  const seen = new Set();
+  const variants = [];
+  const invalid = [];
+
+  for (const incoming of requestedVariants) {
+    const variantId = String(incoming?.variantId || '').trim();
+    const canonical = variantId ? canonicalByVariantId.get(variantId) : null;
+    if (!canonical) {
+      invalid.push(variantId || 'missing-variant-id');
+      continue;
+    }
+    if (seen.has(variantId)) {
+      continue;
+    }
+    seen.add(variantId);
+    variants.push(canonical);
+  }
+
+  if (invalid.length) {
+    throw new Error(`Some variants are invalid or stale. Regenerate the question bank first. Invalid entries: ${invalid.slice(0, 6).join(', ')}`);
+  }
+  if (!variants.length) {
+    throw new Error('No valid generated variants were submitted for approval.');
+  }
+  return variants;
 }
 
 export function extractQuestionPattern(input = {}) {
@@ -438,7 +522,7 @@ export function generateVariantsFromPattern(patternInput = {}, options = {}) {
       acceptedCount: variants.length,
       rejectedCount: rejected.length,
       rejected: rejected.slice(0, 10),
-      duplicateCount: 0,
+      duplicateCount: rejected.filter((row) => row.errors.includes('duplicate or near-duplicate prompt')).length,
       difficultyDistribution,
       categoryDistribution,
       warnings: pattern.qualityWarnings || [],
@@ -492,7 +576,8 @@ export function createTemporaryPracticeSet({ patternInput = {}, generated = null
 
 export async function approvePracticeSet({ patternInput = {}, generated = null, userId = null, title = '', persist = true } = {}) {
   const pattern = patternInput.patternId ? patternInput : extractQuestionPattern(patternInput);
-  const bundle = generated || generateVariantsFromPattern(pattern);
+  const normalizedVariants = generated?.variants ? normalizeClientGeneratedVariants(pattern, generated.variants) : null;
+  const bundle = normalizedVariants ? { pattern, variants: normalizedVariants } : (generated || generateVariantsFromPattern(pattern));
   const savedPattern = persist
     ? await saveTrainedQuestionPattern(pattern, userId, 'approved')
     : { ...pattern, status: 'approved', approvedByUserId: userId || null, approvedAt: new Date() };
@@ -593,8 +678,23 @@ export async function submitSimilarQuestionPractice({ sessionId, studentId, resp
       answerCheckStrategy: question.answerCheckStrategy,
       difficulty: question.difficulty || 'medium',
       studentAnswer: String(response.answer || ''),
+      confidence: response.confidence || '',
+      reflection: response.reflection || response.confidence || '',
+      helpRequested: Boolean(response.helpRequested),
       correctAnswer: question.answer,
       correct,
+      timedOut: Boolean(response.timedOut),
+      questionStartedAt: response.questionStartedAt || null,
+      questionEndedAt: response.questionEndedAt || null,
+      workingUploaded: Boolean(response.workingUploaded),
+      workingSubmitted: Boolean(response.workingSubmitted),
+      workingSubmittedAt: response.workingSubmittedAt || null,
+      workingImage: response.workingImage || '',
+      workingStrokes: Array.isArray(response.workingStrokes) ? response.workingStrokes : [],
+      workingNotNeeded: Boolean(response.workingNotNeeded),
+      skipped: Boolean(response.skipped),
+      timestamp: response.timestamp || null,
+      attemptNumber: Number(response.attemptNumber || 1),
       timeTaken: Number(response.timeTaken || 0) || null,
       workedSolution: question.workedSolution,
       misconceptionTags: correct ? [] : question.misconceptionTags || [],
