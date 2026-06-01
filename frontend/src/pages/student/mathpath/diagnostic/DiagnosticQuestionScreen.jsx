@@ -17,6 +17,7 @@ const REFLECTION_OPTIONS = [
   { value: 'not_sure', label: "I'm not sure" },
   { value: 'dont_know', label: "I don't know" },
 ];
+const EMPTY_STROKES = [];
 
 export default function DiagnosticQuestionScreen() {
   const { diagnosticSessionId } = useParams();
@@ -191,9 +192,15 @@ export default function DiagnosticQuestionScreen() {
         </div>
         <QuestionDiagram question={q} />
         <WorkingCanvas
+          key={`diagnostic-working-${q.questionId}`}
           questionId={q.questionId}
           required={workingRequirement.required}
           allowNoWorking={workingRequirement.allowNoWorking}
+          submittedImage={currentWorking.workingImage || ''}
+          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+          onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
           onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
         />
 

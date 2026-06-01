@@ -13,6 +13,7 @@ const REFLECTION_OPTIONS = [
   { value: 'not_sure', label: "I'm not sure" },
   { value: 'dont_know', label: "I don't know" },
 ];
+const EMPTY_STROKES = [];
 
 function expectsFractionAnswer(question = {}) {
   const text = `${question.prompt || ''} ${question.answerType || ''} ${question.answerCheckStrategy || ''}`.toLowerCase();
@@ -134,8 +135,8 @@ export default function SimilarQuestionPractice() {
               {wrong.map((row) => (
                 <div key={row.variantId} className="rounded-xl border border-hairline p-3 text-sm">
                   <div className="font-semibold text-ink-900"><MathText text={row.prompt} /></div>
-                  <p className="mt-2 text-error-700">Your answer: {row.studentAnswer || '-'}</p>
-                  <p className="text-success-700">Correct answer: {row.correctAnswer}</p>
+                  <p className="mt-2 text-error-700">Your answer: <MathText text={row.studentAnswer || '-'} /></p>
+                  <p className="text-success-700">Correct answer: <MathText text={row.correctAnswer || '-'} /></p>
                   <p className="mt-2 text-ink-600">{row.workedSolution}</p>
                 </div>
               ))}
@@ -187,9 +188,15 @@ export default function SimilarQuestionPractice() {
           />
         )}
         <WorkingCanvas
+          key={`similar-working-${q.variantId}`}
           questionId={q.variantId}
           required={workingRequirement.required}
           allowNoWorking={workingRequirement.allowNoWorking}
+          submittedImage={currentWorking.workingImage || ''}
+          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+          onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.variantId]: payload }))}
           onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.variantId]: payload }))}
         />
         <div className="mt-4">

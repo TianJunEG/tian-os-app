@@ -1,13 +1,41 @@
 // Shared answer checking — the ONE checker used by practice, worksheet marking,
 // and fluency. Handles whole numbers, decimals, and (equivalent) fractions so a
 // fraction answer is correct whether or not it is in lowest terms.
+const DECIMAL_TOLERANCE = 1e-8;
+
 const gcd = (a, b) => (b === 0 ? Math.abs(a) : gcd(b, a % b));
 
+function normalizeUnit(raw = '') {
+  return String(raw || '').trim().toLowerCase();
+}
+
+function parseUnit(raw = '') {
+  const input = String(raw).trim();
+  const match = input.match(/^(.*\S)\s+([A-Za-z][A-Za-z0-9%°\/\u00b0]*)$/);
+  if (!match) return { value: input, unit: '' };
+  return {
+    value: match[1].trim(),
+    unit: normalizeUnit(match[2]),
+  };
+}
+
+function normalizeSignedFraction(n, d) {
+  if (!Number.isFinite(n) || !Number.isFinite(d) || d === 0) return null;
+  const g = gcd(Math.abs(n), Math.abs(d)) || 1;
+  let nn = n / g;
+  let dd = d / g;
+  if (dd < 0) {
+    nn = -nn;
+    dd = -dd;
+  }
+  return { numerator: nn, denominator: dd };
+}
+
 function parseFraction(s) {
-  const input = String(s).trim();
+  const unitParsed = parseUnit(s);
+  const input = String(unitParsed.value || '').trim();
   if (!input) return null;
 
-  // Mixed number: "1 2/3" or "-1 2/3".
   const mixedMatch = input.match(/^(-?\d+)\s+(\d+)\s*\/\s*(-?\d+)$/);
   if (mixedMatch) {
     const whole = Number(mixedMatch[1]);
@@ -15,63 +43,144 @@ function parseFraction(s) {
     const denominator = Number(mixedMatch[3]);
     if (denominator === 0) return null;
     const sign = whole < 0 ? -1 : 1;
-    return [whole * denominator + sign * numerator, denominator];
+    const fraction = normalizeSignedFraction(whole * denominator + sign * numerator, denominator);
+    if (!fraction) return null;
+    return { kind: 'fraction', ...fraction, unit: unitParsed.unit };
   }
 
-  // Improper fraction: "2/3" or "-1/2" or "1/-2".
-  const m = input.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
-  if (!m) return null;
-  const num = parseInt(m[1], 10), den = parseInt(m[2], 10);
-  if (den === 0) return null;
-  return [num, den];
+  const improperMatch = input.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+  if (improperMatch) {
+    const num = Number(improperMatch[1]);
+    const den = Number(improperMatch[2]);
+    const fraction = normalizeSignedFraction(num, den);
+    if (!fraction) return null;
+    return { kind: 'fraction', ...fraction, unit: unitParsed.unit };
+  }
+
+  return null;
 }
 
-function normFraction([n, d]) {
-  const g = gcd(n, d) || 1;
-  let nn = n / g, dd = d / g;
-  if (dd < 0) { nn = -nn; dd = -dd; }   // keep sign on numerator
-  return `${nn}/${dd}`;
+function parseDecimal(s) {
+  const unitParsed = parseUnit(s);
+  const input = String(unitParsed.value || '').trim();
+  const normalized = input.replace(/\s+/g, '');
+  if (!/^[-+]?(\d+(\.\d+)?|\.\d+)$/.test(normalized)) return null;
+  const value = Number(normalized);
+  if (!Number.isFinite(value)) return null;
+  return { kind: 'decimal', value, unit: unitParsed.unit };
+}
+
+function parseWhole(s) {
+  const unitParsed = parseUnit(s);
+  const input = String(unitParsed.value || '').trim();
+  if (!/^-?\d+$/.test(input)) return null;
+  return { kind: 'whole', value: Number(input), unit: unitParsed.unit };
+}
+
+function parseSymbol(s) {
+  const input = String(s).trim();
+  const m = input.match(/^\s*(>=|<=|<|>|=)\s*$/);
+  if (!m) return null;
+  return { kind: 'symbol', text: m[1], unit: '' };
+}
+
+function parseValue(raw) {
+  if (raw === null || raw === undefined) return null;
+  const fraction = parseFraction(raw);
+  if (fraction) return fraction;
+  const decimal = parseDecimal(raw);
+  if (decimal) return decimal;
+  const whole = parseWhole(raw);
+  if (whole) return whole;
+  const symbol = parseSymbol(raw);
+  if (symbol) return symbol;
+  return null;
+}
+
+function normalizeWholeOrDecimal(value) {
+  if (value.kind === 'whole') return value.value;
+  if (value.kind === 'decimal') return value.value;
+  if (value.kind === 'fraction') return value.numerator / value.denominator;
+  return NaN;
+}
+
+function fractionSignature(value) {
+  if (value.kind !== 'fraction') return null;
+  return `${value.numerator}/${value.denominator}`;
+}
+
+function hasUnitMismatch(given, expected) {
+  if (!given || !expected) return false;
+  const expectedUnit = expected.unit || '';
+  const givenUnit = given.unit || '';
+  if (!expectedUnit) {
+    return Boolean(givenUnit);
+  }
+  return givenUnit !== expectedUnit;
+}
+
+function isSymbolMatch(given, expected) {
+  return Boolean(given?.kind === 'symbol' && expected?.kind === 'symbol' && given.text === expected.text);
 }
 
 // Returns true if `given` matches `expected`. Tolerant of equivalent fractions
 // and trivial numeric formatting (e.g. "0.50" vs "0.5", " 12 ").
 export function isCorrect(given, expected) {
   if (given == null) return false;
-  const g = String(given).trim();
-  const e = String(expected).trim();
-  if (g === '') return false;
-  if (g.toLowerCase() === e.toLowerCase()) return true;
 
-  // Fractions (equivalent forms count as correct).
-  const gf = parseFraction(g), ef = parseFraction(e);
-  if (gf && ef) return normFraction(gf) === normFraction(ef);
+  const parsedGiven = parseValue(given);
+  const parsedExpected = parseValue(expected);
 
-  // Numbers (whole or decimal).
-  const gn = Number(g), en = Number(e);
-  if (!Number.isNaN(gn) && !Number.isNaN(en)) {
-    return Math.abs(gn - en) < 1e-9;
+  if (parsedGiven && parsedExpected) {
+    if (hasUnitMismatch(parsedGiven, parsedExpected)) return false;
+
+    if (isSymbolMatch(parsedGiven, parsedExpected)) return true;
+
+    if (parsedGiven.kind === 'fraction' && parsedExpected.kind === 'fraction') {
+      return fractionSignature(parsedGiven) === fractionSignature(parsedExpected);
+    }
+
+    if ((parsedGiven.kind === 'fraction' || parsedGiven.kind === 'decimal' || parsedGiven.kind === 'whole')
+      && (parsedExpected.kind === 'fraction' || parsedExpected.kind === 'decimal' || parsedExpected.kind === 'whole')) {
+      const g = normalizeWholeOrDecimal(parsedGiven);
+      const e = normalizeWholeOrDecimal(parsedExpected);
+      return Number.isFinite(g) && Number.isFinite(e) && Math.abs(g - e) <= DECIMAL_TOLERANCE;
+    }
   }
-  return false;
+
+  const gRaw = String(given).trim().toLowerCase();
+  const eRaw = String(expected).trim().toLowerCase();
+  if (!gRaw) return false;
+
+  // Preserve exact matches for non-numeric labels.
+  return gRaw === eRaw;
 }
 
 // Accept numerator-only input for prompts that explicitly fix the denominator,
 // e.g. "? / 4". In those cases expected can be "5/4" and entering "5" should
 // count as correct (the UI is asking for the numerator, not the full fraction).
 function isNumeratorOnlyMatch(given, expected, stem = '') {
-  const g = String(given || '').trim();
-  const e = String(expected || '').trim();
-  const s = String(stem || '');
-  if (!g || !e) return false;
-  const fixedDen = s.match(/\?\s*\/\s*(\d+)/) || s.match(/\(\s*over\s*(\d+)\s*\)/i);
-  if (!fixedDen) return false;
-  const ef = parseFraction(e);
-  if (!ef) return false;
-  const [num, den] = ef;
+  const parsedGiven = parseValue(given);
+  const parsedExpected = parseValue(expected);
+  const fixedDen = String(stem || '').match(/\?\s*\/\s*(\d+)/) || String(stem || '').match(/\(\s*over\s*(\d+)\s*\)/i);
+  if (!fixedDen || !parsedExpected || !parsedGiven) return false;
+
+  if (parsedExpected.kind !== 'fraction') return false;
   const denFromStem = Number(fixedDen[1]);
-  // For this input mode, denominator in expected should match fixed stem denominator.
-  if (den <= 0 || Number.isNaN(denFromStem) || denFromStem !== den) return false;
-  const gn = Number(g);
-  return !Number.isNaN(gn) && Math.abs(gn - num) < 1e-9;
+  if (parsedExpected.denominator !== denFromStem || !Number.isFinite(parsedExpected.denominator)) return false;
+
+  if (hasUnitMismatch(parsedGiven, parsedExpected)) return false;
+
+  const numeratorProvided = parsedGiven.kind === 'fraction'
+    ? parsedGiven.numerator
+    : parsedGiven.kind === 'decimal'
+      ? parsedGiven.value
+      : parsedGiven.kind === 'whole'
+        ? parsedGiven.value
+        : NaN;
+
+  return Number.isFinite(numeratorProvided)
+    && Math.abs(numeratorProvided - parsedExpected.numerator) <= DECIMAL_TOLERANCE;
 }
 
 // Backward-compatible wrapper: existing callers can still pass (given, expected),
@@ -104,6 +213,6 @@ export function checkKeyPoints(given, keyPoints = []) {
 
 // For display: turn "3/4" into parts so the UI can stack it vertically.
 export function fractionParts(s) {
-  const f = parseFraction(s);
-  return f ? { numerator: f[0], denominator: f[1] } : null;
+  const parsed = parseFraction(s);
+  return parsed ? { numerator: parsed.numerator, denominator: parsed.denominator } : null;
 }
