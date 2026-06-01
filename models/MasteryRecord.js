@@ -19,6 +19,14 @@ const masteryRecordSchema = new mongoose.Schema({
     enum: ['not_started', 'needs_review', 'learning', 'mastered'],
     default: 'not_started'
   },
+  masteryState: {
+    type: String,
+    enum: ['not_started', 'emerging', 'developing', 'secure', 'mastered', 'retained'],
+    default: 'not_started'
+  },
+  masteryValidation: { type: mongoose.Schema.Types.Mixed, default: null },
+  progressionHistory: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  retentionSchedule: { type: [mongoose.Schema.Types.Mixed], default: [] },
   attempts: { type: Number, default: 0 },
   // Fluency = speed + accuracy. We keep a rolling window of correct-attempt
   // response times to derive a median and a fluency status against the skill's

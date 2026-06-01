@@ -22,6 +22,7 @@ import { studentMathAnalytics, studentMathPathTimingAnalytics } from '../utils/a
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
 import { evaluateDiagnosticReplayPolicy } from '../utils/diagnosticReplayPolicy.js';
+import { classifyFractionMistake } from '../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
 import {
   getFractionsModelTrainerForSkill,
   getFractionsModelTrainerTemplate,
@@ -761,6 +762,19 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
 
       if (!correct) {
         const misconceptionTag = q.misconceptionTag || '';
+        const mistakeClassification = classifyFractionMistake({
+          skillId: skillFid,
+          questionFamilyId,
+          studentAnswer,
+          correctAnswer: String(q.modelAnswer || q.answer || ''),
+          confidence,
+          timeTaken: timeTakenSeconds,
+          workingAnalysisResult: {
+            calculatorIntegrityFlags: Boolean(r.workingUploaded || r.workingSubmitted || r.fullscreenWorkingSubmitted)
+              ? []
+              : [{ flagType: 'missingWorking' }],
+          },
+        });
         const mistakeType = skipped
           ? 'careless'
           : (misconceptionTag === 'frac/add-without-common' || misconceptionTag === 'frac/add-denominators')
@@ -776,8 +790,22 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
           workedSolution: q.modelAnswer || q.workedSolution || '',
           studentAnswer,
           correctAnswer: String(q.modelAnswer || q.answer || ''),
+          mistakeId: mistakeClassification.mistakeId,
+          mistakeCategory: mistakeClassification.mistakeCategory,
+          severity: mistakeClassification.severityLevel,
           mistakeType,
           misconceptionTag,
+          rootCauseMapping: mistakeClassification.rootCauseMapping,
+          skillMapping: mistakeClassification.skillMapping,
+          firstOccurredAt: new Date(),
+          mostRecentOccurredAt: new Date(),
+          frequency: 1,
+          attemptsSinceOccurrence: 0,
+          improvementTrend: 'insufficient_evidence',
+          resolved: false,
+          interventionPathway: mistakeClassification.interventionPathway?.sequence || [],
+          nextAction: mistakeClassification.nextAction,
+          auditTrail: [mistakeClassification.auditEvent].filter(Boolean),
           confidence,
           reflection,
           helpRequested,
@@ -798,15 +826,15 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         {
           studentId: String(student._id),
           domainId: 'fractions',
-          mistakeCode: mistake.misconceptionTag || 'M010',
+          mistakeCode: mistake.mistakeId || mistake.misconceptionTag || 'M010',
           skillId: savedAttempts.find((attempt) => String(attempt.questionId) === String(mistake.questionId))?.skillId || '',
           questionFamilyId: savedAttempts.find((attempt) => String(attempt.questionId) === String(mistake.questionId))?.questionFamilyId || '',
         },
         {
           $inc: { frequency: 1 },
           $set: {
-            mistakeName: mistake.mistakeType || 'Diagnostic mistake',
-            severity: mistake.possibleMisconception ? 'high' : 'medium',
+            mistakeName: mistake.mistakeCategory || mistake.mistakeType || 'Diagnostic mistake',
+            severity: ['critical', 'major'].includes(mistake.severity) ? 'high' : 'medium',
             lastSeenAt: new Date(),
           },
           $push: {
