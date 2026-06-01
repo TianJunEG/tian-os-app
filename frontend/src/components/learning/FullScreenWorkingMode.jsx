@@ -4,6 +4,8 @@ import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
 
 const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 900;
+const QUESTION_PANEL = { x: 48, y: 44, width: 620, height: 170 };
+const EMPTY_STROKES = [];
 
 function drawStroke(ctx, stroke) {
   const points = stroke?.points || [];
@@ -35,10 +37,52 @@ function paintPaper(ctx) {
   }
 }
 
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  words.forEach((word) => {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  });
+  if (line) lines.push(line);
+  lines.slice(0, 6).forEach((row, index) => ctx.fillText(row, x, y + index * lineHeight));
+}
+
+function paintQuestionPanel(ctx, questionText) {
+  ctx.save();
+  ctx.fillStyle = '#f8fafc';
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(QUESTION_PANEL.x, QUESTION_PANEL.y, QUESTION_PANEL.width, QUESTION_PANEL.height, 18);
+    ctx.fill();
+    ctx.stroke();
+  } else {
+    ctx.fillRect(QUESTION_PANEL.x, QUESTION_PANEL.y, QUESTION_PANEL.width, QUESTION_PANEL.height);
+    ctx.strokeRect?.(QUESTION_PANEL.x, QUESTION_PANEL.y, QUESTION_PANEL.width, QUESTION_PANEL.height);
+  }
+  ctx.fillStyle = '#475569';
+  ctx.font = '600 18px Arial';
+  ctx.fillText('Question', QUESTION_PANEL.x + 28, QUESTION_PANEL.y + 38);
+  ctx.fillStyle = '#111827';
+  ctx.font = '24px Arial';
+  wrapText(ctx, questionText, QUESTION_PANEL.x + 28, QUESTION_PANEL.y + 78, QUESTION_PANEL.width - 56, 34);
+  ctx.restore();
+}
+
 export default function FullScreenWorkingMode({
   open = false,
   questionText = '',
-  initialStrokes = [],
+  questionContent = null,
+  questionSnapshot = null,
+  initialStrokes = EMPTY_STROKES,
   onClose,
   onSave,
 }) {
@@ -66,7 +110,7 @@ export default function FullScreenWorkingMode({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    paintPaper(ctx);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     nextStrokes.forEach((stroke) => drawStroke(ctx, stroke));
   };
 
@@ -151,43 +195,28 @@ export default function FullScreenWorkingMode({
     endStroke();
   };
 
-  useEffect(() => {
-    if (!open) return undefined;
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    const options = { passive: false };
-    canvas.addEventListener('pointerdown', beginPointerStroke, options);
-    canvas.addEventListener('pointermove', movePointerStroke, options);
-    canvas.addEventListener('pointerup', endPointerStroke, options);
-    canvas.addEventListener('pointercancel', endPointerStroke, options);
-    canvas.addEventListener('pointerleave', endPointerStroke, options);
-    canvas.addEventListener('mousedown', beginMouseStroke, options);
-    canvas.addEventListener('mousemove', moveMouseStroke, options);
-    canvas.addEventListener('mouseup', endMouseStroke, options);
-    canvas.addEventListener('mouseleave', endMouseStroke, options);
-    return () => {
-      canvas.removeEventListener('pointerdown', beginPointerStroke);
-      canvas.removeEventListener('pointermove', movePointerStroke);
-      canvas.removeEventListener('pointerup', endPointerStroke);
-      canvas.removeEventListener('pointercancel', endPointerStroke);
-      canvas.removeEventListener('pointerleave', endPointerStroke);
-      canvas.removeEventListener('mousedown', beginMouseStroke);
-      canvas.removeEventListener('mousemove', moveMouseStroke);
-      canvas.removeEventListener('mouseup', endMouseStroke);
-      canvas.removeEventListener('mouseleave', endMouseStroke);
-    };
-  }, [open]);
-
   const save = () => {
     const canvas = canvasRef.current;
     if (drawingRef.current) endStroke();
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = CANVAS_WIDTH;
+    exportCanvas.height = CANVAS_HEIGHT;
+    const exportCtx = exportCanvas.getContext('2d');
+    paintPaper(exportCtx);
+    paintQuestionPanel(exportCtx, questionText);
+    strokesRef.current.forEach((stroke) => drawStroke(exportCtx, stroke));
     onSave?.({
-      workingImage: canvas?.toDataURL('image/png') || '',
+      workingImage: exportCanvas?.toDataURL('image/png') || canvas?.toDataURL('image/png') || '',
       workingStrokes: strokesRef.current,
       workingSubmitted: true,
       workingSubmittedAt: new Date().toISOString(),
       source: 'fullscreen_working',
       canvasDimensions: { width: CANVAS_WIDTH, height: CANVAS_HEIGHT },
+      questionSnapshot: {
+        text: questionText,
+        ...(questionSnapshot || {}),
+        renderMode: 'worksheet_dom_overlay_export_composite',
+      },
       viewportDimensions: typeof window !== 'undefined'
         ? { width: window.innerWidth, height: window.innerHeight }
         : null,
@@ -226,6 +255,7 @@ export default function FullScreenWorkingMode({
   };
 
   const zoomBy = (delta) => setZoom((value) => Math.min(2, Math.max(0.75, Math.round((value + delta) * 100) / 100)));
+  const resetZoom = () => setZoom(1);
 
   const pan = (direction) => {
     const node = scrollRef.current;
@@ -255,11 +285,6 @@ export default function FullScreenWorkingMode({
       )}
     >
       <div className="max-h-[calc(92vh-10rem)] space-y-3 overflow-y-auto pr-1">
-        <div className="rounded-xl border border-hairline bg-slate-50 p-3 text-sm text-ink-700">
-          <p className="font-semibold">Question reference</p>
-          <p className="mt-1">{questionText}</p>
-          <p className="mt-2 text-xs text-ink-500">For longer workings, you can also write on paper and upload a photo after the session.</p>
-        </div>
         <WorkingToolbar
           tool={tool}
           colour={colour}
@@ -275,17 +300,57 @@ export default function FullScreenWorkingMode({
           onClear={clear}
           onZoomIn={() => zoomBy(0.25)}
           onZoomOut={() => zoomBy(-0.25)}
+          onZoomReset={resetZoom}
           onPan={pan}
         />
-        <div ref={scrollRef} className="max-h-[52vh] overflow-auto rounded-xl border border-hairline bg-white">
-          <canvas
-            ref={canvasRef}
-            width={CANVAS_WIDTH}
-            height={CANVAS_HEIGHT}
-            className="block h-[48vh] min-h-[300px] touch-none rounded-xl"
-            style={{ width: `${zoom * 100}%`, minWidth: '100%' }}
-            aria-label="Full-screen working canvas"
-          />
+        <div ref={scrollRef} className="max-h-[58vh] overflow-auto rounded-xl border border-hairline bg-slate-100 p-3">
+          <div
+            className="relative rounded-xl bg-white shadow-resting"
+            style={{
+              width: `${CANVAS_WIDTH}px`,
+              height: `${CANVAS_HEIGHT}px`,
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left',
+              marginRight: `${CANVAS_WIDTH * (zoom - 1)}px`,
+              marginBottom: `${CANVAS_HEIGHT * (zoom - 1)}px`,
+              backgroundImage: 'linear-gradient(#e8eef7 1px, transparent 1px)',
+              backgroundSize: '100% 36px',
+            }}
+            data-testid="worksheet-working-space"
+          >
+            <div
+              className="absolute rounded-2xl border border-slate-300 bg-slate-50 p-7"
+              style={{
+                left: `${QUESTION_PANEL.x}px`,
+                top: `${QUESTION_PANEL.y}px`,
+                width: `${QUESTION_PANEL.width}px`,
+                minHeight: `${QUESTION_PANEL.height}px`,
+              }}
+              data-testid="worksheet-question-panel"
+            >
+              <p className="text-lg font-semibold text-slate-600">Question</p>
+              <div className="mt-3 whitespace-pre-wrap text-2xl leading-snug text-ink-900">
+                {questionContent || questionText}
+              </div>
+            </div>
+            <canvas
+              ref={canvasRef}
+              width={CANVAS_WIDTH}
+              height={CANVAS_HEIGHT}
+              className="absolute inset-0 block touch-none rounded-xl"
+              style={{ width: `${CANVAS_WIDTH}px`, height: `${CANVAS_HEIGHT}px` }}
+              aria-label="Full-screen working canvas"
+              onPointerDown={beginPointerStroke}
+              onPointerMove={movePointerStroke}
+              onPointerUp={endPointerStroke}
+              onPointerCancel={endPointerStroke}
+              onPointerLeave={endPointerStroke}
+              onMouseDown={beginMouseStroke}
+              onMouseMove={moveMouseStroke}
+              onMouseUp={endMouseStroke}
+              onMouseLeave={endMouseStroke}
+            />
+          </div>
         </div>
       </div>
     </Modal>

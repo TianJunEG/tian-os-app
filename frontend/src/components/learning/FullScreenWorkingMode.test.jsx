@@ -12,7 +12,12 @@ beforeEach(() => {
     moveTo: vi.fn(),
     lineTo: vi.fn(),
     stroke: vi.fn(),
+    clearRect: vi.fn(),
     fillRect: vi.fn(),
+    strokeRect: vi.fn(),
+    drawImage: vi.fn(),
+    fillText: vi.fn(),
+    measureText: vi.fn((text) => ({ width: String(text || '').length * 10 })),
   }));
   HTMLCanvasElement.prototype.toDataURL = vi.fn(() => 'data:image/png;base64,fullscreen');
   HTMLCanvasElement.prototype.getBoundingClientRect = vi.fn(() => ({
@@ -24,7 +29,7 @@ beforeEach(() => {
 });
 
 describe('FullScreenWorkingMode', () => {
-  it('opens with a large canvas and saves working evidence', () => {
+  it('opens with the question inside a worksheet workspace and saves working evidence', () => {
     const onSave = vi.fn();
     render(
       <FullScreenWorkingMode
@@ -35,7 +40,8 @@ describe('FullScreenWorkingMode', () => {
       />
     );
 
-    expect(screen.getByText('Question reference')).toBeInTheDocument();
+    expect(screen.getByTestId('worksheet-working-space')).toBeInTheDocument();
+    expect(screen.getByTestId('worksheet-question-panel')).toBeInTheDocument();
     expect(screen.getByText('Ali had 18 stickers left.')).toBeInTheDocument();
     expect(screen.getByTestId('working-toolbar')).toBeInTheDocument();
 
@@ -51,7 +57,29 @@ describe('FullScreenWorkingMode', () => {
       workingStrokes: expect.any(Array),
       source: 'fullscreen_working',
       canvasDimensions: { width: 1400, height: 900 },
+      questionSnapshot: expect.objectContaining({
+        text: 'Ali had 18 stickers left.',
+        renderMode: 'worksheet_dom_overlay_export_composite',
+      }),
     }));
+  });
+
+  it('clears strokes without removing the worksheet question', () => {
+    render(
+      <FullScreenWorkingMode
+        open
+        questionText="Shade 3/5 of the bar."
+        initialStrokes={[{ tool: 'pen', colour: '#111827', size: 4, points: [{ x: 10, y: 10 }, { x: 80, y: 80 }] }]}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
+    expect(screen.getByText('Clear')).not.toBeDisabled();
+    fireEvent.click(screen.getByText('Clear'));
+    expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
+    expect(screen.getByText('Save Working')).toBeDisabled();
   });
 
   it('renders a saved working attachment with edit and delete actions', () => {

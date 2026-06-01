@@ -39,6 +39,7 @@ export default function WorkingToolbar({
   onClear,
   onZoomIn,
   onZoomOut,
+  onZoomReset,
   onPan,
 }) {
   return (
@@ -84,6 +85,7 @@ export default function WorkingToolbar({
           <div className="flex flex-wrap gap-2">
             <Button size="s" className="min-h-[44px]" variant="secondary" icon={ZoomOut} onClick={onZoomOut}>Zoom out</Button>
             <Button size="s" className="min-h-[44px]" variant="secondary" icon={ZoomIn} onClick={onZoomIn}>Zoom in</Button>
+            <Button size="s" className="min-h-[44px]" variant="secondary" onClick={onZoomReset}>Reset 100%</Button>
             <Button size="s" className="min-h-[44px]" variant="ghost" icon={Move} onClick={() => onPan?.('right')}>
               {Math.round(Number(zoom || 1) * 100)}%
             </Button>

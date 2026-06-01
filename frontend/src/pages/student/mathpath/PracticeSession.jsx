@@ -431,6 +431,18 @@ function LegacyPracticeSession() {
       <FullScreenWorkingMode
         open={fullscreenOpen}
         questionText={q.stem || q.prompt || ''}
+        questionContent={(
+          <div className="space-y-4 text-base">
+            <MathText text={q.stem || q.prompt || ''} />
+            <VisualBlock visual={q.visual} />
+          </div>
+        )}
+        questionSnapshot={{
+          questionId: q.questionId,
+          skillId: q.skillId,
+          hasVisual: Boolean(q.visual),
+          visualType: q.visual?.type || '',
+        }}
         initialStrokes={currentFullscreenWorking.workingStrokes || EMPTY_STROKES}
         onClose={() => setFullscreenOpen(false)}
         onSave={(payload) => {
@@ -1060,6 +1072,20 @@ export default function PracticeSession() {
       <FullScreenWorkingMode
         open={fullscreenQuestionId === q.questionId}
         questionText={questionText}
+        questionContent={(
+          <div className="space-y-4 text-base">
+            <MathText text={questionText} />
+            <QuestionDiagram question={q} />
+            <VisualBlock visual={q.visual} />
+          </div>
+        )}
+        questionSnapshot={{
+          questionId: q.questionId,
+          skillId: q.skillId,
+          hasDiagram: Boolean(q.diagramSpec || q.diagram || (q.visual?.type === 'svg' && q.visual?.payload?.type)),
+          hasVisual: Boolean(q.visual),
+          visualType: q.visual?.type || '',
+        }}
         initialStrokes={currentFullscreenWorking.workingStrokes || EMPTY_STROKES}
         onClose={() => setFullscreenQuestionId(null)}
         onSave={(payload) => {
