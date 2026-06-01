@@ -1,4 +1,8 @@
 import { fractionSkillGraph, getSkill } from '../fractions/fractionSkillGraph.js';
+import {
+  buildAdultActionCentre,
+  buildUnifiedAdultIntelligenceModel,
+} from './adultIntelligenceEngine.js';
 
 const STATUS_BANDS = ['needsSupport', 'developing', 'onTrack', 'strong', 'advanced'];
 
@@ -233,6 +237,9 @@ export function buildParentMathPathSummary(options = {}) {
     assessmentResults = [],
     mistakeToMasteryPlans = [],
     workingAnalysisSummary = {},
+    workingSessions = [],
+    attempts = [],
+    helpRequests = [],
   } = options;
 
   const masteryProgress = buildMasteryProgressSummary(fractionSkillGraph, {
@@ -289,6 +296,20 @@ export function buildParentMathPathSummary(options = {}) {
   const narrative = stripTechnicalJargon(
     `${fluencySummary.parentExplanation} ${retentionSummary.parentExplanation} ${assessmentSummary.parentExplanation} Next week focus: ${weeklyActionPlan.weekFocus}.`
   );
+  const adultIntelligence = buildUnifiedAdultIntelligenceModel({
+    studentId,
+    audience: 'parent',
+    diagnosticResult,
+    practiceState,
+    fluencyState,
+    retentionState,
+    assessmentResults,
+    mistakePlans: mistakeToMasteryPlans,
+    workingAnalysisSummary,
+    workingSessions,
+    attempts,
+    helpRequests,
+  });
 
   return {
     studentId,
@@ -305,6 +326,30 @@ export function buildParentMathPathSummary(options = {}) {
     weeklyActionPlan,
     mistakeSummary,
     workingSummary,
+    parentHome: {
+      overallProgress: masteryProgress.percentageMastered,
+      currentFocusSkills: adultIntelligence.masterySignals.currentFocusSkills.map((skillId) => toParentLabel(skillId)),
+      recentlyMasteredSkills: adultIntelligence.masterySignals.recentlyMasteredSkills,
+      skillsRequiringAttention: adultIntelligence.masterySignals.skillsRequiringAttention,
+      upcomingActivities: adultIntelligence.upcomingActivities,
+      recommendedActions: adultIntelligence.recommendedActions,
+    },
+    parentStudentProfile: {
+      masteryMap: masteryProgress,
+      strengths: recentImprovements,
+      weaknesses: currentWeaknesses,
+      confidenceTrends: adultIntelligence.confidenceSignals,
+      fluencyTrends: adultIntelligence.fluencySignals,
+      retentionStatus: adultIntelligence.retentionSignals,
+      learningHistory: adultIntelligence.timeline,
+    },
+    parentActionCentre: buildAdultActionCentre(adultIntelligence),
+    parentWorkingReview: {
+      workingEvidence: adultIntelligence.workingEvidence,
+      helpRequests: adultIntelligence.supportFlags.filter((flag) => flag.flagType === 'student_help_request'),
+    },
+    parentTraining: adultIntelligence.parentTrainingRecommendations,
+    adultIntelligence,
   };
 }
 
@@ -337,14 +382,18 @@ export function validateParentMathPathDashboardEngine() {
     ],
     mistakeToMasteryPlans: [
       {
-        rootCauseSkillIds: ['F010'],
-        remediationQueue: [{ skillId: 'F010' }, { skillId: 'F011' }],
-      },
-    ],
-    workingAnalysisSummary: {
-      averageWorkingQuality: 62,
-      missingWorkingCount: 1,
+      rootCauseSkillIds: ['F010'],
+      remediationQueue: [{ skillId: 'F010' }, { skillId: 'F011' }],
+      focusMistakes: [{ mistakeCode: 'M001', count: 3, highestSeverityLevel: 'major' }],
+      interventionPathways: [{ pathway_id: 'PATH_FRA_M001_major' }],
+      worksheetMappings: [{ worksheet_id: 'WS_FRA_M001' }],
     },
+  ],
+    workingAnalysisSummary: {
+    averageWorkingQuality: 62,
+    missingWorkingCount: 1,
+  },
+  helpRequests: [{ skillId: 'F010', count: 1, latestAt: '2026-01-01T00:00:00.000Z' }],
   });
 
   const hasNoCrashOnPartial = Boolean(partialSummary && partialSummary.masteryProgress);
@@ -354,6 +403,7 @@ export function validateParentMathPathDashboardEngine() {
   const assessmentTrend = toNum(fullSummary.assessmentSummary.scoreChange, 0) > 0;
   const weeklyPlanGenerated = Boolean(fullSummary.weeklyActionPlan?.weekFocus && fullSummary.weeklyActionPlan?.parentChecklist?.length);
   const noJargonInNarrative = !/\bF\d{3}\b|\bQF_F\d{3}_\d{3}\b/.test(fullSummary.parentFriendlyNarrative);
+  const adultModelBuilt = Boolean(fullSummary.adultIntelligence?.whatIsHappening && fullSummary.parentActionCentre?.actions?.length);
 
   return {
     isValid:
@@ -364,6 +414,7 @@ export function validateParentMathPathDashboardEngine() {
       assessmentTrend &&
       weeklyPlanGenerated &&
       noJargonInNarrative &&
+      adultModelBuilt &&
       STATUS_BANDS.includes(fullSummary.overallStatus),
     checks: {
       hasNoCrashOnPartial,
@@ -373,6 +424,7 @@ export function validateParentMathPathDashboardEngine() {
       assessmentTrend,
       weeklyPlanGenerated,
       noJargonInNarrative,
+      adultModelBuilt,
       overallStatusValid: STATUS_BANDS.includes(fullSummary.overallStatus),
     },
     sample: {
@@ -392,6 +444,8 @@ export const parentMathPathDashboardEngine = {
   buildMistakeParentSummary,
   buildWorkingQualityParentSummary,
   buildWeeklyParentActionPlan,
+  buildUnifiedAdultIntelligenceModel,
+  buildAdultActionCentre,
   validateParentMathPathDashboardEngine,
 };
 

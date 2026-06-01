@@ -1,5 +1,9 @@
 import { fractionSkillGraph, getSkill } from '../fractions/fractionSkillGraph.js';
 import { getFractionMistakeTaxonomy } from '../fractions/fractionMistakeToMasteryEngine.js';
+import {
+  buildClassGroupingSuggestions,
+  buildUnifiedAdultIntelligenceModel,
+} from './adultIntelligenceEngine.js';
 
 function toNum(v, fallback = 0) {
   const n = Number(v);
@@ -506,6 +510,7 @@ export function buildTeacherMathPathDashboard(options = {}) {
     assessmentResults = [],
     mistakePlans = [],
     workingAnalysisSummaries = [],
+    helpRequests = [],
   } = options;
 
   const states = Array.isArray(studentProgressStates) ? studentProgressStates : [];
@@ -532,6 +537,20 @@ export function buildTeacherMathPathDashboard(options = {}) {
     commonMistakePatterns,
     workingQualityOverview,
   });
+  const adultGroupingSuggestions = buildClassGroupingSuggestions({
+    studentProgressStates: states,
+    mistakePlans,
+    fluencyStates: states,
+    retentionStates: states,
+  });
+  const adultIntelligence = buildUnifiedAdultIntelligenceModel({
+    classId,
+    audience: 'teacher',
+    mistakePlans,
+    helpRequests,
+    assessmentResults,
+    workingAnalysisSummary: workingQualityOverview,
+  });
 
   return {
     teacherId,
@@ -546,6 +565,23 @@ export function buildTeacherMathPathDashboard(options = {}) {
     commonMistakePatterns,
     workingQualityOverview,
     recommendedTeacherActions,
+    classGroupingEngine: adultGroupingSuggestions,
+    teacherInterventionView: {
+      commonMisconceptions: commonMistakePatterns,
+      recommendedReteachingTopics: commonMistakePatterns.slice(0, 5).map((row) => row.mistakeName),
+      remediationGroups: adultGroupingSuggestions,
+      worksheetPacks: commonMistakePatterns.slice(0, 5).map((row) => ({
+        packId: `teacher_ws_${row.mistakeCode}`,
+        title: `${row.mistakeName} worksheet pack`,
+        targetSkillIds: row.affectedSkills,
+      })),
+    },
+    teacherAssignmentCentre: {
+      supportedAssignmentTypes: ['practice', 'worksheet', 'lifelab_activity', 'sciencepath_future', 'englishpath_future'],
+      foundationsReady: true,
+      primaryActions: recommendedTeacherActions,
+    },
+    adultIntelligence,
   };
 }
 
@@ -601,6 +637,7 @@ export function validateTeacherMathPathDashboardEngine() {
     { studentId: 's2', averageWorkingQuality: 73, missingWorkingCount: 0, unreadableWorkingQuestions: [] },
     { studentId: 's3', averageWorkingQuality: 82, missingWorkingCount: 0, unreadableWorkingQuestions: [] },
   ];
+  const helpRequests = [{ studentId: 's1', skillId: 'F010', count: 2, latestAt: '2026-01-01T00:00:00.000Z' }];
 
   const dashboard = buildTeacherMathPathDashboard({
     teacherId: 't1',
@@ -610,6 +647,7 @@ export function validateTeacherMathPathDashboardEngine() {
     assessmentResults,
     mistakePlans,
     workingAnalysisSummaries,
+    helpRequests,
   });
 
   return {
@@ -622,7 +660,10 @@ export function validateTeacherMathPathDashboardEngine() {
       !!dashboard.assessmentReadiness.readinessDistribution &&
       Array.isArray(dashboard.commonMistakePatterns) &&
       !!dashboard.workingQualityOverview &&
-      Array.isArray(dashboard.recommendedTeacherActions),
+      Array.isArray(dashboard.recommendedTeacherActions) &&
+      Array.isArray(dashboard.classGroupingEngine) &&
+      Boolean(dashboard.teacherAssignmentCentre?.foundationsReady) &&
+      Boolean(dashboard.adultIntelligence?.alerts),
     checks: {
       handlesMultipleStudentStates: dashboard.classOverview.totalStudents === 3,
       classOverviewCalculated: dashboard.classOverview.averageMastery > 0,
@@ -634,6 +675,9 @@ export function validateTeacherMathPathDashboardEngine() {
       commonMistakesGrouped: dashboard.commonMistakePatterns.length > 0,
       workingOverviewIncluded: typeof dashboard.workingQualityOverview.averageWorkingQuality !== 'undefined',
       actionsGenerated: dashboard.recommendedTeacherActions.length > 0,
+      adultGroupingIncluded: dashboard.classGroupingEngine.length > 0,
+      assignmentFoundationIncluded: dashboard.teacherAssignmentCentre?.foundationsReady === true,
+      adultIntelligenceIncluded: Boolean(dashboard.adultIntelligence?.alerts),
       partialDataSafe: Boolean(buildTeacherMathPathDashboard({ teacherId: 't2', classId: 'empty', studentProgressStates: [] })),
     },
     sample: {
@@ -655,6 +699,8 @@ export const teacherMathPathDashboardEngine = {
   buildCommonMistakePatterns,
   buildWorkingQualityOverview,
   buildRecommendedTeacherActions,
+  buildClassGroupingSuggestions,
+  buildUnifiedAdultIntelligenceModel,
   validateTeacherMathPathDashboardEngine,
 };
 

@@ -2,6 +2,10 @@ import { fractionSkillGraph, getSkill, getPrerequisites } from '../fractions/fra
 import { getQuestionFamily, getQuestionFamiliesBySkill } from '../fractions/fractionQuestionFamilies.js';
 import { buildStudentProgressState } from '../state/mathPathStudentProgressEngine.js';
 import { getFractionMistakeTaxonomy } from '../fractions/fractionMistakeToMasteryEngine.js';
+import {
+  buildTutorInterventionQueue,
+  buildUnifiedAdultIntelligenceModel,
+} from './adultIntelligenceEngine.js';
 
 function toNum(v, fallback = 0) {
   const n = Number(v);
@@ -411,6 +415,9 @@ export function buildTutorMathPathDashboard(options = {}) {
     assessmentResults = [],
     mistakePlans = [],
     workingAnalysisSummary = {},
+    workingSessions = [],
+    attempts = [],
+    helpRequests = [],
   } = options;
 
   const resolvedState =
@@ -467,6 +474,21 @@ export function buildTutorMathPathDashboard(options = {}) {
     readinessBand: resolvedState.readinessLevel?.readinessBand || 'developing',
     readinessScore: resolvedState.readinessLevel?.readinessScore || null,
   };
+  const adultIntelligence = buildUnifiedAdultIntelligenceModel({
+    studentId: resolvedState.studentId || studentId,
+    audience: 'tutor',
+    studentProgressState: resolvedState,
+    diagnosticResult,
+    practiceState,
+    fluencyState,
+    retentionState,
+    assessmentResults,
+    mistakePlans,
+    workingAnalysisSummary,
+    workingSessions,
+    attempts,
+    helpRequests,
+  });
 
   return {
     studentId: resolvedState.studentId || studentId,
@@ -480,6 +502,25 @@ export function buildTutorMathPathDashboard(options = {}) {
     interventionPriorities,
     nextSessionPlan,
     suggestedAssignments,
+    tutorHome: {
+      studentsRequiringIntervention: adultIntelligence.supportFlags.length ? [adultIntelligence.studentId].filter(Boolean) : [],
+      upcomingPriorities: adultIntelligence.recommendedActions,
+      lessonRecommendations: [nextSessionPlan],
+      recentMasteryGains: adultIntelligence.masterySignals.recentlyMasteredSkills,
+      persistentMisconceptions: adultIntelligence.misconceptions,
+    },
+    tutorStudentProfile: {
+      skillGraph: resolvedState.skillStatuses || {},
+      masteryStatus: adultIntelligence.masterySignals,
+      rootCauses: adultIntelligence.rootCauses,
+      misconceptions: adultIntelligence.misconceptions,
+      confidenceCalibration: adultIntelligence.confidenceSignals,
+      workingEvidence: adultIntelligence.workingEvidence,
+      interventionHistory: adultIntelligence.interventions,
+    },
+    tutorSessionPlanner: nextSessionPlan,
+    tutorInterventionQueue: buildTutorInterventionQueue([adultIntelligence]),
+    adultIntelligence,
     tutorNotes,
   };
 }
@@ -536,6 +577,7 @@ export function validateTutorMathPathDashboardEngine() {
     assessmentResults: studentProgressState.assessmentResults,
     mistakePlans: studentProgressState.mistakePlans,
     workingAnalysisSummary: studentProgressState.workingAnalysisSummary,
+    helpRequests: [{ skillId: 'F010', count: 2, latestAt: '2026-01-01T00:00:00.000Z' }],
   });
 
   const rootWithChain = dashboard.rootCauseAnalysis.find((r) => r.prerequisiteChain.length > 0);
@@ -548,6 +590,7 @@ export function validateTutorMathPathDashboardEngine() {
     dashboard.interventionPriorities[0].priorityRank === 1;
   const sessionPlanBuilt = !!dashboard.nextSessionPlan?.sessionGoal;
   const assignmentsHaveFamilies = dashboard.suggestedAssignments.every((a) => Array.isArray(a.questionFamilyIds));
+  const adultModelBuilt = Boolean(dashboard.adultIntelligence?.whatShouldHappenNext && dashboard.tutorInterventionQueue.length);
 
   return {
     isValid:
@@ -559,7 +602,8 @@ export function validateTutorMathPathDashboardEngine() {
       workingIncluded &&
       prioritiesRanked &&
       sessionPlanBuilt &&
-      assignmentsHaveFamilies,
+      assignmentsHaveFamilies &&
+      adultModelBuilt,
     checks: {
       consumesStudentProgressState: Boolean(dashboard.studentId && studentProgressState),
       rootCauseHasPrerequisiteChain: Boolean(rootWithChain),
@@ -570,6 +614,7 @@ export function validateTutorMathPathDashboardEngine() {
       interventionPrioritiesRanked: prioritiesRanked,
       nextSessionPlanGenerated: sessionPlanBuilt,
       assignmentsIncludeFamilyIds: assignmentsHaveFamilies,
+      adultIntelligenceIncluded: adultModelBuilt,
     },
     sample: {
       dashboard,
@@ -589,6 +634,8 @@ export const tutorMathPathDashboardEngine = {
   buildInterventionPriorities,
   buildNextTutorSessionPlan,
   buildSuggestedTutorAssignments,
+  buildUnifiedAdultIntelligenceModel,
+  buildTutorInterventionQueue,
   validateTutorMathPathDashboardEngine,
 };
 
