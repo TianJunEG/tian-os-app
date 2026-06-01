@@ -23,6 +23,7 @@ import { buildRemediationPlan } from '../utils/remediationEngine.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
 import { evaluateDiagnosticReplayPolicy } from '../utils/diagnosticReplayPolicy.js';
 import { classifyFractionMistake } from '../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
+import { calculateQuestionTiming } from '../frontend/src/mathpath/fractions/fractionFluencyRetentionEngine.js';
 import {
   getFractionsModelTrainerForSkill,
   getFractionsModelTrainerTemplate,
@@ -222,7 +223,14 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
     const results = submitted.results || [];
     if (results.length) {
       await MathPathAttempt.insertMany(
-        results.map((result) => ({
+        results.map((result) => {
+          const timing = calculateQuestionTiming({
+            ...result,
+            timeTaken: result.timeTaken,
+            timeSpentSeconds: result.timeTaken,
+            answerSubmittedAt: result.questionEndedAt,
+          });
+          return ({
           studentId,
           domainId: 'fractions',
           skillId: result.skillId || 'F023',
@@ -236,6 +244,11 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
           correct: Boolean(result.correct),
           timeTaken: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
           timeSpentSeconds: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+          rawTimeSeconds: timing.rawTimeSeconds,
+          effectiveAnswerTimeSeconds: timing.effectiveAnswerTimeSeconds,
+          totalQuestionTimeSeconds: timing.totalQuestionTimeSeconds,
+          reviewTimeSeconds: timing.reviewTimeSeconds,
+          skillTimingSnapshot: timing,
           confidenceLevel: result.confidenceLevel || '',
           confidence: result.confidence || '',
           timestamp: toDateLike(result.timestamp) || toDateLike(result.questionEndedAt) || new Date(),
@@ -245,7 +258,8 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
           questionStartedAt: toDateLike(result.questionStartedAt) || null,
           questionEndedAt: toDateLike(result.questionEndedAt) || null,
           workingUploaded: Boolean(result.workingUploaded),
-        })),
+          });
+        }),
         { ordered: false }
       );
 
@@ -698,6 +712,14 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       const startedAt = toDateLike(r.questionStartedAt);
       const endedAt = toDateLike(r.questionEndedAt) || new Date();
       const eventTimestamp = toDateLike(r.timestamp) || endedAt || new Date();
+      const timing = calculateQuestionTiming({
+        ...r,
+        timeTaken: timeTakenSeconds,
+        timeSpentSeconds: timeTakenSeconds,
+        questionStartedAt: startedAt,
+        questionEndedAt: endedAt,
+        answerSubmittedAt: endedAt,
+      });
 
       attemptsForPlacement.push({
         slug: skill.slug,
@@ -732,6 +754,11 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         correct,
         timeTaken: Number.isFinite(Number(timeTakenSeconds)) ? Number(timeTakenSeconds) : null,
         timeSpentSeconds: Number.isFinite(Number(timeTakenSeconds)) ? Number(timeTakenSeconds) : null,
+        rawTimeSeconds: timing.rawTimeSeconds,
+        effectiveAnswerTimeSeconds: timing.effectiveAnswerTimeSeconds,
+        totalQuestionTimeSeconds: timing.totalQuestionTimeSeconds,
+        reviewTimeSeconds: timing.reviewTimeSeconds,
+        skillTimingSnapshot: timing,
         timestamp: eventTimestamp,
         confidenceLevel: confidence,
         confidence,

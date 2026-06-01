@@ -2,7 +2,7 @@ import { getSkill } from './fractionSkillGraph.js';
 import { getQuestionFamily } from './fractionQuestionFamilies.js';
 import { calculateQuestionFluency } from './fractionFluencyEngine.js';
 
-const REVIEW_DAYS = [3, 7, 30, 90];
+const REVIEW_DAYS = [1, 7, 30, 90, 180];
 const RETENTION_STATUS = {
   RETAINED: 'retained',
   NEEDS_REVIEW: 'needsReview',
