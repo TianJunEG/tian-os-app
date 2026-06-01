@@ -61,6 +61,11 @@ function publicSession(session = {}) {
     status: session.status,
     questionWorkingMap: session.questionWorkingMap || [],
     fileMetadata: session.fileMetadata || [],
+    uploadedImages: session.uploadedImages || [],
+    canvasImage: session.canvasImage || '',
+    canvasStrokeData: session.canvasStrokeData || [],
+    doodleOverlayData: session.doodleOverlayData || [],
+    digitalInkData: session.digitalInkData || null,
     submittedByRole: session.submittedByRole || '',
     submittedByUserId: session.submittedByUserId || '',
     submissionTimestamp: session.submissionTimestamp || null,
@@ -332,6 +337,31 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
 
     session.fileMetadata = [...(session.fileMetadata || []), ...metadata];
     session.fileUrls = [...(session.fileUrls || []), ...metadata.map((file) => file.storageRef)];
+    session.uploadedImages = [
+      ...(session.uploadedImages || []),
+      ...metadata
+        .filter((file) => String(file.mimeType || '').startsWith('image/'))
+        .map((file) => file.storageRef),
+    ];
+    if (req.body?.canvasImage) session.canvasImage = String(req.body.canvasImage);
+    if (req.body?.canvasStrokeData) {
+      try {
+        session.canvasStrokeData = typeof req.body.canvasStrokeData === 'string'
+          ? JSON.parse(req.body.canvasStrokeData)
+          : req.body.canvasStrokeData;
+      } catch (_) {
+        session.canvasStrokeData = req.body.canvasStrokeData;
+      }
+    }
+    if (req.body?.doodleOverlayData) {
+      try {
+        session.doodleOverlayData = typeof req.body.doodleOverlayData === 'string'
+          ? JSON.parse(req.body.doodleOverlayData)
+          : req.body.doodleOverlayData;
+      } catch (_) {
+        session.doodleOverlayData = req.body.doodleOverlayData;
+      }
+    }
     if (req.body?.digitalInkData) session.digitalInkData = req.body.digitalInkData;
     session.status = 'submitted';
     session.submittedByRole = getSubmittedByRole(req.user);

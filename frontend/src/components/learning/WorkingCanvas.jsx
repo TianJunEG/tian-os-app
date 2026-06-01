@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Eraser, Grid, PenLine, RotateCcw, Trash2 } from 'lucide-react';
+import { Check, Grid } from 'lucide-react';
 import { Button, Badge } from '../ui';
+import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
 
 const CANVAS_WIDTH = 900;
 const CANVAS_HEIGHT = 320;
@@ -44,8 +45,10 @@ function drawStroke(ctx, stroke) {
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : '#172554';
-  ctx.lineWidth = stroke.tool === 'eraser' ? 24 : 3;
+  ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
+  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.35 : 1;
+  ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
+  ctx.lineWidth = stroke.tool === 'eraser' ? 24 : stroke.tool === 'pencil' ? Math.max(1, Number(stroke.size || 3) - 1) : Number(stroke.size || 3);
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
@@ -97,11 +100,16 @@ export default function WorkingCanvas({
   onChange,
 }) {
   const canvasRef = useRef(null);
+  const scrollRef = useRef(null);
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
   const [tool, setTool] = useState('pen');
+  const [colour, setColour] = useState(WORKING_COLOURS[0]?.value || '#111827');
+  const [brushSize, setBrushSize] = useState(4);
   const [background, setBackground] = useState('ruled');
   const [strokes, setStrokes] = useState(Array.isArray(submittedStrokes) ? submittedStrokes : []);
+  const [redoStack, setRedoStack] = useState([]);
+  const [zoom, setZoom] = useState(1);
   const [submitted, setSubmitted] = useState(Boolean(submittedImage || submittedStrokes?.length));
   const [notNeeded, setNotNeeded] = useState(false);
 
@@ -126,6 +134,7 @@ export default function WorkingCanvas({
 
   useEffect(() => {
     setStrokes(Array.isArray(submittedStrokes) ? submittedStrokes : []);
+    setRedoStack([]);
     setSubmitted(Boolean(submittedImage || submittedStrokes?.length));
     setNotNeeded(false);
   }, [questionId, submittedImage, submittedStrokes]);
@@ -153,7 +162,7 @@ export default function WorkingCanvas({
     event.preventDefault();
     const point = pointFromEvent(event);
     drawingRef.current = true;
-    currentStrokeRef.current = { tool, points: [point] };
+    currentStrokeRef.current = { tool, colour, size: brushSize, points: [point] };
   };
 
   const moveStroke = (event) => {
@@ -174,6 +183,7 @@ export default function WorkingCanvas({
     if (!stroke || stroke.points.length < 2) return;
     const nextStrokes = [...strokes, stroke];
     setStrokes(nextStrokes);
+    setRedoStack([]);
     setSubmitted(false);
     setNotNeeded(false);
     emitChange({ workingSubmitted: false, workingNotNeeded: false, workingStrokes: nextStrokes });
@@ -181,6 +191,7 @@ export default function WorkingCanvas({
 
   const clear = () => {
     setStrokes([]);
+    setRedoStack([]);
     setSubmitted(false);
     setNotNeeded(false);
     redraw([]);
@@ -189,10 +200,39 @@ export default function WorkingCanvas({
 
   const undo = () => {
     const nextStrokes = strokes.slice(0, -1);
+    const undone = strokes.at(-1);
+    setStrokes(nextStrokes);
+    if (undone) setRedoStack((prev) => [...prev, undone]);
+    setSubmitted(false);
+    redraw(nextStrokes);
+    emitChange({ workingSubmitted: false, workingStrokes: nextStrokes });
+  };
+
+  const redo = () => {
+    const restored = redoStack.at(-1);
+    if (!restored) return;
+    const nextStrokes = [...strokes, restored];
+    setRedoStack((prev) => prev.slice(0, -1));
     setStrokes(nextStrokes);
     setSubmitted(false);
     redraw(nextStrokes);
     emitChange({ workingSubmitted: false, workingStrokes: nextStrokes });
+  };
+
+  const zoomBy = (delta) => setZoom((value) => Math.min(2, Math.max(0.75, Math.round((value + delta) * 100) / 100)));
+
+  const pan = (direction) => {
+    const node = scrollRef.current;
+    if (!node) return;
+    const delta = 96;
+    const moves = {
+      left: [-delta, 0],
+      right: [delta, 0],
+      up: [0, -delta],
+      down: [0, delta],
+    };
+    const [left, top] = moves[direction] || moves.right;
+    node.scrollBy({ left, top, behavior: 'smooth' });
   };
 
   const submit = () => {
@@ -256,22 +296,36 @@ export default function WorkingCanvas({
         </div>
       )}
 
-      <div className="mb-3 flex flex-wrap gap-2">
-        <Button size="s" variant={tool === 'pen' ? 'primary' : 'secondary'} icon={PenLine} onClick={() => setTool('pen')}>Pen</Button>
-        <Button size="s" variant={tool === 'eraser' ? 'primary' : 'secondary'} icon={Eraser} onClick={() => setTool('eraser')}>Eraser</Button>
-        <Button size="s" variant="secondary" icon={RotateCcw} disabled={!strokes.length} onClick={undo}>Undo</Button>
-        <Button size="s" variant="secondary" icon={Trash2} disabled={!strokes.length && !submitted} onClick={clear}>Clear</Button>
+      <div className="mb-3 space-y-2">
+        <WorkingToolbar
+          tool={tool}
+          colour={colour}
+          brushSize={brushSize}
+          canUndo={strokes.length > 0}
+          canRedo={redoStack.length > 0}
+          zoom={zoom}
+          onToolChange={setTool}
+          onColourChange={setColour}
+          onBrushSizeChange={setBrushSize}
+          onUndo={undo}
+          onRedo={redo}
+          onClear={clear}
+          onZoomIn={() => zoomBy(0.25)}
+          onZoomOut={() => zoomBy(-0.25)}
+          onPan={pan}
+        />
         <Button size="s" variant="ghost" icon={Grid} onClick={() => setBackground((value) => (value === 'grid' ? 'ruled' : 'grid'))}>
           {background === 'grid' ? 'Ruled' : 'Grid'}
         </Button>
       </div>
 
-      <div className={`rounded-lg border border-hairline ${background === 'grid' ? 'bg-[linear-gradient(#dbe4ef_1px,transparent_1px),linear-gradient(90deg,#dbe4ef_1px,transparent_1px)] bg-[size:24px_24px]' : 'bg-[repeating-linear-gradient(0deg,#fff,#fff_31px,#e8eef7_32px)]'}`}>
+      <div ref={scrollRef} className={`overflow-auto rounded-lg border border-hairline ${background === 'grid' ? 'bg-[linear-gradient(#dbe4ef_1px,transparent_1px),linear-gradient(90deg,#dbe4ef_1px,transparent_1px)] bg-[size:24px_24px]' : 'bg-[repeating-linear-gradient(0deg,#fff,#fff_31px,#e8eef7_32px)]'}`}>
         <canvas
           ref={canvasRef}
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
-          className="block h-[220px] w-full touch-none rounded-lg sm:h-[260px]"
+          className="block h-[220px] touch-none rounded-lg sm:h-[260px]"
+          style={{ width: `${zoom * 100}%`, minWidth: '100%' }}
           onPointerDown={beginStroke}
           onPointerMove={moveStroke}
           onPointerUp={endStroke}

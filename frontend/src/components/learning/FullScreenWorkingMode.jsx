@@ -12,8 +12,9 @@ function drawStroke(ctx, stroke) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
+  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.35 : 1;
   ctx.strokeStyle = stroke.colour || WORKING_COLOURS[0].value;
-  ctx.lineWidth = stroke.size || 4;
+  ctx.lineWidth = stroke.tool === 'pencil' ? Math.max(1, Number(stroke.size || 4) - 1) : Number(stroke.size || 4);
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
@@ -42,6 +43,7 @@ export default function FullScreenWorkingMode({
   onSave,
 }) {
   const canvasRef = useRef(null);
+  const scrollRef = useRef(null);
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
   const strokesRef = useRef(Array.isArray(initialStrokes) ? initialStrokes : []);
@@ -49,6 +51,9 @@ export default function FullScreenWorkingMode({
   const [colour, setColour] = useState(WORKING_COLOURS[0].value);
   const [brushSize, setBrushSize] = useState(4);
   const [strokes, setStrokes] = useState(Array.isArray(initialStrokes) ? initialStrokes : []);
+  const [redoStack, setRedoStack] = useState([]);
+  const [zoom, setZoom] = useState(1);
+  const [hasCanvasMarks, setHasCanvasMarks] = useState(Array.isArray(initialStrokes) && initialStrokes.length > 0);
 
   const redraw = (nextStrokes = strokes) => {
     const canvas = canvasRef.current;
@@ -63,6 +68,9 @@ export default function FullScreenWorkingMode({
     const nextStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];
     strokesRef.current = nextStrokes;
     setStrokes(nextStrokes);
+    setRedoStack([]);
+    setZoom(1);
+    setHasCanvasMarks(nextStrokes.length > 0);
   }, [open, initialStrokes]);
 
   useEffect(() => {
@@ -81,6 +89,7 @@ export default function FullScreenWorkingMode({
     event.preventDefault();
     drawingRef.current = true;
     currentStrokeRef.current = { tool, colour, size: brushSize, points: [pointFromEvent(event)] };
+    setHasCanvasMarks(true);
   };
 
   const moveStroke = (event) => {
@@ -88,6 +97,7 @@ export default function FullScreenWorkingMode({
     event.preventDefault();
     const stroke = currentStrokeRef.current;
     stroke.points.push(pointFromEvent(event));
+    setHasCanvasMarks(true);
     drawStroke(canvasRef.current.getContext('2d'), { ...stroke, points: stroke.points.slice(-2) });
   };
 
@@ -100,12 +110,38 @@ export default function FullScreenWorkingMode({
     setStrokes((prev) => {
       const next = [...prev, stroke];
       strokesRef.current = next;
+      setRedoStack([]);
       return next;
     });
   };
 
+  const beginPointerStroke = (event) => {
+    beginStroke(event);
+  };
+
+  const movePointerStroke = (event) => {
+    moveStroke(event);
+  };
+
+  const endPointerStroke = () => {
+    endStroke();
+  };
+
+  const beginMouseStroke = (event) => {
+    beginStroke(event);
+  };
+
+  const moveMouseStroke = (event) => {
+    moveStroke(event);
+  };
+
+  const endMouseStroke = () => {
+    endStroke();
+  };
+
   const save = () => {
     const canvas = canvasRef.current;
+    if (drawingRef.current) endStroke();
     onSave?.({
       workingImage: canvas?.toDataURL('image/png') || '',
       workingStrokes: strokesRef.current,
@@ -116,7 +152,54 @@ export default function FullScreenWorkingMode({
       viewportDimensions: typeof window !== 'undefined'
         ? { width: window.innerWidth, height: window.innerHeight }
         : null,
+      orientation: typeof window !== 'undefined' && window.innerWidth > window.innerHeight ? 'landscape' : 'portrait',
     });
+  };
+
+  const undo = () => {
+    setStrokes((prev) => {
+      const undone = prev.at(-1);
+      const next = prev.slice(0, -1);
+      if (undone) setRedoStack((stack) => [...stack, undone]);
+      strokesRef.current = next;
+      setHasCanvasMarks(next.length > 0);
+      return next;
+    });
+  };
+
+  const redo = () => {
+    const restored = redoStack.at(-1);
+    if (!restored) return;
+    setRedoStack((prev) => prev.slice(0, -1));
+    setStrokes((prev) => {
+      const next = [...prev, restored];
+      strokesRef.current = next;
+      setHasCanvasMarks(next.length > 0);
+      return next;
+    });
+  };
+
+  const clear = () => {
+    if (strokesRef.current.length) setRedoStack((prev) => [...prev, ...strokesRef.current]);
+    strokesRef.current = [];
+    setStrokes([]);
+    setHasCanvasMarks(false);
+  };
+
+  const zoomBy = (delta) => setZoom((value) => Math.min(2, Math.max(0.75, Math.round((value + delta) * 100) / 100)));
+
+  const pan = (direction) => {
+    const node = scrollRef.current;
+    if (!node) return;
+    const delta = 128;
+    const moves = {
+      left: [-delta, 0],
+      right: [delta, 0],
+      up: [0, -delta],
+      down: [0, delta],
+    };
+    const [left, top] = moves[direction] || moves.right;
+    node.scrollBy({ left, top, behavior: 'smooth' });
   };
 
   return (
@@ -128,7 +211,7 @@ export default function FullScreenWorkingMode({
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button disabled={!strokes.length} onClick={save}>Save Working</Button>
+          <Button disabled={!hasCanvasMarks && !strokes.length} onClick={save}>Save Working</Button>
         </>
       )}
     >
@@ -143,31 +226,35 @@ export default function FullScreenWorkingMode({
           colour={colour}
           brushSize={brushSize}
           canUndo={strokes.length > 0}
+          canRedo={redoStack.length > 0}
+          zoom={zoom}
           onToolChange={setTool}
           onColourChange={setColour}
           onBrushSizeChange={setBrushSize}
-          onUndo={() => setStrokes((prev) => {
-            const next = prev.slice(0, -1);
-            strokesRef.current = next;
-            return next;
-          })}
-          onClear={() => {
-            strokesRef.current = [];
-            setStrokes([]);
-          }}
+          onUndo={undo}
+          onRedo={redo}
+          onClear={clear}
+          onZoomIn={() => zoomBy(0.25)}
+          onZoomOut={() => zoomBy(-0.25)}
+          onPan={pan}
         />
-        <div className="rounded-xl border border-hairline bg-white">
+        <div ref={scrollRef} className="overflow-auto rounded-xl border border-hairline bg-white">
           <canvas
             ref={canvasRef}
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
-            className="block h-[55vh] min-h-[360px] w-full touch-none rounded-xl"
+            className="block h-[55vh] min-h-[360px] touch-none rounded-xl"
+            style={{ width: `${zoom * 100}%`, minWidth: '100%' }}
             aria-label="Full-screen working canvas"
-            onPointerDown={beginStroke}
-            onPointerMove={moveStroke}
-            onPointerUp={endStroke}
-            onPointerCancel={endStroke}
-            onPointerLeave={endStroke}
+            onPointerDown={beginPointerStroke}
+            onPointerMove={movePointerStroke}
+            onPointerUp={endPointerStroke}
+            onPointerCancel={endPointerStroke}
+            onPointerLeave={endPointerStroke}
+            onMouseDown={beginMouseStroke}
+            onMouseMove={moveMouseStroke}
+            onMouseUp={endMouseStroke}
+            onMouseLeave={endMouseStroke}
           />
         </div>
       </div>

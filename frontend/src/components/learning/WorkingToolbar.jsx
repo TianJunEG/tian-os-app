@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eraser, PenLine, RotateCcw, Trash2 } from 'lucide-react';
+import { Eraser, Highlighter, Move, PenLine, Pencil, RotateCcw, RotateCw, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '../ui';
 
 export const WORKING_COLOURS = [
@@ -17,27 +17,51 @@ export const BRUSH_SIZES = [
   { label: 'Large', value: 8 },
 ];
 
+export const WORKING_TOOLS = [
+  { id: 'pen', label: 'Pen', icon: PenLine },
+  { id: 'pencil', label: 'Pencil', icon: Pencil },
+  { id: 'highlighter', label: 'Highlighter', icon: Highlighter },
+  { id: 'eraser', label: 'Eraser', icon: Eraser },
+];
+
 export default function WorkingToolbar({
   tool = 'pen',
   colour = WORKING_COLOURS[3].value,
   brushSize = 4,
   canUndo = false,
+  canRedo = false,
+  zoom = 1,
   onToolChange,
   onColourChange,
   onBrushSizeChange,
   onUndo,
+  onRedo,
   onClear,
+  onZoomIn,
+  onZoomOut,
+  onPan,
 }) {
   return (
     <div className="rounded-xl border border-hairline bg-white p-3 shadow-resting" data-testid="working-toolbar">
       <div className="mb-2 flex flex-wrap gap-2">
-        <Button size="s" className="min-h-[44px]" variant={tool === 'pen' ? 'primary' : 'secondary'} icon={PenLine} onClick={() => onToolChange?.('pen')}>Pen</Button>
-        <Button size="s" className="min-h-[44px]" variant={tool === 'eraser' ? 'primary' : 'secondary'} icon={Eraser} onClick={() => onToolChange?.('eraser')}>Eraser</Button>
+        {WORKING_TOOLS.map((item) => (
+          <Button
+            key={item.id}
+            size="s"
+            className="min-h-[44px]"
+            variant={tool === item.id ? 'primary' : 'secondary'}
+            icon={item.icon}
+            onClick={() => onToolChange?.(item.id)}
+          >
+            {item.label}
+          </Button>
+        ))}
         <Button size="s" className="min-h-[44px]" variant="secondary" icon={RotateCcw} disabled={!canUndo} onClick={onUndo}>Undo</Button>
+        <Button size="s" className="min-h-[44px]" variant="secondary" icon={RotateCw} disabled={!canRedo} onClick={onRedo}>Redo</Button>
         <Button size="s" className="min-h-[44px]" variant="secondary" icon={Trash2} disabled={!canUndo} onClick={onClear}>Clear</Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Colour</p>
           <div className="flex flex-wrap gap-2">
@@ -53,6 +77,16 @@ export default function WorkingToolbar({
                 {item.label[0]}
               </button>
             ))}
+          </div>
+        </div>
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">View</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="s" className="min-h-[44px]" variant="secondary" icon={ZoomOut} onClick={onZoomOut}>Zoom out</Button>
+            <Button size="s" className="min-h-[44px]" variant="secondary" icon={ZoomIn} onClick={onZoomIn}>Zoom in</Button>
+            <Button size="s" className="min-h-[44px]" variant="ghost" icon={Move} onClick={() => onPan?.('right')}>
+              {Math.round(Number(zoom || 1) * 100)}%
+            </Button>
           </div>
         </div>
         <div>

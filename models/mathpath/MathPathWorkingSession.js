@@ -34,6 +34,7 @@ const mathPathWorkingSessionSchema = new mongoose.Schema(
     questionIds: { type: [String], default: [] },
     inputMethod: { type: String, enum: INPUT_METHODS, default: 'paper' },
     fileUrls: { type: [String], default: [] },
+    uploadedImages: { type: [String], default: [] },
     fileMetadata: {
       type: [
         {
@@ -46,6 +47,9 @@ const mathPathWorkingSessionSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    canvasImage: { type: String, default: '' },
+    canvasStrokeData: { type: Array, default: [] },
+    doodleOverlayData: { type: Array, default: [] },
     digitalInkData: { type: mongoose.Schema.Types.Mixed, default: null },
     status: { type: String, enum: STATUS, default: 'pending' },
     questionWorkingMap: { type: [questionWorkingMapSchema], default: [] },

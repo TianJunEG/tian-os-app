@@ -64,6 +64,7 @@ export default function QuestionAnnotationOverlay({
   const canvasRef = useRef(null);
   const drawingRef = useRef(false);
   const strokeRef = useRef(null);
+  const onChangeRef = useRef(onChange);
   const [bounds, setBounds] = useState({ width: 0, height: 0 });
   const [tool, setTool] = useState('pen');
   const [colour, setColour] = useState(DEFAULT_COLOUR);
@@ -73,6 +74,10 @@ export default function QuestionAnnotationOverlay({
   const [submittedAt, setSubmittedAt] = useState(null);
 
   const isEnabled = active && !disabled;
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     const initialStrokes = normaliseStrokes(initialPayload?.workingStrokes);
@@ -120,11 +125,13 @@ export default function QuestionAnnotationOverlay({
     ctx.clearRect(0, 0, bounds.width, bounds.height);
     strokes.forEach((stroke) => drawStroke(ctx, stroke, bounds.width, bounds.height));
 
+    if (!strokes.length && !isEnabled) return;
+
     const image = isEnabled || strokes.length
       ? canvas.toDataURL('image/png')
       : '';
 
-    onChange?.({
+    onChangeRef.current?.({
       questionId,
       workingImage: image,
       workingStrokes: strokes,
@@ -140,7 +147,7 @@ export default function QuestionAnnotationOverlay({
       colour,
       brushSize,
     });
-  }, [bounds.width, bounds.height, onChange, questionId, submittedAt, strokes, brushSize, colour, tool, isEnabled]);
+  }, [bounds.width, bounds.height, questionId, submittedAt, strokes, brushSize, colour, tool, isEnabled]);
 
   const pointForEvent = (event) => {
     const rect = targetRef?.current?.getBoundingClientRect();
