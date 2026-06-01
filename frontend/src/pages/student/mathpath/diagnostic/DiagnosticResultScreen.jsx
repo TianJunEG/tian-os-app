@@ -143,6 +143,11 @@ export default function DiagnosticResultScreen() {
   const correct = Number(shaped.questionsCorrect ?? shaped.correctCount ?? 0);
   const total = Number(shaped.totalQuestions ?? shaped.questionsAnswered ?? 0);
   const calibrated = shaped.confidenceCalibrationSummary || {};
+  const readinessComponents = shaped.readinessComponents || shaped.explainability?.readinessComponents || null;
+  const rootCauses = shaped.rootCauses || shaped.explainability?.rootCauses || [];
+  const misconceptions = shaped.misconceptions || shaped.explainability?.misconceptions || [];
+  const skillEvidence = shaped.explainability?.skillEvidence || [];
+  const recommendations = shaped.recommendations || shaped.explainability?.recommendations || {};
   const summaryText = score <= 0
     ? 'This check-in did not show secure Fractions evidence yet. Start with the recommended skill and build from there.'
     : (shaped.studentFriendlySummary || 'Your diagnostic is complete. Let’s begin at the recommended skill.');
@@ -175,6 +180,80 @@ export default function DiagnosticResultScreen() {
             <p className="rounded-xl bg-paper px-3 py-2 text-sm text-ink-700 sm:col-span-2">{summaryText}</p>
           </div>
         </Card>
+
+        {readinessComponents && (
+          <Card className="p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-semibold text-ink-700">Why this readiness score?</p>
+              <Badge tone="navy">Explained</Badge>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-5">
+              {[
+                ['Knowledge', readinessComponents.knowledge],
+                ['Fluency', readinessComponents.fluency],
+                ['Confidence', readinessComponents.confidence],
+                ['Retention', readinessComponents.retention == null ? 'Unknown' : readinessComponents.retention],
+                ['Working', readinessComponents.workingQuality],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-xl bg-paper px-3 py-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</p>
+                  <p className="mt-1 font-mono text-lg font-semibold text-navy-700">{value}{typeof value === 'number' ? '/100' : ''}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-sm text-ink-600">{readinessComponents.explanation}</p>
+          </Card>
+        )}
+
+        <Card className="p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-ink-700">Root cause explanation</p>
+            <Badge tone={rootCauses.length ? 'gold' : 'success'}>{rootCauses.length ? 'Review' : 'No major root cause'}</Badge>
+          </div>
+          {rootCauses.length ? (
+            <div className="space-y-3">
+              {rootCauses.slice(0, 3).map((cause) => (
+                <div key={cause.rootCauseId} className="rounded-xl border border-hairline bg-white px-3 py-3 text-sm">
+                  <p className="font-semibold text-ink-900">{cause.title}</p>
+                  <p className="mt-1 text-ink-600">{cause.why}</p>
+                  <p className="mt-2 text-navy-700"><span className="font-semibold">Next step:</span> {cause.suggestedIntervention}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-ink-600">No strong root-cause pattern was detected. Continue with the recommended practice to collect more evidence.</p>
+          )}
+          {misconceptions.length > 0 && (
+            <div className="mt-4 rounded-xl bg-gold-50 px-3 py-3 text-sm text-gold-900">
+              <p className="font-semibold">Possible misconception</p>
+              <p className="mt-1">{misconceptions[0].description}</p>
+            </div>
+          )}
+        </Card>
+
+        {skillEvidence.length > 0 && (
+          <CollapsibleSection
+            title="Evidence by skill"
+            summary="Questions, timing, confidence, and working evidence behind the recommendation."
+          >
+            <div className="space-y-2">
+              {skillEvidence.slice(0, 6).map((row) => (
+                <div key={row.skillId} className="rounded-xl border border-hairline bg-white px-3 py-3 text-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold text-ink-900">{row.skillName}</p>
+                    <Badge tone={row.masteryBand === 'Mastered' || row.masteryBand === 'Secure' ? 'success' : 'gold'}>{row.masteryBand}</Badge>
+                  </div>
+                  <div className="mt-2 grid gap-2 sm:grid-cols-4">
+                    <span>Correct: <b>{row.questionsCorrect}/{row.questionsAttempted}</b></span>
+                    <span>Wrong: <b>{row.questionsWrong}</b></span>
+                    <span>Time: <b>{row.averageTimeSeconds == null ? '-' : `${row.averageTimeSeconds}s`}</b></span>
+                    <span>Working: <b>{row.workingEvidenceRate}%</b></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CollapsibleSection>
+        )}
 
         <Card className="p-5">
           <div className="mb-3 flex items-center justify-between">
@@ -252,8 +331,11 @@ export default function DiagnosticResultScreen() {
           <p className="text-sm font-semibold text-ink-700">Recommended Starting Skill</p>
           <p className="mt-1 text-lg font-semibold text-navy-700">{startingSkillName}</p>
           <p className="mt-2 text-sm text-ink-600">
-            {shaped.parentPlacementSummary || 'We recommend starting from this skill before moving to harder fraction operations.'}
+            {recommendations.student || shaped.parentPlacementSummary || 'We recommend starting from this skill before moving to harder fraction operations.'}
           </p>
+          {recommendations.parent && (
+            <p className="mt-2 rounded-xl bg-paper px-3 py-2 text-sm text-ink-700">{recommendations.parent}</p>
+          )}
         </Card>
 
         <CollapsibleSection

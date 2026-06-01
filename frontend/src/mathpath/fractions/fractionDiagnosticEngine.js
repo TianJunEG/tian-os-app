@@ -1,5 +1,6 @@
 import { fractionSkillGraph, getSkill, getPrerequisites } from './fractionSkillGraph.js';
 import { fractionQuestionFamilies, getQuestionFamiliesBySkill, getQuestionFamily } from './fractionQuestionFamilies.js';
+import { buildDiagnosticExplainability } from './fractionDiagnosticExplainabilityEngine.js';
 
 const STRAND_THRESHOLDS = {
   Foundation: 85,
@@ -79,9 +80,9 @@ function computeConfidenceLevel(responses) {
       if (typeof value === 'string') {
         const v = value.toLowerCase();
         if (v.includes('very')) return 4;
-        if (v.includes('confident')) return 3;
-        if (v.includes('unsure')) return 2;
-        if (v.includes('guess')) return 1;
+        if (v.includes('i_know') || v.includes('know this') || v.includes('confident')) return 3;
+        if (v.includes('not_sure') || v.includes('unsure') || v.includes('not sure')) return 2;
+        if (v.includes('dont_know') || v.includes("don't know") || v.includes('guess')) return 1;
         const parsed = Number(v);
         return Number.isFinite(parsed) ? parsed : null;
       }
@@ -341,6 +342,21 @@ export function scoreFractionDiagnosticAttempt(attempt = {}) {
     flag: classifyFluencyFlag(r),
   }));
 
+  const recommendedStartingSkillId = determineFractionPlacement({
+    weakSkillIds,
+    targetSkillIds: session.targetSkillIds,
+    strandScores,
+  });
+
+  const explainability = buildDiagnosticExplainability({
+    responses: validResponses,
+    skillScores,
+    weakSkillIds,
+    masteredSkillIds,
+    suspectedPrerequisiteGaps,
+    recommendedStartingSkillId,
+  });
+
   const result = {
     sessionId: attempt.sessionId,
     mode: session.mode,
@@ -354,10 +370,18 @@ export function scoreFractionDiagnosticAttempt(attempt = {}) {
     masteredSkillIds,
     weakSkillIds,
     suspectedPrerequisiteGaps,
-    recommendedStartingSkillId: null,
+    recommendedStartingSkillId,
     recommendedPracticeQueue: [],
     fluencyFlags,
     confidenceLevel: computeConfidenceLevel(validResponses),
+    explainability,
+    readinessComponents: explainability.readinessComponents,
+    rootCauses: explainability.rootCauses,
+    misconceptions: explainability.misconceptions,
+    confidenceInsights: explainability.confidenceInsights,
+    fluencyInsights: explainability.fluencyInsights,
+    masteryBands: explainability.masteryBands,
+    recommendations: explainability.recommendations,
     parentFriendlySummary: '',
     studentFriendlySummary: '',
   };
@@ -415,6 +439,11 @@ export function validateFractionDiagnosticEngine() {
     'recommendedPracticeQueue',
     'fluencyFlags',
     'confidenceLevel',
+    'explainability',
+    'readinessComponents',
+    'rootCauses',
+    'misconceptions',
+    'recommendations',
     'parentFriendlySummary',
     'studentFriendlySummary',
   ];
@@ -431,6 +460,8 @@ export function validateFractionDiagnosticEngine() {
       drillDownIncludesPrereq &&
       placementPrefersPrereq &&
       fluencyFlagCheck === 'accurateButSlow' &&
+      sampleAttempt.explainability?.audit?.hasRecommendation &&
+      sampleAttempt.readinessComponents?.explanation &&
       missingResultFields.length === 0,
     checks: {
       basicRangeValid,
@@ -439,6 +470,8 @@ export function validateFractionDiagnosticEngine() {
       drillDownIncludesPrereq,
       placementPrefersPrereq,
       accurateButSlowFlagValid: fluencyFlagCheck === 'accurateButSlow',
+      explainabilityHasRecommendations: sampleAttempt.explainability?.audit?.hasRecommendation,
+      readinessScoreExplained: Boolean(sampleAttempt.readinessComponents?.explanation),
       resultObjectHasAllFields: missingResultFields.length === 0,
     },
     sampleResult: sampleAttempt,
