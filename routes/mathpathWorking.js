@@ -22,6 +22,11 @@ import {
   buildAccuracyAuditReport,
   runProcedureMisconceptionAnalysis,
 } from '../services/mathpath/procedureMisconceptionAnalysisService.js';
+import {
+  applyReasoningHumanReviewOverride,
+  runReasoningMethodMarkAnalysis,
+  updateReasoningProgression,
+} from '../services/mathpath/reasoningMethodMarkEngine.js';
 
 const router = express.Router();
 const WORKING_UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-working');
@@ -131,6 +136,25 @@ function publicWorkingIntelligence(record = {}) {
     humanReviewAssist: record.humanReviewAssist || null,
     misconceptionDatasetRecord: record.misconceptionDatasetRecord || null,
     procedureHumanReviewOutcome: record.procedureHumanReviewOutcome || null,
+    reasoningAnalysis: record.reasoningAnalysis || null,
+    reasoningRubric: record.reasoningRubric || null,
+    representationAnalysis: record.representationAnalysis || null,
+    strategyAnalysis: record.strategyAnalysis || null,
+    logicalFlowAnalysis: record.logicalFlowAnalysis || null,
+    partialCreditRecommendation: record.partialCreditRecommendation || null,
+    methodMarkV3: record.methodMarkV3 || null,
+    wordProblemReasoning: record.wordProblemReasoning || null,
+    multiStepSolutionMap: record.multiStepSolutionMap || null,
+    explanationAnalysis: record.explanationAnalysis || null,
+    studentReasoningFeedback: record.studentReasoningFeedback || '',
+    parentReasoningInsight: record.parentReasoningInsight || null,
+    tutorReasoningInsight: record.tutorReasoningInsight || null,
+    teacherReasoningInsight: record.teacherReasoningInsight || null,
+    reasoningProgression: record.reasoningProgression || null,
+    examReadinessIndicators: record.examReadinessIndicators || null,
+    reasoningSafety: record.reasoningSafety || null,
+    reasoningDatasetRecord: record.reasoningDatasetRecord || null,
+    reasoningHumanValidation: record.reasoningHumanValidation || null,
     processing: record.processing || {},
     submittedAt: record.submittedAt || null,
     createdAt: record.createdAt || null,
@@ -551,6 +575,77 @@ router.post('/intelligence/:workingId/procedure-review', async (req, res) => {
     return res.json({ workingRecord: publicWorkingIntelligence(record.toObject()) });
   } catch (err) {
     return res.status(500).json({ error: 'Unable to save procedure review.', details: err.message });
+  }
+});
+
+router.post('/intelligence/:workingId/reasoning-analysis', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
+      return res.status(403).json({ error: 'Only tutors, teachers and admins can run reasoning analysis.' });
+    }
+    const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId });
+    if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
+    const analysis = runReasoningMethodMarkAnalysis(record.toObject(), {
+      questionMetadata: req.body?.questionMetadata || {},
+      examReadiness: req.body?.examReadiness || {},
+    });
+    const progression = updateReasoningProgression(
+      Array.isArray(record.reasoningProgression?.history) ? record.reasoningProgression.history : [],
+      analysis
+    );
+    record.reasoningAnalysis = analysis;
+    record.reasoningRubric = analysis.reasoningRubric;
+    record.representationAnalysis = analysis.representation;
+    record.strategyAnalysis = analysis.strategy;
+    record.logicalFlowAnalysis = analysis.logicalFlow;
+    record.partialCreditRecommendation = analysis.partialCredit;
+    record.methodMarkV3 = analysis.methodMarkV3;
+    record.wordProblemReasoning = analysis.wordProblemReasoning;
+    record.multiStepSolutionMap = analysis.multiStepSolution;
+    record.explanationAnalysis = analysis.explanationAnalysis;
+    record.studentReasoningFeedback = analysis.studentReasoningFeedback;
+    record.parentReasoningInsight = analysis.parentReasoningInsight;
+    record.tutorReasoningInsight = analysis.tutorReasoningInsight;
+    record.reasoningProgression = progression;
+    record.examReadinessIndicators = analysis.examReadinessIndicators;
+    record.reasoningSafety = analysis.safety;
+    record.reasoningDatasetRecord = analysis.reasoningDatasetRecord;
+    record.analysisStatus = 'needs_human_review';
+    await record.save();
+    return res.json({ workingRecord: publicWorkingIntelligence(record.toObject()) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to run reasoning analysis.', details: err.message });
+  }
+});
+
+router.post('/intelligence/:workingId/reasoning-review', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
+      return res.status(403).json({ error: 'Only tutors, teachers and admins can review reasoning analysis.' });
+    }
+    const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId });
+    if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
+    const reviewed = applyReasoningHumanReviewOverride(record.reasoningAnalysis || {}, {
+      action: req.body?.action || 'accept',
+      reviewerUserId: String(req.user?.id || req.user?._id || ''),
+      reviewerRole: getSubmittedByRole(req.user),
+      reviewerFeedback: req.body?.reviewerFeedback || req.body?.notes || '',
+      correctedAnalysis: req.body?.correctedAnalysis || null,
+    });
+    record.reasoningHumanValidation = reviewed.humanValidation;
+    if (req.body?.correctedAnalysis) Object.assign(record, req.body.correctedAnalysis);
+    record.humanReviewStatus = reviewed.humanValidation.rejected ? 'rejected' : reviewed.humanValidation.modified ? 'corrected' : 'verified';
+    record.reasoningDatasetRecord = {
+      ...(record.reasoningDatasetRecord || {}),
+      humanValidation: reviewed.humanValidation,
+      aiTrainingReady: reviewed.humanValidation.accepted || reviewed.humanValidation.modified,
+    };
+    await record.save();
+    return res.json({ workingRecord: publicWorkingIntelligence(record.toObject()) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to save reasoning review.', details: err.message });
   }
 });
 
