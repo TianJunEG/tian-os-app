@@ -8,6 +8,7 @@
 //
 // Logins (all password: Passw0rd!):
 //   demo.student@tianos.test   student
+//   demo.student1@tianos.test  student
 //   demo.parent@tianos.test    parent   → Parent workspace
 //   demo.tutor@tianos.test     tutor    → Tutor workspace
 //   demo.teacher@tianos.test   teacher  → School workspace
@@ -74,6 +75,7 @@ async function main() {
 
   // ---- users (one account per person; dual user has two roles) ----
   const student = await makeUser('Demo Student', 'demo.student@tianos.test', ['student']);
+  const student1 = await makeUser('Demo Student 2', 'demo.student1@tianos.test', ['student']);
   const parent  = await makeUser('Demo Parent',  'demo.parent@tianos.test',  ['parent']);
   const tutor   = await makeUser('Demo Tutor',   'demo.tutor@tianos.test',   ['tutor']);
   const teacher = await makeUser('Demo Teacher', 'demo.teacher@tianos.test', ['teacher']);
@@ -98,14 +100,25 @@ async function main() {
     userId: student._id, createdByUserId: parent._id,
     profile: { mainFocus: 'MathPath', modulesUsed: ['MathPath'] }
   });
+  const child2 = await Student.create({
+    name: 'Demo Student 2', level: 'Primary 4', workspaceId: parentWs._id,
+    userId: student1._id, createdByUserId: parent._id,
+    profile: { mainFocus: 'MathPath', modulesUsed: ['MathPath'] }
+  });
   await StudentGuardian.create({
     studentId: child._id, guardianUserId: parent._id, workspaceId: parentWs._id, relation: 'parent'
+  });
+  await StudentGuardian.create({
+    studentId: child2._id, guardianUserId: parent._id, workspaceId: parentWs._id, relation: 'parent'
   });
 
   // Link the demo student login to the parent account and landing workspace.
   student.linkedTo = parent._id;
   student.defaultWorkspace = parentWs._id;
   await student.save();
+  student1.linkedTo = parent._id;
+  student1.defaultWorkspace = parentWs._id;
+  await student1.save();
 
   // ---- subject / topic / skill map (Math) ----
   let mathSubject = await Subject.findOne({ key: 'math' });
@@ -125,7 +138,7 @@ async function main() {
   }
 
   console.log('✅ Tian OS foundation seeded');
-  console.log(`   Users: student, parent, tutor, teacher, teacher+tutor (password: ${PASSWORD})`);
+  console.log(`   Users: student, student1, parent, tutor, teacher, teacher+tutor (password: ${PASSWORD})`);
   console.log(`   Workspaces: parent, tutor, school + dual(school, tutor)`);
   console.log(`   Math map: ${topicCount} topics, ${skillCount} new skills`);
   console.log(`   Parent workspace id: ${parentWs._id}  child id: ${child._id}`);
