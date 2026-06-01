@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import { protect } from '../middleware/auth.js';
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
+import MathPathWorkingIntelligence from '../models/mathpath/MathPathWorkingIntelligence.js';
 import MathPathWorkingSession from '../models/mathpath/MathPathWorkingSession.js';
 import {
   buildQuestionWorkingMap,
@@ -11,6 +12,11 @@ import {
   isValidAnalysisStatus,
   summarizeWorkingSessionForReview,
 } from '../services/mathpath/workingCodeService.js';
+import {
+  applyHumanReviewCorrection,
+  buildOcrAuditReport,
+  buildWorkingIntelligenceRecordsFromSession,
+} from '../services/mathpath/workingIntelligenceService.js';
 
 const router = express.Router();
 const WORKING_UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-working');
@@ -76,6 +82,37 @@ function publicSession(session = {}) {
     interventionRecommendation: session.interventionRecommendation || '',
     createdAt: session.createdAt || null,
     updatedAt: session.updatedAt || null,
+  };
+}
+
+function publicWorkingIntelligence(record = {}) {
+  return {
+    workingId: record.workingId,
+    workingSessionId: record.workingSessionId,
+    studentId: record.studentId,
+    questionId: record.questionId,
+    skillId: record.skillId,
+    practiceSessionId: record.practiceSessionId || null,
+    assessmentSessionId: record.assessmentSessionId || null,
+    workingCode: record.workingCode || '',
+    uploadType: record.uploadType || 'unknown',
+    rawImage: record.rawImage || '',
+    rawImages: record.rawImages || [],
+    ocrOutput: record.ocrOutput || {},
+    detectedSteps: record.detectedSteps || [],
+    timeline: record.timeline || [],
+    reviewStatus: record.reviewStatus || 'pending',
+    analysisStatus: record.analysisStatus || 'queued',
+    humanReviewStatus: record.humanReviewStatus || 'pending',
+    reviewerUserId: record.reviewerUserId || '',
+    reviewerRole: record.reviewerRole || '',
+    reviewCorrections: record.reviewCorrections || [],
+    datasetRecord: record.datasetRecord || {},
+    qualityMetrics: record.qualityMetrics || {},
+    processing: record.processing || {},
+    submittedAt: record.submittedAt || null,
+    createdAt: record.createdAt || null,
+    updatedAt: record.updatedAt || null,
   };
 }
 
@@ -165,6 +202,34 @@ function buildWorkingQueueSummary(sessions = []) {
     needsReviewCount: sessions.filter((s) => s.analysisStatus === 'needs_review').length,
     analysedCount: sessions.filter((s) => s.analysisStatus === 'analysed').length,
   };
+}
+
+async function upsertWorkingIntelligenceForSession(session) {
+  const records = buildWorkingIntelligenceRecordsFromSession(session.toObject ? session.toObject() : session);
+  const saved = [];
+  for (const record of records) {
+    const existing = await MathPathWorkingIntelligence.findOne({
+      workingSessionId: record.workingSessionId,
+      questionId: record.questionId,
+    });
+    if (existing) {
+      Object.assign(existing, {
+        ...record,
+        workingId: existing.workingId,
+        reviewStatus: existing.reviewStatus,
+        humanReviewStatus: existing.humanReviewStatus,
+        reviewerUserId: existing.reviewerUserId,
+        reviewerRole: existing.reviewerRole,
+        reviewCorrections: existing.reviewCorrections,
+      });
+      await existing.save();
+      saved.push(existing.toObject());
+    } else {
+      const created = await MathPathWorkingIntelligence.create(record);
+      saved.push(created.toObject());
+    }
+  }
+  return saved;
 }
 
 router.use(protect);
@@ -295,6 +360,80 @@ router.get('/review-summary', async (req, res) => {
   }
 });
 
+router.get('/intelligence/queue', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    const query = {};
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor') && !roles.has('parent')) {
+      query.studentId = String(req.user?.id || '');
+    } else if (req.query.studentId) {
+      query.studentId = String(req.query.studentId);
+    }
+    if (req.query.reviewStatus) query.reviewStatus = String(req.query.reviewStatus);
+    if (req.query.analysisStatus) query.analysisStatus = String(req.query.analysisStatus);
+    const limit = Math.max(1, Math.min(200, Number(req.query.limit || 50)));
+    const records = await MathPathWorkingIntelligence.find(query).sort({ updatedAt: -1 }).limit(limit).lean();
+    return res.json({
+      workingRecords: records.map(publicWorkingIntelligence),
+      audit: buildOcrAuditReport(records),
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to load working intelligence queue.', details: err.message });
+  }
+});
+
+router.get('/intelligence/audit', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    const query = {};
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
+      query.studentId = String(req.user?.id || '');
+    } else if (req.query.studentId) {
+      query.studentId = String(req.query.studentId);
+    }
+    const records = await MathPathWorkingIntelligence.find(query).sort({ updatedAt: -1 }).limit(1000).lean();
+    return res.json({ audit: buildOcrAuditReport(records) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to build OCR audit report.', details: err.message });
+  }
+});
+
+router.get('/intelligence/:workingId', async (req, res) => {
+  try {
+    const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId }).lean();
+    if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
+    if (!canActForStudent(req, record.studentId)) return res.status(403).json({ error: 'Not allowed to view this working record.' });
+    return res.json({ workingRecord: publicWorkingIntelligence(record) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to load working intelligence record.', details: err.message });
+  }
+});
+
+router.post('/intelligence/:workingId/review', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
+      return res.status(403).json({ error: 'Only tutors, teachers and admins can review working intelligence records.' });
+    }
+    const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId });
+    if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
+    const corrected = applyHumanReviewCorrection(record.toObject(), {
+      reviewerUserId: String(req.user?.id || req.user?._id || ''),
+      reviewerRole: getSubmittedByRole(req.user),
+      correctedOcrText: req.body?.correctedOcrText || '',
+      correctedSteps: Array.isArray(req.body?.correctedSteps) ? req.body.correctedSteps : [],
+      flags: Array.isArray(req.body?.flags) ? req.body.flags : [],
+      notes: req.body?.notes || '',
+      verified: Boolean(req.body?.verified),
+    });
+    Object.assign(record, corrected);
+    await record.save();
+    return res.json({ workingRecord: publicWorkingIntelligence(record.toObject()) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to save working review.', details: err.message });
+  }
+});
+
 router.get('/help-requests', async (req, res) => {
   try {
     const roles = roleSet(req.user);
@@ -374,8 +513,12 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
     session.analysisSummary = 'Working uploaded and queued for review.';
     session.interventionRecommendation = summary.recommendation;
     await session.save();
+    const workingRecords = await upsertWorkingIntelligenceForSession(session);
 
-    return res.json({ workingSession: publicSession(session.toObject()) });
+    return res.json({
+      workingSession: publicSession(session.toObject()),
+      workingRecords: workingRecords.map(publicWorkingIntelligence),
+    });
   } catch (err) {
     return res.status(500).json({ error: 'Unable to upload working.', details: err.message });
   }
