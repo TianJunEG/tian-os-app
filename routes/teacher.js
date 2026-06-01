@@ -236,7 +236,12 @@ router.post('/classes/:id/groups', async (req, res) => {
 router.post('/classes/:id/assign', async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
-  const { target = {}, module = 'MathPath', subject = 'Math', topicId = null, skillIds = [], difficulty = 'medium', questionCount = 10, dueDate = null } = req.body;
+  const {
+    target = {}, module = 'MathPath', subject = 'Math', topicId = null, skillIds = [],
+    difficulty = 'medium', questionCount = 10, dueDate = null, interventionId = '',
+    interventionType = '', linkedMisconceptions = [], priority = 'medium', templateId = '',
+    playbookId = '', nextAction = '', schedule = {}, aiPlanningContext = {}
+  } = req.body;
 
   let studentIds = [];
   if (target.type === 'class') studentIds = await rosterIds(c._id);
@@ -247,6 +252,9 @@ router.post('/classes/:id/assign', async (req, res) => {
   const docs = studentIds.map((sid) => ({
     workspaceId: req.workspaceId, studentId: sid, assignedByUserId: req.user.id, assignedByRole: 'teacher',
     module, subject, topicId, skillIds, difficulty, questionCount, dueDate, status: 'not_started',
+    interventionId, interventionType, linkedMisconceptions, priority,
+    assignedToType: target.type || 'student', assignedToId: target.id || sid,
+    templateId, playbookId, nextAction, schedule, aiPlanningContext,
   }));
   const created = await Assignment.insertMany(docs);
   res.status(201).json({ assigned: created.length });

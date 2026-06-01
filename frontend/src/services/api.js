@@ -367,7 +367,8 @@ export const mathpathFluencyAPI = {
 export const assignmentsAPI = {
   create: (data) => api.post('/assignments', data),
   list: (params) => api.get('/assignments', { params }),     // { studentId?, status? }
-  get: (id) => api.get(`/assignments/${id}`)
+  get: (id) => api.get(`/assignments/${id}`),
+  updateStatus: (id, data) => api.patch(`/assignments/${id}/status`, data)
 };
 
 // Structured Mastery Worksheet Generator (digital first; PDF placeholder).
