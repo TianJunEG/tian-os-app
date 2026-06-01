@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, Maximize2, X } from 'lucide-react';
+import { ArrowRight, Check, Maximize2, PencilLine, X } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
@@ -24,6 +24,7 @@ import AnswerInputRenderer from './components/AnswerInputRenderer';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
 import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
 import WorkingAttachmentPreview from '../../../components/learning/WorkingAttachmentPreview';
+import QuestionAnnotationOverlay from '../../../components/learning/QuestionAnnotationOverlay';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -199,11 +200,15 @@ function LegacyPracticeSession() {
   const [err, setErr] = useState('');
   const [startedAt, setStartedAt] = useState(Date.now());
   const [workingState, setWorkingState] = useState({});
+  const [doodleState, setDoodleState] = useState({});
   const [fullscreenWorkingState, setFullscreenWorkingState] = useState({});
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [doodleMode, setDoodleMode] = useState(false);
+  const questionSurfaceRef = useRef(null);
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
   useEffect(() => { setStartedAt(Date.now()); }, [idx]);
+  useEffect(() => { setDoodleMode(false); }, [idx]);
   if (!items.length) return <Spinner />;
 
   const q = items[idx];
@@ -213,11 +218,47 @@ function LegacyPracticeSession() {
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.stem || q.prompt || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const currentWorking = workingState[q.questionId] || {};
+  const currentDoodle = doodleState[q.questionId] || {};
   const currentFullscreenWorking = fullscreenWorkingState[q.questionId] || {};
   const workingReady = !workingRequirement.required
+    || currentDoodle.workingSubmitted
     || currentWorking.workingSubmitted
     || currentWorking.workingNotNeeded
     || currentFullscreenWorking.workingSubmitted;
+  const primaryWorkingImage = currentDoodle.workingImage || currentWorking.workingImage || currentFullscreenWorking.workingImage || '';
+  const primaryWorkingStrokes = currentDoodle.workingStrokes?.length
+    ? currentDoodle.workingStrokes
+    : (currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || []);
+  const primaryWorkingSubmitted = currentDoodle.workingSubmitted || currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted;
+  const primaryWorkingSubmittedAt = currentDoodle.workingSubmittedAt || currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null;
+  const workingEvidence = [
+    currentDoodle.workingSubmitted ? {
+      source: 'question_doodle',
+      image: currentDoodle.workingImage || '',
+      strokes: currentDoodle.workingStrokes || [],
+      submittedAt: currentDoodle.workingSubmittedAt || null,
+      questionDimensions: currentDoodle.questionDimensions || null,
+      viewportDimensions: currentDoodle.viewportDimensions || null,
+      deviceType: currentDoodle.deviceType || null,
+      timestamp: currentDoodle.timestamp || new Date().toISOString(),
+    } : null,
+    currentFullscreenWorking.workingSubmitted ? {
+      source: 'fullscreen_working',
+      image: currentFullscreenWorking.workingImage || '',
+      strokes: currentFullscreenWorking.workingStrokes || [],
+      submittedAt: currentFullscreenWorking.workingSubmittedAt || null,
+      canvasDimensions: currentFullscreenWorking.canvasDimensions || null,
+      viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
+      timestamp: currentFullscreenWorking.timestamp || new Date().toISOString(),
+    } : null,
+    currentWorking.workingSubmitted ? {
+      source: 'inline_working',
+      image: currentWorking.workingImage || '',
+      strokes: currentWorking.workingStrokes || [],
+      submittedAt: currentWorking.workingSubmittedAt || null,
+      timestamp: currentWorking.timestamp || new Date().toISOString(),
+    } : null,
+  ].filter(Boolean);
 
   const check = async () => {
     if (busy || answer === '') return;
@@ -229,24 +270,20 @@ function LegacyPracticeSession() {
         answer,
         timeMs: Date.now() - startedAt,
         hintsUsed: 0,
-        workingImage: currentWorking.workingImage || currentFullscreenWorking.workingImage || '',
-        workingStrokes: currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || [],
-        workingSubmitted: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
-        workingSubmittedAt: currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null,
+        workingImage: primaryWorkingImage,
+        workingStrokes: primaryWorkingStrokes,
+        workingSubmitted: Boolean(primaryWorkingSubmitted),
+        workingSubmittedAt: primaryWorkingSubmittedAt,
         workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
-        workingUploaded: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+        workingUploaded: Boolean(currentDoodle.workingSubmitted || currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
         fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
         fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
         fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
         fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
-        workingEvidence: currentFullscreenWorking.workingSubmitted ? [{
-          source: 'fullscreen_working',
-          image: currentFullscreenWorking.workingImage || '',
-          strokes: currentFullscreenWorking.workingStrokes || [],
-          submittedAt: currentFullscreenWorking.workingSubmittedAt || null,
-          canvasDimensions: currentFullscreenWorking.canvasDimensions || null,
-          viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
-        }] : [],
+        workingEvidence,
+        questionDimensions: currentDoodle.questionDimensions || null,
+        viewportDimensions: currentDoodle.viewportDimensions || null,
+        deviceType: currentDoodle.deviceType || null,
       });
       setResult(data);
     } catch (e) {
@@ -284,26 +321,45 @@ function LegacyPracticeSession() {
       </div>
       <ProgressBar value={idx + (result ? 1 : 0)} max={items.length} className="mb-6" />
       <Card className="flex min-h-[30rem] flex-col p-6">
-        <div className="mb-6 text-lg leading-relaxed text-ink-900">
-          {expressionQuestion ? (
-            <FractionExpressionQuestion
-              prompt={q.stem || q.prompt || ''}
-              value={answer}
-              onChange={setAnswer}
-              disabled={!!result}
+        <div ref={questionSurfaceRef} className="relative">
+          <div className="mb-6 text-lg leading-relaxed text-ink-900">
+            {expressionQuestion ? (
+              <FractionExpressionQuestion
+                prompt={q.stem || q.prompt || ''}
+                value={answer}
+                onChange={setAnswer}
+                disabled={!!result}
                 onEnter={() => {
-                if (!result) {
-                  if (!answer) return;
-                  check();
-                }
-              }}
-            />
-          ) : (
-            <MathText text={q.stem} />
-          )}
+                  if (!result) {
+                    if (!answer) return;
+                    check();
+                  }
+                }}
+              />
+            ) : (
+              <MathText text={q.stem} />
+            )}
+          </div>
+          <VisualBlock visual={q.visual} />
+          <QuestionAnnotationOverlay
+            key={`legacy-doodle-${q.questionId}`}
+            questionId={q.questionId}
+            targetRef={questionSurfaceRef}
+            active={doodleMode}
+            initialPayload={currentDoodle}
+            onActivate={setDoodleMode}
+            onChange={(payload) => setDoodleState((prev) => ({ ...prev, [q.questionId]: payload }))}
+          />
         </div>
-        <VisualBlock visual={q.visual} />
         <div className="mb-4 flex flex-wrap gap-2">
+          <Button
+            size="s"
+            variant={doodleMode ? 'primary' : 'secondary'}
+            icon={PencilLine}
+            onClick={() => setDoodleMode((prev) => !prev)}
+          >
+            {doodleMode ? 'Exit Doodle' : 'Doodle'}
+          </Button>
           <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenOpen(true)}>
             Open Working
           </Button>
@@ -356,7 +412,7 @@ function LegacyPracticeSession() {
         />
         {!workingReady && (
           <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-            This question needs working. Please save your working or upload a photo before submitting.
+            This question needs working. Please save your working, doodle on the question, or upload a photo before submitting.
           </p>
         )}
         <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer || !workingReady} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
@@ -424,10 +480,13 @@ export default function PracticeSession() {
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
   const [workingByQuestion, setWorkingByQuestion] = useState({});
+  const [doodleByQuestion, setDoodleByQuestion] = useState({});
   const [fullscreenWorkingByQuestion, setFullscreenWorkingByQuestion] = useState({});
   const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
+  const [doodleMode, setDoodleMode] = useState(false);
+  const questionSurfaceRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -474,6 +533,7 @@ export default function PracticeSession() {
     if (summary || loading || !questions.length) return undefined;
     setQuestionStartedAt(Date.now());
     setElapsedSec(0);
+    setDoodleMode(false);
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
   }, [idx, summary, loading, questions.length, questionStartedAt]);
@@ -540,13 +600,31 @@ export default function PracticeSession() {
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const currentWorking = workingByQuestion[q.questionId] || {};
+  const currentDoodle = doodleByQuestion[q.questionId] || {};
   const currentFullscreenWorking = fullscreenWorkingByQuestion[q.questionId] || {};
   const workingReady = !workingRequirement.required
+    || currentDoodle.workingSubmitted
     || currentWorking.workingSubmitted
     || currentWorking.workingNotNeeded
     || currentFullscreenWorking.workingSubmitted;
   const questionText = q.prompt || q.stem || '';
+  const primaryWorkingImage = currentDoodle.workingImage || currentWorking.workingImage || currentFullscreenWorking.workingImage || '';
+  const primaryWorkingStrokes = currentDoodle.workingStrokes?.length
+    ? currentDoodle.workingStrokes
+    : (currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || []);
+  const primaryWorkingSubmitted = currentDoodle.workingSubmitted || currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted;
+  const primaryWorkingSubmittedAt = currentDoodle.workingSubmittedAt || currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null;
   const workingEvidence = [
+    currentDoodle.workingSubmitted ? {
+      source: 'question_doodle',
+      image: currentDoodle.workingImage || '',
+      strokes: currentDoodle.workingStrokes || [],
+      submittedAt: currentDoodle.workingSubmittedAt || null,
+      questionDimensions: currentDoodle.questionDimensions || null,
+      viewportDimensions: currentDoodle.viewportDimensions || null,
+      deviceType: currentDoodle.deviceType || null,
+      timestamp: currentDoodle.timestamp || new Date().toISOString(),
+    } : null,
     currentWorking.workingSubmitted ? {
       source: 'inline_working',
       image: currentWorking.workingImage || '',
@@ -582,12 +660,12 @@ export default function PracticeSession() {
       helpRequested,
       confidenceCalibration: calibrationFromReflection(answerCheck.correct, reflection),
       possibleMisconception: !answerCheck.correct && reflection === 'i_know_this',
-      workingImage: currentWorking.workingImage || currentFullscreenWorking.workingImage || '',
-      workingStrokes: currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || [],
-      workingSubmitted: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
-      workingSubmittedAt: currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null,
+      workingImage: primaryWorkingImage,
+      workingStrokes: primaryWorkingStrokes,
+      workingSubmitted: Boolean(primaryWorkingSubmitted),
+      workingSubmittedAt: primaryWorkingSubmittedAt,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
-      workingUploaded: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+      workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
       fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
@@ -623,12 +701,12 @@ export default function PracticeSession() {
       helpRequested,
       confidenceCalibration: 'skipped',
       possibleMisconception: false,
-      workingImage: currentWorking.workingImage || currentFullscreenWorking.workingImage || '',
-      workingStrokes: currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || [],
-      workingSubmitted: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
-      workingSubmittedAt: currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null,
+      workingImage: primaryWorkingImage,
+      workingStrokes: primaryWorkingStrokes,
+      workingSubmitted: Boolean(primaryWorkingSubmitted),
+      workingSubmittedAt: primaryWorkingSubmittedAt,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
-      workingUploaded: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+      workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
       fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
@@ -806,24 +884,38 @@ export default function PracticeSession() {
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" />
 
       <Card className="flex min-h-[34rem] flex-col p-6">
-        <div className="mb-6 text-lg leading-relaxed text-ink-900">
-          {expressionQuestion ? (
-            <FractionExpressionQuestion
-              prompt={q.prompt || q.stem || ''}
-              value={answer}
-              onChange={setAnswer}
-              disabled={answered}
-              onEnter={() => {
-                if (!answered) onSubmitCurrent();
-              }}
-            />
-          ) : (
-            <MathText text={q.prompt || q.stem} />
-          )}
+        <div ref={questionSurfaceRef} className="relative">
+          <div className="mb-6 text-lg leading-relaxed text-ink-900">
+            {expressionQuestion ? (
+              <FractionExpressionQuestion
+                prompt={q.prompt || q.stem || ''}
+                value={answer}
+                onChange={setAnswer}
+                disabled={answered}
+                onEnter={() => {
+                  if (!answered) onSubmitCurrent();
+                }}
+              />
+            ) : (
+              <MathText text={q.prompt || q.stem} />
+            )}
+          </div>
+          <QuestionDiagram question={q} />
+          <VisualBlock visual={q.visual} />
+          <QuestionAnnotationOverlay
+            key={`doodle-${q.questionId}`}
+            questionId={q.questionId}
+            targetRef={questionSurfaceRef}
+            active={doodleMode}
+            initialPayload={currentDoodle}
+            onActivate={setDoodleMode}
+            onChange={(payload) => setDoodleByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+          />
         </div>
-        <QuestionDiagram question={q} />
-        <VisualBlock visual={q.visual} />
         <div className="mb-4 flex flex-wrap gap-2">
+          <Button size="s" variant={doodleMode ? 'primary' : 'secondary'} icon={PencilLine} onClick={() => setDoodleMode((prev) => !prev)}>
+            {doodleMode ? 'Exit Doodle' : 'Doodle'}
+          </Button>
           <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
             Open Working
           </Button>
@@ -929,7 +1021,7 @@ export default function PracticeSession() {
 
         {!workingReady && (
           <p className="mt-4 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-            This question needs working. Please save your working or upload a photo before submitting.
+            This question needs working. Please save your working, doodle on the question, or upload a photo before submitting.
           </p>
         )}
 
