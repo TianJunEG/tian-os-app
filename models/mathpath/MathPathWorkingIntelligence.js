@@ -105,6 +105,23 @@ const mathPathWorkingIntelligenceSchema = new mongoose.Schema(
       stepSegmentationSuccess: { type: Boolean, default: false },
       unreadable: { type: Boolean, default: false },
     },
+    procedureAnalysis: { type: mongoose.Schema.Types.Mixed, default: null },
+    failurePoint: { type: mongoose.Schema.Types.Mixed, default: null },
+    methodEvidence: { type: mongoose.Schema.Types.Mixed, default: null },
+    misconceptionDetection: { type: mongoose.Schema.Types.Mixed, default: null },
+    procedurePatterns: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    methodMark: { type: mongoose.Schema.Types.Mixed, default: null },
+    wordProblemAnalysis: { type: mongoose.Schema.Types.Mixed, default: null },
+    heuristics: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    workingQualityEnhanced: { type: mongoose.Schema.Types.Mixed, default: null },
+    studentFeedback: { type: String, default: '' },
+    parentInsight: { type: mongoose.Schema.Types.Mixed, default: null },
+    tutorInsight: { type: mongoose.Schema.Types.Mixed, default: null },
+    teacherInsight: { type: mongoose.Schema.Types.Mixed, default: null },
+    interventionRecommendationV2: { type: mongoose.Schema.Types.Mixed, default: null },
+    humanReviewAssist: { type: mongoose.Schema.Types.Mixed, default: null },
+    misconceptionDatasetRecord: { type: mongoose.Schema.Types.Mixed, default: null },
+    procedureHumanReviewOutcome: { type: mongoose.Schema.Types.Mixed, default: null },
     processing: {
       attempts: { type: Number, default: 0 },
       lastAttemptAt: { type: Date, default: null },
@@ -124,4 +141,3 @@ mathPathWorkingIntelligenceSchema.index({ reviewStatus: 1, analysisStatus: 1 });
 mathPathWorkingIntelligenceSchema.index({ humanReviewStatus: 1 });
 
 export default mongoose.model('MathPathWorkingIntelligence', mathPathWorkingIntelligenceSchema);
-

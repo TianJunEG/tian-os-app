@@ -17,6 +17,11 @@ import {
   buildOcrAuditReport,
   buildWorkingIntelligenceRecordsFromSession,
 } from '../services/mathpath/workingIntelligenceService.js';
+import {
+  applyHumanReviewAssistDecision,
+  buildAccuracyAuditReport,
+  runProcedureMisconceptionAnalysis,
+} from '../services/mathpath/procedureMisconceptionAnalysisService.js';
 
 const router = express.Router();
 const WORKING_UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-working');
@@ -109,6 +114,23 @@ function publicWorkingIntelligence(record = {}) {
     reviewCorrections: record.reviewCorrections || [],
     datasetRecord: record.datasetRecord || {},
     qualityMetrics: record.qualityMetrics || {},
+    procedureAnalysis: record.procedureAnalysis || null,
+    failurePoint: record.failurePoint || null,
+    methodEvidence: record.methodEvidence || null,
+    misconceptionDetection: record.misconceptionDetection || null,
+    procedurePatterns: record.procedurePatterns || [],
+    methodMark: record.methodMark || null,
+    wordProblemAnalysis: record.wordProblemAnalysis || null,
+    heuristics: record.heuristics || [],
+    workingQualityEnhanced: record.workingQualityEnhanced || null,
+    studentFeedback: record.studentFeedback || '',
+    parentInsight: record.parentInsight || null,
+    tutorInsight: record.tutorInsight || null,
+    teacherInsight: record.teacherInsight || null,
+    interventionRecommendationV2: record.interventionRecommendationV2 || null,
+    humanReviewAssist: record.humanReviewAssist || null,
+    misconceptionDatasetRecord: record.misconceptionDatasetRecord || null,
+    procedureHumanReviewOutcome: record.procedureHumanReviewOutcome || null,
     processing: record.processing || {},
     submittedAt: record.submittedAt || null,
     createdAt: record.createdAt || null,
@@ -398,6 +420,30 @@ router.get('/intelligence/audit', async (req, res) => {
   }
 });
 
+router.get('/intelligence/procedure-audit', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    const query = { procedureHumanReviewOutcome: { $ne: null } };
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
+      query.studentId = String(req.user?.id || '');
+    } else if (req.query.studentId) {
+      query.studentId = String(req.query.studentId);
+    }
+    const records = await MathPathWorkingIntelligence.find(query).sort({ updatedAt: -1 }).limit(1000).lean();
+    const rows = records.map((record) => ({
+      procedureAnalysis: record.procedureAnalysis,
+      failurePoint: record.failurePoint,
+      misconceptionDetection: record.misconceptionDetection,
+      humanReviewOutcome: record.procedureHumanReviewOutcome,
+      failurePointAccepted: record.procedureHumanReviewOutcome?.failurePointAccepted,
+      misconceptionAccepted: record.procedureHumanReviewOutcome?.misconceptionAccepted,
+    }));
+    return res.json({ audit: buildAccuracyAuditReport(rows) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to build procedure accuracy audit.', details: err.message });
+  }
+});
+
 router.get('/intelligence/:workingId', async (req, res) => {
   try {
     const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId }).lean();
@@ -431,6 +477,80 @@ router.post('/intelligence/:workingId/review', async (req, res) => {
     return res.json({ workingRecord: publicWorkingIntelligence(record.toObject()) });
   } catch (err) {
     return res.status(500).json({ error: 'Unable to save working review.', details: err.message });
+  }
+});
+
+router.post('/intelligence/:workingId/procedure-analysis', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
+      return res.status(403).json({ error: 'Only tutors, teachers and admins can run procedure analysis.' });
+    }
+    const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId });
+    if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
+    const analysis = runProcedureMisconceptionAnalysis(record.toObject(), req.body?.questionMetadata || {});
+    record.procedureAnalysis = analysis.procedureAnalysis;
+    record.failurePoint = analysis.failurePoint;
+    record.methodEvidence = analysis.methodEvidence;
+    record.misconceptionDetection = analysis.misconceptionDetection;
+    record.methodMark = analysis.methodMark;
+    record.wordProblemAnalysis = analysis.wordProblemAnalysis;
+    record.heuristics = analysis.heuristics;
+    record.workingQualityEnhanced = analysis.workingQuality;
+    record.studentFeedback = analysis.studentFeedback;
+    record.parentInsight = analysis.parentInsight;
+    record.tutorInsight = analysis.tutorInsight;
+    record.interventionRecommendationV2 = analysis.interventionRecommendation;
+    record.humanReviewAssist = analysis.humanReviewAssist;
+    record.misconceptionDatasetRecord = analysis.misconceptionDatasetRecord;
+    record.analysisStatus = 'needs_human_review';
+    await record.save();
+    return res.json({ workingRecord: publicWorkingIntelligence(record.toObject()) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to run procedure analysis.', details: err.message });
+  }
+});
+
+router.post('/intelligence/:workingId/procedure-review', async (req, res) => {
+  try {
+    const roles = roleSet(req.user);
+    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
+      return res.status(403).json({ error: 'Only tutors, teachers and admins can review procedure analysis.' });
+    }
+    const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId });
+    if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
+    const analysis = {
+      procedureAnalysis: record.procedureAnalysis,
+      failurePoint: record.failurePoint,
+      methodEvidence: record.methodEvidence,
+      misconceptionDetection: record.misconceptionDetection,
+      methodMark: record.methodMark,
+      wordProblemAnalysis: record.wordProblemAnalysis,
+      heuristics: record.heuristics,
+      workingQuality: record.workingQualityEnhanced,
+      interventionRecommendation: record.interventionRecommendationV2,
+    };
+    const reviewed = applyHumanReviewAssistDecision(analysis, {
+      action: req.body?.action || 'accept',
+      reviewerUserId: String(req.user?.id || req.user?._id || ''),
+      reviewerRole: getSubmittedByRole(req.user),
+      notes: req.body?.notes || '',
+      correctedAnalysis: req.body?.correctedAnalysis || null,
+      verified: Boolean(req.body?.verified),
+    });
+    record.procedureHumanReviewOutcome = {
+      ...reviewed.humanReviewOutcome,
+      failurePointAccepted: req.body?.failurePointAccepted !== false,
+      misconceptionAccepted: req.body?.misconceptionAccepted !== false,
+    };
+    if (req.body?.correctedAnalysis) {
+      Object.assign(record, req.body.correctedAnalysis);
+    }
+    record.humanReviewStatus = reviewed.humanReviewOutcome.rejected ? 'rejected' : reviewed.humanReviewOutcome.edited ? 'corrected' : 'verified';
+    await record.save();
+    return res.json({ workingRecord: publicWorkingIntelligence(record.toObject()) });
+  } catch (err) {
+    return res.status(500).json({ error: 'Unable to save procedure review.', details: err.message });
   }
 });
 
