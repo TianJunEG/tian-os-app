@@ -73,6 +73,9 @@ const SESSION_META = {
   },
 };
 
+const EMPTY_WORKING_PAYLOAD = {};
+const EMPTY_STROKES = [];
+
 function normalizeSessionType(value) {
   const key = String(value || 'practice').toLowerCase();
   return SESSION_META[key] ? key : 'practice';
@@ -218,7 +221,7 @@ function LegacyPracticeSession() {
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.stem || q.prompt || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const currentWorking = workingState[q.questionId] || {};
-  const currentDoodle = doodleState[q.questionId] || {};
+  const currentDoodle = doodleState[q.questionId] || EMPTY_WORKING_PAYLOAD;
   const currentFullscreenWorking = fullscreenWorkingState[q.questionId] || {};
   const workingReady = !workingRequirement.required
     || currentDoodle.workingSubmitted
@@ -341,15 +344,17 @@ function LegacyPracticeSession() {
             )}
           </div>
           <VisualBlock visual={q.visual} />
-          <QuestionAnnotationOverlay
-            key={`legacy-doodle-${q.questionId}`}
-            questionId={q.questionId}
-            targetRef={questionSurfaceRef}
-            active={doodleMode}
-            initialPayload={currentDoodle}
-            onActivate={setDoodleMode}
-            onChange={(payload) => setDoodleState((prev) => ({ ...prev, [q.questionId]: payload }))}
-          />
+          {(doodleMode || currentDoodle.workingSubmitted) && (
+            <QuestionAnnotationOverlay
+              key={`legacy-doodle-${q.questionId}`}
+              questionId={q.questionId}
+              targetRef={questionSurfaceRef}
+              active={doodleMode}
+              initialPayload={currentDoodle}
+              onActivate={setDoodleMode}
+              onChange={(payload) => setDoodleState((prev) => ({ ...prev, [q.questionId]: payload }))}
+            />
+          )}
         </div>
         <div className="mb-4 flex flex-wrap gap-2">
           <Button
@@ -405,9 +410,15 @@ function LegacyPracticeSession() {
         )}
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
         <WorkingCanvas
+          key={`legacy-working-${q.questionId}`}
           questionId={q.questionId}
           required={workingRequirement.required}
           allowNoWorking={workingRequirement.allowNoWorking}
+          submittedImage={currentWorking.workingImage || ''}
+          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+          onChange={(payload) => setWorkingState((prev) => ({ ...prev, [q.questionId]: payload }))}
           onSubmit={(payload) => setWorkingState((prev) => ({ ...prev, [q.questionId]: payload }))}
         />
         {!workingReady && (
@@ -420,7 +431,7 @@ function LegacyPracticeSession() {
       <FullScreenWorkingMode
         open={fullscreenOpen}
         questionText={q.stem || q.prompt || ''}
-        initialStrokes={currentFullscreenWorking.workingStrokes || []}
+        initialStrokes={currentFullscreenWorking.workingStrokes || EMPTY_STROKES}
         onClose={() => setFullscreenOpen(false)}
         onSave={(payload) => {
           setFullscreenWorkingState((prev) => ({ ...prev, [q.questionId]: payload }));
@@ -600,7 +611,7 @@ export default function PracticeSession() {
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const currentWorking = workingByQuestion[q.questionId] || {};
-  const currentDoodle = doodleByQuestion[q.questionId] || {};
+  const currentDoodle = doodleByQuestion[q.questionId] || EMPTY_WORKING_PAYLOAD;
   const currentFullscreenWorking = fullscreenWorkingByQuestion[q.questionId] || {};
   const workingReady = !workingRequirement.required
     || currentDoodle.workingSubmitted
@@ -902,15 +913,17 @@ export default function PracticeSession() {
           </div>
           <QuestionDiagram question={q} />
           <VisualBlock visual={q.visual} />
-          <QuestionAnnotationOverlay
-            key={`doodle-${q.questionId}`}
-            questionId={q.questionId}
-            targetRef={questionSurfaceRef}
-            active={doodleMode}
-            initialPayload={currentDoodle}
-            onActivate={setDoodleMode}
-            onChange={(payload) => setDoodleByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-          />
+          {(doodleMode || currentDoodle.workingSubmitted) && (
+            <QuestionAnnotationOverlay
+              key={`doodle-${q.questionId}`}
+              questionId={q.questionId}
+              targetRef={questionSurfaceRef}
+              active={doodleMode}
+              initialPayload={currentDoodle}
+              onActivate={setDoodleMode}
+              onChange={(payload) => setDoodleByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+            />
+          )}
         </div>
         <div className="mb-4 flex flex-wrap gap-2">
           <Button size="s" variant={doodleMode ? 'primary' : 'secondary'} icon={PencilLine} onClick={() => setDoodleMode((prev) => !prev)}>
@@ -931,10 +944,16 @@ export default function PracticeSession() {
           })}
         />
         <WorkingCanvas
+          key={`working-${q.questionId}`}
           questionId={q.questionId}
           workingCode={workingCodeByQuestion[q.questionId] || ''}
           required={workingRequirement.required}
           allowNoWorking={workingRequirement.allowNoWorking}
+          submittedImage={currentWorking.workingImage || ''}
+          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+          onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
           onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
         />
 
@@ -1041,7 +1060,7 @@ export default function PracticeSession() {
       <FullScreenWorkingMode
         open={fullscreenQuestionId === q.questionId}
         questionText={questionText}
-        initialStrokes={currentFullscreenWorking.workingStrokes || []}
+        initialStrokes={currentFullscreenWorking.workingStrokes || EMPTY_STROKES}
         onClose={() => setFullscreenQuestionId(null)}
         onSave={(payload) => {
           setFullscreenWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }));

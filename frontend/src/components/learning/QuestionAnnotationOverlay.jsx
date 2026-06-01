@@ -92,17 +92,20 @@ export default function QuestionAnnotationOverlay({
   useEffect(() => {
     const node = targetRef?.current;
     if (!node) return undefined;
+    const updateBounds = (rect) => {
+      const width = Math.max(1, Math.round(rect.width));
+      const height = Math.max(1, Math.round(rect.height));
+      setBounds((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
+    };
+
     if (typeof ResizeObserver === 'undefined') {
-      setBounds({ width: Math.round(node.getBoundingClientRect().width), height: Math.round(node.getBoundingClientRect().height) });
+      updateBounds(node.getBoundingClientRect());
       return undefined;
     }
 
     const measure = () => {
       const rect = node.getBoundingClientRect();
-      setBounds({
-        width: Math.max(1, Math.round(rect.width)),
-        height: Math.max(1, Math.round(rect.height)),
-      });
+      updateBounds(rect);
     };
 
     measure();

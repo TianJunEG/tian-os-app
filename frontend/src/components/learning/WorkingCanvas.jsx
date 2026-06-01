@@ -5,6 +5,7 @@ import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
 
 const CANVAS_WIDTH = 900;
 const CANVAS_HEIGHT = 320;
+const EMPTY_STROKES = [];
 
 export function resolveWorkingRequirement(question = {}, sessionType = 'practice') {
   const explicitRequired = question.requiresWorking ?? question.workingRequired;
@@ -94,7 +95,9 @@ export default function WorkingCanvas({
   allowNoWorking = true,
   readOnly = false,
   submittedImage = '',
-  submittedStrokes = [],
+  submittedStrokes = EMPTY_STROKES,
+  initialSubmitted = null,
+  initialWorkingNotNeeded = false,
   label = 'Show your working',
   onSubmit,
   onChange,
@@ -110,8 +113,8 @@ export default function WorkingCanvas({
   const [strokes, setStrokes] = useState(Array.isArray(submittedStrokes) ? submittedStrokes : []);
   const [redoStack, setRedoStack] = useState([]);
   const [zoom, setZoom] = useState(1);
-  const [submitted, setSubmitted] = useState(Boolean(submittedImage || submittedStrokes?.length));
-  const [notNeeded, setNotNeeded] = useState(false);
+  const [submitted, setSubmitted] = useState(initialSubmitted ?? Boolean(submittedImage || submittedStrokes?.length));
+  const [notNeeded, setNotNeeded] = useState(Boolean(initialWorkingNotNeeded));
 
   const status = useMemo(() => {
     if (readOnly) return 'Review';
@@ -120,24 +123,40 @@ export default function WorkingCanvas({
     return required ? 'Required before answer' : 'Optional';
   }, [notNeeded, readOnly, required, submitted]);
 
-  const redraw = (nextStrokes = strokes) => {
+  const redraw = (nextStrokes = strokes, nextImage = submittedImage) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    if (nextImage && !nextStrokes.length) {
+      const image = new Image();
+      image.onload = () => {
+        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.drawImage(image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      };
+      image.src = nextImage;
+    }
     nextStrokes.forEach((stroke) => drawStroke(ctx, stroke));
   };
 
   useEffect(() => {
-    redraw(strokes);
-  }, [questionId, background]);
+    redraw(strokes, submittedImage);
+  }, [strokes, submittedImage, background]);
 
   useEffect(() => {
-    setStrokes(Array.isArray(submittedStrokes) ? submittedStrokes : []);
+    const nextStrokes = Array.isArray(submittedStrokes) ? submittedStrokes : [];
+    const nextSubmitted = initialSubmitted ?? Boolean(submittedImage || nextStrokes.length);
+    const nextNotNeeded = Boolean(initialWorkingNotNeeded);
+    drawingRef.current = false;
+    currentStrokeRef.current = null;
+    setStrokes(nextStrokes);
     setRedoStack([]);
-    setSubmitted(Boolean(submittedImage || submittedStrokes?.length));
-    setNotNeeded(false);
-  }, [questionId, submittedImage, submittedStrokes]);
+    setSubmitted(nextSubmitted);
+    setNotNeeded(nextNotNeeded);
+    setZoom(1);
+    scrollRef.current?.scrollTo?.({ left: 0, top: 0 });
+    redraw(nextStrokes, submittedImage);
+  }, [questionId, submittedImage, submittedStrokes, initialSubmitted, initialWorkingNotNeeded]);
 
   const pointFromEvent = (event) => {
     const canvas = canvasRef.current;

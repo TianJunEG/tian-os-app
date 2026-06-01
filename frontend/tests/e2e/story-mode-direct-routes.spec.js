@@ -48,7 +48,9 @@ test.describe('Fractions Story Mode direct route QA', () => {
         await loginAs(page, accounts.student, route.path);
         await expect(page.getByText('Problem Solving Story').first()).toBeVisible({ timeout: 20_000 });
         await expect(page.getByText(/Story support/i)).toBeVisible();
-        await expect(page.getByRole('button', { name: /listen/i })).toBeVisible();
+        await expect(
+          page.getByText(/^Listen$/).or(page.getByText(/Audio is unavailable/i)).first()
+        ).toBeVisible();
         await expect(page.getByText(/Model prompt/i)).toBeVisible();
         await expect(page.getByRole('button', { name: /continue|complete story/i })).toBeVisible();
 

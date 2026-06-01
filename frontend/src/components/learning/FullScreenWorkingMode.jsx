@@ -47,6 +47,9 @@ export default function FullScreenWorkingMode({
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
   const strokesRef = useRef(Array.isArray(initialStrokes) ? initialStrokes : []);
+  const toolRef = useRef('pen');
+  const colourRef = useRef(WORKING_COLOURS[0].value);
+  const brushSizeRef = useRef(4);
   const [tool, setTool] = useState('pen');
   const [colour, setColour] = useState(WORKING_COLOURS[0].value);
   const [brushSize, setBrushSize] = useState(4);
@@ -54,6 +57,10 @@ export default function FullScreenWorkingMode({
   const [redoStack, setRedoStack] = useState([]);
   const [zoom, setZoom] = useState(1);
   const [hasCanvasMarks, setHasCanvasMarks] = useState(Array.isArray(initialStrokes) && initialStrokes.length > 0);
+
+  useEffect(() => { toolRef.current = tool; }, [tool]);
+  useEffect(() => { colourRef.current = colour; }, [colour]);
+  useEffect(() => { brushSizeRef.current = brushSize; }, [brushSize]);
 
   const redraw = (nextStrokes = strokes) => {
     const canvas = canvasRef.current;
@@ -88,7 +95,12 @@ export default function FullScreenWorkingMode({
   const beginStroke = (event) => {
     event.preventDefault();
     drawingRef.current = true;
-    currentStrokeRef.current = { tool, colour, size: brushSize, points: [pointFromEvent(event)] };
+    currentStrokeRef.current = {
+      tool: toolRef.current,
+      colour: colourRef.current,
+      size: brushSizeRef.current,
+      points: [pointFromEvent(event)],
+    };
     setHasCanvasMarks(true);
   };
 
@@ -138,6 +150,33 @@ export default function FullScreenWorkingMode({
   const endMouseStroke = () => {
     endStroke();
   };
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const options = { passive: false };
+    canvas.addEventListener('pointerdown', beginPointerStroke, options);
+    canvas.addEventListener('pointermove', movePointerStroke, options);
+    canvas.addEventListener('pointerup', endPointerStroke, options);
+    canvas.addEventListener('pointercancel', endPointerStroke, options);
+    canvas.addEventListener('pointerleave', endPointerStroke, options);
+    canvas.addEventListener('mousedown', beginMouseStroke, options);
+    canvas.addEventListener('mousemove', moveMouseStroke, options);
+    canvas.addEventListener('mouseup', endMouseStroke, options);
+    canvas.addEventListener('mouseleave', endMouseStroke, options);
+    return () => {
+      canvas.removeEventListener('pointerdown', beginPointerStroke);
+      canvas.removeEventListener('pointermove', movePointerStroke);
+      canvas.removeEventListener('pointerup', endPointerStroke);
+      canvas.removeEventListener('pointercancel', endPointerStroke);
+      canvas.removeEventListener('pointerleave', endPointerStroke);
+      canvas.removeEventListener('mousedown', beginMouseStroke);
+      canvas.removeEventListener('mousemove', moveMouseStroke);
+      canvas.removeEventListener('mouseup', endMouseStroke);
+      canvas.removeEventListener('mouseleave', endMouseStroke);
+    };
+  }, [open]);
 
   const save = () => {
     const canvas = canvasRef.current;
@@ -207,7 +246,7 @@ export default function FullScreenWorkingMode({
       open={open}
       onClose={onClose}
       title="Full-screen working"
-      className="max-w-6xl"
+      className="max-h-[92vh] max-w-6xl overflow-hidden"
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
@@ -215,7 +254,7 @@ export default function FullScreenWorkingMode({
         </>
       )}
     >
-      <div className="space-y-3">
+      <div className="max-h-[calc(92vh-10rem)] space-y-3 overflow-y-auto pr-1">
         <div className="rounded-xl border border-hairline bg-slate-50 p-3 text-sm text-ink-700">
           <p className="font-semibold">Question reference</p>
           <p className="mt-1">{questionText}</p>
@@ -238,23 +277,14 @@ export default function FullScreenWorkingMode({
           onZoomOut={() => zoomBy(-0.25)}
           onPan={pan}
         />
-        <div ref={scrollRef} className="overflow-auto rounded-xl border border-hairline bg-white">
+        <div ref={scrollRef} className="max-h-[52vh] overflow-auto rounded-xl border border-hairline bg-white">
           <canvas
             ref={canvasRef}
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
-            className="block h-[55vh] min-h-[360px] touch-none rounded-xl"
+            className="block h-[48vh] min-h-[300px] touch-none rounded-xl"
             style={{ width: `${zoom * 100}%`, minWidth: '100%' }}
             aria-label="Full-screen working canvas"
-            onPointerDown={beginPointerStroke}
-            onPointerMove={movePointerStroke}
-            onPointerUp={endPointerStroke}
-            onPointerCancel={endPointerStroke}
-            onPointerLeave={endPointerStroke}
-            onMouseDown={beginMouseStroke}
-            onMouseMove={moveMouseStroke}
-            onMouseUp={endMouseStroke}
-            onMouseLeave={endMouseStroke}
           />
         </div>
       </div>

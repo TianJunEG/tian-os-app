@@ -3,8 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import WorkingCanvas, { resolveWorkingRequirement } from './WorkingCanvas';
 
+let canvasContext;
+
 beforeEach(() => {
-  HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+  canvasContext = {
     save: vi.fn(),
     restore: vi.fn(),
     beginPath: vi.fn(),
@@ -14,7 +16,8 @@ beforeEach(() => {
     clearRect: vi.fn(),
     fillRect: vi.fn(),
     drawImage: vi.fn(),
-  }));
+  };
+  HTMLCanvasElement.prototype.getContext = vi.fn(() => canvasContext);
   HTMLCanvasElement.prototype.toDataURL = vi.fn(() => 'data:image/png;base64,working');
   HTMLCanvasElement.prototype.getBoundingClientRect = vi.fn(() => ({
     left: 0,
@@ -76,5 +79,37 @@ describe('WorkingCanvas', () => {
 
     expect(screen.getByText('Student workings')).toBeInTheDocument();
     expect(screen.getByAltText('Student submitted workings')).toHaveAttribute('src', 'data:image/png;base64,abc');
+  });
+
+  it('clears canvas pixels and local submitted state when question changes without saved working', () => {
+    const { rerender } = render(
+      <WorkingCanvas
+        questionId="q1"
+        submittedStrokes={[{ tool: 'pen', colour: '#111827', size: 4, points: [{ x: 1, y: 1 }, { x: 20, y: 20 }] }]}
+        initialSubmitted
+      />
+    );
+
+    expect(screen.getByText('Workings submitted')).toBeInTheDocument();
+    canvasContext.clearRect.mockClear();
+
+    rerender(<WorkingCanvas questionId="q2" submittedStrokes={[]} initialSubmitted={false} initialWorkingNotNeeded={false} />);
+
+    expect(canvasContext.clearRect).toHaveBeenCalled();
+    expect(screen.getByText('Optional')).toBeInTheDocument();
+    expect(screen.getByText('Submit workings')).toBeDisabled();
+  });
+
+  it('loads the saved strokes for the current question when returning to it', () => {
+    const savedStrokes = [{ tool: 'pen', colour: '#111827', size: 4, points: [{ x: 1, y: 1 }, { x: 20, y: 20 }] }];
+    const { rerender } = render(<WorkingCanvas questionId="q1" submittedStrokes={savedStrokes} initialSubmitted={false} />);
+
+    expect(screen.getByText('Undo')).not.toBeDisabled();
+
+    rerender(<WorkingCanvas questionId="q2" submittedStrokes={[]} initialSubmitted={false} />);
+    expect(screen.getByText('Undo')).toBeDisabled();
+
+    rerender(<WorkingCanvas questionId="q1" submittedStrokes={savedStrokes} initialSubmitted={false} />);
+    expect(screen.getByText('Undo')).not.toBeDisabled();
   });
 });
