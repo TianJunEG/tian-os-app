@@ -51,10 +51,20 @@ function parseTextAnswer(raw) {
 function parseAnswerLike(v) {
   if (v == null) return null;
   if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return parseTextAnswer(v);
+  if (v.type === 'list') {
+    const listSource = Array.isArray(v.value)
+      ? v.value
+      : typeof v.display === 'string'
+        ? v.display.split(',').map((x) => x.trim()).filter(Boolean)
+        : [];
+    const parsedList = listSource.map(parseTextAnswer).filter((x) => x && x.kind === 'frac').map((x) => `${x.n}/${x.d}`);
+    if (!parsedList.length) return null;
+    return { kind: 'list', values: parsedList };
+  }
   if (v.type === 'fraction') return { kind: 'frac', ...simplify(Number(v.numerator), Number(v.denominator)) };
   if (v.type === 'whole') return { kind: 'int', value: Number(v.whole) };
   if (v.type === 'mixed') return { kind: 'frac', ...simplify(Number(v.whole) * Number(v.denominator) + Number(v.numerator), Number(v.denominator)) };
-  if (v.type === 'text' || v.type === 'list') return parseTextAnswer(v.display || v.value || '');
+  if (v.type === 'text') return parseTextAnswer(v.display || v.value || '');
   if (v.display !== undefined) return parseTextAnswer(v.display);
   return parseTextAnswer(String(v));
 }
@@ -63,6 +73,10 @@ function sameCanonical(a, b) {
   if (a.kind === 'frac' && b.kind === 'frac') return a.valid && b.valid && a.n === b.n && a.d === b.d;
   if (a.kind === 'int' && b.kind === 'int') return a.value === b.value;
   if (a.kind === 'symbol' && b.kind === 'symbol') return a.text === b.text;
+  if (a.kind === 'list' && b.kind === 'list') {
+    if (a.values.length !== b.values.length) return false;
+    return a.values.every((value, idx) => value === b.values[idx]);
+  }
   return false;
 }
 function parseExpected(prompt) {
@@ -117,7 +131,8 @@ function parseExpected(prompt) {
     return { kind: 'symbol', text: left.n * right.d > right.n * left.d ? '>' : '<' };
   }
   if ((m = p.match(/^Complete: (\d+)\/(\d+) = \?\/(\d+)$/))) {
-    return { kind: 'frac', ...simplify(Number(m[1]) * Number(m[3]), Number(m[2])) };
+    const numerator = (Number(m[1]) * Number(m[3])) / Number(m[2]);
+    return { kind: 'frac', ...simplify(numerator, Number(m[3])) };
   }
   if ((m = p.match(/^Write one equivalent fraction for (\d+)\/(\d+)\.?$/))) {
     return { kind: 'frac', ...simplify(Number(m[1]) * 2, Number(m[2]) * 2) };
@@ -163,7 +178,16 @@ function parseExpected(prompt) {
 function normalizeAccepted(answers) {
   const arr = Array.isArray(answers) ? answers : [];
   const out = arr
-    .map((x) => parseTextAnswer(x))
+    .flatMap((x) => {
+      const parsed = parseTextAnswer(x);
+      if (parsed) return [parsed];
+      if (typeof x !== 'string') return [];
+      const expanded = String(x)
+        .split(',')
+        .map((item) => parseTextAnswer(item.trim()))
+        .filter(Boolean);
+      return expanded;
+    })
     .filter(Boolean)
     .map((x) => {
       if (x.kind === 'frac') return `${x.n}/${x.d}`;

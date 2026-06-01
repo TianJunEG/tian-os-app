@@ -1,0 +1,1453 @@
+{
+  "totalQuestions": 260,
+  "flaggedQuestions": 99,
+  "bySkill": {
+    "F001": 7,
+    "F002": 4,
+    "F003": 4,
+    "F004": 7,
+    "F005": 4,
+    "F006": 3,
+    "F007": 4,
+    "F008": 2,
+    "F009": 10,
+    "F011": 2,
+    "F012": 3,
+    "F013": 2,
+    "F014": 1,
+    "F015": 1,
+    "F017": 3,
+    "F018": 5,
+    "F019": 2,
+    "F020": 2,
+    "F021": 5,
+    "F022": 7,
+    "F023": 5,
+    "F024": 5,
+    "F025": 5,
+    "F026": 6
+  },
+  "rows": [
+    {
+      "skillId": "F001",
+      "questionId": "fq_1780316463356_uv2y82",
+      "familyId": "QF_F001_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "What fraction of the shape is shaded?"
+    },
+    {
+      "skillId": "F001",
+      "questionId": "fq_1780316463356_flqn0j",
+      "familyId": "QF_F001_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "What fraction of the shape is shaded?"
+    },
+    {
+      "skillId": "F001",
+      "questionId": "fq_1780316463357_owosjj",
+      "familyId": "QF_F001_001",
+      "issueCount": 2,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        },
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "What fraction of the shape is shaded?"
+    },
+    {
+      "skillId": "F001",
+      "questionId": "fq_1780316463357_uv2y82",
+      "familyId": "QF_F001_002",
+      "issueCount": 2,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        },
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "What fraction of the shape is shaded?"
+    },
+    {
+      "skillId": "F001",
+      "questionId": "fq_1780316463357_flqn0j",
+      "familyId": "QF_F001_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "What fraction of the shape is shaded?"
+    },
+    {
+      "skillId": "F001",
+      "questionId": "fq_1780316463357_cebt0",
+      "familyId": "QF_F001_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "What fraction of the shape is shaded?"
+    },
+    {
+      "skillId": "F001",
+      "questionId": "fq_1780316463358_ewxzej",
+      "familyId": "QF_F001_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "What fraction of the shape is shaded?"
+    },
+    {
+      "skillId": "F002",
+      "questionId": "fq_1780316463362_9tge3b",
+      "familyId": "QF_F002_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 8 equal parts. 3 parts are shaded. How many parts are shaded?"
+    },
+    {
+      "skillId": "F002",
+      "questionId": "fq_1780316463362_47bbpd",
+      "familyId": "QF_F002_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 9 equal parts. 6 parts are shaded. How many equal parts are in the whole bar?"
+    },
+    {
+      "skillId": "F002",
+      "questionId": "fq_1780316463363_9tge3b",
+      "familyId": "QF_F002_001",
+      "issueCount": 2,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        },
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "A bar is split into 8 equal parts. 3 parts are shaded. How many parts are shaded?"
+    },
+    {
+      "skillId": "F002",
+      "questionId": "fq_1780316463363_qqm03f",
+      "familyId": "QF_F002_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 8 equal parts. 2 parts are shaded. How many parts are shaded?"
+    },
+    {
+      "skillId": "F003",
+      "questionId": "fq_1780316463364_9phpv",
+      "familyId": "QF_F003_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A set has 15 objects. 1/5 of them are selected. How many are selected?"
+    },
+    {
+      "skillId": "F003",
+      "questionId": "fq_1780316463365_z8d773",
+      "familyId": "QF_F003_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A set has 10 objects. 1/2 of them are selected. How many are selected?"
+    },
+    {
+      "skillId": "F003",
+      "questionId": "fq_1780316463365_90eazh",
+      "familyId": "QF_F003_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A set has 6 objects. 1/3 of them are selected. How many are selected?"
+    },
+    {
+      "skillId": "F003",
+      "questionId": "fq_1780316463365_uioyrw",
+      "familyId": "QF_F003_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A set has 16 objects. 2/4 of them are selected. How many are selected?"
+    },
+    {
+      "skillId": "F004",
+      "questionId": "fq_1780316463366_ebl3x2",
+      "familyId": "QF_F004_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 10 equal parts. 1 part is shaded. What fraction is shaded?"
+    },
+    {
+      "skillId": "F004",
+      "questionId": "fq_1780316463367_h3mxzz",
+      "familyId": "QF_F004_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 2 equal parts. 1 part is shaded. What fraction is shaded?"
+    },
+    {
+      "skillId": "F004",
+      "questionId": "fq_1780316463367_5rpp7i",
+      "familyId": "QF_F004_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 7 equal parts. 1 part is shaded. What fraction is shaded?"
+    },
+    {
+      "skillId": "F004",
+      "questionId": "fq_1780316463367_mned0e",
+      "familyId": "QF_F004_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 5 equal parts. 1 part is shaded. What fraction is shaded?"
+    },
+    {
+      "skillId": "F004",
+      "questionId": "fq_1780316463367_xzblsv",
+      "familyId": "QF_F004_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 4 equal parts. 1 part is shaded. What fraction is shaded?"
+    },
+    {
+      "skillId": "F004",
+      "questionId": "fq_1780316463367_8modyd",
+      "familyId": "QF_F004_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 8 equal parts. 1 part is shaded. What fraction is shaded?"
+    },
+    {
+      "skillId": "F004",
+      "questionId": "fq_1780316463367_6j4q24",
+      "familyId": "QF_F004_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A bar is split into 12 equal parts. 1 part is shaded. What fraction is shaded?"
+    },
+    {
+      "skillId": "F005",
+      "questionId": "fq_1780316463367_36p4zx",
+      "familyId": "QF_F005_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "On a number line from 0 to 1 divided into 8 equal parts, what fraction is at the first mark after 0?"
+    },
+    {
+      "skillId": "F005",
+      "questionId": "fq_1780316463367_s6352f",
+      "familyId": "QF_F005_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "On a number line from 0 to 1 divided into 4 equal parts, what fraction is at the second mark after 0?"
+    },
+    {
+      "skillId": "F005",
+      "questionId": "fq_1780316463367_o87y0s",
+      "familyId": "QF_F005_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "On a number line from 0 to 1 divided into 8 equal parts, what fraction is at the seventh mark after 0?"
+    },
+    {
+      "skillId": "F005",
+      "questionId": "fq_1780316463367_99p2p2",
+      "familyId": "QF_F005_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "On a number line from 0 to 1 divided into 2 equal parts, what fraction is at the first mark after 0?"
+    },
+    {
+      "skillId": "F006",
+      "questionId": "fq_1780316463368_2s33cn",
+      "familyId": "QF_F006_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 1/9 or 1/6?"
+    },
+    {
+      "skillId": "F006",
+      "questionId": "fq_1780316463368_a6f3f3",
+      "familyId": "QF_F006_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 1/4 or 1/9?"
+    },
+    {
+      "skillId": "F006",
+      "questionId": "fq_1780316463368_8gsx3d",
+      "familyId": "QF_F006_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 1/7 or 1/4?"
+    },
+    {
+      "skillId": "F007",
+      "questionId": "fq_1780316463369_3s23xx",
+      "familyId": "QF_F007_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 8/12 or 11/12?"
+    },
+    {
+      "skillId": "F007",
+      "questionId": "fq_1780316463369_y48rxm",
+      "familyId": "QF_F007_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 2/5 or 1/5?"
+    },
+    {
+      "skillId": "F007",
+      "questionId": "fq_1780316463369_n1jyr2",
+      "familyId": "QF_F007_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 1/8 or 4/8?"
+    },
+    {
+      "skillId": "F007",
+      "questionId": "fq_1780316463369_a4pe2l",
+      "familyId": "QF_F007_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-2)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 10/11 or 3/11?"
+    },
+    {
+      "skillId": "F008",
+      "questionId": "fq_1780316463369_8moxs6",
+      "familyId": "QF_F008_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 5/9 or 5/6?"
+    },
+    {
+      "skillId": "F008",
+      "questionId": "fq_1780316463369_7swo6b",
+      "familyId": "QF_F008_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Which is greater: 5/12 or 5/9?"
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_v2rw5l",
+      "familyId": "QF_F009_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 1/3, 2/3, 1/2."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_uj4r0p",
+      "familyId": "QF_F009_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 2/5, 4/5, 1/2."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_6joudg",
+      "familyId": "QF_F009_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 3/8, 1/4, 5/8."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_7g2o7a",
+      "familyId": "QF_F009_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 3/8, 1/4, 5/8."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_1uqj5f",
+      "familyId": "QF_F009_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 1/2, 2/3, 1/6."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_agj66q",
+      "familyId": "QF_F009_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 1/2, 1/4, 3/4."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_qvh448",
+      "familyId": "QF_F009_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 1/4, 3/4, 1/2."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_aub2z6",
+      "familyId": "QF_F009_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 2/3, 1/2, 1/3."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_4r5xda",
+      "familyId": "QF_F009_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 1/2, 2/5, 4/5."
+    },
+    {
+      "skillId": "F009",
+      "questionId": "fq_1780316463370_5fm6vs",
+      "familyId": "QF_F009_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Order these fractions from smallest to largest: 2/5, 4/5, 1/2."
+    },
+    {
+      "skillId": "F011",
+      "questionId": "fq_1780316463372_r4c5e4",
+      "familyId": "QF_F011_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Write one equivalent fraction for 5/6."
+    },
+    {
+      "skillId": "F011",
+      "questionId": "fq_1780316463372_2y6oy6",
+      "familyId": "QF_F011_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Write one equivalent fraction for 3/9."
+    },
+    {
+      "skillId": "F012",
+      "questionId": "fq_1780316463373_mkfiha",
+      "familyId": "QF_F012_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Simplify 21/27 to lowest terms."
+    },
+    {
+      "skillId": "F012",
+      "questionId": "fq_1780316463373_ongc8i",
+      "familyId": "QF_F012_001",
+      "issueCount": 2,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        },
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Simplify 10/14 to lowest terms."
+    },
+    {
+      "skillId": "F012",
+      "questionId": "fq_1780316463373_63d8fl",
+      "familyId": "QF_F012_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Fill in the correct symbol: 1/5 __ 1/11"
+    },
+    {
+      "skillId": "F013",
+      "questionId": "fq_1780316463374_rivk8w",
+      "familyId": "QF_F013_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Write 5/2 as a mixed number."
+    },
+    {
+      "skillId": "F013",
+      "questionId": "fq_1780316463374_77xsrd",
+      "familyId": "QF_F013_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Write 8/3 as a mixed number."
+    },
+    {
+      "skillId": "F014",
+      "questionId": "fq_1780316463375_jnpwyi",
+      "familyId": "QF_F014_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Write the mixed number shown: 4 1/5."
+    },
+    {
+      "skillId": "F015",
+      "questionId": "fq_1780316463376_kvf7ce",
+      "familyId": "QF_F015_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Convert 1 2/7 to an improper fraction."
+    },
+    {
+      "skillId": "F017",
+      "questionId": "fq_1780316463377_qqvvex",
+      "familyId": "QF_F017_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 4 outside skill/family band (1-3)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 6/10 - 1/10"
+    },
+    {
+      "skillId": "F017",
+      "questionId": "fq_1780316463377_1x0r7h",
+      "familyId": "QF_F017_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Compute: 4/5 - 3/5"
+    },
+    {
+      "skillId": "F017",
+      "questionId": "fq_1780316463377_z7zf56",
+      "familyId": "QF_F017_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 7/9 - 6/9"
+    },
+    {
+      "skillId": "F018",
+      "questionId": "fq_1780316463378_ppbzzb",
+      "familyId": "QF_F018_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 4/5 + 3/4"
+    },
+    {
+      "skillId": "F018",
+      "questionId": "fq_1780316463378_o0fa97",
+      "familyId": "QF_F018_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 3/4 + 4/3"
+    },
+    {
+      "skillId": "F018",
+      "questionId": "fq_1780316463378_fj0jio",
+      "familyId": "QF_F018_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 2/3 - 1/2"
+    },
+    {
+      "skillId": "F018",
+      "questionId": "fq_1780316463378_4q3fo5",
+      "familyId": "QF_F018_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 2/3 + 1/6"
+    },
+    {
+      "skillId": "F018",
+      "questionId": "fq_1780316463378_6f05e9",
+      "familyId": "QF_F018_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 1/2 + 2/5"
+    },
+    {
+      "skillId": "F019",
+      "questionId": "fq_1780316463379_wy0l2d",
+      "familyId": "QF_F019_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 6/7 - 2/5"
+    },
+    {
+      "skillId": "F019",
+      "questionId": "fq_1780316463379_b07wwo",
+      "familyId": "QF_F019_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 4/5 - 1/5"
+    },
+    {
+      "skillId": "F020",
+      "questionId": "fq_1780316463380_kb84n3",
+      "familyId": "QF_F020_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Find 7/8 of 16."
+    },
+    {
+      "skillId": "F020",
+      "questionId": "fq_1780316463380_y0x94j",
+      "familyId": "QF_F020_006",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Find 4/5 of 20."
+    },
+    {
+      "skillId": "F021",
+      "questionId": "fq_1780316463380_4rhfio",
+      "familyId": "QF_F021_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 1/7 × 6"
+    },
+    {
+      "skillId": "F021",
+      "questionId": "fq_1780316463381_4zjfm0",
+      "familyId": "QF_F021_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute and give your answer as a simplified fraction: 3/5 × 0.5"
+    },
+    {
+      "skillId": "F021",
+      "questionId": "fq_1780316463381_cm6djn",
+      "familyId": "QF_F021_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 1/3 × 1/4"
+    },
+    {
+      "skillId": "F021",
+      "questionId": "fq_1780316463381_4rhfio",
+      "familyId": "QF_F021_004",
+      "issueCount": 2,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        },
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Compute: 1/7 × 6"
+    },
+    {
+      "skillId": "F021",
+      "questionId": "fq_1780316463381_4zjfm0",
+      "familyId": "QF_F021_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Compute and give your answer as a simplified fraction: 3/5 × 0.5"
+    },
+    {
+      "skillId": "F022",
+      "questionId": "fq_1780316463381_hnrj8y",
+      "familyId": "QF_F022_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 2/7 ÷ 1/2"
+    },
+    {
+      "skillId": "F022",
+      "questionId": "fq_1780316463381_5gxyr1",
+      "familyId": "QF_F022_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 1/7 ÷ 1/3"
+    },
+    {
+      "skillId": "F022",
+      "questionId": "fq_1780316463384_m8v1ps",
+      "familyId": "QF_F022_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Compute: 4/5 ÷ 1/2"
+    },
+    {
+      "skillId": "F022",
+      "questionId": "fq_1780316463384_9h39kj",
+      "familyId": "QF_F022_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: 1 ÷ 3/7"
+    },
+    {
+      "skillId": "F022",
+      "questionId": "fq_1780316463384_hnrj8y",
+      "familyId": "QF_F022_003",
+      "issueCount": 2,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        },
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Compute: 2/7 ÷ 1/2"
+    },
+    {
+      "skillId": "F022",
+      "questionId": "fq_1780316463384_5gxyr1",
+      "familyId": "QF_F022_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Compute: 1/7 ÷ 1/3"
+    },
+    {
+      "skillId": "F022",
+      "questionId": "fq_1780316463384_obu08d",
+      "familyId": "QF_F022_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Compute: (2/7) ÷ 4/3"
+    },
+    {
+      "skillId": "F023",
+      "questionId": "fq_1780316463384_ru29n3",
+      "familyId": "QF_F023_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A student used 1/2 of a worksheet with 26 questions. How many questions are left?"
+    },
+    {
+      "skillId": "F023",
+      "questionId": "fq_1780316463384_7ocnda",
+      "familyId": "QF_F023_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A student used 1/3 of a worksheet with 23 questions. How many questions are left?"
+    },
+    {
+      "skillId": "F023",
+      "questionId": "fq_1780316463384_zfl5ss",
+      "familyId": "QF_F023_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "In the ratio A:B = 3/2 : 3/5, find A/B as a simplified fraction."
+    },
+    {
+      "skillId": "F023",
+      "questionId": "fq_1780316463384_v8go24",
+      "familyId": "QF_F023_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A student used 1/2 of a worksheet with 32 questions. How many questions are left?"
+    },
+    {
+      "skillId": "F023",
+      "questionId": "fq_1780316463384_sp1b2s",
+      "familyId": "QF_F023_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A student used 1/3 of a worksheet with 29 questions. How many questions are left?"
+    },
+    {
+      "skillId": "F024",
+      "questionId": "fq_1780316463385_50mccy",
+      "familyId": "QF_F024_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A class completed 1/4 of 57 problems, then 1/3 of the remainder. How many problems are still unfinished?"
+    },
+    {
+      "skillId": "F024",
+      "questionId": "fq_1780316463385_eswg6r",
+      "familyId": "QF_F024_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A class completed 1/3 of 69 problems, then 1/4 of the remainder. How many problems are still unfinished?"
+    },
+    {
+      "skillId": "F024",
+      "questionId": "fq_1780316463385_yfvho2",
+      "familyId": "QF_F024_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A class completed 1/4 of 34 problems, then 1/2 of the remainder. How many problems are still unfinished?"
+    },
+    {
+      "skillId": "F024",
+      "questionId": "fq_1780316463385_eqxifd",
+      "familyId": "QF_F024_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A class completed 1/4 of 27 problems, then 1/2 of the remainder. How many problems are still unfinished?"
+    },
+    {
+      "skillId": "F024",
+      "questionId": "fq_1780316463385_6lpcy5",
+      "familyId": "QF_F024_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "A class completed 1/2 of 56 problems, then 1/4 of the remainder. How many problems are still unfinished?"
+    },
+    {
+      "skillId": "F025",
+      "questionId": "fq_1780316463385_t67xqg",
+      "familyId": "QF_F025_001",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Exam-style: Compute 2/3 + 1/4 - 1/4."
+    },
+    {
+      "skillId": "F025",
+      "questionId": "fq_1780316463385_ebq83i",
+      "familyId": "QF_F025_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Exam-style: Compute 1/3 + 3/8 - 1/6."
+    },
+    {
+      "skillId": "F025",
+      "questionId": "fq_1780316463385_y6x4v1",
+      "familyId": "QF_F025_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Exam-style: Compute 1/3 + 1/8 - 1/12."
+    },
+    {
+      "skillId": "F025",
+      "questionId": "fq_1780316463385_2umqeb",
+      "familyId": "QF_F025_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Exam-style: Compute 1/6 + 1/4 - 1/12."
+    },
+    {
+      "skillId": "F025",
+      "questionId": "fq_1780316463385_ebq83i",
+      "familyId": "QF_F025_004",
+      "issueCount": 2,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        },
+        {
+          "issue": "Duplicate question stem",
+          "severity": "medium",
+          "fix": "Diversify deterministic variants per family to avoid duplicated stems."
+        }
+      ],
+      "prompt": "Exam-style: Compute 1/3 + 3/8 - 1/6."
+    },
+    {
+      "skillId": "F026",
+      "questionId": "fq_1780316463385_72ox3p",
+      "familyId": "QF_F026_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Mastery challenge: 3/4 of 59 students passed. How many students passed?"
+    },
+    {
+      "skillId": "F026",
+      "questionId": "fq_1780316463385_b9hlan",
+      "familyId": "QF_F026_004",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Mastery challenge: 2/5 of 56 students passed. How many students passed?"
+    },
+    {
+      "skillId": "F026",
+      "questionId": "fq_1780316463386_ss0r26",
+      "familyId": "QF_F026_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Multiple distinct accepted answers",
+          "severity": "low",
+          "fix": "Keep one canonical correct answer unless explicitly allowing alternatives."
+        }
+      ],
+      "prompt": "Rewrite 10 ÷ 5 in fraction form."
+    },
+    {
+      "skillId": "F026",
+      "questionId": "fq_1780316463386_89t81i",
+      "familyId": "QF_F026_002",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Mastery challenge: 2/3 of 71 students passed. How many students passed?"
+    },
+    {
+      "skillId": "F026",
+      "questionId": "fq_1780316463386_wx9f6y",
+      "familyId": "QF_F026_003",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 3 outside skill/family band (4-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "Mastery challenge: 1 of 44 students passed. How many students passed?"
+    },
+    {
+      "skillId": "F026",
+      "questionId": "fq_1780316463386_d9mwe7",
+      "familyId": "QF_F026_005",
+      "issueCount": 1,
+      "issues": [
+        {
+          "issue": "Difficulty 2 outside skill/family band (3-5)",
+          "severity": "medium",
+          "fix": "Adjust difficultyLevel selection for this family in category config."
+        }
+      ],
+      "prompt": "If y = 4, evaluate (3 + y)/5 as a simplified fraction."
+    }
+  ]
+}

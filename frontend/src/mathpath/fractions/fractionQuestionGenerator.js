@@ -202,6 +202,10 @@ function mixedStr(m) {
 function parseAnswer(raw) {
   const input = String(raw ?? '').trim();
   if (!input) return null;
+  const symbolMatch = input.match(/^([<>]=?|=)$/);
+  if (symbolMatch) {
+    return { type: 'symbol', value: symbolMatch[1] };
+  }
   if (/^-?\d+(\.\d+)?$/.test(input)) {
     const n = Number(input);
     if (Number.isInteger(n)) {
@@ -547,36 +551,36 @@ function templateForSkill(skillId, variant, ctx) {
     case 'F006': {
       const a = seq(s, 2, 9);
       const b = distinctSeq(s + 5, 2, 9, a);
-      const bigger = a < b ? `1/${a}` : `1/${b}`;
+      const relation = a < b ? '>' : '<';
       return {
         prompt: `Which is greater: 1/${a} or 1/${b}?`,
-        answer: { type: 'text', value: bigger, display: bigger },
-        acceptedAnswers: [bigger],
-        solutionSteps: ['For unit fractions, smaller denominator means larger value.', `So ${bigger} is greater.`],
+        answer: { type: 'text', value: relation, display: relation },
+        acceptedAnswers: [relation],
+        solutionSteps: ['For unit fractions, smaller denominator means larger value.', `So the sign is "${relation}".`],
       };
     }
     case 'F007': {
       const d = seq(s, 3, 12);
       const a = seq(s + 1, 1, d - 1);
       const b = distinctSeq(s + 4, 1, d - 1, a);
-      const greater = a > b ? `${a}/${d}` : `${b}/${d}`;
+      const greater = a > b ? '>' : '<';
       return {
         prompt: `Which is greater: ${a}/${d} or ${b}/${d}?`,
         answer: { type: 'text', value: greater, display: greater },
         acceptedAnswers: [greater],
-        solutionSteps: ['Denominators are equal.', 'Compare numerators directly.', `${greater} is greater.`],
+        solutionSteps: ['Denominators are equal.', 'Compare numerators directly.', `The symbol is "${greater}".`],
       };
     }
     case 'F008': {
       const n = seq(s, 1, 6);
       const a = seq(s + 2, n + 1, 12);
       const b = distinctSeq(s + 5, n + 1, 12, a);
-      const greater = a < b ? `${n}/${a}` : `${n}/${b}`;
+      const greater = a < b ? '>' : '<';
       return {
         prompt: `Which is greater: ${n}/${a} or ${n}/${b}?`,
         answer: { type: 'text', value: greater, display: greater },
         acceptedAnswers: [greater],
-        solutionSteps: ['Numerators are equal.', 'Smaller denominator gives larger fraction.', `${greater} is greater.`],
+        solutionSteps: ['Numerators are equal.', 'Smaller denominator gives larger fraction.', `The symbol is "${greater}".`],
       };
     }
     case 'F009': {
@@ -604,8 +608,8 @@ function templateForSkill(skillId, variant, ctx) {
       const k = [2, 3, 4][Math.abs(s) % 3];
       return {
         prompt: `Complete: ${n}/${d} = ?/${d * k}`,
-        answer: answerPayloadWhole(n * k),
-        acceptedAnswers: [String(n * k)],
+        answer: answerPayloadFraction(n * k, d * k),
+        acceptedAnswers: [fracStr({ numerator: n * k, denominator: d * k })],
         solutionSteps: [`Multiply numerator and denominator by ${k}.`, `${n}/${d} = ${n * k}/${d * k}.`],
       };
     }
@@ -626,7 +630,7 @@ function templateForSkill(skillId, variant, ctx) {
         const d = seq(s, 4, 10);
         const a = seq(s + 1, 1, d - 1);
         const b = seq(s + 6, 1, d - 1);
-        const greater = a >= b ? `${a}/${d}` : `${b}/${d}`;
+        const greater = a > b ? '>' : (a < b ? '<' : '=');
         return {
           prompt: `A model shows ${a}/${d} and ${b}/${d}. Which fraction is greater (or equal if same)?`,
           answer: { type: 'text', value: greater, display: greater },
@@ -1156,24 +1160,49 @@ export function checkFractionAnswer(options = {}) {
         ? parseAnswer(String(correctAnswer.whole))
         : correctAnswer?.type === 'mixed'
           ? parseAnswer(correctAnswer.display || `${correctAnswer.whole} ${correctAnswer.numerator}/${correctAnswer.denominator}`)
+          : correctAnswer?.type === 'text'
+            ? parseAnswer(correctAnswer.value || correctAnswer.display || '')
           : parseAnswer(String(correctAnswer?.display || correctAnswer || ''));
 
   const acceptedParsed = acceptedAnswers.map(parseAnswer).filter(Boolean);
   let correct = false;
-  if (parsedStudent && parsedCorrect) {
+  if (parsedStudent?.type === 'symbol' && parsedCorrect?.type === 'symbol') {
+    const studentSymbol = String(parsedStudent.value || '').trim();
+    const correctSymbol = String(parsedCorrect.value || '').trim();
+    correct = studentSymbol === correctSymbol;
+  } else if (parsedStudent && parsedCorrect && parsedStudent.fraction && parsedCorrect.fraction) {
     correct = parsedStudent.fraction.numerator * parsedCorrect.fraction.denominator ===
       parsedCorrect.fraction.numerator * parsedStudent.fraction.denominator;
   }
   if (!correct && parsedStudent) {
-    correct = acceptedParsed.some((acc) =>
-      parsedStudent.fraction.numerator * acc.fraction.denominator ===
-      acc.fraction.numerator * parsedStudent.fraction.denominator
-    );
+    if (parsedStudent.type === 'symbol') {
+      const studentSymbol = String(parsedStudent.value || '').trim();
+      correct = acceptedParsed.some((acc) => acc?.type === 'symbol' && String(acc.value || '').trim() === studentSymbol);
+    } else {
+      correct = acceptedParsed.some((acc) => {
+        if (!acc || !acc.fraction || !parsedStudent.fraction) return false;
+        return parsedStudent.fraction.numerator * acc.fraction.denominator ===
+          acc.fraction.numerator * parsedStudent.fraction.denominator;
+      });
+      if (!correct) {
+        const normalizedStudent = String(studentAnswer || '').trim().toLowerCase();
+        const normalizedCorrect = String(correctAnswer?.display || correctAnswer || '').trim().toLowerCase();
+        correct = Boolean(normalizedStudent && normalizedCorrect && normalizedStudent === normalizedCorrect);
+      }
+    }
   }
   return {
     correct,
-    normalizedStudentAnswer: parsedStudent ? fracStr(parsedStudent.fraction) : null,
-    normalizedCorrectAnswer: parsedCorrect ? fracStr(parsedCorrect.fraction) : null,
+    normalizedStudentAnswer: parsedStudent
+      ? parsedStudent.type === 'symbol'
+        ? parsedStudent.value
+        : parsedStudent.fraction ? fracStr(parsedStudent.fraction) : null
+      : null,
+    normalizedCorrectAnswer: parsedCorrect
+      ? parsedCorrect.type === 'symbol'
+        ? parsedCorrect.value
+        : parsedCorrect.fraction ? fracStr(parsedCorrect.fraction) : null
+      : null,
   };
 }
 
