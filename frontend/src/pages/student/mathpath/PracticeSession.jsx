@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, X } from 'lucide-react';
+import { ArrowRight, Check, Maximize2, X } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
@@ -22,6 +22,8 @@ import QuestionDiagram from './components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
+import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
+import WorkingAttachmentPreview from '../../../components/learning/WorkingAttachmentPreview';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -197,6 +199,8 @@ function LegacyPracticeSession() {
   const [err, setErr] = useState('');
   const [startedAt, setStartedAt] = useState(Date.now());
   const [workingState, setWorkingState] = useState({});
+  const [fullscreenWorkingState, setFullscreenWorkingState] = useState({});
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
   useEffect(() => { setStartedAt(Date.now()); }, [idx]);
@@ -209,10 +213,15 @@ function LegacyPracticeSession() {
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.stem || q.prompt || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const currentWorking = workingState[q.questionId] || {};
-  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
+  const currentFullscreenWorking = fullscreenWorkingState[q.questionId] || {};
+  const workingReady = !workingRequirement.required
+    || currentWorking.workingSubmitted
+    || currentWorking.workingNotNeeded
+    || currentFullscreenWorking.workingSubmitted;
 
   const check = async () => {
     if (busy || answer === '') return;
+    if (!workingReady) return;
     setBusy(true); setErr('');
     try {
       const { data } = await mathpathAPI.attempt(sessionId, {
@@ -220,11 +229,24 @@ function LegacyPracticeSession() {
         answer,
         timeMs: Date.now() - startedAt,
         hintsUsed: 0,
-        workingImage: currentWorking.workingImage || '',
-        workingStrokes: currentWorking.workingStrokes || [],
-        workingSubmitted: Boolean(currentWorking.workingSubmitted),
-        workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+        workingImage: currentWorking.workingImage || currentFullscreenWorking.workingImage || '',
+        workingStrokes: currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || [],
+        workingSubmitted: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+        workingSubmittedAt: currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null,
         workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+        workingUploaded: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+        fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
+        fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
+        fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
+        fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
+        workingEvidence: currentFullscreenWorking.workingSubmitted ? [{
+          source: 'fullscreen_working',
+          image: currentFullscreenWorking.workingImage || '',
+          strokes: currentFullscreenWorking.workingStrokes || [],
+          submittedAt: currentFullscreenWorking.workingSubmittedAt || null,
+          canvasDimensions: currentFullscreenWorking.canvasDimensions || null,
+          viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
+        }] : [],
       });
       setResult(data);
     } catch (e) {
@@ -281,6 +303,21 @@ function LegacyPracticeSession() {
           )}
         </div>
         <VisualBlock visual={q.visual} />
+        <div className="mb-4 flex flex-wrap gap-2">
+          <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenOpen(true)}>
+            Open Working
+          </Button>
+        </div>
+        <WorkingAttachmentPreview
+          evidence={currentFullscreenWorking}
+          onAddAnother={() => setFullscreenOpen(true)}
+          onEdit={() => setFullscreenOpen(true)}
+          onDelete={() => setFullscreenWorkingState((prev) => {
+            const next = { ...prev };
+            delete next[q.questionId];
+            return next;
+          })}
+        />
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
             {choices.map((c, i) => (
@@ -317,8 +354,23 @@ function LegacyPracticeSession() {
           allowNoWorking={workingRequirement.allowNoWorking}
           onSubmit={(payload) => setWorkingState((prev) => ({ ...prev, [q.questionId]: payload }))}
         />
-        <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
+        {!workingReady && (
+          <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
+            This question needs working. Please save your working or upload a photo before submitting.
+          </p>
+        )}
+        <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer || !workingReady} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
       </Card>
+      <FullScreenWorkingMode
+        open={fullscreenOpen}
+        questionText={q.stem || q.prompt || ''}
+        initialStrokes={currentFullscreenWorking.workingStrokes || []}
+        onClose={() => setFullscreenOpen(false)}
+        onSave={(payload) => {
+          setFullscreenWorkingState((prev) => ({ ...prev, [q.questionId]: payload }));
+          setFullscreenOpen(false);
+        }}
+      />
     </div>
   );
 }
@@ -372,6 +424,8 @@ export default function PracticeSession() {
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
   const [workingByQuestion, setWorkingByQuestion] = useState({});
+  const [fullscreenWorkingByQuestion, setFullscreenWorkingByQuestion] = useState({});
+  const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
 
@@ -403,6 +457,8 @@ export default function PracticeSession() {
         setWorkingSession(null);
         setWorkingCodeByQuestion({});
         setWorkingByQuestion({});
+        setFullscreenWorkingByQuestion({});
+        setFullscreenQuestionId(null);
         if (!started.questions?.length) setError('No questions generated yet. Please try another skill.');
       } catch (e) {
         if (!mounted) return;
@@ -484,11 +540,32 @@ export default function PracticeSession() {
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const currentWorking = workingByQuestion[q.questionId] || {};
-  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
+  const currentFullscreenWorking = fullscreenWorkingByQuestion[q.questionId] || {};
+  const workingReady = !workingRequirement.required
+    || currentWorking.workingSubmitted
+    || currentWorking.workingNotNeeded
+    || currentFullscreenWorking.workingSubmitted;
+  const questionText = q.prompt || q.stem || '';
+  const workingEvidence = [
+    currentWorking.workingSubmitted ? {
+      source: 'inline_working',
+      image: currentWorking.workingImage || '',
+      strokes: currentWorking.workingStrokes || [],
+      submittedAt: currentWorking.workingSubmittedAt || null,
+    } : null,
+    currentFullscreenWorking.workingSubmitted ? {
+      source: 'fullscreen_working',
+      image: currentFullscreenWorking.workingImage || '',
+      strokes: currentFullscreenWorking.workingStrokes || [],
+      submittedAt: currentFullscreenWorking.workingSubmittedAt || null,
+      canvasDimensions: currentFullscreenWorking.canvasDimensions || null,
+      viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
+    } : null,
+  ].filter(Boolean);
 
   const onSubmitCurrent = () => {
     if (busy || answered) return;
-    if (!answer || !reflection) return;
+    if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
     const answerCheck = checkFractionAnswer({
       studentAnswer: answer,
@@ -505,12 +582,17 @@ export default function PracticeSession() {
       helpRequested,
       confidenceCalibration: calibrationFromReflection(answerCheck.correct, reflection),
       possibleMisconception: !answerCheck.correct && reflection === 'i_know_this',
-      workingImage: currentWorking.workingImage || '',
-      workingStrokes: currentWorking.workingStrokes || [],
-      workingSubmitted: Boolean(currentWorking.workingSubmitted),
-      workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+      workingImage: currentWorking.workingImage || currentFullscreenWorking.workingImage || '',
+      workingStrokes: currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || [],
+      workingSubmitted: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+      workingSubmittedAt: currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
-      workingUploaded: Boolean(currentWorking.workingSubmitted),
+      workingUploaded: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+      fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
+      fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
+      fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
+      fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
+      workingEvidence,
       workingCode: workingCodeByQuestion[q.questionId] || '',
       workingSessionId: workingSession?.workingSessionId || '',
       skipped: false,
@@ -541,12 +623,17 @@ export default function PracticeSession() {
       helpRequested,
       confidenceCalibration: 'skipped',
       possibleMisconception: false,
-      workingImage: currentWorking.workingImage || '',
-      workingStrokes: currentWorking.workingStrokes || [],
-      workingSubmitted: Boolean(currentWorking.workingSubmitted),
-      workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+      workingImage: currentWorking.workingImage || currentFullscreenWorking.workingImage || '',
+      workingStrokes: currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || [],
+      workingSubmitted: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+      workingSubmittedAt: currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
-      workingUploaded: Boolean(currentWorking.workingSubmitted),
+      workingUploaded: Boolean(currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+      fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
+      fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
+      fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
+      fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
+      workingEvidence,
       workingCode: workingCodeByQuestion[q.questionId] || '',
       workingSessionId: workingSession?.workingSessionId || '',
       skipped: true,
@@ -592,6 +679,11 @@ export default function PracticeSession() {
         workingSubmittedAt: r.workingSubmittedAt || null,
         workingNotNeeded: Boolean(r.workingNotNeeded),
         workingUploaded: Boolean(r.workingUploaded),
+        fullscreenWorkingImage: r.fullscreenWorkingImage || '',
+        fullscreenWorkingStrokes: r.fullscreenWorkingStrokes || [],
+        fullscreenWorkingSubmitted: Boolean(r.fullscreenWorkingSubmitted),
+        fullscreenWorkingSubmittedAt: r.fullscreenWorkingSubmittedAt || null,
+        workingEvidence: Array.isArray(r.workingEvidence) ? r.workingEvidence : [],
         workingCode: r.workingCode || '',
         workingSessionId: r.workingSessionId || workingSession?.workingSessionId || '',
         skipped: Boolean(r.skipped || r._skipped),
@@ -639,7 +731,7 @@ export default function PracticeSession() {
         fluencyFlag: resultItem.fluencyFlag,
         solutionSteps: resultItem.solutionSteps || question.solutionSteps || [],
         workingRequired: Boolean(summary.questionWorkingSummary?.questionRefs?.find((qRef) => qRef.questionId === resultItem.questionId)?.workingRequired),
-        workingUploaded: false,
+        workingUploaded: Boolean(resultItem.workingUploaded || resultItem.workingSubmitted || resultItem.fullscreenWorkingSubmitted),
       };
     });
 
@@ -731,6 +823,21 @@ export default function PracticeSession() {
         </div>
         <QuestionDiagram question={q} />
         <VisualBlock visual={q.visual} />
+        <div className="mb-4 flex flex-wrap gap-2">
+          <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
+            Open Working
+          </Button>
+        </div>
+        <WorkingAttachmentPreview
+          evidence={currentFullscreenWorking}
+          onAddAnother={() => setFullscreenQuestionId(q.questionId)}
+          onEdit={() => setFullscreenQuestionId(q.questionId)}
+          onDelete={() => setFullscreenWorkingByQuestion((prev) => {
+            const next = { ...prev };
+            delete next[q.questionId];
+            return next;
+          })}
+        />
         <WorkingCanvas
           questionId={q.questionId}
           workingCode={workingCodeByQuestion[q.questionId] || ''}
@@ -820,11 +927,17 @@ export default function PracticeSession() {
           )}
         </div>
 
+        {!workingReady && (
+          <p className="mt-4 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
+            This question needs working. Please save your working or upload a photo before submitting.
+          </p>
+        )}
+
         <div className="mt-auto grid grid-cols-1 gap-2 pt-5 sm:grid-cols-2">
           {!answered ? (
             <>
               <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
-              <Button disabled={busy || !answer || !reflection} onClick={onSubmitCurrent}>Submit answer</Button>
+              <Button disabled={busy || !answer || !reflection || !workingReady} onClick={onSubmitCurrent}>Submit answer</Button>
             </>
           ) : (
             <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
@@ -833,6 +946,16 @@ export default function PracticeSession() {
           )}
         </div>
       </Card>
+      <FullScreenWorkingMode
+        open={fullscreenQuestionId === q.questionId}
+        questionText={questionText}
+        initialStrokes={currentFullscreenWorking.workingStrokes || []}
+        onClose={() => setFullscreenQuestionId(null)}
+        onSave={(payload) => {
+          setFullscreenWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }));
+          setFullscreenQuestionId(null);
+        }}
+      />
     </div>
   );
 }

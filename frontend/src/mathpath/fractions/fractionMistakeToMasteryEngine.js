@@ -2,10 +2,67 @@ import { fractionSkillGraph, getSkill } from './fractionSkillGraph.js';
 import { getQuestionFamiliesBySkill } from './fractionQuestionFamilies.js';
 
 const MODEL_DRAWING_REMEDIATION = {
+  M001: 'fraction_of_whole_left',
+  M002: 'fraction_of_whole_left',
   M003: 'fraction_of_whole_left',
+  M004: 'fraction_of_whole_left',
+  M007: 'fraction_of_remainder_subdivision',
   M008: 'fraction_of_remainder_subdivision',
   M012: 'fraction_of_remainder_subdivision',
 };
+
+const MODEL_DRAWING_SKILL_HINTS = {
+  // Whole-part and visual model tasks
+  F001: 'fraction_of_whole_left',
+  F002: 'fraction_of_whole_left',
+  F003: 'fraction_of_whole_left',
+  F004: 'fraction_of_whole_left',
+  F005: 'fraction_of_whole_left',
+  F006: 'fraction_of_whole_left',
+  F007: 'fraction_of_whole_left',
+  F008: 'fraction_of_whole_left',
+  F009: 'fraction_of_whole_left',
+  F010: 'fraction_of_whole_left',
+  F011: 'fraction_of_whole_left',
+  F012: 'fraction_of_whole_left',
+
+  // Remainder / part-of-whole-after-removal problems
+  F020: 'fraction_of_remainder_subdivision',
+  F023: 'fraction_of_remainder_subdivision',
+  F024: 'fraction_of_remainder_subdivision',
+  F025: 'fraction_of_remainder_subdivision',
+};
+
+const MODEL_DRAWING_TAG_HINTS = {
+  'FRAC/ADD-WITHOUT-COMMON': 'M007',
+  'FRAC/ADD-DENOMINATORS': 'M007',
+  'REMAINDER': 'M008',
+  'REMAINDER-REASONING': 'M008',
+  'FRACTION-OF-REMAINDER': 'M008',
+  'PARTITION-ERROR': 'M007',
+  'DENOMINATOR-PARTITION': 'M007',
+  'SHADED': 'M003',
+  'SHADE': 'M003',
+  'VISUAL-MODEL': 'M003',
+};
+
+function normalizeTagTokens(tag = '') {
+  return String(tag || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9/]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function inferCodeFromTagTokens(tokens = []) {
+  if (!tokens.length) return '';
+  const tokenSet = new Set(tokens);
+  if (tokenSet.has('REMAINDER') || tokenSet.has('REMAINDERING') || tokenSet.has('REMAINING')) return 'M008';
+  if (tokenSet.has('PARTITION') || tokenSet.has('PARTITIONS') || tokenSet.has('DENOMINATOR') || tokenSet.has('SUBDIVIDE')) return 'M007';
+  if (tokenSet.has('SHAD') || tokenSet.has('SHADED') || tokenSet.has('SHADE') || tokenSet.has('VISUAL') || tokenSet.has('DIAGRAM') || tokenSet.has('MODEL')) return 'M003';
+  return '';
+}
 
 const SKILL_IDS = new Set(fractionSkillGraph.skillIds);
 
@@ -132,6 +189,44 @@ function parseFraction(raw) {
   const d = Number(m[2]);
   if (!Number.isFinite(n) || !Number.isFinite(d) || d === 0) return null;
   return { n, d };
+}
+
+function normalizeCode(code) {
+  return String(code || '').trim().toUpperCase();
+}
+
+function resolveModelDrawingTemplateId(mistakeCode, skillId = '') {
+  const code = normalizeCode(mistakeCode);
+  if (MODEL_DRAWING_REMEDIATION[code]) return MODEL_DRAWING_REMEDIATION[code];
+
+  const normalizedSkillId = String(skillId || '').toUpperCase();
+  if (MODEL_DRAWING_SKILL_HINTS[normalizedSkillId]) {
+    return MODEL_DRAWING_SKILL_HINTS[normalizedSkillId];
+  }
+
+  return 'fraction_of_whole_left';
+}
+
+function resolveMistakeCodeForModelDrawing({ mistakeCode = '', skillId = '', misconceptionTag = '' }) {
+  const normalized = normalizeCode(mistakeCode);
+  if (MISTAKE_TAXONOMY[normalized]) return normalized;
+
+  const normalizedTag = normalizeCode(misconceptionTag);
+  if (MODEL_DRAWING_TAG_HINTS[normalizedTag]) return MODEL_DRAWING_TAG_HINTS[normalizedTag];
+  const inferredFromTokens = inferCodeFromTagTokens(normalizeTagTokens(mistakeCode));
+  if (inferredFromTokens) return inferredFromTokens;
+  const inferredFromMisconception = inferCodeFromTagTokens(normalizeTagTokens(normalizedTag));
+  if (inferredFromMisconception) return inferredFromMisconception;
+
+  const normalizedSkillId = String(skillId || '').toUpperCase();
+  if (MODEL_DRAWING_SKILL_HINTS[normalizedSkillId]) {
+    if (['F020', 'F023', 'F024', 'F025'].includes(normalizedSkillId)) {
+      return 'M008';
+    }
+    return 'M001';
+  }
+
+  return '';
 }
 
 function fractionEqual(a, b) {
@@ -324,27 +419,33 @@ export function classifyFractionMistake(options = {}) {
   };
 }
 
-export function getRemediationForMistake(mistakeCode) {
-  const tax = MISTAKE_TAXONOMY[mistakeCode] || MISTAKE_TAXONOMY.M010;
+export function getRemediationForMistake(mistakeCode, options = {}) {
+  const resolvedCode = resolveMistakeCodeForModelDrawing({
+    mistakeCode,
+    skillId: options.skillId,
+    misconceptionTag: options.misconceptionTag,
+  });
+  const taxCode = resolvedCode || 'M010';
+  const tax = MISTAKE_TAXONOMY[taxCode] || MISTAKE_TAXONOMY.M010;
   const recommendedQuestionFamilyIds = tax.remediationSkillIds.flatMap((skillId) =>
     getQuestionFamiliesBySkill(skillId).slice(0, 2).map((f) => f.id)
   );
-  const modelTemplateId = MODEL_DRAWING_REMEDIATION[mistakeCode] || null;
+  const modelTemplateId = resolvedCode ? resolveModelDrawingTemplateId(resolvedCode, options.skillId || '') : null;
   const modelDrawingTrainer = modelTemplateId ? {
     type: 'model_drawing_trainer',
-    label: mistakeCode === 'M008' || mistakeCode === 'M012'
-      ? 'Try the model drawing trainer for fraction remainder.'
-      : 'Try the model drawing trainer for part-whole fractions.',
+    label: resolvedCode === 'M008' || resolvedCode === 'M012' || resolvedCode === 'M007'
+      ? 'Practise with model drawing for fraction remainder questions.'
+      : 'Practise with model drawing for part-whole questions.',
     template_id: modelTemplateId,
     href: `/student/mathpath/fractions/model-trainer/${modelTemplateId}`,
   } : null;
 
   const explanationForStudent =
-    mistakeCode === 'M010'
+    resolvedCode === 'M010'
       ? 'You are close. Let’s slow down a little and check each arithmetic step carefully.'
       : `Good effort. Let’s strengthen ${tax.title.toLowerCase()} with a few focused practice steps.`;
   const explanationForParent =
-    mistakeCode === 'M001'
+    resolvedCode === 'M001'
       ? 'Your child may be treating fractions like whole numbers. We recommend reviewing equivalent fractions before continuing unlike-denominator addition.'
       : `Your child may need support with ${tax.title.toLowerCase()}. We recommend targeted review before moving ahead.`;
   const explanationForTutor = `Focus on ${tax.title}. Suggested remediation skills: ${tax.remediationSkillIds.join(', ') || 'target skill fluency'}.`;
@@ -358,6 +459,10 @@ export function getRemediationForMistake(mistakeCode) {
     explanationForParent,
     explanationForTutor,
   };
+}
+
+export function getModelDrawingTrainerForMistake(options = {}) {
+  return getRemediationForMistake(options.mistakeCode, options).modelDrawingTrainer;
 }
 
 export function updatePracticeQueueFromMistake(practiceQueue = [], mistakeResult = {}) {
@@ -544,6 +649,7 @@ export const fractionMistakeToMasteryEngine = {
   getFractionMistakeTaxonomy,
   classifyFractionMistake,
   getRemediationForMistake,
+  getModelDrawingTrainerForMistake,
   buildMistakeToMasteryPlan,
   updatePracticeQueueFromMistake,
   validateFractionMistakeToMasteryEngine,

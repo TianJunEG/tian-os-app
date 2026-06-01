@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Check, Dumbbell, AlertTriangle, Lightbulb } from 'lucide-react';
+import { Check, Dumbbell, AlertTriangle, Lightbulb, Wand2 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
+import { getModelDrawingTrainerForMistake } from '../../../mathpath/fractions/fractionMistakeToMasteryEngine';
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation error',
@@ -55,6 +56,11 @@ export default function MistakeDetail() {
       });
     } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setStarting(false); }
   };
+  const modelTrainer = getModelDrawingTrainerForMistake({
+    mistakeCode: m?.misconceptionTag,
+    skillId: m?.skillId,
+    misconceptionTag: m?.misconceptionTag,
+  });
 
   if (loading) return <Spinner label="Loading mistake…" />;
   if (error) return <EmptyState icon={AlertTriangle} message={error} />;
@@ -99,6 +105,11 @@ export default function MistakeDetail() {
           {!reviewed && <Button variant="secondary" icon={Check} onClick={review}>Mark as reviewed</Button>}
           {!showHelp && <Button variant="secondary" icon={Lightbulb} onClick={() => setShowHelp(true)}>Try Together</Button>}
           <Button icon={Dumbbell} disabled={starting} onClick={practise}>Try Again</Button>
+          {modelTrainer?.href && (
+            <Button icon={Wand2} variant="secondary" onClick={() => navigate(modelTrainer.href)}>
+              Open model trainer
+            </Button>
+          )}
         </div>
       </Card>
 

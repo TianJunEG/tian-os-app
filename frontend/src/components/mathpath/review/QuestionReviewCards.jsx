@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, CheckCircle2, Clock3, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Clock3, XCircle, Wand2 } from 'lucide-react';
 import { Badge, Button, Card } from '../../ui';
 import { MathText } from '../../ui/Fraction';
 
@@ -90,7 +90,7 @@ export function FluencyFeedbackCard({ item }) {
   );
 }
 
-export function MistakeInsightCard({ insight }) {
+export function MistakeInsightCard({ insight, onModelDrawing }) {
   if (!insight) {
     return (
       <Card className="p-4">
@@ -106,6 +106,13 @@ export function MistakeInsightCard({ insight }) {
       <p className="mt-2 text-sm text-ink-700">{insight.message}</p>
       {insight.recommendedSkill && (
         <p className="mt-1 text-sm text-ink-600">Recommended review: <span className="font-semibold text-ink-800">{insight.recommendedSkill}</span></p>
+      )}
+      {insight.modelDrawingTrainer?.href && (
+        <div className="mt-3">
+          <Button size="s" icon={Wand2} variant="secondary" onClick={onModelDrawing}>
+            {insight.modelDrawingTrainer.label || 'Open model trainer'}
+          </Button>
+        </div>
       )}
     </Card>
   );

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, PartyPopper } from 'lucide-react';
+import { ArrowRight, PartyPopper, Wand2 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
+import { getModelDrawingTrainerForMistake } from '../../../mathpath/fractions/fractionMistakeToMasteryEngine';
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation', careless: 'Careless',
@@ -88,6 +89,23 @@ export default function MistakeReview() {
                   {openHelp === m.id ? 'Hide Try Together' : 'Try Together'}
                 </Button>
                 <Button size="s" onClick={() => practiseSimilar(m.skillId)} disabled={starting}>Try Again</Button>
+                {(() => {
+                  const modelTrainer = getModelDrawingTrainerForMistake({
+                    mistakeCode: m.misconceptionTag,
+                    skillId: m.skillId,
+                    misconceptionTag: m.misconceptionTag,
+                  });
+                  return modelTrainer?.href ? (
+                    <Button
+                      size="s"
+                      variant="secondary"
+                      icon={Wand2}
+                      onClick={() => navigate(modelTrainer.href)}
+                    >
+                      Open model trainer
+                    </Button>
+                  ) : null;
+                })()}
               </div>
               {openHelp === m.id && (
                 <div className="mt-4 rounded-xl border border-hairline bg-navy-50 p-4">

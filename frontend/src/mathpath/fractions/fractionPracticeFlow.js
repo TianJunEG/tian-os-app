@@ -238,7 +238,7 @@ export function submitFractionPracticeAttempt(options = {}) {
       timeTaken: Number(response.timeTaken || 0),
       confidence: response.confidence ?? null,
       skipped,
-      workingUploaded: false,
+      workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted || response.fullscreenWorkingSubmitted),
       attemptNumber: Number(response.attemptNumber || 1),
     });
     updateResults.push(stateUpdate);
@@ -263,7 +263,12 @@ export function submitFractionPracticeAttempt(options = {}) {
       workingSubmitted: Boolean(response.workingSubmitted),
       workingSubmittedAt: response.workingSubmittedAt || null,
       workingNotNeeded: Boolean(response.workingNotNeeded),
-      workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted),
+      workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted || response.fullscreenWorkingSubmitted),
+      fullscreenWorkingImage: response.fullscreenWorkingImage || '',
+      fullscreenWorkingStrokes: Array.isArray(response.fullscreenWorkingStrokes) ? response.fullscreenWorkingStrokes : [],
+      fullscreenWorkingSubmitted: Boolean(response.fullscreenWorkingSubmitted),
+      fullscreenWorkingSubmittedAt: response.fullscreenWorkingSubmittedAt || null,
+      workingEvidence: Array.isArray(response.workingEvidence) ? response.workingEvidence : [],
       skipped,
       answeredAt: response.timestamp || nowIso(),
       fluencyFlag: stateUpdate.fluencyFlag,

@@ -18,6 +18,63 @@ function normalizeAnswer(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
 }
 
+function toInteger(value) {
+  const n = Number(String(value || '').trim());
+  return Number.isFinite(n) && Number.isInteger(n) ? n : null;
+}
+
+function checkWeDoAnswer({ answer, expectedAnswer, expectedAction }) {
+  const normalizedAnswer = normalizeAnswer(answer);
+  const normalizedExpected = normalizeAnswer(expectedAnswer);
+
+  if (!expectedAction) {
+    return {
+      ok: normalizedAnswer === normalizedExpected,
+      hint: '',
+    };
+  }
+
+  switch (expectedAction) {
+    case 'split_whole_into_denominator_parts':
+      return {
+        ok: toInteger(answer) === toInteger(expectedAnswer),
+        hint: `Split the whole into ${expectedAnswer} equal parts.`,
+      };
+    case 'shade_or_remove_selected_parts':
+      return {
+        ok: toInteger(answer) === toInteger(expectedAnswer),
+        hint: `Shade/remove exactly ${expectedAnswer} parts.`,
+      };
+    case 'count_remaining_parts':
+      return {
+        ok: toInteger(answer) === toInteger(expectedAnswer),
+        hint: `Count the remaining parts carefully: ${expectedAnswer}.`,
+      };
+    case 'select_remaining_region':
+      return {
+        ok: normalizedAnswer === normalizedExpected,
+        hint: 'Type the remaining fraction shown on the diagram.',
+      };
+    case 'treat_remainder_as_new_amount':
+      return {
+        ok: normalizedAnswer === normalizedExpected,
+        hint: 'The next fraction should be taken from the remainder, not the original whole.',
+      };
+    case 'subdivide_remaining_region':
+      return {
+        ok: toInteger(answer) === toInteger(expectedAnswer),
+        hint: `Subdivide each remaining part into ${expectedAnswer} pieces to update the denominator correctly.`,
+      };
+    case 'remove_fraction_of_remainder':
+      return {
+        ok: toInteger(answer) === toInteger(expectedAnswer),
+        hint: `Remove the asked fraction of the remainder: ${expectedAnswer}.`,
+      };
+    default:
+      return { ok: normalizedAnswer === normalizedExpected, hint: '' };
+  }
+}
+
 function BarModel({ model = {} }) {
   const denominator = Math.max(1, Number(model.denominator || 1));
   const removedParts = new Set((model.removedParts || []).map(Number));
@@ -377,6 +434,7 @@ export default function FractionsModelTrainer() {
   const [stepIndex, setStepIndex] = useState(0);
   const [studentAnswer, setStudentAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [weDoHint, setWeDoHint] = useState('');
   const [youDoAnswer, setYouDoAnswer] = useState('');
   const [youDoWorking, setYouDoWorking] = useState({});
   const [showYouDoModel, setShowYouDoModel] = useState(false);
@@ -412,6 +470,7 @@ export default function FractionsModelTrainer() {
   const prompt = currentStep?.student_prompt || null;
   const progressValue = Math.min(stepIndex + 1, Math.max(1, steps.length));
   const expectedAnswer = prompt?.expected_answer || '';
+  const expectedAction = (currentStep?.expected_actions || [])[0] || '';
   const canCheck = Boolean(prompt && studentAnswer.trim());
   const isFractionAnswer = Boolean(
     prompt?.type !== 'choice'
@@ -429,6 +488,7 @@ export default function FractionsModelTrainer() {
   const resetStepInput = () => {
     setStudentAnswer('');
     setFeedback('');
+    setWeDoHint('');
     setShowYouDoModel(false);
     setYouDoWorking({});
   };
@@ -443,7 +503,9 @@ export default function FractionsModelTrainer() {
 
   const checkPrompt = () => {
     if (!prompt) return;
-    setFeedback(normalizeAnswer(studentAnswer) === normalizeAnswer(expectedAnswer) ? 'correct' : 'try_again');
+    const result = checkWeDoAnswer({ answer: studentAnswer, expectedAnswer, expectedAction });
+    setFeedback(result.ok ? 'correct' : 'try_again');
+    setWeDoHint(result.ok ? '' : result.hint || '');
   };
 
   if (loading) return <Spinner label="Loading model trainer..." />;
@@ -552,7 +614,11 @@ export default function FractionsModelTrainer() {
                   <div className="mt-3 flex items-center gap-2">
                     <Button size="s" disabled={!canCheck} onClick={checkPrompt}>Check</Button>
                     {feedback === 'correct' && <span className="inline-flex items-center gap-1 text-sm font-semibold text-success-700"><Check className="h-4 w-4" /> Correct</span>}
-                    {feedback === 'try_again' && <span className="text-sm font-semibold text-error-700">Try again. {template.remediation_hint}</span>}
+                    {feedback === 'try_again' && (
+                      <span className="text-sm font-semibold text-error-700">
+                        Try again. {weDoHint || template.remediation_hint}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}

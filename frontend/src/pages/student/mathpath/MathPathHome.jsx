@@ -12,6 +12,7 @@ import {
   getRemediationSkillsForWeakPrerequisites,
 } from '../../../mathpath/curriculum';
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
+import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
 import {
   buildMathPathDomainProgressState,
   getMathPathDomainProgressState,
@@ -223,6 +224,11 @@ export default function MathPathHome() {
   const records = mastery?.records || [];
   const mastered = records.filter((r) => r.status === 'mastered');
   const learning = records.filter((r) => r.status === 'learning');
+  const totalFractionsSkills = fractionSkillGraph.skillIds?.length || 26;
+  const courseMasteredCount = Math.min(mastered.length, totalFractionsSkills);
+  const courseProgressPct = totalFractionsSkills
+    ? Math.round((courseMasteredCount / totalFractionsSkills) * 100)
+    : 0;
   const recommended = isFrameworkSkillId(mastery?.recommended?.skillId) ? mastery.recommended : null;
   const weak = mastery?.weakSkills || [];
   const placementResult = latestPlacement?.result || {};
@@ -372,10 +378,10 @@ export default function MathPathHome() {
           </div>
         </div>
         <div className="mt-5">
-          <ProgressBar value={mastered.length} max={Math.max(records.length, 1)} />
+          <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} />
           <div className="mt-2 flex items-center justify-between text-sm font-semibold text-ink-500">
-            <span>{mastered.length}/{Math.max(records.length, 1)} skills mastered</span>
-            <span className="text-navy-700">{Math.round((mastered.length / Math.max(records.length, 1)) * 100)}%</span>
+            <span>{courseMasteredCount}/{totalFractionsSkills} skills mastered</span>
+            <span className="text-navy-700">{courseProgressPct}%</span>
           </div>
         </div>
       </Card>
@@ -563,7 +569,7 @@ export default function MathPathHome() {
           <StatTile label="Learning" value={learning.length} />
           <StatTile label="To review" value={weak.filter((w) => w.status === 'needs_review').length} />
         </div>
-        <ProgressBar value={mastered.length} max={Math.max(records.length, 1)} />
+        <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} />
       </Card>
 
       {/* Weak topics alert */}

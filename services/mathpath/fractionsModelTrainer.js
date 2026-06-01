@@ -563,6 +563,29 @@ const MODEL_TRAINER_TEMPLATES = [
 
 const TEMPLATE_BY_ID = new Map(MODEL_TRAINER_TEMPLATES.map((template) => [template.template_id, template]));
 
+function normalizeStudentPrompt(step = {}) {
+  const promptSingle = step.student_prompt ? { ...step.student_prompt } : null;
+  const promptPlural = Array.isArray(step.student_prompts) ? step.student_prompts : [];
+  const normalizedPrompts = promptPlural.length
+    ? promptPlural.map((prompt) => ({ ...prompt }))
+    : promptSingle
+      ? [promptSingle]
+      : [];
+
+  return {
+    ...step,
+    student_prompt: promptSingle || normalizedPrompts[0] || null,
+    student_prompts: normalizedPrompts,
+  };
+}
+
+function normalizeTemplateForClient(template = {}) {
+  return {
+    ...template,
+    model_steps: (template.model_steps || []).map((step) => normalizeStudentPrompt(step)),
+  };
+}
+
 export function listFractionsModelTrainerTemplates({ skillId = null } = {}) {
   const normalizedSkillId = skillId ? String(skillId).toUpperCase() : null;
   return MODEL_TRAINER_TEMPLATES
@@ -573,6 +596,8 @@ export function listFractionsModelTrainerTemplates({ skillId = null } = {}) {
       question_type: template.question_type,
       title: template.title,
       prompt: template.prompt,
+      model_steps: (template.model_steps || []).map((step) => normalizeStudentPrompt(step)),
+      common_errors: [...template.common_errors],
       remediation_hint: template.remediation_hint,
     }));
 }
@@ -580,7 +605,7 @@ export function listFractionsModelTrainerTemplates({ skillId = null } = {}) {
 export function getFractionsModelTrainerTemplate(templateId) {
   const template = TEMPLATE_BY_ID.get(String(templateId || ''));
   if (!template) return null;
-  return JSON.parse(JSON.stringify(template));
+  return JSON.parse(JSON.stringify(normalizeTemplateForClient(template)));
 }
 
 export function getFractionsModelTrainerForSkill(skillId) {

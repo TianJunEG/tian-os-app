@@ -2,6 +2,136 @@ import { fractionSkillGraph, getSkill } from './fractionSkillGraph.js';
 import { getQuestionFamily, getQuestionFamiliesBySkill } from './fractionQuestionFamilies.js';
 import { getSkillCurriculumMapping } from '../curriculum/curriculumMappingSelectors.js';
 
+const LEVEL_RANK = {
+  P1: 1,
+  P2: 2,
+  P3: 3,
+  P4: 4,
+  P5: 5,
+  P6: 6,
+  S1: 11,
+  S2: 12,
+  S3: 13,
+  S4: 14,
+};
+
+function normalizeLevel(level = '') {
+  const normalized = String(level || '').trim().toUpperCase();
+  if (!normalized) return '';
+  if (normalized === 'P1') return 'P1';
+  if (normalized === 'P2') return 'P2';
+  if (normalized === 'P3') return 'P3';
+  if (normalized === 'P4') return 'P4';
+  if (normalized === 'P5') return 'P5';
+  if (normalized === 'P6') return 'P6';
+  if (normalized.startsWith('SEC')) {
+    const sec = normalized.replace(/^SEC/, 'S');
+    return LEVEL_RANK[sec] ? sec : 'S1';
+  }
+  return normalized;
+}
+
+function levelRank(level = '') {
+  const key = normalizeLevel(level);
+  return LEVEL_RANK[key] || 999;
+}
+
+function normalizeFractionPromptSignature(prompt = '') {
+  return String(prompt || '')
+    .toLowerCase()
+    .replace(/\d+\/\d+/g, '#')
+    .replace(/\b\d+(?:\.\d+)?\b/g, '#')
+    .replace(/\s+/g, ' ')
+    .replace(/[^a-z0-9#\s]/g, ' ')
+    .trim();
+}
+
+function inferAllowedOperations(prompt = '') {
+  const text = String(prompt || '').toLowerCase();
+  const ops = new Set();
+  if (/\//.test(text) && !/\d+\s*\/\s*\d+/.test(text) === false) ops.add('compare');
+  if (/\+/.test(text)) ops.add('addition');
+  if (/\s-\s/.test(text) && !/\s-\s*\d/.test(text)) ops.add('subtraction');
+  if (/[×*]/.test(text)) ops.add('multiplication');
+  if (/÷|\//.test(text) && /\d/.test(text)) ops.add('division');
+  return [...ops];
+}
+
+const BASE_GUARDRAILS = {
+  allowed_operations: ['addition', 'subtraction', 'multiplication', 'division', 'compare', 'identify', 'convert'],
+  allow_negative_numbers: true,
+  allow_improper_fractions: true,
+  allow_mixed_numbers: true,
+  allow_unlike_denominators: true,
+  allow_word_problems: true,
+};
+
+function resolveAllowedLevelsForSkill(skillId = '') {
+  const skill = getSkill(skillId);
+  const levels = Array.isArray(skill?.singaporeLevel) && skill.singaporeLevel.length
+    ? skill.singaporeLevel
+    : ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'S1', 'S2', 'S3', 'S4'];
+  return levels.map((lvl) => normalizeLevel(lvl)).filter(Boolean);
+}
+
+function buildQuestionRules(skillId, family = {}, level = '') {
+  const allowedLevels = resolveAllowedLevelsForSkill(skillId);
+  const target = normalizeLevel(level);
+  const isPrimary = /^P[1-6]$/.test(target);
+  return {
+    allowed_levels: [...allowedLevels],
+    min_level: allowedLevels[0] || 'P1',
+    max_level: allowedLevels[allowedLevels.length - 1] || 'S4',
+    allowed_operations: inferAllowedOperations(family?.description || ''),
+    allow_negative_numbers: isPrimary ? target === 'P1' || target === 'P2' || target === 'P3' ? true : false : true,
+    allow_improper_fractions: target ? !/^P4$/.test(target) : true,
+    allow_mixed_numbers: !/^P4$/.test(target),
+    allow_unlike_denominators: true,
+    allow_word_problems: !/^P4$/.test(target),
+  };
+}
+
+function matchesLevel(levelTag, allowedLevels = []) {
+  const normalized = normalizeLevel(levelTag);
+  if (!normalized) return true;
+  if (!allowedLevels.length) return true;
+  return allowedLevels.includes(normalized);
+}
+
+function hasNegativeFractionString(value = '') {
+  return /-\d+\s*\/\s*\d+/.test(String(value))
+    || /\(\s*-\d+\s*\/\s*\d+\s*\)/.test(String(value));
+}
+
+function hasSignedFractionOperation(text = '') {
+  const plain = String(text || '');
+  return /[^\w][\-−]\s*\d+\s*\/\s*\d+/.test(plain)
+    || /\d+\s*\/\s*\d+\s*[\-−]\s*\d+\s*\/\s*\d+/.test(plain)
+    || /[\[({]\s*-\d+/.test(plain);
+}
+
+function isFractionInRangeAllowed(question = {}, rules = BASE_GUARDRAILS) {
+  const prompt = `${question.prompt || ''} ${question.stem || ''}`;
+  const answer = question.answer || {};
+  const rawNumerator = Number(answer?.numerator);
+  const rawDenominator = Number(answer?.denominator);
+  const rawWhole = Number(answer?.whole);
+  const rawFraction = question?.answer?.fraction;
+  if (!rules.allow_negative_numbers) {
+    if (hasNegativeFractionString(prompt)) return false;
+    if (Number.isFinite(rawNumerator) && rawNumerator < 0) return false;
+    if (Number.isFinite(rawWhole) && rawWhole < 0) return false;
+    if (rawFraction && Number.isFinite(rawFraction.numerator) && rawFraction.numerator < 0) return false;
+    if (rawFraction && Number.isFinite(rawFraction.numerator) && rawFraction.numerator < 0) return false;
+    if (hasSignedFractionOperation(prompt)) return false;
+  }
+  if (!rules.allow_improper_fractions && (answer?.type === 'mixed' || (Number.isFinite(rawNumerator) && Math.abs(rawNumerator) >= Math.abs(rawDenominator) && Number(rawDenominator) !== 0))) {
+    return false;
+  }
+  if (!rules.allow_mixed_numbers && answer?.type === 'mixed') return false;
+  return true;
+}
+
 const DOMAIN_ID = 'fractions';
 
 function nowIso() {

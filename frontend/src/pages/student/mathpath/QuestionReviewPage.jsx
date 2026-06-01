@@ -30,11 +30,12 @@ function normalizeInsight(item) {
     confidence: item.confidence,
     workingAnalysisResult: item.workingAnalysisResult || {},
   });
-  const remediation = getRemediationForMistake(classified.suspectedMistakeCode);
+  const remediation = getRemediationForMistake(classified.suspectedMistakeCode, { skillId: item.skillId });
   return {
     code: classified.suspectedMistakeCode,
     message: remediation.explanationForStudent,
     recommendedSkill: remediation.remediationSkillIds?.[0] ? (getSkill(remediation.remediationSkillIds[0])?.name || remediation.remediationSkillIds[0]) : null,
+    modelDrawingTrainer: remediation.modelDrawingTrainer,
   };
 }
 
@@ -121,7 +122,10 @@ export default function QuestionReviewPage() {
           <AnswerComparisonCard item={item} />
           <SolutionStepsCard solutionSteps={item.solutionSteps || []} />
           <FluencyFeedbackCard item={item} />
-          <MistakeInsightCard insight={insight} />
+          <MistakeInsightCard
+            insight={insight}
+            onModelDrawing={() => insight?.modelDrawingTrainer?.href && navigate(insight.modelDrawingTrainer.href)}
+          />
           <WorkingStatusCard item={item} />
           <NextActionCard
             actionLabel={actionMessage}
