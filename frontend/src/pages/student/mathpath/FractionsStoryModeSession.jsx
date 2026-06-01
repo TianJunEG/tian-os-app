@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { Button, Card, ProgressBar } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
+import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import FractionAnswerInput, { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import {
@@ -14,17 +15,48 @@ import {
 import { setMathPathDomainProgressState, getMathPathDomainProgressState } from '../../../mathpath/state/mathPathDomainProgressState';
 import StoryAudioControls from './story/StoryAudioControls';
 import SentenceHighlighter from './story/SentenceHighlighter';
+import ModelDrawingPromptCard from './story/ModelDrawingPromptCard';
+import GuidedBarModelCard from './story/GuidedBarModelCard';
+import { resolveFactModelState } from './story/StoryFactToModelMapper';
 
 function StepBadge({ type }) {
   return <span className="rounded-full bg-navy-50 px-2 py-1 text-xs font-semibold uppercase tracking-[0.04em] text-navy-700">{String(type || '').replace(/_/g, ' ')}</span>;
 }
 
+function StoryMemoryPanel({ story, step, responses = [] }) {
+  const previous = responses[responses.length - 1] || null;
+  const strategy = responses.find((row) => row.type === 'choose_strategy')?.answer || 'Choose as you work';
+  return (
+    <Card className="mb-3 p-4">
+      <details>
+        <summary className="cursor-pointer text-sm font-semibold text-ink-700">Story support</summary>
+        <div className="mt-3 grid grid-cols-1 gap-3 text-sm text-ink-600 sm:grid-cols-2">
+          <div>
+            <p className="font-semibold text-ink-700">What we know</p>
+            <ul className="mt-1 list-disc space-y-1 pl-5">
+              {(story.knownFacts || []).slice(0, 4).map((fact) => <li key={fact}>{fact}</li>)}
+            </ul>
+          </div>
+          <div>
+            <p><span className="font-semibold text-ink-700">Need to find:</span> {story.needToFind}</p>
+            <p className="mt-1"><span className="font-semibold text-ink-700">Current step:</span> {step?.prompt || 'Read the story'}</p>
+            <p className="mt-1"><span className="font-semibold text-ink-700">Chosen strategy:</span> {strategy}</p>
+            <p className="mt-1"><span className="font-semibold text-ink-700">Previous answer:</span> {previous?.answer || 'None yet'}</p>
+          </div>
+        </div>
+      </details>
+    </Card>
+  );
+}
+
 export default function FractionsStoryModeSession() {
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
   const studentId = location.state?.studentId || 'demo-student';
-  const skillId = String(location.state?.skillId || 'F025').toUpperCase();
-  const safeSkillId = FRACTIONS_STORY_SUPPORTED_SKILLS.has(skillId) ? skillId : 'F025';
+  const rawSkillId = String(params.skillId || location.state?.skillId || 'F025').toUpperCase();
+  const directSkillInvalid = Boolean(params.skillId) && !FRACTIONS_STORY_SUPPORTED_SKILLS.has(rawSkillId);
+  const safeSkillId = FRACTIONS_STORY_SUPPORTED_SKILLS.has(rawSkillId) ? rawSkillId : 'F025';
   const story = useMemo(() => buildFractionsStorySession({ skillId: safeSkillId, studentId }), [safeSkillId, studentId]);
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
@@ -33,6 +65,7 @@ export default function FractionsStoryModeSession() {
   const [backendSession, setBackendSession] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [activeStorySentence, setActiveStorySentence] = useState(-1);
+  const [selectedFact, setSelectedFact] = useState(null);
 
   const step = story.steps[idx];
   const isLast = idx === story.steps.length - 1;
@@ -41,6 +74,42 @@ export default function FractionsStoryModeSession() {
   const stepExpectedAnswer = step?.answer?.display || step?.answer?.value || step?.answer || '';
   const needsFractionInput = needsTextInput && isFractionLikeAnswerValue(stepExpectedAnswer);
   const expressionQuestion = needsTextInput && Boolean(extractFractionExpression(String(step?.prompt || '')));
+  const modelState = resolveFactModelState(story, activeStorySentence, selectedFact);
+  const guidedModelIndex = selectedFact || activeStorySentence >= 0
+    ? modelState.modelStepIndex
+    : Math.min(idx, Math.max(0, (story.modelSequence || []).length - 1));
+
+  const onStorySentenceChange = (sentenceIndex) => {
+    setActiveStorySentence(sentenceIndex);
+    setSelectedFact(null);
+  };
+
+  if (!isFractionsStoryModeEnabled()) {
+    return (
+      <div className="mx-auto max-w-xl px-3 pt-3 sm:px-0">
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold text-ink-900">Problem Solving Story is not available yet</h2>
+          <p className="mt-2 text-sm text-ink-600">Return to MathPath to continue practice.</p>
+          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (directSkillInvalid) {
+    return (
+      <div className="mx-auto max-w-xl px-3 pt-3 sm:px-0">
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold text-ink-900">Choose a supported Story Mode skill</h2>
+          <p className="mt-2 text-sm text-ink-600">Story Mode currently supports F025 and F026.</p>
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <Button onClick={() => navigate('/student/mathpath/fractions/story/F025', { replace: true })}>Start F025 Story</Button>
+            <Button variant="secondary" onClick={() => navigate('/student/mathpath/fractions/story/F026', { replace: true })}>Start F026 Story</Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   const ensureBackendSession = async () => {
     if (backendSession?.sessionId) return backendSession;
@@ -118,7 +187,7 @@ export default function FractionsStoryModeSession() {
             storyText={story.prompt}
             stepText="Story complete"
             feedbackText={feedback.message}
-            onStorySentenceChange={setActiveStorySentence}
+            onStorySentenceChange={onStorySentenceChange}
           />
           <p className="mt-4 text-sm text-ink-700">{feedback.message}</p>
           <div className="mt-4 space-y-1 text-sm text-ink-700">
@@ -153,13 +222,14 @@ export default function FractionsStoryModeSession() {
         <p className="text-sm font-semibold text-ink-700">Problem Solving Story</p>
         <p className="mt-1 text-xs text-ink-500">{story.skillId} · {story.title}</p>
       </Card>
+      <StoryMemoryPanel story={story} step={step} responses={responses} />
 
       <div className="mb-3">
         <StoryAudioControls
           storyText={story.prompt}
           stepText={step?.prompt || ''}
           hintText={story.schemaHint || ''}
-          onStorySentenceChange={setActiveStorySentence}
+          onStorySentenceChange={onStorySentenceChange}
         />
       </div>
 
@@ -170,11 +240,26 @@ export default function FractionsStoryModeSession() {
       <ProgressBar value={progressValue} max={story.steps.length} className="mb-4" />
 
       <Card className="p-5">
-        {idx === 0 ? (
-          <div className="mb-4 rounded-xl border border-navy-200 bg-navy-50 p-3 text-sm text-navy-800">
-            <SentenceHighlighter text={story.prompt} activeIndex={activeStorySentence} />
-          </div>
-        ) : null}
+        <div className="mb-4 rounded-xl border border-navy-200 bg-navy-50 p-3 text-sm text-navy-800">
+          <SentenceHighlighter
+            text={story.prompt}
+            activeIndex={activeStorySentence}
+            keyFacts={story.keyFacts || []}
+            activeFactId={modelState.fact?.id || ''}
+            onFactSelect={(fact) => setSelectedFact(fact)}
+          />
+        </div>
+        <div className="mb-4 grid grid-cols-1 gap-3">
+          <ModelDrawingPromptCard
+            fact={modelState.fact}
+            fallbackPrompt={story.modelSequence?.[guidedModelIndex]?.prompt || story.schemaHint}
+          />
+          <GuidedBarModelCard
+            model={story.barModel || {}}
+            sequence={story.modelSequence || []}
+            activeIndex={guidedModelIndex}
+          />
+        </div>
         {idx === 0 && story.schemaHint ? (
           <div className="mb-4 rounded-xl border border-gold-200 bg-gold-100/60 p-3 text-sm text-gold-900">
             {story.schemaHint}

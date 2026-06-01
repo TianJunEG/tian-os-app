@@ -8,6 +8,7 @@ import { tutorAPI, mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { buildTutorMathPathDashboard } from '../../mathpath/dashboard/tutorMathPathDashboardEngine';
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
+import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 
 function skillLabel(skillId) {
   if (!skillId) return '—';
@@ -254,15 +255,17 @@ export default function TutorMathPathDashboardPage() {
   const [error, setError] = useState('');
   const [dashboard, setDashboard] = useState(null);
   const [placement, setPlacement] = useState(null);
+  const [workingReview, setWorkingReview] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [studentRes, masteryRes, latestRes] = await Promise.all([
+      const [studentRes, masteryRes, latestRes, workingRes] = await Promise.all([
         tutorAPI.student(id),
         mathpathAPI.mastery({ studentId: id }),
         mathpathAPI.getLatestDiagnostic({ studentId: id }),
+        mathpathAPI.workingReviewSummary({ studentId: id }),
       ]);
       const studentPayload = studentRes?.data || {};
       const masteryPayload = masteryRes?.data || {};
@@ -293,6 +296,7 @@ export default function TutorMathPathDashboardPage() {
       });
       setDashboard(tutorDashboard);
       setPlacement(latestRes?.data?.result || null);
+      setWorkingReview(workingRes?.data || null);
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Could not load tutor MathPath dashboard.');
     } finally {
@@ -332,6 +336,7 @@ export default function TutorMathPathDashboardPage() {
 
       <div className="space-y-4">
         <TutorOverviewCard studentName={studentMeta?.name || 'Student'} dashboard={dashboard} currentSkill={dashboard.tutorNotes?.currentSkill} />
+        <AdultWorkingReviewPanel review={workingReview || {}} title="Working Review Queue" />
 
         <CollapsibleSection
           title="Intervention details"

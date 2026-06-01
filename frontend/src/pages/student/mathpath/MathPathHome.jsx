@@ -541,13 +541,10 @@ export default function MathPathHome() {
               <Button
                 variant="secondary"
                 size="m"
-                onClick={() => navigate('/student/mathpath/practice/recommended-story', {
-                  state: {
-                    sessionType: 'story',
-                    skillId: /^F0(25|26)$/i.test(String(storySkillId || '')) ? String(storySkillId).toUpperCase() : 'F025',
-                    source: 'mathpath-home-story',
-                  },
-                })}
+                onClick={() => {
+                  const targetSkillId = /^F0(25|26)$/i.test(String(storySkillId || '')) ? String(storySkillId).toUpperCase() : 'F025';
+                  navigate(`/student/mathpath/fractions/story/${targetSkillId}`);
+                }}
               >
                 Try a Story Problem
               </Button>

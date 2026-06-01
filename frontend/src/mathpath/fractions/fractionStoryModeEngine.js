@@ -21,6 +21,45 @@ const SUPPORTIVE_FEEDBACK = {
   guessed_without_unpacking: 'Try unpacking the story one step at a time before choosing an answer.',
 };
 
+function fact(id, sentenceIndex, text, type, modelPrompt, strategyTag = '') {
+  return {
+    id,
+    sentenceIndex,
+    text,
+    type,
+    modelPrompt,
+    modelAction: modelPrompt,
+    strategyTag,
+  };
+}
+
+function buildModelSequence({ denominator, removed, knownRemaining, subdivideRemainingBy = null, removedSubparts = null, unknownWhole = true }) {
+  const sequence = [
+    { id: 'draw_whole', title: 'Draw one whole bar', prompt: 'Start with one bar for the whole amount.' },
+    { id: 'divide_whole', title: 'Divide the bar', prompt: `Divide the whole bar into ${denominator} equal parts.` },
+    { id: 'mark_removed', title: 'Mark the used part', prompt: `Shade or cross out ${removed} out of ${denominator} parts.` },
+    { id: 'mark_remainder', title: 'Mark what is left', prompt: `The remaining part is ${denominator - removed}/${denominator}. Label this as the remainder.` },
+  ];
+  if (subdivideRemainingBy) {
+    sequence.push({
+      id: 'subdivide_remainder',
+      title: 'Subdivide the remainder',
+      prompt: `Treat the remainder as the new amount. Split it into ${subdivideRemainingBy} equal groups.`,
+    });
+    sequence.push({
+      id: 'mark_second_action',
+      title: 'Mark the second action',
+      prompt: `Shade ${removedSubparts || 1} of those new groups, then look at what is still left.`,
+    });
+  }
+  if (knownRemaining) {
+    sequence.push({ id: 'label_known', title: 'Label the known value', prompt: `Write ${knownRemaining} on the remaining part.` });
+  }
+  sequence.push({ id: 'find_unit', title: 'Find one unit', prompt: 'Use the labelled remainder to find one equal unit.' });
+  if (unknownWhole) sequence.push({ id: 'find_whole', title: 'Find the whole', prompt: 'Use one unit to find the whole amount at first.' });
+  return sequence;
+}
+
 const STORY_TEMPLATES = [
   {
     storyId: 'STORY_F025_001',
@@ -34,8 +73,14 @@ const STORY_TEMPLATES = [
     schemaHint: 'This is a remainder problem. We know what is left, so we can work backwards.',
     needToFind: 'Number of stickers Ali had at first',
     knownFacts: ['2/5 was given away', '18 stickers were left', 'The whole is 5/5'],
+    keyFacts: [
+      fact('f025_001_fraction', 0, '2/5', 'fraction_part', 'Shade 2 out of 5 equal parts.', 'find_remaining_fraction'),
+      fact('f025_001_remainder', 0, '18 left', 'quantity_known', 'Label the remaining 3 parts as 18 stickers.', 'find_one_unit_first'),
+      fact('f025_001_target', 1, 'at first', 'target_unknown', 'We need the whole amount, not only the part left.', 'work_backwards'),
+    ],
     strategyTags: ['find_remaining_fraction', 'find_one_unit_first', 'work_backwards', 'check_final_answer_against_question'],
     barModel: { denominator: 5, removed: 2, knownRemaining: '18', unknownWhole: true },
+    modelSequence: buildModelSequence({ denominator: 5, removed: 2, knownRemaining: '18 stickers' }),
     answer: { value: '30', display: '30' },
     workedSolution: [
       'Given away: 2/5, so left: 3/5.',
@@ -65,8 +110,14 @@ const STORY_TEMPLATES = [
     schemaHint: 'We are given the amount after some marbles were used. The answer asks for the amount at first.',
     needToFind: 'Total number of marbles at first',
     knownFacts: ['1/4 was used', '21 marbles were left', 'The remaining fraction is 3/4'],
+    keyFacts: [
+      fact('f025_002_fraction', 0, '1/4', 'fraction_part', 'Shade 1 out of 4 equal parts.', 'find_remaining_fraction'),
+      fact('f025_002_remainder', 1, '21 marbles left', 'quantity_known', 'Label the remaining 3 parts as 21 marbles.', 'find_one_unit_first'),
+      fact('f025_002_target', 2, 'at first', 'target_unknown', 'The question asks for the original whole.', 'work_backwards'),
+    ],
     strategyTags: ['find_remaining_fraction', 'find_one_unit_first', 'work_backwards'],
     barModel: { denominator: 4, removed: 1, knownRemaining: '21', unknownWhole: true },
+    modelSequence: buildModelSequence({ denominator: 4, removed: 1, knownRemaining: '21 marbles' }),
     answer: { value: '28', display: '28' },
     workedSolution: ['Left fraction is 3/4.', '3/4 = 21, so 1/4 = 7.', 'Total = 7 × 4 = 28.'],
     mistakeTags: ['confused_part_with_whole', 'wrong_remaining_fraction', 'operation_mismatch'],
@@ -92,8 +143,14 @@ const STORY_TEMPLATES = [
     schemaHint: 'The blank pages are the remaining part. The question asks for the whole notebook.',
     needToFind: 'Total number of pages',
     knownFacts: ['3/8 completed', '25 pages blank', 'Blank fraction is 5/8'],
+    keyFacts: [
+      fact('f025_003_fraction', 0, '3/8', 'fraction_part', 'Shade 3 out of 8 parts to show completed pages.', 'find_remaining_fraction'),
+      fact('f025_003_remainder', 1, '25 pages', 'quantity_known', 'Label the blank remaining 5 parts as 25 pages.', 'find_one_unit_first'),
+      fact('f025_003_target', 2, 'in total', 'target_unknown', 'We need all 8 parts of the notebook.', 'compare_part_and_whole'),
+    ],
     strategyTags: ['find_remaining_fraction', 'find_one_unit_first', 'compare_part_and_whole'],
     barModel: { denominator: 8, removed: 3, knownRemaining: '25', unknownWhole: true },
+    modelSequence: buildModelSequence({ denominator: 8, removed: 3, knownRemaining: '25 pages' }),
     answer: { value: '40', display: '40' },
     workedSolution: ['Completed = 3/8, so blank = 5/8.', '5/8 = 25, so 1/8 = 5.', 'Total = 5 × 8 = 40.'],
     mistakeTags: ['wrong_remaining_fraction', 'calculation_error', 'wrong_whole'],
@@ -119,8 +176,15 @@ const STORY_TEMPLATES = [
     schemaHint: 'This is a multi-step remainder story. The second fraction is taken from the remainder.',
     needToFind: 'Amount of money Mei had at first',
     knownFacts: ['1/3 spent first', '1/4 of the remainder spent next', '$18 left'],
+    keyFacts: [
+      fact('f026_001_first_fraction', 0, '1/3', 'fraction_part', 'Shade 1 out of 3 parts for the book.', 'break_story_into_steps'),
+      fact('f026_001_remainder_fraction', 0, '1/4 of the remainder', 'remainder', 'Now focus only on the remaining 2/3 and split it into 4 groups.', 'track_remainder'),
+      fact('f026_001_known_left', 1, '$18 left', 'quantity_known', 'Label the final unshaded remainder as $18.', 'work_backwards'),
+      fact('f026_001_target', 2, 'at first', 'target_unknown', 'Work backwards to find the original whole amount.', 'work_backwards'),
+    ],
     strategyTags: ['break_story_into_steps', 'track_remainder', 'work_backwards', 'use_equivalent_fractions'],
     barModel: { denominator: 3, removed: 1, subdivideRemainingBy: 4, removedSubparts: 1, knownRemaining: '$18', unknownWhole: true },
+    modelSequence: buildModelSequence({ denominator: 3, removed: 1, subdivideRemainingBy: 4, removedSubparts: 1, knownRemaining: '$18' }),
     answer: { value: '36', display: '36' },
     workedSolution: [
       'After spending 1/3, remaining is 2/3.',
@@ -150,8 +214,15 @@ const STORY_TEMPLATES = [
     schemaHint: 'The second cut is from the remainder, not from the whole ribbon.',
     needToFind: 'Original ribbon length',
     knownFacts: ['1/5 used first', '1/2 of the remainder used next', '12 cm remained'],
+    keyFacts: [
+      fact('f026_002_first_fraction', 0, '1/5', 'fraction_part', 'Shade 1 out of 5 parts for the gift.', 'break_story_into_steps'),
+      fact('f026_002_remainder_fraction', 0, '1/2 of the remainder', 'remainder', 'Use the remaining 4 parts as the new amount and split it into 2 groups.', 'track_remainder'),
+      fact('f026_002_known_left', 1, '12 cm remained', 'quantity_known', 'Label the final remaining group as 12 cm.', 'work_backwards'),
+      fact('f026_002_target', 2, 'original length', 'target_unknown', 'Find the full length before any ribbon was used.', 'work_backwards'),
+    ],
     strategyTags: ['track_remainder', 'work_backwards', 'find_one_unit_first'],
     barModel: { denominator: 5, removed: 1, subdivideRemainingBy: 2, removedSubparts: 1, knownRemaining: '12 cm', unknownWhole: true },
+    modelSequence: buildModelSequence({ denominator: 5, removed: 1, subdivideRemainingBy: 2, removedSubparts: 1, knownRemaining: '12 cm' }),
     answer: { value: '30', display: '30' },
     workedSolution: ['After first cut, 4/5 remained.', 'Then half of remainder used, so half remained: 2/5 of original.', '2/5 = 12, so 1/5 = 6 and 5/5 = 30.'],
     mistakeTags: ['operation_mismatch', 'wrong_remaining_fraction', 'wrong_whole'],
@@ -177,8 +248,15 @@ const STORY_TEMPLATES = [
     schemaHint: 'Each action changes the remaining amount. Keep track of the remainder after each day.',
     needToFind: 'Total pages in the book',
     knownFacts: ['2/7 read on Monday', '1/3 of remaining pages read on Tuesday', '30 pages left'],
+    keyFacts: [
+      fact('f026_003_first_fraction', 0, '2/7', 'fraction_part', 'Shade 2 out of 7 parts for Monday.', 'break_story_into_steps'),
+      fact('f026_003_remainder_fraction', 0, '1/3 of the remaining pages', 'remainder', 'Use the remaining 5/7 as the new amount and split it into 3 groups.', 'track_remainder'),
+      fact('f026_003_known_left', 1, '30 pages left', 'quantity_known', 'Label the final remaining 10/21 as 30 pages.', 'work_backwards'),
+      fact('f026_003_target', 2, 'How many pages in the book', 'target_unknown', 'Find the original whole book, not just the pages left.', 'work_backwards'),
+    ],
     strategyTags: ['break_story_into_steps', 'track_remainder', 'work_backwards', 'use_equivalent_fractions'],
     barModel: { denominator: 7, removed: 2, subdivideRemainingBy: 3, removedSubparts: 1, knownRemaining: '30 pages', unknownWhole: true },
+    modelSequence: buildModelSequence({ denominator: 7, removed: 2, subdivideRemainingBy: 3, removedSubparts: 1, knownRemaining: '30 pages' }),
     answer: { value: '63', display: '63' },
     workedSolution: ['After Monday: 5/7 left.', 'After Tuesday: 2/3 of remainder left.', '2/3 × 5/7 = 10/21 left. If 10/21 is 30, then 1/21 is 3 and total is 63.'],
     mistakeTags: ['did_not_work_backwards', 'calculation_error', 'wrong_remaining_fraction'],

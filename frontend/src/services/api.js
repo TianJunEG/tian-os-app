@@ -81,6 +81,18 @@ export const mathpathAPI = {
   similarPracticeSet: (practiceSetId) => api.get(`/mastery/fractions/similar-practice-sets/${practiceSetId}`),
   startSimilarPractice: (practiceSetId, data = {}) => api.post(`/mastery/fractions/similar-practice-sets/${practiceSetId}/start`, data),
   submitSimilarPractice: (sessionId, data) => api.post(`/mastery/fractions/similar-practice/${sessionId}/submit`, data),
+  createWorkingSession: (data) => api.post('/mathpath-working/sessions', data),
+  createWorkingCode: (data) => api.post('/mathpath-working/codes', data),
+  lookupWorkingCode: (workingCode) => api.get(`/mathpath-working/code/${workingCode}`),
+  workingSession: (workingSessionId) => api.get(`/mathpath-working/${workingSessionId}`),
+  pendingWorkings: (params = {}) => api.get('/mathpath-working/pending', { params }),
+  workingReviewSummary: (params = {}) => api.get('/mathpath-working/review-summary', { params }),
+  helpRequests: (params = {}) => api.get('/mathpath-working/help-requests', { params }),
+  uploadWorking: (workingSessionId, formData) => api.post(`/mathpath-working/${workingSessionId}/upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  markNoWorking: (workingSessionId, data) => api.post(`/mathpath-working/${workingSessionId}/no-working`, data),
+  updateWorkingAnalysis: (workingSessionId, data) => api.post(`/mathpath-working/${workingSessionId}/analysis`, data),
   // ref: a slug string, or { skillId } / { skillSlug }
   remediation: (ref, recentAttempts = []) =>
     api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })

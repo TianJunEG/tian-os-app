@@ -3,12 +3,32 @@ import FractionAnswerInput, { shouldUseFractionAnswerInput } from './FractionAns
 
 function normalizeType(question = {}) {
   if (question.type === 'mcq') return 'multiple_choice';
-  const explicit = String(question.answerInputType || question.expectedAnswerType || question.answerType || '').toLowerCase();
-  if (['mixed', 'mixed_number'].includes(explicit)) return 'mixed_number';
-  if (explicit === 'fraction') return 'fraction';
-  if (['whole', 'whole_number', 'number', 'integer'].includes(explicit)) return 'whole_number';
-  if (explicit === 'decimal') return 'decimal';
-  if (['ordering', 'order', 'list'].includes(explicit)) return 'ordering';
+
+  const explicit = String(
+    question.answer_type
+      || question.answerType
+      || question.answerInputType
+      || question.expectedAnswerType
+      || ''
+  ).toLowerCase();
+
+  const mappedExplicit = {
+    mixed: 'mixed_number',
+    mixed_number: 'mixed_number',
+    fraction: 'fraction',
+    whole: 'whole_number',
+    whole_number: 'whole_number',
+    number: 'whole_number',
+    integer: 'whole_number',
+    decimal: 'decimal',
+    ordering: 'ordering',
+    order: 'ordering',
+    list: 'ordering',
+    multiple_choice: 'multiple_choice',
+    mcq: 'multiple_choice',
+  };
+  if (mappedExplicit[explicit]) return mappedExplicit[explicit];
+
   if (question.answer?.type === 'mixed') return 'mixed_number';
   if (question.answer?.type === 'fraction') return 'fraction';
   if (question.answer?.type === 'whole') return 'whole_number';

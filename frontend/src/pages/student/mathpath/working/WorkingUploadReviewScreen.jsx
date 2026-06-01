@@ -5,6 +5,7 @@ import { PageHeader, Card, Button, ErrorState } from '../../../../components/ui'
 import WorkingUploadCard from '../../../../components/mathpath/working/WorkingUploadCard';
 import WorkingReviewCard from '../../../../components/mathpath/working/WorkingReviewCard';
 import WorkingSubmissionSummary from '../../../../components/mathpath/working/WorkingSubmissionSummary';
+import { mathpathAPI } from '../../../../services/api';
 import {
   createWorkingSession,
   createQuestionWorkingMap,
@@ -36,6 +37,53 @@ export default function WorkingUploadReviewScreen() {
     [questionRefs]
   );
 
+  const submitWithLocalWorkflow = () => {
+    let workingSessionId = state.workingSessionId;
+    if (!workingSessionId) {
+      const created = createWorkingSession({
+        studentId: state.studentId || 'demo-student',
+        practiceSessionId: state.practiceSessionId || null,
+        assessmentSessionId: state.assessmentSessionId || null,
+        domainId: 'fractions',
+        skillIds: [...new Set(questionRefs.map((q) => q.skillId).filter(Boolean))],
+        questionIds: questionRefs.map((q) => q.questionId),
+        inputMethod: 'paper',
+      });
+      workingSessionId = created.workingSessionId;
+    }
+
+    if (questionRefs.length) {
+      createQuestionWorkingMap({
+        workingSessionId,
+        questionIds: questionRefs.map((q) => q.questionId),
+        workingRequiredMap,
+      });
+    }
+
+    for (const q of questionRefs) {
+      if (!noWorkingChecked[q.questionId]) continue;
+      markNoWorkingRequired(q.questionId, 'Student marked no working required.', {
+        questionFamilyId: q.questionFamilyId,
+        systemAllowsNoWorking: true,
+        studentDecision: true,
+      });
+    }
+
+    submitPaperWorking({
+      workingSessionId,
+      studentId: state.studentId || 'demo-student',
+      fileUrls: displayFiles.map((f, i) => f.previewUrl || `local-page-${i + 1}`),
+      pageCount: rawFiles.length || displayFiles.length,
+    });
+
+    const prepared = prepareWorkingForAnalysis(workingSessionId);
+    return {
+      workingSessionId,
+      prepared,
+      pagesUploaded: rawFiles.length || displayFiles.length,
+    };
+  };
+
   if (!displayFiles.length && !Object.values(noWorkingChecked).some(Boolean)) {
     return <ErrorState message="No working files to review yet." onRetry={() => navigate('/student/mathpath/working/upload', { replace: true, state })} />;
   }
@@ -44,45 +92,55 @@ export default function WorkingUploadReviewScreen() {
     setSubmitting(true);
     setError('');
     try {
-      let workingSessionId = state.workingSessionId;
+      let apiSession = null;
+      let workingSessionId = state.workingSessionId || '';
       if (!workingSessionId) {
-        const created = createWorkingSession({
+        const created = await mathpathAPI.createWorkingSession({
           studentId: state.studentId || 'demo-student',
           practiceSessionId: state.practiceSessionId || null,
           assessmentSessionId: state.assessmentSessionId || null,
           domainId: 'fractions',
           skillIds: [...new Set(questionRefs.map((q) => q.skillId).filter(Boolean))],
-          questionIds: questionRefs.map((q) => q.questionId),
+          questionRefs: questionRefs.map((q) => ({
+            questionId: q.questionId,
+            skillId: q.skillId || '',
+            questionFamilyId: q.questionFamilyId || '',
+            workingRequired: Boolean(q.workingRequired),
+            workingReason: q.workingRequired ? 'required_from_session' : 'optional_from_session',
+          })),
           inputMethod: 'paper',
         });
-        workingSessionId = created.workingSessionId;
-      }
-
-      if (questionRefs.length) {
-        createQuestionWorkingMap({
-          workingSessionId,
-          questionIds: questionRefs.map((q) => q.questionId),
-          workingRequiredMap,
-        });
+        apiSession = created.data?.workingSession || null;
+        workingSessionId = apiSession?.workingSessionId || '';
       }
 
       for (const q of questionRefs) {
         if (!noWorkingChecked[q.questionId]) continue;
-        markNoWorkingRequired(q.questionId, 'Student marked no working required.', {
-          questionFamilyId: q.questionFamilyId,
-          systemAllowsNoWorking: true,
-          studentDecision: true,
+        const updated = await mathpathAPI.markNoWorking(workingSessionId, {
+          questionId: q.questionId,
+          reason: 'student_declared_no_working',
         });
+        apiSession = updated.data?.workingSession || apiSession;
       }
 
-      submitPaperWorking({
-        workingSessionId,
-        studentId: state.studentId || 'demo-student',
-        fileUrls: displayFiles.map((f, i) => f.previewUrl || `local-page-${i + 1}`),
-        pageCount: rawFiles.length || displayFiles.length,
-      });
+      let uploaded = null;
+      if (rawFiles.length) {
+        const formData = new FormData();
+        rawFiles.forEach((file) => formData.append('working', file));
+        formData.append('sessionType', sessionType);
+        formData.append('submittedFrom', 'student_working_upload');
+        uploaded = await mathpathAPI.uploadWorking(workingSessionId, formData);
+        apiSession = uploaded.data?.workingSession || apiSession;
+      }
 
-      const prepared = prepareWorkingForAnalysis(workingSessionId);
+      const prepared = {
+        status: apiSession?.analysisStatus || (rawFiles.length ? 'pending_analysis' : 'mapped'),
+        mappedQuestions: apiSession?.questionWorkingMap || [],
+        missingWorkingQuestions: (apiSession?.questionWorkingMap || []).filter((q) => q.workingRequired && !q.noWorkingRequiredChecked && !rawFiles.length),
+        analysisEvidence: apiSession?.analysisEvidence || [],
+        persisted: true,
+      };
+
       navigate('/student/mathpath/working/success', {
         replace: true,
         state: {
@@ -94,7 +152,25 @@ export default function WorkingUploadReviewScreen() {
         },
       });
     } catch (e) {
-      setError(e.message || 'Could not submit working.');
+      try {
+        const fallback = submitWithLocalWorkflow();
+        navigate('/student/mathpath/working/success', {
+          replace: true,
+          state: {
+            ...state,
+            workingSessionId: fallback.workingSessionId,
+            prepared: {
+              ...fallback.prepared,
+              persisted: false,
+              warning: 'Saved locally because backend upload was unavailable.',
+            },
+            pagesUploaded: fallback.pagesUploaded,
+            requiringWorkingCount,
+          },
+        });
+      } catch (fallbackError) {
+        setError(fallbackError.message || e.message || 'Could not submit working.');
+      }
     } finally {
       setSubmitting(false);
     }

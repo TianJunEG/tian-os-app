@@ -21,7 +21,7 @@ import { Card, Button, ProgressBar, Spinner, ErrorState, Badge } from '../../com
 
 function actionMeta(nextAction = {}) {
   const map = {
-    continuePractice: { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-dashboard' },
+    continuePractice: { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' },
     startFluency: { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' },
     completeRetentionReview: { label: 'Complete Review', to: '/student/mathpath' },
     attemptAssessment: { label: 'Try Assessment', to: '/student/mathpath/assessment' },

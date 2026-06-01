@@ -31,6 +31,21 @@ describe('fractionStoryModeEngine', () => {
     expect(scored.accuracy).toBe(100);
   });
 
+  it('adds key facts and guided model steps to every F025/F026 story', () => {
+    const stories = [
+      ...getFractionsStoryTemplatesBySkill('F025'),
+      ...getFractionsStoryTemplatesBySkill('F026'),
+    ];
+    expect(stories.length).toBeGreaterThanOrEqual(6);
+    stories.forEach((story) => {
+      expect(story.keyFacts?.length).toBeGreaterThanOrEqual(3);
+      expect(story.modelSequence?.length).toBeGreaterThanOrEqual(6);
+      expect(story.keyFacts.every((fact) => fact.text && fact.type && fact.modelPrompt)).toBe(true);
+      expect(story.modelSequence.some((step) => step.id === 'label_known')).toBe(true);
+      expect(story.modelSequence.some((step) => step.id === 'find_whole')).toBe(true);
+    });
+  });
+
   it('flags mistakes when final answer is wrong for F026', () => {
     const story = buildFractionsStorySession({ skillId: 'F026', studentId: 's2' });
     const responses = story.steps.map((step, idx) => ({
@@ -44,4 +59,3 @@ describe('fractionStoryModeEngine', () => {
     expect(scored.mistakeTags.length).toBeGreaterThan(0);
   });
 });
-

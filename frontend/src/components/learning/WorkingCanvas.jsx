@@ -86,6 +86,7 @@ function exportCanvas(canvas, background) {
 
 export default function WorkingCanvas({
   questionId = '',
+  workingCode = '',
   required = false,
   allowNoWorking = true,
   readOnly = false,
@@ -248,6 +249,12 @@ export default function WorkingCanvas({
         </div>
         <Badge tone={required && !submitted && !notNeeded ? 'gold' : 'success'}>{status}</Badge>
       </div>
+      {workingCode && (
+        <div className="mb-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm text-gold-900">
+          <p className="font-semibold">Working code: <span className="font-mono">{workingCode}</span></p>
+          <p className="mt-1 text-xs">Write this code at the top of your working page before taking a photo.</p>
+        </div>
+      )}
 
       <div className="mb-3 flex flex-wrap gap-2">
         <Button size="s" variant={tool === 'pen' ? 'primary' : 'secondary'} icon={PenLine} onClick={() => setTool('pen')}>Pen</Button>

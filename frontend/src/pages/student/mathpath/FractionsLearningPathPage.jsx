@@ -64,7 +64,7 @@ function actionFromNext(nextAction) {
   if (action === 'uploadWorking') return { label: 'Upload Working', to: '/student/mathpath/working/upload' };
   if (action === 'followRemediationPlan') return { label: 'Practise This Skill', to: '/student/mathpath/practice/recommended-remediation' };
   if (action === 'advanceSkill') return { label: 'Move to Next Skill', to: '/student/mathpath/practice/recommended-next' };
-  return { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-path' };
+  return { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' };
 }
 
 function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, onStory }) {
@@ -371,9 +371,7 @@ export default function FractionsLearningPathPage() {
         currentSkillName={currentSkillName}
         nextCta={nextCta}
         onPrimary={launchPrimary}
-        onStory={() => navigate('/student/mathpath/practice/recommended-story', {
-          state: { sessionType: 'story', skillId: 'F026', source: 'fractions-pathway' },
-        })}
+        onStory={() => navigate('/student/mathpath/fractions/story/F026')}
       />
 
       <NextActionPanel nextAction={nextAction} onPrimary={launchPrimary} />

@@ -6,6 +6,7 @@ import ChildNav from './ChildNav';
 import { useChild } from './useChild';
 import { mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
+import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 
 function statusTone(status) {
   if (status === 'advanced') return 'success';
@@ -217,18 +218,21 @@ export default function ParentMathPathDashboardPage() {
   const [error, setError] = useState('');
   const [summary, setSummary] = useState(null);
   const [placement, setPlacement] = useState(null);
+  const [workingReview, setWorkingReview] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [masteryRes, latestRes] = await Promise.all([
+      const [masteryRes, latestRes, workingRes] = await Promise.all([
         mathpathAPI.mastery({ studentId }),
         mathpathAPI.getLatestDiagnostic({ studentId }),
+        mathpathAPI.workingReviewSummary({ studentId }),
       ]);
       const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {});
       setSummary(parentPayload);
       setPlacement(latestRes?.data?.result || null);
+      setWorkingReview(workingRes?.data || null);
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Could not load parent MathPath dashboard.');
     } finally {
@@ -289,6 +293,7 @@ export default function ParentMathPathDashboardPage() {
         )}
 
         <WeeklyActionPlanCard plan={summary.weeklyActionPlan || {}} onPrimary={() => navigate('/student/mathpath')} />
+        <AdultWorkingReviewPanel review={workingReview || {}} title="Workings and Help Requests" />
 
         <CollapsibleSection
           title="Progress details"

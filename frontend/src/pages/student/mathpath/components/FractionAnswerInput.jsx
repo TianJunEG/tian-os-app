@@ -37,7 +37,14 @@ export function isFractionLikeAnswerValue(raw) {
 
 export function shouldUseFractionAnswerInput(question) {
   if (!question || question.type === 'mcq') return false;
-  if (['fraction', 'mixed'].includes(String(question.answerInputType || question.expectedAnswerType || ''))) return true;
+  const explicitType = String(
+    question.answer_type
+    || question.answerType
+    || question.answerInputType
+    || question.expectedAnswerType
+    || ''
+  ).toLowerCase();
+  if (['fraction', 'mixed', 'mixed_number'].includes(explicitType)) return true;
   const answer = question.answer;
   if (answer?.type === 'list' || String(answer?.display || '').includes(',')) return false;
   if (answer?.type === 'fraction' || answer?.type === 'mixed') return true;

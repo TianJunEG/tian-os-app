@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../../../components/ui';
+import { ArrowRight, HelpCircle } from 'lucide-react';
+import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSection, Tooltip } from '../../../../components/ui';
 import { getUniversalSkillByFrameworkId } from '../../../../mathpath/curriculum';
 import { mathpathAPI } from '../../../../services/api';
 
@@ -30,6 +30,20 @@ function fluencySignal({ accuracyRate, speedScore, skipRate }) {
   if (accuracy < 70 && speed >= 55) return 'Possible misconception';
   return 'Struggling';
 }
+
+const FLUENCY_SIGNAL_EXPLANATIONS = {
+  Fluent: 'Correct + Fast → fluency',
+  'Understanding but not yet fluent': 'Correct + Slow → understanding is there, speed needs work',
+  'Possible misconception': 'Wrong + Fast → likely quick but incorrect thinking',
+  Struggling: 'Wrong + Slow → likely conceptual gaps',
+  'Skip + Fast': 'Skip + Fast → immediate avoidance',
+  'Skip + Slow': 'Skip + Slow → attempted but unable to solve',
+};
+
+const FLUENCY_SIGNAL_LEGEND = ['Fluent', 'Understanding but not yet fluent', 'Possible misconception', 'Struggling', 'Skip + Fast', 'Skip + Slow'].map((label) => ({
+  label,
+  meaning: FLUENCY_SIGNAL_EXPLANATIONS[label] || '',
+}));
 
 function formatPercent(value) {
   return value == null ? '-' : `${Number(value).toFixed(0)}%`;
@@ -135,25 +149,31 @@ export default function DiagnosticResultScreen() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Diagnostic Results" subtitle="Your fractions placement is ready." />
+      <PageHeader title="Diagnostic Summary" subtitle="Your Fractions placement is ready." />
       <div className="space-y-4">
         <Card className="p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Fractions Readiness</p>
-          <div className="mt-2 flex items-center justify-between">
-            <p className="font-mono text-3xl font-semibold text-navy-700">{score}/100</p>
-            <Badge tone="navy">{readinessBand(score)}</Badge>
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Diagnostic Summary</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl bg-navy-50 px-3 py-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Questions correct</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Questions Correct</p>
               <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{correct}/{total || '-'}</p>
             </div>
+            <div className="rounded-xl bg-navy-50 px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Readiness Score</p>
+              <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{score}/100</p>
+            </div>
             <div className="rounded-xl bg-bone px-3 py-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Confidence calibration</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Confidence Calibration</p>
               <p className="mt-1 text-sm font-semibold text-ink-700">{Math.round((Number(shaped.confidenceScore || 0) || 0) * 100)}%</p>
             </div>
+            <div className="rounded-xl bg-paper px-3 py-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Readiness Band</p>
+              <p className="mt-1 text-sm font-semibold text-ink-700">{readinessBand(score)}</p>
+            </div>
           </div>
-          <p className="mt-3 text-sm text-ink-600">{summaryText}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <p className="rounded-xl bg-paper px-3 py-2 text-sm text-ink-700 sm:col-span-2">{summaryText}</p>
+          </div>
         </Card>
 
         <Card className="p-5">
@@ -183,10 +203,12 @@ export default function DiagnosticResultScreen() {
             <div className="mt-4 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">By skill (top)</p>
               <div className="space-y-2">
-                {timingBySkill.map((row) => (
-                  <div key={row.skillId} className="grid gap-2 rounded-xl bg-white border border-hairline px-3 py-2 text-sm">
+                {timingBySkill.map((row) => {
+                  const signal = fluencySignal(row);
+                  return (
+                    <div key={row.skillId} className="grid gap-2 rounded-xl bg-white border border-hairline px-3 py-2 text-sm">
                     <p className="font-semibold text-ink-900">{skillName(row.skillId)}</p>
-            <div className="grid gap-2 sm:grid-cols-4">
+                    <div className="grid gap-2 sm:grid-cols-4">
                       <span>Accuracy: <b>{formatPercent(row.accuracy)}</b></span>
                       <span>Attempts: <b>{row.attempts}</b></span>
                       <span>Time: <b>{formatSeconds(row.avgSeconds)}</b></span>
@@ -198,13 +220,32 @@ export default function DiagnosticResultScreen() {
                     </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <span>Confidence calibration: <b>{row.confidenceCalibration == null ? '-' : `${row.confidenceCalibration.toFixed(0)}%`}</b></span>
-                      <span>Signal: <b>{fluencySignal(row)}</b></span>
+                      <span className="flex items-center gap-1">
+                        Signal: <b>{signal}</b>
+                        <Tooltip label={FLUENCY_SIGNAL_EXPLANATIONS[signal] || 'Signal classification combines correctness, speed, and skipping behavior'}>
+                          <HelpCircle className="h-4 w-4 text-ink-400" />
+                        </Tooltip>
+                      </span>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
+          <div className="mt-4 grid gap-2 rounded-xl border border-hairline bg-white px-3 py-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fluency signal key</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {FLUENCY_SIGNAL_LEGEND.map((item) => (
+                <div key={item.label} className="flex items-center justify-between rounded-lg bg-paper px-2 py-1.5 text-xs">
+                  <span className="font-semibold text-ink-700">{item.label}</span>
+                  <Tooltip label={item.meaning}>
+                    <HelpCircle className="h-4 w-4 text-ink-400" />
+                  </Tooltip>
+                </div>
+              ))}
+            </div>
+          </div>
         </Card>
 
         <Card className="p-5">
@@ -223,7 +264,7 @@ export default function DiagnosticResultScreen() {
             <div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-sm font-semibold text-ink-700">Strengths</p>
+                  <p className="text-sm font-semibold text-ink-700">Strong Areas</p>
                   {masteredNames.length ? (
                     <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">
                       {masteredNames.map((name) => <li key={name}>{name}</li>)}
@@ -231,7 +272,7 @@ export default function DiagnosticResultScreen() {
                   ) : <p className="mt-2 text-sm text-ink-500">Keep going — strengths will grow with practice.</p>}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-ink-700">Areas to Work On</p>
+                  <p className="text-sm font-semibold text-ink-700">Needs More Practice</p>
                   {weakNames.length ? (
                     <ul className="mt-2 list-disc pl-5 text-sm text-ink-600">
                       {weakNames.map((name) => <li key={name}>{name}</li>)}

@@ -17,7 +17,7 @@ import {
 } from '../../../mathpath/state/mathPathDomainProgressState';
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import FractionsStoryModeSession from './FractionsStoryModeSession';
-import FractionAnswerInput, { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
+import { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
 import QuestionDiagram from './components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
@@ -73,6 +73,48 @@ const SESSION_META = {
 function normalizeSessionType(value) {
   const key = String(value || 'practice').toLowerCase();
   return SESSION_META[key] ? key : 'practice';
+}
+
+const RECOMMENDED_SESSION_INTENTS = {
+  pathway: 'practice',
+  diagnostic: 'practice',
+  assessment: 'practice',
+  remediation: 'remediation',
+  review: 'remediation',
+  next: 'practice',
+  path: 'practice',
+  dashboard: 'practice',
+};
+
+function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
+  const normalized = String(routeSessionId || '').toLowerCase();
+  const nextSkill = progress?.currentSkillId || progress?.nextSkillId || null;
+  const candidateWeak = Array.isArray(progress?.weakSkills) && progress.weakSkills[0]?.skillId;
+  const skillFallback = nextSkill || candidateWeak || 'F001';
+
+  if (normalized.startsWith('skill-')) {
+    const skillId = String(routeSessionId || '').slice(6).toUpperCase();
+    return {
+      requestedSkillId: /^F\d{3}$/i.test(skillId) ? skillId : null,
+      sessionType: 'practice',
+      questionCount: 8,
+    };
+  }
+
+  if (normalized.startsWith('recommended-')) {
+    const intent = normalized.replace('recommended-', '');
+    return {
+      requestedSkillId: locationState?.skillId || skillFallback,
+      sessionType: RECOMMENDED_SESSION_INTENTS[intent] || 'practice',
+      questionCount: locationState?.questionCount || 8,
+    };
+  }
+
+  return {
+    requestedSkillId: locationState?.skillId || skillFallback,
+    sessionType: normalizeSessionType(locationState?.sessionType),
+    questionCount: locationState?.questionCount || null,
+  };
 }
 
 function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [] }) {
@@ -248,11 +290,17 @@ function LegacyPracticeSession() {
             ))}
           </div>
         ) : useFractionInput && !expressionQuestion ? (
-          <FractionAnswerInput
+          <AnswerInputRenderer
+            question={q}
             value={answer}
             onChange={setAnswer}
             disabled={!!result}
-            allowWhole={q.answerInputType === 'mixed' || q.answer?.type === 'mixed'}
+            onEnter={() => {
+              if (!result) {
+                if (!answer) return;
+                check();
+              }
+            }}
           />
         ) : (
           <input value={answer} onChange={(e) => setAnswer(e.target.value)} disabled={!!result} className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg" />
@@ -282,7 +330,13 @@ export default function PracticeSession() {
   const { user } = useAuth();
   const isMathPathRoute = location.pathname.startsWith('/student/mathpath/practice/');
   const hasLegacyItems = Boolean(location.state?.items?.length);
-  const sessionType = normalizeSessionType(location.state?.sessionType);
+  const progressState = getMathPathDomainProgressState(user?._id || user?.id || user?.email || 'demo-student', 'fractions') || {};
+  const resolvedIntent = resolvePracticeIntent({
+    routeSessionId,
+    locationState: location.state || {},
+    progress: progressState,
+  });
+  const sessionType = resolvedIntent.sessionType;
   const storyModeEnabled = isFractionsStoryModeEnabled();
   const sessionMeta = SESSION_META[sessionType];
 
@@ -318,6 +372,8 @@ export default function PracticeSession() {
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
   const [workingByQuestion, setWorkingByQuestion] = useState({});
+  const [workingSession, setWorkingSession] = useState(null);
+  const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
 
   useEffect(() => {
     let mounted = true;
@@ -327,10 +383,10 @@ export default function PracticeSession() {
           studentId,
           domainId: 'fractions',
           sessionType,
-          requestedSkillId: location.state?.skillId || null,
+          requestedSkillId: resolvedIntent.requestedSkillId,
           requestedQuestionFamilyId: location.state?.questionFamilyId || null,
           sessionLength:
-            location.state?.questionCount
+            resolvedIntent.questionCount
             || (sessionType === 'warmup'
               ? 3
               : sessionType === 'diagnostic' || sessionType === 'mastery_check'
@@ -344,6 +400,9 @@ export default function PracticeSession() {
         if (!mounted) return;
         setFlowSession(started);
         setQuestions(started.questions || []);
+        setWorkingSession(null);
+        setWorkingCodeByQuestion({});
+        setWorkingByQuestion({});
         if (!started.questions?.length) setError('No questions generated yet. Please try another skill.');
       } catch (e) {
         if (!mounted) return;
@@ -353,7 +412,7 @@ export default function PracticeSession() {
       }
     })();
     return () => { mounted = false; };
-  }, [studentId, location.state, sessionType]);
+  }, [studentId, routeSessionId, sessionType, resolvedIntent.requestedSkillId, resolvedIntent.questionCount, location.state]);
 
   useEffect(() => {
     if (summary || loading || !questions.length) return undefined;
@@ -362,6 +421,49 @@ export default function PracticeSession() {
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
   }, [idx, summary, loading, questions.length, questionStartedAt]);
+
+  useEffect(() => {
+    if (!flowSession || !questions.length || workingSession) return undefined;
+    let cancelled = false;
+    const practiceSessionId = flowSession.practiceSessionId || routeSessionId;
+    const questionRefs = questions.map((question) => {
+      const requirement = resolveWorkingRequirement(question, sessionType);
+      return {
+        questionId: question.questionId,
+        skillId: question.skillId || flowSession.targetSkillId || '',
+        domainId: question.domainId || 'fractions',
+        sessionId: practiceSessionId,
+        workingRequired: requirement.required,
+        workingReason: requirement.required ? `${sessionType}_required` : `${sessionType}_optional`,
+      };
+    });
+
+    mathpathAPI.createWorkingSession({
+      studentId,
+      practiceSessionId,
+      domainId: 'fractions',
+      skillIds: [...new Set(questionRefs.map((ref) => ref.skillId).filter(Boolean))],
+      questionRefs,
+      inputMethod: 'paper',
+    })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const session = data?.workingSession || null;
+        setWorkingSession(session);
+        const codeMap = {};
+        (session?.questionWorkingMap || []).forEach((row) => {
+          if (row.questionId && row.workingCode) codeMap[row.questionId] = row.workingCode;
+        });
+        setWorkingCodeByQuestion(codeMap);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setWorkingSession(null);
+          setWorkingCodeByQuestion({});
+        }
+      });
+    return () => { cancelled = true; };
+  }, [flowSession, questions, routeSessionId, sessionType, studentId, workingSession]);
 
   if (loading) return <Spinner />;
   if (error) {
@@ -409,6 +511,8 @@ export default function PracticeSession() {
       workingSubmittedAt: currentWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
       workingUploaded: Boolean(currentWorking.workingSubmitted),
+      workingCode: workingCodeByQuestion[q.questionId] || '',
+      workingSessionId: workingSession?.workingSessionId || '',
       skipped: false,
       timestamp: new Date().toISOString(),
       attemptNumber: 1,
@@ -443,6 +547,8 @@ export default function PracticeSession() {
       workingSubmittedAt: currentWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
       workingUploaded: Boolean(currentWorking.workingSubmitted),
+      workingCode: workingCodeByQuestion[q.questionId] || '',
+      workingSessionId: workingSession?.workingSessionId || '',
       skipped: true,
       timestamp: new Date().toISOString(),
       attemptNumber: 1,
@@ -486,6 +592,8 @@ export default function PracticeSession() {
         workingSubmittedAt: r.workingSubmittedAt || null,
         workingNotNeeded: Boolean(r.workingNotNeeded),
         workingUploaded: Boolean(r.workingUploaded),
+        workingCode: r.workingCode || '',
+        workingSessionId: r.workingSessionId || workingSession?.workingSessionId || '',
         skipped: Boolean(r.skipped || r._skipped),
         timestamp: r.timestamp,
         attemptNumber: r.attemptNumber,
@@ -560,7 +668,7 @@ export default function PracticeSession() {
                     sessionType,
                     studentId,
                     practiceSessionId: flowSession?.practiceSessionId || routeSessionId,
-                    workingSessionId: summary.workingSessionId || flowSession?.workingSessionId || null,
+                    workingSessionId: summary.workingSessionId || workingSession?.workingSessionId || flowSession?.workingSessionId || null,
                     totalQuestions: summary.questionWorkingSummary?.totalQuestions || questions.length,
                     questionRefs: summary.questionWorkingSummary?.questionRefs || [],
                     nextRecommendedAction: summary.nextRecommendedAction || 'Continue Practice',
@@ -625,6 +733,7 @@ export default function PracticeSession() {
         <VisualBlock visual={q.visual} />
         <WorkingCanvas
           questionId={q.questionId}
+          workingCode={workingCodeByQuestion[q.questionId] || ''}
           required={workingRequirement.required}
           allowNoWorking={workingRequirement.allowNoWorking}
           onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}

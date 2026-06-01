@@ -6,6 +6,7 @@ import { buildTeacherMathPathDashboard } from '../../mathpath/dashboard/teacherM
 import ClassNav from './ClassNav';
 import { useClass } from './useClass';
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
+import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 
 function toneForIssue(issueType) {
   if (issueType === 'accurateButSlow') return 'gold';
@@ -334,15 +335,20 @@ export default function TeacherMathPathDashboardPage() {
   const [error, setError] = useState(false);
   const [dashboard, setDashboard] = useState(null);
   const [placedCount, setPlacedCount] = useState(0);
+  const [workingReview, setWorkingReview] = useState(null);
 
   const load = useCallback(async () => {
     setError(false);
     setStudents(null);
     setDashboard(null);
     try {
-      const studentsRes = await teacherAPI.classStudents(id);
+      const [studentsRes, workingRes] = await Promise.all([
+        teacherAPI.classStudents(id),
+        mathpathAPI.workingReviewSummary({ limit: 100 }),
+      ]);
       const list = studentsRes?.data?.students || [];
       setStudents(list);
+      setWorkingReview(workingRes?.data || null);
       const placementRows = await Promise.all(
         list.map(async (s) => {
           try {
@@ -397,6 +403,7 @@ export default function TeacherMathPathDashboardPage() {
       ) : (
         <div className="space-y-4">
           <TeacherClassOverviewCard data={dashboard.classOverview} />
+          <AdultWorkingReviewPanel review={workingReview || {}} title="Class Working and Help Requests" />
 
           <RecommendedTeacherActionsCard
             rows={dashboard.recommendedTeacherActions}

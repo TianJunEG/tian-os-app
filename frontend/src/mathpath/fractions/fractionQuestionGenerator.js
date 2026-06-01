@@ -245,6 +245,23 @@ function shouldRequireWorkingForGeneratedQuestion(skillId, mode, family) {
   return family.mentalMathEligible ? false : !!family.workingRequired;
 }
 
+function inferAnswerInputType(answer = {}) {
+  const normalizedType = String(answer?.type || '').toLowerCase();
+  if (normalizedType === 'whole') return 'whole_number';
+  if (normalizedType === 'mixed') return 'mixed_number';
+  if (normalizedType === 'fraction' || normalizedType === 'decimal' || normalizedType === 'list') {
+    return normalizedType === 'list' ? 'ordering' : normalizedType;
+  }
+
+  const display = String(answer?.display || answer?.value || '').trim();
+  if (/^-?\d+$/.test(display)) return 'whole_number';
+  if (/^-?\d+\s+\d+\s*\/\s*\d+$/.test(display)) return 'mixed_number';
+  if (/^-?\d+\s*\/\s*-?\d+$/.test(display)) return 'fraction';
+  if (/^-?\d*\.\d+$/.test(display)) return 'decimal';
+  if (display.includes(',')) return 'ordering';
+  return 'text';
+}
+
 function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
   const primaryMapping = getSkillCurriculumMapping(skillId, {
     country: 'SG',
@@ -266,6 +283,8 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     prompt,
     answer,
     acceptedAnswers,
+    answer_type: inferAnswerInputType(answer),
+    answerType: inferAnswerInputType(answer),
     workingRequired,
     requiresWorking: workingRequired,
     workingOptional: !workingRequired,

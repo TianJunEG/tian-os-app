@@ -26,6 +26,7 @@ import contextRoutes from './routes/context.js';
 import practiceRoutes from './routes/practice.js';
 import mistakeRoutes from './routes/mistakes.js';
 import masteryRoutes from './routes/mastery.js';
+import mathpathWorkingRoutes from './routes/mathpathWorking.js';
 import assignmentRoutes from './routes/assignments.js';
 import worksheetGenRoutes from './routes/worksheetsGen.js';
 import skillRoutes from './routes/skills.js';
@@ -127,6 +128,7 @@ app.use('/api/context', contextRoutes);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/mistakes', mistakeRoutes);
 app.use('/api/mastery', masteryRoutes);
+app.use('/api/mathpath-working', mathpathWorkingRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/skills', skillRoutes);
 // Pilot hotfix: keep family endpoints reachable in v0.1 baseline builds.
