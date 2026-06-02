@@ -11,7 +11,8 @@ const AdminDashboard = () => {
     verificationQueue: null,
     bookings: null,
     disputes: null,
-    partners: null
+    partners: null,
+    mathpathPilot: null
   });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -74,6 +75,9 @@ const AdminDashboard = () => {
             limit: filters.limit
           });
           setData(prev => ({ ...prev, partners: res.data }));
+        } else if (activeTab === 'mathpath-pilot') {
+          const res = await adminAPI.getMathPathPilot({ limit: 50 });
+          setData(prev => ({ ...prev, mathpathPilot: res.data }));
         }
       } catch (error) {
         console.error(`Error fetching ${activeTab}:`, error);
@@ -175,6 +179,12 @@ const AdminDashboard = () => {
           >
             📚 Resources
           </button>
+          <button
+            className={`nav-btn ${activeTab === 'mathpath-pilot' ? 'active' : ''}`}
+            onClick={() => setActiveTab('mathpath-pilot')}
+          >
+            🧭 MathPath Pilot
+          </button>
         </div>
       </header>
 
@@ -256,6 +266,87 @@ const AdminDashboard = () => {
               <strong>{data.dashboard.quality.verificationRate}%</strong>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* MATHPATH PILOT TAB */}
+      {activeTab === 'mathpath-pilot' && data.mathpathPilot && (
+        <div className="admin-section">
+          <h2>MathPath Fractions Pilot Monitor</h2>
+          <p className="admin-muted">
+            Read-only internal view for supervised pilot/test accounts. Generated {new Date(data.mathpathPilot.generatedAt).toLocaleString()}.
+          </p>
+
+          <div className="dashboard-grid">
+            <div className="metric-card">
+              <h3>Pilot Students</h3>
+              <div className="metric-value">{data.mathpathPilot.summary.totalStudents}</div>
+              <div className="metric-row"><span>Diagnostics completed</span><strong>{data.mathpathPilot.summary.diagnosticsCompleted}</strong></div>
+            </div>
+            <div className="metric-card">
+              <h3>Practice</h3>
+              <div className="metric-value">{data.mathpathPilot.summary.practiceCompleted}</div>
+              <div className="metric-row"><span>Total attempts</span><strong>{data.mathpathPilot.summary.attempts}</strong></div>
+            </div>
+            <div className="metric-card">
+              <h3>Support Signals</h3>
+              <div className="metric-row"><span>Mistakes</span><strong>{data.mathpathPilot.summary.mistakesCaptured}</strong></div>
+              <div className="metric-row"><span>Help requests</span><strong>{data.mathpathPilot.summary.helpRequests}</strong></div>
+              <div className="metric-row"><span>Workings submitted</span><strong>{data.mathpathPilot.summary.workingSubmitted}</strong></div>
+            </div>
+            <div className="metric-card">
+              <h3>Risk</h3>
+              <div className="metric-row"><span>OK</span><strong>{data.mathpathPilot.summary.riskCounts?.OK || 0}</strong></div>
+              <div className="metric-row"><span>Watch</span><strong>{data.mathpathPilot.summary.riskCounts?.Watch || 0}</strong></div>
+              <div className="metric-row"><span>Needs follow-up</span><strong>{data.mathpathPilot.summary.riskCounts?.['Needs follow-up'] || 0}</strong></div>
+            </div>
+          </div>
+
+          <div className="table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Last Activity</th>
+                  <th>Diagnostic</th>
+                  <th>Practice</th>
+                  <th>Current Skill</th>
+                  <th>Accuracy</th>
+                  <th>Mistakes</th>
+                  <th>Workings</th>
+                  <th>Help</th>
+                  <th>Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.mathpathPilot.students.map(student => (
+                  <tr key={student.studentId}>
+                    <td>
+                      <strong>{student.name}</strong>
+                      <div className="admin-subtext">{student.email}</div>
+                    </td>
+                    <td>{student.lastActivityAt ? new Date(student.lastActivityAt).toLocaleString() : 'No activity'}</td>
+                    <td>{student.diagnosticStatus}</td>
+                    <td>{student.practiceCompleted}/{student.practiceSessions}</td>
+                    <td>{student.currentSkillId || '-'}</td>
+                    <td>{student.accuracy === null ? '-' : `${student.accuracy}%`}</td>
+                    <td>{student.mistakesCaptured}</td>
+                    <td>{student.workingSubmitted} submitted · {student.workingPending} pending</td>
+                    <td>{student.helpRequests}</td>
+                    <td>
+                      <span className={`status ${student.risk === 'OK' ? 'active' : student.risk === 'Watch' ? 'pending' : 'inactive'}`}>
+                        {student.risk}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {data.mathpathPilot.students.length === 0 && (
+            <p className="empty-state">No pilot or test student accounts found.</p>
+          )}
         </div>
       )}
 

@@ -382,6 +382,7 @@ export const worksheetGenAPI = {
 // Admin API
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
+  getMathPathPilot: (params) => api.get('/admin/mathpath-pilot', { params }),
   getUsers: (params) => api.get('/admin/users', { params }),
   getVerificationQueue: (params) => api.get('/admin/verification-queue', { params }),
   verifyTutor: (tutorId, data) => api.put(`/admin/verification/${tutorId}`, data),

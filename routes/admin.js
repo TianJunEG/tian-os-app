@@ -3,6 +3,11 @@ import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import TutorProfile from '../models/TutorProfile.js';
 import Booking from '../models/Booking.js';
+import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
+import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
+import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
+import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
+import MathPathWorkingSession from '../models/mathpath/MathPathWorkingSession.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { sendTutorApprovalEmail, sendTutorRejectionEmail } from '../utils/emailService.js';
 
@@ -10,6 +15,24 @@ const router = express.Router();
 
 // Middleware: Only admin can access
 const adminOnly = [protect, authorize('admin')];
+
+function toDateValue(value) {
+  const date = value ? new Date(value) : null;
+  return date && Number.isFinite(date.getTime()) ? date : null;
+}
+
+function latestDate(...values) {
+  const dates = values.map(toDateValue).filter(Boolean);
+  if (!dates.length) return null;
+  return new Date(Math.max(...dates.map((date) => date.getTime())));
+}
+
+function riskForStudent({ diagnosticStatus, practiceCompleted, mistakes, workingPending, helpRequests, lastActivityAt }) {
+  if (!lastActivityAt) return 'Needs follow-up';
+  if (helpRequests >= 3 || workingPending >= 2 || mistakes >= 5) return 'Needs follow-up';
+  if (diagnosticStatus !== 'completed' || practiceCompleted === 0 || mistakes >= 2 || helpRequests > 0 || workingPending > 0) return 'Watch';
+  return 'OK';
+}
 
 // ============================================================================
 // 1. USER MANAGEMENT
@@ -453,6 +476,153 @@ router.get('/dashboard', adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// @route   GET /api/admin/mathpath-pilot
+// @desc    Lightweight internal MathPath Fractions pilot monitor
+// @access  Private (admin only)
+router.get('/mathpath-pilot', adminOnly, async (req, res) => {
+  try {
+    const { limit = 20 } = req.query;
+    const maxStudents = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const students = await User.find({
+      $and: [
+        { $or: [{ role: 'student' }, { roles: 'student' }] },
+        {
+          $or: [
+            { is_test_account: true },
+            { email: /@tianos\.test$/i },
+          ],
+        },
+      ],
+    })
+      .select('name email is_test_account lastLogin createdAt')
+      .sort({ createdAt: -1 })
+      .limit(maxStudents)
+      .lean();
+
+    const studentIds = students.map((student) => String(student._id));
+    const [
+      diagnostics,
+      practiceSessions,
+      attempts,
+      mistakes,
+      workings,
+      helpRequests,
+    ] = await Promise.all([
+      MathPathDiagnosticSession.find({ studentId: { $in: studentIds }, domainId: 'fractions' }).sort({ updatedAt: -1 }).lean(),
+      MathPathPracticeSession.find({ studentId: { $in: studentIds }, domainId: 'fractions' }).sort({ updatedAt: -1 }).lean(),
+      MathPathAttempt.find({ studentId: { $in: studentIds }, domainId: 'fractions' }).sort({ createdAt: -1 }).lean(),
+      MathPathMistakeRecord.find({ studentId: { $in: studentIds }, domainId: 'fractions' }).sort({ lastSeenAt: -1 }).lean(),
+      MathPathWorkingSession.find({ studentId: { $in: studentIds }, domainId: 'fractions' }).sort({ updatedAt: -1 }).lean(),
+      MathPathAttempt.find({ studentId: { $in: studentIds }, domainId: 'fractions', helpRequested: true }).sort({ createdAt: -1 }).lean(),
+    ]);
+
+    const byStudent = (items) => items.reduce((acc, item) => {
+      const id = String(item.studentId || '');
+      if (!acc.has(id)) acc.set(id, []);
+      acc.get(id).push(item);
+      return acc;
+    }, new Map());
+
+    const diagnosticsByStudent = byStudent(diagnostics);
+    const practiceByStudent = byStudent(practiceSessions);
+    const attemptsByStudent = byStudent(attempts);
+    const mistakesByStudent = byStudent(mistakes);
+    const workingsByStudent = byStudent(workings);
+    const helpByStudent = byStudent(helpRequests);
+
+    const pilotStudents = students.map((student) => {
+      const id = String(student._id);
+      const ds = diagnosticsByStudent.get(id) || [];
+      const ps = practiceByStudent.get(id) || [];
+      const as = attemptsByStudent.get(id) || [];
+      const ms = mistakesByStudent.get(id) || [];
+      const ws = workingsByStudent.get(id) || [];
+      const hs = helpByStudent.get(id) || [];
+      const latestDiagnostic = ds[0] || null;
+      const latestPractice = ps[0] || null;
+      const latestAttempt = as[0] || null;
+      const latestWorking = ws[0] || null;
+      const workingSubmitted = ws.filter((working) => ['submitted', 'mapped', 'analysisReady'].includes(working.status)).length;
+      const workingPending = ws.filter((working) => working.status === 'pending' || working.analysisStatus === 'pending_analysis').length;
+      const practiceCompleted = ps.filter((session) => session.status === 'completed').length;
+      const diagnosticStatus = latestDiagnostic?.status || 'notStarted';
+      const currentSkillId = latestPractice?.targetSkillId || latestAttempt?.skillId || latestDiagnostic?.targetSkillIds?.[0] || '';
+      const lastActivityAt = latestDate(
+        student.lastLogin,
+        latestDiagnostic?.updatedAt,
+        latestDiagnostic?.completedAt,
+        latestPractice?.updatedAt,
+        latestPractice?.completedAt,
+        latestAttempt?.createdAt,
+        latestWorking?.updatedAt,
+        latestWorking?.submittedAt
+      );
+      const correctAttempts = as.filter((attempt) => attempt.correct).length;
+      const accuracy = as.length ? Math.round((correctAttempts / as.length) * 100) : null;
+      const risk = riskForStudent({
+        diagnosticStatus,
+        practiceCompleted,
+        mistakes: ms.length,
+        workingPending,
+        helpRequests: hs.length,
+        lastActivityAt,
+      });
+
+      return {
+        studentId: id,
+        name: student.name,
+        email: student.email,
+        isTestAccount: !!student.is_test_account,
+        lastLogin: student.lastLogin || null,
+        lastActivityAt,
+        diagnosticStatus,
+        diagnosticCompleted: ds.filter((session) => session.status === 'completed').length,
+        practiceSessions: ps.length,
+        practiceCompleted,
+        attempts: as.length,
+        accuracy,
+        currentSkillId,
+        mistakesCaptured: ms.length,
+        highSeverityMistakes: ms.filter((mistake) => mistake.severity === 'high').length,
+        workingSessions: ws.length,
+        workingSubmitted,
+        workingPending,
+        helpRequests: hs.length,
+        risk,
+        links: {
+          studentProfile: `/admin/users/${id}`,
+          mathPathProgress: `/student/mathpath`,
+          workingReview: `/student/mathpath/working/upload`,
+        },
+      };
+    });
+
+    const summary = {
+      totalStudents: pilotStudents.length,
+      diagnosticsCompleted: pilotStudents.filter((student) => student.diagnosticStatus === 'completed').length,
+      practiceCompleted: pilotStudents.reduce((sum, student) => sum + student.practiceCompleted, 0),
+      attempts: pilotStudents.reduce((sum, student) => sum + student.attempts, 0),
+      mistakesCaptured: pilotStudents.reduce((sum, student) => sum + student.mistakesCaptured, 0),
+      workingSubmitted: pilotStudents.reduce((sum, student) => sum + student.workingSubmitted, 0),
+      helpRequests: pilotStudents.reduce((sum, student) => sum + student.helpRequests, 0),
+      riskCounts: pilotStudents.reduce((acc, student) => {
+        acc[student.risk] = (acc[student.risk] || 0) + 1;
+        return acc;
+      }, {}),
+    };
+
+    res.json({
+      success: true,
+      generatedAt: new Date().toISOString(),
+      summary,
+      students: pilotStudents,
+    });
+  } catch (error) {
+    console.error('MathPath pilot monitor error:', error);
     res.status(500).json({ error: error.message });
   }
 });

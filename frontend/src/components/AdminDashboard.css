@@ -91,6 +91,14 @@
   border-bottom: none;
 }
 
+.metric-value {
+  color: #1a1a1a;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
 /* Admin Section */
 .admin-section {
   background: white;
@@ -103,6 +111,18 @@
   margin: 0 0 20px 0;
   color: #1a1a1a;
   font-size: 20px;
+}
+
+.admin-muted {
+  color: #666;
+  font-size: 14px;
+  margin: -10px 0 18px;
+}
+
+.admin-subtext {
+  color: #777;
+  font-size: 12px;
+  margin-top: 3px;
 }
 
 /* Filters */
