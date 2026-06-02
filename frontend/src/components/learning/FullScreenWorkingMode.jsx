@@ -14,9 +14,16 @@ function drawStroke(ctx, stroke) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.35 : 1;
+  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.28 : 1;
   ctx.strokeStyle = stroke.colour || WORKING_COLOURS[0].value;
-  ctx.lineWidth = stroke.tool === 'pencil' ? Math.max(1, Number(stroke.size || 4) - 1) : Number(stroke.size || 4);
+  const baseSize = Number(stroke.size || 4);
+  ctx.lineWidth = stroke.tool === 'eraser'
+    ? 24
+    : stroke.tool === 'highlighter'
+      ? Math.max(16, baseSize * 4)
+      : stroke.tool === 'pencil'
+        ? Math.max(1, baseSize - 1)
+        : baseSize;
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
