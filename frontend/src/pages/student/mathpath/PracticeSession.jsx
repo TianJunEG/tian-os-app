@@ -901,7 +901,7 @@ export default function PracticeSession() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-7xl">
       <div className="mb-3 rounded-xl border border-hairline bg-white px-3 py-2 text-sm text-ink-700">
         <p className="font-semibold">{sessionMeta.label}</p>
         <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
@@ -913,7 +913,7 @@ export default function PracticeSession() {
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" />
 
       <Card className="p-4 sm:p-6">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(28rem,1.1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(24rem,1fr)_minmax(28rem,0.95fr)]">
           <section className="min-w-0">
             <div ref={questionSurfaceRef} className="relative">
               <div className="mb-6 text-lg leading-relaxed text-ink-900">
