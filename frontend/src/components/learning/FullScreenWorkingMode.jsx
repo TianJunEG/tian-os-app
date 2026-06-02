@@ -284,7 +284,7 @@ export default function FullScreenWorkingMode({
       onClose={onClose}
       title="Full-screen working"
       containerClassName="p-1 sm:p-2"
-      className="flex h-[calc(100vh-0.5rem)] max-h-[calc(100vh-0.5rem)] w-[calc(100vw-0.5rem)] max-w-[calc(100vw-0.5rem)] flex-col overflow-hidden rounded-xl [&>div:first-child]:p-3 sm:[&>div:first-child]:p-4 [&>div:nth-child(2)]:min-h-0 [&>div:nth-child(2)]:flex-1 [&>div:nth-child(2)]:overflow-hidden [&>div:nth-child(2)]:p-2 sm:[&>div:nth-child(2)]:p-3 [&>div:last-child]:p-2 sm:[&>div:last-child]:p-3"
+      className="flex !h-[calc(100vh-0.5rem)] !max-h-[calc(100vh-0.5rem)] !w-[calc(100vw-0.5rem)] !max-w-[calc(100vw-0.5rem)] flex-col overflow-hidden rounded-xl [&>div:first-child]:p-3 sm:[&>div:first-child]:p-4 [&>div:nth-child(2)]:min-h-0 [&>div:nth-child(2)]:flex-1 [&>div:nth-child(2)]:overflow-hidden [&>div:nth-child(2)]:p-2 sm:[&>div:nth-child(2)]:p-3 [&>div:last-child]:p-2 sm:[&>div:last-child]:p-3"
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
