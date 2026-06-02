@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Maximize2 } from 'lucide-react';
 import { Card, Button, ProgressBar, Spinner, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
@@ -11,6 +11,7 @@ import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 import AnswerInputRenderer from '../components/AnswerInputRenderer';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
+import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -34,6 +35,7 @@ export default function DiagnosticQuestionScreen() {
   const [error, setError] = useState('');
   const [hydrating, setHydrating] = useState(false);
   const [workingByQuestion, setWorkingByQuestion] = useState({});
+  const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
 
   const [session, setSession] = useState(location.state?.session || null);
   const [questions, setQuestions] = useState(() => repairFractionQuestions(location.state?.questions || []));
@@ -84,6 +86,7 @@ export default function DiagnosticQuestionScreen() {
   const workingRequirement = resolveWorkingRequirement(q, 'diagnostic');
   const currentWorking = workingByQuestion[q.questionId] || {};
   const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
+  const questionText = q.prompt || q.stem || '';
 
   const confidenceCalibration = (correct, value) => {
     if (correct && value === 'i_know_this') return 'mastery_signal';
@@ -224,6 +227,11 @@ export default function DiagnosticQuestionScreen() {
               )}
             </div>
 
+            <div className="mt-3 flex justify-end">
+              <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
+                Open Working
+              </Button>
+            </div>
             <WorkingCanvas
               key={`diagnostic-working-${q.questionId}`}
               questionId={q.questionId}
@@ -268,6 +276,29 @@ export default function DiagnosticQuestionScreen() {
           </aside>
         </div>
       </Card>
+      <FullScreenWorkingMode
+        open={fullscreenQuestionId === q.questionId}
+        questionText={questionText}
+        questionContent={(
+          <div className="space-y-4 text-base">
+            <MathText text={questionText} />
+            <QuestionDiagram question={q} />
+          </div>
+        )}
+        questionSnapshot={{
+          questionId: q.questionId,
+          skillId: q.skillId,
+          hasDiagram: Boolean(q.diagramSpec || q.diagram || (q.visual?.type === 'svg' && q.visual?.payload?.type)),
+          hasVisual: Boolean(q.visual),
+          visualType: q.visual?.type || '',
+        }}
+        initialStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+        onClose={() => setFullscreenQuestionId(null)}
+        onSave={(payload) => {
+          setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }));
+          setFullscreenQuestionId(null);
+        }}
+      />
     </div>
   );
 }
