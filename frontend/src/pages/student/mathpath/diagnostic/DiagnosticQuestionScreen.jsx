@@ -196,20 +196,7 @@ export default function DiagnosticQuestionScreen() {
           </section>
 
           <aside className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
-            <WorkingCanvas
-              key={`diagnostic-working-${q.questionId}`}
-              questionId={q.questionId}
-              required={workingRequirement.required}
-              allowNoWorking={workingRequirement.allowNoWorking}
-              submittedImage={currentWorking.workingImage || ''}
-              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-            />
-
-            <div className="mt-4 rounded-xl bg-white p-3">
+            <div className="rounded-xl bg-white p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
                 <div className="grid gap-2">
@@ -236,6 +223,23 @@ export default function DiagnosticQuestionScreen() {
                 />
               )}
             </div>
+
+            <div className="mt-4">
+              <p className="text-sm font-semibold text-ink-800">Show your working</p>
+              <p className="mb-3 text-xs text-ink-500">Use this for rough working, or attach a photo.</p>
+            </div>
+            <WorkingCanvas
+              key={`diagnostic-working-${q.questionId}`}
+              questionId={q.questionId}
+              required={workingRequirement.required}
+              allowNoWorking={workingRequirement.allowNoWorking}
+              submittedImage={currentWorking.workingImage || ''}
+              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+            />
 
             <div className="mt-4 rounded-xl bg-white p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>

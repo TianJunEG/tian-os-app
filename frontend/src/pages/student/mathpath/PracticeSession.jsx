@@ -963,24 +963,11 @@ export default function PracticeSession() {
                 return next;
               })}
             />
+
           </section>
 
           <aside className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
-            <WorkingCanvas
-              key={`working-${q.questionId}`}
-              questionId={q.questionId}
-              workingCode={workingCodeByQuestion[q.questionId] || ''}
-              required={workingRequirement.required}
-              allowNoWorking={workingRequirement.allowNoWorking}
-              submittedImage={currentWorking.workingImage || ''}
-              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-            />
-
-            <div className="mt-4 rounded-xl bg-white p-3">
+            <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
                 <div className="grid gap-2">
@@ -1011,9 +998,9 @@ export default function PracticeSession() {
               )}
             </div>
 
-            <div className="mt-4 rounded-xl bg-white p-3">
+            <div className="mt-3 rounded-xl border border-hairline bg-white p-3 sm:p-4">
               <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {REFLECTION_OPTIONS.map((opt) => (
                   <button
                     key={opt.value}
@@ -1026,14 +1013,14 @@ export default function PracticeSession() {
                   </button>
                 ))}
               </div>
-              <div className="mt-3 rounded-lg border border-hairline p-3">
+              <div className="mt-3 rounded-lg border border-hairline bg-slate-50 p-3">
                 <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <button
                     type="button"
                     disabled={answered}
                     onClick={() => setHelpRequested(false)}
-                    className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                    className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline bg-white text-ink-600 hover:bg-slate-50'}`}
                   >
                     No
                   </button>
@@ -1041,7 +1028,7 @@ export default function PracticeSession() {
                     type="button"
                     disabled={answered}
                     onClick={() => setHelpRequested(true)}
-                    className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                    className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline bg-white text-ink-600 hover:bg-slate-50'}`}
                   >
                     Yes, I need help
                   </button>
@@ -1049,7 +1036,7 @@ export default function PracticeSession() {
               </div>
             </div>
 
-            <div className="mt-5 min-h-[72px]">
+            <div className="mt-3">
               {feedback && (
                 <div className={`rounded-xl p-4 ${feedback.correct ? 'bg-success-100' : 'bg-error-100'}`}>
                   <div className={`flex items-center gap-2 font-semibold ${feedback.correct ? 'text-success-700' : 'text-error-700'}`}>
@@ -1065,12 +1052,12 @@ export default function PracticeSession() {
             </div>
 
             {!workingReady && (
-              <p className="mt-4 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
+              <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
                 This question needs working. Please save your working, doodle on the question, or upload a photo before submitting.
               </p>
             )}
 
-            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {!answered ? (
                 <>
                   <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
@@ -1082,6 +1069,52 @@ export default function PracticeSession() {
                 </Button>
               )}
             </div>
+
+            <div className="mb-3 mt-4">
+              <p className="text-sm font-semibold text-ink-800">Working space</p>
+              <p className="text-xs text-ink-500">Use this for rough working, or open full-screen working for more room.</p>
+            </div>
+            <WorkingCanvas
+              key={`working-${q.questionId}`}
+              questionId={q.questionId}
+              workingCode={workingCodeByQuestion[q.questionId] || ''}
+              required={workingRequirement.required}
+              allowNoWorking={workingRequirement.allowNoWorking}
+              submittedImage={currentWorking.workingImage || ''}
+              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+            />
+            {currentWorking.workingImage && (
+              <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <img
+                    src={currentWorking.workingImage}
+                    alt="Saved rough working preview"
+                    className="h-24 w-full rounded-lg border border-hairline bg-white object-contain sm:w-36"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-ink-800">Saved rough working</p>
+                    <p className="mt-1 text-xs text-ink-500">This canvas working will be submitted with your typed answer.</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <Button
+                        size="s"
+                        variant="secondary"
+                        onClick={() => setWorkingByQuestion((prev) => {
+                          const next = { ...prev };
+                          delete next[q.questionId];
+                          return next;
+                        })}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </aside>
         </div>
       </Card>
