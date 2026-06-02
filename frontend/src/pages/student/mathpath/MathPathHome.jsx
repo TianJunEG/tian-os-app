@@ -44,6 +44,9 @@ export default function MathPathHome() {
   const curriculumCountry = 'SG';
 
   const isFrameworkSkillId = (value) => /^F\d{3}$/i.test(String(value || ''));
+  const normalizeFrameworkSkillId = (value) => (
+    isFrameworkSkillId(value) ? String(value).toUpperCase() : null
+  );
   const canonicalSkillName = (skillId, fallback = '') => {
     if (!isFrameworkSkillId(skillId)) return fallback || String(skillId || '');
     return getUniversalSkillByFrameworkId(String(skillId).toUpperCase())?.title || fallback || String(skillId).toUpperCase();
@@ -238,9 +241,8 @@ export default function MathPathHome() {
     || null;
   const placementMasteredSet = new Set((placementResult?.masteredSkills || []).map((row) => row?.skillId).filter(Boolean));
   const placementWeakSet = new Set((placementResult?.weakSkills || []).map((row) => row?.skillId).filter(Boolean));
-  const currentFrameworkSkillId = isFrameworkSkillId(domainProgress?.currentSkillId)
-    ? String(domainProgress.currentSkillId).toUpperCase()
-    : (isFrameworkSkillId(placementCurrentSkillId) ? String(placementCurrentSkillId).toUpperCase() : null);
+  const placementFrameworkSkillId = normalizeFrameworkSkillId(placementCurrentSkillId);
+  const currentFrameworkSkillId = normalizeFrameworkSkillId(domainProgress?.currentSkillId) || placementFrameworkSkillId;
   const hasPlacement = Boolean(
     domainProgress?.diagnosticCompleted
       || (latestPlacement?.hasPlacement && latestPlacement?.result?.recommendedStartingSkill?.skillId)
@@ -260,13 +262,20 @@ export default function MathPathHome() {
     ? 'Sec 1 G1 · Number and Algebra'
     : 'Primary · Number and Algebra';
   const isEarlyLevel = ['P1', 'P2'].includes(String(studentLevel).toUpperCase());
-  const quickWarmupSkillId = domainProgress?.weakSkills?.[0]?.skillId || recommended?.skillId || placementSkill?.skillId || null;
+  const quickWarmupSkillId = normalizeFrameworkSkillId(domainProgress?.weakSkills?.[0]?.skillId)
+    || normalizeFrameworkSkillId(recommended?.skillId)
+    || placementFrameworkSkillId
+    || null;
   const unitCompleted = Boolean(domainProgress?.unitCompleted);
   const masteryCheckCompleted = Boolean(domainProgress?.masteryCheckCompleted);
   const showMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted;
   const showWarmup = hasPlacement && !showMasteryCheck && Boolean(quickWarmupSkillId) && (domainProgress?.weakSkills?.length || 0) > 0;
   const welcomeTitle = hasPlacement ? 'Welcome back' : 'Let’s find your starting point';
-  const continueSkillId = currentFrameworkSkillId || recommended?.skillId || placementSkill?.skillId || domainProgress?.currentSkillId || null;
+  const continueSkillId = currentFrameworkSkillId
+    || normalizeFrameworkSkillId(recommended?.skillId)
+    || placementFrameworkSkillId
+    || null;
+  const practiceFallbackSkillId = continueSkillId || 'F001';
   const storyModeEnabled = isFractionsStoryModeEnabled();
   const roles = new Set([user?.role, ...(Array.isArray(user?.roles) ? user.roles : [])].filter(Boolean));
   const canTrainQuestionPatterns = ['admin', 'teacher', 'tutor'].some((role) => roles.has(role));
@@ -371,7 +380,7 @@ export default function MathPathHome() {
             <Button className="mt-5 w-full sm:w-auto" size="l" icon={ArrowRight} disabled={!hasPlacement && startingDiagnostic} onClick={() => {
               if (!hasPlacement) return startDiagnostic('baseline');
               if (showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
-              if (continueSkillId) return startLearningSession({ skillId: continueSkillId, sessionType: 'practice', questionCount: 10 });
+              return startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 });
             }}>
               {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : 'Continue Learning'}
             </Button>
@@ -402,7 +411,7 @@ export default function MathPathHome() {
               disabled={!hasPlacement && startingDiagnostic}
               onClick={() => {
                 if (!hasPlacement) return startDiagnostic('baseline');
-                if (continueSkillId) return startLearningSession({ skillId: continueSkillId, sessionType: 'practice', questionCount: 10 });
+                return startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 });
               }}
             >
               Continue
@@ -506,7 +515,7 @@ export default function MathPathHome() {
               <h2 className="font-display text-xl font-semibold text-navy-700">Up next: {canonicalSkillName(placementSkill?.skillId, placementSkill?.name) || 'Recommended Fractions Skill'}</h2>
               <p className="mt-1 text-sm text-ink-600">Start recommended practice from your saved diagnostic placement.</p>
             </div>
-            <Button size="l" icon={ArrowRight} disabled={starting || !placementSkill?.skillId} onClick={() => startLearningSession({ skillId: placementSkill?.skillId, sessionType: 'practice', questionCount: 10 })} className="shrink-0">
+            <Button size="l" icon={ArrowRight} disabled={starting || !practiceFallbackSkillId} onClick={() => startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 })} className="shrink-0">
               {starting ? 'Starting…' : 'Continue Learning'}
             </Button>
           </div>

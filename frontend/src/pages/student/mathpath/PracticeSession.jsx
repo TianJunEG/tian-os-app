@@ -94,8 +94,14 @@ const RECOMMENDED_SESSION_INTENTS = {
 
 function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
   const normalized = String(routeSessionId || '').toLowerCase();
-  const nextSkill = progress?.currentSkillId || progress?.nextSkillId || null;
-  const candidateWeak = Array.isArray(progress?.weakSkills) && progress.weakSkills[0]?.skillId;
+  const normalizeFrameworkSkillId = (value) => {
+    const skillId = String(value || '').toUpperCase();
+    return /^F\d{3}$/.test(skillId) ? skillId : null;
+  };
+  const nextSkill = normalizeFrameworkSkillId(progress?.currentSkillId) || normalizeFrameworkSkillId(progress?.nextSkillId);
+  const candidateWeak = Array.isArray(progress?.weakSkills)
+    ? normalizeFrameworkSkillId(progress.weakSkills[0]?.skillId)
+    : null;
   const skillFallback = nextSkill || candidateWeak || 'F001';
 
   if (normalized.startsWith('skill-')) {
@@ -110,14 +116,14 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
   if (normalized.startsWith('recommended-')) {
     const intent = normalized.replace('recommended-', '');
     return {
-      requestedSkillId: locationState?.skillId || skillFallback,
+      requestedSkillId: normalizeFrameworkSkillId(locationState?.skillId) || skillFallback,
       sessionType: RECOMMENDED_SESSION_INTENTS[intent] || 'practice',
       questionCount: locationState?.questionCount || 8,
     };
   }
 
   return {
-    requestedSkillId: locationState?.skillId || skillFallback,
+    requestedSkillId: normalizeFrameworkSkillId(locationState?.skillId) || skillFallback,
     sessionType: normalizeSessionType(locationState?.sessionType),
     questionCount: locationState?.questionCount || null,
   };

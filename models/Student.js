@@ -13,7 +13,9 @@ const studentSchema = new mongoose.Schema({
   createdByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   profile: {
     mainFocus: { type: String, default: 'MathPath' },
-    modulesUsed: { type: [String], default: ['MathPath'] }
+    modulesUsed: { type: [String], default: ['MathPath'] },
+    pilotProfile: { type: String, default: '' },
+    pilotDescription: { type: String, default: '' }
   },
   createdAt: { type: Date, default: Date.now }
 });

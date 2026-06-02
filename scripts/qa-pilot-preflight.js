@@ -12,6 +12,17 @@ const DEMO_ACCOUNTS = [
   'demo.teacher@tianos.test',
 ];
 
+const PILOT_ACCOUNTS = [
+  'pilot.student1@tianos.test',
+  'pilot.student2@tianos.test',
+  'pilot.student3@tianos.test',
+  'pilot.student4@tianos.test',
+  'pilot.student5@tianos.test',
+  'pilot.parent@tianos.test',
+  'pilot.tutor@tianos.test',
+  'pilot.teacher@tianos.test',
+];
+
 function maskEmail(email) {
   const [name, domain] = email.split('@');
   return `${name.slice(0, 2)}***@${domain}`;
@@ -110,7 +121,7 @@ async function run() {
   }
 
   // Seed account smoke
-  for (const email of DEMO_ACCOUNTS) {
+  for (const email of [...DEMO_ACCOUNTS, ...PILOT_ACCOUNTS]) {
     try {
       const login = await loginWithRetry(email, 'Passw0rd!');
       const ok = login.status === 200 && Boolean(login.data?.token);
