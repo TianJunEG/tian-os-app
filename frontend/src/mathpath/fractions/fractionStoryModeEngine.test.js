@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
+  buildStorySceneItems,
   getFractionsStoryTemplatesBySkill,
   buildFractionsStorySession,
   evaluateFractionsStorySession,
   FRACTIONS_STORY_SUPPORTED_SKILLS,
 } from './fractionStoryModeEngine';
+import { validateCountableFractionSequence } from './fractionQuestionGenerator';
 
 describe('fractionStoryModeEngine', () => {
   it('provides at least 3 templates for F025 and F026', () => {
@@ -43,6 +45,47 @@ describe('fractionStoryModeEngine', () => {
       expect(story.keyFacts.every((fact) => fact.text && fact.type && fact.modelPrompt)).toBe(true);
       expect(story.modelSequence.some((step) => step.id === 'label_known')).toBe(true);
       expect(story.modelSequence.some((step) => step.id === 'find_whole')).toBe(true);
+    });
+  });
+
+  it('adds the Story Mode scene data required by the renderer', () => {
+    const story = buildFractionsStorySession({ skillId: 'F026', studentId: 's3' });
+    expect(story.sceneItems.length).toBe(story.steps.length);
+    story.sceneItems.forEach((scene) => {
+      expect(scene.missionTitle).toBeTruthy();
+      expect(scene.sceneTitle).toBeTruthy();
+      expect(scene.sceneNarration).toBeTruthy();
+      expect(scene.characterPrompt).toBeTruthy();
+      expect(scene.mathGoal).toBeTruthy();
+      expect(scene.questionText).toBeTruthy();
+      expect(scene.guidedSteps.length).toBeGreaterThan(0);
+      expect(['fraction_bar', 'fraction_bar_remainder', 'shaded_grid', 'number_line', 'part_whole_cards']).toContain(scene.visualHintType);
+      expect(scene.successNarration).toBeTruthy();
+      expect(scene.errorHint).toBeTruthy();
+      expect(scene.retryPrompt).toBeTruthy();
+      expect(scene.nextSceneUnlockText).toBeTruthy();
+    });
+  });
+
+  it('can build scene items directly from existing story templates', () => {
+    const [template] = getFractionsStoryTemplatesBySkill('F025');
+    const scenes = buildStorySceneItems(template);
+    expect(scenes[0].missionTitle).toBe('Fraction Rescue Mission');
+    expect(scenes[0].sceneTitle).toBeTruthy();
+    expect(scenes[0].guidedSteps.length).toBeGreaterThan(0);
+  });
+
+  it('keeps countable Story Mode fraction examples integer-safe', () => {
+    const examples = [
+      { total: 30, fractions: [{ numerator: 2, denominator: 5 }] },
+      { total: 28, fractions: [{ numerator: 1, denominator: 4 }] },
+      { total: 40, fractions: [{ numerator: 3, denominator: 8 }] },
+      { total: 63, fractions: [{ numerator: 2, denominator: 7 }, { numerator: 1, denominator: 3 }] },
+    ];
+    examples.forEach(({ total, fractions }) => {
+      const result = validateCountableFractionSequence(total, fractions);
+      expect(result.valid, `${total} with ${JSON.stringify(fractions)}`).toBe(true);
+      expect(result.steps.every((step) => Number.isInteger(step.before) && Number.isInteger(step.amount) && Number.isInteger(step.remaining))).toBe(true);
     });
   });
 

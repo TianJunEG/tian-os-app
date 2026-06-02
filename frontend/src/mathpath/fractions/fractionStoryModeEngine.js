@@ -21,6 +21,14 @@ const SUPPORTIVE_FEEDBACK = {
   guessed_without_unpacking: 'Try unpacking the story one step at a time before choosing an answer.',
 };
 
+export const STORY_VISUAL_HINT_TYPES = [
+  'fraction_bar',
+  'fraction_bar_remainder',
+  'shaded_grid',
+  'number_line',
+  'part_whole_cards',
+];
+
 function fact(id, sentenceIndex, text, type, modelPrompt, strategyTag = '') {
   return {
     id,
@@ -31,6 +39,85 @@ function fact(id, sentenceIndex, text, type, modelPrompt, strategyTag = '') {
     modelAction: modelPrompt,
     strategyTag,
   };
+}
+
+function missionTitleFor(story = {}) {
+  if (story.skillId === 'F026') return 'Remainder Rescue Mission';
+  return 'Fraction Rescue Mission';
+}
+
+function titleForStep(step = {}, index = 0) {
+  const titles = {
+    read_story: 'Read the Mission Brief',
+    identify_question: 'Name the Target',
+    identify_parts: 'Find the Fraction Clue',
+    identify_whole: 'Track What Remains',
+    choose_strategy: 'Choose a Solving Tool',
+    choose_operation: 'Connect the Operation',
+    compute_step: 'Work Out the Key Value',
+    final_answer: 'Complete the Rescue',
+    reflection: 'Review the Strategy',
+  };
+  return titles[step.type] || `Scene ${index + 1}`;
+}
+
+function visualHintFor(story = {}, step = {}, index = 0) {
+  if (step.type === 'read_story' || step.type === 'identify_question') return 'part_whole_cards';
+  if (step.type === 'compute_step') return story.problemSchema === 'multi_step_sequence' ? 'number_line' : 'shaded_grid';
+  if (story.problemSchema === 'multi_step_sequence' || /remainder/i.test(step.prompt || '')) return 'fraction_bar_remainder';
+  return index % 2 === 0 ? 'fraction_bar' : 'shaded_grid';
+}
+
+function guidedStepsFor(story = {}, step = {}, index = 0) {
+  const modelPrompts = (story.modelSequence || []).map((item) => item.prompt).filter(Boolean);
+  if (step.type === 'final_answer') {
+    return [
+      'Check what the question wants.',
+      'Use the value you already found.',
+      'Scale back to the whole amount.',
+      'Write the answer with the correct unit if needed.',
+    ];
+  }
+  if (step.type === 'compute_step') {
+    return modelPrompts.slice(Math.max(0, index - 2), Math.max(3, index + 1));
+  }
+  return [
+    story.schemaHint || 'Read the story one fact at a time.',
+    ...(modelPrompts.slice(0, 3)),
+  ].slice(0, 5);
+}
+
+export function buildStorySceneItems(story = {}) {
+  const missionTitle = story.missionTitle || missionTitleFor(story);
+  return (story.steps || []).map((step, index) => {
+    const guidedSteps = guidedStepsFor(story, step, index);
+    const sceneTitle = step.sceneTitle || titleForStep(step, index);
+    const visualHintType = step.visualHintType || visualHintFor(story, step, index);
+    const successNarration = step.successNarration
+      || (step.type === 'final_answer'
+        ? 'Great. The mission result now matches the story.'
+        : 'Good. This clue is now clear, so the next part of the story can open.');
+    return {
+      missionTitle,
+      sceneTitle,
+      sceneNarration: step.sceneNarration || story.schemaHint || story.prompt,
+      characterPrompt: step.characterPrompt || (story.needToFind ? `Can you help find: ${story.needToFind}?` : 'Can you help solve this scene?'),
+      mathGoal: step.mathGoal || story.needToFind || story.problemSchema || 'Use fraction reasoning to solve the story.',
+      questionText: step.questionText || step.prompt,
+      guidedSteps,
+      visualHintType,
+      successNarration,
+      errorHint: step.errorHint || SUPPORTIVE_FEEDBACK[step.mistakeTag] || story.schemaHint || 'Try the guided steps before answering again.',
+      retryPrompt: step.retryPrompt || guidedSteps[0] || 'Try again using the first clue.',
+      nextSceneUnlockText: step.nextSceneUnlockText || (index === (story.steps || []).length - 1 ? 'Mission complete.' : `Scene ${index + 2} is unlocked.`),
+      type: step.type,
+      prompt: step.prompt,
+      choices: step.choices,
+      correct: step.correct,
+      answer: step.answer,
+      mistakeTag: step.mistakeTag,
+    };
+  });
 }
 
 function buildModelSequence({ denominator, removed, knownRemaining, subdivideRemainingBy = null, removedSubparts = null, unknownWhole = true }) {
@@ -280,11 +367,16 @@ export function getFractionsStoryTemplatesBySkill(skillId) {
 export function buildFractionsStorySession({ skillId = 'F025', studentId = 'demo-student' } = {}) {
   const templates = getFractionsStoryTemplatesBySkill(skillId);
   const picked = templates.length ? templates[Math.floor(Math.random() * templates.length)] : STORY_TEMPLATES[0];
-  return {
+  const session = {
     sessionId: `story_${picked.storyId}_${Date.now()}`,
     studentId,
     sessionType: 'story',
     ...picked,
+  };
+  return {
+    ...session,
+    missionTitle: session.missionTitle || missionTitleFor(session),
+    sceneItems: buildStorySceneItems(session),
   };
 }
 
@@ -354,6 +446,25 @@ export function getStoryFeedback(result = {}) {
   return {
     tone: 'review',
     message: 'Not quite. You found part of it, but the question asks for the starting whole. Try working backwards from the remaining fraction.',
+  };
+}
+
+export function getStoryStepFeedback({ story = {}, scene = {}, correct = false, attempts = 1 } = {}) {
+  if (correct) {
+    return {
+      tone: 'success',
+      message: scene.successNarration || 'Good. This part of the story is solved.',
+      revealSolution: false,
+    };
+  }
+  return {
+    tone: 'retry',
+    message: attempts >= 2
+      ? `${scene.errorHint || 'Check the fraction relationship again'} ${scene.retryPrompt || ''}`.trim()
+      : scene.errorHint || 'Check the guided step and try again.',
+    guidedStep: scene.guidedSteps?.[Math.min(attempts - 1, Math.max(0, (scene.guidedSteps?.length || 1) - 1))] || story.schemaHint || '',
+    revealSolution: attempts >= 3,
+    workedSolution: attempts >= 3 ? story.workedSolution || [] : [],
   };
 }
 

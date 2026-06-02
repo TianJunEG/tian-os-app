@@ -180,6 +180,56 @@ function frac(n, d) {
   return simplifyFraction(n, d);
 }
 
+export const COUNTABLE_CONTEXT_NOUNS = [
+  'problems',
+  'questions',
+  'students',
+  'books',
+  'pages',
+  'stickers',
+  'marbles',
+  'pencils',
+  'sweets',
+  'apples',
+  'oranges',
+  'chairs',
+  'tickets',
+  'marks',
+];
+
+export function isWholeNumber(value) {
+  return Number.isInteger(Number(value));
+}
+
+export function validateCountableFractionSequence(total, fractions = []) {
+  if (!isWholeNumber(total) || Number(total) < 0) {
+    return { valid: false, reason: 'total_not_whole', total, final: null, steps: [] };
+  }
+
+  let remaining = Number(total);
+  const steps = [];
+  for (const f of fractions) {
+    const numerator = Number(f?.numerator);
+    const denominator = Number(f?.denominator);
+    if (!isWholeNumber(numerator) || !isWholeNumber(denominator) || denominator <= 0 || numerator < 0) {
+      return { valid: false, reason: 'invalid_fraction', total: Number(total), final: null, steps };
+    }
+    const amountNumerator = remaining * numerator;
+    if (!isWholeNumber(remaining) || amountNumerator % denominator !== 0) {
+      return { valid: false, reason: 'fraction_creates_decimal_count', total: Number(total), final: null, steps };
+    }
+    const amount = amountNumerator / denominator;
+    const before = remaining;
+    remaining -= amount;
+    if (!isWholeNumber(amount) || !isWholeNumber(remaining)) {
+      return { valid: false, reason: 'non_integer_intermediate_count', total: Number(total), final: null, steps };
+    }
+    steps.push({ fraction: f, before, amount, remaining });
+  }
+
+  return { valid: true, reason: '', total: Number(total), final: remaining, steps };
+}
+
 function compareFractions(a, b) {
   return a.numerator * b.denominator - b.numerator * a.denominator;
 }
@@ -192,42 +242,25 @@ function integerFriendlyTotal(seed, min, max, fractions = []) {
   const span = max - min + 1;
   for (let offset = 0; offset < span; offset += 1) {
     const candidate = min + ((Math.abs(seed) + offset) % span);
-    let amount = candidate;
-    let valid = true;
-    for (const f of fractions) {
-      const used = (amount * f.numerator) / f.denominator;
-      if (!Number.isInteger(used)) {
-        valid = false;
-        break;
-      }
-      amount -= used;
-    }
-    if (valid && Number.isInteger(amount)) return { total: candidate, final: amount };
+    const sequence = validateCountableFractionSequence(candidate, fractions);
+    if (sequence.valid) return { total: candidate, final: sequence.final };
   }
   const denominatorProduct = fractions.reduce((product, f) => product * Math.max(1, f.denominator), 1);
   const total = denominatorProduct * Math.max(1, Math.ceil(min / denominatorProduct));
-  let amount = total;
-  fractions.forEach((f) => {
-    amount -= (amount * f.numerator) / f.denominator;
-  });
-  return { total, final: amount };
+  const sequence = validateCountableFractionSequence(total, fractions);
+  if (!sequence.valid) {
+    throw new Error('Could not generate integer-safe countable fraction total.');
+  }
+  return { total, final: sequence.final };
 }
 
 function sequentialWholeCountTotal(seed, min, max, fractions = []) {
   const result = integerFriendlyTotal(seed, min, max, fractions);
-  let remaining = result.total;
-  const steps = fractions.map((f) => {
-    const amount = (remaining * f.numerator) / f.denominator;
-    const before = remaining;
-    remaining -= amount;
-    return { fraction: f, before, amount, remaining };
-  });
-  const valid = steps.every((step) => Number.isInteger(step.before) && Number.isInteger(step.amount) && Number.isInteger(step.remaining))
-    && Number.isInteger(remaining);
-  if (!valid) {
+  const sequence = validateCountableFractionSequence(result.total, fractions);
+  if (!sequence.valid) {
     throw new Error('Generated count-based fraction question with non-integer intermediate quantity.');
   }
-  return { total: result.total, final: remaining, steps };
+  return { total: result.total, final: sequence.final, steps: sequence.steps };
 }
 
 function multipleInRange(seed, min, max, factor) {

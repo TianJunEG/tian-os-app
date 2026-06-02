@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { generateFractionQuestion, validateFractionQuestionGenerator } from './fractionQuestionGenerator';
+import {
+  COUNTABLE_CONTEXT_NOUNS,
+  generateFractionQuestion,
+  isWholeNumber,
+  validateCountableFractionSequence,
+  validateFractionQuestionGenerator,
+} from './fractionQuestionGenerator';
 
 describe('fractionQuestionGenerator', () => {
   it('scores comparison questions using symbol answers (F006)', () => {
@@ -38,6 +44,62 @@ describe('fractionQuestionGenerator', () => {
       expect(q.answer?.type).toBe('whole');
       expect(Number.isInteger(q.answer.whole)).toBe(true);
     }
+  });
+
+  it('rejects countable fraction sequences that create decimal intermediate counts', () => {
+    const invalidCases = [
+      { total: 41, fractions: [{ numerator: 1, denominator: 2 }] },
+      { total: 25, fractions: [{ numerator: 1, denominator: 3 }] },
+      { total: 50, fractions: [{ numerator: 1, denominator: 2 }, { numerator: 1, denominator: 3 }] },
+      { total: 41, fractions: [{ numerator: 1, denominator: 2 }, { numerator: 1, denominator: 3 }] },
+    ];
+
+    invalidCases.forEach(({ total, fractions }) => {
+      const result = validateCountableFractionSequence(total, fractions);
+      expect(result.valid, `${total} with ${JSON.stringify(fractions)}`).toBe(false);
+      expect(result.reason).toMatch(/decimal|integer|whole/);
+    });
+  });
+
+  it('accepts countable two-step remainder problems only when every step is whole', () => {
+    const case42 = validateCountableFractionSequence(42, [
+      { numerator: 1, denominator: 2 },
+      { numerator: 1, denominator: 3 },
+    ]);
+    expect(case42.valid).toBe(true);
+    expect(case42.steps[0].amount).toBe(21);
+    expect(case42.steps[0].remaining).toBe(21);
+    expect(case42.steps[1].amount).toBe(7);
+    expect(case42.final).toBe(14);
+
+    const case36 = validateCountableFractionSequence(36, [
+      { numerator: 1, denominator: 3 },
+      { numerator: 1, denominator: 4 },
+    ]);
+    expect(case36.valid).toBe(true);
+    expect(case36.steps[0].amount).toBe(12);
+    expect(case36.steps[0].remaining).toBe(24);
+    expect(case36.steps[1].amount).toBe(6);
+    expect(case36.final).toBe(18);
+  });
+
+  it('tracks countable nouns that must not produce fractional quantities', () => {
+    [
+      'problems',
+      'questions',
+      'students',
+      'books',
+      'pages',
+      'stickers',
+      'marbles',
+      'pencils',
+      'sweets',
+      'apples',
+      'oranges',
+      'chairs',
+      'tickets',
+      'marks',
+    ].forEach((noun) => expect(COUNTABLE_CONTEXT_NOUNS).toContain(noun));
   });
 
   it('keeps F023 worksheet count word problems integer-friendly at every step', () => {
@@ -82,10 +144,10 @@ describe('fractionQuestionGenerator', () => {
       const firstRemainder = total - firstCompleted;
       const secondCompleted = (firstRemainder * secondNumerator) / secondDenominator;
       const finalUnfinished = firstRemainder - secondCompleted;
-      expect(Number.isInteger(firstCompleted), q.prompt).toBe(true);
-      expect(Number.isInteger(firstRemainder), q.prompt).toBe(true);
-      expect(Number.isInteger(secondCompleted), q.prompt).toBe(true);
-      expect(Number.isInteger(finalUnfinished), q.prompt).toBe(true);
+      expect(isWholeNumber(firstCompleted), q.prompt).toBe(true);
+      expect(isWholeNumber(firstRemainder), q.prompt).toBe(true);
+      expect(isWholeNumber(secondCompleted), q.prompt).toBe(true);
+      expect(isWholeNumber(finalUnfinished), q.prompt).toBe(true);
       expect(q.answer.whole).toBe(finalUnfinished);
     }
   });
