@@ -60,7 +60,10 @@ export default function WorksheetPreview() {
               {c.reviewSection.map((r, i) => (
                 <div key={i} className="rounded-xl bg-gold-100 p-3 text-sm">
                   <div className="text-navy-900"><MathText text={r.stem} /></div>
-                  <div className="mt-1 text-ink-600">You wrote <span className="font-semibold text-error-700">{r.yourAnswer || '—'}</span> · correct is <MathText text={String(r.correctAnswer)} className="font-semibold text-success-700" /></div>
+                  <div className="mt-1 text-ink-600">
+                    You wrote <span className="font-semibold text-error-700"><MathText text={r.yourAnswer || '—'} /></span>
+                    {' '}· correct is <MathText text={String(r.correctAnswer)} className="font-semibold text-success-700" />
+                  </div>
                 </div>
               ))}
             </div>
