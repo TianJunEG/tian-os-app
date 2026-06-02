@@ -180,12 +180,14 @@ export default function SimilarQuestionPractice() {
             />
           </div>
         ) : !expressionQuestion && (
-          <input
-            value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
-            className="mt-5 w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg"
-            placeholder="Type your answer"
-          />
+          <div className="mt-5">
+            <AnswerInputRenderer
+              question={q}
+              value={answer}
+              onChange={setAnswer}
+              onEnter={saveAndNext}
+            />
+          </div>
         )}
         <WorkingCanvas
           key={`similar-working-${q.variantId}`}

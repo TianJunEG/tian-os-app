@@ -407,7 +407,18 @@ function LegacyPracticeSession() {
             }}
           />
         ) : (
-          <input value={answer} onChange={(e) => setAnswer(e.target.value)} disabled={!!result} className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg" />
+          <AnswerInputRenderer
+            question={q}
+            value={answer}
+            onChange={setAnswer}
+            disabled={!!result}
+            onEnter={() => {
+              if (!result) {
+                if (!answer) return;
+                check();
+              }
+            }}
+          />
         )}
         {result && (
           <div className={`mt-5 rounded-xl p-4 ${result.correct ? 'bg-success-100' : 'bg-error-100'}`}>
@@ -988,12 +999,14 @@ export default function PracticeSession() {
                   }}
                 />
               ) : (
-                <input
+                <AnswerInputRenderer
+                  question={q}
                   value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
+                  onChange={setAnswer}
                   disabled={answered}
-                  placeholder="Type your answer (e.g. 3/4)"
-                  className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+                  onEnter={() => {
+                    if (!answered && reflection) onSubmitCurrent();
+                  }}
                 />
               )}
             </div>

@@ -113,18 +113,6 @@ export default function AssessmentQuestionScreen() {
           )}
         </div>
         <QuestionDiagram question={q} />
-        <WorkingCanvas
-          key={`assessment-working-${q.questionId}`}
-          questionId={q.questionId}
-          required={workingRequirement.required}
-          allowNoWorking={workingRequirement.allowNoWorking}
-          submittedImage={currentWorking.workingImage || ''}
-          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-          onChange={(payload) => setWorkings((prev) => ({ ...prev, [q.questionId]: payload }))}
-          onSubmit={(payload) => setWorkings((prev) => ({ ...prev, [q.questionId]: payload }))}
-        />
 
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
@@ -144,13 +132,30 @@ export default function AssessmentQuestionScreen() {
             }}
           />
         ) : (
-          <input
+          <AnswerInputRenderer
+            question={q}
             value={answers[q.questionId] || ''}
-            onChange={(e) => setAnswers((p) => ({ ...p, [q.questionId]: e.target.value }))}
-            placeholder="Type your final answer"
-            className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg"
+            onChange={(value) => setAnswers((p) => ({ ...p, [q.questionId]: value }))}
+            onEnter={() => {
+              if (workingReady && reflectionReady) go(idx + 1);
+            }}
           />
         )}
+
+        <div className="mt-4">
+          <WorkingCanvas
+            key={`assessment-working-${q.questionId}`}
+            questionId={q.questionId}
+            required={workingRequirement.required}
+            allowNoWorking={workingRequirement.allowNoWorking}
+            submittedImage={currentWorking.workingImage || ''}
+            submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+            initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+            initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+            onChange={(payload) => setWorkings((prev) => ({ ...prev, [q.questionId]: payload }))}
+            onSubmit={(payload) => setWorkings((prev) => ({ ...prev, [q.questionId]: payload }))}
+          />
+        </div>
 
         <div className="mt-4">
           <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>

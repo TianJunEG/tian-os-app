@@ -10,10 +10,13 @@ const MATH_STAMPS = [
   { id: 'fraction', label: 'x/y' },
   { id: 'subscript', label: 'xₐ' },
   { id: 'power', label: 'xᵇ' },
-  { id: 'mixed', label: 'b/a' },
+  { id: 'subscriptPower', label: 'xₐᵇ' },
+  { id: 'mixed', label: 'xᵇ/a' },
   { id: 'root', label: 'ⁿ√x' },
+  { id: 'degree', label: 'x°' },
   { id: 'angle', label: '∠' },
   { id: 'pi', label: 'π' },
+  { id: 'theta', label: 'θ' },
 ];
 
 export function resolveWorkingRequirement(question = {}, sessionType = 'practice') {
@@ -105,23 +108,34 @@ function drawMathStamp(ctx, stroke) {
     ctx.fillText('x', x, y + 10);
     ctx.font = '20px Georgia, serif';
     ctx.fillText('b', x + 25, y - 10);
+  } else if (stroke.template === 'subscriptPower') {
+    ctx.fillText('x', x, y + 8);
+    ctx.font = '18px Georgia, serif';
+    ctx.fillText('b', x + 25, y - 14);
+    ctx.fillText('a', x + 25, y + 20);
   } else if (stroke.template === 'mixed') {
-    ctx.fillText('b', x, y + 10);
+    ctx.fillText('x', x, y + 10);
     ctx.font = '24px Georgia, serif';
-    ctx.fillText('a', x + 34, y - 12);
+    ctx.fillText('b', x + 34, y - 12);
     ctx.beginPath();
     ctx.moveTo(x + 28, y);
     ctx.lineTo(x + 74, y);
     ctx.stroke();
-    ctx.fillText('c', x + 42, y + 30);
+    ctx.fillText('a', x + 42, y + 30);
   } else if (stroke.template === 'root') {
     ctx.fillText('√x', x + 14, y + 8);
     ctx.font = '16px Georgia, serif';
     ctx.fillText('n', x, y - 6);
+  } else if (stroke.template === 'degree') {
+    ctx.fillText('x', x, y + 10);
+    ctx.font = '20px Georgia, serif';
+    ctx.fillText('°', x + 25, y - 8);
   } else if (stroke.template === 'angle') {
     ctx.fillText('∠', x, y + 10);
   } else if (stroke.template === 'pi') {
     ctx.fillText('π', x, y + 10);
+  } else if (stroke.template === 'theta') {
+    ctx.fillText('θ', x, y + 10);
   }
   ctx.restore();
 }
@@ -481,6 +495,20 @@ export default function WorkingCanvas({
         </div>
       )}
 
+      {showMathStamps && <div className={`${compact ? 'mb-1.5' : 'mb-2'} flex flex-wrap gap-2`} aria-label="Math insert tools">
+        {MATH_STAMPS.map((stamp) => (
+          <button
+            key={stamp.id}
+            type="button"
+            onClick={() => insertMathStamp(stamp.id)}
+            className="grid h-11 min-w-12 place-items-center rounded-lg border border-hairline bg-orange-50 px-3 font-serif text-xl font-semibold text-orange-600 hover:border-orange-300 hover:bg-orange-100"
+            title={`Insert ${stamp.label}`}
+          >
+            {stamp.label}
+          </button>
+        ))}
+      </div>}
+
       <div ref={scrollRef} className={`overflow-auto rounded-lg border border-hairline ${background === 'grid' ? 'bg-[linear-gradient(#dbe4ef_1px,transparent_1px),linear-gradient(90deg,#dbe4ef_1px,transparent_1px)] bg-[size:24px_24px]' : 'bg-[repeating-linear-gradient(0deg,#fff,#fff_31px,#e8eef7_32px)]'}`}>
         <canvas
           ref={canvasRef}
@@ -496,20 +524,6 @@ export default function WorkingCanvas({
           aria-label="Working canvas"
         />
       </div>
-
-      {showMathStamps && <div className="mt-3 flex flex-wrap gap-2" aria-label="Math insert tools">
-        {MATH_STAMPS.map((stamp) => (
-          <button
-            key={stamp.id}
-            type="button"
-            onClick={() => insertMathStamp(stamp.id)}
-            className="grid h-11 min-w-12 place-items-center rounded-lg border border-hairline bg-orange-50 px-3 font-serif text-xl font-semibold text-orange-600 hover:border-orange-300 hover:bg-orange-100"
-            title={`Insert ${stamp.label}`}
-          >
-            {stamp.label}
-          </button>
-        ))}
-      </div>}
 
       <div className={`${compact ? 'mt-2' : 'mt-3'} grid grid-cols-1 gap-2 sm:grid-cols-2`}>
         {allowNoWorking && (

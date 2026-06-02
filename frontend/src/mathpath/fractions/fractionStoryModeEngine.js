@@ -10,6 +10,24 @@ const STRATEGIES = [
   'Check the final answer against the question',
 ];
 
+const ONE_UNIT_STRATEGY_CHOICES = [
+  'Use the 5/8 left to find 1/8, then the whole',
+  'Use 3/8 to find completed pages only',
+  'Add 3/8 and 25 pages directly',
+];
+
+const REMAINDER_BACKWARDS_CHOICES = [
+  'Work backwards from the final amount left',
+  'Use the first fraction only',
+  'Add the two fractions straight away',
+];
+
+const TRACK_REMAINDER_CHOICES = [
+  'Track each remainder, then find one unit',
+  'Use only the final number',
+  'Add all denominators first',
+];
+
 const SUPPORTIVE_FEEDBACK = {
   wrong_remaining_fraction: 'Not quite. Check what fraction is left after the part is used or given away.',
   did_not_work_backwards: 'Not quite. We know what is left, so working backwards may help.',
@@ -180,7 +198,7 @@ const STORY_TEMPLATES = [
     steps: [
       { type: 'read_story', prompt: 'Read the story carefully. What is the question asking?', choices: ['How many at first', 'How many given away'], correct: 'How many at first', mistakeTag: 'final_answer_does_not_match_question' },
       { type: 'identify_parts', prompt: 'What fraction is left?', choices: ['2/5', '3/5', '5/3'], correct: '3/5', mistakeTag: 'wrong_remaining_fraction' },
-      { type: 'choose_strategy', prompt: 'Pick a strategy.', choices: STRATEGIES, correct: 'Find one unit first', mistakeTag: 'did_not_work_backwards' },
+      { type: 'choose_strategy', prompt: 'What should you do after finding 3/5 is left?', choices: ['Use 3/5 = 18 to find 1/5, then 5/5', 'Use 2/5 = 18 to find 1/5', 'Add 2/5 and 18'], correct: 'Use 3/5 = 18 to find 1/5, then 5/5', mistakeTag: 'did_not_work_backwards' },
       { type: 'compute_step', prompt: 'If 3/5 is 18, what is 1/5?', answer: { value: '6', display: '6' }, mistakeTag: 'calculation_error' },
       { type: 'final_answer', prompt: 'So what is the total at first (5/5)?', answer: { value: '30', display: '30' }, mistakeTag: 'wrong_whole' },
       { type: 'reflection', prompt: 'Which step helped you most?', choices: ['Find remaining fraction', 'Find one unit', 'Check final whole'], correct: 'Find one unit' },
@@ -213,7 +231,7 @@ const STORY_TEMPLATES = [
     steps: [
       { type: 'read_story', prompt: 'What do we need to find?', choices: ['Used amount only', 'Total at first'], correct: 'Total at first' },
       { type: 'identify_parts', prompt: 'What fraction remains?', choices: ['1/4', '3/4', '4/3'], correct: '3/4' },
-      { type: 'choose_strategy', prompt: 'Which strategy fits best?', choices: STRATEGIES, correct: 'Find one unit first' },
+      { type: 'choose_strategy', prompt: 'What should you do after finding 3/4 remains?', choices: ['Use 3/4 = 21 to find 1/4, then 4/4', 'Use 1/4 = 21 to find 4/4', 'Subtract 1/4 from 21'], correct: 'Use 3/4 = 21 to find 1/4, then 4/4' },
       { type: 'compute_step', prompt: 'If 3/4 is 21, what is 1/4?', answer: { value: '7', display: '7' } },
       { type: 'final_answer', prompt: 'What is 4/4?', answer: { value: '28', display: '28' } },
       { type: 'reflection', prompt: 'What should you check next time?', choices: ['Fraction left', 'Draw neatly', 'Guess'], correct: 'Fraction left' },
@@ -246,7 +264,7 @@ const STORY_TEMPLATES = [
     steps: [
       { type: 'identify_question', prompt: 'Find:', choices: ['Blank pages', 'Total pages'], correct: 'Total pages' },
       { type: 'identify_parts', prompt: 'Blank fraction is:', choices: ['3/8', '5/8', '8/5'], correct: '5/8' },
-      { type: 'choose_strategy', prompt: 'Choose strategy.', choices: STRATEGIES, correct: 'Find one unit first' },
+      { type: 'choose_strategy', prompt: 'What should you do next?', choices: ONE_UNIT_STRATEGY_CHOICES, correct: ONE_UNIT_STRATEGY_CHOICES[0] },
       { type: 'compute_step', prompt: 'If 5/8 is 25, what is 1/8?', answer: { value: '5', display: '5' } },
       { type: 'final_answer', prompt: 'So total pages = ?', answer: { value: '40', display: '40' } },
       { type: 'reflection', prompt: 'Best check before final answer?', choices: ['Whole is 8/8', 'Subtract again', 'Skip check'], correct: 'Whole is 8/8' },
@@ -353,7 +371,7 @@ const STORY_TEMPLATES = [
       { type: 'read_story', prompt: 'After Monday, fraction left is:', choices: ['2/7', '5/7', '7/5'], correct: '5/7' },
       { type: 'identify_parts', prompt: 'After Tuesday, fraction of the remainder left is:', choices: ['1/3', '2/3', '3/2'], correct: '2/3' },
       { type: 'compute_step', prompt: 'Fraction of original left is?', answer: { value: '10/21', display: '10/21' } },
-      { type: 'choose_strategy', prompt: 'Best method now?', choices: STRATEGIES, correct: 'Find one unit first' },
+      { type: 'choose_strategy', prompt: 'What should you do now?', choices: TRACK_REMAINDER_CHOICES, correct: TRACK_REMAINDER_CHOICES[0] },
       { type: 'final_answer', prompt: 'If 10/21 is 30, original pages = ?', answer: { value: '63', display: '63' } },
       { type: 'reflection', prompt: 'What to improve next?', choices: ['Multiply fractions carefully', 'Guess final answer', 'Skip remainder step'], correct: 'Multiply fractions carefully' },
     ],

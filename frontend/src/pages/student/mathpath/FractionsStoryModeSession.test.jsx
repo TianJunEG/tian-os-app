@@ -1,5 +1,5 @@
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -10,6 +10,28 @@ vi.mock('../../../services/api', () => ({
     complete: vi.fn(),
   },
 }));
+
+beforeEach(() => {
+  HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
+    save: vi.fn(),
+    restore: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    clearRect: vi.fn(),
+    fillRect: vi.fn(),
+    drawImage: vi.fn(),
+    fillText: vi.fn(),
+  }));
+  HTMLCanvasElement.prototype.toDataURL = vi.fn(() => 'data:image/png;base64,story-working');
+  HTMLCanvasElement.prototype.getBoundingClientRect = vi.fn(() => ({
+    left: 0,
+    top: 0,
+    width: 900,
+    height: 320,
+  }));
+});
 
 afterEach(() => {
   cleanup();
@@ -32,26 +54,41 @@ async function renderStoryRoute(path, flagValue = 'true') {
   );
 }
 
+async function renderDomainStoryRoute(path) {
+  vi.resetModules();
+  vi.spyOn(Math, 'random').mockReturnValue(0);
+  const { default: StoryModeDomainRoute } = await import('./StoryModeDomainRoute.jsx');
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/student/mathpath/:domain/story" element={<StoryModeDomainRoute />} />
+        <Route path="/student/mathpath/:domain/story/:skillId" element={<StoryModeDomainRoute />} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
 describe('FractionsStoryModeSession direct routes', () => {
   it('renders the default direct story route when enabled', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story', 'true');
-    expect(screen.getByText('Problem Solving Story')).toBeInTheDocument();
     expect(screen.getByText('Fraction Rescue Mission')).toBeInTheDocument();
-    expect(screen.getAllByText(/F025/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Scene 1 of/i)).toBeInTheDocument();
   });
 
   it('renders F025 direct route without navigation state', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
-    expect(screen.getAllByText(/F025/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/This is a remainder problem/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Guided thinking steps/i)).toBeInTheDocument();
+    expect(screen.getByText('Fraction Rescue Mission')).toBeInTheDocument();
+    expect(screen.getByText(/Find what matters/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Need a hint/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Guided thinking steps/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Name the Target/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Math Challenge/i)).not.toBeInTheDocument();
   });
 
   it('renders F026 direct route without navigation state', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F026', 'true');
-    expect(screen.getAllByText(/F026/).length).toBeGreaterThan(0);
     expect(screen.getByText('Remainder Rescue Mission')).toBeInTheDocument();
-    expect(screen.getAllByText(/multi-step remainder story/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Scene 1 of/i)).toBeInTheDocument();
   });
 
   it('uses scene progress language instead of generic question language', async () => {
@@ -60,37 +97,58 @@ describe('FractionsStoryModeSession direct routes', () => {
     expect(screen.queryByText(/Question 1 of/i)).not.toBeInTheDocument();
   });
 
+  it('renders the simplified story, visual, answer, and primary action layout', async () => {
+    await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
+    expect(screen.getByLabelText(/Story problem/i)).toBeInTheDocument();
+    expect(screen.getAllByTestId('story-visual-model').length).toBeGreaterThan(0);
+    expect(screen.getByLabelText(/Your answer/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Check Answer/i })).toBeInTheDocument();
+  });
+
   it('renders fraction visuals from the actual story values', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
-    expect(screen.getByText('Whole')).toBeInTheDocument();
-    expect(screen.getByText('5/5')).toBeInTheDocument();
-    expect(screen.getByText('Used')).toBeInTheDocument();
-    expect(screen.getByText('2/5')).toBeInTheDocument();
-    expect(screen.getByText('Left')).toBeInTheDocument();
-    expect(screen.getByText('3/5')).toBeInTheDocument();
+    expect(screen.getAllByTestId('story-visual-model').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Used 2\/5/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Left 3\/5/i).length).toBeGreaterThan(0);
+  });
+
+  it('reveals progressive hints only after the student asks', async () => {
+    await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
+    expect(screen.queryByText(/Hint 1:/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Need a hint/i }));
+    expect(screen.getByText(/Hint 1:/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Hint 2:/i)).not.toBeInTheDocument();
+  });
+
+  it('keeps working space collapsed until requested', async () => {
+    await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
+    expect(screen.queryByLabelText(/Working canvas/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Show working space/i }));
+    expect(screen.getByLabelText(/Working canvas/i)).toBeInTheDocument();
   });
 
   it('shows story-specific retry guidance for a wrong answer', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'How many given away' }));
-    fireEvent.click(screen.getByRole('button', { name: /Check this scene/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Check Answer/i }));
     expect(screen.getByText(/Check the question again/i)).toBeInTheDocument();
-    expect(screen.getByText(/Focus step:/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Check this scene/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Check Answer/i })).toBeInTheDocument();
   });
 
   it('shows success narration before unlocking the next scene', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'How many at first' }));
-    fireEvent.click(screen.getByRole('button', { name: /Check this scene/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Check Answer/i }));
     expect(screen.getByText(/Good. This clue is now clear/i)).toBeInTheDocument();
     expect(screen.getByText(/Scene 2 is unlocked/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Unlock next scene/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Next Scene/i })).toBeInTheDocument();
   });
 
-  it('blocks Story Mode when the feature flag is disabled', async () => {
+  it('does not show unavailable copy for the fractions domain route when the old flag is disabled', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'false');
-    expect(screen.getByText(/not available yet/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Problem Solving Story is not available yet/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Return to MathPath to continue practice/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Fraction Rescue Mission')).toBeInTheDocument();
   });
 
   it('handles invalid skill routes safely', async () => {
@@ -98,5 +156,12 @@ describe('FractionsStoryModeSession direct routes', () => {
     expect(screen.getByText(/supported Story Mode skill/i)).toBeInTheDocument();
     expect(screen.getByText(/Start F025 Story/i)).toBeInTheDocument();
     expect(screen.getByText(/Start F026 Story/i)).toBeInTheDocument();
+  });
+
+  it('shows a graceful coming-soon state for unsupported story domains', async () => {
+    await renderDomainStoryRoute('/student/mathpath/geometry/story');
+    expect(screen.getByText(/Story Mode for this topic is coming soon/i)).toBeInTheDocument();
+    expect(screen.getByText(/Fractions Story Mode is ready now/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start Fractions Story/i)).toBeInTheDocument();
   });
 });

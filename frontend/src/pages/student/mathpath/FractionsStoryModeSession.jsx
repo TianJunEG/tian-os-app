@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Lightbulb, Map, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Lightbulb, Pencil, Sparkles } from 'lucide-react';
 import { Button, Card, ProgressBar } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
-import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import FractionAnswerInput, { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
+import AnswerInputRenderer from './components/AnswerInputRenderer';
+import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import {
   buildFractionsStorySession,
   evaluateFractionsStorySession,
@@ -26,24 +27,24 @@ function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
 
   return (
     <div>
-      <div className="grid overflow-hidden rounded-lg border border-gold-300 bg-white" style={{ gridTemplateColumns: `repeat(${denominator}, minmax(0, 1fr))` }}>
+      <div className="grid overflow-hidden rounded-2xl border-2 border-navy-200 bg-white shadow-sm" style={{ gridTemplateColumns: `repeat(${denominator}, minmax(0, 1fr))` }}>
         {Array.from({ length: denominator }).map((_, index) => {
           const isRemoved = index < removed;
           return (
             <div
               key={index}
-              className={`min-h-[48px] border-r border-gold-200 last:border-r-0 ${isRemoved ? 'bg-[repeating-linear-gradient(135deg,#fee2e2,#fee2e2_5px,#fecaca_5px,#fecaca_10px)]' : 'bg-emerald-50'}`}
+              className={`min-h-[72px] border-r border-navy-100 last:border-r-0 sm:min-h-[96px] ${isRemoved ? 'bg-[repeating-linear-gradient(135deg,#fee2e2,#fee2e2_6px,#fecaca_6px,#fecaca_12px)]' : 'bg-emerald-50'}`}
             />
           );
         })}
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-ink-700">
-        <span className="rounded-lg bg-white px-2 py-1 ring-1 ring-hairline">Used: {removed}/{denominator}</span>
-        <span className="rounded-lg bg-white px-2 py-1 ring-1 ring-hairline">Left: {remaining}/{denominator}</span>
+      <div className="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold text-ink-700">
+        <span className="rounded-xl bg-rose-50 px-3 py-2 ring-1 ring-rose-100">Used {removed}/{denominator}</span>
+        <span className="rounded-xl bg-emerald-50 px-3 py-2 ring-1 ring-emerald-100">Left {remaining}/{denominator}</span>
       </div>
       {showRemainderSubgroups && subdivideBy > 0 ? (
         <div className="mt-3">
-          <p className="mb-2 text-xs font-semibold text-ink-700">Remainder as the new whole</p>
+          <p className="mb-2 text-sm font-semibold text-ink-700">Now use the part that is left.</p>
           <div className="grid overflow-hidden rounded-lg border border-navy-200 bg-white" style={{ gridTemplateColumns: `repeat(${subdivideBy}, minmax(0, 1fr))` }}>
             {Array.from({ length: subdivideBy }).map((_, index) => (
               <div
@@ -52,14 +53,11 @@ function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
               />
             ))}
           </div>
-          <p className="mt-2 text-xs text-ink-600">
-            Second action: {removedSubparts}/{subdivideBy} of the remainder. Final left: {Math.max(0, subdivideBy - removedSubparts)}/{subdivideBy} of the remainder.
-          </p>
         </div>
       ) : null}
       {model.knownRemaining ? (
-        <p className="mt-2 rounded-lg bg-white px-2 py-1 text-xs font-semibold text-ink-700 ring-1 ring-hairline">
-          Known final remainder: {model.knownRemaining}
+        <p className="mt-3 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-ink-700 ring-1 ring-hairline">
+          The part left is {model.knownRemaining}.
         </p>
       ) : null}
     </div>
@@ -76,11 +74,10 @@ function StoryShadedGrid({ model = {} }) {
         {Array.from({ length: denominator }).map((_, index) => (
           <div
             key={index}
-            className={`min-h-[36px] rounded-md border border-gold-200 ${index < removed ? 'bg-navy-100' : 'bg-white'}`}
+            className={`min-h-[54px] rounded-md border border-gold-200 sm:min-h-[72px] ${index < removed ? 'bg-[repeating-linear-gradient(135deg,#dbeafe,#dbeafe_6px,#bfdbfe_6px,#bfdbfe_12px)]' : 'bg-white'}`}
           />
         ))}
       </div>
-      <p className="mt-2 text-xs text-ink-600">Shaded: {removed}/{denominator}. Unshaded: {denominator - removed}/{denominator}.</p>
     </div>
   );
 }
@@ -102,70 +99,64 @@ function StoryNumberLine({ model = {} }) {
           );
         })}
       </div>
-      <p className="mt-2 text-xs text-ink-600">Marker shows the first action at {removed}/{denominator}; the rest is the remainder to track.</p>
-    </div>
-  );
-}
-
-function PartWholeCards({ model = {} }) {
-  const denominator = Math.max(1, Number(model.denominator || 1));
-  const removed = Math.max(0, Math.min(denominator, Number(model.removed || 0)));
-  const remaining = denominator - removed;
-  const cards = [
-    { label: 'Whole', value: `${denominator}/${denominator}` },
-    { label: 'Used', value: `${removed}/${denominator}` },
-    { label: 'Left', value: `${remaining}/${denominator}` },
-  ];
-  return (
-    <div className="grid grid-cols-3 gap-2">
-      {cards.map((item) => (
-        <div key={item.label} className="rounded-lg border border-gold-200 bg-white px-2 py-4 text-center">
-          <p className="text-xs font-semibold text-ink-500">{item.label}</p>
-          <p className="mt-1 text-sm font-semibold text-ink-800">{item.value}</p>
-        </div>
-      ))}
     </div>
   );
 }
 
 function VisualHint({ type, model = {} }) {
-  const label = String(type || 'fraction_bar').replace(/_/g, ' ');
   return (
-    <div className="rounded-xl border border-gold-200 bg-gold-50 p-3" aria-label={`${label} visual hint`}>
-      <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.04em] text-gold-900">
-        <Map className="h-4 w-4" />
-        {label}
-      </div>
-      {type === 'part_whole_cards' ? (
-        <PartWholeCards model={model} />
-      ) : type === 'number_line' ? (
+    <div className="rounded-2xl border border-navy-100 bg-white p-4 shadow-sm" aria-label="Story visual model" data-testid="story-visual-model">
+      {type === 'number_line' ? (
         <StoryNumberLine model={model} />
       ) : type === 'shaded_grid' ? (
         <StoryShadedGrid model={model} />
       ) : (
         <StoryFractionBar model={model} showRemainderSubgroups={type === 'fraction_bar_remainder'} />
       )}
-      <p className="mt-2 text-xs text-ink-500">Use the visual to track the whole, the used part, and what remains.</p>
     </div>
   );
 }
 
-function GuidedStepsPanel({ steps = [], activeStep = 0 }) {
+function StoryHints({ hints = [], visibleCount = 0, onReveal }) {
+  const visibleHint = hints[Math.max(0, visibleCount - 1)];
+  const canRevealMore = visibleCount < Math.min(3, hints.length);
   return (
-    <details className="rounded-xl border border-hairline bg-white p-3" open>
-      <summary className="cursor-pointer text-sm font-semibold text-ink-800">Guided thinking steps</summary>
-      <ol className="mt-3 space-y-2">
-        {steps.map((step, index) => (
-          <li key={`${step}-${index}`} className={`flex gap-2 rounded-lg p-2 text-sm ${index === activeStep ? 'bg-navy-50 text-navy-900' : 'text-ink-600'}`}>
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-navy-700 ring-1 ring-hairline">
-              {index + 1}
-            </span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ol>
-    </details>
+    <div className="rounded-2xl border border-hairline bg-white p-4">
+      <button
+        type="button"
+        onClick={onReveal}
+        disabled={!canRevealMore}
+        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-hairline bg-slate-50 px-4 py-2 text-sm font-semibold text-navy-800 disabled:cursor-default disabled:opacity-60"
+      >
+        <Lightbulb className="h-4 w-4" />
+        {visibleCount === 0 ? 'Need a hint?' : canRevealMore ? 'Show another hint' : 'No more hints'}
+      </button>
+      {visibleHint ? (
+        <p className="mt-3 rounded-xl bg-navy-50 p-3 text-sm font-medium text-navy-900">
+          Hint {visibleCount}: {visibleHint}
+        </p>
+      ) : null}
+    </div>
   );
+}
+
+function normalizeFeedbackText(value = '') {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function friendlySceneTitle(scene = {}) {
+  const titles = {
+    read_story: 'Find what matters',
+    identify_question: 'Find what matters',
+    identify_parts: 'Find the fraction left',
+    identify_whole: 'Track what remains',
+    choose_strategy: 'Choose a plan',
+    choose_operation: 'Choose the operation',
+    compute_step: 'Work one step',
+    final_answer: 'Final answer',
+    reflection: 'Quick reflection',
+  };
+  return titles[scene.type] || 'Story scene';
 }
 
 export default function FractionsStoryModeSession() {
@@ -180,7 +171,7 @@ export default function FractionsStoryModeSession() {
   const scenes = story.sceneItems?.length ? story.sceneItems : story.steps;
   const [sceneIndex, setSceneIndex] = useState(0);
   const [answer, setAnswer] = useState('');
-  const [working, setWorking] = useState('');
+  const [working, setWorking] = useState({});
   const [responses, setResponses] = useState([]);
   const [attemptsByScene, setAttemptsByScene] = useState({});
   const [sceneFeedback, setSceneFeedback] = useState(null);
@@ -188,6 +179,8 @@ export default function FractionsStoryModeSession() {
   const [result, setResult] = useState(null);
   const [backendSession, setBackendSession] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [hintCount, setHintCount] = useState(0);
+  const [showWorking, setShowWorking] = useState(false);
 
   const scene = scenes[sceneIndex];
   const isLast = sceneIndex === scenes.length - 1;
@@ -196,18 +189,6 @@ export default function FractionsStoryModeSession() {
   const needsTextInput = !Array.isArray(scene?.choices);
   const needsFractionInput = needsTextInput && isFractionLikeAnswerValue(stepExpectedAnswer);
   const expressionQuestion = needsTextInput && Boolean(extractFractionExpression(String(scene?.questionText || scene?.prompt || '')));
-
-  if (!isFractionsStoryModeEnabled()) {
-    return (
-      <div className="mx-auto max-w-xl px-3 pt-3 sm:px-0">
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-ink-900">Problem Solving Story is not available yet</h2>
-          <p className="mt-2 text-sm text-ink-600">Return to MathPath to continue practice.</p>
-          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
-        </Card>
-      </div>
-    );
-  }
 
   if (directSkillInvalid) {
     return (
@@ -298,9 +279,11 @@ export default function FractionsStoryModeSession() {
     }
     setSceneIndex((value) => value + 1);
     setAnswer('');
-    setWorking('');
+    setWorking({});
     setSceneFeedback(null);
     setSceneComplete(false);
+    setHintCount(0);
+    setShowWorking(false);
   };
 
   if (result) {
@@ -331,16 +314,13 @@ export default function FractionsStoryModeSession() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-3 pb-28 pt-3 sm:px-0">
-      <Card className="mb-3 p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-4xl px-3 pb-28 pt-3 sm:px-0">
+      <Card className="mb-3 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.04em] text-navy-700">Problem Solving Story</p>
-            <h1 className="mt-1 text-xl font-semibold text-ink-900">{story.missionTitle}</h1>
-            <p className="mt-1 text-sm text-ink-500">{story.skillId} · {story.title}</p>
-          </div>
-          <div className="rounded-xl bg-navy-50 px-3 py-2 text-sm font-semibold text-navy-800">
-            Scene {sceneIndex + 1} of {scenes.length}
+            <p className="text-sm font-semibold text-navy-700">Scene {sceneIndex + 1} of {scenes.length}</p>
+            <h1 className="mt-1 font-display text-2xl font-semibold text-ink-900">{story.missionTitle}</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-600">{scene?.sceneNarration}</p>
           </div>
         </div>
         <ProgressBar value={sceneIndex + (sceneComplete ? 1 : 0)} max={scenes.length} className="mt-4" />
@@ -354,43 +334,47 @@ export default function FractionsStoryModeSession() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_280px]">
-        <main className="space-y-3">
-          <Card className="p-5">
-            <div className="mb-4 rounded-xl border border-navy-100 bg-navy-50 p-3">
-              <p className="text-sm font-semibold text-navy-900">{scene?.sceneTitle}</p>
-              <p className="mt-2 text-sm leading-relaxed text-ink-700">{scene?.sceneNarration}</p>
-              <p className="mt-3 rounded-lg bg-white p-3 text-sm font-medium text-ink-800">{scene?.characterPrompt}</p>
-            </div>
-
-            <div className="rounded-xl border border-hairline bg-white p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.04em] text-ink-500">Math challenge</p>
-              <p className="mb-3 text-sm text-ink-600">{scene?.mathGoal}</p>
+      <Card className="p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start">
+          <main className="space-y-4">
+            <section className="rounded-2xl border border-hairline bg-slate-50 p-4 sm:p-5" aria-label="Story problem">
+              <p className="mb-2 text-sm font-semibold text-navy-800">{friendlySceneTitle(scene)}</p>
               {expressionQuestion ? (
                 <FractionExpressionQuestion prompt={scene?.questionText || ''} value={answer} onChange={setAnswer} />
               ) : (
-                <p className="text-lg leading-relaxed text-ink-900">{scene?.questionText}</p>
+                <>
+                  <p className="text-lg font-semibold leading-relaxed text-ink-900">{story.prompt}</p>
+                  <p className="mt-4 text-base leading-relaxed text-ink-800">{scene?.questionText}</p>
+                </>
               )}
+            </section>
 
+            <section className="lg:hidden">
+              <VisualHint type={scene?.visualHintType} model={scene?.visualModel || story.barModel || {}} />
+            </section>
+
+            <section className="rounded-2xl border border-hairline bg-white p-4" aria-label="Your answer">
+              <p className="mb-3 text-sm font-semibold text-ink-800">Your answer</p>
               {needsTextInput ? (
                 expressionQuestion ? null : needsFractionInput ? (
-                  <div className="mt-4">
+                  <div>
                     <FractionAnswerInput value={answer} onChange={setAnswer} />
                   </div>
                 ) : (
-                  <input
-                    value={answer}
-                    onChange={(event) => {
-                      setAnswer(event.target.value);
-                      setSceneFeedback(null);
-                    }}
-                    placeholder="Type your answer"
-                    className="mt-4 h-12 w-full rounded-xl border border-hairline px-4 text-base"
-                    disabled={sceneComplete}
-                  />
+                  <div>
+                    <AnswerInputRenderer
+                      question={{ ...scene, answerInputType: 'text' }}
+                      value={answer}
+                      onChange={(value) => {
+                        setAnswer(value);
+                        setSceneFeedback(null);
+                      }}
+                      disabled={sceneComplete}
+                    />
+                  </div>
                 )
               ) : (
-                <div className="mt-4 grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {(scene?.choices || []).map((choice) => (
                     <button
                       key={choice}
@@ -407,17 +391,44 @@ export default function FractionsStoryModeSession() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
 
-            <div className="rounded-xl border border-hairline bg-slate-50 p-4">
-              <label className="text-sm font-semibold text-ink-800">Working area</label>
-              <textarea
-                value={working}
-                onChange={(event) => setWorking(event.target.value)}
-                placeholder="Write the fraction steps you are trying."
-                className="mt-2 min-h-[96px] w-full rounded-xl border border-hairline bg-white p-3 text-sm"
+            <section className="rounded-2xl border border-hairline bg-white p-4">
+              <button
+                type="button"
+                onClick={() => setShowWorking((value) => !value)}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-hairline bg-slate-50 px-4 py-2 text-sm font-semibold text-ink-800"
+              >
+                <Pencil className="h-4 w-4" />
+                {showWorking ? 'Hide working space' : 'Show working space'}
+              </button>
+              {showWorking ? (
+                <div className="mt-3">
+                  <WorkingCanvas
+                    key={`story-working-${sceneIndex}`}
+                    questionId={`${story.sessionId || story.skillId}-${sceneIndex}`}
+                    required={false}
+                    allowNoWorking
+                    compact
+                    label="Your working"
+                    submittedImage={working.workingImage || ''}
+                    submittedStrokes={working.workingStrokes || []}
+                    initialSubmitted={Boolean(working.workingSubmitted)}
+                    initialWorkingNotNeeded={Boolean(working.workingNotNeeded)}
+                    onChange={setWorking}
+                    onSubmit={setWorking}
+                  />
+                </div>
+              ) : null}
+            </section>
+
+            {!sceneFeedback && (
+              <StoryHints
+                hints={scene?.guidedSteps || []}
+                visibleCount={hintCount}
+                onReveal={() => setHintCount((value) => Math.min(value + 1, Math.min(3, scene?.guidedSteps?.length || 0)))}
               />
-            </div>
+            )}
 
             {sceneFeedback ? (
               <div className={`rounded-xl border p-4 text-sm ${sceneFeedback.tone === 'success' ? 'border-success-200 bg-success-50 text-success-800' : 'border-gold-300 bg-gold-100 text-gold-900'}`}>
@@ -425,7 +436,11 @@ export default function FractionsStoryModeSession() {
                   {sceneFeedback.tone === 'success' ? <Sparkles className="h-5 w-5 shrink-0" /> : <Lightbulb className="h-5 w-5 shrink-0" />}
                   <div>
                     <p className="font-semibold">{sceneFeedback.message}</p>
-                    {sceneFeedback.guidedStep ? <p className="mt-2">Focus step: {sceneFeedback.guidedStep}</p> : null}
+                    {sceneFeedback.tone !== 'success'
+                      && sceneFeedback.guidedStep
+                      && normalizeFeedbackText(sceneFeedback.guidedStep) !== normalizeFeedbackText(sceneFeedback.message)
+                      ? <p className="mt-2">{sceneFeedback.guidedStep}</p>
+                      : null}
                     {sceneFeedback.revealSolution && sceneFeedback.workedSolution?.length ? (
                       <ul className="mt-2 list-disc space-y-1 pl-5">
                         {sceneFeedback.workedSolution.map((line) => <li key={line}>{line}</li>)}
@@ -436,23 +451,22 @@ export default function FractionsStoryModeSession() {
                 </div>
               </div>
             ) : null}
-          </Card>
-        </main>
+          </main>
 
-        <aside className="space-y-3">
-          <VisualHint type={scene?.visualHintType} model={scene?.visualModel || story.barModel || {}} />
-          <GuidedStepsPanel steps={scene?.guidedSteps || []} activeStep={Math.max(0, attempts - 1)} />
-        </aside>
-      </div>
+          <aside className="hidden lg:block">
+            <VisualHint type={scene?.visualHintType} model={scene?.visualModel || story.barModel || {}} />
+          </aside>
+        </div>
+      </Card>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-hairline bg-white/95 p-3 backdrop-blur sm:static sm:mt-3 sm:border-0 sm:bg-transparent sm:p-0">
         {sceneComplete ? (
           <Button className="h-12 w-full" icon={ArrowRight} onClick={goNext}>
-            {isLast ? 'Complete mission' : 'Unlock next scene'}
+            {isLast ? 'Complete mission' : 'Next Scene'}
           </Button>
         ) : (
           <Button className="h-12 w-full" icon={ArrowRight} disabled={!String(answer || '').trim()} onClick={submitScene}>
-            Check this scene
+            Check Answer
           </Button>
         )}
       </div>

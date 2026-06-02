@@ -58,6 +58,38 @@ function extractOrderingItems(question = {}) {
   return items.length >= 2 ? items : answerItems;
 }
 
+const MATH_INSERT_TOOLS = [
+  { id: 'fraction', label: 'x/y', value: '()/()' },
+  { id: 'subscript', label: 'xₐ', value: '_{}' },
+  { id: 'power', label: 'xᵇ', value: '^{}' },
+  { id: 'subscriptPower', label: 'xₐᵇ', value: '_{}^{}' },
+  { id: 'mixed', label: 'xᵇ/a', value: ' ()/()' },
+  { id: 'root', label: 'ⁿ√x', value: '√()' },
+  { id: 'degree', label: 'x°', value: '°' },
+  { id: 'angle', label: '∠', value: '∠' },
+  { id: 'pi', label: 'π', value: 'π' },
+  { id: 'theta', label: 'θ', value: 'θ' },
+];
+
+function MathAnswerInsertTools({ disabled = false, onInsert }) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-2" aria-label="Math answer insert tools">
+      {MATH_INSERT_TOOLS.map((tool) => (
+        <button
+          key={tool.id}
+          type="button"
+          disabled={disabled}
+          onClick={() => onInsert?.(tool.value)}
+          className="grid h-10 min-w-11 place-items-center rounded-lg border border-hairline bg-orange-50 px-3 font-serif text-lg font-semibold text-orange-600 transition hover:border-orange-300 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-45"
+          title={`Insert ${tool.label}`}
+        >
+          {tool.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
   const items = useMemo(() => extractOrderingItems(question), [question]);
   const parts = String(value || '').split(',').map((item) => item.trim());
@@ -116,8 +148,13 @@ export default function AnswerInputRenderer({
 
   const inputMode = type === 'decimal' ? 'decimal' : type === 'whole_number' ? 'numeric' : 'text';
   const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : 'Answer';
+  const showMathTools = type === 'text';
+  const insertMathValue = (insertValue) => {
+    if (disabled) return;
+    onChange?.(`${String(value || '')}${insertValue}`);
+  };
   return (
-    <label className="block">
+    <div className="block">
       <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</span>
       <input
         value={value}
@@ -128,7 +165,8 @@ export default function AnswerInputRenderer({
         className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
       />
-    </label>
+      {showMathTools && <MathAnswerInsertTools disabled={disabled} onInsert={insertMathValue} />}
+    </div>
   );
 }
 
