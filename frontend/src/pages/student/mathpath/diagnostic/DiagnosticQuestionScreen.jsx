@@ -167,93 +167,103 @@ export default function DiagnosticQuestionScreen() {
   if (busy) return <Spinner label="Scoring diagnostic…" />;
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-7xl">
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono">Question {idx + 1} of {questions.length}</span>
         <span className="font-mono">{elapsed}s</span>
       </div>
       <ProgressBar value={idx} max={questions.length} className="mb-6" />
 
-      <Card className="p-6">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
-        <p className="mb-1 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
-        <div className="mb-5">
-          {expressionQuestion ? (
-            <FractionExpressionQuestion
-              prompt={q.prompt || q.stem}
-              value={answer}
-              onChange={setAnswer}
-              onEnter={() => nextQuestion(false)}
-              disabled={false}
-            />
-          ) : (
-            <div className="text-lg text-ink-900"><MathText text={q.prompt || q.stem} /></div>
-          )}
-        </div>
-        <QuestionDiagram question={q} />
-        <WorkingCanvas
-          key={`diagnostic-working-${q.questionId}`}
-          questionId={q.questionId}
-          required={workingRequirement.required}
-          allowNoWorking={workingRequirement.allowNoWorking}
-          submittedImage={currentWorking.workingImage || ''}
-          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-          onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-          onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-        />
-
-        {q.type === 'mcq' ? (
-          <div className="grid gap-2">
-            {choices.map((c, i) => (
-              <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
-                <MathText text={c} />
-              </button>
-            ))}
-          </div>
-        ) : useFractionInput && !expressionQuestion ? (
-          <AnswerInputRenderer
-            question={q}
-            value={answer}
-            onChange={setAnswer}
-            onEnter={() => nextQuestion(false)}
-          />
-        ) : (
-          <input
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Type your answer"
-            className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg"
-            onKeyDown={(e) => { if (e.key === 'Enter') nextQuestion(false); }}
-          />
-        )}
-
-        <div className="mt-4">
-          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-          <div className="grid grid-cols-2 gap-2">
-            {REFLECTION_OPTIONS.map((opt) => (
-              <button key={opt.value} onClick={() => setReflection(opt.value)} className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-3 rounded-lg border border-hairline p-3">
-            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setHelpRequested(false)} className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
-              <button type="button" onClick={() => setHelpRequested(true)} className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
+      <Card className="p-4 sm:p-6">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
+          <section className="min-w-0">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
+            <p className="mb-4 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
+            <div className="mb-5 text-lg leading-relaxed text-ink-900">
+              {expressionQuestion ? (
+                <FractionExpressionQuestion
+                  prompt={q.prompt || q.stem}
+                  value={answer}
+                  onChange={setAnswer}
+                  onEnter={() => nextQuestion(false)}
+                  disabled={false}
+                />
+              ) : (
+                <MathText text={q.prompt || q.stem} />
+              )}
             </div>
-          </div>
-        </div>
+            <QuestionDiagram question={q} />
+          </section>
 
-        {error && <p className="mt-3 text-sm text-error-700">{error}</p>}
+          <aside className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+            <WorkingCanvas
+              key={`diagnostic-working-${q.questionId}`}
+              questionId={q.questionId}
+              required={workingRequirement.required}
+              allowNoWorking={workingRequirement.allowNoWorking}
+              submittedImage={currentWorking.workingImage || ''}
+              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+            />
 
-        <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
-          <Button icon={ArrowRight} disabled={!answer || !reflection} onClick={() => nextQuestion(false)}>
-            {isLast ? 'Submit Diagnostic' : 'Next Question'}
-          </Button>
+            <div className="mt-4 rounded-xl bg-white p-3">
+              <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
+              {q.type === 'mcq' ? (
+                <div className="grid gap-2">
+                  {choices.map((c, i) => (
+                    <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+                      <MathText text={c} />
+                    </button>
+                  ))}
+                </div>
+              ) : useFractionInput && !expressionQuestion ? (
+                <AnswerInputRenderer
+                  question={q}
+                  value={answer}
+                  onChange={setAnswer}
+                  onEnter={() => nextQuestion(false)}
+                />
+              ) : (
+                <input
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  placeholder="Type your answer"
+                  className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg"
+                  onKeyDown={(e) => { if (e.key === 'Enter') nextQuestion(false); }}
+                />
+              )}
+            </div>
+
+            <div className="mt-4 rounded-xl bg-white p-3">
+              <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
+              <div className="grid grid-cols-2 gap-2">
+                {REFLECTION_OPTIONS.map((opt) => (
+                  <button key={opt.value} onClick={() => setReflection(opt.value)} className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 rounded-lg border border-hairline p-3">
+                <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setHelpRequested(false)} className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
+                  <button type="button" onClick={() => setHelpRequested(true)} className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
+                </div>
+              </div>
+            </div>
+
+            {error && <p className="mt-3 text-sm text-error-700">{error}</p>}
+
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
+              <Button icon={ArrowRight} disabled={!answer || !reflection || !workingReady} onClick={() => nextQuestion(false)}>
+                {isLast ? 'Submit Diagnostic' : 'Next Question'}
+              </Button>
+            </div>
+          </aside>
         </div>
       </Card>
     </div>

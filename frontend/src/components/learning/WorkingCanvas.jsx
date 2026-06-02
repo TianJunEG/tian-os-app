@@ -1,11 +1,20 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Grid } from 'lucide-react';
+import { Check, Grid, Paperclip } from 'lucide-react';
 import { Button, Badge } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
 
 const CANVAS_WIDTH = 900;
 const CANVAS_HEIGHT = 320;
 const EMPTY_STROKES = [];
+const MATH_STAMPS = [
+  { id: 'fraction', label: 'x/y' },
+  { id: 'subscript', label: 'xₐ' },
+  { id: 'power', label: 'xᵇ' },
+  { id: 'mixed', label: 'b/a' },
+  { id: 'root', label: 'ⁿ√x' },
+  { id: 'angle', label: '∠' },
+  { id: 'pi', label: 'π' },
+];
 
 export function resolveWorkingRequirement(question = {}, sessionType = 'practice') {
   const explicitRequired = question.requiresWorking ?? question.workingRequired;
@@ -41,6 +50,10 @@ export function resolveWorkingRequirement(question = {}, sessionType = 'practice
 }
 
 function drawStroke(ctx, stroke) {
+  if (stroke?.tool === 'stamp') {
+    drawMathStamp(ctx, stroke);
+    return;
+  }
   const points = stroke?.points || [];
   if (points.length < 2) return;
   ctx.save();
@@ -54,6 +67,54 @@ function drawStroke(ctx, stroke) {
   ctx.moveTo(points[0].x, points[0].y);
   points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
   ctx.stroke();
+  ctx.restore();
+}
+
+function drawMathStamp(ctx, stroke) {
+  const point = stroke?.points?.[0] || { x: 40, y: 56 };
+  const colour = stroke.colour || '#f97316';
+  ctx.save();
+  ctx.strokeStyle = colour;
+  ctx.fillStyle = colour;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.font = '30px Georgia, serif';
+  const x = point.x;
+  const y = point.y;
+  if (stroke.template === 'fraction') {
+    ctx.fillText('x', x + 16, y - 14);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + 58, y);
+    ctx.stroke();
+    ctx.fillText('y', x + 16, y + 36);
+  } else if (stroke.template === 'subscript') {
+    ctx.fillText('x', x, y);
+    ctx.font = '20px Georgia, serif';
+    ctx.fillText('a', x + 25, y + 10);
+  } else if (stroke.template === 'power') {
+    ctx.fillText('x', x, y + 10);
+    ctx.font = '20px Georgia, serif';
+    ctx.fillText('b', x + 25, y - 10);
+  } else if (stroke.template === 'mixed') {
+    ctx.fillText('b', x, y + 10);
+    ctx.font = '24px Georgia, serif';
+    ctx.fillText('a', x + 34, y - 12);
+    ctx.beginPath();
+    ctx.moveTo(x + 28, y);
+    ctx.lineTo(x + 74, y);
+    ctx.stroke();
+    ctx.fillText('c', x + 42, y + 30);
+  } else if (stroke.template === 'root') {
+    ctx.fillText('√x', x + 14, y + 8);
+    ctx.font = '16px Georgia, serif';
+    ctx.fillText('n', x, y - 6);
+  } else if (stroke.template === 'angle') {
+    ctx.fillText('∠', x, y + 10);
+  } else if (stroke.template === 'pi') {
+    ctx.fillText('π', x, y + 10);
+  }
   ctx.restore();
 }
 
@@ -104,6 +165,7 @@ export default function WorkingCanvas({
 }) {
   const canvasRef = useRef(null);
   const scrollRef = useRef(null);
+  const fileInputRef = useRef(null);
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
   const [tool, setTool] = useState('pen');
@@ -115,6 +177,7 @@ export default function WorkingCanvas({
   const [zoom, setZoom] = useState(1);
   const [submitted, setSubmitted] = useState(initialSubmitted ?? Boolean(submittedImage || submittedStrokes?.length));
   const [notNeeded, setNotNeeded] = useState(Boolean(initialWorkingNotNeeded));
+  const [attachedImage, setAttachedImage] = useState(submittedImage || '');
 
   const status = useMemo(() => {
     if (readOnly) return 'Review';
@@ -153,6 +216,7 @@ export default function WorkingCanvas({
     setRedoStack([]);
     setSubmitted(nextSubmitted);
     setNotNeeded(nextNotNeeded);
+    setAttachedImage(submittedImage || '');
     setZoom(1);
     scrollRef.current?.scrollTo?.({ left: 0, top: 0 });
     redraw(nextStrokes, submittedImage);
@@ -255,13 +319,14 @@ export default function WorkingCanvas({
   };
 
   const submit = () => {
-    const image = exportCanvas(canvasRef.current, background);
+    const image = attachedImage || exportCanvas(canvasRef.current, background);
     const payload = {
       workingImage: image,
       workingStrokes: strokes,
       workingSubmitted: true,
       workingSubmittedAt: new Date().toISOString(),
       workingNotNeeded: false,
+      source: attachedImage ? 'photo_attachment' : 'canvas_working',
     };
     setSubmitted(true);
     setNotNeeded(false);
@@ -283,6 +348,51 @@ export default function WorkingCanvas({
     emitChange(payload);
   };
 
+  const insertMathStamp = (template) => {
+    const stampCount = strokes.filter((stroke) => stroke.tool === 'stamp').length;
+    const nextStroke = {
+      tool: 'stamp',
+      template,
+      colour: '#f97316',
+      size: 4,
+      points: [{
+        x: 36 + ((stampCount % 7) * 96),
+        y: 72 + (Math.floor(stampCount / 7) * 76),
+      }],
+    };
+    const nextStrokes = [...strokes, nextStroke];
+    setStrokes(nextStrokes);
+    setRedoStack([]);
+    setSubmitted(false);
+    setNotNeeded(false);
+    emitChange({ workingSubmitted: false, workingNotNeeded: false, workingStrokes: nextStrokes });
+  };
+
+  const attachPhoto = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = String(reader.result || '');
+      const payload = {
+        workingImage: image,
+        workingStrokes: strokes,
+        workingSubmitted: true,
+        workingSubmittedAt: new Date().toISOString(),
+        workingNotNeeded: false,
+        source: 'photo_attachment',
+        attachedFileName: file.name,
+      };
+      setAttachedImage(image);
+      setSubmitted(true);
+      setNotNeeded(false);
+      onSubmit?.(payload);
+      emitChange(payload);
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  };
+
   if (readOnly) {
     return (
       <div className="rounded-xl border border-hairline bg-white p-4">
@@ -300,7 +410,7 @@ export default function WorkingCanvas({
   }
 
   return (
-    <div className="mt-5 rounded-xl border border-hairline bg-white p-3 sm:p-4" data-testid="working-canvas">
+    <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4" data-testid="working-canvas">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-sm font-semibold text-navy-700">{label}</p>
@@ -314,6 +424,20 @@ export default function WorkingCanvas({
           <p className="mt-1 text-xs">Write this code at the top of your working page before taking a photo.</p>
         </div>
       )}
+
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <Button size="s" variant="ghost" icon={Paperclip} onClick={() => fileInputRef.current?.click()}>
+          Attach photo
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={attachPhoto}
+        />
+        {attachedImage && <Badge tone="success">Photo attached</Badge>}
+      </div>
 
       <div className="mb-3 space-y-2">
         <WorkingToolbar
@@ -338,6 +462,12 @@ export default function WorkingCanvas({
         </Button>
       </div>
 
+      {attachedImage && (
+        <div className="mb-3 rounded-lg border border-hairline bg-slate-50 p-2">
+          <img src={attachedImage} alt="Attached working photo" className="max-h-40 w-full rounded-md object-contain" />
+        </div>
+      )}
+
       <div ref={scrollRef} className={`overflow-auto rounded-lg border border-hairline ${background === 'grid' ? 'bg-[linear-gradient(#dbe4ef_1px,transparent_1px),linear-gradient(90deg,#dbe4ef_1px,transparent_1px)] bg-[size:24px_24px]' : 'bg-[repeating-linear-gradient(0deg,#fff,#fff_31px,#e8eef7_32px)]'}`}>
         <canvas
           ref={canvasRef}
@@ -354,11 +484,25 @@ export default function WorkingCanvas({
         />
       </div>
 
+      <div className="mt-3 flex flex-wrap gap-2" aria-label="Math insert tools">
+        {MATH_STAMPS.map((stamp) => (
+          <button
+            key={stamp.id}
+            type="button"
+            onClick={() => insertMathStamp(stamp.id)}
+            className="grid h-11 min-w-12 place-items-center rounded-lg border border-hairline bg-orange-50 px-3 font-serif text-xl font-semibold text-orange-600 hover:border-orange-300 hover:bg-orange-100"
+            title={`Insert ${stamp.label}`}
+          >
+            {stamp.label}
+          </button>
+        ))}
+      </div>
+
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {allowNoWorking && (
           <Button size="s" variant="secondary" onClick={markNotNeeded}>Working not needed</Button>
         )}
-        <Button size="s" icon={Check} disabled={!strokes.length} onClick={submit} className={allowNoWorking ? '' : 'sm:col-span-2'}>
+        <Button size="s" icon={Check} disabled={!strokes.length && !attachedImage} onClick={submit} className={allowNoWorking ? '' : 'sm:col-span-2'}>
           {submitted ? 'Redo/Edit workings' : 'Submit workings'}
         </Button>
       </div>

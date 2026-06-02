@@ -320,7 +320,7 @@ function LegacyPracticeSession() {
   };
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-7xl">
       <div className="mb-3 rounded-xl border border-hairline bg-white px-3 py-2 text-sm text-ink-700">
         <p className="font-semibold">{sessionMeta.label}</p>
         <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
@@ -912,167 +912,177 @@ export default function PracticeSession() {
       </div>
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" />
 
-      <Card className="flex min-h-[34rem] flex-col p-6">
-        <div ref={questionSurfaceRef} className="relative">
-          <div className="mb-6 text-lg leading-relaxed text-ink-900">
-            {expressionQuestion ? (
-              <FractionExpressionQuestion
-                prompt={q.prompt || q.stem || ''}
-                value={answer}
-                onChange={setAnswer}
-                disabled={answered}
-                onEnter={() => {
-                  if (!answered) onSubmitCurrent();
-                }}
-              />
-            ) : (
-              <MathText text={q.prompt || q.stem} />
-            )}
-          </div>
-          <QuestionDiagram question={q} />
-          <VisualBlock visual={q.visual} />
-          {(doodleMode || currentDoodle.workingSubmitted) && (
-            <QuestionAnnotationOverlay
-              key={`doodle-${q.questionId}`}
-              questionId={q.questionId}
-              targetRef={questionSurfaceRef}
-              active={doodleMode}
-              initialPayload={currentDoodle}
-              onActivate={setDoodleMode}
-              onChange={(payload) => setDoodleByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-            />
-          )}
-        </div>
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Button size="s" variant={doodleMode ? 'primary' : 'secondary'} icon={PencilLine} onClick={() => setDoodleMode((prev) => !prev)}>
-            {doodleMode ? 'Exit Doodle' : 'Doodle'}
-          </Button>
-          <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
-            Open Working
-          </Button>
-        </div>
-        <WorkingAttachmentPreview
-          evidence={currentFullscreenWorking}
-          onAddAnother={() => setFullscreenQuestionId(q.questionId)}
-          onEdit={() => setFullscreenQuestionId(q.questionId)}
-          onDelete={() => setFullscreenWorkingByQuestion((prev) => {
-            const next = { ...prev };
-            delete next[q.questionId];
-            return next;
-          })}
-        />
-        <WorkingCanvas
-          key={`working-${q.questionId}`}
-          questionId={q.questionId}
-          workingCode={workingCodeByQuestion[q.questionId] || ''}
-          required={workingRequirement.required}
-          allowNoWorking={workingRequirement.allowNoWorking}
-          submittedImage={currentWorking.workingImage || ''}
-          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-          onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-          onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-        />
-
-        {q.type === 'mcq' ? (
-          <div className="grid gap-2">
-            {choices.map((c, i) => (
-              <button key={`${i}-${c}`} disabled={answered} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
-                <MathText text={c} />
-              </button>
-            ))}
-          </div>
-        ) : useFractionInput && !expressionQuestion ? (
-          <AnswerInputRenderer
-            question={q}
-            value={answer}
-            onChange={setAnswer}
-            disabled={answered}
-            onEnter={() => {
-              if (!answered && reflection) onSubmitCurrent();
-            }}
-          />
-        ) : (
-          <input
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            disabled={answered}
-            placeholder="Type your answer (e.g. 3/4)"
-            className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
-          />
-        )}
-
-        <div className="mt-4">
-          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-          <div className="grid grid-cols-2 gap-2">
-            {REFLECTION_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                disabled={answered}
-                onClick={() => setReflection(opt.value)}
-                className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-3 rounded-lg border border-hairline p-3">
-            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                disabled={answered}
-                onClick={() => setHelpRequested(false)}
-                className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
-              >
-                No
-              </button>
-              <button
-                type="button"
-                disabled={answered}
-                onClick={() => setHelpRequested(true)}
-                className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
-              >
-                Yes, I need help
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-5 min-h-[72px]">
-          {feedback && (
-            <div className={`rounded-xl p-4 ${feedback.correct ? 'bg-success-100' : 'bg-error-100'}`}>
-              <div className={`flex items-center gap-2 font-semibold ${feedback.correct ? 'text-success-700' : 'text-error-700'}`}>
-                {feedback.correct ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
-                {feedback.correct ? 'Correct' : feedback.skipped ? 'Skipped' : 'Review'}
+      <Card className="p-4 sm:p-6">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
+          <section className="min-w-0">
+            <div ref={questionSurfaceRef} className="relative">
+              <div className="mb-6 text-lg leading-relaxed text-ink-900">
+                {expressionQuestion ? (
+                  <FractionExpressionQuestion
+                    prompt={q.prompt || q.stem || ''}
+                    value={answer}
+                    onChange={setAnswer}
+                    disabled={answered}
+                    onEnter={() => {
+                      if (!answered) onSubmitCurrent();
+                    }}
+                  />
+                ) : (
+                  <MathText text={q.prompt || q.stem} />
+                )}
               </div>
-              <p className="mt-1 text-sm text-ink-700">{feedback.message}</p>
-              {!feedback.correct && feedback.correctAnswer && (
-                <p className="mt-1 text-sm text-ink-700">Answer: <MathText text={feedback.correctAnswer} className="font-mono font-semibold" /></p>
+              <QuestionDiagram question={q} />
+              <VisualBlock visual={q.visual} />
+              {(doodleMode || currentDoodle.workingSubmitted) && (
+                <QuestionAnnotationOverlay
+                  key={`doodle-${q.questionId}`}
+                  questionId={q.questionId}
+                  targetRef={questionSurfaceRef}
+                  active={doodleMode}
+                  initialPayload={currentDoodle}
+                  onActivate={setDoodleMode}
+                  onChange={(payload) => setDoodleByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+                />
               )}
             </div>
-          )}
-        </div>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <Button size="s" variant={doodleMode ? 'primary' : 'secondary'} icon={PencilLine} onClick={() => setDoodleMode((prev) => !prev)}>
+                {doodleMode ? 'Exit Doodle' : 'Doodle'}
+              </Button>
+              <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
+                Full-screen working
+              </Button>
+            </div>
+            <WorkingAttachmentPreview
+              evidence={currentFullscreenWorking}
+              onAddAnother={() => setFullscreenQuestionId(q.questionId)}
+              onEdit={() => setFullscreenQuestionId(q.questionId)}
+              onDelete={() => setFullscreenWorkingByQuestion((prev) => {
+                const next = { ...prev };
+                delete next[q.questionId];
+                return next;
+              })}
+            />
+          </section>
 
-        {!workingReady && (
-          <p className="mt-4 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-            This question needs working. Please save your working, doodle on the question, or upload a photo before submitting.
-          </p>
-        )}
+          <aside className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+            <WorkingCanvas
+              key={`working-${q.questionId}`}
+              questionId={q.questionId}
+              workingCode={workingCodeByQuestion[q.questionId] || ''}
+              required={workingRequirement.required}
+              allowNoWorking={workingRequirement.allowNoWorking}
+              submittedImage={currentWorking.workingImage || ''}
+              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+            />
 
-        <div className="mt-auto grid grid-cols-1 gap-2 pt-5 sm:grid-cols-2">
-          {!answered ? (
-            <>
-              <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
-              <Button disabled={busy || !answer || !reflection || !workingReady} onClick={onSubmitCurrent}>Submit answer</Button>
-            </>
-          ) : (
-            <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
-              {isLast ? sessionMeta.finishLabel : 'Next question'}
-            </Button>
-          )}
+            <div className="mt-4 rounded-xl bg-white p-3">
+              <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
+              {q.type === 'mcq' ? (
+                <div className="grid gap-2">
+                  {choices.map((c, i) => (
+                    <button key={`${i}-${c}`} disabled={answered} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+                      <MathText text={c} />
+                    </button>
+                  ))}
+                </div>
+              ) : useFractionInput && !expressionQuestion ? (
+                <AnswerInputRenderer
+                  question={q}
+                  value={answer}
+                  onChange={setAnswer}
+                  disabled={answered}
+                  onEnter={() => {
+                    if (!answered && reflection) onSubmitCurrent();
+                  }}
+                />
+              ) : (
+                <input
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  disabled={answered}
+                  placeholder="Type your answer (e.g. 3/4)"
+                  className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+                />
+              )}
+            </div>
+
+            <div className="mt-4 rounded-xl bg-white p-3">
+              <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
+              <div className="grid grid-cols-2 gap-2">
+                {REFLECTION_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    disabled={answered}
+                    onClick={() => setReflection(opt.value)}
+                    className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3 rounded-lg border border-hairline p-3">
+                <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={answered}
+                    onClick={() => setHelpRequested(false)}
+                    className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                  >
+                    No
+                  </button>
+                  <button
+                    type="button"
+                    disabled={answered}
+                    onClick={() => setHelpRequested(true)}
+                    className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                  >
+                    Yes, I need help
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 min-h-[72px]">
+              {feedback && (
+                <div className={`rounded-xl p-4 ${feedback.correct ? 'bg-success-100' : 'bg-error-100'}`}>
+                  <div className={`flex items-center gap-2 font-semibold ${feedback.correct ? 'text-success-700' : 'text-error-700'}`}>
+                    {feedback.correct ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                    {feedback.correct ? 'Correct' : feedback.skipped ? 'Skipped' : 'Review'}
+                  </div>
+                  <p className="mt-1 text-sm text-ink-700">{feedback.message}</p>
+                  {!feedback.correct && feedback.correctAnswer && (
+                    <p className="mt-1 text-sm text-ink-700">Answer: <MathText text={feedback.correctAnswer} className="font-mono font-semibold" /></p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {!workingReady && (
+              <p className="mt-4 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
+                This question needs working. Please save your working, doodle on the question, or upload a photo before submitting.
+              </p>
+            )}
+
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {!answered ? (
+                <>
+                  <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
+                  <Button disabled={busy || !answer || !reflection || !workingReady} onClick={onSubmitCurrent}>Submit answer</Button>
+                </>
+              ) : (
+                <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
+                  {isLast ? sessionMeta.finishLabel : 'Next question'}
+                </Button>
+              )}
+            </div>
+          </aside>
         </div>
       </Card>
       <FullScreenWorkingMode
