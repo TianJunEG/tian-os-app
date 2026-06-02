@@ -334,6 +334,7 @@ export default function MathPathHome() {
           : 'Challenge';
     return { ...row, readinessLabel: label };
   });
+  const modePreviewLabels = [...new Set(modePreviewRows.map((row) => row.readinessLabel).filter(Boolean))].slice(0, 3);
   const previewLevels = [...new Set(
     [
       ...(topics || []).map((t) => t.moeLevel).filter(Boolean),
@@ -422,12 +423,12 @@ export default function MathPathHome() {
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Explore Skills</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Browse readiness across fractions.</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {modePreviewRows.length ? modePreviewRows.slice(0, 3).map((row) => (
+              {modePreviewLabels.length ? modePreviewLabels.map((label) => (
                 <Badge
-                  key={`preview-${row.skillId}`}
-                  tone={row.readinessLabel === 'Recommended' ? 'navy' : row.readinessLabel === 'Ready' ? 'success' : row.readinessLabel === 'Challenge' ? 'gold' : 'neutral'}
+                  key={`preview-${label}`}
+                  tone={label === 'Recommended' ? 'navy' : label === 'Ready' ? 'success' : label === 'Challenge' ? 'gold' : 'neutral'}
                 >
-                  {row.readinessLabel}
+                  {label}
                 </Badge>
               )) : <Badge tone="neutral">Ready</Badge>}
             </div>
