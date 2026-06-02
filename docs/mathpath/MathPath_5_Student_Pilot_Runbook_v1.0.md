@@ -127,6 +127,8 @@ Exit gate:
 
 ## Operational Commands (Reference)
 
+- Generate daily MathPath Fractions pilot monitor report:
+  - `MONGODB_URI=mongodb://127.0.0.1:27017/tutor-match node scripts/mathpathPilotMonitorReport.js`
 - Generate pilot summary:
   - `buildPilotSummary({ pilotId, domainId: "fractions" })`
 - Validate feedback engine:

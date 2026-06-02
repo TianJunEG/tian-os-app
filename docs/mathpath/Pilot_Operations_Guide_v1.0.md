@@ -111,6 +111,26 @@ Integrated from Step 28 outcome tracking:
 
 ---
 
+## MathPath Fractions Pilot Monitor
+
+During the supervised Fractions pilot, use the admin dashboard `MathPath Pilot` tab or generate a daily snapshot:
+
+```bash
+MONGODB_URI=mongodb://127.0.0.1:27017/tutor-match node scripts/mathpathPilotMonitorReport.js
+```
+
+The report writes to `docs/mathpath/pilot/logs/` and tracks:
+- pilot/test student activity
+- diagnostic completion
+- completed practice sessions
+- captured attempts and accuracy
+- mistake count
+- working submission status
+- help requests
+- support risk: `OK`, `Watch`, or `Needs follow-up`
+
+---
+
 ## Pilot Summary Payload
 
 `buildPilotSummary()` returns:
@@ -206,4 +226,3 @@ Pilot ops quality is acceptable when:
 - summary payload generates reliably
 - outcome metrics are populated for active students
 - parent/student satisfaction trends are measurable
-
