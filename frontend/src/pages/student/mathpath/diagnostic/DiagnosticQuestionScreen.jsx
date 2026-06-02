@@ -36,6 +36,7 @@ export default function DiagnosticQuestionScreen() {
   const [hydrating, setHydrating] = useState(false);
   const [workingByQuestion, setWorkingByQuestion] = useState({});
   const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
+  const [showInlineWorking, setShowInlineWorking] = useState(false);
 
   const [session, setSession] = useState(location.state?.session || null);
   const [questions, setQuestions] = useState(() => repairFractionQuestions(location.state?.questions || []));
@@ -68,6 +69,7 @@ export default function DiagnosticQuestionScreen() {
     const questionStart = Date.now();
     setStartedAt(questionStart);
     setElapsed(0);
+    setShowInlineWorking(false);
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - questionStart) / 1000)), 250);
     return () => clearInterval(t);
   }, [idx, questions.length, session]);
@@ -227,29 +229,53 @@ export default function DiagnosticQuestionScreen() {
               )}
             </div>
 
-            <div className="mt-3 flex justify-end">
-              <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
-                Open Working
-              </Button>
+            <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-ink-800">Working</p>
+                  <p className="text-xs text-ink-500">
+                    {workingRequirement.required
+                      ? 'Required for this question. Use full-screen for more room.'
+                      : 'Optional. Use it only if it helps.'}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="s" variant="secondary" onClick={() => setShowInlineWorking((value) => !value)}>
+                    {showInlineWorking ? 'Hide canvas' : 'Show canvas'}
+                  </Button>
+                  <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
+                    Open Working
+                  </Button>
+                </div>
+              </div>
+              {(currentWorking.workingSubmitted || currentWorking.workingNotNeeded) && (
+                <p className="mt-2 rounded-lg bg-success-50 px-3 py-2 text-xs font-semibold text-success-700">
+                  {currentWorking.workingNotNeeded ? 'Marked as working not needed.' : 'Working saved for this answer.'}
+                </p>
+              )}
             </div>
-            <WorkingCanvas
-              key={`diagnostic-working-${q.questionId}`}
-              questionId={q.questionId}
-              required={workingRequirement.required}
-              allowNoWorking={workingRequirement.allowNoWorking}
-              compact
-              showMathStamps={false}
-              submittedImage={currentWorking.workingImage || ''}
-              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-            />
+            {showInlineWorking && (
+              <div className="mt-3">
+                <WorkingCanvas
+                  key={`diagnostic-working-${q.questionId}`}
+                  questionId={q.questionId}
+                  required={workingRequirement.required}
+                  allowNoWorking={workingRequirement.allowNoWorking}
+                  compact
+                  showMathStamps={false}
+                  submittedImage={currentWorking.workingImage || ''}
+                  submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+                  initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+                  initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+                  onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+                  onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
+                />
+              </div>
+            )}
 
-            <div className="mt-4 rounded-xl bg-white p-3">
+            <div className="mt-3 rounded-xl bg-white p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {REFLECTION_OPTIONS.map((opt) => (
                   <button key={opt.value} onClick={() => setReflection(opt.value)} className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
                     {opt.label}
@@ -258,7 +284,7 @@ export default function DiagnosticQuestionScreen() {
               </div>
               <div className="mt-3 rounded-lg border border-hairline p-3">
                 <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <button type="button" onClick={() => setHelpRequested(false)} className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
                   <button type="button" onClick={() => setHelpRequested(true)} className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
                 </div>
@@ -267,7 +293,7 @@ export default function DiagnosticQuestionScreen() {
 
             {error && <p className="mt-3 text-sm text-error-700">{error}</p>}
 
-            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
               <Button icon={ArrowRight} disabled={!answer || !reflection || !workingReady} onClick={() => nextQuestion(false)}>
                 {isLast ? 'Submit Diagnostic' : 'Next Question'}
