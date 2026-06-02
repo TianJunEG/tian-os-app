@@ -188,6 +188,39 @@ function orderedSubtractionPair(a, b) {
   return compareFractions(a, b) >= 0 ? [a, b] : [b, a];
 }
 
+function integerFriendlyTotal(seed, min, max, fractions = []) {
+  const span = max - min + 1;
+  for (let offset = 0; offset < span; offset += 1) {
+    const candidate = min + ((Math.abs(seed) + offset) % span);
+    let amount = candidate;
+    let valid = true;
+    for (const f of fractions) {
+      const used = (amount * f.numerator) / f.denominator;
+      if (!Number.isInteger(used)) {
+        valid = false;
+        break;
+      }
+      amount -= used;
+    }
+    if (valid && Number.isInteger(amount)) return { total: candidate, final: amount };
+  }
+  const denominatorProduct = fractions.reduce((product, f) => product * Math.max(1, f.denominator), 1);
+  const total = denominatorProduct * Math.max(1, Math.ceil(min / denominatorProduct));
+  let amount = total;
+  fractions.forEach((f) => {
+    amount -= (amount * f.numerator) / f.denominator;
+  });
+  return { total, final: amount };
+}
+
+function multipleInRange(seed, min, max, factor) {
+  const safeFactor = Math.max(1, Number(factor) || 1);
+  const low = Math.ceil(min / safeFactor);
+  const high = Math.floor(max / safeFactor);
+  if (high < low) return safeFactor * Math.max(1, low);
+  return safeFactor * seq(seed, low, high);
+}
+
 function fracStr(f) {
   const s = simplifyFraction(f.numerator, f.denominator);
   if (s.denominator === 1) return String(s.numerator);
@@ -667,7 +700,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 5, n + 1, 10);
         const greater = a <= b ? `${n}/${a}` : `${n}/${b}`;
         return {
-          prompt: `Two bars each show ${n} equal parts shaded, with totals ${a} and ${b} parts. Which fraction is larger?`,
+          prompt: `Compare ${n}/${a} and ${n}/${b}. Which fraction is larger?`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
           solutionSteps: ['Same numerator means same number of parts selected.', 'Larger part size comes from smaller denominator.', `Answer: ${greater}.`],
@@ -916,11 +949,9 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F024': {
-      const total = seq(s, 24, 72);
       const f1 = frac(1, [2, 3, 4][Math.abs(s) % 3]);
-      const after1 = total - (total * f1.numerator) / f1.denominator;
       const f2 = frac(1, [2, 3, 4][Math.abs(s + 2) % 3]);
-      const final = after1 - (after1 * f2.numerator) / f2.denominator;
+      const { total, final } = integerFriendlyTotal(s, 24, 72, [f1, f2]);
       return {
         prompt: `A class completed ${fracStr(f1)} of ${total} problems, then ${fracStr(f2)} of the remainder. How many problems are still unfinished?`,
         answer: answerPayloadWhole(final),
@@ -976,8 +1007,8 @@ function templateForSkill(skillId, variant, ctx) {
           solutionSteps: ['Division can be written as a fraction.', `${y} ÷ 5 = ${y}/5.`],
         };
       }
-      const total = seq(s, 30, 90);
       const f = frac([1, 2, 3][Math.abs(s) % 3], [3, 4, 5][Math.abs(s + 1) % 3]);
+      const total = multipleInRange(s, 30, 90, f.denominator);
       const ans = (total * f.numerator) / f.denominator;
       return {
         prompt: `Mastery challenge: ${fracStr(f)} of ${total} students passed. How many students passed?`,
@@ -1222,11 +1253,14 @@ export function validateFractionQuestionGenerator() {
   const hasSolutionSteps = allQuestions.every((q) => Array.isArray(q.solutionSteps) && q.solutionSteps.length > 0);
   const workingRuleCorrect = allQuestions.every((q) => {
     const f = getQuestionFamily(q.questionFamilyId);
-    return f ? q.workingRequired === (f.mentalMathEligible ? false : !!f.workingRequired) : false;
+    return f ? q.workingRequired === shouldRequireWorkingForGeneratedQuestion(q.skillId, q.questionCategory, f) : false;
   });
   const mentalRuleCorrect = allQuestions
     .filter((q) => getQuestionFamily(q.questionFamilyId)?.mentalMathEligible)
-    .every((q) => q.workingRequired === false);
+    .every((q) => {
+      const f = getQuestionFamily(q.questionFamilyId);
+      return q.workingRequired === shouldRequireWorkingForGeneratedQuestion(q.skillId, q.questionCategory, f);
+    });
   const answerCheckFraction = checkFractionAnswer({ studentAnswer: '2/4', correctAnswer: '1/2', acceptedAnswers: [] }).correct;
   const answerCheckMixed = checkFractionAnswer({ studentAnswer: '1 2/3', correctAnswer: '5/3', acceptedAnswers: [] }).correct;
   const answerCheckWhole = checkFractionAnswer({ studentAnswer: '4', correctAnswer: '4', acceptedAnswers: [] }).correct;
