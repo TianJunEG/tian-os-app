@@ -31,10 +31,11 @@ export function resolveWorkingRequirement(question = {}, sessionType = 'practice
   }
 
   if (normalizedSession === 'diagnostic') {
+    const required = explicitRequired === true && question.mentalMathEligible !== true;
     return {
-      required: explicitRequired === true,
-      allowNoWorking: explicitAllowNoWorking !== false,
-      type: type || (explicitRequired ? 'calculation' : 'optional'),
+      required,
+      allowNoWorking: required ? explicitAllowNoWorking !== false : true,
+      type: type || (required ? 'calculation' : 'optional'),
     };
   }
 
@@ -485,7 +486,7 @@ export default function WorkingCanvas({
           ref={canvasRef}
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
-          className={`block touch-none rounded-lg ${canvasClassName || (compact ? 'h-[320px] sm:h-[360px]' : 'h-[220px] sm:h-[260px]')}`}
+          className={`block touch-none rounded-lg ${canvasClassName || (compact ? 'h-[120px] sm:h-[150px]' : 'h-[220px] sm:h-[260px]')}`}
           style={{ width: `${zoom * 100}%`, minWidth: '100%' }}
           onPointerDown={beginStroke}
           onPointerMove={moveStroke}

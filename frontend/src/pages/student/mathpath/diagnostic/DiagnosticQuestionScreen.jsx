@@ -224,15 +224,13 @@ export default function DiagnosticQuestionScreen() {
               )}
             </div>
 
-            <div className="mt-4">
-              <p className="text-sm font-semibold text-ink-800">Show your working</p>
-              <p className="mb-3 text-xs text-ink-500">Use this for rough working, or attach a photo.</p>
-            </div>
             <WorkingCanvas
               key={`diagnostic-working-${q.questionId}`}
               questionId={q.questionId}
               required={workingRequirement.required}
               allowNoWorking={workingRequirement.allowNoWorking}
+              compact
+              showMathStamps={false}
               submittedImage={currentWorking.workingImage || ''}
               submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
               initialSubmitted={Boolean(currentWorking.workingSubmitted)}

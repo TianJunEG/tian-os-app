@@ -72,6 +72,7 @@ describe('WorkingCanvas', () => {
     expect(resolveWorkingRequirement({ mentalMathEligible: true }, 'practice').required).toBe(false);
     expect(resolveWorkingRequirement({}, 'diagnostic').required).toBe(false);
     expect(resolveWorkingRequirement({ requiresWorking: true }, 'diagnostic').required).toBe(true);
+    expect(resolveWorkingRequirement({ requiresWorking: true, mentalMathEligible: true }, 'diagnostic').required).toBe(false);
   });
 
   it('renders read-only submitted working', () => {
