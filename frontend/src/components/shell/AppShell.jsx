@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, LogOut, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
@@ -73,7 +73,9 @@ export default function AppShell({ children }) {
   const { loading, role } = useWorkspace();
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const set = NAV[role] || NAV.student;
+  const activityShell = /^\/student\/mathpath\/(?:diagnostic\/session|practice\/|assessment\/session|fractions\/similar-practice)/.test(location.pathname);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -82,7 +84,7 @@ export default function AppShell({ children }) {
   return (
     <div className="min-h-screen bg-ivory font-ui text-ink-700">
       {/* Sidebar — desktop/tablet */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-hairline bg-paper px-4 py-5 md:flex">
+      <aside className={`fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-hairline bg-paper px-4 py-5 md:flex ${activityShell ? 'md:hidden' : ''}`}>
         <div className="px-2"><Wordmark /></div>
         <nav className="mt-8 flex flex-1 flex-col gap-4">
           {set.sidebar.map((entry) => (
@@ -110,16 +112,37 @@ export default function AppShell({ children }) {
       </aside>
 
       {/* Main column */}
-      <div className="md:pl-60">
+      <div className={activityShell ? '' : 'md:pl-60'}>
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-hairline bg-paper/90 px-4 backdrop-blur sm:px-6">
-          <div className="md:hidden"><Wordmark /></div>
+          <div className={activityShell ? '' : 'md:hidden'}><Wordmark /></div>
+          {activityShell && (
+            <nav className="hidden items-center gap-1 md:flex">
+              {set.sidebar.slice(0, 5).map((entry) => (
+                entry.items ? null : (
+                  <NavLink
+                    key={entry.to}
+                    to={entry.to}
+                    end={entry.end !== false}
+                    className={({ isActive }) => `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${isActive ? 'bg-navy-50 text-navy-700' : 'text-ink-500 hover:bg-navy-50 hover:text-navy-700'}`}
+                  >
+                    <entry.icon className="h-[17px] w-[17px]" />{entry.label}
+                  </NavLink>
+                )
+              ))}
+            </nav>
+          )}
           <div className="ml-auto flex items-center gap-2">
             <RoleSwitcher />
             <WorkspaceSwitcher />
+            {activityShell && (
+              <button onClick={handleLogout} className="hidden items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-ink-500 hover:bg-navy-50 md:flex">
+                <LogOut className="h-[17px] w-[17px]" />Sign out
+              </button>
+            )}
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 pb-28 pt-6 sm:px-6 md:pb-10">{children}</main>
+        <main className={`mx-auto px-4 pb-28 pt-6 sm:px-6 md:pb-10 ${activityShell ? 'max-w-[96rem]' : 'max-w-6xl'}`}>{children}</main>
       </div>
 
       {/* Bottom nav — mobile */}

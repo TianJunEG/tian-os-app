@@ -913,7 +913,7 @@ export default function PracticeSession() {
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" />
 
       <Card className="p-4 sm:p-6">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(28rem,1.1fr)]">
           <section className="min-w-0">
             <div ref={questionSurfaceRef} className="relative">
               <div className="mb-6 text-lg leading-relaxed text-ink-900">

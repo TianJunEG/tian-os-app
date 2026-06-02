@@ -175,7 +175,7 @@ export default function DiagnosticQuestionScreen() {
       <ProgressBar value={idx} max={questions.length} className="mb-6" />
 
       <Card className="p-4 sm:p-6">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(24rem,0.95fr)]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(28rem,1.1fr)]">
           <section className="min-w-0">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
             <p className="mb-4 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>

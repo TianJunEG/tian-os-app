@@ -43,13 +43,13 @@ export default function WorkingToolbar({
   onPan,
 }) {
   return (
-    <div className="rounded-xl border border-hairline bg-white p-3 shadow-resting" data-testid="working-toolbar">
-      <div className="mb-2 flex flex-wrap gap-2">
+    <div className="rounded-xl border border-hairline bg-white p-2 shadow-resting" data-testid="working-toolbar">
+      <div className="mb-2 flex flex-wrap gap-1.5">
         {WORKING_TOOLS.map((item) => (
           <Button
             key={item.id}
             size="s"
-            className="min-h-[44px]"
+            className="min-h-[36px] px-2 text-xs"
             variant={tool === item.id ? 'primary' : 'secondary'}
             icon={item.icon}
             onClick={() => onToolChange?.(item.id)}
@@ -57,22 +57,22 @@ export default function WorkingToolbar({
             {item.label}
           </Button>
         ))}
-        <Button size="s" className="min-h-[44px]" variant="secondary" icon={RotateCcw} disabled={!canUndo} onClick={onUndo}>Undo</Button>
-        <Button size="s" className="min-h-[44px]" variant="secondary" icon={RotateCw} disabled={!canRedo} onClick={onRedo}>Redo</Button>
-        <Button size="s" className="min-h-[44px]" variant="secondary" icon={Trash2} disabled={!canUndo} onClick={onClear}>Clear</Button>
+        <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={RotateCcw} disabled={!canUndo} onClick={onUndo}>Undo</Button>
+        <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={RotateCw} disabled={!canRedo} onClick={onRedo}>Redo</Button>
+        <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={Trash2} disabled={!canUndo} onClick={onClear}>Clear</Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-[1fr_1.2fr_1fr]">
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Colour</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {WORKING_COLOURS.map((item) => (
               <button
                 key={item.value}
                 type="button"
                 aria-label={item.label}
                 onClick={() => onColourChange?.(item.value)}
-                className={`min-h-[44px] min-w-[44px] rounded-xl border px-2 text-xs font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/20' : 'border-hairline'}`}
+                className={`min-h-[34px] min-w-[34px] rounded-lg border px-1 text-[11px] font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/20' : 'border-hairline'}`}
                 style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
               >
                 {item.label[0]}
@@ -82,24 +82,24 @@ export default function WorkingToolbar({
         </div>
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">View</p>
-          <div className="flex flex-wrap gap-2">
-            <Button size="s" className="min-h-[44px]" variant="secondary" icon={ZoomOut} onClick={onZoomOut}>Zoom out</Button>
-            <Button size="s" className="min-h-[44px]" variant="secondary" icon={ZoomIn} onClick={onZoomIn}>Zoom in</Button>
-            <Button size="s" className="min-h-[44px]" variant="secondary" onClick={onZoomReset}>Reset 100%</Button>
-            <Button size="s" className="min-h-[44px]" variant="ghost" icon={Move} onClick={() => onPan?.('right')}>
+          <div className="flex flex-wrap gap-1.5">
+            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={ZoomOut} onClick={onZoomOut}>Out</Button>
+            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={ZoomIn} onClick={onZoomIn}>In</Button>
+            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" onClick={onZoomReset}>Reset</Button>
+            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="ghost" icon={Move} onClick={() => onPan?.('right')}>
               {Math.round(Number(zoom || 1) * 100)}%
             </Button>
           </div>
         </div>
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Brush</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {BRUSH_SIZES.map((item) => (
               <Button
                 key={item.value}
                 type="button"
                 size="s"
-                className="min-h-[44px]"
+                className="min-h-[36px] px-2 text-xs"
                 variant={brushSize === item.value ? 'primary' : 'secondary'}
                 onClick={() => onBrushSizeChange?.(item.value)}
               >
