@@ -1,6 +1,5 @@
 import React from 'react';
 import { Eraser, Highlighter, Move, PenLine, Pencil, RotateCcw, RotateCw, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
-import { Button } from '../ui';
 
 export const WORKING_COLOURS = [
   { label: 'Black', value: '#111827' },
@@ -24,6 +23,14 @@ export const WORKING_TOOLS = [
   { id: 'eraser', label: 'Eraser', icon: Eraser },
 ];
 
+function compactButtonClass(active = false, disabled = false) {
+  return [
+    'inline-flex h-8 items-center justify-center gap-1 rounded-lg border px-2 text-xs font-semibold transition',
+    active ? 'border-navy-700 bg-navy-700 text-white' : 'border-hairline bg-white text-navy-700 hover:bg-navy-50',
+    disabled ? 'cursor-not-allowed opacity-45 hover:bg-white' : '',
+  ].join(' ');
+}
+
 export default function WorkingToolbar({
   tool = 'pen',
   colour = WORKING_COLOURS[3].value,
@@ -43,36 +50,37 @@ export default function WorkingToolbar({
   onPan,
 }) {
   return (
-    <div className="rounded-xl border border-hairline bg-white p-2 shadow-resting" data-testid="working-toolbar">
-      <div className="mb-2 flex flex-wrap gap-1.5">
+    <div className="rounded-lg border border-hairline bg-white p-2 shadow-resting" data-testid="working-toolbar">
+      <div className="mb-2 flex flex-wrap gap-1">
         {WORKING_TOOLS.map((item) => (
-          <Button
+          <button
             key={item.id}
-            size="s"
-            className="min-h-[36px] px-2 text-xs"
-            variant={tool === item.id ? 'primary' : 'secondary'}
-            icon={item.icon}
+            type="button"
+            aria-label={item.label}
+            title={item.label}
+            className={compactButtonClass(tool === item.id)}
             onClick={() => onToolChange?.(item.id)}
           >
-            {item.label}
-          </Button>
+            <item.icon className="h-4 w-4" />
+            <span className="hidden 2xl:inline">{item.label}</span>
+          </button>
         ))}
-        <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={RotateCcw} disabled={!canUndo} onClick={onUndo}>Undo</Button>
-        <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={RotateCw} disabled={!canRedo} onClick={onRedo}>Redo</Button>
-        <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={Trash2} disabled={!canUndo} onClick={onClear}>Clear</Button>
+        <button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} className={compactButtonClass(false, !canUndo)} onClick={onUndo}><RotateCcw className="h-4 w-4" /></button>
+        <button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} className={compactButtonClass(false, !canRedo)} onClick={onRedo}><RotateCw className="h-4 w-4" /></button>
+        <button type="button" aria-label="Clear" title="Clear" disabled={!canUndo} className={compactButtonClass(false, !canUndo)} onClick={onClear}><Trash2 className="h-4 w-4" /></button>
       </div>
 
-      <div className="grid grid-cols-1 gap-2 xl:grid-cols-[1fr_1.2fr_1fr]">
+      <div className="grid grid-cols-1 gap-2 xl:grid-cols-[0.85fr_1fr_0.85fr]">
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Colour</p>
-          <div className="flex flex-wrap gap-1.5">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-500">Colour</p>
+          <div className="flex flex-wrap gap-1">
             {WORKING_COLOURS.map((item) => (
               <button
                 key={item.value}
                 type="button"
                 aria-label={item.label}
                 onClick={() => onColourChange?.(item.value)}
-                className={`min-h-[34px] min-w-[34px] rounded-lg border px-1 text-[11px] font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/20' : 'border-hairline'}`}
+                className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/20' : 'border-hairline'}`}
                 style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
               >
                 {item.label[0]}
@@ -81,30 +89,29 @@ export default function WorkingToolbar({
           </div>
         </div>
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">View</p>
-          <div className="flex flex-wrap gap-1.5">
-            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={ZoomOut} onClick={onZoomOut}>Out</Button>
-            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" icon={ZoomIn} onClick={onZoomIn}>In</Button>
-            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="secondary" onClick={onZoomReset}>Reset</Button>
-            <Button size="s" className="min-h-[36px] px-2 text-xs" variant="ghost" icon={Move} onClick={() => onPan?.('right')}>
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-500">View</p>
+          <div className="flex flex-wrap gap-1">
+            <button type="button" className={compactButtonClass()} title="Zoom out" onClick={onZoomOut}><ZoomOut className="h-4 w-4" /><span>Out</span></button>
+            <button type="button" className={compactButtonClass()} title="Zoom in" onClick={onZoomIn}><ZoomIn className="h-4 w-4" /><span>In</span></button>
+            <button type="button" className={compactButtonClass()} onClick={onZoomReset}>Reset</button>
+            <button type="button" className={compactButtonClass()} title="Pan" onClick={() => onPan?.('right')}>
+              <Move className="h-4 w-4" />
               {Math.round(Number(zoom || 1) * 100)}%
-            </Button>
+            </button>
           </div>
         </div>
         <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Brush</p>
-          <div className="flex flex-wrap gap-1.5">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-500">Brush</p>
+          <div className="flex flex-wrap gap-1">
             {BRUSH_SIZES.map((item) => (
-              <Button
+              <button
                 key={item.value}
                 type="button"
-                size="s"
-                className="min-h-[36px] px-2 text-xs"
-                variant={brushSize === item.value ? 'primary' : 'secondary'}
+                className={compactButtonClass(brushSize === item.value)}
                 onClick={() => onBrushSizeChange?.(item.value)}
               >
                 {item.label}
-              </Button>
+              </button>
             ))}
           </div>
         </div>

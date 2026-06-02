@@ -410,8 +410,8 @@ export default function WorkingCanvas({
   }
 
   return (
-    <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4" data-testid="working-canvas">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div className="rounded-xl border border-hairline bg-white p-2.5 sm:p-3" data-testid="working-canvas">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-sm font-semibold text-navy-700">{label}</p>
           <p className="text-xs text-ink-500">Use the pen to draw or calculate.</p>
@@ -425,9 +425,12 @@ export default function WorkingCanvas({
         </div>
       )}
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Button size="s" variant="ghost" icon={Paperclip} onClick={() => fileInputRef.current?.click()}>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5">
+        <Button size="s" className="min-h-[32px] px-2 text-xs" variant="ghost" icon={Paperclip} onClick={() => fileInputRef.current?.click()}>
           Attach photo
+        </Button>
+        <Button size="s" className="min-h-[32px] px-2 text-xs" variant="ghost" icon={Grid} onClick={() => setBackground((value) => (value === 'grid' ? 'ruled' : 'grid'))}>
+          {background === 'grid' ? 'Ruled' : 'Grid'}
         </Button>
         <input
           ref={fileInputRef}
@@ -439,7 +442,7 @@ export default function WorkingCanvas({
         {attachedImage && <Badge tone="success">Photo attached</Badge>}
       </div>
 
-      <div className="mb-3 space-y-2">
+      <div className="mb-2">
         <WorkingToolbar
           tool={tool}
           colour={colour}
@@ -455,11 +458,9 @@ export default function WorkingCanvas({
           onClear={clear}
           onZoomIn={() => zoomBy(0.25)}
           onZoomOut={() => zoomBy(-0.25)}
+          onZoomReset={() => setZoom(1)}
           onPan={pan}
         />
-        <Button size="s" variant="ghost" icon={Grid} onClick={() => setBackground((value) => (value === 'grid' ? 'ruled' : 'grid'))}>
-          {background === 'grid' ? 'Ruled' : 'Grid'}
-        </Button>
       </div>
 
       {attachedImage && (

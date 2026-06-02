@@ -31,10 +31,10 @@ describe('WorkingCanvas', () => {
   it('renders pen, eraser, undo, clear, and submit controls', () => {
     render(<WorkingCanvas questionId="q1" required />);
 
-    expect(screen.getByText('Pen')).toBeInTheDocument();
-    expect(screen.getByText('Eraser')).toBeInTheDocument();
-    expect(screen.getByText('Undo')).toBeInTheDocument();
-    expect(screen.getByText('Clear')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Eraser' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
     expect(screen.getByText('Submit workings')).toBeInTheDocument();
   });
 
@@ -104,12 +104,12 @@ describe('WorkingCanvas', () => {
     const savedStrokes = [{ tool: 'pen', colour: '#111827', size: 4, points: [{ x: 1, y: 1 }, { x: 20, y: 20 }] }];
     const { rerender } = render(<WorkingCanvas questionId="q1" submittedStrokes={savedStrokes} initialSubmitted={false} />);
 
-    expect(screen.getByText('Undo')).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Undo' })).not.toBeDisabled();
 
     rerender(<WorkingCanvas questionId="q2" submittedStrokes={[]} initialSubmitted={false} />);
-    expect(screen.getByText('Undo')).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled();
 
     rerender(<WorkingCanvas questionId="q1" submittedStrokes={savedStrokes} initialSubmitted={false} />);
-    expect(screen.getByText('Undo')).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Undo' })).not.toBeDisabled();
   });
 });
