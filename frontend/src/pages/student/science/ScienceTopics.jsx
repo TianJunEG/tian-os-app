@@ -113,7 +113,7 @@ export default function ScienceTopics() {
                     </div>
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
                       <Button size="s" variant="ghost" icon={FileText} onClick={() => navigate(`/student/science/topic/${s.topicId}/notes`)}>Notes</Button>
-                      <Button size="s" variant="secondary" icon={BookOpen} onClick={() => navigate(`/student/science/topic/${s.topicId}/lesson`)}>Lesson</Button>
+                      <Button size="s" variant="secondary" icon={BookOpen} onClick={() => navigate(`/student/science/topic/${s.topicId}/lesson`)}>Learn</Button>
                       <Button size="s" icon={ArrowRight} disabled={busy === s.skillId} onClick={() => practise(s.skillId, { topicId: s.topicId })}>Practise</Button>
                     </div>
                   </div>

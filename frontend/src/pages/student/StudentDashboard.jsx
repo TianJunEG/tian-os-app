@@ -198,13 +198,13 @@ function CurrentCourseCard({ currentSkill, nextAction, courseProgress, hasPlacem
         homeBase: '/student',
       }
     : undefined;
-  const lessonsCompleted = Math.max(0, Math.min(12, Math.round((courseProgress / 100) * 12)));
+  const skillProgressCount = Math.max(0, Math.min(12, Math.round((courseProgress / 100) * 12)));
   return (
     <Card className="p-4 sm:p-5">
       <div className="grid gap-5 sm:grid-cols-[13rem_1fr] sm:items-center">
         <CourseArt icon={Calculator} symbol="=" />
         <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase text-navy-700">Current Course</p>
+          <p className="text-sm font-semibold uppercase text-navy-700">Current Skill Path</p>
           <h2 className="mt-1 font-display text-3xl font-semibold text-ink-900">Fractions</h2>
           <p className="mt-1 text-sm text-ink-500">{currentSkill?.skillName || 'Start with your Fractions Diagnostic'}</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 sm:items-stretch">
@@ -220,7 +220,7 @@ function CurrentCourseCard({ currentSkill, nextAction, courseProgress, hasPlacem
       <div className="mt-5">
         <ProgressBar value={courseProgress} />
         <div className="mt-2 flex items-center justify-between text-sm font-semibold text-ink-500">
-          <span>{lessonsCompleted}/12 lessons completed</span>
+          <span>{skillProgressCount}/12 skills progressing</span>
           <span className="text-navy-700">{courseProgress}%</span>
         </div>
       </div>

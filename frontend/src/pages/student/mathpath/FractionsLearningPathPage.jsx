@@ -73,7 +73,7 @@ function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, on
     <Card className="p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase text-navy-700">Current Course</p>
+          <p className="text-sm font-semibold uppercase text-navy-700">Current Skill Path</p>
           <h2 className="font-display text-3xl font-semibold text-ink-900">Fractions</h2>
           <p className="mt-1 text-sm text-ink-500">{currentSkillName || 'Start your diagnostic'}</p>
         </div>

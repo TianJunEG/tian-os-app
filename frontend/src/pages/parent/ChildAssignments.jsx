@@ -8,7 +8,7 @@ import { Card, StatusBadge, Spinner, EmptyState, ErrorState } from '../../compon
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 
-// Parent view of a child's assignments (active / completed / overdue).
+// Parent view of a child's practice tasks (active / completed / overdue).
 export default function ChildAssignments() {
   const { studentId } = useParams();
   const child = useChild(studentId);
@@ -36,8 +36,8 @@ export default function ChildAssignments() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      {error ? <ErrorState message="Couldn't load assignments." onRetry={load} /> : !items ? <Spinner label="Loading…" /> : items.length === 0 ? (
-        <EmptyState icon={ClipboardList} message="No assignments yet. Use Assign practice to set targeted work.">
+      {error ? <ErrorState message="Couldn't load practice tasks." onRetry={load} /> : !items ? <Spinner label="Loading…" /> : items.length === 0 ? (
+        <EmptyState icon={ClipboardList} message="No practice tasks yet. Use Assign practice to set targeted work.">
         </EmptyState>
       ) : (
         <div className="space-y-6">

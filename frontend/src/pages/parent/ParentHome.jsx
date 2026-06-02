@@ -165,13 +165,13 @@ export default function ParentHome() {
           </Card>
         )}
         {assignmentsError && (
-          <Alert tone="error" className="p-4 text-sm text-ink-700">Couldn’t load assignments.</Alert>
+          <Alert tone="error" className="p-4 text-sm text-ink-700">Couldn’t load practice tasks.</Alert>
         )}
         <Card className="p-4">
-          <p className="text-sm font-semibold text-ink-700">Assignments</p>
+          <p className="text-sm font-semibold text-ink-700">Practice Tasks</p>
           <p className="mt-1 text-sm text-ink-500">{completed} of {assignments.length} completed</p>
           <div className="mt-1 flex flex-col gap-1">
-            <Link to={`/parent/children/${child.studentId}/assignments`} className="text-sm font-semibold text-navy-700">View assignments →</Link>
+            <Link to={`/parent/children/${child.studentId}/assignments`} className="text-sm font-semibold text-navy-700">View practice tasks →</Link>
             <Link to={`/parent/children/${child.studentId}/worksheets`} className="text-sm font-semibold text-gold-700">Mastery worksheet generator →</Link>
           </div>
         </Card>

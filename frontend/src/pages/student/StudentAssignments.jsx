@@ -6,8 +6,8 @@ import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState, Alert } fro
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : null);
 
-// Student's assignments. Starting one launches the right module's session bound
-// to the assignment; completing the session marks the assignment done (server-side).
+// Student's practice tasks. Starting one launches the right module's session bound
+// to the assignment record; completing the session marks the task done (server-side).
 export default function StudentAssignments() {
   const navigate = useNavigate();
   const [items, setItems] = useState(null);
@@ -46,7 +46,7 @@ export default function StudentAssignments() {
         navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items } });
       }
     } catch (_) {
-      setStartError('Couldn’t start this assignment. Please try again.');
+      setStartError('Couldn’t start this practice task. Please try again.');
       setStarting(false);
     }
   };
@@ -57,11 +57,11 @@ export default function StudentAssignments() {
 
   return (
     <>
-      <PageHeader title="Your assignments" subtitle="Work set by a parent or teacher." />
-      {loadError && <Alert tone="error" className="mb-4">Unable to load assignments right now. Please try again later.</Alert>}
+      <PageHeader title="Your Practice Tasks" subtitle="Practice set by a parent or teacher." />
+      {loadError && <Alert tone="error" className="mb-4">Unable to load practice tasks right now. Please try again later.</Alert>}
       {startError && <Alert tone="error" className="mb-4">{startError}</Alert>}
       {items?.length === 0 ? (
-        <EmptyState icon={ClipboardList} message="No assignments yet. When someone assigns practice, it shows up here." />
+        <EmptyState icon={ClipboardList} message="No practice tasks yet. When someone sets targeted practice, it shows up here." />
       ) : (
         <div className="space-y-6">
           {pending.length > 0 && (

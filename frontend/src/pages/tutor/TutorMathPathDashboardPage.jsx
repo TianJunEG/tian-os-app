@@ -226,7 +226,7 @@ function NextSessionPlanCard({ plan = {} }) {
 function SuggestedAssignmentsCard({ rows = [] }) {
   return (
     <Card className="p-5">
-      <h3 className="text-sm font-semibold text-ink-700">Suggested Assignments</h3>
+      <h3 className="text-sm font-semibold text-ink-700">Suggested Practice</h3>
       {rows.length ? (
         <div className="mt-3 space-y-2 text-sm">
           {rows.slice(0, 6).map((row, i) => (
@@ -242,7 +242,7 @@ function SuggestedAssignmentsCard({ rows = [] }) {
             </div>
           ))}
         </div>
-      ) : <p className="mt-2 text-sm text-ink-500">No assignment suggestions yet.</p>}
+      ) : <p className="mt-2 text-sm text-ink-500">No practice suggestions yet.</p>}
     </Card>
   );
 }

@@ -121,7 +121,7 @@ export default function AssignPractice() {
           <p className="font-semibold text-ink-700">Practice assigned</p>
           <p className="text-sm text-ink-500">{child?.name} will see it in Today's Learning.</p>
           <div className="flex gap-2">
-            <Button variant="secondary" size="s" onClick={() => navigate(`/parent/children/${studentId}/assignments`)}>View assignments</Button>
+            <Button variant="secondary" size="s" onClick={() => navigate(`/parent/children/${studentId}/assignments`)}>View practice tasks</Button>
             <Button size="s" onClick={() => { setDone(false); setSaving(false); }}>Assign another</Button>
           </div>
         </Card>

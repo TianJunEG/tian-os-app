@@ -50,7 +50,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
         </button>
         <div className="nav-bar-title">
           <h1>Tutor Dashboard</h1>
-          <p>Manage student assignments</p>
+          <p>Manage student activities</p>
         </div>
       </div>
 
@@ -63,9 +63,9 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <Icon name="compass" size={32} color="#13315C" />
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#0B1F3F', marginBottom: 8 }}>No Assignments Yet</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#0B1F3F', marginBottom: 8 }}>No Activities Assigned Yet</div>
               <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
-                Assign a LifeLab activity from the library to get started. Students will appear here once assigned.
+                Assign a LifeLab activity from the library to get started. Students will appear here once an activity is set.
               </div>
               <button className="btn btn-primary" style={{ width: '100%' }} onClick={onBack}>
                 Browse Library

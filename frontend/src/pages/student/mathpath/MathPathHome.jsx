@@ -355,7 +355,7 @@ export default function MathPathHome() {
     <>
       <div className="mb-5">
         <p className="text-sm font-semibold text-ink-500">{welcomeTitle}</p>
-        <h1 className="font-display text-3xl font-semibold text-ink-900">Courses</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink-900">Learning Paths</h1>
       </div>
 
       <Card className="mb-6 p-4 sm:p-5">

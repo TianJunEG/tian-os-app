@@ -5,7 +5,7 @@ import { Button } from '../../components/ui';
 
 // Shared header + tab strip for the parent's per-child screens. Keeps the child
 // context visible and navigation consistent across progress / weak topics /
-// actions / mistakes / assignments.
+// actions / mistakes / practice tasks.
 export default function ChildNav({ studentId, name, level, showAssign = true }) {
   const navigate = useNavigate();
   const base = `/parent/children/${studentId}`;
@@ -20,7 +20,7 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
     ['Progress', `${base}/progress`, true],
     ['Mistakes', `${base}/mistakes`, true],
     ['Weak topics', `${base}/weak-topics`, true],
-    ['Assignments', `${base}/assignments`, true],
+    ['Practice Tasks', `${base}/assignments`, true],
     ['Worksheets', `${base}/worksheets`, false],
     ['Science', `${base}/science`, true],
     ['LifeLab', `${base}/lifelab`, true],

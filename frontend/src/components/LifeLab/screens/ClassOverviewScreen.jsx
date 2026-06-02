@@ -37,7 +37,7 @@ export default function ClassOverviewScreen({ onBack }) {
         </button>
         <div className="nav-bar-title">
           <h1>Class Overview</h1>
-          <p>Assignment progress</p>
+          <p>Activity progress</p>
         </div>
       </div>
 
@@ -48,7 +48,7 @@ export default function ClassOverviewScreen({ onBack }) {
           ) : overview.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">📚</div>
-              <div className="empty-state-text">No assignments yet</div>
+              <div className="empty-state-text">No activities assigned yet</div>
             </div>
           ) : (
             overview.map((item, idx) => (
