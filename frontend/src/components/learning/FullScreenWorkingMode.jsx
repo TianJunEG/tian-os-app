@@ -276,7 +276,7 @@ export default function FullScreenWorkingMode({
       open={open}
       onClose={onClose}
       title="Full-screen working"
-      className="max-h-[92vh] max-w-6xl overflow-hidden"
+      className="flex h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] w-[min(96vw,1500px)] max-w-[calc(100vw-2rem)] flex-col overflow-hidden [&>div:nth-child(2)]:min-h-0 [&>div:nth-child(2)]:flex-1 [&>div:nth-child(2)]:overflow-hidden [&>div:nth-child(2)]:p-3 sm:[&>div:nth-child(2)]:p-4"
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
@@ -284,7 +284,7 @@ export default function FullScreenWorkingMode({
         </>
       )}
     >
-      <div className="max-h-[calc(92vh-10rem)] space-y-3 overflow-y-auto pr-1">
+      <div className="flex h-full min-h-0 flex-col gap-2">
         <WorkingToolbar
           tool={tool}
           colour={colour}
@@ -303,7 +303,7 @@ export default function FullScreenWorkingMode({
           onZoomReset={resetZoom}
           onPan={pan}
         />
-        <div ref={scrollRef} className="max-h-[58vh] overflow-auto rounded-xl border border-hairline bg-slate-100 p-3">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-hairline bg-slate-100 p-3">
           <div
             className="relative rounded-xl bg-white shadow-resting"
             style={{

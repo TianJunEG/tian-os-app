@@ -76,8 +76,8 @@ describe('FullScreenWorkingMode', () => {
     );
 
     expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
-    expect(screen.getByText('Clear')).not.toBeDisabled();
-    fireEvent.click(screen.getByText('Clear'));
+    expect(screen.getByRole('button', { name: 'Clear' })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
     expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
     expect(screen.getByText('Save Working')).toBeDisabled();
   });
