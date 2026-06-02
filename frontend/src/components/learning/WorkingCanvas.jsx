@@ -60,13 +60,13 @@ function drawStroke(ctx, stroke) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.22 : 1;
+  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
   ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
   const baseSize = Number(stroke.size || 3);
   ctx.lineWidth = stroke.tool === 'eraser'
     ? 24
     : stroke.tool === 'highlighter'
-      ? Math.max(28, baseSize * 7)
+      ? Math.max(48, baseSize * 10)
       : stroke.tool === 'pencil'
         ? Math.max(1, baseSize - 1)
         : baseSize;
