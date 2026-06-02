@@ -399,7 +399,7 @@ export function Tooltip({ label, children, className = '' }) {
 }
 
 // ─── Modal — centered dialog over a scrim (portal) ──────────────────
-export function Modal({ open, onClose, title, children, footer, className = '' }) {
+export function Modal({ open, onClose, title, children, footer, className = '', containerClassName = 'p-4' }) {
   React.useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
@@ -408,7 +408,7 @@ export function Modal({ open, onClose, title, children, footer, className = '' }
   }, [open, onClose]);
   if (!open) return null;
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+    <div className={`fixed inset-0 z-[90] flex items-center justify-center ${containerClassName}`} role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm" onClick={onClose} />
       <div className={`relative z-10 w-full max-w-lg rounded-2xl border border-hairline bg-paper shadow-active ${className}`}>
         <div className="flex items-start justify-between gap-3 border-b border-hairline p-5">
