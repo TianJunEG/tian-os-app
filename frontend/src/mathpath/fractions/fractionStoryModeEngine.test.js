@@ -60,6 +60,7 @@ describe('fractionStoryModeEngine', () => {
       expect(scene.questionText).toBeTruthy();
       expect(scene.guidedSteps.length).toBeGreaterThan(0);
       expect(['fraction_bar', 'fraction_bar_remainder', 'shaded_grid', 'number_line', 'part_whole_cards']).toContain(scene.visualHintType);
+      expect(scene.visualModel).toMatchObject(story.barModel);
       expect(scene.successNarration).toBeTruthy();
       expect(scene.errorHint).toBeTruthy();
       expect(scene.retryPrompt).toBeTruthy();

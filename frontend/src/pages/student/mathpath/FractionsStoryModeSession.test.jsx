@@ -60,6 +60,16 @@ describe('FractionsStoryModeSession direct routes', () => {
     expect(screen.queryByText(/Question 1 of/i)).not.toBeInTheDocument();
   });
 
+  it('renders fraction visuals from the actual story values', async () => {
+    await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
+    expect(screen.getByText('Whole')).toBeInTheDocument();
+    expect(screen.getByText('5/5')).toBeInTheDocument();
+    expect(screen.getByText('Used')).toBeInTheDocument();
+    expect(screen.getByText('2/5')).toBeInTheDocument();
+    expect(screen.getByText('Left')).toBeInTheDocument();
+    expect(screen.getByText('3/5')).toBeInTheDocument();
+  });
+
   it('shows story-specific retry guidance for a wrong answer', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
     fireEvent.click(screen.getByRole('button', { name: 'How many given away' }));

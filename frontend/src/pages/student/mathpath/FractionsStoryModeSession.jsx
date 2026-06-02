@@ -17,9 +17,119 @@ import {
 import { setMathPathDomainProgressState, getMathPathDomainProgressState } from '../../../mathpath/state/mathPathDomainProgressState';
 import StoryAudioControls from './story/StoryAudioControls';
 
-function VisualHint({ type }) {
+function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
+  const denominator = Math.max(1, Number(model.denominator || 1));
+  const removed = Math.max(0, Math.min(denominator, Number(model.removed || 0)));
+  const remaining = denominator - removed;
+  const subdivideBy = Math.max(0, Number(model.subdivideRemainingBy || 0));
+  const removedSubparts = Math.max(0, Math.min(subdivideBy || 0, Number(model.removedSubparts || 0)));
+
+  return (
+    <div>
+      <div className="grid overflow-hidden rounded-lg border border-gold-300 bg-white" style={{ gridTemplateColumns: `repeat(${denominator}, minmax(0, 1fr))` }}>
+        {Array.from({ length: denominator }).map((_, index) => {
+          const isRemoved = index < removed;
+          return (
+            <div
+              key={index}
+              className={`min-h-[48px] border-r border-gold-200 last:border-r-0 ${isRemoved ? 'bg-[repeating-linear-gradient(135deg,#fee2e2,#fee2e2_5px,#fecaca_5px,#fecaca_10px)]' : 'bg-emerald-50'}`}
+            />
+          );
+        })}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-ink-700">
+        <span className="rounded-lg bg-white px-2 py-1 ring-1 ring-hairline">Used: {removed}/{denominator}</span>
+        <span className="rounded-lg bg-white px-2 py-1 ring-1 ring-hairline">Left: {remaining}/{denominator}</span>
+      </div>
+      {showRemainderSubgroups && subdivideBy > 0 ? (
+        <div className="mt-3">
+          <p className="mb-2 text-xs font-semibold text-ink-700">Remainder as the new whole</p>
+          <div className="grid overflow-hidden rounded-lg border border-navy-200 bg-white" style={{ gridTemplateColumns: `repeat(${subdivideBy}, minmax(0, 1fr))` }}>
+            {Array.from({ length: subdivideBy }).map((_, index) => (
+              <div
+                key={index}
+                className={`min-h-[42px] border-r border-navy-100 last:border-r-0 ${index < removedSubparts ? 'bg-gold-200' : 'bg-navy-50'}`}
+              />
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-ink-600">
+            Second action: {removedSubparts}/{subdivideBy} of the remainder. Final left: {Math.max(0, subdivideBy - removedSubparts)}/{subdivideBy} of the remainder.
+          </p>
+        </div>
+      ) : null}
+      {model.knownRemaining ? (
+        <p className="mt-2 rounded-lg bg-white px-2 py-1 text-xs font-semibold text-ink-700 ring-1 ring-hairline">
+          Known final remainder: {model.knownRemaining}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function StoryShadedGrid({ model = {} }) {
+  const denominator = Math.max(1, Number(model.denominator || 1));
+  const removed = Math.max(0, Math.min(denominator, Number(model.removed || 0)));
+  const columns = Math.min(4, denominator);
+  return (
+    <div>
+      <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+        {Array.from({ length: denominator }).map((_, index) => (
+          <div
+            key={index}
+            className={`min-h-[36px] rounded-md border border-gold-200 ${index < removed ? 'bg-navy-100' : 'bg-white'}`}
+          />
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-ink-600">Shaded: {removed}/{denominator}. Unshaded: {denominator - removed}/{denominator}.</p>
+    </div>
+  );
+}
+
+function StoryNumberLine({ model = {} }) {
+  const denominator = Math.max(1, Number(model.denominator || 1));
+  const removed = Math.max(0, Math.min(denominator, Number(model.removed || 0)));
+  return (
+    <div className="py-3">
+      <div className="relative h-12">
+        <div className="absolute left-0 right-0 top-6 h-1 rounded-full bg-navy-100" />
+        {Array.from({ length: denominator + 1 }).map((_, index) => {
+          const left = `${(index / denominator) * 100}%`;
+          return (
+            <div key={index} className="absolute top-2 -translate-x-1/2 text-center" style={{ left }}>
+              <div className={`mx-auto h-4 w-1 rounded-full ${index === removed ? 'bg-gold-500' : 'bg-navy-400'}`} />
+              <span className="mt-1 block text-[11px] text-ink-600">{index}/{denominator}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-xs text-ink-600">Marker shows the first action at {removed}/{denominator}; the rest is the remainder to track.</p>
+    </div>
+  );
+}
+
+function PartWholeCards({ model = {} }) {
+  const denominator = Math.max(1, Number(model.denominator || 1));
+  const removed = Math.max(0, Math.min(denominator, Number(model.removed || 0)));
+  const remaining = denominator - removed;
+  const cards = [
+    { label: 'Whole', value: `${denominator}/${denominator}` },
+    { label: 'Used', value: `${removed}/${denominator}` },
+    { label: 'Left', value: `${remaining}/${denominator}` },
+  ];
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {cards.map((item) => (
+        <div key={item.label} className="rounded-lg border border-gold-200 bg-white px-2 py-4 text-center">
+          <p className="text-xs font-semibold text-ink-500">{item.label}</p>
+          <p className="mt-1 text-sm font-semibold text-ink-800">{item.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function VisualHint({ type, model = {} }) {
   const label = String(type || 'fraction_bar').replace(/_/g, ' ');
-  const segments = type === 'number_line' ? 6 : 8;
   return (
     <div className="rounded-xl border border-gold-200 bg-gold-50 p-3" aria-label={`${label} visual hint`}>
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.04em] text-gold-900">
@@ -27,33 +137,15 @@ function VisualHint({ type }) {
         {label}
       </div>
       {type === 'part_whole_cards' ? (
-        <div className="grid grid-cols-3 gap-2">
-          {['Whole', 'Used', 'Left'].map((item) => (
-            <div key={item} className="rounded-lg border border-gold-200 bg-white px-3 py-4 text-center text-sm font-semibold text-ink-700">
-              {item}
-            </div>
-          ))}
-        </div>
+        <PartWholeCards model={model} />
       ) : type === 'number_line' ? (
-        <div className="flex items-center gap-1 py-4">
-          {Array.from({ length: segments }).map((_, index) => (
-            <React.Fragment key={index}>
-              <span className="h-3 w-3 rounded-full bg-navy-500" />
-              {index < segments - 1 ? <span className="h-1 flex-1 rounded-full bg-navy-100" /> : null}
-            </React.Fragment>
-          ))}
-        </div>
+        <StoryNumberLine model={model} />
+      ) : type === 'shaded_grid' ? (
+        <StoryShadedGrid model={model} />
       ) : (
-        <div className={type === 'shaded_grid' ? 'grid grid-cols-4 gap-1' : 'flex overflow-hidden rounded-lg border border-gold-200 bg-white'}>
-          {Array.from({ length: 8 }).map((_, index) => (
-            <div
-              key={index}
-              className={`${type === 'shaded_grid' ? 'min-h-[34px] rounded-md border border-gold-200' : 'h-12 flex-1 border-r border-gold-200 last:border-r-0'} ${index < 3 ? 'bg-navy-100' : index < 5 && type === 'fraction_bar_remainder' ? 'bg-gold-200' : 'bg-white'}`}
-            />
-          ))}
-        </div>
+        <StoryFractionBar model={model} showRemainderSubgroups={type === 'fraction_bar_remainder'} />
       )}
-      <p className="mt-2 text-xs text-ink-500">Use the blocks to track the whole, the used part, and what remains.</p>
+      <p className="mt-2 text-xs text-ink-500">Use the visual to track the whole, the used part, and what remains.</p>
     </div>
   );
 }
@@ -348,7 +440,7 @@ export default function FractionsStoryModeSession() {
         </main>
 
         <aside className="space-y-3">
-          <VisualHint type={scene?.visualHintType} />
+          <VisualHint type={scene?.visualHintType} model={scene?.visualModel || story.barModel || {}} />
           <GuidedStepsPanel steps={scene?.guidedSteps || []} activeStep={Math.max(0, attempts - 1)} />
         </aside>
       </div>

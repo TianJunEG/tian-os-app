@@ -106,6 +106,7 @@ export function buildStorySceneItems(story = {}) {
       questionText: step.questionText || step.prompt,
       guidedSteps,
       visualHintType,
+      visualModel: story.barModel || {},
       successNarration,
       errorHint: step.errorHint || SUPPORTIVE_FEEDBACK[step.mistakeTag] || story.schemaHint || 'Try the guided steps before answering again.',
       retryPrompt: step.retryPrompt || guidedSteps[0] || 'Try again using the first clue.',
