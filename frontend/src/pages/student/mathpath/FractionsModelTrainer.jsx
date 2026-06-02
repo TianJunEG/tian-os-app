@@ -647,6 +647,9 @@ export default function FractionsModelTrainer() {
                 required
                 allowNoWorking={false}
                 label="Draw your model"
+                compact
+                showMathStamps={false}
+                canvasClassName="h-[340px] sm:h-[420px]"
                 onSubmit={setYouDoWorking}
               />
               <textarea

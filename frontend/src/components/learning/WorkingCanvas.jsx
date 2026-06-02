@@ -167,6 +167,9 @@ export default function WorkingCanvas({
   initialSubmitted = null,
   initialWorkingNotNeeded = false,
   label = 'Show your working',
+  compact = false,
+  canvasClassName = '',
+  showMathStamps = true,
   onSubmit,
   onChange,
 }) {
@@ -417,11 +420,11 @@ export default function WorkingCanvas({
   }
 
   return (
-    <div className="rounded-xl border border-hairline bg-white p-2.5 sm:p-3" data-testid="working-canvas">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+    <div className={`rounded-xl border border-hairline bg-white ${compact ? 'p-2' : 'p-2.5 sm:p-3'}`} data-testid="working-canvas">
+      <div className={`${compact ? 'mb-1.5' : 'mb-2'} flex flex-wrap items-center justify-between gap-2`}>
         <div>
           <p className="text-sm font-semibold text-navy-700">{label}</p>
-          <p className="text-xs text-ink-500">Use the pen to draw or calculate.</p>
+          {!compact && <p className="text-xs text-ink-500">Use the pen to draw or calculate.</p>}
         </div>
         <Badge tone={required && !submitted && !notNeeded ? 'gold' : 'success'}>{status}</Badge>
       </div>
@@ -432,7 +435,7 @@ export default function WorkingCanvas({
         </div>
       )}
 
-      <div className="mb-2 flex flex-wrap items-center gap-1.5">
+      <div className={`${compact ? 'mb-1.5' : 'mb-2'} flex flex-wrap items-center gap-1.5`}>
         <Button size="s" className="min-h-[32px] px-2 text-xs" variant="ghost" icon={Paperclip} onClick={() => fileInputRef.current?.click()}>
           Attach photo
         </Button>
@@ -449,7 +452,7 @@ export default function WorkingCanvas({
         {attachedImage && <Badge tone="success">Photo attached</Badge>}
       </div>
 
-      <div className="mb-2">
+      <div className={compact ? 'mb-1.5' : 'mb-2'}>
         <WorkingToolbar
           tool={tool}
           colour={colour}
@@ -467,6 +470,7 @@ export default function WorkingCanvas({
           onZoomOut={() => zoomBy(-0.25)}
           onZoomReset={() => setZoom(1)}
           onPan={pan}
+          compact={compact}
         />
       </div>
 
@@ -481,7 +485,7 @@ export default function WorkingCanvas({
           ref={canvasRef}
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
-          className="block h-[220px] touch-none rounded-lg sm:h-[260px]"
+          className={`block touch-none rounded-lg ${canvasClassName || (compact ? 'h-[320px] sm:h-[360px]' : 'h-[220px] sm:h-[260px]')}`}
           style={{ width: `${zoom * 100}%`, minWidth: '100%' }}
           onPointerDown={beginStroke}
           onPointerMove={moveStroke}
@@ -492,7 +496,7 @@ export default function WorkingCanvas({
         />
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2" aria-label="Math insert tools">
+      {showMathStamps && <div className="mt-3 flex flex-wrap gap-2" aria-label="Math insert tools">
         {MATH_STAMPS.map((stamp) => (
           <button
             key={stamp.id}
@@ -504,9 +508,9 @@ export default function WorkingCanvas({
             {stamp.label}
           </button>
         ))}
-      </div>
+      </div>}
 
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className={`${compact ? 'mt-2' : 'mt-3'} grid grid-cols-1 gap-2 sm:grid-cols-2`}>
         {allowNoWorking && (
           <Button size="s" variant="secondary" onClick={markNotNeeded}>Working not needed</Button>
         )}

@@ -23,9 +23,9 @@ export const WORKING_TOOLS = [
   { id: 'eraser', label: 'Eraser', icon: Eraser },
 ];
 
-function compactButtonClass(active = false, disabled = false) {
+function compactButtonClass(active = false, disabled = false, dense = false) {
   return [
-    'inline-flex h-8 items-center justify-center gap-1 rounded-lg border px-2 text-xs font-semibold transition',
+    `inline-flex ${dense ? 'h-7 px-1.5' : 'h-8 px-2'} items-center justify-center gap-1 rounded-lg border text-xs font-semibold transition`,
     active ? 'border-navy-700 bg-navy-700 text-white' : 'border-hairline bg-white text-navy-700 hover:bg-navy-50',
     disabled ? 'cursor-not-allowed opacity-45 hover:bg-white' : '',
   ].join(' ');
@@ -48,7 +48,62 @@ export default function WorkingToolbar({
   onZoomOut,
   onZoomReset,
   onPan,
+  compact = false,
 }) {
+  if (compact) {
+    return (
+      <div className="rounded-lg border border-hairline bg-white p-1.5 shadow-resting" data-testid="working-toolbar">
+        <div className="flex flex-wrap items-center gap-1">
+          {WORKING_TOOLS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-label={item.label}
+              title={item.label}
+              className={compactButtonClass(tool === item.id, false, true)}
+              onClick={() => onToolChange?.(item.id)}
+            >
+              <item.icon className="h-4 w-4" />
+            </button>
+          ))}
+          <span className="mx-0.5 h-6 w-px bg-hairline" aria-hidden="true" />
+          {WORKING_COLOURS.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              aria-label={item.label}
+              onClick={() => onColourChange?.(item.value)}
+              className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/20' : 'border-hairline'}`}
+              style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
+            >
+              {item.label[0]}
+            </button>
+          ))}
+          <span className="mx-0.5 h-6 w-px bg-hairline" aria-hidden="true" />
+          {BRUSH_SIZES.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              aria-label={`Brush ${item.label}`}
+              title={`Brush ${item.label}`}
+              className={compactButtonClass(brushSize === item.value, false, true)}
+              onClick={() => onBrushSizeChange?.(item.value)}
+            >
+              {item.label[0]}
+            </button>
+          ))}
+          <span className="mx-0.5 h-6 w-px bg-hairline" aria-hidden="true" />
+          <button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} className={compactButtonClass(false, !canUndo, true)} onClick={onUndo}><RotateCcw className="h-4 w-4" /></button>
+          <button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} className={compactButtonClass(false, !canRedo, true)} onClick={onRedo}><RotateCw className="h-4 w-4" /></button>
+          <button type="button" aria-label="Clear" title="Clear" disabled={!canUndo} className={compactButtonClass(false, !canUndo, true)} onClick={onClear}><Trash2 className="h-4 w-4" /></button>
+          <button type="button" aria-label="Zoom out" title="Zoom out" className={compactButtonClass(false, false, true)} onClick={onZoomOut}><ZoomOut className="h-4 w-4" /></button>
+          <button type="button" aria-label="Zoom in" title="Zoom in" className={compactButtonClass(false, false, true)} onClick={onZoomIn}><ZoomIn className="h-4 w-4" /></button>
+          <button type="button" aria-label="Reset zoom" title="Reset zoom" className={compactButtonClass(false, false, true)} onClick={onZoomReset}>{Math.round(Number(zoom || 1) * 100)}%</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-hairline bg-white p-2 shadow-resting" data-testid="working-toolbar">
       <div className="mb-2 flex flex-wrap gap-1">
