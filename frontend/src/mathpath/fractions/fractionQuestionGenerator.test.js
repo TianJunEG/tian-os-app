@@ -40,6 +40,56 @@ describe('fractionQuestionGenerator', () => {
     }
   });
 
+  it('keeps F023 worksheet count word problems integer-friendly at every step', () => {
+    for (let variant = 0; variant < 80; variant += 1) {
+      const q = generateFractionQuestion({
+        skillId: 'F023',
+        questionFamilyId: 'QF_F023_001',
+        difficulty: 3,
+        variant,
+        mode: 'diagnostic',
+      });
+      const match = q.prompt.match(/used\s+(\d+)\/(\d+)\s+of a worksheet with\s+(\d+)\s+questions/i);
+      if (!match) continue;
+      const numerator = Number(match[1]);
+      const denominator = Number(match[2]);
+      const total = Number(match[3]);
+      const used = (total * numerator) / denominator;
+      const left = total - used;
+      expect(Number.isInteger(used), q.prompt).toBe(true);
+      expect(Number.isInteger(left), q.prompt).toBe(true);
+      expect(q.answer.whole).toBe(left);
+    }
+  });
+
+  it('keeps F024 remainder word problems integer-friendly at every step', () => {
+    for (let variant = 0; variant < 80; variant += 1) {
+      const q = generateFractionQuestion({
+        skillId: 'F024',
+        questionFamilyId: 'QF_F024_001',
+        difficulty: 4,
+        variant,
+        mode: 'diagnostic',
+      });
+      const match = q.prompt.match(/completed\s+(\d+)\/(\d+)\s+of\s+(\d+)\s+problems,\s+then\s+(\d+)\/(\d+)\s+of the remainder/i);
+      expect(match, q.prompt).toBeTruthy();
+      const firstNumerator = Number(match[1]);
+      const firstDenominator = Number(match[2]);
+      const total = Number(match[3]);
+      const secondNumerator = Number(match[4]);
+      const secondDenominator = Number(match[5]);
+      const firstCompleted = (total * firstNumerator) / firstDenominator;
+      const firstRemainder = total - firstCompleted;
+      const secondCompleted = (firstRemainder * secondNumerator) / secondDenominator;
+      const finalUnfinished = firstRemainder - secondCompleted;
+      expect(Number.isInteger(firstCompleted), q.prompt).toBe(true);
+      expect(Number.isInteger(firstRemainder), q.prompt).toBe(true);
+      expect(Number.isInteger(secondCompleted), q.prompt).toBe(true);
+      expect(Number.isInteger(finalUnfinished), q.prompt).toBe(true);
+      expect(q.answer.whole).toBe(finalUnfinished);
+    }
+  });
+
   it('keeps F026 quantity mastery answers as whole numbers', () => {
     for (let variant = 0; variant < 40; variant += 1) {
       const q = generateFractionQuestion({

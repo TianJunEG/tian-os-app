@@ -213,6 +213,23 @@ function integerFriendlyTotal(seed, min, max, fractions = []) {
   return { total, final: amount };
 }
 
+function sequentialWholeCountTotal(seed, min, max, fractions = []) {
+  const result = integerFriendlyTotal(seed, min, max, fractions);
+  let remaining = result.total;
+  const steps = fractions.map((f) => {
+    const amount = (remaining * f.numerator) / f.denominator;
+    const before = remaining;
+    remaining -= amount;
+    return { fraction: f, before, amount, remaining };
+  });
+  const valid = steps.every((step) => Number.isInteger(step.before) && Number.isInteger(step.amount) && Number.isInteger(step.remaining))
+    && Number.isInteger(remaining);
+  if (!valid) {
+    throw new Error('Generated count-based fraction question with non-integer intermediate quantity.');
+  }
+  return { total: result.total, final: remaining, steps };
+}
+
 function multipleInRange(seed, min, max, factor) {
   const safeFactor = Math.max(1, Number(factor) || 1);
   const low = Math.ceil(min / safeFactor);
@@ -938,25 +955,33 @@ function templateForSkill(skillId, variant, ctx) {
           solutionSteps: [`Find 1/${d} of ${scaledTotal}: ${scaledTotal / d}.`, `Multiply by ${n}: ${ans}.`],
         };
       }
-      const total = seq(s, 20, 60);
       const used = frac(1, [2, 3, 4][Math.abs(s) % 3]);
-      const rem = frac(total * (used.denominator - used.numerator), used.denominator);
+      const { total, final, steps } = sequentialWholeCountTotal(s, 20, 60, [used]);
+      const firstStep = steps[0];
       return {
         prompt: `A student used ${fracStr(used)} of a worksheet with ${total} questions. How many questions are left?`,
-        answer: answerPayloadWhole(rem.numerator),
-        acceptedAnswers: [String(rem.numerator)],
-        solutionSteps: [`Used questions = ${fracStr(used)} of ${total}.`, `Subtract from ${total} to get ${rem.numerator}.`],
+        answer: answerPayloadWhole(final),
+        acceptedAnswers: [String(final)],
+        solutionSteps: [
+          `Used questions = ${fracStr(used)} of ${total} = ${firstStep.amount}.`,
+          `Subtract from ${total}: ${total} - ${firstStep.amount} = ${final}.`,
+        ],
       };
     }
     case 'F024': {
       const f1 = frac(1, [2, 3, 4][Math.abs(s) % 3]);
       const f2 = frac(1, [2, 3, 4][Math.abs(s + 2) % 3]);
-      const { total, final } = integerFriendlyTotal(s, 24, 72, [f1, f2]);
+      const { total, final, steps } = sequentialWholeCountTotal(s, 24, 72, [f1, f2]);
       return {
         prompt: `A class completed ${fracStr(f1)} of ${total} problems, then ${fracStr(f2)} of the remainder. How many problems are still unfinished?`,
         answer: answerPayloadWhole(final),
         acceptedAnswers: [String(final)],
-        solutionSteps: ['Find first completed part.', 'Find remainder.', 'Find second completed part from remainder.', `Final unfinished = ${final}.`],
+        solutionSteps: [
+          `First completed: ${fracStr(f1)} of ${total} = ${steps[0].amount}.`,
+          `Remainder: ${steps[0].remaining}.`,
+          `Then completed: ${fracStr(f2)} of ${steps[0].remaining} = ${steps[1].amount}.`,
+          `Final unfinished = ${final}.`,
+        ],
       };
     }
     case 'F025': {
