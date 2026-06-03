@@ -1,6 +1,6 @@
 import {
   Home, Calculator, ClipboardList, GitBranch, FileText, Users, BookOpen, CalendarDays,
-  LayoutGrid, CheckSquare, Book, MessageSquare, Sparkles,
+  LayoutGrid, CheckSquare, Book, MessageSquare, Sparkles, UserCircle,
 } from 'lucide-react';
 import FEATURE_FLAGS from './featureFlags';
 import VERSION from './version';
@@ -18,6 +18,7 @@ export const NAV_ITEMS = [
   { key: 'student.practice', label: 'Practice', path: '/student/assignments', icon: ClipboardList, roles: ['student'], minVersion: 'v0.1' },
   { key: 'student.mistakes', label: 'Mistakes', path: '/student/mathpath/mistakes', icon: CheckSquare, roles: ['student'], minVersion: 'v0.1' },
   { key: 'student.progress', label: 'Progress', path: '/student/progress', icon: GitBranch, roles: ['student'], minVersion: 'v0.1' },
+  { key: 'student.profile', label: 'Profile', path: '/student/profile', icon: UserCircle, roles: ['student'], minVersion: 'v0.1' },
   { key: 'student.worksheets', label: 'Worksheets', path: '/student/worksheets', icon: FileText, roles: ['student'], minVersion: 'v0.2', featureFlag: 'worksheets' },
 
   // Parent (v0.3+)

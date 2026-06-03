@@ -112,6 +112,13 @@ export const familyAPI = {
   recommendations: (studentId) => api.get(`/family/children/${studentId}/recommendations`)
 };
 
+export const studentProfileAPI = {
+  overview: () => api.get('/student-profile'),
+  summary: () => api.get('/student-profile/summary'),
+  achievements: () => api.get('/student-profile/achievements'),
+  timeline: () => api.get('/student-profile/timeline'),
+};
+
 // Spelling Practice (Phase 6) — wired into the shared core (sessions, attempts,
 // mastery, mistakes), module 'Spelling Practice' / subject English.
 export const spellingPracticeAPI = {

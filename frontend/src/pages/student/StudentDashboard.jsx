@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Timer,
   Trophy,
+  UserCircle,
   Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -421,6 +422,9 @@ export default function StudentDashboard() {
               {resetting ? 'Resetting...' : 'Reset Student State'}
             </Button>
           )}
+          <Button to="/student/profile" size="s" variant="secondary" icon={UserCircle} className="hidden sm:inline-flex">
+            Profile
+          </Button>
           <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2 text-sm font-semibold text-ink-700">
             <Flame className="h-4 w-4 text-gold-500" />
             {hasActivity ? 1 : 0}

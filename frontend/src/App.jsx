@@ -37,6 +37,7 @@ import { ToastProvider } from './components/ui';
 import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
+const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
 const MorePage = lazy(() => import('./pages/MorePage'));
 // MathPath (Phase 2)
 const MathPathHome = lazy(() => import('./pages/student/mathpath/MathPathHome'));
@@ -431,6 +432,7 @@ function App() {
           <Route element={<ShellLayout />}>
             {/* Student — dashboard shell is live */}
             <Route path="/student" element={<StudentDashboard />} />
+            <Route path="/student/profile" element={<StudentProfile />} />
             <Route path="/student/mathpath" element={<MathPathHome />} />
             <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
             <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
