@@ -1,0 +1,154 @@
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+
+const MOCK_STUDENT = { _id: 'student_1', name: 'Pilot Student' };
+const getStudentAnalytics = vi.fn();
+const getPilotAnalytics = vi.fn();
+const recordLearningEvent = vi.fn();
+
+vi.mock('../middleware/auth.js', () => ({
+  protect: (req, _res, next) => {
+    req.user = { id: 'user_1', role: req.headers?.role || 'admin' };
+    next();
+  },
+  authorize: (...roles) => (req, res, next) => {
+    if (!roles.includes(req.user.role)) return res.status(403).json({ error: 'forbidden' });
+    next();
+  },
+}));
+
+vi.mock('../utils/studentContext.js', () => ({
+  resolveStudent: vi.fn(async () => MOCK_STUDENT),
+}));
+
+vi.mock('../services/telemetry/learningTelemetryService.js', () => ({
+  getStudentAnalytics: (...args) => getStudentAnalytics(...args),
+  getPilotAnalytics: (...args) => getPilotAnalytics(...args),
+  recordLearningEvent: (...args) => recordLearningEvent(...args),
+}));
+
+async function loadRouter(path) {
+  const mod = await import(path);
+  return mod.default;
+}
+
+async function request(router, path, { method = 'GET', query = {}, headers = {} } = {}) {
+  return new Promise((resolve, reject) => {
+    const req = {
+      method: String(method || 'GET').toUpperCase(),
+      url: path,
+      path,
+      originalUrl: path,
+      query,
+      body: {},
+      headers,
+      params: {},
+    };
+    const res = {
+      statusCode: 200,
+      status(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json(payload) {
+        resolve({ status: this.statusCode, data: payload });
+      },
+      send(payload) {
+        resolve({ status: this.statusCode, data: payload });
+      },
+    };
+    router.handle(req, res, (err) => {
+      if (err) reject(err);
+      else resolve({ status: res.statusCode, data: null });
+    });
+  });
+}
+
+describe('learning telemetry analytics routes', () => {
+  let studentRouter;
+  let pilotRouter;
+  let telemetryRouter;
+
+  beforeAll(async () => {
+    studentRouter = await loadRouter('./studentAnalytics.js');
+    pilotRouter = await loadRouter('./pilotAnalytics.js');
+    telemetryRouter = await loadRouter('./telemetry.js');
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns analytics for the resolved student', async () => {
+    getStudentAnalytics.mockResolvedValueOnce({ questionsAnswered: 8, overconfidenceRate: 13 });
+
+    const res = await request(studentRouter, '/analytics', { query: { days: 14 } });
+
+    expect(res.status).toBe(200);
+    expect(getStudentAnalytics).toHaveBeenCalledWith({ studentId: 'student_1', days: 14 });
+    expect(res.data).toEqual({ questionsAnswered: 8, overconfidenceRate: 13 });
+  });
+
+  it('returns admin pilot analytics', async () => {
+    getPilotAnalytics.mockResolvedValueOnce({
+      pilotMetrics: { activeStudents: 5, completionRate: 80 },
+      overconfidence: { overconfidenceRate: 10 },
+    });
+
+    const res = await request(pilotRouter, '/pilot-analytics', { query: { days: 30, domain: 'fractions' } });
+
+    expect(res.status).toBe(200);
+    expect(getPilotAnalytics).toHaveBeenCalledWith({ days: 30, domain: 'fractions' });
+    expect(res.data.pilotMetrics.activeStudents).toBe(5);
+  });
+
+  it('blocks pilot analytics for non-admin users', async () => {
+    const res = await request(pilotRouter, '/pilot-analytics', { headers: { role: 'student' } });
+
+    expect(res.status).toBe(403);
+    expect(getPilotAnalytics).not.toHaveBeenCalled();
+  });
+
+  it('records generic frontend telemetry events', async () => {
+    recordLearningEvent.mockResolvedValueOnce({ _id: 'event_1' });
+    const req = {
+      method: 'POST',
+      url: '/events',
+      path: '/events',
+      originalUrl: '/events',
+      query: {},
+      body: {
+        studentId: 'student_1',
+        eventType: 'mastery_test_started',
+        domain: 'fractions',
+        sessionId: 'assess_1',
+        metadata: { assessmentType: 'mastery' },
+      },
+      headers: {},
+      params: {},
+    };
+    const res = await new Promise((resolve, reject) => {
+      const response = {
+        statusCode: 200,
+        status(code) {
+          this.statusCode = code;
+          return this;
+        },
+        json(payload) {
+          resolve({ status: this.statusCode, data: payload });
+        },
+      };
+      telemetryRouter.handle(req, response, (err) => {
+        if (err) reject(err);
+        else resolve({ status: response.statusCode, data: null });
+      });
+    });
+
+    expect(res.status).toBe(201);
+    expect(recordLearningEvent).toHaveBeenCalledWith(expect.objectContaining({
+      studentId: 'student_1',
+      eventType: 'mastery_test_started',
+      domain: 'fractions',
+      sessionId: 'assess_1',
+    }));
+  });
+});

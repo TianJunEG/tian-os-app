@@ -10,6 +10,10 @@ import {
 } from '../../utils/adaptiveDiagnosticDecisionEngine.js';
 import { selectNextDiagnosticQuestion } from '../../utils/selectNextDiagnosticQuestion.js';
 import { getDiagnosticDomain } from './diagnosticDomainRegistry.js';
+import {
+  normalizeConfidence,
+  recordLearningEvents,
+} from '../telemetry/learningTelemetryService.js';
 
 const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
 
@@ -274,6 +278,34 @@ export async function startAdaptiveDiagnostic({
   });
 
   const enrichmentOnly = ['P1', 'P2'].includes((levelTag || '').toUpperCase());
+  await recordLearningEvents([
+    {
+      studentId: String(student._id),
+      eventType: 'session_started',
+      subjectId: domain.subjectId,
+      domain: domain.domainId,
+      sessionId: doc.diagnosticSessionId,
+      metadata: { mode, diagnosticPurpose: purpose, estimatedQuestionCount: count },
+    },
+    {
+      studentId: String(student._id),
+      eventType: 'diagnostic_started',
+      subjectId: domain.subjectId,
+      domain: domain.domainId,
+      sessionId: doc.diagnosticSessionId,
+      metadata: { mode, diagnosticPurpose: purpose, estimatedQuestionCount: count },
+    },
+    ...(firstQuestion ? [{
+      studentId: String(student._id),
+      eventType: 'question_viewed',
+      subjectId: domain.subjectId,
+      domain: domain.domainId,
+      skillCode: firstQuestion.skillId,
+      questionId: firstQuestion.questionId,
+      sessionId: doc.diagnosticSessionId,
+      metadata: { questionFamilyId: firstQuestion.questionFamilyId, answerInputType: firstQuestion.answerInputType || '' },
+    }] : []),
+  ]);
   return {
     sessionId: doc.diagnosticSessionId,
     subjectId: domain.subjectId,
@@ -513,6 +545,80 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     session.resultPayload = session.result;
   }
   await session.save();
+
+  const confidence = normalizeConfidence(response.confidence);
+  const telemetryEvents = [
+    {
+      studentId: String(student._id),
+      eventType: response.skipped ? 'question_skipped' : 'question_answered',
+      subjectId: session.subjectId || '',
+      domain: session.domainId,
+      skillCode: skillId,
+      questionId,
+      sessionId: session.diagnosticSessionId,
+      timestamp: response.endedAt,
+      metadata: {
+        answerCorrect: correct,
+        confidence,
+        timeTakenSeconds: response.timeTakenSeconds,
+        workingSubmitted: response.workingSubmitted,
+        workingNotNeeded: response.workingNotNeeded,
+        helpRequested: response.helpRequested || response.confidence === 'i_need_help',
+        skipped: response.skipped,
+        blankAnswer: response.blankAnswer,
+        decisionType: decision.decisionType,
+      },
+    },
+  ];
+  if (confidence) {
+    telemetryEvents.push({
+      studentId: String(student._id),
+      eventType: 'confidence_selected',
+      subjectId: session.subjectId || '',
+      domain: session.domainId,
+      skillCode: skillId,
+      questionId,
+      sessionId: session.diagnosticSessionId,
+      timestamp: response.endedAt,
+      metadata: { confidence },
+    });
+  }
+  if (nextQuestion) {
+    telemetryEvents.push({
+      studentId: String(student._id),
+      eventType: 'question_viewed',
+      subjectId: session.subjectId || '',
+      domain: session.domainId,
+      skillCode: nextQuestion.skillId,
+      questionId: nextQuestion.questionId,
+      sessionId: session.diagnosticSessionId,
+      metadata: { questionFamilyId: nextQuestion.questionFamilyId, answerInputType: nextQuestion.answerInputType || '' },
+    });
+  }
+  if (sessionComplete) {
+    const sessionLengthSeconds = session.startedAt && session.completedAt
+      ? Math.max(0, Math.round((session.completedAt.getTime() - session.startedAt.getTime()) / 1000))
+      : null;
+    telemetryEvents.push(
+      {
+        studentId: String(student._id),
+        eventType: 'session_completed',
+        subjectId: session.subjectId || '',
+        domain: session.domainId,
+        sessionId: session.diagnosticSessionId,
+        metadata: { answeredCount, readinessScore, sessionLengthSeconds, mode: session.mode },
+      },
+      {
+        studentId: String(student._id),
+        eventType: 'diagnostic_completed',
+        subjectId: session.subjectId || '',
+        domain: session.domainId,
+        sessionId: session.diagnosticSessionId,
+        metadata: { answeredCount, readinessScore, sessionLengthSeconds, mode: session.mode },
+      }
+    );
+  }
+  await recordLearningEvents(telemetryEvents);
 
   return {
     isCorrect: correct,

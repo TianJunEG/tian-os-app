@@ -12,6 +12,7 @@ import { recordAttempt } from '../utils/masteryEngine.js';
 import { isCorrectWithContext, checkKeyPoints } from '../utils/answerCheck.js';
 import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
+import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 
 const router = express.Router();
 const FRAMEWORK_SKILL_ID_PATTERN = /^F\d{3}$/i;
@@ -133,6 +134,33 @@ router.post('/sessions', protect, async (req, res) => {
     });
     if (assignmentId) await Assignment.findByIdAndUpdate(assignmentId, { status: 'in_progress', sessionId: session._id });
 
+    const domain = /science/i.test(sessionModule) ? 'science' : 'mathpath';
+    await recordLearningEvents([
+      {
+        studentId: String(student._id),
+        eventType: 'session_started',
+        domain,
+        sessionId: String(session._id),
+        metadata: { mode, feature: sessionFeature, module: sessionModule },
+      },
+      {
+        studentId: String(student._id),
+        eventType: mode === 'fluency' ? 'fluency_started' : 'practice_started',
+        domain,
+        sessionId: String(session._id),
+        metadata: { mode, feature: sessionFeature, module: sessionModule, questionCount: questions.length },
+      },
+      ...questions.map((q) => ({
+        studentId: String(student._id),
+        eventType: 'question_viewed',
+        domain,
+        skillCode: String(q.skillId?._id || q.skillId || ''),
+        questionId: String(q._id),
+        sessionId: String(session._id),
+        metadata: { mode, feature: sessionFeature, difficulty: q.difficulty, questionType: q.type },
+      })),
+    ]);
+
     res.json({ session_id: session._id, mode, feature: sessionFeature, items: questions.map(clientQuestion) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start session.' });
@@ -187,6 +215,51 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
     const sessModule = session.module || 'MathPath';
     const subject = /science/i.test(sessModule) ? 'Science' : 'Math';
     const mastery = await recordAttempt({ studentId: student._id, skillId: q.skillId, workspaceId: student.workspaceId, correct, timeMs, module: sessModule, subject });
+    const confidence = normalizeConfidence(req.body?.confidence || req.body?.confidenceLevel || req.body?.reflection || '');
+    const domain = /science/i.test(sessModule) ? 'science' : 'mathpath';
+
+    const telemetryEvents = [
+      {
+        studentId: String(student._id),
+        eventType: req.body?.skipped ? 'question_skipped' : 'question_answered',
+        domain,
+        skillCode: String(q.skillId || ''),
+        questionId: String(q._id),
+        sessionId: String(session._id),
+        metadata: {
+          answerCorrect: Boolean(correct),
+          confidence,
+          timeTakenSeconds: Number.isFinite(Number(timeMs)) ? Math.round(Number(timeMs) / 1000) : null,
+          workingSubmitted: Boolean(req.body?.workingSubmitted || req.body?.workingUploaded || req.body?.fullscreenWorkingSubmitted),
+          workingNotNeeded: Boolean(req.body?.workingNotNeeded),
+          helpRequested: Boolean(req.body?.helpRequested),
+          skipped: Boolean(req.body?.skipped),
+          hintsUsed,
+        },
+      },
+    ];
+    if (confidence) {
+      telemetryEvents.push({
+        studentId: String(student._id),
+        eventType: 'confidence_selected',
+        domain,
+        skillCode: String(q.skillId || ''),
+        questionId: String(q._id),
+        sessionId: String(session._id),
+        metadata: { confidence },
+      });
+    }
+    if (mastery.masteredNow) {
+      telemetryEvents.push({
+        studentId: String(student._id),
+        eventType: 'skill_mastered',
+        domain,
+        skillCode: String(q.skillId || ''),
+        sessionId: String(session._id),
+        metadata: { masteryScore: mastery.after?.score, module: sessModule },
+      });
+    }
+    await recordLearningEvents(telemetryEvents);
 
     // Save a mistake when incorrect, or partially correct on an open-ended item.
     if (!correct) {
@@ -244,6 +317,26 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
         status: 'completed', completionDate: new Date(), score: scorePct,
       });
     }
+    const domain = /science/i.test(session.module || '') ? 'science' : 'mathpath';
+    const sessionLengthSeconds = session.startedAt && session.endedAt
+      ? Math.max(0, Math.round((session.endedAt.getTime() - session.startedAt.getTime()) / 1000))
+      : null;
+    await recordLearningEvents([
+      {
+        studentId: String(session.studentId),
+        eventType: 'session_completed',
+        domain,
+        sessionId: String(session._id),
+        metadata: { total, correct, scorePct, sessionLengthSeconds, mode: session.mode, feature: session.feature },
+      },
+      {
+        studentId: String(session.studentId),
+        eventType: session.mode === 'fluency' ? 'fluency_completed' : 'practice_completed',
+        domain,
+        sessionId: String(session._id),
+        metadata: { total, correct, scorePct, sessionLengthSeconds, mode: session.mode, feature: session.feature },
+      },
+    ]);
 
     res.json({
       session_id: session._id,
@@ -291,6 +384,45 @@ router.get('/sessions/:id', protect, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to load session.' });
+  }
+});
+
+// @route PATCH /api/practice/sessions/:id/abandon
+// @desc  Mark a practice session abandoned for pilot telemetry.
+// @access Private
+router.patch('/sessions/:id/abandon', protect, async (req, res) => {
+  try {
+    const session = await PracticeSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ error: 'Session not found.' });
+    await resolveStudent(req, session.studentId);
+
+    session.status = 'abandoned';
+    session.endedAt = new Date();
+    await session.save();
+    const domain = /science/i.test(session.module || '') ? 'science' : 'mathpath';
+    const sessionLengthSeconds = session.startedAt && session.endedAt
+      ? Math.max(0, Math.round((session.endedAt.getTime() - session.startedAt.getTime()) / 1000))
+      : null;
+    await recordLearningEvents([
+      {
+        studentId: String(session.studentId),
+        eventType: 'session_abandoned',
+        domain,
+        sessionId: String(session._id),
+        metadata: { sessionLengthSeconds, mode: session.mode, feature: session.feature },
+      },
+      {
+        studentId: String(session.studentId),
+        eventType: 'practice_abandoned',
+        domain,
+        sessionId: String(session._id),
+        metadata: { sessionLengthSeconds, mode: session.mode, feature: session.feature },
+      },
+    ]);
+
+    res.json({ session_id: session._id, status: session.status });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to abandon session.' });
   }
 });
 

@@ -6,12 +6,30 @@ import Skill from '../models/Skill.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { deriveMastery, fluencyLabel } from '../utils/masteryEngine.js';
+import { getSkillAnalytics } from '../services/telemetry/learningTelemetryService.js';
 
 const router = express.Router();
 const labelFor = (status, fluency) => ({
   not_started: 'needs practice', needs_review: 'needs practice', learning: 'learning',
   mastered: fluency ? 'fluent' : 'mastered',
 }[status] || status);
+
+// @route GET /api/skills/analytics
+// @desc  Skill-level telemetry for pilot QA and intervention planning.
+// @access Private
+router.get('/analytics', protect, async (req, res) => {
+  try {
+    const analytics = await getSkillAnalytics({
+      domain: req.query.domain || '',
+      days: req.query.days || 30,
+      limit: req.query.limit || 10,
+    });
+    res.json(analytics);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load skill analytics.' });
+  }
+});
+
 // @route GET /api/skills?studentId=&subject=math|science&group=fluency
 // @desc  Skill catalog (for a subject) merged with the student's mastery status.
 //        subject defaults to 'math'. group=fluency limits to the speed-and-

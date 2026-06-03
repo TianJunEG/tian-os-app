@@ -27,6 +27,7 @@ import {
   runReasoningMethodMarkAnalysis,
   updateReasoningProgression,
 } from '../services/mathpath/reasoningMethodMarkEngine.js';
+import { recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 
 const router = express.Router();
 const WORKING_UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-working');
@@ -328,6 +329,20 @@ router.post('/sessions', async (req, res) => {
       questionWorkingMap,
       analysisStatus: 'pending_analysis',
     });
+    await recordLearningEvents([
+      {
+        studentId: String(session.studentId),
+        eventType: 'working_opened',
+        domain: session.domainId,
+        sessionId: session.practiceSessionId || session.assessmentSessionId || session.workingSessionId,
+        metadata: {
+          workingSessionId: session.workingSessionId,
+          inputMethod: session.inputMethod,
+          questionCount: questionIds.length,
+          skillCount: skillIds.length,
+        },
+      },
+    ]);
 
     return res.status(201).json({ workingSession: publicSession(session.toObject()), reused: false });
   } catch (err) {
@@ -729,6 +744,37 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
     session.interventionRecommendation = summary.recommendation;
     await session.save();
     const workingRecords = await upsertWorkingIntelligenceForSession(session);
+    await recordLearningEvents([
+      {
+        studentId: String(session.studentId),
+        eventType: 'working_submitted',
+        domain: session.domainId,
+        sessionId: session.practiceSessionId || session.assessmentSessionId || session.workingSessionId,
+        timestamp: uploadedAt,
+        metadata: {
+          workingSessionId: session.workingSessionId,
+          submittedByRole: session.submittedByRole,
+          fileCount: metadata.length,
+          hasCanvasImage: Boolean(session.canvasImage),
+          hasDigitalInk: Boolean(session.digitalInkData),
+        },
+      },
+      ...((session.questionWorkingMap || []).map((row) => ({
+        studentId: String(session.studentId),
+        eventType: 'working_saved',
+        domain: row.domainId || session.domainId,
+        skillCode: row.skillId || '',
+        questionId: row.questionId || '',
+        sessionId: row.sessionId || session.practiceSessionId || session.assessmentSessionId || session.workingSessionId,
+        timestamp: uploadedAt,
+        metadata: {
+          workingCode: row.workingCode || '',
+          workingSessionId: session.workingSessionId,
+          submittedByRole: session.submittedByRole,
+          source: session.inputMethod,
+        },
+      }))),
+    ]);
 
     return res.json({
       workingSession: publicSession(session.toObject()),
@@ -756,6 +802,20 @@ router.post('/:workingSessionId/no-working', async (req, res) => {
     mapRow.mappingStatus = mapRow.mappingStatus === 'unmapped' ? 'manuallyMapped' : mapRow.mappingStatus;
     session.status = session.status === 'pending' ? 'mapped' : session.status;
     await session.save();
+    await recordLearningEvents([
+      {
+        studentId: String(session.studentId),
+        eventType: 'working_not_needed_declared',
+        domain: mapRow.domainId || session.domainId,
+        skillCode: mapRow.skillId || '',
+        questionId,
+        sessionId: mapRow.sessionId || session.practiceSessionId || session.assessmentSessionId || session.workingSessionId,
+        metadata: {
+          reason: mapRow.workingReason,
+          workingSessionId: session.workingSessionId,
+        },
+      },
+    ]);
 
     return res.json({ workingSession: publicSession(session.toObject()) });
   } catch (err) {

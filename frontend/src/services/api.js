@@ -397,12 +397,19 @@ export const worksheetGenAPI = {
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getMathPathPilot: (params) => api.get('/admin/mathpath-pilot', { params }),
+  getPilotAnalytics: (params) => api.get('/admin/pilot-analytics', { params }),
   getUsers: (params) => api.get('/admin/users', { params }),
   getVerificationQueue: (params) => api.get('/admin/verification-queue', { params }),
   verifyTutor: (tutorId, data) => api.put(`/admin/verification/${tutorId}`, data),
   getBookings: (params) => api.get('/admin/bookings', { params }),
   getDisputes: (params) => api.get('/admin/disputes', { params }),
   resolveDispute: (bookingId, data) => api.put(`/admin/disputes/${bookingId}/resolve`, data)
+};
+
+export const learningTelemetryAPI = {
+  recordEvent: (data) => api.post('/telemetry/events', data),
+  studentAnalytics: (params) => api.get('/student/analytics', { params }),
+  skillAnalytics: (params) => api.get('/skills/analytics', { params }),
 };
 
 // Reviews API

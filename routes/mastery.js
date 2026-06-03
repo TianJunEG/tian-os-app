@@ -41,6 +41,7 @@ import {
   startSimilarQuestionPractice,
   submitSimilarQuestionPractice,
 } from '../services/mathpath/questionPatternTrainer.js';
+import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 
 const router = express.Router();
 
@@ -192,6 +193,31 @@ router.post('/fractions/similar-practice-sets/:practiceSetId/start', protect, as
       studentId: String(student._id),
       limit: req.body?.limit || 10,
     });
+    await recordLearningEvents([
+      {
+        studentId: String(student._id),
+        eventType: 'session_started',
+        domain: 'fractions',
+        sessionId: started.sessionId || started.practiceSessionId || req.params.practiceSetId,
+        metadata: { source: 'similar_question_practice', practiceSetId: req.params.practiceSetId },
+      },
+      {
+        studentId: String(student._id),
+        eventType: 'practice_started',
+        domain: 'fractions',
+        sessionId: started.sessionId || started.practiceSessionId || req.params.practiceSetId,
+        metadata: { source: 'similar_question_practice', practiceSetId: req.params.practiceSetId },
+      },
+      ...((started.questions || started.items || []).map((question) => ({
+        studentId: String(student._id),
+        eventType: 'question_viewed',
+        domain: 'fractions',
+        skillCode: question.skillId || '',
+        questionId: question.variantId || question.questionId || '',
+        sessionId: started.sessionId || started.practiceSessionId || req.params.practiceSetId,
+        metadata: { source: 'similar_question_practice', practiceSetId: req.params.practiceSetId },
+      }))),
+    ]);
     res.json(started);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start similar question practice.' });
@@ -307,6 +333,56 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
           { upsert: true, new: true, setDefaultsOnInsert: true }
         ));
       }));
+    }
+    if (results.length) {
+      const sessionId = req.params.sessionId;
+      const correct = results.filter((result) => result.correct).length;
+      await recordLearningEvents([
+        ...results.map((result) => {
+          const confidence = normalizeConfidence(result.confidence || result.confidenceLevel || '');
+          return {
+            studentId,
+            eventType: result.skipped ? 'question_skipped' : 'question_answered',
+            domain: 'fractions',
+            skillCode: result.skillId || '',
+            questionId: result.variantId || result.questionId || '',
+            sessionId,
+            metadata: {
+              answerCorrect: Boolean(result.correct),
+              confidence,
+              timeTakenSeconds: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+              workingSubmitted: Boolean(result.workingUploaded || result.workingSubmitted || result.fullscreenWorkingSubmitted),
+              workingNotNeeded: Boolean(result.workingNotNeeded),
+              skipped: Boolean(result.skipped),
+            },
+          };
+        }),
+        ...results
+          .map((result) => normalizeConfidence(result.confidence || result.confidenceLevel || '') ? ({
+            studentId,
+            eventType: 'confidence_selected',
+            domain: 'fractions',
+            skillCode: result.skillId || '',
+            questionId: result.variantId || result.questionId || '',
+            sessionId,
+            metadata: { confidence: normalizeConfidence(result.confidence || result.confidenceLevel || '') },
+          }) : null)
+          .filter(Boolean),
+        {
+          studentId,
+          eventType: 'session_completed',
+          domain: 'fractions',
+          sessionId,
+          metadata: { source: 'similar_question_practice', total: results.length, correct, scorePct: results.length ? Math.round((correct / results.length) * 100) : 0 },
+        },
+        {
+          studentId,
+          eventType: 'practice_completed',
+          domain: 'fractions',
+          sessionId,
+          metadata: { source: 'similar_question_practice', total: results.length, correct, scorePct: results.length ? Math.round((correct / results.length) * 100) : 0 },
+        },
+      ]);
     }
     res.json(submitted);
   } catch (err) {

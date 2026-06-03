@@ -1,0 +1,305 @@
+import LearningTelemetryEvent, { LEARNING_EVENT_TYPES } from '../../models/LearningTelemetryEvent.js';
+
+export const CONFIDENCE = Object.freeze({
+  I_KNOW_THIS: 'I_KNOW_THIS',
+  IM_NOT_SURE: 'IM_NOT_SURE',
+  I_DONT_KNOW: 'I_DONT_KNOW',
+});
+
+const CONFIDENCE_ALIASES = Object.freeze({
+  i_know_this: CONFIDENCE.I_KNOW_THIS,
+  know: CONFIDENCE.I_KNOW_THIS,
+  high: CONFIDENCE.I_KNOW_THIS,
+  confident: CONFIDENCE.I_KNOW_THIS,
+  very_confident: CONFIDENCE.I_KNOW_THIS,
+  "i'm_not_sure": CONFIDENCE.IM_NOT_SURE,
+  im_not_sure: CONFIDENCE.IM_NOT_SURE,
+  not_sure: CONFIDENCE.IM_NOT_SURE,
+  low: CONFIDENCE.IM_NOT_SURE,
+  unsure: CONFIDENCE.IM_NOT_SURE,
+  i_dont_know: CONFIDENCE.I_DONT_KNOW,
+  "i_don't_know": CONFIDENCE.I_DONT_KNOW,
+  dont_know: CONFIDENCE.I_DONT_KNOW,
+  not_ready: CONFIDENCE.I_DONT_KNOW,
+  i_need_help: CONFIDENCE.I_DONT_KNOW,
+});
+
+export function normalizeConfidence(value = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (Object.values(CONFIDENCE).includes(raw)) return raw;
+  const key = raw.toLowerCase().replace(/\s+/g, '_');
+  return CONFIDENCE_ALIASES[key] || raw.toUpperCase();
+}
+
+function cleanMetadata(metadata = {}) {
+  return Object.fromEntries(
+    Object.entries(metadata || {}).filter(([, value]) => value !== undefined)
+  );
+}
+
+export async function recordLearningEvent(event = {}) {
+  if (!event?.studentId || !event?.eventType) return null;
+  const eventType = String(event.eventType);
+  if (!LEARNING_EVENT_TYPES.includes(eventType)) {
+    return null;
+  }
+  try {
+    return await LearningTelemetryEvent.create({
+      studentId: String(event.studentId),
+      eventType,
+      domain: String(event.domain || event.domainId || ''),
+      subjectId: String(event.subjectId || ''),
+      skillCode: String(event.skillCode || event.skillId || ''),
+      questionId: String(event.questionId || ''),
+      sessionId: String(event.sessionId || ''),
+      timestamp: event.timestamp ? new Date(event.timestamp) : new Date(),
+      metadata: cleanMetadata(event.metadata || {}),
+    });
+  } catch (err) {
+    console.warn('[learning-telemetry] event write failed:', err.message);
+    return null;
+  }
+}
+
+export async function recordLearningEvents(events = []) {
+  const docs = (events || [])
+    .filter((event) => event?.studentId && event?.eventType && LEARNING_EVENT_TYPES.includes(String(event.eventType)))
+    .map((event) => ({
+      studentId: String(event.studentId),
+      eventType: String(event.eventType),
+      domain: String(event.domain || event.domainId || ''),
+      subjectId: String(event.subjectId || ''),
+      skillCode: String(event.skillCode || event.skillId || ''),
+      questionId: String(event.questionId || ''),
+      sessionId: String(event.sessionId || ''),
+      timestamp: event.timestamp ? new Date(event.timestamp) : new Date(),
+      metadata: cleanMetadata(event.metadata || {}),
+    }));
+  if (!docs.length) return [];
+  try {
+    return await LearningTelemetryEvent.insertMany(docs, { ordered: false });
+  } catch (err) {
+    console.warn('[learning-telemetry] event batch write failed:', err.message);
+    return [];
+  }
+}
+
+function pct(numerator, denominator) {
+  return denominator ? Math.round((numerator / denominator) * 100) : 0;
+}
+
+function avg(values = []) {
+  const nums = values.map(Number).filter((value) => Number.isFinite(value));
+  return nums.length ? Math.round(nums.reduce((sum, value) => sum + value, 0) / nums.length) : 0;
+}
+
+function filterSince(days = 30) {
+  const since = new Date();
+  since.setDate(since.getDate() - Number(days || 30));
+  return since;
+}
+
+function questionAnsweredFilter(studentId, days) {
+  return {
+    ...(studentId ? { studentId: String(studentId) } : {}),
+    eventType: 'question_answered',
+    timestamp: { $gte: filterSince(days) },
+  };
+}
+
+export async function getStudentAnalytics({ studentId, days = 30 } = {}) {
+  const base = { studentId: String(studentId), timestamp: { $gte: filterSince(days) } };
+  const [answered, completedSessions, masteredEvents] = await Promise.all([
+    LearningTelemetryEvent.find({ ...base, eventType: 'question_answered' }).lean(),
+    LearningTelemetryEvent.find({ ...base, eventType: 'session_completed' }).lean(),
+    LearningTelemetryEvent.find({ ...base, eventType: 'skill_mastered' }).lean(),
+  ]);
+  const correct = answered.filter((event) => event.metadata?.answerCorrect === true).length;
+  const confidenceValues = answered.map((event) => normalizeConfidence(event.metadata?.confidence)).filter(Boolean);
+  const confidenceCounts = confidenceValues.reduce((acc, value) => {
+    acc[value] = (acc[value] || 0) + 1;
+    return acc;
+  }, {});
+  const workingSubmitted = answered.filter((event) => event.metadata?.workingSubmitted === true).length;
+  const workingNotNeeded = answered.filter((event) => event.metadata?.workingNotNeeded === true).length;
+  const overconfidentWrong = answered.filter((event) => (
+    event.metadata?.answerCorrect === false
+    && normalizeConfidence(event.metadata?.confidence) === CONFIDENCE.I_KNOW_THIS
+  )).length;
+
+  return {
+    studentId: String(studentId),
+    windowDays: Number(days || 30),
+    questionsAnswered: answered.length,
+    questionsCorrect: correct,
+    accuracyRate: pct(correct, answered.length),
+    averageConfidence: confidenceValues.length ? confidenceCounts[CONFIDENCE.I_KNOW_THIS] || 0 : 0,
+    confidenceDistribution: confidenceCounts,
+    overconfidenceRate: pct(overconfidentWrong, answered.length),
+    workingSubmissionRate: pct(workingSubmitted, answered.length),
+    workingNotNeededRate: pct(workingNotNeeded, answered.length),
+    skillsMastered: new Set(masteredEvents.map((event) => event.skillCode).filter(Boolean)).size,
+    currentStreak: calculateTelemetryStreak([...answered, ...completedSessions]),
+  };
+}
+
+export async function getSkillAnalytics({ domain = '', days = 30, limit = 10 } = {}) {
+  const events = await LearningTelemetryEvent.find({
+    eventType: 'question_answered',
+    timestamp: { $gte: filterSince(days) },
+    ...(domain ? { domain } : {}),
+  }).lean();
+  const bySkill = new Map();
+  for (const event of events) {
+    const skill = event.skillCode || 'unmapped';
+    if (!bySkill.has(skill)) {
+      bySkill.set(skill, {
+        skillCode: skill,
+        answered: 0,
+        missed: 0,
+        skipped: 0,
+        helpRequested: 0,
+        overconfidentWrong: 0,
+      });
+    }
+    const row = bySkill.get(skill);
+    row.answered += 1;
+    if (event.metadata?.answerCorrect === false) row.missed += 1;
+    if (event.metadata?.skipped === true) row.skipped += 1;
+    if (event.metadata?.helpRequested === true) row.helpRequested += 1;
+    if (event.metadata?.answerCorrect === false && normalizeConfidence(event.metadata?.confidence) === CONFIDENCE.I_KNOW_THIS) {
+      row.overconfidentWrong += 1;
+    }
+  }
+  const rows = [...bySkill.values()].map((row) => ({
+    ...row,
+    missedRate: pct(row.missed, row.answered),
+    skippedRate: pct(row.skipped, row.answered),
+    overconfidenceRate: pct(row.overconfidentWrong, row.answered),
+  }));
+  const take = Number(limit || 10);
+  return {
+    mostMissedSkills: [...rows].sort((a, b) => b.missed - a.missed).slice(0, take),
+    highestConfidenceWrongAnswers: [...rows].sort((a, b) => b.overconfidentWrong - a.overconfidentWrong).slice(0, take),
+    mostRequestedHelpSkills: [...rows].sort((a, b) => b.helpRequested - a.helpRequested).slice(0, take),
+    mostSkippedSkills: [...rows].sort((a, b) => b.skipped - a.skipped).slice(0, take),
+  };
+}
+
+export async function getPilotAnalytics({ days = 30, domain = '' } = {}) {
+  const since = filterSince(days);
+  const filter = { timestamp: { $gte: since }, ...(domain ? { domain } : {}) };
+  const [
+    allEvents,
+    answered,
+    startedSessions,
+    completedSessions,
+    abandonedSessions,
+    masteredEvents,
+  ] = await Promise.all([
+    LearningTelemetryEvent.find(filter).lean(),
+    LearningTelemetryEvent.find({ ...filter, eventType: 'question_answered' }).lean(),
+    LearningTelemetryEvent.find({ ...filter, eventType: 'session_started' }).lean(),
+    LearningTelemetryEvent.find({ ...filter, eventType: 'session_completed' }).lean(),
+    LearningTelemetryEvent.find({ ...filter, eventType: 'session_abandoned' }).lean(),
+    LearningTelemetryEvent.find({ ...filter, eventType: 'skill_mastered' }).lean(),
+  ]);
+  const activeStudents = new Set(allEvents.map((event) => event.studentId).filter(Boolean));
+  const activeDaysByStudent = new Set(allEvents.map((event) => `${event.studentId}:${new Date(event.timestamp).toISOString().slice(0, 10)}`));
+  const sessionLengths = completedSessions.map((event) => event.metadata?.sessionLengthSeconds).filter((value) => Number.isFinite(Number(value)));
+  const questionsBySession = answered.reduce((acc, event) => {
+    const key = event.sessionId || 'unknown';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const correct = answered.filter((event) => event.metadata?.answerCorrect === true).length;
+  const workingSubmitted = answered.filter((event) => event.metadata?.workingSubmitted === true).length;
+  const workingNotNeeded = answered.filter((event) => event.metadata?.workingNotNeeded === true).length;
+  const withWorking = answered.filter((event) => event.metadata?.workingSubmitted === true);
+  const withoutWorking = answered.filter((event) => !event.metadata?.workingSubmitted);
+  const withWorkingCorrect = withWorking.filter((event) => event.metadata?.answerCorrect === true).length;
+  const withoutWorkingCorrect = withoutWorking.filter((event) => event.metadata?.answerCorrect === true).length;
+  const highRiskNoWorkingErrors = answered.filter((event) => (
+    event.metadata?.answerCorrect === false
+    && event.metadata?.workingNotNeeded === true
+    && normalizeConfidence(event.metadata?.confidence) === CONFIDENCE.I_KNOW_THIS
+  )).length;
+
+  return {
+    windowDays: Number(days || 30),
+    studentOverview: {
+      questionsAnswered: answered.length,
+      questionsCorrect: correct,
+      averageConfidence: confidenceSummary(answered),
+      workingSubmissionRate: pct(workingSubmitted, answered.length),
+      workingNotNeededRate: pct(workingNotNeeded, answered.length),
+      skillsMastered: new Set(masteredEvents.map((event) => `${event.studentId}:${event.skillCode}`).filter(Boolean)).size,
+      currentStreak: avg([...activeStudents].map((studentId) => calculateTelemetryStreak(allEvents.filter((event) => event.studentId === studentId)))),
+    },
+    pilotMetrics: {
+      dailyActiveStudents: activeDaysByStudent.size,
+      activeStudents: activeStudents.size,
+      averageSessionLengthSeconds: avg(sessionLengths),
+      averageQuestionsPerSession: avg(Object.values(questionsBySession)),
+      completionRate: pct(completedSessions.length, startedSessions.length),
+      abandonmentRate: pct(abandonedSessions.length, startedSessions.length),
+    },
+    workingBehaviour: {
+      workingUsageRate: pct(workingSubmitted, answered.length),
+      accuracyWithWorking: pct(withWorkingCorrect, withWorking.length),
+      accuracyWithoutWorking: pct(withoutWorkingCorrect, withoutWorking.length),
+      highRiskNoWorkingErrors,
+    },
+    overconfidence: {
+      overconfidentWrongAnswers: answered.filter((event) => (
+        event.metadata?.answerCorrect === false
+        && normalizeConfidence(event.metadata?.confidence) === CONFIDENCE.I_KNOW_THIS
+      )).length,
+      overconfidenceRate: pct(
+        answered.filter((event) => event.metadata?.answerCorrect === false && normalizeConfidence(event.metadata?.confidence) === CONFIDENCE.I_KNOW_THIS).length,
+        answered.length
+      ),
+    },
+    skillMetrics: await getSkillAnalytics({ domain, days }),
+  };
+}
+
+function confidenceSummary(events = []) {
+  const values = events.map((event) => normalizeConfidence(event.metadata?.confidence)).filter(Boolean);
+  if (!values.length) return '';
+  const counts = values.reduce((acc, value) => {
+    acc[value] = (acc[value] || 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+}
+
+function calculateTelemetryStreak(events = []) {
+  const days = new Set(events.map((event) => new Date(event.timestamp).toISOString().slice(0, 10)));
+  if (!days.size) return 0;
+  let cursor = new Date();
+  let streak = 0;
+  for (;;) {
+    const key = cursor.toISOString().slice(0, 10);
+    if (!days.has(key)) {
+      if (streak === 0) {
+        cursor.setDate(cursor.getDate() - 1);
+        if (days.has(cursor.toISOString().slice(0, 10))) continue;
+      }
+      break;
+    }
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+export default {
+  recordLearningEvent,
+  recordLearningEvents,
+  getStudentAnalytics,
+  getSkillAnalytics,
+  getPilotAnalytics,
+  normalizeConfidence,
+};
