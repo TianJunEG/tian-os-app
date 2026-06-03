@@ -11,6 +11,10 @@ import {
 import { getSkill } from '../../../../mathpath/fractions/fractionSkillGraph';
 import { getQuestionFamily } from '../../../../mathpath/fractions/fractionQuestionFamilies';
 import { calculateQuestionFluency } from '../../../../mathpath/fractions/fractionFluencyEngine';
+import {
+  hasWorkingDecision,
+  resolveWorkingRequirementLevel,
+} from '../../../../components/learning/WorkingEvidenceDecision';
 
 export default function AssessmentReviewScreen() {
   const navigate = useNavigate();
@@ -35,6 +39,8 @@ export default function AssessmentReviewScreen() {
 
   const answered = questions.filter((q) => String(answers[q.questionId] || '').trim() !== '').length;
   const unanswered = questions.length - answered;
+  const incompleteEvidence = questions.filter((q) => !hasWorkingDecision(workings[q.questionId] || {})).length;
+  const missingConfidence = questions.filter((q) => !conf[q.questionId]).length;
   const flaggedCount = Object.values(flagged).filter(Boolean).length;
 
   const questionRefs = useMemo(
@@ -51,6 +57,10 @@ export default function AssessmentReviewScreen() {
   );
 
   const submit = () => {
+    if (unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0) {
+      setError('Complete every answer, confidence choice, and working evidence declaration before submitting.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -63,10 +73,13 @@ export default function AssessmentReviewScreen() {
         });
         const correct = Boolean(checked.correct);
         const working = workings[q.questionId] || {};
+        const workingRequirementLevel = resolveWorkingRequirementLevel(q, 'mastery_check');
         return {
           questionId: q.questionId,
           skillId: q.skillId,
           questionFamilyId: q.questionFamilyId,
+          answer: studentAnswer,
+          answerCorrect: correct,
           correct,
           marksAwarded: correct ? (q.marks || 1) : 0,
           totalMarks: q.marks || 1,
@@ -81,6 +94,7 @@ export default function AssessmentReviewScreen() {
           workingSubmitted: Boolean(working.workingSubmitted),
           workingSubmittedAt: working.workingSubmittedAt || null,
           workingNotNeeded: Boolean(working.workingNotNeeded),
+          workingRequirementLevel,
           workingUploaded: Boolean(working.workingSubmitted),
           studentAnswer,
           correctAnswer: q.answer?.display || '',
@@ -129,6 +143,7 @@ export default function AssessmentReviewScreen() {
           workingSubmitted: Boolean(r.workingSubmitted),
           workingSubmittedAt: r.workingSubmittedAt || null,
           workingNotNeeded: Boolean(r.workingNotNeeded),
+          workingRequirementLevel: r.workingRequirementLevel,
           workingUploaded: Boolean(r.workingUploaded),
         };
       });
@@ -176,10 +191,10 @@ export default function AssessmentReviewScreen() {
           <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Flagged</p><p className="font-mono text-lg">{flaggedCount}</p></div>
           <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Time Used</p><p className="font-mono text-lg">{Math.floor(totalTimeSeconds / 60)}:{String(totalTimeSeconds % 60).padStart(2, '0')}</p></div>
         </div>
-        {unanswered > 0 && (
+        {(unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0) && (
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-gold-300 bg-gold-100 p-3 text-sm text-gold-900">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>You still have unanswered questions. You can submit now, but those questions may score zero.</p>
+            <p>Complete every answer, confidence choice, and working evidence declaration before submitting.</p>
           </div>
         )}
         <div className="mt-4 max-h-56 space-y-2 overflow-auto rounded-lg border border-hairline p-3">
@@ -191,6 +206,12 @@ export default function AssessmentReviewScreen() {
                 <span className={`rounded-full px-2 py-0.5 text-xs ${answers[q.questionId] ? 'bg-success-100 text-success-700' : 'bg-error-100 text-error-700'}`}>
                   {answers[q.questionId] ? 'Answered' : 'Unanswered'}
                 </span>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${conf[q.questionId] ? 'bg-success-100 text-success-700' : 'bg-error-100 text-error-700'}`}>
+                  {conf[q.questionId] ? 'Confidence' : 'No confidence'}
+                </span>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${hasWorkingDecision(workings[q.questionId] || {}) ? 'bg-success-100 text-success-700' : 'bg-error-100 text-error-700'}`}>
+                  {hasWorkingDecision(workings[q.questionId] || {}) ? 'Working evidence' : 'No working evidence'}
+                </span>
               </div>
             </div>
           ))}
@@ -198,7 +219,7 @@ export default function AssessmentReviewScreen() {
         {error && <p className="mt-3 text-sm text-error-700">{error}</p>}
         <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
           <Button variant="secondary" onClick={() => navigate(-1)}>Back to Questions</Button>
-          <Button icon={ArrowRight} disabled={busy} onClick={submit}>
+          <Button icon={ArrowRight} disabled={busy || unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0} onClick={submit}>
             {busy ? 'Submitting…' : 'Submit Assessment'}
           </Button>
         </div>

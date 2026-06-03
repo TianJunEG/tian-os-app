@@ -52,6 +52,9 @@ function normalizeResponseBody(body = {}, question = {}) {
     endedAt: toDateLike(body.questionEndedAt) || new Date(),
     workingSubmitted: Boolean(body.workingSubmitted || body.workingUploaded || body.fullscreenWorkingSubmitted),
     workingNotNeeded: Boolean(body.workingNotNeeded),
+    workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(body.workingRequirementLevel || '').toUpperCase())
+      ? String(body.workingRequirementLevel).toUpperCase()
+      : '',
     fullscreenWorkingSubmitted: Boolean(body.fullscreenWorkingSubmitted),
     helpRequested: Boolean(body.helpRequested),
     timedOut: Boolean(body.timedOut),
@@ -77,6 +80,7 @@ async function maybePersistAttempt({ student, session, question, skillId, respon
     sessionId: session.diagnosticSessionId,
     sessionType: 'diagnostic',
     answer: response.answer,
+    answerCorrect: correct,
     studentAnswer: response.answer,
     correctAnswer: String(question.answer || ''),
     correct,
@@ -98,6 +102,7 @@ async function maybePersistAttempt({ student, session, question, skillId, respon
     workingUploaded: response.workingSubmitted,
     workingSubmitted: response.workingSubmitted,
     workingNotNeeded: response.workingNotNeeded,
+    workingRequirementLevel: response.workingRequirementLevel,
     fullscreenWorkingSubmitted: response.fullscreenWorkingSubmitted,
     workingDecision: '',
     workingReason: '',

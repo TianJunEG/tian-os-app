@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Maximize2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Card, Button, ProgressBar, Spinner, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
@@ -10,8 +10,13 @@ import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput'
 import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 import AnswerInputRenderer from '../components/AnswerInputRenderer';
-import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
+import { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
+import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
+import WorkingEvidenceDecision, {
+  hasWorkingDecision,
+  resolveWorkingRequirementLevel,
+} from '../../../../components/learning/WorkingEvidenceDecision';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this 100%' },
@@ -39,7 +44,6 @@ export default function DiagnosticQuestionScreen() {
   const [hydrating, setHydrating] = useState(false);
   const [workingByQuestion, setWorkingByQuestion] = useState({});
   const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
-  const [showInlineWorking, setShowInlineWorking] = useState(false);
 
   const [session, setSession] = useState(location.state?.session || null);
   const [questions, setQuestions] = useState(() => repairFractionQuestions(location.state?.questions || []));
@@ -72,7 +76,6 @@ export default function DiagnosticQuestionScreen() {
     const questionStart = Date.now();
     setStartedAt(questionStart);
     setElapsed(0);
-    setShowInlineWorking(false);
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - questionStart) / 1000)), 250);
     return () => clearInterval(t);
   }, [idx, questions.length, session]);
@@ -88,8 +91,9 @@ export default function DiagnosticQuestionScreen() {
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem));
   const workingRequirement = resolveWorkingRequirement(q, 'diagnostic');
+  const workingRequirementLevel = resolveWorkingRequirementLevel(q, 'diagnostic');
   const currentWorking = workingByQuestion[q.questionId] || {};
-  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
+  const workingReady = hasWorkingDecision(currentWorking);
   const questionText = q.prompt || q.stem || '';
 
   const confidenceCalibration = (correct, value) => {
@@ -114,6 +118,8 @@ export default function DiagnosticQuestionScreen() {
       questionId: q.questionId,
       skillId: q.skillId,
       questionFamilyId: q.questionFamilyId,
+      answer: skipped ? '' : answer,
+      answerCorrect: correctness.correct,
       studentAnswer: skipped ? '' : answer,
       correct: correctness.correct,
       timeTaken,
@@ -131,6 +137,7 @@ export default function DiagnosticQuestionScreen() {
       workingSubmitted: Boolean(currentWorking.workingSubmitted),
       workingSubmittedAt: currentWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingRequirementLevel,
       workingUploaded: Boolean(currentWorking.workingSubmitted),
       timestamp: new Date().toISOString(),
       attemptNumber: 1,
@@ -141,7 +148,7 @@ export default function DiagnosticQuestionScreen() {
 
   const nextQuestion = async (skipped = false) => {
     if (busy) return;
-    if (!skipped && (!answer || !reflection)) return;
+    if (!skipped && (!answer || !reflection || !workingReady)) return;
     const nextResponses = saveCurrentAnd(skipped);
     setResponses(nextResponses);
     setBusy(true);
@@ -157,6 +164,8 @@ export default function DiagnosticQuestionScreen() {
         skipped,
         blankAnswer: skipped || !String(answer || '').trim(),
         workingSubmitted: Boolean(currentWorking.workingSubmitted),
+        workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+        workingRequirementLevel,
         workingUploaded: Boolean(currentWorking.workingSubmitted),
         fullscreenWorkingSubmitted: Boolean(currentWorking.fullscreenWorkingSubmitted),
         attempts: 1,
@@ -249,48 +258,17 @@ export default function DiagnosticQuestionScreen() {
             </div>
 
             <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-ink-800">Working</p>
-                  <p className="text-xs text-ink-500">
-                    {workingRequirement.required
-                      ? 'Required for this question. Use full-screen for more room.'
-                      : 'Optional. Use it only if it helps.'}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button size="s" variant="secondary" onClick={() => setShowInlineWorking((value) => !value)}>
-                    {showInlineWorking ? 'Hide canvas' : 'Show canvas'}
-                  </Button>
-                  <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
-                    Open Working
-                  </Button>
-                </div>
-              </div>
-              {(currentWorking.workingSubmitted || currentWorking.workingNotNeeded) && (
-                <p className="mt-2 rounded-lg bg-success-50 px-3 py-2 text-xs font-semibold text-success-700">
-                  {currentWorking.workingNotNeeded ? 'Marked as working not needed.' : 'Working saved for this answer.'}
-                </p>
-              )}
+              <WorkingPreviewCard
+                workingImage={currentWorking.workingImage || ''}
+                workingSubmitted={Boolean(currentWorking.workingSubmitted)}
+                onOpen={() => setFullscreenQuestionId(q.questionId)}
+                onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
+                  const next = { ...prev };
+                  delete next[q.questionId];
+                  return next;
+                }) : null}
+              />
             </div>
-            {showInlineWorking && (
-              <div className="mt-3">
-                <WorkingCanvas
-                  key={`diagnostic-working-${q.questionId}`}
-                  questionId={q.questionId}
-                  required={workingRequirement.required}
-                  allowNoWorking={workingRequirement.allowNoWorking}
-                  compact
-                  showMathStamps={false}
-                  submittedImage={currentWorking.workingImage || ''}
-                  submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-                  initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-                  initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-                  onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-                  onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-                />
-              </div>
-            )}
 
             <div className="mt-3 rounded-xl bg-white p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
@@ -301,16 +279,33 @@ export default function DiagnosticQuestionScreen() {
                   </button>
                 ))}
               </div>
-              <div className="mt-3 rounded-lg border border-hairline p-3">
-                <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <button type="button" onClick={() => setHelpRequested(false)} className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
-                  <button type="button" onClick={() => setHelpRequested(true)} className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
-                </div>
-              </div>
+            </div>
+
+            <div className="mt-3">
+              <WorkingEvidenceDecision
+                working={currentWorking}
+                requirementLevel={workingRequirementLevel}
+                onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
+                  ...prev,
+                  [q.questionId]: {
+                    ...(prev[q.questionId] || {}),
+                    workingSubmitted: false,
+                    workingSubmittedAt: null,
+                    workingImage: '',
+                    workingStrokes: [],
+                    workingNotNeeded: checked,
+                    workingNotNeededAt: checked ? new Date().toISOString() : null,
+                  },
+                }))}
+              />
             </div>
 
             {error && <p className="mt-3 text-sm text-error-700">{error}</p>}
+            {!workingReady && (
+              <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
+                Submit working or choose "I did not need working for this question" before continuing.
+              </p>
+            )}
 
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>

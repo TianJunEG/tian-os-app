@@ -88,8 +88,10 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     });
     renderDiagnostic({ questions: [firstQuestion], session: { sessionId: 'session-1' } });
 
+    await screen.findByText(/What is 3 \+ 4/i, {}, { timeout: 5000 });
     fireEvent.click(await screen.findByRole('button', { name: '7' }));
     fireEvent.click(screen.getByRole('button', { name: /I know this 100%/i }));
+    fireEvent.click(screen.getByLabelText(/I did not need working for this question/i));
     fireEvent.click(screen.getByRole('button', { name: /Next Question/i }));
 
     await waitFor(() => expect(answerDiagnostic).toHaveBeenCalledTimes(1));
@@ -99,6 +101,8 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
       answer: '7',
       confidence: 'i_know_this',
       skipped: false,
+      workingNotNeeded: true,
+      workingRequirementLevel: 'LOW',
     });
     expect(await screen.findByText('Let’s check a smaller step first.')).toBeInTheDocument();
     expect(await screen.findByText(/What is 2 \+ 2/i)).toBeInTheDocument();
@@ -144,6 +148,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     expect(await screen.findByRole('button', { name: /^I need help$/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '6' }));
     fireEvent.click(screen.getByRole('button', { name: /^I need help$/i }));
+    fireEvent.click(screen.getByLabelText(/I did not need working for this question/i));
     fireEvent.click(screen.getByRole('button', { name: /Next Question/i }));
 
     await waitFor(() => expect(screen.getByText('Diagnostic results')).toBeInTheDocument());

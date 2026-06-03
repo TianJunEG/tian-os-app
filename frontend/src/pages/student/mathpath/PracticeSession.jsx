@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, Maximize2, PencilLine, X } from 'lucide-react';
+import { ArrowRight, Check, Maximize2, X } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
@@ -21,10 +21,13 @@ import { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
 import QuestionDiagram from './components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
-import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
+import { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
 import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
-import WorkingAttachmentPreview from '../../../components/learning/WorkingAttachmentPreview';
-import QuestionAnnotationOverlay from '../../../components/learning/QuestionAnnotationOverlay';
+import WorkingPreviewCard from '../../../components/learning/WorkingPreviewCard';
+import WorkingEvidenceDecision, {
+  hasWorkingDecision,
+  resolveWorkingRequirementLevel,
+} from '../../../components/learning/WorkingEvidenceDecision';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -208,16 +211,12 @@ function LegacyPracticeSession() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [startedAt, setStartedAt] = useState(Date.now());
-  const [workingState, setWorkingState] = useState({});
-  const [doodleState, setDoodleState] = useState({});
   const [fullscreenWorkingState, setFullscreenWorkingState] = useState({});
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
-  const [doodleMode, setDoodleMode] = useState(false);
   const questionSurfaceRef = useRef(null);
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
   useEffect(() => { setStartedAt(Date.now()); }, [idx]);
-  useEffect(() => { setDoodleMode(false); }, [idx]);
   if (!items.length) return <Spinner />;
 
   const q = items[idx];
@@ -226,31 +225,14 @@ function LegacyPracticeSession() {
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.stem || q.prompt || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
-  const currentWorking = workingState[q.questionId] || {};
-  const currentDoodle = doodleState[q.questionId] || EMPTY_WORKING_PAYLOAD;
+  const workingRequirementLevel = resolveWorkingRequirementLevel(q, sessionType);
   const currentFullscreenWorking = fullscreenWorkingState[q.questionId] || {};
-  const workingReady = !workingRequirement.required
-    || currentDoodle.workingSubmitted
-    || currentWorking.workingSubmitted
-    || currentWorking.workingNotNeeded
-    || currentFullscreenWorking.workingSubmitted;
-  const primaryWorkingImage = currentDoodle.workingImage || currentWorking.workingImage || currentFullscreenWorking.workingImage || '';
-  const primaryWorkingStrokes = currentDoodle.workingStrokes?.length
-    ? currentDoodle.workingStrokes
-    : (currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || []);
-  const primaryWorkingSubmitted = currentDoodle.workingSubmitted || currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted;
-  const primaryWorkingSubmittedAt = currentDoodle.workingSubmittedAt || currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null;
+  const workingReady = hasWorkingDecision(currentFullscreenWorking);
+  const primaryWorkingImage = currentFullscreenWorking.workingImage || '';
+  const primaryWorkingStrokes = currentFullscreenWorking.workingStrokes || [];
+  const primaryWorkingSubmitted = currentFullscreenWorking.workingSubmitted;
+  const primaryWorkingSubmittedAt = currentFullscreenWorking.workingSubmittedAt || null;
   const workingEvidence = [
-    currentDoodle.workingSubmitted ? {
-      source: 'question_doodle',
-      image: currentDoodle.workingImage || '',
-      strokes: currentDoodle.workingStrokes || [],
-      submittedAt: currentDoodle.workingSubmittedAt || null,
-      questionDimensions: currentDoodle.questionDimensions || null,
-      viewportDimensions: currentDoodle.viewportDimensions || null,
-      deviceType: currentDoodle.deviceType || null,
-      timestamp: currentDoodle.timestamp || new Date().toISOString(),
-    } : null,
     currentFullscreenWorking.workingSubmitted ? {
       source: 'fullscreen_working',
       image: currentFullscreenWorking.workingImage || '',
@@ -259,13 +241,6 @@ function LegacyPracticeSession() {
       canvasDimensions: currentFullscreenWorking.canvasDimensions || null,
       viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
       timestamp: currentFullscreenWorking.timestamp || new Date().toISOString(),
-    } : null,
-    currentWorking.workingSubmitted ? {
-      source: 'inline_working',
-      image: currentWorking.workingImage || '',
-      strokes: currentWorking.workingStrokes || [],
-      submittedAt: currentWorking.workingSubmittedAt || null,
-      timestamp: currentWorking.timestamp || new Date().toISOString(),
     } : null,
   ].filter(Boolean);
 
@@ -277,22 +252,24 @@ function LegacyPracticeSession() {
       const { data } = await mathpathAPI.attempt(sessionId, {
         questionId: q.questionId,
         answer,
+        answerCorrect: null,
         timeMs: Date.now() - startedAt,
         hintsUsed: 0,
         workingImage: primaryWorkingImage,
         workingStrokes: primaryWorkingStrokes,
         workingSubmitted: Boolean(primaryWorkingSubmitted),
         workingSubmittedAt: primaryWorkingSubmittedAt,
-        workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
-        workingUploaded: Boolean(currentDoodle.workingSubmitted || currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted),
+        workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
+        workingRequirementLevel,
+        workingUploaded: Boolean(currentFullscreenWorking.workingSubmitted),
         fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
         fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
         fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
         fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
         workingEvidence,
-        questionDimensions: currentDoodle.questionDimensions || null,
-        viewportDimensions: currentDoodle.viewportDimensions || null,
-        deviceType: currentDoodle.deviceType || null,
+        questionDimensions: null,
+        viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
+        deviceType: null,
       });
       setResult(data);
     } catch (e) {
@@ -350,41 +327,19 @@ function LegacyPracticeSession() {
             )}
           </div>
           <VisualBlock visual={q.visual} />
-          {(doodleMode || currentDoodle.workingSubmitted) && (
-            <QuestionAnnotationOverlay
-              key={`legacy-doodle-${q.questionId}`}
-              questionId={q.questionId}
-              targetRef={questionSurfaceRef}
-              active={doodleMode}
-              initialPayload={currentDoodle}
-              onActivate={setDoodleMode}
-              onChange={(payload) => setDoodleState((prev) => ({ ...prev, [q.questionId]: payload }))}
-            />
-          )}
         </div>
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Button
-            size="s"
-            variant={doodleMode ? 'primary' : 'secondary'}
-            icon={PencilLine}
-            onClick={() => setDoodleMode((prev) => !prev)}
-          >
-            {doodleMode ? 'Exit Doodle' : 'Doodle'}
-          </Button>
-          <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenOpen(true)}>
-            Open Working
-          </Button>
+        <div className="mb-4">
+          <WorkingPreviewCard
+            workingImage={currentFullscreenWorking.workingImage || ''}
+            workingSubmitted={Boolean(currentFullscreenWorking.workingSubmitted)}
+            onOpen={() => setFullscreenOpen(true)}
+            onRemove={currentFullscreenWorking.workingSubmitted ? () => setFullscreenWorkingState((prev) => {
+              const next = { ...prev };
+              delete next[q.questionId];
+              return next;
+            }) : null}
+          />
         </div>
-        <WorkingAttachmentPreview
-          evidence={currentFullscreenWorking}
-          onAddAnother={() => setFullscreenOpen(true)}
-          onEdit={() => setFullscreenOpen(true)}
-          onDelete={() => setFullscreenWorkingState((prev) => {
-            const next = { ...prev };
-            delete next[q.questionId];
-            return next;
-          })}
-        />
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
             {choices.map((c, i) => (
@@ -425,22 +380,29 @@ function LegacyPracticeSession() {
             <div className={`flex items-center gap-2 font-semibold ${result.correct ? 'text-success-700' : 'text-error-700'}`}>{result.correct ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}{result.correct ? 'Correct' : 'Not quite'}</div>
           </div>
         )}
+        <div className="mt-4">
+          <WorkingEvidenceDecision
+            working={currentFullscreenWorking}
+            requirementLevel={workingRequirementLevel}
+            disabled={Boolean(result)}
+            onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
+              ...prev,
+              [q.questionId]: {
+                ...(prev[q.questionId] || {}),
+                workingSubmitted: false,
+                workingSubmittedAt: null,
+                workingImage: '',
+                workingStrokes: [],
+                workingNotNeeded: checked,
+                workingNotNeededAt: checked ? new Date().toISOString() : null,
+              },
+            }))}
+          />
+        </div>
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
-        <WorkingCanvas
-          key={`legacy-working-${q.questionId}`}
-          questionId={q.questionId}
-          required={workingRequirement.required}
-          allowNoWorking={workingRequirement.allowNoWorking}
-          submittedImage={currentWorking.workingImage || ''}
-          submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-          initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-          initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-          onChange={(payload) => setWorkingState((prev) => ({ ...prev, [q.questionId]: payload }))}
-          onSubmit={(payload) => setWorkingState((prev) => ({ ...prev, [q.questionId]: payload }))}
-        />
         {!workingReady && (
           <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-            This question needs working. Please save your working, doodle on the question, or upload a photo before submitting.
+            Submit working or choose "I did not need working for this question" before continuing.
           </p>
         )}
         <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer || !workingReady} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
@@ -519,13 +481,10 @@ export default function PracticeSession() {
   const [feedback, setFeedback] = useState(null);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
-  const [workingByQuestion, setWorkingByQuestion] = useState({});
-  const [doodleByQuestion, setDoodleByQuestion] = useState({});
   const [fullscreenWorkingByQuestion, setFullscreenWorkingByQuestion] = useState({});
   const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
-  const [doodleMode, setDoodleMode] = useState(false);
   const questionSurfaceRef = useRef(null);
 
   useEffect(() => {
@@ -555,7 +514,6 @@ export default function PracticeSession() {
         setQuestions(started.questions || []);
         setWorkingSession(null);
         setWorkingCodeByQuestion({});
-        setWorkingByQuestion({});
         setFullscreenWorkingByQuestion({});
         setFullscreenQuestionId(null);
         if (!started.questions?.length) setError('No questions generated yet. Please try another skill.');
@@ -573,7 +531,6 @@ export default function PracticeSession() {
     if (summary || loading || !questions.length) return undefined;
     setQuestionStartedAt(Date.now());
     setElapsedSec(0);
-    setDoodleMode(false);
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
   }, [idx, summary, loading, questions.length, questionStartedAt]);
@@ -639,38 +596,15 @@ export default function PracticeSession() {
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
   const workingRequirement = resolveWorkingRequirement(q, sessionType);
-  const currentWorking = workingByQuestion[q.questionId] || {};
-  const currentDoodle = doodleByQuestion[q.questionId] || EMPTY_WORKING_PAYLOAD;
+  const workingRequirementLevel = resolveWorkingRequirementLevel(q, sessionType);
   const currentFullscreenWorking = fullscreenWorkingByQuestion[q.questionId] || {};
-  const workingReady = !workingRequirement.required
-    || currentDoodle.workingSubmitted
-    || currentWorking.workingSubmitted
-    || currentWorking.workingNotNeeded
-    || currentFullscreenWorking.workingSubmitted;
+  const workingReady = hasWorkingDecision(currentFullscreenWorking);
   const questionText = q.prompt || q.stem || '';
-  const primaryWorkingImage = currentDoodle.workingImage || currentWorking.workingImage || currentFullscreenWorking.workingImage || '';
-  const primaryWorkingStrokes = currentDoodle.workingStrokes?.length
-    ? currentDoodle.workingStrokes
-    : (currentWorking.workingStrokes || currentFullscreenWorking.workingStrokes || []);
-  const primaryWorkingSubmitted = currentDoodle.workingSubmitted || currentWorking.workingSubmitted || currentFullscreenWorking.workingSubmitted;
-  const primaryWorkingSubmittedAt = currentDoodle.workingSubmittedAt || currentWorking.workingSubmittedAt || currentFullscreenWorking.workingSubmittedAt || null;
+  const primaryWorkingImage = currentFullscreenWorking.workingImage || '';
+  const primaryWorkingStrokes = currentFullscreenWorking.workingStrokes || [];
+  const primaryWorkingSubmitted = currentFullscreenWorking.workingSubmitted;
+  const primaryWorkingSubmittedAt = currentFullscreenWorking.workingSubmittedAt || null;
   const workingEvidence = [
-    currentDoodle.workingSubmitted ? {
-      source: 'question_doodle',
-      image: currentDoodle.workingImage || '',
-      strokes: currentDoodle.workingStrokes || [],
-      submittedAt: currentDoodle.workingSubmittedAt || null,
-      questionDimensions: currentDoodle.questionDimensions || null,
-      viewportDimensions: currentDoodle.viewportDimensions || null,
-      deviceType: currentDoodle.deviceType || null,
-      timestamp: currentDoodle.timestamp || new Date().toISOString(),
-    } : null,
-    currentWorking.workingSubmitted ? {
-      source: 'inline_working',
-      image: currentWorking.workingImage || '',
-      strokes: currentWorking.workingStrokes || [],
-      submittedAt: currentWorking.workingSubmittedAt || null,
-    } : null,
     currentFullscreenWorking.workingSubmitted ? {
       source: 'fullscreen_working',
       image: currentFullscreenWorking.workingImage || '',
@@ -692,6 +626,8 @@ export default function PracticeSession() {
     });
     const current = {
       questionId: q.questionId,
+      answer,
+      answerCorrect: answerCheck.correct,
       studentAnswer: answer,
       timeTaken,
       confidence: reflection,
@@ -704,7 +640,8 @@ export default function PracticeSession() {
       workingStrokes: primaryWorkingStrokes,
       workingSubmitted: Boolean(primaryWorkingSubmitted),
       workingSubmittedAt: primaryWorkingSubmittedAt,
-      workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
+      workingRequirementLevel,
       workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
@@ -733,6 +670,8 @@ export default function PracticeSession() {
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
     setResponses((prev) => [...prev, {
       questionId: q.questionId,
+      answer: '',
+      answerCorrect: false,
       studentAnswer: '',
       timeTaken,
       confidence: '',
@@ -745,7 +684,8 @@ export default function PracticeSession() {
       workingStrokes: primaryWorkingStrokes,
       workingSubmitted: Boolean(primaryWorkingSubmitted),
       workingSubmittedAt: primaryWorkingSubmittedAt,
-      workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
+      workingRequirementLevel,
       workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
@@ -784,6 +724,8 @@ export default function PracticeSession() {
     try {
       const payload = responses.map((r) => ({
         questionId: r.questionId,
+        answer: r.answer ?? r.studentAnswer,
+        answerCorrect: Boolean(r.answerCorrect ?? r._correct),
         studentAnswer: r.studentAnswer,
         timeTaken: r.timeTaken,
         confidence: r.confidence,
@@ -796,6 +738,7 @@ export default function PracticeSession() {
         workingSubmitted: Boolean(r.workingSubmitted),
         workingSubmittedAt: r.workingSubmittedAt || null,
         workingNotNeeded: Boolean(r.workingNotNeeded),
+        workingRequirementLevel: r.workingRequirementLevel || 'MEDIUM',
         workingUploaded: Boolean(r.workingUploaded),
         fullscreenWorkingImage: r.fullscreenWorkingImage || '',
         fullscreenWorkingStrokes: r.fullscreenWorkingStrokes || [],
@@ -944,36 +887,7 @@ export default function PracticeSession() {
               </div>
               <QuestionDiagram question={q} />
               <VisualBlock visual={q.visual} />
-              {(doodleMode || currentDoodle.workingSubmitted) && (
-                <QuestionAnnotationOverlay
-                  key={`doodle-${q.questionId}`}
-                  questionId={q.questionId}
-                  targetRef={questionSurfaceRef}
-                  active={doodleMode}
-                  initialPayload={currentDoodle}
-                  onActivate={setDoodleMode}
-                  onChange={(payload) => setDoodleByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-                />
-              )}
             </div>
-            <div className="mb-4 flex flex-wrap gap-2">
-              <Button size="s" variant={doodleMode ? 'primary' : 'secondary'} icon={PencilLine} onClick={() => setDoodleMode((prev) => !prev)}>
-                {doodleMode ? 'Exit Doodle' : 'Doodle'}
-              </Button>
-              <Button size="s" variant="secondary" icon={Maximize2} onClick={() => setFullscreenQuestionId(q.questionId)}>
-                Full-screen working
-              </Button>
-            </div>
-            <WorkingAttachmentPreview
-              evidence={currentFullscreenWorking}
-              onAddAnother={() => setFullscreenQuestionId(q.questionId)}
-              onEdit={() => setFullscreenQuestionId(q.questionId)}
-              onDelete={() => setFullscreenWorkingByQuestion((prev) => {
-                const next = { ...prev };
-                delete next[q.questionId];
-                return next;
-              })}
-            />
 
           </section>
 
@@ -1026,27 +940,26 @@ export default function PracticeSession() {
                   </button>
                 ))}
               </div>
-              <div className="mt-3 rounded-lg border border-hairline bg-slate-50 p-3">
-                <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    disabled={answered}
-                    onClick={() => setHelpRequested(false)}
-                    className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline bg-white text-ink-600 hover:bg-slate-50'}`}
-                  >
-                    No
-                  </button>
-                  <button
-                    type="button"
-                    disabled={answered}
-                    onClick={() => setHelpRequested(true)}
-                    className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline bg-white text-ink-600 hover:bg-slate-50'}`}
-                  >
-                    Yes, I need help
-                  </button>
-                </div>
-              </div>
+            </div>
+
+            <div className="mt-3">
+              <WorkingEvidenceDecision
+                working={currentFullscreenWorking}
+                requirementLevel={workingRequirementLevel}
+                disabled={answered}
+                onDeclareNotNeeded={(checked) => setFullscreenWorkingByQuestion((prev) => ({
+                  ...prev,
+                  [q.questionId]: {
+                    ...(prev[q.questionId] || {}),
+                    workingSubmitted: false,
+                    workingSubmittedAt: null,
+                    workingImage: '',
+                    workingStrokes: [],
+                    workingNotNeeded: checked,
+                    workingNotNeededAt: checked ? new Date().toISOString() : null,
+                  },
+                }))}
+              />
             </div>
 
             <div className="mt-3">
@@ -1066,7 +979,7 @@ export default function PracticeSession() {
 
             {!workingReady && (
               <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-                This question needs working. Please save your working, doodle on the question, or upload a photo before submitting.
+                Submit working or choose "I did not need working for this question" before continuing.
               </p>
             )}
 
@@ -1083,51 +996,18 @@ export default function PracticeSession() {
               )}
             </div>
 
-            <div className="mb-3 mt-4">
-              <p className="text-sm font-semibold text-ink-800">Working space</p>
-              <p className="text-xs text-ink-500">Use this for rough working, or open full-screen working for more room.</p>
+            <div className="mt-4">
+              <WorkingPreviewCard
+                workingImage={currentFullscreenWorking.workingImage || ''}
+                workingSubmitted={Boolean(currentFullscreenWorking.workingSubmitted)}
+                onOpen={() => setFullscreenQuestionId(q.questionId)}
+                onRemove={currentFullscreenWorking.workingSubmitted ? () => setFullscreenWorkingByQuestion((prev) => {
+                  const next = { ...prev };
+                  delete next[q.questionId];
+                  return next;
+                }) : null}
+              />
             </div>
-            <WorkingCanvas
-              key={`working-${q.questionId}`}
-              questionId={q.questionId}
-              workingCode={workingCodeByQuestion[q.questionId] || ''}
-              required={workingRequirement.required}
-              allowNoWorking={workingRequirement.allowNoWorking}
-              submittedImage={currentWorking.workingImage || ''}
-              submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-              initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-              initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-              onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-              onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }))}
-            />
-            {currentWorking.workingImage && (
-              <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                  <img
-                    src={currentWorking.workingImage}
-                    alt="Saved rough working preview"
-                    className="h-24 w-full rounded-lg border border-hairline bg-white object-contain sm:w-36"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-ink-800">Saved rough working</p>
-                    <p className="mt-1 text-xs text-ink-500">This canvas working will be submitted with your typed answer.</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <Button
-                        size="s"
-                        variant="secondary"
-                        onClick={() => setWorkingByQuestion((prev) => {
-                          const next = { ...prev };
-                          delete next[q.questionId];
-                          return next;
-                        })}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </aside>
         </div>
       </Card>

@@ -7,6 +7,10 @@ import { MathText } from '../../../components/ui/Fraction';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
+import WorkingEvidenceDecision, {
+  hasWorkingDecision,
+  resolveWorkingRequirementLevel,
+} from '../../../components/learning/WorkingEvidenceDecision';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -71,16 +75,18 @@ export default function SimilarQuestionPractice() {
   const expressionQuestion = Boolean(extractFractionExpression(q.prompt || ''));
   const fractionAnswer = !expressionQuestion && expectsFractionAnswer(q);
   const workingRequirement = resolveWorkingRequirement(q, 'practice');
+  const workingRequirementLevel = resolveWorkingRequirementLevel(q, 'practice');
   const currentWorking = workingByQuestion[q.variantId] || {};
-  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
+  const workingReady = hasWorkingDecision(currentWorking);
 
   const saveAndNext = async () => {
-    if (!answer.trim() || !reflection) return;
+    if (!answer.trim() || !reflection || !workingReady) return;
     const questionEndedAt = Date.now();
     const timeTaken = Math.max(1, Math.floor((questionEndedAt - questionStartedAt) / 1000));
     const response = {
       variantId: q.variantId,
       answer,
+      answerCorrect: null,
       confidence: reflection,
       reflection,
       helpRequested,
@@ -94,6 +100,7 @@ export default function SimilarQuestionPractice() {
       workingSubmitted: Boolean(currentWorking.workingSubmitted),
       workingSubmittedAt: currentWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
+      workingRequirementLevel,
       workingUploaded: Boolean(currentWorking.workingSubmitted),
       timestamp: new Date(questionEndedAt).toISOString(),
       attemptNumber: 1,
@@ -210,15 +217,31 @@ export default function SimilarQuestionPractice() {
               </button>
             ))}
           </div>
-          <div className="mt-3 rounded-lg border border-hairline p-3">
-            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setHelpRequested(false)} className={`rounded-lg border px-3 py-2 text-sm ${!helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
-              <button type="button" onClick={() => setHelpRequested(true)} className={`rounded-lg border px-3 py-2 text-sm ${helpRequested ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
-            </div>
+          <div className="mt-3">
+            <WorkingEvidenceDecision
+              working={currentWorking}
+              requirementLevel={workingRequirementLevel}
+              onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
+                ...prev,
+                [q.variantId]: {
+                  ...(prev[q.variantId] || {}),
+                  workingSubmitted: false,
+                  workingSubmittedAt: null,
+                  workingImage: '',
+                  workingStrokes: [],
+                  workingNotNeeded: checked,
+                  workingNotNeededAt: checked ? new Date().toISOString() : null,
+                },
+              }))}
+            />
           </div>
         </div>
-        <Button className="mt-5 w-full" icon={isLast ? Check : ArrowRight} disabled={busy || !answer.trim() || !reflection} onClick={saveAndNext}>
+        {!workingReady && (
+          <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
+            Submit working or choose "I did not need working for this question" before continuing.
+          </p>
+        )}
+        <Button className="mt-5 w-full" icon={isLast ? Check : ArrowRight} disabled={busy || !answer.trim() || !reflection || !workingReady} onClick={saveAndNext}>
           {isLast ? 'Submit practice' : 'Next question'}
         </Button>
         {responses.some((r) => r.variantId === q.variantId) && <X className="hidden" />}

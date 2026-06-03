@@ -604,6 +604,7 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         sessionId: session.diagnosticSessionId,
         sessionType: 'diagnostic',
         answer: studentAnswer,
+        answerCorrect: correct,
         studentAnswer,
         correctAnswer: String(q.answer || ''),
         correct,
@@ -632,6 +633,9 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         workingImage: String(r.workingImage || ''),
         workingStrokes: Array.isArray(r.workingStrokes) ? r.workingStrokes : [],
         workingNotNeeded: Boolean(r.workingNotNeeded),
+        workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(r.workingRequirementLevel || '').toUpperCase())
+          ? String(r.workingRequirementLevel).toUpperCase()
+          : '',
         fullscreenWorkingImage: String(r.fullscreenWorkingImage || ''),
         fullscreenWorkingStrokes: Array.isArray(r.fullscreenWorkingStrokes) ? r.fullscreenWorkingStrokes : [],
         fullscreenWorkingSubmitted: Boolean(r.fullscreenWorkingSubmitted),

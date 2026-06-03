@@ -9,6 +9,10 @@ import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 import AnswerInputRenderer from '../components/AnswerInputRenderer';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
+import WorkingEvidenceDecision, {
+  hasWorkingDecision,
+  resolveWorkingRequirementLevel,
+} from '../../../../components/learning/WorkingEvidenceDecision';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -52,9 +56,11 @@ export default function AssessmentQuestionScreen() {
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
   const workingRequirement = resolveWorkingRequirement(q, 'mastery_check');
+  const workingRequirementLevel = resolveWorkingRequirementLevel(q, 'mastery_check');
   const currentWorking = workings[q.questionId] || {};
-  const workingReady = !workingRequirement.required || currentWorking.workingSubmitted || currentWorking.workingNotNeeded;
+  const workingReady = hasWorkingDecision(currentWorking);
   const reflectionReady = Boolean(conf[q.questionId]);
+  const answerReady = String(answers[q.questionId] || '').trim() !== '';
 
   const stampTimeForCurrent = () => {
     const elapsed = Math.max(1, Math.floor((Date.now() - enteredAt) / 1000));
@@ -167,11 +173,22 @@ export default function AssessmentQuestionScreen() {
             ))}
           </div>
           <div className="mt-3 rounded-lg border border-hairline p-3">
-            <p className="mb-2 text-sm font-semibold text-ink-700">Do you need help with this type of question?</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setHelpRequests((p) => ({ ...p, [q.questionId]: false }))} className={`rounded-lg border px-3 py-2 text-sm ${helpRequests[q.questionId] === false ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>No</button>
-              <button type="button" onClick={() => setHelpRequests((p) => ({ ...p, [q.questionId]: true }))} className={`rounded-lg border px-3 py-2 text-sm ${helpRequests[q.questionId] ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>Yes, I need help</button>
-            </div>
+            <WorkingEvidenceDecision
+              working={currentWorking}
+              requirementLevel={workingRequirementLevel}
+              onDeclareNotNeeded={(checked) => setWorkings((prev) => ({
+                ...prev,
+                [q.questionId]: {
+                  ...(prev[q.questionId] || {}),
+                  workingSubmitted: false,
+                  workingSubmittedAt: null,
+                  workingImage: '',
+                  workingStrokes: [],
+                  workingNotNeeded: checked,
+                  workingNotNeededAt: checked ? new Date().toISOString() : null,
+                },
+              }))}
+            />
           </div>
         </div>
 
@@ -181,9 +198,9 @@ export default function AssessmentQuestionScreen() {
             {flagged[q.questionId] ? 'Unflag' : 'Flag'}
           </Button>
           {idx === questions.length - 1 ? (
-            <Button icon={ArrowRight} disabled={!workingReady || !reflectionReady} onClick={toReview}>Review & Submit</Button>
+            <Button icon={ArrowRight} disabled={!answerReady || !workingReady || !reflectionReady} onClick={toReview}>Review & Submit</Button>
           ) : (
-            <Button icon={ArrowRight} disabled={!workingReady || !reflectionReady} onClick={() => go(idx + 1)}>Next</Button>
+            <Button icon={ArrowRight} disabled={!answerReady || !workingReady || !reflectionReady} onClick={() => go(idx + 1)}>Next</Button>
           )}
         </div>
       </Card>

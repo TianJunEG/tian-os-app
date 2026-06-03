@@ -40,6 +40,16 @@ function average(values = []) {
   return Math.round((values.reduce((sum, n) => sum + Number(n || 0), 0) / values.length) * 10) / 10;
 }
 
+function normalizeWorkingRequirementLevel(value) {
+  const normalized = String(value || '').toUpperCase();
+  return ['LOW', 'MEDIUM', 'HIGH'].includes(normalized) ? normalized : 'MEDIUM';
+}
+
+function isHighConfidence(value) {
+  const normalized = String(value || '').toLowerCase();
+  return normalized === 'i_know_this' || normalized === 'high' || normalized.includes('confident') || normalized.includes('know');
+}
+
 function normalizeSessionType(value) {
   const key = String(value || 'practice').toLowerCase();
   return SESSION_TYPE_CONFIG[key] ? key : 'practice';
@@ -247,6 +257,8 @@ export function submitFractionPracticeAttempt(options = {}) {
       questionId: question.questionId,
       skillId: question.skillId,
       questionFamilyId: question.questionFamilyId,
+      answer: response.answer ?? response.studentAnswer,
+      answerCorrect: answerCheck.correct,
       studentAnswer: response.studentAnswer,
       correctAnswer: question.answer?.display || null,
       normalizedStudentAnswer: answerCheck.normalizedStudentAnswer,
@@ -263,6 +275,7 @@ export function submitFractionPracticeAttempt(options = {}) {
       workingSubmitted: Boolean(response.workingSubmitted),
       workingSubmittedAt: response.workingSubmittedAt || null,
       workingNotNeeded: Boolean(response.workingNotNeeded),
+      workingRequirementLevel: normalizeWorkingRequirementLevel(response.workingRequirementLevel),
       workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted || response.fullscreenWorkingSubmitted),
       fullscreenWorkingImage: response.fullscreenWorkingImage || '',
       fullscreenWorkingStrokes: Array.isArray(response.fullscreenWorkingStrokes) ? response.fullscreenWorkingStrokes : [],
@@ -298,6 +311,22 @@ export function submitFractionPracticeAttempt(options = {}) {
     familyFluencySummary,
     accurateButSlowCount: results.filter((r) => r.fluencyFlag === 'accurateButSlow').length,
     fluentCount: results.filter((r) => ['accurateAndFluent', 'automatic'].includes(r.fluencyFlag)).length,
+  };
+  const workingSubmittedResults = results.filter((r) => r.workingSubmitted || r.workingUploaded || r.fullscreenWorkingSubmitted);
+  const mentalFluencyResults = results.filter((r) => r.workingNotNeeded);
+  const overconfidentNoWorkingResults = results.filter((r) => !r.correct && r.workingNotNeeded && isHighConfidence(r.confidence));
+  const highRequirementNoWorkingIncorrect = results.filter((r) => !r.correct && r.workingNotNeeded && r.workingRequirementLevel === 'HIGH');
+  const workingEvidenceMetrics = {
+    studentWorkingRate: results.length ? Math.round((workingSubmittedResults.length / results.length) * 1000) / 10 : 0,
+    workingAccuracy: workingSubmittedResults.length
+      ? Math.round((workingSubmittedResults.filter((r) => r.correct).length / workingSubmittedResults.length) * 1000) / 10
+      : null,
+    mentalFluencyAccuracy: mentalFluencyResults.length
+      ? Math.round((mentalFluencyResults.filter((r) => r.correct).length / mentalFluencyResults.length) * 1000) / 10
+      : null,
+    overconfidenceRate: results.length ? Math.round((overconfidentNoWorkingResults.length / results.length) * 1000) / 10 : 0,
+    highRequirementNoWorkingIncorrectCount: highRequirementNoWorkingIncorrect.length,
+    interventionPriorityRaised: highRequirementNoWorkingIncorrect.length > 0,
   };
 
   const updatedPracticeState = {
@@ -354,6 +383,7 @@ export function submitFractionPracticeAttempt(options = {}) {
     results,
     accuracySummary,
     fluencySummary,
+    workingEvidenceMetrics,
     updatedPracticeState,
     workingUploadRequired,
     workingSessionId: session.workingSessionId,
