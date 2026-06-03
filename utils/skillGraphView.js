@@ -29,7 +29,7 @@ export function buildSkillGraphView({ topics = [], recordsBySkill = new Map(), m
     const ready = missing.length === 0;
     return {
       skillId: s._id ?? s.skillId, name: s.name, moeLevel: s.moeLevel,
-      score: r?.score || 0, attempts: r?.attempts || 0,
+      score: r?.score || 0, attempts: r?.attempts || 0, lastPracticedAt: r?.lastPracticedAt || null,
       status, masteryState: deriveMastery(r || {}), fluency: fluencyLabel(r?.fluencyStatus), streak: r?.streak || 0,
       ready, locked: !ready && status === 'not_started',
       prerequisites, missingPrereqs: missing.map((p) => p.name),

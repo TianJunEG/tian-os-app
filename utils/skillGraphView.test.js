@@ -21,8 +21,8 @@ const topics = [
 ];
 
 const recordsBySkill = new Map([
-  ['a', { status: 'mastered', score: 95, attempts: 8 }],
-  ['b', { status: 'learning', score: 55, attempts: 4 }],
+  ['a', { status: 'mastered', score: 95, attempts: 8, lastPracticedAt: new Date('2026-05-20T10:00:00.000Z') }],
+  ['b', { status: 'learning', score: 55, attempts: 4, lastPracticedAt: new Date('2026-05-22T10:00:00.000Z') }],
 ]);
 const masteredIds = new Set(['a']);
 
@@ -61,5 +61,11 @@ describe('buildSkillGraphView — prerequisite-aware mastery map', () => {
     expect(names).toContain('Identifying 2D shapes');  // ready, not started
     expect(names).not.toContain('Counting to 1000');   // locked — excluded
     expect(names).not.toContain('Counting to 20');     // mastered — excluded
+  });
+
+  it('keeps last practised dates on skill rows', () => {
+    expect(skill('a').lastPracticedAt).toEqual(new Date('2026-05-20T10:00:00.000Z'));
+    expect(skill('b').lastPracticedAt).toEqual(new Date('2026-05-22T10:00:00.000Z'));
+    expect(skill('d').lastPracticedAt).toBeNull();
   });
 });
