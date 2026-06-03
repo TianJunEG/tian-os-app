@@ -63,6 +63,11 @@ export function selectNextDiagnosticQuestion({
   const currentQuestionId = String(decision?.currentQuestionId || sessionState.currentQuestionId || '');
 
   if (!decision || decision.shouldStopDiagnostic) return null;
+  if (!decision.nextSkillId && [
+    DIAGNOSTIC_DECISIONS.MARK_SECURE,
+    DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE,
+    DIAGNOSTIC_DECISIONS.ASSIGN_REMEDIATION,
+  ].includes(decision.decisionType)) return null;
 
   if (decision.decisionType === DIAGNOSTIC_DECISIONS.REPHRASE_ONCE) {
     const current = questions.find((q) => toQuestionId(q) === currentQuestionId);

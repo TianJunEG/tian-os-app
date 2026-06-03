@@ -393,7 +393,7 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     },
     studentEvidence: {
       attemptedQuestionIds,
-      consecutiveWrong: currentSkillWrongCountBySkill[skillId],
+      consecutiveWrong: priorWrong,
     },
     skillGraph,
     questionBank,

@@ -150,6 +150,23 @@ describe('adaptive diagnostic decision engine', () => {
     expect(next.questionId).toBe('q2b');
   });
 
+  it('selector does not continue after terminal MARK_SECURE with no next skill', () => {
+    const decision = {
+      decisionType: DIAGNOSTIC_DECISIONS.MARK_SECURE,
+      currentSkillId: 'T003',
+      currentQuestionId: 'q3a',
+      nextSkillId: '',
+    };
+    const next = selectNextDiagnosticQuestion({
+      decision,
+      questionBank: [
+        { questionId: 'q3b', skillId: 'T003', difficulty: 3 },
+      ],
+      sessionState: { attemptedQuestionIds: ['q3a'] },
+    });
+    expect(next).toBeNull();
+  });
+
   it('decision object can be stored as session decision history', () => {
     const d = decide({ response: { correct: false, confidence: 'not_sure', timeTakenMs: 42000 } });
     const session = { decisionHistory: [d] };
