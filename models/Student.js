@@ -14,6 +14,7 @@ const studentSchema = new mongoose.Schema({
   profile: {
     mainFocus: { type: String, default: 'MathPath' },
     modulesUsed: { type: [String], default: ['MathPath'] },
+    studentVisualMode: { type: String, enum: ['lower_primary', 'upper_primary', 'secondary'], default: '' },
     pilotProfile: { type: String, default: '' },
     pilotDescription: { type: String, default: '' }
   },

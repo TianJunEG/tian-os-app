@@ -4,10 +4,6 @@ import {
   Calculator,
   CheckCircle2,
   Flame,
-  Gauge,
-  Lock,
-  Network,
-  RefreshCw,
   Timer,
   Trophy,
   UserCircle,
@@ -16,9 +12,10 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
-import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
+import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionSkillGraph';
 import { mathpathAPI } from '../../services/api';
-import { Card, Button, ProgressBar, Spinner, ErrorState, Badge } from '../../components/ui';
+import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
+import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../student/studentVisualMode';
 
 function actionMeta(nextAction = {}) {
   const map = {
@@ -134,59 +131,46 @@ function CourseArt({ icon: Icon, theme = COURSE_THEMES.mathpath, symbol = '+' })
   );
 }
 
-function JourneyStatusBadge({ status }) {
-  if (status === 'done') return <Badge tone="success">Completed</Badge>;
-  if (status === 'active') return <Badge tone="navy">Current</Badge>;
-  if (status === 'next') return <Badge tone="gold">Upcoming</Badge>;
-  return <Badge tone="neutral">Locked</Badge>;
+function estimateTime(nextAction = {}, hasPlacement = false) {
+  if (!hasPlacement) return '6 min';
+  const map = {
+    continuePractice: '10 min',
+    startFluency: '5 min',
+    completeRetentionReview: '7 min',
+    attemptAssessment: '15 min',
+    uploadWorking: '4 min',
+    followRemediationPlan: '8 min',
+    advanceSkill: '10 min',
+  };
+  return map[nextAction?.action] || '8 min';
 }
 
-function CertificateStrip({ courseProgress }) {
-  const milestones = [
-    { icon: Calculator, step: 'Step 1', label: 'Learn Fractions', status: courseProgress >= 25 ? 'done' : 'active' },
-    { icon: Timer, step: 'Step 2', label: 'Build Fluency', status: courseProgress >= 45 ? 'done' : courseProgress >= 25 ? 'active' : 'next' },
-    { icon: Wrench, step: 'Step 3', label: 'Review Mistakes', status: courseProgress >= 65 ? 'done' : courseProgress >= 45 ? 'active' : 'locked' },
-    { icon: Network, step: 'Step 4', label: 'Track Progress', status: courseProgress >= 85 ? 'done' : courseProgress >= 65 ? 'active' : 'locked' },
-    { icon: Trophy, step: 'Step 5', label: 'Mastery Test', status: courseProgress >= 100 ? 'done' : courseProgress >= 85 ? 'active' : 'locked' },
-  ];
+function recommendationReason(nextAction = {}, hasPlacement = false, currentSkill) {
+  if (!hasPlacement) return 'This will find the best place for you to begin.';
+  const skillName = currentSkill?.skillName || 'your current skill';
+  const map = {
+    continuePractice: `You are ready to keep building ${skillName}.`,
+    startFluency: 'Your answers are accurate. A short speed round will make them feel easier.',
+    completeRetentionReview: 'A quick review now will help this stay remembered.',
+    attemptAssessment: 'You have enough progress to check what is secure.',
+    uploadWorking: 'Your next step is to show your method, not just the answer.',
+    followRemediationPlan: `This will clear the stuck point in ${skillName}.`,
+    advanceSkill: 'You are ready for the next skill.',
+  };
+  return map[nextAction?.action] || `Start with ${skillName} because it is the best next step.`;
+}
 
+function DecorativeMotifs({ enabled }) {
+  if (!enabled) return null;
   return (
-    <section className="mb-6 rounded-2xl bg-navy-50 px-4 py-4 sm:px-5">
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ink-900">Math Mastery Journey</h1>
-          <p className="mt-1 text-sm text-ink-500 sm:text-base">Your roadmap through learning, fluency, review, progress, and the mastery test.</p>
-          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Progress tracker · navigation stays in the sidebar</p>
-        </div>
-        <div className="grid gap-2 rounded-xl bg-paper p-2 sm:grid-cols-5">
-          {milestones.map(({ icon: Icon, step, label, status }) => {
-            const active = status === 'active';
-            const done = status === 'done';
-            return (
-              <div
-                key={label}
-                className={`flex min-h-[8rem] flex-col rounded-lg border p-2 text-center ${
-                  active ? 'border-navy-400 bg-navy-50' : done ? 'border-success-100 bg-paper' : 'border-transparent bg-paper'
-                }`}
-              >
-                <span className="block h-4 text-[11px] font-semibold uppercase leading-4 tracking-[0.08em] text-ink-400">{step}</span>
-                <span className="flex h-12 items-center justify-center">
-                  <span className={`grid h-10 w-10 place-items-center rounded-xl ${done ? 'bg-success-500 text-white' : active ? 'bg-navy-700 text-white' : 'bg-bone text-ink-300'}`}>
-                    {status === 'locked' ? <Lock className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-                  </span>
-                </span>
-                <span className={`flex min-h-[2rem] items-center justify-center text-xs font-semibold leading-4 ${active ? 'text-navy-700' : done ? 'text-success-700' : 'text-ink-400'}`}>{label}</span>
-                <span className="mt-auto flex min-h-[1.75rem] items-end justify-center pt-2"><JourneyStatusBadge status={status} /></span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
+    <>
+      <span className="pointer-events-none absolute right-5 top-5 text-2xl opacity-70" aria-hidden>⭐</span>
+      <span className="pointer-events-none absolute bottom-5 right-14 text-xl opacity-60" aria-hidden>✦</span>
+    </>
   );
 }
 
-function CurrentCourseCard({ currentSkill, nextAction, courseProgress, hasPlacement }) {
+function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual }) {
   const action = actionMeta(nextAction);
   const primaryTo = hasPlacement ? action.to : '/student/mathpath/diagnostic';
   const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
@@ -199,120 +183,148 @@ function CurrentCourseCard({ currentSkill, nextAction, courseProgress, hasPlacem
         homeBase: '/student',
       }
     : undefined;
-  const skillProgressCount = Math.max(0, Math.min(12, Math.round((courseProgress / 100) * 12)));
+  const skillName = currentSkill?.skillName || 'Fractions Diagnostic';
+  const ctaLabel = hasPlacement
+    ? (isLowerPrimary(visual.mode) ? visual.styles.practiceCta : action.label)
+    : (isLowerPrimary(visual.mode) ? '🚀 Start Check-In' : 'Start Diagnostic');
+
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="grid gap-5 sm:grid-cols-[13rem_1fr] sm:items-center">
-        <CourseArt icon={Calculator} symbol="=" />
-        <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase text-navy-700">Current Skill Path</p>
-          <h2 className="mt-1 font-display text-3xl font-semibold text-ink-900">Fractions</h2>
-          <p className="mt-1 text-sm text-ink-500">{currentSkill?.skillName || 'Start with your Fractions Diagnostic'}</p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 sm:items-stretch">
-            <Button to={primaryTo} state={primaryState} size="l" icon={ArrowRight} className="w-full min-w-0 flex-wrap px-4 text-center leading-tight">
-              {hasPlacement ? action.label : 'Start Diagnostic'}
-            </Button>
-            <Button to="/student/mathpath/path" size="l" variant="secondary" icon={Network} className="w-full min-w-0 flex-wrap px-4 text-center leading-tight">
-              View Path
+    <Card className={`relative overflow-hidden p-0 ${visual.styles.card}`}>
+      <DecorativeMotifs enabled={visual.styles.decorative} />
+      <div className="grid gap-0 lg:grid-cols-[16rem_1fr]">
+        <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-100 text-navy-700" />
+        <div className="p-5 sm:p-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="navy">{visual.styles.missionLabel}</Badge>
+            <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{estimateTime(nextAction, hasPlacement)}</span>
+          </div>
+          <h2 className={`mt-3 font-display ${isLowerPrimary(visual.mode) ? 'text-3xl sm:text-4xl' : isSecondary(visual.mode) ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'} font-semibold ${visual.styles.title}`}>{skillName}</h2>
+          {!isLowerPrimary(visual.mode) && (
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-600 sm:text-base">
+              {recommendationReason(nextAction, hasPlacement, currentSkill)}
+            </p>
+          )}
+          <div className={`mt-5 grid gap-3 rounded-xl border p-3 text-sm text-ink-700 sm:grid-cols-3 ${visual.styles.softCard}`}>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Current skill</p>
+              <p className="mt-1 font-semibold text-ink-900">{skillName}</p>
+            </div>
+            {!isLowerPrimary(visual.mode) && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Why this</p>
+                <p className="mt-1 font-semibold text-ink-900">{hasPlacement ? 'Best next step' : 'Find your start'}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Time</p>
+              <p className="mt-1 font-semibold text-ink-900">{estimateTime(nextAction, hasPlacement)}</p>
+            </div>
+          </div>
+          <div className="mt-5">
+            <Button to={primaryTo} state={primaryState} size={visual.styles.buttonSize} icon={ArrowRight} className="w-full sm:w-auto">
+              {ctaLabel}
             </Button>
           </div>
-        </div>
-      </div>
-      <div className="mt-5">
-        <ProgressBar value={courseProgress} />
-        <div className="mt-2 flex items-center justify-between text-sm font-semibold text-ink-500">
-          <span>{skillProgressCount}/12 skills progressing</span>
-          <span className="text-navy-700">{courseProgress}%</span>
         </div>
       </div>
     </Card>
   );
 }
 
-function WeeklyStreakCard({ hasActivity }) {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function CompactStatCard({ icon: Icon, label, value, tone = 'navy', visual }) {
+  const toneClass = {
+    navy: 'bg-navy-50 text-navy-700',
+    gold: 'bg-gold-100 text-gold-700',
+    success: 'bg-success-100 text-success-700',
+  }[tone] || 'bg-navy-50 text-navy-700';
   return (
-    <Card className="p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold uppercase text-navy-700">Weekly Streaks</p>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-ink-900">{hasActivity ? 'Help you build learning habit' : 'Start your first streak'}</h2>
+    <Card className={`relative overflow-hidden p-4 ${visual?.styles?.card || ''}`}>
+      <DecorativeMotifs enabled={visual?.styles?.decorative && tone === 'gold'} />
+      <div className="flex items-center gap-3">
+        <span className={`grid ${isLowerPrimary(visual?.mode) ? 'h-12 w-12' : 'h-11 w-11'} shrink-0 place-items-center rounded-xl ${visual?.styles?.icon || toneClass}`}>
+          <Icon className="h-5 w-5" />
+        </span>
+        <div className="min-w-0">
+          <p className={`${isLowerPrimary(visual?.mode) ? 'text-base' : 'text-sm'} font-semibold text-ink-500`}>{label}</p>
+          <p className="mt-0.5 text-2xl font-semibold text-ink-900">{value}</p>
         </div>
-        {!hasActivity && <Badge tone="neutral" className="shrink-0">No activity yet</Badge>}
       </div>
-      <div className="mt-6 grid grid-cols-7 gap-1.5 sm:gap-2">
-        {days.map((day, index) => (
-          <div key={day} className="text-center">
-            <span className={`mx-auto grid h-8 w-full max-w-10 place-items-center rounded-full border text-[11px] font-semibold sm:h-9 ${
-              hasActivity && index === 0
-                ? 'border-success-100 bg-success-100 text-success-700'
-                : 'border-hairline bg-bone/60 text-ink-400'
-            }`}>
-              {hasActivity && index === 0 ? <CheckCircle2 className="h-4 w-4" /> : day.slice(0, 1)}
-            </span>
-            <span className="mt-2 block text-[11px] font-semibold text-ink-600 sm:text-xs">{day}</span>
-          </div>
+    </Card>
+  );
+}
+
+function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual }) {
+  const action = actionMeta(nextAction);
+  const continueState = hasPlacement
+    ? {
+        skillId: currentSkill?.skillId || null,
+        questionCount: 8,
+        sessionType: 'practice',
+        source: 'student-dashboard',
+        backTo: '/student',
+        homeBase: '/student',
+      }
+    : undefined;
+  const items = [
+    {
+      icon: ArrowRight,
+      title: 'Continue Learning',
+      body: hasPlacement ? currentSkill?.skillName || 'Pick up where you left off.' : 'Find your best starting point.',
+      to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
+      state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
+      cta: hasPlacement ? action.label : 'Start Diagnostic',
+      primary: true,
+    },
+    {
+      icon: Wrench,
+      title: 'Review Mistakes',
+      body: 'Clear one recent error before it becomes a habit.',
+      to: '/student/mathpath/mistakes',
+      cta: 'Review',
+    },
+    {
+      icon: Timer,
+      title: 'Fluency Challenge',
+      body: 'Do a short round to make fractions feel faster.',
+      to: '/student/mathpath/fluency',
+      cta: 'Start',
+    },
+  ];
+
+  return (
+    <section className="mt-7">
+      <div className="mb-4">
+        <h2 className="font-display text-2xl font-semibold text-ink-900">{isLowerPrimary(visual.mode) ? 'Pick One Mission' : 'Recommended Next'}</h2>
+        {!isLowerPrimary(visual.mode) && <p className="mt-1 text-sm text-ink-500">Choose one focused action. You do not need to do everything today.</p>}
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {items.map(({ icon: Icon, title, body, to, state, cta, primary }) => (
+          <Card key={title} className={`relative overflow-hidden p-4 ${primary ? visual.styles.softCard : visual.styles.card}`}>
+            <DecorativeMotifs enabled={visual.styles.decorative && primary} />
+            <div className="flex items-start gap-3">
+              <span className={`grid ${isLowerPrimary(visual.mode) ? 'h-12 w-12' : 'h-10 w-10'} shrink-0 place-items-center rounded-xl ${primary ? visual.styles.primaryIcon : visual.styles.icon}`}>
+                <Icon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-ink-900">{title}</h3>
+                {!isLowerPrimary(visual.mode) && <p className="mt-1 min-h-[2.5rem] text-sm leading-5 text-ink-500">{body}</p>}
+                <Button to={to} state={state} size={isLowerPrimary(visual.mode) ? 'm' : 's'} variant={primary ? 'primary' : 'secondary'} icon={ArrowRight} className="mt-4">
+                  {primary && isLowerPrimary(visual.mode) ? visual.styles.practiceCta : cta}
+                </Button>
+              </div>
+            </div>
+          </Card>
         ))}
       </div>
-      <p className="mt-6 text-sm text-ink-700">{hasActivity ? "Today's task is ready." : 'Complete one activity to begin your streak.'}</p>
-    </Card>
-  );
-}
-
-function MasteryProgressCard({ masteryProgress }) {
-  const mastered = masteryProgress?.percentageMastered || 0;
-  const fluent = masteryProgress?.percentageFluent || 0;
-  const retained = masteryProgress?.percentageRetained || 0;
-  return (
-    <Card className="p-5">
-      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Mastery Progress</p>
-      <div className="mt-3 space-y-3">
-        <div>
-          <div className="mb-1 flex items-center justify-between text-sm"><span>Mastered</span><span>{mastered}%</span></div>
-          <ProgressBar value={mastered} />
-        </div>
-        <div>
-          <div className="mb-1 flex items-center justify-between text-sm"><span>Fluent</span><span>{fluent}%</span></div>
-          <ProgressBar value={fluent} />
-        </div>
-        <div>
-          <div className="mb-1 flex items-center justify-between text-sm"><span>Retained</span><span>{retained}%</span></div>
-          <ProgressBar value={retained} />
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function FluencyStatusCard({ fluency }) {
-  const slow = fluency?.accurateButSlowAreas || [];
-  const fluent = fluency?.fluentAreas || [];
-  return (
-    <Card className="p-5">
-      <div className="mb-2 flex items-center gap-2 text-ink-700"><Gauge className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fluency</p></div>
-      <p className="text-sm text-ink-600">{slow.length ? `Accurate but slow: ${slow.slice(0, 2).join(', ')}` : 'No fluency bottlenecks currently flagged.'}</p>
-      {fluent.length > 0 && <p className="mt-2 text-sm text-ink-500">Fluent: {fluent.slice(0, 2).join(', ')}</p>}
-    </Card>
-  );
-}
-
-function RetentionReviewCard({ retention }) {
-  const due = retention?.skillsDueForReview || [];
-  return (
-    <Card className="p-5">
-      <div className="mb-2 flex items-center gap-2 text-ink-700"><RefreshCw className="h-4 w-4" /> <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Retention Reviews</p></div>
-      {due.length ? (
-        <p className="text-sm text-ink-600">Review due: {due.slice(0, 3).join(', ')}</p>
-      ) : (
-        <p className="text-sm text-ink-600">No review due right now.</p>
-      )}
-    </Card>
+    </section>
   );
 }
 
 export default function StudentDashboard() {
   const { user } = useAuth();
   const firstName = (user?.name || 'there').split(' ')[0];
+  const visualMode = resolveStudentVisualMode(user || {});
+  const visual = { mode: visualMode, styles: getVisualModeStyles(visualMode) };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [payload, setPayload] = useState(null);
@@ -396,7 +408,16 @@ export default function StudentDashboard() {
 
   const courseProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageMastered || 0)));
   const fluencyProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageFluent || 0)));
-  const hasActivity = courseProgress > 0 || fluencyProgress > 0 || Math.round(vm.masteryProgress?.percentageRetained || 0) > 0;
+  const retainedProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageRetained || 0)));
+  const hasActivity = courseProgress > 0 || fluencyProgress > 0 || retainedProgress > 0;
+  const totalSkills = Math.max(1, Number(vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
+  const masteredCount = Array.isArray(vm.masteryProgress?.masteredSkills)
+    ? vm.masteryProgress.masteredSkills.length
+    : Math.round((courseProgress / 100) * totalSkills);
+  const safeMasteredCount = Math.max(0, Math.min(totalSkills, masteredCount));
+  const currentStreak = hasActivity ? 1 : 0;
+  const learningXp = safeMasteredCount * 120 + fluencyProgress * 4 + retainedProgress * 3;
+  const streakLabel = `${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}`;
   const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));
   const resetStudentState = async () => {
     if (!canResetStudentState || resetting) return;
@@ -410,11 +431,11 @@ export default function StudentDashboard() {
     }
   };
   return (
-    <>
+    <main className={visual.styles.page}>
       <div className="mb-5 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-ink-500">Hi, {firstName}</p>
-          <h1 className="font-display text-3xl font-semibold text-ink-900">Home</h1>
+          <p className="text-sm font-semibold text-ink-500">{isLowerPrimary(visual.mode) ? `Hi ${firstName}, ready?` : `Hi, ${firstName}`}</p>
+          <h1 className={`font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{isSecondary(visual.mode) ? 'Dashboard' : 'Today'}</h1>
         </div>
         <div className="flex items-center gap-2">
           {canResetStudentState && (
@@ -432,29 +453,49 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <CertificateStrip courseProgress={courseProgress} />
+      <TodaysMissionCard
+        currentSkill={vm.currentSkill}
+        nextAction={vm.nextAction}
+        hasPlacement={vm.hasPlacement}
+        visual={visual}
+      />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_0.95fr]">
-        <CurrentCourseCard
-          currentSkill={vm.currentSkill}
-          nextAction={vm.nextAction}
-          courseProgress={courseProgress}
-          hasPlacement={vm.hasPlacement}
+      <section className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <CompactStatCard
+          icon={CheckCircle2}
+          label="Skills Mastered"
+          value={`${safeMasteredCount}/${totalSkills}`}
+          tone="success"
+          visual={visual}
         />
-        <WeeklyStreakCard hasActivity={hasActivity} />
+        <CompactStatCard
+          icon={Flame}
+          label={visual.styles.streakLabel}
+          value={streakLabel}
+          tone="gold"
+          visual={visual}
+        />
+        <CompactStatCard
+          icon={Trophy}
+          label={visual.styles.xpLabel}
+          value={learningXp}
+          tone="navy"
+          visual={visual}
+        />
+      </section>
+
+      <div className="mt-3 sm:hidden">
+        <Button to="/student/profile" size="m" variant="secondary" icon={UserCircle} className="w-full">
+          View Profile
+        </Button>
       </div>
 
-      <section className="mt-7">
-        <div className="mb-4">
-          <h2 className="font-display text-2xl font-semibold text-ink-900">Recent Progress</h2>
-          <p className="mt-1 text-sm text-ink-500">A quick summary only. Use Progress in the sidebar for the full report.</p>
-        </div>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <MasteryProgressCard masteryProgress={vm.masteryProgress} />
-        <FluencyStatusCard fluency={vm.fluency} />
-        <RetentionReviewCard retention={vm.retention} />
-        </div>
-      </section>
+      <RecommendedNextSection
+          currentSkill={vm.currentSkill}
+          nextAction={vm.nextAction}
+          hasPlacement={vm.hasPlacement}
+          visual={visual}
+      />
 
       {showDiagnosticPrompt && (
         <Card className="mt-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -471,6 +512,6 @@ export default function StudentDashboard() {
           </p>
         </Card>
       )}
-    </>
+    </main>
   );
 }

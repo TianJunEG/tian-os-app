@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
+import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../student/studentVisualMode';
 
 const iconMap = {
   badge: Award,
@@ -56,28 +57,34 @@ function formatEventDate(date) {
   return then.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function SnapshotCard({ icon: Icon, label, value }) {
+function DecorativeMotif({ enabled }) {
+  if (!enabled) return null;
+  return <span className="pointer-events-none absolute right-4 top-4 text-xl opacity-60" aria-hidden>✦</span>;
+}
+
+function SnapshotCard({ icon: Icon, label, value, visual }) {
   return (
-    <Card className="p-4">
+    <Card className={`relative overflow-hidden p-4 ${visual.styles.card}`}>
+      <DecorativeMotif enabled={visual.styles.decorative} />
       <div className="flex items-center gap-3">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-navy-50 text-navy-700">
+        <span className={`grid ${isLowerPrimary(visual.mode) ? 'h-12 w-12' : 'h-11 w-11'} shrink-0 place-items-center rounded-xl ${visual.styles.icon}`}>
           <Icon className="h-5 w-5" />
         </span>
         <div className="min-w-0">
           <p className="font-mono text-2xl font-semibold leading-none text-ink-900 tabular-nums">{value}</p>
-          <p className="mt-1 text-sm font-semibold text-ink-500">{label}</p>
+          <p className={`mt-1 ${isLowerPrimary(visual.mode) ? 'text-base' : 'text-sm'} font-semibold text-ink-500`}>{label}</p>
         </div>
       </div>
     </Card>
   );
 }
 
-function AchievementBadge({ achievement }) {
+function AchievementBadge({ achievement, visual }) {
   const Icon = iconMap[achievement.icon] || Award;
   return (
-    <Card className={`p-4 ${achievement.unlocked ? 'bg-paper' : 'bg-slate-50 opacity-75'}`}>
+    <Card className={`p-4 ${achievement.unlocked ? visual.styles.card : 'bg-slate-50 opacity-75'}`}>
       <div className="flex items-start gap-3">
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${achievement.unlocked ? 'bg-gold-100 text-gold-700' : 'bg-bone text-ink-400'}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${achievement.unlocked ? visual.styles.icon : 'bg-bone text-ink-400'}`}>
           {achievement.unlocked ? <Icon className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
         </span>
         <div className="min-w-0">
@@ -148,68 +155,86 @@ export default function StudentProfile() {
   const timeline = state.data?.timeline || [];
   const progress = summary.progress || { mastered: 0, total: 1, percentage: 0 };
   const avatarText = initials(student.name);
+  const visualMode = resolveStudentVisualMode({
+    ...student,
+    studentVisualMode: student.studentVisualMode,
+    level: student.level,
+  });
+  const visual = { mode: visualMode, styles: getVisualModeStyles(visualMode) };
+  const copy = {
+    profileTitle: visual.styles.profileLabel,
+    snapshotTitle: isLowerPrimary(visual.mode) ? 'My Progress Stars' : 'Learning Snapshot',
+    pathTitle: isSecondary(visual.mode) ? 'Current Skill Path' : 'Current Learning Path',
+    continueLabel: isLowerPrimary(visual.mode) ? '🚀 Continue' : 'Continue Learning',
+    achievementSubtitle: isLowerPrimary(visual.mode)
+      ? 'Unlocked badges show what you have built. Locked badges show your next goals.'
+      : 'Unlocked badges show growth milestones. Locked badges show what to aim for next.',
+  };
 
   return (
-    <main className="mx-auto max-w-6xl pb-8">
+    <main className={`mx-auto max-w-6xl pb-8 ${visual.styles.page}`}>
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
-        <Card className="p-5 sm:p-6">
+        <Card className={`relative overflow-hidden p-5 sm:p-6 ${visual.styles.card}`}>
+          <DecorativeMotif enabled={visual.styles.decorative} />
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               {student.avatarUrl ? (
                 <img src={student.avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" />
               ) : (
-                <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-navy-700 font-display text-xl font-semibold text-white">
+                <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl font-display text-xl font-semibold ${visual.styles.primaryIcon}`}>
                   {avatarText}
                 </span>
               )}
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-ink-500">My Learning Profile</p>
-                <h1 className="mt-1 truncate font-display text-3xl font-semibold text-ink-900">{student.name || 'Student'}</h1>
+                <p className="text-sm font-semibold text-ink-500">{copy.profileTitle}</p>
+                <h1 className={`mt-1 truncate font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{student.name || 'Student'}</h1>
                 <p className="mt-1 text-sm text-ink-500">{student.level || 'Learning with Tian OS'}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:min-w-[16rem]">
-              <div className="rounded-xl border border-hairline bg-slate-50 p-3">
+              <div className={`rounded-xl border p-3 ${visual.styles.softCard}`}>
                 <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Current Focus</p>
                 <p className="mt-1 font-semibold text-ink-900">{summary.currentDomain || 'MathPath'}</p>
               </div>
-              <div className="rounded-xl border border-hairline bg-slate-50 p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Total XP</p>
+              <div className={`rounded-xl border p-3 ${visual.styles.softCard}`}>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{visual.styles.xpLabel}</p>
                 <p className="mt-1 font-mono text-xl font-semibold text-ink-900 tabular-nums">{formatNumber(summary.xp)}</p>
               </div>
             </div>
           </div>
         </Card>
 
-        <Card className="p-5 sm:p-6">
-          <p className="text-sm font-semibold text-ink-500">Current Streak</p>
+        <Card className={`relative overflow-hidden p-5 sm:p-6 ${visual.styles.card}`}>
+          <DecorativeMotif enabled={visual.styles.decorative} />
+          <p className="text-sm font-semibold text-ink-500">{visual.styles.streakLabel}</p>
           <div className="mt-3 flex items-end gap-3">
             <Flame className="h-8 w-8 text-gold-500" />
             <p className="font-mono text-4xl font-semibold leading-none text-ink-900 tabular-nums">{summary.streak || 0}</p>
             <p className="pb-1 text-sm font-semibold text-ink-500">{summary.streak === 1 ? 'day' : 'days'}</p>
           </div>
-          <p className="mt-3 text-sm leading-5 text-ink-500">Keep building steady learning habits. XP rewards effort, practice, and working records.</p>
+          {!isSecondary(visual.mode) && <p className="mt-3 text-sm leading-5 text-ink-500">Keep building steady learning habits. XP rewards effort, practice, and working records.</p>}
         </Card>
       </section>
 
+      <h2 className="mt-6 font-display text-2xl font-semibold text-ink-900">{copy.snapshotTitle}</h2>
       <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SnapshotCard icon={Sparkles} label="Questions Solved" value={formatNumber(summary.questionsSolved)} />
-        <SnapshotCard icon={BadgeCheck} label="Skills Mastered" value={formatNumber(summary.skillsMastered)} />
-        <SnapshotCard icon={BookOpen} label="Practice Sessions" value={formatNumber(summary.practiceSessions)} />
-        <SnapshotCard icon={PenLine} label="Working Records" value={formatNumber(summary.workingSubmissions)} />
+        <SnapshotCard visual={visual} icon={Sparkles} label="Questions Solved" value={formatNumber(summary.questionsSolved)} />
+        <SnapshotCard visual={visual} icon={BadgeCheck} label="Skills Mastered" value={formatNumber(summary.skillsMastered)} />
+        <SnapshotCard visual={visual} icon={BookOpen} label="Practice Sessions" value={formatNumber(summary.practiceSessions)} />
+        <SnapshotCard visual={visual} icon={PenLine} label="Working Records" value={formatNumber(summary.workingSubmissions)} />
       </section>
 
       <section className="mt-5 grid gap-5 lg:grid-cols-[1fr_22rem]">
-        <Card className="p-5 sm:p-6">
+        <Card className={`p-5 sm:p-6 ${visual.styles.card}`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-ink-500">Current Learning Path</p>
+              <p className="text-sm font-semibold text-ink-500">{copy.pathTitle}</p>
               <h2 className="mt-1 font-display text-2xl font-semibold text-ink-900">{summary.currentDomain || 'MathPath'}</h2>
               <p className="mt-2 text-sm text-ink-500">Current skill</p>
               <p className="mt-1 text-lg font-semibold text-ink-900">{summary.currentSkill || 'Start your next skill check'}</p>
             </div>
-            <Button to={summary.recommendedAction?.href || '/student/mathpath'} icon={ArrowRight} className="w-full sm:w-auto">
-              Continue Learning
+            <Button to={summary.recommendedAction?.href || '/student/mathpath'} icon={ArrowRight} size={visual.styles.buttonSize} className="w-full sm:w-auto">
+              {copy.continueLabel}
             </Button>
           </div>
           <div className="mt-5">
@@ -221,10 +246,10 @@ export default function StudentProfile() {
           </div>
         </Card>
 
-        <Card className="p-5 sm:p-6">
+        <Card className={`p-5 sm:p-6 ${visual.styles.softCard}`}>
           <p className="text-sm font-semibold text-ink-500">Recommended Action</p>
           <p className="mt-2 text-lg font-semibold text-ink-900">{summary.recommendedAction?.label || 'Continue Learning'}</p>
-          <p className="mt-2 text-sm leading-5 text-ink-500">Pick up from the next useful skill and keep your progress moving.</p>
+          {!isLowerPrimary(visual.mode) && <p className="mt-2 text-sm leading-5 text-ink-500">Pick up from the next useful skill and keep your progress moving.</p>}
         </Card>
       </section>
 
@@ -232,7 +257,7 @@ export default function StudentProfile() {
         <div className="mb-4 flex items-end justify-between gap-3">
           <div>
             <h2 className="font-display text-2xl font-semibold text-ink-900">Achievements</h2>
-            <p className="mt-1 text-sm text-ink-500">Unlocked badges show growth milestones. Locked badges show what to aim for next.</p>
+            <p className="mt-1 text-sm text-ink-500">{copy.achievementSubtitle}</p>
           </div>
         </div>
         <div className="space-y-5">
@@ -241,7 +266,7 @@ export default function StudentProfile() {
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-ink-400">{category}</h3>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {achievements.map((achievement) => (
-                  <AchievementBadge key={achievement.code} achievement={achievement} />
+                  <AchievementBadge key={achievement.code} achievement={achievement} visual={visual} />
                 ))}
               </div>
             </div>
@@ -251,7 +276,7 @@ export default function StudentProfile() {
 
       <section className="mt-7">
         <h2 className="font-display text-2xl font-semibold text-ink-900">Learning Timeline</h2>
-        <Card className="mt-4 p-5 sm:p-6">
+        <Card className={`mt-4 p-5 sm:p-6 ${visual.styles.card}`}>
           {timeline.length ? (
             <ol className="space-y-4">
               {timeline.slice(0, 10).map((event) => (

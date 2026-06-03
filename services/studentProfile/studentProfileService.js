@@ -127,6 +127,18 @@ export const ACHIEVEMENT_DEFINITIONS = Object.freeze([
   },
 ]);
 
+function resolveStudentVisualMode(student = {}) {
+  const explicit = student.profile?.studentVisualMode || student.studentVisualMode || '';
+  if (['lower_primary', 'upper_primary', 'secondary'].includes(explicit)) return explicit;
+  const level = String(student.level || '').toLowerCase();
+  const secondary = level.match(/(?:secondary|sec|s)\s*([1-6])/i);
+  if (secondary) return 'secondary';
+  const primary = level.match(/(?:primary|p)\s*([1-6])/i);
+  if (primary && Number(primary[1]) <= 3) return 'lower_primary';
+  if (primary) return 'upper_primary';
+  return 'upper_primary';
+}
+
 const MASTERED_STATES = ['accurate', 'fluent', 'retained'];
 const SUBMITTED_ASSESSMENT_STATES = ['submitted', 'marked', 'reviewed'];
 const domainLabel = (domainId = '') => {
@@ -357,6 +369,7 @@ export async function getStudentProfileSummary(student) {
       name: student.name || 'Student',
       level: student.level || '',
       avatarUrl: student.avatarUrl || student.profile?.avatarUrl || '',
+      studentVisualMode: resolveStudentVisualMode(student),
     },
     xp: xp.totalXP,
     streak: metrics.streak,
