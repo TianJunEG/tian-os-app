@@ -26,6 +26,7 @@ import contextRoutes from './routes/context.js';
 import practiceRoutes from './routes/practice.js';
 import mistakeRoutes from './routes/mistakes.js';
 import masteryRoutes from './routes/mastery.js';
+import diagnosticRoutes from './routes/diagnostics.js';
 import mathpathWorkingRoutes from './routes/mathpathWorking.js';
 import assignmentRoutes from './routes/assignments.js';
 import worksheetGenRoutes from './routes/worksheetsGen.js';
@@ -127,6 +128,7 @@ app.use('/api/science', featureGate({ feature: 'science', minVersion: 'v0.6' }),
 app.use('/api/context', contextRoutes);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/mistakes', mistakeRoutes);
+app.use('/api/diagnostics', diagnosticRoutes);
 app.use('/api/mastery', masteryRoutes);
 app.use('/api/mathpath-working', mathpathWorkingRoutes);
 app.use('/api/assignments', assignmentRoutes);

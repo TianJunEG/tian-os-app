@@ -21,7 +21,10 @@ import { normalizeDiagnosticModeForLevel, resolveFractionsStartingSkill } from '
 import { studentMathAnalytics, studentMathPathTimingAnalytics } from '../utils/analytics.js';
 import { buildRemediationPlan } from '../utils/remediationEngine.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
-import { evaluateDiagnosticReplayPolicy } from '../utils/diagnosticReplayPolicy.js';
+import {
+  answerAdaptiveDiagnostic,
+  startAdaptiveDiagnostic,
+} from '../services/diagnostics/diagnosticRuntime.js';
 import { classifyFractionMistake } from '../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
 import { calculateQuestionTiming } from '../frontend/src/mathpath/fractions/fractionFluencyRetentionEngine.js';
 import {
@@ -42,17 +45,6 @@ import {
 const router = express.Router();
 
 const STATUS_LABEL = { not_started: 'needs practice', needs_review: 'needs practice', learning: 'learning', mastered: 'fluent' };
-const DIAG_MODE_RANGES = {
-  basic: ['F001', 'F005'],
-  core: ['F001', 'F019'],
-  full: ['F001', 'F026'],
-};
-const DIAG_COUNTS = {
-  baseline: { basic: 10, core: 10, full: 12 },
-  recheck: { basic: 12, core: 18, full: 24 },
-  assigned: { basic: 12, core: 18, full: 24 },
-};
-const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
 
 function canTrainQuestionPatterns(user = {}) {
   const roles = new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
@@ -67,11 +59,6 @@ function answerInputTypeFor(answer = '') {
   if (/^-?\d+\.\d+$/.test(raw)) return 'decimal';
   if (/^-?\d+$/.test(raw)) return 'whole_number';
   return '';
-}
-
-function hasPrimaryLevelNegativeFractionQuestion(question = {}) {
-  const text = `${question.stem || ''} ${question.answer || ''}`;
-  return /\(\s*-\d+\s*\/\s*\d+\s*\)|-\d+\s*\/\s*\d+/.test(text);
 }
 
 function toDateLike(value) {
@@ -327,24 +314,6 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
   }
 });
 
-const normalizeLevelTag = (value = '') => {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const upper = raw.toUpperCase();
-  if (/^P\d$/.test(upper)) return upper;
-  const p = upper.match(/PRIMARY\s*(\d)/);
-  if (p) return `P${p[1]}`;
-  const s = upper.match(/SEC(ONDARY)?\s*(\d)/);
-  if (s) return `Sec${s[2]}`;
-  return raw;
-};
-
-const skillNum = (id = '') => Number(String(id).replace(/^F/i, '')) || 0;
-const inSkillRange = (id, [start, end]) => {
-  const n = skillNum(id);
-  return n >= skillNum(start) && n <= skillNum(end);
-};
-
 function mapPlacementReadiness(profile = []) {
   if (!profile.length) return 'Beginner';
   const mastered = profile.filter((p) => p.mastery === 'mastered').length;
@@ -356,13 +325,6 @@ function mapPlacementReadiness(profile = []) {
   if (ratio >= 0.4 || developing >= 3) return 'Progressing';
   if (notSecure >= Math.ceil(profile.length * 0.5)) return 'Beginner';
   return 'Developing';
-}
-
-function resolveDiagnosticCount(mode = 'core', purpose = 'baseline') {
-  const p = DIAG_PURPOSES.has(String(purpose || '').toLowerCase())
-    ? String(purpose || '').toLowerCase()
-    : 'baseline';
-  return DIAG_COUNTS[p]?.[mode] || DIAG_COUNTS.baseline[mode] || 10;
 }
 
 function parentPlacementSummary({ recommendedStartingSkill, weakSkills = [] }) {
@@ -514,156 +476,49 @@ router.post('/placement', protect, async (req, res) => {
 });
 
 // @route POST /api/mastery/diagnostic/start
-// @desc  Start fractions diagnostic from existing question bank + persist session.
+// @desc  Backward-compatible MathPath Fractions diagnostic start.
 // @access Private
 router.post('/diagnostic/start', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
-    const { requestedMode, studentLevel, diagnosticPurpose } = req.body || {};
-    const levelTag = normalizeLevelTag(studentLevel || student.level || '');
-    const requested = String(requestedMode || '').toLowerCase();
-    const purpose = DIAG_PURPOSES.has(String(diagnosticPurpose || '').toLowerCase())
-      ? String(diagnosticPurpose || '').toLowerCase()
-      : 'baseline';
-    const mode = normalizeDiagnosticModeForLevel(levelTag, requested);
-
-    const latestCompleted = await MathPathDiagnosticSession.findOne({
-      studentId: String(student._id),
+    const payload = await startAdaptiveDiagnostic({
+      student,
+      userId: req.user.id,
+      subjectId: 'math',
       domainId: 'fractions',
-      status: 'completed',
-    }).sort({ completedAt: -1, createdAt: -1 });
-    const requester = await User.findById(req.user.id).select('is_test_account email');
-    const replayPolicy = evaluateDiagnosticReplayPolicy({
-      diagnosticPurpose: purpose,
-      latestCompletedSession: latestCompleted,
+      requestedMode: req.body?.requestedMode || req.body?.mode,
+      startSkillId: req.body?.startSkillId || '',
+      studentLevel: req.body?.studentLevel,
+      diagnosticPurpose: req.body?.diagnosticPurpose,
     });
-    if (!requester?.is_test_account && !/^test\.student\d+@tianos\.test$/i.test(requester?.email || '') && !replayPolicy.allowed) {
-      return res.status(409).json({
-        error: 'Diagnostic replay is currently blocked. Continue from your saved placement or run a re-check.',
-        code: 'DIAGNOSTIC_REPLAY_BLOCKED',
-        replayPolicy,
-        latestPlacement: latestCompleted
-          ? {
-              sessionId: latestCompleted.diagnosticSessionId,
-              completedAt: latestCompleted.completedAt,
-              result: latestCompleted.result || {},
-            }
-          : null,
-      });
-    }
-
-    const { skills, byFrameworkId } = await loadFractionsSkills();
-    if (!skills.length) return res.status(400).json({ error: 'Fractions skills are not seeded yet.' });
-
-    const [rangeStart, rangeEnd] = DIAG_MODE_RANGES[mode] || DIAG_MODE_RANGES.core;
-    const targetSkills = skills
-      .filter((s) => {
-        const fid = String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || '').toUpperCase();
-        return fid && inSkillRange(fid, [rangeStart, rangeEnd]);
-      })
-      .sort((a, b) => {
-        const af = String(a.metadata?.mathPathSkillId || a.metadata?.frameworkCode || '');
-        const bf = String(b.metadata?.mathPathSkillId || b.metadata?.frameworkCode || '');
-        return skillNum(af) - skillNum(bf);
-      });
-    if (!targetSkills.length) return res.status(400).json({ error: 'No fraction skills available for this diagnostic mode.' });
-
-    const targetSkillIds = targetSkills.map((s) => String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || ''));
-    const count = resolveDiagnosticCount(mode, purpose);
-    const sampleSize = Math.max(count * 3, Math.min(count + 16, 48));
-    let questions = await Question.aggregate([
-      { $match: { skillId: { $in: targetSkills.map((s) => s._id) } } },
-      { $sample: { size: sampleSize } },
-    ]);
-    if (/^P[1-6]$/i.test(levelTag || '')) {
-      questions = questions.filter((q) => !hasPrimaryLevelNegativeFractionQuestion(q));
-    }
-    const selectedQuestions = [];
-    const seenFamilies = new Set();
-    const seenStems = new Set();
-    for (const q of questions) {
-      const familyKey = String(q.questionFamilyId || q.stem || q._id);
-      const stemKey = String(q.stem || '').trim().toLowerCase();
-      if (seenFamilies.has(familyKey) || seenStems.has(stemKey)) continue;
-      seenFamilies.add(familyKey);
-      seenStems.add(stemKey);
-      selectedQuestions.push(q);
-      if (selectedQuestions.length >= count) break;
-    }
-    if (selectedQuestions.length < count) {
-      for (const q of questions) {
-        if (selectedQuestions.some((picked) => String(picked._id) === String(q._id))) continue;
-        selectedQuestions.push(q);
-        if (selectedQuestions.length >= count) break;
-      }
-    }
-    questions = selectedQuestions.slice(0, count);
-    if (!questions.length) return res.status(400).json({ error: 'No diagnostic questions available yet for Fractions.' });
-
-    const sessionCode = `fracdiag_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const qSkillIds = [];
-    const qFamilyIds = [];
-    const mappedQuestions = questions.map((q) => {
-      const skill = byFrameworkId.get(String(targetSkills.find((s) => String(s._id) === String(q.skillId))?.metadata?.mathPathSkillId || '').toUpperCase())
-        || targetSkills.find((s) => String(s._id) === String(q.skillId));
-      const fid = String(skill?.metadata?.mathPathSkillId || skill?.metadata?.frameworkCode || '');
-      const qf = `QF_${fid || 'UNK'}_${String(q._id).slice(-4).toUpperCase()}`;
-      if (fid) qSkillIds.push(fid);
-      qFamilyIds.push(qf);
-      return {
-        questionId: String(q._id),
-        skillId: fid || '',
-        questionFamilyId: qf,
-        prompt: q.stem,
-        type: q.type,
-        choices: q.choices || [],
-        visual: q.visual || null,
-        hasFigure: !!q.hasFigure,
-        figureUrl: q.figureUrl || '',
-        figureAlt: q.figureAlt || '',
-        answerInputType: answerInputTypeFor(q.answer),
-        workingRequired: true,
-      };
-    }).filter((q) => q.skillId);
-
-    const doc = await MathPathDiagnosticSession.create({
-      diagnosticSessionId: sessionCode,
-      studentId: String(student._id),
-      domainId: 'fractions',
-      mode,
-      studentLevel: levelTag || '',
-      targetSkillIds: [...new Set(qSkillIds)],
-      targetQuestionFamilyIds: [...new Set(qFamilyIds)],
-      status: 'inProgress',
-      startedAt: new Date(),
-      result: {
-        diagnosticPurpose: purpose,
-        questionIds: mappedQuestions.map((q) => q.questionId),
-        questionMeta: mappedQuestions.map((q) => ({
-            questionId: q.questionId,
-            skillId: q.skillId,
-            questionFamilyId: q.questionFamilyId,
-            answerInputType: q.answerInputType || '',
-          })),
-      },
-    });
-
-    const enrichmentOnly = ['P1', 'P2'].includes((levelTag || '').toUpperCase());
-    return res.json({
-      session: {
-        sessionId: doc.diagnosticSessionId,
-        mode,
-        diagnosticPurpose: purpose,
-        studentLevel: levelTag || '',
-        enrichmentOnly,
-        targetSkillIds: doc.targetSkillIds,
-        targetQuestionFamilyIds: doc.targetQuestionFamilyIds,
-        estimatedQuestionCount: mappedQuestions.length,
-      },
-      questions: mappedQuestions,
-    });
+    return res.json(payload);
   } catch (err) {
-    return res.status(err.status || 500).json({ error: err.message || 'Failed to start diagnostic.' });
+    return res.status(err.status || 500).json({
+      error: err.message || 'Failed to start diagnostic.',
+      code: err.code,
+      ...(err.payload || {}),
+    });
+  }
+});
+
+// @route POST /api/mastery/diagnostic/:sessionId/answer
+// @desc  Backward-compatible adaptive diagnostic answer endpoint.
+// @access Private
+router.post('/diagnostic/:sessionId/answer', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const payload = await answerAdaptiveDiagnostic({
+      student,
+      sessionId: req.params.sessionId,
+      body: req.body || {},
+    });
+    return res.json(payload);
+  } catch (err) {
+    return res.status(err.status || 500).json({
+      error: err.message || 'Failed to process adaptive diagnostic answer.',
+      code: err.code,
+      ...(err.payload || {}),
+    });
   }
 });
 

@@ -55,11 +55,18 @@ export const contextAPI = {
 };
 
 // MathPath (Phase 2): mastery, topic map, practice sessions, mistakes.
+export const diagnosticsAPI = {
+  domains: () => api.get('/diagnostics/domains'),
+  startDiagnostic: (data) => api.post('/diagnostics/start', data),
+  answerDiagnostic: (sessionId, data) => api.post(`/diagnostics/${sessionId}/answer`, data),
+};
+
 export const mathpathAPI = {
   mastery: (params) => api.get('/mastery', { params }),
   map: (params) => api.get('/mastery/map', { params }),
   graph: (params) => api.get('/mastery/graph', { params }),
-  startDiagnostic: (data) => api.post('/mastery/diagnostic/start', data),
+  startDiagnostic: (data) => diagnosticsAPI.startDiagnostic({ subjectId: 'math', domainId: 'fractions', ...data }),
+  answerDiagnostic: (sessionId, data) => diagnosticsAPI.answerDiagnostic(sessionId, data),
   submitDiagnostic: (sessionId, data) => api.post(`/mastery/diagnostic/${sessionId}/submit`, data),
   getDiagnostic: (sessionId) => api.get(`/mastery/diagnostic/${sessionId}`),
   getLatestDiagnostic: (params) => api.get('/mastery/diagnostic/latest', { params }),

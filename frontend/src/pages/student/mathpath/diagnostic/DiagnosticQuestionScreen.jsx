@@ -14,9 +14,10 @@ import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 
 const REFLECTION_OPTIONS = [
-  { value: 'i_know_this', label: 'I know this' },
+  { value: 'i_know_this', label: 'I know this 100%' },
   { value: 'not_sure', label: "I'm not sure" },
   { value: 'dont_know', label: "I don't know" },
+  { value: 'i_need_help', label: 'I need help' },
 ];
 const EMPTY_STROKES = [];
 
@@ -31,6 +32,8 @@ export default function DiagnosticQuestionScreen() {
   const [startedAt, setStartedAt] = useState(Date.now());
   const [elapsed, setElapsed] = useState(0);
   const [responses, setResponses] = useState([]);
+  const [adaptiveProgress, setAdaptiveProgress] = useState(null);
+  const [supportiveCopy, setSupportiveCopy] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [hydrating, setHydrating] = useState(false);
@@ -81,7 +84,6 @@ export default function DiagnosticQuestionScreen() {
   }
 
   const q = questions[idx];
-  const isLast = idx === questions.length - 1;
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem));
@@ -137,47 +139,65 @@ export default function DiagnosticQuestionScreen() {
     return [...responses, next];
   };
 
-  const nextQuestion = (skipped = false) => {
+  const nextQuestion = async (skipped = false) => {
+    if (busy) return;
     if (!skipped && (!answer || !reflection)) return;
     const nextResponses = saveCurrentAnd(skipped);
     setResponses(nextResponses);
-    if (!isLast) {
-      setIdx((i) => i + 1);
-      setAnswer('');
-      setReflection('');
-      setHelpRequested(false);
-      setStartedAt(Date.now());
-      return;
-    }
-    submitDiagnostic(nextResponses);
-  };
-
-  const submitDiagnostic = async (finalResponses) => {
     setBusy(true);
     setError('');
     try {
-      const { data } = await mathpathAPI.submitDiagnostic(session.sessionId || diagnosticSessionId, {
-        responses: finalResponses,
+      const timeTakenMs = Math.max(1000, Date.now() - startedAt);
+      const { data } = await mathpathAPI.answerDiagnostic(session.sessionId || diagnosticSessionId, {
+        questionId: q.questionId,
+        questionFamilyId: q.questionFamilyId,
+        answer: skipped ? '' : answer,
+        confidence: skipped ? (reflection || 'dont_know') : reflection,
+        timeTakenMs,
+        skipped,
+        blankAnswer: skipped || !String(answer || '').trim(),
+        workingSubmitted: Boolean(currentWorking.workingSubmitted),
+        workingUploaded: Boolean(currentWorking.workingSubmitted),
+        fullscreenWorkingSubmitted: Boolean(currentWorking.fullscreenWorkingSubmitted),
+        attempts: 1,
       });
-      navigate(`/student/mathpath/diagnostic/results/${session.sessionId || diagnosticSessionId}`, {
-        replace: true,
-        state: { result: data, session, studentLevel: location.state?.studentLevel, mode: location.state?.mode },
-      });
+      setSupportiveCopy(data.supportiveCopy || '');
+      setAdaptiveProgress(data.progress || null);
+      if (data.sessionComplete) {
+        navigate(`/student/mathpath/diagnostic/results/${session.sessionId || diagnosticSessionId}`, {
+          replace: true,
+          state: { result: data.result || data, session, studentLevel: location.state?.studentLevel, mode: location.state?.mode },
+        });
+        return;
+      }
+      if (data.nextQuestion) {
+        const repaired = repairFractionQuestions([data.nextQuestion])[0] || data.nextQuestion;
+        setQuestions((prev) => [...prev.slice(0, idx + 1), repaired]);
+        setIdx((i) => i + 1);
+        setAnswer('');
+        setReflection('');
+        setHelpRequested(false);
+        setStartedAt(Date.now());
+      }
     } catch (e) {
-      setError(e?.response?.data?.error || e.message || 'Diagnostic submission failed. Please restart.');
+      setError(e?.response?.data?.error || e.message || 'Diagnostic answer failed. Please try again.');
+    } finally {
       setBusy(false);
     }
   };
 
-  if (busy) return <Spinner label="Scoring diagnostic…" />;
-
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
-        <span className="font-mono">Question {idx + 1} of {questions.length}</span>
+        <span className="font-mono">Question {idx + 1}{adaptiveProgress?.estimatedQuestionCount ? ` of about ${adaptiveProgress.estimatedQuestionCount}` : ''}</span>
         <span className="font-mono">{elapsed}s</span>
       </div>
-      <ProgressBar value={idx} max={questions.length} className="mb-6" />
+      <ProgressBar value={adaptiveProgress?.answeredCount || idx} max={adaptiveProgress?.estimatedQuestionCount || Math.max(questions.length, 1)} className="mb-6" />
+      {supportiveCopy && (
+        <div className="mb-4 rounded-xl border border-navy-100 bg-navy-50 px-4 py-3 text-sm font-semibold text-navy-800">
+          {supportiveCopy}
+        </div>
+      )}
 
       <Card className="p-4 sm:p-6">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(28rem,1.1fr)]">
@@ -219,12 +239,11 @@ export default function DiagnosticQuestionScreen() {
                   onEnter={() => nextQuestion(false)}
                 />
               ) : (
-                <input
+                <AnswerInputRenderer
+                  question={q}
                   value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  placeholder="Type your answer"
-                  className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg"
-                  onKeyDown={(e) => { if (e.key === 'Enter') nextQuestion(false); }}
+                  onChange={setAnswer}
+                  onEnter={() => nextQuestion(false)}
                 />
               )}
             </div>
@@ -295,8 +314,8 @@ export default function DiagnosticQuestionScreen() {
 
             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
-              <Button icon={ArrowRight} disabled={!answer || !reflection || !workingReady} onClick={() => nextQuestion(false)}>
-                {isLast ? 'Submit Diagnostic' : 'Next Question'}
+              <Button icon={ArrowRight} disabled={busy || !answer || !reflection || !workingReady} onClick={() => nextQuestion(false)}>
+                {busy ? 'Checking…' : 'Next Question'}
               </Button>
             </div>
           </aside>
