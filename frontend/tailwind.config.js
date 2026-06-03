@@ -17,13 +17,19 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'Menlo', 'monospace'],
       },
       boxShadow: {
-        resting: '0 1px 2px rgba(26,42,79,.04), 0 8px 24px -12px rgba(26,42,79,.06)',
-        active: '0 4px 16px -4px rgba(26,42,79,.10), 0 12px 40px -8px rgba(26,42,79,.08)',
+        resting: '0 6px 24px rgba(0,0,0,0.04)',
+        active: '0 10px 32px rgba(0,0,0,0.07)',
       },
       colors: {
         // Tian OS neutral system — ink (text), paper/ivory/bone (surfaces), hairline (borders).
         ink: { 900: '#0E1320', 700: '#1F2330', 500: '#5B5F6E', 300: '#9A9DA9', 100: '#C9CBD3' },
-        paper: '#FFFFFF', ivory: '#FAFAF7', bone: '#F3F1EA', hairline: '#EFEDE6',
+        paper: '#FFFFFF', ivory: '#FAFBFC', bone: '#F3F1EA', hairline: '#EFEDE6',
+        tianLavender: '#F1ECFF',
+        tianMint: '#EAF9F1',
+        tianSky: '#EAF4FF',
+        tianPeach: '#FFF1E8',
+        tianYellow: '#FFF8E1',
+        tianRose: '#FFEFF3',
         // Mastery heatmap scale (ivory → navy).
         mastery: { 0: '#F3F1EA', 1: '#DDE3F0', 2: '#B5C2DD', 3: '#6B7FA8', 4: '#2E4477', 5: '#1A2A4F' },
         success: { 100: '#DEF0E8', 500: '#2F8F6F', 700: '#1F6B53' },

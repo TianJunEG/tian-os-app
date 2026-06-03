@@ -14,6 +14,23 @@ Inspected: `README.md`, `colors_and_type.css`, `Design System Summary.html`,
 
 ## 1. Design direction
 
+### Student v2 direction
+
+For P4-P6, Tian OS should standardise on a warmer student language than the
+original navy/gold-only reference:
+
+- 40% Duolingo, 30% Canva, 20% Notion, 10% Nintendo.
+- Warm, modern, encouraging, premium, and academic.
+- Student screens answer: what should I do next, why should I do it, and how am
+  I progressing?
+- Use motifs, not mascots. Examples: targets, fractions, numbers, shapes,
+  growth, trophies, stopwatch, lightning, search, and light bulb.
+- Avoid cartoon mascots, talking animals, neon colours, dense dashboards, grey
+  LMS cards, red warning-heavy mistake states, and multiple primary CTAs.
+
+The student reference style now applies to Student Home, Progress, Profile,
+Mistakes, Fluency, and future student domains.
+
 Tian OS is a **calm, premium "mastery operating system"** — explicitly *not* a gamified LMS. The
 guiding metaphor from the reference: **"a quiet room with one bright thing in it."**
 

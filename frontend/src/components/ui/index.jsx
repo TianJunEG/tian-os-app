@@ -3,15 +3,25 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
-// Tian OS shared UI primitives. Calm navy/gold, hairline borders, rounded cards,
+// Tian OS shared UI primitives. Warm pastel identity, soft shadows, rounded cards,
 // JetBrains Mono numerics. Built on the Tailwind tokens added in tailwind.config.js
 // + index.css. Reuse these everywhere — do not hand-roll card/badge markup.
 
 // ─── Card ───────────────────────────────────────────────────────────
-export function Card({ children, className = '', interactive = false, ...rest }) {
+const CARD_TONES = {
+  paper: 'bg-paper',
+  lavender: 'bg-tianLavender',
+  mint: 'bg-tianMint',
+  sky: 'bg-tianSky',
+  peach: 'bg-tianPeach',
+  yellow: 'bg-tianYellow',
+  rose: 'bg-tianRose',
+};
+
+export function Card({ children, className = '', interactive = false, tone = 'paper', ...rest }) {
   return (
     <div
-      className={`rounded-2xl border border-hairline bg-paper shadow-resting ${interactive ? 'transition hover:shadow-active' : ''} ${className}`}
+      className={`rounded-[24px] border border-white/70 ${CARD_TONES[tone] || CARD_TONES.paper} shadow-resting ${interactive ? 'transition hover:shadow-active' : ''} ${className}`}
       {...rest}
     >
       {children}
@@ -79,7 +89,10 @@ export function Button({ children, variant = 'primary', size = 'm', as, to, clas
 const BADGE_TONES = {
   neutral: 'bg-bone text-ink-700', navy: 'bg-navy-50 text-navy-700',
   gold: 'bg-gold-100 text-gold-700', success: 'bg-success-100 text-success-700',
-  error: 'bg-error-100 text-error-700', outline: 'bg-paper text-ink-700 border border-hairline',
+  error: 'bg-tianPeach text-error-700', outline: 'bg-paper text-ink-700 border border-hairline',
+  lavender: 'bg-tianLavender text-navy-700', mint: 'bg-tianMint text-success-700',
+  sky: 'bg-tianSky text-navy-700', peach: 'bg-tianPeach text-error-700',
+  yellow: 'bg-tianYellow text-gold-700', rose: 'bg-tianRose text-error-700',
 };
 export function Badge({ children, tone = 'neutral', className = '' }) {
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE_TONES[tone]} ${className}`}>{children}</span>;

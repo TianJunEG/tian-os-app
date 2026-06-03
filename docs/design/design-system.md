@@ -1,4 +1,4 @@
-# Tian OS Design System
+# Tian OS Design System v2
 
 The shared visual language for the unified Tian OS app. Reuse these tokens and
 primitives everywhere — **do not hand-roll cards, buttons, inputs, or badges.**
@@ -8,10 +8,41 @@ Source of truth:
 - Primitives: `frontend/src/components/ui/index.jsx`
 - Shell (sidebar/topbar/bottom-nav): `frontend/src/components/shell/AppShell.jsx`
 
+## Student Core Language
+
+Tian OS for upper primary students should feel warm, modern, encouraging,
+premium, and academic. The positioning target is:
+
+- 40% Duolingo
+- 30% Canva
+- 20% Notion
+- 10% Nintendo
+
+Avoid both extremes: not a kindergarten app, not a school portal or LMS. Every
+student screen should quickly answer:
+
+1. What should I do next?
+2. Why should I do it?
+3. How am I progressing?
+
+Student surfaces use motifs, not mascots. Keep motifs small and purposeful:
+targets, fractions, numbers, shapes, growth, trophies, stopwatch, lightning,
+search, and light bulb. Avoid cartoon mascots, talking animals, neon colour,
+dense dashboards, red warning-heavy mistake states, and more than one primary
+CTA per screen.
+
 ## Tokens
 
 **Colour**
+- Page background: `ivory` = `#FAFBFC`. Never use pure white for the full page.
 - Brand: `navy-{50..900}` (primary), `gold-{50..700}` (accent).
+- Student pastel identity:
+  - `tianLavender` `#F1ECFF` — mission cards
+  - `tianMint` `#EAF9F1` — progress
+  - `tianSky` `#EAF4FF` — fluency
+  - `tianPeach` `#FFF1E8` — mistakes
+  - `tianYellow` `#FFF8E1` — achievements
+  - `tianRose` `#FFEFF3` — confidence
 - Neutrals: `ink-{100..900}` (text), `paper` (#fff surface), `ivory` (app bg),
   `bone` (muted fill), `hairline` (borders).
 - Semantic: `success-{100,500,700}`, `error-{100,500,700}`. Warning = `gold`,
@@ -25,9 +56,22 @@ Source of truth:
   Known follow-ups.
 
 **Shape & elevation**
-- Radius: cards `rounded-2xl`, controls/buttons `rounded-xl`, pills `rounded-full`.
-- Shadow: `shadow-resting` (cards), `shadow-active` (hover/overlays).
+- Radius: primary cards `rounded-[24px]`, controls/buttons `rounded-xl`, pills `rounded-full`.
+- Shadow: very soft only. `shadow-resting` = `0 6px 24px rgba(0,0,0,0.04)`;
+  `shadow-active` is for hover/overlays. Avoid heavy SaaS shadows.
 - Focus: every interactive element uses `focus-visible:ring-2 ring-gold-400/40`.
+
+**Student Page Patterns**
+- Home: greeting, large `Today's Mission`, one primary CTA, three compact
+  highlight cards, `Recommended Next`, and a short recent activity timeline.
+- Progress: avoid percentages alone. Group skills as `Mastered Skills`,
+  `Working On`, `Needs Review`, and `Not Started`.
+- Confidence: use student-friendly choices: `I know this`, `I'm not sure`,
+  `I need help`.
+- Working Evidence: label working actions as `Show Your Thinking`, not
+  `Upload Working`, wherever the action is student-facing.
+- Mobile: no horizontal scrolling, max three cards per section, 48px minimum
+  primary tap targets, one primary action.
 
 ## Primitives (`components/ui`)
 
