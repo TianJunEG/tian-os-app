@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wrench, Dumbbell, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Wrench, Dumbbell, ChevronRight, AlertTriangle, PartyPopper } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import { useAuth } from '../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../student/studentVisualMode';
+
+function formatMistakeDate(value) {
+  if (!value) return 'Recently';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Recently';
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
 
 // MathPath › Mistake-to-Mastery — home. Recent mistakes, weak skills from
 // mistakes, recommended mastery practice. Reuses the shared practice screens.
@@ -23,6 +30,10 @@ export default function MistakesHome() {
     (async () => {
       try {
         const [mk, ms] = await Promise.all([mathpathAPI.mistakes(), mathpathAPI.mastery()]);
+        console.info('[mistakes] loaded', {
+          count: mk.data?.mistakes?.length || 0,
+          weakSkillCount: mk.data?.weakSkills?.length || 0,
+        });
         setData(mk.data); setMastery(ms.data);
       } catch (e) { setError(e.response?.data?.error || 'Could not load mistakes.'); }
       finally { setLoading(false); }
@@ -50,8 +61,9 @@ export default function MistakesHome() {
   if (loading) return <Spinner label="Loading mistakes…" />;
   if (error) return <EmptyState icon={AlertTriangle} message={error} />;
 
-  const recent = (data?.mistakes || []).slice(0, 3);
+  const recent = data?.mistakes || [];
   const weak = data?.weakSkills || [];
+  const hasMistakes = (data?.mistakes || []).length > 0;
   const recommended = weak[0]
     ? { skillId: weak[0].skillId, skillName: weak[0].skillName }
     : mastery?.recommended;
@@ -65,14 +77,25 @@ export default function MistakesHome() {
         <div className="font-display text-2xl font-semibold text-ink-900">{data ? data.mistakes.length : 0} to review</div>
         {recommended && <p className="mb-4 mt-1 text-sm text-ink-600">Recommended: practise <b className="font-semibold text-violet-700">{recommended.skillName}</b></p>}
         <div className="flex flex-wrap gap-2">
-          <Button className={visualStyles.primaryCta} to="/student/mathpath/mistakes/review">Review mistakes</Button>
+          {hasMistakes ? (
+            <Button className={visualStyles.primaryCta} to="/student/mathpath/mistakes/review">Review mistakes</Button>
+          ) : (
+            <Button className={visualStyles.primaryCta} to="/student/mathpath">Complete more practice</Button>
+          )}
           {recommended && <Button variant="secondary" icon={Dumbbell} disabled={starting} onClick={() => practise(recommended.skillId)}>Practise similar</Button>}
         </div>
       </Card>
 
+      {!hasMistakes && (
+        <EmptyState
+          icon={PartyPopper}
+          message="No mistakes to review yet. Complete more practice and Tian OS will show questions to review here."
+        />
+      )}
+
       <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Weak skills from mistakes</h3>
       <div className="space-y-2">
-        {weak.length === 0 && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No outstanding mistakes — nice work.</Card>}
+        {weak.length === 0 && hasMistakes && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
         {weak.map((w) => (
           <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => practise(w.skillId)}>
             <div className="font-semibold text-ink-700">{w.skillName}</div>
@@ -86,9 +109,25 @@ export default function MistakesHome() {
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent mistakes</h3>
           <div className="space-y-2">
             {recent.map((m) => (
-              <Card key={m.id} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)}>
-                <span className="min-w-0 truncate text-ink-700"><MathText text={m.questionStem} /></span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-ink-300" />
+              <Card key={m.id} interactive className={`p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-ink-500">
+                      <span className="font-semibold text-ink-700">{m.skillName || m.skillCode || 'MathPath'}</span>
+                      <span>{formatMistakeDate(m.timestamp || m.occurredAt)}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-ink-800"><MathText text={m.questionStem} /></p>
+                    <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                      <p className="rounded-lg bg-error-100 px-3 py-2 text-error-700">
+                        Your answer: <MathText text={m.studentAnswer || '-'} className="font-mono" />
+                      </p>
+                      <p className="rounded-lg bg-success-100 px-3 py-2 text-success-700">
+                        Correct: <MathText text={m.correctAnswer || '-'} className="font-mono" />
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-ink-300" />
+                </div>
               </Card>
             ))}
           </div>

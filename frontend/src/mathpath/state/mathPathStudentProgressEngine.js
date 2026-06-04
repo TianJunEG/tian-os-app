@@ -13,6 +13,29 @@ function skillName(skillId) {
   return getSkill(skillId)?.name || skillId;
 }
 
+function skillIndex(skillId) {
+  const idx = fractionSkillGraph.skillIds.indexOf(skillId);
+  return idx >= 0 ? idx : 0;
+}
+
+function isSecureStatus(status = '') {
+  return ['accurate', 'fluent', 'retained'].includes(status);
+}
+
+function findNextUnmasteredSkillId(skillStatuses = {}, preferredSkillId = '') {
+  const preferred = preferredSkillId && fractionSkillGraph.skillIds.includes(preferredSkillId)
+    ? preferredSkillId
+    : 'F001';
+  if (preferred && !isSecureStatus(skillStatuses[preferred])) return preferred;
+
+  const startIdx = skillIndex(preferred) + 1;
+  const ordered = [
+    ...fractionSkillGraph.skillIds.slice(startIdx),
+    ...fractionSkillGraph.skillIds.slice(0, startIdx),
+  ];
+  return ordered.find((skillId) => !isSecureStatus(skillStatuses[skillId])) || preferred;
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -113,7 +136,11 @@ export function getWeakFractionSkills(studentState = {}) {
     ...weakFromMistakes,
   ]);
 
-  return weak.map((skillId) => {
+  const skillStatuses = studentState.skillStatuses || {};
+  return weak.filter((skillId) => {
+    if (weakFromRetention.includes(skillId)) return true;
+    return !isSecureStatus(skillStatuses[skillId]);
+  }).map((skillId) => {
     let priority = 'low';
     let reason = 'Needs additional consolidation.';
     if (weakFromDiagnostic.includes(skillId) || weakFromRetention.includes(skillId)) {
@@ -175,17 +202,29 @@ export function buildRetentionQueue(studentState = {}) {
 }
 
 export function getCurrentFractionSkill(studentState = {}) {
-  const currentSkillId =
+  const retentionSkillId = studentState.retentionDue?.[0]?.skillId || studentState.retentionState?.skillsDueForReview?.[0] || '';
+  const weakSkillId = getWeakFractionSkills(studentState)[0]?.skillId || studentState.remediationQueue?.[0]?.skillId || '';
+  const preferredSkillId =
+    retentionSkillId ||
+    weakSkillId ||
     studentState.practiceState?.currentSkillId ||
     studentState.diagnosticResult?.recommendedStartingSkillId ||
-    studentState.remediationQueue?.[0]?.skillId ||
     'F001';
+  const currentStatus = studentState.skillStatuses?.[preferredSkillId] || 'learning';
+  const currentSkillId = retentionSkillId || weakSkillId || (
+    isSecureStatus(currentStatus)
+      ? findNextUnmasteredSkillId(studentState.skillStatuses || {}, preferredSkillId)
+      : preferredSkillId
+  );
   const status = studentState.skillStatuses?.[currentSkillId] || 'learning';
   let reason = 'Current guided learning target.';
   if (status === 'needsReview') reason = 'This skill needs reinforcement before advancing.';
   if (status === 'accurate') reason = 'Accuracy is improving; fluency is next.';
   if (status === 'fluent') reason = 'Skill is fluent; retention checks will follow.';
   if (status === 'retained') reason = 'Skill retained through review.';
+  if (retentionSkillId) reason = 'Review due today.';
+  if (weakSkillId) reason = getWeakFractionSkills(studentState)[0]?.reason || 'Accuracy dropped recently.';
+  if (preferredSkillId !== currentSkillId && isSecureStatus(currentStatus)) reason = `${skillName(preferredSkillId)} is secure. Moving to the next unmastered skill.`;
   return {
     skillId: currentSkillId,
     skillName: skillName(currentSkillId),
@@ -201,6 +240,7 @@ export function getNextRecommendedAction(studentState = {}) {
       action: 'uploadWorking',
       skillId: getCurrentFractionSkill(studentState).skillId,
       explanation: 'Some required working is missing. Uploading working helps teachers provide better guidance.',
+      source: 'workingEvidence',
     };
   }
 
@@ -209,7 +249,8 @@ export function getNextRecommendedAction(studentState = {}) {
     return {
       action: 'completeRetentionReview',
       skillId: retentionQueue[0].skillId,
-      explanation: 'A retained skill is due for review to prevent forgetting.',
+      explanation: 'Review due today.',
+      source: 'retention',
     };
   }
 
@@ -218,16 +259,27 @@ export function getNextRecommendedAction(studentState = {}) {
     return {
       action: 'followRemediationPlan',
       skillId: weak[0].skillId,
-      explanation: 'Addressing the highest-priority weak skill first will improve overall progress.',
+      explanation: weak[0].reason || 'Accuracy dropped recently.',
+      source: 'remediation',
     };
   }
 
   const current = getCurrentFractionSkill(studentState);
+  const allSkillsSecure = fractionSkillGraph.skillIds.every((skillId) => isSecureStatus(studentState.skillStatuses?.[skillId]));
+  if (allSkillsSecure) {
+    return {
+      action: 'attemptAssessment',
+      skillId: current.skillId,
+      explanation: 'All fraction skills are secure. A mastery check is the next step.',
+      source: 'completedPathway',
+    };
+  }
   if (current.status === 'accurate') {
     return {
       action: 'startFluency',
       skillId: current.skillId,
       explanation: 'Accuracy is in place. Next step is improving speed and consistency.',
+      source: 'fluencyReadiness',
     };
   }
 
@@ -237,6 +289,7 @@ export function getNextRecommendedAction(studentState = {}) {
       action: 'attemptAssessment',
       skillId: current.skillId,
       explanation: 'Performance is stable enough to check readiness in assessment mode.',
+      source: 'readiness',
     };
   }
 
@@ -245,13 +298,15 @@ export function getNextRecommendedAction(studentState = {}) {
       action: 'advanceSkill',
       skillId: current.skillId,
       explanation: 'Current skill is secure. Moving to the next skill is appropriate.',
+      source: 'masteryProgression',
     };
   }
 
   return {
     action: 'continuePractice',
     skillId: current.skillId,
-    explanation: 'Continue practice to build secure mastery.',
+    explanation: current.reason || 'Continue practice to build secure mastery.',
+    source: 'nextUnmasteredSkill',
   };
 }
 
@@ -388,6 +443,7 @@ export function buildStudentProgressState(options = {}) {
   const readinessLevel = calculateFractionReadinessLevel(state);
   state.readinessLevel = readinessLevel;
   state.nextRecommendedAction = getNextRecommendedAction(state);
+  state.currentSkill = state.nextRecommendedAction?.skillId || getCurrentFractionSkill(state).skillId || state.currentSkill;
 
   return state;
 }

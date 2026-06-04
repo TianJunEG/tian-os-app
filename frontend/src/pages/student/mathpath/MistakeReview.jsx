@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, PartyPopper, Wand2 } from 'lucide-react';
+import { ArrowRight, AlertTriangle, PartyPopper, Wand2 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
@@ -20,10 +20,17 @@ export default function MistakeReview() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [openHelp, setOpenHelp] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     (async () => {
-      try { const { data } = await mathpathAPI.mistakes(); setMistakes(data.mistakes || []); }
+      try {
+        const { data } = await mathpathAPI.mistakes();
+        const loaded = data.mistakes || [];
+        console.info('[mistakes] displayed', { view: 'review', count: loaded.length });
+        setMistakes(loaded);
+      }
+      catch (err) { setError(err?.response?.data?.error || 'Could not load mistakes.'); }
       finally { setLoading(false); }
     })();
   }, []);
@@ -47,12 +54,18 @@ export default function MistakeReview() {
   };
 
   if (loading) return <Spinner label="Loading mistakes…" />;
+  if (error) return <EmptyState icon={AlertTriangle} message={error} />;
 
   return (
     <>
       <PageHeader title="Mistake to mastery" subtitle="Review recent slips, then practise to fix them." />
       {mistakes.length === 0 ? (
-        <EmptyState icon={PartyPopper} message="No mistakes to review right now. Keep practising to stay sharp." />
+        <EmptyState
+          icon={PartyPopper}
+          message="No mistakes to review yet. Complete more practice and Tian OS will show questions to review here."
+        >
+          <Button to="/student/mathpath">Complete more practice</Button>
+        </EmptyState>
       ) : (
         <div className="space-y-4">
           {mistakes.map((m) => (

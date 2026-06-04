@@ -23,9 +23,13 @@ import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
 import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionSkillGraph';
-import { mathpathAPI } from '../../services/api';
+import { learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../student/studentVisualMode';
+import {
+  clearMathPathDomainProgressState,
+  getMathPathDomainProgressState,
+} from '../../mathpath/state/mathPathDomainProgressState';
 
 function actionMeta(nextAction = {}) {
   const map = {
@@ -157,6 +161,7 @@ function estimateTime(nextAction = {}, hasPlacement = false) {
 
 function recommendationReason(nextAction = {}, hasPlacement = false, currentSkill) {
   if (!hasPlacement) return 'This will find the best place for you to begin.';
+  if (nextAction?.explanation) return nextAction.explanation;
   const skillName = currentSkill?.skillName || 'your current skill';
   const map = {
     continuePractice: `You are ready to keep building ${skillName}.`,
@@ -299,6 +304,7 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
     : undefined;
   const skillName = currentSkill?.skillName || 'Equivalent Fractions';
   const time = estimateTime(nextAction, hasPlacement);
+  const reason = nextAction?.explanation || 'This will help strengthen your understanding of fractions.';
 
   return (
     <Card className="overflow-hidden rounded-[22px] border-hairline bg-paper p-0">
@@ -313,7 +319,7 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
           </div>
           <h2 className="mt-3 font-display text-2xl font-semibold tracking-[-0.02em] text-navy-700 sm:mt-4 sm:text-3xl">{skillName}</h2>
           <p className="mt-2 max-w-xl text-sm leading-6 text-ink-600 sm:mt-3">
-            This will help strengthen your understanding of fractions.
+            {reason}
           </p>
           <Button to={primaryTo} state={primaryState} icon={ArrowRight} className="mt-3 w-full bg-violet-600 hover:bg-violet-700 sm:hidden">
             Start Practice
@@ -325,7 +331,7 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
             </div>
             <div className="border-l border-violet-100 pl-2 sm:pl-4">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Why This</p>
-              <p className="mt-1 font-semibold text-ink-800">Builds a strong foundation</p>
+              <p className="mt-1 font-semibold text-ink-800">{reason}</p>
             </div>
             <div className="border-l border-violet-100 pl-2 sm:pl-4">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Time</p>
@@ -342,9 +348,10 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
 }
 
 function TodayHighlights({ streak, xp, mastered, totalSkills, progress }) {
+  const xpDetail = Number(xp || 0) > 0 ? 'Learning progress' : 'Start learning to earn XP';
   const rows = [
-    { icon: Flame, value: streak, label: 'day streak', detail: 'Keep it up!', tone: 'bg-orange-50 text-orange-600', suffix: streak === 1 ? '' : '' },
-    { icon: Gem, value: xp, label: 'Learning XP', detail: '+120 XP today', tone: 'bg-violet-50 text-violet-600' },
+    { icon: Flame, value: streak, label: 'day streak', detail: Number(streak || 0) > 0 ? 'Keep it up!' : 'Start today', tone: 'bg-orange-50 text-orange-600', suffix: streak === 1 ? '' : '' },
+    { icon: Gem, value: xp, label: 'Learning XP', detail: xpDetail, tone: 'bg-violet-50 text-violet-600' },
     { icon: CheckCircle2, value: `${mastered} / ${totalSkills}`, label: 'Skills Mastered', detail: `${progress}% complete`, tone: 'bg-emerald-50 text-emerald-600', progress },
   ];
   return (
@@ -389,7 +396,7 @@ function MiniTrend({ tone = 'emerald' }) {
   );
 }
 
-function StudentMetricTile({ icon: Icon, title, value, body, tone = 'emerald', chart = 'line' }) {
+function StudentMetricTile({ icon: Icon, title, value, body, tone = 'emerald', chart = 'line', empty = false }) {
   const toneMap = {
     emerald: 'border-emerald-100 bg-emerald-50/60 text-emerald-700',
     amber: 'border-amber-100 bg-amber-50/70 text-amber-700',
@@ -405,20 +412,79 @@ function StudentMetricTile({ icon: Icon, title, value, body, tone = 'emerald', c
         <ChevronRight className="h-5 w-5 opacity-70" />
       </div>
       <p className="mt-2 text-sm font-semibold">{title}</p>
-      <p className="font-mono text-3xl font-semibold leading-none text-navy-700">{value}</p>
+      <p className={`${empty ? 'text-base leading-snug' : 'font-mono text-3xl leading-none'} font-semibold text-navy-700`}>{value}</p>
       <p className="mt-2 min-h-[2.5rem] text-sm leading-5 text-ink-700">{body}</p>
-      {chart === 'none' ? null : <MiniTrend tone={tone === 'amber' ? 'amber' : tone === 'blue' ? 'blue' : 'emerald'} />}
+      {chart === 'none' || empty ? null : <MiniTrend tone={tone === 'amber' ? 'amber' : tone === 'blue' ? 'blue' : 'emerald'} />}
     </Card>
   );
 }
 
-function UpperPrimaryMetrics({ accuracy, questions, workingRate, confidenceRisk }) {
+function confidenceInsightFromBuckets(buckets = {}) {
+  const total = Object.values(buckets || {}).reduce((sum, value) => sum + Number(value || 0), 0);
+  if (!total) {
+    return {
+      value: 'No confidence insights yet.',
+      body: 'Complete more questions to generate confidence insights.',
+      empty: true,
+    };
+  }
+  const confidentIncorrect = Number(buckets.confidentIncorrect || 0);
+  const unsureCorrect = Number(buckets.unsureCorrect || 0);
+  if (confidentIncorrect > 0) {
+    return {
+      value: confidentIncorrect,
+      body: 'Confident but incorrect. Review these questions.',
+      empty: false,
+    };
+  }
+  if (unsureCorrect > 0) {
+    return {
+      value: unsureCorrect,
+      body: 'Correct but unsure. Build confidence with short success streaks.',
+      empty: false,
+    };
+  }
+  return {
+    value: Number(buckets.confidentCorrect || 0),
+    body: 'Confidence looks aligned with recent answers.',
+    empty: false,
+  };
+}
+
+function buildUpperPrimaryMetricCards(analytics = {}) {
+  const questions = Number(analytics.questionsAnswered || 0);
+  const workingRate = Number(analytics.workingSubmissionRate || 0);
+  const confidence = confidenceInsightFromBuckets(analytics.confidenceBuckets || {});
+  return {
+    accuracy: {
+      value: questions ? `${Number(analytics.accuracyRate || 0)}%` : '—',
+      body: questions
+        ? (Number(analytics.accuracyRate || 0) > 0 ? "You're building accuracy. Keep going." : 'Keep going. Review the next question carefully.')
+        : 'No practice completed this week.',
+      empty: !questions,
+    },
+    questions: {
+      value: questions || '—',
+      body: questions ? 'This week' : 'No questions answered this week.',
+      empty: !questions,
+    },
+    working: {
+      value: workingRate ? `${workingRate}%` : '—',
+      body: workingRate ? 'Keep showing your thinking.' : 'No working submitted yet.',
+      empty: !workingRate,
+    },
+    confidence,
+  };
+}
+
+function UpperPrimaryMetrics({ analytics }) {
+  const metrics = buildUpperPrimaryMetricCards(analytics);
   return (
     <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <StudentMetricTile icon={Target} title="Accuracy (This Week)" value={`${accuracy}%`} body="Good job! You're improving." tone="emerald" />
-      <StudentMetricTile icon={ClipboardList} title="Questions Answered" value={questions} body="This week" tone="amber" />
-      <StudentMetricTile icon={PenLine} title="Working Submitted" value={`${workingRate}%`} body="Excellent! Keep showing your thinking." tone="blue" />
-      <StudentMetricTile icon={Brain} title="Confidence Insight" value={confidenceRisk} body="Confident but incorrect. Review these questions." tone="rose" chart="none" />
+      <StudentMetricTile icon={Target} title="Accuracy (This Week)" value={metrics.accuracy.value} body={metrics.accuracy.body} tone="emerald" empty={metrics.accuracy.empty} />
+      <StudentMetricTile icon={ClipboardList} title="Questions Answered" value={metrics.questions.value} body={metrics.questions.body} tone="amber" empty={metrics.questions.empty} />
+      <StudentMetricTile icon={PenLine} title="Working Submitted" value={metrics.working.value} body={metrics.working.body} tone="blue" empty={metrics.working.empty} />
+      <StudentMetricTile icon={Brain} title="Confidence Insight" value={metrics.confidence.value} body={metrics.confidence.body} tone="rose" chart="none" empty={metrics.confidence.empty} />
     </section>
   );
 }
@@ -471,32 +537,58 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement })
   );
 }
 
-function RecentActivityCard({ currentSkillName }) {
-  const rows = [
-    { icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-600', title: `Completed ${currentSkillName} practice`, time: 'Today, 10:20 AM' },
-    { icon: PenLine, tone: 'bg-blue-50 text-blue-600', title: 'Submitted working for 3 questions', time: 'Yesterday, 4:35 PM' },
-    { icon: Gem, tone: 'bg-violet-50 text-violet-600', title: 'Earned 120 XP', time: 'Yesterday, 4:30 PM' },
-    { icon: ClipboardList, tone: 'bg-amber-50 text-amber-600', title: 'Completed Fractions diagnostic', time: '3 days ago' },
-  ];
+function formatRelativeActivityTime(value) {
+  const date = new Date(value || 0);
+  if (Number.isNaN(date.getTime())) return '';
+  const diffMs = Date.now() - date.getTime();
+  const minutes = Math.max(0, Math.floor(diffMs / 60000));
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr${hours === 1 ? '' : 's'} ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days === 1 ? '' : 's'} ago`;
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function activityIconMeta(eventType = '') {
+  if (/working/i.test(eventType)) return { icon: PenLine, tone: 'bg-blue-50 text-blue-600' };
+  if (/diagnostic/i.test(eventType)) return { icon: ClipboardList, tone: 'bg-amber-50 text-amber-600' };
+  if (/xp|achievement/i.test(eventType)) return { icon: Gem, tone: 'bg-violet-50 text-violet-600' };
+  return { icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-600' };
+}
+
+function RecentActivityCard({ activities = [] }) {
+  const rows = Array.isArray(activities) ? activities : [];
   return (
     <Card className="rounded-[18px] border-hairline bg-paper p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-xl font-semibold text-navy-700">Recent Activity</h2>
         <Button to="/student/profile" size="s" variant="ghost">View all</Button>
       </div>
-      <div className="mt-4 divide-y divide-hairline">
-        {rows.map(({ icon: Icon, tone, title, time }) => (
-          <div key={title} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-            <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone}`}>
-              <Icon className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-ink-800">{title}</p>
-              <p className="text-xs text-ink-500">{time}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {rows.length ? (
+        <div className="mt-4 divide-y divide-hairline">
+          {rows.slice(0, 4).map((activity) => {
+            const { icon: Icon, tone } = activityIconMeta(activity.eventType);
+            const key = activity.id || `${activity.eventType}-${activity.occurredAt}-${activity.title}`;
+            return (
+              <div key={key} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone}`}>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-ink-800">{activity.title}</p>
+                  <p className="text-xs text-ink-500">{formatRelativeActivityTime(activity.occurredAt)}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-4 rounded-[16px] border border-dashed border-hairline bg-white px-4 py-5">
+          <p className="text-sm font-semibold text-ink-700">No recent activity yet. Start your diagnostic to begin.</p>
+        </div>
+      )}
     </Card>
   );
 }
@@ -591,6 +683,9 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [payload, setPayload] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [profileSummary, setProfileSummary] = useState(null);
+  const [learningTimeline, setLearningTimeline] = useState([]);
   const [resetting, setResetting] = useState(false);
 
   // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
@@ -604,8 +699,26 @@ export default function StudentDashboard() {
     (async () => {
       try {
         const studentId = user?.id || user?._id || 'demo-student';
-        const latest = useMock ? null : (await mathpathAPI.getLatestDiagnostic()).data;
+        const [latestResponse, analyticsResponse, profileResponse, timelineResponse] = useMock
+          ? [null, null, null, null]
+          : await Promise.all([
+              mathpathAPI.getLatestDiagnostic(),
+              learningTelemetryAPI.studentAnalytics({ days: 7 }).catch(() => ({ data: null })),
+              studentProfileAPI.summary().catch(() => ({ data: null })),
+              studentProfileAPI.timeline().catch(() => ({ data: [] })),
+            ]);
+        const latest = latestResponse?.data || null;
         const diagnosticResult = shapeLatestDiagnostic(latest);
+        const domainProgress = getMathPathDomainProgressState(studentId, 'fractions') || {};
+        const masteredSkillIds = [
+          ...(diagnosticResult.masteredSkillIds || []),
+          ...(domainProgress.masteredSkillIds || []),
+        ];
+        const fluentSkillIds = domainProgress.fluentSkillIds || [];
+        const weakSkillIds = [
+          ...(diagnosticResult.weakSkillIds || []),
+          ...((domainProgress.weakSkills || []).map((row) => row?.skillId || row).filter(Boolean)),
+        ].filter((skillId) => !masteredSkillIds.includes(skillId));
         const result = useMock
           ? buildMockPipelinePayload(studentId)
           : runMathPathDomainPipeline({
@@ -614,13 +727,33 @@ export default function StudentDashboard() {
               mode: 'full',
               diagnosticResult,
               practiceState: {
-                currentSkillId: diagnosticResult.recommendedStartingSkillId || null,
-                masteredSkillIds: diagnosticResult.masteredSkillIds || [],
-                weakSkillIds: diagnosticResult.weakSkillIds || [],
-                lastSessionAt: diagnosticResult.completedAt || diagnosticResult.diagnosticCompletedAt || null,
+                currentSkillId: domainProgress.currentSkillId || diagnosticResult.recommendedStartingSkillId || null,
+                masteredSkillIds,
+                fluentSkillIds,
+                weakSkillIds,
+                lastSessionAt: domainProgress.lastSessionAt || diagnosticResult.completedAt || diagnosticResult.diagnosticCompletedAt || null,
               },
             });
-        if (active) setPayload(result);
+        if (active) {
+          setPayload(result);
+          setAnalytics(analyticsResponse?.data || null);
+          setProfileSummary(profileResponse?.data || null);
+          setLearningTimeline(Array.isArray(timelineResponse?.data) ? timelineResponse.data : []);
+          const selected = result?.studentProgress?.nextRecommendedAction;
+          if (selected?.skillId) {
+            learningTelemetryAPI.recordEvent({
+              studentId,
+              eventType: 'recommendation_selected',
+              domain: 'fractions',
+              skillCode: selected.skillId,
+              metadata: {
+                selectedSkill: selected.skillId,
+                recommendationReason: selected.explanation || '',
+                source: selected.source || 'studentDashboard',
+              },
+            }).catch(() => {});
+          }
+        }
       } catch (e) {
         if (active) setError('Couldn’t load MathPath dashboard.');
       } finally {
@@ -673,21 +806,21 @@ export default function StudentDashboard() {
   const fluencyProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageFluent || 0)));
   const retainedProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageRetained || 0)));
   const hasActivity = courseProgress > 0 || fluencyProgress > 0 || retainedProgress > 0;
-  const totalSkills = Math.max(1, Number(vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
+  const profileProgress = profileSummary?.progress || {};
+  const totalSkills = Math.max(1, Number(profileProgress.total || vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
   const masteredCount = Array.isArray(vm.masteryProgress?.masteredSkills)
     ? vm.masteryProgress.masteredSkills.length
     : Math.round((courseProgress / 100) * totalSkills);
-  const safeMasteredCount = Math.max(0, Math.min(totalSkills, masteredCount));
-  const currentStreak = hasActivity ? 1 : 0;
-  const learningXp = safeMasteredCount * 120 + fluencyProgress * 4 + retainedProgress * 3;
+  const safeMasteredCount = Math.max(0, Math.min(totalSkills, Number.isFinite(Number(profileProgress.mastered)) ? Number(profileProgress.mastered) : masteredCount));
+  const profilePercentage = Number(profileProgress.percentage);
+  const displayProgress = Number.isFinite(profilePercentage) ? Math.max(0, Math.min(100, Math.round(profilePercentage))) : courseProgress;
+  const currentStreak = Number(profileSummary?.streak ?? (hasActivity ? 1 : 0));
+  const learningXp = Number(profileSummary?.xp ?? (safeMasteredCount * 120 + fluencyProgress * 4 + retainedProgress * 3));
   const streakLabel = `${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}`;
   const isUpperPrimaryDashboard = !isLowerPrimary(visual.mode) && !isSecondary(visual.mode);
-  const displayStreak = hasActivity ? Math.max(currentStreak, 3) : 0;
-  const displayXp = hasActivity ? Math.max(Math.round(learningXp), 1080) : 0;
-  const weeklyAccuracy = hasActivity ? Math.max(78, courseProgress || 0) : 0;
-  const questionsThisWeek = hasActivity ? 42 : 0;
-  const workingRate = hasActivity ? Math.max(85, Math.round((retainedProgress + fluencyProgress) / 2) || 0) : 0;
-  const confidenceRisk = hasActivity ? 4 : 0;
+  const displayStreak = Math.max(0, currentStreak);
+  const displayXp = Math.max(0, Math.round(learningXp));
+  const dashboardAnalytics = analytics || {};
   const currentSkillName = vm.currentSkill?.skillName || 'Equivalent Fractions';
   const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));
   const resetStudentState = async () => {
@@ -695,6 +828,7 @@ export default function StudentDashboard() {
     setResetting(true);
     try {
       await mathpathAPI.resetTestStudentState();
+      clearMathPathDomainProgressState(user?.id || user?._id || 'demo-student', 'fractions');
       window.location.reload();
     } catch (err) {
       setError(err?.response?.data?.error || 'Could not reset student state.');
@@ -716,7 +850,7 @@ export default function StudentDashboard() {
           <div className="flex flex-wrap items-center gap-2">
             {canResetStudentState && (
               <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
-                {resetting ? 'Resetting...' : 'Reset Student State'}
+                {resetting ? 'Resetting...' : 'Reset Demo Student'}
               </Button>
             )}
             <Button to="/student/profile" size="m" variant="secondary" icon={UserCircle}>
@@ -732,20 +866,15 @@ export default function StudentDashboard() {
             xp={displayXp}
             mastered={safeMasteredCount}
             totalSkills={totalSkills}
-            progress={courseProgress}
+            progress={displayProgress}
           />
         </section>
 
-        <UpperPrimaryMetrics
-          accuracy={weeklyAccuracy}
-          questions={questionsThisWeek}
-          workingRate={workingRate}
-          confidenceRisk={confidenceRisk}
-        />
+        <UpperPrimaryMetrics analytics={dashboardAnalytics} />
 
         <section className="grid gap-5 xl:grid-cols-[2fr_0.95fr]">
           <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} />
-          <RecentActivityCard currentSkillName={currentSkillName} />
+          <RecentActivityCard activities={learningTimeline} />
         </section>
 
         <EncouragementBanner />
@@ -779,7 +908,7 @@ export default function StudentDashboard() {
         <div className="flex items-center gap-2">
           {canResetStudentState && (
             <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
-              {resetting ? 'Resetting...' : 'Reset Student State'}
+              {resetting ? 'Resetting...' : 'Reset Demo Student'}
             </Button>
           )}
           <Button to="/student/profile" size="s" variant="secondary" icon={UserCircle} className="hidden sm:inline-flex">
