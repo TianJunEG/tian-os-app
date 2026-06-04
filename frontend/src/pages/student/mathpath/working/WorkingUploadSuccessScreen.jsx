@@ -43,6 +43,12 @@ export default function WorkingUploadSuccessScreen() {
           <p className="text-base font-semibold">{hasUploadedPages ? 'Ready For Analysis' : 'Ready to continue'}</p>
         </div>
 
+        {hasUploadedPages && (
+          <p className="mb-4 rounded-xl bg-sky-50 px-3 py-2 text-sm text-ink-700">
+            Working uploaded. Text extraction is pending or could not read the image clearly.
+          </p>
+        )}
+
         {!hasUploadedPages && allNoWorkingDeclarations && (
           <p className="mb-4 rounded-xl bg-success-100 px-3 py-2 text-sm text-success-700">
             No working upload needed. You have declared working was not needed for these questions.

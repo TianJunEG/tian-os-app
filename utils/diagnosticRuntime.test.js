@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDiagnosticLifecycleLog,
   resolveDiagnosticCompletion,
+  selectFallbackDiagnosticQuestion,
 } from '../services/diagnostics/diagnosticRuntime.js';
 
 describe('diagnostic runtime completion rules', () => {
@@ -100,5 +101,20 @@ describe('diagnostic runtime completion rules', () => {
       questionsRemaining: 7,
       completionReason: 'in_progress',
     });
+  });
+
+  it('selects an unattempted fallback diagnostic question when the direct adaptive path is unavailable', () => {
+    const fallback = selectFallbackDiagnosticQuestion({
+      questionBank: [
+        { questionId: 'q1', skillId: 'F013' },
+        { questionId: 'q2', skillId: 'F013' },
+        { questionId: 'q3', skillId: 'F008' },
+      ],
+      attemptedQuestionIds: ['q1', 'q2'],
+      candidateQuestionIds: ['q1', 'q2', 'q3'],
+      preferredSkillIds: ['F014', 'F013', 'F008'],
+    });
+
+    expect(fallback).toEqual({ questionId: 'q3', skillId: 'F008' });
   });
 });

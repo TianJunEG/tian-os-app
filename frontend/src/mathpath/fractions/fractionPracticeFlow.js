@@ -254,6 +254,7 @@ export function submitFractionPracticeAttempt(options = {}) {
     updateResults.push(stateUpdate);
 
     return {
+      attemptId: response.attemptId || '',
       questionId: question.questionId,
       skillId: question.skillId,
       questionFamilyId: question.questionFamilyId,
@@ -272,6 +273,7 @@ export function submitFractionPracticeAttempt(options = {}) {
       possibleMisconception: Boolean(response.possibleMisconception),
       workingImage: response.workingImage || '',
       workingStrokes: Array.isArray(response.workingStrokes) ? response.workingStrokes : [],
+      workingMathObjects: Array.isArray(response.workingMathObjects) ? response.workingMathObjects : [],
       workingSubmitted: Boolean(response.workingSubmitted),
       workingSubmittedAt: response.workingSubmittedAt || null,
       workingNotNeeded: Boolean(response.workingNotNeeded),
@@ -279,6 +281,7 @@ export function submitFractionPracticeAttempt(options = {}) {
       workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted || response.fullscreenWorkingSubmitted),
       fullscreenWorkingImage: response.fullscreenWorkingImage || '',
       fullscreenWorkingStrokes: Array.isArray(response.fullscreenWorkingStrokes) ? response.fullscreenWorkingStrokes : [],
+      fullscreenWorkingMathObjects: Array.isArray(response.fullscreenWorkingMathObjects) ? response.fullscreenWorkingMathObjects : [],
       fullscreenWorkingSubmitted: Boolean(response.fullscreenWorkingSubmitted),
       fullscreenWorkingSubmittedAt: response.fullscreenWorkingSubmittedAt || null,
       workingEvidence: Array.isArray(response.workingEvidence) ? response.workingEvidence : [],
@@ -406,16 +409,25 @@ export function submitFractionPracticeAttempt(options = {}) {
       missingWorking: missingWorkingResults.length,
       status: missingWorkingResults.length > 0 ? 'Missing working' : 'Ready to continue',
       allNoWorkingDeclarations: results.length > 0 && results.every((result) => result.workingNotNeeded),
-      questionRefs: session.questions.map((question) => ({
-        questionId: question.questionId,
-        questionFamilyId: question.questionFamilyId,
-        skillId: question.skillId,
-        prompt: question.prompt,
-        workingRequired: Boolean(session.workingExpectedMap?.[question.questionId]?.workingRequired),
-        mentalMathEligible: Boolean(question.mentalMathEligible),
-        workingSubmitted: Boolean(results.find((result) => result.questionId === question.questionId && hasWorkingSubmitted(result))),
-        workingNotNeeded: Boolean(results.find((result) => result.questionId === question.questionId && result.workingNotNeeded)),
-      })),
+      questionRefs: session.questions.map((question) => {
+        const match = results.find((result) => result.questionId === question.questionId);
+        return {
+          questionId: question.questionId,
+          questionFamilyId: question.questionFamilyId,
+          skillId: question.skillId,
+          prompt: question.prompt,
+          answerGiven: match?.studentAnswer || match?.answer || '',
+          correctAnswer: question.answer?.display || '',
+          answerCorrect: Boolean(match?.correct),
+          confidenceLevel: match?.confidence || match?.reflection || '',
+          solutionSteps: question.solutionSteps || [],
+          expectedStepCount: Array.isArray(question.solutionSteps) ? question.solutionSteps.length : null,
+          workingRequired: Boolean(session.workingExpectedMap?.[question.questionId]?.workingRequired),
+          mentalMathEligible: Boolean(question.mentalMathEligible),
+          workingSubmitted: Boolean(match && hasWorkingSubmitted(match)),
+          workingNotNeeded: Boolean(match?.workingNotNeeded),
+        };
+      }),
     },
     nextRecommendedAction,
     studentProgressState,

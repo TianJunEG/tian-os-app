@@ -158,8 +158,20 @@ export default function AssessmentQuestionScreen() {
             submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
             initialSubmitted={Boolean(currentWorking.workingSubmitted)}
             initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-            onChange={(payload) => setWorkings((prev) => ({ ...prev, [q.questionId]: payload }))}
-            onSubmit={(payload) => setWorkings((prev) => ({ ...prev, [q.questionId]: payload }))}
+            onChange={(payload) => setWorkings((prev) => ({
+              ...prev,
+              [q.questionId]: {
+                ...(prev[q.questionId] || {}),
+                ...payload,
+              },
+            }))}
+            onSubmit={(payload) => setWorkings((prev) => ({
+              ...prev,
+              [q.questionId]: {
+                ...(prev[q.questionId] || {}),
+                ...payload,
+              },
+            }))}
           />
         </div>
 
@@ -184,6 +196,13 @@ export default function AssessmentQuestionScreen() {
                   workingSubmittedAt: null,
                   workingImage: '',
                   workingStrokes: [],
+                  workingMathObjects: [],
+                  fullscreenWorkingImage: '',
+                  fullscreenWorkingStrokes: [],
+                  fullscreenWorkingMathObjects: [],
+                  fullscreenWorkingSubmitted: false,
+                  fullscreenWorkingSubmittedAt: null,
+                  workingEvidence: [],
                   workingNotNeeded: checked,
                   workingNotNeededAt: checked ? new Date().toISOString() : null,
                 },

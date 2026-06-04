@@ -16,6 +16,20 @@ import {
   resolveWorkingRequirementLevel,
 } from '../../../../components/learning/WorkingEvidenceDecision';
 
+function buildWorkingEvidence(working = {}) {
+  if (Array.isArray(working.workingEvidence) && working.workingEvidence.length) {
+    return working.workingEvidence;
+  }
+  if (!working.workingSubmitted && !working.fullscreenWorkingSubmitted) return [];
+  return [{
+    source: working.fullscreenWorkingSubmitted ? 'fullscreen_working' : 'working_canvas',
+    image: working.fullscreenWorkingImage || working.workingImage || '',
+    strokes: working.fullscreenWorkingStrokes || working.workingStrokes || [],
+    mathObjects: working.fullscreenWorkingMathObjects || working.workingMathObjects || [],
+    submittedAt: working.fullscreenWorkingSubmittedAt || working.workingSubmittedAt || new Date().toISOString(),
+  }];
+}
+
 export default function AssessmentReviewScreen() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -91,11 +105,18 @@ export default function AssessmentReviewScreen() {
           timestamp: new Date().toISOString(),
           workingImage: working.workingImage || '',
           workingStrokes: working.workingStrokes || [],
+          workingMathObjects: working.workingMathObjects || [],
           workingSubmitted: Boolean(working.workingSubmitted),
           workingSubmittedAt: working.workingSubmittedAt || null,
           workingNotNeeded: Boolean(working.workingNotNeeded),
           workingRequirementLevel,
           workingUploaded: Boolean(working.workingSubmitted),
+          fullscreenWorkingImage: working.fullscreenWorkingImage || '',
+          fullscreenWorkingStrokes: working.fullscreenWorkingStrokes || [],
+          fullscreenWorkingMathObjects: working.fullscreenWorkingMathObjects || [],
+          fullscreenWorkingSubmitted: Boolean(working.fullscreenWorkingSubmitted),
+          fullscreenWorkingSubmittedAt: working.fullscreenWorkingSubmittedAt || null,
+          workingEvidence: buildWorkingEvidence(working),
           studentAnswer,
           correctAnswer: q.answer?.display || '',
         };
@@ -140,11 +161,18 @@ export default function AssessmentReviewScreen() {
           workingRequired: Boolean(q.workingRequired),
           workingImage: r.workingImage || '',
           workingStrokes: r.workingStrokes || [],
+          workingMathObjects: r.workingMathObjects || [],
           workingSubmitted: Boolean(r.workingSubmitted),
           workingSubmittedAt: r.workingSubmittedAt || null,
           workingNotNeeded: Boolean(r.workingNotNeeded),
           workingRequirementLevel: r.workingRequirementLevel,
           workingUploaded: Boolean(r.workingUploaded),
+          fullscreenWorkingImage: r.fullscreenWorkingImage || '',
+          fullscreenWorkingStrokes: r.fullscreenWorkingStrokes || [],
+          fullscreenWorkingMathObjects: r.fullscreenWorkingMathObjects || [],
+          fullscreenWorkingSubmitted: Boolean(r.fullscreenWorkingSubmitted),
+          fullscreenWorkingSubmittedAt: r.fullscreenWorkingSubmittedAt || null,
+          workingEvidence: r.workingEvidence || [],
         };
       });
 

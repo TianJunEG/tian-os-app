@@ -156,13 +156,20 @@ function normalizeResponseBody(body = {}, question = {}) {
     startedAt: toDateLike(body.questionStartedAt) || new Date(Date.now() - timeTakenMs),
     endedAt: toDateLike(body.questionEndedAt) || new Date(),
     workingSubmitted: Boolean(body.workingSubmitted || body.workingUploaded || body.fullscreenWorkingSubmitted),
+    workingSubmittedAt: toDateLike(body.workingSubmittedAt),
+    workingImage: String(body.workingImage || ''),
+    workingStrokes: Array.isArray(body.workingStrokes) ? body.workingStrokes : [],
     workingNotNeeded: Boolean(body.workingNotNeeded),
     workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(body.workingRequirementLevel || '').toUpperCase())
       ? String(body.workingRequirementLevel).toUpperCase()
       : '',
     workingMathObjects: Array.isArray(body.workingMathObjects) ? body.workingMathObjects : [],
+    fullscreenWorkingImage: String(body.fullscreenWorkingImage || ''),
+    fullscreenWorkingStrokes: Array.isArray(body.fullscreenWorkingStrokes) ? body.fullscreenWorkingStrokes : [],
     fullscreenWorkingMathObjects: Array.isArray(body.fullscreenWorkingMathObjects) ? body.fullscreenWorkingMathObjects : [],
     fullscreenWorkingSubmitted: Boolean(body.fullscreenWorkingSubmitted),
+    fullscreenWorkingSubmittedAt: toDateLike(body.fullscreenWorkingSubmittedAt),
+    workingEvidence: Array.isArray(body.workingEvidence) ? body.workingEvidence : [],
     helpRequested: Boolean(body.helpRequested),
     timedOut: Boolean(body.timedOut),
     detectedErrorTags: Array.isArray(body.detectedErrorTags) ? body.detectedErrorTags : [],
@@ -184,7 +191,7 @@ function skillIdOf(question = {}) {
   return String(question.skillId || question.id || question._id || question || '').trim();
 }
 
-function selectFallbackDiagnosticQuestion({
+export function selectFallbackDiagnosticQuestion({
   questionBank = [],
   attemptedQuestionIds = [],
   candidateQuestionIds = [],
@@ -241,11 +248,18 @@ async function maybePersistAttempt({ student, session, question, skillId, respon
     workingExpected: true,
     workingUploaded: response.workingSubmitted,
     workingSubmitted: response.workingSubmitted,
+    workingSubmittedAt: response.workingSubmittedAt,
+    workingImage: response.workingImage,
+    workingStrokes: response.workingStrokes,
     workingMathObjects: response.workingMathObjects,
     workingNotNeeded: response.workingNotNeeded,
     workingRequirementLevel: response.workingRequirementLevel,
     fullscreenWorkingSubmitted: response.fullscreenWorkingSubmitted,
+    fullscreenWorkingImage: response.fullscreenWorkingImage,
+    fullscreenWorkingStrokes: response.fullscreenWorkingStrokes,
     fullscreenWorkingMathObjects: response.fullscreenWorkingMathObjects,
+    fullscreenWorkingSubmittedAt: response.fullscreenWorkingSubmittedAt,
+    workingEvidence: response.workingEvidence,
     workingDecision: '',
     workingReason: '',
   });
@@ -650,20 +664,49 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
   let sessionComplete = completion.sessionComplete;
   let completionReason = completion.completionReason;
   if (!nextGeneric && !sessionComplete) {
-    decision.decisionType = DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE;
-    decision.shouldStopDiagnostic = true;
-    decision.assignedPracticeSkillIds = [...new Set([...(decision.assignedPracticeSkillIds || []), decision.nextSkillId || skillId].filter(Boolean))];
-    decision.reason = 'No valid next diagnostic question was available. Stop testing and assign targeted practice.';
-    completion = resolveDiagnosticCompletion({
-      answeredCount,
-      maxQuestions,
-      minimumQuestions,
-      decision,
-      nextQuestionAvailable: false,
-      generationFailed: true,
-    });
-    sessionComplete = completion.sessionComplete;
-    completionReason = completion.completionReason;
+    const fallback = answeredCount < minimumQuestions
+      ? selectFallbackDiagnosticQuestion({
+        questionBank,
+        attemptedQuestionIds,
+        candidateQuestionIds: adaptiveState.candidateQuestionIds || [],
+        preferredSkillIds: [
+          skillId,
+          decision.nextSkillId,
+          ...(session.targetSkillIds || []),
+        ],
+      })
+      : null;
+    if (fallback) {
+      nextGeneric = fallback;
+      decision.fallbackQuestionSelected = true;
+      decision.unavailableNextSkillId = decision.nextSkillId || '';
+      decision.nextSkillId = fallback.skillId || decision.nextSkillId || skillId;
+      decision.reason = `${decision.reason || 'No direct adaptive next question was available.'} Continuing with another unattempted diagnostic item to meet the target question count.`;
+      completion = resolveDiagnosticCompletion({
+        answeredCount,
+        maxQuestions,
+        minimumQuestions,
+        decision,
+        nextQuestionAvailable: true,
+      });
+      sessionComplete = completion.sessionComplete;
+      completionReason = completion.completionReason;
+    } else {
+      decision.decisionType = DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE;
+      decision.shouldStopDiagnostic = true;
+      decision.assignedPracticeSkillIds = [...new Set([...(decision.assignedPracticeSkillIds || []), decision.nextSkillId || skillId].filter(Boolean))];
+      decision.reason = 'No valid next diagnostic question was available. Stop testing and assign targeted practice.';
+      completion = resolveDiagnosticCompletion({
+        answeredCount,
+        maxQuestions,
+        minimumQuestions,
+        decision,
+        nextQuestionAvailable: false,
+        generationFailed: true,
+      });
+      sessionComplete = completion.sessionComplete;
+      completionReason = completion.completionReason;
+    }
   }
 
   let nextQuestion = null;

@@ -13,6 +13,10 @@ vi.mock('../../../../services/api', () => ({
   },
 }));
 
+vi.mock('../../../../context/AuthContext', () => ({
+  useAuth: () => ({ user: { role: 'student', visualMode: 'p4_6' } }),
+}));
+
 vi.mock('../../../../components/learning/WorkingCanvas', () => ({
   default: () => <div data-testid="working-canvas" />,
   resolveWorkingRequirement: () => ({ required: false, allowNoWorking: true, type: 'optional' }),
@@ -89,6 +93,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     renderDiagnostic({ questions: [firstQuestion], session: { sessionId: 'session-1' } });
 
     await screen.findByText(/What is 3 \+ 4/i, {}, { timeout: 5000 });
+    expect(screen.getByTestId('working-canvas')).toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: '7' }));
     fireEvent.click(screen.getByRole('button', { name: /I know this 100%/i }));
     fireEvent.click(screen.getByLabelText(/I did not need working for this question/i));
@@ -101,8 +106,15 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
       answer: '7',
       confidence: 'i_know_this',
       skipped: false,
+      workingImage: '',
+      workingStrokes: [],
+      workingMathObjects: [],
       workingNotNeeded: true,
       workingRequirementLevel: 'LOW',
+      fullscreenWorkingImage: '',
+      fullscreenWorkingStrokes: [],
+      fullscreenWorkingMathObjects: [],
+      workingEvidence: [],
     });
     expect(await screen.findByText('Let’s check a smaller step first.')).toBeInTheDocument();
     expect(await screen.findByText(/What is 2 \+ 2/i)).toBeInTheDocument();

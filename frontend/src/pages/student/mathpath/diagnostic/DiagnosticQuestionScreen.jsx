@@ -7,12 +7,12 @@ import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQues
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import { mathpathAPI } from '../../../../services/api';
 import { useAuth } from '../../../../context/AuthContext';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../student/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../design-os/studentVisualMode';
 import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
 import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 import AnswerInputRenderer from '../components/AnswerInputRenderer';
-import { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
+import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
 import WorkingEvidenceDecision, {
@@ -27,6 +27,20 @@ const REFLECTION_OPTIONS = [
   { value: 'i_need_help', label: 'I need help' },
 ];
 const EMPTY_STROKES = [];
+
+function buildWorkingEvidence(working = {}) {
+  if (Array.isArray(working.workingEvidence) && working.workingEvidence.length) {
+    return working.workingEvidence;
+  }
+  if (!working.workingSubmitted && !working.fullscreenWorkingSubmitted) return [];
+  return [{
+    source: working.fullscreenWorkingSubmitted ? 'fullscreen_working' : 'working_canvas',
+    image: working.fullscreenWorkingImage || working.workingImage || '',
+    strokes: working.fullscreenWorkingStrokes || working.workingStrokes || [],
+    mathObjects: working.fullscreenWorkingMathObjects || working.workingMathObjects || [],
+    submittedAt: working.fullscreenWorkingSubmittedAt || working.workingSubmittedAt || new Date().toISOString(),
+  }];
+}
 
 export default function DiagnosticQuestionScreen() {
   const { diagnosticSessionId } = useParams();
@@ -144,6 +158,12 @@ export default function DiagnosticQuestionScreen() {
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
       workingRequirementLevel,
       workingUploaded: Boolean(currentWorking.workingSubmitted),
+      fullscreenWorkingImage: currentWorking.fullscreenWorkingImage || '',
+      fullscreenWorkingStrokes: currentWorking.fullscreenWorkingStrokes || [],
+      fullscreenWorkingMathObjects: currentWorking.fullscreenWorkingMathObjects || [],
+      fullscreenWorkingSubmitted: Boolean(currentWorking.fullscreenWorkingSubmitted),
+      fullscreenWorkingSubmittedAt: currentWorking.fullscreenWorkingSubmittedAt || null,
+      workingEvidence: buildWorkingEvidence(currentWorking),
       timestamp: new Date().toISOString(),
       attemptNumber: 1,
       skipped,
@@ -169,12 +189,19 @@ export default function DiagnosticQuestionScreen() {
         skipped,
         blankAnswer: skipped || !String(answer || '').trim(),
         workingSubmitted: Boolean(currentWorking.workingSubmitted),
+        workingSubmittedAt: currentWorking.workingSubmittedAt || null,
+        workingImage: currentWorking.workingImage || '',
+        workingStrokes: currentWorking.workingStrokes || [],
         workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
         workingRequirementLevel,
         workingMathObjects: currentWorking.workingMathObjects || [],
         workingUploaded: Boolean(currentWorking.workingSubmitted),
         fullscreenWorkingSubmitted: Boolean(currentWorking.fullscreenWorkingSubmitted),
-        fullscreenWorkingMathObjects: currentWorking.workingMathObjects || [],
+        fullscreenWorkingImage: currentWorking.fullscreenWorkingImage || '',
+        fullscreenWorkingStrokes: currentWorking.fullscreenWorkingStrokes || [],
+        fullscreenWorkingMathObjects: currentWorking.fullscreenWorkingMathObjects || [],
+        fullscreenWorkingSubmittedAt: currentWorking.fullscreenWorkingSubmittedAt || null,
+        workingEvidence: buildWorkingEvidence(currentWorking),
         attempts: 1,
       });
       setSupportiveCopy(data.supportiveCopy || '');
@@ -265,6 +292,33 @@ export default function DiagnosticQuestionScreen() {
             </div>
 
             <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
+              <WorkingCanvas
+                key={`diagnostic-working-${q.questionId}`}
+                questionId={q.questionId}
+                required={workingRequirement.required}
+                allowNoWorking={workingRequirement.allowNoWorking}
+                submittedImage={currentWorking.workingImage || ''}
+                submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+                initialSubmitted={Boolean(currentWorking.workingSubmitted)}
+                initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
+                onChange={(payload) => setWorkingByQuestion((prev) => ({
+                  ...prev,
+                  [q.questionId]: {
+                    ...(prev[q.questionId] || {}),
+                    ...payload,
+                  },
+                }))}
+                onSubmit={(payload) => setWorkingByQuestion((prev) => ({
+                  ...prev,
+                  [q.questionId]: {
+                    ...(prev[q.questionId] || {}),
+                    ...payload,
+                  },
+                }))}
+              />
+            </div>
+
+            <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
               <WorkingPreviewCard
                 workingImage={currentWorking.workingImage || ''}
                 workingSubmitted={Boolean(currentWorking.workingSubmitted)}
@@ -301,6 +355,12 @@ export default function DiagnosticQuestionScreen() {
                     workingImage: '',
                     workingStrokes: [],
                     workingMathObjects: [],
+                    fullscreenWorkingImage: '',
+                    fullscreenWorkingStrokes: [],
+                    fullscreenWorkingMathObjects: [],
+                    fullscreenWorkingSubmitted: false,
+                    fullscreenWorkingSubmittedAt: null,
+                    workingEvidence: [],
                     workingNotNeeded: checked,
                     workingNotNeededAt: checked ? new Date().toISOString() : null,
                   },
@@ -344,7 +404,18 @@ export default function DiagnosticQuestionScreen() {
         initialMathObjects={currentWorking.workingMathObjects || []}
         onClose={() => setFullscreenQuestionId(null)}
         onSave={(payload) => {
-          setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }));
+          setWorkingByQuestion((prev) => ({
+            ...prev,
+            [q.questionId]: {
+              ...(prev[q.questionId] || {}),
+              ...payload,
+              fullscreenWorkingImage: payload.workingImage || '',
+              fullscreenWorkingStrokes: payload.workingStrokes || [],
+              fullscreenWorkingMathObjects: payload.workingMathObjects || [],
+              fullscreenWorkingSubmitted: Boolean(payload.workingSubmitted),
+              fullscreenWorkingSubmittedAt: payload.workingSubmittedAt || new Date().toISOString(),
+            },
+          }));
           setFullscreenQuestionId(null);
         }}
       />

@@ -19,6 +19,20 @@ const REFLECTION_OPTIONS = [
 ];
 const EMPTY_STROKES = [];
 
+function buildWorkingEvidence(working = {}) {
+  if (Array.isArray(working.workingEvidence) && working.workingEvidence.length) {
+    return working.workingEvidence;
+  }
+  if (!working.workingSubmitted && !working.fullscreenWorkingSubmitted) return [];
+  return [{
+    source: working.fullscreenWorkingSubmitted ? 'fullscreen_working' : 'working_canvas',
+    image: working.fullscreenWorkingImage || working.workingImage || '',
+    strokes: working.fullscreenWorkingStrokes || working.workingStrokes || [],
+    mathObjects: working.fullscreenWorkingMathObjects || working.workingMathObjects || [],
+    submittedAt: working.fullscreenWorkingSubmittedAt || working.workingSubmittedAt || new Date().toISOString(),
+  }];
+}
+
 function expectsFractionAnswer(question = {}) {
   const text = `${question.prompt || ''} ${question.answerType || ''} ${question.answerCheckStrategy || ''}`.toLowerCase();
   return /fraction|simplest form|what fraction|fraction remains|fraction is left/.test(text);
@@ -97,11 +111,18 @@ export default function SimilarQuestionPractice() {
       skipped: false,
       workingImage: currentWorking.workingImage || '',
       workingStrokes: currentWorking.workingStrokes || [],
+      workingMathObjects: currentWorking.workingMathObjects || [],
       workingSubmitted: Boolean(currentWorking.workingSubmitted),
       workingSubmittedAt: currentWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
       workingRequirementLevel,
       workingUploaded: Boolean(currentWorking.workingSubmitted),
+      fullscreenWorkingImage: currentWorking.fullscreenWorkingImage || '',
+      fullscreenWorkingStrokes: currentWorking.fullscreenWorkingStrokes || [],
+      fullscreenWorkingMathObjects: currentWorking.fullscreenWorkingMathObjects || [],
+      fullscreenWorkingSubmitted: Boolean(currentWorking.fullscreenWorkingSubmitted),
+      fullscreenWorkingSubmittedAt: currentWorking.fullscreenWorkingSubmittedAt || null,
+      workingEvidence: buildWorkingEvidence(currentWorking),
       timestamp: new Date(questionEndedAt).toISOString(),
       attemptNumber: 1,
     };
@@ -205,8 +226,20 @@ export default function SimilarQuestionPractice() {
           submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
           initialSubmitted={Boolean(currentWorking.workingSubmitted)}
           initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-          onChange={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.variantId]: payload }))}
-          onSubmit={(payload) => setWorkingByQuestion((prev) => ({ ...prev, [q.variantId]: payload }))}
+          onChange={(payload) => setWorkingByQuestion((prev) => ({
+            ...prev,
+            [q.variantId]: {
+              ...(prev[q.variantId] || {}),
+              ...payload,
+            },
+          }))}
+          onSubmit={(payload) => setWorkingByQuestion((prev) => ({
+            ...prev,
+            [q.variantId]: {
+              ...(prev[q.variantId] || {}),
+              ...payload,
+            },
+          }))}
         />
         <div className="mt-4">
           <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
@@ -229,6 +262,13 @@ export default function SimilarQuestionPractice() {
                   workingSubmittedAt: null,
                   workingImage: '',
                   workingStrokes: [],
+                  workingMathObjects: [],
+                  fullscreenWorkingImage: '',
+                  fullscreenWorkingStrokes: [],
+                  fullscreenWorkingMathObjects: [],
+                  fullscreenWorkingSubmitted: false,
+                  fullscreenWorkingSubmittedAt: null,
+                  workingEvidence: [],
                   workingNotNeeded: checked,
                   workingNotNeededAt: checked ? new Date().toISOString() : null,
                 },

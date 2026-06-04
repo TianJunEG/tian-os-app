@@ -4,7 +4,7 @@ import { ArrowRight, Check, Maximize2, X } from 'lucide-react';
 import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../student/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
 import { MathText } from '../../../components/ui/Fraction';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 import {
@@ -47,6 +47,54 @@ function calibrationFromReflection(correct, reflection) {
   if (!correct && reflection === 'dont_know') return 'knowledge_gap';
   return correct ? 'low_confidence_correct' : 'needs_review';
 }
+
+function createClientAttemptId({ sessionId = '', questionId = '', attemptNumber = 1 } = {}) {
+  const safeSession = String(sessionId || 'session').replace(/[^a-zA-Z0-9_-]/g, '');
+  const safeQuestion = String(questionId || 'question').replace(/[^a-zA-Z0-9_-]/g, '');
+  return `attempt_${safeSession}_${safeQuestion}_${attemptNumber}_${Date.now().toString(36)}`;
+}
+
+function textFromMathObjects(objects = []) {
+  return (Array.isArray(objects) ? objects : [])
+    .map((object) => object?.text || object?.label || object?.value || '')
+    .filter(Boolean)
+    .join('\n');
+}
+
+function buildDigitalWorkingUploadPayload({ responses = [], questions = [], workingSessionId = '', sessionId = '' } = {}) {
+  const questionById = new Map((questions || []).map((question) => [question.questionId, question]));
+  const questionWorkings = (responses || [])
+    .filter((response) => response.workingSubmitted || response.fullscreenWorkingSubmitted)
+    .map((response) => {
+      const question = questionById.get(response.questionId) || {};
+      const workingMathObjects = response.fullscreenWorkingMathObjects?.length
+        ? response.fullscreenWorkingMathObjects
+        : response.workingMathObjects || [];
+      return {
+        questionId: response.questionId,
+        skillId: response.skillId || question.skillId || '',
+        sessionId,
+        attemptId: response.attemptId || `${sessionId || workingSessionId}:${response.questionId}:${response.attemptNumber || 1}`,
+        workingImage: response.fullscreenWorkingImage || response.workingImage || '',
+        workingStrokes: response.fullscreenWorkingStrokes?.length
+          ? response.fullscreenWorkingStrokes
+          : response.workingStrokes || [],
+        workingMathObjects,
+        workingText: textFromMathObjects(workingMathObjects),
+        answerGiven: response.studentAnswer || response.answer || '',
+        correctAnswer: response.correctAnswer || question.answer?.display || '',
+        answerCorrect: Boolean(response.answerCorrect ?? response.correct),
+        confidenceLevel: response.confidenceLevel || response.confidence || response.reflection || '',
+        prompt: question.prompt || question.stem || '',
+        solutionSteps: question.solutionSteps || [],
+        expectedStepCount: Array.isArray(question.solutionSteps) ? question.solutionSteps.length : null,
+        questionFamilyId: response.questionFamilyId || question.questionFamilyId || '',
+        submittedAt: response.fullscreenWorkingSubmittedAt || response.workingSubmittedAt || response.timestamp || new Date().toISOString(),
+      };
+    });
+  return questionWorkings.length ? { questionWorkings } : null;
+}
+
 const SESSION_META = {
   diagnostic: {
     label: 'Fractions Check-In',
@@ -376,6 +424,7 @@ export function buildGeneratedFractionMistakePayloads({ practiceSessionId, resul
       const question = questionById.get(result.questionId) || {};
       return {
         sessionId: practiceSessionId,
+        attemptId: result.attemptId || '',
         questionId: result.questionId,
         skillCode: result.skillId || question.skillId || '',
         questionText: question.prompt || question.stem || '',
@@ -420,6 +469,7 @@ export function buildPracticeTelemetryEvents({ studentId = '', sessionType = 'pr
       eventType: result.skipped ? 'question_skipped' : 'question_answered',
       metadata: {
         sessionType,
+        attemptId: result.attemptId || '',
         answerCorrect: Boolean(result.correct),
         confidence,
         timeTakenSeconds: result.timeTaken ?? result.timeTakenSeconds ?? null,
@@ -836,6 +886,11 @@ export default function PracticeSession() {
         skillId: question.skillId || flowSession.targetSkillId || '',
         domainId: question.domainId || 'fractions',
         sessionId: practiceSessionId,
+        prompt: question.prompt || question.stem || '',
+        correctAnswer: question.answer?.display || '',
+        solutionSteps: question.solutionSteps || [],
+        expectedStepCount: Array.isArray(question.solutionSteps) ? question.solutionSteps.length : null,
+        questionType: question.type || question.questionFamilyId || '',
         workingRequired: requirement.required,
         workingReason: requirement.required ? `${sessionType}_required` : `${sessionType}_optional`,
       };
@@ -918,7 +973,13 @@ export default function PracticeSession() {
       correctAnswer: q.answer,
       acceptedAnswers: q.acceptedAnswers || [],
     });
+    const attemptId = createClientAttemptId({
+      sessionId: flowSession.practiceSessionId || routeSessionId,
+      questionId: q.questionId,
+      attemptNumber: 1,
+    });
     const current = {
+      attemptId,
       questionId: q.questionId,
       answer,
       answerCorrect: answerCheck.correct,
@@ -973,8 +1034,14 @@ export default function PracticeSession() {
   const onSkipCurrent = () => {
     if (busy || answered) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
+    const attemptId = createClientAttemptId({
+      sessionId: flowSession.practiceSessionId || routeSessionId,
+      questionId: q.questionId,
+      attemptNumber: 1,
+    });
     setCorrectStreak(0);
     setResponses((prev) => [...prev, {
+      attemptId,
       questionId: q.questionId,
       answer: '',
       answerCorrect: false,
@@ -1029,7 +1096,9 @@ export default function PracticeSession() {
     setBusy(true);
     try {
       const payload = responses.map((r) => ({
+        attemptId: r.attemptId || '',
         questionId: r.questionId,
+        skillId: questions.find((question) => question.questionId === r.questionId)?.skillId || flowSession?.targetSkillId || '',
         answer: r.answer ?? r.studentAnswer,
         answerCorrect: Boolean(r.answerCorrect ?? r._correct),
         studentAnswer: r.studentAnswer,
@@ -1073,6 +1142,20 @@ export default function PracticeSession() {
         });
       } catch (err) {
         console.error('[mistakes] failed to create generated fraction mistakes', err);
+      }
+      const digitalWorking = buildDigitalWorkingUploadPayload({
+        responses: submitted.results || payload,
+        questions,
+        workingSessionId: submitted.workingSessionId || workingSession?.workingSessionId || '',
+        sessionId: flowSession.practiceSessionId || routeSessionId,
+      });
+      const analysisWorkingSessionId = submitted.workingSessionId || workingSession?.workingSessionId || '';
+      if (analysisWorkingSessionId && digitalWorking) {
+        const formData = new FormData();
+        formData.append('digitalInkData', JSON.stringify(digitalWorking));
+        await mathpathAPI.uploadWorking(analysisWorkingSessionId, formData).catch((err) => {
+          console.error('[working-intelligence] automatic analysis upload failed', err);
+        });
       }
       const telemetryEvents = buildPracticeTelemetryEvents({
         studentId,
