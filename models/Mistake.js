@@ -5,8 +5,10 @@ import mongoose from 'mongoose';
 const mistakeSchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
   workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', required: true },
-  questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
-  skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
+  questionId: { type: mongoose.Schema.Types.Mixed, required: true },
+  sessionId: { type: String, default: '', trim: true },
+  skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', default: null },
+  skillCode: { type: String, default: '', trim: true },
   module: { type: String, default: 'MathPath' },
   // Snapshot of the question so the review screen renders without a join even if
   // the question is later edited/removed.
@@ -14,6 +16,8 @@ const mistakeSchema = new mongoose.Schema({
   workedSolution: { type: String, default: '' },
   studentAnswer: { type: String, default: '' },
   correctAnswer: { type: String, default: '' },
+  confidence: { type: String, default: '' },
+  timestamp: { type: Date, default: null },
   mistakeId: { type: String, default: '' },
   mistakeCategory: {
     type: String,

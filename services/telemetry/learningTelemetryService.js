@@ -108,6 +108,34 @@ function questionAnsweredFilter(studentId, days) {
   };
 }
 
+export function aggregateConfidenceBuckets(events = []) {
+  const buckets = {
+    confidentCorrect: 0,
+    confidentIncorrect: 0,
+    unsureCorrect: 0,
+    unsureIncorrect: 0,
+    needsHelpCorrect: 0,
+    needsHelpIncorrect: 0,
+  };
+
+  for (const event of events || []) {
+    const confidence = normalizeConfidence(event?.metadata?.confidence ?? event?.confidence ?? event?.confidenceLevel ?? event?.reflection);
+    if (!confidence) continue;
+    const correct = event?.metadata?.answerCorrect ?? event?.answerCorrect ?? event?.correct;
+    if (correct !== true && correct !== false) continue;
+
+    if (confidence === CONFIDENCE.I_KNOW_THIS) {
+      buckets[correct ? 'confidentCorrect' : 'confidentIncorrect'] += 1;
+    } else if (confidence === CONFIDENCE.IM_NOT_SURE) {
+      buckets[correct ? 'unsureCorrect' : 'unsureIncorrect'] += 1;
+    } else if (confidence === CONFIDENCE.I_DONT_KNOW) {
+      buckets[correct ? 'needsHelpCorrect' : 'needsHelpIncorrect'] += 1;
+    }
+  }
+
+  return buckets;
+}
+
 export async function getStudentAnalytics({ studentId, days = 30 } = {}) {
   const base = { studentId: String(studentId), timestamp: { $gte: filterSince(days) } };
   const [answered, completedSessions, masteredEvents] = await Promise.all([
@@ -127,6 +155,8 @@ export async function getStudentAnalytics({ studentId, days = 30 } = {}) {
     event.metadata?.answerCorrect === false
     && normalizeConfidence(event.metadata?.confidence) === CONFIDENCE.I_KNOW_THIS
   )).length;
+  const confidenceBuckets = aggregateConfidenceBuckets(answered);
+  const confidenceSampleSize = Object.values(confidenceBuckets).reduce((sum, value) => sum + value, 0);
 
   return {
     studentId: String(studentId),
@@ -136,11 +166,19 @@ export async function getStudentAnalytics({ studentId, days = 30 } = {}) {
     accuracyRate: pct(correct, answered.length),
     averageConfidence: confidenceValues.length ? confidenceCounts[CONFIDENCE.I_KNOW_THIS] || 0 : 0,
     confidenceDistribution: confidenceCounts,
+    confidenceBuckets,
+    confidenceSampleSize,
     overconfidenceRate: pct(overconfidentWrong, answered.length),
     workingSubmissionRate: pct(workingSubmitted, answered.length),
     workingNotNeededRate: pct(workingNotNeeded, answered.length),
     skillsMastered: new Set(masteredEvents.map((event) => event.skillCode).filter(Boolean)).size,
     currentStreak: calculateTelemetryStreak([...answered, ...completedSessions]),
+    emptyStates: {
+      accuracy: answered.length ? '' : 'No practice completed this week.',
+      questionsAnswered: answered.length ? '' : 'No questions answered this week.',
+      workingSubmitted: workingSubmitted ? '' : 'No working submitted yet.',
+      confidenceInsight: confidenceSampleSize ? '' : 'Complete more questions to generate confidence insights.',
+    },
   };
 }
 
@@ -196,6 +234,7 @@ export async function getPilotAnalytics({ days = 30, domain = '' } = {}) {
     startedSessions,
     completedSessions,
     abandonedSessions,
+    diagnosticCompletions,
     masteredEvents,
   ] = await Promise.all([
     LearningTelemetryEvent.find(filter).lean(),
@@ -203,6 +242,7 @@ export async function getPilotAnalytics({ days = 30, domain = '' } = {}) {
     LearningTelemetryEvent.find({ ...filter, eventType: 'session_started' }).lean(),
     LearningTelemetryEvent.find({ ...filter, eventType: 'session_completed' }).lean(),
     LearningTelemetryEvent.find({ ...filter, eventType: 'session_abandoned' }).lean(),
+    LearningTelemetryEvent.find({ ...filter, eventType: 'diagnostic_completed' }).lean(),
     LearningTelemetryEvent.find({ ...filter, eventType: 'skill_mastered' }).lean(),
   ]);
   const activeStudents = new Set(allEvents.map((event) => event.studentId).filter(Boolean));
@@ -225,6 +265,39 @@ export async function getPilotAnalytics({ days = 30, domain = '' } = {}) {
     && event.metadata?.workingNotNeeded === true
     && normalizeConfidence(event.metadata?.confidence) === CONFIDENCE.I_KNOW_THIS
   )).length;
+  const byStudent = new Map();
+  for (const event of allEvents) {
+    const key = event.studentId || 'unknown';
+    if (!byStudent.has(key)) {
+      byStudent.set(key, {
+        studentId: key,
+        events: 0,
+        questionsAnswered: 0,
+        sessionsCompleted: 0,
+        lastActiveAt: event.timestamp,
+      });
+    }
+    const row = byStudent.get(key);
+    row.events += 1;
+    if (event.eventType === 'question_answered') row.questionsAnswered += 1;
+    if (event.eventType === 'session_completed') row.sessionsCompleted += 1;
+    if (new Date(event.timestamp) > new Date(row.lastActiveAt)) row.lastActiveAt = event.timestamp;
+  }
+  const eventCounts = allEvents.reduce((acc, event) => {
+    acc[event.eventType] = (acc[event.eventType] || 0) + 1;
+    return acc;
+  }, {});
+  const requiredPilotEvents = [
+    'session_started',
+    'session_completed',
+    'question_viewed',
+    'question_answered',
+    'question_skipped',
+    'confidence_selected',
+    'working_submitted',
+    'working_not_needed_declared',
+    'skill_mastered',
+  ];
 
   return {
     windowDays: Number(days || 30),
@@ -240,6 +313,9 @@ export async function getPilotAnalytics({ days = 30, domain = '' } = {}) {
     pilotMetrics: {
       dailyActiveStudents: activeDaysByStudent.size,
       activeStudents: activeStudents.size,
+      questionsAnswered: answered.length,
+      practiceSessions: startedSessions.length,
+      diagnosticCompletions: diagnosticCompletions.length,
       averageSessionLengthSeconds: avg(sessionLengths),
       averageQuestionsPerSession: avg(Object.values(questionsBySession)),
       completionRate: pct(completedSessions.length, startedSessions.length),
@@ -247,6 +323,8 @@ export async function getPilotAnalytics({ days = 30, domain = '' } = {}) {
     },
     workingBehaviour: {
       workingUsageRate: pct(workingSubmitted, answered.length),
+      workingSubmissionRate: pct(workingSubmitted, answered.length),
+      noWorkingDeclarationRate: pct(workingNotNeeded, answered.length),
       accuracyWithWorking: pct(withWorkingCorrect, withWorking.length),
       accuracyWithoutWorking: pct(withoutWorkingCorrect, withoutWorking.length),
       highRiskNoWorkingErrors,
@@ -262,6 +340,16 @@ export async function getPilotAnalytics({ days = 30, domain = '' } = {}) {
       ),
     },
     skillMetrics: await getSkillAnalytics({ domain, days }),
+    mostActiveStudents: [...byStudent.values()].sort((a, b) => b.events - a.events).slice(0, 10),
+    telemetryCoverage: {
+      eventCounts,
+      requiredPilotEvents: requiredPilotEvents.map((eventType) => ({
+        eventType,
+        count: eventCounts[eventType] || 0,
+        present: Boolean(eventCounts[eventType]),
+      })),
+      missingEvents: requiredPilotEvents.filter((eventType) => !eventCounts[eventType]),
+    },
   };
 }
 

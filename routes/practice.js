@@ -177,7 +177,15 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
     if (!session) return res.status(404).json({ error: 'Session not found.' });
     const student = await resolveStudent(req, session.studentId);
 
-    const { questionId, answer, timeMs = null, hintsUsed = 0 } = req.body;
+    const {
+      questionId,
+      answer,
+      timeMs = null,
+      timeTakenSeconds = null,
+      questionStartTime = null,
+      questionSubmitTime = null,
+      hintsUsed = 0,
+    } = req.body;
     const q = await Question.findById(questionId);
     if (!q) return res.status(404).json({ error: 'Question not found.' });
 
@@ -186,8 +194,14 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
     // returns warm per-answer feedback. Falls back to the keyword path when
     // no AI provider is configured or the call fails, so the route stays
     // resilient with or without an API key.
+    const skipped = Boolean(req.body?.skipped);
+    const resolvedTimeMs = timeMs ?? (timeTakenSeconds !== null && timeTakenSeconds !== undefined
+      ? Math.round(Number(timeTakenSeconds) * 1000)
+      : null);
     let correct, partial = false, missing = [], openEnded = q.type === 'open_ended', aiFeedback = '';
-    if (openEnded) {
+    if (skipped) {
+      correct = false;
+    } else if (openEnded) {
       let r = null;
       try {
         r = await markOpenEnded({
@@ -208,13 +222,21 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
 
     await PracticeAttempt.create({
       sessionId: session._id, studentId: student._id, questionId: q._id, skillId: q.skillId,
-      answer: String(answer ?? ''), correct, timeMs, hintsUsed,
+      answer: String(answer ?? ''), correct, timeMs: resolvedTimeMs, hintsUsed,
+      questionStartTime,
+      questionSubmitTime,
+      timeTakenSeconds: timeTakenSeconds ?? (resolvedTimeMs === null ? null : Math.round(Number(resolvedTimeMs) / 1000)),
+      confidence: req.body?.confidence || req.body?.confidenceLevel || req.body?.reflection || '',
+      skipped,
+      workingSubmitted: Boolean(req.body?.workingSubmitted),
+      workingUploaded: Boolean(req.body?.workingUploaded),
+      fullscreenWorkingSubmitted: Boolean(req.body?.fullscreenWorkingSubmitted),
     });
 
     // Mastery counts a fully-correct attempt; partial does not (but is not a "wrong" mistake-only signal).
     const sessModule = session.module || 'MathPath';
     const subject = /science/i.test(sessModule) ? 'Science' : 'Math';
-    const mastery = await recordAttempt({ studentId: student._id, skillId: q.skillId, workspaceId: student.workspaceId, correct, timeMs, module: sessModule, subject });
+    const mastery = await recordAttempt({ studentId: student._id, skillId: q.skillId, workspaceId: student.workspaceId, correct, timeMs: resolvedTimeMs, module: sessModule, subject });
     const confidence = normalizeConfidence(req.body?.confidence || req.body?.confidenceLevel || req.body?.reflection || '');
     const domain = /science/i.test(sessModule) ? 'science' : 'mathpath';
 
@@ -229,7 +251,7 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
         metadata: {
           answerCorrect: Boolean(correct),
           confidence,
-          timeTakenSeconds: Number.isFinite(Number(timeMs)) ? Math.round(Number(timeMs) / 1000) : null,
+          timeTakenSeconds: Number.isFinite(Number(resolvedTimeMs)) ? Math.round(Number(resolvedTimeMs) / 1000) : null,
           workingSubmitted: Boolean(req.body?.workingSubmitted || req.body?.workingUploaded || req.body?.fullscreenWorkingSubmitted),
           workingNotNeeded: Boolean(req.body?.workingNotNeeded),
           helpRequested: Boolean(req.body?.helpRequested),
@@ -268,11 +290,21 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
         : 'unknown';
       await Mistake.create({
         studentId: student._id, workspaceId: student.workspaceId, questionId: q._id, skillId: q.skillId,
+        sessionId: String(session._id),
+        skillCode: String(q.skillId || ''),
         module: session.module || 'MathPath',
         questionStem: q.stem, workedSolution: q.modelAnswer || q.workedSolution,
         studentAnswer: String(answer ?? ''), correctAnswer: q.modelAnswer || q.answer,
+        confidence,
+        timestamp: new Date(),
         mistakeType, misconceptionTag: q.misconceptionTag || '', status: 'open',
         source: 'practice-incorrect',
+      });
+      console.info('[mistakes] created', {
+        studentId: String(student._id),
+        sessionId: String(session._id),
+        questionId: String(q._id),
+        skillCode: String(q.skillId || ''),
       });
     }
 

@@ -80,6 +80,7 @@ export const mathpathAPI = {
   startFluencySession: (data) => api.post('/fluency/session/start', data),
   completeFluencySession: (data) => api.post('/fluency/session/complete', data),
   mistakes: (params) => api.get('/mistakes', { params }),
+  recordMistakes: (mistakes) => api.post('/mistakes/bulk', { mistakes }),
   reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
   placement: (attempts) => api.post('/mastery/placement', { attempts }),
   modelTrainerTemplates: (params) => api.get('/mastery/fractions/model-trainer', { params }),

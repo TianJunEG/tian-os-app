@@ -16,6 +16,13 @@ import {
 } from '../telemetry/learningTelemetryService.js';
 
 const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
+const COMPLETION_REASONS = Object.freeze({
+  IN_PROGRESS: 'in_progress',
+  TARGET_REACHED: 'target_reached',
+  PLACEMENT_CONFIDENT: 'placement_confident',
+  COVERAGE_COMPLETE: 'coverage_complete',
+  QUESTION_GENERATION_FAILED: 'question_generation_failed',
+});
 
 function toDateLike(value) {
   if (!value) return null;
@@ -26,6 +33,100 @@ function toDateLike(value) {
 function safePurpose(value = '') {
   const raw = String(value || '').toLowerCase();
   return DIAG_PURPOSES.has(raw) ? raw : 'baseline';
+}
+
+function toPositiveInt(value, fallback) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+function resolveMinimumQuestionCount({ adaptiveState = {}, maxQuestions = 10, domain, mode = 'core', purpose = 'baseline' } = {}) {
+  const resolved = domain?.resolveMinimumDiagnosticCount?.(mode, purpose);
+  return Math.min(
+    maxQuestions,
+    toPositiveInt(
+      adaptiveState.minimumQuestions ?? adaptiveState.minQuestions ?? resolved,
+      maxQuestions
+    )
+  );
+}
+
+export function buildDiagnosticLifecycleLog({
+  sessionId = '',
+  targetQuestions = 0,
+  questionsAnswered = 0,
+  completionReason = COMPLETION_REASONS.IN_PROGRESS,
+} = {}) {
+  const target = Math.max(0, Number(targetQuestions) || 0);
+  const answered = Math.max(0, Number(questionsAnswered) || 0);
+  return {
+    sessionId,
+    targetQuestions: target,
+    questionsAnswered: answered,
+    questionsRemaining: Math.max(0, target - answered),
+    completionReason,
+  };
+}
+
+function logDiagnosticLifecycle(payload = {}) {
+  const entry = buildDiagnosticLifecycleLog(payload);
+  console.info('[diagnostic:lifecycle]', entry);
+  return entry;
+}
+
+function completionReasonFromDecision(decision = {}) {
+  const type = String(decision.decisionType || '');
+  if (type === DIAGNOSTIC_DECISIONS.MARK_SECURE && !decision.nextSkillId) return COMPLETION_REASONS.PLACEMENT_CONFIDENT;
+  if (type === DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE || type === DIAGNOSTIC_DECISIONS.ASSIGN_REMEDIATION) {
+    return COMPLETION_REASONS.PLACEMENT_CONFIDENT;
+  }
+  return decision.completionReason || COMPLETION_REASONS.COVERAGE_COMPLETE;
+}
+
+export function resolveDiagnosticCompletion({
+  answeredCount = 0,
+  maxQuestions = 10,
+  minimumQuestions = maxQuestions,
+  decision = {},
+  nextQuestionAvailable = false,
+  generationFailed = false,
+} = {}) {
+  const answered = Math.max(0, Number(answeredCount) || 0);
+  const target = Math.max(1, Number(maxQuestions) || 10);
+  const min = Math.min(target, Math.max(1, Number(minimumQuestions) || target));
+  if (answered >= target) {
+    return {
+      sessionComplete: true,
+      completionReason: COMPLETION_REASONS.TARGET_REACHED,
+      adaptiveStopDeferred: false,
+    };
+  }
+  if (generationFailed) {
+    return {
+      sessionComplete: true,
+      completionReason: COMPLETION_REASONS.QUESTION_GENERATION_FAILED,
+      adaptiveStopDeferred: false,
+    };
+  }
+  if (decision?.shouldStopDiagnostic) {
+    if (answered >= min) {
+      return {
+        sessionComplete: true,
+        completionReason: completionReasonFromDecision(decision),
+        adaptiveStopDeferred: false,
+      };
+    }
+    return {
+      sessionComplete: false,
+      completionReason: COMPLETION_REASONS.IN_PROGRESS,
+      adaptiveStopDeferred: Boolean(nextQuestionAvailable),
+    };
+  }
+  return {
+    sessionComplete: false,
+    completionReason: COMPLETION_REASONS.IN_PROGRESS,
+    adaptiveStopDeferred: false,
+  };
 }
 
 function isTestRequester(user = {}) {
@@ -73,6 +174,39 @@ function confidenceCalibration(correct, confidence) {
   if (!correct && confidence === 'i_know_this') return 'overconfidence';
   if (correct && confidence !== 'i_know_this') return 'fragile_correct';
   return 'needs_review';
+}
+
+function questionIdOf(question = {}) {
+  return String(question.questionId || question.id || question._id || '').trim();
+}
+
+function skillIdOf(question = {}) {
+  return String(question.skillId || question.id || question._id || question || '').trim();
+}
+
+function selectFallbackDiagnosticQuestion({
+  questionBank = [],
+  attemptedQuestionIds = [],
+  candidateQuestionIds = [],
+  preferredSkillIds = [],
+} = {}) {
+  const attempted = new Set((attemptedQuestionIds || []).map(String));
+  const candidateOrder = new Map((candidateQuestionIds || []).map((id, index) => [String(id), index]));
+  const preferredSkills = new Set((preferredSkillIds || []).map(String).filter(Boolean));
+  const available = (questionBank || [])
+    .filter((question) => {
+      const questionId = questionIdOf(question);
+      return questionId && !attempted.has(questionId);
+    })
+    .sort((a, b) => {
+      const aPreferred = preferredSkills.has(skillIdOf(a)) ? 0 : 1;
+      const bPreferred = preferredSkills.has(skillIdOf(b)) ? 0 : 1;
+      if (aPreferred !== bPreferred) return aPreferred - bPreferred;
+      const aOrder = candidateOrder.has(questionIdOf(a)) ? candidateOrder.get(questionIdOf(a)) : Number.MAX_SAFE_INTEGER;
+      const bOrder = candidateOrder.has(questionIdOf(b)) ? candidateOrder.get(questionIdOf(b)) : Number.MAX_SAFE_INTEGER;
+      return aOrder - bOrder;
+    });
+  return available[0] || null;
 }
 
 async function maybePersistAttempt({ student, session, question, skillId, response, correct }) {
@@ -221,6 +355,13 @@ export async function startAdaptiveDiagnostic({
 
   const targetSkillIds = targetSkills.map((skill) => String(skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode || skill.frameworkSkillId || ''));
   const count = domain.resolveDiagnosticCount ? domain.resolveDiagnosticCount(mode, purpose) : 10;
+  const minimumQuestions = resolveMinimumQuestionCount({
+    adaptiveState: {},
+    maxQuestions: count,
+    domain,
+    mode,
+    purpose,
+  });
   const rawQuestions = await domain.selectInitialQuestions({
     targetSkills,
     count,
@@ -265,6 +406,7 @@ export async function startAdaptiveDiagnostic({
       rephraseUsedByQuestion: {},
       candidateQuestionIds: mappedQuestions.map((q) => q.questionId),
       maxQuestions: count,
+      minimumQuestions,
       answeredCount: 0,
     },
     status: 'inProgress',
@@ -282,6 +424,12 @@ export async function startAdaptiveDiagnostic({
   });
 
   const enrichmentOnly = ['P1', 'P2'].includes((levelTag || '').toUpperCase());
+  logDiagnosticLifecycle({
+    sessionId: doc.diagnosticSessionId,
+    targetQuestions: count,
+    questionsAnswered: 0,
+    completionReason: COMPLETION_REASONS.IN_PROGRESS,
+  });
   await recordLearningEvents([
     {
       studentId: String(student._id),
@@ -330,6 +478,7 @@ export async function startAdaptiveDiagnostic({
       targetSkillIds: doc.targetSkillIds,
       targetQuestionFamilyIds: doc.targetQuestionFamilyIds,
       estimatedQuestionCount: count,
+      minimumQuestionCount: minimumQuestions,
       adaptive: true,
       displayName: domain.displayName || domain.domainId,
     },
@@ -344,6 +493,7 @@ export async function startAdaptiveDiagnostic({
       targetSkillIds: doc.targetSkillIds,
       targetQuestionFamilyIds: doc.targetQuestionFamilyIds,
       estimatedQuestionCount: count,
+      minimumQuestionCount: minimumQuestions,
       adaptive: true,
     },
   };
@@ -448,28 +598,72 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     },
   });
 
-  const nextGeneric = selectNextDiagnosticQuestion({
+  const answeredCount = responses.length + 1;
+  const maxQuestions = Number(adaptiveState.maxQuestions || domain.resolveDiagnosticCount?.(session.mode, session.result?.diagnosticPurpose) || 10);
+  const minimumQuestions = resolveMinimumQuestionCount({
+    adaptiveState,
+    maxQuestions,
+    domain,
+    mode: session.mode,
+    purpose: session.result?.diagnosticPurpose,
+  });
+  const selectionSessionState = {
+    ...(adaptiveState || {}),
+    attemptedQuestionIds,
+    currentQuestionId: questionId,
+    currentQuestionFamilyId: response.questionFamilyId,
+  };
+  let nextGeneric = selectNextDiagnosticQuestion({
     decision,
     skillGraph,
     questionBank,
     studentEvidence: { attemptedQuestionIds },
-    sessionState: {
-      ...(adaptiveState || {}),
-      attemptedQuestionIds,
-      currentQuestionId: questionId,
-      currentQuestionFamilyId: response.questionFamilyId,
-    },
+    sessionState: selectionSessionState,
   });
+  if (decision.shouldStopDiagnostic && answeredCount < minimumQuestions) {
+    const fallback = selectFallbackDiagnosticQuestion({
+      questionBank,
+      attemptedQuestionIds,
+      candidateQuestionIds: adaptiveState.candidateQuestionIds || [],
+      preferredSkillIds: [
+        decision.nextSkillId,
+        skillId,
+        ...(session.targetSkillIds || []),
+      ],
+    });
+    if (fallback) {
+      nextGeneric = fallback;
+      decision.adaptiveStopDeferred = true;
+      decision.originalShouldStopDiagnostic = true;
+      decision.shouldStopDiagnostic = false;
+      decision.reason = `${decision.reason || 'Adaptive stop requested.'} Continuing until the diagnostic minimum question count is reached.`;
+    }
+  }
 
-  const answeredCount = responses.length + 1;
-  const maxQuestions = Number(adaptiveState.maxQuestions || domain.resolveDiagnosticCount?.(session.mode, session.result?.diagnosticPurpose) || 10);
-  let sessionComplete = Boolean(decision.shouldStopDiagnostic) || answeredCount >= maxQuestions;
+  let completion = resolveDiagnosticCompletion({
+    answeredCount,
+    maxQuestions,
+    minimumQuestions,
+    decision,
+    nextQuestionAvailable: Boolean(nextGeneric),
+  });
+  let sessionComplete = completion.sessionComplete;
+  let completionReason = completion.completionReason;
   if (!nextGeneric && !sessionComplete) {
     decision.decisionType = DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE;
     decision.shouldStopDiagnostic = true;
     decision.assignedPracticeSkillIds = [...new Set([...(decision.assignedPracticeSkillIds || []), decision.nextSkillId || skillId].filter(Boolean))];
     decision.reason = 'No valid next diagnostic question was available. Stop testing and assign targeted practice.';
-    sessionComplete = true;
+    completion = resolveDiagnosticCompletion({
+      answeredCount,
+      maxQuestions,
+      minimumQuestions,
+      decision,
+      nextQuestionAvailable: false,
+      generationFailed: true,
+    });
+    sessionComplete = completion.sessionComplete;
+    completionReason = completion.completionReason;
   }
 
   let nextQuestion = null;
@@ -482,7 +676,16 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
       decision.shouldStopDiagnostic = true;
       decision.assignedPracticeSkillIds = [...new Set([...(decision.assignedPracticeSkillIds || []), decision.nextSkillId || skillId].filter(Boolean))];
       decision.reason = 'The selected next diagnostic item could not be resolved. Stop testing and assign targeted practice.';
-      sessionComplete = true;
+      completion = resolveDiagnosticCompletion({
+        answeredCount,
+        maxQuestions,
+        minimumQuestions,
+        decision,
+        nextQuestionAvailable: false,
+        generationFailed: true,
+      });
+      sessionComplete = completion.sessionComplete;
+      completionReason = completion.completionReason;
     } else {
       const nextSkillDoc = nextGeneric.isRephrase
         ? skill
@@ -533,11 +736,15 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
       ...(decision.shouldRephrase ? { [questionId]: true } : {}),
     },
     maxQuestions,
+    minimumQuestions,
+    completionReason,
+    questionsRemaining: Math.max(0, maxQuestions - answeredCount),
   };
 
   if (sessionComplete) {
     session.status = 'completed';
     session.completedAt = new Date();
+    session.completionReason = completionReason;
     session.result = domain.buildResult({
       session,
       responses: nextResponses,
@@ -546,9 +753,16 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
       assignedPracticeSkillIds,
       skillsByFrameworkId,
     });
+    session.result.completionReason = completionReason;
     session.resultPayload = session.result;
   }
   await session.save();
+  const lifecycleLog = logDiagnosticLifecycle({
+    sessionId: session.diagnosticSessionId,
+    targetQuestions: maxQuestions,
+    questionsAnswered: answeredCount,
+    completionReason,
+  });
 
   const confidence = normalizeConfidence(response.confidence);
   const telemetryEvents = [
@@ -571,6 +785,8 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
         skipped: response.skipped,
         blankAnswer: response.blankAnswer,
         decisionType: decision.decisionType,
+        completionReason,
+        questionsRemaining: lifecycleLog.questionsRemaining,
       },
     },
   ];
@@ -610,7 +826,7 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
         subjectId: session.subjectId || '',
         domain: session.domainId,
         sessionId: session.diagnosticSessionId,
-        metadata: { answeredCount, readinessScore, sessionLengthSeconds, mode: session.mode },
+        metadata: { answeredCount, readinessScore, sessionLengthSeconds, mode: session.mode, completionReason },
       },
       {
         studentId: String(student._id),
@@ -618,7 +834,7 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
         subjectId: session.subjectId || '',
         domain: session.domainId,
         sessionId: session.diagnosticSessionId,
-        metadata: { answeredCount, readinessScore, sessionLengthSeconds, mode: session.mode },
+        metadata: { answeredCount, readinessScore, sessionLengthSeconds, mode: session.mode, completionReason },
       }
     );
   }
@@ -631,9 +847,12 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     progress: {
       answeredCount,
       estimatedQuestionCount: maxQuestions,
+      questionsRemaining: lifecycleLog.questionsRemaining,
       readinessScore,
+      completionReason,
     },
     sessionComplete,
+    completionReason,
     assignedPracticeSkillIds,
     supportiveCopy: domain.getSupportiveCopy(decision.decisionType),
     result: sessionComplete ? session.result : null,

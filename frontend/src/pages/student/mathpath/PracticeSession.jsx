@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Check, Maximize2, X } from 'lucide-react';
-import { mathpathAPI } from '../../../services/api';
+import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../student/studentVisualMode';
@@ -19,7 +19,10 @@ import {
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import FractionsStoryModeSession from './FractionsStoryModeSession';
 import { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
-import QuestionDiagram from './components/QuestionDiagram';
+import QuestionDiagram, {
+  DIAGRAM_LOAD_ERROR_MESSAGE,
+  validateQuestionDiagram,
+} from './components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
 import { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
@@ -80,6 +83,35 @@ const SESSION_META = {
 const EMPTY_WORKING_PAYLOAD = {};
 const EMPTY_STROKES = [];
 
+export function validatePracticeQuestionForDisplay(question = {}) {
+  const diagramValidation = validateQuestionDiagram(question);
+  if (!diagramValidation.ok) {
+    return {
+      ok: false,
+      reason: 'missing_required_diagram',
+      message: DIAGRAM_LOAD_ERROR_MESSAGE,
+      diagramValidation,
+    };
+  }
+  return { ok: true, reason: '', message: '', diagramValidation };
+}
+
+export function filterDisplayablePracticeQuestions(questions = []) {
+  const skipped = [];
+  const valid = [];
+
+  (questions || []).forEach((question) => {
+    const validation = validatePracticeQuestionForDisplay(question);
+    if (validation.ok) {
+      valid.push(question);
+    } else {
+      skipped.push({ question, validation });
+    }
+  });
+
+  return { valid, skipped };
+}
+
 function normalizeSessionType(value) {
   const key = String(value || 'practice').toLowerCase();
   return SESSION_META[key] ? key : 'practice';
@@ -133,14 +165,18 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
   };
 }
 
-function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [] }) {
+function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [], masteredSkillIds = [], fluentSkillIds = [] }) {
   if (!studentId) return;
   const existing = getMathPathDomainProgressState(studentId, 'fractions') || {};
+  const existingMastered = Array.isArray(existing.masteredSkillIds) ? existing.masteredSkillIds : [];
+  const existingFluent = Array.isArray(existing.fluentSkillIds) ? existing.fluentSkillIds : [];
   setMathPathDomainProgressState(studentId, 'fractions', {
     ...existing,
     lastSessionAt: new Date().toISOString(),
     currentSkillId: currentSkillId || existing.currentSkillId || null,
     weakSkills: weakSkillIds,
+    masteredSkillIds: [...new Set([...existingMastered, ...masteredSkillIds])],
+    fluentSkillIds: [...new Set([...existingFluent, ...fluentSkillIds])],
     masteryCheckCompleted: sessionType === 'mastery_check' ? true : Boolean(existing.masteryCheckCompleted),
     masteryCheckCompletedAt: sessionType === 'mastery_check'
       ? new Date().toISOString()
@@ -176,11 +212,232 @@ function VisualBlock({ visual }) {
   return <div className="mb-5 rounded-xl border border-hairline bg-slate-50 px-4 py-3 text-sm text-ink-600">Visual unavailable</div>;
 }
 
-function getFeedback({ correct, timeTaken, estimatedSeconds, skipped }) {
-  if (skipped) return "We'll come back to this.";
-  if (!correct) return "Let's review this skill.";
-  if (Number(timeTaken || 0) <= Number(estimatedSeconds || 20)) return 'Well done — accurate and quick.';
-  return "Correct. Let's practise for speed.";
+const CORRECT_PRAISE_MESSAGES = [
+  'Great job! You got it right.',
+  'Nice work — that was accurate.',
+  "Well done! You're building confidence.",
+  'Excellent — keep going.',
+  'Correct! Your fraction skills are improving.',
+];
+
+function stableMessageIndex(value = '') {
+  const text = String(value || 'correct');
+  let total = 0;
+  for (let i = 0; i < text.length; i += 1) total += text.charCodeAt(i);
+  return total % CORRECT_PRAISE_MESSAGES.length;
+}
+
+function getStreakMessage(streak = 0) {
+  if (streak === 2) return '2 in a row — keep going!';
+  if (streak >= 3) return `${streak} in a row! You're on a roll.`;
+  return '';
+}
+
+export function buildAnswerFeedback({
+  correct,
+  timeTaken,
+  estimatedSeconds,
+  skipped,
+  streak = 0,
+  questionId = '',
+} = {}) {
+  if (skipped) {
+    return {
+      correct: false,
+      skipped: true,
+      title: 'Skipped',
+      message: "We'll come back to this.",
+      streakMessage: '',
+      showConfetti: false,
+    };
+  }
+
+  if (!correct) {
+    return {
+      correct: false,
+      skipped: false,
+      title: 'Review',
+      message: "Let's review this skill.",
+      streakMessage: '',
+      showConfetti: false,
+    };
+  }
+
+  const seconds = Number(timeTaken);
+  const targetSeconds = Number(estimatedSeconds || 20);
+  const fastThreshold = Math.max(6, Math.min(12, targetSeconds * 0.6));
+  const slowThreshold = Math.max(24, targetSeconds * 1.35);
+  let message = CORRECT_PRAISE_MESSAGES[stableMessageIndex(questionId || `${streak}-${seconds || ''}`)];
+
+  if (Number.isFinite(seconds) && seconds <= fastThreshold) {
+    message = 'Correct — accurate and quick!';
+  } else if (Number.isFinite(seconds) && seconds >= slowThreshold) {
+    message = "Correct — good thinking. Let's build speed next.";
+  }
+
+  return {
+    correct: true,
+    skipped: false,
+    title: 'Correct',
+    message,
+    streakMessage: getStreakMessage(streak),
+    showConfetti: streak >= 3 && streak % 3 === 0,
+  };
+}
+
+function AnswerFeedbackCard({ feedback, correctAnswer }) {
+  if (!feedback) return null;
+  const correct = Boolean(feedback.correct);
+  const title = feedback.title || (correct ? 'Correct' : feedback.skipped ? 'Skipped' : 'Review');
+  return (
+    <div className={`relative min-h-[92px] overflow-hidden rounded-xl border p-4 ${correct ? 'tian-correct-card border-success-200 bg-success-100' : 'border-error-200 bg-error-100'}`}>
+      <style>{`
+        @keyframes tian-feedback-in {
+          from { opacity: 0; transform: translateY(8px) scale(0.99); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes tian-check-pop {
+          0% { transform: scale(0.7); }
+          60% { transform: scale(1.16); }
+          100% { transform: scale(1); }
+        }
+        @keyframes tian-sparkle {
+          0% { opacity: 0; transform: translateY(4px) scale(0.5); }
+          45% { opacity: 1; transform: translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateY(-4px) scale(0.8); }
+        }
+        @keyframes tian-confetti {
+          0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+          35% { opacity: 1; }
+          100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1); }
+        }
+        .tian-correct-card { animation: tian-feedback-in 420ms ease-out both; }
+        .tian-check-pop { animation: tian-check-pop 420ms ease-out both; }
+        .tian-sparkle-dot { animation: tian-sparkle 820ms ease-out both; }
+        .tian-confetti-dot { animation: tian-confetti 760ms ease-out both; }
+      `}</style>
+      {correct && (
+        <>
+          <span className="tian-sparkle-dot pointer-events-none absolute right-8 top-4 h-2 w-2 rounded-full bg-success-400" />
+          <span className="tian-sparkle-dot pointer-events-none absolute right-14 top-8 h-1.5 w-1.5 rounded-full bg-gold-400 [animation-delay:120ms]" />
+          <span className="tian-sparkle-dot pointer-events-none absolute right-5 top-10 h-1 w-1 rounded-full bg-navy-300 [animation-delay:210ms]" />
+          {feedback.showConfetti && (
+            <span aria-hidden="true" className="pointer-events-none absolute right-10 top-8">
+              {[
+                ['-18px', '-18px', 'bg-success-400'],
+                ['14px', '-20px', 'bg-gold-400'],
+                ['24px', '4px', 'bg-navy-300'],
+                ['-10px', '18px', 'bg-success-300'],
+                ['8px', '20px', 'bg-gold-300'],
+              ].map(([x, y, color], index) => (
+                <span
+                  key={`${x}-${y}`}
+                  className={`tian-confetti-dot absolute h-1.5 w-1.5 rounded-full ${color}`}
+                  style={{ '--x': x, '--y': y, animationDelay: `${index * 55}ms` }}
+                />
+              ))}
+            </span>
+          )}
+        </>
+      )}
+      <div className={`relative flex items-center gap-2 font-semibold ${correct ? 'text-success-700' : 'text-error-700'}`}>
+        {correct ? <Check className="tian-check-pop h-5 w-5" /> : <X className="h-5 w-5" />}
+        {title}
+      </div>
+      <p className="relative mt-1 text-sm text-ink-700">{feedback.message}</p>
+      {feedback.streakMessage && (
+        <p className="relative mt-2 text-sm font-semibold text-success-700">{feedback.streakMessage}</p>
+      )}
+      {!correct && correctAnswer && (
+        <p className="relative mt-1 text-sm text-ink-700">Answer: <MathText text={correctAnswer} className="font-mono font-semibold" /></p>
+      )}
+    </div>
+  );
+}
+
+function labelForNextAction(action = '') {
+  const labels = {
+    continuePractice: 'Continue Practice',
+    uploadWorking: 'Upload Working',
+    reviewNeeded: 'Review Needed',
+    advanceSkill: 'Continue Practice',
+    scheduleRetention: 'Continue Practice',
+  };
+  const key = String(action || '').trim();
+  if (!key) return 'Continue Practice';
+  return labels[key] || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (char) => char.toUpperCase());
+}
+
+export function buildGeneratedFractionMistakePayloads({ practiceSessionId, results = [], questions = [] } = {}) {
+  const questionById = new Map((questions || []).map((question) => [question.questionId, question]));
+  return (results || [])
+    .filter((result) => !result.correct)
+    .map((result) => {
+      const question = questionById.get(result.questionId) || {};
+      return {
+        sessionId: practiceSessionId,
+        questionId: result.questionId,
+        skillCode: result.skillId || question.skillId || '',
+        questionText: question.prompt || question.stem || '',
+        studentAnswer: result.studentAnswer ?? result.answer ?? '',
+        correctAnswer: result.correctAnswer || question.answer?.display || '',
+        confidence: result.confidence || result.reflection || '',
+        timestamp: result.answeredAt || new Date().toISOString(),
+        workedSolution: Array.isArray(result.solutionSteps) && result.solutionSteps.length
+          ? result.solutionSteps.join(' ')
+          : '',
+        misconceptionTag: question.misconceptionTag || '',
+        source: result.skipped ? 'diagnostic-skipped' : 'practice-incorrect',
+        module: 'MathPath',
+      };
+    });
+}
+
+async function persistGeneratedFractionMistakes({ practiceSessionId, results = [], questions = [] }) {
+  const mistakes = buildGeneratedFractionMistakePayloads({ practiceSessionId, results, questions });
+
+  if (!mistakes.length) return;
+  const { data } = await mathpathAPI.recordMistakes(mistakes);
+  console.info('[mistakes] created', {
+    sessionId: practiceSessionId,
+    count: data?.created ?? mistakes.length,
+  });
+}
+
+export function buildPracticeTelemetryEvents({ studentId = '', sessionType = 'practice', practiceSessionId = '', results = [] } = {}) {
+  if (!studentId || !Array.isArray(results) || !results.length) return [];
+  return results.flatMap((result) => {
+    const confidence = result.confidence || result.confidenceLevel || result.reflection || '';
+    const base = {
+      studentId,
+      domain: 'fractions',
+      skillCode: result.skillId || '',
+      questionId: result.questionId || '',
+      sessionId: practiceSessionId || result.sessionId || '',
+    };
+    const answeredEvent = {
+      ...base,
+      eventType: result.skipped ? 'question_skipped' : 'question_answered',
+      metadata: {
+        sessionType,
+        answerCorrect: Boolean(result.correct),
+        confidence,
+        timeTakenSeconds: result.timeTaken ?? result.timeTakenSeconds ?? null,
+        workingSubmitted: Boolean(result.workingSubmitted || result.workingUploaded || result.fullscreenWorkingSubmitted),
+        workingNotNeeded: Boolean(result.workingNotNeeded),
+        skipped: Boolean(result.skipped),
+      },
+    };
+    if (!confidence) return [answeredEvent];
+    return [
+      answeredEvent,
+      {
+        ...base,
+        eventType: 'confidence_selected',
+        metadata: { sessionType, confidence },
+      },
+    ];
+  });
 }
 
 function canonicalSkillName(skillId, fallback = '') {
@@ -212,6 +469,7 @@ function LegacyPracticeSession() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [startedAt, setStartedAt] = useState(Date.now());
+  const [correctStreak, setCorrectStreak] = useState(0);
   const [fullscreenWorkingState, setFullscreenWorkingState] = useState({});
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const questionSurfaceRef = useRef(null);
@@ -252,11 +510,12 @@ function LegacyPracticeSession() {
     if (!workingReady) return;
     setBusy(true); setErr('');
     try {
+      const timeTaken = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
       const { data } = await mathpathAPI.attempt(sessionId, {
         questionId: q.questionId,
         answer,
         answerCorrect: null,
-        timeMs: Date.now() - startedAt,
+        timeMs: timeTaken * 1000,
         hintsUsed: 0,
         workingImage: primaryWorkingImage,
         workingStrokes: primaryWorkingStrokes,
@@ -276,7 +535,17 @@ function LegacyPracticeSession() {
         viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
         deviceType: null,
       });
-      setResult(data);
+      const nextStreak = data?.correct ? correctStreak + 1 : 0;
+      setCorrectStreak(nextStreak);
+      const answerFeedback = buildAnswerFeedback({
+        correct: Boolean(data?.correct),
+        timeTaken,
+        estimatedSeconds: q.estimatedSeconds,
+        skipped: false,
+        streak: nextStreak,
+        questionId: q.questionId,
+      });
+      setResult({ ...data, ...answerFeedback });
     } catch (e) {
       setErr(e.response?.data?.error || 'Could not check your answer. Please try again.');
     } finally { setBusy(false); }
@@ -296,6 +565,9 @@ function LegacyPracticeSession() {
       currentSkillId: String(q.skillId || ''),
       weakSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) < 80
         ? [{ skillId: String(q.skillId || ''), skillName: canonicalSkillName(q.skillId, q.skillName || '') }]
+        : [],
+      masteredSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) >= 90
+        ? [String(q.skillId || '')].filter(Boolean)
         : [],
     });
     navigate(`${resultsBase}/results/${sessionId}`, { replace: true, state: resultState });
@@ -381,8 +653,8 @@ function LegacyPracticeSession() {
           />
         )}
         {result && (
-          <div className={`mt-5 rounded-xl p-4 ${result.correct ? 'bg-success-100' : 'bg-error-100'}`}>
-            <div className={`flex items-center gap-2 font-semibold ${result.correct ? 'text-success-700' : 'text-error-700'}`}>{result.correct ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}{result.correct ? 'Correct' : 'Not quite'}</div>
+          <div className="mt-5">
+            <AnswerFeedbackCard feedback={result} correctAnswer={result.correctAnswer || q.answer?.display || null} />
           </div>
         )}
         <div className="mt-4">
@@ -487,6 +759,7 @@ export default function PracticeSession() {
   const [elapsedSec, setElapsedSec] = useState(0);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [correctStreak, setCorrectStreak] = useState(0);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
   const [fullscreenWorkingByQuestion, setFullscreenWorkingByQuestion] = useState({});
@@ -519,12 +792,21 @@ export default function PracticeSession() {
         });
         if (!mounted) return;
         setFlowSession(started);
-        setQuestions(started.questions || []);
+        const { valid, skipped } = filterDisplayablePracticeQuestions(started.questions || []);
+        if (skipped.length) {
+          console.warn('[PracticeSession] skipped diagram question(s) that could not render', skipped.map(({ question, validation }) => ({
+            questionId: question?.questionId,
+            skillId: question?.skillId,
+            prompt: question?.prompt || question?.stem,
+            reason: validation.reason,
+          })));
+        }
+        setQuestions(valid);
         setWorkingSession(null);
         setWorkingCodeByQuestion({});
         setFullscreenWorkingByQuestion({});
         setFullscreenQuestionId(null);
-        if (!started.questions?.length) setError('No questions generated yet. Please try another skill.');
+        if (!valid.length) setError(skipped.length ? DIAGRAM_LOAD_ERROR_MESSAGE : 'No questions generated yet. Please try another skill.');
       } catch (e) {
         if (!mounted) return;
         setError(e.message || 'Could not start practice session.');
@@ -598,6 +880,7 @@ export default function PracticeSession() {
   if (!questions.length) return <Spinner />;
 
   const q = questions[idx];
+  const currentQuestionValidation = validatePracticeQuestionForDisplay(q);
   const isLast = idx === questions.length - 1;
   const answered = Boolean(feedback);
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
@@ -627,6 +910,7 @@ export default function PracticeSession() {
 
   const onSubmitCurrent = () => {
     if (busy || answered) return;
+    if (!currentQuestionValidation.ok) return;
     if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
     const answerCheck = checkFractionAnswer({
@@ -668,11 +952,20 @@ export default function PracticeSession() {
       _skipped: false,
       _correct: answerCheck.correct,
     };
+    const nextStreak = answerCheck.correct ? correctStreak + 1 : 0;
+    setCorrectStreak(nextStreak);
     setResponses((prev) => [...prev, current]);
     setFeedback({
+      ...buildAnswerFeedback({
+        correct: answerCheck.correct,
+        timeTaken,
+        estimatedSeconds: q.estimatedSeconds,
+        skipped: false,
+        streak: nextStreak,
+        questionId: q.questionId,
+      }),
       correct: answerCheck.correct,
       skipped: false,
-      message: getFeedback({ correct: answerCheck.correct, timeTaken, estimatedSeconds: q.estimatedSeconds, skipped: false }),
       correctAnswer: q.answer?.display || null,
     });
   };
@@ -680,6 +973,7 @@ export default function PracticeSession() {
   const onSkipCurrent = () => {
     if (busy || answered) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
+    setCorrectStreak(0);
     setResponses((prev) => [...prev, {
       questionId: q.questionId,
       answer: '',
@@ -715,9 +1009,7 @@ export default function PracticeSession() {
       _correct: false,
     }]);
     setFeedback({
-      correct: false,
-      skipped: true,
-      message: getFeedback({ correct: false, skipped: true }),
+      ...buildAnswerFeedback({ correct: false, skipped: true }),
       correctAnswer: q.answer?.display || null,
     });
   };
@@ -773,6 +1065,24 @@ export default function PracticeSession() {
         sessionType,
         responses: payload,
       });
+      try {
+        await persistGeneratedFractionMistakes({
+          practiceSessionId: flowSession.practiceSessionId || routeSessionId,
+          results: submitted.results || [],
+          questions,
+        });
+      } catch (err) {
+        console.error('[mistakes] failed to create generated fraction mistakes', err);
+      }
+      const telemetryEvents = buildPracticeTelemetryEvents({
+        studentId,
+        sessionType,
+        practiceSessionId: flowSession.practiceSessionId || routeSessionId,
+        results: submitted.results || [],
+      });
+      if (telemetryEvents.length) {
+        Promise.allSettled(telemetryEvents.map((event) => learningTelemetryAPI.recordEvent(event))).catch(() => {});
+      }
       const weakSkillRows = submitted.accuracySummary?.accuracyPercentage < 80
         ? [{ skillId: flowSession?.targetSkillId || q.skillId, skillName: canonicalSkillName(flowSession?.targetSkillId || q.skillId, '') }]
         : [];
@@ -781,6 +1091,12 @@ export default function PracticeSession() {
         sessionType,
         currentSkillId: flowSession?.targetSkillId || q.skillId || null,
         weakSkillIds: weakSkillRows,
+        masteredSkillIds: submitted.accuracySummary?.accuracyPercentage >= 90
+          ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
+          : [],
+        fluentSkillIds: submitted.fluencySummary?.fluentCount > 0
+          ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
+          : [],
       });
       setSummary(submitted);
     } catch (e) {
@@ -788,6 +1104,19 @@ export default function PracticeSession() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const tryAnotherQuestion = () => {
+    if (!isLast) {
+      setIdx((i) => i + 1);
+      setAnswer('');
+      setReflection('');
+      setHelpRequested(false);
+      setFeedback(null);
+      setQuestionStartedAt(Date.now());
+      return;
+    }
+    navigate('/student/mathpath', { replace: true });
   };
 
   if (summary) {
@@ -824,8 +1153,19 @@ export default function PracticeSession() {
             <p><span className="font-semibold">Accuracy:</span> {summary.accuracySummary?.accuracyPercentage ?? 0}%</p>
             <p><span className="font-semibold">Average time:</span> {summary.accuracySummary?.averageSeconds ?? 0}s</p>
             <p><span className="font-semibold">Fluency:</span> {fluencyLabel}</p>
-            <p><span className="font-semibold">Next action:</span> {summary.nextRecommendedAction || 'Continue practice'}</p>
+            <p><span className="font-semibold">Next action:</span> {labelForNextAction(summary.nextRecommendedAction)}</p>
+            {summary.questionWorkingSummary && (
+              <p>
+                <span className="font-semibold">Working:</span>{' '}
+                {summary.questionWorkingSummary.workingSubmitted || 0} submitted · {summary.questionWorkingSummary.workingNotNeeded || 0} not needed · {summary.questionWorkingSummary.missingWorking || 0} missing
+              </p>
+            )}
           </div>
+          {summary.questionWorkingSummary?.allNoWorkingDeclarations && (
+            <div className="mt-4 rounded-xl border border-success-200 bg-success-100 p-3 text-sm text-success-700">
+              No working upload needed. You have declared working was not needed for these questions.
+            </div>
+          )}
           {summary.workingUploadRequired && (
             <div className="mt-5 rounded-xl border border-gold-300 bg-gold-100 p-4 text-sm text-gold-900">
               <p className="font-semibold">Please upload your working sheet for this session.</p>
@@ -883,7 +1223,16 @@ export default function PracticeSession() {
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" barClassName={visualStyles.progress} />
 
       <Card className={`p-4 sm:p-6 ${visualStyles.accentCard}`}>
-        <div className="grid gap-6 xl:grid-cols-[minmax(24rem,1fr)_minmax(28rem,0.95fr)]">
+        {!currentQuestionValidation.ok ? (
+          <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
+            <p className="font-semibold text-navy-700">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
+            <p className="mt-1 text-ink-500">This visual question needs a diagram before it can be answered.</p>
+            <Button className="mt-4" onClick={tryAnotherQuestion}>
+              Try another question
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-6 xl:grid-cols-[minmax(24rem,1fr)_minmax(28rem,0.95fr)]">
           <section className="min-w-0">
             <div ref={questionSurfaceRef} className="relative">
               <div className="mb-6 text-lg leading-relaxed text-ink-900">
@@ -979,18 +1328,7 @@ export default function PracticeSession() {
             </div>
 
             <div className="mt-3">
-              {feedback && (
-                <div className={`rounded-xl p-4 ${feedback.correct ? 'bg-success-100' : 'bg-error-100'}`}>
-                  <div className={`flex items-center gap-2 font-semibold ${feedback.correct ? 'text-success-700' : 'text-error-700'}`}>
-                    {feedback.correct ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
-                    {feedback.correct ? 'Correct' : feedback.skipped ? 'Skipped' : 'Review'}
-                  </div>
-                  <p className="mt-1 text-sm text-ink-700">{feedback.message}</p>
-                  {!feedback.correct && feedback.correctAnswer && (
-                    <p className="mt-1 text-sm text-ink-700">Answer: <MathText text={feedback.correctAnswer} className="font-mono font-semibold" /></p>
-                  )}
-                </div>
-              )}
+              <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} />
             </div>
 
             {!workingReady && (
@@ -1025,7 +1363,8 @@ export default function PracticeSession() {
               />
             </div>
           </aside>
-        </div>
+          </div>
+        )}
       </Card>
       <FullScreenWorkingMode
         open={fullscreenQuestionId === q.questionId}

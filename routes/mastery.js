@@ -13,6 +13,16 @@ import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSess
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
 import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
 import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
+import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
+import MathPathAssessmentSession from '../models/mathpath/MathPathAssessmentSession.js';
+import MathPathWorkingSession from '../models/mathpath/MathPathWorkingSession.js';
+import MathPathWorkingIntelligence from '../models/mathpath/MathPathWorkingIntelligence.js';
+import LearningTelemetryEvent from '../models/LearningTelemetryEvent.js';
+import StudentLearningEvent from '../models/studentProfile/StudentLearningEvent.js';
+import StudentXP from '../models/studentProfile/StudentXP.js';
+import StudentAchievement from '../models/studentProfile/StudentAchievement.js';
+import FluencyRecord from '../models/FluencyRecord.js';
+import RetentionReview from '../models/RetentionReview.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLabel, isStale } from '../utils/masteryEngine.js';
 import { buildSkillGraphView } from '../utils/skillGraphView.js';
@@ -77,6 +87,29 @@ function normalizeTimeSpentSeconds(value, questionStartedAt, questionEndedAt) {
   const end = toDateLike(questionEndedAt) || new Date();
   if (!start) return null;
   return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+}
+
+export function buildResetStudentStateDeletionPlan({ studentId, studentObjectId, mathPathSessionIds = [] } = {}) {
+  return [
+    { key: 'diagnostics', model: MathPathDiagnosticSession, query: { studentId, domainId: 'fractions' } },
+    { key: 'attempts', model: MathPathAttempt, query: { studentId, domainId: 'fractions' } },
+    { key: 'mistakes', model: Mistake, query: { studentId: studentObjectId, module: 'MathPath' } },
+    { key: 'mistakeRecords', model: MathPathMistakeRecord, query: { studentId, domainId: 'fractions' } },
+    { key: 'skillStates', model: MathPathStudentSkillState, query: { studentId, domainId: 'fractions' } },
+    { key: 'sessions', model: PracticeSession, query: { studentId: studentObjectId, module: 'MathPath' } },
+    { key: 'practiceAttempts', model: PracticeAttempt, query: { studentId: studentObjectId, sessionId: { $in: mathPathSessionIds } } },
+    { key: 'masteryRecords', model: MasteryRecord, query: { studentId: studentObjectId, module: 'MathPath' } },
+    { key: 'mathPathPracticeSessions', model: MathPathPracticeSession, query: { studentId, domainId: 'fractions' } },
+    { key: 'assessmentSessions', model: MathPathAssessmentSession, query: { studentId, domainId: 'fractions' } },
+    { key: 'workingSessions', model: MathPathWorkingSession, query: { studentId, domainId: 'fractions' } },
+    { key: 'workingIntelligence', model: MathPathWorkingIntelligence, query: { studentId } },
+    { key: 'telemetryEvents', model: LearningTelemetryEvent, query: { studentId } },
+    { key: 'learningEvents', model: StudentLearningEvent, query: { studentId: studentObjectId } },
+    { key: 'xpRecords', model: StudentXP, query: { studentId: studentObjectId } },
+    { key: 'achievements', model: StudentAchievement, query: { studentId: studentObjectId } },
+    { key: 'fluencyRecords', model: FluencyRecord, query: { studentId: studentObjectId } },
+    { key: 'retentionReviews', model: RetentionReview, query: { studentId: studentObjectId } },
+  ];
 }
 
 router.get('/fractions/model-trainer', protect, async (req, res) => {
@@ -969,6 +1002,7 @@ router.get('/diagnostic/latest', protect, async (req, res) => {
       sessionId: latest.diagnosticSessionId,
       mode: latest.mode,
       studentLevel: latest.studentLevel,
+      completionReason: latest.completionReason || latest.result?.completionReason || '',
       completedAt: latest.completedAt,
       lastSessionAt: latest.completedAt,
       timingAnalytics: latest.diagnosticSessionId
@@ -1001,30 +1035,21 @@ router.post('/test/reset-state', protect, async (req, res) => {
     const studentId = String(targetStudent._id);
     const mathPathSessions = await PracticeSession.find({ studentId: targetStudent._id, module: 'MathPath' }).select('_id');
     const mathPathSessionIds = mathPathSessions.map((session) => session._id);
-    const [diagnostics, attempts, mistakes, mistakeRecords, skillStates, sessions, practiceAttempts, masteryRecords] = await Promise.all([
-      MathPathDiagnosticSession.deleteMany({ studentId, domainId: 'fractions' }),
-      MathPathAttempt.deleteMany({ studentId, domainId: 'fractions' }),
-      Mistake.deleteMany({ studentId: targetStudent._id, module: 'MathPath' }),
-      MathPathMistakeRecord.deleteMany({ studentId, domainId: 'fractions' }),
-      MathPathStudentSkillState.deleteMany({ studentId, domainId: 'fractions' }),
-      PracticeSession.deleteMany({ studentId: targetStudent._id, module: 'MathPath' }),
-      PracticeAttempt.deleteMany({ studentId: targetStudent._id, sessionId: { $in: mathPathSessionIds } }),
-      MasteryRecord.deleteMany({ studentId: targetStudent._id, module: 'MathPath' }),
-    ]);
+    const deletionPlan = buildResetStudentStateDeletionPlan({
+      studentId,
+      studentObjectId: targetStudent._id,
+      mathPathSessionIds,
+    });
+    const deletionResults = await Promise.all(deletionPlan.map((item) => item.model.deleteMany(item.query)));
+    const deleted = deletionPlan.reduce((acc, item, index) => {
+      acc[item.key] = deletionResults[index]?.deletedCount || 0;
+      return acc;
+    }, {});
 
     return res.json({
       ok: true,
       studentId,
-      deleted: {
-        diagnostics: diagnostics.deletedCount || 0,
-        attempts: attempts.deletedCount || 0,
-        mistakes: mistakes.deletedCount || 0,
-        mistakeRecords: mistakeRecords.deletedCount || 0,
-        skillStates: skillStates.deletedCount || 0,
-        sessions: sessions.deletedCount || 0,
-        practiceAttempts: practiceAttempts.deletedCount || 0,
-        masteryRecords: masteryRecords.deletedCount || 0,
-      },
+      deleted,
     });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to reset student state.' });
@@ -1077,6 +1102,7 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
       mode: session.mode,
       studentLevel: session.studentLevel,
       status: session.status,
+      completionReason: session.completionReason || session.result?.completionReason || '',
       timingAnalytics: await studentMathPathTimingAnalytics(student._id, { sessionId: session.diagnosticSessionId }),
       result: session.result || {},
       completedAt: session.completedAt,

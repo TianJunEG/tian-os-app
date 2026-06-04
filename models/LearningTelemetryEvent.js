@@ -21,6 +21,7 @@ export const LEARNING_EVENT_TYPES = [
   'fluency_started',
   'fluency_completed',
   'skill_mastered',
+  'recommendation_selected',
   'mastery_test_started',
   'mastery_test_completed',
 ];

@@ -19,6 +19,15 @@ describe('isCorrect — answer checking', () => {
     expect(isCorrect('2 1/6', '13/6')).toBe(true);
     expect(isCorrect('-1 1/2', '-3/2')).toBe(true);
   });
+  it('accepts improper, mixed, and equivalent answers for the same value', () => {
+    expect(isCorrect('7/6', '7/6')).toBe(true);
+    expect(isCorrect('1 1/6', '7/6')).toBe(true);
+    expect(isCorrect('14/12', '7/6')).toBe(true);
+  });
+  it('rejects zero denominator fraction answers', () => {
+    expect(isCorrect('1/0', '7/6')).toBe(false);
+    expect(isCorrect('1 1/0', '7/6')).toBe(false);
+  });
   it('accepts numeric/decimal formatting variants', () => {
     expect(isCorrect('0.50', '0.5')).toBe(true);
     expect(isCorrect(' 12 ', '12')).toBe(true);
