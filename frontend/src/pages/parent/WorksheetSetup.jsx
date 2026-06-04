@@ -17,7 +17,7 @@ export default function WorksheetSetup() {
   // link can round-trip the prior choices (count, difficulty, skill, toggles).
   // Falls back to the previous defaults when a param is absent.
   const [subject, setSubject] = useState(sp.get('subject') === 'science' ? 'science' : 'math');
-  const [mode, setMode] = useState(sp.get('mode') || 'weak_skills');
+  const [mode, setMode] = useState(sp.get('mode') || 'recommended');
   const [skills, setSkills] = useState([]);
   const [skillId, setSkillId] = useState(sp.get('skill') || '');
   const [questionCount, setQuestionCount] = useState(sp.get('count') || '10');
@@ -51,11 +51,14 @@ export default function WorksheetSetup() {
     setBusy(true); setError('');
     try {
       const body = {
-        studentId, mode, difficulty,
+        studentId,
+        worksheetType: mode,
+        mode: mode === 'custom' ? 'selected_topic' : mode,
+        difficulty,
         subject: subject === 'science' ? 'Science' : 'Math',
         questionCount: Number(questionCount), includesSolutions, includesMistakeReview,
       };
-      if (mode === 'selected_topic' && skillId) body.skillIds = [skillId];
+      if (mode === 'custom' && skillId) body.skillIds = [skillId];
       const { data } = await worksheetGenAPI.generate(body);
       navigate(`/parent/children/${studentId}/worksheets/${data.worksheet.id}`);
     } catch (e) { setError(e.response?.data?.error || 'Could not generate worksheet.'); setBusy(false); }
@@ -79,7 +82,7 @@ export default function WorksheetSetup() {
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
       <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">New worksheet</h2>
-      <p className="mb-5 text-sm text-ink-500">{subject === 'science' ? 'Science' : 'Math'} · choose what to practise.</p>
+      <p className="mb-5 text-sm text-ink-500">{subject === 'science' ? 'Science' : 'Math'} · personalised from learning data.</p>
       {skillsLoadError && (
         <ErrorState message="Couldn’t load topics and skills." onRetry={loadSkills} />
       )}
@@ -90,10 +93,10 @@ export default function WorksheetSetup() {
           <Segmented value={subject} onChange={setSubject} options={[{ v: 'math', l: 'Math' }, { v: 'science', l: 'Science' }]} />
         </Field>
         <Field label="Generate from">
-          <Segmented value={mode} onChange={setMode} options={[{ v: 'recent_mistakes', l: 'Recent mistakes' }, { v: 'weak_skills', l: 'Weak skills' }, { v: 'selected_topic', l: 'A topic' }]} />
+          <Segmented value={mode} onChange={setMode} options={[{ v: 'recommended', l: 'Recommended' }, { v: 'fluency', l: 'Fluency' }, { v: 'retention', l: 'Retention' }, { v: 'custom', l: 'Custom' }]} />
         </Field>
 
-        {mode === 'selected_topic' && (
+        {mode === 'custom' && (
           <div>
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Topic / skill</span>
@@ -132,7 +135,7 @@ export default function WorksheetSetup() {
         <Toggle label="Include worked solutions" checked={includesSolutions} onChange={setIncludesSolutions} />
         <Toggle label="Include a mistake-review section" checked={includesMistakeReview} onChange={setIncludesMistakeReview} />
 
-        <Button icon={Wand2} disabled={busy || (mode === 'selected_topic' && !skillId)} onClick={generate} className="w-full" size="l">
+        <Button icon={Wand2} disabled={busy || (mode === 'custom' && !skillId)} onClick={generate} className="w-full" size="l">
           {busy ? 'Generating…' : 'Generate worksheet'}
         </Button>
       </div>
@@ -144,9 +147,9 @@ const Field = ({ label, children }) => (
   <div><div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</div>{children}</div>
 );
 const Segmented = ({ value, onChange, options }) => (
-  <div className="flex gap-2">
+  <div className="flex flex-wrap gap-2">
     {options.map((o) => (
-      <button key={o.v} onClick={() => onChange(o.v)} className={`h-11 flex-1 rounded-xl border text-sm font-semibold transition ${value === o.v ? 'border-navy-700 bg-navy-700 text-paper' : 'border-hairline bg-paper text-navy-700'}`}>{o.l}</button>
+      <button key={o.v} onClick={() => onChange(o.v)} className={`h-11 min-w-[9rem] flex-1 rounded-xl border text-sm font-semibold transition ${value === o.v ? 'border-navy-700 bg-navy-700 text-paper' : 'border-hairline bg-paper text-navy-700'}`}>{o.l}</button>
     ))}
   </div>
 );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FileText, ArrowRight, TrendingDown, BookOpen, AlertTriangle } from 'lucide-react';
+import { FileText, ArrowRight, TrendingDown, BookOpen, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { assignmentsAPI, mathpathAPI, worksheetGenAPI } from '../../services/api';
 import { Card, Button, StatusBadge, PageHeader, Spinner, EmptyState, Alert, Badge } from '../../components/ui';
 
@@ -58,10 +58,10 @@ export default function StudentWorksheets() {
 
   return (
     <>
-      <PageHeader title="Worksheet Generator" subtitle="Create short practice from weak skills, selected skills, or mistake types." />
+      <PageHeader title="Worksheet Generator" subtitle="Create short practice from weak skills, diagnostic results, selected skills, or mistake types." />
       {startError && <Alert tone="error" className="mb-4">{startError}</Alert>}
       {loadError && <Alert tone="error" className="mb-4">Unable to load worksheets right now. Please try again later.</Alert>}
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Link to="/student/worksheets/new?mode=weak_skills" className="focus-visible:outline-none">
           <Card interactive className="flex items-start gap-3 p-4">
             <TrendingDown className="mt-1 h-4 w-4 text-navy-700" />
@@ -77,6 +77,15 @@ export default function StudentWorksheets() {
             <div>
               <p className="font-semibold text-ink-800">Choose Skill</p>
               <p className="text-xs text-ink-500">Pick a specific MathPath skill.</p>
+            </div>
+          </Card>
+        </Link>
+        <Link to="/student/worksheets/new?mode=diagnostic_results" className="focus-visible:outline-none">
+          <Card interactive className="flex items-start gap-3 p-4">
+            <ClipboardCheck className="mt-1 h-4 w-4 text-navy-700" />
+            <div>
+              <p className="font-semibold text-ink-800">Use Diagnostic</p>
+              <p className="text-xs text-ink-500">Practise gaps from your latest diagnostic.</p>
             </div>
           </Card>
         </Link>

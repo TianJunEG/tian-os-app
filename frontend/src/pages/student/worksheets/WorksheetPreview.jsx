@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, Printer } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle2, Printer, Send } from 'lucide-react';
 import { worksheetGenAPI } from '../../../services/api';
 import { Card, EmptyState, PageHeader, Spinner, Button, Alert } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
@@ -34,6 +34,10 @@ export default function WorksheetPreview() {
   const [error, setError] = useState('');
   const [w, setW] = useState(null);
   const [view, setView] = useState('worksheet');
+  const [answers, setAnswers] = useState({});
+  const [workingSubmitted, setWorkingSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     worksheetGenAPI.get(worksheetId)
@@ -52,6 +56,25 @@ export default function WorksheetPreview() {
   const studentLevel = c.studentLevel || questions.find((q) => q.moeLevel)?.moeLevel || '';
   const skillLabel = (c.skillNames || []).join(', ');
   const topicLabel = (c.topicNames || []).join(', ') || [...new Set(questions.map((q) => q.topicName).filter(Boolean))].join(', ');
+  const personalization = c.personalization || w.personalization || null;
+  const submit = async () => {
+    setSubmitting(true);
+    try {
+      const payload = {
+        workingSubmitted,
+        answers: questions
+          .map((q) => ({ questionId: q.questionId, n: q.n, answer: answers[q.n] || '', workingSubmitted }))
+          .filter((row) => row.answer.trim()),
+      };
+      const { data } = await worksheetGenAPI.submit(worksheetId, payload);
+      setResult(data);
+      setView('answers');
+    } catch (e) {
+      setError(e.response?.data?.error || 'Couldn’t submit worksheet.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -65,6 +88,11 @@ export default function WorksheetPreview() {
         <p><span className="font-semibold">Level:</span> {studentLevel || 'Not specified'}</p>
         <p><span className="font-semibold">Skills:</span> {skillLabel || '—'}</p>
         <p><span className="font-semibold">Topics:</span> {topicLabel || '—'}</p>
+        {personalization?.sourceSummary && (
+          <p className="mt-3 rounded-xl bg-navy-50 p-3 text-navy-800">
+            <span className="font-semibold">{personalization.sourceLabel || 'Personalised worksheet'}:</span> {personalization.sourceSummary}
+          </p>
+        )}
       </Card>
 
       {unsupportedVisualCount > 0 && (
@@ -94,6 +122,12 @@ export default function WorksheetPreview() {
                     </div>
                   )}
                   <div className="mt-2 h-8 border-b border-dashed border-hairline" />
+                  <input
+                    value={answers[q.n] || ''}
+                    onChange={(event) => setAnswers((prev) => ({ ...prev, [q.n]: event.target.value }))}
+                    className="mt-3 h-11 w-full rounded-xl border border-hairline px-3 text-sm outline-none focus:border-navy-500"
+                    placeholder="Type your answer"
+                  />
                 </div>
               </li>
             ))}
@@ -123,8 +157,24 @@ export default function WorksheetPreview() {
         )}
       </Card>
 
+      {result && (
+        <Card className="mt-4 border-l-4 border-l-success-500 p-4 text-sm text-ink-700">
+          <div className="flex items-center gap-2 font-semibold text-success-700">
+            <CheckCircle2 className="h-4 w-4" /> Submitted · {result.accuracy}% accuracy
+          </div>
+          <p className="mt-1">{result.correctAnswers}/{result.totalAnswered} answered correctly.</p>
+        </Card>
+      )}
+
       <div className="mt-4 flex gap-2">
         <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print</Button>
+        <label className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-hairline bg-paper px-4 py-3 text-sm font-semibold text-navy-700">
+          <input type="checkbox" checked={workingSubmitted} onChange={(event) => setWorkingSubmitted(event.target.checked)} />
+          Working submitted
+        </label>
+        <Button icon={Send} disabled={submitting || !Object.values(answers).some((value) => String(value || '').trim())} onClick={submit}>
+          {submitting ? 'Submitting…' : 'Submit'}
+        </Button>
         <Button as={Link} to="/student/worksheets/new">Generate Another</Button>
       </div>
     </>

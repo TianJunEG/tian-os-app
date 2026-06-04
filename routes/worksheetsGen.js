@@ -11,14 +11,15 @@ import { generateWorksheet } from '../utils/worksheetGen.js';
 const router = express.Router();
 
 // @route POST /api/worksheets/gen/generate
-// @desc  body: { studentId, mode(recent_mistakes|weak_skills|selected_topic),
+// @desc  body: { studentId, mode(recent_mistakes|weak_skills|diagnostic_results|selected_topic),
 //        skillIds[]?, topicId?, difficulty?, questionCount?, includesSolutions?, includesMistakeReview? }
 // @access Private
 router.post('/generate', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req, req.body.studentId);
     const {
-      mode = 'weak_skills', skillIds = [], topicId = null,
+      mode = 'recommended', worksheetType = '', domain = 'fractions', generatedFor = null,
+      skillIds = [], topicId = null,
       misconceptionTag = '',
       difficulty = 'medium', questionCount = 10,
       includesSolutions = true, includesMistakeReview = false,
@@ -29,14 +30,14 @@ router.post('/generate', protect, async (req, res) => {
     // else falls back to Math (the historical default).
     const subject = /^science$/i.test(String(subjectInput || '')) ? 'Science' : 'Math';
 
-    const { skillIds: targetSkillIds, topicIds, content } = await generateWorksheet({
+    const { skillIds: targetSkillIds, topicIds, content, answerKey, sourceMode, estimatedMinutes, worksheetType: resolvedWorksheetType } = await generateWorksheet({
       mode, studentId: student._id, studentName: student.name,
       skillIds, topicId, misconceptionTag, difficulty, questionCount, includesSolutions, includesMistakeReview,
-      subject,
+      subject, worksheetType, domain, generatedFor,
     });
 
     if (!content.questions.length) {
-      return res.status(400).json({ error: 'No questions available for the selected skills yet. Seed the question bank or pick another topic.' });
+      return res.status(400).json({ error: emptyMessage(sourceMode) || 'No questions available for the selected skills yet. Seed the question bank or pick another topic.' });
     }
 
     const worksheet = await Worksheet.create({
@@ -47,10 +48,12 @@ router.post('/generate', protect, async (req, res) => {
       workspaceId: student.workspaceId,
       generatedByUserId: req.user.id,
       generatedByRole: req.user.role || 'parent',
+      generatedFor: generatedFor || { studentId: student._id, studentName: student.name },
       topicIds, skillIds: targetSkillIds,
-      sourceMode: mode, difficulty, questionCount,
+      sourceMode, worksheetType: resolvedWorksheetType, domain, difficulty, questionCount, estimatedMinutes,
       includesSolutions, includesMistakeReview,
       generatedContent: content,
+      answerKey,
       assignedStatus: 'unassigned',
     });
 
@@ -109,9 +112,10 @@ router.post('/:id/assign', protect, async (req, res) => {
       topicId: w.topicIds[0] || null,
       skillIds: w.skillIds,
       questionCount: w.questionCount,
-      difficulty: w.difficulty,
+      difficulty: w.difficulty === 'adaptive' ? 'medium' : w.difficulty,
       dueDate: req.body.dueDate || null,
       status: 'not_started',
+      interventionType: w.sourceMode === 'retention' ? 'retention_review' : w.sourceMode === 'fluency' ? 'fluency_drill' : 'worksheet',
     });
 
     w.assignedStatus = 'assigned';
@@ -127,13 +131,30 @@ router.post('/:id/assign', protect, async (req, res) => {
 function shapeSummary(w) {
   return {
     id: w._id, title: w.generatedContent?.title || 'Worksheet', studentName: w.studentName,
-    sourceMode: w.sourceMode, difficulty: w.difficulty, questionCount: w.questionCount,
+    sourceMode: w.sourceMode, worksheetType: w.worksheetType, domain: w.domain,
+    difficulty: w.difficulty, questionCount: w.questionCount, estimatedMinutes: w.estimatedMinutes,
     assignedStatus: w.assignedStatus, linkedAssignmentId: w.linkedAssignmentId,
+    completion: w.completion || null,
     skillNames: w.generatedContent?.skillNames || [], createdAt: w.createdAt,
+    personalization: w.generatedContent?.personalization || null,
   };
 }
-function shape(w) {
-  return { ...shapeSummary(w), includesSolutions: w.includesSolutions, includesMistakeReview: w.includesMistakeReview, content: w.generatedContent };
+
+function shape(w, { includeAnswerKey = true } = {}) {
+  return {
+    ...shapeSummary(w),
+    includesSolutions: w.includesSolutions,
+    includesMistakeReview: w.includesMistakeReview,
+    answerKey: includeAnswerKey ? (w.answerKey || w.generatedContent?.answerKey || []) : undefined,
+    content: w.generatedContent,
+  };
+}
+
+function emptyMessage(sourceMode) {
+  if (sourceMode === 'recommended') return 'Great work. No recommended worksheet is needed right now.';
+  if (sourceMode === 'fluency') return 'Your fluency practice worksheet will appear when a skill enters fluency training.';
+  if (sourceMode === 'retention') return 'Retention review worksheets will appear when review dates are scheduled.';
+  return '';
 }
 
 export default router;

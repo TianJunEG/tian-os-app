@@ -74,13 +74,14 @@ export default function WorksheetSetup() {
 
   return (
     <>
-      <PageHeader title="Choose Worksheet Scope" subtitle="Generate a short worksheet from weak skills, selected skill, or mistake type." />
+      <PageHeader title="Choose Worksheet Scope" subtitle="Generate a short worksheet from weak skills, diagnostic results, selected skill, or mistake type." />
       {error && <Card className="mb-4 border-l-4 border-l-error-500 p-3 text-sm text-error-700">{error}</Card>}
 
       <div className="space-y-4">
         <Field label="Source">
           <Segmented value={mode} onChange={setMode} options={[
             { v: 'weak_skills', l: 'Weak skill' },
+            { v: 'diagnostic_results', l: 'Diagnostic' },
             { v: 'selected_topic', l: 'Selected skill' },
             { v: 'recent_mistakes', l: 'Mistake type' },
           ]} />
@@ -147,7 +148,7 @@ function Field({ label, children }) {
 
 function Segmented({ value, onChange, options }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {options.map((o) => (
         <button
           key={o.v}

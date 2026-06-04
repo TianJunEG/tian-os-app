@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { AlertCircle, TrendingDown, BookOpen, FileText, Plus } from 'lucide-react';
+import { AlertCircle, TrendingDown, BookOpen, ClipboardCheck, FileText, Plus } from 'lucide-react';
 import { worksheetGenAPI } from '../../services/api';
 import { Card, Badge, Spinner, Alert, Button, EmptyState } from '../../components/ui';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
 
 const MODES = [
-  { key: 'recent_mistakes', label: 'From recent mistakes', desc: 'Target the slips your child just made.', Icon: AlertCircle },
-  { key: 'weak_skills', label: 'From weak skills', desc: 'Practise the lowest-mastery skills.', Icon: TrendingDown },
-  { key: 'selected_topic', label: 'From a topic / skill', desc: 'Choose exactly what to practise.', Icon: BookOpen },
+  { key: 'recommended', label: 'Recommended Practice', desc: 'One-click practice from weak skills, mistakes, fluency, and retention.', Icon: TrendingDown },
+  { key: 'fluency', label: 'Fluency Practice', desc: 'Repetition for skills entering fluency training.', Icon: ClipboardCheck },
+  { key: 'retention', label: 'Retention Review', desc: 'Refresh skills that are due for review.', Icon: AlertCircle },
+  { key: 'custom', label: 'Custom Worksheet', desc: 'Choose exactly what to practise.', Icon: BookOpen },
 ];
 
-// Parent › Mastery Worksheet Generator — home. Three modes + recent worksheets.
+// Parent › Mastery Worksheet Generator — home. Evidence-based modes + recent worksheets.
 export default function WorksheetHome() {
   const { studentId } = useParams();
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function WorksheetHome() {
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
       <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">Worksheet Generator</h2>
-      <p className="mb-5 text-sm text-ink-500">Create targeted Math or Science practice — digital first.</p>
+      <p className="mb-5 text-sm text-ink-500">Create personalised practice from real learning evidence.</p>
 
       {error && (
         <Alert tone="error" className="mb-4">

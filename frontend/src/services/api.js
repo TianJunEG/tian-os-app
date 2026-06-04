@@ -396,7 +396,11 @@ export const worksheetGenAPI = {
   generate: (data) => api.post('/worksheets/gen/generate', data),
   list: (params) => api.get('/worksheets/gen', { params }),
   get: (id) => api.get(`/worksheets/gen/${id}`),
-  assign: (id, data) => api.post(`/worksheets/gen/${id}/assign`, data)
+  assign: (id, data) => api.post(`/worksheets/gen/${id}/assign`, data),
+  answers: (id) => api.get(`/worksheets/${id}/answers`),
+  submit: (id, data) => api.post(`/worksheets/${id}/submit`, data),
+  pdfUrl: (id, { answers = false } = {}) => `${API_BASE_URL}/worksheets/${id}/pdf${answers ? '?answers=1' : ''}`,
+  generatePersonalised: (data) => api.post('/worksheets/generate', data),
 };
 
 // Admin API

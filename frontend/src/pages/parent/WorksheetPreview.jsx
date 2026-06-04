@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Send, Printer, RotateCcw, Check, AlertTriangle } from 'lucide-react';
+import { Send, Printer, RotateCcw, Check, AlertTriangle, Download } from 'lucide-react';
 import { worksheetGenAPI } from '../../services/api';
 import { Card, Button, Spinner, EmptyState } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
@@ -41,6 +41,7 @@ export default function WorksheetPreview() {
 
   const c = w.content || {};
   const assigned = w.assignedStatus === 'assigned';
+  const personalization = c.personalization || w.personalization || null;
 
   return (
     <Frame>
@@ -51,6 +52,11 @@ export default function WorksheetPreview() {
         <div className="mb-4 border-b border-hairline pb-3">
           <h2 className="font-display text-2xl font-semibold text-navy-700">{c.title}</h2>
           <div className="mt-1 text-sm text-ink-500">{c.studentName ? `${c.studentName} · ` : ''}{w.difficulty}</div>
+          {personalization?.sourceSummary && (
+            <div className="mt-3 rounded-xl bg-navy-50 p-3 text-sm text-navy-800">
+              <span className="font-semibold">{personalization.sourceLabel || 'Personalised worksheet'}:</span> {personalization.sourceSummary}
+            </div>
+          )}
         </div>
 
         {c.reviewSection?.length > 0 && (
@@ -105,10 +111,11 @@ export default function WorksheetPreview() {
         {assigned
           ? <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-success-100 px-5 py-3 font-semibold text-success-700"><Check className="h-4 w-4" /> Worksheet assigned</span>
           : <Button icon={Send} disabled={assigning} onClick={assign} className="flex-1">{assigning ? 'Assigning…' : 'Assign worksheet'}</Button>}
-        <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print / Export</Button>
+        <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print</Button>
+        <Button variant="secondary" icon={Download} onClick={() => window.open(worksheetGenAPI.pdfUrl(worksheetId), '_blank')}>PDF</Button>
         <Button variant="secondary" icon={RotateCcw} onClick={() => navigate(`/parent/children/${studentId}/worksheets/new?${regenParams(w)}`)}>Regenerate</Button>
       </div>
-      <p className="mt-2 text-xs text-ink-500 print:hidden">PDF export uses your browser's print dialog for now — native download is planned.</p>
+      <p className="mt-2 text-xs text-ink-500 print:hidden">Use Print for paper copies or PDF for a quick download.</p>
     </Frame>
   );
 }
@@ -118,7 +125,7 @@ export default function WorksheetPreview() {
 // the topic, count, difficulty, and toggles from scratch.
 function regenParams(w) {
   const p = new URLSearchParams();
-  if (w.sourceMode) p.set('mode', w.sourceMode);
+  if (w.worksheetType || w.sourceMode) p.set('mode', w.worksheetType || w.sourceMode);
   if (w.difficulty) p.set('difficulty', w.difficulty);
   if (w.questionCount) p.set('count', String(w.questionCount));
   const firstSkill = Array.isArray(w.content?.skillIds) ? w.content.skillIds[0] : (w.skillIds?.[0]);

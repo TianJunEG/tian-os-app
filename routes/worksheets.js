@@ -2,6 +2,8 @@ import express from 'express';
 import fs from 'fs/promises';
 import Worksheet from '../models/Worksheet.js';
 import User from '../models/User.js';
+import Assignment from '../models/Assignment.js';
+import Mistake from '../models/Mistake.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
@@ -12,6 +14,10 @@ import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAc
 import { logDiagnosedMisconceptions } from '../utils/misconceptionLog.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 import { commonMistakes } from '../utils/commonMistakes.js';
+import { resolveStudent } from '../utils/studentContext.js';
+import { generateWorksheet } from '../utils/worksheetGen.js';
+import { isCorrectWithContext } from '../utils/answerCheck.js';
+import { recordAttempt } from '../utils/masteryEngine.js';
 
 const router = express.Router();
 
@@ -45,11 +51,11 @@ function sendAiError(res, err) {
 router.post(
   '/generate',
   protect,
-  authorize('tutor', 'parent'),
+  authorize('tutor', 'parent', 'teacher'),
   uploadWorksheet.single('work'),
   async (req, res) => {
     if (!req.file) {
-      return res.status(400).json({ error: 'Please upload a photo of the marked work.' });
+      return generateStructuredWorksheet(req, res);
     }
 
     const { studentName, gradeLevel, topicHint, questionsPerSession, studentId } = req.body;
@@ -120,6 +126,79 @@ router.post(
     }
   }
 );
+
+async function generateStructuredWorksheet(req, res) {
+  try {
+    const student = await resolveStudent(req, req.body.studentId);
+    const {
+      worksheetType = 'recommended',
+      mode = worksheetType,
+      domain = 'fractions',
+      generatedFor = null,
+      skillIds = [],
+      topicId = null,
+      misconceptionTag = '',
+      difficulty = 'medium',
+      questionCount = 10,
+      includesSolutions = true,
+      includesMistakeReview = true,
+      subject: subjectInput,
+    } = req.body;
+    const subject = /^science$/i.test(String(subjectInput || '')) ? 'Science' : 'Math';
+    const generated = await generateWorksheet({
+      mode,
+      worksheetType,
+      studentId: student._id,
+      studentName: student.name,
+      skillIds,
+      topicId,
+      misconceptionTag,
+      difficulty,
+      questionCount,
+      includesSolutions,
+      includesMistakeReview,
+      subject,
+      domain,
+      generatedFor,
+    });
+    if (!generated.content.questions.length) {
+      return res.status(400).json({ error: structuredEmptyMessage(generated.sourceMode) });
+    }
+    const worksheet = await Worksheet.create({
+      userId: req.user.id,
+      studentId: student._id,
+      studentName: student.name,
+      subject,
+      workspaceId: student.workspaceId,
+      generatedByUserId: req.user.id,
+      generatedByRole: req.user.role || 'parent',
+      generatedFor: generatedFor || { studentId: student._id, studentName: student.name },
+      worksheetType: generated.worksheetType,
+      domain,
+      topicIds: generated.topicIds,
+      skillIds: generated.skillIds,
+      sourceMode: generated.sourceMode,
+      difficulty,
+      questionCount,
+      estimatedMinutes: generated.estimatedMinutes,
+      includesSolutions,
+      includesMistakeReview,
+      generatedContent: generated.content,
+      answerKey: generated.answerKey,
+      assignedStatus: 'unassigned',
+    });
+    return res.status(201).json({ success: true, worksheet: shapeStructuredWorksheet(worksheet) });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to generate worksheet.' });
+  }
+}
+
+function structuredEmptyMessage(sourceMode) {
+  if (sourceMode === 'recommended') return 'Great work. No recommended worksheet is needed right now.';
+  if (sourceMode === 'fluency') return 'Your fluency practice worksheet will appear when a skill enters fluency training.';
+  if (sourceMode === 'retention') return 'Retention review worksheets will appear when review dates are scheduled.';
+  return 'No questions available for the selected skills yet. Seed the question bank or pick another topic.';
+}
 
 // @route   GET /api/worksheets
 // @desc    List the current user's worksheets with due-status fields
@@ -230,12 +309,150 @@ router.get('/common-mistakes', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/worksheets/:id/answers
+// @desc    Answer key for a generated worksheet
+// @access  Private (owner/adult only)
+router.get('/:id/answers', protect, async (req, res) => {
+  try {
+    const worksheet = await Worksheet.findById(req.params.id);
+    if (!worksheet || !worksheet.sourceMode) return res.status(404).json({ error: 'Worksheet not found' });
+    await resolveStudent(req, worksheet.studentId);
+    return res.json({ worksheetId: worksheet._id, answerKey: worksheet.answerKey || worksheet.generatedContent?.answerKey || [] });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to load answer key.' });
+  }
+});
+
+// @route   GET /api/worksheets/:id/pdf
+// @desc    Lightweight printable PDF export for generated worksheets
+// @access  Private
+router.get('/:id/pdf', protect, async (req, res) => {
+  try {
+    const worksheet = await Worksheet.findById(req.params.id);
+    if (!worksheet || !worksheet.sourceMode) return res.status(404).json({ error: 'Worksheet not found' });
+    await resolveStudent(req, worksheet.studentId);
+    const includeAnswers = String(req.query.answers || '') === '1';
+    const pdf = createWorksheetPdf(worksheet, { includeAnswers });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${String(worksheet.generatedContent?.title || 'worksheet').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf"`);
+    return res.send(pdf);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to export worksheet PDF.' });
+  }
+});
+
+// @route   POST /api/worksheets/:id/submit
+// @desc    Submit answers for a generated worksheet and update mastery
+// @access  Private
+router.post('/:id/submit', protect, async (req, res) => {
+  try {
+    const worksheet = await Worksheet.findById(req.params.id);
+    if (!worksheet || !worksheet.sourceMode) return res.status(404).json({ error: 'Worksheet not found' });
+    const student = await resolveStudent(req, worksheet.studentId);
+    const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
+    if (!answers.length) return res.status(400).json({ error: 'Submit at least one answer.' });
+
+    const answerByKey = new Map();
+    answers.forEach((answer) => {
+      if (answer.questionId) answerByKey.set(String(answer.questionId), answer);
+      if (answer.n) answerByKey.set(`n:${answer.n}`, answer);
+    });
+
+    const questions = worksheet.generatedContent?.questions || [];
+    const results = [];
+    let correctCount = 0;
+    const improved = new Set();
+    const workingSubmitted = answers.some((answer) => answer.workingSubmitted || answer.workingUploaded || answer.fullscreenWorkingSubmitted);
+
+    for (const q of questions) {
+      const submitted = answerByKey.get(String(q.questionId)) || answerByKey.get(`n:${q.n}`) || {};
+      if (submitted.answer === undefined && submitted.text === undefined) continue;
+      const response = String(submitted.answer ?? submitted.text ?? '').trim();
+      const correct = isCorrectWithContext(response, q.answer, q.stem);
+      if (correct) {
+        correctCount += 1;
+        if (q.skillId) improved.add(String(q.skillId));
+      }
+      q.studentAnswer = response;
+      q.correct = correct;
+      q.markedAt = new Date();
+      results.push({ n: q.n, questionId: String(q.questionId), answer: response, correct, expected: q.answer, skillId: q.skillId });
+      if (q.skillId) {
+        await recordAttempt({
+          studentId: student._id,
+          skillId: q.skillId,
+          workspaceId: student.workspaceId,
+          correct,
+          module: 'Mastery Worksheet',
+          subject: worksheet.subject || 'Math',
+        });
+      }
+      if (!correct && q.questionId && q.skillId) {
+        await Mistake.create({
+          studentId: student._id,
+          workspaceId: student.workspaceId,
+          questionId: q.questionId,
+          skillId: q.skillId,
+          module: 'Mastery Worksheet',
+          questionStem: q.stem,
+          workedSolution: q.workedSolution || '',
+          studentAnswer: response,
+          correctAnswer: q.answer,
+          source: 'practice-incorrect',
+          status: 'open',
+        });
+      }
+    }
+
+    const attempted = results.length;
+    const accuracy = attempted ? Math.round((correctCount / attempted) * 100) : 0;
+    const now = new Date();
+    worksheet.completion = {
+      startedAt: worksheet.completion?.startedAt || now,
+      completedAt: now,
+      accuracy,
+      skillsImproved: [...improved],
+      workingSubmitted,
+    };
+    worksheet.sessionsCompleted = 1;
+    worksheet.sessionsTotal = 1;
+    worksheet.updatedAt = now;
+    await worksheet.save();
+
+    if (worksheet.linkedAssignmentId) {
+      await Assignment.findByIdAndUpdate(worksheet.linkedAssignmentId, {
+        status: 'completed',
+        completionDate: now,
+        score: accuracy,
+        'timestamps.completedAt': now,
+      });
+    }
+
+    return res.json({
+      success: true,
+      worksheetId: worksheet._id,
+      accuracy,
+      correctAnswers: correctCount,
+      totalAnswered: attempted,
+      skillsImproved: [...improved],
+      workingSubmitted,
+      results,
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to submit worksheet.' });
+  }
+});
+
 // @route   GET /api/worksheets/:id
 // @desc    Get a single worksheet with all practice sessions
 // @access  Private (owner or assigned student)
 router.get('/:id', protect, async (req, res) => {
   try {
     const worksheet = await Worksheet.findById(req.params.id);
+    if (worksheet?.sourceMode) {
+      await resolveStudent(req, worksheet.studentId);
+      return res.json({ success: true, worksheet: shapeStructuredWorksheet(worksheet) });
+    }
     if (!worksheet || !canViewWorksheet(worksheet, req.user.id)) {
       return res.status(404).json({ error: 'Worksheet not found' });
     }
@@ -244,6 +461,79 @@ router.get('/:id', protect, async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+
+function shapeStructuredWorksheet(w) {
+  return {
+    id: w._id,
+    worksheetId: w._id,
+    title: w.generatedContent?.title || 'Worksheet',
+    generatedFor: w.generatedFor || { studentId: w.studentId, studentName: w.studentName },
+    generatedBy: { userId: w.generatedByUserId || w.userId, role: w.generatedByRole },
+    worksheetType: w.worksheetType || w.sourceMode,
+    domain: w.domain || 'fractions',
+    studentName: w.studentName,
+    subject: w.subject,
+    skillIds: w.skillIds,
+    skills: w.generatedContent?.skillNames || [],
+    questionCount: w.questionCount,
+    estimatedMinutes: w.estimatedMinutes,
+    difficulty: w.difficulty,
+    createdAt: w.createdAt,
+    completion: w.completion || null,
+    answerKey: w.answerKey || w.generatedContent?.answerKey || [],
+    content: w.generatedContent,
+  };
+}
+
+function pdfEscape(value = '') {
+  return String(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+}
+
+function createWorksheetPdf(worksheet, { includeAnswers = false } = {}) {
+  const c = worksheet.generatedContent || {};
+  const lines = [
+    c.title || 'Worksheet',
+    `Student: ${worksheet.studentName || c.studentName || ''}`,
+    `Date generated: ${new Date(worksheet.createdAt || Date.now()).toLocaleDateString('en-SG')}`,
+    '',
+    ...(c.questions || []).flatMap((q) => [
+      `${q.n}. ${q.stem}`,
+      'Working: ________________________________',
+      '__________________________________________',
+      '',
+    ]),
+  ];
+  if (includeAnswers) {
+    lines.push('Answer Key', ...(worksheet.answerKey || c.answerKey || []).map((row) => `${row.n}. ${row.answer}${row.explanation ? ` - ${row.explanation}` : ''}`));
+  }
+  const content = ['BT', '/F1 12 Tf', '50 790 Td']
+    .concat(lines.slice(0, 55).flatMap((line, index) => [
+      index === 0 ? '/F1 18 Tf' : index === 1 ? '/F1 12 Tf' : '',
+      `(${pdfEscape(line).slice(0, 92)}) Tj`,
+      '0 -16 Td',
+    ]))
+    .concat(['ET'])
+    .filter(Boolean)
+    .join('\n');
+  const objects = [
+    '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+    '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj',
+    '4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj',
+    `5 0 obj << /Length ${Buffer.byteLength(content)} >> stream\n${content}\nendstream endobj`,
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  objects.forEach((obj) => {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${obj}\n`;
+  });
+  const xrefAt = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => { pdf += `${String(offset).padStart(10, '0')} 00000 n \n`; });
+  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefAt}\n%%EOF`;
+  return Buffer.from(pdf);
+}
 
 // @route   PATCH /api/worksheets/:id/sessions/:n
 // @desc    Reschedule a practice session and/or mark it complete

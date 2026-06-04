@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server-core';
-import { selectSimilarQuestions, generateWorksheet } from './worksheetGen.js';
+import { selectSimilarQuestions, generateWorksheet, distributeQuestionCounts } from './worksheetGen.js';
 import Subject from '../models/Subject.js';
 import Topic from '../models/Topic.js';
 import Skill from '../models/Skill.js';
@@ -13,6 +13,9 @@ import Question from '../models/Question.js';
 import Mistake from '../models/Mistake.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import PracticeAttempt from '../models/PracticeAttempt.js';
+import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
+import FluencyRecord from '../models/FluencyRecord.js';
+import RetentionReview from '../models/RetentionReview.js';
 
 let mongo, subject, topic, skillA, skillB, ws, studentId;
 
@@ -27,15 +30,23 @@ beforeAll(async () => {
   await mongoose.connect(mongo.getUri());
   subject = await Subject.create({ key: 'math', name: 'Mathematics', order: 0 });
   topic = await Topic.create({ subjectId: subject._id, name: 'Fractions', moeLevel: 'Primary 5', order: 0 });
-  skillA = await Skill.create({ topicId: topic._id, name: 'Adding fractions', slug: 'fr.add', moeLevel: 'Primary 5', order: 0 });
-  skillB = await Skill.create({ topicId: topic._id, name: 'Subtracting fractions', slug: 'fr.sub', moeLevel: 'Primary 5', order: 1 });
+  skillA = await Skill.create({ topicId: topic._id, name: 'Adding fractions', slug: 'fr.add', moeLevel: 'Primary 5', order: 0, metadata: { mathPathSkillId: 'F010', frameworkCode: 'F010' } });
+  skillB = await Skill.create({ topicId: topic._id, name: 'Subtracting fractions', slug: 'fr.sub', moeLevel: 'Primary 5', order: 1, metadata: { mathPathSkillId: 'F011', frameworkCode: 'F011' } });
   ws = new mongoose.Types.ObjectId();
 });
 afterAll(async () => { await mongoose.disconnect(); if (mongo) await mongo.stop(); });
 
 beforeEach(async () => {
   studentId = new mongoose.Types.ObjectId();
-  await Promise.all([Question.deleteMany({}), Mistake.deleteMany({}), MasteryRecord.deleteMany({}), PracticeAttempt.deleteMany({})]);
+  await Promise.all([
+    Question.deleteMany({}),
+    Mistake.deleteMany({}),
+    MasteryRecord.deleteMany({}),
+    PracticeAttempt.deleteMany({}),
+    MathPathDiagnosticSession.deleteMany({}),
+    FluencyRecord.deleteMany({}),
+    RetentionReview.deleteMany({}),
+  ]);
 });
 
 describe('selectSimilarQuestions', () => {
@@ -60,12 +71,31 @@ describe('selectSimilarQuestions', () => {
     expect(ids).not.toContain(String(drop._id));
   });
 
-  it('de-duplicates by stem', async () => {
+  it('de-duplicates true duplicate questions', async () => {
     await makeQ(skillA._id, 'medium', 'same stem');
     await makeQ(skillA._id, 'medium', 'same stem');
     await makeQ(skillB._id, 'medium', 'same stem');
     const out = await selectSimilarQuestions({ studentId, skillIds: [skillA._id, skillB._id], difficulty: 'medium', count: 10 });
     expect(out).toHaveLength(1);
+  });
+
+  it('keeps same-stem visual questions when the answer or diagram differs', async () => {
+    for (let i = 1; i <= 5; i++) {
+      await makeQ(skillA._id, 'easy', 'What fraction of the shape is shaded?', {
+        answer: `${i}/6`,
+        visual: { type: 'svg', payload: { visualType: 'shaded_shape', shaded: i, total: 6 } },
+      });
+    }
+
+    const out = await selectSimilarQuestions({
+      studentId,
+      skillIds: [skillA._id],
+      difficulty: 'easy',
+      count: 5,
+    });
+
+    expect(out).toHaveLength(5);
+    expect(new Set(out.map((q) => q.answer))).toHaveLength(5);
   });
 
   it('caps the result at count', async () => {
@@ -103,6 +133,19 @@ describe('selectSimilarQuestions', () => {
 });
 
 describe('generateWorksheet — modes', () => {
+  it('weights question distribution toward higher-priority skills', () => {
+    const distribution = distributeQuestionCounts([
+      { skillId: 'weak-a', weight: 8 },
+      { skillId: 'weak-b', weight: 6 },
+      { skillId: 'review-c', weight: 2 },
+    ], 16);
+    expect(distribution.map((row) => [row.skillId, row.count])).toEqual([
+      ['weak-a', 8],
+      ['weak-b', 6],
+      ['review-c', 2],
+    ]);
+  });
+
   it('selected_topic with explicit skillIds targets those skills', async () => {
     await makeQ(skillA._id, 'medium', 'qA');
     const r = await generateWorksheet({ mode: 'selected_topic', studentId, skillIds: [skillA._id], questionCount: 5 });
@@ -134,6 +177,82 @@ describe('generateWorksheet — modes', () => {
     await MasteryRecord.create({ studentId, skillId: skillB._id, workspaceId: ws, module: 'MathPath', status: 'mastered', score: 95 }); // ignored
     const r = await generateWorksheet({ mode: 'weak_skills', studentId, questionCount: 5 });
     expect(r.skillIds).toEqual([String(skillA._id)]);
+  });
+
+  it('recommended worksheets prioritise weak skills, repeated mistakes, retention risk, and fluency gaps', async () => {
+    for (let i = 0; i < 8; i++) await makeQ(skillA._id, 'medium', `weak-a-${i}`);
+    for (let i = 0; i < 5; i++) await makeQ(skillB._id, 'medium', `fluency-b-${i}`);
+    await MasteryRecord.create({ studentId, skillId: skillA._id, workspaceId: ws, module: 'MathPath', status: 'needs_review', score: 15 });
+    await Mistake.create({ studentId, workspaceId: ws, questionId: new mongoose.Types.ObjectId(), skillId: skillA._id, status: 'open', frequency: 3 });
+    await RetentionReview.create({ studentId, skillId: skillB._id, skillCode: 'F011', reviewDate: new Date('2026-06-01T00:00:00.000Z'), status: 'retention_risk' });
+    await FluencyRecord.create({ studentId, skillId: skillB._id, skillCode: 'F011', skillName: 'Subtracting fractions', fluencyStatus: 'developing', fluencyScore: 70 });
+
+    const r = await generateWorksheet({ worksheetType: 'recommended', studentId, questionCount: 10 });
+
+    expect(r.skillIds).toEqual(expect.arrayContaining([String(skillA._id), String(skillB._id)]));
+    expect(r.content.personalization.sourceMode).toBe('recommended');
+    expect(r.content.questionDistribution[0].count).toBeGreaterThanOrEqual(r.content.questionDistribution[1].count);
+    expect(r.content.answerKey).toHaveLength(r.content.questions.length);
+  });
+
+  it('fluency worksheets target developing fluency skills', async () => {
+    await makeQ(skillB._id, 'medium', 'fluency q');
+    await FluencyRecord.create({ studentId, skillId: skillB._id, skillCode: 'F011', skillName: 'Subtracting fractions', fluencyStatus: 'developing', fluencyScore: 72 });
+
+    const r = await generateWorksheet({ worksheetType: 'fluency', studentId, questionCount: 5 });
+
+    expect(r.skillIds).toEqual([String(skillB._id)]);
+    expect(r.content.personalization.sourceSummary).toMatch(/automaticity/i);
+  });
+
+  it('retention worksheets target scheduled review skills', async () => {
+    await makeQ(skillA._id, 'medium', 'retention q');
+    await RetentionReview.create({ studentId, skillId: skillA._id, skillCode: 'F010', reviewDate: new Date(), status: 'scheduled' });
+
+    const r = await generateWorksheet({ worksheetType: 'retention', studentId, questionCount: 5 });
+
+    expect(r.skillIds).toEqual([String(skillA._id)]);
+    expect(r.content.personalization.sourceSummary).toMatch(/retention review/i);
+  });
+
+  it('diagnostic_results targets weak skills from the latest diagnostic result', async () => {
+    await makeQ(skillB._id, 'medium', 'qB');
+    await MathPathDiagnosticSession.create({
+      diagnosticSessionId: 'diag-ws-1',
+      studentId: String(studentId),
+      subjectId: 'math',
+      domainId: 'fractions',
+      status: 'completed',
+      completedAt: new Date('2026-02-01T00:00:00.000Z'),
+      result: {
+        weakSkills: [{ skillId: 'F011', name: 'Subtracting fractions' }],
+        recommendedStartingSkill: { skillId: 'F010', name: 'Adding fractions' },
+      },
+    });
+
+    const r = await generateWorksheet({ mode: 'diagnostic_results', studentId, questionCount: 5 });
+
+    expect(r.skillIds).toContain(String(skillB._id));
+    expect(r.content.title).toMatch(/Diagnostic results/);
+    expect(r.content.personalization.notRandom).toBe(true);
+    expect(r.content.personalization.sourceSummary).toMatch(/latest Math diagnostic/i);
+  });
+
+  it('diagnostic_results falls back to diagnostic-sourced mistakes when placement gaps are unavailable', async () => {
+    await makeQ(skillA._id, 'medium', 'qA');
+    await Mistake.create({
+      studentId,
+      workspaceId: ws,
+      questionId: new mongoose.Types.ObjectId(),
+      skillId: skillA._id,
+      status: 'open',
+      source: 'diagnostic-incorrect',
+    });
+
+    const r = await generateWorksheet({ mode: 'diagnostic_results', studentId, questionCount: 5 });
+
+    expect(r.skillIds).toEqual([String(skillA._id)]);
+    expect(r.content.personalization.evidenceSignals[0].type).toBe('diagnostic-incorrect');
   });
 
   it('recent_mistakes with subject=Science only pulls Science-module mistakes', async () => {
