@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
-import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../student/studentVisualMode';
+import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 
 const iconMap = {
   badge: Award,

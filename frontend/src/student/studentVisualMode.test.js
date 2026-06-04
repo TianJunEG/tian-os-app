@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveStudentVisualMode, STUDENT_VISUAL_MODES } from './studentVisualMode';
+import { resolveStudentVisualMode, STUDENT_VISUAL_MODES } from '../design-os/studentVisualMode';
 
 describe('student visual mode resolver', () => {
   it('uses an explicit valid studentVisualMode first', () => {

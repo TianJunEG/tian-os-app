@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { NAV } from '../../config/nav';
 import { Spinner } from '../ui';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../student/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 
 // The single Tian OS shell every role-dashboard renders inside:
 //   desktop/tablet → top navigation
