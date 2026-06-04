@@ -487,7 +487,7 @@ function inferAllowedInputTools(answerFormat) {
   return [];
 }
 
-function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
+function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, allowedInputTools, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
   const primaryMapping = getSkillCurriculumMapping(skillId, {
     country: 'SG',
     curriculum: 'MOE_PRIMARY_MATH_2021',
@@ -512,7 +512,7 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     answerFormat,
     answer_type: answerFormat,
     answerType: answerFormat,
-    allowedInputTools: inferAllowedInputTools(answerFormat),
+    allowedInputTools: Array.isArray(allowedInputTools) ? allowedInputTools : inferAllowedInputTools(answerFormat),
     workingRequired,
     requiresWorking: workingRequired,
     workingOptional: !workingRequired,
@@ -792,11 +792,13 @@ function templateForSkill(skillId, variant, ctx) {
     }
     case 'F014': {
       const w = seq(s, 1, 5); const n = seq(s + 3, 1, 5); const d = seq(s + 5, n + 1, 8);
+      const imp = frac(w * d + n, d);
       return {
-        prompt: `Write the mixed number shown: ${w} ${n}/${d}.`,
-        answer: answerPayloadMixed(w, n, d),
-        acceptedAnswers: [mixedStr({ whole: w, numerator: n, denominator: d })],
-        solutionSteps: ['Keep whole part and fraction part together.', `Answer remains ${w} ${n}/${d}.`],
+        prompt: `Convert the mixed number ${w} ${n}/${d} to an improper fraction.`,
+        answer: answerPayloadFraction(imp.numerator, imp.denominator),
+        acceptedAnswers: [fracStr(imp)],
+        solutionSteps: [`Multiply ${w} × ${d} and add ${n}.`, `Write the result over ${d}: ${imp.numerator}/${imp.denominator}.`],
+        allowedInputTools: ['fraction', 'clear'],
       };
     }
     case 'F015': {
@@ -1123,6 +1125,7 @@ export function generateFractionQuestion(options = {}) {
     prompt: payload.prompt,
     answer: payload.answer,
     acceptedAnswers: payload.acceptedAnswers,
+    allowedInputTools: payload.allowedInputTools,
     workingRequired,
     mentalMathEligible: !!family.mentalMathEligible,
     solutionSteps: payload.solutionSteps,

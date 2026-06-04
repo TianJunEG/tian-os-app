@@ -39,6 +39,15 @@ describe('fractionQuestionGenerator', () => {
     expect(checkFractionAnswer({ studentAnswer: '1/0', correctAnswer }).correct).toBe(false);
   });
 
+  it('asks F014 students to convert mixed numbers to improper fractions', () => {
+    const q = generateFractionQuestion({ skillId: 'F014', questionFamilyId: 'QF_F014_001', difficulty: 3, variant: 7, mode: 'practice' });
+    expect(q.prompt).toMatch(/Convert the mixed number .* to an improper fraction\./);
+    expect(q.answer?.type).toBe('fraction');
+    expect(q.answer.numerator).toBeGreaterThan(q.answer.denominator);
+    expect(q.allowedInputTools).toEqual(['fraction', 'clear']);
+    expect(q.acceptedAnswers).toEqual([q.answer.display]);
+  });
+
   it('scores equal-denominator and equal-numerator comparisons as symbols (F007/F008/F011)', () => {
     const q007 = generateFractionQuestion({ skillId: 'F007', questionFamilyId: 'QF_F007_001', difficulty: 2, variant: 11, mode: 'diagnostic' });
     const q008 = generateFractionQuestion({ skillId: 'F008', questionFamilyId: 'QF_F008_001', difficulty: 2, variant: 13, mode: 'diagnostic' });
