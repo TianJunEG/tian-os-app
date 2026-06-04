@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowRight, BookOpenCheck, CheckCircle2, Clock3, Lock, R
 import { mathpathAPI } from '../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, Spinner } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../student/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 
 function statusLabel(skill = {}) {
   if (skill.locked) return 'Locked';
@@ -82,7 +82,7 @@ function groupSkills(skills = []) {
   return groups;
 }
 
-function SummaryCard({ icon: Icon, label, value, helper, tone = 'navy' }) {
+function SummaryCard({ icon: Icon, label, value, helper, tone = 'navy', visualStyles }) {
   const toneClass = {
     navy: 'bg-navy-50 text-navy-700',
     gold: 'bg-gold-100 text-gold-700',
@@ -92,7 +92,7 @@ function SummaryCard({ icon: Icon, label, value, helper, tone = 'navy' }) {
   }[tone] || 'bg-navy-50 text-navy-700';
 
   return (
-    <Card className="border-white/80 bg-white/90 p-4">
+    <Card className={`p-4 ${visualStyles?.accentCard || 'border-white/80 bg-white/90'}`}>
       <div className="flex items-center gap-3">
         <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${toneClass}`}>
           <Icon className="h-5 w-5" />
@@ -107,17 +107,17 @@ function SummaryCard({ icon: Icon, label, value, helper, tone = 'navy' }) {
   );
 }
 
-function NextStepHero({ skill, onStart, starting }) {
+function NextStepHero({ skill, onStart, starting, visualStyles }) {
   if (!skill) {
     return (
-      <Card className="border-violet-100 bg-gradient-to-br from-violet-50 via-white to-mint-50 p-5">
+      <Card className={`p-5 ${visualStyles.heroCard}`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Badge tone="success">All caught up</Badge>
             <h2 className="mt-3 font-display text-3xl font-semibold text-ink-900">No urgent skill today</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-600">Review a mastered skill or start a fresh MathPath challenge when you are ready.</p>
           </div>
-          <Button to="/student/mathpath" icon={ArrowRight}>Open MathPath</Button>
+          <Button to="/student/mathpath" icon={ArrowRight} className={visualStyles.primaryCta}>Open MathPath</Button>
         </div>
       </Card>
     );
@@ -125,9 +125,9 @@ function NextStepHero({ skill, onStart, starting }) {
 
   const action = recommendedAction(skill);
   return (
-    <Card className="overflow-hidden border-violet-100 bg-white/90 p-0">
+    <Card className={`overflow-hidden p-0 ${visualStyles.accentCard}`}>
       <div className="grid gap-0 lg:grid-cols-[14rem_1fr]">
-        <div className="relative min-h-[9rem] overflow-hidden bg-gradient-to-br from-violet-200 via-sky-100 to-mint-100 text-violet-800">
+        <div className={`relative min-h-[9rem] overflow-hidden ${visualStyles.heroPanel}`}>
           <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/45" />
           <div className="absolute bottom-4 left-5 grid h-14 w-14 place-items-center rounded-2xl bg-paper/80 shadow-resting">
             <Sparkles className="h-7 w-7" />
@@ -139,7 +139,7 @@ function NextStepHero({ skill, onStart, starting }) {
           <p className="mt-2 text-sm text-ink-500">{skill.topicName}</p>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-600">{action.helper}</p>
           <div className="mt-5">
-            <Button icon={ArrowRight} disabled={starting || action.disabled} onClick={() => onStart(skill)}>
+            <Button icon={ArrowRight} disabled={starting || action.disabled} onClick={() => onStart(skill)} className={visualStyles.primaryCta}>
               {action.cta}
             </Button>
           </div>
@@ -149,12 +149,12 @@ function NextStepHero({ skill, onStart, starting }) {
   );
 }
 
-function SkillRow({ skill, onStart, starting }) {
+function SkillRow({ skill, onStart, starting, visualStyles }) {
   const label = statusLabel(skill);
   const action = recommendedAction(skill);
 
   return (
-    <Card className={`border-white/80 bg-white/90 p-4 ${skill.locked ? 'opacity-80' : ''}`}>
+    <Card className={`p-4 ${visualStyles.accentCard} ${skill.locked ? 'opacity-80' : ''}`}>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -189,7 +189,7 @@ function SkillRow({ skill, onStart, starting }) {
   );
 }
 
-function SkillSection({ title, question, skills, emptyText, icon: Icon, tone, onStart, starting }) {
+function SkillSection({ title, question, skills, emptyText, icon: Icon, tone, onStart, starting, visualStyles }) {
   return (
     <section>
       <div className="mb-3 flex items-end justify-between gap-3">
@@ -213,11 +213,12 @@ function SkillSection({ title, question, skills, emptyText, icon: Icon, tone, on
               skill={skill}
               onStart={onStart}
               starting={starting}
+              visualStyles={visualStyles}
             />
           ))}
         </div>
       ) : (
-        <Card className="border-white/80 bg-white/90 p-4 text-sm text-ink-500">{emptyText}</Card>
+        <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>{emptyText}</Card>
       )}
     </section>
   );
@@ -274,13 +275,13 @@ export default function SkillGraph() {
     <div className={`mx-auto max-w-6xl space-y-6 ${visualStyles.page}`}>
       <PageHeader title="Progress" subtitle="Mastery visibility for MathPath skills." />
 
-      <NextStepHero skill={nextSkill} onStart={startPractice} starting={starting} />
+      <NextStepHero skill={nextSkill} onStart={startPractice} starting={starting} visualStyles={visualStyles} />
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard icon={CheckCircle2} label="Mastered Skills" value={groups.mastered.length} helper="Secure skills" tone="success" />
-        <SummaryCard icon={Sparkles} label="Working On" value={groups.workingOn.length} helper="Active learning" tone="navy" />
-        <SummaryCard icon={RotateCcw} label="Needs Review" value={groups.needsReview.length} helper="Fix these next" tone="error" />
-        <SummaryCard icon={Clock3} label="Not Started" value={groups.notStarted.length} helper="Still ahead" tone="neutral" />
+        <SummaryCard icon={CheckCircle2} label="Mastered Skills" value={groups.mastered.length} helper="Secure skills" tone="success" visualStyles={visualStyles} />
+        <SummaryCard icon={Sparkles} label="Working On" value={groups.workingOn.length} helper="Active learning" tone="navy" visualStyles={visualStyles} />
+        <SummaryCard icon={RotateCcw} label="Needs Review" value={groups.needsReview.length} helper="Fix these next" tone="error" visualStyles={visualStyles} />
+        <SummaryCard icon={Clock3} label="Not Started" value={groups.notStarted.length} helper="Still ahead" tone="neutral" visualStyles={visualStyles} />
       </section>
 
       <SkillSection
@@ -292,6 +293,7 @@ export default function SkillGraph() {
         tone="success"
         onStart={startPractice}
         starting={starting}
+        visualStyles={visualStyles}
       />
       <SkillSection
         title="Working On"
@@ -302,6 +304,7 @@ export default function SkillGraph() {
         tone="navy"
         onStart={startPractice}
         starting={starting}
+        visualStyles={visualStyles}
       />
       <SkillSection
         title="Needs Review"
@@ -312,6 +315,7 @@ export default function SkillGraph() {
         tone="error"
         onStart={startPractice}
         starting={starting}
+        visualStyles={visualStyles}
       />
       <SkillSection
         title="Not Started"
@@ -322,6 +326,7 @@ export default function SkillGraph() {
         tone="neutral"
         onStart={startPractice}
         starting={starting}
+        visualStyles={visualStyles}
       />
     </div>
   );

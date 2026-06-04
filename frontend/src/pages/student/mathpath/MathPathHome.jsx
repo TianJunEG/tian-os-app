@@ -13,7 +13,7 @@ import {
 } from '../../../mathpath/curriculum';
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../student/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
 import {
   buildMathPathDomainProgressState,
   getMathPathDomainProgressState,
