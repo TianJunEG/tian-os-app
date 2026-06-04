@@ -164,18 +164,29 @@ export function buildWorkingQualityParentSummary(workingAnalysisSummary = {}) {
       : average >= 65 ? 'good'
         : average >= 40 ? 'needsImprovement'
           : 'unreadable';
-  const guidance = workingAnalysisSummary.guidance || [
+  const parentInsights = Array.isArray(workingAnalysisSummary.parentInsights)
+    ? workingAnalysisSummary.parentInsights
+    : [];
+  const methodMistakes = Array.isArray(workingAnalysisSummary.methodMistakes)
+    ? workingAnalysisSummary.methodMistakes
+    : [];
+  const guidance = workingAnalysisSummary.guidance || parentInsights.map((insight) => (
+    insight.recommendation || insight.summary || insight.message || ''
+  )).filter(Boolean).slice(0, 3);
+  const fallbackGuidance = guidance.length ? guidance : [
     'Write each step clearly on a new line.',
     'Label the question number before each method.',
   ];
   const parentExplanation =
-    missingWorkingCount > 0
+    parentInsights[0]?.summary || parentInsights[0]?.message || methodMistakes[0]?.studentExplanation || (
+      missingWorkingCount > 0
       ? 'Some required working was missing. Please remind your child to upload written steps at the end of each session.'
       : workingQualityBand === 'needsImprovement' || workingQualityBand === 'unreadable'
         ? 'Working was uploaded, but clarity can improve. Clearer step-by-step writing will support better feedback.'
-        : 'Working quality is generally good and supports clear review.';
+        : 'Working quality is generally good and supports clear review.'
+    );
 
-  return { workingQualityBand, missingWorkingCount, guidance, parentExplanation };
+  return { workingQualityBand, missingWorkingCount, guidance: fallbackGuidance, parentExplanation };
 }
 
 export function buildWeeklyParentActionPlan(options = {}) {

@@ -1,6 +1,7 @@
 import { fractionSkillGraph, getSkill } from '../fractions/fractionSkillGraph.js';
 import { getQuestionFamiliesBySkill } from '../fractions/fractionQuestionFamilies.js';
 import { getFractionMistakeTaxonomy } from '../fractions/fractionMistakeToMasteryEngine.js';
+import { buildParentInsight, buildTutorInsight, explainRemediation } from '../insights/insightQualityEngine.js';
 
 function toNum(value, fallback = 0) {
   const n = Number(value);
@@ -493,6 +494,36 @@ export function buildUnifiedAdultIntelligenceModel(options = {}) {
   const upcomingActivities = buildUpcomingActivities({ recommendedActions, retentionSignals });
   const timeline = buildLearningTimeline({ assessmentResults, mistakePlans, helpRequests, workingSessions });
   const alerts = buildAdultAlerts({ supportFlags, recommendedActions });
+  const topMistake = mistakeRows[0] || {};
+  const focusSkillId = topMistake.remediationSkillIds?.[0] || topMistake.rootCauseSkillIds?.[0] || masterySignals.currentSkillId;
+  const focusSkillLabel = focusSkillId ? parentSkillLabel(focusSkillId) : 'the current skill';
+  const insightQuality = {
+    parent: buildParentInsight({
+      correct: topMistake.mistakeCode ? false : true,
+      confidence: confidenceSignals.trend === 'watch' ? 'high' : '',
+      skillName: focusSkillLabel,
+      recommendedSkillName: focusSkillLabel,
+      mistakeName: topMistake.mistakeName,
+      frequency: topMistake.frequency,
+      severity: topMistake.severity || supportFlags[0]?.severity || 'medium',
+    }),
+    tutor: buildTutorInsight({
+      correct: topMistake.mistakeCode ? false : true,
+      confidence: confidenceSignals.trend === 'watch' ? 'high' : '',
+      skillName: focusSkillLabel,
+      recommendedSkillName: focusSkillLabel,
+      mistakeName: topMistake.mistakeName,
+      frequency: topMistake.frequency,
+      severity: topMistake.severity || supportFlags[0]?.severity || 'medium',
+      evidenceSummary: supportFlags[0]?.detail || '',
+    }),
+    remediation: explainRemediation({
+      skillName: focusSkillLabel,
+      mistakeName: topMistake.mistakeName,
+      frequency: topMistake.frequency,
+      reason: topMistake.mistakeName || supportFlags[0]?.detail || '',
+    }),
+  };
 
   const model = {
     intelligenceModelVersion: 'adult-intelligence-v1',
@@ -512,9 +543,12 @@ export function buildUnifiedAdultIntelligenceModel(options = {}) {
       ? `Current focus: ${masterySignals.currentFocusSkills.map(parentSkillLabel).join(', ')}.`
       : 'Learning data is still building.',
     whyItIsHappening: mistakeRows[0]
-      ? `${mistakeRows[0].mistakeName} is affecting ${parentSkillLabel(mistakeRows[0].remediationSkillIds[0] || mistakeRows[0].rootCauseSkillIds[0])}.`
+      ? insightQuality.parent.interpretation
       : supportFlags[0]?.detail || 'No major root-cause pattern is currently flagged.',
-    whatShouldHappenNext: recommendedActions[0]?.title || 'Continue current practice.',
+    whatShouldHappenNext: (focusSkillId || topMistake.mistakeCode)
+      ? insightQuality.parent.recommendation
+      : recommendedActions[0]?.title || 'Continue current practice.',
+    insightQuality,
     masterySignals,
     rootCauses: dedupe(mistakeRows.flatMap((row) => row.rootCauseSkillIds)).map((skillId) => ({ skillId, label: parentSkillLabel(skillId) })),
     misconceptions: mistakeRows,

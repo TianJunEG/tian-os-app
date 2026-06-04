@@ -17,8 +17,10 @@ function escalationLabel(escalation = '') {
 export default function AdultWorkingReviewPanel({ review = {}, title = 'Working Review' }) {
   const summary = review.summary || {};
   const sessions = Array.isArray(review.workingSessions) ? review.workingSessions : [];
+  const insights = Array.isArray(review.workingInsights) ? review.workingInsights : [];
   const helpRequests = Array.isArray(review.helpRequests) ? review.helpRequests : [];
   const recentSessions = sessions.slice(0, 3);
+  const recentInsights = insights.slice(0, 3);
   const topHelp = helpRequests.slice(0, 3);
 
   return (
@@ -70,6 +72,29 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
             </div>
           ) : (
             <p className="text-sm text-ink-500">No working submissions yet.</p>
+          )}
+        </div>
+
+        <div className="rounded-lg border border-hairline p-3">
+          <div className="mb-2 flex items-center gap-2">
+            <FileCheck2 className="h-4 w-4 text-ink-500" />
+            <p className="text-sm font-semibold text-ink-700">Working insights</p>
+          </div>
+          {recentInsights.length ? (
+            <div className="space-y-2">
+              {recentInsights.map((record) => {
+                const insight = record.workingInsight || {};
+                return (
+                  <div key={record.workingId} className="rounded-md bg-slate-50 px-3 py-2 text-sm text-ink-600">
+                    <p className="font-semibold text-ink-700">{record.skillId || record.questionId || 'Submitted working'}</p>
+                    <p>Method: {insight.detectedMethod || 'Analysis is still being prepared'}</p>
+                    <p>Issue: {insight.detectedIssue || insight.studentExplanation || 'Working saved. Insight pending.'}</p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-ink-500">Working insights will appear after analysis.</p>
           )}
         </div>
 

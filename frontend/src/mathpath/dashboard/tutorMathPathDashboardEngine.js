@@ -6,6 +6,7 @@ import {
   buildTutorInterventionQueue,
   buildUnifiedAdultIntelligenceModel,
 } from './adultIntelligenceEngine.js';
+import { buildTutorInsight } from '../insights/insightQualityEngine.js';
 
 function toNum(v, fallback = 0) {
   const n = Number(v);
@@ -262,6 +263,17 @@ export function buildTutorIntelligenceInsight(options = {}) {
     topRoot.evidence?.[0] || null,
   ].filter(Boolean);
   const severity = highConfidenceWrong >= 3 || wrongCount >= 5 || topRoot.severity === 'high' ? 'high' : evidence.length ? 'medium' : 'low';
+  const qualityInsight = buildTutorInsight({
+    correct: evidence.length ? false : true,
+    confidence: highConfidenceWrong ? 'high' : '',
+    skillName: focusSkillName,
+    recommendedSkillName: focusSkillName,
+    rootCauseSkillName: focusSkillName,
+    frequency: wrongCount || highConfidenceWrong,
+    evidenceSummary: evidence.join(' '),
+    severity,
+    tutorAction: `Use visual models and guided examples for ${focusSkillName}, then end with an exit check.`,
+  });
 
   return {
     rootCause: `Student does not understand ${focusSkillName}.`,
@@ -270,6 +282,7 @@ export function buildTutorIntelligenceInsight(options = {}) {
     confidence: severity === 'high' ? 'High' : severity === 'medium' ? 'Medium' : 'Low',
     severity,
     evidence,
+    qualityInsight,
     recommendedIntervention: {
       title: '20-minute remediation lesson',
       durationMinutes: 20,
@@ -282,7 +295,7 @@ export function buildTutorIntelligenceInsight(options = {}) {
         'End with one confidence-rated exit question.',
       ],
     },
-    nextTutorAction: `Run a 20-minute remediation lesson on ${focusSkillName}.`,
+    nextTutorAction: `Run a 20-minute remediation lesson on ${focusSkillName}. ${qualityInsight.recommendation}`,
   };
 }
 
@@ -609,7 +622,7 @@ export function buildTutorMathPathDashboard(options = {}) {
 
   const overallTutorSummary =
     tutorIntelligenceInsight.evidence.length
-      ? `${tutorIntelligenceInsight.rootCause} ${tutorIntelligenceInsight.nextTutorAction}`
+      ? `${tutorIntelligenceInsight.rootCause} ${tutorIntelligenceInsight.qualityInsight?.interpretation || ''} ${tutorIntelligenceInsight.nextTutorAction}`.trim()
       : rootCauseAnalysis.length
       ? `${rootCauseAnalysis[0].suspectedRootCauseSkillIds[0] || rootCauseAnalysis[0].weakSkillId} ${skillName(rootCauseAnalysis[0].suspectedRootCauseSkillIds[0] || rootCauseAnalysis[0].weakSkillId)} appears to be the root cause affecting ${rootCauseAnalysis[0].weakSkillId} ${rootCauseAnalysis[0].weakSkillName}.`
       : 'No critical root-cause pattern currently flagged. Continue routine monitoring.';

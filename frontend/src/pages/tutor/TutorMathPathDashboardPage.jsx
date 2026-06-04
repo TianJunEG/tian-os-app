@@ -539,6 +539,28 @@ function MistakeInsightsMvp({ dashboard = {}, snapshot }) {
 }
 
 function normalizeWorkingEvidence(workingReview = {}) {
+  const insights = Array.isArray(workingReview.workingInsights) ? workingReview.workingInsights : [];
+  if (insights.length) {
+    return insights.slice(0, 5).map((record, index) => {
+      const insight = record.workingInsight || {};
+      return {
+        id: record.workingId || `working-insight-${index}`,
+        title: record.skillId ? `${skillLabel(record.skillId)} · ${record.questionId}` : record.questionId || 'Submitted working',
+        image: record.rawImage || record.rawImages?.[0] || '',
+        ocr: firstNonEmpty(insight.extractedWorkingText, record.ocrOutput?.rawText, 'OCR extraction pending'),
+        method: firstNonEmpty(insight.detectedMethod, record.procedureAnalysis?.procedureSummary, record.studentFeedback, 'Method analysis pending'),
+        mistakes: [
+          insight.detectedIssue,
+          insight.misconceptionDetected?.description,
+        ].filter(Boolean),
+        correct: typeof record.answerCorrect === 'boolean' ? record.answerCorrect : null,
+        confidence: record.confidenceLevel || 'Not recorded',
+        timeTaken: record.datasetRecord?.outcome?.timeTaken || null,
+        status: insight.qualityBand || record.analysisStatus || 'submitted',
+        tutorInsight: insight.tutorInsight || record.tutorInsight || null,
+      };
+    });
+  }
   const sessions = Array.isArray(workingReview.workingSessions) ? workingReview.workingSessions : [];
   return sessions.slice(0, 3).map((session, index) => ({
     id: session.workingSessionId || `working-${index}`,
@@ -595,6 +617,9 @@ function WorkingEvidenceMvp({ workingReview = {} }) {
                   </div>
                   <p className="mt-2"><span className="font-semibold">OCR extraction:</span> {row.ocr}</p>
                   <p className="mt-1"><span className="font-semibold">Method analysis:</span> {row.method}</p>
+                  {row.tutorInsight && (
+                    <p className="mt-1"><span className="font-semibold">Tutor note:</span> {row.tutorInsight.recommendation || row.tutorInsight.summary || row.tutorInsight.message}</p>
+                  )}
                   <p className="mt-1"><span className="font-semibold">Identified mistakes:</span> {row.mistakes.length ? row.mistakes.join(', ') : 'None identified yet'}</p>
                   <p className="mt-1 text-ink-500">Confidence: {row.confidence} · Time taken: {row.timeTaken ? `${row.timeTaken}s` : 'Not recorded'}</p>
                 </div>

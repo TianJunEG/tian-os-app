@@ -126,7 +126,11 @@ describe('StudentDashboard analytics cards', () => {
 
     await waitFor(() => expect(screen.getByText('67%')).toBeInTheDocument());
     expect(screen.getByText('33%')).toBeInTheDocument();
-    expect(screen.getByText('Confident but incorrect. Review these questions.')).toBeInTheDocument();
+    expect(screen.getAllByText(/You were confident but answered incorrectly/i).length).toBeGreaterThan(0);
+    expect(screen.getByText('Learning Insight')).toBeInTheDocument();
+    expect(screen.getByText('Observation')).toBeInTheDocument();
+    expect(screen.getByText('What it means')).toBeInTheDocument();
+    expect(screen.getByText('Next step')).toBeInTheDocument();
     expect(screen.queryByText("Good job! You're improving.")).not.toBeInTheDocument();
     expect(recordEvent).toHaveBeenCalledWith(expect.objectContaining({
       eventType: 'recommendation_selected',

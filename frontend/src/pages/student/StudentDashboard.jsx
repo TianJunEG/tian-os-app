@@ -25,11 +25,12 @@ import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pi
 import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionSkillGraph';
 import { learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
-import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../student/studentVisualMode';
+import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 import {
   clearMathPathDomainProgressState,
   getMathPathDomainProgressState,
 } from '../../mathpath/state/mathPathDomainProgressState';
+import { buildStudentInsight, interpretConfidence } from '../../mathpath/insights/insightQualityEngine';
 
 function actionMeta(nextAction = {}) {
   const map = {
@@ -431,16 +432,18 @@ function confidenceInsightFromBuckets(buckets = {}) {
   const confidentIncorrect = Number(buckets.confidentIncorrect || 0);
   const unsureCorrect = Number(buckets.unsureCorrect || 0);
   if (confidentIncorrect > 0) {
+    const insight = interpretConfidence({ correct: false, confidence: 'high' });
     return {
       value: confidentIncorrect,
-      body: 'Confident but incorrect. Review these questions.',
+      body: insight.student,
       empty: false,
     };
   }
   if (unsureCorrect > 0) {
+    const insight = interpretConfidence({ correct: true, confidence: 'low' });
     return {
       value: unsureCorrect,
-      body: 'Correct but unsure. Build confidence with short success streaks.',
+      body: insight.student,
       empty: false,
     };
   }
@@ -449,6 +452,43 @@ function confidenceInsightFromBuckets(buckets = {}) {
     body: 'Confidence looks aligned with recent answers.',
     empty: false,
   };
+}
+
+function StudentLearningInsightCard({ analytics = {}, currentSkill = {}, nextAction = {} }) {
+  const buckets = analytics.confidenceBuckets || {};
+  const confidentIncorrect = Number(buckets.confidentIncorrect || 0);
+  const unsureCorrect = Number(buckets.unsureCorrect || 0);
+  const correct = confidentIncorrect ? false : true;
+  const confidence = confidentIncorrect ? 'high' : unsureCorrect ? 'low' : 'high';
+  const insight = buildStudentInsight({
+    correct,
+    confidence,
+    occurrences: confidentIncorrect || unsureCorrect || Number(analytics.questionsAnswered || 0),
+    skillName: currentSkill?.skillName || 'your current skill',
+    recommendedSkillName: currentSkill?.skillName || 'your current skill',
+    nextStep: nextAction?.explanation || 'Continue with the recommended activity.',
+    strongImprovement: Number(analytics.accuracyRate || 0) >= 80,
+  });
+
+  return (
+    <Card className="rounded-[18px] border-blue-100 bg-blue-50/60 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-blue-700">Learning Insight</p>
+      <div className="mt-3 grid gap-3 md:grid-cols-3">
+        <div>
+          <p className="text-sm font-semibold text-ink-800">Observation</p>
+          <p className="mt-1 text-sm leading-5 text-ink-600">{insight.observation}</p>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-ink-800">What it means</p>
+          <p className="mt-1 text-sm leading-5 text-ink-600">{insight.interpretation}</p>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-ink-800">Next step</p>
+          <p className="mt-1 text-sm leading-5 text-ink-600">{insight.nextStep}</p>
+        </div>
+      </div>
+    </Card>
+  );
 }
 
 function buildUpperPrimaryMetricCards(analytics = {}) {
@@ -521,15 +561,15 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement })
         <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-navy-700">Recommended Next <Sparkles className="h-5 w-5 text-blue-300" /></h2>
         <p className="mt-1 text-sm text-ink-500">Choose one focused action. You don't need to do everything.</p>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(({ icon: Icon, title, body, to, state, tone }) => (
-          <Card key={title} className={`rounded-[14px] bg-gradient-to-br p-4 shadow-sm ${tone}`}>
+          <Card key={title} className={`flex h-full flex-col rounded-[14px] bg-gradient-to-br p-4 shadow-sm ${tone}`}>
             <span className="grid h-14 w-14 place-items-center rounded-full bg-white/75 shadow-sm">
               <Icon className="h-7 w-7" />
             </span>
             <h3 className="mt-4 font-semibold text-navy-700">{title}</h3>
-            <p className="mt-2 min-h-[2.5rem] text-sm leading-5 text-ink-700">{body}</p>
-            <Button to={to} state={state} size="s" icon={ArrowRight} className="mt-4 h-10 w-10 rounded-full px-0" aria-label={title} />
+            <p className="mt-2 flex-1 text-sm leading-5 text-ink-700">{body}</p>
+            <Button to={to} state={state} size="s" icon={ArrowRight} className="mt-auto h-10 w-10 rounded-full px-0" aria-label={title} />
           </Card>
         ))}
       </div>
@@ -652,18 +692,18 @@ function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual
         <h2 className="font-display text-2xl font-semibold text-ink-900">{isLowerPrimary(visual.mode) ? 'Pick One Mission' : 'Recommended Next'}</h2>
         {!isLowerPrimary(visual.mode) && <p className="mt-1 text-sm text-ink-500">Choose one focused action. You do not need to do everything today.</p>}
       </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
         {items.map(({ icon: Icon, title, body, to, state, cta, primary }) => (
-          <Card key={title} className={`relative overflow-hidden p-4 ${primary ? visual.styles.softCard : visual.styles.card}`}>
+          <Card key={title} className={`relative flex h-full flex-col overflow-hidden p-4 ${primary ? visual.styles.softCard : visual.styles.card}`}>
             <DecorativeMotifs enabled={visual.styles.decorative && primary} />
-            <div className="flex items-start gap-3">
+            <div className="flex flex-1 items-start gap-3">
               <span className={`grid ${isLowerPrimary(visual.mode) ? 'h-12 w-12' : 'h-10 w-10'} shrink-0 place-items-center rounded-xl ${primary ? visual.styles.primaryIcon : visual.styles.icon}`}>
                 <Icon className="h-5 w-5" />
               </span>
-              <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 flex-1 self-stretch flex-col">
                 <h3 className="font-semibold text-ink-900">{title}</h3>
-                {!isLowerPrimary(visual.mode) && <p className="mt-1 min-h-[2.5rem] text-sm leading-5 text-ink-500">{body}</p>}
-                <Button to={to} state={state} size={isLowerPrimary(visual.mode) ? 'm' : 's'} variant={primary ? 'primary' : 'secondary'} icon={ArrowRight} className="mt-4">
+                {!isLowerPrimary(visual.mode) && <p className="mt-1 flex-1 text-sm leading-5 text-ink-500">{body}</p>}
+                <Button to={to} state={state} size={isLowerPrimary(visual.mode) ? 'm' : 's'} variant={primary ? 'primary' : 'secondary'} icon={ArrowRight} className="mt-auto">
                   {primary && isLowerPrimary(visual.mode) ? visual.styles.practiceCta : cta}
                 </Button>
               </div>
@@ -871,6 +911,7 @@ export default function StudentDashboard() {
         </section>
 
         <UpperPrimaryMetrics analytics={dashboardAnalytics} />
+        <StudentLearningInsightCard analytics={dashboardAnalytics} currentSkill={vm.currentSkill} nextAction={vm.nextAction} />
 
         <section className="grid gap-5 xl:grid-cols-[2fr_0.95fr]">
           <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} />
@@ -927,6 +968,9 @@ export default function StudentDashboard() {
         hasPlacement={vm.hasPlacement}
         visual={visual}
       />
+      <div className="mt-4">
+        <StudentLearningInsightCard analytics={dashboardAnalytics} currentSkill={vm.currentSkill} nextAction={vm.nextAction} />
+      </div>
 
       <section className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <CompactStatCard

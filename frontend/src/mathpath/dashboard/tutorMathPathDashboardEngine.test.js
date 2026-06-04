@@ -39,9 +39,10 @@ describe('Tutor Intelligence Engine', () => {
     expect(insight.evidence).toContain('Wrong on 8 equivalent fraction questions.');
     expect(insight.evidence).toContain('3 high-confidence incorrect answers.');
     expect(insight.evidence).toContain('Working shows denominator misunderstanding.');
+    expect(insight.qualityInsight.recommendation).toMatch(/visual models and guided examples/i);
     expect(insight.recommendedIntervention.title).toBe('20-minute remediation lesson');
     expect(insight.recommendedIntervention.durationMinutes).toBe(20);
-    expect(insight.nextTutorAction).toBe('Run a 20-minute remediation lesson on Equivalent Fractions.');
+    expect(insight.nextTutorAction).toMatch(/Run a 20-minute remediation lesson on Equivalent Fractions/);
   });
 
   it('includes tutor intelligence in the MathPath tutor dashboard payload', () => {

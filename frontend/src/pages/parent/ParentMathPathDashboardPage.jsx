@@ -7,6 +7,7 @@ import { useChild } from './useChild';
 import { mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
+import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
 
 function statusTone(status) {
   if (status === 'advanced') return 'success';
@@ -91,6 +92,16 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
     summary.parentFriendlyNarrative,
   ) || 'Recent MathPath practice is available for review.';
 
+  const confidence = inferConfidence(summary, placement);
+  const parentInsight = buildParentInsight({
+    correct: accuracy >= 70,
+    confidence,
+    skillName: weakSkill,
+    recommendedSkillName: weakSkill,
+    severity: accuracy < 50 ? 'high' : accuracy < 70 ? 'medium' : 'low',
+    parentAction: `Practise ${weakSkill} for 10 minutes, then review one mistake together.`,
+  });
+
   return {
     mastered,
     total,
@@ -101,8 +112,9 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
     attentionSkill: weakSkill,
     attentionSkillId,
     accuracy,
-    confidence: inferConfidence(summary, placement),
-    recommendation: `Practise ${weakSkill}`,
+    confidence,
+    recommendation: parentInsight.recommendation,
+    supportInsight: parentInsight,
   };
 }
 
@@ -166,6 +178,13 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
           <div className="mt-5 rounded-xl border border-gold-200 bg-gold-50 px-4 py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-800">Recommendation</p>
             <p className="mt-1 font-semibold text-ink-800">{snapshot.recommendation}</p>
+            {snapshot.supportInsight && (
+              <div className="mt-3 grid gap-2 text-sm text-ink-700">
+                <p><span className="font-semibold">Issue:</span> {snapshot.supportInsight.whatIsTheIssue}</p>
+                <p><span className="font-semibold">How serious:</span> {snapshot.supportInsight.howSerious}</p>
+                <p><span className="font-semibold">What to do:</span> {snapshot.supportInsight.whatCanIDo}</p>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -364,7 +383,7 @@ function WeeklyActionPlanCard({ plan, onPrimary }) {
   );
 }
 
-function deriveParentPayload(studentId, mastery) {
+function deriveParentPayload(studentId, mastery, workingAnalysisSummary = {}) {
   const records = Array.isArray(mastery?.records) ? mastery.records : [];
   const masteredSkillIds = records
     .filter((r) => ['mastered', 'accurate', 'fluent', 'retained'].includes(String(r.status || '').toLowerCase()))
@@ -392,7 +411,7 @@ function deriveParentPayload(studentId, mastery) {
     retentionState: {},
     assessmentResults: [],
     mistakePlans: [],
-    workingAnalysisSummary: {},
+    workingAnalysisSummary,
   });
   return pipeline.parentDashboard || null;
 }
@@ -418,7 +437,7 @@ export default function ParentMathPathDashboardPage() {
         mathpathAPI.workingReviewSummary({ studentId }),
         mathpathAPI.fluency(studentId),
       ]);
-      const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {});
+      const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {}, workingRes?.data?.summary || {});
       setSummary(parentPayload);
       setPlacement(latestRes?.data?.result || null);
       setWorkingReview(workingRes?.data || null);
