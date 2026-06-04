@@ -10,6 +10,14 @@ const practiceAttemptSchema = new mongoose.Schema({
   answer: { type: String, default: '' },
   correct: { type: Boolean, default: false },
   timeMs: { type: Number, default: null },
+  questionStartTime: { type: Date, default: null },
+  questionSubmitTime: { type: Date, default: null },
+  timeTakenSeconds: { type: Number, default: null },
+  confidence: { type: String, default: '' },
+  skipped: { type: Boolean, default: false },
+  workingSubmitted: { type: Boolean, default: false },
+  workingUploaded: { type: Boolean, default: false },
+  fullscreenWorkingSubmitted: { type: Boolean, default: false },
   hintsUsed: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
