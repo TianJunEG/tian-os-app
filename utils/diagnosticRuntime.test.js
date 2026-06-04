@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDiagnosticLifecycleLog,
   resolveDiagnosticCompletion,
-} from './diagnosticRuntime.js';
+} from '../services/diagnostics/diagnosticRuntime.js';
 
 describe('diagnostic runtime completion rules', () => {
   it('does not complete a 10-question diagnostic after one adaptive stop signal', () => {
