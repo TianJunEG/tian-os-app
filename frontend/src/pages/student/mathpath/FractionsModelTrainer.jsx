@@ -3,10 +3,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, PencilLine, RotateCcw } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
-import FractionAnswerInput, { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
+import { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
+import AnswerInputRenderer from './components/AnswerInputRenderer';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import { useAuth } from '../../../context/AuthContext';
-import WorkingCanvas from '../../../components/learning/WorkingCanvas';
+import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
+import { checkFractionAnswer } from '../../../mathpath/fractions/fractionQuestionGenerator';
 
 const MODE_META = {
   i_do: { label: 'I Do', helper: 'Watch each model step.' },
@@ -18,12 +20,83 @@ function normalizeAnswer(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
 }
 
+function stripTrailingUnit(value) {
+  return normalizeAnswer(value).replace(/[a-z]+$/i, '');
+}
+
+function splitFinalAnswerUnit(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return { value: '', unit: '' };
+
+  const spacedUnit = raw.match(/^(.+\d)\s+([a-zA-Z][a-zA-Z.]*)\.?$/);
+  if (spacedUnit) return { value: spacedUnit[1].trim(), unit: spacedUnit[2].replace(/\.$/, '') };
+
+  const compactUnit = raw.match(/^(-?\d+(?:\s+\d+\s*\/\s*\d+|\s*\/\s*-?\d+)?)([a-zA-Z]+)$/);
+  if (compactUnit) return { value: compactUnit[1].trim(), unit: compactUnit[2] };
+
+  return { value: raw, unit: '' };
+}
+
+function isNumericAnswerValue(value) {
+  return /^-?\d+(?:\.\d+)?$/.test(String(value || '').trim());
+}
+
+function isMathAnswerValue(value) {
+  const raw = String(value || '').trim();
+  return isFractionLikeAnswerValue(raw) || isNumericAnswerValue(raw);
+}
+
+export function buildFinalAnswerQuestion({ expectedAnswer = '', prompt = 'Enter your final answer.' } = {}) {
+  const { value } = splitFinalAnswerUnit(expectedAnswer);
+  const answerFormat = isFractionLikeAnswerValue(value)
+    ? 'mixed_number'
+    : isNumericAnswerValue(value)
+      ? 'whole_number'
+      : 'text';
+
+  return {
+    questionId: 'model-trainer-final-answer',
+    skillId: 'MODEL-TRAINER',
+    prompt,
+    answerFormat,
+    answer_type: answerFormat,
+    answerType: answerFormat,
+    allowedInputTools: answerFormat === 'mixed_number'
+      ? ['fraction', 'mixed', 'whole', 'clear']
+      : answerFormat === 'whole_number'
+        ? ['whole', 'clear']
+        : undefined,
+    answer: {
+      type: answerFormat === 'whole_number' ? 'whole' : answerFormat === 'mixed_number' ? 'fraction' : 'text',
+      display: value,
+      value,
+    },
+  };
+}
+
+function checkFinalAnswer({ answer, expectedAnswer }) {
+  const expectedValue = splitFinalAnswerUnit(expectedAnswer).value;
+  const answerValue = splitFinalAnswerUnit(answer).value;
+
+  if (isMathAnswerValue(expectedValue) || isMathAnswerValue(answerValue)) {
+    return checkFractionAnswer({
+      studentAnswer: answerValue,
+      correctAnswer: expectedValue,
+      acceptedAnswers: [],
+    }).correct;
+  }
+
+  return normalizeAnswer(answerValue) === normalizeAnswer(expectedValue)
+    || normalizeAnswer(answer) === normalizeAnswer(expectedAnswer)
+    || normalizeAnswer(answerValue) === stripTrailingUnit(expectedAnswer);
+}
+
 function toInteger(value) {
   const n = Number(String(value || '').trim());
   return Number.isFinite(n) && Number.isInteger(n) ? n : null;
 }
 
-function checkWeDoAnswer({ answer, expectedAnswer, expectedAction }) {
+export function checkWeDoAnswer({ answer, expectedAnswer, expectedAction }) {
   const normalizedAnswer = normalizeAnswer(answer);
   const normalizedExpected = normalizeAnswer(expectedAnswer);
 
@@ -70,12 +143,33 @@ function checkWeDoAnswer({ answer, expectedAnswer, expectedAction }) {
         ok: toInteger(answer) === toInteger(expectedAnswer),
         hint: `Remove the asked fraction of the remainder: ${expectedAnswer}.`,
       };
+    case 'write_final_answer':
+      return {
+        ok: checkFinalAnswer({ answer, expectedAnswer }),
+        hint: 'Write the final amount left.',
+      };
     default:
       return { ok: normalizedAnswer === normalizedExpected, hint: '' };
   }
 }
 
-function BarModel({ model = {} }) {
+export function buildWeDoPromptForStep(step = {}) {
+  if (step.student_prompt) return step.student_prompt;
+  const finalAnswer = step.model?.finalAnswer || '';
+  if (!finalAnswer) return null;
+  const lowerWholeLabel = String(step.model?.wholeLabel || '').toLowerCase();
+  const question = lowerWholeLabel.includes('l')
+    ? 'How much juice is left?'
+    : 'What is the final answer?';
+  return {
+    type: 'text',
+    question,
+    expected_answer: finalAnswer,
+    generated: true,
+  };
+}
+
+function BarModel({ model = {}, hidePartLabels = false }) {
   const denominator = Math.max(1, Number(model.denominator || 1));
   const removedParts = new Set((model.removedParts || []).map(Number));
   const remainingParts = new Set((model.remainingParts || []).map(Number));
@@ -83,9 +177,6 @@ function BarModel({ model = {} }) {
   const subdivide = Math.max(1, Number(model.subdivideRemainingBy || 1));
   const removedSubparts = new Set((model.removedSubparts || []).map(Number));
   const finalSubpartsLeft = new Set((model.finalSubpartsLeft || []).map(Number));
-  const hatchStyle = {
-    backgroundImage: 'repeating-linear-gradient(135deg, rgba(185, 28, 28, 0.18) 0 6px, rgba(255, 255, 255, 0.9) 6px 12px)',
-  };
   let runningSubpart = 0;
 
   return (
@@ -102,23 +193,17 @@ function BarModel({ model = {} }) {
           const selected = selectedRegion.has(part);
           const shouldSubdivide = subdivide > 1 && remaining;
           const partClass = removed
-            ? 'text-error-700'
+            ? 'bg-rose-50 text-rose-700 opacity-80'
             : selected || (model.highlightRemaining && remaining)
               ? 'bg-gold-100 text-gold-800'
               : remaining
-                ? 'bg-success-100 text-success-700'
-                : 'bg-paper text-ink-500';
+                ? 'bg-blue-50 text-navy-700'
+                : 'bg-white text-ink-500';
           return (
             <div
               key={part}
               className={`relative flex flex-1 items-stretch justify-center border-r border-navy-200 last:border-r-0 ${partClass}`}
-              style={removed ? hatchStyle : undefined}
             >
-              {removed && (
-                <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <span className="h-[2px] w-[72%] rotate-[-18deg] rounded-full bg-error-500/60" />
-                </span>
-              )}
               {shouldSubdivide ? (
                 <div className="flex w-full">
                   {Array.from({ length: subdivide }, () => {
@@ -129,22 +214,16 @@ function BarModel({ model = {} }) {
                       <div
                         key={runningSubpart}
                         className={`relative flex flex-1 items-center justify-center border-r border-navy-200 text-xs font-semibold last:border-r-0 ${
-                          subRemoved ? 'text-error-700' : subLeft ? 'bg-success-100 text-success-700' : ''
+                          subRemoved ? 'bg-rose-50 text-rose-700 opacity-80' : subLeft ? 'bg-blue-50 text-navy-700' : 'bg-white text-ink-500'
                         }`}
-                        style={subRemoved ? hatchStyle : undefined}
                       >
-                        {subRemoved && (
-                          <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                            <span className="h-[2px] w-[72%] rotate-[-18deg] rounded-full bg-error-500/60" />
-                          </span>
-                        )}
-                        {runningSubpart}
+                        {!hidePartLabels && runningSubpart}
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <span className="flex items-center justify-center px-1 text-sm font-semibold">{part}</span>
+                <span className="flex items-center justify-center px-1 text-sm font-semibold">{hidePartLabels ? '' : part}</span>
               )}
             </div>
           );
@@ -154,6 +233,160 @@ function BarModel({ model = {} }) {
       {model.finalAnswer && <p className="mt-3 text-base font-semibold text-success-700">Answer: {model.finalAnswer}</p>}
     </div>
   );
+}
+
+export function buildRevealedModelForPrompt({ model = {}, expectedAction = '', reveal = true } = {}) {
+  if (reveal || !expectedAction) {
+    return { model, hidePartLabels: false, hideBranchModel: false };
+  }
+
+  const wholeOnly = {
+    ...model,
+    denominator: 1,
+    removedParts: [],
+    remainingParts: [1],
+    selectedRegion: [],
+    subdivideRemainingBy: 1,
+    removedSubparts: [],
+    finalSubpartsLeft: [],
+    equivalence: '',
+    finalAnswer: '',
+    remainderLabel: '',
+    branchModel: null,
+  };
+
+  if (expectedAction === 'split_whole_into_denominator_parts') {
+    return { model: wholeOnly, hidePartLabels: true, hideBranchModel: true };
+  }
+
+  const withoutAnswerDetails = {
+    ...model,
+    removedParts: Array.isArray(model.removedParts) ? model.removedParts : [],
+    remainingParts: Array.isArray(model.remainingParts) && model.remainingParts.length
+      ? model.remainingParts
+      : Array.from({ length: Math.max(1, Number(model.denominator || 1)) }, (_, index) => index + 1),
+    selectedRegion: [],
+    highlightRemaining: false,
+    remainderLabel: '',
+    equivalence: '',
+    finalAnswer: '',
+    branchModel: null,
+  };
+
+  if (expectedAction === 'shade_or_remove_selected_parts') {
+    return {
+      model: {
+        ...withoutAnswerDetails,
+        removedParts: [],
+        removedSubparts: [],
+        finalSubpartsLeft: [],
+      },
+      hidePartLabels: true,
+      hideBranchModel: true,
+    };
+  }
+
+  if (expectedAction === 'count_remaining_parts' || expectedAction === 'select_remaining_region' || expectedAction === 'treat_remainder_as_new_amount') {
+    return {
+      model: {
+        ...withoutAnswerDetails,
+        removedParts: [],
+        remainingParts: Array.from({ length: Math.max(1, Number(model.denominator || 1)) }, (_, index) => index + 1),
+        removedSubparts: [],
+        finalSubpartsLeft: [],
+      },
+      hidePartLabels: true,
+      hideBranchModel: true,
+    };
+  }
+
+  if (expectedAction === 'subdivide_remaining_region') {
+    return {
+      model: {
+        ...withoutAnswerDetails,
+        removedParts: [],
+        remainingParts: Array.from({ length: Math.max(1, Number(model.denominator || 1)) }, (_, index) => index + 1),
+        subdivideRemainingBy: 1,
+        removedSubparts: [],
+        finalSubpartsLeft: [],
+      },
+      hidePartLabels: true,
+      hideBranchModel: true,
+    };
+  }
+
+  if (expectedAction === 'remove_fraction_of_remainder') {
+    return {
+      model: {
+        ...withoutAnswerDetails,
+        removedParts: [],
+        remainingParts: Array.from({ length: Math.max(1, Number(model.denominator || 1)) }, (_, index) => index + 1),
+        removedSubparts: [],
+        finalSubpartsLeft: [],
+      },
+      hidePartLabels: true,
+      hideBranchModel: true,
+    };
+  }
+
+  return {
+    model: {
+      ...withoutAnswerDetails,
+      removedParts: [],
+      remainingParts: Array.from({ length: Math.max(1, Number(model.denominator || 1)) }, (_, index) => index + 1),
+      removedSubparts: [],
+      finalSubpartsLeft: [],
+    },
+    hidePartLabels: true,
+    hideBranchModel: true,
+  };
+}
+
+export function buildModelRevealStates({ model = {}, expectedAction = '', reveal = true } = {}) {
+  const teacherSolutionState = {
+    model,
+    hidePartLabels: false,
+    hideBranchModel: false,
+  };
+  const studentAttemptState = buildRevealedModelForPrompt({
+    model,
+    expectedAction,
+    reveal: false,
+  });
+
+  return {
+    teacherSolutionState,
+    studentAttemptState,
+    activeState: reveal ? teacherSolutionState : studentAttemptState,
+  };
+}
+
+export function getVisibleWeDoInstruction({ instruction = '', hasPrompt = false, reveal = true } = {}) {
+  if (!hasPrompt || reveal) return instruction;
+  return 'Answer the prompt first. The completed model step will appear after you check.';
+}
+
+export function canRevealModelAnswer({ working = {}, bypass = false } = {}) {
+  return Boolean(bypass || working.workingSubmitted || working.workingImage);
+}
+
+export function getStep5CompletionState({
+  working = {},
+  drawingBypassAllowed = false,
+  finalAnswer = '',
+  modelAnswerRevealed = false,
+} = {}) {
+  const modelSaved = canRevealModelAnswer({ working, bypass: drawingBypassAllowed });
+  const finalAnswerEntered = Boolean(String(finalAnswer || '').trim());
+  const canProceed = Boolean(modelSaved && finalAnswerEntered && modelAnswerRevealed);
+
+  return {
+    modelSaved,
+    finalAnswer: String(finalAnswer || ''),
+    finalAnswerEntered,
+    modelAnswerRevealed: Boolean(modelAnswerRevealed),
+    canProceed,
+  };
 }
 
 function BranchingModel({ branchModel }) {
@@ -436,8 +669,11 @@ export default function FractionsModelTrainer() {
   const [feedback, setFeedback] = useState('');
   const [weDoHint, setWeDoHint] = useState('');
   const [youDoAnswer, setYouDoAnswer] = useState('');
+  const [youDoAnswerFeedback, setYouDoAnswerFeedback] = useState('');
   const [youDoWorking, setYouDoWorking] = useState({});
   const [showYouDoModel, setShowYouDoModel] = useState(false);
+  const [fullScreenDrawingOpen, setFullScreenDrawingOpen] = useState(false);
+  const [reflectionAnswer, setReflectionAnswer] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -467,11 +703,14 @@ export default function FractionsModelTrainer() {
 
   const steps = template?.model_steps || [];
   const currentStep = steps[stepIndex] || null;
-  const prompt = currentStep?.student_prompt || null;
+  const prompt = mode === 'we_do' ? buildWeDoPromptForStep(currentStep || {}) : currentStep?.student_prompt || null;
   const progressValue = Math.min(stepIndex + 1, Math.max(1, steps.length));
   const expectedAnswer = prompt?.expected_answer || '';
-  const expectedAction = (currentStep?.expected_actions || [])[0] || '';
+  const expectedAction = (currentStep?.expected_actions || [])[0] || (prompt?.generated ? 'write_final_answer' : '');
   const canCheck = Boolean(prompt && studentAnswer.trim());
+  const promptAnswerQuestion = prompt?.type === 'choice'
+    ? null
+    : buildFinalAnswerQuestion({ expectedAnswer, prompt: prompt?.question || 'Enter your final answer.' });
   const isFractionAnswer = Boolean(
     prompt?.type !== 'choice'
     && prompt?.type !== 'number'
@@ -479,6 +718,36 @@ export default function FractionsModelTrainer() {
   );
   const expressionQuestion = isFractionAnswer && Boolean(extractFractionExpression(prompt?.question || ''));
   const checkedCorrect = feedback === 'correct';
+  const shouldRevealTeacherSolution = mode === 'i_do' || !prompt || checkedCorrect;
+  const weDoStepComplete = mode !== 'we_do' || !prompt || checkedCorrect || Boolean(reflectionAnswer);
+  const drawingBypassAllowed = Boolean(template?.allowDrawingBypass || currentStep?.allowDrawingBypass);
+  const finalStep = steps[steps.length - 1] || {};
+  const finalAnswerParts = splitFinalAnswerUnit(finalStep?.model?.finalAnswer || '');
+  const finalAnswerQuestion = buildFinalAnswerQuestion({
+    expectedAnswer: finalStep?.model?.finalAnswer || '',
+    prompt: 'Enter your final answer.',
+  });
+  const finalAnswerChecked = !finalAnswerParts.value || youDoAnswerFeedback === 'correct';
+  const revealModelAllowed = canRevealModelAnswer({ working: youDoWorking, bypass: drawingBypassAllowed }) && finalAnswerChecked;
+  const step5Completion = getStep5CompletionState({
+    working: youDoWorking,
+    drawingBypassAllowed,
+    finalAnswer: youDoAnswer,
+    modelAnswerRevealed: showYouDoModel,
+  });
+  const isLastStep = stepIndex >= steps.length - 1;
+  const canProceedFromCurrentStep = mode === 'you_do' ? step5Completion.canProceed : weDoStepComplete;
+  const nextDisabled = mode === 'you_do' ? !canProceedFromCurrentStep : isLastStep || !canProceedFromCurrentStep;
+  const modelRevealState = buildModelRevealStates({
+    model: currentStep.model || {},
+    expectedAction,
+    reveal: shouldRevealTeacherSolution,
+  }).activeState;
+  const visibleInstruction = getVisibleWeDoInstruction({
+    instruction: currentStep.instruction,
+    hasPrompt: mode === 'we_do' && Boolean(prompt),
+    reveal: shouldRevealTeacherSolution,
+  });
 
   const modeHelper = useMemo(() => {
     if (!template) return MODE_META[mode].helper;
@@ -491,6 +760,9 @@ export default function FractionsModelTrainer() {
     setWeDoHint('');
     setShowYouDoModel(false);
     setYouDoWorking({});
+    setFullScreenDrawingOpen(false);
+    setReflectionAnswer('');
+    setYouDoAnswerFeedback('');
   };
 
   const goToStep = (nextIndex) => {
@@ -506,6 +778,38 @@ export default function FractionsModelTrainer() {
     const result = checkWeDoAnswer({ answer: studentAnswer, expectedAnswer, expectedAction });
     setFeedback(result.ok ? 'correct' : 'try_again');
     setWeDoHint(result.ok ? '' : result.hint || '');
+  };
+
+  const checkYouDoFinalAnswer = () => {
+    if (!finalAnswerParts.value) return;
+    setYouDoAnswerFeedback(checkFinalAnswer({
+      answer: youDoAnswer,
+      expectedAnswer: finalStep?.model?.finalAnswer || '',
+    }) ? 'correct' : 'try_again');
+  };
+
+  useEffect(() => {
+    if (mode !== 'you_do') return;
+    console.debug('[FractionsModelTrainer] Step 5 completion', {
+      modelSaved: step5Completion.modelSaved,
+      finalAnswer: step5Completion.finalAnswer,
+      modelAnswerRevealed: step5Completion.modelAnswerRevealed,
+      canProceed: step5Completion.canProceed,
+    });
+  }, [
+    mode,
+    step5Completion.modelSaved,
+    step5Completion.finalAnswer,
+    step5Completion.modelAnswerRevealed,
+    step5Completion.canProceed,
+  ]);
+
+  const handleNext = () => {
+    if (mode === 'you_do' && isLastStep && step5Completion.canProceed) {
+      navigate('/student/mathpath');
+      return;
+    }
+    goToStep(stepIndex + 1);
   };
 
   if (loading) return <Spinner label="Loading model trainer..." />;
@@ -572,7 +876,7 @@ export default function FractionsModelTrainer() {
         {mode !== 'you_do' ? (
           <div className="grid gap-5 lg:grid-cols-[1fr,1.1fr]">
             <div>
-              <p className="mb-4 rounded-xl bg-bone px-4 py-3 text-base leading-7 text-ink-800">{currentStep.instruction}</p>
+              <p className="mb-4 rounded-xl bg-bone px-4 py-3 text-base leading-7 text-ink-800">{visibleInstruction}</p>
               {mode === 'we_do' && prompt && (
               <div className="rounded-xl border border-hairline bg-white p-4">
                 {expressionQuestion ? (
@@ -598,10 +902,12 @@ export default function FractionsModelTrainer() {
                         </button>
                       ))}
                     </div>
-                  ) : expressionQuestion ? null : isFractionAnswer ? (
-                    <FractionAnswerInput
+                ) : expressionQuestion ? null : isFractionAnswer || promptAnswerQuestion ? (
+                    <AnswerInputRenderer
+                      question={promptAnswerQuestion}
                       value={studentAnswer}
                       onChange={setStudentAnswer}
+                      onEnter={checkPrompt}
                     />
                   ) : (
                     <input
@@ -622,16 +928,34 @@ export default function FractionsModelTrainer() {
                   </div>
                 </div>
               )}
-              {currentStep.sense_check && (
+              {currentStep.sense_check && shouldRevealTeacherSolution && (
                 <div className="mt-4 rounded-xl border border-gold-200 bg-gold-100/50 p-4">
                   <p className="text-sm font-semibold text-gold-700">Does your answer make sense?</p>
                   <p className="mt-1 text-sm text-ink-700">{currentStep.sense_check}</p>
+                  {mode === 'we_do' && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {['Yes', 'No'].map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => setReflectionAnswer(option.toLowerCase())}
+                          className={`rounded-lg border px-4 py-2 text-sm font-semibold ${
+                            reflectionAnswer === option.toLowerCase()
+                              ? 'border-navy-700 bg-navy-50 text-navy-800'
+                              : 'border-hairline bg-white text-ink-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
             <div>
-              <BarModel model={currentStep.model} />
-              <BranchingModel branchModel={currentStep.model?.branchModel} />
+              <BarModel model={modelRevealState.model} hidePartLabels={modelRevealState.hidePartLabels} />
+              {!modelRevealState.hideBranchModel && <BranchingModel branchModel={modelRevealState.model?.branchModel} />}
             </div>
           </div>
         ) : (
@@ -639,34 +963,78 @@ export default function FractionsModelTrainer() {
             <div className="rounded-xl border border-dashed border-navy-300 bg-navy-50/50 p-5">
               <div className="mb-3 flex items-center gap-2 text-navy-700">
                 <PencilLine className="h-5 w-5" />
-                <h2 className="font-semibold">Independent drawing placeholder</h2>
+                <h2 className="font-semibold">Draw your model</h2>
               </div>
-              <p className="text-sm leading-6 text-ink-600">Draw your model before checking the revealed version.</p>
-              <WorkingCanvas
-                questionId={`${template.template_id || templateId}-you-do`}
-                required
-                allowNoWorking={false}
-                label="Draw your model"
-                compact
-                showMathStamps={false}
-                canvasClassName="h-[340px] sm:h-[420px]"
-                onSubmit={setYouDoWorking}
-              />
-              <textarea
-                value={youDoAnswer}
-                onChange={(event) => setYouDoAnswer(event.target.value)}
-                className="mt-4 min-h-[120px] w-full rounded-xl border border-hairline px-3 py-2 text-sm"
-                placeholder="Write your final answer and notes about your model. Leave this blank between attempts if you want a fresh workspace."
-              />
+              <p className="text-sm leading-6 text-ink-600">Use the full-screen drawing space so your bar model has enough room.</p>
+              <div className="mt-4 rounded-xl border border-hairline bg-white p-4">
+                {youDoWorking.workingSubmitted ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-success-700">
+                      <Check className="h-4 w-4" />
+                      Model saved
+                    </div>
+                    {youDoWorking.workingImage && (
+                      <img
+                        src={youDoWorking.workingImage}
+                        alt="Saved model drawing preview"
+                        className="max-h-44 w-full rounded-lg border border-hairline bg-white object-contain"
+                      />
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="s" variant="secondary" onClick={() => setFullScreenDrawingOpen(true)}>View Drawing</Button>
+                      <Button size="s" onClick={() => setFullScreenDrawingOpen(true)}>Edit Drawing</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-ink-800">No model saved yet</p>
+                      <p className="mt-1 text-xs text-ink-500">Draw and save your model before revealing the worked answer.</p>
+                    </div>
+                    <Button size="s" onClick={() => setFullScreenDrawingOpen(true)}>Open Full-Screen Drawing</Button>
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 rounded-xl border border-hairline bg-white p-4">
+                <p className="mb-3 text-sm font-semibold text-navy-700">Enter your final answer.</p>
+                <AnswerInputRenderer
+                  question={finalAnswerQuestion}
+                  value={youDoAnswer}
+                  onChange={(nextValue) => {
+                    setYouDoAnswer(nextValue);
+                    setYouDoAnswerFeedback('');
+                  }}
+                  onEnter={checkYouDoFinalAnswer}
+                />
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button size="s" variant="secondary" disabled={!youDoAnswer.trim() || !finalAnswerParts.value} onClick={checkYouDoFinalAnswer}>
+                    Check final answer
+                  </Button>
+                  {youDoAnswerFeedback === 'correct' && (
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-success-700">
+                      <Check className="h-4 w-4" />
+                      Answer: {finalStep?.model?.finalAnswer || finalAnswerParts.value}
+                    </span>
+                  )}
+                  {youDoAnswerFeedback === 'try_again' && (
+                    <span className="text-sm font-semibold text-error-700">Try again. Check the fraction and the unit.</span>
+                  )}
+                </div>
+              </div>
               <Button
 	                size="s"
 	                variant="secondary"
 	                className="mt-3"
-	                disabled={!youDoWorking.workingSubmitted}
+	                disabled={!revealModelAllowed}
 	                onClick={() => setShowYouDoModel(true)}
 	              >
                 Reveal model answer
               </Button>
+              {!revealModelAllowed && (
+                <p className="mt-2 text-xs font-semibold text-ink-500">
+                  Save your full-screen drawing and check your final answer before revealing the model answer.
+                </p>
+              )}
               <div className="mt-4 rounded-xl bg-white p-3 text-sm text-ink-700">
                 <p className="font-semibold text-navy-700">Sense check</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
@@ -694,10 +1062,38 @@ export default function FractionsModelTrainer() {
           <Button variant="secondary" icon={ArrowLeft} disabled={stepIndex === 0 || mode === 'you_do'} onClick={() => goToStep(stepIndex - 1)}>Back</Button>
           <div className="flex gap-2">
             <Button variant="ghost" icon={RotateCcw} onClick={() => { setStepIndex(0); setYouDoAnswer(''); resetStepInput(); }}>Reset</Button>
-            <Button icon={ArrowRight} disabled={stepIndex >= steps.length - 1 || (mode === 'we_do' && prompt && !checkedCorrect)} onClick={() => goToStep(stepIndex + 1)}>Next</Button>
+            <Button icon={ArrowRight} disabled={nextDisabled} onClick={handleNext}>Next</Button>
           </div>
         </div>
       </Card>
+      <FullScreenWorkingMode
+        open={fullScreenDrawingOpen}
+        questionText={template.prompt || currentStep?.instruction || ''}
+        questionContent={(
+          <div className="space-y-3 text-base">
+            <p className="font-semibold text-navy-700">{template.title}</p>
+            <p>{template.prompt}</p>
+            {youDoAnswer && (
+              <p className="rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-700">
+                Your note: {youDoAnswer}
+              </p>
+            )}
+          </div>
+        )}
+        questionSnapshot={{
+          questionId: `${template.template_id || templateId}-you-do`,
+          skillId: (template.linked_skill_ids || [])[0] || '',
+          domainId: 'fractions',
+          visualType: 'model_trainer',
+        }}
+        initialStrokes={youDoWorking.workingStrokes || []}
+        initialMathObjects={youDoWorking.workingMathObjects || []}
+        onClose={() => setFullScreenDrawingOpen(false)}
+        onSave={(payload) => {
+          setYouDoWorking(payload);
+          setFullScreenDrawingOpen(false);
+        }}
+      />
     </div>
   );
 }

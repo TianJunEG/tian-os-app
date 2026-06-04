@@ -2,17 +2,41 @@ import { describe, it, expect } from 'vitest';
 import {
   COUNTABLE_CONTEXT_NOUNS,
   generateFractionQuestion,
+  checkFractionAnswer,
   isWholeNumber,
   validateCountableFractionSequence,
   validateFractionQuestionGenerator,
 } from './fractionQuestionGenerator';
 
 describe('fractionQuestionGenerator', () => {
+  it('marks F001 as a fraction answer with compact fraction tools', () => {
+    const q = generateFractionQuestion({ skillId: 'F001', questionFamilyId: 'QF_F001_001', difficulty: 1, variant: 3, mode: 'practice' });
+    expect(q.answer?.type).toBe('fraction');
+    expect(q.answerFormat).toBe('fraction');
+    expect(q.answer_type).toBe('fraction');
+    expect(q.answerType).toBe('fraction');
+    expect(q.allowedInputTools).toEqual(['fraction', 'mixed', 'whole', 'clear']);
+    expect(q.requiresDiagram).toBe(true);
+    expect(q.diagramSpec).toMatchObject({
+      type: 'fraction_bar',
+      data: { labelMode: 'none' },
+    });
+  });
+
   it('scores comparison questions using symbol answers (F006)', () => {
     const q = generateFractionQuestion({ skillId: 'F006', questionFamilyId: 'QF_F006_001', difficulty: 2, variant: 7, mode: 'diagnostic' });
     expect(q.answer?.type).toBe('text');
     expect(['>', '<', '=']).toContain(q.answer.value);
     expect(q.acceptedAnswers).toContain(q.answer.value);
+  });
+
+  it('accepts improper, mixed, and equivalent answers for fraction sums', () => {
+    const correctAnswer = { type: 'fraction', numerator: 7, denominator: 6, display: '7/6' };
+
+    expect(checkFractionAnswer({ studentAnswer: '7/6', correctAnswer }).correct).toBe(true);
+    expect(checkFractionAnswer({ studentAnswer: '1 1/6', correctAnswer }).correct).toBe(true);
+    expect(checkFractionAnswer({ studentAnswer: '14/12', correctAnswer }).correct).toBe(true);
+    expect(checkFractionAnswer({ studentAnswer: '1/0', correctAnswer }).correct).toBe(false);
   });
 
   it('scores equal-denominator and equal-numerator comparisons as symbols (F007/F008/F011)', () => {

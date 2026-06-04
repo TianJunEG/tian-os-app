@@ -312,7 +312,9 @@ export function submitFractionPracticeAttempt(options = {}) {
     accurateButSlowCount: results.filter((r) => r.fluencyFlag === 'accurateButSlow').length,
     fluentCount: results.filter((r) => ['accurateAndFluent', 'automatic'].includes(r.fluencyFlag)).length,
   };
-  const workingSubmittedResults = results.filter((r) => r.workingSubmitted || r.workingUploaded || r.fullscreenWorkingSubmitted);
+  const hasWorkingSubmitted = (result = {}) => Boolean(result.workingSubmitted || result.workingUploaded || result.fullscreenWorkingSubmitted);
+  const hasWorkingDecision = (result = {}) => Boolean(hasWorkingSubmitted(result) || result.workingNotNeeded);
+  const workingSubmittedResults = results.filter(hasWorkingSubmitted);
   const mentalFluencyResults = results.filter((r) => r.workingNotNeeded);
   const overconfidentNoWorkingResults = results.filter((r) => !r.correct && r.workingNotNeeded && isHighConfidence(r.confidence));
   const highRequirementNoWorkingIncorrect = results.filter((r) => !r.correct && r.workingNotNeeded && r.workingRequirementLevel === 'HIGH');
@@ -343,7 +345,16 @@ export function submitFractionPracticeAttempt(options = {}) {
     })),
   };
 
-  const workingUploadRequired = Boolean(session.workingExpected && resolvedSessionType !== 'warmup');
+  const requiredQuestionIds = new Set(session.questions
+    .filter((question) => session.workingExpectedMap?.[question.questionId]?.workingRequired)
+    .map((question) => question.questionId));
+  const requiredResults = results.filter((result) => requiredQuestionIds.has(result.questionId));
+  const missingWorkingResults = requiredResults.filter((result) => !hasWorkingDecision(result));
+  const workingUploadRequired = Boolean(
+    session.workingExpected &&
+    resolvedSessionType !== 'warmup' &&
+    missingWorkingResults.length > 0
+  );
   let nextRecommendedAction = computeNextAction({ familyFluencySummary, updateResults });
   if (resolvedSessionType === 'warmup') nextRecommendedAction = 'continuePractice';
   if (resolvedSessionType === 'remediation' && accuracySummary.accuracyPercentage >= 85) nextRecommendedAction = 'continuePractice';
@@ -373,7 +384,7 @@ export function submitFractionPracticeAttempt(options = {}) {
     assessmentResults: [],
     mistakePlans: [],
     workingAnalysisSummary: {
-      missingWorkingCount: workingUploadRequired ? 1 : 0,
+      missingWorkingCount: missingWorkingResults.length,
     },
   });
 
@@ -389,7 +400,12 @@ export function submitFractionPracticeAttempt(options = {}) {
     workingSessionId: session.workingSessionId,
     questionWorkingSummary: {
       totalQuestions: session.questions.length,
-      requiringWorking: session.questions.filter((question) => session.workingExpectedMap?.[question.questionId]?.workingRequired).length,
+      requiringWorking: requiredQuestionIds.size,
+      workingSubmitted: workingSubmittedResults.length,
+      workingNotNeeded: mentalFluencyResults.length,
+      missingWorking: missingWorkingResults.length,
+      status: missingWorkingResults.length > 0 ? 'Missing working' : 'Ready to continue',
+      allNoWorkingDeclarations: results.length > 0 && results.every((result) => result.workingNotNeeded),
       questionRefs: session.questions.map((question) => ({
         questionId: question.questionId,
         questionFamilyId: question.questionFamilyId,
@@ -397,6 +413,8 @@ export function submitFractionPracticeAttempt(options = {}) {
         prompt: question.prompt,
         workingRequired: Boolean(session.workingExpectedMap?.[question.questionId]?.workingRequired),
         mentalMathEligible: Boolean(question.mentalMathEligible),
+        workingSubmitted: Boolean(results.find((result) => result.questionId === question.questionId && hasWorkingSubmitted(result))),
+        workingNotNeeded: Boolean(results.find((result) => result.questionId === question.questionId && result.workingNotNeeded)),
       })),
     },
     nextRecommendedAction,

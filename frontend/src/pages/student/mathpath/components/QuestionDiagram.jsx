@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { renderers } from '../../../../mathpath/diagrams/svgRenderers';
 
+export const DIAGRAM_LOAD_ERROR_MESSAGE = "This question could not load. Let's try another one.";
+
 function inferNumberLineDiagram(prompt = '') {
   const match = String(prompt).match(
     /number line from\s+(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)\s+(?:split|divided) into\s+(\d+)\s+equal parts.*?((?:\d+)(?:st|nd|rd|th)?|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\s+mark/i
@@ -58,27 +60,54 @@ function inferShadedFractionDiagram(prompt = '') {
   };
 }
 
-function requiresDiagramFallback(question = {}) {
+export function questionRequiresDiagram(question = {}) {
   if (question?.diagramSpec || question?.diagram || question?.visual?.payload?.type) return true;
   if (question?.requiresDiagram || question?.requiresVisual || question?.visualRequired) return true;
   const text = `${question?.prompt || ''} ${question?.stem || ''}`.toLowerCase();
   return /\b(number line|shaded|shape|fraction strip|bar model|area model|diagram|graph)\b/.test(text);
 }
 
+export function getQuestionDiagramSpec(question = {}) {
+  if (question?.diagramSpec) return question.diagramSpec;
+  if (question?.diagram) return question.diagram;
+  if (question?.visual?.type === 'svg' && question.visual?.payload?.type) return question.visual.payload;
+  const prompt = question?.prompt || question?.stem || '';
+  return inferNumberLineDiagram(prompt) || inferShadedFractionDiagram(prompt);
+}
+
+export function canRenderQuestionDiagram(question = {}) {
+  const spec = getQuestionDiagramSpec(question);
+  if (!spec?.type || !renderers[spec.type]) return false;
+  try {
+    return Boolean(renderers[spec.type](spec));
+  } catch (err) {
+    return false;
+  }
+}
+
+export function validateQuestionDiagram(question = {}) {
+  if (!questionRequiresDiagram(question)) return { ok: true, requiresDiagram: false, spec: null };
+  const spec = getQuestionDiagramSpec(question);
+  if (!spec) return { ok: false, requiresDiagram: true, spec: null, error: DIAGRAM_LOAD_ERROR_MESSAGE };
+  if (!spec.type || !renderers[spec.type]) return { ok: false, requiresDiagram: true, spec, error: DIAGRAM_LOAD_ERROR_MESSAGE };
+  try {
+    const svg = renderers[spec.type](spec);
+    return svg
+      ? { ok: true, requiresDiagram: true, spec }
+      : { ok: false, requiresDiagram: true, spec, error: DIAGRAM_LOAD_ERROR_MESSAGE };
+  } catch (err) {
+    return { ok: false, requiresDiagram: true, spec, error: DIAGRAM_LOAD_ERROR_MESSAGE };
+  }
+}
+
 export default function QuestionDiagram({ question }) {
-  const spec = useMemo(() => {
-    if (question?.diagramSpec) return question.diagramSpec;
-    if (question?.diagram) return question.diagram;
-    if (question?.visual?.type === 'svg' && question.visual?.payload?.type) return question.visual.payload;
-    const prompt = question?.prompt || question?.stem || '';
-    return inferNumberLineDiagram(prompt) || inferShadedFractionDiagram(prompt);
-  }, [question]);
+  const spec = useMemo(() => getQuestionDiagramSpec(question), [question]);
 
   if (!spec) {
-    if (!requiresDiagramFallback(question)) return null;
+    if (!questionRequiresDiagram(question)) return null;
     return (
       <div className="mb-5 rounded-xl border border-hairline bg-white px-3 py-4 text-center text-sm text-ink-500">
-        Diagram unavailable for this question.
+        {DIAGRAM_LOAD_ERROR_MESSAGE}
       </div>
     );
   }
@@ -88,7 +117,7 @@ export default function QuestionDiagram({ question }) {
     return (
       <div className="mb-5 rounded-xl border border-hairline bg-paper px-3 py-4 text-sm">
         <p className="font-semibold text-ink-700">Diagram not available</p>
-        <p className="mt-1 text-ink-500">The question requested a visual, but the selected renderer is missing.</p>
+        <p className="mt-1 text-ink-500">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
       </div>
     );
   }
@@ -100,7 +129,7 @@ export default function QuestionDiagram({ question }) {
     return (
       <div className="mb-5 rounded-xl border border-rose-300 bg-rose-50 px-3 py-4 text-sm text-rose-800">
         <p className="font-semibold">Diagram render error</p>
-        <p className="mt-1">We couldn&apos;t draw this diagram right now. Please continue with text only.</p>
+        <p className="mt-1">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
       </div>
     );
   }

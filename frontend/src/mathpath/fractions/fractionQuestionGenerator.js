@@ -479,6 +479,14 @@ function inferAnswerInputType(answer = {}) {
   return 'text';
 }
 
+function inferAllowedInputTools(answerFormat) {
+  if (answerFormat === 'fraction' || answerFormat === 'mixed_number') return ['fraction', 'mixed', 'whole', 'clear'];
+  if (answerFormat === 'text' || answerFormat === 'expression') {
+    return ['fraction', 'subscript', 'power', 'subscriptPower', 'mixed', 'root', 'degree', 'angle', 'pi', 'theta', 'clear'];
+  }
+  return [];
+}
+
 function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
   const primaryMapping = getSkillCurriculumMapping(skillId, {
     country: 'SG',
@@ -489,6 +497,7 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     curriculum: 'MOE_SECONDARY_G1_MATH_2021',
   });
   const workedSolution = Array.isArray(solutionSteps) ? solutionSteps.join(' ') : '';
+  const answerFormat = inferAnswerInputType(answer);
 
   const question = {
     questionId: makeId('fq', `${skillId}|${questionFamilyId}|${prompt}`),
@@ -500,8 +509,10 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     prompt,
     answer,
     acceptedAnswers,
-    answer_type: inferAnswerInputType(answer),
-    answerType: inferAnswerInputType(answer),
+    answerFormat,
+    answer_type: answerFormat,
+    answerType: answerFormat,
+    allowedInputTools: inferAllowedInputTools(answerFormat),
     workingRequired,
     requiresWorking: workingRequired,
     workingOptional: !workingRequired,
@@ -516,6 +527,8 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     solutionSteps,
     workedSolution,
     diagramSpec,
+    requiresDiagram: Boolean(diagramSpec),
+    requiresVisual: Boolean(diagramSpec),
     commonMistakePatterns: SKILL_MISTAKES[skillId] || ['M010'],
     mistakeTags: SKILL_MISTAKES[skillId] || ['M010'],
     singaporeMetadata: {

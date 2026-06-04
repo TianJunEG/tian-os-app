@@ -1,11 +1,17 @@
 import React, { useMemo } from 'react';
 import FractionAnswerInput, { shouldUseFractionAnswerInput } from './FractionAnswerInput';
+import MathToolbar, { FULL_MATH_TOOL_IDS } from './MathToolbar';
 
 function normalizeType(question = {}) {
   if (question.type === 'mcq') return 'multiple_choice';
 
   const explicit = String(
-    question.answer_type
+    question.answerFormat
+      || question.answer_format
+      || question.format
+      || question.inputFormat
+      || question.input_format
+      || question.answer_type
       || question.answerType
       || question.answerInputType
       || question.expectedAnswerType
@@ -24,6 +30,10 @@ function normalizeType(question = {}) {
     ordering: 'ordering',
     order: 'ordering',
     list: 'ordering',
+    expression: 'expression',
+    algebra: 'expression',
+    equation: 'expression',
+    text: 'text',
     multiple_choice: 'multiple_choice',
     mcq: 'multiple_choice',
   };
@@ -58,36 +68,23 @@ function extractOrderingItems(question = {}) {
   return items.length >= 2 ? items : answerItems;
 }
 
-const MATH_INSERT_TOOLS = [
-  { id: 'fraction', label: 'x/y', value: '()/()' },
-  { id: 'subscript', label: 'xₐ', value: '_{}' },
-  { id: 'power', label: 'xᵇ', value: '^{}' },
-  { id: 'subscriptPower', label: 'xₐᵇ', value: '_{}^{}' },
-  { id: 'mixed', label: 'xᵇ/a', value: ' ()/()' },
-  { id: 'root', label: 'ⁿ√x', value: '√()' },
-  { id: 'degree', label: 'x°', value: '°' },
-  { id: 'angle', label: '∠', value: '∠' },
-  { id: 'pi', label: 'π', value: 'π' },
-  { id: 'theta', label: 'θ', value: 'θ' },
-];
+const MATH_INSERT_VALUES = {
+  fraction: '()/()',
+  subscript: '_{}',
+  power: '^{}',
+  subscriptPower: '_{}^{}',
+  mixed: ' ()/()',
+  root: '√()',
+  degree: '°',
+  angle: '∠',
+  pi: 'π',
+  theta: 'θ',
+};
 
-function MathAnswerInsertTools({ disabled = false, onInsert }) {
-  return (
-    <div className="mt-2 flex flex-wrap gap-2" aria-label="Math answer insert tools">
-      {MATH_INSERT_TOOLS.map((tool) => (
-        <button
-          key={tool.id}
-          type="button"
-          disabled={disabled}
-          onClick={() => onInsert?.(tool.value)}
-          className="grid h-10 min-w-11 place-items-center rounded-lg border border-hairline bg-orange-50 px-3 font-serif text-lg font-semibold text-orange-600 transition hover:border-orange-300 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-45"
-          title={`Insert ${tool.label}`}
-        >
-          {tool.label}
-        </button>
-      ))}
-    </div>
-  );
+function allowedToolsForQuestion(question, fallback) {
+  return Array.isArray(question?.allowedInputTools) && question.allowedInputTools.length
+    ? question.allowedInputTools
+    : fallback;
 }
 
 function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
@@ -133,6 +130,7 @@ export default function AnswerInputRenderer({
   if (type === 'fraction' || type === 'mixed_number') {
     return (
       <FractionAnswerInput
+        question={question}
         value={value}
         onChange={onChange}
         disabled={disabled}
@@ -147,11 +145,16 @@ export default function AnswerInputRenderer({
   }
 
   const inputMode = type === 'decimal' ? 'decimal' : type === 'whole_number' ? 'numeric' : 'text';
-  const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : 'Answer';
-  const showMathTools = type === 'text';
-  const insertMathValue = (insertValue) => {
+  const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : type === 'expression' ? 'Expression answer' : 'Answer';
+  const showMathTools = type === 'text' || type === 'expression';
+  const tools = allowedToolsForQuestion(question, FULL_MATH_TOOL_IDS);
+  const handleMathTool = (toolId) => {
     if (disabled) return;
-    onChange?.(`${String(value || '')}${insertValue}`);
+    if (toolId === 'clear') {
+      onChange?.('');
+      return;
+    }
+    onChange?.(`${String(value || '')}${MATH_INSERT_VALUES[toolId] || ''}`);
   };
   return (
     <div className="block">
@@ -165,7 +168,14 @@ export default function AnswerInputRenderer({
         className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
       />
-      {showMathTools && <MathAnswerInsertTools disabled={disabled} onInsert={insertMathValue} />}
+      {showMathTools && (
+        <MathToolbar
+          disabled={disabled}
+          tools={tools}
+          onTool={handleMathTool}
+          label="Math answer insert tools"
+        />
+      )}
     </div>
   );
 }

@@ -12,14 +12,19 @@ function svgShell(spec, body, ariaLabel = '') {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(ariaLabel)}"><rect x="0" y="0" width="${w}" height="${h}" fill="#fff"/>${body}</svg>`;
 }
 
+const SHADED_FILL = '#bfdbfe';
+const UNSHADED_FILL = '#fff';
+const BORDER_STROKE = '#111';
+const PARTITION_STROKE = '#111';
+
 function fractionBar(spec) {
   const { parts, shaded, labelMode = 'fraction' } = spec.data;
   const w = spec.width; const h = spec.height;
   const x = 40; const y = h / 2 - 24; const bw = w - 80; const bh = 48;
   const seg = bw / parts;
-  let body = `<defs><pattern id="fractionHatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#dbeafe"/><line x1="0" y1="0" x2="0" y2="10" stroke="#2563eb" stroke-width="3" opacity="0.55"/></pattern></defs>`;
+  let body = '';
   for (let i = 0; i < parts; i += 1) {
-    body += `<rect x="${x + i * seg}" y="${y}" width="${seg}" height="${bh}" fill="${i < shaded ? 'url(#fractionHatch)' : '#fff'}" stroke="#111"/>`;
+    body += `<rect x="${x + i * seg}" y="${y}" width="${seg}" height="${bh}" fill="${i < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
   }
   if (labelMode !== 'none') {
     body += `<text x="${w / 2}" y="${y + bh + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
@@ -37,7 +42,7 @@ function fractionCircle(spec) {
     const a1 = ((i + 1) / parts) * Math.PI * 2 - Math.PI / 2;
     const x0 = cx + r * Math.cos(a0); const y0 = cy + r * Math.sin(a0);
     const x1 = cx + r * Math.cos(a1); const y1 = cy + r * Math.sin(a1);
-    body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${i < shaded ? '#9ec5fe' : '#fff'}" stroke="#111"/>`;
+    body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${i < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${BORDER_STROKE}"/>`;
   }
   body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
   return svgShell(spec, body, 'fraction circle');
