@@ -187,6 +187,7 @@ export function updateStudentSkillState(studentId, domainId, skillId, updates = 
 export function createMathPathAttempt(attempt) {
   return MathPathAttempt.create({
     ...attempt,
+    attemptId: attempt.attemptId || undefined,
     domainId: attempt.domainId || 'fractions',
     sessionType: attempt.sessionType || 'practice',
     createdAt: attempt.createdAt || new Date(),

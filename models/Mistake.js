@@ -7,6 +7,7 @@ const mistakeSchema = new mongoose.Schema({
   workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', required: true },
   questionId: { type: mongoose.Schema.Types.Mixed, required: true },
   sessionId: { type: String, default: '', trim: true },
+  attemptId: { type: String, default: '', trim: true },
   skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', default: null },
   skillCode: { type: String, default: '', trim: true },
   module: { type: String, default: 'MathPath' },
@@ -17,6 +18,18 @@ const mistakeSchema = new mongoose.Schema({
   studentAnswer: { type: String, default: '' },
   correctAnswer: { type: String, default: '' },
   confidence: { type: String, default: '' },
+  workingId: { type: String, default: '', trim: true },
+  remediationId: { type: String, default: '', trim: true },
+  workingPreviewImage: { type: String, default: '' },
+  extractedWorkingText: { type: String, default: '' },
+  workingInsight: { type: mongoose.Schema.Types.Mixed, default: null },
+  workingAnalysisResult: { type: mongoose.Schema.Types.Mixed, default: null },
+  workingQualityScore: { type: Number, default: null },
+  workingQualityBand: {
+    type: String,
+    enum: ['EXCELLENT', 'GOOD', 'PARTIAL', 'INSUFFICIENT', ''],
+    default: '',
+  },
   timestamp: { type: Date, default: null },
   mistakeId: { type: String, default: '' },
   mistakeCategory: {
@@ -86,5 +99,8 @@ const mistakeSchema = new mongoose.Schema({
 
 mistakeSchema.index({ studentId: 1, occurredAt: -1 });
 mistakeSchema.index({ studentId: 1, skillId: 1, status: 1 });
+mistakeSchema.index({ attemptId: 1 });
+mistakeSchema.index({ workingId: 1 });
+mistakeSchema.index({ remediationId: 1 });
 
 export default mongoose.model('Mistake', mistakeSchema);

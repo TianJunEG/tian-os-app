@@ -64,11 +64,21 @@ const mathPathWorkingIntelligenceSchema = new mongoose.Schema(
   {
     workingId: { type: String, required: true, trim: true },
     workingSessionId: { type: String, required: true, trim: true },
+    userId: { type: String, default: '', trim: true },
     studentId: { type: String, required: true, trim: true },
+    attemptId: { type: String, default: '', trim: true },
+    sessionId: { type: String, default: '', trim: true },
+    mistakeId: { type: String, default: '', trim: true },
+    remediationId: { type: String, default: '', trim: true },
     questionId: { type: String, default: '', trim: true },
     skillId: { type: String, default: '', trim: true },
+    skillCode: { type: String, default: '', trim: true },
     practiceSessionId: { type: String, default: null },
     assessmentSessionId: { type: String, default: null },
+    answerGiven: { type: String, default: '' },
+    correctAnswer: { type: String, default: '' },
+    answerCorrect: { type: Boolean, default: null },
+    confidenceLevel: { type: String, default: '', trim: true },
     workingCode: { type: String, default: '', trim: true },
     uploadType: { type: String, enum: ['paper', 'stylus', 'hybrid', 'unknown'], default: 'unknown' },
     rawImage: { type: String, default: '' },
@@ -141,6 +151,14 @@ const mathPathWorkingIntelligenceSchema = new mongoose.Schema(
     reasoningSafety: { type: mongoose.Schema.Types.Mixed, default: null },
     reasoningDatasetRecord: { type: mongoose.Schema.Types.Mixed, default: null },
     reasoningHumanValidation: { type: mongoose.Schema.Types.Mixed, default: null },
+    workingInsight: { type: mongoose.Schema.Types.Mixed, default: null },
+    workingQualityScore: { type: Number, default: null },
+    qualityBand: {
+      type: String,
+      enum: ['EXCELLENT', 'GOOD', 'PARTIAL', 'INSUFFICIENT', ''],
+      default: '',
+    },
+    linkageMetadata: { type: mongoose.Schema.Types.Mixed, default: {} },
     processing: {
       attempts: { type: Number, default: 0 },
       lastAttemptAt: { type: Date, default: null },
@@ -155,6 +173,11 @@ const mathPathWorkingIntelligenceSchema = new mongoose.Schema(
 
 mathPathWorkingIntelligenceSchema.index({ workingId: 1 }, { unique: true });
 mathPathWorkingIntelligenceSchema.index({ workingSessionId: 1, questionId: 1 });
+mathPathWorkingIntelligenceSchema.index({ sessionId: 1, questionId: 1 });
+mathPathWorkingIntelligenceSchema.index({ attemptId: 1 });
+mathPathWorkingIntelligenceSchema.index({ mistakeId: 1 });
+mathPathWorkingIntelligenceSchema.index({ remediationId: 1 });
+mathPathWorkingIntelligenceSchema.index({ userId: 1 });
 mathPathWorkingIntelligenceSchema.index({ studentId: 1, skillId: 1 });
 mathPathWorkingIntelligenceSchema.index({ reviewStatus: 1, analysisStatus: 1 });
 mathPathWorkingIntelligenceSchema.index({ humanReviewStatus: 1 });

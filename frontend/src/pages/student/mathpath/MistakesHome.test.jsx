@@ -1,19 +1,31 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import MistakesHome from './MistakesHome';
 
-const mistakesMock = vi.fn();
-const masteryMock = vi.fn();
+const mocks = vi.hoisted(() => ({
+  mistakes: vi.fn(),
+  mastery: vi.fn(),
+  startSession: vi.fn(),
+  navigate: vi.fn(),
+}));
 
 vi.mock('../../../services/api', () => ({
   mathpathAPI: {
-    mistakes: (...args) => mistakesMock(...args),
-    mastery: (...args) => masteryMock(...args),
-    startSession: vi.fn(),
+    mistakes: (...args) => mocks.mistakes(...args),
+    mastery: (...args) => mocks.mastery(...args),
+    startSession: (...args) => mocks.startSession(...args),
   },
 }));
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mocks.navigate,
+  };
+});
 
 vi.mock('../../../context/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'pilot-student-1', visualMode: 'upper_primary' } }),
@@ -30,11 +42,17 @@ function renderPage() {
 describe('MistakesHome pilot empty state', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    masteryMock.mockResolvedValue({ data: { recommended: null } });
+    mocks.mastery.mockResolvedValue({ data: { recommended: null } });
+    mocks.startSession.mockResolvedValue({
+      data: {
+        session_id: 'session-123',
+        items: [{ questionId: 'q1', stem: 'Try this' }],
+      },
+    });
   });
 
   it('shows no fake mistakes when the API returns no records', async () => {
-    mistakesMock.mockResolvedValue({ data: { mistakes: [], weakSkills: [] } });
+    mocks.mistakes.mockResolvedValue({ data: { mistakes: [], weakSkills: [] } });
 
     renderPage();
 
@@ -45,7 +63,7 @@ describe('MistakesHome pilot empty state', () => {
   });
 
   it('routes to review and displays actual aggregated mistake records', async () => {
-    mistakesMock.mockResolvedValue({
+    mocks.mistakes.mockResolvedValue({
       data: {
         mistakes: [
           {
@@ -95,5 +113,86 @@ describe('MistakesHome pilot empty state', () => {
     expect(screen.getByText('Find part of a set')).toBeInTheDocument();
     expect(screen.getAllByText(/Your answer:/)).toHaveLength(3);
     expect(screen.getAllByText(/Correct:/)).toHaveLength(3);
+  });
+
+  it('starts targeted recommended practice from Complete more practice', async () => {
+    mocks.mistakes.mockResolvedValue({ data: { mistakes: [], weakSkills: [] } });
+    mocks.mastery.mockResolvedValue({
+      data: {
+        recommended: {
+          skillId: 'skill-place-value',
+          skillName: 'Place value to 100 000',
+        },
+      },
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Place value to 100 000').length).toBeGreaterThan(0);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Complete more practice' }));
+
+    await waitFor(() => {
+      expect(mocks.startSession).toHaveBeenCalledWith({
+        feature: 'Mistake-to-Mastery',
+        skillId: 'skill-place-value',
+        questionCount: 5,
+      });
+    });
+    expect(mocks.navigate).toHaveBeenCalledWith('/student/mathpath/practice/session-123', expect.objectContaining({
+      state: expect.objectContaining({
+        backTo: '/student/mathpath/mistakes',
+        homeLabel: 'Back to mistake review',
+      }),
+    }));
+  });
+
+  it('starts the same targeted recommended practice from Practise similar', async () => {
+    mocks.mistakes.mockResolvedValue({
+      data: {
+        mistakes: [],
+        weakSkills: [{ skillId: 'skill-place-value', skillName: 'Place value to 100 000', count: 2 }],
+      },
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Place value to 100 000').length).toBeGreaterThan(0);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Practise similar' }));
+
+    await waitFor(() => {
+      expect(mocks.startSession).toHaveBeenCalledWith({
+        feature: 'Mistake-to-Mastery',
+        skillId: 'skill-place-value',
+        questionCount: 5,
+      });
+    });
+  });
+
+  it('falls back safely when recommendation has no skill id', async () => {
+    mocks.mistakes.mockResolvedValue({ data: { mistakes: [], weakSkills: [] } });
+    mocks.mastery.mockResolvedValue({
+      data: {
+        recommended: {
+          skillName: 'Place value to 100 000',
+        },
+      },
+    });
+
+    renderPage();
+
+    expect(await screen.findByText('Place value to 100 000')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Practise similar' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/No recommended skill is available yet/i)).toBeInTheDocument();
+    });
+    expect(mocks.startSession).not.toHaveBeenCalled();
+    expect(mocks.navigate).toHaveBeenCalledWith('/student/mathpath', expect.objectContaining({
+      state: expect.objectContaining({ message: expect.stringMatching(/No recommended skill/i) }),
+    }));
   });
 });

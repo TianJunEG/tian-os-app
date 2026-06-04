@@ -18,6 +18,39 @@ const SOURCE_LABEL = {
   other: 'Other',
 };
 
+function WorkingReviewCard({ mistake }) {
+  const insight = mistake.workingInsight || mistake.workingAnalysisResult || null;
+  const hasWorking = Boolean(mistake.workingId || mistake.workingPreviewImage || mistake.extractedWorkingText);
+  if (!insight && !hasWorking) return null;
+  const steps = Array.isArray(insight?.detectedSteps) ? insight.detectedSteps.filter((step) => step?.text).slice(0, 3) : [];
+  return (
+    <section className="rounded-3xl bg-sky-50 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-navy-500">Working Review</p>
+      {mistake.workingPreviewImage && (
+        <img src={mistake.workingPreviewImage} alt="Submitted working" className="mt-3 max-h-44 w-full rounded-2xl object-contain bg-white" />
+      )}
+      {!insight && hasWorking && (
+        <p className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">Working saved. Analysis is still being prepared.</p>
+      )}
+      {insight?.detectedMethod && <p className="mt-3 text-sm font-semibold text-navy-800">Method spotted: {insight.detectedMethod}</p>}
+      {(insight?.detectedIssue || insight?.studentExplanation) && (
+        <p className="mt-2 text-sm leading-6 text-ink-700">{insight.studentExplanation || insight.detectedIssue}</p>
+      )}
+      {(mistake.extractedWorkingText || insight?.extractedWorkingText) && (
+        <div className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">
+          <p className="mb-1 font-semibold text-navy-700">Detected from your working</p>
+          <MathText text={mistake.extractedWorkingText || insight.extractedWorkingText} />
+        </div>
+      )}
+      {steps.length > 0 && (
+        <div className="mt-3 space-y-1 text-sm text-ink-700">
+          {steps.map((step) => <p key={step.stepNumber || step.text}><MathText text={step.text} /></p>)}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // MathPath › Mistake-to-Mastery › single mistake. Loads from the list so it does
 // not depend on a per-id API method.
 export default function MistakeDetail() {
@@ -99,6 +132,7 @@ export default function MistakeDetail() {
               {m.workedSolution ? <MathText text={m.workedSolution} /> : 'Review the method, then try a guided similar question.'}
             </div>
           </section>
+          <WorkingReviewCard mistake={m} />
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
@@ -117,7 +151,11 @@ export default function MistakeDetail() {
         <CollapsibleSection title="Remediation help" summary="Hints and model drawing pathways for this mistake." defaultOpen surface={false}>
           <RemediationPanel
             skillId={m.skillId}
-            recentAttempts={[{ correct: false, misconceptionTag: m.misconceptionTag }]}
+            recentAttempts={[{
+              correct: false,
+              misconceptionTag: m.misconceptionTag,
+              workingAnalysisResult: m.workingInsight || m.workingAnalysisResult || null,
+            }]}
             onPractise={practise}
           />
         </CollapsibleSection>

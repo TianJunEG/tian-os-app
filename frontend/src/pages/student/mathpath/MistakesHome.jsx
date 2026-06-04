@@ -5,7 +5,7 @@ import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import { useAuth } from '../../../context/AuthContext';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../student/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
 
 function formatMistakeDate(value) {
   if (!value) return 'Recently';
@@ -25,6 +25,7 @@ export default function MistakesHome() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
+  const [fallbackMessage, setFallbackMessage] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -40,8 +41,18 @@ export default function MistakesHome() {
     })();
   }, []);
 
-  const practise = async (skillId) => {
-    if (!skillId || starting) return;
+  const practise = async (skillRef) => {
+    const skillId = typeof skillRef === 'string'
+      ? skillRef
+      : (skillRef?.skillId || skillRef?.skillCode || skillRef?.id || '');
+    if (!skillId) {
+      setFallbackMessage('No recommended skill is available yet. Opening MathPath so you can choose the next practice.');
+      navigate('/student/mathpath', {
+        state: { message: 'No recommended skill is available yet. Choose a skill to practise.' },
+      });
+      return;
+    }
+    if (starting) return;
     setStarting(true);
     try {
       const { data: s } = await mathpathAPI.startSession({ feature: 'Mistake-to-Mastery', skillId, questionCount: 5 });
@@ -64,9 +75,13 @@ export default function MistakesHome() {
   const recent = data?.mistakes || [];
   const weak = data?.weakSkills || [];
   const hasMistakes = (data?.mistakes || []).length > 0;
-  const recommended = weak[0]
-    ? { skillId: weak[0].skillId, skillName: weak[0].skillName }
-    : mastery?.recommended;
+  const recommendedRaw = weak[0] || mastery?.recommended || null;
+  const recommended = recommendedRaw ? {
+    ...recommendedRaw,
+    skillId: recommendedRaw.skillId || recommendedRaw.skillCode || recommendedRaw.id || '',
+    skillCode: recommendedRaw.skillCode || '',
+    skillName: recommendedRaw.skillName || recommendedRaw.name || recommendedRaw.title || 'the recommended skill',
+  } : null;
 
   return (
     <div className={`${visualStyles.page} space-y-6`}>
@@ -76,13 +91,16 @@ export default function MistakesHome() {
         <div className="mb-1 flex items-center gap-2 text-violet-700"><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
         <div className="font-display text-2xl font-semibold text-ink-900">{data ? data.mistakes.length : 0} to review</div>
         {recommended && <p className="mb-4 mt-1 text-sm text-ink-600">Recommended: practise <b className="font-semibold text-violet-700">{recommended.skillName}</b></p>}
+        {fallbackMessage && <p className="mb-3 rounded-xl bg-gold-100 px-3 py-2 text-sm font-semibold text-gold-700">{fallbackMessage}</p>}
         <div className="flex flex-wrap gap-2">
           {hasMistakes ? (
             <Button className={visualStyles.primaryCta} to="/student/mathpath/mistakes/review">Review mistakes</Button>
+          ) : recommended?.skillId ? (
+            <Button className={visualStyles.primaryCta} disabled={starting} onClick={() => practise(recommended)}>Complete more practice</Button>
           ) : (
             <Button className={visualStyles.primaryCta} to="/student/mathpath">Complete more practice</Button>
           )}
-          {recommended && <Button variant="secondary" icon={Dumbbell} disabled={starting} onClick={() => practise(recommended.skillId)}>Practise similar</Button>}
+          {recommended && <Button variant="secondary" icon={Dumbbell} disabled={starting} onClick={() => practise(recommended)}>Practise similar</Button>}
         </div>
       </Card>
 

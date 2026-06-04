@@ -12,7 +12,18 @@ const questionWorkingMapSchema = new mongoose.Schema(
     skillId: { type: String, default: '', trim: true },
     domainId: { type: String, default: '', trim: true },
     sessionId: { type: String, default: '', trim: true },
+    attemptId: { type: String, default: '', trim: true },
     exerciseId: { type: String, default: '', trim: true },
+    prompt: { type: String, default: '' },
+    answerGiven: { type: String, default: '' },
+    correctAnswer: { type: String, default: '' },
+    answerCorrect: { type: Boolean, default: null },
+    confidenceLevel: { type: String, default: '', trim: true },
+    solutionSteps: { type: [String], default: [] },
+    expectedProcedureKeywords: { type: [String], default: [] },
+    expectedOperations: { type: [String], default: [] },
+    expectedStepCount: { type: Number, default: null },
+    questionType: { type: String, default: '', trim: true },
     pageNumber: { type: Number, default: null },
     detectedLabel: { type: String, default: '' },
     mappingStatus: { type: String, enum: MAP_STATUS, default: 'unmapped' },
@@ -26,6 +37,7 @@ const questionWorkingMapSchema = new mongoose.Schema(
 const mathPathWorkingSessionSchema = new mongoose.Schema(
   {
     workingSessionId: { type: String, required: true, trim: true },
+    userId: { type: String, default: '', trim: true },
     studentId: { type: String, required: true, trim: true },
     practiceSessionId: { type: String, default: null },
     assessmentSessionId: { type: String, default: null },
@@ -66,6 +78,7 @@ const mathPathWorkingSessionSchema = new mongoose.Schema(
 );
 
 mathPathWorkingSessionSchema.index({ studentId: 1, domainId: 1 });
+mathPathWorkingSessionSchema.index({ userId: 1 });
 mathPathWorkingSessionSchema.index({ workingSessionId: 1 }, { unique: true });
 mathPathWorkingSessionSchema.index({ practiceSessionId: 1 });
 mathPathWorkingSessionSchema.index({ assessmentSessionId: 1 });

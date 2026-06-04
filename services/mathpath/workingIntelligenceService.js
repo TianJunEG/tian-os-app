@@ -53,6 +53,18 @@ function extractTextFromStrokeData(strokes = []) {
     .join('\n');
 }
 
+function extractTextFromMathObjects(objects = []) {
+  return (Array.isArray(objects) ? objects : [])
+    .map((object) => object?.text || object?.label || object?.value || '')
+    .filter(Boolean)
+    .join('\n');
+}
+
+function findQuestionDigitalWorking(digitalInkData = {}, questionId = '') {
+  const rows = Array.isArray(digitalInkData?.questionWorkings) ? digitalInkData.questionWorkings : [];
+  return rows.find((row) => String(row?.questionId || '') === String(questionId || '')) || {};
+}
+
 function element(value, type, score, note = '') {
   return {
     value,
@@ -188,15 +200,36 @@ export function buildWorkingTimeline(input = {}) {
 
 export function buildStructuredWorkingRecord(input = {}) {
   const mapRow = input.mapRow || {};
+  const questionDigitalWorking = findQuestionDigitalWorking(input.digitalInkData, mapRow.questionId || input.questionId);
+  const questionMetadata = {
+    ...(input.questionMetadata || {}),
+    ...questionDigitalWorking,
+  };
   const rawImages = [
+    questionDigitalWorking.workingImage,
+    questionDigitalWorking.fullscreenWorkingImage,
     ...(Array.isArray(input.uploadedImages) ? input.uploadedImages : []),
     ...(Array.isArray(input.fileUrls) ? input.fileUrls.filter((url) => /\.(png|jpe?g|webp)$/i.test(url)) : []),
-  ];
-  const strokeData = input.canvasStrokeData || input.strokeData || [];
+  ].filter(Boolean);
+  const strokeData = questionDigitalWorking.workingStrokes
+    || questionDigitalWorking.fullscreenWorkingStrokes
+    || input.canvasStrokeData
+    || input.strokeData
+    || [];
+  const mathObjects = questionDigitalWorking.workingMathObjects || questionDigitalWorking.fullscreenWorkingMathObjects || [];
+  const workingText = [
+    questionDigitalWorking.workingText,
+    questionMetadata.workingText,
+    extractTextFromMathObjects(mathObjects),
+  ].filter(Boolean).join('\n');
   const ocrOutput = extractOcrCandidates({
     ...input,
     strokeData,
-    questionMetadata: input.questionMetadata || {},
+    questionMetadata: {
+      ...questionMetadata,
+      workingText,
+      studentWorkingText: workingText || questionMetadata.studentWorkingText,
+    },
   });
   ocrOutput.fractions = detectFractionRepresentations(ocrOutput);
   ocrOutput.equations = extractEquationExpressions(ocrOutput);
@@ -204,14 +237,30 @@ export function buildStructuredWorkingRecord(input = {}) {
   const hasReviewableData = Boolean(ocrOutput.rawText || rawImages.length || (Array.isArray(strokeData) && strokeData.length));
   const lowConfidence = ocrOutput.confidence.score < 0.5;
 
+  const attemptId = questionDigitalWorking.attemptId || mapRow.attemptId || input.attemptId || '';
+
   return {
-    workingId: input.workingId || makeId('workingintel', [input.workingSessionId, mapRow.questionId || input.questionId]),
+    workingId: input.workingId || makeId('workingintel', [attemptId || input.workingSessionId, mapRow.questionId || input.questionId]),
     workingSessionId: input.workingSessionId,
+    userId: input.userId || input.submittedByUserId || '',
     studentId: input.studentId,
+    attemptId,
+    sessionId: questionDigitalWorking.sessionId || mapRow.sessionId || input.sessionId || input.practiceSessionId || '',
     questionId: mapRow.questionId || input.questionId || '',
     skillId: mapRow.skillId || input.skillId || '',
+    skillCode: mapRow.skillId || input.skillCode || input.skillId || '',
     practiceSessionId: input.practiceSessionId || null,
     assessmentSessionId: input.assessmentSessionId || null,
+    answerGiven: String(questionDigitalWorking.answerGiven ?? mapRow.answerGiven ?? input.answerGiven ?? ''),
+    correctAnswer: String(questionDigitalWorking.correctAnswer ?? mapRow.correctAnswer ?? input.correctAnswer ?? ''),
+    answerCorrect: typeof questionDigitalWorking.answerCorrect === 'boolean'
+      ? questionDigitalWorking.answerCorrect
+      : typeof mapRow.answerCorrect === 'boolean'
+        ? mapRow.answerCorrect
+        : typeof input.answerCorrect === 'boolean'
+          ? input.answerCorrect
+          : null,
+    confidenceLevel: String(questionDigitalWorking.confidenceLevel || mapRow.confidenceLevel || input.confidenceLevel || ''),
     workingCode: mapRow.workingCode || input.workingCode || '',
     uploadType: input.inputMethod || 'unknown',
     rawImage: rawImages[0] || input.canvasImage || '',
@@ -222,6 +271,7 @@ export function buildStructuredWorkingRecord(input = {}) {
       canvasImage: input.canvasImage || '',
       strokeData,
       digitalInkData: input.digitalInkData || null,
+      mathObjects,
     },
     ocrOutput,
     detectedSteps,
@@ -230,12 +280,25 @@ export function buildStructuredWorkingRecord(input = {}) {
     analysisStatus: lowConfidence ? 'needs_human_review' : 'ocr_complete',
     humanReviewStatus: 'pending',
     datasetRecord: buildDatasetRecord({
-      question: input.questionMetadata?.question || input.questionMetadata?.stem || '',
+      question: questionMetadata.question || questionMetadata.stem || questionMetadata.prompt || mapRow.prompt || '',
       skillId: mapRow.skillId || input.skillId || '',
-      working: { rawImages, strokeData },
+      working: { rawImages, strokeData, mathObjects, workingText },
       ocrOutput,
       detectedSteps,
-      outcome: input.questionMetadata?.outcome || null,
+      outcome: questionMetadata.outcome || {
+        attemptId,
+        sessionId: questionDigitalWorking.sessionId || mapRow.sessionId || input.sessionId || input.practiceSessionId || '',
+        answerGiven: questionDigitalWorking.answerGiven ?? mapRow.answerGiven ?? input.answerGiven ?? '',
+        correctAnswer: questionDigitalWorking.correctAnswer ?? mapRow.correctAnswer ?? input.correctAnswer ?? '',
+        answerCorrect: typeof questionDigitalWorking.answerCorrect === 'boolean'
+          ? questionDigitalWorking.answerCorrect
+          : typeof mapRow.answerCorrect === 'boolean'
+            ? mapRow.answerCorrect
+            : typeof input.answerCorrect === 'boolean'
+              ? input.answerCorrect
+              : null,
+        confidenceLevel: questionDigitalWorking.confidenceLevel || mapRow.confidenceLevel || input.confidenceLevel || '',
+      },
     }),
     qualityMetrics: {
       ocrSuccess: Boolean(ocrOutput.rawText),
@@ -354,4 +417,3 @@ export function validateWorkingIntelligenceFoundation() {
     },
   };
 }
-

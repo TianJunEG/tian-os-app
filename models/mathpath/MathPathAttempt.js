@@ -4,6 +4,12 @@ const SESSION_TYPES = ['diagnostic', 'practice', 'fluency', 'retention', 'assess
 
 const mathPathAttemptSchema = new mongoose.Schema(
   {
+    attemptId: {
+      type: String,
+      required: true,
+      trim: true,
+      default: () => `attempt_${new mongoose.Types.ObjectId().toString()}`,
+    },
     studentId: { type: String, required: true, trim: true },
     domainId: { type: String, required: true, trim: true },
     skillId: { type: String, required: true, trim: true },
@@ -62,6 +68,9 @@ const mathPathAttemptSchema = new mongoose.Schema(
     workingEvidence: { type: Array, default: [] },
     workingCode: { type: String, default: '' },
     workingSessionId: { type: String, default: '' },
+    workingId: { type: String, default: '', trim: true },
+    mistakeId: { type: String, default: '', trim: true },
+    remediationId: { type: String, default: '', trim: true },
     workingDecision: { type: String, default: '' },
     workingReason: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now },
@@ -69,10 +78,13 @@ const mathPathAttemptSchema = new mongoose.Schema(
   { collection: 'mathpath_attempts' }
 );
 
+mathPathAttemptSchema.index({ attemptId: 1 }, { unique: true, sparse: true });
 mathPathAttemptSchema.index({ studentId: 1, domainId: 1 });
 mathPathAttemptSchema.index({ studentId: 1, skillId: 1 });
 mathPathAttemptSchema.index({ questionFamilyId: 1 });
 mathPathAttemptSchema.index({ sessionId: 1 });
+mathPathAttemptSchema.index({ workingId: 1 });
+mathPathAttemptSchema.index({ mistakeId: 1 });
 mathPathAttemptSchema.index({ createdAt: -1 });
 
 export default mongoose.model('MathPathAttempt', mathPathAttemptSchema);

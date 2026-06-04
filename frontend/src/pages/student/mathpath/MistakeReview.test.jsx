@@ -65,4 +65,37 @@ describe('MistakeReview pilot data guard', () => {
     expect(screen.getByText('7')).toBeInTheDocument();
     expect(screen.queryByText('No mistakes to review yet. Complete more practice and Tian OS will show questions to review here.')).not.toBeInTheDocument();
   });
+
+  it('shows working review insight when a mistake includes analysed working', async () => {
+    mistakesMock.mockResolvedValue({
+      data: {
+        mistakes: [{
+          id: 'm1',
+          skillId: 'skill-1',
+          skillName: 'Adding Fractions',
+          questionStem: 'Add 1/2 and 1/4',
+          studentAnswer: '2/6',
+          correctAnswer: '3/4',
+          mistakeType: 'method_error',
+          status: 'open',
+          workedSolution: 'Find a common denominator first.',
+          extractedWorkingText: '1/2 + 1/4 = 2/6',
+          workingInsight: {
+            detectedMethod: 'Step-by-step working',
+            detectedIssue: 'A key step appears to be missing.',
+            studentExplanation: 'A step seems to be missing. Write the intermediate step before the final answer.',
+            extractedWorkingText: '1/2 + 1/4 = 2/6',
+            qualityBand: 'PARTIAL',
+          },
+        }],
+      },
+    });
+
+    renderPage();
+
+    expect(await screen.findByText('Working Review')).toBeInTheDocument();
+    expect(screen.getByText('Method spotted: Step-by-step working')).toBeInTheDocument();
+    expect(screen.getByText('Detected from your working')).toBeInTheDocument();
+    expect(screen.getByText(/intermediate step/i)).toBeInTheDocument();
+  });
 });

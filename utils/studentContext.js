@@ -8,6 +8,7 @@
 // workspace membership.
 import Student from '../models/Student.js';
 import StudentGuardian from '../models/StudentGuardian.js';
+import TutorStudentLink from '../models/TutorStudentLink.js';
 import WorkspaceMember from '../models/WorkspaceMember.js';
 
 // Throws { status, message } on no access. Returns the Student doc.
@@ -22,6 +23,14 @@ export async function resolveStudent(req, explicitId) {
     // A guardian of the student:
     const guardian = await StudentGuardian.findOne({ studentId: student._id, guardianUserId: req.user.id });
     if (guardian) return student;
+    // A tutor explicitly assigned to this student in the active tutor workspace:
+    const tutorLink = await TutorStudentLink.findOne({
+      studentId: student._id,
+      tutorUserId: req.user.id,
+      ...(req.workspaceId ? { workspaceId: req.workspaceId } : {}),
+      status: 'active',
+    });
+    if (tutorLink) return student;
     // A member of the student's workspace (tutor/teacher):
     const member = await WorkspaceMember.findOne({ workspaceId: student.workspaceId, userId: req.user.id, status: 'active' });
     if (member) return student;

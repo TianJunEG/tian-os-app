@@ -22,8 +22,8 @@ function hintFor(misconception, strategy) {
 }
 
 // Order the plan by the skill's preferred strategy on repeated failure.
-function orderSteps({ reassure, hint, reinforce, worked, guided, retry }, strategy) {
-  const base = [reassure, hint];
+function orderSteps({ reassure, hint, workingHabit, reinforce, worked, guided, retry }, strategy) {
+  const base = [reassure, hint, workingHabit].filter(Boolean);
   if (strategy === 'reinforce-prerequisite' || strategy === 'slow-accuracy-first') {
     return [...base, reinforce, worked, guided, retry].filter(Boolean);
   }
@@ -32,6 +32,47 @@ function orderSteps({ reassure, hint, reinforce, worked, guided, retry }, strate
   }
   // default: worked-example first
   return [...base, worked, reinforce, guided, retry].filter(Boolean);
+}
+
+function latestWorkingInsight(recentAttempts = []) {
+  return [...(recentAttempts || [])]
+    .reverse()
+    .map((attempt) => attempt.workingAnalysisResult || attempt.workingInsight)
+    .find(Boolean) || null;
+}
+
+function workingStrategyFromInsight(insight = {}) {
+  if (!insight) return null;
+  const issue = String(insight.detectedIssue || insight.studentExplanation || '').toLowerCase();
+  if (insight.qualityBand === 'INSUFFICIENT') {
+    return {
+      type: 'working-habit',
+      text: 'For this kind of question, write one clear line for each step before the final answer.',
+      strategy: 'review-working-habits',
+    };
+  }
+  if (/missing|skipped|not visible|no working/.test(issue)) {
+    return {
+      type: 'worked-example',
+      text: 'Let’s fill in the missing step before trying another one.',
+      strategy: 'worked-example',
+    };
+  }
+  if (/final answer|calculation/.test(issue) && insight.detectedMethod && insight.detectedMethod !== 'Method not visible') {
+    return {
+      type: 'hint',
+      text: 'Your method has useful parts. Recheck the calculation line carefully.',
+      strategy: 'fluency-check',
+    };
+  }
+  if (insight.detectedIssue || insight.misconceptionDetected) {
+    return {
+      type: 'hint',
+      text: insight.studentExplanation || 'Use the working to spot where the method first changed.',
+      strategy: 'guided-practice',
+    };
+  }
+  return null;
 }
 
 // Pure core. `skill` is a Skill doc (with metadata); `recentAttempts` the failing
@@ -46,7 +87,9 @@ export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills 
 
   // 2) Prerequisite reinforcement (skill's declared reinforcement, else its prereqs).
   const reinforceSlugs = (md.remediation?.reinforce?.length ? md.remediation.reinforce : prereqSkills.map((p) => p.slug)) || [];
-  const strategy = md.remediation?.onRepeatedFail || 'worked-example';
+  const workingInsight = latestWorkingInsight(recentAttempts);
+  const workingAdjustment = workingStrategyFromInsight(workingInsight);
+  const strategy = workingAdjustment?.strategy || md.remediation?.onRepeatedFail || 'worked-example';
 
   // 3) Concrete worked example + a guided clone, from the rule-based generator
   // when one exists; otherwise fall back to the skill's question-structure stem.
@@ -62,7 +105,8 @@ export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills 
 
   const steps = orderSteps({
     reassure: { type: 'reassure', text: 'No worries — let’s look at this one together.' },
-    hint: { type: 'hint', text: hintFor(misconception, md.remediation?.strategy) },
+    hint: { type: 'hint', text: workingAdjustment?.text || hintFor(misconception, md.remediation?.strategy) },
+    workingHabit: workingAdjustment?.type === 'working-habit' ? workingAdjustment : null,
     reinforce: reinforceSlugs.length
       ? { type: 'reinforce-prerequisite', skills: reinforceSlugs, text: 'Let’s warm up the building block first.' } : null,
     worked,
@@ -74,6 +118,14 @@ export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills 
     skill: skill.slug,
     misconception,
     strategy,
+    workingEvidenceUsed: Boolean(workingInsight),
+    workingInsight: workingInsight ? {
+      detectedMethod: workingInsight.detectedMethod || '',
+      detectedIssue: workingInsight.detectedIssue || '',
+      qualityBand: workingInsight.qualityBand || '',
+      workingQualityScore: workingInsight.workingQualityScore ?? null,
+      remediationRecommendation: workingInsight.remediationRecommendation || null,
+    } : null,
     tone: 'calm',
     disclosure: 'progressive',
     revealOneAtATime: true,

@@ -16,7 +16,19 @@ describe('MathPath working code service', () => {
   it('maps question refs to working codes with required-working metadata', () => {
     const map = buildQuestionWorkingMap(
       [
-        { questionId: 'q1', skillId: 'F025', workingRequired: true, workingReason: 'required_multi_step' },
+        {
+          questionId: 'q1',
+          skillId: 'F025',
+          attemptId: 'attempt_1',
+          prompt: 'Add 1/2 and 1/4.',
+          answerGiven: '2/6',
+          correctAnswer: '3/4',
+          answerCorrect: false,
+          confidenceLevel: 'i_know_this',
+          solutionSteps: ['Find a common denominator.', 'Add the numerators.'],
+          workingRequired: true,
+          workingReason: 'required_multi_step',
+        },
         { questionId: 'q2', skillId: 'F001', workingRequired: false, workingReason: 'optional_conceptual' },
       ],
       { domainId: 'fractions', sessionId: 'practice_1' }
@@ -31,6 +43,14 @@ describe('MathPath working code service', () => {
       workingRequired: true,
       workingReason: 'required_multi_step',
       mappingStatus: 'autoMapped',
+      attemptId: 'attempt_1',
+      prompt: 'Add 1/2 and 1/4.',
+      answerGiven: '2/6',
+      correctAnswer: '3/4',
+      answerCorrect: false,
+      confidenceLevel: 'i_know_this',
+      solutionSteps: ['Find a common denominator.', 'Add the numerators.'],
+      expectedStepCount: 2,
     });
     expect(map[0].workingCode).toMatch(/^MP-FRAC-F025-[A-Z0-9]{4}$/);
     expect(map[1].workingRequired).toBe(false);

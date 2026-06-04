@@ -3,6 +3,10 @@ import { protect } from '../middleware/auth.js';
 import Mistake from '../models/Mistake.js';
 import Skill from '../models/Skill.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import {
+  findWorkingInsightForMistake,
+  shapeWorkingLinkFields,
+} from '../services/mathpath/workingLinkageService.js';
 
 const router = express.Router();
 
@@ -11,6 +15,16 @@ const MISCONCEPTION_LABELS = {
   'frac/add-denominators': 'Added numerators and denominators directly',
 };
 
+function shapeWorkingFields(source = {}) {
+  return shapeWorkingLinkFields(source);
+}
+
+async function loadWorkingInsightForMistake(mistake, studentId) {
+  if (mistake.workingInsight || mistake.workingId) return shapeWorkingFields(mistake);
+  const record = await findWorkingInsightForMistake(mistake, studentId);
+  return record ? shapeWorkingFields(record) : shapeWorkingFields({});
+}
+
 function normalizeMistakePayload(raw = {}) {
   const questionId = String(raw.questionId || raw.questionCode || '').trim();
   const skillCode = String(raw.skillCode || raw.skillId || '').trim();
@@ -18,10 +32,12 @@ function normalizeMistakePayload(raw = {}) {
     questionId,
     sessionId: String(raw.sessionId || raw.practiceSessionId || '').trim(),
     skillCode,
+    attemptId: String(raw.attemptId || '').trim(),
     questionStem: String(raw.questionText || raw.questionStem || raw.prompt || '').trim(),
     studentAnswer: String(raw.studentAnswer ?? raw.answer ?? '').trim(),
     correctAnswer: String(raw.correctAnswer ?? '').trim(),
     confidence: String(raw.confidence || raw.confidenceLevel || raw.reflection || '').trim(),
+    ...shapeWorkingFields(raw),
     workedSolution: String(raw.workedSolution || '').trim(),
     misconceptionTag: String(raw.misconceptionTag || '').trim(),
     occurredAt: raw.timestamp ? new Date(raw.timestamp) : new Date(),
@@ -63,8 +79,8 @@ router.get('/', protect, async (req, res) => {
       .populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } })
       .sort({ occurredAt: -1 }).limit(100);
 
-    const shaped = mistakes.map((m) => ({
-      id: m._id, questionId: m.questionId, sessionId: m.sessionId || '',
+    const shaped = await Promise.all(mistakes.map(async (m) => ({
+      id: m._id, questionId: m.questionId, sessionId: m.sessionId || '', attemptId: m.attemptId || '',
       skillId: m.skillId?._id || null, skillCode: m.skillCode || '',
       skillName: m.skillId?.name || m.skillCode || 'Unknown skill',
       topicName: m.skillId?.topicId?.name || '', module: m.module,
@@ -72,8 +88,9 @@ router.get('/', protect, async (req, res) => {
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
+      ...(await loadWorkingInsightForMistake(m, student._id)),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
-    }));
+    })));
 
     // Group by skill for the home/weak-skills view.
     const bySkill = {};
@@ -112,6 +129,7 @@ router.post('/bulk', protect, async (req, res) => {
         workspaceId: student.workspaceId,
         questionId: normalized.questionId,
         sessionId: normalized.sessionId,
+        attemptId: normalized.attemptId,
         skillId,
         skillCode: normalized.skillCode,
         module: raw.module || 'MathPath',
@@ -120,6 +138,13 @@ router.post('/bulk', protect, async (req, res) => {
         studentAnswer: normalized.studentAnswer,
         correctAnswer: normalized.correctAnswer,
         confidence: normalized.confidence,
+        workingId: normalized.workingId,
+        workingPreviewImage: normalized.workingPreviewImage,
+        extractedWorkingText: normalized.extractedWorkingText,
+        workingInsight: normalized.workingInsight,
+        workingAnalysisResult: normalized.workingAnalysisResult,
+        workingQualityScore: normalized.workingQualityScore,
+        workingQualityBand: normalized.workingQualityBand,
         timestamp: normalized.occurredAt,
         mistakeType: raw.mistakeType || 'unknown',
         misconceptionTag: normalized.misconceptionTag,
@@ -150,13 +175,14 @@ router.get('/:id', protect, async (req, res) => {
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
     await resolveStudent(req, m.studentId); // access check
     res.json({
-      id: m._id, questionId: m.questionId, sessionId: m.sessionId || '',
+      id: m._id, questionId: m.questionId, sessionId: m.sessionId || '', attemptId: m.attemptId || '',
       skillId: m.skillId?._id || null, skillCode: m.skillCode || '',
       skillName: m.skillId?.name || m.skillCode || 'Unknown skill', topicName: m.skillId?.topicId?.name || '',
       questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
+      ...(await loadWorkingInsightForMistake(m, m.studentId)),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
     });
   } catch (err) {

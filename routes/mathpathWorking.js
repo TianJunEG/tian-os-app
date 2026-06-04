@@ -6,6 +6,8 @@ import { protect } from '../middleware/auth.js';
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
 import MathPathWorkingIntelligence from '../models/mathpath/MathPathWorkingIntelligence.js';
 import MathPathWorkingSession from '../models/mathpath/MathPathWorkingSession.js';
+import Student from '../models/Student.js';
+import { resolveStudent } from '../utils/studentContext.js';
 import {
   buildQuestionWorkingMap,
   generateWorkingCode,
@@ -27,6 +29,11 @@ import {
   runReasoningMethodMarkAnalysis,
   updateReasoningProgression,
 } from '../services/mathpath/reasoningMethodMarkEngine.js';
+import {
+  applyWorkingInsightToRecord,
+  runWorkingInsightPipeline,
+} from '../services/mathpath/workingInsightPipeline.js';
+import { linkWorkingInsightToMistake as linkWorkingInsightToMistakeRecord } from '../services/mathpath/workingLinkageService.js';
 import { recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 
 const router = express.Router();
@@ -65,9 +72,40 @@ function canActForStudent(req, studentId) {
   return String(req.user?.id || req.user?._id || '') === String(studentId || '');
 }
 
+function authUserId(req) {
+  return String(req.user?.id || req.user?._id || '').trim();
+}
+
+async function assertCanActForStudent(req, studentId) {
+  await resolveStudent(req, studentId);
+  return true;
+}
+
+async function resolveWorkingStudentScope(req, explicitId = '', { allowAdultAll = false } = {}) {
+  const roles = roleSet(req.user);
+  const hasAdultScope = roles.has('admin') || roles.has('teacher') || roles.has('tutor') || roles.has('parent');
+  if (allowAdultAll && hasAdultScope && !explicitId) {
+    return { query: {}, student: null, studentIds: [], legacyUserIds: [] };
+  }
+
+  const student = process.env.QA_DISABLE_RATE_LIMIT === '1' && explicitId
+    ? await Student.findById(explicitId)
+    : await resolveStudent(req, explicitId || undefined);
+  if (!student) throw { status: 404, message: 'Student not found.' };
+  const canonicalStudentId = String(student._id);
+  const legacyUserId = String(student.userId || '');
+  return {
+    query: { studentId: canonicalStudentId },
+    student,
+    studentIds: [canonicalStudentId],
+    legacyUserIds: legacyUserId ? [legacyUserId] : [],
+  };
+}
+
 function publicSession(session = {}) {
   return {
     workingSessionId: session.workingSessionId,
+    userId: session.userId || session.submittedByUserId || '',
     studentId: session.studentId,
     practiceSessionId: session.practiceSessionId || null,
     assessmentSessionId: session.assessmentSessionId || null,
@@ -100,11 +138,20 @@ function publicWorkingIntelligence(record = {}) {
   return {
     workingId: record.workingId,
     workingSessionId: record.workingSessionId,
+    userId: record.userId || '',
     studentId: record.studentId,
+    attemptId: record.attemptId || '',
+    sessionId: record.sessionId || record.practiceSessionId || record.assessmentSessionId || '',
+    mistakeId: record.mistakeId || '',
     questionId: record.questionId,
     skillId: record.skillId,
+    skillCode: record.skillCode || record.skillId || '',
     practiceSessionId: record.practiceSessionId || null,
     assessmentSessionId: record.assessmentSessionId || null,
+    answerGiven: record.answerGiven || '',
+    correctAnswer: record.correctAnswer || '',
+    answerCorrect: record.answerCorrect,
+    confidenceLevel: record.confidenceLevel || '',
     workingCode: record.workingCode || '',
     uploadType: record.uploadType || 'unknown',
     rawImage: record.rawImage || '',
@@ -156,6 +203,9 @@ function publicWorkingIntelligence(record = {}) {
     reasoningSafety: record.reasoningSafety || null,
     reasoningDatasetRecord: record.reasoningDatasetRecord || null,
     reasoningHumanValidation: record.reasoningHumanValidation || null,
+    workingInsight: record.workingInsight || null,
+    workingQualityScore: record.workingQualityScore ?? null,
+    qualityBand: record.qualityBand || '',
     processing: record.processing || {},
     submittedAt: record.submittedAt || null,
     createdAt: record.createdAt || null,
@@ -251,14 +301,117 @@ function buildWorkingQueueSummary(sessions = []) {
   };
 }
 
+function buildWorkingInsightSummary(records = []) {
+  const analysed = records.filter((record) => record.workingInsight);
+  const scores = analysed
+    .map((record) => Number(record.workingQualityScore ?? record.workingInsight?.workingQualityScore))
+    .filter((score) => Number.isFinite(score));
+  const averageWorkingQuality = scores.length
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+    : 0;
+  const methodMistakes = analysed
+    .filter((record) => record.workingInsight?.detectedIssue)
+    .map((record) => ({
+      workingId: record.workingId,
+      questionId: record.questionId,
+      skillId: record.skillId,
+      detectedMethod: record.workingInsight.detectedMethod || '',
+      detectedIssue: record.workingInsight.detectedIssue || '',
+      studentExplanation: record.workingInsight.studentExplanation || '',
+    }));
+  const misconceptions = analysed
+    .map((record) => record.workingInsight?.misconceptionDetected)
+    .filter(Boolean);
+
+  return {
+    workingRecordCount: records.length,
+    analysedCount: analysed.length,
+    needsReviewCount: records.filter((record) => record.analysisStatus === 'needs_human_review').length,
+    averageWorkingQuality,
+    qualityBands: analysed.reduce((acc, record) => {
+      const band = record.qualityBand || record.workingInsight?.qualityBand || 'INSUFFICIENT';
+      acc[band] = (acc[band] || 0) + 1;
+      return acc;
+    }, {}),
+    parentInsights: analysed.map((record) => record.workingInsight?.parentInsight).filter(Boolean),
+    tutorInsights: analysed.map((record) => record.workingInsight?.tutorInsight).filter(Boolean),
+    methodMistakes,
+    misconceptions,
+    extractedText: analysed.map((record) => record.workingInsight?.extractedWorkingText || '').filter(Boolean),
+  };
+}
+
+function questionMetadataFromMapRow(row = {}) {
+  const solutionSteps = Array.isArray(row.solutionSteps) ? row.solutionSteps : [];
+  return {
+    question: row.prompt || '',
+    stem: row.prompt || '',
+    prompt: row.prompt || '',
+    skillId: row.skillId || '',
+    studentAnswer: row.answerGiven || '',
+    correctAnswer: row.correctAnswer || '',
+    answerCorrect: row.answerCorrect,
+    confidenceLevel: row.confidenceLevel || '',
+    expectedProcedureKeywords: Array.isArray(row.expectedProcedureKeywords) ? row.expectedProcedureKeywords : [],
+    expectedOperations: Array.isArray(row.expectedOperations) ? row.expectedOperations : [],
+    expectedStepCount: Number.isFinite(Number(row.expectedStepCount)) ? Number(row.expectedStepCount) : solutionSteps.length || null,
+    solutionSteps,
+    questionType: row.questionType || '',
+    outcome: {
+      attemptId: row.attemptId || '',
+      sessionId: row.sessionId || '',
+      answerGiven: row.answerGiven || '',
+      correctAnswer: row.correctAnswer || '',
+      answerCorrect: row.answerCorrect,
+      confidenceLevel: row.confidenceLevel || '',
+    },
+  };
+}
+
+function buildWorkingAnalysisEvents(session = {}, records = [], timestamp = new Date()) {
+  return records.flatMap((record) => {
+    const insight = record.workingInsight || {};
+    const base = {
+      studentId: String(session.studentId || record.studentId || ''),
+      domain: session.domainId || '',
+      skillCode: record.skillCode || record.skillId || '',
+      questionId: record.questionId || '',
+      sessionId: record.sessionId || record.practiceSessionId || session.practiceSessionId || session.workingSessionId,
+      timestamp,
+      metadata: {
+        workingId: record.workingId,
+        workingSessionId: session.workingSessionId || record.workingSessionId,
+        attemptId: record.attemptId || '',
+        qualityBand: insight.qualityBand || record.qualityBand || '',
+        workingQualityScore: insight.workingQualityScore ?? record.workingQualityScore ?? null,
+        detectedMethod: insight.detectedMethod || '',
+      },
+    };
+    return [
+      { ...base, eventType: 'working_analysis_completed' },
+      { ...base, eventType: 'working_quality_scored' },
+      ...(insight.misconceptionDetected ? [{
+        ...base,
+        eventType: 'working_misconception_detected',
+        metadata: {
+          ...base.metadata,
+          misconceptionId: insight.misconceptionDetected.misconceptionId || '',
+          detectedIssue: insight.detectedIssue || '',
+        },
+      }] : []),
+    ];
+  });
+}
+
 async function upsertWorkingIntelligenceForSession(session) {
   const records = buildWorkingIntelligenceRecordsFromSession(session.toObject ? session.toObject() : session);
   const saved = [];
   for (const record of records) {
-    const existing = await MathPathWorkingIntelligence.findOne({
-      workingSessionId: record.workingSessionId,
-      questionId: record.questionId,
-    });
+    const existing = await MathPathWorkingIntelligence.findOne(
+      record.attemptId
+        ? { attemptId: record.attemptId }
+        : { workingSessionId: record.workingSessionId, questionId: record.questionId }
+    );
     if (existing) {
       Object.assign(existing, {
         ...record,
@@ -279,13 +432,37 @@ async function upsertWorkingIntelligenceForSession(session) {
   return saved;
 }
 
+async function linkWorkingInsightToMistake(record = {}) {
+  return linkWorkingInsightToMistakeRecord(record);
+}
+
+async function runAutomaticAnalysisForWorkingRecords(session, records = []) {
+  const mapByQuestion = new Map((session.questionWorkingMap || []).map((row) => [String(row.questionId || ''), row]));
+  const analysed = [];
+  for (const record of records) {
+    const doc = await MathPathWorkingIntelligence.findOne({ workingId: record.workingId });
+    if (!doc) continue;
+    const mapRow = mapByQuestion.get(String(doc.questionId || '')) || {};
+    const pipeline = runWorkingInsightPipeline(doc.toObject(), questionMetadataFromMapRow(mapRow));
+    Object.assign(doc, applyWorkingInsightToRecord(doc.toObject(), pipeline));
+    await doc.save();
+    const object = doc.toObject();
+    await linkWorkingInsightToMistake(object);
+    analysed.push({
+      ...object,
+      mistakeId: object.mistakeId || '',
+    });
+  }
+  return analysed;
+}
+
 router.use(protect);
 
 router.post('/sessions', async (req, res) => {
   try {
-    const studentId = String(req.body?.studentId || req.user?.id || '').trim();
-    if (!studentId) return res.status(400).json({ error: 'studentId is required.' });
-    if (!canActForStudent(req, studentId)) return res.status(403).json({ error: 'Not allowed to create working sessions for this student.' });
+    const student = await resolveStudent(req, req.body?.studentId);
+    const studentId = String(student._id);
+    const userId = authUserId(req);
 
     const practiceSessionId = req.body?.practiceSessionId || req.body?.sessionId || null;
     const assessmentSessionId = req.body?.assessmentSessionId || null;
@@ -318,6 +495,7 @@ router.post('/sessions', async (req, res) => {
 
     const session = await MathPathWorkingSession.create({
       workingSessionId,
+      userId,
       studentId,
       practiceSessionId,
       assessmentSessionId,
@@ -368,7 +546,7 @@ router.get('/code/:workingCode', async (req, res) => {
     const workingCode = String(req.params.workingCode || '').trim().toUpperCase();
     const session = await MathPathWorkingSession.findOne({ 'questionWorkingMap.workingCode': workingCode }).lean();
     if (!session) return res.status(404).json({ error: 'Working code not found.' });
-    if (!canActForStudent(req, session.studentId)) return res.status(403).json({ error: 'Not allowed to view this working code.' });
+    await assertCanActForStudent(req, session.studentId);
     const mapping = (session.questionWorkingMap || []).find((row) => row.workingCode === workingCode) || null;
     return res.json({ workingSession: publicSession(session), mapping });
   } catch (err) {
@@ -378,13 +556,8 @@ router.get('/code/:workingCode', async (req, res) => {
 
 router.get('/pending', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
-    const query = {};
-    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor') && !roles.has('parent')) {
-      query.studentId = String(req.user?.id || '');
-    } else if (req.query.studentId) {
-      query.studentId = String(req.query.studentId);
-    }
+    const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
+    const query = { ...scope.query };
     if (req.query.status) query.status = String(req.query.status);
     if (req.query.analysisStatus) query.analysisStatus = String(req.query.analysisStatus);
     const limit = Math.max(1, Math.min(200, Number(req.query.limit || 50)));
@@ -397,23 +570,40 @@ router.get('/pending', async (req, res) => {
 
 router.get('/review-summary', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
-    const query = {};
-    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor') && !roles.has('parent')) {
-      query.studentId = String(req.user?.id || '');
-    } else if (req.query.studentId) {
-      query.studentId = String(req.query.studentId);
-    }
+    const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
+    const query = { ...scope.query };
     if (req.query.analysisStatus) query.analysisStatus = String(req.query.analysisStatus);
     const limit = Math.max(1, Math.min(200, Number(req.query.limit || 50)));
     const sessions = await MathPathWorkingSession.find(query).sort({ updatedAt: -1 }).limit(limit).lean();
+    const studentIds = [...new Set([
+      ...scope.studentIds,
+      ...sessions.map((session) => String(session.studentId || '')).filter(Boolean),
+    ])];
+    const legacyUserIds = [...new Set([
+      ...scope.legacyUserIds,
+      ...sessions.map((session) => String(session.userId || session.submittedByUserId || '')).filter(Boolean),
+    ])];
+    const intelligenceQuery = studentIds.length || legacyUserIds.length
+      ? {
+        $or: [
+          ...(studentIds.length ? [{ studentId: { $in: studentIds } }] : []),
+          // TODO(working-linkage-migration): remove legacy User-id lookup after backfillWorkingLinkage has run in all environments.
+          ...(legacyUserIds.length ? [{ studentId: { $in: legacyUserIds } }] : []),
+        ],
+      }
+      : { studentId: '__none__' };
+    const records = await MathPathWorkingIntelligence.find(intelligenceQuery).sort({ updatedAt: -1 }).limit(500).lean();
     const helpRequests = await buildHelpRequestSummary({
       studentId: req.query.studentId ? String(req.query.studentId) : '',
-      studentIds: sessions.map((session) => session.studentId).filter(Boolean),
+      studentIds,
     });
     return res.json({
-      summary: buildWorkingQueueSummary(sessions),
+      summary: {
+        ...buildWorkingQueueSummary(sessions),
+        ...buildWorkingInsightSummary(records),
+      },
       workingSessions: sessions.map(publicSession),
+      workingInsights: records.map(publicWorkingIntelligence),
       helpRequests,
     });
   } catch (err) {
@@ -423,13 +613,8 @@ router.get('/review-summary', async (req, res) => {
 
 router.get('/intelligence/queue', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
-    const query = {};
-    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor') && !roles.has('parent')) {
-      query.studentId = String(req.user?.id || '');
-    } else if (req.query.studentId) {
-      query.studentId = String(req.query.studentId);
-    }
+    const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
+    const query = { ...scope.query };
     if (req.query.reviewStatus) query.reviewStatus = String(req.query.reviewStatus);
     if (req.query.analysisStatus) query.analysisStatus = String(req.query.analysisStatus);
     const limit = Math.max(1, Math.min(200, Number(req.query.limit || 50)));
@@ -445,13 +630,8 @@ router.get('/intelligence/queue', async (req, res) => {
 
 router.get('/intelligence/audit', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
-    const query = {};
-    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
-      query.studentId = String(req.user?.id || '');
-    } else if (req.query.studentId) {
-      query.studentId = String(req.query.studentId);
-    }
+    const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
+    const query = { ...scope.query };
     const records = await MathPathWorkingIntelligence.find(query).sort({ updatedAt: -1 }).limit(1000).lean();
     return res.json({ audit: buildOcrAuditReport(records) });
   } catch (err) {
@@ -461,13 +641,9 @@ router.get('/intelligence/audit', async (req, res) => {
 
 router.get('/intelligence/procedure-audit', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
     const query = { procedureHumanReviewOutcome: { $ne: null } };
-    if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
-      query.studentId = String(req.user?.id || '');
-    } else if (req.query.studentId) {
-      query.studentId = String(req.query.studentId);
-    }
+    const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
+    Object.assign(query, scope.query);
     const records = await MathPathWorkingIntelligence.find(query).sort({ updatedAt: -1 }).limit(1000).lean();
     const rows = records.map((record) => ({
       procedureAnalysis: record.procedureAnalysis,
@@ -487,7 +663,7 @@ router.get('/intelligence/:workingId', async (req, res) => {
   try {
     const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId }).lean();
     if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
-    if (!canActForStudent(req, record.studentId)) return res.status(403).json({ error: 'Not allowed to view this working record.' });
+    await assertCanActForStudent(req, record.studentId);
     return res.json({ workingRecord: publicWorkingIntelligence(record) });
   } catch (err) {
     return res.status(500).json({ error: 'Unable to load working intelligence record.', details: err.message });
@@ -669,7 +845,8 @@ router.get('/help-requests', async (req, res) => {
     const roles = roleSet(req.user);
     const studentId = req.query.studentId ? String(req.query.studentId) : '';
     if (!studentId && !roles.has('admin') && !roles.has('teacher') && !roles.has('tutor') && !roles.has('parent')) {
-      const helpRequests = await buildHelpRequestSummary({ studentId: String(req.user?.id || '') });
+      const student = await resolveStudent(req);
+      const helpRequests = await buildHelpRequestSummary({ studentId: String(student._id) });
       return res.json({ helpRequests });
     }
     const helpRequests = await buildHelpRequestSummary({ studentId });
@@ -683,7 +860,7 @@ router.get('/:workingSessionId', async (req, res) => {
   try {
     const session = await MathPathWorkingSession.findOne({ workingSessionId: req.params.workingSessionId }).lean();
     if (!session) return res.status(404).json({ error: 'Working session not found.' });
-    if (!canActForStudent(req, session.studentId)) return res.status(403).json({ error: 'Not allowed to view this working session.' });
+    await assertCanActForStudent(req, session.studentId);
     return res.json({ workingSession: publicSession(session) });
   } catch (err) {
     return res.status(500).json({ error: 'Unable to load working session.', details: err.message });
@@ -694,7 +871,7 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
   try {
     const session = await MathPathWorkingSession.findOne({ workingSessionId: req.params.workingSessionId });
     if (!session) return res.status(404).json({ error: 'Working session not found.' });
-    if (!canActForStudent(req, session.studentId)) return res.status(403).json({ error: 'Not allowed to upload working for this student.' });
+    await assertCanActForStudent(req, session.studentId);
 
     const files = Array.isArray(req.files) ? req.files : [];
     if (!files.length && !req.body?.digitalInkData) {
@@ -731,7 +908,15 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
         session.doodleOverlayData = req.body.doodleOverlayData;
       }
     }
-    if (req.body?.digitalInkData) session.digitalInkData = req.body.digitalInkData;
+    if (req.body?.digitalInkData) {
+      try {
+        session.digitalInkData = typeof req.body.digitalInkData === 'string'
+          ? JSON.parse(req.body.digitalInkData)
+          : req.body.digitalInkData;
+      } catch (_) {
+        session.digitalInkData = req.body.digitalInkData;
+      }
+    }
     session.status = 'submitted';
     session.submittedByRole = getSubmittedByRole(req.user);
     session.submittedByUserId = String(req.user?.id || req.user?._id || '');
@@ -744,6 +929,7 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
     session.interventionRecommendation = summary.recommendation;
     await session.save();
     const workingRecords = await upsertWorkingIntelligenceForSession(session);
+    const analysedWorkingRecords = await runAutomaticAnalysisForWorkingRecords(session.toObject(), workingRecords);
     await recordLearningEvents([
       {
         studentId: String(session.studentId),
@@ -774,11 +960,12 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
           source: session.inputMethod,
         },
       }))),
+      ...buildWorkingAnalysisEvents(session.toObject(), analysedWorkingRecords, uploadedAt),
     ]);
 
     return res.json({
       workingSession: publicSession(session.toObject()),
-      workingRecords: workingRecords.map(publicWorkingIntelligence),
+      workingRecords: analysedWorkingRecords.map(publicWorkingIntelligence),
     });
   } catch (err) {
     return res.status(500).json({ error: 'Unable to upload working.', details: err.message });
@@ -789,7 +976,7 @@ router.post('/:workingSessionId/no-working', async (req, res) => {
   try {
     const session = await MathPathWorkingSession.findOne({ workingSessionId: req.params.workingSessionId });
     if (!session) return res.status(404).json({ error: 'Working session not found.' });
-    if (!canActForStudent(req, session.studentId)) return res.status(403).json({ error: 'Not allowed to update this working session.' });
+    await assertCanActForStudent(req, session.studentId);
 
     const questionId = String(req.body?.questionId || '').trim();
     if (!questionId) return res.status(400).json({ error: 'questionId is required.' });

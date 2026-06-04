@@ -52,6 +52,7 @@ import {
   submitSimilarQuestionPractice,
 } from '../services/mathpath/questionPatternTrainer.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
+import { createLinkId } from '../services/mathpath/workingLinkageService.js';
 
 const router = express.Router();
 
@@ -673,6 +674,7 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       const confidenceCalibration = String(r.confidenceCalibration || '');
       const possibleMisconception = Boolean(r.possibleMisconception || (!correct && (reflection === 'i_know_this' || /very/i.test(confidence))));
       const questionFamilyId = String(r.questionFamilyId || `QF_${skillFid || 'UNK'}_${String(q._id).slice(-4).toUpperCase()}`);
+      const attemptId = String(r.attemptId || createLinkId('attempt'));
       const startedAt = toDateLike(r.questionStartedAt);
       const endedAt = toDateLike(r.questionEndedAt) || new Date();
       const eventTimestamp = toDateLike(r.timestamp) || endedAt || new Date();
@@ -705,6 +707,7 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
       });
 
       savedAttempts.push({
+        attemptId,
         studentId: String(student._id),
         domainId: 'fractions',
         skillId: skillFid || skill.slug || String(skill._id),
@@ -754,6 +757,7 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         workingEvidence: Array.isArray(r.workingEvidence) ? r.workingEvidence : [],
         workingCode: String(r.workingCode || ''),
         workingSessionId: String(r.workingSessionId || ''),
+        workingId: String(r.workingId || ''),
         workingExpected: true,
         });
 
@@ -782,6 +786,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
           workspaceId: student.workspaceId,
           questionId: q._id,
           skillId: q.skillId._id || q.skillId,
+          attemptId,
+          workingId: String(r.workingId || ''),
           module: 'MathPath',
           questionStem: q.stem,
           workedSolution: q.modelAnswer || q.workedSolution || '',
@@ -1125,7 +1131,23 @@ router.post('/remediation', protect, async (req, res) => {
     const skill = skillSlug ? await Skill.findOne({ slug: skillSlug }) : (skillId ? await Skill.findById(skillId) : null);
     if (!skill) return res.status(404).json({ error: 'Skill not found.' });
     const prereqSkills = await Skill.find({ _id: { $in: skill.prerequisiteSkillIds || [] } });
-    res.json(buildRemediationPlan({ skill, recentAttempts, prereqSkills }));
+    const plan = buildRemediationPlan({ skill, recentAttempts, prereqSkills });
+    if (plan?.workingEvidenceUsed) {
+      const student = await resolveStudent(req).catch(() => null);
+      await recordLearningEvents([{
+        studentId: String(student?._id || req.user?.id || req.user?._id || ''),
+        eventType: 'working_used_for_remediation',
+        domain: 'fractions',
+        skillCode: skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode || skill.slug || '',
+        metadata: {
+          skillId: String(skill._id),
+          detectedMethod: plan.workingInsight?.detectedMethod || '',
+          detectedIssue: plan.workingInsight?.detectedIssue || '',
+          qualityBand: plan.workingInsight?.qualityBand || '',
+        },
+      }]);
+    }
+    res.json(plan);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Remediation failed.' });
   }

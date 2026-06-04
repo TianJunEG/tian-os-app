@@ -40,13 +40,35 @@ export function normalizeQuestionWorkingRef(ref = {}, defaults = {}) {
   const domainId = String(ref.domainId || defaults.domainId || 'fractions').trim();
   const workingRequired = ref.workingRequired ?? ref.requiresWorking ?? defaults.workingRequired ?? true;
   const workingReason = String(ref.workingReason || defaults.workingReason || (workingRequired ? 'required' : 'optional')).trim();
+  const solutionSteps = Array.isArray(ref.solutionSteps)
+    ? ref.solutionSteps.map((step) => String(step || '').trim()).filter(Boolean)
+    : [];
+  const expectedProcedureKeywords = Array.isArray(ref.expectedProcedureKeywords)
+    ? ref.expectedProcedureKeywords.map((keyword) => String(keyword || '').trim()).filter(Boolean)
+    : [];
+  const expectedOperations = Array.isArray(ref.expectedOperations)
+    ? ref.expectedOperations.map((operation) => String(operation || '').trim()).filter(Boolean)
+    : [];
 
   return {
     questionId,
     skillId,
     domainId,
     sessionId: String(ref.sessionId || defaults.sessionId || '').trim(),
+    attemptId: String(ref.attemptId || '').trim(),
     exerciseId: String(ref.exerciseId || defaults.exerciseId || '').trim(),
+    prompt: String(ref.prompt || ref.questionText || ref.stem || '').trim(),
+    answerGiven: String(ref.answerGiven ?? ref.studentAnswer ?? '').trim(),
+    correctAnswer: String(ref.correctAnswer ?? ref.answer ?? '').trim(),
+    answerCorrect: typeof ref.answerCorrect === 'boolean' ? ref.answerCorrect : null,
+    confidenceLevel: String(ref.confidenceLevel || ref.confidence || '').trim(),
+    solutionSteps,
+    expectedProcedureKeywords,
+    expectedOperations,
+    expectedStepCount: Number.isFinite(Number(ref.expectedStepCount))
+      ? Number(ref.expectedStepCount)
+      : solutionSteps.length || null,
+    questionType: String(ref.questionType || ref.type || '').trim(),
     pageNumber: Number.isFinite(Number(ref.pageNumber)) ? Number(ref.pageNumber) : null,
     detectedLabel: String(ref.detectedLabel || '').trim(),
     mappingStatus: ref.mappingStatus || 'autoMapped',
