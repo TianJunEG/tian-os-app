@@ -171,6 +171,7 @@ export default function DiagnosticQuestionScreen() {
         workingSubmitted: Boolean(currentWorking.workingSubmitted),
         workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
         workingRequirementLevel,
+        workingMathObjects: currentWorking.workingMathObjects || [],
         workingUploaded: Boolean(currentWorking.workingSubmitted),
         fullscreenWorkingSubmitted: Boolean(currentWorking.fullscreenWorkingSubmitted),
         fullscreenWorkingMathObjects: currentWorking.workingMathObjects || [],

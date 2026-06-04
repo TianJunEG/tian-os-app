@@ -82,6 +82,70 @@ describe('FullScreenWorkingMode', () => {
     expect(screen.getByText('Save Working')).toBeDisabled();
   });
 
+  it('inserts math as a selected movable object and saves its position', () => {
+    const onSave = vi.fn();
+    render(
+      <FullScreenWorkingMode
+        open
+        questionText="Work with 1/2."
+        onClose={vi.fn()}
+        onSave={onSave}
+      />
+    );
+
+    fireEvent.click(screen.getByTitle('Insert x/y'));
+    fireEvent.change(screen.getByPlaceholderText('x'), { target: { value: '1' } });
+    fireEvent.change(screen.getByPlaceholderText('y'), { target: { value: '2' } });
+    fireEvent.click(screen.getByText('Insert'));
+
+    const fractionObject = screen.getByTestId('math-object-fraction');
+    expect(fractionObject).toHaveClass('outline');
+
+    fireEvent.pointerDown(fractionObject, { pointerId: 1, clientX: 760, clientY: 320 });
+    fireEvent.pointerMove(fractionObject, { pointerId: 1, clientX: 860, clientY: 390 });
+    fireEvent.pointerUp(fractionObject, { pointerId: 1 });
+    fireEvent.click(screen.getByText('Save Working'));
+
+    const payload = onSave.mock.calls[0][0];
+    expect(payload.workingStrokes).toEqual([]);
+    expect(payload.workingMathObjects[0]).toEqual(expect.objectContaining({
+      type: 'fraction',
+      y: 370,
+      value: { numerator: '1', denominator: '2' },
+    }));
+    expect(payload.workingMathObjects[0].x).toBeCloseTo(840);
+  });
+
+  it('restores saved math objects so they can be reselected and deleted', () => {
+    const onSave = vi.fn();
+    render(
+      <FullScreenWorkingMode
+        open
+        questionText="Use pi."
+        initialMathObjects={[{
+          id: 'saved-pi',
+          type: 'pi',
+          x: 500,
+          y: 260,
+          value: {},
+          colour: '#f97316',
+        }]}
+        onClose={vi.fn()}
+        onSave={onSave}
+      />
+    );
+
+    const piObject = screen.getByTestId('math-object-pi');
+    fireEvent.click(piObject);
+    expect(piObject).toHaveClass('outline');
+    fireEvent.click(screen.getByLabelText('Delete selected math object'));
+    fireEvent.click(screen.getByText('Save Working'));
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      workingMathObjects: [],
+    }));
+  });
+
   it('renders a saved working attachment with edit and delete actions', () => {
     const onEdit = vi.fn();
     const onDelete = vi.fn();

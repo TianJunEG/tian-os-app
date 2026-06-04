@@ -6,8 +6,40 @@ const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 900;
 const QUESTION_PANEL = { x: 48, y: 44, width: 620, height: 170 };
 const EMPTY_STROKES = [];
+const EMPTY_MATH_OBJECTS = [];
+const MATH_STAMPS = [
+  { id: 'fraction', label: 'x/y' },
+  { id: 'subscript', label: 'xₐ' },
+  { id: 'power', label: 'xᵇ' },
+  { id: 'subscriptPower', label: 'xₐᵇ' },
+  { id: 'mixed', label: 'xᵇ/a' },
+  { id: 'root', label: 'ⁿ√x' },
+  { id: 'degree', label: 'x°' },
+  { id: 'angle', label: '∠' },
+  { id: 'pi', label: 'π' },
+  { id: 'theta', label: 'θ' },
+];
+
+const MATH_BUILDERS = {
+  fraction: ['numerator', 'denominator'],
+  subscript: ['base', 'subscript'],
+  power: ['base', 'exponent'],
+  subscriptPower: ['base', 'exponent', 'subscript'],
+  mixed: ['base', 'numerator', 'denominator'],
+  root: ['index', 'radicand'],
+  degree: ['base'],
+};
+
+const MATH_OBJECT_DEFAULT = {
+  width: 132,
+  height: 96,
+};
 
 function drawStroke(ctx, stroke) {
+  if (stroke?.tool === 'stamp') {
+    drawMathStamp(ctx, stroke);
+    return;
+  }
   const points = stroke?.points || [];
   if (points.length < 2) return;
   ctx.save();
@@ -29,6 +61,213 @@ function drawStroke(ctx, stroke) {
   points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
   ctx.stroke();
   ctx.restore();
+}
+
+function drawMathObject(ctx, object) {
+  if (!object) return;
+  drawMathStamp(ctx, {
+    tool: 'stamp',
+    template: object.type,
+    colour: object.colour,
+    ...object.value,
+    points: [{ x: object.x, y: object.y }],
+  });
+}
+
+function drawMathStamp(ctx, stroke) {
+  const point = stroke?.points?.[0] || { x: 720, y: 260 };
+  const colour = stroke.colour || '#f97316';
+  const x = point.x;
+  const y = point.y;
+  ctx.save();
+  ctx.strokeStyle = colour;
+  ctx.fillStyle = colour;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.font = '42px Georgia, serif';
+
+  if (stroke.template === 'fraction') {
+    const numerator = String(stroke.numerator || 'x');
+    const denominator = String(stroke.denominator || 'y');
+    const width = Math.max(70, ctx.measureText(numerator).width, ctx.measureText(denominator).width) + 24;
+    const center = x + width / 2;
+    ctx.textAlign = 'center';
+    ctx.fillText(numerator, center, y - 18);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + width, y);
+    ctx.stroke();
+    ctx.fillText(denominator, center, y + 52);
+    ctx.textAlign = 'start';
+  } else if (stroke.template === 'subscript') {
+    ctx.fillText(String(stroke.base || 'x'), x, y);
+    ctx.font = '26px Georgia, serif';
+    ctx.fillText(String(stroke.subscript || 'a'), x + 36, y + 16);
+  } else if (stroke.template === 'power') {
+    ctx.fillText(String(stroke.base || 'x'), x, y + 16);
+    ctx.font = '26px Georgia, serif';
+    ctx.fillText(String(stroke.exponent || 'b'), x + 36, y - 18);
+  } else if (stroke.template === 'subscriptPower') {
+    ctx.fillText(String(stroke.base || 'x'), x, y + 8);
+    ctx.font = '24px Georgia, serif';
+    ctx.fillText(String(stroke.exponent || 'b'), x + 36, y - 22);
+    ctx.fillText(String(stroke.subscript || 'a'), x + 36, y + 28);
+  } else if (stroke.template === 'mixed') {
+    ctx.fillText(String(stroke.base || 'x'), x, y + 16);
+    ctx.font = '32px Georgia, serif';
+    ctx.fillText(String(stroke.numerator || 'b'), x + 52, y - 18);
+    ctx.beginPath();
+    ctx.moveTo(x + 44, y);
+    ctx.lineTo(x + 116, y);
+    ctx.stroke();
+    ctx.fillText(String(stroke.denominator || 'a'), x + 62, y + 44);
+  } else if (stroke.template === 'root') {
+    const radicand = String(stroke.radicand || 'x');
+    ctx.font = '58px Georgia, serif';
+    ctx.fillText('√', x + 24, y + 18);
+    ctx.beginPath();
+    ctx.moveTo(x + 82, y - 32);
+    ctx.lineTo(x + 82 + Math.max(70, ctx.measureText(radicand).width + 24), y - 32);
+    ctx.stroke();
+    ctx.font = '42px Georgia, serif';
+    ctx.fillText(radicand, x + 94, y + 10);
+    ctx.font = '22px Georgia, serif';
+    ctx.fillText(String(stroke.index || 'n'), x, y - 10);
+  } else if (stroke.template === 'degree') {
+    ctx.fillText(String(stroke.base || 'x'), x, y + 16);
+    ctx.font = '28px Georgia, serif';
+    ctx.fillText('°', x + 36, y - 16);
+  } else if (stroke.template === 'angle') {
+    ctx.fillText('∠', x, y + 16);
+  } else if (stroke.template === 'pi') {
+    ctx.fillText('π', x, y + 16);
+  } else if (stroke.template === 'theta') {
+    ctx.fillText('θ', x, y + 16);
+  }
+  ctx.restore();
+}
+
+function createMathObject(template, values = {}, count = 0) {
+  return {
+    id: `math-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    type: template,
+    x: 740 + ((count % 5) * 130),
+    y: 300 + (Math.floor(count / 5) * 110),
+    value: { ...values },
+    colour: '#f97316',
+    ...MATH_OBJECT_DEFAULT,
+  };
+}
+
+function stampStrokeToMathObject(stroke, index = 0) {
+  if (stroke?.tool !== 'stamp') return null;
+  const point = stroke.points?.[0] || {};
+  const { tool, template, points, colour, size, ...value } = stroke;
+  return {
+    id: stroke.id || `legacy-math-${index}`,
+    type: template,
+    x: Number(point.x ?? 740),
+    y: Number(point.y ?? 300),
+    value,
+    colour: colour || '#f97316',
+    width: stroke.width || MATH_OBJECT_DEFAULT.width,
+    height: stroke.height || MATH_OBJECT_DEFAULT.height,
+  };
+}
+
+function normaliseMathObject(object, index = 0) {
+  if (!object) return null;
+  if (object.tool === 'stamp') return stampStrokeToMathObject(object, index);
+  return {
+    id: object.id || `math-${index}`,
+    type: object.type || object.template || 'pi',
+    x: Number(object.x ?? object.points?.[0]?.x ?? 740),
+    y: Number(object.y ?? object.points?.[0]?.y ?? 300),
+    value: object.value && typeof object.value === 'object' ? object.value : {},
+    colour: object.colour || '#f97316',
+    width: object.width || MATH_OBJECT_DEFAULT.width,
+    height: object.height || MATH_OBJECT_DEFAULT.height,
+  };
+}
+
+function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, ...pointerHandlers }) {
+  const value = object.value || {};
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Math object ${object.type}`}
+      data-testid={`math-object-${object.type}`}
+      onPointerDown={onPointerDown}
+      {...pointerHandlers}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect?.();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Backspace' || event.key === 'Delete') {
+          event.preventDefault();
+          onDelete?.();
+        }
+      }}
+      className={`pointer-events-auto absolute z-20 touch-none select-none rounded-xl px-3 py-2 font-serif text-[42px] leading-none text-orange-500 ${
+        selected ? 'outline outline-3 outline-orange-500 outline-offset-4 ring-4 ring-orange-200/80' : 'hover:outline hover:outline-2 hover:outline-orange-200'
+      }`}
+      style={{ left: `${object.x}px`, top: `${object.y}px`, minWidth: `${object.width}px`, minHeight: `${object.height}px` }}
+    >
+      {object.type === 'fraction' ? (
+        <span className="inline-flex min-w-[72px] flex-col items-center text-[38px]">
+          <span>{value.numerator || 'x'}</span>
+          <span className="my-1 h-1 w-full rounded-full bg-orange-500" />
+          <span>{value.denominator || 'y'}</span>
+        </span>
+      ) : object.type === 'subscript' ? (
+        <span>{value.base || 'x'}<sub className="text-[26px]">{value.subscript || 'a'}</sub></span>
+      ) : object.type === 'power' ? (
+        <span>{value.base || 'x'}<sup className="text-[26px]">{value.exponent || 'b'}</sup></span>
+      ) : object.type === 'subscriptPower' ? (
+        <span>{value.base || 'x'}<sup className="text-[24px]">{value.exponent || 'b'}</sup><sub className="text-[24px]">{value.subscript || 'a'}</sub></span>
+      ) : object.type === 'mixed' ? (
+        <span className="inline-flex items-center gap-2">
+          <span>{value.base || 'x'}</span>
+          <span className="inline-flex min-w-[58px] flex-col items-center text-[32px]">
+            <span>{value.numerator || 'b'}</span>
+            <span className="my-1 h-1 w-full rounded-full bg-orange-500" />
+            <span>{value.denominator || 'a'}</span>
+          </span>
+        </span>
+      ) : object.type === 'root' ? (
+        <span className="inline-flex items-start">
+          <sup className="mr-1 text-[22px]">{value.index || 'n'}</sup>
+          <span>√</span>
+          <span className="border-t-4 border-orange-500 px-2 pt-1">{value.radicand || 'x'}</span>
+        </span>
+      ) : object.type === 'degree' ? (
+        <span>{value.base || 'x'}°</span>
+      ) : object.type === 'angle' ? (
+        <span>∠</span>
+      ) : object.type === 'theta' ? (
+        <span>θ</span>
+      ) : (
+        <span>π</span>
+      )}
+      {selected && (
+        <button
+          type="button"
+          aria-label="Delete selected math object"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete?.();
+          }}
+          className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-active"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  );
 }
 
 function paintPaper(ctx) {
@@ -84,12 +323,26 @@ function paintQuestionPanel(ctx, questionText) {
   ctx.restore();
 }
 
+function MathDraftInput({ value, placeholder, onChange, onEnter, compact = false, autoFocus = false }) {
+  return (
+    <input
+      autoFocus={autoFocus}
+      value={value || ''}
+      onChange={(event) => onChange?.(event.target.value)}
+      onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+      className={`${compact ? 'h-12 w-14 text-xl' : 'h-14 w-20 text-2xl'} rounded-xl border-2 border-transparent bg-slate-100 px-2 text-center font-serif italic text-ink-700 placeholder:text-ink-300 focus:border-orange-500 focus:bg-slate-50 focus:outline-none`}
+      placeholder={placeholder}
+    />
+  );
+}
+
 export default function FullScreenWorkingMode({
   open = false,
   questionText = '',
   questionContent = null,
   questionSnapshot = null,
   initialStrokes = EMPTY_STROKES,
+  initialMathObjects = EMPTY_MATH_OBJECTS,
   onClose,
   onSave,
 }) {
@@ -98,6 +351,8 @@ export default function FullScreenWorkingMode({
   const drawingRef = useRef(false);
   const currentStrokeRef = useRef(null);
   const strokesRef = useRef(Array.isArray(initialStrokes) ? initialStrokes : []);
+  const mathObjectsRef = useRef([]);
+  const objectDragRef = useRef(null);
   const toolRef = useRef('pen');
   const colourRef = useRef(WORKING_COLOURS[0].value);
   const brushSizeRef = useRef(4);
@@ -105,9 +360,13 @@ export default function FullScreenWorkingMode({
   const [colour, setColour] = useState(WORKING_COLOURS[0].value);
   const [brushSize, setBrushSize] = useState(4);
   const [strokes, setStrokes] = useState(Array.isArray(initialStrokes) ? initialStrokes : []);
+  const [mathObjects, setMathObjects] = useState([]);
+  const [selectedObjectId, setSelectedObjectId] = useState(null);
   const [redoStack, setRedoStack] = useState([]);
   const [zoom, setZoom] = useState(1);
   const [hasCanvasMarks, setHasCanvasMarks] = useState(Array.isArray(initialStrokes) && initialStrokes.length > 0);
+  const [hasObjectEdit, setHasObjectEdit] = useState(false);
+  const [mathDraft, setMathDraft] = useState(null);
 
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colourRef.current = colour; }, [colour]);
@@ -123,13 +382,24 @@ export default function FullScreenWorkingMode({
 
   useEffect(() => {
     if (!open) return;
-    const nextStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];
+    const rawStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];
+    const legacyMathObjects = rawStrokes.map(stampStrokeToMathObject).filter(Boolean);
+    const nextStrokes = rawStrokes.filter((stroke) => stroke?.tool !== 'stamp');
+    const savedMathObjects = Array.isArray(initialMathObjects)
+      ? initialMathObjects.map(normaliseMathObject).filter(Boolean)
+      : [];
+    const nextMathObjects = savedMathObjects.length ? savedMathObjects : legacyMathObjects;
     strokesRef.current = nextStrokes;
+    mathObjectsRef.current = nextMathObjects;
     setStrokes(nextStrokes);
+    setMathObjects(nextMathObjects);
+    setSelectedObjectId(null);
     setRedoStack([]);
     setZoom(1);
-    setHasCanvasMarks(nextStrokes.length > 0);
-  }, [open, initialStrokes]);
+    setHasCanvasMarks(nextStrokes.length > 0 || nextMathObjects.length > 0);
+    setHasObjectEdit(false);
+    setMathDraft(null);
+  }, [open, initialStrokes, initialMathObjects]);
 
   useEffect(() => {
     if (open) redraw(strokes);
@@ -212,9 +482,11 @@ export default function FullScreenWorkingMode({
     paintPaper(exportCtx);
     paintQuestionPanel(exportCtx, questionText);
     strokesRef.current.forEach((stroke) => drawStroke(exportCtx, stroke));
+    mathObjectsRef.current.forEach((object) => drawMathObject(exportCtx, object));
     onSave?.({
       workingImage: exportCanvas?.toDataURL('image/png') || canvas?.toDataURL('image/png') || '',
       workingStrokes: strokesRef.current,
+      workingMathObjects: mathObjectsRef.current,
       workingSubmitted: true,
       workingSubmittedAt: new Date().toISOString(),
       source: 'fullscreen_working',
@@ -237,7 +509,7 @@ export default function FullScreenWorkingMode({
       const next = prev.slice(0, -1);
       if (undone) setRedoStack((stack) => [...stack, undone]);
       strokesRef.current = next;
-      setHasCanvasMarks(next.length > 0);
+      setHasCanvasMarks(next.length > 0 || mathObjectsRef.current.length > 0);
       return next;
     });
   };
@@ -249,7 +521,7 @@ export default function FullScreenWorkingMode({
     setStrokes((prev) => {
       const next = [...prev, restored];
       strokesRef.current = next;
-      setHasCanvasMarks(next.length > 0);
+      setHasCanvasMarks(next.length > 0 || mathObjectsRef.current.length > 0);
       return next;
     });
   };
@@ -257,8 +529,12 @@ export default function FullScreenWorkingMode({
   const clear = () => {
     if (strokesRef.current.length) setRedoStack((prev) => [...prev, ...strokesRef.current]);
     strokesRef.current = [];
+    mathObjectsRef.current = [];
     setStrokes([]);
+    setMathObjects([]);
+    setSelectedObjectId(null);
     setHasCanvasMarks(false);
+    setHasObjectEdit(false);
   };
 
   const zoomBy = (delta) => setZoom((value) => Math.min(2, Math.max(0.75, Math.round((value + delta) * 100) / 100)));
@@ -278,6 +554,93 @@ export default function FullScreenWorkingMode({
     node.scrollBy({ left, top, behavior: 'smooth' });
   };
 
+  const addStamp = (template, values = {}) => {
+    const nextObject = createMathObject(template, values, mathObjectsRef.current.length);
+    const next = [...mathObjectsRef.current, nextObject];
+    mathObjectsRef.current = next;
+    setMathObjects(next);
+    setSelectedObjectId(nextObject.id);
+    setHasObjectEdit(true);
+    setRedoStack([]);
+    setHasCanvasMarks(true);
+    setMathDraft(null);
+  };
+
+  const updateMathObjects = (updater) => {
+    setMathObjects((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      mathObjectsRef.current = next;
+      setHasCanvasMarks(strokesRef.current.length > 0 || next.length > 0);
+      setHasObjectEdit(true);
+      return next;
+    });
+  };
+
+  const deleteSelectedObject = () => {
+    if (!selectedObjectId) return;
+    updateMathObjects((prev) => prev.filter((object) => object.id !== selectedObjectId));
+    setSelectedObjectId(null);
+  };
+
+  const beginObjectDrag = (event, object) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedObjectId(object.id);
+    const start = pointFromEvent(event);
+    objectDragRef.current = {
+      id: object.id,
+      pointerId: event.pointerId,
+      offsetX: start.x - object.x,
+      offsetY: start.y - object.y,
+    };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const moveObjectDrag = (event) => {
+    const drag = objectDragRef.current;
+    if (!drag) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const point = pointFromEvent(event);
+    updateMathObjects((prev) => prev.map((object) => (
+      object.id === drag.id
+        ? {
+          ...object,
+          x: Math.max(0, Math.min(CANVAS_WIDTH - 40, point.x - drag.offsetX)),
+          y: Math.max(0, Math.min(CANVAS_HEIGHT - 40, point.y - drag.offsetY)),
+        }
+        : object
+    )));
+  };
+
+  const endObjectDrag = (event) => {
+    if (!objectDragRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.releasePointerCapture?.(objectDragRef.current.pointerId);
+    objectDragRef.current = null;
+  };
+
+  const openMathTool = (template) => {
+    const fields = MATH_BUILDERS[template];
+    if (!fields) {
+      addStamp(template);
+      return;
+    }
+    const values = fields.reduce((acc, field) => ({ ...acc, [field]: '' }), {});
+    setMathDraft((current) => current?.template === template ? null : { template, ...values });
+  };
+
+  const insertDraftMath = () => {
+    const template = mathDraft?.template;
+    const fields = MATH_BUILDERS[template] || [];
+    const values = fields.reduce((acc, field) => ({ ...acc, [field]: String(mathDraft?.[field] || '').trim() }), {});
+    if (!template || Object.values(values).some((value) => !value)) return;
+    addStamp(template, values);
+  };
+
+  const draftReady = Boolean(mathDraft?.template && (MATH_BUILDERS[mathDraft.template] || []).every((field) => String(mathDraft?.[field] || '').trim()));
+
   return (
     <Modal
       open={open}
@@ -288,7 +651,7 @@ export default function FullScreenWorkingMode({
       footer={(
         <>
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button disabled={!hasCanvasMarks && !strokes.length} onClick={save}>Save Working</Button>
+          <Button disabled={!hasCanvasMarks && !strokes.length && !hasObjectEdit} onClick={save}>Save Working</Button>
         </>
       )}
     >
@@ -311,6 +674,88 @@ export default function FullScreenWorkingMode({
           onZoomReset={resetZoom}
           onPan={pan}
         />
+        <div className="flex flex-wrap gap-2" aria-label="Math insert tools">
+          {MATH_STAMPS.map((stamp) => (
+            <div key={stamp.id} className="relative">
+              {mathDraft?.template === stamp.id && (
+                <div
+                  className={`absolute left-1/2 top-full z-30 mt-3 -translate-x-1/2 rounded-3xl border border-hairline bg-white p-4 shadow-active ${
+                    stamp.id === 'fraction' ? 'w-36' : stamp.id === 'root' ? 'w-56' : 'w-52'
+                  }`}
+                  aria-label={`${stamp.label} builder`}
+                >
+                  {stamp.id === 'fraction' ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <MathDraftInput autoFocus value={mathDraft.numerator} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))} onEnter={insertDraftMath} />
+                      <div className="h-px w-20 bg-ink-300" aria-hidden="true" />
+                      <MathDraftInput value={mathDraft.denominator} placeholder="y" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))} onEnter={insertDraftMath} />
+                    </div>
+                  ) : stamp.id === 'subscript' ? (
+                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                      <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
+                    </div>
+                  ) : stamp.id === 'power' ? (
+                    <div className="grid grid-cols-[1fr_auto] items-start gap-3">
+                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                      <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
+                    </div>
+                  ) : stamp.id === 'subscriptPower' ? (
+                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                      <div className="grid gap-2">
+                        <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
+                        <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
+                      </div>
+                    </div>
+                  ) : stamp.id === 'mixed' ? (
+                    <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                      <div className="grid gap-2">
+                        <MathDraftInput value={mathDraft.numerator} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))} onEnter={insertDraftMath} />
+                        <MathDraftInput value={mathDraft.denominator} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))} onEnter={insertDraftMath} />
+                      </div>
+                    </div>
+                  ) : stamp.id === 'root' ? (
+                    <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+                      <MathDraftInput autoFocus value={mathDraft.index} placeholder="n" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), index: value }))} onEnter={insertDraftMath} />
+                      <div className="flex items-center gap-1">
+                        <span className="font-serif text-6xl leading-none text-ink-900">√</span>
+                        <span className="h-px flex-1 self-start bg-ink-900" aria-hidden="true" />
+                        <MathDraftInput value={mathDraft.radicand} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), radicand: value }))} onEnter={insertDraftMath} />
+                      </div>
+                    </div>
+                  ) : stamp.id === 'degree' ? (
+                    <div className="flex items-start justify-center gap-1">
+                      <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                      <span className="font-serif text-3xl text-ink-500">°</span>
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={!draftReady}
+                    onClick={insertDraftMath}
+                    className="mt-5 w-full text-center text-xl font-bold text-ink-300 transition enabled:text-orange-500 enabled:hover:text-orange-600 disabled:cursor-not-allowed"
+                  >
+                    Insert
+                  </button>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => openMathTool(stamp.id)}
+                className={`grid h-11 min-w-12 place-items-center rounded-lg border px-3 font-serif text-xl font-semibold transition ${
+                  mathDraft?.template === stamp.id
+                    ? 'border-orange-500 bg-orange-500 text-white'
+                    : 'border-hairline bg-orange-50 text-orange-600 hover:border-orange-300 hover:bg-orange-100'
+                }`}
+                title={`Insert ${stamp.label}`}
+              >
+                {stamp.label}
+              </button>
+            </div>
+          ))}
+        </div>
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-hairline bg-slate-100 p-3">
           <div
             className="relative rounded-xl bg-white shadow-resting"
@@ -325,6 +770,7 @@ export default function FullScreenWorkingMode({
               backgroundSize: '100% 36px',
             }}
             data-testid="worksheet-working-space"
+            onClick={() => setSelectedObjectId(null)}
           >
             <div
               className="absolute rounded-2xl border border-slate-300 bg-slate-50 p-7"
@@ -358,6 +804,24 @@ export default function FullScreenWorkingMode({
               onMouseUp={endMouseStroke}
               onMouseLeave={endMouseStroke}
             />
+            <div className="pointer-events-none absolute inset-0 z-10 touch-none" aria-label="Math object layer">
+              {mathObjects.map((object) => (
+                <MathObjectView
+                  key={object.id}
+                  object={object}
+                  selected={selectedObjectId === object.id}
+                  onSelect={() => setSelectedObjectId(object.id)}
+                  onDelete={() => {
+                    updateMathObjects((prev) => prev.filter((item) => item.id !== object.id));
+                    setSelectedObjectId(null);
+                  }}
+                  onPointerDown={(event) => beginObjectDrag(event, object)}
+                  onPointerMove={moveObjectDrag}
+                  onPointerUp={endObjectDrag}
+                  onPointerCancel={endObjectDrag}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

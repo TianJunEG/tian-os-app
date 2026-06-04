@@ -59,6 +59,8 @@ function normalizeResponseBody(body = {}, question = {}) {
     workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(body.workingRequirementLevel || '').toUpperCase())
       ? String(body.workingRequirementLevel).toUpperCase()
       : '',
+    workingMathObjects: Array.isArray(body.workingMathObjects) ? body.workingMathObjects : [],
+    fullscreenWorkingMathObjects: Array.isArray(body.fullscreenWorkingMathObjects) ? body.fullscreenWorkingMathObjects : [],
     fullscreenWorkingSubmitted: Boolean(body.fullscreenWorkingSubmitted),
     helpRequested: Boolean(body.helpRequested),
     timedOut: Boolean(body.timedOut),
@@ -105,9 +107,11 @@ async function maybePersistAttempt({ student, session, question, skillId, respon
     workingExpected: true,
     workingUploaded: response.workingSubmitted,
     workingSubmitted: response.workingSubmitted,
+    workingMathObjects: response.workingMathObjects,
     workingNotNeeded: response.workingNotNeeded,
     workingRequirementLevel: response.workingRequirementLevel,
     fullscreenWorkingSubmitted: response.fullscreenWorkingSubmitted,
+    fullscreenWorkingMathObjects: response.fullscreenWorkingMathObjects,
     workingDecision: '',
     workingReason: '',
   });

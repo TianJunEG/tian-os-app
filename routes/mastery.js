@@ -708,12 +708,14 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
         workingSubmittedAt: toDateLike(r.workingSubmittedAt),
         workingImage: String(r.workingImage || ''),
         workingStrokes: Array.isArray(r.workingStrokes) ? r.workingStrokes : [],
+        workingMathObjects: Array.isArray(r.workingMathObjects) ? r.workingMathObjects : [],
         workingNotNeeded: Boolean(r.workingNotNeeded),
         workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(r.workingRequirementLevel || '').toUpperCase())
           ? String(r.workingRequirementLevel).toUpperCase()
           : '',
         fullscreenWorkingImage: String(r.fullscreenWorkingImage || ''),
         fullscreenWorkingStrokes: Array.isArray(r.fullscreenWorkingStrokes) ? r.fullscreenWorkingStrokes : [],
+        fullscreenWorkingMathObjects: Array.isArray(r.fullscreenWorkingMathObjects) ? r.fullscreenWorkingMathObjects : [],
         fullscreenWorkingSubmitted: Boolean(r.fullscreenWorkingSubmitted),
         fullscreenWorkingSubmittedAt: toDateLike(r.fullscreenWorkingSubmittedAt),
         workingEvidence: Array.isArray(r.workingEvidence) ? r.workingEvidence : [],

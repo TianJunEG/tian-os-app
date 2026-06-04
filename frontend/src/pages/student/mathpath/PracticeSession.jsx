@@ -231,6 +231,7 @@ function LegacyPracticeSession() {
   const workingReady = hasWorkingDecision(currentFullscreenWorking);
   const primaryWorkingImage = currentFullscreenWorking.workingImage || '';
   const primaryWorkingStrokes = currentFullscreenWorking.workingStrokes || [];
+  const primaryWorkingMathObjects = currentFullscreenWorking.workingMathObjects || [];
   const primaryWorkingSubmitted = currentFullscreenWorking.workingSubmitted;
   const primaryWorkingSubmittedAt = currentFullscreenWorking.workingSubmittedAt || null;
   const workingEvidence = [
@@ -238,6 +239,7 @@ function LegacyPracticeSession() {
       source: 'fullscreen_working',
       image: currentFullscreenWorking.workingImage || '',
       strokes: currentFullscreenWorking.workingStrokes || [],
+      mathObjects: currentFullscreenWorking.workingMathObjects || [],
       submittedAt: currentFullscreenWorking.workingSubmittedAt || null,
       canvasDimensions: currentFullscreenWorking.canvasDimensions || null,
       viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
@@ -258,6 +260,7 @@ function LegacyPracticeSession() {
         hintsUsed: 0,
         workingImage: primaryWorkingImage,
         workingStrokes: primaryWorkingStrokes,
+        workingMathObjects: primaryWorkingMathObjects,
         workingSubmitted: Boolean(primaryWorkingSubmitted),
         workingSubmittedAt: primaryWorkingSubmittedAt,
         workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
@@ -265,6 +268,7 @@ function LegacyPracticeSession() {
         workingUploaded: Boolean(currentFullscreenWorking.workingSubmitted),
         fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
         fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
+        fullscreenWorkingMathObjects: currentFullscreenWorking.workingMathObjects || [],
         fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
         fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
         workingEvidence,
@@ -394,6 +398,7 @@ function LegacyPracticeSession() {
                 workingSubmittedAt: null,
                 workingImage: '',
                 workingStrokes: [],
+                workingMathObjects: [],
                 workingNotNeeded: checked,
                 workingNotNeededAt: checked ? new Date().toISOString() : null,
               },
@@ -424,6 +429,7 @@ function LegacyPracticeSession() {
           visualType: q.visual?.type || '',
         }}
         initialStrokes={currentFullscreenWorking.workingStrokes || EMPTY_STROKES}
+        initialMathObjects={currentFullscreenWorking.workingMathObjects || []}
         onClose={() => setFullscreenOpen(false)}
         onSave={(payload) => {
           setFullscreenWorkingState((prev) => ({ ...prev, [q.questionId]: payload }));
@@ -604,6 +610,7 @@ export default function PracticeSession() {
   const questionText = q.prompt || q.stem || '';
   const primaryWorkingImage = currentFullscreenWorking.workingImage || '';
   const primaryWorkingStrokes = currentFullscreenWorking.workingStrokes || [];
+  const primaryWorkingMathObjects = currentFullscreenWorking.workingMathObjects || [];
   const primaryWorkingSubmitted = currentFullscreenWorking.workingSubmitted;
   const primaryWorkingSubmittedAt = currentFullscreenWorking.workingSubmittedAt || null;
   const workingEvidence = [
@@ -611,6 +618,7 @@ export default function PracticeSession() {
       source: 'fullscreen_working',
       image: currentFullscreenWorking.workingImage || '',
       strokes: currentFullscreenWorking.workingStrokes || [],
+      mathObjects: currentFullscreenWorking.workingMathObjects || [],
       submittedAt: currentFullscreenWorking.workingSubmittedAt || null,
       canvasDimensions: currentFullscreenWorking.canvasDimensions || null,
       viewportDimensions: currentFullscreenWorking.viewportDimensions || null,
@@ -640,6 +648,7 @@ export default function PracticeSession() {
       possibleMisconception: !answerCheck.correct && reflection === 'i_know_this',
       workingImage: primaryWorkingImage,
       workingStrokes: primaryWorkingStrokes,
+      workingMathObjects: primaryWorkingMathObjects,
       workingSubmitted: Boolean(primaryWorkingSubmitted),
       workingSubmittedAt: primaryWorkingSubmittedAt,
       workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
@@ -647,6 +656,7 @@ export default function PracticeSession() {
       workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
+      fullscreenWorkingMathObjects: currentFullscreenWorking.workingMathObjects || [],
       fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
       fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
       workingEvidence,
@@ -684,6 +694,7 @@ export default function PracticeSession() {
       possibleMisconception: false,
       workingImage: primaryWorkingImage,
       workingStrokes: primaryWorkingStrokes,
+      workingMathObjects: primaryWorkingMathObjects,
       workingSubmitted: Boolean(primaryWorkingSubmitted),
       workingSubmittedAt: primaryWorkingSubmittedAt,
       workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
@@ -691,6 +702,7 @@ export default function PracticeSession() {
       workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
+      fullscreenWorkingMathObjects: currentFullscreenWorking.workingMathObjects || [],
       fullscreenWorkingSubmitted: Boolean(currentFullscreenWorking.workingSubmitted),
       fullscreenWorkingSubmittedAt: currentFullscreenWorking.workingSubmittedAt || null,
       workingEvidence,
@@ -737,6 +749,7 @@ export default function PracticeSession() {
         possibleMisconception: r.possibleMisconception,
         workingImage: r.workingImage || '',
         workingStrokes: r.workingStrokes || [],
+        workingMathObjects: r.workingMathObjects || [],
         workingSubmitted: Boolean(r.workingSubmitted),
         workingSubmittedAt: r.workingSubmittedAt || null,
         workingNotNeeded: Boolean(r.workingNotNeeded),
@@ -744,6 +757,7 @@ export default function PracticeSession() {
         workingUploaded: Boolean(r.workingUploaded),
         fullscreenWorkingImage: r.fullscreenWorkingImage || '',
         fullscreenWorkingStrokes: r.fullscreenWorkingStrokes || [],
+        fullscreenWorkingMathObjects: r.fullscreenWorkingMathObjects || [],
         fullscreenWorkingSubmitted: Boolean(r.fullscreenWorkingSubmitted),
         fullscreenWorkingSubmittedAt: r.fullscreenWorkingSubmittedAt || null,
         workingEvidence: Array.isArray(r.workingEvidence) ? r.workingEvidence : [],
@@ -1031,6 +1045,7 @@ export default function PracticeSession() {
           visualType: q.visual?.type || '',
         }}
         initialStrokes={currentFullscreenWorking.workingStrokes || EMPTY_STROKES}
+        initialMathObjects={currentFullscreenWorking.workingMathObjects || []}
         onClose={() => setFullscreenQuestionId(null)}
         onSave={(payload) => {
           setFullscreenWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }));
