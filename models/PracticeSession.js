@@ -22,7 +22,10 @@ const practiceSessionSchema = new mongoose.Schema({
   summary: {
     total: { type: Number, default: 0 },
     correct: { type: Number, default: 0 },
-    scorePct: { type: Number, default: 0 }
+    scorePct: { type: Number, default: 0 },
+    avgTimeMs: { type: Number, default: null },
+    fluencyScore: { type: Number, default: null },
+    fluencyStatus: { type: String, default: '' }
   }
 });
 

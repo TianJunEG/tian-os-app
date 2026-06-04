@@ -10,15 +10,17 @@ import RetentionReview from '../models/RetentionReview.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
+import { recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import {
-  buildRetentionReviews,
-  calculateFluencyMetrics,
+  resolveFluencySkill,
+  skillCodeFor,
+  updateFluencyCompletionForSession,
+} from '../services/fluency/fluencyCompletionService.js';
+import {
   classifyFluencyBuckets,
-  FLUENCY_STATUS,
 } from '../utils/fluencyEngine.js';
 
 const router = express.Router();
-const SKILL_CODE = /^F\d{3}$/i;
 
 function answerInputTypeFor(answer = '') {
   const raw = String(answer || '').trim();
@@ -39,48 +41,6 @@ function clientQuestion(q) {
     answerInputType: answerInputTypeFor(q.answer),
     visual: q.visual || null,
   };
-}
-
-async function resolveSkill(ref) {
-  const value = String(ref || '').trim();
-  if (!value) return null;
-  if (SKILL_CODE.test(value)) {
-    return Skill.findOne({
-      $or: [
-        { 'metadata.mathPathSkillId': value.toUpperCase() },
-        { 'metadata.frameworkCode': value.toUpperCase() },
-        { slug: value.toUpperCase() },
-      ],
-    });
-  }
-  return Skill.findById(value);
-}
-
-function skillCodeFor(skill) {
-  return skill?.metadata?.mathPathSkillId || skill?.metadata?.frameworkCode || skill?.slug || String(skill?._id || '');
-}
-
-async function upsertRetentionReviews({ student, skill, skillCode, fluentAt }) {
-  const reviews = buildRetentionReviews({
-    studentId: String(student._id),
-    skillId: skill._id,
-    skillCode,
-    fluentAt,
-  });
-  for (const review of reviews) {
-    await RetentionReview.updateOne(
-      { studentId: student._id, skillId: skill._id, intervalDays: review.intervalDays },
-      {
-        $setOnInsert: {
-          ...review,
-          studentId: student._id,
-          skillId: skill._id,
-          skillName: skill.name,
-        },
-      },
-      { upsert: true }
-    );
-  }
 }
 
 async function publicFluencySummary(studentId) {
@@ -145,7 +105,7 @@ router.post('/session/start', protect, async (req, res) => {
       : null;
     const skill = retentionReview
       ? await Skill.findById(retentionReview.skillId)
-      : await resolveSkill(req.body?.skillCode || req.body?.skillId);
+      : await resolveFluencySkill(req.body?.skillCode || req.body?.skillId);
     if (!skill) return res.status(400).json({ error: 'Select one fluency skill.' });
 
     const minQuestions = retentionReview ? 3 : 10;
@@ -169,6 +129,54 @@ router.post('/session/start', protect, async (req, res) => {
       skillIds: [skill._id],
       status: 'active',
     });
+    const now = new Date();
+    const skillCode = skillCodeFor(skill);
+    await recordLearningEvents([
+      {
+        studentId: String(student._id),
+        eventType: 'session_started',
+        domain: 'mathpath',
+        skillCode,
+        sessionId: String(session._id),
+        timestamp: now,
+        metadata: {
+          source: 'fluency',
+          skillId: String(skill._id),
+          fluencyType: skill?.metadata?.fluencyType || skill?.metadata?.fluency?.type || 'timed',
+          questionCount: questions.length,
+        },
+      },
+      {
+        studentId: String(student._id),
+        eventType: 'fluency_started',
+        domain: 'mathpath',
+        skillCode,
+        sessionId: String(session._id),
+        timestamp: now,
+        metadata: {
+          source: 'fluency',
+          skillId: String(skill._id),
+          fluencyType: skill?.metadata?.fluencyType || skill?.metadata?.fluency?.type || 'timed',
+          questionCount: questions.length,
+        },
+      },
+      ...questions.map((question) => ({
+        studentId: String(student._id),
+        eventType: 'question_viewed',
+        domain: 'mathpath',
+        skillCode: String(question.skillId?._id || question.skillId || skill._id),
+        questionId: String(question._id),
+        sessionId: String(session._id),
+        timestamp: now,
+        metadata: {
+          source: 'fluency',
+          mode: 'fluency',
+          feature: retentionReview ? 'Retention Review' : 'Fluency Practice',
+          difficulty: question.difficulty,
+          questionType: question.type,
+        },
+      })),
+    ]);
 
     res.json({
       session_id: session._id,
@@ -193,8 +201,10 @@ router.post('/session/complete', protect, async (req, res) => {
     const skill = await Skill.findById(session.skillIds?.[0]);
     if (!skill) return res.status(400).json({ error: 'Fluency session has no skill.' });
 
+    const wasCompleted = session.status === 'completed';
     let attempts = Array.isArray(req.body?.attempts) ? req.body.attempts : [];
-    if (attempts.length) {
+    const existingAttempts = await PracticeAttempt.countDocuments({ sessionId: session._id });
+    if (!wasCompleted && attempts.length && existingAttempts === 0) {
       const questions = await Question.find({ _id: { $in: attempts.map((attempt) => attempt.questionId).filter(Boolean) } });
       const byId = new Map(questions.map((q) => [String(q._id), q]));
       for (const attempt of attempts) {
@@ -228,57 +238,11 @@ router.post('/session/complete', protect, async (req, res) => {
       }
     }
 
-    const storedAttempts = await PracticeAttempt.find({ sessionId: session._id }).lean();
-    attempts = storedAttempts.map((attempt) => ({
-      questionId: String(attempt.questionId),
-      answer: attempt.answer,
-      correct: attempt.correct,
-      confidence: attempt.confidence,
-      skipped: attempt.skipped,
-      workingSubmitted: attempt.workingSubmitted || attempt.workingUploaded || attempt.fullscreenWorkingSubmitted,
-      timeMs: attempt.timeMs,
-      timeTakenSeconds: attempt.timeTakenSeconds,
-      questionStartTime: attempt.questionStartTime,
-      questionSubmitTime: attempt.questionSubmitTime,
-    }));
-
-    const skillCode = skillCodeFor(skill);
-    const targetSeconds = skill?.metadata?.fluency?.targetSeconds || 10;
-    const metrics = calculateFluencyMetrics({ skillCode, attempts, targetSeconds });
-    const previous = await FluencyRecord.findOne({ studentId: student._id, skillId: skill._id });
-    const becameFluentNow = metrics.fluencyStatus === FLUENCY_STATUS.FLUENT && previous?.fluencyStatus !== FLUENCY_STATUS.FLUENT;
     const completedAt = new Date();
-
-    const record = await FluencyRecord.findOneAndUpdate(
-      { studentId: student._id, skillId: skill._id },
-      {
-        $set: {
-          skillCode,
-          skillName: skill.name,
-          totalQuestions: metrics.totalQuestions,
-          correctAnswers: metrics.correctAnswers,
-          accuracy: metrics.accuracy,
-          averageTimeSeconds: metrics.averageTimeSeconds,
-          confidenceAverage: metrics.confidenceAverage,
-          workingSubmissionRate: metrics.workingSubmissionRate,
-          fluencyScore: metrics.fluencyScore,
-          fluencyStatus: metrics.fluencyStatus,
-          ...(becameFluentNow ? { becameFluentAt: completedAt } : {}),
-        },
-        $push: {
-          history: {
-            sessionId: String(session._id),
-            completedAt,
-            ...metrics,
-          },
-        },
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-
-    if (becameFluentNow) {
-      await upsertRetentionReviews({ student, skill, skillCode, fluentAt: completedAt });
-    }
+    const fluencyCompletion = await updateFluencyCompletionForSession({ session, student, skill, completedAt });
+    const metrics = fluencyCompletion?.metrics || {};
+    const record = fluencyCompletion?.record || null;
+    const retentionScheduled = Boolean(fluencyCompletion?.retentionScheduled);
 
     const retentionReviewId = req.body?.retentionReviewId || req.body?.retention_review_id || null;
     if (retentionReviewId) {
@@ -295,11 +259,40 @@ router.post('/session/complete', protect, async (req, res) => {
       );
     }
 
-    session.status = 'completed';
-    session.endedAt = completedAt;
-    session.summary = { total: metrics.totalQuestions, correct: metrics.correctAnswers, scorePct: Math.round(metrics.accuracy) };
-    if (session.assignmentId) await Assignment.findByIdAndUpdate(session.assignmentId, { status: 'completed', completionDate: completedAt, score: metrics.accuracy });
-    await session.save();
+    if (!wasCompleted) {
+      session.status = 'completed';
+      session.endedAt = completedAt;
+      session.summary = {
+        total: metrics.totalQuestions,
+        correct: metrics.correctAnswers,
+        scorePct: Math.round(metrics.accuracy),
+        avgTimeMs: metrics.averageTimeSeconds === null ? null : Math.round(Number(metrics.averageTimeSeconds) * 1000),
+        fluencyScore: metrics.fluencyScore,
+        fluencyStatus: metrics.fluencyStatus,
+      };
+      if (session.assignmentId) await Assignment.findByIdAndUpdate(session.assignmentId, { status: 'completed', completionDate: completedAt, score: metrics.accuracy });
+      await session.save();
+      await recordLearningEvents([
+        {
+          studentId: String(student._id),
+          eventType: 'session_completed',
+          domain: 'mathpath',
+          skillCode: skillCodeFor(skill),
+          sessionId: String(session._id),
+          timestamp: completedAt,
+          metadata: { source: 'fluency', mode: session.mode, feature: session.feature, total: metrics.totalQuestions, correct: metrics.correctAnswers, scorePct: Math.round(metrics.accuracy), fluencyScore: metrics.fluencyScore },
+        },
+        {
+          studentId: String(student._id),
+          eventType: 'fluency_completed',
+          domain: 'mathpath',
+          skillCode: skillCodeFor(skill),
+          sessionId: String(session._id),
+          timestamp: completedAt,
+          metadata: { source: 'fluency', mode: session.mode, feature: session.feature, total: metrics.totalQuestions, correct: metrics.correctAnswers, scorePct: Math.round(metrics.accuracy), fluencyScore: metrics.fluencyScore },
+        },
+      ]);
+    }
 
     res.json({
       session_id: session._id,
@@ -309,7 +302,8 @@ router.post('/session/complete', protect, async (req, res) => {
         skillName: skill.name,
       },
       record,
-      retentionScheduled: becameFluentNow,
+      retentionScheduled,
+      alreadyCompleted: wasCompleted,
     });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to complete fluency session.' });

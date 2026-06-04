@@ -13,6 +13,7 @@ import { isCorrectWithContext, checkKeyPoints } from '../utils/answerCheck.js';
 import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
+import { updateFluencyCompletionForSession } from '../services/fluency/fluencyCompletionService.js';
 
 const router = express.Router();
 const FRAMEWORK_SKILL_ID_PATTERN = /^F\d{3}$/i;
@@ -332,6 +333,8 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
+    const student = await resolveStudent(req, session.studentId);
+    const wasCompleted = session.status === 'completed';
 
     const attempts = await PracticeAttempt.find({ sessionId: session._id });
     const total = attempts.length;
@@ -339,10 +342,25 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
     const times = attempts.map((a) => a.timeMs).filter((t) => typeof t === 'number');
     const scorePct = total ? Math.round((correct / total) * 100) : 0;
 
-    session.status = 'completed';
-    session.endedAt = new Date();
-    session.summary = { total, correct, scorePct };
-    await session.save();
+    const endedAt = wasCompleted && session.endedAt ? session.endedAt : new Date();
+    let fluencyCompletion = null;
+    if (session.mode === 'fluency') {
+      fluencyCompletion = await updateFluencyCompletionForSession({ session, student, completedAt: endedAt });
+    }
+
+    if (!wasCompleted) {
+      session.status = 'completed';
+      session.endedAt = endedAt;
+      session.summary = {
+        total,
+        correct,
+        scorePct,
+        avgTimeMs: times.length ? Math.round(times.reduce((s, t) => s + t, 0) / times.length) : null,
+        fluencyScore: fluencyCompletion?.metrics?.fluencyScore ?? null,
+        fluencyStatus: fluencyCompletion?.metrics?.fluencyStatus || '',
+      };
+      await session.save();
+    }
 
     if (session.assignmentId) {
       await Assignment.findByIdAndUpdate(session.assignmentId, {
@@ -353,22 +371,42 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
     const sessionLengthSeconds = session.startedAt && session.endedAt
       ? Math.max(0, Math.round((session.endedAt.getTime() - session.startedAt.getTime()) / 1000))
       : null;
-    await recordLearningEvents([
-      {
-        studentId: String(session.studentId),
-        eventType: 'session_completed',
-        domain,
-        sessionId: String(session._id),
-        metadata: { total, correct, scorePct, sessionLengthSeconds, mode: session.mode, feature: session.feature },
-      },
-      {
-        studentId: String(session.studentId),
-        eventType: session.mode === 'fluency' ? 'fluency_completed' : 'practice_completed',
-        domain,
-        sessionId: String(session._id),
-        metadata: { total, correct, scorePct, sessionLengthSeconds, mode: session.mode, feature: session.feature },
-      },
-    ]);
+    if (!wasCompleted) {
+      await recordLearningEvents([
+        {
+          studentId: String(session.studentId),
+          eventType: 'session_completed',
+          domain,
+          sessionId: String(session._id),
+          metadata: {
+            total,
+            correct,
+            scorePct,
+            sessionLengthSeconds,
+            mode: session.mode,
+            feature: session.feature,
+            fluencyScore: fluencyCompletion?.metrics?.fluencyScore,
+            fluencyStatus: fluencyCompletion?.metrics?.fluencyStatus,
+          },
+        },
+        {
+          studentId: String(session.studentId),
+          eventType: session.mode === 'fluency' ? 'fluency_completed' : 'practice_completed',
+          domain,
+          sessionId: String(session._id),
+          metadata: {
+            total,
+            correct,
+            scorePct,
+            sessionLengthSeconds,
+            mode: session.mode,
+            feature: session.feature,
+            fluencyScore: fluencyCompletion?.metrics?.fluencyScore,
+            fluencyStatus: fluencyCompletion?.metrics?.fluencyStatus,
+          },
+        },
+      ]);
+    }
 
     res.json({
       session_id: session._id,
@@ -376,6 +414,8 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
         total, correct, incorrect: total - correct, scorePct,
         totalTimeMs: times.reduce((s, t) => s + t, 0),
         avgTimeMs: times.length ? Math.round(times.reduce((s, t) => s + t, 0) / times.length) : null,
+        fluencyScore: fluencyCompletion?.metrics?.fluencyScore ?? session.summary?.fluencyScore ?? null,
+        fluencyStatus: fluencyCompletion?.metrics?.fluencyStatus || session.summary?.fluencyStatus || '',
       },
     });
   } catch (err) {
@@ -411,6 +451,8 @@ router.get('/sessions/:id', protect, async (req, res) => {
         accuracy: total ? Math.round((correct / total) * 100) : 0,
         avgTimeMs: times.length ? Math.round(times.reduce((s, t) => s + t, 0) / times.length) : null,
         totalTimeMs: times.reduce((s, t) => s + t, 0),
+        fluencyScore: session.summary?.fluencyScore ?? null,
+        fluencyStatus: session.summary?.fluencyStatus || '',
       },
       mistakes: mistakes.map((m) => ({ id: m._id, stem: m.questionStem, yourAnswer: m.studentAnswer, correctAnswer: m.correctAnswer })),
     });
