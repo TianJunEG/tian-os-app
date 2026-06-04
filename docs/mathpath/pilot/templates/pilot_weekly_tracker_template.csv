@@ -1,6 +1,7 @@
-week_start,student_id,sessions_planned,sessions_completed,questions_answered,avg_accuracy,avg_time_seconds,mastered_skills,fluent_skills,retained_skills,assessment_score,readiness_band,blocking_issue,severity,owner,next_action
-2026-06-01,S001,2,0,0,0,0,0,0,0,,,None,,, 
-2026-06-01,S002,2,0,0,0,0,0,0,0,,,None,,, 
-2026-06-01,S003,2,0,0,0,0,0,0,0,,,None,,, 
-2026-06-01,S004,2,0,0,0,0,0,0,0,,,None,,, 
-2026-06-01,S005,2,0,0,0,0,0,0,0,,,None,,, 
+week_start,student_id,sessions_planned,sessions_completed,sessions_per_day,completion_rate,questions_answered,avg_accuracy,weak_skill_focus,weak_skill_accuracy,mastery_gain,mistake_count_start,mistake_count_current,mistake_reduction,working_usage_rate,high_confidence_wrong,low_confidence_correct,help_requests,readiness_band,blocking_issue,severity,owner,next_action
+2026-06-01,S001,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
+2026-06-01,S002,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
+2026-06-01,S003,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
+2026-06-01,S004,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
+2026-06-01,S005,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
+2026-06-01,S005,2,0,0,0,0,0,0,0,,,None,,,

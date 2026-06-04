@@ -1,6 +1,7 @@
 student_id,student_name,level,parent_name,parent_contact,device_primary,device_backup,onboarding_status,consent_status,baseline_diagnostic_status,baseline_assessment_status,recommended_start_skill,notes
-S001,,,,,,,,,,,, 
-S002,,,,,,,,,,,, 
-S003,,,,,,,,,,,, 
-S004,,,,,,,,,,,, 
-S005,,,,,,,,,,,, 
+S001,,,,,,,,,,,,
+S002,,,,,,,,,,,,
+S003,,,,,,,,,,,,
+S004,,,,,,,,,,,,
+S005,,,,,,,,,,,,
+S005,,,,,,,,,,,,

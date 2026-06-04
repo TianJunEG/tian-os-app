@@ -1,6 +1,6 @@
 # Fractions Alpha Content Pack Report
 
-Generated: 2026-05-31T07:34:32.856Z
+Generated: 2026-06-04T06:12:46.339Z
 Scope: F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F013, F014, F015, F016, F017, F018, F019, F020, F021, F022, F023, F024, F025, F026
 
 ## Targets Per Priority Skill
@@ -46,32 +46,32 @@ Scope: F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F
 
 | Skill ID | Before Total | After Total | Before Status | After Status |
 |---|---:|---:|---|---|
-| F001 | 208 | 208 | ready | ready |
-| F002 | 198 | 198 | ready | ready |
-| F003 | 134 | 134 | ready | ready |
-| F004 | 141 | 141 | ready | ready |
-| F005 | 184 | 184 | ready | ready |
-| F006 | 115 | 115 | ready | ready |
-| F007 | 202 | 202 | ready | ready |
-| F008 | 194 | 194 | ready | ready |
-| F009 | 212 | 212 | ready | ready |
-| F010 | 150 | 150 | ready | ready |
-| F011 | 198 | 198 | ready | ready |
-| F012 | 209 | 209 | ready | ready |
-| F013 | 342 | 342 | ready | ready |
-| F014 | 167 | 167 | ready | ready |
-| F015 | 199 | 199 | ready | ready |
+| F001 | 197 | 197 | ready | ready |
+| F002 | 201 | 201 | ready | ready |
+| F003 | 185 | 185 | ready | ready |
+| F004 | 194 | 194 | ready | ready |
+| F005 | 188 | 188 | ready | ready |
+| F006 | 183 | 183 | ready | ready |
+| F007 | 197 | 197 | ready | ready |
+| F008 | 193 | 193 | ready | ready |
+| F009 | 186 | 186 | ready | ready |
+| F010 | 203 | 203 | ready | ready |
+| F011 | 140 | 140 | ready | ready |
+| F012 | 139 | 139 | ready | ready |
+| F013 | 157 | 157 | ready | ready |
+| F014 | 200 | 200 | ready | ready |
+| F015 | 131 | 131 | ready | ready |
 | F016 | 130 | 130 | ready | ready |
-| F017 | 162 | 162 | ready | ready |
-| F018 | 255 | 255 | ready | ready |
-| F019 | 145 | 145 | ready | ready |
+| F017 | 158 | 158 | ready | ready |
+| F018 | 125 | 125 | ready | ready |
+| F019 | 179 | 179 | ready | ready |
 | F020 | 135 | 135 | ready | ready |
-| F021 | 251 | 251 | ready | ready |
-| F022 | 253 | 253 | ready | ready |
-| F023 | 283 | 283 | ready | ready |
-| F024 | 136 | 136 | ready | ready |
-| F025 | 129 | 129 | ready | ready |
-| F026 | 136 | 136 | ready | ready |
+| F021 | 128 | 128 | ready | ready |
+| F022 | 130 | 130 | ready | ready |
+| F023 | 167 | 167 | ready | ready |
+| F024 | 186 | 186 | ready | ready |
+| F025 | 180 | 180 | ready | ready |
+| F026 | 181 | 181 | ready | ready |
 
 ## Remaining Content Gaps
 
@@ -82,7 +82,7 @@ Scope: F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F
 | F003 | 0 | 0 | 0 | 0 | 0 |
 | F004 | 0 | 0 | 0 | 0 | 0 |
 | F005 | 0 | 0 | 0 | 0 | 0 |
-| F006 | 0 | 3 | 0 | 4 | 0 |
+| F006 | 0 | 0 | 0 | 0 | 0 |
 | F007 | 0 | 0 | 0 | 0 | 0 |
 | F008 | 0 | 0 | 0 | 0 | 0 |
 | F009 | 0 | 0 | 0 | 0 | 0 |
@@ -94,14 +94,14 @@ Scope: F001, F002, F003, F004, F005, F006, F007, F008, F009, F010, F011, F012, F
 | F015 | 0 | 0 | 0 | 0 | 0 |
 | F016 | 0 | 0 | 0 | 0 | 0 |
 | F017 | 0 | 0 | 0 | 0 | 0 |
-| F018 | 0 | 0 | 0 | 0 | 0 |
+| F018 | 0 | 0 | 0 | 1 | 0 |
 | F019 | 0 | 0 | 0 | 0 | 0 |
 | F020 | 0 | 0 | 0 | 0 | 0 |
-| F021 | 0 | 0 | 0 | 0 | 0 |
-| F022 | 0 | 0 | 0 | 0 | 0 |
+| F021 | 0 | 0 | 0 | 2 | 0 |
+| F022 | 0 | 0 | 0 | 3 | 0 |
 | F023 | 0 | 0 | 0 | 0 | 0 |
 | F024 | 0 | 0 | 0 | 0 | 0 |
-| F025 | 0 | 0 | 0 | 1 | 0 |
+| F025 | 0 | 0 | 0 | 0 | 0 |
 | F026 | 0 | 0 | 0 | 0 | 0 |
 
 ## Skills Still Not Ready

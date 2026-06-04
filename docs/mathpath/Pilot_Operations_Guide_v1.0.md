@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This guide defines the operating workflow for a 5–10 student MathPath Fractions pilot and the feedback system used to capture:
+This guide defines the operating workflow for the 5-student, 2-week MathPath Fractions pilot and the feedback system used to capture:
 - usage
 - engagement
 - outcomes
@@ -17,10 +17,11 @@ This guide defines the operating workflow for a 5–10 student MathPath Fraction
 ## Scope
 
 - Domain: Fractions only
-- Pilot size: 5–10 students
-- Duration: 4–8 weeks
+- Pilot size: exactly 5 students
+- Duration: 2 weeks
 - Levels: Primary 3–Primary 6
 - Mode: supervised internal pilot
+- Product mode: measure and support only; no major feature development during the run
 
 ---
 
@@ -93,6 +94,7 @@ The pilot summary tracks:
 - Daily Active Students (DAS)
 - Weekly Active Students (WAS)
 - Practice Sessions
+- Sessions per Student per Day
 - Questions Answered
 - Average Session Length (minutes)
 - Completion Rate (% completed sessions)
@@ -108,6 +110,15 @@ Integrated from Step 28 outcome tracking:
 - Retention Gain
 - Assessment Gain
 - Readiness Gain
+- Mistake Reduction
+- Weak Skill Accuracy Change
+- Current Focus Skill Movement
+
+Behaviour signals:
+- Working Usage Rate
+- High-Confidence Wrong Answers
+- Low-Confidence Correct Answers
+- Help Requests
 
 ---
 
@@ -123,9 +134,14 @@ The report writes to `docs/mathpath/pilot/logs/` and tracks:
 - pilot/test student activity
 - diagnostic completion
 - completed practice sessions
+- sessions/student/day
+- completion rate
 - captured attempts and accuracy
 - mistake count
 - working submission status
+- working usage rate
+- confidence pattern counts
+- high-confidence wrong answers
 - help requests
 - support risk: `OK`, `Watch`, or `Needs follow-up`
 
@@ -160,18 +176,24 @@ Plus attached operational detail:
 
 ## Weekly Pilot Operating Rhythm
 
-## Monday
+## Week 0
+- confirm the 5-student roster
+- collect consent and device readiness
+- run baseline diagnostic/assessment
+- record baseline mastery, mistakes, confidence, and working usage
+
+## Week 1
 - confirm active student roster
 - run onboarding/support follow-up for low-usage students
-
-## Mid-week
 - collect student + tutor feedback
 - triage bugs (critical/high within 24–48h)
 
-## Friday
+## Week 2
+- continue daily short practice
+- review high-confidence wrong answers and submitted working
 - collect parent/teacher feedback
 - run `buildPilotSummary()`
-- publish weekly operations snapshot
+- publish closeout recommendation
 
 ---
 

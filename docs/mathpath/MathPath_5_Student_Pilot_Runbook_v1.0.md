@@ -7,8 +7,10 @@ This runbook is the execution guide for a real 5-student MathPath Fractions pilo
 Scope:
 - Fractions domain only
 - Primary 3 to Primary 6
-- 4-week supervised pilot
+- 2-week supervised pilot
+- 5 students only
 - Internal team operated
+- No major feature development during the pilot
 
 ---
 
@@ -46,7 +48,7 @@ If any item fails, delay student onboarding.
 
 ---
 
-## 4-Week Execution Plan
+## 2-Week Execution Plan
 
 ## Week 0: Setup + Baseline
 
@@ -56,52 +58,38 @@ If any item fails, delay student onboarding.
 4. Run baseline assessment (if enabled in current build).
 5. Create baseline outcome records.
 6. Confirm each student has a recommended starting skill.
+7. Record starting mastery, mistake count, confidence pattern, and working usage baseline.
 
 Exit gate:
 - 5/5 students complete onboarding
 - 5/5 baseline diagnostic runs complete
+- 5/5 students have a starting focus skill
 
 ## Week 1: Guided Practice Start
 
-1. Minimum 2 practice sessions per student.
-2. Capture student + tutor feedback at week end.
-3. Triage all critical/high bugs.
-4. Publish first pilot summary snapshot.
+1. Minimum 1 short practice session per student per school day.
+2. Capture engagement, completion, confidence, mistake, and working evidence daily.
+3. Capture student + tutor feedback at week end.
+4. Triage only critical/high bugs that block the pilot.
+5. Publish first pilot summary snapshot.
 
 Exit gate:
-- >= 80% planned sessions completed
+- >= 70% planned sessions completed
 - no unresolved critical student-flow bug
+- every inactive student has a documented follow-up
 
-## Week 2: Fluency + Retention Stability
+## Week 2: Learning Signal + Closeout
 
-1. Continue 2–3 practice sessions per student.
-2. Ensure fluency flags are visible in outputs.
-3. Run first retention due reviews where available.
-4. Collect parent feedback.
-
-Exit gate:
-- attempt data quality stable
-- no data-loss incidents
-
-## Week 3: Consolidation + Interim Assessment
-
-1. Run progress/mastery assessment (if enabled).
-2. Validate score/readiness trend per student.
-3. Review intervention effectiveness by student profile.
-4. Continue bug triage and support follow-up.
+1. Continue 1 short practice session per student per school day.
+2. Run targeted practice for each student's current weak skill.
+3. Review high-confidence wrong answers and submitted working.
+4. Collect parent feedback and tutor notes.
+5. Run end-of-pilot assessment or skill check.
+6. Produce pilot outcome report and go/no-go recommendation.
 
 Exit gate:
 - outcome metrics update for active students
-- major blockers resolved or mitigated
-
-## Week 4: Closeout
-
-1. Run end-of-pilot assessment.
-2. Update final outcome records.
-3. Collect final student/parent/tutor/teacher feedback.
-4. Produce pilot outcome report + go/no-go recommendation.
-
-Exit gate:
+- no data-loss incidents
 - final reports generated
 - pilot recommendation approved by lead
 
@@ -109,10 +97,38 @@ Exit gate:
 
 ## Weekly Minimum Targets (Per Student)
 
-- Practice sessions: 2
-- Questions answered: 20+
+- Practice sessions: 4
+- Questions answered: 40+
 - Feedback cadence: weekly student feedback
-- Parent check-in: at least once every 2 weeks
+- Parent check-in: once per week
+
+---
+
+## Pilot Measures
+
+Engagement:
+- sessions per student per day
+- completion rate
+- questions answered
+- return days
+
+Learning:
+- mastery gain from baseline to closeout
+- weak skill accuracy change
+- mistake reduction
+- current focus skill movement
+
+Behaviour:
+- working usage rate
+- high-confidence wrong answers
+- low-confidence correct answers
+- help requests
+
+Primary pilot questions:
+- Are students coming back without heavy prompting?
+- Does the system identify the real weak skill?
+- Does practice reduce mistakes within two weeks?
+- Does working evidence help a tutor understand the misconception?
 
 ---
 
@@ -122,6 +138,8 @@ Exit gate:
 - High: triage same day, fix target within 48h
 - Medium: schedule within current pilot week
 - Low: backlog unless it affects completion/engagement
+
+During Step 11, do not start new feature work unless it is needed to unblock a critical pilot flow.
 
 ---
 
@@ -141,22 +159,24 @@ Exit gate:
 ## Daily Operating Cadence
 
 - Morning:
-  - check active students and unresolved blockers
+  - run the pilot monitor report
+  - check active students, sessions/day, completion rate, and unresolved blockers
 - Midday:
   - support responses and bug triage
 - End of day:
-  - update tracker, log decisions, publish short ops note
+  - update tracker, log confidence/working/mistake signals, publish short ops note
 
 ---
 
 ## Go/No-Go Rules for Expanding Beyond 5 Students
 
 Go only if all are true:
-- >= 80% weekly completion sustained for 2 consecutive weeks
+- >= 70% completion sustained across the 2-week pilot
 - no unresolved critical bugs in core student flow
 - outcome data is complete enough for trend comparison
 - parent satisfaction average >= 3.5/5
 - student satisfaction average >= 3.5/5
+- at least 3/5 students show either mastery gain, mistake reduction, or improved confidence calibration
 
 If not met:
 - remain in 5-student pilot and execute targeted fixes
