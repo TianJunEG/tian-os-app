@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ArrowRight, ListChecks, AlertTriangle } from 'lucide-react';
+import { Zap, ListChecks, AlertTriangle, CheckCircle2, Clock3, Target } from 'lucide-react';
 import { mathpathAPI, skillsAPI } from '../../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../../components/ui';
 import { useAuth } from '../../../../context/AuthContext';
@@ -9,6 +9,11 @@ import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../stude
 // MathPath › Fluency — home. Recommended skill, weak fluency skills, quick practice.
 // Fluency is a FEATURE of MathPath: it reuses the shared practice/result screens.
 const TONE = { mastered: 'success', fluent: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
+const STATUS_META = {
+  fluentSkills: { title: 'Fluent Skills', icon: CheckCircle2, tone: 'success', empty: 'Fluent skills will appear after a few quick sessions.' },
+  developingSkills: { title: 'Developing Fluency', icon: Clock3, tone: 'gold', empty: 'Skills building speed and confidence will appear here.' },
+  needsPracticeSkills: { title: 'Needs More Practice', icon: Target, tone: 'error', empty: 'Skills that need accuracy first will appear here.' },
+};
 
 export default function FluencyHome() {
   const navigate = useNavigate();
@@ -16,6 +21,8 @@ export default function FluencyHome() {
   const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [skills, setSkills] = useState([]);
   const [mastery, setMastery] = useState(null);
+  const [fluency, setFluency] = useState(null);
+  const [retention, setRetention] = useState(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
@@ -23,8 +30,16 @@ export default function FluencyHome() {
   useEffect(() => {
     (async () => {
       try {
-        const [s, m] = await Promise.all([skillsAPI.list({ group: 'fluency' }), mathpathAPI.mastery()]);
-        setSkills(s.data.skills || []); setMastery(m.data);
+        const [s, m, f, r] = await Promise.all([
+          skillsAPI.list({ group: 'fluency' }),
+          mathpathAPI.mastery(),
+          mathpathAPI.fluency(),
+          mathpathAPI.retention(),
+        ]);
+        setSkills(s.data.skills || []);
+        setMastery(m.data);
+        setFluency(f.data);
+        setRetention(r.data);
       } catch (e) { setError(e.response?.data?.error || 'Could not load Fluency.'); }
       finally { setLoading(false); }
     })();
@@ -34,7 +49,7 @@ export default function FluencyHome() {
     if (!skillId || starting) return;
     setStarting(true);
     try {
-      const { data } = await mathpathAPI.startSession({ feature: 'Fluency Practice', mode: 'fluency', skillId, questionCount: 8 });
+      const { data } = await mathpathAPI.startFluencySession({ skillId, questionCount: 12 });
       navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items, backTo: '/student/mathpath/fluency' } });
     } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setStarting(false); }
   };
@@ -45,7 +60,20 @@ export default function FluencyHome() {
   // Recommend the weakest skill you have NOT yet mastered — never a mastered one,
   // even when it happens to be the lowest-scored. Mirrors the `weak` list below.
   const weak = skills.filter((s) => s.status !== 'mastered');
-  const recommended = [...weak].sort((a, b) => a.score - b.score)[0] || null;
+  const statusRows = [
+    ...(fluency?.needsPracticeSkills || []),
+    ...(fluency?.developingSkills || []),
+  ];
+  const recommendedRecord = statusRows[0] || null;
+  const recommended = recommendedRecord
+    ? {
+        skillId: recommendedRecord.skillId,
+        name: recommendedRecord.skillName,
+        topicName: 'Fractions',
+        statusLabel: recommendedRecord.fluencyStatus === 'developing' ? 'Developing' : 'Needs practice',
+        status: recommendedRecord.fluencyStatus === 'developing' ? 'learning' : 'needs_review',
+      }
+    : ([...weak].sort((a, b) => a.score - b.score)[0] || null);
   const topWeak = [...weak].sort((a, b) => a.score - b.score).slice(0, 3);
   const grouped = weak.reduce((acc, skill) => {
     const key = skill.topicName || 'Fractions';
@@ -56,26 +84,72 @@ export default function FluencyHome() {
 
   return (
     <div className={`${visualStyles.page} space-y-6`}>
-      <PageHeader title="Fluency Practice" subtitle="MathPath · quick timed drills for speed and accuracy" />
+      <PageHeader title="Fluency Practice" subtitle="MathPath · short, focused sessions for automaticity and retention" />
 
       <Card className={`p-5 ${visualStyles.heroCard}`}>
         <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-violet-700">Recommended now</div>
         {recommended ? (
           <>
             <div className="font-display text-xl font-semibold text-ink-900">{recommended.name}</div>
-            <p className="mb-4 mt-1 text-sm text-ink-600">A short drill tuned to where you are.</p>
+            <p className="mb-4 mt-1 text-sm text-ink-600">One skill, 10–20 questions, no countdown pressure.</p>
             <Button className={visualStyles.primaryCta} icon={Zap} disabled={starting} onClick={() => start(recommended.skillId)}>
-              {starting ? 'Starting…' : 'Start quick practice'}
+              {starting ? 'Starting…' : 'Start fluency session'}
             </Button>
           </>
         ) : (
-          <p className="mt-1 text-sm text-ink-600">Every fluency skill is sharp. Come back later to keep them fresh.</p>
+          <p className="mt-1 text-sm text-ink-600">{fluency?.emptyState || 'Every fluency skill is sharp. Come back later to keep them fresh.'}</p>
         )}
       </Card>
 
-      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Top skills to sharpen</h3>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3" aria-label="Fluency status">
+        {Object.entries(STATUS_META).map(([key, meta]) => {
+          const Icon = meta.icon;
+          const rows = fluency?.[key] || [];
+          return (
+            <Card key={key} className={`p-4 ${visualStyles.accentCard}`}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-navy-600" />
+                  <h3 className="text-sm font-semibold text-ink-800">{meta.title}</h3>
+                </div>
+                <Badge tone={meta.tone}>{rows.length}</Badge>
+              </div>
+              {rows.length ? (
+                <div className="mt-3 space-y-2">
+                  {rows.slice(0, 3).map((row) => (
+                    <button
+                      key={row.skillId}
+                      type="button"
+                      onClick={() => start(row.skillId)}
+                      className="w-full rounded-lg border border-hairline bg-white/80 px-3 py-2 text-left"
+                    >
+                      <div className="text-sm font-semibold text-ink-800">{row.skillName}</div>
+                      <div className="mt-0.5 text-xs text-ink-500">
+                        {row.averageTimeSeconds ? `${row.averageTimeSeconds}s avg` : 'Timing building'} · {row.interpretation}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-ink-500">{meta.empty}</p>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+
+      {!!retention?.upcomingReviews?.length && (
+        <Card className="p-4">
+          <h3 className="text-sm font-semibold text-ink-800">Retention Reviews</h3>
+          <p className="mt-1 text-sm text-ink-600">
+            {retention.upcomingReviews.length} review{retention.upcomingReviews.length === 1 ? '' : 's'} scheduled after fluent skills.
+          </p>
+        </Card>
+      )}
+
+      <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Start a focused drill</h3>
       <div className="space-y-2">
-        {weak.length === 0 && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>All your fluency skills are sharp. Nice work.</Card>}
+        {weak.length === 0 && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>{fluency?.emptyState || 'All your fluency skills are sharp. Nice work.'}</Card>}
         {topWeak.map((s) => (
           <Card key={s.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} onClick={() => start(s.skillId)} role="button">
             <div>

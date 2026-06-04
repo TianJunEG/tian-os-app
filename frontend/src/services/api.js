@@ -75,6 +75,10 @@ export const mathpathAPI = {
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),
   getSession: (sessionId) => api.get(`/practice/sessions/${sessionId}`),
+  fluency: (studentId) => api.get(studentId ? `/fluency/student/${studentId}` : '/fluency/me'),
+  retention: (studentId) => api.get(studentId ? `/fluency/student/${studentId}/retention` : '/fluency/me/retention'),
+  startFluencySession: (data) => api.post('/fluency/session/start', data),
+  completeFluencySession: (data) => api.post('/fluency/session/complete', data),
   mistakes: (params) => api.get('/mistakes', { params }),
   reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
   placement: (attempts) => api.post('/mastery/placement', { attempts }),
@@ -374,8 +378,10 @@ export const skillsAPI = {
 };
 
 export const mathpathFluencyAPI = {
-  // Fluency is a MathPath feature: start a session with feature='Fluency Practice'.
-  start: (data) => api.post('/practice/sessions', { feature: 'Fluency Practice', mode: 'fluency', ...data })
+  summary: (studentId) => api.get(studentId ? `/fluency/student/${studentId}` : '/fluency/me'),
+  retention: (studentId) => api.get(studentId ? `/fluency/student/${studentId}/retention` : '/fluency/me/retention'),
+  start: (data) => api.post('/fluency/session/start', data),
+  complete: (data) => api.post('/fluency/session/complete', data),
 };
 
 export const assignmentsAPI = {

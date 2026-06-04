@@ -66,6 +66,38 @@ function normalizeConfidence(confidence = '') {
   return 60;
 }
 
+function attemptHasWorking(attempt = {}) {
+  if (attempt.workingUploaded || attempt.workingSubmitted || attempt.fullscreenWorkingSubmitted) return true;
+  if (Array.isArray(attempt.workingStrokes) && attempt.workingStrokes.length) return true;
+  if (Array.isArray(attempt.fullscreenWorkingStrokes) && attempt.fullscreenWorkingStrokes.length) return true;
+  if (Array.isArray(attempt.workingEvidence) && attempt.workingEvidence.length) return true;
+  return toNum(attempt.workingLength, 0) > 0;
+}
+
+function isMentalMathEligible(attempt = {}) {
+  if (attempt.mentalMathEligible === true || attempt.workingRequired === false || attempt.workingNotNeeded === true) return true;
+  const family = attempt.questionFamilyId ? getQuestionFamily(attempt.questionFamilyId) : null;
+  return Boolean(family?.mentalMathEligible);
+}
+
+function timingTargetForAttempt(attempt = {}, benchmark = null) {
+  return benchmark || getFluencyBenchmark({
+    skillId: attempt.skillId || '',
+    level: attempt.level || 'P4',
+    difficulty: attempt.difficulty || 2,
+    questionFamilyId: attempt.questionFamilyId || '',
+  });
+}
+
+function sortAttemptsByTime(attempts = []) {
+  return attempts.slice().sort((a, b) => {
+    const aTime = normalizeDate(a.timestamp || a.createdAt || a.questionStartedAt)?.getTime();
+    const bTime = normalizeDate(b.timestamp || b.createdAt || b.questionStartedAt)?.getTime();
+    if (Number.isFinite(aTime) && Number.isFinite(bTime)) return aTime - bTime;
+    return toNum(a.sequence ?? a.index, 0) - toNum(b.sequence ?? b.index, 0);
+  });
+}
+
 export function getFluencyBenchmark({ skillId = '', level = 'P4', difficulty = 2, questionFamilyId = '' } = {}) {
   const family = questionFamilyId ? getQuestionFamily(questionFamilyId) : null;
   const base = family?.fluencyTargetSeconds || getSkill(skillId)?.fluency?.targetAverageSeconds || 30;
@@ -202,6 +234,105 @@ export function evaluateAccuracyConsistency(attempts = []) {
   };
 }
 
+export function detectMentalCalculation({ attempts = [], benchmark = null } = {}) {
+  const eligible = attempts.filter((attempt) => !attempt.skipped && isMentalMathEligible(attempt));
+  const fastMentalCorrect = eligible.filter((attempt) => {
+    if (!attempt.correct || attemptHasWorking(attempt)) return false;
+    const timing = calculateQuestionTiming(attempt);
+    if (timing.effectiveAnswerTimeSeconds === null) return false;
+    const target = timingTargetForAttempt(attempt, benchmark);
+    return timing.effectiveAnswerTimeSeconds <= target.fluentSeconds;
+  });
+  const mentalCalculationRate = eligible.length ? round((fastMentalCorrect.length / eligible.length) * 100) : 0;
+  const detected = eligible.length >= 3 && mentalCalculationRate >= 60;
+
+  return {
+    mentalEligibleCount: eligible.length,
+    fastMentalCorrectCount: fastMentalCorrect.length,
+    mentalCalculationRate,
+    detected,
+    confidence: eligible.length >= 5 ? 'high' : eligible.length >= 3 ? 'medium' : 'low',
+    evidence: detected ? 'fast_correct_answers_without_working' : 'insufficient_fast_mental_evidence',
+  };
+}
+
+export function trackSpeedProgress({ attempts = [] } = {}) {
+  const timedCorrect = sortAttemptsByTime(attempts)
+    .map((attempt) => ({
+      attempt,
+      seconds: calculateQuestionTiming(attempt).effectiveAnswerTimeSeconds,
+    }))
+    .filter((row) => row.attempt.correct && row.seconds !== null);
+  const times = timedCorrect.map((row) => row.seconds);
+  const splitIndex = Math.max(1, Math.floor(times.length / 2));
+  const earlierTimes = times.slice(0, splitIndex);
+  const recentTimes = times.slice(splitIndex);
+  const earlierAverageSeconds = mean(earlierTimes);
+  const recentAverageSeconds = mean(recentTimes.length ? recentTimes : earlierTimes);
+  const improvementPercent = earlierAverageSeconds && recentAverageSeconds !== null
+    ? round(((earlierAverageSeconds - recentAverageSeconds) / earlierAverageSeconds) * 100)
+    : 0;
+
+  return {
+    samples: times.length,
+    personalBestSeconds: times.length ? Math.min(...times) : null,
+    earlierAverageSeconds: earlierAverageSeconds === null ? null : round(earlierAverageSeconds),
+    recentAverageSeconds: recentAverageSeconds === null ? null : round(recentAverageSeconds),
+    speedImprovementPercent: improvementPercent,
+    speedTrend: improvementPercent >= 10 ? 'improving' : improvementPercent <= -10 ? 'slowing' : 'stable',
+  };
+}
+
+export function calculateAutomaticFluencyScore({
+  accuracyRate = 0,
+  averageResponseTime = null,
+  benchmark = null,
+  consistencyScore = 0,
+  mentalCalculation = {},
+  workingDependence = {},
+  confidenceAverage = 60,
+} = {}) {
+  const timingBenchmark = benchmark || getFluencyBenchmark();
+  const accuracyComponent = clamp(accuracyRate);
+  const speedComponent = averageResponseTime === null
+    ? 0
+    : clamp(((timingBenchmark.secureSeconds - averageResponseTime) / Math.max(1, timingBenchmark.secureSeconds - timingBenchmark.automaticSeconds)) * 100);
+  const mentalComponent = clamp(mentalCalculation.mentalCalculationRate || 0);
+  const workingComponent = workingDependence.dependenceLevel === 'mental_or_automatic'
+    ? 100
+    : workingDependence.trend === 'reducing_working'
+      ? 75
+      : workingDependence.dependenceLevel === 'high_working_dependence'
+        ? 25
+        : 55;
+  const score = round(
+    accuracyComponent * 0.35 +
+    speedComponent * 0.25 +
+    clamp(consistencyScore) * 0.15 +
+    mentalComponent * 0.15 +
+    workingComponent * 0.05 +
+    clamp(confidenceAverage) * 0.05
+  );
+
+  return {
+    automaticFluencyScore: score,
+    automaticityBand:
+      score >= 90 && accuracyComponent >= 95 && mentalCalculation.detected ? FLUENCY_STATES.AUTOMATIC
+        : score >= 78 ? FLUENCY_STATES.FLUENT
+          : score >= 58 ? FLUENCY_STATES.FUNCTIONAL
+            : score >= 40 ? FLUENCY_STATES.DEVELOPING
+              : FLUENCY_STATES.NOT_YET_FLUENT,
+    components: {
+      accuracy: round(accuracyComponent),
+      speed: round(speedComponent),
+      consistency: round(consistencyScore),
+      mentalCalculation: round(mentalComponent),
+      workingIndependence: round(workingComponent),
+      confidence: round(confidenceAverage),
+    },
+  };
+}
+
 export function calculateSkillFluencyProfile({ skillId = '', attempts = [], level = 'P4', difficulty = 2 } = {}) {
   const benchmark = getFluencyBenchmark({ skillId, level, difficulty, questionFamilyId: attempts[0]?.questionFamilyId || '' });
   const answered = attempts.filter((attempt) => !attempt.skipped);
@@ -215,6 +346,8 @@ export function calculateSkillFluencyProfile({ skillId = '', attempts = [], leve
   const accuracy = answered.length ? correct.length / answered.length : 0;
   const speedScore = averageTime === null ? 0 : clamp((benchmark.developingSeconds - averageTime) / Math.max(1, benchmark.developingSeconds - benchmark.automaticSeconds) * 100);
   const consistencySpeedPenalty = averageTime ? clamp(100 - (sd / averageTime) * 100) : 0;
+  const mentalCalculation = detectMentalCalculation({ attempts, benchmark });
+  const speedTracking = trackSpeedProgress({ attempts });
   const workingIndependenceScore = workingDependence.dependenceLevel === 'mental_or_automatic'
     ? 100
     : workingDependence.trend === 'reducing_working'
@@ -222,6 +355,15 @@ export function calculateSkillFluencyProfile({ skillId = '', attempts = [], leve
       : workingDependence.dependenceLevel === 'high_working_dependence'
         ? 45
         : 65;
+  const automaticFluency = calculateAutomaticFluencyScore({
+    accuracyRate: accuracy * 100,
+    averageResponseTime: averageTime,
+    benchmark,
+    consistencyScore: consistency.consistencyScore,
+    mentalCalculation,
+    workingDependence,
+    confidenceAverage: confidenceAverage ?? 60,
+  });
   const fluencyScore = round(
     accuracy * 40 +
     speedScore * 0.25 +
@@ -234,7 +376,7 @@ export function calculateSkillFluencyProfile({ skillId = '', attempts = [], leve
   if (accuracy >= 0.8 && fluencyScore >= 45) fluencyState = FLUENCY_STATES.DEVELOPING;
   if (accuracy >= 0.85 && averageTime !== null && averageTime <= benchmark.secureSeconds && consistency.consistencyScore >= 65) fluencyState = FLUENCY_STATES.FUNCTIONAL;
   if (accuracy >= 0.9 && averageTime !== null && averageTime <= benchmark.fluentSeconds && consistency.consistencyScore >= 75) fluencyState = FLUENCY_STATES.FLUENT;
-  if (accuracy >= 0.95 && averageTime !== null && averageTime <= benchmark.automaticSeconds && consistency.consistencyScore >= 85 && workingDependence.dependenceLevel === 'mental_or_automatic') {
+  if (accuracy >= 0.95 && averageTime !== null && averageTime <= benchmark.automaticSeconds && consistency.consistencyScore >= 85 && mentalCalculation.detected) {
     fluencyState = FLUENCY_STATES.AUTOMATIC;
   }
 
@@ -248,9 +390,51 @@ export function calculateSkillFluencyProfile({ skillId = '', attempts = [], leve
     responseTimeSpread: round(sd),
     consistency,
     workingDependence,
+    mentalCalculation,
+    speedTracking,
+    automaticFluencyScore: automaticFluency.automaticFluencyScore,
+    automaticityBand: automaticFluency.automaticityBand,
+    automaticFluencyComponents: automaticFluency.components,
     confidenceAverage: confidenceAverage === null ? null : round(confidenceAverage),
     benchmark,
     masteryScoreSeparate: true,
+  };
+}
+
+export function buildTimedPracticeSession({
+  skillId = '',
+  level = 'P4',
+  currentFluencyState = FLUENCY_STATES.DEVELOPING,
+  durationMinutes = null,
+  questionCount = null,
+  mentalMathOnly = false,
+} = {}) {
+  const families = getQuestionFamiliesBySkill(skillId)
+    .filter((family) => family.fluencyTargetSeconds || family.mentalMathEligible)
+    .filter((family) => !mentalMathOnly || family.mentalMathEligible);
+  const benchmark = getFluencyBenchmark({
+    skillId,
+    level,
+    difficulty: getSkill(skillId)?.difficulty || 2,
+    questionFamilyId: families[0]?.id || '',
+  });
+  const sessionLengthMinutes = durationMinutes || (currentFluencyState === FLUENCY_STATES.NOT_YET_FLUENT ? 6 : 4);
+  const recommendedQuestionCount = questionCount || Math.max(6, Math.min(16, Math.round((sessionLengthMinutes * 60) / Math.max(benchmark.fluentSeconds, 1))));
+
+  return {
+    sessionId: `TIMED_FRA_${skillId}_${Date.now()}`,
+    skillId,
+    mode: 'timed_fluency_practice',
+    sessionLengthMinutes,
+    recommendedQuestionCount,
+    questionFamilyIds: families.slice(0, 6).map((family) => family.id),
+    timerVisible: true,
+    perQuestionTargetSeconds: benchmark.fluentSeconds,
+    automaticTargetSeconds: benchmark.automaticSeconds,
+    timeTrackingRequired: true,
+    scoreModel: 'accuracy_speed_consistency_automaticity',
+    mentalMathOnly,
+    workingAllowed: !mentalMathOnly,
   };
 }
 
@@ -267,6 +451,7 @@ export function buildFluencyDrillPack({ skillId = '', level = 'P4', currentFluen
     timeTrackingRequired: true,
     questionFamilyIds: families.slice(0, 4).map((family) => family.id),
     targetSeconds: benchmark.fluentSeconds,
+    timedPractice: buildTimedPracticeSession({ skillId, level, currentFluencyState }),
     examples: ['fraction comparison', 'equivalent fractions', 'mental percentages', 'algebra manipulation'],
   };
 }
@@ -295,6 +480,37 @@ export function buildSpacedReviewSchedule({ skillId = '', masteredAt = new Date(
       intervalDays: days,
       dueAt: addDays(start, days).toISOString(),
       status: RETENTION_STATES.REVIEW_SCHEDULED,
+    })),
+  };
+}
+
+export function buildRetentionScheduleFromFluency({
+  profile = {},
+  masteredAt = new Date(),
+  intervals = SPACED_REVIEW_INTERVALS_DAYS,
+} = {}) {
+  const fluentEnough = [FLUENCY_STATES.FLUENT, FLUENCY_STATES.AUTOMATIC].includes(profile.fluencyState)
+    || [FLUENCY_STATES.FLUENT, FLUENCY_STATES.AUTOMATIC].includes(profile.automaticityBand);
+  if (!fluentEnough) {
+    return {
+      skillId: profile.skillId || '',
+      shouldSchedule: false,
+      reason: 'Schedule retention after the student is fluent, not just correct.',
+      reviews: [],
+    };
+  }
+  const schedule = buildSpacedReviewSchedule({ skillId: profile.skillId || '', masteredAt, intervals });
+  return {
+    ...schedule,
+    shouldSchedule: true,
+    reason: 'Protect fluent performance with spaced speed and accuracy checks.',
+    sourceFluencyState: profile.fluencyState || null,
+    automaticFluencyScore: profile.automaticFluencyScore ?? null,
+    reviews: schedule.reviews.map((review) => ({
+      ...review,
+      reviewMode: 'speed_accuracy_retention',
+      targetSeconds: profile.benchmark?.fluentSeconds || null,
+      automaticTargetSeconds: profile.benchmark?.automaticSeconds || null,
     })),
   };
 }
@@ -445,6 +661,7 @@ export function validateFractionFluencyRetentionEngine() {
   ];
   const profile = calculateSkillFluencyProfile({ skillId: 'F010', attempts, level: 'P4', difficulty: 2 });
   const schedule = buildSpacedReviewSchedule({ skillId: 'F010', masteredAt: '2026-01-01T00:00:00.000Z' });
+  const fluencySchedule = buildRetentionScheduleFromFluency({ profile, masteredAt: '2026-01-01T00:00:00.000Z' });
   const due = evaluateRetentionStatus({ skillId: 'F010', masteredAt: '2026-01-01T00:00:00.000Z', retentionHistory: [], recentAttempts: attempts, asOf: '2026-01-08T00:00:00.000Z' });
   const review = generateRetentionReview({ skillId: 'F010', previousQuestionIds: ['QF_F010_001'] });
   const exam = calculateExamReadiness({ knowledgeScore: 85, fluencyScore: profile.fluencyScore, confidenceScore: 90, retentionScore: 70, workingEvidenceScore: 80 });
@@ -457,7 +674,12 @@ export function validateFractionFluencyRetentionEngine() {
     workingDependenceDetected: profile.workingDependence.trend === 'reducing_working',
     consistencyPreventsEarlyMastery: typeof profile.consistency.preventsEarlyMastery === 'boolean',
     drillPackGenerated: buildFluencyDrillPack({ skillId: 'F010' }).mode === 'fluency_drill',
+    timedPracticeGenerated: buildTimedPracticeSession({ skillId: 'F010' }).mode === 'timed_fluency_practice',
+    automaticScoreGenerated: typeof profile.automaticFluencyScore === 'number',
+    mentalCalculationTracked: typeof profile.mentalCalculation.detected === 'boolean',
+    speedTrackingGenerated: typeof profile.speedTracking.speedTrend === 'string',
     retentionHasFiveReviews: schedule.reviews.length === 5 && schedule.reviews[4].intervalDays === 180,
+    retentionCanFollowFluency: Array.isArray(fluencySchedule.reviews),
     retentionDueDetected: due.retentionState === RETENTION_STATES.REVIEW_DUE,
     reviewUsesDifferentQuestions: !review.questionFamilyIds.includes('QF_F010_001'),
     examReadinessTransparent: exam.transparent === true && Object.keys(exam.components).length === 5,
@@ -477,10 +699,15 @@ export const fractionFluencyRetentionEngine = {
   buildSkillTimingHistory,
   analyzeWorkingDependence,
   evaluateAccuracyConsistency,
+  detectMentalCalculation,
+  trackSpeedProgress,
+  calculateAutomaticFluencyScore,
   calculateSkillFluencyProfile,
+  buildTimedPracticeSession,
   buildFluencyDrillPack,
   recommendFluencyIntervention,
   buildSpacedReviewSchedule,
+  buildRetentionScheduleFromFluency,
   evaluateRetentionStatus,
   detectForgetting,
   generateRetentionReview,

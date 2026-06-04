@@ -24,6 +24,7 @@ import learningRoutes from './routes/learning.js';
 import scienceRoutes from './routes/science.js';
 import contextRoutes from './routes/context.js';
 import practiceRoutes from './routes/practice.js';
+import fluencyRoutes from './routes/fluency.js';
 import mistakeRoutes from './routes/mistakes.js';
 import masteryRoutes from './routes/mastery.js';
 import diagnosticRoutes from './routes/diagnostics.js';
@@ -131,6 +132,7 @@ app.use('/api/science', featureGate({ feature: 'science', minVersion: 'v0.6' }),
 // Tian OS unified platform — role/workspace context
 app.use('/api/context', contextRoutes);
 app.use('/api/practice', practiceRoutes);
+app.use('/api/fluency', fluencyRoutes);
 app.use('/api/mistakes', mistakeRoutes);
 app.use('/api/diagnostics', diagnosticRoutes);
 app.use('/api/student-profile', studentProfileRoutes);
