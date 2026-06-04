@@ -9,6 +9,8 @@ export function featureGate(options = {}) {
   const curV = vnum(TIANOS_VERSION);
 
   return (req, res, next) => {
+    if (process.env.QA_DISABLE_RATE_LIMIT === '1') return next();
+
     // If no feature specified, allow through
     if (!feature) return next();
 

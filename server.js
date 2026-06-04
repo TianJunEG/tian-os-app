@@ -70,12 +70,13 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http:/
 const frontendUrl = (process.env.FRONTEND_URL || '').trim();
 if (frontendUrl) allowedOrigins.push(frontendUrl);
 const vercelPreviewRegex = /^https:\/\/[a-z0-9-]+(\-[a-z0-9-]+)*\.vercel\.app$/i;
+const localDevOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow same-origin/non-browser requests (no Origin header), explicit allowlist,
     // and Vercel preview deployments (*.vercel.app).
-    if (!origin || allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || localDevOriginRegex.test(origin) || vercelPreviewRegex.test(origin)) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
