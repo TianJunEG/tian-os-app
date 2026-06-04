@@ -40,6 +40,7 @@ export default function PracticeResult() {
   // (Science → Science, an assigned Mastery Worksheet → the worksheets list).
   const isScience = data.session?.module === 'Science Adaptive Revision';
   const isWorksheet = data.session?.feature === 'Mastery Worksheet';
+  const isFluency = data.session?.mode === 'fluency' || data.session?.feature === 'Fluency Practice';
   const explicitHomeBase = state.homeBase || state.backTo;
   const homeBase = explicitHomeBase || (isScience ? '/student/science' : isWorksheet ? '/student/worksheets' : '/student/mathpath');
   const defaultHomeLabel = isScience ? 'Continue Science Revision' : isWorksheet ? 'Back to worksheets' : 'Continue MathPath';
@@ -67,6 +68,14 @@ export default function PracticeResult() {
           <StatTile label="Avg time" value={stats.avgTimeMs ? Math.round(stats.avgTimeMs / 1000) : '—'} suffix={stats.avgTimeMs ? 's' : ''} />
         </div>
       </Card>
+
+      {isFluency && stats.fluencyScore !== null && stats.fluencyScore !== undefined && (
+        <Card className="mb-5 border-l-4 border-l-violet-400 p-5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-violet-700">Fluency Score</div>
+          <div className="mt-1 font-mono text-3xl font-semibold text-navy-700">{Math.round(Number(stats.fluencyScore))}</div>
+          <p className="mt-1 text-sm text-ink-500">Your fluency score combines accuracy and speed.</p>
+        </Card>
+      )}
 
       <CollapsibleSection
         title="Skills practised"
