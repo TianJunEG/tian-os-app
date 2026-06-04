@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   Award,
@@ -55,6 +55,47 @@ function formatEventDate(date) {
   if (then.toDateString() === todayKey) return 'Today';
   if (then.toDateString() === yesterday.toDateString()) return 'Yesterday';
   return then.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+function friendlyProfileError(err) {
+  const raw = String(err?.response?.data?.error || err?.message || '').trim();
+  if (!raw || /route not found/i.test(raw) || err?.response?.status === 404) {
+    return 'Unable to load profile.';
+  }
+  return 'Unable to load profile.';
+}
+
+async function loadProfileData() {
+  console.info('[StudentProfile] API request: overview');
+  try {
+    const res = await studentProfileAPI.overview();
+    console.info('[StudentProfile] API response: overview', { status: res?.status || 200 });
+    return res.data;
+  } catch (err) {
+    console.warn('[StudentProfile] API request failed: overview', {
+      status: err?.response?.status,
+      error: err?.response?.data?.error || err?.message,
+    });
+
+    if (err?.response?.status !== 404) throw err;
+
+    console.info('[StudentProfile] API fallback request: summary/achievements/timeline');
+    const [summary, achievements, timeline] = await Promise.all([
+      studentProfileAPI.summary(),
+      studentProfileAPI.achievements(),
+      studentProfileAPI.timeline(),
+    ]);
+    console.info('[StudentProfile] API fallback response', {
+      summary: summary?.status || 200,
+      achievements: achievements?.status || 200,
+      timeline: timeline?.status || 200,
+    });
+    return {
+      summary: summary.data,
+      achievements: achievements.data,
+      timeline: timeline.data,
+    };
+  }
 }
 
 function DecorativeMotif({ enabled }) {
@@ -118,24 +159,34 @@ function TimelineItem({ event }) {
 export default function StudentProfile() {
   const [state, setState] = useState({ loading: true, error: '', data: null });
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let active = true;
+    console.info('[StudentProfile] route loaded: /student/profile');
     setState((prev) => ({ ...prev, loading: true, error: '' }));
-    studentProfileAPI.overview()
-      .then((res) => {
-        if (active) setState({ loading: false, error: '', data: res.data });
+    loadProfileData()
+      .then((data) => {
+        if (active) {
+          console.info('[StudentProfile] render success');
+          setState({ loading: false, error: '', data });
+        }
       })
       .catch((err) => {
         if (active) {
+          console.error('[StudentProfile] render fallback', {
+            status: err?.response?.status,
+            error: err?.response?.data?.error || err?.message,
+          });
           setState({
             loading: false,
-            error: err?.response?.data?.error || 'Could not load your profile.',
+            error: friendlyProfileError(err),
             data: null,
           });
         }
       });
     return () => { active = false; };
   }, []);
+
+  useEffect(() => load(), [load]);
 
   const groupedAchievements = useMemo(() => {
     const rows = state.data?.achievements || [];
@@ -148,7 +199,14 @@ export default function StudentProfile() {
   }, [state.data]);
 
   if (state.loading) return <Spinner label="Loading your profile…" />;
-  if (state.error) return <ErrorState message={state.error} onRetry={() => window.location.reload()} />;
+  if (state.error) {
+    return (
+      <ErrorState
+        message={`${state.error} Profile unavailable. Please try again.`}
+        onRetry={load}
+      />
+    );
+  }
 
   const summary = state.data?.summary || {};
   const student = summary.student || {};
