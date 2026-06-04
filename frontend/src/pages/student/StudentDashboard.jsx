@@ -1,10 +1,20 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
+  Award,
+  BookOpen,
+  Brain,
   Calculator,
+  ChevronRight,
   CheckCircle2,
+  ClipboardList,
   Flame,
+  Gem,
+  PenLine,
+  Search,
+  Sparkles,
   Timer,
+  Target,
   Trophy,
   UserCircle,
   Wrench,
@@ -253,6 +263,259 @@ function CompactStatCard({ icon: Icon, label, value, tone = 'navy', visual }) {
   );
 }
 
+function UpperPrimaryMissionArt() {
+  return (
+    <div className="relative min-h-[170px] overflow-hidden bg-gradient-to-br from-violet-100 via-indigo-50 to-white sm:min-h-[230px]">
+      <div className="absolute inset-x-0 bottom-0 h-24 rounded-t-[60%] bg-white/75" />
+      <div className="absolute bottom-7 left-10 h-20 w-32 rounded-[50%] bg-white/70" />
+      <div className="absolute bottom-4 right-8 h-24 w-36 rounded-[50%] bg-white/80" />
+      <div className="absolute left-1/2 top-1/2 grid h-24 w-24 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-indigo-200/80 shadow-resting sm:h-32 sm:w-32">
+        <div className="grid h-20 w-20 place-items-center rounded-full border-[8px] border-indigo-500/60 bg-white sm:h-24 sm:w-24 sm:border-[10px]">
+          <div className="grid h-10 w-10 place-items-center rounded-full border-[6px] border-indigo-400/80 bg-indigo-50 sm:h-12 sm:w-12 sm:border-[8px]">
+            <div className="h-4 w-4 rounded-full bg-indigo-600" />
+          </div>
+        </div>
+      </div>
+      <div className="absolute left-[52%] top-[33%] h-2 w-20 rotate-[-38deg] rounded-full bg-indigo-700 shadow-sm sm:w-24" />
+      <div className="absolute left-[63%] top-[25%] h-8 w-8 rotate-[-38deg] border-l-[12px] border-t-[12px] border-l-indigo-600 border-t-transparent" />
+      <Sparkles className="absolute left-20 top-16 h-5 w-5 text-indigo-300" />
+      <Sparkles className="absolute right-20 top-28 h-4 w-4 text-indigo-300" />
+    </div>
+  );
+}
+
+function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
+  const action = actionMeta(nextAction);
+  const primaryTo = hasPlacement ? action.to : '/student/mathpath/diagnostic';
+  const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
+    ? {
+        skillId: currentSkill?.skillId || null,
+        questionCount: 8,
+        sessionType: 'practice',
+        source: 'student-dashboard',
+        backTo: '/student',
+        homeBase: '/student',
+      }
+    : undefined;
+  const skillName = currentSkill?.skillName || 'Equivalent Fractions';
+  const time = estimateTime(nextAction, hasPlacement);
+
+  return (
+    <Card className="overflow-hidden rounded-[22px] border-hairline bg-paper p-0">
+      <div className="grid min-h-[260px] lg:grid-cols-[0.48fr_0.52fr]">
+        <UpperPrimaryMissionArt />
+        <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge tone="lavender" className="px-4 py-1 text-[12px] uppercase tracking-[0.08em]">Today's Mission</Badge>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">
+              <Timer className="h-4 w-4" /> {time}
+            </span>
+          </div>
+          <h2 className="mt-3 font-display text-2xl font-semibold tracking-[-0.02em] text-navy-700 sm:mt-4 sm:text-3xl">{skillName}</h2>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-ink-600 sm:mt-3">
+            This will help strengthen your understanding of fractions.
+          </p>
+          <Button to={primaryTo} state={primaryState} icon={ArrowRight} className="mt-3 w-full bg-violet-600 hover:bg-violet-700 sm:hidden">
+            Start Practice
+          </Button>
+          <div className="mt-3 grid grid-cols-3 gap-2 rounded-[16px] border border-violet-100 bg-white/80 p-3 text-sm sm:mt-5 sm:gap-3 sm:p-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Current Skill</p>
+              <p className="mt-1 font-semibold text-ink-800">{skillName}</p>
+            </div>
+            <div className="border-l border-violet-100 pl-2 sm:pl-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Why This</p>
+              <p className="mt-1 font-semibold text-ink-800">Builds a strong foundation</p>
+            </div>
+            <div className="border-l border-violet-100 pl-2 sm:pl-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Time</p>
+              <p className="mt-1 font-semibold text-ink-800">{time}</p>
+            </div>
+          </div>
+          <Button to={primaryTo} state={primaryState} icon={ArrowRight} className="mt-4 hidden w-full bg-violet-600 hover:bg-violet-700 sm:mt-5 sm:inline-flex sm:w-fit">
+            Start Practice
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function TodayHighlights({ streak, xp, mastered, totalSkills, progress }) {
+  const rows = [
+    { icon: Flame, value: streak, label: 'day streak', detail: 'Keep it up!', tone: 'bg-orange-50 text-orange-600', suffix: streak === 1 ? '' : '' },
+    { icon: Gem, value: xp, label: 'Learning XP', detail: '+120 XP today', tone: 'bg-violet-50 text-violet-600' },
+    { icon: CheckCircle2, value: `${mastered} / ${totalSkills}`, label: 'Skills Mastered', detail: `${progress}% complete`, tone: 'bg-emerald-50 text-emerald-600', progress },
+  ];
+  return (
+    <Card className="h-full rounded-[22px] border-hairline bg-paper p-5">
+      <h3 className="text-lg font-semibold text-navy-700">Today's Highlights</h3>
+      <div className="mt-4 space-y-3">
+        {rows.map(({ icon: Icon, value, label, detail, tone, progress: bar }) => (
+          <div key={label} className="rounded-[16px] border border-hairline bg-gradient-to-r from-white to-slate-50 px-4 py-3">
+            <div className="flex items-center gap-4">
+              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${tone}`}>
+                <Icon className="h-6 w-6" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-mono text-2xl font-semibold leading-none text-navy-700">{value}</p>
+                  <p className="text-xs font-semibold text-navy-700">{detail}</p>
+                </div>
+                <p className="mt-1 text-sm font-semibold text-ink-600">{label}</p>
+                {Number.isFinite(bar) && (
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${Math.max(0, Math.min(100, bar))}%` }} />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function MiniTrend({ tone = 'emerald' }) {
+  const color = tone === 'blue' ? 'bg-blue-500' : tone === 'amber' ? 'bg-amber-400' : 'bg-emerald-500';
+  const heights = tone === 'amber' ? [10, 18, 28, 24, 20, 32, 38, 30, 42, 36, 48, 58] : [10, 16, 14, 20, 24, 24, 36];
+  return (
+    <div className="mt-4 flex h-16 items-end gap-1.5">
+      {heights.map((height, index) => (
+        <span key={`${tone}-${index}`} className={`w-full rounded-t-full ${color}`} style={{ height, opacity: index % 3 === 0 ? 0.4 : index % 3 === 1 ? 0.6 : 0.8 }} />
+      ))}
+    </div>
+  );
+}
+
+function StudentMetricTile({ icon: Icon, title, value, body, tone = 'emerald', chart = 'line' }) {
+  const toneMap = {
+    emerald: 'border-emerald-100 bg-emerald-50/60 text-emerald-700',
+    amber: 'border-amber-100 bg-amber-50/70 text-amber-700',
+    blue: 'border-blue-100 bg-blue-50/70 text-blue-700',
+    rose: 'border-rose-100 bg-rose-50/70 text-rose-700',
+  };
+  return (
+    <Card className={`rounded-[18px] p-5 ${toneMap[tone] || toneMap.emerald}`}>
+      <div className="flex items-start justify-between gap-3">
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-white/75 shadow-sm">
+          <Icon className="h-6 w-6" />
+        </span>
+        <ChevronRight className="h-5 w-5 opacity-70" />
+      </div>
+      <p className="mt-2 text-sm font-semibold">{title}</p>
+      <p className="font-mono text-3xl font-semibold leading-none text-navy-700">{value}</p>
+      <p className="mt-2 min-h-[2.5rem] text-sm leading-5 text-ink-700">{body}</p>
+      {chart === 'none' ? null : <MiniTrend tone={tone === 'amber' ? 'amber' : tone === 'blue' ? 'blue' : 'emerald'} />}
+    </Card>
+  );
+}
+
+function UpperPrimaryMetrics({ accuracy, questions, workingRate, confidenceRisk }) {
+  return (
+    <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <StudentMetricTile icon={Target} title="Accuracy (This Week)" value={`${accuracy}%`} body="Good job! You're improving." tone="emerald" />
+      <StudentMetricTile icon={ClipboardList} title="Questions Answered" value={questions} body="This week" tone="amber" />
+      <StudentMetricTile icon={PenLine} title="Working Submitted" value={`${workingRate}%`} body="Excellent! Keep showing your thinking." tone="blue" />
+      <StudentMetricTile icon={Brain} title="Confidence Insight" value={confidenceRisk} body="Confident but incorrect. Review these questions." tone="rose" chart="none" />
+    </section>
+  );
+}
+
+function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement }) {
+  const action = actionMeta(nextAction);
+  const continueState = hasPlacement
+    ? {
+        skillId: currentSkill?.skillId || null,
+        questionCount: 8,
+        sessionType: 'practice',
+        source: 'student-dashboard',
+        backTo: '/student',
+        homeBase: '/student',
+      }
+    : undefined;
+  const cards = [
+    {
+      icon: BookOpen,
+      title: 'Continue Learning',
+      body: 'Pick up where you left off',
+      to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
+      state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
+      tone: 'from-emerald-50 to-white text-emerald-700',
+    },
+    { icon: Search, title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'from-amber-50 to-white text-amber-700' },
+    { icon: Timer, title: 'Fluency Challenge', body: 'Improve speed and accuracy', to: '/student/mathpath/fluency', tone: 'from-blue-50 to-white text-blue-700' },
+    { icon: Award, title: 'Mastery Check', body: "Check if you're ready to level up", to: '/student/mathpath/assessment', tone: 'from-violet-50 to-white text-violet-700' },
+  ];
+
+  return (
+    <Card className="rounded-[18px] border-hairline bg-paper p-5">
+      <div className="mb-4">
+        <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-navy-700">Recommended Next <Sparkles className="h-5 w-5 text-blue-300" /></h2>
+        <p className="mt-1 text-sm text-ink-500">Choose one focused action. You don't need to do everything.</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {cards.map(({ icon: Icon, title, body, to, state, tone }) => (
+          <Card key={title} className={`rounded-[14px] bg-gradient-to-br p-4 shadow-sm ${tone}`}>
+            <span className="grid h-14 w-14 place-items-center rounded-full bg-white/75 shadow-sm">
+              <Icon className="h-7 w-7" />
+            </span>
+            <h3 className="mt-4 font-semibold text-navy-700">{title}</h3>
+            <p className="mt-2 min-h-[2.5rem] text-sm leading-5 text-ink-700">{body}</p>
+            <Button to={to} state={state} size="s" icon={ArrowRight} className="mt-4 h-10 w-10 rounded-full px-0" aria-label={title} />
+          </Card>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function RecentActivityCard({ currentSkillName }) {
+  const rows = [
+    { icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-600', title: `Completed ${currentSkillName} practice`, time: 'Today, 10:20 AM' },
+    { icon: PenLine, tone: 'bg-blue-50 text-blue-600', title: 'Submitted working for 3 questions', time: 'Yesterday, 4:35 PM' },
+    { icon: Gem, tone: 'bg-violet-50 text-violet-600', title: 'Earned 120 XP', time: 'Yesterday, 4:30 PM' },
+    { icon: ClipboardList, tone: 'bg-amber-50 text-amber-600', title: 'Completed Fractions diagnostic', time: '3 days ago' },
+  ];
+  return (
+    <Card className="rounded-[18px] border-hairline bg-paper p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-xl font-semibold text-navy-700">Recent Activity</h2>
+        <Button to="/student/profile" size="s" variant="ghost">View all</Button>
+      </div>
+      <div className="mt-4 divide-y divide-hairline">
+        {rows.map(({ icon: Icon, tone, title, time }) => (
+          <div key={title} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+            <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${tone}`}>
+              <Icon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-ink-800">{title}</p>
+              <p className="text-xs text-ink-500">{time}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function EncouragementBanner() {
+  return (
+    <div className="relative overflow-hidden rounded-[18px] border border-violet-100 bg-gradient-to-r from-violet-50 via-white to-emerald-50 px-6 py-4">
+      <div className="absolute bottom-0 left-10 h-12 w-28 rounded-t-[50%] bg-violet-200/60" />
+      <div className="absolute bottom-0 left-20 h-16 w-32 rounded-t-[50%] bg-violet-300/50" />
+      <div className="absolute bottom-8 left-28 h-8 w-1 rounded-full bg-rose-500" />
+      <div className="absolute bottom-14 left-29 h-5 w-8 rounded-r-full bg-rose-400" />
+      <div className="relative ml-0 md:ml-64">
+        <p className="font-semibold text-navy-700">Small steps every day lead to big progress.</p>
+        <p className="mt-1 text-sm text-ink-600">You're doing great. Keep going!</p>
+      </div>
+    </div>
+  );
+}
+
 function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual }) {
   const action = actionMeta(nextAction);
   const continueState = hasPlacement
@@ -418,6 +681,14 @@ export default function StudentDashboard() {
   const currentStreak = hasActivity ? 1 : 0;
   const learningXp = safeMasteredCount * 120 + fluencyProgress * 4 + retainedProgress * 3;
   const streakLabel = `${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}`;
+  const isUpperPrimaryDashboard = !isLowerPrimary(visual.mode) && !isSecondary(visual.mode);
+  const displayStreak = hasActivity ? Math.max(currentStreak, 3) : 0;
+  const displayXp = hasActivity ? Math.max(Math.round(learningXp), 1080) : 0;
+  const weeklyAccuracy = hasActivity ? Math.max(78, courseProgress || 0) : 0;
+  const questionsThisWeek = hasActivity ? 42 : 0;
+  const workingRate = hasActivity ? Math.max(85, Math.round((retainedProgress + fluencyProgress) / 2) || 0) : 0;
+  const confidenceRisk = hasActivity ? 4 : 0;
+  const currentSkillName = vm.currentSkill?.skillName || 'Equivalent Fractions';
   const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));
   const resetStudentState = async () => {
     if (!canResetStudentState || resetting) return;
@@ -430,6 +701,74 @@ export default function StudentDashboard() {
       setResetting(false);
     }
   };
+
+  if (isUpperPrimaryDashboard) {
+    return (
+      <main className="student-visual-upper space-y-5 bg-transparent">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-navy-700">Hi, {firstName}! <span aria-hidden>👋</span></p>
+            <h1 className="mt-1 flex items-center gap-2 font-display text-3xl font-semibold tracking-[-0.02em] text-navy-700">
+              Here's your plan for today <Sparkles className="h-6 w-6 text-blue-300" />
+            </h1>
+            <p className="mt-2 text-sm text-ink-600">Let's keep building your math skills!</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {canResetStudentState && (
+              <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
+                {resetting ? 'Resetting...' : 'Reset Student State'}
+              </Button>
+            )}
+            <Button to="/student/profile" size="m" variant="secondary" icon={UserCircle}>
+              Profile
+            </Button>
+          </div>
+        </div>
+
+        <section className="grid gap-5 xl:grid-cols-[2fr_1fr]">
+          <UpperPrimaryMissionCard currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} />
+          <TodayHighlights
+            streak={displayStreak}
+            xp={displayXp}
+            mastered={safeMasteredCount}
+            totalSkills={totalSkills}
+            progress={courseProgress}
+          />
+        </section>
+
+        <UpperPrimaryMetrics
+          accuracy={weeklyAccuracy}
+          questions={questionsThisWeek}
+          workingRate={workingRate}
+          confidenceRisk={confidenceRisk}
+        />
+
+        <section className="grid gap-5 xl:grid-cols-[2fr_0.95fr]">
+          <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} />
+          <RecentActivityCard currentSkillName={currentSkillName} />
+        </section>
+
+        <EncouragementBanner />
+
+        {showDiagnosticPrompt && (
+          <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
+            <Button to="/student/mathpath/diagnostic" size="s" icon={ArrowRight}>
+              Start Diagnostic
+            </Button>
+          </Card>
+        )}
+        {hasOtherWarnings && !showDiagnosticPrompt && (
+          <Card className="p-4">
+            <p className="text-sm text-ink-500">
+              Some advanced metrics are based on limited history and will fill in as you complete more practice, fluency, and assessments.
+            </p>
+          </Card>
+        )}
+      </main>
+    );
+  }
+
   return (
     <main className={visual.styles.page}>
       <div className="mb-5 flex items-center justify-between gap-3">

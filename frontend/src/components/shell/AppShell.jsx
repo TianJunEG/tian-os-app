@@ -5,9 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { NAV } from '../../config/nav';
 import { Spinner } from '../ui';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../student/studentVisualMode';
 
 // The single Tian OS shell every role-dashboard renders inside:
-//   desktop/tablet → left sidebar + topbar
+//   desktop/tablet → top navigation
 //   mobile         → topbar + floating bottom nav
 // Nav items come from one role-keyed config; the topbar holds the workspace
 // switcher (data scope) and, for multi-role users, a role switcher (features).
@@ -71,74 +72,49 @@ const navItemClass = ({ isActive }) =>
 
 export default function AppShell({ children }) {
   const { loading, role } = useWorkspace();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const set = NAV[role] || NAV.student;
   const activityShell = /^\/student\/mathpath\/(?:diagnostic\/session|practice\/|assessment\/session|fractions\/similar-practice)/.test(location.pathname);
+  const isStudentShell = role === 'student' || location.pathname.startsWith('/student');
+  const visualMode = resolveStudentVisualMode(user || {});
+  const visualStyles = getVisualModeStyles(visualMode);
+  const shellBg = isStudentShell ? visualStyles.shell : 'bg-ivory';
+  const headerClass = isStudentShell ? visualStyles.header : 'border-hairline bg-paper/90';
+  const activeNavClass = isStudentShell ? visualStyles.navActive : 'bg-navy-50 text-navy-700';
+  const idleNavClass = isStudentShell ? visualStyles.navIdle : 'text-ink-500 hover:bg-navy-50 hover:text-navy-700';
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
   if (loading) return <div className="min-h-screen bg-ivory"><Spinner /></div>;
 
   return (
-    <div className="min-h-screen bg-ivory font-ui text-ink-700">
-      {/* Sidebar — desktop/tablet */}
-      <aside className={`fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-hairline bg-paper px-4 py-5 md:flex ${activityShell ? 'md:hidden' : ''}`}>
-        <div className="px-2"><Wordmark /></div>
-        <nav className="mt-8 flex flex-1 flex-col gap-4">
-          {set.sidebar.map((entry) => (
-            entry.items ? (
-              <div key={entry.label} className="space-y-3">
-                <p className="px-3 text-[11px] uppercase tracking-[0.18em] text-ink-300">{entry.label}</p>
-                <div className="space-y-1">
-                  {entry.items.map((item) => (
-                    <NavLink key={item.to} to={item.to} end={item.end !== false} className={navItemClass}>
-                      <item.icon className="h-[18px] w-[18px]" />{item.label}
-                    </NavLink>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <NavLink key={entry.to} to={entry.to} end={entry.end !== false} className={navItemClass}>
-                <entry.icon className="h-[18px] w-[18px]" />{entry.label}
-              </NavLink>
-            )
-          ))}
-        </nav>
-        <button onClick={handleLogout} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-ink-500 hover:bg-navy-50">
-          <LogOut className="h-[18px] w-[18px]" />Sign out
-        </button>
-      </aside>
-
+    <div className={`min-h-screen font-ui text-ink-700 ${shellBg}`}>
       {/* Main column */}
-      <div className={activityShell ? '' : 'md:pl-60'}>
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-hairline bg-paper/90 px-4 backdrop-blur sm:px-6">
-          <div className={activityShell ? '' : 'md:hidden'}><Wordmark /></div>
-          {activityShell && (
-            <nav className="hidden items-center gap-1 md:flex">
-              {set.sidebar.slice(0, 5).map((entry) => (
-                entry.items ? null : (
-                  <NavLink
-                    key={entry.to}
-                    to={entry.to}
-                    end={entry.end !== false}
-                    className={({ isActive }) => `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${isActive ? 'bg-navy-50 text-navy-700' : 'text-ink-500 hover:bg-navy-50 hover:text-navy-700'}`}
-                  >
-                    <entry.icon className="h-[17px] w-[17px]" />{entry.label}
-                  </NavLink>
-                )
-              ))}
-            </nav>
-          )}
+      <div>
+        <header className={`sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b px-4 backdrop-blur sm:px-6 ${headerClass}`}>
+          <div><Wordmark /></div>
+          <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto md:flex">
+            {set.sidebar.map((entry) => (
+              entry.items ? null : (
+                <NavLink
+                  key={entry.to}
+                  to={entry.to}
+                  end={entry.end !== false}
+                  className={({ isActive }) => `flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${isActive ? activeNavClass : idleNavClass}`}
+                >
+                  <entry.icon className="h-[17px] w-[17px]" />{entry.label}
+                </NavLink>
+              )
+            ))}
+          </nav>
           <div className="ml-auto flex items-center gap-2">
             <RoleSwitcher />
             <WorkspaceSwitcher />
-            {activityShell && (
-              <button onClick={handleLogout} className="hidden items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-ink-500 hover:bg-navy-50 md:flex">
-                <LogOut className="h-[17px] w-[17px]" />Sign out
-              </button>
-            )}
+            <button onClick={handleLogout} className="hidden items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-ink-500 hover:bg-navy-50 md:flex">
+              <LogOut className="h-[17px] w-[17px]" />Sign out
+            </button>
           </div>
         </header>
 
@@ -146,11 +122,11 @@ export default function AppShell({ children }) {
       </div>
 
       {/* Bottom nav — mobile */}
-      <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-3xl border border-hairline bg-paper/90 px-2 shadow-active backdrop-blur md:hidden"
+      <nav className={`fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-3xl border px-2 shadow-active backdrop-blur md:hidden ${isStudentShell ? 'border-white/80 bg-white/90' : 'border-hairline bg-paper/90'}`}
         style={{ height: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {set.bottom.map((item) => (
           <NavLink key={item.to} to={item.to} end={item.end !== false}
-            className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 transition ${isActive ? 'bg-navy-50 text-navy-700' : 'text-ink-300'}`}>
+            className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 transition ${isActive ? activeNavClass : 'text-ink-300'}`}>
             <item.icon className="h-5 w-5" />
             <span className="text-[10px] font-semibold">{item.label}</span>
           </NavLink>

@@ -6,6 +6,8 @@ import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import { mathpathAPI } from '../../../../services/api';
+import { useAuth } from '../../../../context/AuthContext';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../student/studentVisualMode';
 import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
 import QuestionDiagram from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
@@ -30,6 +32,8 @@ export default function DiagnosticQuestionScreen() {
   const { diagnosticSessionId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [idx, setIdx] = useState(0);
   const [answer, setAnswer] = useState('');
   const [reflection, setReflection] = useState('');
@@ -134,6 +138,7 @@ export default function DiagnosticQuestionScreen() {
       possibleMisconception: !correctness.correct && reflection === 'i_know_this',
       workingImage: currentWorking.workingImage || '',
       workingStrokes: currentWorking.workingStrokes || [],
+      workingMathObjects: currentWorking.workingMathObjects || [],
       workingSubmitted: Boolean(currentWorking.workingSubmitted),
       workingSubmittedAt: currentWorking.workingSubmittedAt || null,
       workingNotNeeded: Boolean(currentWorking.workingNotNeeded),
@@ -168,6 +173,7 @@ export default function DiagnosticQuestionScreen() {
         workingRequirementLevel,
         workingUploaded: Boolean(currentWorking.workingSubmitted),
         fullscreenWorkingSubmitted: Boolean(currentWorking.fullscreenWorkingSubmitted),
+        fullscreenWorkingMathObjects: currentWorking.workingMathObjects || [],
         attempts: 1,
       });
       setSupportiveCopy(data.supportiveCopy || '');
@@ -196,19 +202,19 @@ export default function DiagnosticQuestionScreen() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className={`mx-auto max-w-7xl ${visualStyles.page}`}>
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono">Question {idx + 1}{adaptiveProgress?.estimatedQuestionCount ? ` of about ${adaptiveProgress.estimatedQuestionCount}` : ''}</span>
         <span className="font-mono">{elapsed}s</span>
       </div>
-      <ProgressBar value={adaptiveProgress?.answeredCount || idx} max={adaptiveProgress?.estimatedQuestionCount || Math.max(questions.length, 1)} className="mb-6" />
+      <ProgressBar value={adaptiveProgress?.answeredCount || idx} max={adaptiveProgress?.estimatedQuestionCount || Math.max(questions.length, 1)} className="mb-6" barClassName={visualStyles.progress} />
       {supportiveCopy && (
         <div className="mb-4 rounded-xl border border-navy-100 bg-navy-50 px-4 py-3 text-sm font-semibold text-navy-800">
           {supportiveCopy}
         </div>
       )}
 
-      <Card className="p-4 sm:p-6">
+      <Card className={`p-4 sm:p-6 ${visualStyles.accentCard}`}>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(28rem,1.1fr)]">
           <section className="min-w-0">
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
@@ -293,6 +299,7 @@ export default function DiagnosticQuestionScreen() {
                     workingSubmittedAt: null,
                     workingImage: '',
                     workingStrokes: [],
+                    workingMathObjects: [],
                     workingNotNeeded: checked,
                     workingNotNeededAt: checked ? new Date().toISOString() : null,
                   },
@@ -333,6 +340,7 @@ export default function DiagnosticQuestionScreen() {
           visualType: q.visual?.type || '',
         }}
         initialStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
+        initialMathObjects={currentWorking.workingMathObjects || []}
         onClose={() => setFullscreenQuestionId(null)}
         onSave={(payload) => {
           setWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }));

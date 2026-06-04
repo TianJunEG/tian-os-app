@@ -13,6 +13,7 @@ import {
 } from '../../../mathpath/curriculum';
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../student/studentVisualMode';
 import {
   buildMathPathDomainProgressState,
   getMathPathDomainProgressState,
@@ -24,6 +25,8 @@ import {
 export default function MathPathHome() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const visualMode = resolveStudentVisualMode(user || {});
+  const visualStyles = getVisualModeStyles(visualMode);
   const studentId = user?._id || user?.id || user?.email || 'demo-student';
   const [mastery, setMastery] = useState(null);
   const [topics, setTopics] = useState([]);
@@ -353,14 +356,15 @@ export default function MathPathHome() {
 
   return (
     <>
-      <div className="mb-5">
-        <p className="text-sm font-semibold text-ink-500">{welcomeTitle}</p>
+      <div className={`${visualStyles.page} space-y-6`}>
+      <div>
+        <p className="text-sm font-semibold text-violet-700">{welcomeTitle}</p>
         <h1 className="font-display text-3xl font-semibold text-ink-900">Learning Paths</h1>
       </div>
 
-      <Card className="mb-6 p-4 sm:p-5">
+      <Card className={`p-4 sm:p-5 ${visualStyles.heroCard}`}>
         <div className="grid gap-5 md:grid-cols-[20rem_1fr] md:items-center">
-          <div className="relative h-44 overflow-hidden rounded-lg bg-gradient-to-br from-sky-100 via-navy-50 to-gold-100 text-navy-700">
+          <div className={`relative h-44 overflow-hidden rounded-2xl ${visualStyles.heroPanel}`}>
             <div className="absolute -right-8 -top-10 h-36 w-36 rounded-full bg-white/45" />
             <div className="absolute -bottom-12 left-10 h-36 w-36 rounded-full bg-white/35" />
             <span className="absolute left-6 top-6 grid h-16 w-16 place-items-center rounded-2xl bg-paper/85 shadow-resting">
@@ -369,7 +373,7 @@ export default function MathPathHome() {
             <span className="absolute bottom-4 right-6 font-mono text-7xl font-semibold opacity-25">=</span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase text-navy-700">Math Mastery</p>
+            <p className="text-sm font-semibold uppercase text-violet-700">Math Mastery</p>
             <h2 className="mt-1 font-display text-4xl font-semibold text-ink-900">Fractions</h2>
             <p className="mt-2 text-sm text-ink-500">
               {recommended
@@ -378,7 +382,7 @@ export default function MathPathHome() {
                   ? 'Continue from your saved diagnostic placement.'
                   : 'A short check-in finds your best starting point.'}
             </p>
-            <Button className="mt-5 w-full sm:w-auto" size="l" icon={ArrowRight} disabled={!hasPlacement && startingDiagnostic} onClick={() => {
+            <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={!hasPlacement && startingDiagnostic} onClick={() => {
               if (!hasPlacement) return startDiagnostic('baseline');
               if (showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
               return startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 });
@@ -388,27 +392,27 @@ export default function MathPathHome() {
           </div>
         </div>
         <div className="mt-5">
-          <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} />
+          <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} barClassName={visualStyles.progress} />
           <div className="mt-2 flex items-center justify-between text-sm font-semibold text-ink-500">
             <span>{courseMasteredCount}/{totalFractionsSkills} skills mastered</span>
-            <span className="text-navy-700">{courseProgressPct}%</span>
+            <span className="text-violet-700">{courseProgressPct}%</span>
           </div>
         </div>
       </Card>
 
-      <section className="mb-6">
+      <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-2xl font-semibold text-ink-900">Explore Learning Modes</h2>
           <Button to="/student/mathpath/path" variant="secondary" size="s">View All</Button>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="flex h-full flex-col p-4">
-            <GraduationCap className="h-7 w-7 text-navy-700" />
+          <Card className={`flex h-full flex-col p-4 ${visualStyles.accentCard}`}>
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-50 text-violet-700"><GraduationCap className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Continue Learning</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Follow your recommended pathway.</p>
             <Button
-              variant="secondary"
-              className="mt-4 w-full"
+              variant="primary"
+              className={`mt-4 w-full ${visualStyles.primaryCta}`}
               disabled={!hasPlacement && startingDiagnostic}
               onClick={() => {
                 if (!hasPlacement) return startDiagnostic('baseline');
@@ -418,8 +422,8 @@ export default function MathPathHome() {
               Continue
             </Button>
           </Card>
-          <Card className="flex h-full flex-col p-4">
-            <Compass className="h-7 w-7 text-success-700" />
+          <Card className="flex h-full flex-col border-mint-100 bg-gradient-to-br from-mint-50 via-white to-sky-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-mint-100 text-success-700"><Compass className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Explore Skills</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Browse readiness across fractions.</p>
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -432,10 +436,10 @@ export default function MathPathHome() {
                 </Badge>
               )) : <Badge tone="neutral">Ready</Badge>}
             </div>
-            <Button to="/student/mathpath/path" variant="secondary" className="mt-4 w-full">Explore</Button>
+            <Button to="/student/mathpath/path" variant="secondary" className="mt-4 w-full border-mint-200 bg-white/80 text-success-700 hover:bg-mint-50">Explore</Button>
           </Card>
-          <Card className="flex h-full flex-col p-4">
-            <ClipboardCheck className="h-7 w-7 text-gold-700" />
+          <Card className="flex h-full flex-col border-gold-100 bg-gradient-to-br from-gold-50 via-white to-yellow-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gold-100 text-gold-700"><ClipboardCheck className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Test Mode</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Quick checks and topic tests.</p>
             <Button
@@ -448,8 +452,8 @@ export default function MathPathHome() {
               Open Test Mode
             </Button>
           </Card>
-          <Card className="flex h-full flex-col p-4">
-            <PencilLine className="h-7 w-7 text-navy-700" />
+          <Card className="flex h-full flex-col border-sky-100 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-100 text-navy-700"><PencilLine className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Model Drawing</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Learn bar models for fraction word problems.</p>
             <Button to="/student/mathpath/fractions/model-trainer" variant="secondary" className="mt-4 w-full">
@@ -457,8 +461,8 @@ export default function MathPathHome() {
             </Button>
           </Card>
           {canTrainQuestionPatterns && (
-            <Card className="flex h-full flex-col p-4">
-              <Wand2 className="h-7 w-7 text-gold-700" />
+            <Card className="flex h-full flex-col border-violet-100 bg-gradient-to-br from-violet-50 via-white to-gold-50 p-4">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Wand2 className="h-6 w-6" /></span>
               <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Similar Questions</h3>
               <p className="mt-1 flex-1 text-sm text-ink-500">Generate reusable practice sets from sample questions.</p>
               <Button to="/student/mathpath/fractions/model-trainer#similar-question-generator" variant="secondary" className="mt-4 w-full">
@@ -477,7 +481,7 @@ export default function MathPathHome() {
       )}
 
       {/* Recommended next action */}
-      <Card className="mb-6 p-5">
+      <Card className={`p-5 ${visualStyles.accentCard}`}>
         <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended next</div>
         {!hasPlacement ? (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -485,7 +489,7 @@ export default function MathPathHome() {
               <h2 className="font-display text-xl font-semibold text-navy-700">Fractions Check-In</h2>
               <p className="mt-1 text-sm text-ink-600">A short low-pressure check-in (8–12 questions) helps us find your best starting point.</p>
             </div>
-            <Button size="l" icon={ArrowRight} disabled={startingDiagnostic} onClick={() => startDiagnostic('baseline')} className="shrink-0">
+            <Button size="l" icon={ArrowRight} disabled={startingDiagnostic} onClick={() => startDiagnostic('baseline')} className={`shrink-0 ${visualStyles.primaryCta}`}>
               {startingDiagnostic ? 'Starting…' : 'Start Fractions Check-In'}
             </Button>
           </div>
@@ -495,7 +499,7 @@ export default function MathPathHome() {
               <h2 className="font-display text-xl font-semibold text-navy-700">Fractions Mastery Check</h2>
               <p className="mt-1 text-sm text-ink-600">You’ve completed this unit’s pathway. Let’s confirm readiness and spot any final gaps.</p>
             </div>
-            <Button size="l" icon={ArrowRight} onClick={() => navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } })} className="shrink-0">
+            <Button size="l" icon={ArrowRight} onClick={() => navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } })} className={`shrink-0 ${visualStyles.primaryCta}`}>
               Start Mastery Check
             </Button>
           </div>
@@ -506,7 +510,7 @@ export default function MathPathHome() {
               <p className="mt-1 text-sm text-ink-500">{recommended.topicName} · <StatusBadge status={recommended.masteryState || recommended.status} /></p>
               {recommended.reason && <p className="mt-1 text-sm text-ink-600">{recommended.reason}</p>}
             </div>
-            <Button size="l" icon={ArrowRight} disabled={starting} onClick={() => startLearningSession({ skillId: recommended.skillId, sessionType: 'practice', questionCount: 10 })} className="shrink-0">
+            <Button size="l" icon={ArrowRight} disabled={starting} onClick={() => startLearningSession({ skillId: recommended.skillId, sessionType: 'practice', questionCount: 10 })} className={`shrink-0 ${visualStyles.primaryCta}`}>
               {starting ? 'Starting…' : 'Continue Learning'}
             </Button>
           </div>
@@ -516,7 +520,7 @@ export default function MathPathHome() {
               <h2 className="font-display text-xl font-semibold text-navy-700">Up next: {canonicalSkillName(placementSkill?.skillId, placementSkill?.name) || 'Recommended Fractions Skill'}</h2>
               <p className="mt-1 text-sm text-ink-600">Start recommended practice from your saved diagnostic placement.</p>
             </div>
-            <Button size="l" icon={ArrowRight} disabled={starting || !practiceFallbackSkillId} onClick={() => startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 })} className="shrink-0">
+            <Button size="l" icon={ArrowRight} disabled={starting || !practiceFallbackSkillId} onClick={() => startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 })} className={`shrink-0 ${visualStyles.primaryCta}`}>
               {starting ? 'Starting…' : 'Continue Learning'}
             </Button>
           </div>
@@ -573,13 +577,13 @@ export default function MathPathHome() {
       </Card>
 
       {/* Standing */}
-      <Card className="mb-6 p-5">
+      <Card className={`p-5 ${visualStyles.accentCard}`}>
         <div className="mb-4 flex items-center gap-6">
           <StatTile label="Mastered" value={mastered.length} />
           <StatTile label="Learning" value={learning.length} />
           <StatTile label="To review" value={weak.filter((w) => w.status === 'needs_review').length} />
         </div>
-        <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} />
+        <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} barClassName={visualStyles.progress} />
       </Card>
 
       {/* Weak topics alert */}
@@ -752,6 +756,7 @@ export default function MathPathHome() {
           </div>
         </>
       )}
+      </div>
     </>
   );
 }

@@ -4,6 +4,7 @@ import { ArrowRight, Check, Maximize2, X } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../student/studentVisualMode';
 import { MathText } from '../../../components/ui/Fraction';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 import {
@@ -438,6 +439,7 @@ export default function PracticeSession() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const isMathPathRoute = location.pathname.startsWith('/student/mathpath/practice/');
   const hasLegacyItems = Boolean(location.state?.items?.length);
   const progressState = getMathPathDomainProgressState(user?._id || user?.id || user?.email || 'demo-student', 'fractions') || {};
@@ -801,8 +803,8 @@ export default function PracticeSession() {
         : summary.fluencySummary?.fluentCount > 0 ? 'Fluent'
           : 'Review needed';
     return (
-      <div className="mx-auto max-w-xl">
-        <Card className="p-6">
+      <div className={`mx-auto max-w-xl ${visualStyles.page}`}>
+        <Card className={`p-6 ${visualStyles.accentCard}`}>
           <h2 className="text-xl font-semibold text-ink-900">{sessionMeta.label} Complete</h2>
           <div className="mt-4 space-y-2 text-sm text-ink-700">
             <p><span className="font-semibold">Accuracy:</span> {summary.accuracySummary?.accuracyPercentage ?? 0}%</p>
@@ -855,8 +857,8 @@ export default function PracticeSession() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <div className="mb-3 rounded-xl border border-hairline bg-white px-3 py-2 text-sm text-ink-700">
+    <div className={`mx-auto max-w-7xl ${visualStyles.page}`}>
+      <div className="mb-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 text-sm text-ink-700 shadow-resting">
         <p className="font-semibold">{sessionMeta.label}</p>
         <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
       </div>
@@ -864,9 +866,9 @@ export default function PracticeSession() {
         <span className="font-mono tabular-nums">Question {idx + 1} of {questions.length}</span>
         <span className="font-mono">{elapsedSec}s</span>
       </div>
-      <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" />
+      <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" barClassName={visualStyles.progress} />
 
-      <Card className="p-4 sm:p-6">
+      <Card className={`p-4 sm:p-6 ${visualStyles.accentCard}`}>
         <div className="grid gap-6 xl:grid-cols-[minmax(24rem,1fr)_minmax(28rem,0.95fr)]">
           <section className="min-w-0">
             <div ref={questionSurfaceRef} className="relative">
@@ -891,7 +893,7 @@ export default function PracticeSession() {
 
           </section>
 
-          <aside className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+          <aside className="min-w-0 rounded-2xl bg-violet-50/60 p-3 sm:p-4">
             <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowRight, BookOpenCheck, CheckCircle2, Clock3, Lock, RotateCcw, Sparkles } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, Spinner } from '../../components/ui';
+import { useAuth } from '../../context/AuthContext';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../student/studentVisualMode';
 
 function statusLabel(skill = {}) {
   if (skill.locked) return 'Locked';
@@ -90,7 +92,7 @@ function SummaryCard({ icon: Icon, label, value, helper, tone = 'navy' }) {
   }[tone] || 'bg-navy-50 text-navy-700';
 
   return (
-    <Card className="p-4">
+    <Card className="border-white/80 bg-white/90 p-4">
       <div className="flex items-center gap-3">
         <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${toneClass}`}>
           <Icon className="h-5 w-5" />
@@ -108,7 +110,7 @@ function SummaryCard({ icon: Icon, label, value, helper, tone = 'navy' }) {
 function NextStepHero({ skill, onStart, starting }) {
   if (!skill) {
     return (
-      <Card className="p-5">
+      <Card className="border-violet-100 bg-gradient-to-br from-violet-50 via-white to-mint-50 p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Badge tone="success">All caught up</Badge>
@@ -123,9 +125,9 @@ function NextStepHero({ skill, onStart, starting }) {
 
   const action = recommendedAction(skill);
   return (
-    <Card className="overflow-hidden p-0">
+    <Card className="overflow-hidden border-violet-100 bg-white/90 p-0">
       <div className="grid gap-0 lg:grid-cols-[14rem_1fr]">
-        <div className="relative min-h-[9rem] overflow-hidden bg-gradient-to-br from-navy-50 via-paper to-gold-100 text-navy-700">
+        <div className="relative min-h-[9rem] overflow-hidden bg-gradient-to-br from-violet-200 via-sky-100 to-mint-100 text-violet-800">
           <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/45" />
           <div className="absolute bottom-4 left-5 grid h-14 w-14 place-items-center rounded-2xl bg-paper/80 shadow-resting">
             <Sparkles className="h-7 w-7" />
@@ -152,7 +154,7 @@ function SkillRow({ skill, onStart, starting }) {
   const action = recommendedAction(skill);
 
   return (
-    <Card className={`p-4 ${skill.locked ? 'bg-paper/80 opacity-80' : ''}`}>
+    <Card className={`border-white/80 bg-white/90 p-4 ${skill.locked ? 'opacity-80' : ''}`}>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -215,7 +217,7 @@ function SkillSection({ title, question, skills, emptyText, icon: Icon, tone, on
           ))}
         </div>
       ) : (
-        <Card className="p-4 text-sm text-ink-500">{emptyText}</Card>
+        <Card className="border-white/80 bg-white/90 p-4 text-sm text-ink-500">{emptyText}</Card>
       )}
     </section>
   );
@@ -223,6 +225,8 @@ function SkillSection({ title, question, skills, emptyText, icon: Icon, tone, on
 
 export default function SkillGraph() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -267,7 +271,7 @@ export default function SkillGraph() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className={`mx-auto max-w-6xl space-y-6 ${visualStyles.page}`}>
       <PageHeader title="Progress" subtitle="Mastery visibility for MathPath skills." />
 
       <NextStepHero skill={nextSkill} onStart={startPractice} starting={starting} />
