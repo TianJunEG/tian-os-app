@@ -116,6 +116,28 @@ describe('FullScreenWorkingMode', () => {
     expect(payload.workingMathObjects[0].x).toBeCloseTo(840);
   });
 
+  it('inserts one-tap constants as movable objects and enables save', () => {
+    const onSave = vi.fn();
+    render(
+      <FullScreenWorkingMode
+        open
+        questionText="Use pi."
+        onClose={vi.fn()}
+        onSave={onSave}
+      />
+    );
+
+    fireEvent.click(screen.getByTitle('Insert π'));
+
+    expect(screen.getByTestId('math-object-pi')).toHaveClass('outline');
+    expect(screen.getByText('Save Working')).not.toBeDisabled();
+    fireEvent.click(screen.getByText('Save Working'));
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      workingMathObjects: [expect.objectContaining({ type: 'pi' })],
+    }));
+  });
+
   it('restores saved math objects so they can be reselected and deleted', () => {
     const onSave = vi.fn();
     render(
