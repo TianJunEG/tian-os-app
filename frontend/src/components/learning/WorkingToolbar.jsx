@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eraser, Highlighter, Move, PenLine, Pencil, RotateCcw, RotateCw, Trash2, ZoomIn, ZoomOut } from 'lucide-react';
+import { Eraser, Highlighter, Minus, Move, PaintBucket, PenLine, Pencil, RotateCcw, RotateCw, Square, Trash2, Type, ZoomIn, ZoomOut } from 'lucide-react';
 
 export const WORKING_COLOURS = [
   { label: 'Black', value: '#111827' },
@@ -19,6 +19,10 @@ export const BRUSH_SIZES = [
 export const WORKING_TOOLS = [
   { id: 'pen', label: 'Pen', icon: PenLine },
   { id: 'pencil', label: 'Pencil', icon: Pencil },
+  { id: 'line', label: 'Line', icon: Minus },
+  { id: 'rectangle', label: 'Rectangle', icon: Square },
+  { id: 'shade', label: 'Shade', icon: PaintBucket },
+  { id: 'text', label: 'Text', icon: Type },
   { id: 'highlighter', label: 'Highlighter', icon: Highlighter },
   { id: 'eraser', label: 'Eraser', icon: Eraser },
 ];

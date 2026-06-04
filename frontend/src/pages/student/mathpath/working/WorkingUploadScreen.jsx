@@ -34,12 +34,23 @@ export default function WorkingUploadScreen() {
   const [noWorkingChecked, setNoWorkingChecked] = useState({});
   const [warning, setWarning] = useState('');
 
-  const canContinue = files.length > 0 || Object.values(noWorkingChecked).some(Boolean);
+  const completedQuestionRefs = questionRefs.filter((q) => q.workingSubmitted || q.workingUploaded || q.fullscreenWorkingSubmitted || q.workingNotNeeded || noWorkingChecked[q.questionId]).length;
+  const missingWorkingCount = useMemo(() => {
+    if (!questionRefs.length) return 0;
+    return questionRefs.filter((q) => (
+      q.workingRequired &&
+      !q.workingSubmitted &&
+      !q.workingUploaded &&
+      !q.fullscreenWorkingSubmitted &&
+      !q.workingNotNeeded &&
+      !noWorkingChecked[q.questionId]
+    )).length;
+  }, [noWorkingChecked, questionRefs]);
+  const canContinue = files.length > 0 || (completedQuestionRefs > 0 && missingWorkingCount === 0);
   const missingWarning = useMemo(() => {
-    if (!questionRefs.length) return '';
-    const covered = files.length + Object.values(noWorkingChecked).filter(Boolean).length;
-    return covered < requiringWorkingCount ? 'Some questions may be missing working.' : '';
-  }, [files.length, noWorkingChecked, questionRefs.length, requiringWorkingCount]);
+    if (!questionRefs.length || files.length > 0) return '';
+    return missingWorkingCount > 0 ? 'Some questions may be missing working.' : '';
+  }, [files.length, missingWorkingCount, questionRefs.length]);
 
   const onFilesAdded = (incoming) => {
     const additions = incoming.map(createFileItem);
@@ -120,6 +131,7 @@ export default function WorkingUploadScreen() {
         <WorkingSubmissionSummary
           questionRefs={questionRefs}
           noWorkingChecked={noWorkingChecked}
+          pagesUploaded={files.length}
           onToggleNoWorking={onToggleNoWorking}
           missingWarning={missingWarning}
         />

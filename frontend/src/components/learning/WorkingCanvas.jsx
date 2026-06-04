@@ -19,6 +19,52 @@ const MATH_STAMPS = [
   { id: 'theta', label: 'θ' },
 ];
 
+const MATH_BUILDERS = {
+  fraction: {
+    fields: [
+      { key: 'numerator', placeholder: 'x', className: 'mx-auto w-20' },
+      { key: 'denominator', placeholder: 'y', className: 'mx-auto w-20' },
+    ],
+  },
+  subscript: {
+    fields: [
+      { key: 'base', placeholder: 'x', className: 'w-20' },
+      { key: 'subscript', placeholder: 'a', className: 'w-16 text-base' },
+    ],
+  },
+  power: {
+    fields: [
+      { key: 'base', placeholder: 'x', className: 'w-20' },
+      { key: 'exponent', placeholder: 'b', className: 'w-16 text-base' },
+    ],
+  },
+  subscriptPower: {
+    fields: [
+      { key: 'base', placeholder: 'x', className: 'w-20' },
+      { key: 'exponent', placeholder: 'b', className: 'w-16 text-base' },
+      { key: 'subscript', placeholder: 'a', className: 'w-16 text-base' },
+    ],
+  },
+  mixed: {
+    fields: [
+      { key: 'base', placeholder: 'x', className: 'w-20' },
+      { key: 'numerator', placeholder: 'b', className: 'w-16 text-base' },
+      { key: 'denominator', placeholder: 'a', className: 'w-16 text-base' },
+    ],
+  },
+  root: {
+    fields: [
+      { key: 'index', placeholder: 'n', className: 'w-16 text-base' },
+      { key: 'radicand', placeholder: 'x', className: 'w-20' },
+    ],
+  },
+  degree: {
+    fields: [
+      { key: 'base', placeholder: 'x', className: 'w-20' },
+    ],
+  },
+};
+
 export function resolveWorkingRequirement(question = {}, sessionType = 'practice') {
   const explicitRequired = question.requiresWorking ?? question.workingRequired;
   const explicitAllowNoWorking = question.allowNoWorking ?? question.workingOptional;
@@ -94,40 +140,54 @@ function drawMathStamp(ctx, stroke) {
   const x = point.x;
   const y = point.y;
   if (stroke.template === 'fraction') {
-    ctx.fillText('x', x + 16, y - 14);
+    const numerator = String(stroke.numerator || 'x');
+    const denominator = String(stroke.denominator || 'y');
+    const width = Math.max(48, ctx.measureText(numerator).width, ctx.measureText(denominator).width) + 18;
+    const center = x + (width / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText(numerator, center, y - 14);
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x + 58, y);
+    ctx.lineTo(x + width, y);
     ctx.stroke();
-    ctx.fillText('y', x + 16, y + 36);
+    ctx.fillText(denominator, center, y + 36);
+    ctx.textAlign = 'start';
   } else if (stroke.template === 'subscript') {
-    ctx.fillText('x', x, y);
+    ctx.fillText(String(stroke.base || 'x'), x, y);
     ctx.font = '20px Georgia, serif';
-    ctx.fillText('a', x + 25, y + 10);
+    ctx.fillText(String(stroke.subscript || 'a'), x + 25, y + 10);
   } else if (stroke.template === 'power') {
-    ctx.fillText('x', x, y + 10);
+    ctx.fillText(String(stroke.base || 'x'), x, y + 10);
     ctx.font = '20px Georgia, serif';
-    ctx.fillText('b', x + 25, y - 10);
+    ctx.fillText(String(stroke.exponent || 'b'), x + 25, y - 10);
   } else if (stroke.template === 'subscriptPower') {
-    ctx.fillText('x', x, y + 8);
+    ctx.fillText(String(stroke.base || 'x'), x, y + 8);
     ctx.font = '18px Georgia, serif';
-    ctx.fillText('b', x + 25, y - 14);
-    ctx.fillText('a', x + 25, y + 20);
+    ctx.fillText(String(stroke.exponent || 'b'), x + 25, y - 14);
+    ctx.fillText(String(stroke.subscript || 'a'), x + 25, y + 20);
   } else if (stroke.template === 'mixed') {
-    ctx.fillText('x', x, y + 10);
+    ctx.fillText(String(stroke.base || 'x'), x, y + 10);
     ctx.font = '24px Georgia, serif';
-    ctx.fillText('b', x + 34, y - 12);
+    ctx.fillText(String(stroke.numerator || 'b'), x + 34, y - 12);
     ctx.beginPath();
     ctx.moveTo(x + 28, y);
     ctx.lineTo(x + 74, y);
     ctx.stroke();
-    ctx.fillText('a', x + 42, y + 30);
+    ctx.fillText(String(stroke.denominator || 'a'), x + 42, y + 30);
   } else if (stroke.template === 'root') {
-    ctx.fillText('√x', x + 14, y + 8);
+    const radicand = String(stroke.radicand || 'x');
+    ctx.font = '42px Georgia, serif';
+    ctx.fillText('√', x + 16, y + 14);
+    ctx.beginPath();
+    ctx.moveTo(x + 58, y - 22);
+    ctx.lineTo(x + 58 + Math.max(48, ctx.measureText(radicand).width + 16), y - 22);
+    ctx.stroke();
+    ctx.font = '30px Georgia, serif';
+    ctx.fillText(radicand, x + 66, y + 8);
     ctx.font = '16px Georgia, serif';
-    ctx.fillText('n', x, y - 6);
+    ctx.fillText(String(stroke.index || 'n'), x, y - 6);
   } else if (stroke.template === 'degree') {
-    ctx.fillText('x', x, y + 10);
+    ctx.fillText(String(stroke.base || 'x'), x, y + 10);
     ctx.font = '20px Georgia, serif';
     ctx.fillText('°', x + 25, y - 8);
   } else if (stroke.template === 'angle') {
@@ -171,6 +231,19 @@ function exportCanvas(canvas, background) {
   return output.toDataURL('image/png');
 }
 
+function MathDraftInput({ value, placeholder, onChange, onEnter, compact = false, autoFocus = false }) {
+  return (
+    <input
+      autoFocus={autoFocus}
+      value={value || ''}
+      onChange={(event) => onChange?.(event.target.value)}
+      onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
+      className={`${compact ? 'h-14 w-16 text-2xl' : 'h-16 w-24 text-3xl'} rounded-xl border-2 border-transparent bg-slate-100 px-3 text-center font-serif italic text-ink-700 placeholder:text-ink-300 focus:border-orange-500 focus:bg-slate-50 focus:outline-none`}
+      placeholder={placeholder}
+    />
+  );
+}
+
 export default function WorkingCanvas({
   questionId = '',
   workingCode = '',
@@ -203,6 +276,7 @@ export default function WorkingCanvas({
   const [submitted, setSubmitted] = useState(initialSubmitted ?? Boolean(submittedImage || submittedStrokes?.length));
   const [notNeeded, setNotNeeded] = useState(Boolean(initialWorkingNotNeeded));
   const [attachedImage, setAttachedImage] = useState(submittedImage || '');
+  const [mathDraft, setMathDraft] = useState(null);
 
   const status = useMemo(() => {
     if (readOnly) return 'Review';
@@ -242,6 +316,7 @@ export default function WorkingCanvas({
     setSubmitted(nextSubmitted);
     setNotNeeded(nextNotNeeded);
     setAttachedImage(submittedImage || '');
+    setMathDraft(null);
     setZoom(1);
     scrollRef.current?.scrollTo?.({ left: 0, top: 0 });
     redraw(nextStrokes, submittedImage);
@@ -373,13 +448,14 @@ export default function WorkingCanvas({
     emitChange(payload);
   };
 
-  const insertMathStamp = (template) => {
+  const insertMathStamp = (template, values = {}) => {
     const stampCount = strokes.filter((stroke) => stroke.tool === 'stamp').length;
     const nextStroke = {
       tool: 'stamp',
       template,
       colour: '#f97316',
       size: 4,
+      ...values,
       points: [{
         x: 36 + ((stampCount % 7) * 96),
         y: 72 + (Math.floor(stampCount / 7) * 76),
@@ -390,8 +466,30 @@ export default function WorkingCanvas({
     setRedoStack([]);
     setSubmitted(false);
     setNotNeeded(false);
+    setMathDraft(null);
     emitChange({ workingSubmitted: false, workingNotNeeded: false, workingStrokes: nextStrokes });
   };
+
+  const handleMathTool = (template) => {
+    const builder = MATH_BUILDERS[template];
+    if (builder) {
+      const nextValues = builder.fields.reduce((acc, field) => ({ ...acc, [field.key]: '' }), {});
+      setMathDraft((current) => current?.template === template ? null : { template, ...nextValues });
+      return;
+    }
+    insertMathStamp(template);
+  };
+
+  const insertDraftMath = () => {
+    const template = mathDraft?.template;
+    const builder = MATH_BUILDERS[template];
+    if (!template || !builder) return;
+    const values = builder.fields.reduce((acc, field) => ({ ...acc, [field.key]: String(mathDraft?.[field.key] || '').trim() }), {});
+    if (Object.values(values).some((value) => !value)) return;
+    insertMathStamp(template, values);
+  };
+
+  const draftReady = Boolean(mathDraft?.template && MATH_BUILDERS[mathDraft.template]?.fields.every((field) => String(mathDraft?.[field.key] || '').trim()));
 
   const attachPhoto = (event) => {
     const file = event.target.files?.[0];
@@ -497,15 +595,95 @@ export default function WorkingCanvas({
 
       {showMathStamps && <div className={`${compact ? 'mb-1.5' : 'mb-2'} flex flex-wrap gap-2`} aria-label="Math insert tools">
         {MATH_STAMPS.map((stamp) => (
-          <button
-            key={stamp.id}
-            type="button"
-            onClick={() => insertMathStamp(stamp.id)}
-            className="grid h-11 min-w-12 place-items-center rounded-lg border border-hairline bg-orange-50 px-3 font-serif text-xl font-semibold text-orange-600 hover:border-orange-300 hover:bg-orange-100"
-            title={`Insert ${stamp.label}`}
-          >
-            {stamp.label}
-          </button>
+          <div key={stamp.id} className="relative">
+            {mathDraft?.template === stamp.id && MATH_BUILDERS[stamp.id] ? (
+              <div
+                className={`absolute bottom-full left-1/2 z-20 mb-3 -translate-x-1/2 rounded-3xl border border-hairline bg-white p-4 shadow-active ${
+                  stamp.id === 'fraction' ? 'w-36' : stamp.id === 'root' ? 'w-56' : 'w-52'
+                }`}
+                aria-label={`${stamp.label} builder`}
+              >
+                {stamp.id === 'fraction' ? (
+                  <div className="flex flex-col items-center gap-3">
+                    <MathDraftInput
+                      autoFocus
+                      value={mathDraft.numerator}
+                      placeholder="x"
+                      onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))}
+                      onEnter={insertDraftMath}
+                    />
+                    <div className="h-px w-20 bg-ink-300" aria-hidden="true" />
+                    <MathDraftInput
+                      value={mathDraft.denominator}
+                      placeholder="y"
+                      onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))}
+                      onEnter={insertDraftMath}
+                    />
+                  </div>
+                ) : stamp.id === 'subscript' ? (
+                  <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                    <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                    <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
+                  </div>
+                ) : stamp.id === 'power' ? (
+                  <div className="grid grid-cols-[1fr_auto] items-start gap-3">
+                    <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                    <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
+                  </div>
+                ) : stamp.id === 'subscriptPower' ? (
+                  <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                    <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                    <div className="grid gap-2">
+                      <MathDraftInput value={mathDraft.exponent} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), exponent: value }))} onEnter={insertDraftMath} />
+                      <MathDraftInput value={mathDraft.subscript} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), subscript: value }))} onEnter={insertDraftMath} />
+                    </div>
+                  </div>
+                ) : stamp.id === 'mixed' ? (
+                  <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                    <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                    <div className="grid gap-2">
+                      <MathDraftInput value={mathDraft.numerator} placeholder="b" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), numerator: value }))} onEnter={insertDraftMath} />
+                      <MathDraftInput value={mathDraft.denominator} placeholder="a" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), denominator: value }))} onEnter={insertDraftMath} />
+                    </div>
+                  </div>
+                ) : stamp.id === 'root' ? (
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+                    <MathDraftInput autoFocus value={mathDraft.index} placeholder="n" compact onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), index: value }))} onEnter={insertDraftMath} />
+                    <div className="flex items-center gap-1">
+                      <span className="font-serif text-6xl leading-none text-ink-900">√</span>
+                      <span className="h-px flex-1 self-start bg-ink-900" aria-hidden="true" />
+                      <MathDraftInput value={mathDraft.radicand} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), radicand: value }))} onEnter={insertDraftMath} />
+                    </div>
+                  </div>
+                ) : stamp.id === 'degree' ? (
+                  <div className="flex items-start justify-center gap-1">
+                    <MathDraftInput autoFocus value={mathDraft.base} placeholder="x" onChange={(value) => setMathDraft((current) => ({ ...(current || { template: stamp.id }), base: value }))} onEnter={insertDraftMath} />
+                    <span className="font-serif text-3xl text-ink-500">°</span>
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  disabled={!draftReady}
+                  onClick={insertDraftMath}
+                  className="mt-5 w-full text-center text-xl font-bold text-ink-300 transition enabled:text-orange-500 enabled:hover:text-orange-600 disabled:cursor-not-allowed"
+                >
+                  Insert
+                </button>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => handleMathTool(stamp.id)}
+              className={`grid h-11 min-w-12 place-items-center rounded-lg border px-3 font-serif text-xl font-semibold transition ${
+                mathDraft?.template === stamp.id
+                  ? 'border-orange-500 bg-orange-500 text-white'
+                  : 'border-hairline bg-orange-50 text-orange-600 hover:border-orange-300 hover:bg-orange-100'
+              }`}
+              title={`Insert ${stamp.label}`}
+            >
+              {stamp.label}
+            </button>
+          </div>
         ))}
       </div>}
 

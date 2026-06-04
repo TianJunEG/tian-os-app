@@ -35,6 +35,11 @@ const MATH_OBJECT_DEFAULT = {
   height: 96,
 };
 
+const TEXT_OBJECT_DEFAULT = {
+  width: 220,
+  height: 48,
+};
+
 function drawStroke(ctx, stroke) {
   if (stroke?.tool === 'stamp') {
     drawMathStamp(ctx, stroke);
@@ -46,16 +51,43 @@ function drawStroke(ctx, stroke) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
+  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : stroke.tool === 'shade' ? 0.24 : 1;
   ctx.strokeStyle = stroke.colour || WORKING_COLOURS[0].value;
+  ctx.fillStyle = stroke.colour || WORKING_COLOURS[0].value;
   const baseSize = Number(stroke.size || 4);
   ctx.lineWidth = stroke.tool === 'eraser'
     ? 24
-    : stroke.tool === 'highlighter'
+    : stroke.tool === 'shade'
+      ? Math.max(34, baseSize * 8)
+      : stroke.tool === 'highlighter'
       ? Math.max(56, baseSize * 10)
       : stroke.tool === 'pencil'
         ? Math.max(1, baseSize - 1)
         : baseSize;
+
+  if (stroke.tool === 'line') {
+    const start = points[0];
+    const end = points.at(-1);
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
+  if (stroke.tool === 'rectangle') {
+    const start = points[0];
+    const end = points.at(-1);
+    const x = Math.min(start.x, end.x);
+    const y = Math.min(start.y, end.y);
+    const width = Math.abs(end.x - start.x);
+    const height = Math.abs(end.y - start.y);
+    ctx.strokeRect(x, y, width, height);
+    ctx.restore();
+    return;
+  }
+
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
   points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
@@ -65,6 +97,14 @@ function drawStroke(ctx, stroke) {
 
 function drawMathObject(ctx, object) {
   if (!object) return;
+  if (object.type === 'text') {
+    ctx.save();
+    ctx.fillStyle = object.colour || '#111827';
+    ctx.font = '600 30px Arial';
+    wrapText(ctx, object.text || object.value?.text || '', object.x, object.y + 30, object.width || 260, 36);
+    ctx.restore();
+    return;
+  }
   drawMathStamp(ctx, {
     tool: 'stamp',
     template: object.type,
@@ -160,6 +200,18 @@ function createMathObject(template, values = {}, count = 0) {
   };
 }
 
+function createTextObject({ text = '', x = 740, y = 300, colour = '#111827' } = {}) {
+  return {
+    id: `text-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    type: 'text',
+    text,
+    x,
+    y,
+    colour,
+    ...TEXT_OBJECT_DEFAULT,
+  };
+}
+
 function stampStrokeToMathObject(stroke, index = 0) {
   if (stroke?.tool !== 'stamp') return null;
   const point = stroke.points?.[0] || {};
@@ -184,15 +236,80 @@ function normaliseMathObject(object, index = 0) {
     type: object.type || object.template || 'pi',
     x: Number(object.x ?? object.points?.[0]?.x ?? 740),
     y: Number(object.y ?? object.points?.[0]?.y ?? 300),
+    text: object.type === 'text' ? String(object.text ?? object.value?.text ?? '') : undefined,
     value: object.value && typeof object.value === 'object' ? object.value : {},
-    colour: object.colour || '#f97316',
-    width: object.width || MATH_OBJECT_DEFAULT.width,
-    height: object.height || MATH_OBJECT_DEFAULT.height,
+    colour: object.colour || (object.type === 'text' ? '#111827' : '#f97316'),
+    width: object.width || (object.type === 'text' ? TEXT_OBJECT_DEFAULT.width : MATH_OBJECT_DEFAULT.width),
+    height: object.height || (object.type === 'text' ? TEXT_OBJECT_DEFAULT.height : MATH_OBJECT_DEFAULT.height),
   };
 }
 
-function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, ...pointerHandlers }) {
+function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, onEdit, ...pointerHandlers }) {
   const value = object.value || {};
+  if (object.type === 'text') {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Text label"
+        data-testid="math-object-text"
+        onPointerDown={onPointerDown}
+        {...pointerHandlers}
+        onClick={(event) => {
+          event.stopPropagation();
+          onSelect?.();
+        }}
+        onDoubleClick={(event) => {
+          event.stopPropagation();
+          onEdit?.();
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            onEdit?.();
+          }
+          if (event.key === 'Backspace' || event.key === 'Delete') {
+            event.preventDefault();
+            onDelete?.();
+          }
+        }}
+        className={`pointer-events-auto absolute z-20 touch-none select-none rounded-lg px-2 py-1 text-2xl font-semibold leading-tight text-ink-900 ${
+          selected ? 'outline outline-3 outline-orange-500 outline-offset-3 ring-4 ring-orange-200/80' : 'hover:outline hover:outline-2 hover:outline-orange-200'
+        }`}
+        style={{ left: `${object.x}px`, top: `${object.y}px`, minWidth: `${object.width}px`, minHeight: `${object.height}px`, color: object.colour || '#111827' }}
+      >
+        <span className="whitespace-pre-wrap">{object.text || object.value?.text || 'Text'}</span>
+        {selected && (
+          <>
+            <button
+              type="button"
+              aria-label="Edit selected text"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit?.();
+              }}
+              className="absolute -right-12 -top-3 grid h-8 w-8 place-items-center rounded-full bg-navy-700 text-xs font-bold text-white shadow-active"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              aria-label="Delete selected text"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete?.();
+              }}
+              className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-active"
+            >
+              ×
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
   return (
     <div
       role="button"
@@ -367,6 +484,7 @@ export default function FullScreenWorkingMode({
   const [hasCanvasMarks, setHasCanvasMarks] = useState(Array.isArray(initialStrokes) && initialStrokes.length > 0);
   const [hasObjectEdit, setHasObjectEdit] = useState(false);
   const [mathDraft, setMathDraft] = useState(null);
+  const [textDraft, setTextDraft] = useState(null);
 
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colourRef.current = colour; }, [colour]);
@@ -399,6 +517,7 @@ export default function FullScreenWorkingMode({
     setHasCanvasMarks(nextStrokes.length > 0 || nextMathObjects.length > 0);
     setHasObjectEdit(false);
     setMathDraft(null);
+    setTextDraft(null);
   }, [open, initialStrokes, initialMathObjects]);
 
   useEffect(() => {
@@ -415,7 +534,21 @@ export default function FullScreenWorkingMode({
 
   const beginStroke = (event) => {
     event.preventDefault();
+    if (toolRef.current === 'text') {
+      event.stopPropagation();
+      const point = pointFromEvent(event);
+      setSelectedObjectId(null);
+      setMathDraft(null);
+      setTextDraft({
+        id: null,
+        x: point.x,
+        y: point.y,
+        text: '',
+      });
+      return;
+    }
     drawingRef.current = true;
+    if (event.pointerId !== undefined) canvasRef.current?.setPointerCapture?.(event.pointerId);
     currentStrokeRef.current = {
       tool: toolRef.current,
       colour: colourRef.current,
@@ -431,11 +564,18 @@ export default function FullScreenWorkingMode({
     const stroke = currentStrokeRef.current;
     stroke.points.push(pointFromEvent(event));
     setHasCanvasMarks(true);
-    drawStroke(canvasRef.current.getContext('2d'), { ...stroke, points: stroke.points.slice(-2) });
+    if (stroke.tool === 'line' || stroke.tool === 'rectangle') {
+      redraw(strokesRef.current);
+      drawStroke(canvasRef.current.getContext('2d'), stroke);
+    } else {
+      drawStroke(canvasRef.current.getContext('2d'), { ...stroke, points: stroke.points.slice(-2) });
+    }
   };
 
-  const endStroke = () => {
+  const endStroke = (event) => {
     if (!drawingRef.current) return;
+    event?.preventDefault?.();
+    if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
     drawingRef.current = false;
     const stroke = currentStrokeRef.current;
     currentStrokeRef.current = null;
@@ -456,8 +596,8 @@ export default function FullScreenWorkingMode({
     moveStroke(event);
   };
 
-  const endPointerStroke = () => {
-    endStroke();
+  const endPointerStroke = (event) => {
+    endStroke(event);
   };
 
   const beginMouseStroke = (event) => {
@@ -468,8 +608,8 @@ export default function FullScreenWorkingMode({
     moveStroke(event);
   };
 
-  const endMouseStroke = () => {
-    endStroke();
+  const endMouseStroke = (event) => {
+    endStroke(event);
   };
 
   const save = () => {
@@ -535,6 +675,7 @@ export default function FullScreenWorkingMode({
     setSelectedObjectId(null);
     setHasCanvasMarks(false);
     setHasObjectEdit(false);
+    setTextDraft(null);
   };
 
   const zoomBy = (delta) => setZoom((value) => Math.min(2, Math.max(0.75, Math.round((value + delta) * 100) / 100)));
@@ -574,6 +715,50 @@ export default function FullScreenWorkingMode({
       setHasObjectEdit(true);
       return next;
     });
+  };
+
+  const saveTextDraft = () => {
+    const text = String(textDraft?.text || '').trim();
+    if (!text) {
+      setTextDraft(null);
+      return;
+    }
+    if (textDraft.id) {
+      updateMathObjects((prev) => prev.map((object) => (
+        object.id === textDraft.id
+          ? {
+            ...object,
+            text,
+            value: { ...(object.value || {}), text },
+            width: Math.max(TEXT_OBJECT_DEFAULT.width, Math.min(440, text.length * 15 + 36)),
+          }
+          : object
+      )));
+      setSelectedObjectId(textDraft.id);
+    } else {
+      const nextObject = createTextObject({
+        text,
+        x: textDraft.x,
+        y: textDraft.y,
+        colour: colourRef.current || '#111827',
+      });
+      updateMathObjects((prev) => [...prev, nextObject]);
+      setSelectedObjectId(nextObject.id);
+    }
+    setTextDraft(null);
+    setTool('pen');
+  };
+
+  const editTextObject = (object) => {
+    if (!object || object.type !== 'text') return;
+    setMathDraft(null);
+    setTextDraft({
+      id: object.id,
+      x: object.x,
+      y: object.y,
+      text: object.text || object.value?.text || '',
+    });
+    setSelectedObjectId(object.id);
   };
 
   const deleteSelectedObject = () => {
@@ -805,6 +990,34 @@ export default function FullScreenWorkingMode({
               onMouseLeave={endMouseStroke}
             />
             <div className="pointer-events-none absolute inset-0 z-10 touch-none" aria-label="Math object layer">
+              {textDraft && (
+                <input
+                  autoFocus
+                  value={textDraft.text}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={(event) => event.stopPropagation()}
+                  onChange={(event) => setTextDraft((current) => ({ ...(current || {}), text: event.target.value }))}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      event.currentTarget.dataset.committed = 'true';
+                      saveTextDraft();
+                    }
+                    if (event.key === 'Escape') {
+                      event.preventDefault();
+                      setTextDraft(null);
+                    }
+                  }}
+                  onBlur={(event) => {
+                    if (event.currentTarget.dataset.committed === 'true') return;
+                    saveTextDraft();
+                  }}
+                  className="pointer-events-auto absolute z-30 min-h-[44px] min-w-[180px] rounded-lg border-2 border-orange-500 bg-white px-3 py-2 text-2xl font-semibold text-ink-900 shadow-active focus:outline-none"
+                  style={{ left: `${textDraft.x}px`, top: `${textDraft.y}px`, color: colour }}
+                  placeholder="Type label"
+                  aria-label="Text label input"
+                />
+              )}
               {mathObjects.map((object) => (
                 <MathObjectView
                   key={object.id}
@@ -815,6 +1028,7 @@ export default function FullScreenWorkingMode({
                     updateMathObjects((prev) => prev.filter((item) => item.id !== object.id));
                     setSelectedObjectId(null);
                   }}
+                  onEdit={() => editTextObject(object)}
                   onPointerDown={(event) => beginObjectDrag(event, object)}
                   onPointerMove={moveObjectDrag}
                   onPointerUp={endObjectDrag}
