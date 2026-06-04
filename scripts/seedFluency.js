@@ -40,7 +40,21 @@ async function main() {
   for (let i = 0; i < FLUENCY_SKILLS.length; i++) {
     const name = FLUENCY_SKILLS[i];
     let skill = await Skill.findOne({ topicId: topic._id, name });
-    if (!skill) { skill = await Skill.create({ topicId: topic._id, name, moeLevel: 'Primary 4', order: i }); skillCount++; }
+    const fluencyMetadata = {
+      ...(skill?.metadata || {}),
+      fluencyType: 'timed',
+      fluency: {
+        targetSeconds: skill?.metadata?.fluency?.targetSeconds || 10,
+        targetAccuracy: skill?.metadata?.fluency?.targetAccuracy || 90,
+      },
+    };
+    if (!skill) {
+      skill = await Skill.create({ topicId: topic._id, name, moeLevel: 'Primary 4', order: i, metadata: fluencyMetadata });
+      skillCount++;
+    } else {
+      skill.metadata = fluencyMetadata;
+      await skill.save();
+    }
 
     await Question.deleteMany({ skillId: skill._id, source: 'seed' });
     const qs = generateQuestionsForSkill(name, PER_DIFFICULTY);

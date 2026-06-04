@@ -3,12 +3,14 @@ import { protect } from '../middleware/auth.js';
 import Subject from '../models/Subject.js';
 import Topic from '../models/Topic.js';
 import Skill from '../models/Skill.js';
+import Question from '../models/Question.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { deriveMastery, fluencyLabel } from '../utils/masteryEngine.js';
 import { getSkillAnalytics } from '../services/telemetry/learningTelemetryService.js';
 
 const router = express.Router();
+const FLUENCY_TOPIC_NAME = 'Number Fluency';
 const labelFor = (status, fluency) => ({
   not_started: 'needs practice', needs_review: 'needs practice', learning: 'learning',
   mastered: fluency ? 'fluent' : 'mastered',
@@ -47,9 +49,40 @@ router.get('/', protect, async (req, res) => {
     const topics = await Topic.find({ subjectId: subject._id }).sort({ order: 1 });
     const topicById = Object.fromEntries(topics.map((t) => [String(t._id), t]));
     // Fluency = the "timed" (speed + accuracy) skills, flagged by the domain spec.
-    const skillFilter = { topicId: { $in: topics.map((t) => t._id) } };
-    if (fluency) skillFilter['metadata.fluencyType'] = 'timed';
-    const skills = await Skill.find(skillFilter).sort({ order: 1 });
+    const topicIds = topics.map((t) => t._id);
+    const fluencyTopicIds = topics
+      .filter((topic) => String(topic.name || '').trim().toLowerCase() === FLUENCY_TOPIC_NAME.toLowerCase())
+      .map((topic) => topic._id);
+    const skillFilter = fluency
+      ? {
+          topicId: { $in: topicIds },
+          $or: [
+            { 'metadata.fluencyType': 'timed' },
+            { 'metadata.fluency': { $exists: true, $ne: null } },
+            ...(fluencyTopicIds.length ? [{ topicId: { $in: fluencyTopicIds } }] : []),
+          ],
+        }
+      : { topicId: { $in: topicIds } };
+    const candidateSkills = await Skill.find(skillFilter).sort({ order: 1 });
+    const questionCounts = candidateSkills.length
+      ? await Question.aggregate([
+          { $match: { skillId: { $in: candidateSkills.map((skill) => skill._id) } } },
+          { $group: { _id: '$skillId', count: { $sum: 1 } } },
+        ])
+      : [];
+    const questionCountBySkill = Object.fromEntries(questionCounts.map((row) => [String(row._id), row.count]));
+    const skills = fluency
+      ? candidateSkills.filter((skill) => Number(questionCountBySkill[String(skill._id)] || 0) > 0)
+      : candidateSkills;
+
+    if (fluency) {
+      console.info('[skills] fluency inventory', {
+        subject: subjectKey,
+        totalFluencySkillsFound: candidateSkills.length,
+        availableFluencySkills: candidateSkills.filter((skill) => Number(questionCountBySkill[String(skill._id)] || 0) > 0).length,
+        filteredFluencySkills: skills.length,
+      });
+    }
 
     const records = await MasteryRecord.find({ studentId: student._id, skillId: { $in: skills.map((s) => s._id) } });
     const recBySkill = Object.fromEntries(records.map((r) => [String(r.skillId), r]));
@@ -63,6 +96,7 @@ router.get('/', protect, async (req, res) => {
         score: r?.score || 0, status, statusLabel: labelFor(status, fluency),
         masteryState: deriveMastery(r || {}), fluency: fluencyLabel(r?.fluencyStatus),
         fluencyStatus: r?.fluencyStatus || 'unknown', streak: r?.streak || 0, bestStreak: r?.bestStreak || 0,
+        availableQuestionCount: questionCountBySkill[String(s._id)] || 0,
         targetSeconds: s.metadata?.fluency?.targetSeconds ?? null,
       };
     });

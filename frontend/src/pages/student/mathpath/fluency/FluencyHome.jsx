@@ -4,11 +4,12 @@ import { Zap, ListChecks, AlertTriangle, CheckCircle2, Clock3, Target } from 'lu
 import { mathpathAPI, skillsAPI } from '../../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../../components/ui';
 import { useAuth } from '../../../../context/AuthContext';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../student/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../design-os/studentVisualMode';
 
 // MathPath › Fluency — home. Recommended skill, weak fluency skills, quick practice.
 // Fluency is a FEATURE of MathPath: it reuses the shared practice/result screens.
 const TONE = { mastered: 'success', fluent: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
+const EMPTY_FLUENCY_MESSAGE = 'No fluency practice is available yet. Continue learning to unlock fluency challenges.';
 const STATUS_META = {
   fluentSkills: { title: 'Fluent Skills', icon: CheckCircle2, tone: 'success', empty: 'Fluent skills will appear after a few quick sessions.' },
   developingSkills: { title: 'Developing Fluency', icon: Clock3, tone: 'gold', empty: 'Skills building speed and confidence will appear here.' },
@@ -36,7 +37,13 @@ export default function FluencyHome() {
           mathpathAPI.fluency(),
           mathpathAPI.retention(),
         ]);
-        setSkills(s.data.skills || []);
+        const rows = s.data.skills || [];
+        console.info('[fluency-home] inventory', {
+          totalFluencySkillsFound: rows.length,
+          availableFluencySkills: rows.filter((skill) => Number(skill.availableQuestionCount || 0) > 0).length,
+          filteredFluencySkills: rows.length,
+        });
+        setSkills(rows);
         setMastery(m.data);
         setFluency(f.data);
         setRetention(r.data);
@@ -97,7 +104,7 @@ export default function FluencyHome() {
             </Button>
           </>
         ) : (
-          <p className="mt-1 text-sm text-ink-600">{fluency?.emptyState || 'Every fluency skill is sharp. Come back later to keep them fresh.'}</p>
+          <p className="mt-1 text-sm text-ink-600">{skills.length === 0 ? EMPTY_FLUENCY_MESSAGE : (fluency?.emptyState || 'Every fluency skill is sharp. Come back later to keep them fresh.')}</p>
         )}
       </Card>
 
@@ -149,7 +156,11 @@ export default function FluencyHome() {
 
       <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Start a focused drill</h3>
       <div className="space-y-2">
-        {weak.length === 0 && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>{fluency?.emptyState || 'All your fluency skills are sharp. Nice work.'}</Card>}
+        {weak.length === 0 && (
+          <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>
+            {skills.length === 0 ? EMPTY_FLUENCY_MESSAGE : (fluency?.emptyState || 'All your fluency skills are sharp. Nice work.')}
+          </Card>
+        )}
         {topWeak.map((s) => (
           <Card key={s.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} onClick={() => start(s.skillId)} role="button">
             <div>

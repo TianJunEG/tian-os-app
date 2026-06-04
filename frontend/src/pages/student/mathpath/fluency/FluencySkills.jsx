@@ -6,6 +6,7 @@ import { Badge, Button, Card, EmptyState, PageHeader, Spinner, CollapsibleSectio
 
 const TONE = { mastered: 'success', fluent: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
 const PRIORITY_STATUSES = new Set(['learning', 'needs_review', 'not_started']);
+const EMPTY_FLUENCY_MESSAGE = 'No fluency practice is available yet. Continue learning to unlock fluency challenges.';
 
 function normalizeLevel(level = '') {
   const text = String(level || '').trim();
@@ -66,7 +67,15 @@ export default function FluencySkills() {
 
   useEffect(() => {
     skillsAPI.list({ group: 'fluency' })
-      .then((r) => setSkills(r.data.skills || []))
+      .then((r) => {
+        const rows = r.data.skills || [];
+        console.info('[fluency-skills] inventory', {
+          totalFluencySkillsFound: rows.length,
+          availableFluencySkills: rows.filter((skill) => Number(skill.availableQuestionCount || 0) > 0).length,
+          filteredFluencySkills: rows.length,
+        });
+        setSkills(rows);
+      })
       .catch((e) => setError(e.response?.data?.error || 'Could not load skills.'))
       .finally(() => setLoading(false));
   }, []);
@@ -132,8 +141,8 @@ export default function FluencySkills() {
       </Card>
 
       <div className="space-y-4">
-        {skills.length === 0 && <EmptyState icon={AlertTriangle} message="No fluency skills yet. Run npm run seed:fluency." />}
-        {groupedSections.length === 0 && (
+        {skills.length === 0 && <EmptyState icon={AlertTriangle} message={EMPTY_FLUENCY_MESSAGE} />}
+        {skills.length > 0 && groupedSections.length === 0 && (
           <EmptyState icon={Zap} message="Everything in this view is already fluent. Browse by topic or level for more drills.">
             <Button variant="secondary" onClick={() => setView('topic')}>Browse Topics</Button>
           </EmptyState>
