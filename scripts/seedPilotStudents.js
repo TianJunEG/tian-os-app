@@ -65,7 +65,7 @@ async function ensureUser({ email, name, role }) {
   user.role = role;
   user.roles = [role];
   user.is_test_account = true;
-  if (!user.password || !String(user.password).startsWith('$2')) user.password = PASSWORD;
+  user.password = PASSWORD;
   await user.save();
   return user;
 }
@@ -273,6 +273,7 @@ async function upsertPilotStudent({ spec, adults, skills }) {
     ...(student.profile || {}),
     mainFocus: 'MathPath',
     modulesUsed: ['MathPath'],
+    studentVisualMode: 'upper_primary',
     pilotProfile: spec.profileKey,
     pilotDescription: spec.description,
   };
