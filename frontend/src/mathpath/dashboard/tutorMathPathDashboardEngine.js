@@ -24,6 +24,14 @@ function dedupe(arr) {
   return [...new Set(arr)];
 }
 
+function normaliseConfidence(value = '') {
+  const raw = String(value || '').trim().toLowerCase();
+  if (['high', 'confident', 'very confident', 'i know this', 'know'].includes(raw)) return 'high';
+  if (['low', 'guess', 'not confident', "i don't know", 'dont know'].includes(raw)) return 'low';
+  if (['medium', 'not sure', "i'm not sure", 'im not sure', 'unsure'].includes(raw)) return 'medium';
+  return raw || 'unknown';
+}
+
 function flattenMistakePlans(mistakePlans = []) {
   return (mistakePlans || []).flatMap((plan) => {
     const focus = plan.focusMistakes || [];
@@ -158,6 +166,126 @@ export function buildFluencyBottlenecks(fluencyState = {}) {
   }).filter((x) => x.issueType !== 'notEnoughAttempts');
 }
 
+function isEquivalentFractionSignal(row = {}) {
+  const text = [
+    row.skillId,
+    row.weakSkillId,
+    row.mistakeCode,
+    row.mistakeName,
+    row.questionFamilyId,
+    row.questionFamilyName,
+    ...(row.remediationSkills || []),
+    ...(row.affectedSkills || []),
+    ...(row.rootCauseSkillIds || []),
+    ...(row.remediationSkillIds || []),
+  ].join(' ').toLowerCase();
+  return /f010|f011|equivalent|m004|same value|scal/.test(text);
+}
+
+function detectWorkingMisunderstanding(workingAnalysisSummary = {}) {
+  const rows = [
+    ...(workingAnalysisSummary.calculatorIntegrityFlags || []),
+    ...(workingAnalysisSummary.identifiedMistakes || []),
+    ...(workingAnalysisSummary.methodMistakes || []),
+    ...(workingAnalysisSummary.misconceptions || []),
+  ];
+  const text = [
+    workingAnalysisSummary.analysisSummary,
+    workingAnalysisSummary.ocrText,
+    workingAnalysisSummary.extractedText,
+    workingAnalysisSummary.workingPattern,
+    ...rows.map((row) => typeof row === 'string' ? row : [
+      row.flagType,
+      row.reason,
+      row.description,
+      row.misconception,
+      row.mistakeCode,
+    ].join(' ')),
+  ].join(' ').toLowerCase();
+
+  if (/denominator|same factor|scal|equivalent|partition|common denominator/.test(text)) {
+    return 'Working shows denominator misunderstanding.';
+  }
+  if (toNum(workingAnalysisSummary.missingWorkingCount, 0) || (workingAnalysisSummary.missingWorkingQuestions || []).length) {
+    return 'Working evidence is incomplete, so the tutor should check the method live.';
+  }
+  return '';
+}
+
+export function buildTutorIntelligenceInsight(options = {}) {
+  const {
+    rootCauseAnalysis = [],
+    mistakeClusters = [],
+    fluencyBottlenecks = [],
+    workingAnalysisSummary = {},
+    attempts = [],
+  } = options;
+
+  const equivalentMistakeCount = mistakeClusters
+    .filter(isEquivalentFractionSignal)
+    .reduce((sum, row) => sum + toNum(row.frequency, 0), 0);
+  const equivalentWrongAttempts = attempts.filter((attempt) => (
+    attempt.correct === false &&
+    isEquivalentFractionSignal({
+      skillId: attempt.skillId,
+      questionFamilyId: attempt.questionFamilyId,
+      questionFamilyName: familyName(attempt.questionFamilyId),
+    })
+  ));
+  const highConfidenceWrong = attempts.filter((attempt) => (
+    attempt.correct === false &&
+    normaliseConfidence(attempt.confidence || attempt.confidenceLevel || attempt.reflection) === 'high'
+  )).length;
+  const equivalentRoot = rootCauseAnalysis.find(isEquivalentFractionSignal);
+  const equivalentFluency = fluencyBottlenecks.find(isEquivalentFractionSignal);
+  const topRoot = equivalentRoot || rootCauseAnalysis[0] || {};
+  const focusSkillId =
+    equivalentRoot?.suspectedRootCauseSkillIds?.[0]
+    || equivalentRoot?.weakSkillId
+    || mistakeClusters.find(isEquivalentFractionSignal)?.remediationSkills?.[0]
+    || topRoot.suspectedRootCauseSkillIds?.[0]
+    || topRoot.weakSkillId
+    || fluencyBottlenecks[0]?.skillId
+    || 'F010';
+  const focusSkillName = skillName(focusSkillId);
+  const workingEvidence = detectWorkingMisunderstanding(workingAnalysisSummary);
+  const wrongCount = Math.max(equivalentMistakeCount, equivalentWrongAttempts.length);
+  const evidence = [
+    wrongCount
+      ? `Wrong on ${wrongCount} equivalent fraction question${wrongCount === 1 ? '' : 's'}.`
+      : null,
+    highConfidenceWrong
+      ? `${highConfidenceWrong} high-confidence incorrect answer${highConfidenceWrong === 1 ? '' : 's'}.`
+      : null,
+    workingEvidence || null,
+    equivalentFluency ? `${familyName(equivalentFluency.questionFamilyId)} is ${equivalentFluency.issueType}.` : null,
+    topRoot.evidence?.[0] || null,
+  ].filter(Boolean);
+  const severity = highConfidenceWrong >= 3 || wrongCount >= 5 || topRoot.severity === 'high' ? 'high' : evidence.length ? 'medium' : 'low';
+
+  return {
+    rootCause: `Student does not understand ${focusSkillName}.`,
+    rootCauseSkillId: focusSkillId,
+    rootCauseSkillName: focusSkillName,
+    confidence: severity === 'high' ? 'High' : severity === 'medium' ? 'Medium' : 'Low',
+    severity,
+    evidence,
+    recommendedIntervention: {
+      title: '20-minute remediation lesson',
+      durationMinutes: 20,
+      focusSkillId,
+      focusSkillName,
+      steps: [
+        `Reteach ${focusSkillName} with visual models.`,
+        'Make the student explain why numerator and denominator change by the same factor.',
+        'Do 4 guided examples, then 3 independent checks.',
+        'End with one confidence-rated exit question.',
+      ],
+    },
+    nextTutorAction: `Run a 20-minute remediation lesson on ${focusSkillName}.`,
+  };
+}
+
 export function buildRetentionRiskSummary(retentionState = {}) {
   const due = retentionState.skillsDueForReview || [];
   const refresh = retentionState.skillsNeedingRefresh || [];
@@ -216,6 +344,15 @@ export function buildWorkingQualityTutorSummary(workingAnalysisSummary = {}) {
     unreadableWorkingQuestions,
     calculatorIntegrityFlags,
     tutorRecommendations: dedupe(tutorRecommendations),
+  };
+}
+
+function pipelineSafeWorkingSummary(raw = {}, normalized = {}) {
+  return {
+    ...raw,
+    missingWorkingQuestions: raw.missingWorkingQuestions || normalized.missingWorkingQuestions || [],
+    calculatorIntegrityFlags: raw.calculatorIntegrityFlags || normalized.calculatorIntegrityFlags || [],
+    averageWorkingQuality: raw.averageWorkingQuality ?? normalized.overallWorkingQuality ?? null,
   };
 }
 
@@ -462,9 +599,18 @@ export function buildTutorMathPathDashboard(options = {}) {
     fluencyBottlenecks,
     rootCauseAnalysis,
   });
+  const tutorIntelligenceInsight = buildTutorIntelligenceInsight({
+    rootCauseAnalysis,
+    mistakeClusters,
+    fluencyBottlenecks,
+    workingAnalysisSummary: pipelineSafeWorkingSummary(workingAnalysisSummary, workingQualityConcerns),
+    attempts,
+  });
 
   const overallTutorSummary =
-    rootCauseAnalysis.length
+    tutorIntelligenceInsight.evidence.length
+      ? `${tutorIntelligenceInsight.rootCause} ${tutorIntelligenceInsight.nextTutorAction}`
+      : rootCauseAnalysis.length
       ? `${rootCauseAnalysis[0].suspectedRootCauseSkillIds[0] || rootCauseAnalysis[0].weakSkillId} ${skillName(rootCauseAnalysis[0].suspectedRootCauseSkillIds[0] || rootCauseAnalysis[0].weakSkillId)} appears to be the root cause affecting ${rootCauseAnalysis[0].weakSkillId} ${rootCauseAnalysis[0].weakSkillName}.`
       : 'No critical root-cause pattern currently flagged. Continue routine monitoring.';
 
@@ -499,6 +645,7 @@ export function buildTutorMathPathDashboard(options = {}) {
     fluencyBottlenecks,
     retentionRisks,
     workingQualityConcerns,
+    tutorIntelligenceInsight,
     interventionPriorities,
     nextSessionPlan,
     suggestedAssignments,

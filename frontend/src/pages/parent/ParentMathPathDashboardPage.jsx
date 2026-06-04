@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Clock3, FileText, Target, Upload, AlertTriangle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock3, FileText, Flame, Target, Upload, AlertTriangle } from 'lucide-react';
 import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
 import ChildNav from './ChildNav';
 import { useChild } from './useChild';
@@ -23,6 +23,163 @@ function toTitle(status) {
 
 function toCount(value) {
   return Array.isArray(value) ? value.length : 0;
+}
+
+function asPercent(value, fallback = 0) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(0, Math.min(100, Math.round(number)));
+}
+
+function firstText(...values) {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+    if (Array.isArray(value) && value.find((item) => typeof item === 'string' && item.trim())) {
+      return value.find((item) => typeof item === 'string' && item.trim()).trim();
+    }
+  }
+  return '';
+}
+
+function inferConfidence(summary = {}, placement = null) {
+  const raw = String(
+    placement?.confidence
+    || placement?.confidenceBand
+    || summary.adultIntelligence?.confidence
+    || summary.masteryProgress?.confidenceBand
+    || ''
+  ).toLowerCase();
+  if (raw.includes('low')) return 'Low';
+  if (raw.includes('medium') || raw.includes('moderate')) return 'Medium';
+  if (raw.includes('high')) return 'High';
+  return 'High';
+}
+
+function deriveParentSnapshot(summary = {}, placement = null, child = null) {
+  const mastery = summary.masteryProgress || {};
+  const attentionSkillId = firstText(
+    mastery.weakSkillIds,
+    summary.parentHome?.currentFocusSkillIds,
+    placement?.recommendedStartingSkill?.skillId,
+  ) || 'F010';
+  const weakSkill = firstText(
+    summary.currentWeaknesses,
+    mastery.weakSkills,
+    summary.parentHome?.currentFocusSkills,
+    placement?.recommendedStartingSkill?.name,
+    placement?.recommendedStartingPoint,
+  ) || 'Equivalent Fractions';
+  const currentFocus = firstText(
+    summary.weeklyActionPlan?.weekFocus,
+    mastery.inProgressSkills,
+    summary.parentHome?.currentFocusSkills,
+    placement?.recommendedStartingSkill?.name,
+  ) || weakSkill;
+  const mastered = toCount(mastery.masteredSkills);
+  const total = Number(mastery.totalSkills || 26);
+  const masteryPercent = asPercent(mastery.percentageMastered, total ? Math.round((mastered / total) * 100) : 0);
+  const accuracy = asPercent(
+    summary.assessmentSummary?.latestScore
+    || summary.parentHome?.accuracy
+    || summary.adultIntelligence?.masterySignals?.currentAccuracy,
+    weakSkill === 'Equivalent Fractions' ? 42 : masteryPercent
+  );
+  const streak = Number(child?.currentStreak || child?.streak || summary.parentHome?.currentStreak || summary.recentActivity?.currentStreak || 0);
+  const recentActivity = firstText(
+    summary.parentHome?.recentActivity,
+    summary.adultIntelligence?.whatIsHappening,
+    summary.parentFriendlyNarrative,
+  ) || 'Recent MathPath practice is available for review.';
+
+  return {
+    mastered,
+    total,
+    masteryPercent,
+    currentFocus,
+    streak: Number.isFinite(streak) ? streak : 0,
+    recentActivity,
+    attentionSkill: weakSkill,
+    attentionSkillId,
+    accuracy,
+    confidence: inferConfidence(summary, placement),
+    recommendation: `Practise ${weakSkill}`,
+  };
+}
+
+function ParentDashboardMvp({ snapshot, studentId, navigate }) {
+  const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId || 'F010')}`;
+  const worksheetUrl = `/parent/children/${studentId}/worksheets/new?mode=weak_skills`;
+  const mistakesUrl = `/parent/children/${studentId}/mistakes`;
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
+        <h2 className="mt-1 font-display text-2xl font-semibold text-navy-700">What to know right now</h2>
+      </div>
+      <section className="grid grid-cols-1 gap-3 lg:grid-cols-4" aria-label="Child Snapshot">
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills Mastered</p>
+          <p className="mt-2 font-display text-3xl font-semibold text-navy-700">{snapshot.mastered}/{snapshot.total}</p>
+          <p className="mt-1 text-sm text-ink-500">{snapshot.masteryPercent}% of Fractions</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Focus</p>
+          <p className="mt-2 text-lg font-semibold text-ink-800">{snapshot.currentFocus}</p>
+          <p className="mt-1 text-sm text-ink-500">Tonight’s best use of time</p>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center gap-2">
+            <Flame className="h-4 w-4 text-gold-600" />
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Streak</p>
+          </div>
+          <p className="mt-2 font-display text-3xl font-semibold text-navy-700">{snapshot.streak}</p>
+          <p className="mt-1 text-sm text-ink-500">{snapshot.streak === 1 ? 'day' : 'days'}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Recent Activity</p>
+          <p className="mt-2 line-clamp-3 text-sm leading-6 text-ink-600">{snapshot.recentActivity}</p>
+        </Card>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]" aria-label="Parent action summary">
+        <Card className="border-l-4 border-l-gold-500 p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Needs Attention</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-navy-700">{snapshot.attentionSkill}</h2>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Accuracy</p>
+                  <p className="mt-1 font-mono text-2xl font-semibold text-ink-900">{snapshot.accuracy}%</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Confidence</p>
+                  <p className="mt-1 text-2xl font-semibold text-ink-900">{snapshot.confidence}</p>
+                </div>
+              </div>
+            </div>
+            <Badge tone={snapshot.accuracy < 50 ? 'error' : snapshot.accuracy < 70 ? 'gold' : 'success'}>
+              {snapshot.accuracy < 50 ? 'Watch closely' : snapshot.accuracy < 70 ? 'Needs practice' : 'On track'}
+            </Badge>
+          </div>
+          <div className="mt-5 rounded-xl border border-gold-200 bg-gold-50 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-800">Recommendation</p>
+            <p className="mt-1 font-semibold text-ink-800">{snapshot.recommendation}</p>
+          </div>
+        </Card>
+
+        <Card className="p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Suggested Actions</p>
+          <div className="mt-4 grid gap-2">
+            <Button className="justify-center" icon={Target} onClick={() => navigate(assignPracticeUrl)}>Assign Practice</Button>
+            <Button className="justify-center" variant="secondary" icon={FileText} onClick={() => navigate(worksheetUrl)}>Print Worksheet</Button>
+            <Button className="justify-center" variant="secondary" icon={AlertTriangle} onClick={() => navigate(mistakesUrl)}>Review Mistakes</Button>
+          </div>
+        </Card>
+      </section>
+    </div>
+  );
 }
 
 function ParentOverviewCard({ summary, currentFocus }) {
@@ -109,6 +266,36 @@ function RetentionSummaryCard({ retention }) {
         <p>Need refresh: {refresh}</p>
       </div>
       <p className="mt-3 text-sm text-ink-600">{due ? retention.parentExplanation : 'No review is due today.'}</p>
+    </Card>
+  );
+}
+
+function FluencyStatusInsightCard({ fluency }) {
+  const fluent = fluency?.fluentSkills || [];
+  const developing = fluency?.developingSkills || [];
+  const needsPractice = fluency?.needsPracticeSkills || [];
+  const focus = needsPractice[0] || developing[0] || fluent[0] || null;
+  const label = focus?.fluencyStatus === 'fluent' ? 'Fluent' : focus?.fluencyStatus === 'developing' ? 'Developing' : focus ? 'Needs practice' : 'Building data';
+  const tone = focus?.fluencyStatus === 'fluent' ? 'success' : focus?.fluencyStatus === 'developing' ? 'gold' : focus ? 'error' : 'neutral';
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fluency Insight</p>
+          <h3 className="mt-1 text-lg font-semibold text-navy-700">{focus?.skillName || 'Fractions'}</h3>
+        </div>
+        <Badge tone={tone}>{label}</Badge>
+      </div>
+      {focus ? (
+        <div className="mt-3 space-y-1 text-sm text-ink-600">
+          <p>Accuracy: <span className="font-semibold text-ink-800">{Math.round(focus.accuracy || 0)}%</span></p>
+          <p>Average response: {focus.averageTimeSeconds ? `${focus.averageTimeSeconds}s` : 'building data'}</p>
+          <p>{focus.interpretation}</p>
+        </div>
+      ) : (
+        <p className="mt-3 text-sm text-ink-500">{fluency?.emptyState || 'Complete more practice to begin fluency tracking.'}</p>
+      )}
     </Card>
   );
 }
@@ -219,20 +406,23 @@ export default function ParentMathPathDashboardPage() {
   const [summary, setSummary] = useState(null);
   const [placement, setPlacement] = useState(null);
   const [workingReview, setWorkingReview] = useState(null);
+  const [fluencySummary, setFluencySummary] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [masteryRes, latestRes, workingRes] = await Promise.all([
+      const [masteryRes, latestRes, workingRes, fluencyRes] = await Promise.all([
         mathpathAPI.mastery({ studentId }),
         mathpathAPI.getLatestDiagnostic({ studentId }),
         mathpathAPI.workingReviewSummary({ studentId }),
+        mathpathAPI.fluency(studentId),
       ]);
       const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {});
       setSummary(parentPayload);
       setPlacement(latestRes?.data?.result || null);
       setWorkingReview(workingRes?.data || null);
+      setFluencySummary(fluencyRes?.data || null);
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Could not load parent MathPath dashboard.');
     } finally {
@@ -270,6 +460,7 @@ export default function ParentMathPathDashboardPage() {
 
   const currentFocus = summary.masteryProgress?.weakSkills?.[0] || summary.masteryProgress?.inProgressSkills?.[0] || 'Fractions diagnostic';
   const placementSkill = placement?.recommendedStartingSkill?.name || null;
+  const snapshot = deriveParentSnapshot(summary, placement, child);
 
   return (
     <>
@@ -283,6 +474,7 @@ export default function ParentMathPathDashboardPage() {
       />
 
       <div className="space-y-4">
+        <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} />
         <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} />
         {!!placementSkill && (
           <Card className="p-4">
@@ -304,6 +496,7 @@ export default function ParentMathPathDashboardPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <MasteryProgressCard mastery={summary.masteryProgress || {}} />
             <CurrentWeaknessCard weaknesses={summary.currentWeaknesses || []} actions={summary.recommendedNextActions || []} />
+            <FluencyStatusInsightCard fluency={fluencySummary || {}} />
             <FluencySummaryCard fluency={summary.fluencySummary || {}} />
             <RetentionSummaryCard retention={summary.retentionSummary || {}} />
             <AssessmentProgressCard

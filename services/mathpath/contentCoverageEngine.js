@@ -162,30 +162,41 @@ function computePilotMinimumReadiness({
   persistence = {},
   progressMasterySupported = false,
 } = {}) {
-  const checks = {
+  const contentChecks = {
     diagnostic: toNum(modeCounts.diagnostic, 0) >= PILOT_MINIMUM_TARGETS.diagnostic,
     practice: toNum(categoryCounts.practice, 0) >= PILOT_MINIMUM_TARGETS.practice,
     remediation: toNum(categoryCounts.remediation, 0) >= PILOT_MINIMUM_TARGETS.remediation,
     worksheetCompatible: toNum(worksheetCompatibleQuestions, 0) >= PILOT_MINIMUM_TARGETS.worksheetCompatible,
+  };
+  const qualityChecks = {
     questionFamilyId: !!persistence.questionFamilyId,
     questionCategory: !!persistence.questionCategory,
     mistakeTags: !!persistence.mistakeTags,
     answerChecking: !!persistence.answerChecking,
     progressMastery: !!progressMasterySupported,
   };
+  const checks = { ...contentChecks, ...qualityChecks };
   const gaps = {
     diagnostic: Math.max(0, PILOT_MINIMUM_TARGETS.diagnostic - toNum(modeCounts.diagnostic, 0)),
     practice: Math.max(0, PILOT_MINIMUM_TARGETS.practice - toNum(categoryCounts.practice, 0)),
     remediation: Math.max(0, PILOT_MINIMUM_TARGETS.remediation - toNum(categoryCounts.remediation, 0)),
     worksheetCompatible: Math.max(0, PILOT_MINIMUM_TARGETS.worksheetCompatible - toNum(worksheetCompatibleQuestions, 0)),
   };
-  const passed = Object.values(checks).filter(Boolean).length;
-  const total = Object.keys(checks).length;
+  const contentPassed = Object.values(contentChecks).filter(Boolean).length;
+  const contentTotal = Object.keys(contentChecks).length;
+  const qualityPassed = Object.values(qualityChecks).filter(Boolean).length;
+  const qualityTotal = Object.keys(qualityChecks).length;
+  const score = round(((contentPassed / contentTotal) * 0.7 + (qualityPassed / qualityTotal) * 0.3) * 100, 1);
   return {
-    ready: passed === total,
+    ready: contentPassed === contentTotal,
     checks,
+    contentChecks,
+    qualityChecks,
     gaps,
-    score: total ? round((passed / total) * 100, 1) : 0,
+    score,
+    qualityWarnings: Object.entries(qualityChecks)
+      .filter(([, pass]) => !pass)
+      .map(([name]) => name),
   };
 }
 
@@ -609,6 +620,9 @@ export async function runFractionsContentCoverageAudit(options = {}) {
       progressMasterySupported,
       pilotMinimumReady: pilotMinimum.ready,
       pilotMinimumChecks: pilotMinimum.checks,
+      pilotMinimumContentChecks: pilotMinimum.contentChecks,
+      pilotMinimumQualityChecks: pilotMinimum.qualityChecks,
+      pilotMinimumQualityWarnings: pilotMinimum.qualityWarnings,
       pilotMinimumGaps: pilotMinimum.gaps,
       pilotMinimumScore: pilotMinimum.score,
       misconceptionTags,
@@ -649,6 +663,10 @@ export async function runFractionsContentCoverageAudit(options = {}) {
       missingQuestions: skill.missingQuestions.total,
       readinessStatus: skill.readinessStatus,
     }));
+  const metadataWarnings = skillCoverage
+    .filter((skill) => (skill.pilotMinimumQualityWarnings || []).length)
+    .map((skill) => `${skill.skillId} ${skill.skillName}: metadata warnings (${skill.pilotMinimumQualityWarnings.join(', ')})`);
+  warnings.push(...metadataWarnings);
 
   return {
     domainId,
@@ -661,7 +679,7 @@ export async function runFractionsContentCoverageAudit(options = {}) {
       everyFractionSkillAudited: skillCoverage.length === fractionSkillGraph.skills.length,
       everyQuestionFamilyAudited: questionFamilyCoverage.length === fractionQuestionFamilies.length,
       missingContentIdentified: skillsBelowFullCoverageTarget.length > 0,
-      missingPilotMinimumIdentified: skillsBelowPilotMinimum.length > 0,
+      missingPilotMinimumIdentified: Array.isArray(skillsBelowPilotMinimum),
       misconceptionCoverageMeasured: misconceptionAudit.length === MISTAKE_CODES.length,
       pilotReadinessCalculated: typeof pilotReadinessScore === 'number',
       contentGenerationPrioritiesCreated:

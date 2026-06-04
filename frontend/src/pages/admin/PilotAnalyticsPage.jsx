@@ -70,6 +70,8 @@ export default function PilotAnalyticsPage() {
   const working = data.workingBehaviour || {};
   const overconfidence = data.overconfidence || {};
   const skillMetrics = data.skillMetrics || {};
+  const mostActiveStudents = data.mostActiveStudents || [];
+  const telemetryCoverage = data.telemetryCoverage || {};
 
   return (
     <main className="mx-auto max-w-7xl pb-8">
@@ -87,6 +89,12 @@ export default function PilotAnalyticsPage() {
 
       <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard icon={BarChart3} label="Questions Answered" value={studentOverview.questionsAnswered} />
+        <MetricCard icon={Activity} label="Practice Sessions" value={pilotMetrics.practiceSessions} />
+        <MetricCard icon={CheckCircle2} label="Diagnostic Completions" value={pilotMetrics.diagnosticCompletions} />
+        <MetricCard icon={PenLine} label="No-Working Declarations" value={working.noWorkingDeclarationRate} suffix="%" />
+      </section>
+
+      <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard icon={CheckCircle2} label="Questions Correct" value={studentOverview.questionsCorrect} />
         <MetricCard icon={PenLine} label="Working Usage" value={working.workingUsageRate} suffix="%" />
         <MetricCard icon={AlertTriangle} label="Overconfidence Rate" value={overconfidence.overconfidenceRate} suffix="%" />
@@ -125,6 +133,44 @@ export default function PilotAnalyticsPage() {
         <SkillList title="High-Confidence Wrong" rows={skillMetrics.highestConfidenceWrongAnswers || []} valueKey="overconfidentWrong" />
         <SkillList title="Most Requested Help" rows={skillMetrics.mostRequestedHelpSkills || []} valueKey="helpRequested" />
         <SkillList title="Most Skipped Skills" rows={skillMetrics.mostSkippedSkills || []} valueKey="skipped" />
+      </section>
+
+      <section className="mt-5 grid gap-5 lg:grid-cols-2">
+        <Card className="p-5">
+          <h2 className="font-semibold text-ink-900">Most Active Students</h2>
+          {mostActiveStudents.length ? (
+            <div className="mt-4 space-y-3">
+              {mostActiveStudents.slice(0, 8).map((student) => (
+                <div key={student.studentId} className="flex items-center justify-between gap-3 border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-ink-800">{student.studentId}</p>
+                    <p className="text-xs text-ink-500">{number(student.questionsAnswered)} questions · {number(student.sessionsCompleted)} completed sessions</p>
+                  </div>
+                  <Badge tone="navy">{number(student.events)} events</Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-ink-500">No student activity yet.</p>
+          )}
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="font-semibold text-ink-900">Telemetry Coverage</h2>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {(telemetryCoverage.requiredPilotEvents || []).map((row) => (
+              <div key={row.eventType} className="flex items-center justify-between gap-2 rounded-lg border border-hairline px-3 py-2 text-sm">
+                <span className="min-w-0 truncate text-ink-700">{row.eventType}</span>
+                <Badge tone={row.present ? 'success' : 'error'}>{number(row.count)}</Badge>
+              </div>
+            ))}
+          </div>
+          {(telemetryCoverage.missingEvents || []).length ? (
+            <p className="mt-3 text-sm text-error-700">Missing: {telemetryCoverage.missingEvents.join(', ')}</p>
+          ) : (
+            <p className="mt-3 text-sm text-success-700">All required pilot telemetry events are present in this window.</p>
+          )}
+        </Card>
       </section>
     </main>
   );

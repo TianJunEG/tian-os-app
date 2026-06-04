@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Clock3, Users } from 'lucide-react';
+import { ArrowRight, Clock3, FileText, Users } from 'lucide-react';
 import { teacherAPI, mathpathAPI } from '../../services/api';
 import { buildTeacherMathPathDashboard } from '../../mathpath/dashboard/teacherMathPathDashboardEngine';
 import ClassNav from './ClassNav';
@@ -429,6 +429,7 @@ export default function TeacherMathPathDashboardPage() {
 
           <CollapsibleSection title="Secondary actions" summary="Review groups and mini lesson tools." surface={false}>
             <div className="flex flex-wrap gap-2">
+              <Button size="s" variant="secondary" icon={FileText} onClick={() => navigate(`/teacher/classes/${id}/assign?module=Mastery%20Worksheet&worksheetType=class`)}>Generate Worksheet</Button>
               <Button size="s" variant="secondary" icon={Users} onClick={() => navigate(`/teacher/classes/${id}/groups`)}>Assign Review Groups</Button>
               <Button size="s" variant="secondary" icon={Clock3} onClick={() => navigate(`/teacher/classes/${id}/interventions`)}>Start Mini Lesson</Button>
             </div>
