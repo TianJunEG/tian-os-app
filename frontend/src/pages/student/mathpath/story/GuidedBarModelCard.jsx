@@ -13,7 +13,7 @@ function BarPreview({ model = {} }) {
           return (
             <div
               key={index}
-              className={`min-h-[44px] border-r border-ink-200 last:border-r-0 ${isRemoved ? 'bg-[repeating-linear-gradient(135deg,#fee2e2,#fee2e2_4px,#fecaca_4px,#fecaca_8px)]' : 'bg-emerald-50'}`}
+              className={`min-h-[44px] border-r border-ink-200 last:border-r-0 ${isRemoved ? 'bg-blue-200' : 'bg-white'}`}
             />
           );
         })}

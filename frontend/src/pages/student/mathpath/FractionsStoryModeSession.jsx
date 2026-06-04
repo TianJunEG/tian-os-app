@@ -33,7 +33,7 @@ function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
           return (
             <div
               key={index}
-              className={`min-h-[72px] border-r border-navy-100 last:border-r-0 sm:min-h-[96px] ${isRemoved ? 'bg-[repeating-linear-gradient(135deg,#fee2e2,#fee2e2_6px,#fecaca_6px,#fecaca_12px)]' : 'bg-emerald-50'}`}
+              className={`min-h-[72px] border-r border-navy-100 last:border-r-0 sm:min-h-[96px] ${isRemoved ? 'bg-blue-200' : 'bg-white'}`}
             />
           );
         })}
@@ -74,7 +74,7 @@ function StoryShadedGrid({ model = {} }) {
         {Array.from({ length: denominator }).map((_, index) => (
           <div
             key={index}
-            className={`min-h-[54px] rounded-md border border-gold-200 sm:min-h-[72px] ${index < removed ? 'bg-[repeating-linear-gradient(135deg,#dbeafe,#dbeafe_6px,#bfdbfe_6px,#bfdbfe_12px)]' : 'bg-white'}`}
+            className={`min-h-[54px] rounded-md border border-navy-200 sm:min-h-[72px] ${index < removed ? 'bg-blue-200' : 'bg-white'}`}
           />
         ))}
       </div>

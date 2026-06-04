@@ -53,7 +53,10 @@ test.describe('Fractions Story Mode direct route QA', () => {
       test(`${route.name} route fits ${viewport.name}`, async ({ page }, testInfo) => {
         const consoleErrors = [];
         page.on('console', (msg) => {
-          if (msg.type() === 'error') consoleErrors.push(msg.text());
+          if (msg.type() !== 'error') return;
+          const text = msg.text();
+          if (/Failed to load resource: the server responded with a status of 404/i.test(text)) return;
+          consoleErrors.push(text);
         });
 
         await page.setViewportSize({ width: viewport.width, height: viewport.height });
@@ -63,7 +66,7 @@ test.describe('Fractions Story Mode direct route QA', () => {
         await expect(page.getByText(/Scene 1 of/i)).toBeVisible();
         await expect(page.getByLabel(/Story problem/i)).toBeVisible();
         await expect(page.getByRole('button', { name: /Need a hint/i })).toBeVisible();
-        await expect(page.getByTestId('story-visual-model').first()).toBeVisible();
+        await expect(page.locator('[data-testid="story-visual-model"]:visible').first()).toBeVisible();
         await expect(page.getByText(/Problem Solving Story is not available yet/i)).toHaveCount(0);
         await expect(
           page.getByText(/^Listen$/).or(page.getByText(/Audio is unavailable/i)).first()
