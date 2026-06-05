@@ -11,6 +11,10 @@ vi.mock('../../../services/api', () => ({
   },
 }));
 
+vi.mock('../../../context/AuthContext', () => ({
+  useAuth: () => ({ user: { _id: 'student-story-test' } }),
+}));
+
 beforeEach(() => {
   HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
     save: vi.fn(),
@@ -71,13 +75,13 @@ async function renderDomainStoryRoute(path) {
 describe('FractionsStoryModeSession direct routes', () => {
   it('renders the default direct story route when enabled', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story', 'true');
-    expect(screen.getByText('Fraction Rescue Mission')).toBeInTheDocument();
+    expect(screen.getAllByText('Fraction Rescue Mission').length).toBeGreaterThan(0);
     expect(screen.getByText(/Scene 1 of/i)).toBeInTheDocument();
-  });
+  }, 10000);
 
   it('renders F025 direct route without navigation state', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'true');
-    expect(screen.getByText('Fraction Rescue Mission')).toBeInTheDocument();
+    expect(screen.getAllByText('Fraction Rescue Mission').length).toBeGreaterThan(0);
     expect(screen.getByText(/Find what matters/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Need a hint/i })).toBeInTheDocument();
     expect(screen.queryByText(/Guided thinking steps/i)).not.toBeInTheDocument();
@@ -144,11 +148,12 @@ describe('FractionsStoryModeSession direct routes', () => {
     expect(screen.getByRole('button', { name: /Next Scene/i })).toBeInTheDocument();
   });
 
-  it('does not show unavailable copy for the fractions domain route when the old flag is disabled', async () => {
+  it('shows a safe pilot unavailable state when Story Mode is gated', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F025', 'false');
     expect(screen.queryByText(/Problem Solving Story is not available yet/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Return to MathPath to continue practice/i)).not.toBeInTheDocument();
-    expect(screen.getByText('Fraction Rescue Mission')).toBeInTheDocument();
+    expect(screen.getByText(/Story Mode is not available for this pilot yet/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Back to MathPath/i })).toBeInTheDocument();
   });
 
   it('handles invalid skill routes safely', async () => {

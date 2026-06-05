@@ -12,7 +12,7 @@ import {
   getUniversalSkillByFrameworkId,
   getVisibleSkillsForStudentLevel,
 } from '../../../mathpath/curriculum';
-import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
+import FEATURE_FLAGS, { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import {
   ASSESSMENT_LOCK_MESSAGE,
   getFractionAssessmentBlueprintReadiness,
@@ -62,11 +62,15 @@ function statusTone(label) {
 
 function actionFromNext(nextAction, assessmentReady = false) {
   const action = String(nextAction?.action || 'continuePractice');
-  if (action === 'startFluency') return { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' };
+  if (action === 'startFluency') {
+    return FEATURE_FLAGS.fluency
+      ? { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' }
+      : { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' };
+  }
   if (action === 'completeRetentionReview') return { label: 'Review Due Skill', to: '/student/mathpath/practice/recommended-review' };
-  if (action === 'attemptAssessment') return assessmentReady
+  if (action === 'attemptAssessment') return FEATURE_FLAGS.assessments && assessmentReady
     ? { label: 'Start Assessment', to: '/student/mathpath/assessment' }
-    : { label: 'Assessment Locked', to: '', disabled: true };
+    : { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' };
   if (action === 'uploadWorking') return { label: 'Upload Working', to: '/student/mathpath/working/upload' };
   if (action === 'followRemediationPlan') return { label: 'Practise This Skill', to: '/student/mathpath/practice/recommended-remediation' };
   if (action === 'advanceSkill') return { label: 'Move to Next Skill', to: '/student/mathpath/practice/recommended-next' };
@@ -205,7 +209,7 @@ export default function FractionsLearningPathPage() {
   const [error, setError] = useState('');
   const [pipeline, setPipeline] = useState(null);
 
-  const studentId = user?._id || user?.id || user?.email || 'demo-student';
+  const studentId = user?._id || user?.id || user?.email || '';
 
   useEffect(() => {
     let active = true;
@@ -385,7 +389,7 @@ export default function FractionsLearningPathPage() {
         onStory={() => navigate('/student/mathpath/fractions/story/F026')}
       />
 
-      <NextActionPanel nextAction={nextAction} onPrimary={launchPrimary} assessmentReady={assessmentGate.ready} />
+      <NextActionPanel nextAction={nextAction} onPrimary={launchPrimary} assessmentReady={FEATURE_FLAGS.assessments && assessmentGate.ready} />
 
       {studentProgress.retentionProgress?.skillsDueForReview?.length ? (
         <Card className="p-3">

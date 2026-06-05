@@ -5,6 +5,7 @@ import { mathpathAPI, skillsAPI } from '../../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../../components/ui';
 import { useAuth } from '../../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../design-os/studentVisualMode';
+import FEATURE_FLAGS from '../../../../config/featureFlags';
 
 // MathPath › Fluency — home. Recommended skill, weak fluency skills, quick practice.
 // Fluency is a FEATURE of MathPath: it reuses the shared practice/result screens.
@@ -27,6 +28,14 @@ export default function FluencyHome() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
+
+  if (!FEATURE_FLAGS.fluency) {
+    return (
+      <EmptyState icon={Zap} message="Fluency practice is not available yet. Continue learning to unlock it.">
+        <Button to="/student/mathpath" variant="secondary">Back to MathPath</Button>
+      </EmptyState>
+    );
+  }
 
   useEffect(() => {
     (async () => {

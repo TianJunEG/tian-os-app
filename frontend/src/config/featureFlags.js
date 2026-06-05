@@ -7,14 +7,21 @@ const flagEnabled = (name, fallback = false) => {
   if (viteValue !== undefined || rawValue !== undefined) return envTrue(viteValue) || envTrue(rawValue);
   return fallback;
 };
-const WORKSHEETS_ENABLED = flagEnabled('WORKSHEETS', true);
+const WORKSHEETS_ENABLED = flagEnabled('WORKSHEETS', false);
+const FLUENCY_ENABLED = flagEnabled('FLUENCY_PILOT', false);
+const ASSESSMENTS_ENABLED = flagEnabled('ASSESSMENTS_PILOT', false);
+const MODEL_TRAINER_ENABLED = flagEnabled('MODEL_TRAINER_PILOT', false);
+const WORKING_MATH_INSERTS_ENABLED = flagEnabled('WORKING_MATH_INSERTS_PILOT', false);
 
 export const FEATURE_FLAGS = {
   // Core student features (enabled)
   mathpath: true,
-  fluency: true,
+  fluency: FLUENCY_ENABLED,
   mistakes: true,
   progress: true,
+  assessments: ASSESSMENTS_ENABLED,
+  modelTrainer: MODEL_TRAINER_ENABLED,
+  workingMathInserts: WORKING_MATH_INSERTS_ENABLED,
 
   // Features shown as "Coming Soon" (still disabled but visible)
   worksheets: WORKSHEETS_ENABLED,

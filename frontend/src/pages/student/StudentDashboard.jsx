@@ -28,15 +28,22 @@ import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 import {
   clearMathPathDomainProgressState,
-  getMathPathDomainProgressState,
 } from '../../mathpath/state/mathPathDomainProgressState';
 import { buildStudentInsight, interpretConfidence } from '../../mathpath/insights/insightQualityEngine';
 import {
   ASSESSMENT_LOCK_MESSAGE,
   getFractionAssessmentBlueprintReadiness,
 } from '../../mathpath/fractions/fractionAssessmentReadinessGate';
+import FEATURE_FLAGS from '../../config/featureFlags';
 
 function actionMeta(nextAction = {}, assessmentReady = true) {
+  const action = String(nextAction.action || '');
+  if (action === 'startFluency' && !FEATURE_FLAGS.fluency) {
+    return { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' };
+  }
+  if (action === 'attemptAssessment' && !FEATURE_FLAGS.assessments) {
+    return { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' };
+  }
   const map = {
     continuePractice: { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' },
     startFluency: { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' },
@@ -51,7 +58,7 @@ function actionMeta(nextAction = {}, assessmentReady = true) {
   return map[nextAction.action] || { label: 'Start MathPath', to: '/student/mathpath' };
 }
 
-function buildMockPipelinePayload(studentId = 'demo-student') {
+function buildMockPipelinePayload(studentId = 'mock-student') {
   return runMathPathDomainPipeline({
     studentId,
     domainId: 'fractions',
@@ -561,15 +568,15 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       disabled: action.disabled,
     },
     { icon: Search, title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'from-amber-50 to-white text-amber-700' },
-    { icon: Timer, title: 'Fluency Challenge', body: 'Improve speed and accuracy', to: '/student/mathpath/fluency', tone: 'from-blue-50 to-white text-blue-700' },
-    {
+    ...(FEATURE_FLAGS.fluency ? [{ icon: Timer, title: 'Fluency Challenge', body: 'Improve speed and accuracy', to: '/student/mathpath/fluency', tone: 'from-blue-50 to-white text-blue-700' }] : []),
+    ...(FEATURE_FLAGS.assessments ? [{
       icon: Award,
       title: 'Mastery Check',
       body: assessmentGate.ready ? "Check if you're ready to level up" : ASSESSMENT_LOCK_MESSAGE,
       to: assessmentGate.ready ? '/student/mathpath/assessment' : null,
       tone: 'from-violet-50 to-white text-violet-700',
       disabled: !assessmentGate.ready,
-    },
+    }] : []),
   ];
 
   return (
@@ -694,13 +701,13 @@ function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual
       to: '/student/mathpath/mistakes',
       cta: 'Review',
     },
-    {
+    ...(FEATURE_FLAGS.fluency ? [{
       icon: Timer,
       title: 'Fluency Challenge',
       body: 'Do a short round to make fractions feel faster.',
       to: '/student/mathpath/fluency',
       cta: 'Start',
-    },
+    }] : []),
   ];
 
   return (
@@ -755,27 +762,44 @@ export default function StudentDashboard() {
     setError('');
     (async () => {
       try {
-        const studentId = user?.id || user?._id || 'demo-student';
-        const [latestResponse, analyticsResponse, profileResponse, timelineResponse] = useMock
-          ? [null, null, null, null]
+        const studentId = user?.id || user?._id || user?.email || (useMock ? 'mock-student' : '');
+        const [latestResponse, analyticsResponse, profileResponse, timelineResponse, masteryResponse] = useMock
+          ? [null, null, null, null, null]
           : await Promise.all([
               mathpathAPI.getLatestDiagnostic(),
               learningTelemetryAPI.studentAnalytics({ days: 7 }).catch(() => ({ data: null })),
               studentProfileAPI.summary().catch(() => ({ data: null })),
               studentProfileAPI.timeline().catch(() => ({ data: [] })),
+              mathpathAPI.mastery().catch(() => ({ data: null })),
             ]);
         const latest = latestResponse?.data || null;
+        const profile = profileResponse?.data || null;
+        const persistedMastery = masteryResponse?.data || {};
         const diagnosticResult = shapeLatestDiagnostic(latest);
-        const domainProgress = getMathPathDomainProgressState(studentId, 'fractions') || {};
+        const persistedRecords = Array.isArray(persistedMastery.records) ? persistedMastery.records : [];
+        const persistedMasteredSkillIds = persistedRecords
+          .filter((record) => ['mastered', 'accurate', 'fluent', 'retained'].includes(String(record.status || record.masteryState || '').toLowerCase()))
+          .map((record) => record.skillCode || record.skillId)
+          .filter(Boolean);
+        const persistedWeakSkillIds = [
+          ...persistedRecords
+            .filter((record) => ['needs_review', 'needsreview', 'weak', 'forgotten'].includes(String(record.status || record.masteryState || '').toLowerCase()))
+            .map((record) => record.skillCode || record.skillId),
+          ...(persistedMastery.weakSkills || []).map((row) => row?.skillCode || row?.skillId),
+        ].filter(Boolean);
         const masteredSkillIds = [
           ...(diagnosticResult.masteredSkillIds || []),
-          ...(domainProgress.masteredSkillIds || []),
+          ...persistedMasteredSkillIds,
         ];
-        const fluentSkillIds = domainProgress.fluentSkillIds || [];
         const weakSkillIds = [
           ...(diagnosticResult.weakSkillIds || []),
-          ...((domainProgress.weakSkills || []).map((row) => row?.skillId || row).filter(Boolean)),
+          ...persistedWeakSkillIds,
         ].filter((skillId) => !masteredSkillIds.includes(skillId));
+        const persistedRecommendedSkill = persistedMastery.recommended?.skillCode || persistedMastery.recommended?.target || '';
+        const persistedCurrentSkillId = profile?.currentSkillId
+          || (String(persistedRecommendedSkill).startsWith('F') ? persistedRecommendedSkill : '')
+          || diagnosticResult.recommendedStartingSkillId
+          || null;
         const result = useMock
           ? buildMockPipelinePayload(studentId)
           : runMathPathDomainPipeline({
@@ -784,17 +808,17 @@ export default function StudentDashboard() {
               mode: 'full',
               diagnosticResult,
               practiceState: {
-                currentSkillId: domainProgress.currentSkillId || diagnosticResult.recommendedStartingSkillId || null,
+                currentSkillId: persistedCurrentSkillId,
                 masteredSkillIds,
-                fluentSkillIds,
+                fluentSkillIds: [],
                 weakSkillIds,
-                lastSessionAt: domainProgress.lastSessionAt || diagnosticResult.completedAt || diagnosticResult.diagnosticCompletedAt || null,
+                lastSessionAt: diagnosticResult.completedAt || diagnosticResult.diagnosticCompletedAt || null,
               },
             });
         if (active) {
           setPayload(result);
           setAnalytics(analyticsResponse?.data || null);
-          setProfileSummary(profileResponse?.data || null);
+          setProfileSummary(profile || null);
           setLearningTimeline(Array.isArray(timelineResponse?.data) ? timelineResponse.data : []);
           const selected = result?.studentProgress?.nextRecommendedAction;
           if (selected?.skillId) {
@@ -862,7 +886,7 @@ export default function StudentDashboard() {
   const courseProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageMastered || 0)));
   const fluencyProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageFluent || 0)));
   const retainedProgress = Math.max(0, Math.min(100, Math.round(vm.masteryProgress?.percentageRetained || 0)));
-  const hasActivity = courseProgress > 0 || fluencyProgress > 0 || retainedProgress > 0;
+  const hasActivity = (learningTimeline || []).length > 0 || Number(profileSummary?.practiceSessions || 0) > 0 || Number(profileSummary?.questionsSolved || 0) > 0;
   const profileProgress = profileSummary?.progress || {};
   const totalSkills = Math.max(1, Number(profileProgress.total || vm.masteryProgress?.totalSkills || fractionSkillGraph.skillIds.length || 26));
   const masteredCount = Array.isArray(vm.masteryProgress?.masteredSkills)
@@ -871,8 +895,8 @@ export default function StudentDashboard() {
   const safeMasteredCount = Math.max(0, Math.min(totalSkills, Number.isFinite(Number(profileProgress.mastered)) ? Number(profileProgress.mastered) : masteredCount));
   const profilePercentage = Number(profileProgress.percentage);
   const displayProgress = Number.isFinite(profilePercentage) ? Math.max(0, Math.min(100, Math.round(profilePercentage))) : courseProgress;
-  const currentStreak = Number(profileSummary?.streak ?? (hasActivity ? 1 : 0));
-  const learningXp = Number(profileSummary?.xp ?? (safeMasteredCount * 120 + fluencyProgress * 4 + retainedProgress * 3));
+  const currentStreak = Number(profileSummary?.streak ?? 0);
+  const learningXp = Number(profileSummary?.xp ?? 0);
   const streakLabel = `${currentStreak} ${currentStreak === 1 ? 'day' : 'days'}`;
   const isUpperPrimaryDashboard = !isLowerPrimary(visual.mode) && !isSecondary(visual.mode);
   const displayStreak = Math.max(0, currentStreak);
@@ -881,14 +905,15 @@ export default function StudentDashboard() {
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: Array.from({ length: safeMasteredCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
   });
-  const currentSkillName = vm.currentSkill?.skillName || 'Equivalent Fractions';
+  const currentSkillName = vm.currentSkill?.skillName || (vm.hasPlacement ? 'Continue Practice' : 'Fractions Diagnostic');
   const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));
   const resetStudentState = async () => {
     if (!canResetStudentState || resetting) return;
     setResetting(true);
     try {
       await mathpathAPI.resetTestStudentState();
-      clearMathPathDomainProgressState(user?.id || user?._id || 'demo-student', 'fractions');
+      const studentId = user?.id || user?._id || user?.email || '';
+      if (studentId) clearMathPathDomainProgressState(studentId, 'fractions');
       window.location.reload();
     } catch (err) {
       setError(err?.response?.data?.error || 'Could not reset student state.');

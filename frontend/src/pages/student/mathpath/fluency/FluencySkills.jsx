@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ListChecks, Zap } from 'lucide-react';
 import { mathpathAPI, skillsAPI } from '../../../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, Spinner, CollapsibleSection } from '../../../../components/ui';
+import FEATURE_FLAGS from '../../../../config/featureFlags';
 
 const TONE = { mastered: 'success', fluent: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
 const PRIORITY_STATUSES = new Set(['learning', 'needs_review', 'not_started']);
@@ -64,6 +65,14 @@ export default function FluencySkills() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState(null);
+
+  if (!FEATURE_FLAGS.fluency) {
+    return (
+      <EmptyState icon={Zap} message="Fluency practice is not available yet. Continue learning to unlock it.">
+        <Button to="/student/mathpath" variant="secondary">Back to MathPath</Button>
+      </EmptyState>
+    );
+  }
 
   useEffect(() => {
     skillsAPI.list({ group: 'fluency' })

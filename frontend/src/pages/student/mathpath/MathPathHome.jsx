@@ -11,7 +11,7 @@ import {
   getPrerequisiteSkills,
   getRemediationSkillsForWeakPrerequisites,
 } from '../../../mathpath/curriculum';
-import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
+import FEATURE_FLAGS, { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
 import {
@@ -31,7 +31,7 @@ export default function MathPathHome() {
   const { user } = useAuth();
   const visualMode = resolveStudentVisualMode(user || {});
   const visualStyles = getVisualModeStyles(visualMode);
-  const studentId = user?._id || user?.id || user?.email || 'demo-student';
+  const studentId = user?._id || user?.id || user?.email || '';
   const [mastery, setMastery] = useState(null);
   const [topics, setTopics] = useState([]);
   const [domainProgress, setDomainProgress] = useState(null);
@@ -284,9 +284,10 @@ export default function MathPathHome() {
     completedSkillIds: masteredSkillIdsForGate,
     level: studentLevel || 'P5',
   });
-  const masteryCheckAvailable = assessmentGate.ready;
-  const showMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted && masteryCheckAvailable;
-  const showLockedMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted && !masteryCheckAvailable;
+  const assessmentPilotEnabled = FEATURE_FLAGS.assessments;
+  const masteryCheckAvailable = assessmentPilotEnabled && assessmentGate.ready;
+  const showMasteryCheck = assessmentPilotEnabled && hasPlacement && unitCompleted && !masteryCheckCompleted && masteryCheckAvailable;
+  const showLockedMasteryCheck = assessmentPilotEnabled && hasPlacement && unitCompleted && !masteryCheckCompleted && !masteryCheckAvailable;
   const showWarmup = hasPlacement && !showMasteryCheck && Boolean(quickWarmupSkillId) && (domainProgress?.weakSkills?.length || 0) > 0;
   const welcomeTitle = hasPlacement ? 'Welcome back' : 'Let’s find your starting point';
   const continueSkillId = currentFrameworkSkillId
@@ -399,7 +400,7 @@ export default function MathPathHome() {
             </p>
             <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={(!hasPlacement && startingDiagnostic) || showLockedMasteryCheck} onClick={() => {
               if (!hasPlacement) return startDiagnostic('baseline');
-              if (showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
+              if (assessmentPilotEnabled && showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
               return startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 });
             }}>
               {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : showLockedMasteryCheck ? 'Mastery Check Locked' : 'Continue Learning'}
@@ -454,7 +455,7 @@ export default function MathPathHome() {
             </div>
             <Button to="/student/mathpath/path" variant="secondary" className="mt-4 w-full border-mint-200 bg-white/80 text-success-700 hover:bg-mint-50">Explore</Button>
           </Card>
-          <Card className="flex h-full flex-col border-gold-100 bg-gradient-to-br from-gold-50 via-white to-yellow-50 p-4">
+          {assessmentPilotEnabled && <Card className="flex h-full flex-col border-gold-100 bg-gradient-to-br from-gold-50 via-white to-yellow-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gold-100 text-gold-700"><ClipboardCheck className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Test Mode</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Quick checks and topic tests.</p>
@@ -468,16 +469,16 @@ export default function MathPathHome() {
               {masteryCheckAvailable ? 'Open Test Mode' : 'Coming Soon'}
             </Button>
             {!masteryCheckAvailable && <p className="mt-2 text-xs font-semibold text-ink-500">{ASSESSMENT_LOCK_MESSAGE}</p>}
-          </Card>
-          <Card className="flex h-full flex-col border-sky-100 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-4">
+          </Card>}
+          {FEATURE_FLAGS.modelTrainer && <Card className="flex h-full flex-col border-sky-100 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-100 text-navy-700"><PencilLine className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Model Drawing</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Learn bar models for fraction word problems.</p>
             <Button to="/student/mathpath/fractions/model-trainer" variant="secondary" className="mt-4 w-full">
               Open Trainer
             </Button>
-          </Card>
-          {canTrainQuestionPatterns && (
+          </Card>}
+          {FEATURE_FLAGS.modelTrainer && canTrainQuestionPatterns && (
             <Card className="flex h-full flex-col border-violet-100 bg-gradient-to-br from-violet-50 via-white to-gold-50 p-4">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Wand2 className="h-6 w-6" /></span>
               <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Similar Questions</h3>
@@ -510,7 +511,7 @@ export default function MathPathHome() {
               {startingDiagnostic ? 'Starting…' : 'Start Fractions Check-In'}
             </Button>
           </div>
-        ) : showMasteryCheck ? (
+        ) : assessmentPilotEnabled && showMasteryCheck ? (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <h2 className="font-display text-xl font-semibold text-navy-700">Fractions Mastery Check</h2>
@@ -520,7 +521,7 @@ export default function MathPathHome() {
               Start Mastery Check
             </Button>
           </div>
-        ) : showLockedMasteryCheck ? (
+        ) : assessmentPilotEnabled && showLockedMasteryCheck ? (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <h2 className="font-display text-xl font-semibold text-navy-700">Fractions Mastery Check</h2>
@@ -583,9 +584,11 @@ export default function MathPathHome() {
         {!isEarlyLevel && hasPlacement && (
           <div className="mt-3 flex flex-wrap gap-2">
             <Button variant="secondary" size="m" to="/student/mathpath/path">Explore Skills</Button>
-            <Button variant="secondary" size="m" to={masteryCheckAvailable ? '/student/mathpath/assessment' : undefined} disabled={!masteryCheckAvailable}>
-              {masteryCheckAvailable ? 'Open Test Mode' : 'Mastery Check Locked'}
-            </Button>
+            {assessmentPilotEnabled && (
+              <Button variant="secondary" size="m" to={masteryCheckAvailable ? '/student/mathpath/assessment' : undefined} disabled={!masteryCheckAvailable}>
+                {masteryCheckAvailable ? 'Open Test Mode' : 'Mastery Check Locked'}
+              </Button>
+            )}
             {storyModeEnabled && (
               <Button
                 variant="secondary"
@@ -730,7 +733,7 @@ export default function MathPathHome() {
                     </div>
                   ) : (
                     <p className="text-xs text-ink-500">
-                      {skillPreviewError ? 'Question preview unavailable.' : 'No questions seeded yet.'}
+                      {skillPreviewError ? 'Question preview unavailable.' : 'Practice is not available for this skill yet.'}
                     </p>
                   )}
                   <div className="pt-2">
@@ -770,7 +773,7 @@ export default function MathPathHome() {
                             ))}
                           </div>
                         ) : (
-                          <p className="mt-1 text-xs text-ink-400">Not seeded yet</p>
+                          <p className="mt-1 text-xs text-ink-400">Practice will unlock later.</p>
                         )}
                       </div>
                     ))}

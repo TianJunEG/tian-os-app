@@ -383,7 +383,7 @@ export function getFractionsStoryTemplatesBySkill(skillId) {
   return STORY_TEMPLATES.filter((s) => s.skillId === normalized);
 }
 
-export function buildFractionsStorySession({ skillId = 'F025', studentId = 'demo-student' } = {}) {
+export function buildFractionsStorySession({ skillId = 'F025', studentId = '' } = {}) {
   const templates = getFractionsStoryTemplatesBySkill(skillId);
   const picked = templates.length ? templates[Math.floor(Math.random() * templates.length)] : STORY_TEMPLATES[0];
   const session = {

@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Lightbulb, Pencil, Sparkles } from 'lucide-react';
 import { Button, Card, ProgressBar } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import FractionAnswerInput, { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
@@ -17,6 +18,7 @@ import {
 } from '../../../mathpath/fractions/fractionStoryModeEngine';
 import { setMathPathDomainProgressState, getMathPathDomainProgressState } from '../../../mathpath/state/mathPathDomainProgressState';
 import StoryAudioControls from './story/StoryAudioControls';
+import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
 
 function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
   const denominator = Math.max(1, Number(model.denominator || 1));
@@ -163,7 +165,19 @@ export default function FractionsStoryModeSession() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
-  const studentId = location.state?.studentId || 'demo-student';
+  const { user } = useAuth();
+  const studentId = location.state?.studentId || user?._id || user?.id || user?.email || '';
+  if (!isFractionsStoryModeEnabled()) {
+    return (
+      <div className="mx-auto max-w-xl px-3 pt-3 sm:px-0">
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold text-ink-900">Story Mode is not available for this pilot yet</h2>
+          <p className="mt-2 text-sm text-ink-600">Continue learning in MathPath. Guided story missions will return after pilot QA.</p>
+          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
+        </Card>
+      </div>
+    );
+  }
   const rawSkillId = String(params.skillId || location.state?.skillId || 'F025').toUpperCase();
   const directSkillInvalid = Boolean(params.skillId) && !FRACTIONS_STORY_SUPPORTED_SKILLS.has(rawSkillId);
   const safeSkillId = FRACTIONS_STORY_SUPPORTED_SKILLS.has(rawSkillId) ? rawSkillId : 'F025';

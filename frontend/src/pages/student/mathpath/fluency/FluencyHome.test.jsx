@@ -21,41 +21,16 @@ vi.mock('../../../../services/api', () => ({
 }));
 
 describe('FluencyHome content state', () => {
-  it('does not show the empty state when usable fluency skills exist', async () => {
-    skillsAPI.list.mockResolvedValueOnce({
-      data: {
-        skills: [
-          {
-            skillId: 'skill_1',
-            name: 'Times tables',
-            topicName: 'Number Fluency',
-            status: 'learning',
-            statusLabel: 'needs practice',
-            score: 20,
-            availableQuestionCount: 12,
-          },
-        ],
-      },
-    });
-    mathpathAPI.mastery.mockResolvedValueOnce({ data: { recentMistakeCount: 0 } });
-    mathpathAPI.fluency.mockResolvedValueOnce({
-      data: {
-        fluentSkills: [],
-        developingSkills: [],
-        needsPracticeSkills: [],
-        emptyState: 'Complete more practice to begin fluency tracking.',
-      },
-    });
-    mathpathAPI.retention.mockResolvedValueOnce({ data: { upcomingReviews: [] } });
-
+  it('shows a safe pilot unavailable state when fluency is gated', async () => {
     render(
       <MemoryRouter>
         <FluencyHome />
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(screen.getAllByText('Times tables').length).toBeGreaterThan(0));
-    expect(screen.queryByText('No fluency practice is available yet. Continue learning to unlock fluency challenges.')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Start fluency session/i })).toBeInTheDocument();
+    expect(screen.getByText('Fluency practice is not available yet. Continue learning to unlock it.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Back to MathPath/i })).toBeInTheDocument();
+    expect(skillsAPI.list).not.toHaveBeenCalled();
+    expect(mathpathAPI.mastery).not.toHaveBeenCalled();
   });
 });

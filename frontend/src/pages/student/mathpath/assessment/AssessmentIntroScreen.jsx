@@ -12,6 +12,7 @@ import {
 } from '../../../../mathpath/fractions/fractionAssessmentReadinessGate';
 import { getMathPathDomainProgressState } from '../../../../mathpath/state/mathPathDomainProgressState';
 import { assessmentSpecificationAPI } from '../../../../services/api';
+import FEATURE_FLAGS from '../../../../config/featureFlags';
 
 const TYPES = ['baseline', 'progress', 'mastery', 'curriculum', 'mockPaper'];
 const TYPE_LABELS = {
@@ -62,8 +63,17 @@ export default function AssessmentIntroScreen() {
     notes: '',
   });
   const [error, setError] = useState('');
-  const studentId = user?._id || user?.id || user?.email || 'demo-student';
-  const domainProgress = getMathPathDomainProgressState(studentId, 'fractions') || {};
+
+  if (!FEATURE_FLAGS.assessments) {
+    return (
+      <EmptyState message="Test Mode is not available for this pilot yet. Continue learning in MathPath.">
+        <Button to="/student/mathpath" variant="secondary">Back to MathPath</Button>
+      </EmptyState>
+    );
+  }
+
+  const studentId = user?._id || user?.id || user?.email || '';
+  const domainProgress = studentId ? getMathPathDomainProgressState(studentId, 'fractions') || {} : {};
   const assessmentGate = useMemo(() => getFractionAssessmentBlueprintReadiness({
     completedSkillIds: [
       ...(domainProgress.masteredSkillIds || []),

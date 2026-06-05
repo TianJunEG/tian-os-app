@@ -9,6 +9,7 @@ import FractionExpressionQuestion, { extractFractionExpression } from './compone
 import { useAuth } from '../../../context/AuthContext';
 import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
 import { checkFractionAnswer } from '../../../mathpath/fractions/fractionQuestionGenerator';
+import FEATURE_FLAGS from '../../../config/featureFlags';
 
 const MODE_META = {
   i_do: { label: 'I Do', helper: 'Watch each model step.' },
@@ -676,6 +677,14 @@ export default function FractionsModelTrainer() {
   const [reflectionAnswer, setReflectionAnswer] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  if (!FEATURE_FLAGS.modelTrainer) {
+    return (
+      <EmptyState message="Model Trainer is not available for this pilot yet. Continue learning in MathPath.">
+        <Button to="/student/mathpath" variant="secondary">Back to MathPath</Button>
+      </EmptyState>
+    );
+  }
 
   useEffect(() => {
     let mounted = true;

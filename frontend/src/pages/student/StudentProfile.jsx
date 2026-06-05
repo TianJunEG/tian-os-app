@@ -58,8 +58,7 @@ function formatEventDate(date) {
 }
 
 function friendlyProfileError(err) {
-  const raw = String(err?.response?.data?.error || err?.message || '').trim();
-  if (!raw || /route not found/i.test(raw) || err?.response?.status === 404) {
+  if (err?.response?.status === 404) {
     return 'Unable to load profile.';
   }
   return 'Unable to load profile.';

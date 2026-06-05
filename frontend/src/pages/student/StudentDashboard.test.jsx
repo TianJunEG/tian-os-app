@@ -9,6 +9,7 @@ const studentAnalytics = vi.fn();
 const recordEvent = vi.fn();
 const profileSummary = vi.fn();
 const profileTimeline = vi.fn();
+const mastery = vi.fn();
 
 vi.mock('../../context/AuthContext', () => ({
   useAuth: () => ({
@@ -25,6 +26,7 @@ vi.mock('../../context/AuthContext', () => ({
 vi.mock('../../services/api', () => ({
   mathpathAPI: {
     getLatestDiagnostic: (...args) => getLatestDiagnostic(...args),
+    mastery: (...args) => mastery(...args),
     resetTestStudentState: vi.fn(),
   },
   studentProfileAPI: {
@@ -103,6 +105,18 @@ describe('StudentDashboard analytics cards', () => {
         },
       ],
     });
+    mastery.mockResolvedValue({
+      data: {
+        records: [
+          { skillCode: 'F001', status: 'mastered' },
+          { skillCode: 'F002', status: 'mastered' },
+          { skillCode: 'F003', status: 'mastered' },
+        ],
+        weakSkills: [],
+        recommended: { skillCode: 'F010', reason: 'Continue current skill' },
+        recentMistakeCount: 0,
+      },
+    });
   });
 
   it('renders real confidence and dashboard analytics from telemetry', async () => {
@@ -131,6 +145,8 @@ describe('StudentDashboard analytics cards', () => {
     expect(screen.getByText('Observation')).toBeInTheDocument();
     expect(screen.getByText('What it means')).toBeInTheDocument();
     expect(screen.getByText('Next step')).toBeInTheDocument();
+    expect(screen.queryByText('Fluency Challenge')).not.toBeInTheDocument();
+    expect(screen.queryByText('Mastery Check')).not.toBeInTheDocument();
     expect(screen.queryByText("Good job! You're improving.")).not.toBeInTheDocument();
     expect(recordEvent).toHaveBeenCalledWith(expect.objectContaining({
       eventType: 'recommendation_selected',
@@ -191,6 +207,14 @@ describe('StudentDashboard analytics cards', () => {
       },
     });
     profileTimeline.mockResolvedValue({ data: [] });
+    mastery.mockResolvedValue({
+      data: {
+        records: [],
+        weakSkills: [],
+        recommended: null,
+        recentMistakeCount: 0,
+      },
+    });
 
     renderDashboard();
 

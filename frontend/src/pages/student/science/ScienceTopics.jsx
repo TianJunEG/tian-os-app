@@ -89,7 +89,7 @@ export default function ScienceTopics() {
   return (
     <>
       <PageHeader title="Science topics" subtitle={studentLevel ? `Primary Science · ${studentLevel}` : 'Primary Science · pick a topic to revise'} />
-      {skills.length === 0 && <EmptyState icon={AlertTriangle} message="No Science topics yet. Run npm run seed:science." />}
+      {skills.length === 0 && <EmptyState icon={AlertTriangle} message="Science practice is not available yet. Continue learning and check back soon." />}
 
       {skills.length > 0 && (
         <div className="mb-5 flex flex-wrap items-center gap-2">
