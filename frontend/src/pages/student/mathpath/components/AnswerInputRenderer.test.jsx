@@ -36,13 +36,20 @@ const mixedNumberQuestion = {
   answer: { type: 'mixed', whole: 1, numerator: 3, denominator: 5, display: '1 3/5' },
 };
 
+function openFractionPopup() {
+  fireEvent.click(screen.getByRole('button', { name: 'Fraction' }));
+}
+
+function openMixedPopup() {
+  fireEvent.click(screen.getByRole('button', { name: 'Mixed Number' }));
+}
+
 describe('AnswerInputRenderer contextual math input', () => {
-  it('renders compact fraction input and contextual tools for F001', () => {
+  it('renders contextual tools and opens a structured fraction popup for F001', () => {
     render(<ControlledAnswer question={fractionQuestion} />);
 
     expect(screen.getByText('Answer as a fraction')).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Numerator' })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: 'Denominator' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Math answer value' })).toHaveTextContent('Tap to enter');
     expect(screen.getByRole('button', { name: 'Fraction' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Mixed Number' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Whole Number' })).toBeVisible();
@@ -50,14 +57,21 @@ describe('AnswerInputRenderer contextual math input', () => {
     expect(screen.queryByRole('button', { name: 'Root' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Exponent' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Angle' })).not.toBeInTheDocument();
+
+    openFractionPopup();
+    expect(screen.getByRole('textbox', { name: 'Numerator' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Denominator' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Insert' })).toBeVisible();
   });
 
   it('submits numerator and denominator as a fraction string', () => {
     const onSubmit = vi.fn();
     render(<ControlledAnswer question={fractionQuestion} onSubmit={onSubmit} />);
 
+    openFractionPopup();
     fireEvent.change(screen.getByRole('textbox', { name: 'Numerator' }), { target: { value: '1' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Denominator' }), { target: { value: '8' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Insert' }));
     fireEvent.click(screen.getByRole('button', { name: 'Submit answer' }));
 
     expect(onSubmit).toHaveBeenCalledWith('1/8');
@@ -66,22 +80,25 @@ describe('AnswerInputRenderer contextual math input', () => {
   it('clears numerator and denominator from the contextual toolbar', () => {
     render(<ControlledAnswer question={fractionQuestion} />);
 
+    openFractionPopup();
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     const denominator = screen.getByRole('textbox', { name: 'Denominator' });
     fireEvent.change(numerator, { target: { value: '1' } });
     fireEvent.change(denominator, { target: { value: '8' } });
     fireEvent.click(screen.getByRole('button', { name: 'Clear answer' }));
+    openFractionPopup();
 
-    expect(numerator).toHaveValue('');
-    expect(denominator).toHaveValue('');
+    expect(screen.getByRole('textbox', { name: 'Numerator' })).toHaveValue('');
+    expect(screen.getByRole('textbox', { name: 'Denominator' })).toHaveValue('');
   });
 
   it('switches between fraction and mixed number modes without losing values', () => {
     render(<ControlledAnswer question={fractionQuestion} />);
 
+    openFractionPopup();
     fireEvent.change(screen.getByRole('textbox', { name: 'Numerator' }), { target: { value: '7' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Denominator' }), { target: { value: '6' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Mixed Number' }));
+    openMixedPopup();
     fireEvent.change(screen.getByRole('textbox', { name: 'Whole number' }), { target: { value: '1' } });
 
     expect(screen.getByRole('textbox', { name: 'Whole number' })).toHaveValue('1');
@@ -93,13 +110,14 @@ describe('AnswerInputRenderer contextual math input', () => {
     expect(screen.getByRole('textbox', { name: 'Numerator' })).toHaveValue('7');
     expect(screen.getByRole('textbox', { name: 'Denominator' })).toHaveValue('6');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mixed Number' }));
+    openMixedPopup();
     expect(screen.getByRole('textbox', { name: 'Whole number' })).toHaveValue('1');
   });
 
   it('can switch to whole number mode and clear all fields', () => {
     render(<ControlledAnswer question={fractionQuestion} />);
 
+    openFractionPopup();
     fireEvent.change(screen.getByRole('textbox', { name: 'Numerator' }), { target: { value: '7' } });
     fireEvent.change(screen.getByRole('textbox', { name: 'Denominator' }), { target: { value: '6' } });
     fireEvent.click(screen.getByRole('button', { name: 'Whole Number' }));
@@ -118,6 +136,7 @@ describe('AnswerInputRenderer contextual math input', () => {
   it('fills numerator and denominator when pasting a fraction', () => {
     render(<ControlledAnswer question={fractionQuestion} />);
 
+    openFractionPopup();
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     fireEvent.paste(numerator, {
       clipboardData: { getData: () => '1/8' },
@@ -130,6 +149,7 @@ describe('AnswerInputRenderer contextual math input', () => {
   it('moves from numerator to denominator on Tab', () => {
     render(<ControlledAnswer question={fractionQuestion} />);
 
+    openFractionPopup();
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     const denominator = screen.getByRole('textbox', { name: 'Denominator' });
     numerator.focus();
@@ -138,7 +158,7 @@ describe('AnswerInputRenderer contextual math input', () => {
     expect(denominator).toHaveFocus();
   });
 
-  it('renders the fuller toolbar for expression answer formats', () => {
+  it('does not render the old raw-template toolbar for expression answer formats', () => {
     render(
       <ControlledAnswer
         question={{
@@ -151,16 +171,18 @@ describe('AnswerInputRenderer contextual math input', () => {
     );
 
     expect(screen.getByText('Expression answer')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Fraction' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Exponent' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Root' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Angle' })).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Fraction' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Exponent' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Root' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Angle' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeDisabled();
   });
 
   it('preserves a mixed number when the whole number is entered first', () => {
     const onSubmit = vi.fn();
     render(<ControlledAnswer question={mixedNumberQuestion} onSubmit={onSubmit} />);
 
+    openMixedPopup();
     const whole = screen.getByRole('textbox', { name: 'Whole number' });
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     const denominator = screen.getByRole('textbox', { name: 'Denominator' });
@@ -171,6 +193,7 @@ describe('AnswerInputRenderer contextual math input', () => {
     denominator.focus();
     fireEvent.change(denominator, { target: { value: '5' } });
     whole.focus();
+    fireEvent.click(screen.getByRole('button', { name: 'Insert' }));
 
     expect(whole).toHaveValue('2');
     expect(numerator).toHaveValue('3');
@@ -196,6 +219,7 @@ describe('AnswerInputRenderer contextual math input', () => {
   it('marks denominator zero as invalid in the input', () => {
     render(<ControlledAnswer question={fractionQuestion} />);
 
+    openFractionPopup();
     fireEvent.change(screen.getByRole('textbox', { name: 'Denominator' }), { target: { value: '0' } });
 
     expect(screen.getByRole('textbox', { name: 'Denominator' })).toHaveAttribute('aria-invalid', 'true');
@@ -205,6 +229,7 @@ describe('AnswerInputRenderer contextual math input', () => {
   it('preserves a mixed number when the numerator is entered first', () => {
     render(<ControlledAnswer question={mixedNumberQuestion} />);
 
+    openMixedPopup();
     const whole = screen.getByRole('textbox', { name: 'Whole number' });
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     const denominator = screen.getByRole('textbox', { name: 'Denominator' });
@@ -223,6 +248,7 @@ describe('AnswerInputRenderer contextual math input', () => {
   it('preserves a mixed number when the denominator is entered first', () => {
     render(<ControlledAnswer question={mixedNumberQuestion} />);
 
+    openMixedPopup();
     const whole = screen.getByRole('textbox', { name: 'Whole number' });
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     const denominator = screen.getByRole('textbox', { name: 'Denominator' });
@@ -241,6 +267,7 @@ describe('AnswerInputRenderer contextual math input', () => {
   it('does not clear mixed number fields when switching focus while partially complete', () => {
     render(<ControlledAnswer question={mixedNumberQuestion} />);
 
+    openMixedPopup();
     const whole = screen.getByRole('textbox', { name: 'Whole number' });
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     const denominator = screen.getByRole('textbox', { name: 'Denominator' });
@@ -260,6 +287,7 @@ describe('AnswerInputRenderer contextual math input', () => {
     const onSubmit = vi.fn();
     render(<ControlledAnswer question={mixedNumberQuestion} onSubmit={onSubmit} />);
 
+    openMixedPopup();
     const whole = screen.getByRole('textbox', { name: 'Whole number' });
     const numerator = screen.getByRole('textbox', { name: 'Numerator' });
     const denominator = screen.getByRole('textbox', { name: 'Denominator' });

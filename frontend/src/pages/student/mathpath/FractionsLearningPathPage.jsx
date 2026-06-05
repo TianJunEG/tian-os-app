@@ -13,6 +13,10 @@ import {
   getVisibleSkillsForStudentLevel,
 } from '../../../mathpath/curriculum';
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
+import {
+  ASSESSMENT_LOCK_MESSAGE,
+  getFractionAssessmentBlueprintReadiness,
+} from '../../../mathpath/fractions/fractionAssessmentReadinessGate';
 
 const STRAND_GROUPS = [
   { key: 'foundation', label: 'Foundation', ids: ['F001', 'F002', 'F003', 'F004', 'F005'] },
@@ -56,11 +60,13 @@ function statusTone(label) {
   return 'neutral';
 }
 
-function actionFromNext(nextAction) {
+function actionFromNext(nextAction, assessmentReady = false) {
   const action = String(nextAction?.action || 'continuePractice');
   if (action === 'startFluency') return { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' };
   if (action === 'completeRetentionReview') return { label: 'Review Due Skill', to: '/student/mathpath/practice/recommended-review' };
-  if (action === 'attemptAssessment') return { label: 'Start Assessment', to: '/student/mathpath/assessment' };
+  if (action === 'attemptAssessment') return assessmentReady
+    ? { label: 'Start Assessment', to: '/student/mathpath/assessment' }
+    : { label: 'Assessment Locked', to: '', disabled: true };
   if (action === 'uploadWorking') return { label: 'Upload Working', to: '/student/mathpath/working/upload' };
   if (action === 'followRemediationPlan') return { label: 'Practise This Skill', to: '/student/mathpath/practice/recommended-remediation' };
   if (action === 'advanceSkill') return { label: 'Move to Next Skill', to: '/student/mathpath/practice/recommended-next' };
@@ -78,7 +84,7 @@ function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, on
           <p className="mt-1 text-sm text-ink-500">{currentSkillName || 'Start your diagnostic'}</p>
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
-          <Button icon={ArrowRight} onClick={onPrimary}>{nextCta.label}</Button>
+          <Button icon={ArrowRight} onClick={onPrimary} disabled={nextCta.disabled}>{nextCta.label}</Button>
           {storyEnabled && (
             <Button
               variant="secondary"
@@ -170,8 +176,8 @@ function SkillStrandSection({ label, skills, onSkillAction }) {
   );
 }
 
-function NextActionPanel({ nextAction, onPrimary }) {
-  const cta = actionFromNext(nextAction);
+function NextActionPanel({ nextAction, onPrimary, assessmentReady }) {
+  const cta = actionFromNext(nextAction, assessmentReady);
   return (
     <Card className="p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -181,11 +187,11 @@ function NextActionPanel({ nextAction, onPrimary }) {
           </span>
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Next Action</p>
-            <p className="truncate text-sm font-semibold text-ink-700">{nextAction?.explanation || 'Continue your recommended Fractions step.'}</p>
+            <p className="truncate text-sm font-semibold text-ink-700">{cta.disabled ? ASSESSMENT_LOCK_MESSAGE : nextAction?.explanation || 'Continue your recommended Fractions step.'}</p>
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <Button className="w-full sm:w-auto" icon={ArrowRight} onClick={() => onPrimary(cta.to)}>{cta.label}</Button>
+          <Button className="w-full sm:w-auto" icon={ArrowRight} onClick={() => onPrimary(cta.to)} disabled={cta.disabled}>{cta.label}</Button>
         </div>
       </div>
     </Card>
@@ -344,9 +350,14 @@ export default function FractionsLearningPathPage() {
     );
   }
 
-  const nextCta = actionFromNext(nextAction);
+  const assessmentGate = getFractionAssessmentBlueprintReadiness({
+    completedSkillIds: Array.from(completedSet),
+    level: studentLevel,
+  });
+  const nextCta = actionFromNext(nextAction, assessmentGate.ready);
   const currentSkillName = displaySkillName(currentSkillId, skillById.get(currentSkillId)?.name || 'Fractions starter skill');
   const launchPrimary = (to = nextCta.to) => {
+    if (!to) return;
     if (String(to).startsWith('/student/mathpath/practice/')) {
       navigate(to, {
         state: {
@@ -374,7 +385,7 @@ export default function FractionsLearningPathPage() {
         onStory={() => navigate('/student/mathpath/fractions/story/F026')}
       />
 
-      <NextActionPanel nextAction={nextAction} onPrimary={launchPrimary} />
+      <NextActionPanel nextAction={nextAction} onPrimary={launchPrimary} assessmentReady={assessmentGate.ready} />
 
       {studentProgress.retentionProgress?.skillsDueForReview?.length ? (
         <Card className="p-3">

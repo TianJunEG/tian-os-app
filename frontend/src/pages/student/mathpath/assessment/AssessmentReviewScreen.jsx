@@ -213,9 +213,10 @@ export default function AssessmentReviewScreen() {
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Review Assessment" subtitle="Check your answers before final submission." />
       <Card className="p-5">
-        <div className="grid gap-3 sm:grid-cols-4 text-sm">
+        <div className="grid gap-3 sm:grid-cols-5 text-sm">
           <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Answered</p><p className="font-mono text-lg">{answered}</p></div>
           <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Unanswered</p><p className="font-mono text-lg">{unanswered}</p></div>
+          <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Confidence Missing</p><p className="font-mono text-lg">{missingConfidence}</p></div>
           <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Flagged</p><p className="font-mono text-lg">{flaggedCount}</p></div>
           <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Time Used</p><p className="font-mono text-lg">{Math.floor(totalTimeSeconds / 60)}:{String(totalTimeSeconds % 60).padStart(2, '0')}</p></div>
         </div>

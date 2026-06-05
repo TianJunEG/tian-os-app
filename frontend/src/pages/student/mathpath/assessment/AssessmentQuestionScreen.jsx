@@ -18,6 +18,7 @@ const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
   { value: 'not_sure', label: "I'm not sure" },
   { value: 'dont_know', label: "I don't know" },
+  { value: 'need_help', label: 'I need help' },
 ];
 const EMPTY_STROKES = [];
 
@@ -149,6 +150,29 @@ export default function AssessmentQuestionScreen() {
         )}
 
         <div className="mt-4">
+          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {REFLECTION_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  setConf((prev) => ({ ...prev, [q.questionId]: opt.value }));
+                  setHelpRequests((prev) => ({ ...prev, [q.questionId]: opt.value === 'need_help' }));
+                }}
+                className={`rounded-lg border px-3 py-2 text-sm font-semibold transition ${
+                  conf[q.questionId] === opt.value
+                    ? 'border-navy-500 bg-navy-50 text-navy-800'
+                    : 'border-hairline text-ink-600 hover:bg-slate-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
           <WorkingCanvas
             key={`assessment-working-${q.questionId}`}
             questionId={q.questionId}
@@ -175,40 +199,30 @@ export default function AssessmentQuestionScreen() {
           />
         </div>
 
-        <div className="mt-4">
-          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-          <div className="grid grid-cols-2 gap-2">
-            {REFLECTION_OPTIONS.map((opt) => (
-              <button key={opt.value} onClick={() => setConf((p) => ({ ...p, [q.questionId]: opt.value }))} className={`rounded-lg border px-3 py-2 text-sm ${conf[q.questionId] === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-3 rounded-lg border border-hairline p-3">
-            <WorkingEvidenceDecision
-              working={currentWorking}
-              requirementLevel={workingRequirementLevel}
-              onDeclareNotNeeded={(checked) => setWorkings((prev) => ({
-                ...prev,
-                [q.questionId]: {
-                  ...(prev[q.questionId] || {}),
-                  workingSubmitted: false,
-                  workingSubmittedAt: null,
-                  workingImage: '',
-                  workingStrokes: [],
-                  workingMathObjects: [],
-                  fullscreenWorkingImage: '',
-                  fullscreenWorkingStrokes: [],
-                  fullscreenWorkingMathObjects: [],
-                  fullscreenWorkingSubmitted: false,
-                  fullscreenWorkingSubmittedAt: null,
-                  workingEvidence: [],
-                  workingNotNeeded: checked,
-                  workingNotNeededAt: checked ? new Date().toISOString() : null,
-                },
-              }))}
-            />
-          </div>
+        <div className="mt-4 rounded-lg border border-hairline p-3">
+          <WorkingEvidenceDecision
+            working={currentWorking}
+            requirementLevel={workingRequirementLevel}
+            onDeclareNotNeeded={(checked) => setWorkings((prev) => ({
+              ...prev,
+              [q.questionId]: {
+                ...(prev[q.questionId] || {}),
+                workingSubmitted: false,
+                workingSubmittedAt: null,
+                workingImage: '',
+                workingStrokes: [],
+                workingMathObjects: [],
+                fullscreenWorkingImage: '',
+                fullscreenWorkingStrokes: [],
+                fullscreenWorkingMathObjects: [],
+                fullscreenWorkingSubmitted: false,
+                fullscreenWorkingSubmittedAt: null,
+                workingEvidence: [],
+                workingNotNeeded: checked,
+                workingNotNeededAt: checked ? new Date().toISOString() : null,
+              },
+            }))}
+          />
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">

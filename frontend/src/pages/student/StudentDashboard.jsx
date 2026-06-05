@@ -31,13 +31,19 @@ import {
   getMathPathDomainProgressState,
 } from '../../mathpath/state/mathPathDomainProgressState';
 import { buildStudentInsight, interpretConfidence } from '../../mathpath/insights/insightQualityEngine';
+import {
+  ASSESSMENT_LOCK_MESSAGE,
+  getFractionAssessmentBlueprintReadiness,
+} from '../../mathpath/fractions/fractionAssessmentReadinessGate';
 
-function actionMeta(nextAction = {}) {
+function actionMeta(nextAction = {}, assessmentReady = true) {
   const map = {
     continuePractice: { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' },
     startFluency: { label: 'Start Fluency Drill', to: '/student/mathpath/fluency' },
     completeRetentionReview: { label: 'Complete Review', to: '/student/mathpath' },
-    attemptAssessment: { label: 'Try Assessment', to: '/student/mathpath/assessment' },
+    attemptAssessment: assessmentReady
+      ? { label: 'Try Assessment', to: '/student/mathpath/assessment' }
+      : { label: 'Mastery Check Locked', to: '/student/mathpath', disabled: true },
     uploadWorking: { label: 'Upload Working', to: '/student/mathpath/working/upload?source=manual' },
     followRemediationPlan: { label: 'Start Practice', to: '/student/mathpath/practice/recommended-diagnostic' },
     advanceSkill: { label: 'Move To Next Skill', to: '/student/mathpath' },
@@ -186,8 +192,8 @@ function DecorativeMotifs({ enabled }) {
   );
 }
 
-function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual }) {
-  const action = actionMeta(nextAction);
+function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true }) {
+  const action = actionMeta(nextAction, assessmentReady);
   const primaryTo = hasPlacement ? action.to : '/student/mathpath/diagnostic';
   const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
     ? {
@@ -237,7 +243,7 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual }) {
             </div>
           </div>
           <div className="mt-5">
-            <Button to={primaryTo} state={primaryState} size={visual.styles.buttonSize} icon={ArrowRight} className="w-full sm:w-auto">
+            <Button to={action.disabled ? undefined : primaryTo} state={primaryState} size={visual.styles.buttonSize} icon={ArrowRight} className="w-full sm:w-auto" disabled={action.disabled}>
               {ctaLabel}
             </Button>
           </div>
@@ -290,8 +296,8 @@ function UpperPrimaryMissionArt() {
   );
 }
 
-function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
-  const action = actionMeta(nextAction);
+function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement, assessmentReady = true }) {
+  const action = actionMeta(nextAction, assessmentReady);
   const primaryTo = hasPlacement ? action.to : '/student/mathpath/diagnostic';
   const primaryState = hasPlacement && primaryTo.startsWith('/student/mathpath/practice/')
     ? {
@@ -322,7 +328,7 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
           <p className="mt-2 max-w-xl text-sm leading-6 text-ink-600 sm:mt-3">
             {reason}
           </p>
-          <Button to={primaryTo} state={primaryState} icon={ArrowRight} className="mt-3 w-full bg-violet-600 hover:bg-violet-700 sm:hidden">
+          <Button to={action.disabled ? undefined : primaryTo} state={primaryState} icon={ArrowRight} className="mt-3 w-full bg-violet-600 hover:bg-violet-700 sm:hidden" disabled={action.disabled}>
             Start Practice
           </Button>
           <div className="mt-3 grid grid-cols-3 gap-2 rounded-[16px] border border-violet-100 bg-white/80 p-3 text-sm sm:mt-5 sm:gap-3 sm:p-4">
@@ -339,7 +345,7 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement }) {
               <p className="mt-1 font-semibold text-ink-800">{time}</p>
             </div>
           </div>
-          <Button to={primaryTo} state={primaryState} icon={ArrowRight} className="mt-4 hidden w-full bg-violet-600 hover:bg-violet-700 sm:mt-5 sm:inline-flex sm:w-fit">
+          <Button to={action.disabled ? undefined : primaryTo} state={primaryState} icon={ArrowRight} className="mt-4 hidden w-full bg-violet-600 hover:bg-violet-700 sm:mt-5 sm:inline-flex sm:w-fit" disabled={action.disabled}>
             Start Practice
           </Button>
         </div>
@@ -529,8 +535,11 @@ function UpperPrimaryMetrics({ analytics }) {
   );
 }
 
-function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement }) {
-  const action = actionMeta(nextAction);
+function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0 }) {
+  const assessmentGate = getFractionAssessmentBlueprintReadiness({
+    completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
+  });
+  const action = actionMeta(nextAction, assessmentGate.ready);
   const continueState = hasPlacement
     ? {
         skillId: currentSkill?.skillId || null,
@@ -549,10 +558,18 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement })
       to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
       state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
       tone: 'from-emerald-50 to-white text-emerald-700',
+      disabled: action.disabled,
     },
     { icon: Search, title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'from-amber-50 to-white text-amber-700' },
     { icon: Timer, title: 'Fluency Challenge', body: 'Improve speed and accuracy', to: '/student/mathpath/fluency', tone: 'from-blue-50 to-white text-blue-700' },
-    { icon: Award, title: 'Mastery Check', body: "Check if you're ready to level up", to: '/student/mathpath/assessment', tone: 'from-violet-50 to-white text-violet-700' },
+    {
+      icon: Award,
+      title: 'Mastery Check',
+      body: assessmentGate.ready ? "Check if you're ready to level up" : ASSESSMENT_LOCK_MESSAGE,
+      to: assessmentGate.ready ? '/student/mathpath/assessment' : null,
+      tone: 'from-violet-50 to-white text-violet-700',
+      disabled: !assessmentGate.ready,
+    },
   ];
 
   return (
@@ -562,14 +579,14 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement })
         <p className="mt-1 text-sm text-ink-500">Choose one focused action. You don't need to do everything.</p>
       </div>
       <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map(({ icon: Icon, title, body, to, state, tone }) => (
+        {cards.map(({ icon: Icon, title, body, to, state, tone, disabled }) => (
           <Card key={title} className={`flex h-full flex-col rounded-[14px] bg-gradient-to-br p-4 shadow-sm ${tone}`}>
             <span className="grid h-14 w-14 place-items-center rounded-full bg-white/75 shadow-sm">
               <Icon className="h-7 w-7" />
             </span>
             <h3 className="mt-4 font-semibold text-navy-700">{title}</h3>
             <p className="mt-2 flex-1 text-sm leading-5 text-ink-700">{body}</p>
-            <Button to={to} state={state} size="s" icon={ArrowRight} className="mt-auto h-10 w-10 rounded-full px-0" aria-label={title} />
+            <Button to={disabled ? undefined : to} state={state} size="s" icon={ArrowRight} className="mt-auto h-10 w-10 rounded-full px-0" aria-label={title} disabled={disabled} />
           </Card>
         ))}
       </div>
@@ -648,8 +665,8 @@ function EncouragementBanner() {
   );
 }
 
-function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual }) {
-  const action = actionMeta(nextAction);
+function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual, assessmentReady = true }) {
+  const action = actionMeta(nextAction, assessmentReady);
   const continueState = hasPlacement
     ? {
         skillId: currentSkill?.skillId || null,
@@ -703,7 +720,7 @@ function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual
               <div className="flex min-w-0 flex-1 self-stretch flex-col">
                 <h3 className="font-semibold text-ink-900">{title}</h3>
                 {!isLowerPrimary(visual.mode) && <p className="mt-1 flex-1 text-sm leading-5 text-ink-500">{body}</p>}
-                <Button to={to} state={state} size={isLowerPrimary(visual.mode) ? 'm' : 's'} variant={primary ? 'primary' : 'secondary'} icon={ArrowRight} className="mt-auto">
+                <Button to={action.disabled && primary ? undefined : to} state={state} size={isLowerPrimary(visual.mode) ? 'm' : 's'} variant={primary ? 'primary' : 'secondary'} icon={ArrowRight} className="mt-auto" disabled={action.disabled && primary}>
                   {primary && isLowerPrimary(visual.mode) ? visual.styles.practiceCta : cta}
                 </Button>
               </div>
@@ -861,6 +878,9 @@ export default function StudentDashboard() {
   const displayStreak = Math.max(0, currentStreak);
   const displayXp = Math.max(0, Math.round(learningXp));
   const dashboardAnalytics = analytics || {};
+  const assessmentGate = getFractionAssessmentBlueprintReadiness({
+    completedSkillIds: Array.from({ length: safeMasteredCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
+  });
   const currentSkillName = vm.currentSkill?.skillName || 'Equivalent Fractions';
   const canResetStudentState = Boolean(user?.is_test_account || /^test\.student\d+@tianos\.test$/i.test(user?.email || ''));
   const resetStudentState = async () => {
@@ -900,7 +920,7 @@ export default function StudentDashboard() {
         </div>
 
         <section className="grid gap-5 xl:grid-cols-[2fr_1fr]">
-          <UpperPrimaryMissionCard currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} />
+          <UpperPrimaryMissionCard currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} assessmentReady={assessmentGate.ready} />
           <TodayHighlights
             streak={displayStreak}
             xp={displayXp}
@@ -914,7 +934,7 @@ export default function StudentDashboard() {
         <StudentLearningInsightCard analytics={dashboardAnalytics} currentSkill={vm.currentSkill} nextAction={vm.nextAction} />
 
         <section className="grid gap-5 xl:grid-cols-[2fr_0.95fr]">
-          <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} />
+          <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} masteredSkillCount={safeMasteredCount} />
           <RecentActivityCard activities={learningTimeline} />
         </section>
 
@@ -967,6 +987,7 @@ export default function StudentDashboard() {
         nextAction={vm.nextAction}
         hasPlacement={vm.hasPlacement}
         visual={visual}
+        assessmentReady={assessmentGate.ready}
       />
       <div className="mt-4">
         <StudentLearningInsightCard analytics={dashboardAnalytics} currentSkill={vm.currentSkill} nextAction={vm.nextAction} />
@@ -1007,6 +1028,7 @@ export default function StudentDashboard() {
           nextAction={vm.nextAction}
           hasPlacement={vm.hasPlacement}
           visual={visual}
+          assessmentReady={assessmentGate.ready}
       />
 
       {showDiagnosticPrompt && (

@@ -1,6 +1,7 @@
 import { fractionSkillGraph, getSkill } from './fractionSkillGraph.js';
 import { getQuestionFamily, getQuestionFamiliesBySkill } from './fractionQuestionFamilies.js';
 import { getSkillCurriculumMapping } from '../curriculum/curriculumMappingSelectors.js';
+import { buildFractionAssessmentMetadata } from './fractionAssessmentReadinessGate.js';
 
 const LEVEL_RANK = {
   P1: 1,
@@ -488,6 +489,7 @@ function inferAllowedInputTools(answerFormat) {
 }
 
 function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, allowedInputTools, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
+  const family = getQuestionFamily(questionFamilyId) || {};
   const primaryMapping = getSkillCurriculumMapping(skillId, {
     country: 'SG',
     curriculum: 'MOE_PRIMARY_MATH_2021',
@@ -498,6 +500,13 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
   });
   const workedSolution = Array.isArray(solutionSteps) ? solutionSteps.join(' ') : '';
   const answerFormat = inferAnswerInputType(answer);
+  const assessmentMetadata = buildFractionAssessmentMetadata({
+    skillId,
+    family,
+    difficulty,
+    mode,
+    singaporeLevel: primaryMapping?.level || primaryMapping?.introducedLevel || 'P5',
+  });
 
   const question = {
     questionId: makeId('fq', `${skillId}|${questionFamilyId}|${prompt}`),
@@ -505,7 +514,11 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     skillId,
     questionFamilyId,
     questionCategory: mode,
-    questionType: 'short_answer',
+    questionType: assessmentMetadata.questionType,
+    responseType: 'short_answer',
+    moeLevel: assessmentMetadata.moeLevel,
+    assessmentEligible: assessmentMetadata.assessmentEligible,
+    assessmentQuestionType: assessmentMetadata.questionType,
     prompt,
     answer,
     acceptedAnswers,
@@ -1230,7 +1243,7 @@ export function generateAssessmentQuestionSet(options = {}) {
         if (!/denominator/i.test(String(err?.message || ''))) throw err;
       }
     }
-    if (generated) out.push(generated);
+    if (generated?.assessmentEligible === true) out.push(generated);
   }
   return out.map((q) => ({ ...q, marks: q.marks || 2 }));
 }

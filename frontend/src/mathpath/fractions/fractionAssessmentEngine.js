@@ -2,6 +2,7 @@ import { fractionSkillGraph, getSkill } from './fractionSkillGraph.js';
 import { getQuestionFamily, getQuestionFamiliesBySkill } from './fractionQuestionFamilies.js';
 import { calculateQuestionFluency } from './fractionFluencyEngine.js';
 import { classifyFractionMistake, updatePracticeQueueFromMistake } from './fractionMistakeToMasteryEngine.js';
+import { isAssessmentEligibleFamily } from './fractionAssessmentReadinessGate.js';
 
 const ASSESSMENT_STORE = new Map();
 
@@ -102,6 +103,7 @@ export function selectAssessmentTargets(options = {}) {
 
   const questionFamilies = chosenSkills.flatMap((skillId) =>
     getQuestionFamiliesBySkill(skillId)
+      .filter((family) => isAssessmentEligibleFamily(skillId, family))
       .slice(0, assessmentType === 'mockPaper' ? 3 : 2)
       .map((f) => f.id)
   );

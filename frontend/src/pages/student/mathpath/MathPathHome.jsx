@@ -19,6 +19,10 @@ import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
+import {
+  ASSESSMENT_LOCK_MESSAGE,
+  getFractionAssessmentBlueprintReadiness,
+} from '../../../mathpath/fractions/fractionAssessmentReadinessGate';
 
 // MathPath home — current standing + the single recommended next action, then
 // the topic map. "One bright thing in the room": Start recommended practice.
@@ -271,7 +275,18 @@ export default function MathPathHome() {
     || null;
   const unitCompleted = Boolean(domainProgress?.unitCompleted);
   const masteryCheckCompleted = Boolean(domainProgress?.masteryCheckCompleted);
-  const showMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted;
+  const masteredSkillIdsForGate = [
+    ...mastered.map((row) => row?.skillId).filter(Boolean),
+    ...Array.from(placementMasteredSet),
+    ...(domainProgress?.masteredSkillIds || []),
+  ];
+  const assessmentGate = getFractionAssessmentBlueprintReadiness({
+    completedSkillIds: masteredSkillIdsForGate,
+    level: studentLevel || 'P5',
+  });
+  const masteryCheckAvailable = assessmentGate.ready;
+  const showMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted && masteryCheckAvailable;
+  const showLockedMasteryCheck = hasPlacement && unitCompleted && !masteryCheckCompleted && !masteryCheckAvailable;
   const showWarmup = hasPlacement && !showMasteryCheck && Boolean(quickWarmupSkillId) && (domainProgress?.weakSkills?.length || 0) > 0;
   const welcomeTitle = hasPlacement ? 'Welcome back' : 'Let’s find your starting point';
   const continueSkillId = currentFrameworkSkillId
@@ -382,13 +397,14 @@ export default function MathPathHome() {
                   ? 'Continue from your saved diagnostic placement.'
                   : 'A short check-in finds your best starting point.'}
             </p>
-            <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={!hasPlacement && startingDiagnostic} onClick={() => {
+            <Button className={`mt-5 w-full sm:w-auto ${visualStyles.primaryCta}`} size="l" icon={ArrowRight} disabled={(!hasPlacement && startingDiagnostic) || showLockedMasteryCheck} onClick={() => {
               if (!hasPlacement) return startDiagnostic('baseline');
               if (showMasteryCheck) return navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } });
               return startLearningSession({ skillId: practiceFallbackSkillId, sessionType: 'practice', questionCount: 10 });
             }}>
-              {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : 'Continue Learning'}
+              {!hasPlacement ? 'Start Fractions Check-In' : showMasteryCheck ? 'Start Mastery Check' : showLockedMasteryCheck ? 'Mastery Check Locked' : 'Continue Learning'}
             </Button>
+            {showLockedMasteryCheck && <p className="mt-3 text-sm font-semibold text-ink-600">{ASSESSMENT_LOCK_MESSAGE}</p>}
           </div>
         </div>
         <div className="mt-5">
@@ -443,14 +459,15 @@ export default function MathPathHome() {
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Test Mode</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Quick checks and topic tests.</p>
             <Button
-              to="/student/mathpath/assessment"
+              to={masteryCheckAvailable ? '/student/mathpath/assessment' : undefined}
               variant="secondary"
               className="mt-4 w-full"
-              disabled={!hasPlacement}
-              state={{ mode: 'test', options: ['Quick Check', 'Topic Test', 'Mini Paper'] }}
+              disabled={!hasPlacement || !masteryCheckAvailable}
+              state={masteryCheckAvailable ? { mode: 'test', options: ['Quick Check', 'Topic Test', 'Mini Paper'] } : undefined}
             >
-              Open Test Mode
+              {masteryCheckAvailable ? 'Open Test Mode' : 'Coming Soon'}
             </Button>
+            {!masteryCheckAvailable && <p className="mt-2 text-xs font-semibold text-ink-500">{ASSESSMENT_LOCK_MESSAGE}</p>}
           </Card>
           <Card className="flex h-full flex-col border-sky-100 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-100 text-navy-700"><PencilLine className="h-6 w-6" /></span>
@@ -501,6 +518,16 @@ export default function MathPathHome() {
             </div>
             <Button size="l" icon={ArrowRight} onClick={() => navigate('/student/mathpath/assessment', { state: { assessmentType: 'mastery' } })} className={`shrink-0 ${visualStyles.primaryCta}`}>
               Start Mastery Check
+            </Button>
+          </div>
+        ) : showLockedMasteryCheck ? (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-semibold text-navy-700">Fractions Mastery Check</h2>
+              <p className="mt-1 text-sm text-ink-600">{ASSESSMENT_LOCK_MESSAGE}</p>
+            </div>
+            <Button size="l" icon={ArrowRight} disabled className="shrink-0">
+              Locked
             </Button>
           </div>
         ) : recommended ? (
@@ -556,7 +583,9 @@ export default function MathPathHome() {
         {!isEarlyLevel && hasPlacement && (
           <div className="mt-3 flex flex-wrap gap-2">
             <Button variant="secondary" size="m" to="/student/mathpath/path">Explore Skills</Button>
-            <Button variant="secondary" size="m" to="/student/mathpath/assessment">Open Test Mode</Button>
+            <Button variant="secondary" size="m" to={masteryCheckAvailable ? '/student/mathpath/assessment' : undefined} disabled={!masteryCheckAvailable}>
+              {masteryCheckAvailable ? 'Open Test Mode' : 'Mastery Check Locked'}
+            </Button>
             {storyModeEnabled && (
               <Button
                 variant="secondary"

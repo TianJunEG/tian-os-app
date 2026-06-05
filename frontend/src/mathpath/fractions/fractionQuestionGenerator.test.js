@@ -2,11 +2,17 @@ import { describe, it, expect } from 'vitest';
 import {
   COUNTABLE_CONTEXT_NOUNS,
   generateFractionQuestion,
+  generateAssessmentQuestionSet,
   checkFractionAnswer,
   isWholeNumber,
   validateCountableFractionSequence,
   validateFractionQuestionGenerator,
 } from './fractionQuestionGenerator';
+import {
+  ASSESSMENT_LOCK_MESSAGE,
+  FRACTIONS_ASSESSMENT_BLUEPRINT,
+  getFractionAssessmentBlueprintReadiness,
+} from './fractionAssessmentReadinessGate';
 
 describe('fractionQuestionGenerator', () => {
   it('marks F001 as a fraction answer with compact fraction tools', () => {
@@ -197,6 +203,61 @@ describe('fractionQuestionGenerator', () => {
       expect(q.answer?.type).toBe('whole');
       expect(Number.isInteger(q.answer.whole)).toBe(true);
     }
+  });
+
+  it('marks assessment metadata and filters out non-eligible easy assessment questions', () => {
+    const easyRecognition = generateFractionQuestion({
+      skillId: 'F001',
+      questionFamilyId: 'QF_F001_001',
+      difficulty: 1,
+      variant: 1,
+      mode: 'assessment',
+    });
+    expect(easyRecognition).toMatchObject({
+      moeLevel: expect.any(String),
+      questionType: 'recognition',
+      assessmentEligible: false,
+    });
+
+    const conversion = generateFractionQuestion({
+      skillId: 'F014',
+      questionFamilyId: 'QF_F014_001',
+      difficulty: 3,
+      variant: 1,
+      mode: 'assessment',
+    });
+    expect(conversion).toMatchObject({
+      questionType: 'conversion_mixed_numbers',
+      assessmentEligible: true,
+    });
+
+    const questions = generateAssessmentQuestionSet({
+      assessmentSession: {
+        targetSkillIds: ['F001', 'F014', 'F018', 'F023', 'F026'],
+        targetQuestionFamilyIds: ['QF_F001_001', 'QF_F014_001', 'QF_F018_001', 'QF_F023_001', 'QF_F026_001'],
+      },
+      count: 10,
+    });
+    expect(questions.length).toBeGreaterThan(0);
+    expect(questions.every((question) => question.assessmentEligible === true)).toBe(true);
+    expect(questions.every((question) => Number(question.difficulty) >= 2)).toBe(true);
+    expect(questions.some((question) => Number(question.difficulty) >= 4)).toBe(true);
+  });
+
+  it('keeps the pilot mastery check gated until prerequisites are complete', () => {
+    expect(FRACTIONS_ASSESSMENT_BLUEPRINT.map((row) => row.weight)).toEqual([20, 20, 30, 20, 10]);
+    const locked = getFractionAssessmentBlueprintReadiness({
+      completedSkillIds: ['F001', 'F002', 'F003', 'F004'],
+    });
+    expect(locked.ready).toBe(false);
+    expect(locked.message).toBe(ASSESSMENT_LOCK_MESSAGE);
+
+    const ready = getFractionAssessmentBlueprintReadiness({
+      completedSkillIds: Array.from({ length: 20 }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
+    });
+    expect(ready.hasAssessmentQualityQuestions).toBe(true);
+    expect(ready.ready).toBe(true);
+    expect(ready.missingBlueprintSections).toEqual([]);
   });
 
   it('does not reference visual bars for F012 same-numerator comparisons without a diagram', () => {

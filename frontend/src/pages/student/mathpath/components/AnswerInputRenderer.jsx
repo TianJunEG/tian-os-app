@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import FractionAnswerInput, { shouldUseFractionAnswerInput } from './FractionAnswerInput';
-import MathToolbar, { FULL_MATH_TOOL_IDS } from './MathToolbar';
 
 function normalizeType(question = {}) {
   if (question.type === 'mcq') return 'multiple_choice';
@@ -68,25 +67,6 @@ function extractOrderingItems(question = {}) {
   return items.length >= 2 ? items : answerItems;
 }
 
-const MATH_INSERT_VALUES = {
-  fraction: '()/()',
-  subscript: '_{}',
-  power: '^{}',
-  subscriptPower: '_{}^{}',
-  mixed: ' ()/()',
-  root: '√()',
-  degree: '°',
-  angle: '∠',
-  pi: 'π',
-  theta: 'θ',
-};
-
-function allowedToolsForQuestion(question, fallback) {
-  return Array.isArray(question?.allowedInputTools) && question.allowedInputTools.length
-    ? question.allowedInputTools
-    : fallback;
-}
-
 function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
   const items = useMemo(() => extractOrderingItems(question), [question]);
   const parts = String(value || '').split(',').map((item) => item.trim());
@@ -127,7 +107,7 @@ export default function AnswerInputRenderer({
 }) {
   const type = normalizeType(question);
 
-  if (type === 'fraction' || type === 'mixed_number') {
+  if (type === 'fraction' || type === 'mixed_number' || type === 'whole_number') {
     return (
       <FractionAnswerInput
         question={question}
@@ -135,7 +115,8 @@ export default function AnswerInputRenderer({
         onChange={onChange}
         disabled={disabled}
         onEnter={onEnter}
-        allowWhole={type === 'mixed_number'}
+        allowWhole={type === 'mixed_number' || type === 'whole_number'}
+        initialMode={type === 'whole_number' ? 'whole' : type === 'mixed_number' ? 'mixed' : 'fraction'}
       />
     );
   }
@@ -146,16 +127,6 @@ export default function AnswerInputRenderer({
 
   const inputMode = type === 'decimal' ? 'decimal' : type === 'whole_number' ? 'numeric' : 'text';
   const label = type === 'decimal' ? 'Decimal answer' : type === 'whole_number' ? 'Whole number answer' : type === 'expression' ? 'Expression answer' : 'Answer';
-  const showMathTools = type === 'text' || type === 'expression';
-  const tools = allowedToolsForQuestion(question, FULL_MATH_TOOL_IDS);
-  const handleMathTool = (toolId) => {
-    if (disabled) return;
-    if (toolId === 'clear') {
-      onChange?.('');
-      return;
-    }
-    onChange?.(`${String(value || '')}${MATH_INSERT_VALUES[toolId] || ''}`);
-  };
   return (
     <div className="block">
       <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</span>
@@ -168,14 +139,16 @@ export default function AnswerInputRenderer({
         className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
       />
-      {showMathTools && (
-        <MathToolbar
-          disabled={disabled}
-          tools={tools}
-          onTool={handleMathTool}
-          label="Math answer insert tools"
-        />
-      )}
+      <div className="mt-2 flex justify-end">
+        <button
+          type="button"
+          disabled={disabled || !String(value || '').trim()}
+          onClick={() => onChange?.('')}
+          className="rounded-lg border border-hairline bg-white px-3 py-2 text-sm font-semibold text-navy-700 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          Clear
+        </button>
+      </div>
     </div>
   );
 }

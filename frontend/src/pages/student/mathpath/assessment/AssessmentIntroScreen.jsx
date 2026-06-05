@@ -2,9 +2,15 @@ import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
-import { Card, Button, PageHeader, Badge } from '../../../../components/ui';
+import { Card, Button, PageHeader, Badge, EmptyState } from '../../../../components/ui';
 import { buildFractionAssessmentSession } from '../../../../mathpath/fractions/fractionAssessmentEngine';
 import { generateAssessmentQuestionSet } from '../../../../mathpath/fractions/fractionQuestionGenerator';
+import {
+  ASSESSMENT_LOCK_MESSAGE,
+  ASSESSMENT_NOT_READY_MESSAGE,
+  getFractionAssessmentBlueprintReadiness,
+} from '../../../../mathpath/fractions/fractionAssessmentReadinessGate';
+import { getMathPathDomainProgressState } from '../../../../mathpath/state/mathPathDomainProgressState';
 import { assessmentSpecificationAPI } from '../../../../services/api';
 
 const TYPES = ['baseline', 'progress', 'mastery', 'curriculum', 'mockPaper'];
@@ -56,11 +62,21 @@ export default function AssessmentIntroScreen() {
     notes: '',
   });
   const [error, setError] = useState('');
+  const studentId = user?._id || user?.id || user?.email || 'demo-student';
+  const domainProgress = getMathPathDomainProgressState(studentId, 'fractions') || {};
+  const assessmentGate = useMemo(() => getFractionAssessmentBlueprintReadiness({
+    completedSkillIds: [
+      ...(domainProgress.masteredSkillIds || []),
+      ...(domainProgress.fluentSkillIds || []),
+      ...(domainProgress.retainedSkillIds || []),
+    ],
+    level,
+  }), [domainProgress.masteredSkillIds, domainProgress.fluentSkillIds, domainProgress.retainedSkillIds, level]);
 
   const preview = useMemo(() => {
     try {
       const s = buildFractionAssessmentSession({
-        studentId: user?._id || user?.id || user?.email || 'demo-student',
+        studentId,
         assessmentType,
         singaporeLevel: level,
         paperType,
@@ -69,7 +85,7 @@ export default function AssessmentIntroScreen() {
     } catch (_) {
       return null;
     }
-  }, [assessmentType, level, paperType, user]);
+  }, [assessmentType, level, paperType, studentId]);
 
   const ownerType = OWNER_TYPE_BY_ROLE[user?.role] || null;
 
@@ -134,9 +150,13 @@ export default function AssessmentIntroScreen() {
   };
 
   const start = () => {
+    if (!assessmentGate.ready) {
+      setError(assessmentGate.message || ASSESSMENT_NOT_READY_MESSAGE);
+      return;
+    }
     try {
       const session = buildFractionAssessmentSession({
-        studentId: user?._id || user?.id || user?.email || 'demo-student',
+        studentId,
         assessmentType,
         singaporeLevel: level,
         paperType,
@@ -144,7 +164,7 @@ export default function AssessmentIntroScreen() {
       const count = Math.max(8, Math.min(20, session.targetQuestionFamilyIds.length || 10));
       const questions = generateAssessmentQuestionSet({ assessmentSession: session, count });
       if (!questions.length) {
-        setError("We couldn't prepare this practice test yet. Try a different test type or start again.");
+        setError(ASSESSMENT_NOT_READY_MESSAGE);
         return;
       }
       navigate(`/student/mathpath/assessment/session/${session.assessmentSessionId}`, {
@@ -195,6 +215,14 @@ export default function AssessmentIntroScreen() {
     <div className="mx-auto max-w-2xl">
       <PageHeader title="Test Mode" subtitle="Choose a practice test or a school-aligned test." />
       <div className="space-y-4">
+        {!assessmentGate.ready && (
+          <EmptyState message={assessmentGate.message || ASSESSMENT_LOCK_MESSAGE}>
+            <p className="mx-auto max-w-md text-sm text-ink-500">
+              {ASSESSMENT_NOT_READY_MESSAGE} Test Mode will only use assessment-eligible Fractions questions with mixed difficulty.
+            </p>
+            <Button to="/student/mathpath" variant="secondary">Continue Practice</Button>
+          </EmptyState>
+        )}
         <Card className="p-4">
           <div className="grid gap-2 sm:grid-cols-2">
             <button type="button" onClick={() => setEntryMode('free')} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${entryMode === 'free' ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-600'}`}>
@@ -206,7 +234,7 @@ export default function AssessmentIntroScreen() {
           </div>
         </Card>
 
-        {entryMode === 'free' && (
+        {entryMode === 'free' && assessmentGate.ready && (
         <Card className="p-5">
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm text-ink-600">
@@ -338,7 +366,9 @@ export default function AssessmentIntroScreen() {
 
         {error && <Card className="p-3 text-sm text-error-700">{error}</Card>}
         {entryMode === 'free' ? (
-          <Button size="l" icon={ArrowRight} className="w-full" onClick={start}>Start Practice Test</Button>
+          <Button size="l" icon={ArrowRight} className="w-full" onClick={start} disabled={!assessmentGate.ready}>
+            {assessmentGate.ready ? 'Start Practice Test' : 'Assessment Not Ready'}
+          </Button>
         ) : (
           <Button size="l" icon={ArrowRight} className="w-full" onClick={startFromSpecification} disabled={!ownerType}>Start School-Aligned Test</Button>
         )}
