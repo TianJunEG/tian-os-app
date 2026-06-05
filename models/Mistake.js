@@ -13,11 +13,20 @@ const mistakeSchema = new mongoose.Schema({
   module: { type: String, default: 'MathPath' },
   // Snapshot of the question so the review screen renders without a join even if
   // the question is later edited/removed.
+  questionText: { type: String, default: '' },
   questionStem: { type: String, default: '' },
   workedSolution: { type: String, default: '' },
   studentAnswer: { type: String, default: '' },
   correctAnswer: { type: String, default: '' },
+  answerCorrect: { type: Boolean, default: false },
   confidence: { type: String, default: '' },
+  workingSubmitted: { type: Boolean, default: false },
+  workingOnPaper: { type: Boolean, default: false },
+  workingNotNeeded: { type: Boolean, default: false },
+  workingSessionId: { type: String, default: '', trim: true },
+  workingImage: { type: String, default: '' },
+  workingStrokes: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  timeTaken: { type: Number, default: null },
   workingId: { type: String, default: '', trim: true },
   remediationId: { type: String, default: '', trim: true },
   workingPreviewImage: { type: String, default: '' },
@@ -94,6 +103,7 @@ const mistakeSchema = new mongoose.Schema({
     enum: ['open', 'reviewed', 'resolved'],
     default: 'open'
   },
+  createdAt: { type: Date, default: Date.now },
   occurredAt: { type: Date, default: Date.now }
 });
 

@@ -53,15 +53,19 @@ function resolveMinimumQuestionCount({ adaptiveState = {}, maxQuestions = 10, do
 
 export function buildDiagnosticLifecycleLog({
   sessionId = '',
+  studentId = '',
   targetQuestions = 0,
-  questionsAnswered = 0,
+  answeredQuestions,
+  questionsAnswered,
   completionReason = COMPLETION_REASONS.IN_PROGRESS,
 } = {}) {
   const target = Math.max(0, Number(targetQuestions) || 0);
-  const answered = Math.max(0, Number(questionsAnswered) || 0);
+  const answered = Math.max(0, Number(answeredQuestions ?? questionsAnswered) || 0);
   return {
     sessionId,
+    studentId: String(studentId || ''),
     targetQuestions: target,
+    answeredQuestions: answered,
     questionsAnswered: answered,
     questionsRemaining: Math.max(0, target - answered),
     completionReason,
@@ -103,7 +107,7 @@ export function resolveDiagnosticCompletion({
   }
   if (generationFailed) {
     return {
-      sessionComplete: true,
+      sessionComplete: false,
       completionReason: COMPLETION_REASONS.QUESTION_GENERATION_FAILED,
       adaptiveStopDeferred: false,
     };
@@ -401,8 +405,9 @@ export async function startAdaptiveDiagnostic({
   }).filter((q) => q.skillId);
 
   const firstQuestion = mappedQuestions[0] || null;
+  const diagnosticSessionId = sessionCodeFor(domain.domainId);
   const doc = await MathPathDiagnosticSession.create({
-    diagnosticSessionId: sessionCodeFor(domain.domainId),
+    diagnosticSessionId,
     studentId: String(student._id),
     subjectId: domain.subjectId,
     domainId: domain.domainId,
@@ -423,6 +428,13 @@ export async function startAdaptiveDiagnostic({
       minimumQuestions,
       answeredCount: 0,
     },
+    lifecycleLog: buildDiagnosticLifecycleLog({
+      sessionId: diagnosticSessionId,
+      studentId: String(student._id),
+      targetQuestions: count,
+      answeredQuestions: 0,
+      completionReason: COMPLETION_REASONS.IN_PROGRESS,
+    }),
     status: 'inProgress',
     startedAt: new Date(),
     result: {
@@ -440,8 +452,9 @@ export async function startAdaptiveDiagnostic({
   const enrichmentOnly = ['P1', 'P2'].includes((levelTag || '').toUpperCase());
   logDiagnosticLifecycle({
     sessionId: doc.diagnosticSessionId,
+    studentId: String(student._id),
     targetQuestions: count,
-    questionsAnswered: 0,
+    answeredQuestions: 0,
     completionReason: COMPLETION_REASONS.IN_PROGRESS,
   });
   await recordLearningEvents([
@@ -783,6 +796,13 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     completionReason,
     questionsRemaining: Math.max(0, maxQuestions - answeredCount),
   };
+  session.lifecycleLog = buildDiagnosticLifecycleLog({
+    sessionId: session.diagnosticSessionId,
+    studentId: String(student._id),
+    targetQuestions: maxQuestions,
+    answeredQuestions: answeredCount,
+    completionReason,
+  });
 
   if (sessionComplete) {
     session.status = 'completed';
@@ -802,8 +822,9 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
   await session.save();
   const lifecycleLog = logDiagnosticLifecycle({
     sessionId: session.diagnosticSessionId,
+    studentId: String(student._id),
     targetQuestions: maxQuestions,
-    questionsAnswered: answeredCount,
+    answeredQuestions: answeredCount,
     completionReason,
   });
 
@@ -882,6 +903,25 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     );
   }
   await recordLearningEvents(telemetryEvents);
+
+  if (completionReason === COMPLETION_REASONS.QUESTION_GENERATION_FAILED) {
+    const err = new Error('We could not load the next diagnostic question. Please try again.');
+    err.status = 409;
+    err.code = 'DIAGNOSTIC_NEXT_QUESTION_FAILED';
+    err.payload = {
+      sessionId: session.diagnosticSessionId,
+      sessionComplete: false,
+      completionReason,
+      progress: {
+        answeredCount,
+        estimatedQuestionCount: maxQuestions,
+        questionsRemaining: lifecycleLog.questionsRemaining,
+        readinessScore,
+        completionReason,
+      },
+    };
+    throw err;
+  }
 
   return {
     isCorrect: correct,

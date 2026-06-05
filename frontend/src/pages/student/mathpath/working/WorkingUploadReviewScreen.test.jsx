@@ -13,6 +13,10 @@ vi.mock('../../../../services/api', () => ({
   },
 }));
 
+vi.mock('../../../../context/AuthContext', () => ({
+  useAuth: () => ({ user: { _id: 'student-working-test' } }),
+}));
+
 function MathPathLandingProbe() {
   const location = useLocation();
   return (
@@ -81,6 +85,23 @@ describe('WorkingUploadReviewScreen', () => {
     expect(screen.queryByText('Upload Success')).not.toBeInTheDocument();
   });
 
+  it('requires an uploaded page when student declared working was done on paper', async () => {
+    renderReview({
+      practiceSessionId: 'practice-1',
+      questionRefs: [
+        { questionId: 'q1', workingRequired: true, workingOnPaper: true },
+      ],
+      rawFiles: [],
+      files: [],
+      noWorkingChecked: {},
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Working' }));
+
+    await waitFor(() => expect(screen.getByText('Please upload working or mark working not needed for each required question before continuing.')).toBeInTheDocument());
+    expect(screen.queryByText('Upload Success')).not.toBeInTheDocument();
+  });
+
   it('uploads working and continues when the backend confirms saved metadata', async () => {
     const file = new File(['working page'], 'working.png', { type: 'image/png' });
     mathpathAPI.uploadWorking.mockResolvedValue({
@@ -107,6 +128,45 @@ describe('WorkingUploadReviewScreen', () => {
 
     await waitFor(() => expect(screen.getByText('Upload Success')).toBeInTheDocument());
     expect(mathpathAPI.uploadWorking).toHaveBeenCalledWith('work-1', expect.any(FormData));
+  });
+
+  it('creates a working session with the authenticated student id when route state has no student id', async () => {
+    const file = new File(['working page'], 'working.png', { type: 'image/png' });
+    mathpathAPI.createWorkingSession.mockResolvedValue({
+      data: {
+        workingSession: {
+          workingSessionId: 'work-auth-1',
+          fileMetadata: [],
+          questionWorkingMap: [{ questionId: 'q1', workingRequired: true }],
+        },
+      },
+    });
+    mathpathAPI.uploadWorking.mockResolvedValue({
+      data: {
+        workingSession: {
+          workingSessionId: 'work-auth-1',
+          fileMetadata: [{ originalName: 'working.png', storageRef: '/uploads/mathpath-working/work-auth-1/working.png' }],
+          questionWorkingMap: [{ questionId: 'q1', workingRequired: true }],
+          analysisStatus: 'pending_analysis',
+        },
+      },
+    });
+
+    renderReview({
+      practiceSessionId: 'practice-1',
+      questionRefs: [{ questionId: 'q1', skillId: 'F001', workingRequired: true }],
+      rawFiles: [file],
+      files: [{ id: 'page-1', file, name: 'working.png', type: 'image/png', size: file.size }],
+      noWorkingChecked: {},
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Working' }));
+
+    await waitFor(() => expect(screen.getByText('Upload Success')).toBeInTheDocument());
+    expect(mathpathAPI.createWorkingSession).toHaveBeenCalledWith(expect.objectContaining({
+      studentId: 'student-working-test',
+    }));
+    expect(mathpathAPI.uploadWorking).toHaveBeenCalledWith('work-auth-1', expect.any(FormData));
   });
 
   it('shows a retryable error and re-enables submit when upload fails', async () => {

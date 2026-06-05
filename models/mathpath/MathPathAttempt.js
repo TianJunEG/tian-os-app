@@ -53,6 +53,7 @@ const mathPathAttemptSchema = new mongoose.Schema(
     attemptNumber: { type: Number, default: 1 },
     workingExpected: { type: Boolean, default: false },
     workingUploaded: { type: Boolean, default: false },
+    workingOnPaper: { type: Boolean, default: false },
     workingSubmitted: { type: Boolean, default: false },
     workingSubmittedAt: { type: Date, default: null },
     workingImage: { type: String, default: '' },

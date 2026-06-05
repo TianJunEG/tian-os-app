@@ -43,6 +43,11 @@ import {
   listFractionsModelTrainerTemplates,
 } from '../services/mathpath/fractionsModelTrainer.js';
 import {
+  startFractionPracticeFlow,
+  submitFractionPracticeAttempt,
+} from '../frontend/src/mathpath/fractions/fractionPracticeFlow.js';
+import { fractionSkillGraph } from '../frontend/src/mathpath/fractions/fractionSkillGraph.js';
+import {
   approvePracticeSet,
   extractQuestionPattern,
   generateVariantsFromPattern,
@@ -88,6 +93,220 @@ function normalizeTimeSpentSeconds(value, questionStartedAt, questionEndedAt) {
   const end = toDateLike(questionEndedAt) || new Date();
   if (!start) return null;
   return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+}
+
+export function buildPracticeLifecycleLog({
+  sessionId = '',
+  studentId = '',
+  questionId = '',
+  attemptSaved = false,
+  mistakeCreated = false,
+  progressUpdated = false,
+  answeredQuestions = 0,
+  targetQuestions = 0,
+  completionReason = 'in_progress',
+} = {}) {
+  return {
+    sessionId: String(sessionId || ''),
+    studentId: String(studentId || ''),
+    questionId: String(questionId || ''),
+    attemptSaved: Boolean(attemptSaved),
+    mistakeCreated: Boolean(mistakeCreated),
+    progressUpdated: Boolean(progressUpdated),
+    answeredQuestions: Math.max(0, Number(answeredQuestions) || 0),
+    targetQuestions: Math.max(0, Number(targetQuestions) || 0),
+    completionReason,
+  };
+}
+
+function logPracticeLifecycle(payload = {}) {
+  const entry = buildPracticeLifecycleLog(payload);
+  console.info('[practice:lifecycle]', entry);
+  return entry;
+}
+
+async function resolveSkillObjectIdForCode(skillCode) {
+  if (!skillCode) return null;
+  const skill = await Skill.findOne({
+    $or: [
+      { 'metadata.mathPathSkillId': skillCode },
+      { 'metadata.frameworkCode': skillCode },
+      { slug: skillCode },
+      { name: skillCode },
+    ],
+  }).select('_id');
+  return skill?._id || null;
+}
+
+export function practiceAttemptDoc({ studentId, result, sessionId, sessionType, question = {} } = {}) {
+  const timing = calculateQuestionTiming({
+    ...result,
+    timeTaken: result.timeTaken,
+    timeSpentSeconds: result.timeTaken,
+    answerSubmittedAt: result.answeredAt || result.timestamp,
+  });
+  const workingSubmitted = Boolean(result.workingSubmitted || result.workingUploaded || result.fullscreenWorkingSubmitted);
+  return {
+    attemptId: result.attemptId || createLinkId('attempt'),
+    studentId,
+    domainId: 'fractions',
+    skillId: result.skillId || question.skillId || '',
+    questionFamilyId: result.questionFamilyId || question.questionFamilyId || '',
+    questionId: result.questionId,
+    sessionId,
+    sessionType,
+    answer: String(result.answer ?? result.studentAnswer ?? ''),
+    answerCorrect: Boolean(result.answerCorrect ?? result.correct),
+    studentAnswer: String(result.studentAnswer ?? result.answer ?? ''),
+    correctAnswer: String(result.correctAnswer ?? question.answer?.display ?? ''),
+    correct: Boolean(result.correct),
+    timeTaken: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+    timeSpentSeconds: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+    rawTimeSeconds: timing.rawTimeSeconds,
+    effectiveAnswerTimeSeconds: timing.effectiveAnswerTimeSeconds,
+    totalQuestionTimeSeconds: timing.totalQuestionTimeSeconds,
+    reviewTimeSeconds: timing.reviewTimeSeconds,
+    skillTimingSnapshot: timing,
+    confidence: String(result.confidence || result.confidenceLevel || result.reflection || ''),
+    confidenceLevel: String(result.confidenceLevel || result.confidence || result.reflection || ''),
+    reflection: String(result.reflection || result.confidence || ''),
+    helpRequested: Boolean(result.helpRequested),
+    confidenceCalibration: String(result.confidenceCalibration || ''),
+    possibleMisconception: Boolean(result.possibleMisconception),
+    skipped: Boolean(result.skipped),
+    timedOut: Boolean(result.timedOut),
+    questionStartedAt: toDateLike(result.questionStartedAt),
+    questionEndedAt: toDateLike(result.questionEndedAt) || toDateLike(result.answeredAt) || new Date(),
+    timestamp: toDateLike(result.timestamp) || toDateLike(result.answeredAt) || new Date(),
+    attemptNumber: Number(result.attemptNumber || 1),
+    workingExpected: true,
+    workingUploaded: Boolean(result.workingUploaded || workingSubmitted),
+    workingOnPaper: Boolean(result.workingOnPaper),
+    workingSubmitted,
+    workingSubmittedAt: toDateLike(result.workingSubmittedAt),
+    workingImage: String(result.workingImage || ''),
+    workingStrokes: Array.isArray(result.workingStrokes) ? result.workingStrokes : [],
+    workingMathObjects: Array.isArray(result.workingMathObjects) ? result.workingMathObjects : [],
+    workingNotNeeded: Boolean(result.workingNotNeeded),
+    workingRequirementLevel: ['LOW', 'MEDIUM', 'HIGH'].includes(String(result.workingRequirementLevel || '').toUpperCase())
+      ? String(result.workingRequirementLevel).toUpperCase()
+      : '',
+    fullscreenWorkingImage: String(result.fullscreenWorkingImage || ''),
+    fullscreenWorkingStrokes: Array.isArray(result.fullscreenWorkingStrokes) ? result.fullscreenWorkingStrokes : [],
+    fullscreenWorkingMathObjects: Array.isArray(result.fullscreenWorkingMathObjects) ? result.fullscreenWorkingMathObjects : [],
+    fullscreenWorkingSubmitted: Boolean(result.fullscreenWorkingSubmitted),
+    fullscreenWorkingSubmittedAt: toDateLike(result.fullscreenWorkingSubmittedAt),
+    workingEvidence: Array.isArray(result.workingEvidence) ? result.workingEvidence : [],
+    workingCode: String(result.workingCode || ''),
+    workingSessionId: String(result.workingSessionId || ''),
+    workingId: String(result.workingId || ''),
+  };
+}
+
+export function buildPracticeMistakeSnapshot({
+  student,
+  result = {},
+  question = {},
+  attempt = {},
+  sessionId = '',
+  skillObjectId = null,
+  mistakeTag = 'practice_error',
+} = {}) {
+  const questionText = String(question.prompt || question.stem || result.questionText || '').trim();
+  const studentAnswer = String(result.studentAnswer ?? result.answer ?? '').trim();
+  const correctAnswer = String(result.correctAnswer ?? question.answer?.display ?? '').trim();
+  return {
+    studentId: student?._id,
+    workspaceId: student?.workspaceId,
+    questionId: result.questionId,
+    sessionId,
+    attemptId: attempt?.attemptId || result.attemptId || '',
+    skillId: skillObjectId || null,
+    skillCode: result.skillId || question.skillId || '',
+    module: 'MathPath',
+    questionText,
+    questionStem: questionText,
+    workedSolution: Array.isArray(question.solutionSteps) ? question.solutionSteps.join('\n') : '',
+    studentAnswer,
+    correctAnswer,
+    answerCorrect: Boolean(result.answerCorrect ?? result.correct),
+    confidence: String(result.confidence || result.confidenceLevel || result.reflection || ''),
+    workingSubmitted: Boolean(result.workingSubmitted),
+    workingOnPaper: Boolean(result.workingOnPaper),
+    workingNotNeeded: Boolean(result.workingNotNeeded),
+    workingSessionId: String(result.workingSessionId || ''),
+    workingId: String(result.workingId || result.workingSessionId || ''),
+    workingImage: String(result.workingImage || result.fullscreenWorkingImage || ''),
+    workingPreviewImage: String(result.workingImage || result.fullscreenWorkingImage || ''),
+    workingStrokes: Array.isArray(result.workingStrokes) ? result.workingStrokes : [],
+    timeTaken: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+    mistakeType: 'unknown',
+    misconceptionTag: mistakeTag,
+    status: 'open',
+    source: 'practice-incorrect',
+    occurredAt: new Date(),
+    timestamp: new Date(),
+    createdAt: new Date(),
+  };
+}
+
+export function shouldCreatePracticeMistake(result = {}) {
+  return Boolean(result && !result.correct && !result.error);
+}
+
+function normalizeSkillGraphStatus(status = '') {
+  const value = String(status || '').toLowerCase();
+  if (['mastered', 'accurate', 'fluent', 'retained'].includes(value)) return 'mastered';
+  if (['needsreview', 'needs_review', 'weak', 'forgotten'].includes(value)) return 'needs_review';
+  if (['learning', 'in_progress'].includes(value)) return 'learning';
+  return 'not_started';
+}
+
+function buildFractionsGraphTopicsFromAuthoredMap() {
+  const topicsByName = new Map();
+  for (const skill of fractionSkillGraph.skills || []) {
+    const topicName = skill.strand || 'Fractions';
+    if (!topicsByName.has(topicName)) {
+      topicsByName.set(topicName, {
+        topicId: `fractions-${topicName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+        name: topicName,
+        moeLevel: 'P4 Fractions',
+        skills: [],
+      });
+    }
+    topicsByName.get(topicName).skills.push({
+      _id: skill.id,
+      skillId: skill.id,
+      name: skill.name,
+      moeLevel: Array.isArray(skill.singaporeLevel) ? skill.singaporeLevel.join(', ') : 'P4',
+      prerequisiteSkillIds: skill.prerequisites || [],
+    });
+  }
+  return [...topicsByName.values()];
+}
+
+export function buildFractionsPersistedSkillGraphView(skillStates = []) {
+  const recordsBySkill = new Map();
+  for (const row of skillStates || []) {
+    recordsBySkill.set(String(row.skillId), {
+      status: normalizeSkillGraphStatus(row.status),
+      score: row.accuracy || 0,
+      attempts: row.attemptCount || 0,
+      lastPracticedAt: row.lastPractisedAt || null,
+      fluencyStatus: row.fluencyLevel || 'unknown',
+      streak: 0,
+    });
+  }
+  const masteredIds = new Set(
+    (skillStates || [])
+      .filter((row) => normalizeSkillGraphStatus(row.status) === 'mastered')
+      .map((row) => String(row.skillId))
+  );
+  return buildSkillGraphView({
+    topics: buildFractionsGraphTopicsFromAuthoredMap(),
+    recordsBySkill,
+    masteredIds,
+  });
 }
 
 export function buildResetStudentStateDeletionPlan({ studentId, studentObjectId, mathPathSessionIds = [] } = {}) {
@@ -141,6 +360,299 @@ router.get('/fractions/model-trainer/:templateId', protect, async (req, res) => 
     res.json({ template });
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load model trainer template.' });
+  }
+});
+
+router.post('/fractions/practice/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const started = startFractionPracticeFlow({
+      studentId,
+      domainId: 'fractions',
+      sessionType: req.body?.sessionType || 'practice',
+      requestedSkillId: req.body?.skillId || req.body?.requestedSkillId || null,
+      requestedQuestionFamilyId: req.body?.questionFamilyId || null,
+      sessionLength: req.body?.questionCount || req.body?.sessionLength || 6,
+      weakSkillIds: Array.isArray(req.body?.weakSkillIds) ? req.body.weakSkillIds : [],
+      recentMistakeTypes: Array.isArray(req.body?.recentMistakeTypes) ? req.body.recentMistakeTypes : [],
+    });
+    const lifecycleLog = buildPracticeLifecycleLog({
+      sessionId: started.practiceSessionId,
+      studentId,
+      targetQuestions: started.questions?.length || 0,
+      completionReason: 'in_progress',
+    });
+    await MathPathPracticeSession.findOneAndUpdate(
+      { practiceSessionId: started.practiceSessionId },
+      {
+        $setOnInsert: {
+          practiceSessionId: started.practiceSessionId,
+          studentId,
+          domainId: 'fractions',
+          targetSkillId: started.targetSkillId || '',
+          targetQuestionFamilyIds: started.targetQuestionFamilyIds || [],
+          workingSessionId: started.workingSessionId || '',
+          sessionGoal: started.sessionLabel || 'Practice',
+          estimatedQuestionCount: started.questions?.length || 0,
+          workingExpected: Boolean(started.workingExpected),
+          questions: started.questions || [],
+          responses: [],
+          status: 'inProgress',
+          startedAt: new Date(),
+        },
+        $set: { lifecycleLog },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    logPracticeLifecycle(lifecycleLog);
+    await recordLearningEvents([
+      {
+        studentId,
+        eventType: 'session_started',
+        domain: 'fractions',
+        sessionId: started.practiceSessionId,
+        metadata: { source: 'mathpath_practice', sessionType: started.sessionType, targetSkillId: started.targetSkillId },
+      },
+      {
+        studentId,
+        eventType: 'practice_started',
+        domain: 'fractions',
+        sessionId: started.practiceSessionId,
+        metadata: { source: 'mathpath_practice', sessionType: started.sessionType, targetSkillId: started.targetSkillId },
+      },
+    ]);
+    res.json({ ...started, studentId, persisted: true, lifecycleLog });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start practice.' });
+  }
+});
+
+router.get('/fractions/practice/:practiceSessionId', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const session = await MathPathPracticeSession.findOne({
+      practiceSessionId: req.params.practiceSessionId,
+      studentId: String(student._id),
+      domainId: 'fractions',
+    }).lean();
+    if (!session) return res.status(404).json({ error: 'Practice session not found.' });
+    res.json({
+      practiceSessionId: session.practiceSessionId,
+      studentId: session.studentId,
+      domainId: session.domainId,
+      targetSkillId: session.targetSkillId,
+      targetQuestionFamilyIds: session.targetQuestionFamilyIds || [],
+      workingSessionId: session.workingSessionId || '',
+      sessionType: session.summary?.sessionType || 'practice',
+      questions: session.questions || [],
+      responses: session.responses || [],
+      status: session.status,
+      summary: session.summary || {},
+      lifecycleLog: session.lifecycleLog || {},
+      startedAt: session.startedAt,
+      completedAt: session.completedAt,
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load practice session.' });
+  }
+});
+
+router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({
+      practiceSessionId: req.params.practiceSessionId,
+      studentId,
+      domainId: 'fractions',
+    });
+    if (!existing) return res.status(404).json({ error: 'Practice session not found.' });
+    if (existing.status === 'completed' && existing.summary?.results?.length) {
+      return res.json({ ...existing.summary, persisted: true, duplicateIgnored: true, lifecycleLog: existing.lifecycleLog || {} });
+    }
+
+    const submitted = submitFractionPracticeAttempt({
+      practiceSessionId: req.params.practiceSessionId,
+      studentId,
+      sessionType: req.body?.sessionType || existing.summary?.sessionType || 'practice',
+      responses: Array.isArray(req.body?.responses) ? req.body.responses : [],
+    });
+    const results = submitted.results || [];
+    const questionsById = new Map((existing.questions || []).map((question) => [String(question.questionId), question]));
+    const attemptDocs = results
+      .filter((result) => result.questionId && !result.error)
+      .map((result) => practiceAttemptDoc({
+        studentId,
+        result,
+        sessionId: req.params.practiceSessionId,
+        sessionType: submitted.sessionType || 'practice',
+        question: questionsById.get(String(result.questionId)) || {},
+      }));
+    let attemptSaved = false;
+    if (attemptDocs.length) {
+      const write = await MathPathAttempt.bulkWrite(
+        attemptDocs.map((doc) => ({
+          updateOne: {
+            filter: { attemptId: doc.attemptId },
+            update: { $setOnInsert: doc },
+            upsert: true,
+          },
+        })),
+        { ordered: false }
+      );
+      attemptSaved = Boolean((write.upsertedCount || 0) + (write.matchedCount || 0));
+    }
+
+    const wrongResults = results.filter(shouldCreatePracticeMistake);
+    const skillObjectIds = new Map();
+    await Promise.all([...new Set(wrongResults.map((result) => result.skillId).filter(Boolean))]
+      .map(async (skillCode) => {
+        skillObjectIds.set(skillCode, await resolveSkillObjectIdForCode(skillCode));
+      }));
+    const createdMistakes = [];
+    for (const result of wrongResults) {
+      const question = questionsById.get(String(result.questionId)) || {};
+      const attempt = attemptDocs.find((doc) => doc.questionId === result.questionId);
+      const mistakeTag = result.misconceptionTag || result.mistakeCode || 'practice_error';
+      await MathPathMistakeRecord.findOneAndUpdate(
+        {
+          studentId,
+          domainId: 'fractions',
+          mistakeCode: mistakeTag,
+          skillId: result.skillId || question.skillId || '',
+          questionFamilyId: result.questionFamilyId || question.questionFamilyId || '',
+        },
+        {
+          $inc: { frequency: 1 },
+          $set: {
+            mistakeName: mistakeTag,
+            severity: result.confidence === 'i_know_this' ? 'high' : 'medium',
+            lastSeenAt: new Date(),
+          },
+          $push: {
+            evidence: {
+              source: 'practice-incorrect',
+              questionId: result.questionId,
+              sessionId: req.params.practiceSessionId,
+              attemptId: attempt?.attemptId || result.attemptId || '',
+              prompt: question.prompt || question.stem || '',
+              studentAnswer: result.studentAnswer || result.answer || '',
+              correctAnswer: result.correctAnswer || question.answer?.display || '',
+              answerCorrect: false,
+              confidence: result.confidence || '',
+              workingSubmitted: Boolean(result.workingSubmitted),
+              workingOnPaper: Boolean(result.workingOnPaper),
+              workingNotNeeded: Boolean(result.workingNotNeeded),
+              workingSessionId: String(result.workingSessionId || ''),
+              workingImage: String(result.workingImage || result.fullscreenWorkingImage || ''),
+              workingStrokes: Array.isArray(result.workingStrokes) ? result.workingStrokes : [],
+              timeTaken: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+              seenAt: new Date(),
+            },
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      const sharedMistake = await Mistake.findOneAndUpdate(
+        { studentId: student._id, attemptId: attempt?.attemptId || '', module: 'MathPath' },
+        {
+          $setOnInsert: buildPracticeMistakeSnapshot({
+            student,
+            result,
+            question,
+            attempt,
+            sessionId: req.params.practiceSessionId,
+            skillObjectId: skillObjectIds.get(result.skillId) || null,
+            mistakeTag,
+          }),
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+      createdMistakes.push(sharedMistake);
+    }
+
+    const bySkill = results.filter((result) => !result.error).reduce((acc, result) => {
+      const skillId = result.skillId || '';
+      if (!skillId) return acc;
+      if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 };
+      acc[skillId].total += 1;
+      if (result.correct) acc[skillId].correct += 1;
+      return acc;
+    }, {});
+    await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
+      const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
+      const set = {
+        status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview',
+        accuracy,
+        lastPractisedAt: new Date(),
+      };
+      if (accuracy >= 90) set.masteredAt = new Date();
+      return MathPathStudentSkillState.findOneAndUpdate(
+        { studentId, domainId: 'fractions', skillId },
+        { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    }));
+    const progressUpdated = Object.keys(bySkill).length > 0;
+    const lifecycleLog = buildPracticeLifecycleLog({
+      sessionId: req.params.practiceSessionId,
+      studentId,
+      questionId: results.at(-1)?.questionId || '',
+      attemptSaved,
+      mistakeCreated: createdMistakes.length > 0,
+      progressUpdated,
+      answeredQuestions: results.length,
+      targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length,
+      completionReason: 'target_reached',
+    });
+
+    const summary = { ...submitted, persisted: true, lifecycleLog };
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = req.body?.responses || [];
+    existing.summary = summary;
+    existing.lifecycleLog = lifecycleLog;
+    await existing.save();
+    logPracticeLifecycle(lifecycleLog);
+
+    await recordLearningEvents([
+      ...attemptDocs.map((attempt) => ({
+        studentId,
+        eventType: attempt.skipped ? 'question_skipped' : 'question_answered',
+        domain: 'fractions',
+        skillCode: attempt.skillId,
+        questionId: attempt.questionId,
+        sessionId: req.params.practiceSessionId,
+        metadata: {
+          answerCorrect: attempt.correct,
+          confidence: normalizeConfidence(attempt.confidence),
+          timeTakenSeconds: attempt.timeTaken,
+          workingSubmitted: attempt.workingSubmitted,
+          workingOnPaper: attempt.workingOnPaper,
+          workingNotNeeded: attempt.workingNotNeeded,
+          skipped: attempt.skipped,
+        },
+      })),
+      {
+        studentId,
+        eventType: 'session_completed',
+        domain: 'fractions',
+        sessionId: req.params.practiceSessionId,
+        metadata: { source: 'mathpath_practice', total: results.length, correct: results.filter((r) => r.correct).length },
+      },
+      {
+        studentId,
+        eventType: 'practice_completed',
+        domain: 'fractions',
+        sessionId: req.params.practiceSessionId,
+        metadata: { source: 'mathpath_practice', total: results.length, correct: results.filter((r) => r.correct).length },
+      },
+    ]);
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit practice.' });
   }
 });
 
@@ -1009,6 +1521,7 @@ router.get('/diagnostic/latest', protect, async (req, res) => {
       mode: latest.mode,
       studentLevel: latest.studentLevel,
       completionReason: latest.completionReason || latest.result?.completionReason || '',
+      lifecycleLog: latest.lifecycleLog || {},
       completedAt: latest.completedAt,
       lastSessionAt: latest.completedAt,
       timingAnalytics: latest.diagnosticSessionId
@@ -1109,6 +1622,7 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
       studentLevel: session.studentLevel,
       status: session.status,
       completionReason: session.completionReason || session.result?.completionReason || '',
+      lifecycleLog: session.lifecycleLog || {},
       timingAnalytics: await studentMathPathTimingAnalytics(student._id, { sessionId: session.diagnosticSessionId }),
       result: session.result || {},
       completedAt: session.completedAt,
@@ -1184,22 +1698,8 @@ router.get('/analytics', protect, async (req, res) => {
 router.get('/graph', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
-    const empty = { total: 0, mastered: 0, inProgress: 0, notStarted: 0, locked: 0, ready: 0, avgScore: 0 };
-    const math = await Subject.findOne({ key: 'math' });
-    if (!math) return res.json({ studentId: student._id, summary: empty, readyNext: [], topics: [] });
-
-    const topics = await Topic.find({ subjectId: math._id }).sort({ order: 1 });
-    const skills = await Skill.find({ topicId: { $in: topics.map((t) => t._id) } }).sort({ order: 1 });
-    const records = await MasteryRecord.find({ studentId: student._id, module: 'MathPath' });
-    const recordsBySkill = new Map(records.map((r) => [String(r.skillId), r]));
-    // Mastered & fresh only — stale mastery shouldn't count as a met prerequisite.
-    const masteredIds = new Set(records.filter((r) => r.status === 'mastered' && !isStale(r)).map((r) => String(r.skillId)));
-
-    const topicsWithSkills = topics.map((t) => ({
-      topicId: t._id, name: t.name, moeLevel: t.moeLevel,
-      skills: skills.filter((s) => String(s.topicId) === String(t._id)),
-    }));
-    const view = buildSkillGraphView({ topics: topicsWithSkills, recordsBySkill, masteredIds });
+    const skillStates = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: 'fractions' }).lean();
+    const view = buildFractionsPersistedSkillGraphView(skillStates);
 
     res.json({ studentId: student._id, ...view });
   } catch (err) {

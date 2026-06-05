@@ -15,6 +15,35 @@ const MISCONCEPTION_LABELS = {
   'frac/add-denominators': 'Added numerators and denominators directly',
 };
 
+export function isHighConfidence(confidence = '') {
+  return ['high', 'i_know_this', 'very_confident', 'confident'].includes(String(confidence || '').toLowerCase());
+}
+
+export function buildWeakSkillAggregation(mistakes = []) {
+  const bySkill = {};
+  for (const m of mistakes) {
+    const key = String(m.skillId || m.skillCode || 'unknown');
+    if (!bySkill[key]) {
+      bySkill[key] = {
+        skillId: m.skillId,
+        skillCode: m.skillCode,
+        skillName: m.skillName,
+        topicName: m.topicName,
+        count: 0,
+        latestMistakeDate: null,
+        confidenceRiskCount: 0,
+      };
+    }
+    bySkill[key].count++;
+    if (isHighConfidence(m.confidence)) bySkill[key].confidenceRiskCount++;
+    const occurred = m.timestamp || m.occurredAt;
+    if (occurred && (!bySkill[key].latestMistakeDate || new Date(occurred) > new Date(bySkill[key].latestMistakeDate))) {
+      bySkill[key].latestMistakeDate = occurred;
+    }
+  }
+  return Object.values(bySkill).sort((a, b) => b.count - a.count);
+}
+
 function shapeWorkingFields(source = {}) {
   return shapeWorkingLinkFields(source);
 }
@@ -84,28 +113,33 @@ router.get('/', protect, async (req, res) => {
       skillId: m.skillId?._id || null, skillCode: m.skillCode || '',
       skillName: m.skillId?.name || m.skillCode || 'Unknown skill',
       topicName: m.skillId?.topicId?.name || '', module: m.module,
-      questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
+      questionText: m.questionText || m.questionStem,
+      questionStem: m.questionStem || m.questionText,
+      studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
+      answerCorrect: Boolean(m.answerCorrect),
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
+      workingSubmitted: Boolean(m.workingSubmitted),
+      workingOnPaper: Boolean(m.workingOnPaper),
+      workingNotNeeded: Boolean(m.workingNotNeeded),
+      workingSessionId: m.workingSessionId || '',
+      workingImage: m.workingImage || '',
+      workingStrokes: Array.isArray(m.workingStrokes) ? m.workingStrokes : [],
+      timeTaken: m.timeTaken,
       ...(await loadWorkingInsightForMistake(m, student._id)),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
     })));
 
     // Group by skill for the home/weak-skills view.
-    const bySkill = {};
-    for (const m of shaped) {
-      const key = String(m.skillId || m.skillCode || 'unknown');
-      if (!bySkill[key]) bySkill[key] = { skillId: m.skillId, skillCode: m.skillCode, skillName: m.skillName, topicName: m.topicName, count: 0 };
-      bySkill[key].count++;
-    }
+    const weakSkills = buildWeakSkillAggregation(shaped);
 
     console.info('[mistakes] loaded', {
       studentId: String(student._id),
       count: shaped.length,
-      weakSkillCount: Object.keys(bySkill).length,
+      weakSkillCount: weakSkills.length,
     });
-    res.json({ studentId: student._id, mistakes: shaped, weakSkills: Object.values(bySkill).sort((a, b) => b.count - a.count) });
+    res.json({ studentId: student._id, mistakes: shaped, weakSkills });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistakes.' });
   }
@@ -178,10 +212,20 @@ router.get('/:id', protect, async (req, res) => {
       id: m._id, questionId: m.questionId, sessionId: m.sessionId || '', attemptId: m.attemptId || '',
       skillId: m.skillId?._id || null, skillCode: m.skillCode || '',
       skillName: m.skillId?.name || m.skillCode || 'Unknown skill', topicName: m.skillId?.topicId?.name || '',
-      questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
+      questionText: m.questionText || m.questionStem,
+      questionStem: m.questionStem || m.questionText,
+      studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
+      answerCorrect: Boolean(m.answerCorrect),
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
+      workingSubmitted: Boolean(m.workingSubmitted),
+      workingOnPaper: Boolean(m.workingOnPaper),
+      workingNotNeeded: Boolean(m.workingNotNeeded),
+      workingSessionId: m.workingSessionId || '',
+      workingImage: m.workingImage || '',
+      workingStrokes: Array.isArray(m.workingStrokes) ? m.workingStrokes : [],
+      timeTaken: m.timeTaken,
       ...(await loadWorkingInsightForMistake(m, m.studentId)),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
     });

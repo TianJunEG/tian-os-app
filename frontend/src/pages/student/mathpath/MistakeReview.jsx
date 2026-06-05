@@ -12,6 +12,15 @@ const TYPE_LABEL = {
   method_error: 'Method', unknown: 'To review',
 };
 
+function hasCompleteReviewData(mistake = {}) {
+  return Boolean(
+    (mistake.questionStem || mistake.questionText)
+    && String(mistake.studentAnswer ?? '').trim()
+    && String(mistake.correctAnswer ?? '').trim()
+    && (mistake.skillName || mistake.skillCode || mistake.skillId)
+  );
+}
+
 function WorkingReviewCard({ mistake }) {
   const insight = mistake.workingInsight || mistake.workingAnalysisResult || null;
   const hasWorking = Boolean(mistake.workingId || mistake.workingPreviewImage || mistake.extractedWorkingText);
@@ -103,6 +112,21 @@ export default function MistakeReview() {
         <div className="space-y-4">
           {mistakes.map((m) => (
             <Card key={m.id} className="p-5 sm:p-6">
+              {!hasCompleteReviewData(m) ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-base font-semibold text-navy-700">{m.skillName || m.skillCode || 'MathPath'}</span>
+                    <Badge tone="gold">Preparing review</Badge>
+                  </div>
+                  <p className="rounded-2xl bg-gold-100 p-3 text-sm text-gold-800">
+                    This review item is still being prepared. Complete question details are not available yet.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="s" variant="secondary" onClick={() => navigate('/student/mathpath/mistakes')}>Back to mistakes</Button>
+                  </div>
+                </div>
+              ) : (
+              <>
               <div className="mb-4 flex items-center justify-between gap-2">
                 <span className="text-base font-semibold text-navy-700">{m.skillName}</span>
                 <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || 'To review'}</Badge>
@@ -167,6 +191,8 @@ export default function MistakeReview() {
                     onPractise={() => practiseSimilar(m.skillId)}
                   />
                 </div>
+              )}
+              </>
               )}
             </Card>
           ))}

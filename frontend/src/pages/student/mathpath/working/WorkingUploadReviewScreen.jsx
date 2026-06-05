@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { PageHeader, Card, Button, ErrorState } from '../../../../components/ui';
+import { useAuth } from '../../../../context/AuthContext';
 import WorkingUploadCard from '../../../../components/mathpath/working/WorkingUploadCard';
 import WorkingReviewCard from '../../../../components/mathpath/working/WorkingReviewCard';
 import WorkingSubmissionSummary from '../../../../components/mathpath/working/WorkingSubmissionSummary';
@@ -43,7 +44,9 @@ function assertUploadedMetadata(response, expectedFileCount) {
 export default function WorkingUploadReviewScreen() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const state = location.state || {};
+  const studentId = state.studentId || user?._id || user?.id || user?.email || '';
 
   const sessionType = state.sessionType || 'practice';
   const questionRefs = state.questionRefs || [];
@@ -53,11 +56,13 @@ export default function WorkingUploadReviewScreen() {
   const requiringWorkingCount = questionRefs.filter((q) => q.workingRequired).length;
   const hasSubmittedWorking = (q) => Boolean(q.workingSubmitted || q.workingUploaded || q.fullscreenWorkingSubmitted);
   const hasNoWorkingDeclaration = (q) => Boolean(noWorkingChecked[q.questionId] || q.workingNotNeeded);
-  const missingWorkingCount = questionRefs.filter((q) => q.workingRequired && !hasNoWorkingDeclaration(q) && !hasSubmittedWorking(q)).length;
+  const hasPaperWorkingDeclaration = (q) => Boolean(q.workingOnPaper);
+  const missingWorkingCount = questionRefs.filter((q) => q.workingRequired && !hasNoWorkingDeclaration(q) && !hasSubmittedWorking(q) && !hasPaperWorkingDeclaration(q)).length;
+  const paperWorkingCount = questionRefs.filter((q) => hasPaperWorkingDeclaration(q) && !hasSubmittedWorking(q)).length;
   const workingSubmittedCount = questionRefs.filter(hasSubmittedWorking).length;
   const workingNotNeededCount = questionRefs.filter(hasNoWorkingDeclaration).length;
   const allNoWorkingDeclarations = questionRefs.length > 0 && workingNotNeededCount === questionRefs.length && workingSubmittedCount === 0;
-  const hasExistingWorkingDecision = questionRefs.some((q) => hasNoWorkingDeclaration(q) || hasSubmittedWorking(q));
+  const hasExistingWorkingDecision = questionRefs.some((q) => hasNoWorkingDeclaration(q) || hasSubmittedWorking(q) || hasPaperWorkingDeclaration(q));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -77,7 +82,7 @@ export default function WorkingUploadReviewScreen() {
     setSubmitting(true);
     setError('');
     try {
-      if (!rawFiles.length && missingWorkingCount > 0) {
+      if (!rawFiles.length && (missingWorkingCount > 0 || paperWorkingCount > 0)) {
         setError('Please upload working or mark working not needed for each required question before continuing.');
         return;
       }
@@ -102,8 +107,11 @@ export default function WorkingUploadReviewScreen() {
       let apiSession = null;
       let workingSessionId = state.workingSessionId || '';
       if (!workingSessionId) {
+        if (!studentId) {
+          throw new Error('We could not confirm your student account. Please return to MathPath and try again.');
+        }
         const created = await withSubmissionTimeout(mathpathAPI.createWorkingSession({
-          studentId: state.studentId || 'demo-student',
+          studentId,
           practiceSessionId: state.practiceSessionId || null,
           assessmentSessionId: state.assessmentSessionId || null,
           domainId: 'fractions',

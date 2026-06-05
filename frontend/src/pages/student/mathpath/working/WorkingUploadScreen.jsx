@@ -42,6 +42,7 @@ export default function WorkingUploadScreen() {
       !q.workingSubmitted &&
       !q.workingUploaded &&
       !q.fullscreenWorkingSubmitted &&
+      !q.workingOnPaper &&
       !q.workingNotNeeded &&
       !noWorkingChecked[q.questionId]
     )).length;

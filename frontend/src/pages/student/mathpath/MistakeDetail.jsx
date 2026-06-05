@@ -18,6 +18,15 @@ const SOURCE_LABEL = {
   other: 'Other',
 };
 
+function hasCompleteReviewData(mistake = {}) {
+  return Boolean(
+    (mistake.questionStem || mistake.questionText)
+    && String(mistake.studentAnswer ?? '').trim()
+    && String(mistake.correctAnswer ?? '').trim()
+    && (mistake.skillName || mistake.skillCode || mistake.skillId)
+  );
+}
+
 function WorkingReviewCard({ mistake }) {
   const insight = mistake.workingInsight || mistake.workingAnalysisResult || null;
   const hasWorking = Boolean(mistake.workingId || mistake.workingPreviewImage || mistake.extractedWorkingText);
@@ -98,6 +107,22 @@ export default function MistakeDetail() {
   if (loading) return <Spinner label="Loading mistake…" />;
   if (error) return <EmptyState icon={AlertTriangle} message={error} />;
   if (!m) return <EmptyState icon={AlertTriangle} message="Mistake not found." />;
+  if (!hasCompleteReviewData(m)) {
+    return (
+      <>
+        <PageHeader title="Mistake detail" subtitle={m.skillName || m.skillCode || 'MathPath'} />
+        <Card className="p-5 sm:p-6">
+          <Badge tone="gold">Preparing review</Badge>
+          <p className="mt-3 rounded-2xl bg-gold-100 p-3 text-sm text-gold-800">
+            This review item is still being prepared. Complete question details are not available yet.
+          </p>
+          <div className="mt-4">
+            <Button variant="secondary" onClick={() => navigate('/student/mathpath/mistakes')}>Back to mistakes</Button>
+          </div>
+        </Card>
+      </>
+    );
+  }
 
   const reviewed = m.status === 'reviewed' || m.status === 'resolved' || m.reviewed;
 

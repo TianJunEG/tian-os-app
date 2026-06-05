@@ -276,6 +276,7 @@ export function submitFractionPracticeAttempt(options = {}) {
       workingMathObjects: Array.isArray(response.workingMathObjects) ? response.workingMathObjects : [],
       workingSubmitted: Boolean(response.workingSubmitted),
       workingSubmittedAt: response.workingSubmittedAt || null,
+      workingOnPaper: Boolean(response.workingOnPaper),
       workingNotNeeded: Boolean(response.workingNotNeeded),
       workingRequirementLevel: normalizeWorkingRequirementLevel(response.workingRequirementLevel),
       workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted || response.fullscreenWorkingSubmitted),
@@ -316,8 +317,9 @@ export function submitFractionPracticeAttempt(options = {}) {
     fluentCount: results.filter((r) => ['accurateAndFluent', 'automatic'].includes(r.fluencyFlag)).length,
   };
   const hasWorkingSubmitted = (result = {}) => Boolean(result.workingSubmitted || result.workingUploaded || result.fullscreenWorkingSubmitted);
-  const hasWorkingDecision = (result = {}) => Boolean(hasWorkingSubmitted(result) || result.workingNotNeeded);
+  const hasWorkingDecision = (result = {}) => Boolean(hasWorkingSubmitted(result) || result.workingOnPaper || result.workingNotNeeded);
   const workingSubmittedResults = results.filter(hasWorkingSubmitted);
+  const workingOnPaperResults = results.filter((r) => r.workingOnPaper);
   const mentalFluencyResults = results.filter((r) => r.workingNotNeeded);
   const overconfidentNoWorkingResults = results.filter((r) => !r.correct && r.workingNotNeeded && isHighConfidence(r.confidence));
   const highRequirementNoWorkingIncorrect = results.filter((r) => !r.correct && r.workingNotNeeded && r.workingRequirementLevel === 'HIGH');
@@ -353,10 +355,11 @@ export function submitFractionPracticeAttempt(options = {}) {
     .map((question) => question.questionId));
   const requiredResults = results.filter((result) => requiredQuestionIds.has(result.questionId));
   const missingWorkingResults = requiredResults.filter((result) => !hasWorkingDecision(result));
+  const paperWorkingResults = requiredResults.filter((result) => result.workingOnPaper && !hasWorkingSubmitted(result));
   const workingUploadRequired = Boolean(
     session.workingExpected &&
     resolvedSessionType !== 'warmup' &&
-    missingWorkingResults.length > 0
+    (missingWorkingResults.length > 0 || paperWorkingResults.length > 0)
   );
   let nextRecommendedAction = computeNextAction({ familyFluencySummary, updateResults });
   if (resolvedSessionType === 'warmup') nextRecommendedAction = 'continuePractice';
@@ -405,9 +408,14 @@ export function submitFractionPracticeAttempt(options = {}) {
       totalQuestions: session.questions.length,
       requiringWorking: requiredQuestionIds.size,
       workingSubmitted: workingSubmittedResults.length,
+      workingOnPaper: workingOnPaperResults.length,
       workingNotNeeded: mentalFluencyResults.length,
       missingWorking: missingWorkingResults.length,
-      status: missingWorkingResults.length > 0 ? 'Missing working' : 'Ready to continue',
+      status: missingWorkingResults.length > 0
+        ? 'Missing working'
+        : paperWorkingResults.length > 0
+          ? 'Upload paper working'
+          : 'Ready to continue',
       allNoWorkingDeclarations: results.length > 0 && results.every((result) => result.workingNotNeeded),
       questionRefs: session.questions.map((question) => {
         const match = results.find((result) => result.questionId === question.questionId);
@@ -425,6 +433,7 @@ export function submitFractionPracticeAttempt(options = {}) {
           workingRequired: Boolean(session.workingExpectedMap?.[question.questionId]?.workingRequired),
           mentalMathEligible: Boolean(question.mentalMathEligible),
           workingSubmitted: Boolean(match && hasWorkingSubmitted(match)),
+          workingOnPaper: Boolean(match?.workingOnPaper),
           workingNotNeeded: Boolean(match?.workingNotNeeded),
         };
       }),

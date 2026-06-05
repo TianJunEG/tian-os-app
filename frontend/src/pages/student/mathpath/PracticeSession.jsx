@@ -213,6 +213,10 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
   };
 }
 
+function isPersistedPracticeSessionId(value = '') {
+  return /^practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
+}
+
 function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [], masteredSkillIds = [], fluentSkillIds = [] }) {
   if (!studentId) return;
   const existing = getMathPathDomainProgressState(studentId, 'fractions') || {};
@@ -721,8 +725,24 @@ function LegacyPracticeSession() {
                 workingImage: '',
                 workingStrokes: [],
                 workingMathObjects: [],
+                workingOnPaper: false,
                 workingNotNeeded: checked,
                 workingNotNeededAt: checked ? new Date().toISOString() : null,
+              },
+            }))}
+            onDeclareOnPaper={(checked) => setFullscreenWorkingState((prev) => ({
+              ...prev,
+              [q.questionId]: {
+                ...(prev[q.questionId] || {}),
+                workingSubmitted: false,
+                workingSubmittedAt: null,
+                workingImage: '',
+                workingStrokes: [],
+                workingMathObjects: [],
+                workingOnPaper: checked,
+                workingOnPaperAt: checked ? new Date().toISOString() : null,
+                workingNotNeeded: false,
+                workingNotNeededAt: null,
               },
             }))}
           />
@@ -754,7 +774,16 @@ function LegacyPracticeSession() {
         initialMathObjects={currentFullscreenWorking.workingMathObjects || []}
         onClose={() => setFullscreenOpen(false)}
         onSave={(payload) => {
-          setFullscreenWorkingState((prev) => ({ ...prev, [q.questionId]: payload }));
+          setFullscreenWorkingState((prev) => ({
+            ...prev,
+            [q.questionId]: {
+              ...payload,
+              workingOnPaper: false,
+              workingOnPaperAt: null,
+              workingNotNeeded: false,
+              workingNotNeededAt: null,
+            },
+          }));
           setFullscreenOpen(false);
         }}
       />
@@ -770,7 +799,10 @@ export default function PracticeSession() {
   const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const isMathPathRoute = location.pathname.startsWith('/student/mathpath/practice/');
   const hasLegacyItems = Boolean(location.state?.items?.length);
-  const progressState = getMathPathDomainProgressState(user?._id || user?.id || user?.email || 'demo-student', 'fractions') || {};
+  const authenticatedStudentId = user?._id || user?.id || user?.email || '';
+  const progressState = authenticatedStudentId
+    ? getMathPathDomainProgressState(authenticatedStudentId, 'fractions') || {}
+    : {};
   const resolvedIntent = resolvePracticeIntent({
     routeSessionId,
     locationState: location.state || {},
@@ -796,7 +828,7 @@ export default function PracticeSession() {
   // `items` payload. Keep this path until all callers route through skillId/sessionType.
   if (!isMathPathRoute || hasLegacyItems) return <LegacyPracticeSession />;
 
-  const studentId = user?._id || user?.id || user?.email || 'demo-student';
+  const studentId = authenticatedStudentId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [flowSession, setFlowSession] = useState(null);
@@ -822,24 +854,80 @@ export default function PracticeSession() {
     let mounted = true;
     (async () => {
       try {
-        const started = await startFractionPracticeFlow({
-          studentId,
-          domainId: 'fractions',
-          sessionType,
-          requestedSkillId: resolvedIntent.requestedSkillId,
-          requestedQuestionFamilyId: location.state?.questionFamilyId || null,
-          sessionLength:
-            resolvedIntent.questionCount
-            || (sessionType === 'warmup'
-              ? 3
-              : sessionType === 'diagnostic' || sessionType === 'mastery_check'
-                ? 10
-                : sessionType === 'remediation'
-                  ? 5
-                  : 6),
-          weakSkillIds: Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [],
-          recentMistakeTypes: Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [],
-        });
+        let started = null;
+        if (isPersistedPracticeSessionId(routeSessionId)) {
+          const { data } = await mathpathAPI.getFractionPractice(routeSessionId);
+          started = {
+            practiceSessionId: data.practiceSessionId,
+            studentId: data.studentId,
+            domainId: data.domainId,
+            targetSkillId: data.targetSkillId,
+            targetQuestionFamilyIds: data.targetQuestionFamilyIds || [],
+            sessionType: data.sessionType || sessionType,
+            questions: data.questions || [],
+            workingExpected: Boolean(data.workingExpected),
+            workingSessionId: data.workingSessionId || null,
+            startedAt: data.startedAt,
+          };
+          if (data.status === 'completed' && data.summary?.results?.length) {
+            if (!mounted) return;
+            setQuestions(data.questions || []);
+            setSummary(data.summary);
+            setFlowSession(started);
+            setLoading(false);
+            return;
+          }
+        } else {
+          try {
+            const { data } = await mathpathAPI.startFractionPractice({
+              sessionType,
+              skillId: resolvedIntent.requestedSkillId,
+              questionFamilyId: location.state?.questionFamilyId || null,
+              questionCount:
+                resolvedIntent.questionCount
+                || (sessionType === 'warmup'
+                  ? 3
+                  : sessionType === 'diagnostic' || sessionType === 'mastery_check'
+                    ? 10
+                    : sessionType === 'remediation'
+                      ? 5
+                      : 6),
+              weakSkillIds: Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [],
+              recentMistakeTypes: Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [],
+            });
+            started = data;
+            if (data?.practiceSessionId) {
+              navigate(`/student/mathpath/practice/${data.practiceSessionId}`, {
+                replace: true,
+                state: {
+                  ...location.state,
+                  skillId: data.targetSkillId || resolvedIntent.requestedSkillId,
+                  sessionType: data.sessionType || sessionType,
+                  questionCount: data.questions?.length || resolvedIntent.questionCount,
+                },
+              });
+            }
+          } catch (apiError) {
+            started = startFractionPracticeFlow({
+              studentId,
+              domainId: 'fractions',
+              sessionType,
+              requestedSkillId: resolvedIntent.requestedSkillId,
+              requestedQuestionFamilyId: location.state?.questionFamilyId || null,
+              sessionLength:
+                resolvedIntent.questionCount
+                || (sessionType === 'warmup'
+                  ? 3
+                  : sessionType === 'diagnostic' || sessionType === 'mastery_check'
+                    ? 10
+                    : sessionType === 'remediation'
+                      ? 5
+                      : 6),
+              weakSkillIds: Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [],
+              recentMistakeTypes: Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [],
+            });
+          }
+        }
         if (!mounted) return;
         setFlowSession(started);
         const { valid, skipped } = filterDisplayablePracticeQuestions(started.questions || []);
@@ -865,7 +953,7 @@ export default function PracticeSession() {
       }
     })();
     return () => { mounted = false; };
-  }, [studentId, routeSessionId, sessionType, resolvedIntent.requestedSkillId, resolvedIntent.questionCount, location.state]);
+  }, [studentId, routeSessionId, sessionType, resolvedIntent.requestedSkillId, resolvedIntent.questionCount, location.state, navigate]);
 
   useEffect(() => {
     if (summary || loading || !questions.length) return undefined;
@@ -998,6 +1086,7 @@ export default function PracticeSession() {
       workingSubmittedAt: primaryWorkingSubmittedAt,
       workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
       workingRequirementLevel,
+      workingOnPaper: Boolean(currentFullscreenWorking.workingOnPaper),
       workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
@@ -1060,6 +1149,7 @@ export default function PracticeSession() {
       workingSubmittedAt: primaryWorkingSubmittedAt,
       workingNotNeeded: Boolean(currentFullscreenWorking.workingNotNeeded),
       workingRequirementLevel,
+      workingOnPaper: Boolean(currentFullscreenWorking.workingOnPaper),
       workingUploaded: Boolean(primaryWorkingSubmitted),
       fullscreenWorkingImage: currentFullscreenWorking.workingImage || '',
       fullscreenWorkingStrokes: currentFullscreenWorking.workingStrokes || [],
@@ -1115,6 +1205,7 @@ export default function PracticeSession() {
         workingSubmittedAt: r.workingSubmittedAt || null,
         workingNotNeeded: Boolean(r.workingNotNeeded),
         workingRequirementLevel: r.workingRequirementLevel || 'MEDIUM',
+        workingOnPaper: Boolean(r.workingOnPaper),
         workingUploaded: Boolean(r.workingUploaded),
         fullscreenWorkingImage: r.fullscreenWorkingImage || '',
         fullscreenWorkingStrokes: r.fullscreenWorkingStrokes || [],
@@ -1128,12 +1219,21 @@ export default function PracticeSession() {
         timestamp: r.timestamp,
         attemptNumber: r.attemptNumber,
       }));
-      const submitted = await submitFractionPracticeAttempt({
-        practiceSessionId: flowSession.practiceSessionId || routeSessionId,
-        studentId,
-        sessionType,
-        responses: payload,
-      });
+      let submitted;
+      if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
+        const { data } = await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
+          sessionType,
+          responses: payload,
+        });
+        submitted = data;
+      } else {
+        submitted = await submitFractionPracticeAttempt({
+          practiceSessionId: flowSession.practiceSessionId || routeSessionId,
+          studentId,
+          sessionType,
+          responses: payload,
+        });
+      }
       try {
         await persistGeneratedFractionMistakes({
           practiceSessionId: flowSession.practiceSessionId || routeSessionId,
@@ -1240,7 +1340,7 @@ export default function PracticeSession() {
             {summary.questionWorkingSummary && (
               <p>
                 <span className="font-semibold">Working:</span>{' '}
-                {summary.questionWorkingSummary.workingSubmitted || 0} submitted · {summary.questionWorkingSummary.workingNotNeeded || 0} not needed · {summary.questionWorkingSummary.missingWorking || 0} missing
+                {summary.questionWorkingSummary.workingSubmitted || 0} submitted · {summary.questionWorkingSummary.workingOnPaper || 0} on paper · {summary.questionWorkingSummary.workingNotNeeded || 0} not needed · {summary.questionWorkingSummary.missingWorking || 0} missing
               </p>
             )}
           </div>
@@ -1403,8 +1503,25 @@ export default function PracticeSession() {
                     workingSubmittedAt: null,
                     workingImage: '',
                     workingStrokes: [],
+                    workingMathObjects: [],
+                    workingOnPaper: false,
                     workingNotNeeded: checked,
                     workingNotNeededAt: checked ? new Date().toISOString() : null,
+                  },
+                }))}
+                onDeclareOnPaper={(checked) => setFullscreenWorkingByQuestion((prev) => ({
+                  ...prev,
+                  [q.questionId]: {
+                    ...(prev[q.questionId] || {}),
+                    workingSubmitted: false,
+                    workingSubmittedAt: null,
+                    workingImage: '',
+                    workingStrokes: [],
+                    workingMathObjects: [],
+                    workingOnPaper: checked,
+                    workingOnPaperAt: checked ? new Date().toISOString() : null,
+                    workingNotNeeded: false,
+                    workingNotNeededAt: null,
                   },
                 }))}
               />
@@ -1470,7 +1587,16 @@ export default function PracticeSession() {
         initialMathObjects={currentFullscreenWorking.workingMathObjects || []}
         onClose={() => setFullscreenQuestionId(null)}
         onSave={(payload) => {
-          setFullscreenWorkingByQuestion((prev) => ({ ...prev, [q.questionId]: payload }));
+          setFullscreenWorkingByQuestion((prev) => ({
+            ...prev,
+            [q.questionId]: {
+              ...payload,
+              workingOnPaper: false,
+              workingOnPaperAt: null,
+              workingNotNeeded: false,
+              workingNotNeededAt: null,
+            },
+          }));
           setFullscreenQuestionId(null);
         }}
       />

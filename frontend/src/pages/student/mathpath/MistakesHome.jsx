@@ -116,7 +116,13 @@ export default function MistakesHome() {
         {weak.length === 0 && hasMistakes && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
         {weak.map((w) => (
           <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => practise(w.skillId)}>
-            <div className="font-semibold text-ink-700">{w.skillName}</div>
+            <div>
+              <div className="font-semibold text-ink-700">{w.skillName}</div>
+              <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">
+                <span>Latest {formatMistakeDate(w.latestMistakeDate)}</span>
+                {w.confidenceRiskCount > 0 && <span>{w.confidenceRiskCount} confident slip{w.confidenceRiskCount > 1 ? 's' : ''}</span>}
+              </div>
+            </div>
             <div className="flex items-center gap-2"><Badge tone="error">{w.count} mistake{w.count > 1 ? 's' : ''}</Badge><ChevronRight className="h-4 w-4 text-ink-300" /></div>
           </Card>
         ))}

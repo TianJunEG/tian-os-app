@@ -55,7 +55,7 @@ describe('diagnostic runtime completion rules', () => {
     });
   });
 
-  it('completes with a traceable reason when question generation fails', () => {
+  it('does not mark the diagnostic complete when question generation fails', () => {
     expect(resolveDiagnosticCompletion({
       answeredCount: 1,
       maxQuestions: 10,
@@ -64,7 +64,7 @@ describe('diagnostic runtime completion rules', () => {
       nextQuestionAvailable: false,
       generationFailed: true,
     })).toMatchObject({
-      sessionComplete: true,
+      sessionComplete: false,
       completionReason: 'question_generation_failed',
     });
   });
@@ -91,12 +91,15 @@ describe('diagnostic runtime completion rules', () => {
   it('builds lifecycle logs with remaining question counts', () => {
     expect(buildDiagnosticLifecycleLog({
       sessionId: 'diag-1',
+      studentId: 'student-1',
       targetQuestions: 10,
-      questionsAnswered: 3,
+      answeredQuestions: 3,
       completionReason: 'in_progress',
     })).toEqual({
       sessionId: 'diag-1',
+      studentId: 'student-1',
       targetQuestions: 10,
+      answeredQuestions: 3,
       questionsAnswered: 3,
       questionsRemaining: 7,
       completionReason: 'in_progress',

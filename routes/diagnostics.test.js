@@ -175,4 +175,39 @@ describe('diagnostics routes registry contract', () => {
     expect(res.data.decision.decisionType).toBe('PREREQUISITE_PROBE');
     expect(res.data.nextQuestion).toEqual({ questionId: 'q2', skillId: 'T001' });
   });
+
+  it('returns a retryable error when the next diagnostic question cannot be generated', async () => {
+    const err = new Error('We could not load the next diagnostic question. Please try again.');
+    err.status = 409;
+    err.code = 'DIAGNOSTIC_NEXT_QUESTION_FAILED';
+    err.payload = {
+      sessionId: 'diag_1',
+      sessionComplete: false,
+      completionReason: 'question_generation_failed',
+      progress: {
+        answeredCount: 1,
+        estimatedQuestionCount: 10,
+        questionsRemaining: 9,
+        completionReason: 'question_generation_failed',
+      },
+    };
+    answerAdaptiveDiagnostic.mockRejectedValueOnce(err);
+
+    const res = await request('/diag_1/answer', {
+      method: 'POST',
+      body: {
+        questionId: 'q1',
+        answer: '0',
+        confidence: 'not_sure',
+        timeTakenMs: 42000,
+      },
+    });
+
+    expect(res.status).toBe(409);
+    expect(res.data).toMatchObject({
+      code: 'DIAGNOSTIC_NEXT_QUESTION_FAILED',
+      sessionComplete: false,
+      completionReason: 'question_generation_failed',
+    });
+  });
 });

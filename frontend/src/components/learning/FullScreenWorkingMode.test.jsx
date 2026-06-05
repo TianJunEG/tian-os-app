@@ -82,60 +82,17 @@ describe('FullScreenWorkingMode', () => {
     expect(screen.getByText('Save Working')).toBeDisabled();
   });
 
-  it('inserts math as a selected movable object and saves its position', () => {
-    const onSave = vi.fn();
+  it('hides math insert tools by default for pilot stability', () => {
     render(
       <FullScreenWorkingMode
         open
         questionText="Work with 1/2."
         onClose={vi.fn()}
-        onSave={onSave}
+        onSave={vi.fn()}
       />
     );
 
-    fireEvent.click(screen.getByTitle('Insert x/y'));
-    fireEvent.change(screen.getByPlaceholderText('x'), { target: { value: '1' } });
-    fireEvent.change(screen.getByPlaceholderText('y'), { target: { value: '2' } });
-    fireEvent.click(screen.getByText('Insert'));
-
-    const fractionObject = screen.getByTestId('math-object-fraction');
-    expect(fractionObject).toHaveClass('outline');
-
-    fireEvent.pointerDown(fractionObject, { pointerId: 1, clientX: 760, clientY: 320 });
-    fireEvent.pointerMove(fractionObject, { pointerId: 1, clientX: 860, clientY: 390 });
-    fireEvent.pointerUp(fractionObject, { pointerId: 1 });
-    fireEvent.click(screen.getByText('Save Working'));
-
-    const payload = onSave.mock.calls[0][0];
-    expect(payload.workingStrokes).toEqual([]);
-    expect(payload.workingMathObjects[0]).toEqual(expect.objectContaining({
-      type: 'fraction',
-      y: 370,
-      value: { numerator: '1', denominator: '2' },
-    }));
-    expect(payload.workingMathObjects[0].x).toBeCloseTo(840);
-  });
-
-  it('inserts one-tap constants as movable objects and enables save', () => {
-    const onSave = vi.fn();
-    render(
-      <FullScreenWorkingMode
-        open
-        questionText="Use pi."
-        onClose={vi.fn()}
-        onSave={onSave}
-      />
-    );
-
-    fireEvent.click(screen.getByTitle('Insert π'));
-
-    expect(screen.getByTestId('math-object-pi')).toHaveClass('outline');
-    expect(screen.getByText('Save Working')).not.toBeDisabled();
-    fireEvent.click(screen.getByText('Save Working'));
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      workingMathObjects: [expect.objectContaining({ type: 'pi' })],
-    }));
+    expect(screen.queryByLabelText('Math insert tools')).not.toBeInTheDocument();
   });
 
   it('restores saved math objects so they can be reselected and deleted', () => {

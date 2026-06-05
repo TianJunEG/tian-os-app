@@ -98,4 +98,28 @@ describe('MistakeReview pilot data guard', () => {
     expect(screen.getByText('Detected from your working')).toBeInTheDocument();
     expect(screen.getByText(/intermediate step/i)).toBeInTheDocument();
   });
+
+  it('shows a safe fallback instead of review UI when persisted mistake data is incomplete', async () => {
+    mistakesMock.mockResolvedValue({
+      data: {
+        mistakes: [{
+          id: 'm1',
+          skillId: 'skill-1',
+          skillName: 'Equivalent Fractions',
+          questionStem: '',
+          studentAnswer: '5',
+          correctAnswer: '7',
+          mistakeType: 'unknown',
+          status: 'open',
+        }],
+      },
+    });
+
+    renderPage();
+
+    expect(await screen.findByText('This review item is still being prepared. Complete question details are not available yet.')).toBeInTheDocument();
+    expect(screen.getByText('Preparing review')).toBeInTheDocument();
+    expect(screen.queryByText('Question unavailable')).not.toBeInTheDocument();
+    expect(screen.queryByText('Correct Answer')).not.toBeInTheDocument();
+  });
 });

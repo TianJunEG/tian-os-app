@@ -19,9 +19,10 @@ describe('WorkingEvidenceDecision helpers', () => {
     })).toBe('HIGH');
   });
 
-  it('requires either submitted working or an explicit not-needed declaration', () => {
+  it('requires submitted working, paper working, or an explicit not-needed declaration', () => {
     expect(hasWorkingDecision({})).toBe(false);
     expect(hasWorkingDecision({ workingSubmitted: true })).toBe(true);
+    expect(hasWorkingDecision({ workingOnPaper: true })).toBe(true);
     expect(hasWorkingDecision({ workingNotNeeded: true })).toBe(true);
   });
 });

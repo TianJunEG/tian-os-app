@@ -11,16 +11,18 @@ export default function WorkingSubmissionSummary({
 }) {
   const questionsShown = questionRefs.length;
   const workingSubmittedCount = questionRefs.filter((q) => q.workingSubmitted || q.workingUploaded || q.fullscreenWorkingSubmitted).length;
+  const workingOnPaperCount = questionRefs.filter((q) => q.workingOnPaper && !q.workingSubmitted && !q.workingUploaded && !q.fullscreenWorkingSubmitted).length;
   const noWorkingCount = questionRefs.filter((q) => noWorkingChecked[q.questionId] || q.workingNotNeeded).length;
   const missingWorkingCount = questionRefs.filter((q) => (
     q.workingRequired &&
     !q.workingSubmitted &&
     !q.workingUploaded &&
     !q.fullscreenWorkingSubmitted &&
+    !q.workingOnPaper &&
     !q.workingNotNeeded &&
     !noWorkingChecked[q.questionId]
   )).length;
-  const ready = missingWorkingCount === 0;
+  const ready = missingWorkingCount === 0 && (workingOnPaperCount === 0 || Number(pagesUploaded || 0) > 0);
   const allNoWorking = questionsShown > 0 && noWorkingCount === questionsShown && workingSubmittedCount === 0 && Number(pagesUploaded || 0) === 0;
 
   return (
@@ -40,6 +42,10 @@ export default function WorkingSubmissionSummary({
           <p className="font-mono text-base font-semibold text-ink-800">{workingSubmittedCount + Number(pagesUploaded || 0)}</p>
         </div>
         <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="font-semibold text-ink-500">On paper</p>
+          <p className="font-mono text-base font-semibold text-ink-800">{workingOnPaperCount}</p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
           <p className="font-semibold text-ink-500">Working not needed</p>
           <p className="font-mono text-base font-semibold text-ink-800">{noWorkingCount}</p>
         </div>
@@ -50,7 +56,7 @@ export default function WorkingSubmissionSummary({
       </div>
 
       <p className={`mt-3 text-sm font-semibold ${ready ? 'text-success-700' : 'text-gold-700'}`}>
-        {ready ? 'Ready to continue' : 'Working still needed'}
+        {ready ? 'Ready to continue' : workingOnPaperCount > 0 ? 'Upload your paper working' : 'Working still needed'}
       </p>
       {allNoWorking && (
         <p className="mt-2 rounded-lg bg-success-100 px-3 py-2 text-sm text-success-700">
@@ -66,6 +72,11 @@ export default function WorkingSubmissionSummary({
             <p className="mt-1 text-[11px] text-ink-500">
               Student choice required: upload working or mark no working needed.
             </p>
+            {q.workingOnPaper && (
+              <p className="mt-1 rounded-md bg-gold-50 px-2 py-1 text-[11px] font-semibold text-gold-800">
+                You chose paper working for this question. Upload a page before continuing.
+              </p>
+            )}
             <Checkbox
               className="mt-2"
               checked={Boolean(noWorkingChecked[q.questionId])}

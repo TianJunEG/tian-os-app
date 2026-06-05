@@ -38,16 +38,18 @@ export function resolveWorkingRequirementLevel(question = {}, sessionType = 'pra
 }
 
 export function hasWorkingDecision(working = {}) {
-  return Boolean(working.workingSubmitted || working.workingNotNeeded);
+  return Boolean(working.workingSubmitted || working.workingOnPaper || working.workingNotNeeded);
 }
 
 export default function WorkingEvidenceDecision({
   working = {},
   requirementLevel = 'MEDIUM',
   disabled = false,
+  onDeclareOnPaper,
   onDeclareNotNeeded,
 }) {
   const submitted = Boolean(working.workingSubmitted);
+  const onPaper = Boolean(working.workingOnPaper);
   const notNeeded = Boolean(working.workingNotNeeded);
   const levelTone = requirementLevel === 'HIGH' ? 'error' : requirementLevel === 'MEDIUM' ? 'gold' : 'neutral';
 
@@ -66,6 +68,19 @@ export default function WorkingEvidenceDecision({
           <CheckCircle2 className={`h-4 w-4 ${submitted ? 'text-success-700' : 'text-ink-300'}`} />
           <span className="font-semibold">Working submitted</span>
         </div>
+
+        {!submitted && (
+          <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${onPaper ? 'border-gold-500 bg-gold-50 text-gold-900' : 'border-hairline text-ink-700 hover:bg-slate-50'}`}>
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 rounded border-hairline text-navy-700"
+              checked={onPaper}
+              disabled={disabled}
+              onChange={(event) => onDeclareOnPaper?.(event.target.checked)}
+            />
+            <span className="font-semibold">I did my working on paper</span>
+          </label>
+        )}
 
         {!submitted && (
           <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${notNeeded ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-700 hover:bg-slate-50'}`}>

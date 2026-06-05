@@ -89,4 +89,28 @@ describe('fractionPracticeFlow working evidence completion', () => {
     expect(summary.questionWorkingSummary.workingSubmitted).toBe(session.questions.length);
     expect(summary.questionWorkingSummary.missingWorking).toBe(0);
   });
+
+  it('requires upload when working-required questions were completed on paper', () => {
+    const session = startWorkingRequiredSession();
+    const responses = session.questions.map((question) => ({
+      questionId: question.questionId,
+      studentAnswer: answerFor(question),
+      timeTaken: 10,
+      confidence: 'confident',
+      workingOnPaper: true,
+    }));
+
+    const summary = submitFractionPracticeAttempt({
+      practiceSessionId: session.practiceSessionId,
+      studentId: session.studentId,
+      responses,
+    });
+
+    expect(summary.workingUploadRequired).toBe(true);
+    expect(summary.questionWorkingSummary).toMatchObject({
+      workingOnPaper: session.questions.length,
+      missingWorking: 0,
+      status: 'Upload paper working',
+    });
+  });
 });

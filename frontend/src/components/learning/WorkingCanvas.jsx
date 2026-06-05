@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Grid, Paperclip } from 'lucide-react';
 import { Button, Badge } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 const CANVAS_WIDTH = 900;
 const CANVAS_HEIGHT = 320;
@@ -257,7 +258,7 @@ export default function WorkingCanvas({
   label = 'Show your working',
   compact = false,
   canvasClassName = '',
-  showMathStamps = true,
+  showMathStamps = FEATURE_FLAGS.workingMathInserts,
   onSubmit,
   onChange,
 }) {

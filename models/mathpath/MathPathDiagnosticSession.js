@@ -22,6 +22,7 @@ const mathPathDiagnosticSessionSchema = new mongoose.Schema(
     assignedPracticeSkillIds: { type: [String], default: [] },
     readinessScore: { type: Number, default: 0 },
     completionReason: { type: String, default: '', trim: true },
+    lifecycleLog: { type: mongoose.Schema.Types.Mixed, default: {} },
     metadataGaps: { type: [String], default: [] },
     adaptiveState: { type: mongoose.Schema.Types.Mixed, default: {} },
     result: { type: mongoose.Schema.Types.Mixed, default: {} },

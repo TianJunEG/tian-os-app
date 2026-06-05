@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Button } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 900;
@@ -859,7 +860,7 @@ export default function FullScreenWorkingMode({
           onZoomReset={resetZoom}
           onPan={pan}
         />
-        <div className="flex flex-wrap gap-2" aria-label="Math insert tools">
+        {FEATURE_FLAGS.workingMathInserts && <div className="flex flex-wrap gap-2" aria-label="Math insert tools">
           {MATH_STAMPS.map((stamp) => (
             <div key={stamp.id} className="relative">
               {mathDraft?.template === stamp.id && (
@@ -940,7 +941,7 @@ export default function FullScreenWorkingMode({
               </button>
             </div>
           ))}
-        </div>
+        </div>}
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-hairline bg-slate-100 p-3">
           <div
             className="relative rounded-xl bg-white shadow-resting"

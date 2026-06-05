@@ -95,8 +95,8 @@ describe('MistakesHome pilot empty state', () => {
           },
         ],
         weakSkills: [
-          { skillId: 'skill-1', skillName: 'Equivalent Fractions', count: 2 },
-          { skillId: 'skill-2', skillName: 'Fraction of a Set', count: 1 },
+          { skillId: 'skill-1', skillName: 'Equivalent Fractions', count: 2, latestMistakeDate: '2026-06-04T01:05:00.000Z', confidenceRiskCount: 1 },
+          { skillId: 'skill-2', skillName: 'Fraction of a Set', count: 1, latestMistakeDate: '2026-06-04T01:10:00.000Z', confidenceRiskCount: 0 },
         ],
       },
     });
@@ -108,6 +108,7 @@ describe('MistakesHome pilot empty state', () => {
     expect(screen.getByText('3 to review')).toBeInTheDocument();
     expect(screen.getByText('2 mistakes')).toBeInTheDocument();
     expect(screen.getByText('1 mistake')).toBeInTheDocument();
+    expect(screen.getByText('1 confident slip')).toBeInTheDocument();
     expect(screen.getByText('Find x')).toBeInTheDocument();
     expect(screen.getByText('Write an equivalent fraction')).toBeInTheDocument();
     expect(screen.getByText('Find part of a set')).toBeInTheDocument();
