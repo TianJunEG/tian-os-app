@@ -36,6 +36,7 @@ export async function loginAs(page, account, landingPath = '/student') {
 
   await page.goto(landingPath);
   await page.waitForLoadState('networkidle');
+  return token;
 }
 
 export async function safeGoto(page, path) {

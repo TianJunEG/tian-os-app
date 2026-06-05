@@ -6,10 +6,23 @@ import { validateStudentDashboardPayload } from '../frontend/src/mathpath/orches
 const BASE = process.env.QA_BASE || 'http://localhost:5050/api';
 const PASSWORD = 'Passw0rd!';
 const STUDENTS = [
+  ...(process.env.QA_DASHBOARD_STUDENTS ? process.env.QA_DASHBOARD_STUDENTS.split(',').map((email) => email.trim()).filter(Boolean) : []),
+  ...(process.env.PILOT_STUDENT_EMAIL ? [process.env.PILOT_STUDENT_EMAIL] : []),
+  ...(process.env.PILOT_STUDENT2_EMAIL ? [process.env.PILOT_STUDENT2_EMAIL] : []),
+  ...(process.env.PILOT_STUDENT3_EMAIL ? [process.env.PILOT_STUDENT3_EMAIL] : []),
+  ...(process.env.PILOT_STUDENT4_EMAIL ? [process.env.PILOT_STUDENT4_EMAIL] : []),
+  ...(process.env.PILOT_STUDENT5_EMAIL ? [process.env.PILOT_STUDENT5_EMAIL] : []),
   'demo.student@tianos.test',
+  'pilot.student1@tianos.test',
+  'pilot.student2@tianos.test',
+  'pilot.student3@tianos.test',
+  'pilot.student4@tianos.test',
+  'pilot.student5@tianos.test',
   'test.student2@tianos.test',
   'test.student3@tianos.test',
 ];
+
+const UNIQUE_STUDENTS = [...new Set(STUDENTS.filter(Boolean))];
 
 async function call(token, method, apiPath, body) {
   const r = await fetch(`${BASE}${apiPath}`, {
@@ -89,7 +102,7 @@ async function runOne(email) {
 async function main() {
   const started = new Date();
   const results = [];
-  for (const email of STUDENTS) {
+  for (const email of UNIQUE_STUDENTS) {
     // eslint-disable-next-line no-await-in-loop
     results.push(await runOne(email));
   }
@@ -124,4 +137,3 @@ main().catch((err) => {
   console.error('Dashboard contract QA failed:', err?.message || err);
   process.exit(1);
 });
-
