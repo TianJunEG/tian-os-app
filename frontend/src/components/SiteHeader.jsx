@@ -7,6 +7,7 @@ const navLinks = [
   { to: '/tutoring', label: 'Tutoring' },
   { to: '/edu-apps', label: 'Edu Apps' },
   { to: '/resources', label: 'Resources' },
+  { to: '/methodology', label: 'Our Methodology' },
 ];
 
 const linkClass = ({ isActive }) =>

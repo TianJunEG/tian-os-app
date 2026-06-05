@@ -86,6 +86,19 @@ export default function FounderStoryPage() {
         </div>
       </section>
 
+      <section style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 24px 80px' }}>
+        <Reveal>
+          <Eyebrow>Remediation approach</Eyebrow>
+          <Headline style={{ marginTop: 16 }}>A teacher-led approach to remediation</Headline>
+          <p style={{ marginTop: 16, maxWidth: 860, fontSize: 18, lineHeight: 1.65, color: INK_SOFT }}>
+            Tian OS is built from classroom and tutoring experience: students do not improve simply by doing more questions. They improve when the right gap is found, the method is made visible, and practice is targeted.
+          </p>
+          <p style={{ marginTop: 12, maxWidth: 860, fontSize: 18, lineHeight: 1.65, color: INK_SOFT }}>
+            That is why MathPath combines diagnostic assessment, visual explanations, working analysis, confidence tracking and mistake-to-mastery review.
+          </p>
+        </Reveal>
+      </section>
+
       {/* Scene 2 — Experience */}
       <section style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 24px' }}>
         <Reveal><Headline>Primary. Secondary.<br />Special learning needs.</Headline></Reveal>

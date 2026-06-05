@@ -27,6 +27,7 @@ export default function SiteFooter() {
               <li><Link className="transition hover:text-white" to="/tutoring">Tutor Matching</Link></li>
               <li><Link className="transition hover:text-white" to="/edu-apps">Edu Apps</Link></li>
               <li><Link className="transition hover:text-white" to="/resources">Resources</Link></li>
+              <li><Link className="transition hover:text-white" to="/methodology">Our Methodology</Link></li>
             </ul>
           </div>
 

@@ -6,6 +6,7 @@ import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headl
 
 // Pages
 const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
+const MethodologyPage = lazy(() => import('./pages/MethodologyPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
@@ -231,14 +232,15 @@ const LandingPage = () => (
         <Link to="/"><Wordmark /></Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
           <Link to="/founder" style={navLink}>Our story</Link>
+          <Link to="/methodology" style={navLink}>Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
           <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: GOLD, color: '#1a1f2e', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${GOLD}66` }}>Sign Up</Link>
         </nav>
       </div>
     </header>
 
-    <main>
-      <section style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(ellipse at 50% 38%, #1a2940 0%, #0a1428 58%, #050a14 100%)' }}>
+      <main>
+        <section style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(ellipse at 50% 38%, #1a2940 0%, #0a1428 58%, #050a14 100%)' }}>
         <div style={{ position: 'absolute', right: '-6%', top: '-10%', width: 620, height: 620, borderRadius: '50%', background: `radial-gradient(circle, ${GOLD_SOFT} 0%, transparent 60%)`, filter: 'blur(40px)', pointerEvents: 'none', opacity: 0.5 }} />
         <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
           <Reveal><Eyebrow>Tian Jun Education Group</Eyebrow></Reveal>
@@ -260,6 +262,24 @@ const LandingPage = () => (
             <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: GOLD, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
           </Reveal>
         </div>
+      </section>
+
+      <section id="methodology" style={{ maxWidth: 1000, margin: '0 auto', padding: '90px 24px 10px' }}>
+        <Reveal>
+          <Eyebrow>Remediation design</Eyebrow>
+          <h2 style={{ marginTop: 18, marginBottom: 18, fontFamily: SERIF, fontWeight: 400, fontSize: 'clamp(32px, 5vw, 46px)', lineHeight: 1.15, color: INK }}>
+            Built on evidence-informed learning principles
+          </h2>
+          <p style={{ marginBottom: 16, color: INK_SOFT, fontSize: 18, lineHeight: 1.65, maxWidth: 860 }}>
+            Tian OS MathPath is designed around established mathematics intervention practices: diagnostic assessment, targeted skill-gap practice, visual models, guided review, progress monitoring and data-informed remediation.
+          </p>
+          <p style={{ marginBottom: 16, color: INK_SOFT, fontSize: 18, lineHeight: 1.65, maxWidth: 860 }}>
+            Instead of only marking answers right or wrong, Tian OS also looks at confidence, timing, mistakes and working evidence to help identify what a student may need next.
+          </p>
+          <p style={{ color: INK_SOFT, fontSize: 15, lineHeight: 1.7, maxWidth: 860 }}>
+            Our approach is aligned with intervention principles recommended by education research bodies such as the Institute of Education Sciences’ What Works Clearinghouse and the National Center on Intensive Intervention.
+          </p>
+        </Reveal>
       </section>
 
       <section style={{ maxWidth: 1140, margin: '0 auto', padding: '90px 24px' }}>
@@ -310,6 +330,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/founder" element={<FounderStoryPage />} />
+          <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
           <Route path="/science" element={<ProtectedRoute><SciencePracticePage /></ProtectedRoute>} />
