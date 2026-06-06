@@ -48,6 +48,8 @@ export const NAV_ITEMS = [
   // Student Care MVP
   { key: 'studentcare.dashboard', label: 'Dashboard', path: '/student-care/dashboard', icon: Home, roles: ['student_care'], minVersion: 'v0.1' },
   { key: 'studentcare.homework', label: 'Homework', path: '/student-care/homework', icon: ClipboardList, roles: ['student_care'], minVersion: 'v0.1' },
+  { key: 'studentcare.recovery', label: 'Recovery Packs', path: '/student-care/recovery-packs', icon: CheckSquare, roles: ['student_care'], minVersion: 'v0.1' },
+  { key: 'studentcare.rechecks', label: 'Rechecks', path: '/student-care/rechecks', icon: CalendarDays, roles: ['student_care'], minVersion: 'v0.1' },
   { key: 'studentcare.reports', label: 'Reports', path: '/student-care/reports', icon: Book, roles: ['student_care'], minVersion: 'v0.1' },
 ];
 

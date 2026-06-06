@@ -11,6 +11,8 @@ import LessonNote from '../models/LessonNote.js';
 import TutorAvailability from '../models/TutorAvailability.js';
 import TutorCertification from '../models/TutorCertification.js';
 import { buildLessonPrep } from '../utils/tutorLessonPrep.js';
+import { getTutorLessonPrep } from '../services/mathpath/tutorLessonPrepEngine.js';
+import { createAssignmentFromLessonPrep } from '../services/mathpath/mathPathAssignmentService.js';
 
 const router = express.Router();
 
@@ -102,16 +104,35 @@ router.get('/students/:id', async (req, res) => {
 router.get('/students/:id/lesson-prep', async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
-  const recordsRaw = await MasteryRecord.find({ studentId: student._id }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
-  const records = recordsRaw.map((r) => ({ skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '', score: r.score, status: r.status, attempts: r.attempts }));
-  const mistakes = await Mistake.find({ studentId: student._id, status: { $ne: 'resolved' } }).populate({ path: 'skillId', model: Skill });
-  const bySkill = {};
-  for (const m of mistakes) { const k = String(m.skillId?._id); if (!bySkill[k]) bySkill[k] = { skillId: m.skillId?._id, skillName: m.skillId?.name || '', count: 0 }; bySkill[k].count++; }
-  const overdueCount = await Assignment.countDocuments({ studentId: student._id, status: 'overdue' });
-  const prep = buildLessonPrep({ records, mistakesBySkill: Object.values(bySkill), overdueCount });
-  // Recent mistakes to show alongside.
-  prep.recentMistakes = mistakes.slice(0, 5).map((m) => ({ skillName: m.skillId?.name, questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer }));
-  res.json({ studentId: student._id, ...prep });
+  const notes = await LessonNote.find({ studentId: student._id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5).lean();
+  const prep = await getTutorLessonPrep({
+    tutorId: req.user.id,
+    student,
+    subjectId: req.query.subjectId || 'math',
+    domainId: req.query.domainId || 'fractions',
+    tutorNotes: notes,
+  });
+  res.json({ studentId: String(student._id), ...prep });
+});
+
+router.post('/students/:id/lesson-prep/assign-recovery-pack', async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const assignment = await createAssignmentFromLessonPrep({
+      studentId: String(student._id),
+      skillIds: req.body?.skillIds || [],
+      assignedByUserId: req.user.id,
+      assignedByRole: 'tutor',
+      subjectId: req.body?.subjectId || 'math',
+      domainId: req.body?.domainId || 'fractions',
+      title: req.body?.title || 'Tutor Recovery Pack',
+      description: req.body?.description || 'Targeted practice from tutor lesson prep.',
+    });
+    res.status(201).json({ assignment, message: 'Recovery Pack assigned.' });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Could not assign Recovery Pack.' });
+  }
 });
 
 // @route GET/POST /api/tutor/students/:id/lesson-notes
@@ -127,9 +148,51 @@ router.post('/students/:id/lesson-notes', async (req, res) => {
   const b = req.body || {};
   const note = await LessonNote.create({
     workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId: student._id,
+    subjectId: b.subjectId || 'math', domainId: b.domainId || 'fractions',
+    lessonDate: b.lessonDate || new Date(), focusSkillIds: b.focusSkillIds || [],
+    notes: b.notes || b.covered || '', nextAction: b.nextAction || b.nextRecommendation || '',
     covered: b.covered || '', didWell: b.didWell || '', struggledWith: b.struggledWith || '',
     misconceptions: b.misconceptions || '', homeworkAssigned: b.homeworkAssigned || '',
     nextRecommendation: b.nextRecommendation || '', parentSummary: b.parentSummary || '',
+    parentUpdateStatus: 'draft',
+  });
+  res.status(201).json({ lessonNote: note });
+});
+
+// @route GET/POST /api/tutor/lesson-notes — MathPath lesson notes API
+router.get('/lesson-notes', async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent({ ...req, params: { id: req.query.studentId } }, res); if (!student) return;
+  const notes = await LessonNote.find({
+    studentId: student._id,
+    workspaceId: req.workspaceId,
+    subjectId: req.query.subjectId || 'math',
+    domainId: req.query.domainId || 'fractions',
+  }).sort({ createdAt: -1 }).lean();
+  res.json({ lessonNotes: notes });
+});
+
+router.post('/lesson-notes', async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent({ ...req, params: { id: req.body?.studentId } }, res); if (!student) return;
+  const b = req.body || {};
+  const note = await LessonNote.create({
+    workspaceId: req.workspaceId,
+    tutorUserId: req.user.id,
+    studentId: student._id,
+    subjectId: b.subjectId || 'math',
+    domainId: b.domainId || 'fractions',
+    lessonDate: b.lessonDate || new Date(),
+    focusSkillIds: b.focusSkillIds || [],
+    notes: b.notes || '',
+    nextAction: b.nextAction || '',
+    covered: b.covered || b.notes || '',
+    didWell: b.didWell || '',
+    struggledWith: b.struggledWith || '',
+    misconceptions: b.misconceptions || '',
+    homeworkAssigned: b.homeworkAssigned || '',
+    nextRecommendation: b.nextRecommendation || b.nextAction || '',
+    parentSummary: b.parentSummary || '',
     parentUpdateStatus: 'draft',
   });
   res.status(201).json({ lessonNote: note });

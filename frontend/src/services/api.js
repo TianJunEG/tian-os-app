@@ -152,6 +152,8 @@ export const studentProfileAPI = {
 export const studentCareAPI = {
   dashboard: (params = {}) => api.get('/student-care/dashboard', { params }),
   homework: (params = {}) => api.get('/student-care/homework', { params }),
+  recoveryPacks: (params = {}) => api.get('/student-care/recovery-packs', { params }),
+  rechecks: (params = {}) => api.get('/student-care/rechecks', { params }),
   reports: (params = {}) => api.get('/student-care/reports', { params }),
   parentSummary: (studentId, params = {}) => api.get(`/student-care/students/${studentId}/parent-summary`, { params }),
 };
@@ -196,8 +198,11 @@ export const tutorAPI = {
   students: () => api.get('/tutor/students'),
   student: (id) => api.get(`/tutor/students/${id}`),
   lessonPrep: (id) => api.get(`/tutor/students/${id}/lesson-prep`),
+  assignLessonPrepRecoveryPack: (id, data) => api.post(`/tutor/students/${id}/lesson-prep/assign-recovery-pack`, data),
   lessonNotes: (id) => api.get(`/tutor/students/${id}/lesson-notes`),
   createLessonNote: (id, data) => api.post(`/tutor/students/${id}/lesson-notes`, data),
+  mathPathLessonNotes: (params = {}) => api.get('/tutor/lesson-notes', { params }),
+  createMathPathLessonNote: (data) => api.post('/tutor/lesson-notes', data),
   homework: () => api.get('/tutor/homework'),
   availability: () => api.get('/tutor/availability'),
   updateAvailability: (data) => api.put('/tutor/availability', data),

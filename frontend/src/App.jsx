@@ -109,6 +109,8 @@ const MistakeHistory = lazy(() => import('./pages/parent/MistakeHistory'));
 const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
 const StudentCareDashboard = lazy(() => import('./pages/studentCare/StudentCareDashboard'));
 const StudentCareHomework = lazy(() => import('./pages/studentCare/StudentCareHomework'));
+const StudentCareRecoveryPacks = lazy(() => import('./pages/studentCare/StudentCareRecoveryPacks'));
+const StudentCareRechecks = lazy(() => import('./pages/studentCare/StudentCareRechecks'));
 const StudentCareReports = lazy(() => import('./pages/studentCare/StudentCareReports'));
 // Tutor (Phase 4)
 const TutorHome = lazy(() => import('./pages/tutor/TutorHome'));
@@ -544,9 +546,13 @@ function App() {
             <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetPreview /></FeatureGuard>} />
 
             {/* Student Care MVP */}
-            <Route path="/student-care/dashboard" element={<StudentCareDashboard />} />
-            <Route path="/student-care/homework" element={<StudentCareHomework />} />
-            <Route path="/student-care/reports" element={<StudentCareReports />} />
+            <Route path="/student-care/dashboard" element={<RoleGuard role="student_care"><StudentCareDashboard /></RoleGuard>} />
+            <Route path="/student-care/homework" element={<RoleGuard role="student_care"><StudentCareHomework /></RoleGuard>} />
+            <Route path="/student-care/recovery-packs" element={<RoleGuard role="student_care"><StudentCareRecoveryPacks /></RoleGuard>} />
+            <Route path="/student-care/rechecks" element={<RoleGuard role="student_care"><StudentCareRechecks /></RoleGuard>} />
+            <Route path="/student-care/reports" element={<RoleGuard role="student_care"><StudentCareReports /></RoleGuard>} />
+            <Route path="/student-care/analyse-paper" element={<RoleGuard role="student_care"><PaperAnalysisPage /></RoleGuard>} />
+            <Route path="/student-care/students/:studentId/analyse-paper" element={<RoleGuard role="student_care"><PaperAnalysisPage /></RoleGuard>} />
 
             {/* Tutor (Phase 4) */}
             <Route path="/tutor" element={<FeatureGuard feature="tutor"><TutorHome /></FeatureGuard>} />

@@ -32,14 +32,37 @@ export default function StudentCareHomework() {
 
   const papers = data?.homeworkQueue || [];
   const recovery = data?.recoveryPacks || [];
+  const students = data?.students || [];
+  const firstStudentId = students[0]?.studentId || '';
 
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="Homework Support"
         subtitle="Upload, review and route school work into MathPath recovery."
-        action={<Button icon={UploadCloud} to="/parent/mathpath/analyse-paper">Upload Paper</Button>}
+        action={<Button icon={UploadCloud} to={firstStudentId ? `/student-care/students/${firstStudentId}/analyse-paper` : '/student-care/analyse-paper'}>Upload Paper</Button>}
       />
+
+      <div className="mb-4">
+        <Card className="p-5">
+          <p className="text-sm font-semibold text-ink-700">Students</p>
+          {students.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {students.map((student) => (
+                <Button
+                  key={student.studentId}
+                  size="s"
+                  variant="secondary"
+                  icon={UploadCloud}
+                  to={`/student-care/students/${student.studentId}/analyse-paper`}
+                >
+                  Upload for {student.name}
+                </Button>
+              ))}
+            </div>
+          ) : <p className="mt-3 text-sm text-ink-500">No assigned students are available in this workspace.</p>}
+        </Card>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
@@ -53,7 +76,7 @@ export default function StudentCareHomework() {
                     <Badge tone="gold">{statusText(paper.status)}</Badge>
                   </div>
                   <p className="mt-1 text-ink-500">Weak skills: {(paper.weakSkillIds || []).join(', ') || 'Needs review'}</p>
-                  <Button className="mt-3" size="s" variant="secondary" to={`/parent/mathpath/analyse-paper?analysis=${paper.paperAnalysisId}`}>Review Paper</Button>
+                  <Button className="mt-3" size="s" variant="secondary" to={`/student-care/students/${paper.studentId}/analyse-paper?analysis=${paper.paperAnalysisId}`}>Review Paper</Button>
                 </div>
               ))}
             </div>

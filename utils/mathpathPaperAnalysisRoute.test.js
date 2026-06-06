@@ -8,7 +8,7 @@ const createRecheckForAssignmentMock = vi.fn();
 
 vi.mock('../middleware/auth.js', () => ({
   protect: (req, _res, next) => {
-    req.user = { id: 'adult_1', role: 'parent' };
+    req.user = req.mockUser || { id: 'adult_1', role: 'parent' };
     next();
   },
 }));
@@ -43,7 +43,7 @@ vi.mock('../services/mathpath/mathPathAssignmentService.js', () => ({
 
 let router;
 
-async function request(path, { method = 'GET', body } = {}) {
+async function request(path, { method = 'GET', body, user } = {}) {
   return new Promise((resolve, reject) => {
     const req = {
       method: String(method || 'GET').toUpperCase(),
@@ -54,6 +54,7 @@ async function request(path, { method = 'GET', body } = {}) {
       body: body || {},
       headers: {},
       params: {},
+      mockUser: user,
     };
     const res = {
       statusCode: 200,
@@ -152,6 +153,36 @@ describe('mathpath paper analysis routes', () => {
       paperAnalysisId: 'analysis_1',
       assignedByUserId: 'adult_1',
       assignedByRole: 'parent',
+    });
+  });
+
+  it('allows student care staff to assign practice from reviewed paper analysis', async () => {
+    const doc = {
+      _id: 'analysis_2',
+      studentId: 'student_1',
+      status: 'reviewed',
+      weakSkillIds: ['F019'],
+      detectedQuestions: [],
+      recommendedActions: [],
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    findByIdMock.mockResolvedValueOnce(doc);
+    resolveStudentMock.mockResolvedValueOnce({ _id: 'student_1' });
+    createAssignmentFromPaperAnalysisMock.mockResolvedValueOnce({
+      id: 'assignment_2',
+      skillIds: ['F019'],
+    });
+
+    const res = await request('/analysis_2/assign-practice', {
+      method: 'POST',
+      user: { id: 'care_1', role: 'student_care' },
+    });
+
+    expect(res.status).toBe(201);
+    expect(createAssignmentFromPaperAnalysisMock).toHaveBeenCalledWith({
+      paperAnalysisId: 'analysis_2',
+      assignedByUserId: 'care_1',
+      assignedByRole: 'student_care',
     });
   });
 });

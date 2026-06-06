@@ -142,6 +142,35 @@ describe('mathPathAssignmentService', () => {
     expect(assignment.id).toBe('assignment_2');
   });
 
+  it('creates an assignment from tutor lesson prep weak skills', async () => {
+    assignmentCreate.mockResolvedValueOnce(createdAssignment({ _id: 'assignment_3', skillIds: ['F023'], sourceType: 'tutor' }));
+
+    await service.createAssignmentFromLessonPrep({
+      studentId: 'student_1',
+      skillIds: ['F023', 'F023'],
+      assignedByUserId: 'tutor_1',
+      assignedByRole: 'tutor',
+    });
+
+    expect(assignmentCreate).toHaveBeenCalledWith(expect.objectContaining({
+      studentId: 'student_1',
+      assignedByUserId: 'tutor_1',
+      assignedByRole: 'tutor',
+      sourceType: 'tutor',
+      skillIds: ['F023'],
+      targetQuestionCount: 12,
+    }));
+  });
+
+  it('rejects lesson prep assignments with no weak skills', async () => {
+    await expect(service.createAssignmentFromLessonPrep({
+      studentId: 'student_1',
+      skillIds: [],
+      assignedByUserId: 'tutor_1',
+    })).rejects.toMatchObject({ status: 400 });
+    expect(assignmentCreate).not.toHaveBeenCalled();
+  });
+
   it('updates progress from persisted attempts and recommends recheck at 80 percent with accuracy threshold', async () => {
     const assignment = {
       _id: 'assignment_1',

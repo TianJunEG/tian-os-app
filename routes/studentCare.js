@@ -139,6 +139,41 @@ router.get('/homework', protect, async (req, res) => {
   }
 });
 
+router.get('/recovery-packs', protect, async (req, res) => {
+  try {
+    requireStudentCare(req);
+    const payload = await buildDashboardPayload(req);
+    return res.json({
+      students: payload.students,
+      recoveryPacks: payload.recoveryPacks,
+      metrics: {
+        recoveryPacksAssigned: payload.metrics.recoveryPacksAssigned,
+        recoveryPacksCompleted: payload.metrics.recoveryPacksCompleted,
+      },
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not load recovery pack monitor.' });
+  }
+});
+
+router.get('/rechecks', protect, async (req, res) => {
+  try {
+    requireStudentCare(req);
+    const payload = await buildDashboardPayload(req);
+    return res.json({
+      students: payload.students,
+      recheckQueue: payload.recheckQueue,
+      recoveryPacks: payload.recoveryPacks.filter((pack) => pack.status === 'recheck_ready'),
+      metrics: {
+        rechecksCompleted: payload.metrics.rechecksCompleted,
+        averageReadinessImprovement: payload.metrics.averageReadinessImprovement,
+      },
+    });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not load recheck centre.' });
+  }
+});
+
 router.get('/reports', protect, async (req, res) => {
   try {
     requireStudentCare(req);

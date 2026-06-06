@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { FileUp, Save, Wand2 } from 'lucide-react';
 import { Button, Card, ErrorState, PageHeader } from '../../components/ui';
 import { mathpathAPI } from '../../services/api';
@@ -36,7 +36,9 @@ function confidenceText(value) {
 
 export default function PaperAnalysisPage() {
   const params = useParams();
+  const [searchParams] = useSearchParams();
   const routeStudentId = params.studentId || '';
+  const analysisId = searchParams.get('analysis') || '';
   const [studentId, setStudentId] = useState(routeStudentId);
   const [uploadType, setUploadType] = useState('completed_unmarked');
   const [file, setFile] = useState(null);
@@ -46,6 +48,33 @@ export default function PaperAnalysisPage() {
   const [analysis, setAnalysis] = useState(null);
   const [message, setMessage] = useState('');
   const parsedRows = useMemo(() => parseQuestionRows(questionRows), [questionRows]);
+
+  useEffect(() => {
+    if (!analysisId) return;
+    let mounted = true;
+    setLoading(true);
+    setError('');
+    mathpathAPI.paperAnalysis(analysisId)
+      .then((res) => {
+        if (!mounted) return;
+        const loaded = res.data.analysis;
+        setAnalysis(loaded);
+        setStudentId(String(loaded?.studentId || routeStudentId || ''));
+        setQuestionRows((loaded?.detectedQuestions || []).map((question) => [
+          question.questionNumber || '',
+          question.questionText || '',
+          (question.detectedSkillIds || []).join(','),
+          question.adultConfirmedWrong ? 'wrong' : question.adultConfirmedCorrect ? 'correct' : '',
+        ].join(' | ')).join('\n'));
+      })
+      .catch((e) => {
+        if (mounted) setError(e?.response?.data?.error || 'Could not load paper analysis.');
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [analysisId, routeStudentId]);
 
   const upload = async () => {
       setLoading(true);

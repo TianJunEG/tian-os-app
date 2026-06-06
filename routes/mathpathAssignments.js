@@ -25,7 +25,7 @@ function roleSet(user = {}) {
 
 function assertCanAssign(req, { allowStudentDiagnosticSelfAssign = false } = {}) {
   const roles = roleSet(req.user);
-  if (roles.has('parent') || roles.has('tutor') || roles.has('teacher') || roles.has('admin')) return;
+  if (roles.has('parent') || roles.has('tutor') || roles.has('teacher') || roles.has('student_care') || roles.has('admin')) return;
   if (allowStudentDiagnosticSelfAssign && roles.has('student')) return;
   const err = new Error('Students can view Recovery Packs but cannot assign them.');
   err.status = 403;

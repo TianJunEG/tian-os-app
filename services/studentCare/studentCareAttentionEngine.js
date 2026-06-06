@@ -39,6 +39,20 @@ function sortQueue(items = []) {
   });
 }
 
+function attentionItem(item = {}) {
+  return {
+    ...item,
+    recommendedAction: item.recommendedAction || item.action || '',
+    linkedObjectType: item.linkedObjectType || (
+      item.paperAnalysisId ? 'paper_analysis'
+        : item.assignmentId ? 'assignment'
+          : item.diagnosticSessionId ? 'diagnostic'
+            : ''
+    ),
+    linkedObjectId: item.linkedObjectId || item.paperAnalysisId || item.assignmentId || item.diagnosticSessionId || '',
+  };
+}
+
 export function buildRecoveryPackQueue({ students = [], assignments = [] } = {}) {
   const byStudent = new Map(students.map((student) => [studentKey(student), student]));
   return assignments
@@ -111,7 +125,7 @@ export function buildStudentCareAttentionQueue({
     const newPaper = papers.find((paper) => ['uploaded', 'processing', 'ocr_complete', 'questions_detected', 'needs_review'].includes(paper.status));
 
     if (recheckOverdue) {
-      queue.push({
+      queue.push(attentionItem({
         studentId: id,
         studentName: studentName(student),
         priority: 'high',
@@ -120,17 +134,17 @@ export function buildStudentCareAttentionQueue({
         type: 'recheck_overdue',
         assignmentId: String(recheckOverdue._id || recheckOverdue.id || ''),
         updatedAt: recheckOverdue.recheck?.recommendedAt,
-      });
+      }));
       continue;
     }
 
     if (evidence.parentRequestedHelp) {
-      queue.push({ studentId: id, studentName: studentName(student), priority: 'high', reason: 'Parent requested help.', action: 'Contact parent', type: 'parent_requested_help' });
+      queue.push(attentionItem({ studentId: id, studentName: studentName(student), priority: 'high', reason: 'Parent requested help.', action: 'Contact parent', type: 'parent_requested_help' }));
       continue;
     }
 
     if (incompletePack) {
-      queue.push({
+      queue.push(attentionItem({
         studentId: id,
         studentName: studentName(student),
         priority: weakCount >= 3 ? 'high' : 'medium',
@@ -139,27 +153,27 @@ export function buildStudentCareAttentionQueue({
         type: 'recovery_pack_incomplete',
         assignmentId: String(incompletePack._id || incompletePack.id || ''),
         updatedAt: incompletePack.updatedAt || incompletePack.createdAt,
-      });
+      }));
       continue;
     }
 
     if (weakCount >= 3) {
-      queue.push({ studentId: id, studentName: studentName(student), priority: 'high', reason: `${weakCount} weak skills need intervention.`, action: 'Assign recovery pack', type: 'multiple_weak_skills', updatedAt: growth.latest?.completedAt });
+      queue.push(attentionItem({ studentId: id, studentName: studentName(student), priority: 'high', reason: `${weakCount} weak skills need intervention.`, action: 'Assign recovery pack', type: 'multiple_weak_skills', diagnosticSessionId: growth.latest?.diagnosticSessionId || '', updatedAt: growth.latest?.completedAt }));
       continue;
     }
 
     if (newPaper) {
-      queue.push({ studentId: id, studentName: studentName(student), priority: 'medium', reason: 'New paper awaits review.', action: 'Review paper', type: 'paper_needs_review', paperAnalysisId: String(newPaper._id || newPaper.id || ''), updatedAt: newPaper.updatedAt || newPaper.createdAt });
+      queue.push(attentionItem({ studentId: id, studentName: studentName(student), priority: 'medium', reason: 'New paper awaits review.', action: 'Review paper', type: 'paper_needs_review', paperAnalysisId: String(newPaper._id || newPaper.id || ''), updatedAt: newPaper.updatedAt || newPaper.createdAt }));
       continue;
     }
 
     if (!growth.latest || latestDiagnosticAge >= 14) {
-      queue.push({ studentId: id, studentName: studentName(student), priority: 'medium', reason: 'Diagnostic is due.', action: 'Run diagnostic', type: 'diagnostic_due', updatedAt: growth.latest?.completedAt });
+      queue.push(attentionItem({ studentId: id, studentName: studentName(student), priority: 'medium', reason: 'Diagnostic is due.', action: 'Run diagnostic', type: 'diagnostic_due', diagnosticSessionId: growth.latest?.diagnosticSessionId || '', updatedAt: growth.latest?.completedAt }));
       continue;
     }
 
     if (lastActivityAge !== null && lastActivityAge >= 14) {
-      queue.push({ studentId: id, studentName: studentName(student), priority: 'low', reason: `No activity for ${lastActivityAge} days.`, action: 'Check in', type: 'inactive', updatedAt: evidence.lastActivityAt });
+      queue.push(attentionItem({ studentId: id, studentName: studentName(student), priority: 'low', reason: `No activity for ${lastActivityAge} days.`, action: 'Check in', type: 'inactive', updatedAt: evidence.lastActivityAt }));
     }
   }
 

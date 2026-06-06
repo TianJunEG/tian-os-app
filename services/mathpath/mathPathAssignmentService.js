@@ -155,6 +155,45 @@ export async function createAssignmentFromPaperAnalysis({
   return shapeAssignment(assignment);
 }
 
+export async function createAssignmentFromLessonPrep({
+  studentId,
+  skillIds = [],
+  assignedByUserId,
+  assignedByRole = 'tutor',
+  subjectId = 'math',
+  domainId = 'fractions',
+  title = 'Tutor Recovery Pack',
+  description = 'Targeted practice assigned from tutor lesson prep.',
+} = {}) {
+  const normalizedSkillIds = uniqueSkillIds(skillIds);
+  if (!normalizedSkillIds.length) {
+    const err = new Error('At least one weak skill is required before assigning a Recovery Pack.');
+    err.status = 400;
+    throw err;
+  }
+  const targetQuestionCount = targetCountFor(normalizedSkillIds);
+  const assignment = await MathPathAssignment.create({
+    studentId: String(studentId || ''),
+    assignedByUserId: String(assignedByUserId || ''),
+    assignedByRole,
+    sourceType: 'tutor',
+    sourceId: `lesson_prep_${Date.now()}`,
+    subjectId,
+    domainId,
+    title,
+    description,
+    skillIds: normalizedSkillIds,
+    targetQuestionCount,
+    completion: {
+      questionsAssigned: targetQuestionCount,
+      questionsAttempted: 0,
+      correctCount: 0,
+      accuracy: 0,
+    },
+  });
+  return shapeAssignment(assignment);
+}
+
 export async function getStudentAssignments({ studentId, status } = {}) {
   const filter = { studentId: String(studentId || '') };
   if (status) filter.status = status;

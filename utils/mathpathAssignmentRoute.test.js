@@ -105,6 +105,23 @@ describe('MathPath assignment routes', () => {
     }));
   });
 
+  it('allows student care staff to create a diagnostic Recovery Pack for an accessible student', async () => {
+    resolveStudentMock.mockResolvedValueOnce({ _id: 'student_1' });
+    createFromDiagnosticMock.mockResolvedValueOnce({ id: 'assignment_1', skillIds: ['F019'] });
+
+    const res = await request('/from-diagnostic', {
+      method: 'POST',
+      user: { id: 'care_1', role: 'student_care' },
+      body: { studentId: 'student_1', diagnosticSessionId: 'diag_1' },
+    });
+
+    expect(res.status).toBe(201);
+    expect(createFromDiagnosticMock).toHaveBeenCalledWith(expect.objectContaining({
+      studentId: 'student_1',
+      diagnosticSessionId: 'diag_1',
+    }));
+  });
+
   it('blocks student paper-analysis assignment', async () => {
     const res = await request('/from-paper-analysis', {
       method: 'POST',

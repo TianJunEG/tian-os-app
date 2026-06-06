@@ -50,13 +50,14 @@ function uploadedByRole(user) {
   if (roles.has('teacher')) return 'teacher';
   if (roles.has('tutor')) return 'tutor';
   if (roles.has('parent')) return 'parent';
+  if (roles.has('student_care')) return 'student_care';
   return user?.role || 'user';
 }
 
 function assertAdultUploader(req) {
   const roles = roleSet(req.user);
-  if (roles.has('admin') || roles.has('teacher') || roles.has('tutor') || roles.has('parent')) return;
-  const err = new Error('Paper analysis uploads are currently available to parents, tutors, teachers and admins.');
+  if (roles.has('admin') || roles.has('teacher') || roles.has('tutor') || roles.has('parent') || roles.has('student_care')) return;
+  const err = new Error('Paper analysis uploads are currently available to parents, tutors, teachers, student care staff and admins.');
   err.status = 403;
   throw err;
 }
