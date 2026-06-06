@@ -227,8 +227,13 @@ export const teacherAPI = {
   saveGroup: (id, data) => api.post(`/teacher/classes/${id}/groups`, data),
   assign: (id, data) => api.post(`/teacher/classes/${id}/assign`, data),
   interventions: (id) => api.get(`/teacher/classes/${id}/interventions`),
+  interventionOverview: (id, params) => api.get(`/teacher/classes/${id}/intervention-overview`, { params }),
   createIntervention: (id, data) => api.post(`/teacher/classes/${id}/interventions`, data),
   updateIntervention: (iid, data) => api.put(`/teacher/interventions/${iid}`, data),
+  weakGroups: (id, params) => api.get(`/teacher/classes/${id}/weak-groups`, { params }),
+  assignWeakGroupRecovery: (id, skillId, data = {}) => api.post(`/teacher/classes/${id}/weak-groups/${skillId}/assign-recovery`, data),
+  generateWeakGroupWorksheet: (id, skillId, data = {}) => api.post(`/teacher/classes/${id}/weak-groups/${skillId}/generate-worksheet`, data),
+  assignWeakGroupRecheck: (id, skillId, data = {}) => api.post(`/teacher/classes/${id}/weak-groups/${skillId}/assign-recheck`, data),
   report: (id, params) => api.get(`/teacher/classes/${id}/reports`, { params })
 };
 

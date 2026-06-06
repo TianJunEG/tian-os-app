@@ -32,7 +32,7 @@ export default function TeacherHome() {
         </div>
         {first && (
           <div className="mt-4">
-            <Button icon={ArrowRight} onClick={() => navigate(`/teacher/classes/${first.classId}/mastery`)}>Review class needs</Button>
+            <Button icon={ArrowRight} onClick={() => navigate(`/teacher/classes/${first.classId}/weak-groups`)}>Review intervention groups</Button>
           </div>
         )}
       </Card>
@@ -43,7 +43,7 @@ export default function TeacherHome() {
       ) : (
         <div className="space-y-2">
           {data.attention.map((c) => (
-            <Link key={c.classId} to={`/teacher/classes/${c.classId}/mastery`} className="block">
+            <Link key={c.classId} to={`/teacher/classes/${c.classId}/weak-groups`} className="block">
               <Card interactive className="flex items-center justify-between gap-3 p-4">
                 <div><p className="font-medium text-ink-700">{c.name}</p><p className="text-sm text-ink-500">{c.flagged} student{c.flagged > 1 ? 's' : ''} need support</p></div>
                 <Badge tone="error">Review</Badge>

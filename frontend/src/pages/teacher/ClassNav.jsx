@@ -12,8 +12,10 @@ export default function ClassNav({ classId, name, level }) {
     ['Mastery map', `${base}/mastery`],
     ['Students', `${base}/students`],
     ['Groups', `${base}/groups`],
+    ['Weak groups', `${base}/weak-groups`],
     ['Assign', `${base}/assign`],
     ['Intervention', `${base}/interventions`],
+    ['Worksheets', `${base}/worksheets`],
     ['LifeLab', `${base}/lifelab`],
     ['Reports', `${base}/reports`],
   ];

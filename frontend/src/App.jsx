@@ -133,8 +133,10 @@ const TutorInviteConnectPage = lazy(() => import('./pages/TutorInviteConnectPage
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
+const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
 const Intervention = lazy(() => import('./pages/teacher/Intervention'));
+const TeacherWorksheets = lazy(() => import('./pages/teacher/TeacherWorksheets'));
 const Reports = lazy(() => import('./pages/teacher/Reports'));
 const TeacherStudentDetail = lazy(() => import('./pages/teacher/TeacherStudentDetail'));
 const TeacherLifeLab = lazy(() => import('./pages/teacher/LifeLab'));
@@ -573,6 +575,7 @@ function App() {
 
             {/* Teacher (Phase 5) */}
             <Route path="/teacher" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherHome /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/dashboard" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherHome /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Classes /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassOverview /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mathpath" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherMathPathDashboardPage /></FeatureGuard></RoleGuard>} />
@@ -582,8 +585,10 @@ function App() {
             <Route path="/teacher/classes/:id/mastery" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassMasteryMap /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/students" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassStudents /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/weak-groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><WeakGroups /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/interventions" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Intervention /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/worksheets" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherWorksheets /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLab /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/reports" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Reports /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/students/:id" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherStudentDetail /></FeatureGuard></RoleGuard>} />

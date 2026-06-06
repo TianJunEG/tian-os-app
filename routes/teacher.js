@@ -12,7 +12,12 @@ import Class from '../models/Class.js';
 import ClassStudent from '../models/ClassStudent.js';
 import StudentGroup from '../models/StudentGroup.js';
 import InterventionRecord from '../models/InterventionRecord.js';
+import MathPathAssignment from '../models/mathpath/MathPathAssignment.js';
+import Worksheet from '../models/Worksheet.js';
 import { buildSuggestedGroups } from '../utils/teacherGrouping.js';
+import { buildWeakGroupsForClass } from '../services/teacher/weakGroupEngine.js';
+import { createAssignmentFromLessonPrep, createRecheckForAssignment } from '../services/mathpath/mathPathAssignmentService.js';
+import { generateWorksheet } from '../utils/worksheetGen.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -39,6 +44,21 @@ async function studentMastery(studentIds) {
   for (const id of studentIds) byStudent.set(String(id), []);
   for (const r of records) byStudent.get(String(r.studentId))?.push(r);
   return byStudent;
+}
+
+async function resolveSkillDocumentIds(skillIds = []) {
+  const codes = skillIds.map((value) => String(value || '').trim().toUpperCase()).filter(Boolean);
+  if (!codes.length) return [];
+  const skills = await Skill.find({
+    $or: [
+      { _id: { $in: codes.filter((code) => /^[a-f\d]{24}$/i.test(code)) } },
+      { slug: { $in: codes } },
+      { 'metadata.frameworkCode': { $in: codes } },
+      { 'metadata.mathPathSkillId': { $in: codes } },
+      { 'metadata.officialSkillCode': { $in: codes } },
+    ],
+  }).select('_id').lean();
+  return skills.map((skill) => skill._id);
 }
 
 function topicStatusForStudent(recordsInTopic) {
@@ -230,6 +250,193 @@ router.post('/classes/:id/groups', async (req, res) => {
     targetSkillId: req.body.targetSkillId || null, studentIds: req.body.studentIds || [],
   });
   res.status(201).json({ group: g });
+});
+
+// ── MathPath weak groups and intervention actions ─────────────────
+router.get('/classes/:id/weak-groups', async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const subjectId = String(req.query.subjectId || 'math');
+  const domainId = String(req.query.domainId || 'fractions');
+  const groups = await buildWeakGroupsForClass({ classId: c._id, subjectId, domainId });
+  res.json({
+    classId: c._id,
+    subjectId,
+    domainId,
+    groups,
+    summary: {
+      groupCount: groups.length,
+      highPriorityCount: groups.filter((group) => group.priority === 'high').length,
+      affectedStudentCount: new Set(groups.flatMap((group) => group.studentIds || [])).size,
+    },
+  });
+});
+
+router.get('/classes/:id/intervention-overview', async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const subjectId = String(req.query.subjectId || 'math');
+  const domainId = String(req.query.domainId || 'fractions');
+  const ids = (await rosterIds(c._id)).map(String);
+  const groups = await buildWeakGroupsForClass({ classId: c._id, subjectId, domainId });
+  const assignments = await MathPathAssignment.find({ studentId: { $in: ids }, subjectId, domainId }).lean();
+  const recoveryPacksInProgress = assignments.filter((assignment) => ['assigned', 'in_progress'].includes(assignment.status)).length;
+  const recheckReadyAssignments = assignments.filter((assignment) => assignment.recheck?.recommended && !assignment.recheck?.diagnosticSessionId);
+  const worksheetsGenerated = await Worksheet.countDocuments({
+    workspaceId: req.workspaceId,
+    generatedByRole: 'teacher',
+    generatedFor: { $ne: null },
+    sourceMode: { $in: ['intervention_group', 'group', 'class'] },
+  });
+  const studentsNeedingAttention = Array.from(new Map(
+    groups
+      .filter((group) => group.priority !== 'low')
+      .flatMap((group) => group.students || [])
+      .map((student) => [student.studentId, student])
+  ).values());
+  res.json({
+    classId: c._id,
+    subjectId,
+    domainId,
+    studentsNeedingAttention,
+    weakSkillGroups: groups.slice(0, 6),
+    recoveryPacksInProgress,
+    recheckReady: recheckReadyAssignments.map((assignment) => ({
+      assignmentId: String(assignment._id),
+      studentId: assignment.studentId,
+      skillIds: assignment.skillIds || [],
+      reason: assignment.recheck?.reason || 'Recovery pack is ready for recheck.',
+    })),
+    worksheetsGenerated,
+    improvementSummary: {
+      message: assignments.some((assignment) => assignment.status === 'completed')
+        ? 'Completed recovery packs are ready to compare against recheck results.'
+        : 'Improvement will appear after recovery packs and rechecks are completed.',
+    },
+  });
+});
+
+router.post('/classes/:id/weak-groups/:skillId/assign-recovery', async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const subjectId = String(req.body.subjectId || req.query.subjectId || 'math');
+  const domainId = String(req.body.domainId || req.query.domainId || 'fractions');
+  const skillId = String(req.params.skillId || '').toUpperCase();
+  const groups = await buildWeakGroupsForClass({ classId: c._id, subjectId, domainId });
+  const group = groups.find((item) => String(item.skillId).toUpperCase() === skillId);
+  if (!group) return res.status(404).json({ error: 'Weak group not found for this skill.' });
+
+  const assignments = [];
+  for (const studentId of group.studentIds || []) {
+    const assignment = await createAssignmentFromLessonPrep({
+      studentId,
+      skillIds: [group.skillId],
+      assignedByUserId: req.user.id,
+      assignedByRole: 'teacher',
+      sourceType: 'teacher',
+      sourceId: `class_${c._id}_${group.skillId}`,
+      subjectId,
+      domainId,
+      title: `${group.skillName} Recovery Pack`,
+      description: `Targeted recovery pack assigned from ${c.name} weak group evidence.`,
+    });
+    assignments.push(assignment);
+  }
+
+  res.status(201).json({ assigned: assignments.length, assignments });
+});
+
+router.post('/classes/:id/weak-groups/:skillId/generate-worksheet', async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const subjectId = String(req.body.subjectId || req.query.subjectId || 'math');
+  const domainId = String(req.body.domainId || req.query.domainId || 'fractions');
+  const skillId = String(req.params.skillId || '').toUpperCase();
+  const groups = await buildWeakGroupsForClass({ classId: c._id, subjectId, domainId });
+  const group = groups.find((item) => String(item.skillId).toUpperCase() === skillId);
+  if (!group) return res.status(404).json({ error: 'Weak group not found for this skill.' });
+
+  const primaryStudent = await Student.findById(group.studentIds?.[0]);
+  if (!primaryStudent) return res.status(404).json({ error: 'No active student found for this weak group.' });
+  const questionCount = Number(req.body.questionCount || 12);
+  const worksheetSkillIds = await resolveSkillDocumentIds([group.skillId]);
+  if (!worksheetSkillIds.length) {
+    return res.status(400).json({ error: 'This weak group is ready for intervention, but the worksheet generator has no linked skill record yet.' });
+  }
+  const generated = await generateWorksheet({
+    mode: 'intervention_group',
+    worksheetType: 'intervention_group',
+    studentId: primaryStudent._id,
+    studentName: primaryStudent.name,
+    skillIds: worksheetSkillIds,
+    difficulty: req.body.difficulty || 'medium',
+    questionCount,
+    includesSolutions: true,
+    includesMistakeReview: true,
+    subject: subjectId === 'science' ? 'Science' : 'Math',
+    domain: domainId,
+    generatedFor: { classId: c._id, groupSkillId: group.skillId, studentIds: group.studentIds },
+  });
+  if (!generated.content?.questions?.length) {
+    return res.status(400).json({ error: 'No worksheet questions are available for this weak group yet.' });
+  }
+  const worksheet = await Worksheet.create({
+    userId: req.user.id,
+    studentId: primaryStudent._id,
+    studentName: primaryStudent.name,
+    subject: subjectId === 'science' ? 'Science' : 'Math',
+    workspaceId: req.workspaceId,
+    generatedByUserId: req.user.id,
+    generatedByRole: 'teacher',
+    generatedFor: { classId: c._id, className: c.name, groupSkillId: group.skillId, skillName: group.skillName, studentIds: group.studentIds },
+    topicIds: generated.topicIds || [],
+    skillIds: generated.skillIds || [],
+    sourceMode: generated.sourceMode || 'intervention_group',
+    worksheetType: generated.worksheetType || 'intervention_group',
+    domain: domainId,
+    difficulty: req.body.difficulty || 'medium',
+    questionCount,
+    estimatedMinutes: generated.estimatedMinutes || 0,
+    includesSolutions: true,
+    includesMistakeReview: true,
+    generatedContent: generated.content,
+    answerKey: generated.answerKey || [],
+    assignedStatus: 'unassigned',
+  });
+  res.status(201).json({
+    worksheet: {
+      id: worksheet._id,
+      title: worksheet.generatedContent?.title || `${group.skillName} Worksheet`,
+      skillName: group.skillName,
+      questionCount: worksheet.questionCount,
+      studentCount: group.studentIds.length,
+    },
+  });
+});
+
+router.post('/classes/:id/weak-groups/:skillId/assign-recheck', async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = (await rosterIds(c._id)).map(String);
+  const skillId = String(req.params.skillId || '').toUpperCase();
+  const assignments = await MathPathAssignment.find({
+    studentId: { $in: ids },
+    skillIds: skillId,
+    status: 'completed',
+    'recheck.recommended': true,
+  }).lean();
+  if (!assignments.length) {
+    return res.status(409).json({ error: 'No completed recovery packs are ready for recheck for this weak group.' });
+  }
+  const rechecks = [];
+  for (const assignment of assignments) {
+    try {
+      rechecks.push(await createRecheckForAssignment({ assignmentId: assignment._id, requestedByUserId: req.user.id }));
+    } catch (err) {
+      rechecks.push({ assignmentId: String(assignment._id), error: err.message });
+    }
+  }
+  res.status(201).json({ created: rechecks.filter((item) => item.created).length, rechecks });
 });
 
 // ── Assign practice (class / group / individual) ──────────────────

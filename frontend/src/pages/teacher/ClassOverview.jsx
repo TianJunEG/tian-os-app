@@ -27,8 +27,11 @@ export default function ClassOverview() {
           <StatTile label="Students" value={data.studentCount} />
           <StatTile label="Need support" value={data.studentsNeedingSupport.length} />
         </div>
-        <div className="mt-4"><Button icon={ArrowRight} onClick={() => navigate(`/teacher/classes/${id}/mastery`)}>View mastery map</Button></div>
-        <div className="mt-2"><Button variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath`)}>Open MathPath dashboard</Button></div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button icon={ArrowRight} onClick={() => navigate(`/teacher/classes/${id}/weak-groups`)}>Open weak groups</Button>
+          <Button variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/interventions`)}>Intervention overview</Button>
+          <Button variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath`)}>MathPath dashboard</Button>
+        </div>
       </Card>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

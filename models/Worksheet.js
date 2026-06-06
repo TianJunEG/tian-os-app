@@ -75,7 +75,7 @@ const worksheetSchema = new mongoose.Schema({
   // stores structured content first (never PDF-only).
   workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', default: null },
   generatedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-  generatedByRole: { type: String, enum: ['student', 'parent', 'tutor', 'teacher', 'system', null], default: null },
+  generatedByRole: { type: String, enum: ['student', 'parent', 'tutor', 'teacher', 'student_care', 'admin', 'system', null], default: null },
   topicIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Topic', default: [] },
   skillIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Skill', default: [] },
   sourceMode: {
@@ -97,6 +97,13 @@ const worksheetSchema = new mongoose.Schema({
       'class',
       'group',
       'intervention_group',
+      'diagnostic_intervention',
+      'recovery_pack',
+      'paper_analysis',
+      'tutor_lesson',
+      'student_care_intervention',
+      'parent_support',
+      'recheck',
       null
     ],
     default: null
@@ -115,11 +122,20 @@ const worksheetSchema = new mongoose.Schema({
       'class',
       'group',
       'intervention_group',
+      'recovery_worksheet',
+      'practice_worksheet',
+      'homework_worksheet',
+      'tutor_lesson_worksheet',
+      'recheck_worksheet',
+      'parent_support_worksheet',
       null
     ],
     default: null,
   },
   domain: { type: String, default: 'fractions' },
+  interventionSourceType: { type: String, default: '', trim: true },
+  interventionSourceId: { type: String, default: '', trim: true },
+  interventionRationale: { type: mongoose.Schema.Types.Mixed, default: null },
   generatedFor: { type: mongoose.Schema.Types.Mixed, default: null },
   difficulty: { type: String, enum: ['easy', 'medium', 'hard', 'adaptive'], default: 'medium' },
   questionCount: { type: Number, default: 10 },
