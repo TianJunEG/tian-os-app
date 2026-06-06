@@ -3,6 +3,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 const MOCK_STUDENT = { _id: 'student_1', name: 'Pilot Student' };
 const getStudentAnalytics = vi.fn();
 const getPilotAnalytics = vi.fn();
+const getPilotInterventionMetrics = vi.fn();
+const getPilotInterventionSummary = vi.fn();
 const recordLearningEvent = vi.fn();
 
 vi.mock('../middleware/auth.js', () => ({
@@ -24,6 +26,11 @@ vi.mock('../services/telemetry/learningTelemetryService.js', () => ({
   getStudentAnalytics: (...args) => getStudentAnalytics(...args),
   getPilotAnalytics: (...args) => getPilotAnalytics(...args),
   recordLearningEvent: (...args) => recordLearningEvent(...args),
+}));
+
+vi.mock('../services/mathpath/pilotInterventionMetricsService.js', () => ({
+  getPilotInterventionMetrics: (...args) => getPilotInterventionMetrics(...args),
+  getPilotInterventionSummary: (...args) => getPilotInterventionSummary(...args),
 }));
 
 async function loadRouter(path) {
@@ -106,6 +113,55 @@ describe('learning telemetry analytics routes', () => {
 
     expect(res.status).toBe(403);
     expect(getPilotAnalytics).not.toHaveBeenCalled();
+  });
+
+  it('returns admin intervention metrics', async () => {
+    getPilotInterventionMetrics.mockResolvedValueOnce({
+      funnel: { totalStudents: 5, studentsWithMeasuredImprovement: 3 },
+      assignments: { assignmentCompletionRate: 80 },
+    });
+
+    const res = await request(pilotRouter, '/pilot/intervention-metrics', {
+      query: { from: '2026-06-01', to: '2026-06-06', cohortId: 'pilot-a', domainId: 'fractions' },
+    });
+
+    expect(res.status).toBe(200);
+    expect(getPilotInterventionMetrics).toHaveBeenCalledWith({
+      from: '2026-06-01',
+      to: '2026-06-06',
+      cohortId: 'pilot-a',
+      subjectId: 'math',
+      domainId: 'fractions',
+    });
+    expect(res.data.assignments.assignmentCompletionRate).toBe(80);
+  });
+
+  it('returns exportable intervention summary JSON', async () => {
+    getPilotInterventionSummary.mockResolvedValueOnce({
+      pilotSize: 5,
+      averageReadinessGain: 24,
+    });
+
+    const res = await request(pilotRouter, '/pilot/intervention-summary', {
+      query: { subjectId: 'math', domainId: 'fractions' },
+    });
+
+    expect(res.status).toBe(200);
+    expect(getPilotInterventionSummary).toHaveBeenCalledWith({
+      from: undefined,
+      to: undefined,
+      cohortId: undefined,
+      subjectId: 'math',
+      domainId: 'fractions',
+    });
+    expect(res.data.pilotSize).toBe(5);
+  });
+
+  it('blocks intervention metrics for non-admin users', async () => {
+    const res = await request(pilotRouter, '/pilot/intervention-metrics', { headers: { role: 'student' } });
+
+    expect(res.status).toBe(403);
+    expect(getPilotInterventionMetrics).not.toHaveBeenCalled();
   });
 
   it('records generic frontend telemetry events', async () => {
