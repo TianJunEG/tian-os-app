@@ -97,6 +97,7 @@ const ScienceNotes = lazy(() => import('./pages/student/science/ScienceNotes'));
 const ParentHome = lazy(() => import('./pages/parent/ParentHome'));
 const ParentChildren = lazy(() => import('./pages/parent/ParentChildren'));
 const ChildProgress = lazy(() => import('./pages/parent/ChildProgress'));
+const ParentSuccessCentre = lazy(() => import('./pages/parent/ParentSuccessCentre'));
 const ParentMathPathDashboardPage = lazy(() => import('./pages/parent/ParentMathPathDashboardPage'));
 const ChildScience = lazy(() => import('./pages/parent/ChildScience'));
 const ChildLifeLab = lazy(() => import('./pages/parent/ChildLifeLab'));
@@ -517,6 +518,7 @@ function App() {
 
             {/* Parent (Phase 3) */}
             <Route path="/parent" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentHome /></FeatureGuard>} />
+            <Route path="/parent/success-centre" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentSuccessCentre /></FeatureGuard>} />
             <Route path="/parent/children" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentChildren /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/progress" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildProgress /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentMathPathDashboardPage /></FeatureGuard>} />

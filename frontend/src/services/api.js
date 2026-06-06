@@ -126,6 +126,10 @@ export const mathpathAPI = {
   updateMathPathAssignmentProgress: (id, data = {}) => api.patch(`/mathpath/assignments/${id}/progress`, data),
   recommendAssignmentRecheck: (id) => api.post(`/mathpath/assignments/${id}/recheck-recommendation`),
   createAssignmentRecheck: (id) => api.post(`/mathpath/assignments/${id}/create-recheck`),
+  parentSuccessCentre: (params = {}) => api.get('/mathpath/success-centre/parent', { params }),
+  parentProgressReport: (params = {}) => api.get('/mathpath/success-centre/parent/report', { params }),
+  tutorLessonPrepPreview: (params = {}) => api.get('/mathpath/success-centre/tutor/lesson-prep', { params }),
+  pilotSuccessMetrics: (params = {}) => api.get('/mathpath/success-centre/pilot-metrics', { params }),
   // ref: a slug string, or { skillId } / { skillSlug }
   remediation: (ref, recentAttempts = []) =>
     api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })

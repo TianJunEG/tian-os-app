@@ -99,6 +99,9 @@ export default function ParentHome() {
           <Link to={`/parent/children/${child.studentId}/mathpath`} className="text-sm font-semibold text-navy-700">
             Open Parent MathPath dashboard →
           </Link>
+          <Link to={`/parent/success-centre?child=${child.studentId}`} className="ml-4 text-sm font-semibold text-gold-700">
+            Open Success Centre →
+          </Link>
         </div>
       </Card>
 
