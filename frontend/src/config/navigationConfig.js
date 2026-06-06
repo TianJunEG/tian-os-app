@@ -44,6 +44,11 @@ export const NAV_ITEMS = [
   { key: 'teacher.assignments', label: 'Assign', path: '/teacher/classes/:id/assign', icon: ClipboardList, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
   { key: 'teacher.results', label: 'Results', path: '/teacher/classes/:id/reports', icon: Book, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
   { key: 'teacher.remediation', label: 'Remediation', path: '/teacher/classes/:id/interventions', icon: CheckSquare, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
+
+  // Student Care MVP
+  { key: 'studentcare.dashboard', label: 'Dashboard', path: '/student-care/dashboard', icon: Home, roles: ['student_care'], minVersion: 'v0.1' },
+  { key: 'studentcare.homework', label: 'Homework', path: '/student-care/homework', icon: ClipboardList, roles: ['student_care'], minVersion: 'v0.1' },
+  { key: 'studentcare.reports', label: 'Reports', path: '/student-care/reports', icon: Book, roles: ['student_care'], minVersion: 'v0.1' },
 ];
 
 // Build NAV shape consumed by AppShell and MobileNav

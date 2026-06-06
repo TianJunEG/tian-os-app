@@ -3,7 +3,7 @@ import { buildNav } from './navigationConfig';
 import FEATURE_FLAGS from './featureFlags';
 import VERSION from './version';
 
-const roles = ['student', 'parent', 'tutor', 'teacher', 'admin'];
+const roles = ['student', 'parent', 'tutor', 'teacher', 'admin', 'student_care'];
 const showDisabled = import.meta.env.VITE_SHOW_DISABLED === '1' || import.meta.env.VITE_SHOW_DISABLED === 'true';
 export const NAV = roles.reduce((acc, r) => ({
   ...acc,
@@ -11,5 +11,5 @@ export const NAV = roles.reduce((acc, r) => ({
 }), {});
 
 export const ROLE_HOME = {
-  student: '/student', parent: '/parent', tutor: '/tutor', teacher: '/teacher', admin: '/admin',
+  student: '/student', parent: '/parent', tutor: '/tutor', teacher: '/teacher', admin: '/admin', student_care: '/student-care/dashboard',
 };

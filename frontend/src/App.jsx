@@ -106,6 +106,9 @@ const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'
 const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
 const MistakeHistory = lazy(() => import('./pages/parent/MistakeHistory'));
 const ChildAssignments = lazy(() => import('./pages/parent/ChildAssignments'));
+const StudentCareDashboard = lazy(() => import('./pages/studentCare/StudentCareDashboard'));
+const StudentCareHomework = lazy(() => import('./pages/studentCare/StudentCareHomework'));
+const StudentCareReports = lazy(() => import('./pages/studentCare/StudentCareReports'));
 // Tutor (Phase 4)
 const TutorHome = lazy(() => import('./pages/tutor/TutorHome'));
 const AssignedStudents = lazy(() => import('./pages/tutor/AssignedStudents'));
@@ -537,6 +540,11 @@ function App() {
             <Route path="/parent/children/:studentId/worksheets" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetHome /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/worksheets/new" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetSetup /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/worksheets/:worksheetId" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WorksheetPreview /></FeatureGuard>} />
+
+            {/* Student Care MVP */}
+            <Route path="/student-care/dashboard" element={<StudentCareDashboard />} />
+            <Route path="/student-care/homework" element={<StudentCareHomework />} />
+            <Route path="/student-care/reports" element={<StudentCareReports />} />
 
             {/* Tutor (Phase 4) */}
             <Route path="/tutor" element={<FeatureGuard feature="tutor"><TutorHome /></FeatureGuard>} />

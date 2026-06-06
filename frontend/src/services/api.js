@@ -149,6 +149,13 @@ export const studentProfileAPI = {
   timeline: () => api.get('/student-profile/timeline'),
 };
 
+export const studentCareAPI = {
+  dashboard: (params = {}) => api.get('/student-care/dashboard', { params }),
+  homework: (params = {}) => api.get('/student-care/homework', { params }),
+  reports: (params = {}) => api.get('/student-care/reports', { params }),
+  parentSummary: (studentId, params = {}) => api.get(`/student-care/students/${studentId}/parent-summary`, { params }),
+};
+
 // Spelling Practice (Phase 6) — wired into the shared core (sessions, attempts,
 // mastery, mistakes), module 'Spelling Practice' / subject English.
 export const spellingPracticeAPI = {
