@@ -27,4 +27,15 @@ describe('paperAnalysisRecommendationEngine', () => {
       expect.objectContaining({ type: 'run_mini_diagnostic', status: 'pending_review' }),
     ]));
   });
+
+  it('does not recommend interventions from detected teacher marks without adult confirmation', () => {
+    const recommendations = buildPaperAnalysisRecommendations({
+      detectedQuestions: [
+        { detectedSkillIds: ['F019'], teacherMarkedCorrect: false, confidence: 0.8 },
+      ],
+    });
+
+    expect(recommendations.report.weakSkills).toEqual([]);
+    expect(recommendations.recommendedActions).toEqual([]);
+  });
 });

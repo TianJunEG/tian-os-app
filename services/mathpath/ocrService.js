@@ -25,6 +25,7 @@ async function extractPdfPages(buffer) {
         extractedText,
         confidence: extractedText ? 0.8 : 0,
         needsReview: !extractedText,
+        warnings: extractedText ? [] : ['No readable text detected on this PDF page.'],
       })),
     };
   } finally {
@@ -47,6 +48,10 @@ async function extractImagePage(buffer) {
       extractedText: String(result?.data?.text || '').trim(),
       confidence,
       needsReview: confidence < LOW_CONFIDENCE_THRESHOLD,
+      warnings: [
+        ...(confidence < LOW_CONFIDENCE_THRESHOLD ? ['Low OCR confidence. Adult review required.'] : []),
+        ...(!String(result?.data?.text || '').trim() ? ['No readable text detected in image.'] : []),
+      ],
     }],
   };
 }

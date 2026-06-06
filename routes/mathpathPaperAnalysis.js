@@ -110,6 +110,12 @@ function normalizeDetectedQuestions(rawQuestions = []) {
       teacherMarkedCorrect: typeof question.teacherMarkedCorrect === 'boolean' ? question.teacherMarkedCorrect : null,
       teacherMark: question.teacherMark || '',
       teacherMarkConfidence: Number.isFinite(Number(question.teacherMarkConfidence)) ? Number(question.teacherMarkConfidence) : 0,
+      detectedMarks: Number.isFinite(Number(question.detectedMarks)) ? Number(question.detectedMarks) : null,
+      detectedMarksConfidence: Number.isFinite(Number(question.detectedMarksConfidence)) ? Number(question.detectedMarksConfidence) : 0,
+      selectedOption: question.selectedOption || '',
+      selectedOptionConfidence: Number.isFinite(Number(question.selectedOptionConfidence)) ? Number(question.selectedOptionConfidence) : 0,
+      skillMappingConfidence: Number.isFinite(Number(question.skillMappingConfidence)) ? Number(question.skillMappingConfidence) : 0,
+      skillMappingSource: question.skillMappingSource || '',
       adultConfirmedCorrect: Boolean(question.adultConfirmedCorrect),
       adultConfirmedWrong: Boolean(question.adultConfirmedWrong),
       adultIgnored: Boolean(question.adultIgnored),
@@ -119,6 +125,7 @@ function normalizeDetectedQuestions(rawQuestions = []) {
       misconceptionEvidence: Array.isArray(question.misconceptionEvidence) ? question.misconceptionEvidence : [],
       confidence: Number.isFinite(Number(question.confidence)) ? Number(question.confidence) : mapped.confidence,
       needsAdultReview: question.needsAdultReview !== undefined ? Boolean(question.needsAdultReview) : mapped.needsAdultReview,
+      dataQualityWarnings: Array.isArray(question.dataQualityWarnings) ? question.dataQualityWarnings : [],
     };
   });
 }
@@ -200,6 +207,12 @@ router.patch('/:id/review', protect, async (req, res) => {
     analysis.weakSkillIds = recommendations.report.weakSkills || [];
     analysis.recommendedActions = recommendations.recommendedActions;
     analysis.reportSummary = recommendations.report;
+    analysis.dataQualityWarnings = [
+      ...new Set([
+        ...detectedQuestions.flatMap((question) => question.dataQualityWarnings || []),
+        ...((recommendations.report.weakSkills || []).length ? [] : ['No confirmed weak skills yet. Confirm wrong questions before assigning interventions.']),
+      ]),
+    ];
     analysis.status = 'reviewed';
     analysis.reviewedAt = new Date();
     analysis.analysisNotes = req.body?.analysisNotes || analysis.analysisNotes || '';

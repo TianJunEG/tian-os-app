@@ -52,12 +52,21 @@ describe('paperAnalysisPipeline', () => {
 
     expect(result.status).toBe('needs_review');
     expect(result.ocrPages).toHaveLength(1);
+    expect(result.pipelineLog.map((row) => row.stage)).toEqual(expect.arrayContaining([
+      'processing',
+      'ocr_complete',
+      'questions_detected',
+      'skills_mapped',
+      'needs_review',
+    ]));
     expect(result.detectedQuestions[0]).toMatchObject({
       questionNumber: '1',
       teacherMarkedCorrect: false,
       needsAdultReview: true,
     });
+    expect(result.detectedQuestions[0].skillMappingConfidence).toBeGreaterThanOrEqual(0);
     expect(result.extractionSummary.adultReviewRequired).toBe(true);
+    expect(result.dataQualityWarnings).toEqual(expect.any(Array));
     expect(analysis.save).toHaveBeenCalled();
   });
 });

@@ -32,6 +32,7 @@ describe('ocrService', () => {
         pageNumber: 1,
         extractedText: expect.stringContaining('Add 1/2'),
         confidence: 0.8,
+        warnings: [],
       }),
     ]);
   });
@@ -46,6 +47,7 @@ describe('ocrService', () => {
     expect(result.pages[0]).toMatchObject({
       extractedText: '1. Simplify 4/8',
       confidence: 0.72,
+      warnings: [],
     });
   });
 });

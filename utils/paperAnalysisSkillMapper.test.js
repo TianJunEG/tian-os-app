@@ -48,10 +48,9 @@ describe('paper analysis skill mapper', () => {
       { detectedSkillIds: ['F011'], adultConfirmedCorrect: true },
     ]);
 
-    expect(recommendations.weakSkillIds).toEqual(['F015', 'F019']);
+    expect(recommendations.weakSkillIds).toEqual(['F015']);
     expect(recommendations.recommendedActions).toEqual([
       expect.objectContaining({ type: 'assign_practice', skillId: 'F015', status: 'pending_review' }),
-      expect.objectContaining({ type: 'assign_practice', skillId: 'F019', status: 'pending_review' }),
     ]);
   });
 });

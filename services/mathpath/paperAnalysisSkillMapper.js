@@ -20,10 +20,10 @@ function unique(values = []) {
   return [...new Set(values.filter(Boolean))];
 }
 
-export function mapPaperQuestionToSkills(question = {}, { manualSkillIds = [] } = {}) {
+export function mapPaperQuestionToSkills(question = {}, { manualSkillIds = [], treatDetectedSkillIdsAsManual = true } = {}) {
   const suppliedManual = manualSkillIds?.length
     ? manualSkillIds
-    : (question.manualSkillIds?.length ? question.manualSkillIds : question.detectedSkillIds);
+    : (question.manualSkillIds?.length ? question.manualSkillIds : (treatDetectedSkillIdsAsManual ? question.detectedSkillIds : []));
   const manual = unique((suppliedManual || []).map((id) => String(id || '').trim().toUpperCase()).filter(Boolean));
   if (manual.length) {
     return {
@@ -32,11 +32,12 @@ export function mapPaperQuestionToSkills(question = {}, { manualSkillIds = [] } 
       reasons: ['Adult-confirmed skill mapping.'],
       suggestedMisconceptions: [],
       source: 'adult_manual_override',
+      skillMappingConfidence: 1,
       needsAdultReview: false,
     };
   }
 
-  const text = normalize(`${question.questionText || ''} ${question.studentAnswer || ''}`);
+  const text = normalize(`${question.questionText || ''} ${question.studentAnswer || ''} ${question.teacherMark || ''}`);
   const matches = FRACTIONS_KEYWORDS
     .map((rule) => ({
       skillId: rule.skillId,
@@ -56,6 +57,7 @@ export function mapPaperQuestionToSkills(question = {}, { manualSkillIds = [] } 
     reasons: matches.slice(0, 3).map((row) => `Matched ${row.matchedKeywords.join(', ')} for ${row.skillId}.`),
     suggestedMisconceptions: unique(matches.slice(0, 3).map((row) => row.misconception)),
     source: detectedSkillIds.length ? 'keyword_mapping' : 'unmapped',
+    skillMappingConfidence: confidence,
     needsAdultReview: confidence < 0.85,
   };
 }
@@ -73,7 +75,7 @@ const AI_MAPPING_SCHEMA = {
 };
 
 export async function mapPaperQuestionToSkillsWithAi(question = {}, options = {}) {
-  const heuristic = mapPaperQuestionToSkills(question, options);
+  const heuristic = mapPaperQuestionToSkills(question, { ...options, treatDetectedSkillIdsAsManual: options.treatDetectedSkillIdsAsManual ?? false });
   if (process.env.PAPER_ANALYSIS_AI_ENABLED !== '1' || heuristic.confidence >= 0.85) {
     return { ...heuristic, aiUsed: false };
   }
@@ -100,6 +102,7 @@ export async function mapPaperQuestionToSkillsWithAi(question = {}, options = {}
       reasons: Array.isArray(parsed.reasons) ? parsed.reasons : ['AI-assisted skill mapping.'],
       suggestedMisconceptions: Array.isArray(parsed.suggestedMisconceptions) ? parsed.suggestedMisconceptions : [],
       source: 'ai_assisted_mapping',
+      skillMappingConfidence: confidence,
       needsAdultReview: confidence < 0.9,
       aiUsed: true,
       fallback: heuristic,
@@ -111,7 +114,7 @@ export async function mapPaperQuestionToSkillsWithAi(question = {}, options = {}
 
 export function buildPaperAnalysisRecommendations(detectedQuestions = []) {
   const weakSkillIds = unique((detectedQuestions || [])
-    .filter((q) => q.adultConfirmedWrong || q.teacherMarkedCorrect === false)
+    .filter((q) => q.adultConfirmedWrong)
     .flatMap((q) => q.detectedSkillIds || []));
 
   return {

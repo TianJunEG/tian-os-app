@@ -5,17 +5,21 @@ function unique(values = []) {
 export function buildPaperAnalysisReport(analysis = {}) {
   const questions = analysis.detectedQuestions || [];
   const ignored = questions.filter((q) => q.adultIgnored).length;
-  const correct = questions.filter((q) => q.adultConfirmedCorrect || q.teacherMarkedCorrect === true).length;
-  const incorrect = questions.filter((q) => q.adultConfirmedWrong || q.teacherMarkedCorrect === false).length;
+  const correct = questions.filter((q) => q.adultConfirmedCorrect).length;
+  const incorrect = questions.filter((q) => q.adultConfirmedWrong).length;
+  const detectedCorrect = questions.filter((q) => q.teacherMarkedCorrect === true).length;
+  const detectedIncorrect = questions.filter((q) => q.teacherMarkedCorrect === false).length;
   const skillsDetected = unique(questions.flatMap((q) => q.detectedSkillIds || []));
   const weakSkills = unique(questions
-    .filter((q) => q.adultConfirmedWrong || q.teacherMarkedCorrect === false)
+    .filter((q) => q.adultConfirmedWrong)
     .flatMap((q) => q.detectedSkillIds || []));
   const misconceptions = unique(questions.flatMap((q) => q.misconceptionTags || []));
   return {
     totalQuestions: questions.length,
     correct,
     incorrect,
+    detectedCorrect,
+    detectedIncorrect,
     ignored,
     skillsDetected,
     weakSkills,

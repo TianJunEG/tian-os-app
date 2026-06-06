@@ -12,6 +12,7 @@ export const PAPER_ANALYSIS_STATUS = [
   'processing',
   'ocr_complete',
   'questions_detected',
+  'skills_mapped',
   'needs_review',
   'reviewed',
   'assigned',
@@ -31,6 +32,12 @@ const detectedQuestionSchema = new mongoose.Schema(
     teacherMarkedCorrect: { type: Boolean, default: null },
     teacherMark: { type: String, default: '' },
     teacherMarkConfidence: { type: Number, default: 0, min: 0, max: 1 },
+    detectedMarks: { type: Number, default: null },
+    detectedMarksConfidence: { type: Number, default: 0, min: 0, max: 1 },
+    selectedOption: { type: String, default: '', trim: true },
+    selectedOptionConfidence: { type: Number, default: 0, min: 0, max: 1 },
+    skillMappingConfidence: { type: Number, default: 0, min: 0, max: 1 },
+    skillMappingSource: { type: String, default: '', trim: true },
     adultConfirmedCorrect: { type: Boolean, default: false },
     adultConfirmedWrong: { type: Boolean, default: false },
     adultIgnored: { type: Boolean, default: false },
@@ -40,6 +47,7 @@ const detectedQuestionSchema = new mongoose.Schema(
     misconceptionEvidence: { type: [String], default: [] },
     confidence: { type: Number, default: 0, min: 0, max: 1 },
     needsAdultReview: { type: Boolean, default: true },
+    dataQualityWarnings: { type: [String], default: [] },
   },
   { _id: false }
 );
@@ -61,6 +69,7 @@ const ocrPageSchema = new mongoose.Schema(
     extractedText: { type: String, default: '' },
     confidence: { type: Number, default: 0, min: 0, max: 1 },
     needsReview: { type: Boolean, default: true },
+    warnings: { type: [String], default: [] },
   },
   { _id: false }
 );
@@ -82,6 +91,7 @@ const paperAnalysisSchema = new mongoose.Schema(
     ocrPages: { type: [ocrPageSchema], default: [] },
     pipelineLog: { type: [mongoose.Schema.Types.Mixed], default: [] },
     extractionSummary: { type: mongoose.Schema.Types.Mixed, default: {} },
+    dataQualityWarnings: { type: [String], default: [] },
     detectedQuestions: { type: [detectedQuestionSchema], default: [] },
     weakSkillIds: { type: [String], default: [] },
     recommendedActions: { type: [recommendedActionSchema], default: [] },

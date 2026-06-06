@@ -172,7 +172,7 @@ export default function PaperAnalysisPage() {
             />
           </label>
           <p className="mt-2 text-xs text-ink-500">
-            OCR/AI extraction is not automatic in this MVP. Add manual rows when you want immediate skill mapping.
+            Tian OS will attempt OCR, question detection, mark detection, and skill mapping. Adult confirmation is required before assigning intervention.
           </p>
           {error && <ErrorState message={error} />}
           {message && <p className="mt-2 text-sm font-semibold text-success-700">{message}</p>}
@@ -187,6 +187,14 @@ export default function PaperAnalysisPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Paper Analysis</p>
             <h2 className="mt-1 font-display text-lg font-semibold text-navy-700">{analysis.originalFilename || 'Uploaded paper'}</h2>
             <p className="mt-1 text-sm text-ink-600">Status: {analysis.status}</p>
+            {!!analysis.dataQualityWarnings?.length && (
+              <div className="mt-3 rounded-xl bg-tianPeach px-3 py-2 text-sm text-error-700">
+                <p className="font-semibold">Review warnings</p>
+                <ul className="mt-1 list-disc space-y-1 pl-5">
+                  {analysis.dataQualityWarnings.map((warning) => <li key={warning}>{warning}</li>)}
+                </ul>
+              </div>
+            )}
             {!!analysis.reportSummary && (
               <div className="mt-3 grid gap-2 sm:grid-cols-4">
                 <div className="rounded-xl bg-paper px-3 py-2 text-sm">
@@ -234,8 +242,14 @@ export default function PaperAnalysisPage() {
                         </p>
                         <p className="mt-1 text-sm text-ink-700">{question.questionText || 'Question text needs review.'}</p>
                         <p className="mt-1 text-xs text-ink-500">
-                          Answer: {question.studentAnswer || 'Not detected'} · Mark: {question.teacherMark || 'Not detected'}
+                          Answer: {question.studentAnswer || question.selectedOption || 'Not detected'} · Mark: {question.teacherMark || 'Not detected'} · Skill confidence {confidenceText(question.skillMappingConfidence || question.confidence)}
                         </p>
+                        {!!question.skillMappingReasons?.length && (
+                          <p className="mt-1 text-xs text-ink-500">Why: {question.skillMappingReasons.slice(0, 2).join(' ')}</p>
+                        )}
+                        {!!question.dataQualityWarnings?.length && (
+                          <p className="mt-1 text-xs text-error-700">{question.dataQualityWarnings.join(' ')}</p>
+                        )}
                         {!!question.misconceptionTags?.length && (
                           <p className="mt-1 text-xs text-ink-500">Misconceptions: {question.misconceptionTags.join(', ')}</p>
                         )}
@@ -243,6 +257,15 @@ export default function PaperAnalysisPage() {
                       {question.needsAdultReview && <span className="rounded-full bg-gold-100 px-2 py-1 text-xs font-semibold text-gold-800">Review needed</span>}
                     </div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <label className="text-xs text-ink-600 sm:col-span-2">
+                        OCR question text
+                        <textarea
+                          value={question.questionText || ''}
+                          onChange={(e) => updateQuestion(index, { questionText: e.target.value, needsAdultReview: true })}
+                          rows={3}
+                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                        />
+                      </label>
                       <label className="text-xs text-ink-600">
                         Skill mapping
                         <input
@@ -250,6 +273,33 @@ export default function PaperAnalysisPage() {
                           onChange={(e) => updateQuestion(index, {
                             detectedSkillIds: e.target.value.split(',').map((id) => id.trim().toUpperCase()).filter(Boolean),
                             needsAdultReview: false,
+                          })}
+                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="text-xs text-ink-600">
+                        Detected answer
+                        <input
+                          value={question.studentAnswer || ''}
+                          onChange={(e) => updateQuestion(index, { studentAnswer: e.target.value, needsAdultReview: true })}
+                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="text-xs text-ink-600">
+                        Detected mark
+                        <input
+                          value={question.teacherMark || ''}
+                          onChange={(e) => updateQuestion(index, { teacherMark: e.target.value, needsAdultReview: true })}
+                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="text-xs text-ink-600">
+                        Misconception tags
+                        <input
+                          value={(question.misconceptionTags || []).join(', ')}
+                          onChange={(e) => updateQuestion(index, {
+                            misconceptionTags: e.target.value.split(',').map((tag) => tag.trim()).filter(Boolean),
+                            needsAdultReview: true,
                           })}
                           className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
                         />

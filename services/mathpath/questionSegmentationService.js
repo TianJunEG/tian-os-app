@@ -1,8 +1,8 @@
+import { detectPaperMarks } from './paperMarkDetectionService.js';
+
 const QUESTION_START = /^\s*(?:q(?:uestion)?\s*)?(\d+[a-z]?)(?:[\).:]|\s+-|\s{2,})\s*(.*)$/i;
 const MARKS_PATTERN = /\[(\d+)\s*(?:mark|marks|m)\]|\((\d+)\s*(?:mark|marks|m)\)/i;
 const ANSWER_PATTERN = /\b(?:ans(?:wer)?|student answer|answer written)\s*[:=-]\s*([^;\n]+)/i;
-const CORRECT_MARK_PATTERN = /(?:✓|✔|\btick\b|\bcorrect\b)/i;
-const WRONG_MARK_PATTERN = /(?:✗|×|\bcross\b|\bwrong\b|\bincorrect\b)/i;
 
 function confidenceForQuestion(text = '', questionNumber = '') {
   let score = questionNumber ? 0.55 : 0.25;
@@ -10,23 +10,6 @@ function confidenceForQuestion(text = '', questionNumber = '') {
   if (MARKS_PATTERN.test(text)) score += 0.1;
   if (ANSWER_PATTERN.test(text)) score += 0.05;
   return Math.max(0, Math.min(0.95, score));
-}
-
-export function extractStudentAnswer(blockText = '') {
-  const match = String(blockText || '').match(ANSWER_PATTERN);
-  if (!match) return { studentAnswer: '', confidence: 0 };
-  return { studentAnswer: match[1].trim(), confidence: 0.72 };
-}
-
-export function detectTeacherMark(blockText = '') {
-  const text = String(blockText || '');
-  if (CORRECT_MARK_PATTERN.test(text)) {
-    return { teacherMarkedCorrect: true, teacherMark: 'correct', confidence: 0.7 };
-  }
-  if (WRONG_MARK_PATTERN.test(text)) {
-    return { teacherMarkedCorrect: false, teacherMark: 'wrong', confidence: 0.7 };
-  }
-  return { teacherMarkedCorrect: null, teacherMark: '', confidence: 0 };
 }
 
 export function segmentQuestionsFromOcrPages(pages = []) {
@@ -62,21 +45,23 @@ export function segmentQuestionsFromOcrPages(pages = []) {
     const text = block.lines.join('\n').trim();
     const marksMatch = text.match(MARKS_PATTERN);
     const marks = marksMatch ? Number(marksMatch[1] || marksMatch[2] || 0) : null;
-    const answer = extractStudentAnswer(text);
-    const mark = detectTeacherMark(text);
+    const detection = detectPaperMarks(text);
     const confidence = confidenceForQuestion(text, block.questionNumber || String(index + 1));
+    const warnings = [
+      ...(!block.questionNumber ? ['Question number was inferred.'] : []),
+      ...(!text ? ['Question text is empty.'] : []),
+      ...(confidence < 0.65 ? ['Low question segmentation confidence.'] : []),
+      ...(!detection.studentAnswer && detection.teacherMarkedCorrect !== null ? ['Teacher mark detected but student answer is unclear.'] : []),
+    ];
     return {
       questionNumber: String(block.questionNumber || index + 1),
       questionText: text.replace(ANSWER_PATTERN, '').trim(),
       marks: Number.isFinite(marks) ? marks : null,
       pageNumber: Number(block.pageNumber || 1),
       confidence,
-      studentAnswer: answer.studentAnswer,
-      studentAnswerConfidence: answer.confidence,
-      teacherMarkedCorrect: mark.teacherMarkedCorrect,
-      teacherMark: mark.teacherMark,
-      teacherMarkConfidence: mark.confidence,
-      needsAdultReview: confidence < 0.85 || answer.confidence > 0 || mark.confidence > 0,
+      ...detection,
+      needsAdultReview: confidence < 0.85 || detection.studentAnswerConfidence > 0 || detection.teacherMarkConfidence > 0,
+      dataQualityWarnings: warnings,
     };
   });
 }

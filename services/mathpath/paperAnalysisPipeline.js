@@ -14,6 +14,7 @@ export const PAPER_ANALYSIS_PIPELINE_STAGES = [
   'processing',
   'ocr_complete',
   'questions_detected',
+  'skills_mapped',
   'needs_review',
   'reviewed',
   'assigned',
@@ -39,6 +40,8 @@ async function mergeQuestionAnalysis(question = {}) {
       ...(skillMapping.reasons || []),
       skillMapping.aiUsed ? 'AI-assisted mapping used; adult confirmation still required.' : '',
     ].filter(Boolean),
+    skillMappingConfidence: Number(skillMapping.confidence || skillMapping.skillMappingConfidence || 0),
+    skillMappingSource: skillMapping.source || '',
     misconceptionTags: [...new Set([
       ...(question.misconceptionTags || []),
       ...(skillMapping.suggestedMisconceptions || []),
@@ -52,7 +55,26 @@ async function mergeQuestionAnalysis(question = {}) {
       || confidence < 0.85
       || question.teacherMarkedCorrect !== null
     ),
+    dataQualityWarnings: [
+      ...(question.dataQualityWarnings || []),
+      ...(!question.questionNumber ? ['Missing question number.'] : []),
+      ...(!question.questionText ? ['Missing OCR question text.'] : []),
+      ...(!question.studentAnswer && question.teacherMarkedCorrect !== null ? ['Teacher mark detected but student answer is unclear.'] : []),
+      ...(Number(skillMapping.confidence || 0) < 0.7 ? ['Low skill mapping confidence.'] : []),
+      ...(!(skillMapping.detectedSkillIds || []).length ? ['No skill mapping detected.'] : []),
+    ],
   };
+}
+
+function analysisWarnings({ ocrPages = [], detectedQuestions = [] } = {}) {
+  return [
+    ...ocrPages.flatMap((page) => page.warnings || []),
+    ...(ocrPages.some((page) => Number(page.confidence || 0) < 0.65) ? ['One or more pages have low OCR confidence.'] : []),
+    ...(detectedQuestions.some((question) => !question.questionNumber) ? ['Some question numbers are missing or inferred.'] : []),
+    ...(detectedQuestions.some((question) => !question.studentAnswer && question.teacherMarkedCorrect !== null) ? ['Some marked questions have unclear student answers.'] : []),
+    ...(detectedQuestions.some((question) => Number(question.skillMappingConfidence || question.confidence || 0) < 0.7) ? ['Some questions have low skill mapping confidence.'] : []),
+    ...(!detectedQuestions.length ? ['No questions were detected automatically. Manual review is required.'] : []),
+  ];
 }
 
 async function readBufferFromAnalysis(analysis) {
@@ -93,6 +115,7 @@ export async function runPaperAnalysisPipeline({
       extractedText: page.extractedText,
       confidence: page.confidence,
       needsReview: page.needsReview || Number(page.confidence || 0) < 0.65,
+      warnings: page.warnings || [],
     }));
     analysis.pageCount = Math.max(analysis.pageCount || 1, analysis.ocrPages.length || 1);
     analysis.status = 'ocr_complete';
@@ -111,6 +134,15 @@ export async function runPaperAnalysisPipeline({
     }));
     await analysis.save();
 
+    if (detectedQuestions.length) {
+      analysis.status = 'skills_mapped';
+      analysis.pipelineLog.push(log('skills_mapped', 'Question skill mapping completed.', {
+        mappedQuestions: detectedQuestions.filter((question) => (question.detectedSkillIds || []).length).length,
+        lowConfidenceMappings: detectedQuestions.filter((question) => Number(question.skillMappingConfidence || 0) < 0.7).length,
+      }));
+      await analysis.save();
+    }
+
     const recommendation = buildReviewRecommendations(analysis);
     analysis.reportSummary = recommendation.report;
     analysis.recommendedActions = recommendation.recommendedActions;
@@ -122,6 +154,7 @@ export async function runPaperAnalysisPipeline({
       lowConfidenceQuestionCount: detectedQuestions.filter((question) => question.needsAdultReview).length,
       adultReviewRequired: true,
     };
+    analysis.dataQualityWarnings = analysisWarnings({ ocrPages: analysis.ocrPages, detectedQuestions });
     analysis.status = 'needs_review';
     analysis.pipelineLog.push(log('needs_review', 'Analysis prepared for adult review.', analysis.extractionSummary));
     await analysis.save();
