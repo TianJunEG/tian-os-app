@@ -7,6 +7,7 @@ import ClassNav from './ClassNav';
 import { useClass } from './useClass';
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
+import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
 
 function toneForIssue(issueType) {
   if (issueType === 'accurateButSlow') return 'gold';
@@ -336,6 +337,7 @@ export default function TeacherMathPathDashboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [placedCount, setPlacedCount] = useState(0);
   const [workingReview, setWorkingReview] = useState(null);
+  const [classDiagnosticGrowth, setClassDiagnosticGrowth] = useState(null);
 
   const load = useCallback(async () => {
     setError(false);
@@ -360,6 +362,34 @@ export default function TeacherMathPathDashboardPage() {
         })
       );
       setPlacedCount(placementRows.filter(Boolean).length);
+      const growthRows = await Promise.all(
+        list.slice(0, 30).map(async (s) => {
+          try {
+            const r = await mathpathAPI.getDiagnosticGrowth({ studentId: s.studentId });
+            return r?.data || null;
+          } catch (_) {
+            return null;
+          }
+        })
+      );
+      const validGrowth = growthRows.filter((row) => row?.latest);
+      const avg = (rows, key) => {
+        const values = rows.map((row) => Number(row?.[key]?.readinessScore)).filter(Number.isFinite);
+        if (!values.length) return null;
+        return Math.round(values.reduce((sum, n) => sum + n, 0) / values.length);
+      };
+      const avgImprovement = validGrowth
+        .map((row) => Number(row.overallImprovement))
+        .filter(Number.isFinite);
+      setClassDiagnosticGrowth(validGrowth.length ? {
+        baseline: { readinessScore: avg(validGrowth, 'baseline') },
+        latest: { readinessScore: avg(validGrowth, 'latest'), completedAt: validGrowth[0]?.latest?.completedAt },
+        overallImprovement: avgImprovement.length
+          ? Math.round(avgImprovement.reduce((sum, n) => sum + n, 0) / avgImprovement.length)
+          : null,
+        perSkillGrowth: validGrowth.flatMap((row) => row.perSkillGrowth || []),
+        remainingWeakSkills: [...new Set(validGrowth.flatMap((row) => row.remainingWeakSkills || []))],
+      } : null);
       const studentProgressStates = buildSyntheticStudentProgressStates(list);
       const assessmentResults = buildSyntheticAssessment(list);
       const mistakePlans = buildSyntheticMistakePlans(list);
@@ -402,6 +432,12 @@ export default function TeacherMathPathDashboardPage() {
         <EmptyState message="No MathPath data available for this class yet." />
       ) : (
         <div className="space-y-4">
+          <DiagnosticGrowthCard
+            title="Class Diagnostic Growth"
+            growth={classDiagnosticGrowth}
+            onViewHistory={() => navigate(`/teacher/classes/${id}/mathpath`)}
+            onRunRecheck={() => navigate(`/teacher/classes/${id}/assign?task=diagnostic_recheck`)}
+          />
           <TeacherClassOverviewCard data={dashboard.classOverview} />
           <AdultWorkingReviewPanel review={workingReview || {}} title="Class Working and Help Requests" />
 

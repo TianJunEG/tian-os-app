@@ -59,6 +59,8 @@ export const diagnosticsAPI = {
   domains: () => api.get('/diagnostics/domains'),
   startDiagnostic: (data) => api.post('/diagnostics/start', data),
   answerDiagnostic: (sessionId, data) => api.post(`/diagnostics/${sessionId}/answer`, data),
+  history: (params) => api.get('/diagnostics/history', { params }),
+  growth: (params) => api.get('/diagnostics/growth', { params }),
 };
 
 export const mathpathAPI = {
@@ -70,6 +72,8 @@ export const mathpathAPI = {
   submitDiagnostic: (sessionId, data) => api.post(`/mastery/diagnostic/${sessionId}/submit`, data),
   getDiagnostic: (sessionId) => api.get(`/mastery/diagnostic/${sessionId}`),
   getLatestDiagnostic: (params) => api.get('/mastery/diagnostic/latest', { params }),
+  getDiagnosticHistory: (params) => diagnosticsAPI.history({ subjectId: 'math', domainId: 'fractions', ...params }),
+  getDiagnosticGrowth: (params) => diagnosticsAPI.growth({ subjectId: 'math', domainId: 'fractions', ...params }),
   resetTestStudentState: (data = {}) => api.post('/mastery/test/reset-state', data),
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
@@ -108,6 +112,13 @@ export const mathpathAPI = {
   }),
   markNoWorking: (workingSessionId, data) => api.post(`/mathpath-working/${workingSessionId}/no-working`, data),
   updateWorkingAnalysis: (workingSessionId, data) => api.post(`/mathpath-working/${workingSessionId}/analysis`, data),
+  uploadPaperAnalysis: (formData) => api.post('/mathpath/paper-analysis/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  paperAnalysis: (id) => api.get(`/mathpath/paper-analysis/${id}`),
+  reviewPaperAnalysis: (id, data) => api.patch(`/mathpath/paper-analysis/${id}/review`, data),
+  assignPaperAnalysisPractice: (id, data = {}) => api.post(`/mathpath/paper-analysis/${id}/assign-practice`, data),
+  createPaperAnalysisRecheck: (id, data = {}) => api.post(`/mathpath/paper-analysis/${id}/create-recheck`, data),
   // ref: a slug string, or { skillId } / { skillSlug }
   remediation: (ref, recentAttempts = []) =>
     api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })

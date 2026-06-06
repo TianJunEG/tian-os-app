@@ -7,6 +7,8 @@ const startAdaptiveDiagnostic = vi.fn();
 const answerAdaptiveDiagnostic = vi.fn();
 const getDiagnosticDomain = vi.fn();
 const listDiagnosticDomains = vi.fn();
+const getDiagnosticHistory = vi.fn();
+const getDiagnosticGrowth = vi.fn();
 
 vi.mock('../middleware/auth.js', () => ({
   protect: (req, _res, next) => {
@@ -27,6 +29,11 @@ vi.mock('../services/diagnostics/diagnosticRuntime.js', () => ({
 vi.mock('../services/diagnostics/diagnosticDomainRegistry.js', () => ({
   getDiagnosticDomain: (...args) => getDiagnosticDomain(...args),
   listDiagnosticDomains: (...args) => listDiagnosticDomains(...args),
+}));
+
+vi.mock('../services/diagnostics/diagnosticGrowthService.js', () => ({
+  getDiagnosticHistory: (...args) => getDiagnosticHistory(...args),
+  getDiagnosticGrowth: (...args) => getDiagnosticGrowth(...args),
 }));
 
 let router;
@@ -121,6 +128,86 @@ describe('diagnostics routes registry contract', () => {
       diagnosticPurpose: 'baseline',
     }));
     expect(res.data.currentQuestion).toEqual({ questionId: 'q1', skillId: 'F010' });
+  });
+
+  it('returns chronological completed diagnostic history for the resolved student', async () => {
+    getDiagnosticDomain.mockReturnValueOnce({ subjectId: 'math', domainId: 'fractions' });
+    getDiagnosticHistory.mockResolvedValueOnce([
+      { diagnosticSessionId: 'diag_1', attemptNumber: 1, isBaseline: true, readinessScore: 42 },
+      { diagnosticSessionId: 'diag_2', attemptNumber: 2, isBaseline: false, readinessScore: 78 },
+    ]);
+
+    const res = await request('/history');
+
+    expect(res.status).toBe(200);
+    expect(getDiagnosticHistory).toHaveBeenCalledWith({
+      studentId: MOCK_STUDENT._id,
+      subjectId: 'math',
+      domainId: 'fractions',
+    });
+    expect(res.data.history.map((item) => item.diagnosticSessionId)).toEqual(['diag_1', 'diag_2']);
+  });
+
+  it('returns diagnostic growth for the resolved student and domain', async () => {
+    getDiagnosticDomain.mockReturnValueOnce({ subjectId: 'math', domainId: 'fractions' });
+    getDiagnosticGrowth.mockResolvedValueOnce({
+      baseline: { diagnosticSessionId: 'diag_1', readinessScore: 42 },
+      latest: { diagnosticSessionId: 'diag_2', readinessScore: 78 },
+      overallImprovement: 36,
+      remainingWeakSkills: ['F015'],
+      recommendedActions: [{ type: 'assign_practice', skillId: 'F015' }],
+    });
+
+    const res = await request('/growth');
+
+    expect(res.status).toBe(200);
+    expect(getDiagnosticGrowth).toHaveBeenCalledWith({
+      studentId: MOCK_STUDENT._id,
+      subjectId: 'math',
+      domainId: 'fractions',
+    });
+    expect(res.data).toMatchObject({
+      studentId: MOCK_STUDENT._id,
+      subjectId: 'math',
+      domainId: 'fractions',
+      overallImprovement: 36,
+    });
+  });
+
+  it('returns diagnostic history in the service order', async () => {
+    getDiagnosticDomain.mockReturnValueOnce({ subjectId: 'math', domainId: 'fractions' });
+    getDiagnosticHistory.mockResolvedValueOnce([
+      { diagnosticSessionId: 'diag_1', attemptNumber: 1, completedAt: '2026-01-01T00:00:00.000Z' },
+      { diagnosticSessionId: 'diag_2', attemptNumber: 2, completedAt: '2026-02-01T00:00:00.000Z' },
+    ]);
+
+    const res = await request('/history?studentId=student_1&subjectId=math&domainId=fractions');
+
+    expect(res.status).toBe(200);
+    expect(getDiagnosticHistory).toHaveBeenCalledWith({
+      studentId: MOCK_STUDENT._id,
+      subjectId: 'math',
+      domainId: 'fractions',
+    });
+    expect(res.data.history.map((row) => row.diagnosticSessionId)).toEqual(['diag_1', 'diag_2']);
+  });
+
+  it('returns diagnostic growth payloads', async () => {
+    getDiagnosticDomain.mockReturnValueOnce({ subjectId: 'math', domainId: 'fractions' });
+    getDiagnosticGrowth.mockResolvedValueOnce({
+      baseline: { diagnosticSessionId: 'diag_1', readinessScore: 42 },
+      latest: { diagnosticSessionId: 'diag_2', readinessScore: 78 },
+      overallImprovement: 36,
+      perSkillGrowth: [],
+      remainingWeakSkills: ['F015'],
+      recommendedActions: [{ type: 'assign_practice', skillId: 'F015' }],
+    });
+
+    const res = await request('/growth?studentId=student_1&subjectId=math&domainId=fractions');
+
+    expect(res.status).toBe(200);
+    expect(res.data.overallImprovement).toBe(36);
+    expect(res.data.recommendedActions[0]).toMatchObject({ skillId: 'F015' });
   });
 
   it('returns a clean error for unavailable diagnostic domains', async () => {

@@ -33,6 +33,7 @@ import studentAnalyticsRoutes from './routes/studentAnalytics.js';
 import pilotAnalyticsRoutes from './routes/pilotAnalytics.js';
 import telemetryRoutes from './routes/telemetry.js';
 import mathpathWorkingRoutes from './routes/mathpathWorking.js';
+import mathpathPaperAnalysisRoutes from './routes/mathpathPaperAnalysis.js';
 import assignmentRoutes from './routes/assignments.js';
 import worksheetGenRoutes from './routes/worksheetsGen.js';
 import skillRoutes from './routes/skills.js';
@@ -142,6 +143,7 @@ app.use('/api/admin', pilotAnalyticsRoutes);
 app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/mastery', masteryRoutes);
 app.use('/api/mathpath-working', mathpathWorkingRoutes);
+app.use('/api/mathpath/paper-analysis', mathpathPaperAnalysisRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/skills', skillRoutes);
 // Pilot hotfix: keep family endpoints reachable in v0.1 baseline builds.

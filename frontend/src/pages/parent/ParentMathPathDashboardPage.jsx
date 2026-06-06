@@ -8,6 +8,7 @@ import { mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
+import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
 
 function statusTone(status) {
   if (status === 'advanced') return 'success';
@@ -424,6 +425,7 @@ export default function ParentMathPathDashboardPage() {
   const [error, setError] = useState('');
   const [summary, setSummary] = useState(null);
   const [placement, setPlacement] = useState(null);
+  const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
   const [workingReview, setWorkingReview] = useState(null);
   const [fluencySummary, setFluencySummary] = useState(null);
 
@@ -431,15 +433,17 @@ export default function ParentMathPathDashboardPage() {
     setLoading(true);
     setError('');
     try {
-      const [masteryRes, latestRes, workingRes, fluencyRes] = await Promise.all([
+      const [masteryRes, latestRes, growthRes, workingRes, fluencyRes] = await Promise.all([
         mathpathAPI.mastery({ studentId }),
         mathpathAPI.getLatestDiagnostic({ studentId }),
+        mathpathAPI.getDiagnosticGrowth({ studentId }),
         mathpathAPI.workingReviewSummary({ studentId }),
         mathpathAPI.fluency(studentId),
       ]);
       const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {}, workingRes?.data?.summary || {});
       setSummary(parentPayload);
       setPlacement(latestRes?.data?.result || null);
+      setDiagnosticGrowth(growthRes?.data || null);
       setWorkingReview(workingRes?.data || null);
       setFluencySummary(fluencyRes?.data || null);
     } catch (e) {
@@ -494,6 +498,11 @@ export default function ParentMathPathDashboardPage() {
 
       <div className="space-y-4">
         <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} />
+        <DiagnosticGrowthCard
+          growth={diagnosticGrowth}
+          onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath`)}
+          onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
+        />
         <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} />
         {!!placementSkill && (
           <Card className="p-4">

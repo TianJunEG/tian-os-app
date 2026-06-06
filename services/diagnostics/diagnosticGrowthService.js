@@ -121,11 +121,13 @@ export async function applyDiagnosticCompletionMetadata(session, { responses = [
     diagnosticSessionId: session.diagnosticSessionId,
   });
   session.attemptNumber = session.attemptNumber || lineage.attemptNumber;
-  session.isBaseline = Boolean(session.isBaseline || lineage.isBaseline);
+  // Baseline is defined by first completed diagnostic, not first started diagnostic.
+  // A provisional baseline session can be abandoned while another diagnostic completes first.
+  session.isBaseline = Boolean(lineage.isBaseline);
   session.baselineDiagnosticId = session.isBaseline
     ? session.diagnosticSessionId
-    : (session.baselineDiagnosticId || lineage.baselineDiagnosticId);
-  session.previousDiagnosticId = session.previousDiagnosticId || lineage.previousDiagnosticId;
+    : lineage.baselineDiagnosticId;
+  session.previousDiagnosticId = lineage.previousDiagnosticId;
   session.perSkillSnapshot = buildPerSkillSnapshot({ responses, skillsByFrameworkId });
   return session;
 }

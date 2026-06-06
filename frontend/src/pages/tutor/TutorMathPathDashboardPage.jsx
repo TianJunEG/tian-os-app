@@ -9,6 +9,7 @@ import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPath
 import { buildTutorMathPathDashboard } from '../../mathpath/dashboard/tutorMathPathDashboardEngine';
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
+import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
 
 function skillLabel(skillId) {
   if (!skillId) return '—';
@@ -704,6 +705,7 @@ export default function TutorMathPathDashboardPage() {
   const [error, setError] = useState('');
   const [dashboard, setDashboard] = useState(null);
   const [placement, setPlacement] = useState(null);
+  const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
   const [workingReview, setWorkingReview] = useState(null);
   const [fluencySummary, setFluencySummary] = useState(null);
   const [retentionSummary, setRetentionSummary] = useState(null);
@@ -712,10 +714,11 @@ export default function TutorMathPathDashboardPage() {
     setLoading(true);
     setError('');
     try {
-      const [studentRes, masteryRes, latestRes, workingRes, fluencyRes, retentionRes] = await Promise.all([
+      const [studentRes, masteryRes, latestRes, growthRes, workingRes, fluencyRes, retentionRes] = await Promise.all([
         tutorAPI.student(id),
         mathpathAPI.mastery({ studentId: id }),
         mathpathAPI.getLatestDiagnostic({ studentId: id }),
+        mathpathAPI.getDiagnosticGrowth({ studentId: id }),
         mathpathAPI.workingReviewSummary({ studentId: id }),
         mathpathAPI.fluency(id),
         mathpathAPI.retention(id),
@@ -752,6 +755,7 @@ export default function TutorMathPathDashboardPage() {
       });
       setDashboard(tutorDashboard);
       setPlacement(latestRes?.data?.result || null);
+      setDiagnosticGrowth(growthRes?.data || null);
       setWorkingReview(workingPayload || null);
       setFluencySummary(fluencyRes?.data || null);
       setRetentionSummary(retentionRes?.data || null);
@@ -799,6 +803,11 @@ export default function TutorMathPathDashboardPage() {
       )}
 
       <div className="space-y-4">
+        <DiagnosticGrowthCard
+          growth={diagnosticGrowth}
+          onViewHistory={() => navigate(`/tutor/students/${id}/mathpath`)}
+          onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
+        />
         <section className="grid grid-cols-1 gap-3 lg:grid-cols-4" aria-label="Student learning snapshot">
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Domain</p>
