@@ -461,7 +461,17 @@ export const adminAPI = {
   verifyTutor: (tutorId, data) => api.put(`/admin/verification/${tutorId}`, data),
   getBookings: (params) => api.get('/admin/bookings', { params }),
   getDisputes: (params) => api.get('/admin/disputes', { params }),
-  resolveDispute: (bookingId, data) => api.put(`/admin/disputes/${bookingId}/resolve`, data)
+  resolveDispute: (bookingId, data) => api.put(`/admin/disputes/${bookingId}/resolve`, data),
+  listPartners: () => api.get('/admin/partners'),
+  createPartner: (data) => api.post('/admin/partners', data),
+  getPartner: (partnerId) => api.get(`/admin/partners/${partnerId}`),
+  updatePartner: (partnerId, data) => api.patch(`/admin/partners/${partnerId}`, data),
+  archivePartner: (partnerId) => api.post(`/admin/partners/${partnerId}/archive`),
+  addPartnerStaff: (partnerId, data) => api.post(`/admin/partners/${partnerId}/staff`, data),
+  removePartnerStaff: (partnerId, membershipId) => api.delete(`/admin/partners/${partnerId}/staff/${membershipId}`),
+  linkPartnerStudent: (partnerId, data) => api.post(`/admin/partners/${partnerId}/students`, data),
+  removePartnerStudent: (partnerId, partnerStudentId) => api.delete(`/admin/partners/${partnerId}/students/${partnerStudentId}`),
+  getPartnerImpactReport: (partnerId) => api.get(`/admin/partners/${partnerId}/impact-report`)
 };
 
 export const learningTelemetryAPI = {

@@ -15,6 +15,7 @@ import paymentRoutes from './routes/payments.js';
 import messageRoutes from './routes/messages.js';
 import reviewRoutes from './routes/reviews.js';
 import adminRoutes from './routes/admin.js';
+import adminPartnerRoutes from './routes/adminPartners.js';
 import worksheetRoutes from './routes/worksheets.js';
 import studentRoutes from './routes/students.js';
 import partnerRoutes from './routes/partners.js';
@@ -124,6 +125,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/partners', adminPartnerRoutes);
 // Structured worksheet generator must mount BEFORE the legacy /api/worksheets
 // router so /gen/* is not captured by its /:id route.
 app.use('/api/worksheets/gen', featureGate({ feature: 'worksheets', minVersion: 'v0.2' }), worksheetGenRoutes);
