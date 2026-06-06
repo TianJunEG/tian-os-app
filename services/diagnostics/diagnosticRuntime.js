@@ -14,6 +14,10 @@ import {
   normalizeConfidence,
   recordLearningEvents,
 } from '../telemetry/learningTelemetryService.js';
+import {
+  applyDiagnosticCompletionMetadata,
+  resolveDiagnosticLineage,
+} from './diagnosticGrowthService.js';
 
 const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
 const COMPLETION_REASONS = Object.freeze({
@@ -406,6 +410,12 @@ export async function startAdaptiveDiagnostic({
 
   const firstQuestion = mappedQuestions[0] || null;
   const diagnosticSessionId = sessionCodeFor(domain.domainId);
+  const lineage = await resolveDiagnosticLineage({
+    studentId: String(student._id),
+    subjectId: domain.subjectId,
+    domainId: domain.domainId,
+    diagnosticSessionId,
+  });
   const doc = await MathPathDiagnosticSession.create({
     diagnosticSessionId,
     studentId: String(student._id),
@@ -413,6 +423,11 @@ export async function startAdaptiveDiagnostic({
     domainId: domain.domainId,
     domainVersion: domain.domainVersion || '',
     mode,
+    diagnosticPurpose: purpose,
+    attemptNumber: lineage.attemptNumber,
+    isBaseline: lineage.isBaseline,
+    baselineDiagnosticId: lineage.isBaseline ? diagnosticSessionId : lineage.baselineDiagnosticId,
+    previousDiagnosticId: lineage.previousDiagnosticId,
     studentLevel: levelTag || '',
     targetSkillIds: [...new Set(qSkillIds.length ? qSkillIds : targetSkillIds)],
     targetQuestionFamilyIds: [...new Set(qFamilyIds)],
@@ -808,6 +823,10 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     session.status = 'completed';
     session.completedAt = new Date();
     session.completionReason = completionReason;
+    await applyDiagnosticCompletionMetadata(session, {
+      responses: nextResponses,
+      skillsByFrameworkId,
+    });
     session.result = domain.buildResult({
       session,
       responses: nextResponses,

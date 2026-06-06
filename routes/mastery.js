@@ -35,6 +35,10 @@ import {
   answerAdaptiveDiagnostic,
   startAdaptiveDiagnostic,
 } from '../services/diagnostics/diagnosticRuntime.js';
+import {
+  getDiagnosticGrowth,
+  getDiagnosticHistory,
+} from '../services/diagnostics/diagnosticGrowthService.js';
 import { classifyFractionMistake } from '../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
 import { calculateQuestionTiming } from '../frontend/src/mathpath/fractions/fractionFluencyRetentionEngine.js';
 import {
@@ -1479,9 +1483,40 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
     result.parentPlacementSummary = parentPlacementSummary(result);
     result.parentSummary = result.parentPlacementSummary;
 
+    const completedBefore = await MathPathDiagnosticSession.find({
+      studentId: String(student._id),
+      subjectId: session.subjectId || 'math',
+      domainId: session.domainId || 'fractions',
+      status: 'completed',
+      diagnosticSessionId: { $ne: session.diagnosticSessionId },
+    }).sort({ completedAt: 1, createdAt: 1 }).lean();
+    const baseline = completedBefore.find((row) => row.isBaseline)
+      || completedBefore.find((row) => row.diagnosticPurpose === 'baseline')
+      || completedBefore[0]
+      || null;
+    const previous = completedBefore[completedBefore.length - 1] || null;
+    session.diagnosticPurpose = session.diagnosticPurpose || session.result?.diagnosticPurpose || 'baseline';
+    session.attemptNumber = session.attemptNumber || completedBefore.length + 1;
+    session.isBaseline = Boolean(session.isBaseline || !baseline);
+    session.baselineDiagnosticId = session.isBaseline ? session.diagnosticSessionId : (session.baselineDiagnosticId || baseline?.diagnosticSessionId || '');
+    session.previousDiagnosticId = session.previousDiagnosticId || previous?.diagnosticSessionId || '';
+    session.perSkillSnapshot = Object.entries(result.skillBreakdown || {}).map(([skillId, row]) => ({
+      skillId,
+      skillName: row.name || '',
+      questionsAnswered: Number(row.attempts || 0),
+      correctCount: Number(row.correct || 0),
+      score: Number(row.percentage || 0),
+      confidenceScore: null,
+      averageTimeTaken: null,
+      workingSubmittedRate: null,
+      misconceptionTags: [],
+      evidenceQuestionIds: [],
+    }));
     session.status = 'completed';
     session.completedAt = new Date();
     session.result = result;
+    session.resultPayload = result;
+    session.readinessScore = readinessScore;
     await session.save();
 
     return res.json({
@@ -1495,6 +1530,38 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
     });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to complete diagnostic.' });
+  }
+});
+
+router.get('/diagnostic/history', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const subjectId = req.query.subjectId || 'math';
+    const domainId = req.query.domainId || 'fractions';
+    const history = await getDiagnosticHistory({
+      studentId: String(student._id),
+      subjectId,
+      domainId,
+    });
+    return res.json({ studentId: String(student._id), subjectId, domainId, history });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not load diagnostic history.' });
+  }
+});
+
+router.get('/diagnostic/growth', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const subjectId = req.query.subjectId || 'math';
+    const domainId = req.query.domainId || 'fractions';
+    const growth = await getDiagnosticGrowth({
+      studentId: String(student._id),
+      subjectId,
+      domainId,
+    });
+    return res.json({ studentId: String(student._id), subjectId, domainId, ...growth });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not load diagnostic growth.' });
   }
 });
 

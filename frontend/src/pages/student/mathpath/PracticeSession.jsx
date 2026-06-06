@@ -825,6 +825,11 @@ export default function PracticeSession() {
     locationState: location.state || {},
     progress: progressState,
   });
+  const locationQuestionFamilyId = location.state?.questionFamilyId || null;
+  const locationWeakSkillIds = Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [];
+  const locationRecentMistakeTypes = Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [];
+  const locationWeakSkillIdsKey = locationWeakSkillIds.join('|');
+  const locationRecentMistakeTypesKey = locationRecentMistakeTypes.join('|');
   const sessionType = resolvedIntent.sessionType;
   const storyModeEnabled = isFractionsStoryModeEnabled();
   const sessionMeta = SESSION_META[sessionType];
@@ -901,7 +906,7 @@ export default function PracticeSession() {
             const { data } = await mathpathAPI.startFractionPractice({
               sessionType,
               skillId: resolvedIntent.requestedSkillId,
-              questionFamilyId: location.state?.questionFamilyId || null,
+              questionFamilyId: locationQuestionFamilyId,
               questionCount:
                 resolvedIntent.questionCount
                 || (sessionType === 'warmup'
@@ -910,9 +915,9 @@ export default function PracticeSession() {
                     ? 10
                     : sessionType === 'remediation'
                       ? 5
-                      : 6),
-              weakSkillIds: Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [],
-              recentMistakeTypes: Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [],
+                  : 6),
+              weakSkillIds: locationWeakSkillIds,
+              recentMistakeTypes: locationRecentMistakeTypes,
             });
             started = data;
             if (data?.practiceSessionId) {
@@ -932,7 +937,7 @@ export default function PracticeSession() {
               domainId: 'fractions',
               sessionType,
               requestedSkillId: resolvedIntent.requestedSkillId,
-              requestedQuestionFamilyId: location.state?.questionFamilyId || null,
+              requestedQuestionFamilyId: locationQuestionFamilyId,
               sessionLength:
                 resolvedIntent.questionCount
                 || (sessionType === 'warmup'
@@ -941,9 +946,9 @@ export default function PracticeSession() {
                     ? 10
                     : sessionType === 'remediation'
                       ? 5
-                      : 6),
-              weakSkillIds: Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [],
-              recentMistakeTypes: Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [],
+                  : 6),
+              weakSkillIds: locationWeakSkillIds,
+              recentMistakeTypes: locationRecentMistakeTypes,
             });
           }
         }
@@ -972,15 +977,29 @@ export default function PracticeSession() {
       }
     })();
     return () => { mounted = false; };
-  }, [studentId, routeSessionId, sessionType, resolvedIntent.requestedSkillId, resolvedIntent.questionCount, location.state, navigate]);
+  }, [
+    studentId,
+    routeSessionId,
+    sessionType,
+    resolvedIntent.requestedSkillId,
+    resolvedIntent.questionCount,
+    locationQuestionFamilyId,
+    locationWeakSkillIdsKey,
+    locationRecentMistakeTypesKey,
+    navigate,
+  ]);
+
+  useEffect(() => {
+    if (summary || loading || !questions.length) return;
+    setQuestionStartedAt(Date.now());
+    setElapsedSec(0);
+  }, [idx, summary, loading, questions.length]);
 
   useEffect(() => {
     if (summary || loading || !questions.length) return undefined;
-    setQuestionStartedAt(Date.now());
-    setElapsedSec(0);
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
-  }, [idx, summary, loading, questions.length, questionStartedAt]);
+  }, [summary, loading, questions.length, questionStartedAt]);
 
   useEffect(() => {
     if (!flowSession || !questions.length || workingSession) return undefined;

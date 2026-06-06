@@ -11,6 +11,11 @@ const mathPathDiagnosticSessionSchema = new mongoose.Schema(
     domainId: { type: String, required: true, trim: true },
     domainVersion: { type: String, default: '', trim: true },
     mode: { type: String, enum: MODES, default: 'core' },
+    diagnosticPurpose: { type: String, enum: ['baseline', 'recheck', 'assigned'], default: 'baseline', index: true },
+    attemptNumber: { type: Number, default: 1, min: 1 },
+    isBaseline: { type: Boolean, default: false, index: true },
+    baselineDiagnosticId: { type: String, default: '', trim: true, index: true },
+    previousDiagnosticId: { type: String, default: '', trim: true },
     studentLevel: { type: String, default: '' },
     targetSkillIds: { type: [String], default: [] },
     targetQuestionFamilyIds: { type: [String], default: [] },
@@ -21,6 +26,7 @@ const mathPathDiagnosticSessionSchema = new mongoose.Schema(
     decisionHistory: { type: [mongoose.Schema.Types.Mixed], default: [] },
     assignedPracticeSkillIds: { type: [String], default: [] },
     readinessScore: { type: Number, default: 0 },
+    perSkillSnapshot: { type: [mongoose.Schema.Types.Mixed], default: [] },
     completionReason: { type: String, default: '', trim: true },
     lifecycleLog: { type: mongoose.Schema.Types.Mixed, default: {} },
     metadataGaps: { type: [String], default: [] },
@@ -34,6 +40,7 @@ const mathPathDiagnosticSessionSchema = new mongoose.Schema(
 );
 
 mathPathDiagnosticSessionSchema.index({ studentId: 1, domainId: 1 });
+mathPathDiagnosticSessionSchema.index({ studentId: 1, subjectId: 1, domainId: 1, completedAt: 1 });
 mathPathDiagnosticSessionSchema.index({ diagnosticSessionId: 1 }, { unique: true });
 mathPathDiagnosticSessionSchema.index({ status: 1 });
 

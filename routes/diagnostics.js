@@ -9,6 +9,10 @@ import {
   getDiagnosticDomain,
   listDiagnosticDomains,
 } from '../services/diagnostics/diagnosticDomainRegistry.js';
+import {
+  getDiagnosticGrowth,
+  getDiagnosticHistory,
+} from '../services/diagnostics/diagnosticGrowthService.js';
 
 const router = express.Router();
 
@@ -23,6 +27,46 @@ function sendDiagnosticError(res, err, fallback = 'Diagnostic request failed.') 
 
 router.get('/domains', protect, (req, res) => {
   res.json({ domains: listDiagnosticDomains() });
+});
+
+router.get('/history', protect, async (req, res) => {
+  try {
+    const {
+      subjectId = 'math',
+      domainId = 'fractions',
+      studentId = '',
+    } = req.query || {};
+    getDiagnosticDomain({ subjectId, domainId });
+    const student = await resolveStudent(req, studentId);
+    const history = await getDiagnosticHistory({
+      studentId: String(student._id),
+      subjectId,
+      domainId,
+    });
+    return res.json({ studentId: String(student._id), subjectId, domainId, history });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to load diagnostic history.');
+  }
+});
+
+router.get('/growth', protect, async (req, res) => {
+  try {
+    const {
+      subjectId = 'math',
+      domainId = 'fractions',
+      studentId = '',
+    } = req.query || {};
+    getDiagnosticDomain({ subjectId, domainId });
+    const student = await resolveStudent(req, studentId);
+    const growth = await getDiagnosticGrowth({
+      studentId: String(student._id),
+      subjectId,
+      domainId,
+    });
+    return res.json({ studentId: String(student._id), subjectId, domainId, ...growth });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to load diagnostic growth.');
+  }
 });
 
 router.post('/start', protect, async (req, res) => {
