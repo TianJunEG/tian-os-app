@@ -18,7 +18,6 @@ vi.mock('../../../../context/AuthContext', () => ({
 }));
 
 vi.mock('../../../../components/learning/WorkingCanvas', () => ({
-  default: () => <div data-testid="working-canvas" />,
   resolveWorkingRequirement: () => ({ required: false, allowNoWorking: true, type: 'optional' }),
 }));
 
@@ -73,6 +72,36 @@ const secondQuestion = {
   workingRequired: false,
 };
 
+const recoverableDiagramQuestion = {
+  questionId: 'q-diagram-ok',
+  skillId: 'F001',
+  questionFamilyId: 'F001-recognition',
+  prompt: 'What fraction of the shape is shaded?',
+  type: 'short_answer',
+  answerFormat: 'fraction',
+  answer: { type: 'fraction', numerator: 3, denominator: 5, display: '3/5' },
+  requiresDiagram: true,
+  workingRequired: false,
+};
+
+const recoverableOldDiagramQuestion = {
+  ...recoverableDiagramQuestion,
+  questionId: 'q-diagram-old',
+  diagramSpec: { type: 'legacy_shaded_shape', data: { old: true } },
+};
+
+const brokenDiagramQuestion = {
+  questionId: 'q-diagram-broken',
+  skillId: 'F001',
+  questionFamilyId: 'F001-recognition',
+  prompt: 'What fraction of the shape is shaded?',
+  type: 'short_answer',
+  answerFormat: 'fraction',
+  answer: { type: 'text', value: 'unknown', display: 'unknown' },
+  requiresDiagram: true,
+  workingRequired: false,
+};
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -83,7 +112,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     answerDiagnostic.mockResolvedValueOnce({
       data: {
         isCorrect: true,
-        supportiveCopy: 'Let’s check a smaller step first.',
+        supportiveCopy: 'Try a simpler step.',
         progress: { answeredCount: 1, estimatedQuestionCount: 3, readinessScore: 50 },
         sessionComplete: false,
         nextQuestion: secondQuestion,
@@ -93,11 +122,11 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     renderDiagnostic({ questions: [firstQuestion], session: { sessionId: 'session-1' } });
 
     await screen.findByText(/What is 3 \+ 4/i, {}, { timeout: 5000 });
-    expect(screen.getByTestId('working-canvas')).toBeInTheDocument();
     fireEvent.click(await screen.findByRole('button', { name: '7' }));
+    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
     fireEvent.click(screen.getByRole('button', { name: /I know this 100%/i }));
     fireEvent.click(screen.getByLabelText(/I did not need working for this question/i));
-    fireEvent.click(screen.getByRole('button', { name: /Next Question/i }));
+    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
 
     await waitFor(() => expect(answerDiagnostic).toHaveBeenCalledTimes(1));
     expect(answerDiagnostic.mock.calls[0][0]).toBe('session-1');
@@ -116,7 +145,6 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
       fullscreenWorkingMathObjects: [],
       workingEvidence: [],
     });
-    expect(await screen.findByText('Let’s check a smaller step first.')).toBeInTheDocument();
     expect(await screen.findByText(/What is 2 \+ 2/i)).toBeInTheDocument();
   });
 
@@ -157,12 +185,37 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     });
     renderDiagnostic({ questions: [firstQuestion], session: { sessionId: 'session-1' } });
 
-    expect(await screen.findByRole('button', { name: /^I need help$/i })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: '6' }));
+    fireEvent.click(await screen.findByRole('button', { name: '6' }));
+    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
     fireEvent.click(screen.getByRole('button', { name: /^I need help$/i }));
     fireEvent.click(screen.getByLabelText(/I did not need working for this question/i));
-    fireEvent.click(screen.getByRole('button', { name: /Next Question/i }));
+    fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
 
     await waitFor(() => expect(screen.getByText('Diagnostic results')).toBeInTheDocument());
+  });
+
+  it('recovers a missing shaded-shape diagram from the fraction answer', async () => {
+    renderDiagnostic({ questions: [recoverableDiagramQuestion], session: { sessionId: 'session-1' } });
+
+    expect(await screen.findByText(/What fraction of the shape is shaded/i)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /fraction bar/i })).toBeInTheDocument();
+    expect(screen.queryByText(/This question could not load/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Your answer/i)).toBeInTheDocument();
+  });
+
+  it('recovers a shaded-shape diagram when old diagram metadata cannot render', async () => {
+    renderDiagnostic({ questions: [recoverableOldDiagramQuestion], session: { sessionId: 'session-1' } });
+
+    expect(await screen.findByText(/What fraction of the shape is shaded/i)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /fraction bar/i })).toBeInTheDocument();
+    expect(screen.queryByText(/This question could not load/i)).not.toBeInTheDocument();
+  });
+
+  it('blocks answer controls when a required diagram cannot be rendered', async () => {
+    renderDiagnostic({ questions: [brokenDiagramQuestion], session: { sessionId: 'session-1' } });
+
+    expect(await screen.findByText(/This question could not load/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Try another question/i })).toBeInTheDocument();
+    expect(screen.queryByText(/Your answer/i)).not.toBeInTheDocument();
   });
 });

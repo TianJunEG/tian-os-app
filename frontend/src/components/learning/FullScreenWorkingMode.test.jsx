@@ -95,6 +95,44 @@ describe('FullScreenWorkingMode', () => {
     expect(screen.queryByLabelText('Math insert tools')).not.toBeInTheDocument();
   });
 
+  it('keeps drawing while re-rendering with equivalent empty initial arrays', () => {
+    const onSave = vi.fn();
+    const { rerender } = render(
+      <FullScreenWorkingMode
+        open
+        questionText="Keep this drawing."
+        onClose={vi.fn()}
+        onSave={onSave}
+      />
+    );
+
+    const canvas = screen.getByLabelText('Full-screen working canvas');
+    fireEvent.pointerDown(canvas, { clientX: 20, clientY: 20 });
+    fireEvent.pointerMove(canvas, { clientX: 120, clientY: 120 });
+    fireEvent.pointerUp(canvas);
+
+    rerender(
+      <FullScreenWorkingMode
+        open
+        questionText="Keep this drawing."
+        initialStrokes={[]}
+        initialMathObjects={[]}
+        onClose={vi.fn()}
+        onSave={onSave}
+      />
+    );
+
+    fireEvent.click(screen.getByText('Save Working'));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      workingStrokes: expect.arrayContaining([
+        expect.objectContaining({
+          tool: 'pen',
+          points: expect.arrayContaining([expect.any(Object), expect.any(Object)]),
+        }),
+      ]),
+    }));
+  });
+
   it('restores saved math objects so they can be reselected and deleted', () => {
     const onSave = vi.fn();
     render(

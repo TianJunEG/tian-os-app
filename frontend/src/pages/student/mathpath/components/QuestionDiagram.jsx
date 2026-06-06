@@ -55,8 +55,28 @@ function inferShadedFractionDiagram(prompt = '') {
   return {
     type: 'fraction_bar',
     width: 640,
-    height: 180,
+    height: 140,
     data: { parts, shaded, labelMode: 'none' },
+  };
+}
+
+function inferShadedFractionDiagramFromAnswer(question = {}) {
+  const prompt = `${question?.prompt || ''} ${question?.stem || ''}`.toLowerCase();
+  if (!/\bwhat fraction\b/.test(prompt) || !/\bshaded\b/.test(prompt)) return null;
+
+  const answer = question?.answer || {};
+  const display = String(answer.display || answer.value || answer || '');
+  const numerator = Number(answer.numerator ?? display.match(/^(-?\d+)\s*\/\s*(-?\d+)$/)?.[1]);
+  const denominator = Number(answer.denominator ?? display.match(/^(-?\d+)\s*\/\s*(-?\d+)$/)?.[2]);
+
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) return null;
+  if (denominator <= 0 || numerator < 0 || numerator > denominator) return null;
+
+  return {
+    type: 'fraction_bar',
+    width: 640,
+    height: 140,
+    data: { parts: denominator, shaded: numerator, labelMode: 'none' },
   };
 }
 
@@ -67,22 +87,43 @@ export function questionRequiresDiagram(question = {}) {
   return /\b(number line|shaded|shape|fraction strip|bar model|area model|diagram|graph)\b/.test(text);
 }
 
-export function getQuestionDiagramSpec(question = {}) {
-  if (question?.diagramSpec) return question.diagramSpec;
-  if (question?.diagram) return question.diagram;
-  if (question?.visual?.type === 'svg' && question.visual?.payload?.type) return question.visual.payload;
-  const prompt = question?.prompt || question?.stem || '';
-  return inferNumberLineDiagram(prompt) || inferShadedFractionDiagram(prompt);
+function explicitDiagramCandidates(question = {}) {
+  return [
+    question?.diagramSpec,
+    question?.diagram,
+    question?.visual?.type === 'svg' && question.visual?.payload?.type ? question.visual.payload : null,
+  ].filter(Boolean);
 }
 
-export function canRenderQuestionDiagram(question = {}) {
-  const spec = getQuestionDiagramSpec(question);
+function inferredDiagramCandidates(question = {}) {
+  const prompt = question?.prompt || question?.stem || '';
+  return [
+    inferNumberLineDiagram(prompt),
+    inferShadedFractionDiagram(prompt),
+    inferShadedFractionDiagramFromAnswer(question),
+  ].filter(Boolean);
+}
+
+function canRenderSpec(spec) {
   if (!spec?.type || !renderers[spec.type]) return false;
   try {
     return Boolean(renderers[spec.type](spec));
   } catch (err) {
     return false;
   }
+}
+
+export function getQuestionDiagramSpec(question = {}) {
+  const candidates = [
+    ...explicitDiagramCandidates(question),
+    ...inferredDiagramCandidates(question),
+  ];
+  return candidates.find(canRenderSpec) || candidates[0] || null;
+}
+
+export function canRenderQuestionDiagram(question = {}) {
+  const spec = getQuestionDiagramSpec(question);
+  return canRenderSpec(spec);
 }
 
 export function validateQuestionDiagram(question = {}) {
@@ -136,7 +177,7 @@ export default function QuestionDiagram({ question }) {
 
   return (
     <div
-      className="mb-5 overflow-hidden rounded-xl border border-hairline bg-white p-3"
+      className="mb-4 max-w-2xl overflow-hidden rounded-xl border border-hairline bg-white p-2 sm:p-3"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );

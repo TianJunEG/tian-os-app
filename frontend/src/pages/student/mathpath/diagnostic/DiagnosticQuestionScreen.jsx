@@ -9,16 +9,18 @@ import { mathpathAPI } from '../../../../services/api';
 import { useAuth } from '../../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../../design-os/studentVisualMode';
 import { shouldUseFractionAnswerInput } from '../components/FractionAnswerInput';
-import QuestionDiagram from '../components/QuestionDiagram';
+import QuestionDiagram, { DIAGRAM_LOAD_ERROR_MESSAGE, validateQuestionDiagram } from '../components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from '../components/FractionExpressionQuestion';
 import AnswerInputRenderer from '../components/AnswerInputRenderer';
-import WorkingCanvas, { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
+import QuestionZoomControls from '../components/QuestionZoomControls';
+import { resolveWorkingRequirement } from '../../../../components/learning/WorkingCanvas';
 import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
-import WorkingEvidenceDecision, {
+import {
   hasWorkingDecision,
   resolveWorkingRequirementLevel,
 } from '../../../../components/learning/WorkingEvidenceDecision';
+import SubmissionReviewModal from '../components/SubmissionReviewModal';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this 100%' },
@@ -56,12 +58,13 @@ export default function DiagnosticQuestionScreen() {
   const [elapsed, setElapsed] = useState(0);
   const [responses, setResponses] = useState([]);
   const [adaptiveProgress, setAdaptiveProgress] = useState(null);
-  const [supportiveCopy, setSupportiveCopy] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [hydrating, setHydrating] = useState(false);
   const [workingByQuestion, setWorkingByQuestion] = useState({});
   const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [questionZoom, setQuestionZoom] = useState(1);
 
   const [session, setSession] = useState(location.state?.session || null);
   const [questions, setQuestions] = useState(() => repairFractionQuestions(location.state?.questions || []));
@@ -113,6 +116,7 @@ export default function DiagnosticQuestionScreen() {
   const currentWorking = workingByQuestion[q.questionId] || {};
   const workingReady = hasWorkingDecision(currentWorking);
   const questionText = q.prompt || q.stem || '';
+  const currentQuestionValidation = validateQuestionDiagram(q);
 
   const confidenceCalibration = (correct, value) => {
     if (correct && value === 'i_know_this') return 'mastery_signal';
@@ -204,7 +208,6 @@ export default function DiagnosticQuestionScreen() {
         workingEvidence: buildWorkingEvidence(currentWorking),
         attempts: 1,
       });
-      setSupportiveCopy(data.supportiveCopy || '');
       setAdaptiveProgress(data.progress || null);
       if (data.sessionComplete) {
         navigate(`/student/mathpath/diagnostic/results/${session.sessionId || diagnosticSessionId}`, {
@@ -229,31 +232,50 @@ export default function DiagnosticQuestionScreen() {
     }
   };
 
+  const openSubmissionReview = () => {
+    if (!answer.trim()) return;
+    setReviewModalOpen(true);
+  };
+
+  const confirmSubmissionReview = () => {
+    if (!answer.trim() || !reflection || !workingReady || busy) return;
+    setReviewModalOpen(false);
+    nextQuestion(false);
+  };
+
   return (
     <div className={`mx-auto max-w-7xl ${visualStyles.page}`}>
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono">Question {idx + 1}{adaptiveProgress?.estimatedQuestionCount ? ` of about ${adaptiveProgress.estimatedQuestionCount}` : ''}</span>
         <span className="font-mono">{elapsed}s</span>
       </div>
-      <ProgressBar value={adaptiveProgress?.answeredCount || idx} max={adaptiveProgress?.estimatedQuestionCount || Math.max(questions.length, 1)} className="mb-6" barClassName={visualStyles.progress} />
-      {supportiveCopy && (
-        <div className="mb-4 rounded-xl border border-navy-100 bg-navy-50 px-4 py-3 text-sm font-semibold text-navy-800">
-          {supportiveCopy}
-        </div>
-      )}
+      <ProgressBar value={adaptiveProgress?.answeredCount || idx} max={adaptiveProgress?.estimatedQuestionCount || Math.max(questions.length, 1)} className="mb-4" barClassName={visualStyles.progress} />
 
-      <Card className={`p-4 sm:p-6 ${visualStyles.accentCard}`}>
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(28rem,1.1fr)]">
-          <section className="min-w-0">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
-            <p className="mb-4 rounded-lg bg-navy-50 px-3 py-2 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
-            <div className="mb-5 text-lg leading-relaxed text-ink-900">
+      <Card className={`overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
+        {!currentQuestionValidation.ok ? (
+          <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
+            <p className="font-semibold text-navy-700">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
+            <p className="mt-1 text-ink-500">This visual diagnostic question needs a diagram before it can be answered.</p>
+            <Button className="mt-4" onClick={() => nextQuestion(true)} disabled={busy}>
+              Try another question
+            </Button>
+          </div>
+        ) : (
+        <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)]">
+          <section className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
+              <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
+            </div>
+            <p className="mb-3 rounded-lg bg-navy-50 px-3 py-1.5 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
+            <div className="origin-top-left" style={{ zoom: questionZoom }}>
+            <div className="mb-3 text-lg leading-relaxed text-ink-900">
               {expressionQuestion ? (
                 <FractionExpressionQuestion
                   prompt={q.prompt || q.stem}
                   value={answer}
                   onChange={setAnswer}
-                  onEnter={() => nextQuestion(false)}
+                  onEnter={openSubmissionReview}
                   disabled={false}
                 />
               ) : (
@@ -261,15 +283,16 @@ export default function DiagnosticQuestionScreen() {
               )}
             </div>
             <QuestionDiagram question={q} />
+            </div>
           </section>
 
-          <aside className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
-            <div className="rounded-xl bg-white p-3">
+          <aside className="min-w-0 min-h-0 rounded-xl bg-slate-50 p-2 xl:h-full xl:overflow-y-auto">
+            <div className="rounded-xl bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
                 <div className="grid gap-2">
                   {choices.map((c, i) => (
-                    <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+                    <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
                       <MathText text={c} />
                     </button>
                   ))}
@@ -279,46 +302,19 @@ export default function DiagnosticQuestionScreen() {
                   question={q}
                   value={answer}
                   onChange={setAnswer}
-                  onEnter={() => nextQuestion(false)}
+                  onEnter={openSubmissionReview}
                 />
               ) : (
                 <AnswerInputRenderer
                   question={q}
                   value={answer}
                   onChange={setAnswer}
-                  onEnter={() => nextQuestion(false)}
+                  onEnter={openSubmissionReview}
                 />
               )}
             </div>
 
-            <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
-              <WorkingCanvas
-                key={`diagnostic-working-${q.questionId}`}
-                questionId={q.questionId}
-                required={workingRequirement.required}
-                allowNoWorking={workingRequirement.allowNoWorking}
-                submittedImage={currentWorking.workingImage || ''}
-                submittedStrokes={currentWorking.workingStrokes || EMPTY_STROKES}
-                initialSubmitted={Boolean(currentWorking.workingSubmitted)}
-                initialWorkingNotNeeded={Boolean(currentWorking.workingNotNeeded)}
-                onChange={(payload) => setWorkingByQuestion((prev) => ({
-                  ...prev,
-                  [q.questionId]: {
-                    ...(prev[q.questionId] || {}),
-                    ...payload,
-                  },
-                }))}
-                onSubmit={(payload) => setWorkingByQuestion((prev) => ({
-                  ...prev,
-                  [q.questionId]: {
-                    ...(prev[q.questionId] || {}),
-                    ...payload,
-                  },
-                }))}
-              />
-            </div>
-
-            <div className="mt-3 rounded-xl border border-hairline bg-white p-3">
+            <div className="mt-2 rounded-xl border border-hairline bg-white p-2">
               <WorkingPreviewCard
                 workingImage={currentWorking.workingImage || ''}
                 workingSubmitted={Boolean(currentWorking.workingSubmitted)}
@@ -331,58 +327,17 @@ export default function DiagnosticQuestionScreen() {
               />
             </div>
 
-            <div className="mt-3 rounded-xl bg-white p-3">
-              <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {REFLECTION_OPTIONS.map((opt) => (
-                  <button key={opt.value} onClick={() => setReflection(opt.value)} className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {error && <p className="mt-2 text-sm text-error-700">{error}</p>}
 
-            <div className="mt-3">
-              <WorkingEvidenceDecision
-                working={currentWorking}
-                requirementLevel={workingRequirementLevel}
-                onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
-                  ...prev,
-                  [q.questionId]: {
-                    ...(prev[q.questionId] || {}),
-                    workingSubmitted: false,
-                    workingSubmittedAt: null,
-                    workingImage: '',
-                    workingStrokes: [],
-                    workingMathObjects: [],
-                    fullscreenWorkingImage: '',
-                    fullscreenWorkingStrokes: [],
-                    fullscreenWorkingMathObjects: [],
-                    fullscreenWorkingSubmitted: false,
-                    fullscreenWorkingSubmittedAt: null,
-                    workingEvidence: [],
-                    workingNotNeeded: checked,
-                    workingNotNeededAt: checked ? new Date().toISOString() : null,
-                  },
-                }))}
-              />
-            </div>
-
-            {error && <p className="mt-3 text-sm text-error-700">{error}</p>}
-            {!workingReady && (
-              <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-                Submit working or choose "I did not need working for this question" before continuing.
-              </p>
-            )}
-
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button variant="secondary" onClick={() => nextQuestion(true)}>Skip</Button>
-              <Button icon={ArrowRight} disabled={busy || !answer || !reflection || !workingReady} onClick={() => nextQuestion(false)}>
+              <Button icon={ArrowRight} disabled={busy || !answer.trim()} onClick={openSubmissionReview}>
                 {busy ? 'Checking…' : 'Next Question'}
               </Button>
             </div>
           </aside>
         </div>
+        )}
       </Card>
       <FullScreenWorkingMode
         open={fullscreenQuestionId === q.questionId}
@@ -409,16 +364,76 @@ export default function DiagnosticQuestionScreen() {
             [q.questionId]: {
               ...(prev[q.questionId] || {}),
               ...payload,
+              workingNotNeeded: false,
+              workingNotNeededAt: null,
               fullscreenWorkingImage: payload.workingImage || '',
-              fullscreenWorkingStrokes: payload.workingStrokes || [],
+              fullscreenWorkingStrokes: payload.workingStrokes || EMPTY_STROKES,
               fullscreenWorkingMathObjects: payload.workingMathObjects || [],
               fullscreenWorkingSubmitted: Boolean(payload.workingSubmitted),
               fullscreenWorkingSubmittedAt: payload.workingSubmittedAt || new Date().toISOString(),
+              workingImage: payload.workingImage || '',
+              workingStrokes: payload.workingStrokes || [],
+              workingMathObjects: payload.workingMathObjects || [],
             },
           }));
           setFullscreenQuestionId(null);
         }}
       />
-    </div>
+      <SubmissionReviewModal
+        open={reviewModalOpen}
+        title="Review your response"
+        reflection={reflection}
+        reflectionOptions={REFLECTION_OPTIONS}
+        onReflectionChange={setReflection}
+        working={currentWorking}
+        workingRequirementLevel={workingRequirementLevel}
+        onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
+          ...prev,
+          [q.questionId]: {
+            ...(prev[q.questionId] || {}),
+            workingSubmitted: false,
+            workingSubmittedAt: null,
+            workingImage: '',
+            workingStrokes: [],
+            workingMathObjects: [],
+            fullscreenWorkingImage: '',
+            fullscreenWorkingStrokes: [],
+            fullscreenWorkingMathObjects: [],
+            fullscreenWorkingSubmitted: false,
+            fullscreenWorkingSubmittedAt: null,
+            workingEvidence: [],
+            workingNotNeeded: checked,
+            workingNotNeededAt: checked ? new Date().toISOString() : null,
+          },
+        }))}
+        onDeclareOnPaper={(checked) => setWorkingByQuestion((prev) => ({
+          ...prev,
+          [q.questionId]: {
+            ...(prev[q.questionId] || {}),
+            workingSubmitted: false,
+            workingSubmittedAt: null,
+            workingImage: '',
+            workingStrokes: [],
+            workingMathObjects: [],
+            fullscreenWorkingImage: '',
+            fullscreenWorkingStrokes: [],
+            fullscreenWorkingMathObjects: [],
+            fullscreenWorkingSubmitted: false,
+            fullscreenWorkingSubmittedAt: null,
+            workingEvidence: [],
+            workingOnPaper: checked,
+            workingOnPaperAt: checked ? new Date().toISOString() : null,
+            workingNotNeeded: false,
+            workingNotNeededAt: null,
+          },
+        }))}
+        onOpenWorking={() => setFullscreenQuestionId(q.questionId)}
+        confirmLabel="Next Question"
+        onConfirm={confirmSubmissionReview}
+        onClose={() => setReviewModalOpen(false)}
+        busy={busy}
+        canSubmit={() => Boolean(answer.trim() && reflection && workingReady)}
+      />
+  </div>
   );
 }

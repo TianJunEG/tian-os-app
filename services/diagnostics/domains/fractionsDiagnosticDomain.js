@@ -164,15 +164,15 @@ function normaliseQuestion(question = {}, skill = null, overrides = {}) {
 
 function supportiveCopyForDecision(decisionType = '') {
   const map = {
-    [DIAGNOSTIC_DECISIONS.PREREQUISITE_PROBE]: 'Let’s check a smaller step first.',
-    [DIAGNOSTIC_DECISIONS.SAME_LEVEL_CONFIRMATION]: 'Let’s try one more like this.',
-    [DIAGNOSTIC_DECISIONS.MISCONCEPTION_PROBE]: 'Let’s check this another way.',
+    [DIAGNOSTIC_DECISIONS.PREREQUISITE_PROBE]: 'Try a simpler step.',
+    [DIAGNOSTIC_DECISIONS.SAME_LEVEL_CONFIRMATION]: 'Try one more similar question.',
+    [DIAGNOSTIC_DECISIONS.MISCONCEPTION_PROBE]: 'Try a different approach.',
     [DIAGNOSTIC_DECISIONS.STOP_AND_ASSIGN_PRACTICE]: 'This tells us what to practise next.',
     [DIAGNOSTIC_DECISIONS.MARK_SECURE]: 'Good, this skill looks secure.',
-    [DIAGNOSTIC_DECISIONS.MARK_FRAGILE]: 'Good. Let’s confirm this skill carefully.',
-    [DIAGNOSTIC_DECISIONS.MOVE_UP]: 'Good. Let’s try the next step.',
+    [DIAGNOSTIC_DECISIONS.MARK_FRAGILE]: 'Good. Confirming this skill carefully.',
+    [DIAGNOSTIC_DECISIONS.MOVE_UP]: 'Good. Move to the next step.',
     [DIAGNOSTIC_DECISIONS.STEP_DOWN]: 'This helps us find the right starting point.',
-    [DIAGNOSTIC_DECISIONS.REPHRASE_ONCE]: 'Let’s read this one another way.',
+    [DIAGNOSTIC_DECISIONS.REPHRASE_ONCE]: 'Read this one in a different way.',
     [DIAGNOSTIC_DECISIONS.ASSIGN_REMEDIATION]: 'This tells us what to practise next.',
   };
   return map[decisionType] || 'This helps us find what to practise next.';

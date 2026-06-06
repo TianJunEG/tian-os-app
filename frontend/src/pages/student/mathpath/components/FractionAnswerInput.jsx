@@ -272,9 +272,9 @@ export default function FractionAnswerInput({
   }
 
   return (
-    <div className="relative rounded-xl border border-hairline bg-white p-4">
-      <div className="flex flex-col items-center">
-        <span className="mb-2 block text-sm font-semibold text-ink-700">{helperText}</span>
+    <div className="relative rounded-xl border border-hairline bg-white px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="min-w-[5rem] flex-1 text-sm font-semibold leading-tight text-ink-700 sm:flex-none">{helperText}</span>
         <button
           type="button"
           disabled={disabled}
@@ -286,11 +286,12 @@ export default function FractionAnswerInput({
               else numeratorRef.current?.focus();
             });
           }}
-          className="min-h-14 w-full max-w-[11rem] rounded-xl border border-hairline bg-slate-50 px-4 py-3 text-center font-mono text-xl text-ink-900 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-10 min-w-[8rem] flex-1 rounded-xl border border-hairline bg-slate-50 px-3 py-1.5 text-center font-mono text-base text-ink-900 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-[9rem] sm:whitespace-nowrap"
           aria-label="Math answer value"
         >
           {String(value || '').trim() || 'Tap to enter'}
         </button>
+        <div className="min-w-0 flex-1 sm:flex-none">
         <MathToolbar
           compact
           disabled={disabled}
@@ -298,6 +299,7 @@ export default function FractionAnswerInput({
           onTool={handleTool}
           label="Fraction answer tools"
         />
+        </div>
         {popupOpen && (
           <MathInputPopup
             mode={answerMode}

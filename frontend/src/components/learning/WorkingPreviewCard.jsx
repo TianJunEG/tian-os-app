@@ -7,7 +7,7 @@ export default function WorkingPreviewCard({
   workingSubmitted = false,
   onOpen,
   onRemove,
-  openLabel = 'Open full-screen working',
+  openLabel = 'Open working',
 }) {
   const hasWorking = Boolean(workingSubmitted || workingImage);
 

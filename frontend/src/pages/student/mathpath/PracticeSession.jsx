@@ -25,13 +25,15 @@ import QuestionDiagram, {
 } from './components/QuestionDiagram';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
+import QuestionZoomControls from './components/QuestionZoomControls';
 import { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
 import FullScreenWorkingMode from '../../../components/learning/FullScreenWorkingMode';
 import WorkingPreviewCard from '../../../components/learning/WorkingPreviewCard';
-import WorkingEvidenceDecision, {
+import {
   hasWorkingDecision,
   resolveWorkingRequirementLevel,
 } from '../../../components/learning/WorkingEvidenceDecision';
+import SubmissionReviewModal from './components/SubmissionReviewModal';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -526,6 +528,8 @@ function LegacyPracticeSession() {
   const [correctStreak, setCorrectStreak] = useState(0);
   const [fullscreenWorkingState, setFullscreenWorkingState] = useState({});
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [reflection, setReflection] = useState('');
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const questionSurfaceRef = useRef(null);
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
@@ -537,7 +541,6 @@ function LegacyPracticeSession() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.stem || q.prompt || ''));
-  const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const workingRequirementLevel = resolveWorkingRequirementLevel(q, sessionType);
   const currentFullscreenWorking = fullscreenWorkingState[q.questionId] || {};
   const workingReady = hasWorkingDecision(currentFullscreenWorking);
@@ -559,9 +562,9 @@ function LegacyPracticeSession() {
     } : null,
   ].filter(Boolean);
 
-  const check = async () => {
+  const submitLegacyAnswer = async () => {
     if (busy || answer === '') return;
-    if (!workingReady) return;
+    if (!reflection || !workingReady) return;
     setBusy(true); setErr('');
     try {
       const timeTaken = Math.max(1, Math.floor((Date.now() - startedAt) / 1000));
@@ -605,6 +608,17 @@ function LegacyPracticeSession() {
     } finally { setBusy(false); }
   };
 
+  const openReviewModal = () => {
+    if (!answer) return;
+    setReviewModalOpen(true);
+  };
+
+  const confirmReview = () => {
+    if (!reflection || !workingReady || busy) return;
+    setReviewModalOpen(false);
+    submitLegacyAnswer();
+  };
+
   const next = async () => {
     if (!isLast) { setIdx((i) => i + 1); setAnswer(''); setResult(null); setErr(''); return; }
     setBusy(true);
@@ -636,10 +650,10 @@ function LegacyPracticeSession() {
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono tabular-nums">Question {idx + 1} of {items.length}</span><span>{canonicalSkillName(q.skillId, q.skillName || '')}</span>
       </div>
-      <ProgressBar value={idx + (result ? 1 : 0)} max={items.length} className="mb-6" />
-      <Card className="flex min-h-[30rem] flex-col p-6">
+      <ProgressBar value={idx + (result ? 1 : 0)} max={items.length} className="mb-4" />
+      <Card className="flex min-h-[26rem] flex-col p-4">
         <div ref={questionSurfaceRef} className="relative">
-          <div className="mb-6 text-lg leading-relaxed text-ink-900">
+            <div className="mb-4 text-lg leading-relaxed text-ink-900">
             {expressionQuestion ? (
               <FractionExpressionQuestion
                 prompt={q.stem || q.prompt || ''}
@@ -649,7 +663,7 @@ function LegacyPracticeSession() {
                 onEnter={() => {
                   if (!result) {
                     if (!answer) return;
-                    check();
+                    openReviewModal();
                   }
                 }}
               />
@@ -659,7 +673,7 @@ function LegacyPracticeSession() {
           </div>
           <VisualBlock visual={q.visual} />
         </div>
-        <div className="mb-4">
+            <div className="mb-3">
           <WorkingPreviewCard
             workingImage={currentFullscreenWorking.workingImage || ''}
             workingSubmitted={Boolean(currentFullscreenWorking.workingSubmitted)}
@@ -674,7 +688,7 @@ function LegacyPracticeSession() {
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
             {choices.map((c, i) => (
-              <button key={`${i}-${c}`} disabled={!!result} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+              <button key={`${i}-${c}`} disabled={!!result} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
                 <MathText text={c} />
               </button>
             ))}
@@ -685,12 +699,12 @@ function LegacyPracticeSession() {
             value={answer}
             onChange={setAnswer}
             disabled={!!result}
-            onEnter={() => {
-              if (!result) {
-                if (!answer) return;
-                check();
-              }
-            }}
+                onEnter={() => {
+                  if (!result) {
+                    if (!answer) return;
+                    openReviewModal();
+                  }
+                }}
           />
         ) : (
           <AnswerInputRenderer
@@ -701,59 +715,18 @@ function LegacyPracticeSession() {
             onEnter={() => {
               if (!result) {
                 if (!answer) return;
-                check();
+                openReviewModal();
               }
             }}
           />
         )}
         {result && (
-          <div className="mt-5">
+          <div className="mt-3">
             <AnswerFeedbackCard feedback={result} correctAnswer={result.correctAnswer || q.answer?.display || null} />
           </div>
         )}
-        <div className="mt-4">
-          <WorkingEvidenceDecision
-            working={currentFullscreenWorking}
-            requirementLevel={workingRequirementLevel}
-            disabled={Boolean(result)}
-            onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
-              ...prev,
-              [q.questionId]: {
-                ...(prev[q.questionId] || {}),
-                workingSubmitted: false,
-                workingSubmittedAt: null,
-                workingImage: '',
-                workingStrokes: [],
-                workingMathObjects: [],
-                workingOnPaper: false,
-                workingNotNeeded: checked,
-                workingNotNeededAt: checked ? new Date().toISOString() : null,
-              },
-            }))}
-            onDeclareOnPaper={(checked) => setFullscreenWorkingState((prev) => ({
-              ...prev,
-              [q.questionId]: {
-                ...(prev[q.questionId] || {}),
-                workingSubmitted: false,
-                workingSubmittedAt: null,
-                workingImage: '',
-                workingStrokes: [],
-                workingMathObjects: [],
-                workingOnPaper: checked,
-                workingOnPaperAt: checked ? new Date().toISOString() : null,
-                workingNotNeeded: false,
-                workingNotNeededAt: null,
-              },
-            }))}
-          />
-        </div>
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
-        {!workingReady && (
-          <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-            Submit working or choose "I did not need working for this question" before continuing.
-          </p>
-        )}
-        <div className="mt-auto pt-6">{!result ? <Button size="l" disabled={busy || !answer || !workingReady} onClick={check} className="w-full">Check answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
+        <div className="mt-auto pt-4">{!result ? <Button size="l" disabled={busy || !answer} onClick={openReviewModal} className="w-full">Submit answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
       </Card>
       <FullScreenWorkingMode
         open={fullscreenOpen}
@@ -786,6 +759,50 @@ function LegacyPracticeSession() {
           }));
           setFullscreenOpen(false);
         }}
+      />
+      <SubmissionReviewModal
+        open={reviewModalOpen}
+        title="Review this submission"
+        reflection={reflection}
+        reflectionOptions={REFLECTION_OPTIONS}
+        onReflectionChange={(value) => setReflection(value)}
+        working={currentFullscreenWorking}
+        workingRequirementLevel={workingRequirementLevel}
+        onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
+          ...prev,
+          [q.questionId]: {
+            ...(prev[q.questionId] || {}),
+            workingSubmitted: false,
+            workingSubmittedAt: null,
+            workingImage: '',
+            workingStrokes: [],
+            workingMathObjects: [],
+            workingOnPaper: false,
+            workingNotNeeded: checked,
+            workingNotNeededAt: checked ? new Date().toISOString() : null,
+          },
+        }))}
+        onDeclareOnPaper={(checked) => setFullscreenWorkingState((prev) => ({
+          ...prev,
+          [q.questionId]: {
+            ...(prev[q.questionId] || {}),
+            workingSubmitted: false,
+            workingSubmittedAt: null,
+            workingImage: '',
+            workingStrokes: [],
+            workingMathObjects: [],
+            workingOnPaper: checked,
+            workingOnPaperAt: checked ? new Date().toISOString() : null,
+            workingNotNeeded: false,
+            workingNotNeededAt: null,
+          },
+        }))}
+        onOpenWorking={() => setFullscreenOpen(true)}
+        confirmLabel="Check answer"
+        onConfirm={confirmReview}
+        onClose={() => setReviewModalOpen(false)}
+        busy={busy}
+        canSubmit={() => Boolean(reflection && workingReady)}
       />
     </div>
   );
@@ -844,8 +861,10 @@ export default function PracticeSession() {
   const [correctStreak, setCorrectStreak] = useState(0);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [submissionReviewOpen, setSubmissionReviewOpen] = useState(false);
   const [fullscreenWorkingByQuestion, setFullscreenWorkingByQuestion] = useState({});
   const [fullscreenQuestionId, setFullscreenQuestionId] = useState(null);
+  const [questionZoom, setQuestionZoom] = useState(1);
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
   const questionSurfaceRef = useRef(null);
@@ -1029,7 +1048,6 @@ export default function PracticeSession() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
-  const workingRequirement = resolveWorkingRequirement(q, sessionType);
   const workingRequirementLevel = resolveWorkingRequirementLevel(q, sessionType);
   const currentFullscreenWorking = fullscreenWorkingByQuestion[q.questionId] || {};
   const workingReady = hasWorkingDecision(currentFullscreenWorking);
@@ -1118,6 +1136,18 @@ export default function PracticeSession() {
       skipped: false,
       correctAnswer: q.answer?.display || null,
     });
+  };
+
+  const openSubmissionReview = () => {
+    if (!answer) return;
+    if (!currentQuestionValidation.ok) return;
+    setSubmissionReviewOpen(true);
+  };
+
+  const confirmSubmissionReview = () => {
+    if (!answer || !reflection || !workingReady || busy || answered) return;
+    setSubmissionReviewOpen(false);
+    onSubmitCurrent();
   };
 
   const onSkipCurrent = () => {
@@ -1403,9 +1433,9 @@ export default function PracticeSession() {
         <span className="font-mono tabular-nums">Question {idx + 1} of {questions.length}</span>
         <span className="font-mono">{elapsedSec}s</span>
       </div>
-      <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-6" barClassName={visualStyles.progress} />
+      <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-4" barClassName={visualStyles.progress} />
 
-      <Card className={`p-4 sm:p-6 ${visualStyles.accentCard}`}>
+      <Card className={`overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
         {!currentQuestionValidation.ok ? (
           <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
             <p className="font-semibold text-navy-700">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
@@ -1415,10 +1445,13 @@ export default function PracticeSession() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-6 xl:grid-cols-[minmax(24rem,1fr)_minmax(28rem,0.95fr)]">
-          <section className="min-w-0">
-            <div ref={questionSurfaceRef} className="relative">
-              <div className="mb-6 text-lg leading-relaxed text-ink-900">
+          <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.72fr)]">
+          <section className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
+            <div className="mb-2 flex justify-end">
+              <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
+            </div>
+            <div ref={questionSurfaceRef} className="relative origin-top-left" style={{ zoom: questionZoom }}>
+            <div className="mb-4 text-lg leading-relaxed text-ink-900">
                 {expressionQuestion ? (
                   <FractionExpressionQuestion
                     prompt={q.prompt || q.stem || ''}
@@ -1426,7 +1459,7 @@ export default function PracticeSession() {
                     onChange={setAnswer}
                     disabled={answered}
                     onEnter={() => {
-                      if (!answered) onSubmitCurrent();
+                      if (!answered) openSubmissionReview();
                     }}
                   />
                 ) : (
@@ -1439,8 +1472,8 @@ export default function PracticeSession() {
 
           </section>
 
-          <aside className="min-w-0 rounded-2xl bg-violet-50/60 p-3 sm:p-4">
-            <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4">
+          <aside className="min-w-0 min-h-0 rounded-2xl bg-violet-50/60 p-2 sm:p-3 xl:h-full xl:overflow-y-auto">
+            <div className="rounded-xl border border-hairline bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
                 <div className="grid gap-2">
@@ -1457,7 +1490,7 @@ export default function PracticeSession() {
                   onChange={setAnswer}
                   disabled={answered}
                   onEnter={() => {
-                    if (!answered && reflection) onSubmitCurrent();
+                    if (!answered) openSubmissionReview();
                   }}
                 />
               ) : (
@@ -1467,81 +1500,21 @@ export default function PracticeSession() {
                   onChange={setAnswer}
                   disabled={answered}
                   onEnter={() => {
-                    if (!answered && reflection) onSubmitCurrent();
+                    if (!answered) openSubmissionReview();
                   }}
                 />
               )}
             </div>
 
-            <div className="mt-3 rounded-xl border border-hairline bg-white p-3 sm:p-4">
-              <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {REFLECTION_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    disabled={answered}
-                    onClick={() => setReflection(opt.value)}
-                    className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-3">
-              <WorkingEvidenceDecision
-                working={currentFullscreenWorking}
-                requirementLevel={workingRequirementLevel}
-                disabled={answered}
-                onDeclareNotNeeded={(checked) => setFullscreenWorkingByQuestion((prev) => ({
-                  ...prev,
-                  [q.questionId]: {
-                    ...(prev[q.questionId] || {}),
-                    workingSubmitted: false,
-                    workingSubmittedAt: null,
-                    workingImage: '',
-                    workingStrokes: [],
-                    workingMathObjects: [],
-                    workingOnPaper: false,
-                    workingNotNeeded: checked,
-                    workingNotNeededAt: checked ? new Date().toISOString() : null,
-                  },
-                }))}
-                onDeclareOnPaper={(checked) => setFullscreenWorkingByQuestion((prev) => ({
-                  ...prev,
-                  [q.questionId]: {
-                    ...(prev[q.questionId] || {}),
-                    workingSubmitted: false,
-                    workingSubmittedAt: null,
-                    workingImage: '',
-                    workingStrokes: [],
-                    workingMathObjects: [],
-                    workingOnPaper: checked,
-                    workingOnPaperAt: checked ? new Date().toISOString() : null,
-                    workingNotNeeded: false,
-                    workingNotNeededAt: null,
-                  },
-                }))}
-              />
-            </div>
-
-            <div className="mt-3">
+            <div className="mt-2">
               <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} />
             </div>
 
-            {!workingReady && (
-              <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-                Submit working or choose "I did not need working for this question" before continuing.
-              </p>
-            )}
-
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {!answered ? (
                 <>
                   <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
-                  <Button disabled={busy || !answer || !reflection || !workingReady} onClick={onSubmitCurrent}>Submit answer</Button>
+                  <Button disabled={busy || !answer} onClick={openSubmissionReview}>Submit answer</Button>
                 </>
               ) : (
                 <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
@@ -1550,7 +1523,7 @@ export default function PracticeSession() {
               )}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-2">
               <WorkingPreviewCard
                 workingImage={currentFullscreenWorking.workingImage || ''}
                 workingSubmitted={Boolean(currentFullscreenWorking.workingSubmitted)}
@@ -1599,6 +1572,50 @@ export default function PracticeSession() {
           }));
           setFullscreenQuestionId(null);
         }}
+      />
+      <SubmissionReviewModal
+        open={submissionReviewOpen}
+        title="Review your response"
+        reflection={reflection}
+        reflectionOptions={REFLECTION_OPTIONS}
+        onReflectionChange={(value) => setReflection(value)}
+        working={currentFullscreenWorking}
+        workingRequirementLevel={workingRequirementLevel}
+        onDeclareNotNeeded={(checked) => setFullscreenWorkingByQuestion((prev) => ({
+          ...prev,
+          [q.questionId]: {
+            ...(prev[q.questionId] || {}),
+            workingSubmitted: false,
+            workingSubmittedAt: null,
+            workingImage: '',
+            workingStrokes: [],
+            workingMathObjects: [],
+            workingOnPaper: false,
+            workingNotNeeded: checked,
+            workingNotNeededAt: checked ? new Date().toISOString() : null,
+          },
+        }))}
+        onDeclareOnPaper={(checked) => setFullscreenWorkingByQuestion((prev) => ({
+          ...prev,
+          [q.questionId]: {
+            ...(prev[q.questionId] || {}),
+            workingSubmitted: false,
+            workingSubmittedAt: null,
+            workingImage: '',
+            workingStrokes: [],
+            workingMathObjects: [],
+            workingOnPaper: checked,
+            workingOnPaperAt: checked ? new Date().toISOString() : null,
+            workingNotNeeded: false,
+            workingNotNeededAt: null,
+          },
+        }))}
+        onOpenWorking={() => setFullscreenQuestionId(q.questionId)}
+        confirmLabel="Submit answer"
+        onConfirm={confirmSubmissionReview}
+        onClose={() => setSubmissionReviewOpen(false)}
+        busy={busy}
+        canSubmit={() => Boolean(answer && reflection && workingReady)}
       />
     </div>
   );

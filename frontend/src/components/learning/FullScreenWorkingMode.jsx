@@ -486,10 +486,21 @@ export default function FullScreenWorkingMode({
   const [hasObjectEdit, setHasObjectEdit] = useState(false);
   const [mathDraft, setMathDraft] = useState(null);
   const [textDraft, setTextDraft] = useState(null);
+  const syncedSourceSignature = useRef(null);
 
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colourRef.current = colour; }, [colour]);
   useEffect(() => { brushSizeRef.current = brushSize; }, [brushSize]);
+
+  const buildSourceSignature = (strokes, objects) => {
+    try {
+      return `${JSON.stringify(strokes || [])}|${JSON.stringify(objects || [])}`;
+    } catch (error) {
+      const strokeCount = (strokes || []).length;
+      const objectCount = (objects || []).length;
+      return `len:${strokeCount}:${objectCount}:${error?.message || 'parse_error'}`;
+    }
+  };
 
   const redraw = (nextStrokes = strokes) => {
     const canvas = canvasRef.current;
@@ -500,7 +511,10 @@ export default function FullScreenWorkingMode({
   };
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      syncedSourceSignature.current = null;
+      return;
+    }
     const rawStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];
     const legacyMathObjects = rawStrokes.map(stampStrokeToMathObject).filter(Boolean);
     const nextStrokes = rawStrokes.filter((stroke) => stroke?.tool !== 'stamp');
@@ -508,6 +522,8 @@ export default function FullScreenWorkingMode({
       ? initialMathObjects.map(normaliseMathObject).filter(Boolean)
       : [];
     const nextMathObjects = savedMathObjects.length ? savedMathObjects : legacyMathObjects;
+    const signature = buildSourceSignature(nextStrokes, nextMathObjects);
+    if (syncedSourceSignature.current === signature) return;
     strokesRef.current = nextStrokes;
     mathObjectsRef.current = nextMathObjects;
     setStrokes(nextStrokes);
@@ -519,6 +535,7 @@ export default function FullScreenWorkingMode({
     setHasObjectEdit(false);
     setMathDraft(null);
     setTextDraft(null);
+    syncedSourceSignature.current = signature;
   }, [open, initialStrokes, initialMathObjects]);
 
   useEffect(() => {

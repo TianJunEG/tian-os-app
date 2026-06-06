@@ -7,10 +7,8 @@ import { MathText } from '../../../components/ui/Fraction';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
-import WorkingEvidenceDecision, {
-  hasWorkingDecision,
-  resolveWorkingRequirementLevel,
-} from '../../../components/learning/WorkingEvidenceDecision';
+import { hasWorkingDecision, resolveWorkingRequirementLevel } from '../../../components/learning/WorkingEvidenceDecision';
+import SubmissionReviewModal from './components/SubmissionReviewModal';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -55,6 +53,7 @@ export default function SimilarQuestionPractice() {
   const [busy, setBusy] = useState(false);
   const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
   const [workingByQuestion, setWorkingByQuestion] = useState({});
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -146,6 +145,17 @@ export default function SimilarQuestionPractice() {
     }
   };
 
+  const openReviewModal = () => {
+    if (!answer.trim()) return;
+    setReviewModalOpen(true);
+  };
+
+  const confirmReview = () => {
+    if (!answer.trim() || !reflection || !workingReady) return;
+    setReviewModalOpen(false);
+    saveAndNext();
+  };
+
   if (submitted) {
     const wrong = submitted.results.filter((row) => !row.correct);
     return (
@@ -204,7 +214,7 @@ export default function SimilarQuestionPractice() {
               question={{ ...q, answerInputType: 'fraction' }}
               value={answer}
               onChange={setAnswer}
-              onEnter={saveAndNext}
+              onEnter={openReviewModal}
             />
           </div>
         ) : !expressionQuestion && (
@@ -213,7 +223,7 @@ export default function SimilarQuestionPractice() {
               question={q}
               value={answer}
               onChange={setAnswer}
-              onEnter={saveAndNext}
+              onEnter={openReviewModal}
             />
           </div>
         )}
@@ -241,51 +251,45 @@ export default function SimilarQuestionPractice() {
             },
           }))}
         />
-        <div className="mt-4">
-          <label className="mb-2 block text-sm font-semibold text-ink-700">How sure are you?</label>
-          <div className="grid grid-cols-2 gap-2">
-            {REFLECTION_OPTIONS.map((opt) => (
-              <button key={opt.value} type="button" onClick={() => setReflection(opt.value)} className={`rounded-lg border px-3 py-2 text-sm ${reflection === opt.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-3">
-            <WorkingEvidenceDecision
-              working={currentWorking}
-              requirementLevel={workingRequirementLevel}
-              onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
-                ...prev,
-                [q.variantId]: {
-                  ...(prev[q.variantId] || {}),
-                  workingSubmitted: false,
-                  workingSubmittedAt: null,
-                  workingImage: '',
-                  workingStrokes: [],
-                  workingMathObjects: [],
-                  fullscreenWorkingImage: '',
-                  fullscreenWorkingStrokes: [],
-                  fullscreenWorkingMathObjects: [],
-                  fullscreenWorkingSubmitted: false,
-                  fullscreenWorkingSubmittedAt: null,
-                  workingEvidence: [],
-                  workingNotNeeded: checked,
-                  workingNotNeededAt: checked ? new Date().toISOString() : null,
-                },
-              }))}
-            />
-          </div>
-        </div>
-        {!workingReady && (
-          <p className="mt-3 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-sm font-semibold text-gold-800">
-            Submit working or choose "I did not need working for this question" before continuing.
-          </p>
-        )}
-        <Button className="mt-5 w-full" icon={isLast ? Check : ArrowRight} disabled={busy || !answer.trim() || !reflection || !workingReady} onClick={saveAndNext}>
+        <Button className="mt-5 w-full" icon={isLast ? Check : ArrowRight} disabled={busy || !answer.trim()} onClick={openReviewModal}>
           {isLast ? 'Submit practice' : 'Next question'}
         </Button>
         {responses.some((r) => r.variantId === q.variantId) && <X className="hidden" />}
       </Card>
+      <SubmissionReviewModal
+        open={reviewModalOpen}
+        title="Review this submission"
+        reflection={reflection}
+        reflectionOptions={REFLECTION_OPTIONS}
+        onReflectionChange={setReflection}
+        working={currentWorking}
+        workingRequirementLevel={workingRequirementLevel}
+        onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
+          ...prev,
+          [q.variantId]: {
+            ...(prev[q.variantId] || {}),
+            workingSubmitted: false,
+            workingSubmittedAt: null,
+            workingImage: '',
+            workingStrokes: [],
+            workingMathObjects: [],
+            fullscreenWorkingImage: '',
+            fullscreenWorkingStrokes: [],
+            fullscreenWorkingMathObjects: [],
+            fullscreenWorkingSubmitted: false,
+            fullscreenWorkingSubmittedAt: null,
+            workingEvidence: [],
+            workingNotNeeded: checked,
+            workingNotNeededAt: checked ? new Date().toISOString() : null,
+          },
+        }))}
+        onOpenWorking={null}
+        confirmLabel={isLast ? 'Submit practice' : 'Next question'}
+        onConfirm={confirmReview}
+        onClose={() => setReviewModalOpen(false)}
+        busy={busy}
+        canSubmit={() => Boolean(answer.trim() && reflection && workingReady)}
+      />
     </div>
   );
 }

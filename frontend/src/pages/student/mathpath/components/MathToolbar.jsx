@@ -54,7 +54,7 @@ export default function MathToolbar({
 
   return (
     <div
-      className={`flex flex-wrap items-center justify-center gap-2 ${compact ? 'mt-3' : 'mt-2'}`}
+      className={`flex flex-wrap items-center justify-center gap-1.5 ${compact ? 'mt-0' : 'mt-2'}`}
       aria-label={label}
     >
       {resolvedTools.map((tool) => (
@@ -63,7 +63,7 @@ export default function MathToolbar({
           type="button"
           disabled={disabled}
           onClick={() => onTool?.(tool.id)}
-          className={`${compact ? 'h-9 min-w-9 px-3 text-sm' : 'h-10 min-w-11 px-3 text-lg'} grid place-items-center rounded-lg border border-hairline bg-white font-semibold text-navy-700 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45`}
+          className={`${compact ? 'h-8 min-w-8 px-2 text-xs' : 'h-10 min-w-11 px-3 text-lg'} grid place-items-center rounded-lg border border-hairline bg-white font-semibold text-navy-700 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45`}
           title={tool.title}
           aria-label={tool.title}
         >

@@ -5,7 +5,7 @@ test('pilot gate: assessment lifecycle surface is reachable', async ({ page }) =
   await loginAs(page, accounts.student, '/student');
 
   await page.goto('/student/mathpath/assessment');
-  await expect(page.getByText(/assessment|time limit|start assessment|submit|test mode|not available|mastery check/i).first()).toBeVisible({
+  await expect(page.getByText(/assessment|time limit|test mode|not available|mastery check|start practice test|baseline check|progress check/i).first()).toBeVisible({
     timeout: 15_000,
   });
 });
