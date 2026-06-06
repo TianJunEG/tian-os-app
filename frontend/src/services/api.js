@@ -448,6 +448,7 @@ export const adminAPI = {
   getPilotAnalytics: (params) => api.get('/admin/pilot-analytics', { params }),
   getPilotInterventionMetrics: (params) => api.get('/admin/pilot/intervention-metrics', { params }),
   getPilotInterventionSummary: (params) => api.get('/admin/pilot/intervention-summary', { params }),
+  getQuestionQuality: (params) => api.get('/admin/question-quality', { params }),
   getUsers: (params) => api.get('/admin/users', { params }),
   getVerificationQueue: (params) => api.get('/admin/verification-queue', { params }),
   verifyTutor: (tutorId, data) => api.put(`/admin/verification/${tutorId}`, data),

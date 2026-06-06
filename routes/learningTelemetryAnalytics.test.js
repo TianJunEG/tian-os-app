@@ -5,6 +5,7 @@ const getStudentAnalytics = vi.fn();
 const getPilotAnalytics = vi.fn();
 const getPilotInterventionMetrics = vi.fn();
 const getPilotInterventionSummary = vi.fn();
+const getQuestionQualityAudit = vi.fn();
 const recordLearningEvent = vi.fn();
 
 vi.mock('../middleware/auth.js', () => ({
@@ -31,6 +32,10 @@ vi.mock('../services/telemetry/learningTelemetryService.js', () => ({
 vi.mock('../services/mathpath/pilotInterventionMetricsService.js', () => ({
   getPilotInterventionMetrics: (...args) => getPilotInterventionMetrics(...args),
   getPilotInterventionSummary: (...args) => getPilotInterventionSummary(...args),
+}));
+
+vi.mock('../services/mathpath/questionQualityAuditService.js', () => ({
+  getQuestionQualityAudit: (...args) => getQuestionQualityAudit(...args),
 }));
 
 async function loadRouter(path) {
@@ -162,6 +167,29 @@ describe('learning telemetry analytics routes', () => {
 
     expect(res.status).toBe(403);
     expect(getPilotInterventionMetrics).not.toHaveBeenCalled();
+  });
+
+  it('returns admin question quality audit', async () => {
+    getQuestionQualityAudit.mockResolvedValueOnce({
+      totalQuestions: 26,
+      averageQualityScore: 72,
+      missingDiagrams: [],
+    });
+
+    const res = await request(pilotRouter, '/question-quality', {
+      query: { domainId: 'fractions', limit: 100 },
+    });
+
+    expect(res.status).toBe(200);
+    expect(getQuestionQualityAudit).toHaveBeenCalledWith({ domainId: 'fractions', limit: 100 });
+    expect(res.data.averageQualityScore).toBe(72);
+  });
+
+  it('blocks question quality audit for non-admin users', async () => {
+    const res = await request(pilotRouter, '/question-quality', { headers: { role: 'student' } });
+
+    expect(res.status).toBe(403);
+    expect(getQuestionQualityAudit).not.toHaveBeenCalled();
   });
 
   it('records generic frontend telemetry events', async () => {

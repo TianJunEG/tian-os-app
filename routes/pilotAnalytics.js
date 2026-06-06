@@ -5,6 +5,7 @@ import {
   getPilotInterventionMetrics,
   getPilotInterventionSummary,
 } from '../services/mathpath/pilotInterventionMetricsService.js';
+import { getQuestionQualityAudit } from '../services/mathpath/questionQualityAuditService.js';
 
 const router = express.Router();
 const adminOnly = [protect, authorize('admin')];
@@ -48,6 +49,18 @@ router.get('/pilot/intervention-summary', adminOnly, async (req, res) => {
     res.json(summary);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load intervention summary.' });
+  }
+});
+
+router.get('/question-quality', adminOnly, async (req, res) => {
+  try {
+    const audit = await getQuestionQualityAudit({
+      domainId: req.query.domainId || 'fractions',
+      limit: req.query.limit || 500,
+    });
+    res.json(audit);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load question quality audit.' });
   }
 });
 
