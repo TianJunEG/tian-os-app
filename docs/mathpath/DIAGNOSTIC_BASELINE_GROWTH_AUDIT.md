@@ -1,14 +1,27 @@
 # Executive Summary
 
-Verdict: **C. Significant gaps remain** for full Before -> Intervention -> After diagnostic measurement.
+Updated verdict, June 6, 2026: **B. Fractions pilot-ready for baseline/history/growth reporting, with remaining hardening gaps.**
 
-Tian OS now has a strong adaptive diagnostic foundation for MathPath Fractions. The live diagnostic path starts one question at a time, records responses, stores decision history, uses confidence/timing/skip/working signals, and can block baseline retakes through a replay policy. However, the platform does **not yet fully productize diagnostic baseline preservation, diagnostic history, or before/after growth reporting**.
+Tian OS now has a productized adaptive diagnostic foundation for MathPath Fractions. The live diagnostic path starts one question at a time, records responses, stores decision history, uses confidence/timing/skip/working signals, blocks inappropriate baseline replays through policy, and now preserves diagnostic lineage through top-level baseline/history fields.
 
-The first diagnostic is stored as a `MathPathDiagnosticSession`, and later diagnostic sessions should not overwrite that document. But there is no explicit immutable `baselineDiagnosticId`, no first-class diagnostic history API, no automatic before/after diagnostic comparison, and adult dashboards mostly consume the latest diagnostic or summary proxies rather than a structured growth timeline.
+The previous critical gaps are materially reduced. `MathPathDiagnosticSession` now stores `diagnosticPurpose`, `attemptNumber`, `isBaseline`, `baselineDiagnosticId`, `previousDiagnosticId`, and `perSkillSnapshot`. The generic diagnostic API now exposes `/api/diagnostics/history` and `/api/diagnostics/growth`, with compatibility routes under `/api/mastery/diagnostic/history` and `/api/mastery/diagnostic/growth`. The growth service returns baseline/latest/previous, readiness deltas, per-skill improvement, confidence trend, timing trend, working-evidence trend, and assignment-linked recheck growth where available.
 
-The current outcome tracking model supports before/after summaries for mastery, fluency, retention, assessment, and readiness, but it does not directly import or aggregate `MathPathDiagnosticSession`. Its readiness baseline appears to be assessment-derived, not diagnostic-derived.
+Adult surfaces now consume diagnostic growth more directly. Parent, tutor, and teacher MathPath dashboards load diagnostic growth data and show compact diagnostic growth cards. The admin pilot intervention dashboard also summarizes baseline/latest readiness and intervention-linked growth.
 
-Pilot readiness for a single Fractions baseline and practice placement is reasonable. Pilot readiness for showing quantified diagnostic growth after intervention is incomplete.
+Pilot readiness for a 5-student Fractions run is now reasonable for initial placement, intervention assignment, recheck, and quantified diagnostic growth. The remaining gaps are mostly hardening and breadth: multi-domain coverage, formal intervention-window attribution, stronger production baseline immutability semantics, fuller student-facing trend UI, and cleanup of the legacy batch diagnostic submit path.
+
+## June 6 Implementation Update
+
+| Area | Current status |
+| --- | --- |
+| Baseline preservation | Implemented for completed diagnostics through `isBaseline`, `baselineDiagnosticId`, `previousDiagnosticId`, and attempt numbering. |
+| Diagnostic history | Implemented through `GET /api/diagnostics/history` and MathPath compatibility route. |
+| Diagnostic growth API | Implemented through `GET /api/diagnostics/growth`, including readiness, per-skill, confidence, timing, and working-evidence trends. |
+| Per-skill snapshots | Implemented at diagnostic completion via `perSkillSnapshot`. |
+| Adult dashboard growth panels | Implemented in parent, tutor, and teacher MathPath dashboards through `DiagnosticGrowthCard`. |
+| Pilot intervention reporting | Implemented in admin pilot intervention metrics, including baseline/latest readiness and targeted-skill gain. |
+| Intervention workflows | Recovery Packs, rechecks, tutor lesson prep, student care queues, teacher weak groups, partner/centre reporting, and intervention worksheets now exist. |
+| Remaining gap | Domain breadth, formal intervention-window attribution, legacy submit unification, and production baseline reset/migration policy. |
 
 # Findings
 
@@ -72,7 +85,7 @@ Pilot readiness for a single Fractions baseline and practice placement is reason
 | File | Evidence | Meaning |
 | --- | --- | --- |
 | `models/mathpath/MathPathDiagnosticSession.js:8` | `diagnosticSessionId` required and unique indexed. | Every diagnostic session has a durable session identifier. |
-| `models/mathpath/MathPathDiagnosticSession.js:9-31` | Stores `studentId`, `subjectId`, `domainId`, `mode`, `status`, `decisionHistory`, `assignedPracticeSkillIds`, `readinessScore`, `adaptiveState`, `result`, `startedAt`, `completedAt`. | Session-level diagnostic evidence is preserved. |
+| `models/mathpath/MathPathDiagnosticSession.js` | Stores `studentId`, `subjectId`, `domainId`, `mode`, `diagnosticPurpose`, `attemptNumber`, `isBaseline`, `baselineDiagnosticId`, `previousDiagnosticId`, `status`, `decisionHistory`, `assignedPracticeSkillIds`, `readinessScore`, `perSkillSnapshot`, `adaptiveState`, `result`, `startedAt`, `completedAt`. | Session-level diagnostic evidence, baseline lineage, and per-skill snapshots are preserved. |
 | `services/diagnostics/diagnosticRuntime.js:409` | Creates a new `MathPathDiagnosticSession` on start. | Later diagnostics should create new documents, not overwrite the original session document. |
 | `services/diagnostics/diagnosticRuntime.js:579` | Appends response records into `adaptiveState.responses`. | Per-question diagnostic evidence is stored in the session. |
 | `services/diagnostics/diagnosticRuntime.js:756` | Appends `decisionHistory`. | Adaptive routing history is preserved. |
@@ -83,20 +96,19 @@ Pilot readiness for a single Fractions baseline and practice placement is reason
 
 | Question | Answer |
 | --- | --- |
-| Is the first diagnostic stored permanently? | **Stored, but not explicitly protected as baseline.** The first diagnostic session remains in `mathpath_diagnostic_sessions` unless reset/deleted, but there is no immutable baseline marker or baseline pointer. |
-| Can later diagnostics overwrite the baseline? | **Not directly at the session-document level.** New adaptive starts create new sessions. However, latest-placement APIs and outcome snapshots can hide or replace baseline context. |
-| Is there a `baselineDiagnosticId` or equivalent? | **No.** No `baselineDiagnosticId` was found in models/routes/services. `OutcomeTracking` has `baselineDate` and baseline scores, but not a diagnostic session pointer. |
-| Can historical growth be reconstructed? | **Partially.** It can be reconstructed from diagnostic sessions sorted by `completedAt` plus attempts by `sessionId`, but this is not exposed as a first-class API/report. |
+| Is the first diagnostic stored permanently? | **Yes for normal product flow.** The first completed diagnostic per student/domain is marked with `isBaseline` and its own `baselineDiagnosticId`. Production reset/backfill policy still needs explicit operational documentation. |
+| Can later diagnostics overwrite the baseline? | **No at the session-document level.** Later diagnostics create new session documents and link back to the baseline through `baselineDiagnosticId` and `previousDiagnosticId`. |
+| Is there a `baselineDiagnosticId` or equivalent? | **Yes.** `baselineDiagnosticId` is stored on diagnostic sessions and returned by history/growth APIs. |
+| Can historical growth be reconstructed? | **Yes as a first-class API for completed diagnostics.** `/api/diagnostics/history` and `/api/diagnostics/growth` return diagnostic attempts, baseline/latest/previous, readiness deltas, and per-skill trends. |
 
 ### Baseline Preservation Issues
 
-| File | Function/component | Current behaviour | Recommended fix |
+| File | Function/component | Current behaviour | Remaining fix |
 | --- | --- | --- | --- |
-| `models/mathpath/MathPathDiagnosticSession.js` | schema | No `diagnosticPurpose`, `attemptNumber`, `baselineDiagnosticId`, or immutable baseline flag at top level. Purpose is stored inside `result`. | Add top-level `diagnosticPurpose`, `attemptNumber`, `isBaseline`, and `baselineDiagnosticId`/`baselineOfDomainId`. |
-| `services/diagnostics/diagnosticRuntime.js:440` | session creation | Stores `diagnosticPurpose` under `result`, not as queryable top-level field. | Move/copy purpose to top-level schema field for reporting and indexes. |
-| `routes/mastery.js:1501` | `GET /api/mastery/diagnostic/latest` | Returns latest completed diagnostic only. | Add `/api/diagnostics/history` and `/api/diagnostics/growth` endpoints. |
-| `models/mathpath/OutcomeTracking.js:7` | `baselineDate` | Tracks a baseline snapshot date but not source diagnostic ID. | Add `baselineDiagnosticId` and `latestDiagnosticId` if using this model for diagnostic growth. |
-| `services/mathpath/outcomeTrackingEngine.js:188` | `getCurrentAssessmentMetrics()` | Reads `MathPathAssessmentSession`, not `MathPathDiagnosticSession`. | Add diagnostic-specific growth collection or extend outcome tracking to consume diagnostic sessions. |
+| `models/mathpath/MathPathDiagnosticSession.js` | schema | Baseline/history fields and `perSkillSnapshot` now exist. | Add migration/backfill for older sessions if production data predates this schema. |
+| `services/diagnostics/diagnosticRuntime.js` | session creation/completion | Creates lineage fields and applies completion metadata with per-skill snapshots. | Add operational policy for reset/backfill and abandoned in-progress sessions. |
+| `routes/diagnostics.js` / `routes/mastery.js` | history/growth endpoints | Generic and compatibility history/growth routes now exist. | Prefer generic routes in new UI and gradually retire subject-specific compatibility paths. |
+| `models/mathpath/OutcomeTracking.js` | baselineDate | Still tracks outcome snapshots separately. | Keep diagnostic before/after reporting sourced from diagnostic growth API or explicitly link outcome records to diagnostics. |
 
 ## Part 3 - Before vs After Reporting
 
@@ -105,22 +117,21 @@ Pilot readiness for a single Fractions baseline and practice placement is reason
 | Required field per diagnostic | Current status | Evidence |
 | --- | --- | --- |
 | Timestamp | **Exists** | `startedAt`, `completedAt`, `createdAt`, `updatedAt` in `MathPathDiagnosticSession`. |
-| Skill scores | **Partial** | Result contains mastered/weak skills and response evidence; no stable per-skill score table for every diagnostic attempt. |
+| Skill scores | **Exists** | `perSkillSnapshot` stores per-skill questions answered, correct count, score, confidence, timing, working rate, misconception tags, and evidence question IDs. |
 | Readiness score | **Exists per session** | `MathPathDiagnosticSession.readinessScore`, `result.overallFractionReadinessScore`. |
-| Confidence score | **Partial** | Per-attempt confidence exists; result screen derives confidence score. Needs stable aggregate per diagnostic. |
+| Confidence score | **Exists for growth reporting** | `diagnosticGrowthService` aggregates confidence from per-skill snapshots. |
 | Working evidence | **Exists per attempt** | `MathPathAttempt` working fields and adaptive response `workingSubmitted`. |
 | Time taken | **Exists per attempt** | `timeTaken`, `timeSpentSeconds`, `questionStartedAt`, `questionEndedAt`, response `timeTakenMs`. |
-| Improvement calculation | **Partial/manual** | Outcome engine calculates growth snapshots, but diagnostic-specific before/after comparison is not first-class. |
+| Improvement calculation | **Exists for completed diagnostics** | `GET /api/diagnostics/growth` returns readiness and per-skill before/current deltas. |
 
 ### Current Reporting Behaviour
 
-| File | Current behaviour | Gap |
+| File | Current behaviour | Remaining gap |
 | --- | --- | --- |
-| `frontend/src/pages/student/mathpath/diagnostic/DiagnosticResultScreen.jsx:70` | Fetches one diagnostic by session ID and shows current result. | No comparison to baseline or previous diagnostic. |
-| `frontend/src/pages/student/mathpath/diagnostic/DiagnosticResultScreen.jsx:142` | Shows readiness score and questions correct for that session. | Does not show before/after deltas. |
-| `routes/mastery.js:1507` | Fetches latest completed diagnostic. | Adult/student dashboards mostly see latest placement, not diagnostic history. |
-| `services/mathpath/outcomeTrackingEngine.js:271` | Can calculate before/current gains for outcome records. | Baseline source is a snapshot and assessment-derived readiness, not diagnostic session comparison. |
-| `services/mathpath/outcomeTrackingEngine.js:431` | Builds readiness growth with before/after/gain. | Useful structure exists but not wired to diagnostic history. |
+| `frontend/src/pages/student/mathpath/diagnostic/DiagnosticResultScreen.jsx` | Fetches one diagnostic by session ID and shows current result. | Add a student-friendly progress-over-time view after rechecks. |
+| `routes/diagnostics.js` | Exposes history and growth APIs. | Continue using generic routes for new domains. |
+| `routes/mastery.js` | Provides latest plus compatibility history/growth routes. | Retire or wrap the legacy batch submit path. |
+| `services/diagnostics/diagnosticGrowthService.js` | Builds baseline/latest/previous, per-skill trends, confidence/timing/working trends, and assignment-linked growth. | Add formal intervention-window attribution. |
 
 ### Can the Example Be Generated Automatically?
 
@@ -128,7 +139,7 @@ Example:
 
 `Equivalent Fractions Before: 42%, After: 83%, Improvement: +41`
 
-Current answer: **Not reliably as a product feature.**
+Current answer: **Yes, when both diagnostics include enough evidence for that skill.**
 
 The raw ingredients likely exist if:
 
@@ -137,101 +148,103 @@ The raw ingredients likely exist if:
 3. per-skill scores are reconstructed from `adaptiveState.responses` or `MathPathAttempt`, and
 4. the reporting layer defines which diagnostic is “before” and which is “after”.
 
-But Tian OS does not yet have a stable diagnostic growth API that returns `{ skillId, beforeScore, afterScore, improvement }` across attempts.
+Tian OS now has a stable diagnostic growth API that returns per-skill growth rows with `{ skillId, beforeScore, currentScore, improvement, status }`. The remaining limitation is evidence density: a skill needs enough diagnostic responses across the compared attempts to make the number meaningful.
 
 ## Part 4 - Growth History
 
 Question: does Tian OS support Student Diagnostic #1, #2, #3, #4 and trend graphs?
 
-Verdict: **Partially supported.**
+Verdict: **Supported for completed Fractions diagnostics; trend UI remains compact.**
 
 Why:
 
 - Multiple diagnostic sessions can exist because `startAdaptiveDiagnostic()` creates new `MathPathDiagnosticSession` documents.
 - Sessions preserve timestamps, response evidence, readiness scores, decisions, and result payloads.
-- The app has a latest-diagnostic endpoint and individual-session endpoint.
-- There is no first-class diagnostic history endpoint, no baseline/latest pair API, no diagnostic trend chart component, and no explicit attempt numbering.
+- The app has latest-diagnostic, individual-session, history, and growth endpoints.
+- Completed sessions now have attempt numbering, baseline linkage, and per-skill snapshots.
+- Adult dashboards show compact growth cards; fuller student and class trend charts remain future work.
 
 | Capability | Status | Notes |
 | --- | --- | --- |
-| Store diagnostic #1/#2/#3/#4 | Partial | Multiple session documents are possible. |
-| Identify first diagnostic as baseline | Missing | Needs explicit baseline pointer/flag. |
+| Store diagnostic #1/#2/#3/#4 | Supported | Multiple completed session documents are queryable through history. |
+| Identify first diagnostic as baseline | Supported | Uses `isBaseline` and `baselineDiagnosticId`. |
 | Identify intervention window | Missing | Practice/remediation events exist but are not grouped between diagnostic attempts. |
-| Generate readiness trend graph | Missing | Data can be reconstructed but no API/UI. |
-| Generate skill-level before/after trend | Missing | Needs per-skill scoring per diagnostic attempt. |
-| Generate confidence trend | Partial | Per-attempt confidence exists; no diagnostic aggregate/history API. |
-| Generate working-evidence trend | Partial | Working evidence exists; no diagnostic growth view. |
+| Generate readiness trend graph | Partial | API data exists; adult UI shows compact card rather than full graph. |
+| Generate skill-level before/after trend | Supported | `perSkillGrowth` returns before/current/improvement per skill. |
+| Generate confidence trend | Supported | Growth API returns baseline/latest confidence trend. |
+| Generate working-evidence trend | Supported | Growth API returns baseline/latest working-submitted rate. |
 
 ## Part 5 - Adult Dashboards
 
 ### Parent Dashboard
 
-| File | Current capability | Missing capability |
+| File | Current capability | Remaining capability |
 | --- | --- | --- |
-| `frontend/src/pages/parent/ParentMathPathDashboardPage.jsx:434` | Loads mastery, latest diagnostic, working review, and fluency. | Does not load full diagnostic history or before/after diagnostic comparison. |
-| `frontend/src/pages/parent/ParentMathPathDashboardPage.jsx:498` | Shows latest placement recommendation. | No “Before Diagnostic / Current Diagnostic / Improvement” view. |
+| `frontend/src/pages/parent/ParentMathPathDashboardPage.jsx` | Loads mastery, latest diagnostic, diagnostic growth, working review, and fluency. | Add richer drill-down timeline and worksheet CTA from growth. |
+| `frontend/src/components/mathpath/DiagnosticGrowthCard.jsx` | Shows baseline/latest readiness, improvement, remaining weak skill, and top improved skill. | Add more detailed per-skill trend table when needed. |
 | `frontend/src/mathpath/dashboard/parentMathPathDashboardEngine.js:116` | Assessment summary can compare latest vs previous assessment result. | This is assessment-oriented, not diagnostic baseline reporting. |
 | `frontend/src/mathpath/dashboard/parentMathPathDashboardEngine.js:268` | Weaknesses combine mastery, assessment, and mistakes. | Does not identify diagnostic improvement by skill. |
 
 ### Tutor Dashboard
 
-| File | Current capability | Missing capability |
+| File | Current capability | Remaining capability |
 | --- | --- | --- |
-| `frontend/src/pages/tutor/TutorMathPathDashboardPage.jsx:715` | Loads latest diagnostic and working review. | Does not load diagnostic history. |
-| `frontend/src/pages/tutor/TutorMathPathDashboardPage.jsx:740` | Builds tutor dashboard from progress, diagnostic summary, practice, fluency, mistakes, working. | No before/after diagnostic evidence panel. |
-| `frontend/src/mathpath/dashboard/tutorMathPathDashboardEngine.js` | Consumes weak skill IDs and readiness. | No explicit diagnostic attempt timeline. |
+| `frontend/src/pages/tutor/TutorMathPathDashboardPage.jsx` | Loads latest diagnostic, diagnostic growth, working review, fluency, and retention. | Add fuller diagnostic attempt timeline and direct worksheet/recheck actions from the card. |
+| `frontend/src/components/mathpath/DiagnosticGrowthCard.jsx` | Provides compact before/current/improvement evidence. | Add tutor-specific lesson-prep handoff from weak growth skills. |
+| `frontend/src/mathpath/dashboard/tutorMathPathDashboardEngine.js` | Consumes weak skill IDs and readiness. | Keep growth API as primary source for diagnostic trend reporting. |
 
 ### Teacher Dashboard
 
-| File | Current capability | Missing capability |
+| File | Current capability | Remaining capability |
 | --- | --- | --- |
-| `frontend/src/pages/teacher/TeacherMathPathDashboardPage.jsx:352` | Checks whether each student has latest placement. | Does not load or compare diagnostic history. |
-| `frontend/src/mathpath/dashboard/teacherMathPathDashboardEngine.js` | Builds synthetic/class readiness summaries. | No class-level diagnostic growth by before/after attempt. |
+| `frontend/src/pages/teacher/TeacherMathPathDashboardPage.jsx` | Loads per-student diagnostic growth rows and builds class diagnostic growth. | Add richer class-level growth trend charts and exports. |
+| `frontend/src/components/mathpath/DiagnosticGrowthCard.jsx` | Reused for compact class/student growth evidence. | Add direct teacher weak-group handoff from growth rows. |
+| `frontend/src/mathpath/dashboard/teacherMathPathDashboardEngine.js` | Builds class readiness summaries. | Keep diagnostic growth API as the class before/after source. |
 
 ### Admin / Pilot Dashboard
 
-| File | Current capability | Missing capability |
+| File | Current capability | Remaining capability |
 | --- | --- | --- |
-| `routes/admin.js:515` | Pulls all Fractions diagnostic sessions for pilot students and sorts by update date. | Uses latest diagnostic for status; not yet a baseline/current growth report. |
-| `services/mathpath/pilotFeedbackEngine.js:78` | Syncs outcome tracking for pilot summaries. | Outcome tracking is not diagnostic-history-native. |
+| `routes/pilotAnalytics.js`, `services/mathpath/pilotInterventionMetricsService.js` | Exposes pilot intervention metrics including baseline/latest readiness, readiness gain, and targeted skill gain. | Add exportable founder/pilot report package. |
+| `frontend/src/pages/admin/PilotInterventionsPage.jsx` | Shows intervention queues, Recovery Packs, rechecks, paper-review status, and growth summary. | Add more granular per-student drill-down and report export. |
 
 # Risks
 
-1. **Baseline ambiguity** - The first diagnostic exists as data, but nothing marks it as the permanent baseline for a domain.
-2. **Latest-result bias** - APIs and dashboards frequently use the latest diagnostic only, which can hide the student’s starting point.
-3. **Outcome tracking mismatch** - `OutcomeTracking` suggests before/after readiness, but the current engine derives readiness from assessment sessions, not diagnostic sessions.
-4. **Legacy diagnostic submit path** - `routes/mastery.js` still has a batch submit endpoint that computes simple readiness and could diverge from the adaptive diagnostic result model.
-5. **Domain coverage risk** - The registry is generic, but only Fractions is registered; diagnostics are not available for every topic/domain.
-6. **Recheck UX is conditional** - Reassessment exists at the API/runtime level, but the student/adult workflow is not yet fully explicit.
-7. **No intervention window model** - Practice/remediation exists, but the system does not yet formally group activity between baseline and after diagnostic.
-8. **No skill-level diagnostic trend API** - Per-skill improvement must be reconstructed manually.
-9. **No adult before/after panel** - Parent/tutor/teacher screens do not yet show baseline vs current diagnostic improvement.
-10. **Test account reset can erase baseline** - Test reset intentionally deletes diagnostic state; acceptable for QA, but baseline preservation needs explicit production semantics.
+1. **Production baseline immutability** - Baseline fields now exist, but production reset/backfill policy still needs explicit migration and operational rules.
+2. **Legacy diagnostic submit path** - `routes/mastery.js` still has a batch submit endpoint that computes simple readiness and could diverge from the adaptive diagnostic result model.
+3. **Domain coverage risk** - The registry is generic, but only Fractions is registered; diagnostics are not available for every topic/domain.
+4. **Intervention attribution** - Recovery Packs, worksheets, paper analysis, tutor prep, teacher weak groups, and rechecks now exist, but the system still does not formally model an intervention window with attribution confidence.
+5. **Latest-result bias in older surfaces** - New growth APIs and cards exist, but older summary proxies and outcome-tracking paths can still emphasize latest results.
+6. **Outcome tracking mismatch** - `OutcomeTracking` can still be assessment-derived in places; diagnostic growth now exists separately and should be the primary source for diagnostic before/after.
+7. **Student-facing trend UX** - Adult growth panels exist, but the student-facing progress-over-time experience remains lighter than adult reporting.
+8. **Partner/centre access breadth** - Partner scoping is now wired into core student access paths, tutor/student-care/teacher student routes, paper analysis, assignments, and reports, but should continue to be audited as new routes are added.
+9. **Content metadata dependency** - Skill-level growth, worksheet generation, and paper-analysis mapping depend on stable F-code/question metadata.
+10. **Test account reset can erase baseline** - Test reset intentionally deletes diagnostic state; acceptable for QA, but production baseline preservation needs explicit semantics.
 
-# Missing Features
+# Remaining Features
 
-Top 10 missing items, priority order:
+Top remaining items, priority order:
 
-1. Top-level `diagnosticPurpose`, `attemptNumber`, `isBaseline`, and `baselineDiagnosticId` fields on diagnostic sessions.
-2. Immutable baseline selection rule per `{ studentId, subjectId, domainId }`.
-3. Diagnostic history API returning all completed attempts with scores/timestamps.
-4. Diagnostic growth API returning baseline/current deltas by skill and overall readiness.
-5. Per-skill diagnostic score snapshots stored at completion.
-6. Intervention window model linking practice/remediation between diagnostic attempts.
-7. Adult dashboard before/current/improvement panels.
-8. Student-friendly progress-over-time view.
-9. Registry expansion beyond Fractions.
-10. Deprecation or unification of the legacy batch diagnostic submit route.
+1. Production migration/backfill for legacy completed diagnostic sessions so baseline fields are populated consistently.
+2. Explicit immutable-baseline operational policy for production resets, archived pilots, and support workflows.
+3. Formal intervention-window model linking baseline diagnostic, assigned intervention, activity evidence, and after diagnostic.
+4. Student-friendly diagnostic progress-over-time view.
+5. Registry expansion beyond Fractions when skill graphs and diagnostic banks are ready.
+6. Deprecation or unification of the legacy batch diagnostic submit route.
+7. Direct worksheet-generation CTA from diagnostic growth cards.
+8. Richer class/centre-level diagnostic growth trend exports.
+9. Ongoing quality audit for F-code mappings, diagram requirements, and misconception coverage.
+10. Partner/centre report event model so generated parent reports and impact reports can be counted directly.
 
 # Recommended Next Steps
 
 ## Pilot Readiness Verdict
 
-**C. Significant gaps remain** for full before/intervention/after diagnostic measurement.
+**B. Fractions pilot-ready**, with hardening gaps remaining.
 
-For a 5-student Fractions pilot focused on initial placement, practice, mistakes, working evidence, and latest progress, the diagnostic system is usable. For proving growth with a clean baseline and after-diagnostic report, it needs the implementation phases below.
+For a 5-student Fractions pilot focused on initial placement, intervention assignment, paper-analysis support, Recovery Packs, worksheets, rechecks, and diagnostic growth, the system is now usable. It can show a clean baseline/latest diagnostic comparison and intervention-informed growth for pilot reporting.
 
-## Phase 1 - Critical
+## Phase 1 - Completed
 
 Goal: Preserve baseline and expose diagnostic history without changing the student experience heavily.
 
@@ -244,24 +257,24 @@ Likely files:
 - `frontend/src/services/api.js`
 - New tests in `utils/diagnosticRuntime.test.js` or `routes/diagnostics.test.js`
 
-Work:
+Status:
 
-1. Add top-level fields:
+1. Added top-level fields:
    - `diagnosticPurpose`
    - `attemptNumber`
    - `isBaseline`
    - `baselineDiagnosticId`
    - `previousDiagnosticId`
-2. On first completed diagnostic per student/domain, mark it as baseline.
-3. Ensure later diagnostics link back to the baseline.
-4. Add `GET /api/diagnostics/history?subjectId=&domainId=&studentId=`.
-5. Add tests proving baseline is not overwritten.
+2. First completed diagnostic per student/domain is marked as baseline.
+3. Later diagnostics link back to the baseline and previous diagnostic.
+4. Added `GET /api/diagnostics/history?subjectId=&domainId=&studentId=`.
+5. Added compatibility history routes and diagnostic growth service tests.
 
 Complexity: **Medium**
 
 Dependencies: existing session collection; replay policy; auth/student resolution.
 
-## Phase 2 - Important
+## Phase 2 - Mostly Completed
 
 Goal: Produce actual Before -> After reporting.
 
@@ -275,9 +288,9 @@ Likely files:
 - `frontend/src/pages/teacher/TeacherMathPathDashboardPage.jsx`
 - `services/mathpath/outcomeTrackingEngine.js`
 
-Work:
+Status:
 
-1. Store per-skill diagnostic snapshots at completion:
+1. Stores per-skill diagnostic snapshots at completion:
    - skillId
    - questionsAnswered
    - correct
@@ -286,16 +299,22 @@ Work:
    - avgTimeTaken
    - workingSubmittedRate
    - misconceptionTags
-2. Add `GET /api/diagnostics/growth`.
-3. Return:
+2. Added `GET /api/diagnostics/growth`.
+3. Returns:
    - baseline
    - latest
    - overall readiness improvement
    - per-skill improvement
    - confidence calibration change
    - working evidence change
-4. Update adult dashboards with compact growth panels.
-5. Keep student UI encouraging and non-technical.
+4. Updated parent, tutor, and teacher dashboards with compact growth panels.
+5. Added admin pilot intervention growth reporting.
+
+Remaining:
+
+1. Add formal intervention-window attribution.
+2. Add a fuller student-facing trend view.
+3. Add migration/backfill for older diagnostic sessions.
 
 Complexity: **Medium to High**
 
