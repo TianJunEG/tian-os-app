@@ -4,6 +4,10 @@ import Assignment from '../models/Assignment.js';
 import { protect } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { generateWorksheet } from '../utils/worksheetGen.js';
+import {
+  generateInterventionWorksheet,
+  getInterventionWorksheetHistory,
+} from '../services/mathpath/worksheetGenerationEngine.js';
 
 // Structured (non-photo) Mastery Worksheet Generator. Mounted at
 // /api/worksheets/gen so the legacy photo flow in routes/worksheets.js is
@@ -60,6 +64,51 @@ router.post('/generate', protect, async (req, res) => {
     res.status(201).json({ worksheet: shape(worksheet) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to generate worksheet.' });
+  }
+});
+
+// @route POST /api/worksheets/gen/intervention
+// @desc  Generate an intervention-driven worksheet from diagnostic, Recovery Pack,
+//        paper analysis, tutor lesson, student care intervention, parent support,
+//        or manual skill selection evidence.
+// @access Private
+router.post('/intervention', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req, req.body?.studentId);
+    const result = await generateInterventionWorksheet({
+      studentId: student._id,
+      sourceType: req.body?.sourceType || 'manual',
+      sourceId: req.body?.sourceId || '',
+      skillIds: req.body?.skillIds || [],
+      worksheetType: req.body?.worksheetType || '',
+      questionCount: req.body?.questionCount || 12,
+      generatedByUserId: req.user?.id || req.user?._id,
+      generatedByRole: req.user?.role || 'system',
+      subject: /^science$/i.test(String(req.body?.subject || '')) ? 'Science' : 'Math',
+      domain: req.body?.domain || 'fractions',
+      generatedFor: req.body?.generatedFor || null,
+      difficulty: req.body?.difficulty || 'adaptive',
+      includeReflection: req.body?.includeReflection !== false,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to generate intervention worksheet.' });
+  }
+});
+
+// @route GET /api/worksheets/gen/intervention/history?studentId=&sourceType=&sourceId=
+// @access Private
+router.get('/intervention/history', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req, req.query?.studentId);
+    const worksheets = await getInterventionWorksheetHistory({
+      studentId: student._id,
+      sourceType: req.query?.sourceType || '',
+      sourceId: req.query?.sourceId || '',
+    });
+    return res.json({ worksheets });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Failed to load intervention worksheet history.' });
   }
 });
 
@@ -137,6 +186,9 @@ function shapeSummary(w) {
     completion: w.completion || null,
     skillNames: w.generatedContent?.skillNames || [], createdAt: w.createdAt,
     personalization: w.generatedContent?.personalization || null,
+    interventionSourceType: w.interventionSourceType || '',
+    interventionSourceId: w.interventionSourceId || '',
+    interventionRationale: w.interventionRationale || null,
   };
 }
 

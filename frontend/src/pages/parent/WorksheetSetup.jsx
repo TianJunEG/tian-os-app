@@ -18,6 +18,7 @@ export default function WorksheetSetup() {
   // Falls back to the previous defaults when a param is absent.
   const [subject, setSubject] = useState(sp.get('subject') === 'science' ? 'science' : 'math');
   const [mode, setMode] = useState(sp.get('mode') || 'recommended');
+  const worksheetType = sp.get('worksheetType') || '';
   const [skills, setSkills] = useState([]);
   const [skillId, setSkillId] = useState(sp.get('skill') || '');
   const [questionCount, setQuestionCount] = useState(sp.get('count') || '10');
@@ -52,7 +53,7 @@ export default function WorksheetSetup() {
     try {
       const body = {
         studentId,
-        worksheetType: mode,
+        worksheetType: worksheetType || mode,
         mode: mode === 'custom' ? 'selected_topic' : mode,
         difficulty,
         subject: subject === 'science' ? 'Science' : 'Math',

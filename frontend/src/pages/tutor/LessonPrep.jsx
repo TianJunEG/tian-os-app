@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, FileText, Lightbulb, RefreshCw, Upload } from 'lucide-react';
-import { tutorAPI } from '../../services/api';
+import { tutorAPI, worksheetGenAPI } from '../../services/api';
 import { useTutorStudent } from './useTutorStudent';
 import TutorStudentNav from './TutorStudentNav';
 import { Card, Button, Badge, Spinner, ErrorState } from '../../components/ui';
@@ -16,6 +16,7 @@ export default function LessonPrep() {
   const [loadError, setLoadError] = useState(false);
   const [assigned, setAssigned] = useState(false);
   const [assignError, setAssignError] = useState('');
+  const [worksheetMessage, setWorksheetMessage] = useState('');
 
   const load = () => {
     setLoadError(false);
@@ -38,6 +39,25 @@ export default function LessonPrep() {
       load();
     } catch (err) {
       setAssignError(err?.response?.data?.error || 'Could not assign Recovery Pack.');
+    }
+  };
+
+  const generateLessonWorksheet = async () => {
+    const skillIds = prep?.suggestedHomework?.skillIds || prep?.recommendedLessonFocus?.map((focus) => focus.skillId).filter(Boolean) || [];
+    if (!skillIds.length) return;
+    setWorksheetMessage('');
+    try {
+      const { data } = await worksheetGenAPI.generateIntervention({
+        studentId: id,
+        sourceType: 'tutor_lesson',
+        sourceId: `lesson_prep_${id}`,
+        skillIds,
+        worksheetType: 'tutor_lesson_worksheet',
+        questionCount: prep?.suggestedHomework?.targetQuestionCount || 12,
+      });
+      setWorksheetMessage(data?.worksheet?.title ? `${data.worksheet.title} generated.` : 'Tutor lesson worksheet generated.');
+    } catch (err) {
+      setWorksheetMessage(err?.response?.data?.error || 'Could not generate lesson worksheet.');
     }
   };
 
@@ -161,8 +181,12 @@ export default function LessonPrep() {
             <p className="text-sm font-semibold text-ink-700">Suggested homework</p>
             <p className="text-sm text-ink-500">{prep.suggestedHomework.targetQuestionCount || prep.suggestedHomework.questionCount} questions on {(prep.suggestedHomework.skillIds || [prep.suggestedHomework.skillId]).filter(Boolean).join(', ')}</p>
             {assignError && <p className="mt-1 text-sm text-error-700">{assignError}</p>}
+            {worksheetMessage && <p className="mt-1 text-sm text-ink-500">{worksheetMessage}</p>}
           </div>
-          {assigned ? <Badge tone="success">Assigned</Badge> : <Button size="s" variant="secondary" onClick={assignSuggested}>Assign</Button>}
+          <div className="flex flex-wrap gap-2">
+            {assigned ? <Badge tone="success">Assigned</Badge> : <Button size="s" variant="secondary" onClick={assignSuggested}>Assign</Button>}
+            <Button size="s" variant="secondary" icon={FileText} onClick={generateLessonWorksheet}>Generate Worksheet</Button>
+          </div>
         </Card>
       )}
 

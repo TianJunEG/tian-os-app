@@ -121,7 +121,7 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
 
 function ParentDashboardMvp({ snapshot, studentId, navigate }) {
   const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId || 'F010')}`;
-  const worksheetUrl = `/parent/children/${studentId}/worksheets/new?mode=weak_skills`;
+  const worksheetUrl = `/parent/children/${studentId}/worksheets/new?mode=weak_skills&worksheetType=parent_support_worksheet`;
   const mistakesUrl = `/parent/children/${studentId}/mistakes`;
 
   return (

@@ -489,22 +489,37 @@ function pdfEscape(value = '') {
   return String(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
 }
 
-function createWorksheetPdf(worksheet, { includeAnswers = false } = {}) {
+export function createWorksheetPdf(worksheet, { includeAnswers = false } = {}) {
   const c = worksheet.generatedContent || {};
-  const lines = [
-    c.title || 'Worksheet',
-    `Student: ${worksheet.studentName || c.studentName || ''}`,
-    `Date generated: ${new Date(worksheet.createdAt || Date.now()).toLocaleDateString('en-SG')}`,
-    '',
-    ...(c.questions || []).flatMap((q) => [
+  const sectionLines = Array.isArray(c.sections) && c.sections.length
+    ? c.sections.flatMap((section) => [
+      section.title || 'Practice Section',
+      ...(section.questions || []).flatMap((q) => [
+        `${q.n}. ${q.stem}`,
+        q.visual || q.diagramSpec ? 'Diagram/model: included in digital worksheet preview.' : '',
+        'Working: ________________________________',
+        '__________________________________________',
+        '',
+      ]),
+    ])
+    : (c.questions || []).flatMap((q) => [
       `${q.n}. ${q.stem}`,
       'Working: ________________________________',
       '__________________________________________',
       '',
-    ]),
+    ]);
+  const lines = [
+    c.title || 'Worksheet',
+    `Student: ${worksheet.studentName || c.studentName || ''}`,
+    `Date generated: ${new Date(worksheet.createdAt || Date.now()).toLocaleDateString('en-SG')}`,
+    ...(c.skillNames?.length ? [`Skills targeted: ${c.skillNames.join(', ')}`] : []),
+    ...(worksheet.interventionRationale?.whyGenerated ? [`Why this worksheet: ${worksheet.interventionRationale.whyGenerated}`] : []),
+    '',
+    ...sectionLines,
+    ...(c.reflection?.prompt ? ['Reflection', c.reflection.prompt, '__________________________________________', ''] : []),
   ];
   if (includeAnswers) {
-    lines.push('Answer Key', ...(worksheet.answerKey || c.answerKey || []).map((row) => `${row.n}. ${row.answer}${row.explanation ? ` - ${row.explanation}` : ''}`));
+    lines.push('Answer Key', ...(worksheet.answerKey || c.answerKey || []).map((row) => `${row.n}. ${row.answer}${row.workedSolution || row.explanation ? ` - ${row.workedSolution || row.explanation}` : ''}`));
   }
   const content = ['BT', '/F1 12 Tf', '50 790 Td']
     .concat(lines.slice(0, 55).flatMap((line, index) => [

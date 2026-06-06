@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { FileUp, Save, Wand2 } from 'lucide-react';
+import { FileText, FileUp, Save, Wand2 } from 'lucide-react';
 import { Button, Card, ErrorState, PageHeader } from '../../components/ui';
-import { mathpathAPI } from '../../services/api';
+import { mathpathAPI, worksheetGenAPI } from '../../services/api';
 
 const UPLOAD_TYPES = [
   ['completed_unmarked', 'Completed, unmarked'],
@@ -326,6 +326,28 @@ export default function PaperAnalysisPage() {
                 }}
               >
                 Create Mini Diagnostic
+              </Button>
+              <Button
+                icon={FileText}
+                variant="secondary"
+                onClick={async () => {
+                  setError('');
+                  setMessage('');
+                  try {
+                    const { data } = await worksheetGenAPI.generateIntervention({
+                      studentId: analysis.studentId || routeStudentId,
+                      sourceType: 'paper_analysis',
+                      sourceId: analysis._id,
+                      worksheetType: 'recovery_worksheet',
+                      questionCount: 12,
+                    });
+                    setMessage(data?.worksheet?.title ? `${data.worksheet.title} generated.` : 'Targeted worksheet generated.');
+                  } catch (e) {
+                    setError(e?.response?.data?.error || 'Could not generate targeted worksheet.');
+                  }
+                }}
+              >
+                Generate Targeted Worksheet
               </Button>
             </div>
           </Card>

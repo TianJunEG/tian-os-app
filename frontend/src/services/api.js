@@ -437,6 +437,8 @@ export const assignmentsAPI = {
 // Structured Mastery Worksheet Generator (digital first; PDF placeholder).
 export const worksheetGenAPI = {
   generate: (data) => api.post('/worksheets/gen/generate', data),
+  generateIntervention: (data) => api.post('/worksheets/gen/intervention', data),
+  interventionHistory: (params) => api.get('/worksheets/gen/intervention/history', { params }),
   list: (params) => api.get('/worksheets/gen', { params }),
   get: (id) => api.get(`/worksheets/gen/${id}`),
   assign: (id, data) => api.post(`/worksheets/gen/${id}/assign`, data),
