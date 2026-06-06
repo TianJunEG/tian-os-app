@@ -583,6 +583,7 @@ export default function MathPathHome() {
         )}
         {!isEarlyLevel && hasPlacement && (
           <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="secondary" size="m" to="/student/mathpath/assignments">Recovery Packs</Button>
             <Button variant="secondary" size="m" to="/student/mathpath/path">Explore Skills</Button>
             {assessmentPilotEnabled && (
               <Button variant="secondary" size="m" to={masteryCheckAvailable ? '/student/mathpath/assessment' : undefined} disabled={!masteryCheckAvailable}>

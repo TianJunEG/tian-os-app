@@ -426,6 +426,8 @@ export default function ParentMathPathDashboardPage() {
   const [summary, setSummary] = useState(null);
   const [placement, setPlacement] = useState(null);
   const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
+  const [assigningRecovery, setAssigningRecovery] = useState(false);
+  const [assignmentMessage, setAssignmentMessage] = useState('');
   const [workingReview, setWorkingReview] = useState(null);
   const [fluencySummary, setFluencySummary] = useState(null);
 
@@ -452,6 +454,24 @@ export default function ParentMathPathDashboardPage() {
       setLoading(false);
     }
   }, [studentId]);
+
+  const assignRecoveryPack = useCallback(async () => {
+    const diagnosticSessionId = diagnosticGrowth?.latest?.diagnosticSessionId || diagnosticGrowth?.baseline?.diagnosticSessionId;
+    if (!diagnosticSessionId) {
+      setAssignmentMessage('Complete a diagnostic before assigning a Recovery Pack.');
+      return;
+    }
+    setAssigningRecovery(true);
+    setAssignmentMessage('');
+    try {
+      await mathpathAPI.createAssignmentFromDiagnostic({ studentId, diagnosticSessionId, assignedByRole: 'parent' });
+      setAssignmentMessage('Recovery Pack assigned.');
+    } catch (err) {
+      setAssignmentMessage(err?.response?.data?.error || 'Could not assign Recovery Pack.');
+    } finally {
+      setAssigningRecovery(false);
+    }
+  }, [diagnosticGrowth, studentId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -502,6 +522,9 @@ export default function ParentMathPathDashboardPage() {
           growth={diagnosticGrowth}
           onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath`)}
           onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
+          onAssignRecovery={assignRecoveryPack}
+          assigningRecovery={assigningRecovery}
+          assignmentMessage={assignmentMessage}
         />
         <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} />
         {!!placementSkill && (

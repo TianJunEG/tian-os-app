@@ -1,4 +1,5 @@
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
+import MathPathAssignment from '../../models/mathpath/MathPathAssignment.js';
 
 const CONFIDENCE_SCORE = {
   i_know_this: 1,
@@ -248,7 +249,59 @@ export function buildDiagnosticGrowth(history = []) {
 
 export async function getDiagnosticGrowth(params = {}) {
   const history = await getDiagnosticHistory(params);
-  return buildDiagnosticGrowth(history);
+  const growth = buildDiagnosticGrowth(history);
+  if (!params.assignmentId) return growth;
+
+  const assignment = await MathPathAssignment.findOne({
+    _id: params.assignmentId,
+    studentId: String(params.studentId || ''),
+  }).lean();
+  if (!assignment) {
+    return {
+      ...growth,
+      assignmentGrowth: {
+        assignmentId: String(params.assignmentId),
+        available: false,
+        reason: 'Assignment not found for this student.',
+      },
+    };
+  }
+  const assignmentCreatedAt = assignment.createdAt ? new Date(assignment.createdAt) : null;
+  const afterAssignment = assignmentCreatedAt
+    ? history.filter((row) => row.completedAt && new Date(row.completedAt) >= assignmentCreatedAt)
+    : [];
+  const latestAfterAssignment = afterAssignment.at(-1) || null;
+  const baseline = growth.baseline || history[0] || null;
+  const targetedSkillIds = assignment.skillIds || [];
+  const targetedSkillGrowth = (growth.perSkillGrowth || [])
+    .filter((row) => targetedSkillIds.includes(row.skillId));
+
+  return {
+    ...growth,
+    assignmentGrowth: {
+      assignmentId: String(assignment._id),
+      available: Boolean(latestAfterAssignment),
+      reason: latestAfterAssignment
+        ? 'Latest diagnostic after assignment is available.'
+        : 'No completed diagnostic after this assignment yet.',
+      linkedAssignment: {
+        assignmentId: String(assignment._id),
+        title: assignment.title,
+        sourceType: assignment.sourceType,
+        sourceId: assignment.sourceId,
+        skillIds: targetedSkillIds,
+        status: assignment.status,
+        completion: assignment.completion || {},
+      },
+      baseline,
+      latestAfterAssignment,
+      improvementAfterAssignment: baseline && latestAfterAssignment
+        ? Number(latestAfterAssignment.readinessScore || 0) - Number(baseline.readinessScore || 0)
+        : null,
+      targetedSkillIds,
+      targetedSkillGrowth,
+    },
+  };
 }
 
 export default {

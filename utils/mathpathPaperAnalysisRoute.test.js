@@ -2,6 +2,9 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const findByIdMock = vi.fn();
 const resolveStudentMock = vi.fn();
+const createAssignmentFromPaperAnalysisMock = vi.fn();
+const getStudentAssignmentsMock = vi.fn();
+const createRecheckForAssignmentMock = vi.fn();
 
 vi.mock('../middleware/auth.js', () => ({
   protect: (req, _res, next) => {
@@ -30,6 +33,12 @@ vi.mock('../models/User.js', () => ({
 
 vi.mock('../utils/studentContext.js', () => ({
   resolveStudent: (...args) => resolveStudentMock(...args),
+}));
+
+vi.mock('../services/mathpath/mathPathAssignmentService.js', () => ({
+  createAssignmentFromPaperAnalysis: (...args) => createAssignmentFromPaperAnalysisMock(...args),
+  createRecheckForAssignment: (...args) => createRecheckForAssignmentMock(...args),
+  getStudentAssignments: (...args) => getStudentAssignmentsMock(...args),
 }));
 
 let router;
@@ -112,11 +121,13 @@ describe('mathpath paper analysis routes', () => {
     expect(doc.save).toHaveBeenCalled();
   });
 
-  it('returns a safe pending response when assignment automation is not ready', async () => {
+  it('creates a Recovery Pack when paper-analysis weak skills are confirmed', async () => {
     const doc = {
       _id: 'analysis_1',
       studentId: 'student_1',
       status: 'reviewed',
+      weakSkillIds: ['F015'],
+      detectedQuestions: [],
       recommendedActions: [
         { type: 'assign_practice', skillId: 'F015', reason: 'Confirmed wrong question', status: 'pending_review' },
       ],
@@ -124,18 +135,23 @@ describe('mathpath paper analysis routes', () => {
     };
     findByIdMock.mockResolvedValueOnce(doc);
     resolveStudentMock.mockResolvedValueOnce({ _id: 'student_1' });
+    createAssignmentFromPaperAnalysisMock.mockResolvedValueOnce({
+      id: 'assignment_1',
+      skillIds: ['F015'],
+    });
 
     const res = await request('/analysis_1/assign-practice', { method: 'POST' });
 
-    expect(res.status).toBe(202);
+    expect(res.status).toBe(201);
     expect(res.data).toMatchObject({
       analysisId: 'analysis_1',
-      assigned: false,
+      assigned: true,
+      assignmentId: 'assignment_1',
     });
-    expect(res.data.message).toMatch(/not automated yet/i);
-    expect(res.data.recommendedActions[0]).toMatchObject({
-      skillId: 'F015',
-      status: 'assignment_service_pending',
+    expect(createAssignmentFromPaperAnalysisMock).toHaveBeenCalledWith({
+      paperAnalysisId: 'analysis_1',
+      assignedByUserId: 'adult_1',
+      assignedByRole: 'parent',
     });
   });
 });

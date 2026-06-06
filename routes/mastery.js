@@ -62,6 +62,10 @@ import {
 } from '../services/mathpath/questionPatternTrainer.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import { createLinkId } from '../services/mathpath/workingLinkageService.js';
+import {
+  getAssignmentById,
+  updateAssignmentProgress,
+} from '../services/mathpath/mathPathAssignmentService.js';
 
 const router = express.Router();
 
@@ -142,7 +146,7 @@ async function resolveSkillObjectIdForCode(skillCode) {
   return skill?._id || null;
 }
 
-export function practiceAttemptDoc({ studentId, result, sessionId, sessionType, question = {} } = {}) {
+export function practiceAttemptDoc({ studentId, result, sessionId, sessionType, question = {}, assignmentId = '' } = {}) {
   const timing = calculateQuestionTiming({
     ...result,
     timeTaken: result.timeTaken,
@@ -158,6 +162,7 @@ export function practiceAttemptDoc({ studentId, result, sessionId, sessionType, 
     questionFamilyId: result.questionFamilyId || question.questionFamilyId || '',
     questionId: result.questionId,
     sessionId,
+    assignmentId: String(assignmentId || ''),
     sessionType,
     answer: String(result.answer ?? result.studentAnswer ?? ''),
     answerCorrect: Boolean(result.answerCorrect ?? result.correct),
@@ -371,14 +376,22 @@ router.post('/fractions/practice/start', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
+    const assignmentId = String(req.body?.assignmentId || '');
+    let assignment = null;
+    if (assignmentId) {
+      assignment = await getAssignmentById(assignmentId);
+      if (!assignment) return res.status(404).json({ error: 'MathPath assignment not found.' });
+      await resolveStudent(req, assignment.studentId);
+      if (String(assignment.studentId) !== studentId) return res.status(403).json({ error: 'Assignment does not belong to this student.' });
+    }
     const started = startFractionPracticeFlow({
       studentId,
       domainId: 'fractions',
       sessionType: req.body?.sessionType || 'practice',
-      requestedSkillId: req.body?.skillId || req.body?.requestedSkillId || null,
+      requestedSkillId: req.body?.skillId || req.body?.requestedSkillId || assignment?.skillIds?.[0] || null,
       requestedQuestionFamilyId: req.body?.questionFamilyId || null,
-      sessionLength: req.body?.questionCount || req.body?.sessionLength || 6,
-      weakSkillIds: Array.isArray(req.body?.weakSkillIds) ? req.body.weakSkillIds : [],
+      sessionLength: req.body?.questionCount || req.body?.sessionLength || assignment?.targetQuestionCount || 6,
+      weakSkillIds: Array.isArray(req.body?.weakSkillIds) ? req.body.weakSkillIds : (assignment?.skillIds || []),
       recentMistakeTypes: Array.isArray(req.body?.recentMistakeTypes) ? req.body.recentMistakeTypes : [],
     });
     const lifecycleLog = buildPracticeLifecycleLog({
@@ -397,6 +410,7 @@ router.post('/fractions/practice/start', protect, async (req, res) => {
           targetSkillId: started.targetSkillId || '',
           targetQuestionFamilyIds: started.targetQuestionFamilyIds || [],
           workingSessionId: started.workingSessionId || '',
+          assignmentId,
           sessionGoal: started.sessionLabel || 'Practice',
           estimatedQuestionCount: started.questions?.length || 0,
           workingExpected: Boolean(started.workingExpected),
@@ -405,7 +419,7 @@ router.post('/fractions/practice/start', protect, async (req, res) => {
           status: 'inProgress',
           startedAt: new Date(),
         },
-        $set: { lifecycleLog },
+        $set: { lifecycleLog, ...(assignmentId ? { assignmentId } : {}) },
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
@@ -426,7 +440,7 @@ router.post('/fractions/practice/start', protect, async (req, res) => {
         metadata: { source: 'mathpath_practice', sessionType: started.sessionType, targetSkillId: started.targetSkillId },
       },
     ]);
-    res.json({ ...started, studentId, persisted: true, lifecycleLog });
+    res.json({ ...started, studentId, assignmentId, persisted: true, lifecycleLog });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start practice.' });
   }
@@ -448,6 +462,7 @@ router.get('/fractions/practice/:practiceSessionId', protect, async (req, res) =
       targetSkillId: session.targetSkillId,
       targetQuestionFamilyIds: session.targetQuestionFamilyIds || [],
       workingSessionId: session.workingSessionId || '',
+      assignmentId: session.assignmentId || '',
       sessionType: session.summary?.sessionType || 'practice',
       questions: session.questions || [],
       responses: session.responses || [],
@@ -492,6 +507,7 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
         sessionId: req.params.practiceSessionId,
         sessionType: submitted.sessionType || 'practice',
         question: questionsById.get(String(result.questionId)) || {},
+        assignmentId: existing.assignmentId || '',
       }));
     let attemptSaved = false;
     if (attemptDocs.length) {
@@ -618,6 +634,10 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
     existing.summary = summary;
     existing.lifecycleLog = lifecycleLog;
     await existing.save();
+    let assignmentProgress = null;
+    if (existing.assignmentId) {
+      assignmentProgress = await updateAssignmentProgress({ assignmentId: existing.assignmentId });
+    }
     logPracticeLifecycle(lifecycleLog);
 
     await recordLearningEvents([
@@ -654,7 +674,7 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
       },
     ]);
 
-    res.json(summary);
+    res.json({ ...summary, assignmentProgress });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit practice.' });
   }
@@ -1558,6 +1578,7 @@ router.get('/diagnostic/growth', protect, async (req, res) => {
       studentId: String(student._id),
       subjectId,
       domainId,
+      assignmentId: req.query.assignmentId,
     });
     return res.json({ studentId: String(student._id), subjectId, domainId, ...growth });
   } catch (err) {

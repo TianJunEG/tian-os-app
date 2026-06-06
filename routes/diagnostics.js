@@ -62,6 +62,7 @@ router.get('/growth', protect, async (req, res) => {
       studentId: String(student._id),
       subjectId,
       domainId,
+      assignmentId: req.query.assignmentId,
     });
     return res.json({ studentId: String(student._id), subjectId, domainId, ...growth });
   } catch (err) {

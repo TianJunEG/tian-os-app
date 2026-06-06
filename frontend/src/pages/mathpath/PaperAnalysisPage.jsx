@@ -38,11 +38,13 @@ export default function PaperAnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState(null);
+  const [message, setMessage] = useState('');
   const parsedRows = useMemo(() => parseQuestionRows(questionRows), [questionRows]);
 
   const upload = async () => {
-    setLoading(true);
-    setError('');
+      setLoading(true);
+      setError('');
+      setMessage('');
     try {
       if (!studentId) throw new Error('Enter or select a student first.');
       if (!file) throw new Error('Upload a PDF, JPG or PNG paper.');
@@ -55,6 +57,7 @@ export default function PaperAnalysisPage() {
       if (parsedRows.length) form.append('detectedQuestions', JSON.stringify(parsedRows));
       const { data } = await mathpathAPI.uploadPaperAnalysis(form);
       setAnalysis(data.analysis);
+      setMessage('Paper uploaded for review.');
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Could not upload paper.');
     } finally {
@@ -66,11 +69,13 @@ export default function PaperAnalysisPage() {
     if (!analysis?._id) return;
     setLoading(true);
     setError('');
+    setMessage('');
     try {
       const { data } = await mathpathAPI.reviewPaperAnalysis(analysis._id, {
         detectedQuestions: parsedRows.length ? parsedRows : analysis.detectedQuestions,
       });
       setAnalysis(data.analysis);
+      setMessage('Review saved.');
     } catch (e) {
       setError(e?.response?.data?.error || e.message || 'Could not save review.');
     } finally {
@@ -126,6 +131,7 @@ export default function PaperAnalysisPage() {
             OCR/AI extraction is not automatic in this MVP. Add manual rows when you want immediate skill mapping.
           </p>
           {error && <ErrorState message={error} />}
+          {message && <p className="mt-2 text-sm font-semibold text-success-700">{message}</p>}
           <div className="mt-4 flex flex-wrap gap-2">
             <Button icon={FileUp} onClick={upload} disabled={loading}>{loading ? 'Uploading...' : 'Upload for Review'}</Button>
             {analysis?._id && <Button icon={Save} variant="secondary" onClick={saveReview} disabled={loading}>Save Review</Button>}
@@ -152,15 +158,37 @@ export default function PaperAnalysisPage() {
                 icon={Wand2}
                 variant="secondary"
                 onClick={async () => {
-                  const { data } = await mathpathAPI.assignPaperAnalysisPractice(analysis._id);
-                  setAnalysis({ ...analysis, recommendedActions: data.recommendedActions || analysis.recommendedActions });
+                  setError('');
+                  setMessage('');
+                  try {
+                    const { data } = await mathpathAPI.assignPaperAnalysisPractice(analysis._id);
+                    setAnalysis({
+                      ...analysis,
+                      status: data.assigned ? 'assigned' : analysis.status,
+                      linkedPracticeAssignmentIds: data.assignmentId
+                        ? [...(analysis.linkedPracticeAssignmentIds || []), data.assignmentId]
+                        : analysis.linkedPracticeAssignmentIds,
+                    });
+                    setMessage(data.message || 'Recovery Pack assigned.');
+                  } catch (e) {
+                    setError(e?.response?.data?.message || e?.response?.data?.error || 'Could not assign Recovery Pack.');
+                  }
                 }}
               >
                 Assign Targeted Practice
               </Button>
               <Button
                 variant="secondary"
-                onClick={async () => { await mathpathAPI.createPaperAnalysisRecheck(analysis._id); }}
+                onClick={async () => {
+                  setError('');
+                  setMessage('');
+                  try {
+                    const { data } = await mathpathAPI.createPaperAnalysisRecheck(analysis._id);
+                    setMessage(data.created ? 'Recheck created.' : (data.message || 'Complete the Recovery Pack before recheck.'));
+                  } catch (e) {
+                    setError(e?.response?.data?.message || e?.response?.data?.error || 'Complete the Recovery Pack before recheck.');
+                  }
+                }}
               >
                 Create Mini Diagnostic
               </Button>

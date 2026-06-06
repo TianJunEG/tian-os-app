@@ -826,6 +826,7 @@ export default function PracticeSession() {
     progress: progressState,
   });
   const locationQuestionFamilyId = location.state?.questionFamilyId || null;
+  const locationAssignmentId = location.state?.assignmentId || '';
   const locationWeakSkillIds = Array.isArray(location.state?.weakSkillIds) ? location.state.weakSkillIds : [];
   const locationRecentMistakeTypes = Array.isArray(location.state?.recentMistakeTypes) ? location.state.recentMistakeTypes : [];
   const locationWeakSkillIdsKey = locationWeakSkillIds.join('|');
@@ -891,6 +892,7 @@ export default function PracticeSession() {
             questions: data.questions || [],
             workingExpected: Boolean(data.workingExpected),
             workingSessionId: data.workingSessionId || null,
+            assignmentId: data.assignmentId || locationAssignmentId,
             startedAt: data.startedAt,
           };
           if (data.status === 'completed' && data.summary?.results?.length) {
@@ -918,6 +920,7 @@ export default function PracticeSession() {
                   : 6),
               weakSkillIds: locationWeakSkillIds,
               recentMistakeTypes: locationRecentMistakeTypes,
+              assignmentId: locationAssignmentId,
             });
             started = data;
             if (data?.practiceSessionId) {
@@ -928,6 +931,7 @@ export default function PracticeSession() {
                   skillId: data.targetSkillId || resolvedIntent.requestedSkillId,
                   sessionType: data.sessionType || sessionType,
                   questionCount: data.questions?.length || resolvedIntent.questionCount,
+                  assignmentId: data.assignmentId || locationAssignmentId,
                 },
               });
             }
@@ -984,6 +988,7 @@ export default function PracticeSession() {
     resolvedIntent.requestedSkillId,
     resolvedIntent.questionCount,
     locationQuestionFamilyId,
+    locationAssignmentId,
     locationWeakSkillIdsKey,
     locationRecentMistakeTypesKey,
     navigate,

@@ -10,6 +10,7 @@ const mathPathPracticeSessionSchema = new mongoose.Schema(
     targetSkillId: { type: String, required: true, trim: true },
     targetQuestionFamilyIds: { type: [String], default: [] },
     workingSessionId: { type: String, default: '', trim: true },
+    assignmentId: { type: String, default: '', trim: true, index: true },
     sessionGoal: { type: String, default: '' },
     estimatedQuestionCount: { type: Number, default: 0 },
     workingExpected: { type: Boolean, default: false },

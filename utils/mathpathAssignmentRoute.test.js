@@ -1,0 +1,111 @@
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+
+const resolveStudentMock = vi.fn();
+const createFromDiagnosticMock = vi.fn();
+const getStudentAssignmentsMock = vi.fn();
+
+vi.mock('../middleware/auth.js', () => ({
+  protect: (req, _res, next) => {
+    req.user = req.mockUser || { id: 'adult_1', role: 'parent' };
+    next();
+  },
+}));
+
+vi.mock('../models/mathpath/PaperAnalysis.js', () => ({
+  default: { findById: vi.fn() },
+}));
+
+vi.mock('../utils/studentContext.js', () => ({
+  resolveStudent: (...args) => resolveStudentMock(...args),
+}));
+
+vi.mock('../services/mathpath/mathPathAssignmentService.js', () => ({
+  createAssignmentFromDiagnostic: (...args) => createFromDiagnosticMock(...args),
+  createAssignmentFromPaperAnalysis: vi.fn(),
+  createRecheckForAssignment: vi.fn(),
+  evaluateRecheckRecommendation: vi.fn(),
+  getAssignmentById: vi.fn(),
+  getStudentAssignments: (...args) => getStudentAssignmentsMock(...args),
+  resolveAssignedByRole: () => 'parent',
+  updateAssignmentProgress: vi.fn(),
+}));
+
+let router;
+
+async function request(path, { method = 'GET', body, user } = {}) {
+  return new Promise((resolve, reject) => {
+    const req = {
+      method: String(method || 'GET').toUpperCase(),
+      url: path,
+      path,
+      originalUrl: path,
+      query: {},
+      body: body || {},
+      headers: {},
+      params: {},
+      mockUser: user,
+    };
+    const res = {
+      statusCode: 200,
+      status(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json(payload) {
+        resolve({ status: this.statusCode, data: payload });
+      },
+    };
+    router.handle(req, res, (err) => {
+      if (err) reject(err);
+      else resolve({ status: res.statusCode, data: null });
+    });
+  });
+}
+
+describe('MathPath assignment routes', () => {
+  beforeAll(async () => {
+    const mod = await import('../routes/mathpathAssignments.js');
+    router = mod.default;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('creates a diagnostic recovery pack for an authorized adult', async () => {
+    resolveStudentMock.mockResolvedValueOnce({ _id: 'student_1' });
+    createFromDiagnosticMock.mockResolvedValueOnce({ id: 'assignment_1', skillIds: ['F015'] });
+
+    const res = await request('/from-diagnostic', {
+      method: 'POST',
+      body: { studentId: 'student_1', diagnosticSessionId: 'diag_1' },
+    });
+
+    expect(res.status).toBe(201);
+    expect(createFromDiagnosticMock).toHaveBeenCalledWith(expect.objectContaining({
+      studentId: 'student_1',
+      diagnosticSessionId: 'diag_1',
+    }));
+  });
+
+  it('blocks student self-assignment', async () => {
+    const res = await request('/from-diagnostic', {
+      method: 'POST',
+      user: { id: 'student_user_1', role: 'student' },
+      body: { studentId: 'student_1', diagnosticSessionId: 'diag_1' },
+    });
+
+    expect(res.status).toBe(403);
+    expect(createFromDiagnosticMock).not.toHaveBeenCalled();
+  });
+
+  it('lists student recovery packs', async () => {
+    resolveStudentMock.mockResolvedValueOnce({ _id: 'student_1' });
+    getStudentAssignmentsMock.mockResolvedValueOnce([{ id: 'assignment_1', title: 'Fractions Recovery Pack' }]);
+
+    const res = await request('/');
+
+    expect(res.status).toBe(200);
+    expect(res.data.assignments).toEqual([{ id: 'assignment_1', title: 'Fractions Recovery Pack' }]);
+  });
+});

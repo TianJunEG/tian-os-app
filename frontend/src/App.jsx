@@ -46,6 +46,7 @@ const TopicDetail = lazy(() => import('./pages/student/mathpath/TopicDetail'));
 const PracticeSession = lazy(() => import('./pages/student/mathpath/PracticeSession'));
 const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResult'));
 const QuestionReviewPage = lazy(() => import('./pages/student/mathpath/QuestionReviewPage'));
+const MathPathAssignments = lazy(() => import('./pages/student/mathpath/MathPathAssignments'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
 const FractionsStoryModeSession = lazy(() => import('./pages/student/mathpath/FractionsStoryModeSession'));
 const StoryModeDomainRoute = lazy(() => import('./pages/student/mathpath/StoryModeDomainRoute'));
@@ -462,6 +463,7 @@ function App() {
             <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
             <Route path="/student/mathpath/results/:sessionId" element={<PracticeResult />} />
             <Route path="/student/mathpath/review" element={<QuestionReviewPage />} />
+            <Route path="/student/mathpath/assignments" element={<MathPathAssignments />} />
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
             <Route path="/student/mathpath/fractions/story" element={<FractionsStoryModeSession />} />
             <Route path="/student/mathpath/fractions/story/:skillId" element={<FractionsStoryModeSession />} />

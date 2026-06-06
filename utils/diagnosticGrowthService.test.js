@@ -1,10 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const findMock = vi.fn();
+const assignmentFindOneMock = vi.fn();
 
 vi.mock('../models/mathpath/MathPathDiagnosticSession.js', () => ({
   default: {
     find: (...args) => findMock(...args),
+  },
+}));
+
+vi.mock('../models/mathpath/MathPathAssignment.js', () => ({
+  default: {
+    findOne: (...args) => assignmentFindOneMock(...args),
   },
 }));
 
@@ -13,6 +20,7 @@ const {
   buildDiagnosticGrowth,
   buildPerSkillSnapshot,
   getDiagnosticHistory,
+  getDiagnosticGrowth,
 } = await import('../services/diagnostics/diagnosticGrowthService.js');
 
 function mockCompletedSessions(rows = []) {
@@ -25,6 +33,7 @@ function mockCompletedSessions(rows = []) {
 describe('diagnostic growth service', () => {
   beforeEach(() => {
     findMock.mockReset();
+    assignmentFindOneMock.mockReset();
   });
 
   it('marks the first completed diagnostic as the immutable baseline', async () => {
@@ -186,5 +195,51 @@ describe('diagnostic growth service', () => {
     }));
     expect(growth.remainingWeakSkills).toEqual(['F015']);
     expect(growth.recommendedActions[0]).toMatchObject({ type: 'assign_practice', skillId: 'F015' });
+  });
+
+  it('returns assignment-linked growth attribution when assignmentId is provided', async () => {
+    mockCompletedSessions([
+      {
+        diagnosticSessionId: 'diag_base',
+        isBaseline: true,
+        readinessScore: 40,
+        completedAt: new Date('2026-06-01T00:00:00.000Z'),
+        perSkillSnapshot: [{ skillId: 'F015', skillName: 'Add Fractions', score: 30 }],
+      },
+      {
+        diagnosticSessionId: 'diag_after',
+        isBaseline: false,
+        readinessScore: 75,
+        completedAt: new Date('2026-06-05T00:00:00.000Z'),
+        perSkillSnapshot: [{ skillId: 'F015', skillName: 'Add Fractions', score: 80 }],
+      },
+    ]);
+    assignmentFindOneMock.mockReturnValueOnce({
+      lean: vi.fn().mockResolvedValue({
+        _id: 'assignment_1',
+        title: 'Fractions Recovery Pack',
+        sourceType: 'diagnostic',
+        sourceId: 'diag_base',
+        skillIds: ['F015'],
+        status: 'completed',
+        createdAt: new Date('2026-06-02T00:00:00.000Z'),
+        completion: { questionsAttempted: 12, correctCount: 9, accuracy: 75 },
+      }),
+    });
+
+    const growth = await getDiagnosticGrowth({
+      studentId: 'student_1',
+      subjectId: 'math',
+      domainId: 'fractions',
+      assignmentId: 'assignment_1',
+    });
+
+    expect(growth.assignmentGrowth).toMatchObject({
+      assignmentId: 'assignment_1',
+      available: true,
+      targetedSkillIds: ['F015'],
+      improvementAfterAssignment: 35,
+    });
+    expect(growth.assignmentGrowth.targetedSkillGrowth[0]).toMatchObject({ skillId: 'F015', improvement: 50 });
   });
 });

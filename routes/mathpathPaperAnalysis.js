@@ -11,6 +11,11 @@ import {
   buildPaperAnalysisRecommendations,
   mapPaperQuestionToSkills,
 } from '../services/mathpath/paperAnalysisSkillMapper.js';
+import {
+  createAssignmentFromPaperAnalysis,
+  createRecheckForAssignment,
+  getStudentAssignments,
+} from '../services/mathpath/mathPathAssignmentService.js';
 
 const router = express.Router();
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-paper-analysis');
@@ -172,17 +177,27 @@ router.post('/:id/assign-practice', protect, async (req, res) => {
     const analysis = await PaperAnalysis.findById(req.params.id);
     if (!analysis) return res.status(404).json({ error: 'Paper analysis not found.' });
     await resolvePaperAnalysisStudent(req, analysis.studentId);
-    analysis.status = 'reviewed';
-    analysis.recommendedActions = (analysis.recommendedActions || []).map((action) => ({
-      ...action,
-      status: 'assignment_service_pending',
-    }));
-    await analysis.save();
-    return res.status(202).json({
+    const weakSkillIds = (analysis.weakSkillIds || []).filter(Boolean);
+    const confirmedWrong = (analysis.detectedQuestions || []).some((q) => q.adultConfirmedWrong || q.teacherMarkedCorrect === false);
+    if (!weakSkillIds.length && !confirmedWrong) {
+      return res.status(409).json({
+        analysisId: String(analysis._id),
+        assigned: false,
+        message: 'Confirm at least one wrong question before assigning targeted practice.',
+        recommendedActions: analysis.recommendedActions || [],
+      });
+    }
+    const assignment = await createAssignmentFromPaperAnalysis({
+      paperAnalysisId: analysis._id,
+      assignedByUserId: String(req.user?.id || req.user?._id || ''),
+      assignedByRole: uploadedByRole(req.user),
+    });
+    return res.status(201).json({
       analysisId: String(analysis._id),
-      assigned: false,
-      message: 'Practice assignment from paper analysis is not automated yet. Review the recommended skills and assign manually.',
-      recommendedActions: analysis.recommendedActions,
+      assigned: true,
+      assignmentId: assignment.id,
+      assignment,
+      message: 'Recovery Pack assigned.',
     });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not assign paper-analysis practice.' });
@@ -195,12 +210,40 @@ router.post('/:id/create-recheck', protect, async (req, res) => {
     const analysis = await PaperAnalysis.findById(req.params.id).lean();
     if (!analysis) return res.status(404).json({ error: 'Paper analysis not found.' });
     await resolvePaperAnalysisStudent(req, analysis.studentId);
-    return res.status(202).json({
-      analysisId: String(analysis._id),
-      created: false,
-      message: 'Mini diagnostic creation from paper analysis is not automated yet. Use Run Recheck from the diagnostic card.',
-      weakSkillIds: analysis.weakSkillIds || [],
-    });
+    const assignments = await getStudentAssignments({ studentId: analysis.studentId });
+    const linked = assignments.find((assignment) => (
+      assignment.sourceType === 'paper_analysis'
+      && String(assignment.sourceId) === String(analysis._id)
+    ));
+    if (!linked) {
+      return res.status(409).json({
+        analysisId: String(analysis._id),
+        created: false,
+        message: 'Assign and complete the Recovery Pack before creating a recheck.',
+        weakSkillIds: analysis.weakSkillIds || [],
+      });
+    }
+    try {
+      const result = await createRecheckForAssignment({
+        assignmentId: linked.id,
+        requestedByUserId: String(req.user?.id || req.user?._id || ''),
+      });
+      return res.status(result.created ? 201 : 200).json({
+        analysisId: String(analysis._id),
+        ...result,
+      });
+    } catch (assignmentErr) {
+      if (assignmentErr.status === 409) {
+        return res.status(409).json({
+          analysisId: String(analysis._id),
+          assignmentId: linked.id,
+          created: false,
+          message: assignmentErr.message,
+          weakSkillIds: analysis.weakSkillIds || [],
+        });
+      }
+      throw assignmentErr;
+    }
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not create paper-analysis recheck.' });
   }

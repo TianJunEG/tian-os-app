@@ -437,6 +437,7 @@ export default function TeacherMathPathDashboardPage() {
             growth={classDiagnosticGrowth}
             onViewHistory={() => navigate(`/teacher/classes/${id}/mathpath`)}
             onRunRecheck={() => navigate(`/teacher/classes/${id}/assign?task=diagnostic_recheck`)}
+            onAssignRecovery={() => navigate(`/teacher/classes/${id}/assign?task=recovery_pack`)}
           />
           <TeacherClassOverviewCard data={dashboard.classOverview} />
           <AdultWorkingReviewPanel review={workingReview || {}} title="Class Working and Help Requests" />

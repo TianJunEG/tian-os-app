@@ -19,6 +19,9 @@ export default function DiagnosticGrowthCard({
   title = 'Diagnostic Growth',
   onViewHistory,
   onRunRecheck,
+  onAssignRecovery,
+  assigningRecovery = false,
+  assignmentMessage = '',
 }) {
   const baseline = growth?.baseline || null;
   const latest = growth?.latest || null;
@@ -64,11 +67,17 @@ export default function DiagnosticGrowthCard({
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <Button size="s" variant="secondary" icon={BarChart3} onClick={onViewHistory}>View Diagnostic History</Button>
+        {onAssignRecovery && (
+          <Button size="s" variant="secondary" onClick={onAssignRecovery} disabled={assigningRecovery}>
+            {assigningRecovery ? 'Assigning...' : 'Assign Recovery Pack'}
+          </Button>
+        )}
         <Button size="s" variant="secondary" icon={RefreshCw} onClick={onRunRecheck}>Run Recheck</Button>
         {latest?.diagnosticSessionId && (
           <Button size="s" variant="ghost" icon={ArrowRight} to={`/student/mathpath/diagnostic/results/${latest.diagnosticSessionId}`}>Open Latest</Button>
         )}
       </div>
+      {assignmentMessage && <p className="mt-2 text-sm font-semibold text-success-700">{assignmentMessage}</p>}
     </Card>
   );
 }

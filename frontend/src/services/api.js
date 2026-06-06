@@ -119,6 +119,13 @@ export const mathpathAPI = {
   reviewPaperAnalysis: (id, data) => api.patch(`/mathpath/paper-analysis/${id}/review`, data),
   assignPaperAnalysisPractice: (id, data = {}) => api.post(`/mathpath/paper-analysis/${id}/assign-practice`, data),
   createPaperAnalysisRecheck: (id, data = {}) => api.post(`/mathpath/paper-analysis/${id}/create-recheck`, data),
+  createAssignmentFromDiagnostic: (data) => api.post('/mathpath/assignments/from-diagnostic', data),
+  createAssignmentFromPaperAnalysis: (data) => api.post('/mathpath/assignments/from-paper-analysis', data),
+  mathPathAssignments: (params = {}) => api.get('/mathpath/assignments', { params }),
+  mathPathAssignment: (id) => api.get(`/mathpath/assignments/${id}`),
+  updateMathPathAssignmentProgress: (id, data = {}) => api.patch(`/mathpath/assignments/${id}/progress`, data),
+  recommendAssignmentRecheck: (id) => api.post(`/mathpath/assignments/${id}/recheck-recommendation`),
+  createAssignmentRecheck: (id) => api.post(`/mathpath/assignments/${id}/create-recheck`),
   // ref: a slug string, or { skillId } / { skillSlug }
   remediation: (ref, recentAttempts = []) =>
     api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })

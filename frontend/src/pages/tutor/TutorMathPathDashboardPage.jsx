@@ -706,6 +706,8 @@ export default function TutorMathPathDashboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [placement, setPlacement] = useState(null);
   const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
+  const [assigningRecovery, setAssigningRecovery] = useState(false);
+  const [assignmentMessage, setAssignmentMessage] = useState('');
   const [workingReview, setWorkingReview] = useState(null);
   const [fluencySummary, setFluencySummary] = useState(null);
   const [retentionSummary, setRetentionSummary] = useState(null);
@@ -766,6 +768,24 @@ export default function TutorMathPathDashboardPage() {
     }
   }, [id]);
 
+  const assignRecoveryPack = useCallback(async () => {
+    const diagnosticSessionId = diagnosticGrowth?.latest?.diagnosticSessionId || diagnosticGrowth?.baseline?.diagnosticSessionId;
+    if (!diagnosticSessionId) {
+      setAssignmentMessage('Complete a diagnostic before assigning a Recovery Pack.');
+      return;
+    }
+    setAssigningRecovery(true);
+    setAssignmentMessage('');
+    try {
+      await mathpathAPI.createAssignmentFromDiagnostic({ studentId: id, diagnosticSessionId, assignedByRole: 'tutor' });
+      setAssignmentMessage('Recovery Pack assigned.');
+    } catch (err) {
+      setAssignmentMessage(err?.response?.data?.error || 'Could not assign Recovery Pack.');
+    } finally {
+      setAssigningRecovery(false);
+    }
+  }, [diagnosticGrowth, id]);
+
   useEffect(() => { load(); }, [load]);
 
   const primary = useMemo(() => {
@@ -807,6 +827,9 @@ export default function TutorMathPathDashboardPage() {
           growth={diagnosticGrowth}
           onViewHistory={() => navigate(`/tutor/students/${id}/mathpath`)}
           onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
+          onAssignRecovery={assignRecoveryPack}
+          assigningRecovery={assigningRecovery}
+          assignmentMessage={assignmentMessage}
         />
         <section className="grid grid-cols-1 gap-3 lg:grid-cols-4" aria-label="Student learning snapshot">
           <Card className="p-4">

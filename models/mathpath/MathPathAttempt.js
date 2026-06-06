@@ -16,6 +16,7 @@ const mathPathAttemptSchema = new mongoose.Schema(
     questionFamilyId: { type: String, required: true, trim: true },
     questionId: { type: String, required: true, trim: true },
     sessionId: { type: String, required: true, trim: true },
+    assignmentId: { type: String, default: '', trim: true, index: true },
     sessionType: { type: String, enum: SESSION_TYPES, required: true },
     answer: { type: String, default: '' },
     answerCorrect: { type: Boolean, default: false },
