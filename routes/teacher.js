@@ -17,6 +17,7 @@ import Worksheet from '../models/Worksheet.js';
 import { buildSuggestedGroups } from '../utils/teacherGrouping.js';
 import { buildWeakGroupsForClass } from '../services/teacher/weakGroupEngine.js';
 import { createAssignmentFromLessonPrep, createRecheckForAssignment } from '../services/mathpath/mathPathAssignmentService.js';
+import { userCanAccessPartnerStudent } from '../services/partners/partnerAccessService.js';
 import { generateWorksheet } from '../utils/worksheetGen.js';
 
 const router = express.Router();
@@ -210,7 +211,10 @@ router.get('/classes/:id/students', async (req, res) => {
 router.get('/students/:id', async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const enrolled = await ClassStudent.findOne({ studentId: req.params.id, workspaceId: req.workspaceId });
-  if (!enrolled) return res.status(403).json({ error: 'Student not in your classes.' });
+  const partnerAllowed = !enrolled
+    ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId: req.params.id })
+    : false;
+  if (!enrolled && !partnerAllowed) return res.status(403).json({ error: 'Student not in your classes.' });
   const student = await Student.findById(req.params.id);
   const recs = await MasteryRecord.find({ studentId: student._id }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
   const overall = recs.length ? Math.round(recs.reduce((a, r) => a + r.score, 0) / recs.length) : 0;

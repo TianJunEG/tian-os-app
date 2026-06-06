@@ -5,6 +5,7 @@ const state = vi.hoisted(() => ({
   guardian: null,
   tutorLink: null,
   workspaceMember: null,
+  partnerAllowed: false,
 }));
 
 vi.mock('../models/Student.js', () => ({
@@ -32,6 +33,10 @@ vi.mock('../models/WorkspaceMember.js', () => ({
   },
 }));
 
+vi.mock('../services/partners/partnerAccessService.js', () => ({
+  userCanAccessPartnerStudent: vi.fn(async () => state.partnerAllowed),
+}));
+
 const { resolveStudent } = await import('./studentContext.js');
 
 describe('resolveStudent', () => {
@@ -44,6 +49,7 @@ describe('resolveStudent', () => {
     state.guardian = null;
     state.tutorLink = null;
     state.workspaceMember = null;
+    state.partnerAllowed = false;
   });
 
   it('allows a tutor explicitly linked to the student in the active workspace', async () => {
@@ -72,5 +78,16 @@ describe('resolveStudent', () => {
       status: 403,
       message: 'No access to this student.',
     });
+  });
+
+  it('allows partner staff linked to the student through a partner organisation', async () => {
+    state.partnerAllowed = true;
+
+    await expect(resolveStudent({
+      user: { id: 'partner_staff_user' },
+      workspaceId: '',
+      body: {},
+      query: {},
+    }, 'student_1')).resolves.toBe(state.student);
   });
 });

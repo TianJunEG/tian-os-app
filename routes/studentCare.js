@@ -7,6 +7,7 @@ import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { buildDiagnosticGrowth, getDiagnosticHistory } from '../services/diagnostics/diagnosticGrowthService.js';
 import { buildParentRecommendations } from '../services/mathpath/parentRecommendationEngine.js';
+import { listPartnerStudentIdsForUser } from '../services/partners/partnerAccessService.js';
 import {
   buildRecoveryPackQueue,
   buildRecheckQueue,
@@ -36,8 +37,16 @@ function workspaceId(req) {
 async function listAccessibleStudents(req) {
   const roles = roleSet(req.user);
   const workspace = workspaceId(req);
+  const partnerStudentIds = await listPartnerStudentIdsForUser(req.user.id);
   if (workspace) {
-    return Student.find({ workspaceId: workspace }).sort({ name: 1 }).lean();
+    const workspaceFilter = { workspaceId: workspace };
+    if (partnerStudentIds.length && !roles.has('admin')) {
+      workspaceFilter._id = { $in: partnerStudentIds };
+    }
+    return Student.find(workspaceFilter).sort({ name: 1 }).lean();
+  }
+  if (partnerStudentIds.length && !roles.has('admin')) {
+    return Student.find({ _id: { $in: partnerStudentIds } }).sort({ name: 1 }).lean();
   }
   if (roles.has('admin') || process.env.QA_DISABLE_RATE_LIMIT === '1') {
     return Student.find({}).sort({ name: 1 }).limit(100).lean();

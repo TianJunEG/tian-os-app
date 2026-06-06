@@ -8,6 +8,7 @@ const resolveStudentMock = vi.fn();
 const getDiagnosticHistoryMock = vi.fn();
 const buildDiagnosticGrowthMock = vi.fn();
 const buildParentRecommendationsMock = vi.fn();
+const listPartnerStudentIdsForUserMock = vi.fn();
 
 function chainResult(value) {
   return {
@@ -53,6 +54,10 @@ vi.mock('../services/mathpath/parentRecommendationEngine.js', () => ({
   buildParentRecommendations: (...args) => buildParentRecommendationsMock(...args),
 }));
 
+vi.mock('../services/partners/partnerAccessService.js', () => ({
+  listPartnerStudentIdsForUser: (...args) => listPartnerStudentIdsForUserMock(...args),
+}));
+
 let router;
 
 async function request(path, { user, query = {} } = {}) {
@@ -96,9 +101,11 @@ describe('student care routes', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    listPartnerStudentIdsForUserMock.mockResolvedValue([]);
   });
 
   function mockDashboardData() {
+    listPartnerStudentIdsForUserMock.mockResolvedValue([]);
     studentFind.mockReturnValue(chainResult([{ _id: 'student_1', name: 'Sarah', level: 'P4' }]));
     getDiagnosticHistoryMock.mockResolvedValue([{ diagnosticSessionId: 'diag_1', status: 'completed' }]);
     buildDiagnosticGrowthMock.mockReturnValue({
@@ -132,6 +139,18 @@ describe('student care routes', () => {
     expect(res.data.students).toEqual([{ studentId: 'student_1', name: 'Sarah', level: 'P4' }]);
     expect(res.data.homeworkQueue[0]).toMatchObject({ paperAnalysisId: 'paper_1', status: 'needs_review' });
     expect(res.data.recoveryPacks[0]).toMatchObject({ assignmentId: 'assignment_1', status: 'in_progress' });
+  });
+
+  it('limits partner student-care staff to partner-linked students', async () => {
+    listPartnerStudentIdsForUserMock.mockResolvedValueOnce(['student_partner_1']);
+    mockDashboardData();
+
+    const res = await request('/dashboard', {
+      user: { id: 'partner_care_1', role: 'student_care' },
+    });
+
+    expect(res.status).toBe(200);
+    expect(studentFind).toHaveBeenCalledWith({ _id: { $in: ['student_partner_1'] } });
   });
 
   it('blocks non student-care users', async () => {

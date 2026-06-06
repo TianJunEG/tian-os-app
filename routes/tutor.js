@@ -13,6 +13,10 @@ import TutorCertification from '../models/TutorCertification.js';
 import { buildLessonPrep } from '../utils/tutorLessonPrep.js';
 import { getTutorLessonPrep } from '../services/mathpath/tutorLessonPrepEngine.js';
 import { createAssignmentFromLessonPrep } from '../services/mathpath/mathPathAssignmentService.js';
+import {
+  listPartnerStudentIdsForUser,
+  userCanAccessPartnerStudent,
+} from '../services/partners/partnerAccessService.js';
 
 const router = express.Router();
 
@@ -39,17 +43,31 @@ async function masterySummary(studentId) {
 // Confirm a student is linked to this tutor in this workspace (access guard).
 async function requireLinkedStudent(req, res) {
   const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId: req.params.id });
-  if (!link && process.env.QA_DISABLE_RATE_LIMIT !== '1') { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
+  const partnerAllowed = !link
+    ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId: req.params.id })
+    : false;
+  if (!link && !partnerAllowed && process.env.QA_DISABLE_RATE_LIMIT !== '1') { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
   const student = await Student.findById(req.params.id);
   if (!student) { res.status(404).json({ error: 'Student not found.' }); return null; }
   return student;
 }
 
+async function tutorStudentIds(req) {
+  const [links, partnerIds] = await Promise.all([
+    TutorStudentLink.find({ workspaceId: req.workspaceId, tutorUserId: req.user.id, status: 'active' }).select('studentId').lean(),
+    listPartnerStudentIdsForUser(req.user.id),
+  ]);
+  return [...new Set([
+    ...links.map((link) => String(link.studentId)),
+    ...partnerIds.map((id) => String(id)),
+  ].filter(Boolean))];
+}
+
 // @route GET /api/tutor/students — assigned students + quick status
 router.get('/students', async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
-  const links = await TutorStudentLink.find({ workspaceId: req.workspaceId, tutorUserId: req.user.id, status: 'active' });
-  const students = await Student.find({ _id: { $in: links.map((l) => l.studentId) } });
+  const studentIds = await tutorStudentIds(req);
+  const students = await Student.find({ _id: { $in: studentIds } });
   const out = await Promise.all(students.map(async (s) => {
     const sum = await masterySummary(s._id);
     const assignments = await Assignment.find({ studentId: s._id });
@@ -64,8 +82,7 @@ router.get('/students', async (req, res) => {
 // @route GET /api/tutor/home — dashboard summary
 router.get('/home', async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
-  const links = await TutorStudentLink.find({ workspaceId: req.workspaceId, tutorUserId: req.user.id, status: 'active' });
-  const studentIds = links.map((l) => l.studentId);
+  const studentIds = await tutorStudentIds(req);
   const overdue = await Assignment.countDocuments({ studentId: { $in: studentIds }, status: 'overdue' });
   const recentNotes = await LessonNote.find({ tutorUserId: req.user.id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5);
   const cert = await TutorCertification.findOne({ tutorUserId: req.user.id });

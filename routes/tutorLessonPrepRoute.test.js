@@ -6,6 +6,8 @@ const lessonNoteFind = vi.fn();
 const lessonNoteCreate = vi.fn();
 const getTutorLessonPrep = vi.fn();
 const createAssignmentFromLessonPrep = vi.fn();
+const userCanAccessPartnerStudentMock = vi.fn();
+const listPartnerStudentIdsForUserMock = vi.fn();
 
 function chainResult(value) {
   return {
@@ -60,6 +62,11 @@ vi.mock('../services/mathpath/mathPathAssignmentService.js', () => ({
   createAssignmentFromLessonPrep: (...args) => createAssignmentFromLessonPrep(...args),
 }));
 
+vi.mock('../services/partners/partnerAccessService.js', () => ({
+  userCanAccessPartnerStudent: (...args) => userCanAccessPartnerStudentMock(...args),
+  listPartnerStudentIdsForUser: (...args) => listPartnerStudentIdsForUserMock(...args),
+}));
+
 let router;
 
 async function request(path, { method = 'GET', body = {}, user } = {}) {
@@ -100,6 +107,8 @@ describe('tutor lesson prep routes', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    userCanAccessPartnerStudentMock.mockResolvedValue(false);
+    listPartnerStudentIdsForUserMock.mockResolvedValue([]);
   });
 
   it('blocks tutors from unrelated students', async () => {
@@ -128,6 +137,26 @@ describe('tutor lesson prep routes', () => {
       student: expect.objectContaining({ _id: 'student_1' }),
     }));
     expect(res.data.recommendedLessonFocus[0].skillId).toBe('F023');
+  });
+
+  it('returns lesson prep for partner-linked tutor students', async () => {
+    linkFindOne.mockResolvedValueOnce(null);
+    userCanAccessPartnerStudentMock.mockResolvedValueOnce(true);
+    studentFindById.mockResolvedValueOnce({ _id: 'student_partner_1', name: 'Partner Student' });
+    lessonNoteFind.mockReturnValueOnce(chainResult([]));
+    getTutorLessonPrep.mockResolvedValueOnce({
+      studentSummary: { studentId: 'student_partner_1', name: 'Partner Student' },
+      recommendedLessonFocus: [{ skillId: 'F019', why: ['Partner-linked intervention.'] }],
+    });
+
+    const res = await request('/students/student_partner_1/lesson-prep');
+
+    expect(res.status).toBe(200);
+    expect(userCanAccessPartnerStudentMock).toHaveBeenCalledWith({
+      userId: 'tutor_1',
+      studentId: 'student_partner_1',
+    });
+    expect(res.data.recommendedLessonFocus[0].skillId).toBe('F019');
   });
 
   it('creates a Recovery Pack from lesson prep', async () => {

@@ -10,6 +10,7 @@ import Student from '../models/Student.js';
 import StudentGuardian from '../models/StudentGuardian.js';
 import TutorStudentLink from '../models/TutorStudentLink.js';
 import WorkspaceMember from '../models/WorkspaceMember.js';
+import { userCanAccessPartnerStudent } from '../services/partners/partnerAccessService.js';
 
 // Throws { status, message } on no access. Returns the Student doc.
 export async function resolveStudent(req, explicitId) {
@@ -34,6 +35,8 @@ export async function resolveStudent(req, explicitId) {
     // A member of the student's workspace (tutor/teacher):
     const member = await WorkspaceMember.findOne({ workspaceId: student.workspaceId, userId: req.user.id, status: 'active' });
     if (member) return student;
+    // Partner/centre staff explicitly linked to this student:
+    if (await userCanAccessPartnerStudent({ userId: req.user.id, studentId: student._id })) return student;
     throw { status: 403, message: 'No access to this student.' };
   }
 
