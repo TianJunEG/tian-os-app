@@ -4,6 +4,7 @@ import MathPathAttempt from '../../models/mathpath/MathPathAttempt.js';
 import PaperAnalysis from '../../models/mathpath/PaperAnalysis.js';
 import Student from '../../models/Student.js';
 import { startAdaptiveDiagnostic } from '../diagnostics/diagnosticRuntime.js';
+import { evaluateRecheckReadiness } from './recheckRecommendationService.js';
 
 function uniqueSkillIds(values = []) {
   return [...new Set((values || [])
@@ -208,15 +209,8 @@ export async function evaluateRecheckRecommendation({ assignmentId } = {}) {
     err.status = 404;
     throw err;
   }
-  const attempted = Number(assignment.completion?.questionsAttempted || 0);
-  const target = Number(assignment.targetQuestionCount || assignment.completion?.questionsAssigned || 0);
-  const accuracy = Number(assignment.completion?.accuracy || 0);
-  let recommended = assignment.status === 'completed';
-  let reason = recommended ? 'Recovery pack completed.' : '';
-  if (!recommended && target > 0 && attempted >= target * 0.8 && accuracy >= 70) {
-    recommended = true;
-    reason = 'At least 80% complete with 70% or higher accuracy.';
-  }
+  const readiness = evaluateRecheckReadiness(assignment);
+  const { recommended, reason } = readiness;
   if (recommended && !assignment.recheck?.recommended) {
     assignment.recheck = {
       ...(assignment.recheck || {}),
@@ -229,6 +223,7 @@ export async function evaluateRecheckRecommendation({ assignmentId } = {}) {
   return {
     recommended,
     reason: reason || assignment.recheck?.reason || 'Keep practising before recheck.',
+    readiness,
     assignment: shapeAssignment(assignment),
   };
 }
@@ -267,7 +262,7 @@ export async function createRecheckForAssignment({ assignmentId, requestedByUser
     subjectId: assignment.subjectId || 'math',
     domainId: assignment.domainId || 'fractions',
     startSkillId: assignment.skillIds?.[0] || '',
-    diagnosticPurpose: 'assigned',
+    diagnosticPurpose: 'recheck',
     enforceReplay: false,
   });
   assignment.recheck = {

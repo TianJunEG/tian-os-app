@@ -23,9 +23,10 @@ function roleSet(user = {}) {
   return new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
 }
 
-function assertCanAssign(req) {
+function assertCanAssign(req, { allowStudentDiagnosticSelfAssign = false } = {}) {
   const roles = roleSet(req.user);
   if (roles.has('parent') || roles.has('tutor') || roles.has('teacher') || roles.has('admin')) return;
+  if (allowStudentDiagnosticSelfAssign && roles.has('student')) return;
   const err = new Error('Students can view Recovery Packs but cannot assign them.');
   err.status = 403;
   throw err;
@@ -44,7 +45,7 @@ async function loadAccessibleAssignment(req, id) {
 
 router.post('/from-diagnostic', protect, async (req, res) => {
   try {
-    assertCanAssign(req);
+    assertCanAssign(req, { allowStudentDiagnosticSelfAssign: true });
     const student = await resolveStudent(req, req.body?.studentId);
     const assignment = await createAssignmentFromDiagnostic({
       studentId: String(student._id),

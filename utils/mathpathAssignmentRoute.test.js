@@ -88,15 +88,31 @@ describe('MathPath assignment routes', () => {
     }));
   });
 
-  it('blocks student self-assignment', async () => {
+  it('allows a student to create a Recovery Pack from their own diagnostic', async () => {
+    resolveStudentMock.mockResolvedValueOnce({ _id: 'student_1' });
+    createFromDiagnosticMock.mockResolvedValueOnce({ id: 'assignment_1', skillIds: ['F015'] });
+
     const res = await request('/from-diagnostic', {
       method: 'POST',
       user: { id: 'student_user_1', role: 'student' },
       body: { studentId: 'student_1', diagnosticSessionId: 'diag_1' },
     });
 
+    expect(res.status).toBe(201);
+    expect(createFromDiagnosticMock).toHaveBeenCalledWith(expect.objectContaining({
+      studentId: 'student_1',
+      diagnosticSessionId: 'diag_1',
+    }));
+  });
+
+  it('blocks student paper-analysis assignment', async () => {
+    const res = await request('/from-paper-analysis', {
+      method: 'POST',
+      user: { id: 'student_user_1', role: 'student' },
+      body: { paperAnalysisId: 'paper_1' },
+    });
+
     expect(res.status).toBe(403);
-    expect(createFromDiagnosticMock).not.toHaveBeenCalled();
   });
 
   it('lists student recovery packs', async () => {

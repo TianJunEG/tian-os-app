@@ -5,6 +5,7 @@ const assignmentFind = vi.fn();
 const assignmentFindById = vi.fn();
 const assignmentFindOne = vi.fn();
 const diagnosticFindOne = vi.fn();
+const diagnosticFindOneAndUpdate = vi.fn();
 const attemptFind = vi.fn();
 const paperFindById = vi.fn();
 const studentFindById = vi.fn();
@@ -20,7 +21,10 @@ vi.mock('../models/mathpath/MathPathAssignment.js', () => ({
 }));
 
 vi.mock('../models/mathpath/MathPathDiagnosticSession.js', () => ({
-  default: { findOne: (...args) => diagnosticFindOne(...args) },
+  default: {
+    findOne: (...args) => diagnosticFindOne(...args),
+    findOneAndUpdate: (...args) => diagnosticFindOneAndUpdate(...args),
+  },
 }));
 
 vi.mock('../models/mathpath/MathPathAttempt.js', () => ({
@@ -167,5 +171,45 @@ describe('mathPathAssignmentService', () => {
     expect(updated.completion.questionsAttempted).toBe(8);
     expect(updated.completion.accuracy).toBe(75);
     expect(assignment.recheck.recommended).toBe(true);
+  });
+
+  it('creates a recheck diagnostic linked to the assignment', async () => {
+    const assignment = {
+      _id: 'assignment_1',
+      studentId: 'student_1',
+      assignedByUserId: 'adult_1',
+      subjectId: 'math',
+      domainId: 'fractions',
+      skillIds: ['F015'],
+      targetQuestionCount: 10,
+      status: 'completed',
+      completion: { questionsAssigned: 10, questionsAttempted: 10, correctCount: 8, accuracy: 80 },
+      recheck: {},
+      save: vi.fn().mockResolvedValue(undefined),
+      toObject() { return this; },
+    };
+    assignmentFindById
+      .mockResolvedValueOnce(assignment)
+      .mockResolvedValueOnce(assignment);
+    studentFindById.mockResolvedValueOnce({ _id: 'student_1', userId: 'student_user_1' });
+    startAdaptiveDiagnostic.mockResolvedValueOnce({ sessionId: 'diag_recheck_1' });
+    diagnosticFindOneAndUpdate.mockResolvedValueOnce({});
+
+    const result = await service.createRecheckForAssignment({
+      assignmentId: 'assignment_1',
+      requestedByUserId: 'adult_1',
+    });
+
+    expect(startAdaptiveDiagnostic).toHaveBeenCalledWith(expect.objectContaining({
+      diagnosticPurpose: 'recheck',
+      startSkillId: 'F015',
+      enforceReplay: false,
+    }));
+    expect(diagnosticFindOneAndUpdate).toHaveBeenCalledWith(
+      { diagnosticSessionId: 'diag_recheck_1' },
+      { $set: { assignmentId: 'assignment_1', sourceType: 'assignment', sourceId: 'assignment_1' } }
+    );
+    expect(result.created).toBe(true);
+    expect(result.diagnosticSessionId).toBe('diag_recheck_1');
   });
 });

@@ -60,6 +60,9 @@ export default function DiagnosticResultScreen() {
   const [result, setResult] = useState(location.state?.result || null);
   const [timingAnalytics, setTimingAnalytics] = useState(location.state?.timingAnalytics || null);
   const [loading, setLoading] = useState(!location.state?.result || !location.state?.timingAnalytics);
+  const [assigningRecovery, setAssigningRecovery] = useState(false);
+  const [assignmentMessage, setAssignmentMessage] = useState('');
+  const [assignmentError, setAssignmentError] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -148,9 +151,27 @@ export default function DiagnosticResultScreen() {
   const misconceptions = shaped.misconceptions || shaped.explainability?.misconceptions || [];
   const skillEvidence = shaped.explainability?.skillEvidence || [];
   const recommendations = shaped.recommendations || shaped.explainability?.recommendations || {};
+  const weakSkillIds = [
+    ...(shaped.weakSkillIds || []),
+    ...(shaped.weakSkills || []).map((skill) => skill.skillId || skill),
+  ].map((skillId) => String(skillId || '').toUpperCase()).filter(Boolean);
   const summaryText = score <= 0
     ? 'This check-in did not show secure Fractions evidence yet. Start with the recommended skill and build from there.'
     : (shaped.studentFriendlySummary || 'Your diagnostic is complete. Let’s begin at the recommended skill.');
+  const assignRecoveryPack = async () => {
+    setAssignmentMessage('');
+    setAssignmentError('');
+    setAssigningRecovery(true);
+    try {
+      await mathpathAPI.createAssignmentFromDiagnostic({ diagnosticSessionId });
+      setAssignmentMessage('Recovery Pack assigned.');
+      navigate('/student/mathpath/assignments');
+    } catch (err) {
+      setAssignmentError(err?.response?.data?.error || 'Could not assign a Recovery Pack from this diagnostic yet.');
+    } finally {
+      setAssigningRecovery(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -396,10 +417,25 @@ export default function DiagnosticResultScreen() {
           >
             Start Recommended Practice
           </Button>
+          {weakSkillIds.length > 0 && (
+            <Button
+              size="l"
+              variant="secondary"
+              onClick={assignRecoveryPack}
+              disabled={assigningRecovery}
+            >
+              {assigningRecovery ? 'Assigning...' : 'Assign Recovery Pack'}
+            </Button>
+          )}
           <Button size="l" variant="secondary" onClick={() => navigate('/student/mathpath')}>
             View Fractions Path
           </Button>
+          <Button size="l" variant="ghost" onClick={() => navigate('/student/mathpath/assignments')}>
+            View Recovery Packs
+          </Button>
         </div>
+        {assignmentMessage && <p className="text-sm font-semibold text-success-700">{assignmentMessage}</p>}
+        {assignmentError && <p className="text-sm font-semibold text-error-700">{assignmentError}</p>}
       </div>
     </div>
   );

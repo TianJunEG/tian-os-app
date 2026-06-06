@@ -275,6 +275,18 @@ export async function getDiagnosticGrowth(params = {}) {
   const targetedSkillIds = assignment.skillIds || [];
   const targetedSkillGrowth = (growth.perSkillGrowth || [])
     .filter((row) => targetedSkillIds.includes(row.skillId));
+  const assignmentSummary = {
+    assignmentId: String(assignment._id),
+    title: assignment.title,
+    sourceType: assignment.sourceType,
+    sourceId: assignment.sourceId,
+    skillIds: targetedSkillIds,
+    status: assignment.status,
+    completion: assignment.completion || {},
+  };
+  const improvementAfterAssignment = baseline && latestAfterAssignment
+    ? Number(latestAfterAssignment.readinessScore || 0) - Number(baseline.readinessScore || 0)
+    : null;
 
   return {
     ...growth,
@@ -284,22 +296,17 @@ export async function getDiagnosticGrowth(params = {}) {
       reason: latestAfterAssignment
         ? 'Latest diagnostic after assignment is available.'
         : 'No completed diagnostic after this assignment yet.',
-      linkedAssignment: {
-        assignmentId: String(assignment._id),
-        title: assignment.title,
-        sourceType: assignment.sourceType,
-        sourceId: assignment.sourceId,
-        skillIds: targetedSkillIds,
-        status: assignment.status,
-        completion: assignment.completion || {},
-      },
+      linkedAssignment: assignmentSummary,
+      assignment: assignmentSummary,
       baseline,
+      recheck: latestAfterAssignment,
       latestAfterAssignment,
-      improvementAfterAssignment: baseline && latestAfterAssignment
-        ? Number(latestAfterAssignment.readinessScore || 0) - Number(baseline.readinessScore || 0)
-        : null,
+      improvementAfterAssignment,
+      improvement: improvementAfterAssignment,
       targetedSkillIds,
+      targetedSkills: targetedSkillIds,
       targetedSkillGrowth,
+      targetedSkillImprovement: targetedSkillGrowth,
     },
   };
 }
