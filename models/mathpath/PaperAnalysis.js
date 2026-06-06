@@ -10,6 +10,8 @@ export const PAPER_ANALYSIS_UPLOAD_TYPES = [
 export const PAPER_ANALYSIS_STATUS = [
   'uploaded',
   'processing',
+  'ocr_complete',
+  'questions_detected',
   'needs_review',
   'reviewed',
   'assigned',
@@ -21,14 +23,23 @@ const detectedQuestionSchema = new mongoose.Schema(
     questionNumber: { type: String, default: '', trim: true },
     questionText: { type: String, default: '' },
     marks: { type: Number, default: null },
+    pageNumber: { type: Number, default: 1, min: 1 },
     detectedSkillIds: { type: [String], default: [] },
+    skillMappingReasons: { type: [String], default: [] },
     studentAnswer: { type: String, default: '' },
+    studentAnswerConfidence: { type: Number, default: 0, min: 0, max: 1 },
     teacherMarkedCorrect: { type: Boolean, default: null },
+    teacherMark: { type: String, default: '' },
+    teacherMarkConfidence: { type: Number, default: 0, min: 0, max: 1 },
     adultConfirmedCorrect: { type: Boolean, default: false },
     adultConfirmedWrong: { type: Boolean, default: false },
+    adultIgnored: { type: Boolean, default: false },
+    adultNotes: { type: String, default: '' },
     workingEvidenceUrl: { type: String, default: '' },
     misconceptionTags: { type: [String], default: [] },
+    misconceptionEvidence: { type: [String], default: [] },
     confidence: { type: Number, default: 0, min: 0, max: 1 },
+    needsAdultReview: { type: Boolean, default: true },
   },
   { _id: false }
 );
@@ -39,6 +50,17 @@ const recommendedActionSchema = new mongoose.Schema(
     skillId: { type: String, default: '', trim: true },
     reason: { type: String, default: '' },
     status: { type: String, default: 'pending_review', trim: true },
+    confidence: { type: Number, default: 0, min: 0, max: 1 },
+  },
+  { _id: false }
+);
+
+const ocrPageSchema = new mongoose.Schema(
+  {
+    pageNumber: { type: Number, default: 1, min: 1 },
+    extractedText: { type: String, default: '' },
+    confidence: { type: Number, default: 0, min: 0, max: 1 },
+    needsReview: { type: Boolean, default: true },
   },
   { _id: false }
 );
@@ -57,9 +79,13 @@ const paperAnalysisSchema = new mongoose.Schema(
     storageKey: { type: String, default: '' },
     pageCount: { type: Number, default: 1, min: 1 },
     status: { type: String, enum: PAPER_ANALYSIS_STATUS, default: 'needs_review', index: true },
+    ocrPages: { type: [ocrPageSchema], default: [] },
+    pipelineLog: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    extractionSummary: { type: mongoose.Schema.Types.Mixed, default: {} },
     detectedQuestions: { type: [detectedQuestionSchema], default: [] },
     weakSkillIds: { type: [String], default: [] },
     recommendedActions: { type: [recommendedActionSchema], default: [] },
+    reportSummary: { type: mongoose.Schema.Types.Mixed, default: {} },
     linkedDiagnosticSessionId: { type: String, default: '', trim: true },
     linkedPracticeAssignmentIds: { type: [String], default: [] },
     reviewedAt: { type: Date, default: null },

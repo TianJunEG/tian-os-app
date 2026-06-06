@@ -15,6 +15,8 @@ describe('PaperAnalysis model', () => {
     expect(PAPER_ANALYSIS_STATUS).toEqual([
       'uploaded',
       'processing',
+      'ocr_complete',
+      'questions_detected',
       'needs_review',
       'reviewed',
       'assigned',

@@ -115,9 +115,9 @@ describe('mathpath paper analysis routes', () => {
     expect(doc.status).toBe('reviewed');
     expect(doc.reviewedAt).toBeInstanceOf(Date);
     expect(doc.weakSkillIds).toEqual(['F015']);
-    expect(doc.recommendedActions).toEqual([
+    expect(doc.recommendedActions).toEqual(expect.arrayContaining([
       expect.objectContaining({ type: 'assign_practice', skillId: 'F015', status: 'pending_review' }),
-    ]);
+    ]));
     expect(doc.save).toHaveBeenCalled();
   });
 

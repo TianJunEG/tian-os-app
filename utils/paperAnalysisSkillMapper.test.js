@@ -9,7 +9,7 @@ describe('paper analysis skill mapper', () => {
     expect(mapPaperQuestionToSkills({
       questionText: 'Unclear scan',
       manualSkillIds: ['f015', 'F019'],
-    })).toEqual({
+    })).toMatchObject({
       detectedSkillIds: ['F015', 'F019'],
       confidence: 1,
       source: 'adult_manual_override',
@@ -21,7 +21,7 @@ describe('paper analysis skill mapper', () => {
     expect(mapPaperQuestionToSkills({
       questionText: 'Simplify 4/8',
       detectedSkillIds: ['f007'],
-    })).toEqual({
+    })).toMatchObject({
       detectedSkillIds: ['F007'],
       confidence: 1,
       source: 'adult_manual_override',
@@ -35,6 +35,8 @@ describe('paper analysis skill mapper', () => {
     });
 
     expect(result.detectedSkillIds).toEqual(expect.arrayContaining(['F025', 'F026']));
+    expect(result.reasons.length).toBeGreaterThan(0);
+    expect(result.suggestedMisconceptions).toEqual(expect.arrayContaining(['uses_original_instead_of_remainder']));
     expect(result.source).toBe('keyword_mapping');
     expect(result.needsAdultReview).toBe(true);
   });

@@ -28,6 +28,12 @@ function parseQuestionRows(value = '') {
     .filter(Boolean);
 }
 
+function confidenceText(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '0%';
+  return `${Math.round(Math.max(0, Math.min(1, n)) * 100)}%`;
+}
+
 export default function PaperAnalysisPage() {
   const params = useParams();
   const routeStudentId = params.studentId || '';
@@ -81,6 +87,15 @@ export default function PaperAnalysisPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateQuestion = (index, patch) => {
+    setAnalysis((current) => {
+      if (!current) return current;
+      const detectedQuestions = [...(current.detectedQuestions || [])];
+      detectedQuestions[index] = { ...(detectedQuestions[index] || {}), ...patch };
+      return { ...current, detectedQuestions };
+    });
   };
 
   return (
@@ -143,6 +158,26 @@ export default function PaperAnalysisPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Paper Analysis</p>
             <h2 className="mt-1 font-display text-lg font-semibold text-navy-700">{analysis.originalFilename || 'Uploaded paper'}</h2>
             <p className="mt-1 text-sm text-ink-600">Status: {analysis.status}</p>
+            {!!analysis.reportSummary && (
+              <div className="mt-3 grid gap-2 sm:grid-cols-4">
+                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                  <p className="text-ink-500">Questions</p>
+                  <p className="font-semibold text-ink-800">{analysis.reportSummary.totalQuestions || analysis.detectedQuestions?.length || 0}</p>
+                </div>
+                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                  <p className="text-ink-500">Correct</p>
+                  <p className="font-semibold text-ink-800">{analysis.reportSummary.correct || 0}</p>
+                </div>
+                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                  <p className="text-ink-500">Incorrect</p>
+                  <p className="font-semibold text-ink-800">{analysis.reportSummary.incorrect || 0}</p>
+                </div>
+                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                  <p className="text-ink-500">Confidence</p>
+                  <p className="font-semibold text-ink-800">{confidenceText(analysis.reportSummary.confidence)}</p>
+                </div>
+              </div>
+            )}
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl bg-paper px-3 py-2 text-sm">
                 <p className="font-semibold text-ink-700">Weak skills</p>
@@ -153,7 +188,78 @@ export default function PaperAnalysisPage() {
                 <p className="text-ink-600">{analysis.detectedQuestions?.length || 0}</p>
               </div>
             </div>
+            {!!analysis.ocrPages?.length && (
+              <div className="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-sm text-ink-700">
+                OCR pages: {analysis.ocrPages.length}. Low-confidence pages require review: {analysis.ocrPages.filter((page) => page.needsReview).length}.
+              </div>
+            )}
+            {!!analysis.detectedQuestions?.length && (
+              <div className="mt-4 space-y-3">
+                <p className="text-sm font-semibold text-ink-700">Detected questions for adult review</p>
+                {analysis.detectedQuestions.map((question, index) => (
+                  <div key={`${question.questionNumber}-${index}`} className="rounded-xl border border-hairline p-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">
+                          Question {question.questionNumber || index + 1} · confidence {confidenceText(question.confidence)}
+                        </p>
+                        <p className="mt-1 text-sm text-ink-700">{question.questionText || 'Question text needs review.'}</p>
+                        <p className="mt-1 text-xs text-ink-500">
+                          Answer: {question.studentAnswer || 'Not detected'} · Mark: {question.teacherMark || 'Not detected'}
+                        </p>
+                        {!!question.misconceptionTags?.length && (
+                          <p className="mt-1 text-xs text-ink-500">Misconceptions: {question.misconceptionTags.join(', ')}</p>
+                        )}
+                      </div>
+                      {question.needsAdultReview && <span className="rounded-full bg-gold-100 px-2 py-1 text-xs font-semibold text-gold-800">Review needed</span>}
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <label className="text-xs text-ink-600">
+                        Skill mapping
+                        <input
+                          value={(question.detectedSkillIds || []).join(', ')}
+                          onChange={(e) => updateQuestion(index, {
+                            detectedSkillIds: e.target.value.split(',').map((id) => id.trim().toUpperCase()).filter(Boolean),
+                            needsAdultReview: false,
+                          })}
+                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                        />
+                      </label>
+                      <label className="text-xs text-ink-600">
+                        Adult notes
+                        <input
+                          value={question.adultNotes || ''}
+                          onChange={(e) => updateQuestion(index, { adultNotes: e.target.value })}
+                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                        />
+                      </label>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button size="s" variant={question.adultConfirmedCorrect ? 'primary' : 'secondary'} onClick={() => updateQuestion(index, {
+                        adultConfirmedCorrect: true,
+                        adultConfirmedWrong: false,
+                        adultIgnored: false,
+                        needsAdultReview: false,
+                      })}>Correct</Button>
+                      <Button size="s" variant={question.adultConfirmedWrong ? 'primary' : 'secondary'} onClick={() => updateQuestion(index, {
+                        adultConfirmedCorrect: false,
+                        adultConfirmedWrong: true,
+                        adultIgnored: false,
+                        needsAdultReview: false,
+                      })}>Wrong</Button>
+                      <Button size="s" variant={question.adultIgnored ? 'primary' : 'ghost'} onClick={() => updateQuestion(index, {
+                        adultConfirmedCorrect: false,
+                        adultConfirmedWrong: false,
+                        adultIgnored: true,
+                        needsAdultReview: false,
+                      })}>Ignore</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="mt-3 flex flex-wrap gap-2">
+              <Button icon={Save} variant="secondary" onClick={saveReview} disabled={loading}>Save Review</Button>
               <Button
                 icon={Wand2}
                 variant="secondary"

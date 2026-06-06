@@ -12,6 +12,13 @@ import {
   mapPaperQuestionToSkills,
 } from '../services/mathpath/paperAnalysisSkillMapper.js';
 import {
+  applyAdultReviewOverrides,
+  runPaperAnalysisPipeline,
+} from '../services/mathpath/paperAnalysisPipeline.js';
+import {
+  buildPaperAnalysisRecommendations as buildReviewRecommendations,
+} from '../services/mathpath/paperAnalysisRecommendationEngine.js';
+import {
   createAssignmentFromPaperAnalysis,
   createRecheckForAssignment,
   getStudentAssignments,
@@ -94,14 +101,23 @@ function normalizeDetectedQuestions(rawQuestions = []) {
       questionNumber: String(question.questionNumber || index + 1),
       questionText: question.questionText || '',
       marks: Number.isFinite(Number(question.marks)) ? Number(question.marks) : null,
+      pageNumber: Math.max(1, Number(question.pageNumber || 1)),
       detectedSkillIds: question.detectedSkillIds?.length ? question.detectedSkillIds : mapped.detectedSkillIds,
+      skillMappingReasons: Array.isArray(question.skillMappingReasons) ? question.skillMappingReasons : (mapped.reasons || []),
       studentAnswer: question.studentAnswer || '',
+      studentAnswerConfidence: Number.isFinite(Number(question.studentAnswerConfidence)) ? Number(question.studentAnswerConfidence) : 0,
       teacherMarkedCorrect: typeof question.teacherMarkedCorrect === 'boolean' ? question.teacherMarkedCorrect : null,
+      teacherMark: question.teacherMark || '',
+      teacherMarkConfidence: Number.isFinite(Number(question.teacherMarkConfidence)) ? Number(question.teacherMarkConfidence) : 0,
       adultConfirmedCorrect: Boolean(question.adultConfirmedCorrect),
       adultConfirmedWrong: Boolean(question.adultConfirmedWrong),
+      adultIgnored: Boolean(question.adultIgnored),
+      adultNotes: question.adultNotes || '',
       workingEvidenceUrl: question.workingEvidenceUrl || '',
       misconceptionTags: Array.isArray(question.misconceptionTags) ? question.misconceptionTags : [],
+      misconceptionEvidence: Array.isArray(question.misconceptionEvidence) ? question.misconceptionEvidence : [],
       confidence: Number.isFinite(Number(question.confidence)) ? Number(question.confidence) : mapped.confidence,
+      needsAdultReview: question.needsAdultReview !== undefined ? Boolean(question.needsAdultReview) : mapped.needsAdultReview,
     };
   });
 }
@@ -113,9 +129,13 @@ router.post('/upload', protect, upload.single('paper'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Upload a PDF, JPG or PNG paper.' });
 
     const saved = await saveUpload(req.file);
-    const detectedQuestions = normalizeDetectedQuestions(
-      req.body?.detectedQuestions ? JSON.parse(req.body.detectedQuestions) : []
-    );
+    let rawQuestions = [];
+    try {
+      rawQuestions = req.body?.detectedQuestions ? JSON.parse(req.body.detectedQuestions) : [];
+    } catch {
+      return res.status(400).json({ error: 'Detected questions must be valid JSON.' });
+    }
+    const detectedQuestions = normalizeDetectedQuestions(rawQuestions);
     const recommendations = buildPaperAnalysisRecommendations(detectedQuestions);
     const analysis = await PaperAnalysis.create({
       studentId: String(student._id),
@@ -132,7 +152,23 @@ router.post('/upload', protect, upload.single('paper'), async (req, res) => {
       recommendedActions: recommendations.recommendedActions,
       ...saved,
     });
-    return res.status(201).json({ analysis });
+    if (req.body?.runAnalysis === 'false' || detectedQuestions.length) {
+      return res.status(201).json({ analysis });
+    }
+    try {
+      const analysed = await runPaperAnalysisPipeline({
+        analysisId: analysis._id,
+        fileBuffer: req.file.buffer,
+        mimeType: req.file.mimetype,
+        filename: req.file.originalname,
+      });
+      return res.status(201).json({ analysis: analysed });
+    } catch (pipelineErr) {
+      return res.status(201).json({
+        analysis: await PaperAnalysis.findById(analysis._id).lean(),
+        warning: pipelineErr.message || 'Paper uploaded, but automatic analysis needs manual review.',
+      });
+    }
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not upload paper analysis.' });
   }
@@ -156,11 +192,13 @@ router.patch('/:id/review', protect, async (req, res) => {
     if (!analysis) return res.status(404).json({ error: 'Paper analysis not found.' });
     await resolvePaperAnalysisStudent(req, analysis.studentId);
 
-    const detectedQuestions = normalizeDetectedQuestions(req.body?.detectedQuestions || analysis.detectedQuestions);
-    const recommendations = buildPaperAnalysisRecommendations(detectedQuestions);
+    const detectedQuestions = applyAdultReviewOverrides(normalizeDetectedQuestions(req.body?.detectedQuestions || analysis.detectedQuestions));
+    const analysisObject = typeof analysis.toObject === 'function' ? analysis.toObject() : analysis;
+    const recommendations = buildReviewRecommendations({ ...analysisObject, detectedQuestions });
     analysis.detectedQuestions = detectedQuestions;
-    analysis.weakSkillIds = recommendations.weakSkillIds;
+    analysis.weakSkillIds = recommendations.report.weakSkills || [];
     analysis.recommendedActions = recommendations.recommendedActions;
+    analysis.reportSummary = recommendations.report;
     analysis.status = 'reviewed';
     analysis.reviewedAt = new Date();
     analysis.analysisNotes = req.body?.analysisNotes || analysis.analysisNotes || '';
