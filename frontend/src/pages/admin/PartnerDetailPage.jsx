@@ -16,7 +16,7 @@ function Row({ label: title, value }) {
 
 export default function PartnerDetailPage() {
   const { partnerId } = useParams();
-  const [state, setState] = useState({ loading: true, error: '', data: null, report: null });
+  const [state, setState] = useState({ loading: true, error: '', data: null, report: null, billing: null });
   const [staffForm, setStaffForm] = useState({ userId: '', role: 'student_care_staff' });
   const [studentForm, setStudentForm] = useState({ studentId: '', relationshipType: 'pilot' });
   const [edit, setEdit] = useState({ name: '', status: '', notes: '' });
@@ -27,13 +27,14 @@ export default function PartnerDetailPage() {
     Promise.all([
       adminAPI.getPartner(partnerId),
       adminAPI.getPartnerImpactReport(partnerId),
+      adminAPI.getPartnerBilling(partnerId).catch(() => ({ data: { billing: null } })),
     ])
-      .then(([partnerRes, reportRes]) => {
+      .then(([partnerRes, reportRes, billingRes]) => {
         const partner = partnerRes.data.partner || {};
         setEdit({ name: partner.name || '', status: partner.status || 'prospect', notes: partner.notes || '' });
-        setState({ loading: false, error: '', data: partnerRes.data, report: reportRes.data });
+        setState({ loading: false, error: '', data: partnerRes.data, report: reportRes.data, billing: billingRes.data.billing || null });
       })
-      .catch((err) => setState({ loading: false, error: err?.response?.data?.error || 'Could not load partner.', data: null, report: null }));
+      .catch((err) => setState({ loading: false, error: err?.response?.data?.error || 'Could not load partner.', data: null, report: null, billing: null }));
   };
 
   useEffect(() => { load(); }, [partnerId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -55,6 +56,7 @@ export default function PartnerDetailPage() {
   const { partner, staff = [], students = [] } = state.data || {};
   const report = state.report || {};
   const metrics = partner?.metrics || {};
+  const billing = state.billing || null;
 
   return (
     <main className="mx-auto max-w-7xl pb-8">
@@ -91,6 +93,21 @@ export default function PartnerDetailPage() {
           </div>
         </Card>
 
+        <Card className="p-5">
+          <h2 className="font-semibold text-ink-900">Billing Readiness</h2>
+          {billing ? (
+            <div className="mt-4 space-y-3">
+              <Row label="Current plan" value={label(billing.plan?.planType)} />
+              <Row label="Subscription" value={billing.subscription?.status || billing.plan?.source || 'role default'} />
+              <Row label="Student limit" value={billing.plan?.limits?.students ?? 'Unlimited'} />
+              <Row label="Staff limit" value={billing.plan?.limits?.staff ?? 'Unlimited'} />
+              <Row label="Students used" value={billing.usage?.students} />
+              <Row label="Staff used" value={billing.usage?.staff} />
+              <Row label="Trial ends" value={billing.subscription?.trialEnd ? new Date(billing.subscription.trialEnd).toLocaleDateString('en-SG') : 'Not set'} />
+              {billing.pilotOverrideActive && <Badge tone="navy">{label(billing.subscription?.pilotOverride?.type)}</Badge>}
+            </div>
+          ) : <p className="mt-4 text-sm text-ink-500">Billing has not been configured for this partner yet.</p>}
+        </Card>
       </section>
 
       <section className="mt-5 grid gap-5 lg:grid-cols-2">

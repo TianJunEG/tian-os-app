@@ -85,6 +85,7 @@ const PaperAnalysisPage = lazy(() => import('./pages/mathpath/PaperAnalysisPage'
 const PilotAnalyticsPage = lazy(() => import('./pages/admin/PilotAnalyticsPage'));
 const PilotInterventionsPage = lazy(() => import('./pages/admin/PilotInterventionsPage'));
 const QuestionQualityPage = lazy(() => import('./pages/admin/QuestionQualityPage'));
+const BillingPage = lazy(() => import('./pages/admin/BillingPage'));
 const PartnersPage = lazy(() => import('./pages/admin/PartnersPage'));
 const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
 const WorkingUploadScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadScreen'));
@@ -447,6 +448,7 @@ function App() {
           <Route path="/admin/pilot-analytics" element={<ProtectedRoute><FeatureGuard feature="admin"><PilotAnalyticsPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/pilot/interventions" element={<ProtectedRoute><FeatureGuard feature="admin"><PilotInterventionsPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/question-quality" element={<ProtectedRoute><FeatureGuard feature="admin"><QuestionQualityPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/billing" element={<ProtectedRoute><FeatureGuard feature="admin"><BillingPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/partners" element={<ProtectedRoute><FeatureGuard feature="admin"><PartnersPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/partners/:partnerId" element={<ProtectedRoute><FeatureGuard feature="admin"><PartnerDetailPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/mathpath/assessment-upload" element={<ProtectedRoute><FeatureGuard feature="admin"><AssessmentUploadPage /></FeatureGuard></ProtectedRoute>} />

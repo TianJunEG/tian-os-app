@@ -10,6 +10,11 @@ import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.
 import MathPathWorkingSession from '../models/mathpath/MathPathWorkingSession.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { sendTutorApprovalEmail, sendTutorRejectionEmail } from '../utils/emailService.js';
+import {
+  getAdminBillingOverview,
+  getPartnerBillingSummary,
+  setBillingSubscription,
+} from '../services/billing/billingAdminService.js';
 
 const router = express.Router();
 
@@ -33,6 +38,62 @@ function riskForStudent({ diagnosticStatus, practiceCompleted, mistakes, working
   if (diagnosticStatus !== 'completed' || practiceCompleted === 0 || mistakes >= 2 || helpRequests > 0 || workingPending > 0) return 'Watch';
   return 'OK';
 }
+
+// ============================================================================
+// BILLING READINESS
+// ============================================================================
+
+router.get('/billing', adminOnly, async (req, res) => {
+  try {
+    const overview = await getAdminBillingOverview({
+      ownerType: req.query.ownerType || '',
+      limit: req.query.limit || 30,
+    });
+    res.json(overview);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load billing overview.' });
+  }
+});
+
+router.get('/billing/partner/:partnerId', adminOnly, async (req, res) => {
+  try {
+    const billing = await getPartnerBillingSummary(req.params.partnerId);
+    res.json({ billing });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load partner billing.' });
+  }
+});
+
+router.post(
+  '/billing/subscriptions',
+  adminOnly,
+  [
+    body('ownerType').isIn(['user', 'partner']).withMessage('ownerType must be user or partner.'),
+    body('ownerId').trim().notEmpty().withMessage('ownerId is required.'),
+    body('planType').trim().notEmpty().withMessage('planType is required.'),
+    body('status').optional().isIn(['trial', 'active', 'paused', 'cancelled', 'expired']).withMessage('Invalid subscription status.'),
+    body('pilotOverride.type').optional().isIn(['', 'internal_pilot', 'free_pilot', 'paid_pilot', 'extended_trial']).withMessage('Invalid pilot override.'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
+    try {
+      const subscription = await setBillingSubscription({
+        ownerType: req.body.ownerType,
+        ownerId: req.body.ownerId,
+        planType: req.body.planType,
+        status: req.body.status || 'trial',
+        studentLimit: req.body.studentLimit,
+        staffLimit: req.body.staffLimit,
+        pilotOverride: req.body.pilotOverride || {},
+        updatedByUserId: req.user.id,
+      });
+      res.status(201).json({ subscription });
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message || 'Failed to save subscription.' });
+    }
+  }
+);
 
 // ============================================================================
 // 1. USER MANAGEMENT
