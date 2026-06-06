@@ -1,9 +1,11 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { spawnSync } from 'child_process';
 
-const API_BASE = process.env.QA_BASE || 'http://127.0.0.1:5001/api';
-const WEB_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3000';
+let API_BASE = process.env.QA_BASE || 'http://127.0.0.1:5001/api';
+const WEB_BASE = process.env.PLAYWRIGHT_BASE_URL || process.env.FRONTEND_URL || 'http://127.0.0.1:3000';
 const ROOT = process.cwd();
+const AUTO_SEED_PILOT_ACCOUNTS = process.env.AUTO_SEED_PILOT_ACCOUNTS === '1';
 
 const DEMO_ACCOUNTS = [
   'demo.student@tianos.test',
@@ -51,6 +53,21 @@ function parseEnv(raw) {
   return out;
 }
 
+function resolveApiBase(frontendEnv, rootEnv) {
+  const configured = [
+    process.env.QA_BASE,
+    process.env.API_BASE,
+    process.env.BACKEND_API_URL,
+    process.env.API_URL,
+    frontendEnv.VITE_API_URL,
+    process.env.VITE_API_URL,
+  ].find(Boolean);
+  if (configured) return configured.replace(/\/$/, '');
+
+  const port = process.env.PORT || rootEnv.PORT || 5001;
+  return `http://127.0.0.1:${port}/api`;
+}
+
 async function apiCall(method, route, body) {
   const res = await fetch(`${API_BASE}${route}`, {
     method,
@@ -74,6 +91,29 @@ async function loginWithRetry(email, password, retries = 4) {
   return apiCall('POST', '/auth/login', { email, password });
 }
 
+function seedPilotAccounts() {
+  if (!AUTO_SEED_PILOT_ACCOUNTS) {
+    return {
+      pass: true,
+      detail: 'set AUTO_SEED_PILOT_ACCOUNTS=1 to auto-seed pilot accounts before checks',
+    };
+  }
+
+  const result = spawnSync('node', ['scripts/seedPilotStudents.js'], {
+    cwd: ROOT,
+    env: { ...process.env, MONGODB_URI: process.env.MONGODB_URI_LOCAL || process.env.MONGODB_URI },
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  if (result.status === 0) {
+    return { pass: true, detail: 'pilot accounts seeded' };
+  }
+  return {
+    pass: false,
+    detail: `seed pilot accounts failed: status=${result.status} ${String(result.stderr || result.stdout || '').trim()}`,
+  };
+}
+
 async function run() {
   const checks = [];
   const push = (area, check, pass, detail = '') => checks.push({ area, check, pass, detail });
@@ -91,8 +131,15 @@ async function run() {
   const rootEnv = parseEnv(
     (await readEnvFile(path.join(ROOT, '.env'))) || (await readEnvFile(path.join(ROOT, '.env.example')))
   );
-  const mongoUri = process.env.MONGODB_URI || rootEnv.MONGODB_URI || '';
+
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGODB_URI_LOCAL || rootEnv.MONGODB_URI || rootEnv.MONGODB_URI_LOCAL || '';
+  const apiBase = resolveApiBase(frontendEnv, rootEnv);
+  API_BASE = apiBase;
+  push('environment', 'QA_BASE configured', Boolean(apiBase), apiBase);
+
   push('environment', 'MONGODB_URI configured', Boolean(mongoUri), mongoUri ? 'present' : 'missing');
+  const seedSetup = seedPilotAccounts();
+  push('seed-setup', 'seed pilot accounts', seedSetup.pass, seedSetup.detail);
 
   // Backend reachable check
   let reachable = false;
@@ -121,14 +168,22 @@ async function run() {
   }
 
   // Seed account smoke
+  let pilotAccountSmokeFailed = false;
   for (const email of [...DEMO_ACCOUNTS, ...PILOT_ACCOUNTS]) {
     try {
       const login = await loginWithRetry(email, 'Passw0rd!');
       const ok = login.status === 200 && Boolean(login.data?.token);
+      if (email.startsWith('pilot.') && !ok) pilotAccountSmokeFailed = true;
       push('seed-accounts', `login ${maskEmail(email)}`, ok, `status=${login.status}`);
     } catch (err) {
+      if (email.startsWith('pilot.')) pilotAccountSmokeFailed = true;
       push('seed-accounts', `login ${maskEmail(email)}`, false, err?.message || 'login failed');
     }
+  }
+
+  if (pilotAccountSmokeFailed && AUTO_SEED_PILOT_ACCOUNTS) {
+    const rerun = seedPilotAccounts();
+    push('seed-accounts', 'reseed pilot accounts and recheck smoke', rerun.pass, rerun.detail);
   }
   
   const failCount = checks.filter((c) => !c.pass).length;

@@ -18,8 +18,6 @@ const STUDENTS = [
   'pilot.student3@tianos.test',
   'pilot.student4@tianos.test',
   'pilot.student5@tianos.test',
-  'test.student2@tianos.test',
-  'test.student3@tianos.test',
 ];
 
 const UNIQUE_STUDENTS = [...new Set(STUDENTS.filter(Boolean))];
