@@ -1,5 +1,6 @@
 import { runProcedureMisconceptionAnalysis } from './procedureMisconceptionAnalysisService.js';
 import { runReasoningMethodMarkAnalysis, updateReasoningProgression } from './reasoningMethodMarkEngine.js';
+import { detectMisconceptions } from './misconceptionDetectionService.js';
 
 export const WORKING_QUALITY_BANDS = Object.freeze({
   EXCELLENT: 'EXCELLENT',
@@ -87,6 +88,19 @@ export function buildWorkingInsight({ record = {}, procedure = {}, reasoning = {
     Number(procedure.procedureAnalysis?.procedureConfidence?.score || 0),
     Number(reasoning.reasoningRubric?.confidence?.score || 0)
   );
+  const genericMisconceptions = detectMisconceptions({
+    questionText: record.questionText || record.datasetRecord?.question || '',
+    studentAnswer: [
+      record.answerGiven,
+      record.ocrOutput?.rawText,
+      ...(record.detectedSteps || []).map((step) => step.text),
+    ].filter(Boolean).join('\n'),
+    teacherMarkedCorrect: record.answerCorrect === false ? false : null,
+  });
+  const misconceptionTags = [
+    misconception?.misconceptionId,
+    ...(genericMisconceptions.misconceptionTags || []),
+  ].filter(Boolean);
   return {
     workingId: record.workingId || '',
     attemptId: toText(record.attemptId),
@@ -106,6 +120,8 @@ export function buildWorkingInsight({ record = {}, procedure = {}, reasoning = {
       description: misconception.description,
       confidence: misconception.confidence,
     } : null,
+    misconceptionTags: [...new Set(misconceptionTags)],
+    misconceptionConfidence: Math.max(Number(misconception?.confidence || 0), Number(genericMisconceptions.confidence || 0)),
     confidenceScore: Math.round(confidenceScore * 100) / 100,
     workingQualityScore,
     qualityBand: qualityBandFromScore(workingQualityScore),

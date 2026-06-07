@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, FileCheck2, Upload } from 'lucide-react';
 import { Badge, Card } from '../../ui';
+import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum/fractionUniversalSkills';
 
 function toneForEscalation(escalation = '') {
   if (escalation === 'priority_remediation' || escalation === 'diagnostic_assessment') return 'error';
@@ -12,6 +13,17 @@ function escalationLabel(escalation = '') {
   return String(escalation || 'monitor')
     .replace(/_/g, ' ')
     .replace(/^./, (s) => s.toUpperCase());
+}
+
+function skillLabel(skillId = '') {
+  const raw = String(skillId || '').trim();
+  if (!raw) return '';
+  return getUniversalSkillByFrameworkId(raw.toUpperCase())?.title || raw;
+}
+
+function skillListLabel(skillIds = []) {
+  const labels = skillIds.map(skillLabel).filter(Boolean);
+  return labels.length ? labels.join(', ') : 'Unmapped skill';
 }
 
 export default function AdultWorkingReviewPanel({ review = {}, title = 'Working Review' }) {
@@ -28,7 +40,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="text-sm font-semibold text-ink-700">{title}</h3>
-          <p className="mt-1 text-sm text-ink-600">Workings, help requests, and review status from recent MathPath sessions.</p>
+          <p className="mt-1 text-sm text-ink-600">Workings, help requests, and review status from recent Fractions intervention pilot sessions.</p>
         </div>
         <Badge tone={Number(summary.needsReviewCount || 0) > 0 ? 'gold' : 'neutral'}>
           {summary.needsReviewCount || 0} need review
@@ -65,7 +77,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
               {recentSessions.map((session) => (
                 <div key={session.workingSessionId} className="rounded-md bg-slate-50 px-3 py-2 text-sm text-ink-600">
                   <p className="font-mono text-xs text-ink-500">{session.workingSessionId}</p>
-                  <p>{session.domainId || 'MathPath'} · {(session.skillIds || []).join(', ') || 'Unmapped skill'}</p>
+                  <p>{session.domainId || 'Fractions'} · {skillListLabel(session.skillIds || [])}</p>
                   <p>Status: {session.status} · Analysis: {session.analysisStatus}</p>
                 </div>
               ))}
@@ -86,7 +98,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
                 const insight = record.workingInsight || {};
                 return (
                   <div key={record.workingId} className="rounded-md bg-slate-50 px-3 py-2 text-sm text-ink-600">
-                    <p className="font-semibold text-ink-700">{record.skillId || record.questionId || 'Submitted working'}</p>
+                    <p className="font-semibold text-ink-700">{skillLabel(record.skillId) || record.questionId || 'Submitted working'}</p>
                     <p>Method: {insight.detectedMethod || 'Analysis is still being prepared'}</p>
                     <p>Issue: {insight.detectedIssue || insight.studentExplanation || 'Working saved. Insight pending.'}</p>
                   </div>
@@ -108,7 +120,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
               {topHelp.map((row) => (
                 <div key={row.skillId} className="rounded-md bg-slate-50 px-3 py-2 text-sm text-ink-600">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-semibold text-ink-700">{row.skillId}</p>
+                    <p className="font-semibold text-ink-700">{skillLabel(row.skillId) || 'Fractions skill'}</p>
                     <Badge tone={toneForEscalation(row.escalation)}>{escalationLabel(row.escalation)}</Badge>
                   </div>
                   <p>Requests: {row.count} · Wrong: {row.wrongCount} · Correct: {row.correctCount}</p>

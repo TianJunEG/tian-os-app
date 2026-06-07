@@ -9,6 +9,7 @@ import AnswerInputRenderer from './components/AnswerInputRenderer';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
 import { hasWorkingDecision, resolveWorkingRequirementLevel } from '../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from './components/SubmissionReviewModal';
+import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -16,6 +17,10 @@ const REFLECTION_OPTIONS = [
   { value: 'dont_know', label: "I don't know" },
 ];
 const EMPTY_STROKES = [];
+
+function skillLabel(skillId = '') {
+  return getUniversalSkillByFrameworkId(String(skillId || '').toUpperCase())?.title || '';
+}
 
 function buildWorkingEvidence(working = {}) {
   if (Array.isArray(working.workingEvidence) && working.workingEvidence.length) {
@@ -191,7 +196,7 @@ export default function SimilarQuestionPractice() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={practiceSet?.title || 'Similar Question Practice'} subtitle={`${practiceSet?.topic || 'Fractions'} · ${practiceSet?.skillId || ''}`} />
+      <PageHeader title={practiceSet?.title || 'Similar Question Practice'} subtitle={[practiceSet?.topic || 'Fractions', skillLabel(practiceSet?.skillId)].filter(Boolean).join(' · ')} />
       <div className="mb-4 flex items-center justify-between text-sm text-ink-500">
         <span>Question {idx + 1} of {questions.length}</span>
         <span>{q.difficulty}</span>

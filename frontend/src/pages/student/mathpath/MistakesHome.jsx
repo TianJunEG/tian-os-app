@@ -14,6 +14,14 @@ function formatMistakeDate(value) {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
+const LEARNING_STATUS_LABEL = {
+  new: 'New',
+  acknowledged: 'Found',
+  corrected: 'Corrected',
+  understood: 'Understood',
+  mastered: 'Mastered',
+};
+
 // MathPath › Mistake-to-Mastery — home. Recent mistakes, weak skills from
 // mistakes, recommended mastery practice. Reuses the shared practice screens.
 export default function MistakesHome() {
@@ -139,6 +147,9 @@ export default function MistakesHome() {
                     <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-ink-500">
                       <span className="font-semibold text-ink-700">{m.skillName || m.skillCode || 'MathPath'}</span>
                       <span>{formatMistakeDate(m.timestamp || m.occurredAt)}</span>
+                      <Badge tone={m.learningStatus === 'mastered' ? 'success' : m.learningStatus === 'new' ? 'gold' : 'navy'}>
+                        {LEARNING_STATUS_LABEL[m.learningStatus || 'new']}
+                      </Badge>
                     </div>
                     <p className="text-sm font-semibold text-ink-800"><MathText text={m.questionStem} /></p>
                     <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">

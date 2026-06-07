@@ -7,6 +7,10 @@ import {
   findWorkingInsightForMistake,
   shapeWorkingLinkFields,
 } from '../services/mathpath/workingLinkageService.js';
+import {
+  applyMistakeLearningAction,
+  shapeMistakeLearningFields,
+} from '../services/mathpath/mistakeCorrectionFlow.js';
 
 const router = express.Router();
 
@@ -128,6 +132,7 @@ router.get('/', protect, async (req, res) => {
       workingStrokes: Array.isArray(m.workingStrokes) ? m.workingStrokes : [],
       timeTaken: m.timeTaken,
       ...(await loadWorkingInsightForMistake(m, student._id)),
+      ...shapeMistakeLearningFields(m),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
     })));
 
@@ -227,6 +232,7 @@ router.get('/:id', protect, async (req, res) => {
       workingStrokes: Array.isArray(m.workingStrokes) ? m.workingStrokes : [],
       timeTaken: m.timeTaken,
       ...(await loadWorkingInsightForMistake(m, m.studentId)),
+      ...shapeMistakeLearningFields(m),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
     });
   } catch (err) {
@@ -235,7 +241,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // @route POST /api/mistakes/:id/review
-// @desc  Mark a mistake reviewed. body: { source: student|parent|tutor|teacher, mistakeType? }
+// @desc  Acknowledge a mistake only. This does not mean understood or mastered.
 // @access Private
 router.post('/:id/review', protect, async (req, res) => {
   try {
@@ -243,16 +249,61 @@ router.post('/:id/review', protect, async (req, res) => {
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
     await resolveStudent(req, m.studentId); // access check
 
-    m.reviewed = true;
-    m.reviewedAt = new Date();
-    m.reviewedByUserId = req.user.id;
-    m.reviewSource = req.body.source || 'student';
-    if (m.status === 'open') m.status = 'reviewed';
+    applyMistakeLearningAction(m, {
+      action: 'acknowledge',
+      userId: req.user.id,
+      source: req.body.source || 'student',
+    });
     if (req.body.mistakeType) m.mistakeType = req.body.mistakeType;
     await m.save();
-    res.json({ id: m._id, status: m.status, reviewed: true, reviewedAt: m.reviewedAt });
+    res.json({
+      id: m._id,
+      status: m.status,
+      reviewed: true,
+      reviewedAt: m.reviewedAt,
+      ...shapeMistakeLearningFields(m),
+    });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to mark reviewed.' });
+  }
+});
+
+// @route PATCH /api/mistakes/:id/learning
+// @desc  Progress mistake learning evidence: acknowledge -> correct -> understand -> master.
+// @access Private
+router.patch('/:id/learning', protect, async (req, res) => {
+  try {
+    const m = await Mistake.findById(req.params.id);
+    if (!m) return res.status(404).json({ error: 'Mistake not found.' });
+    await resolveStudent(req, m.studentId);
+
+    const result = applyMistakeLearningAction(m, {
+      action: req.body?.action,
+      reflection: req.body?.reflection,
+      correctionAttempt: req.body?.correctionAttempt,
+      understandingAnswer: req.body?.understandingAnswer,
+      masteryEvidence: req.body?.masteryEvidence,
+      userId: req.user.id,
+      source: req.body?.source || 'student',
+    });
+    if (req.body?.mistakeType) m.mistakeType = req.body.mistakeType;
+    await m.save();
+    res.json({
+      id: m._id,
+      status: m.status,
+      reviewed: m.reviewed,
+      reviewedAt: m.reviewedAt,
+      ...shapeMistakeLearningFields(m),
+      correctionCorrect: result.correctionCorrect,
+      understandingPassed: result.understandingPassed,
+      mastered: result.mastered,
+      message: result.message,
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({
+      error: err.message || 'Failed to update mistake learning evidence.',
+      code: err.code,
+    });
   }
 });
 

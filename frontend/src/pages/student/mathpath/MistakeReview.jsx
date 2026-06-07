@@ -11,6 +11,13 @@ const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation', careless: 'Careless',
   method_error: 'Method', unknown: 'To review',
 };
+const LEARNING_STATUS_LABEL = {
+  new: 'New',
+  acknowledged: 'Student reviewed this mistake',
+  corrected: 'Student successfully corrected this mistake',
+  understood: 'Student showed understanding',
+  mastered: 'Student demonstrated mastery',
+};
 
 function hasCompleteReviewData(mistake = {}) {
   return Boolean(
@@ -129,7 +136,12 @@ export default function MistakeReview() {
               <>
               <div className="mb-4 flex items-center justify-between gap-2">
                 <span className="text-base font-semibold text-navy-700">{m.skillName}</span>
-                <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || 'To review'}</Badge>
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || 'To review'}</Badge>
+                  <Badge tone={m.learningStatus === 'mastered' ? 'success' : m.learningStatus === 'new' ? 'gold' : 'navy'}>
+                    {LEARNING_STATUS_LABEL[m.learningStatus || 'new']}
+                  </Badge>
+                </div>
               </div>
               <div className="space-y-4">
                 <section>

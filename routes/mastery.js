@@ -1542,6 +1542,8 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
     return res.json({
       sessionId: session.diagnosticSessionId,
       mode: session.mode,
+      diagnosticPurpose: session.diagnosticPurpose || session.result?.diagnosticPurpose || 'baseline',
+      assignmentId: session.assignmentId || '',
       studentLevel: session.studentLevel,
       ...result,
       recommendedStartingSkillId: safeRecommended?.skillId || null,

@@ -13,14 +13,28 @@ import { MathText } from '../../components/ui/Fraction';
 //   formula  — if true, render the stem/answers through <MathText>
 //              (Math worksheets carry LaTeX-ish fragments; Science is plain prose).
 //   action   — optional bottom-right button slot (e.g. "Assign practice").
+const LEARNING_STATUS_LABEL = {
+  new: 'New mistake',
+  acknowledged: 'Student reviewed this mistake',
+  corrected: 'Student successfully corrected this mistake',
+  understood: 'Student showed understanding',
+  mastered: 'Student demonstrated mastery',
+};
+
 export default function MistakeCard({ mistake: m, formula = false, action = null }) {
   const Stem = formula ? MathText : PlainText;
   const Ans = formula ? MathText : PlainText;
+  const learningStatus = m.learningStatus || 'new';
   return (
     <Card className="p-5">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-sm font-semibold text-ink-700">{m.skillName}</span>
-        {m.topicName && <Badge tone="neutral">{m.topicName}</Badge>}
+        <div className="flex flex-wrap justify-end gap-2">
+          {m.topicName && <Badge tone="neutral">{m.topicName}</Badge>}
+          <Badge tone={learningStatus === 'mastered' ? 'success' : learningStatus === 'new' ? 'gold' : 'navy'}>
+            {LEARNING_STATUS_LABEL[learningStatus] || 'Mistake learning'}
+          </Badge>
+        </div>
       </div>
       <div className="text-ink-900"><Stem text={m.questionStem} /></div>
       <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">

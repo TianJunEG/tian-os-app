@@ -87,6 +87,30 @@ const mistakeSchema = new mongoose.Schema({
   reviewed: { type: Boolean, default: false },
   reviewedAt: { type: Date, default: null },
   reviewedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  learningStatus: {
+    type: String,
+    enum: ['new', 'acknowledged', 'corrected', 'understood', 'mastered'],
+    default: 'new',
+    index: true,
+  },
+  reflection: { type: String, default: '' },
+  correctionAttempt: { type: String, default: '' },
+  understandingCheck: {
+    prompt: { type: String, default: '' },
+    answer: { type: String, default: '' },
+    passed: { type: Boolean, default: false },
+    checkedAt: { type: Date, default: null },
+  },
+  masteryEvidence: {
+    evidenceType: {
+      type: String,
+      enum: ['successful_correction', 'guided_question', 'independent_question', 'recheck', ''],
+      default: '',
+    },
+    sourceId: { type: String, default: '', trim: true },
+    recordedAt: { type: Date, default: null },
+    note: { type: String, default: '' },
+  },
   source: {
     type: String,
     enum: ['diagnostic-incorrect', 'diagnostic-skipped', 'practice-incorrect', 'other'],

@@ -52,6 +52,7 @@ describe('MistakeReview pilot data guard', () => {
           correctAnswer: '7',
           mistakeType: 'method_error',
           status: 'open',
+          learningStatus: 'corrected',
           workedSolution: 'Find a common denominator first.',
         }],
       },
@@ -63,6 +64,7 @@ describe('MistakeReview pilot data guard', () => {
     expect(screen.getByText('Find x')).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
+    expect(screen.getByText('Student successfully corrected this mistake')).toBeInTheDocument();
     expect(screen.queryByText('No mistakes to review yet. Complete more practice and Tian OS will show questions to review here.')).not.toBeInTheDocument();
   });
 
