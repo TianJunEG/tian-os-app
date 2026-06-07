@@ -1,0 +1,72 @@
+{
+  "parents": [
+    {
+      "id": "parentA",
+      "children": [
+        {
+          "id": "childA1",
+          "baselineDiagnostic": {
+            "id": "diag-A1-1",
+            "score": 42
+          },
+          "recoveryPacks": [
+            {
+              "id": "rp-A1-1",
+              "questionRefs": [
+                "q-A1-1",
+                "q-A1-2"
+              ],
+              "warningCount": 0
+            }
+          ],
+          "teachingFlows": [
+            {
+              "id": "tf-A1-1"
+            }
+          ],
+          "rechecks": [
+            {
+              "id": "recheck-A1-1"
+            }
+          ],
+          "parentSuccessReport": {
+            "id": "psr-A1-1"
+          }
+        },
+        {
+          "id": "childA2",
+          "baselineDiagnostic": {
+            "id": "diag-A2-1",
+            "score": 70
+          }
+        }
+      ]
+    },
+    {
+      "id": "parentB",
+      "children": [
+        {
+          "id": "childB1",
+          "baselineDiagnostic": {
+            "id": "diag-B1-1",
+            "score": 58
+          }
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-A1-1",
+      "text": "Question A1.1"
+    },
+    {
+      "id": "q-A1-2",
+      "text": "Question A1.2"
+    }
+  ],
+  "meta": {
+    "generatedAt": "2026-06-07T13:58:46.930Z",
+    "note": "Smoke seed for pilot evidence chain — safe snapshot file"
+  }
+}
