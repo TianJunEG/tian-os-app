@@ -204,7 +204,7 @@ const fractionSkills = [
   },
   {
     id: 'F015',
-    name: 'Convert Mixed ↔ Improper',
+    name: 'Convert Mixed to/from Improper',
     description: 'Convert between mixed numbers and improper fractions accurately.',
     strand: 'Conversion',
     prerequisites: ['F013', 'F014'],

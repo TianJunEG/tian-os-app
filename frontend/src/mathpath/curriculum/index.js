@@ -1,4 +1,12 @@
 export {
+  FRACTIONS_PILOT_SCOPE_LABEL,
+  FRACTION_CANONICAL_SKILL_ROWS,
+  getCanonicalFractionSkill,
+  getCanonicalFractionSkillBySlug,
+  listCanonicalFractionSkills,
+} from './fractionCanonicalSkillMap.js';
+
+export {
   fractionUniversalSkills,
   getUniversalSkillByFrameworkId,
   getUniversalSkillBySkillId,
