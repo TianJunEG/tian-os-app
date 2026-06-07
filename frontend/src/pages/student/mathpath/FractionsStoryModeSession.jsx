@@ -16,9 +16,14 @@ import {
   getStoryStepFeedback,
   FRACTIONS_STORY_SUPPORTED_SKILLS,
 } from '../../../mathpath/fractions/fractionStoryModeEngine';
+import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 import { setMathPathDomainProgressState, getMathPathDomainProgressState } from '../../../mathpath/state/mathPathDomainProgressState';
 import StoryAudioControls from './story/StoryAudioControls';
 import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
+
+function storySkillName(skillId = '') {
+  return getUniversalSkillByFrameworkId(String(skillId || '').toUpperCase())?.title || 'Fraction story skill';
+}
 
 function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
   const denominator = Math.max(1, Number(model.denominator || 1));
@@ -209,10 +214,10 @@ export default function FractionsStoryModeSession() {
       <div className="mx-auto max-w-xl px-3 pt-3 sm:px-0">
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-ink-900">Choose a supported Story Mode skill</h2>
-          <p className="mt-2 text-sm text-ink-600">Story Mode currently supports F025 and F026.</p>
+          <p className="mt-2 text-sm text-ink-600">Story Mode currently supports exam-style fraction applications and the Fractions Mastery Challenge.</p>
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <Button onClick={() => navigate('/student/mathpath/fractions/story/F025', { replace: true })}>Start F025 Story</Button>
-            <Button variant="secondary" onClick={() => navigate('/student/mathpath/fractions/story/F026', { replace: true })}>Start F026 Story</Button>
+            <Button onClick={() => navigate('/student/mathpath/fractions/story/F025', { replace: true })}>Start exam-style story</Button>
+            <Button variant="secondary" onClick={() => navigate('/student/mathpath/fractions/story/F026', { replace: true })}>Start mastery story</Button>
           </div>
         </Card>
       </div>
@@ -312,7 +317,7 @@ export default function FractionsStoryModeSession() {
           <p className="text-sm font-semibold text-ink-700">{story.missionTitle}</p>
           <p className="mt-3 text-sm text-ink-700">{feedback.message}</p>
           <div className="mt-4 rounded-xl border border-hairline bg-slate-50 p-3 text-sm text-ink-700">
-            <p><span className="font-semibold">Skill:</span> {story.skillId} · {story.title}</p>
+            <p><span className="font-semibold">Skill:</span> {storySkillName(story.skillId)}</p>
             <p><span className="font-semibold">Final answer:</span> {story.answer.display}</p>
             <p><span className="font-semibold">Accuracy:</span> {result.accuracy}%</p>
           </div>

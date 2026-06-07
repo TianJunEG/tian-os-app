@@ -159,8 +159,8 @@ describe('FractionsStoryModeSession direct routes', () => {
   it('handles invalid skill routes safely', async () => {
     await renderStoryRoute('/student/mathpath/fractions/story/F099', 'true');
     expect(screen.getByText(/supported Story Mode skill/i)).toBeInTheDocument();
-    expect(screen.getByText(/Start F025 Story/i)).toBeInTheDocument();
-    expect(screen.getByText(/Start F026 Story/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start exam-style story/i)).toBeInTheDocument();
+    expect(screen.getByText(/Start mastery story/i)).toBeInTheDocument();
   });
 
   it('shows a graceful coming-soon state for unsupported story domains', async () => {
