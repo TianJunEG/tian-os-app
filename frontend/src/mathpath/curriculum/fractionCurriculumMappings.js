@@ -44,11 +44,35 @@ const SG_BASE = {
   phase: 'Primary',
   stream: 'Standard',
   domain: 'fractions',
+  topic: 'Fractions',
   strand: 'Number and Algebra',
   subStrand: 'Fractions',
   syllabusTopic: 'Fractions',
   pilotScope: FRACTIONS_PILOT_SCOPE_LABEL,
   sourceDocument: 'Singapore MOE Primary Mathematics Syllabus (2021, updated October 2025)',
+};
+
+const SECONDARY_SG_BASE = {
+  ...SG_BASE,
+  curriculum: 'MOE_SECONDARY_G1_MATH_2021',
+  phase: 'Secondary',
+  stream: 'G1',
+  level: 'S1',
+  levelBand: ['S1'],
+  sourceDocument: 'Singapore MOE Secondary 1 G1 Mathematics Syllabus (2021, updated October 2025)',
+};
+
+const S1_MAPPED_SKILL_REFS = {
+  F010: 'N1.3',
+  F013: 'N1.3',
+  F014: 'N1.3',
+  F017: 'N1.3',
+  F018: 'N1.3',
+  F021: 'N1.3',
+  F022: 'N1.3',
+  F023: 'N2.3',
+  F025: 'N3.1',
+ F026: 'N5.2',
 };
 
 const primaryMappings = FRACTION_CANONICAL_SKILL_ROWS.map((row) => {
@@ -62,7 +86,7 @@ const primaryMappings = FRACTION_CANONICAL_SKILL_ROWS.map((row) => {
     title: row.displayName,
     studentName: row.studentName,
     parentName: row.parentName,
-    topic: row.topic,
+    topic: SG_BASE.topic,
     level: levelBand[levelBand.length - 1] || row.masteryLevel,
     introducedLevel: row.introducedLevel,
     masteryLevel: row.masteryLevel,
@@ -75,7 +99,19 @@ const primaryMappings = FRACTION_CANONICAL_SKILL_ROWS.map((row) => {
   };
 });
 
-export const fractionCurriculumMappings = primaryMappings;
+const secondaryMappings = primaryMappings
+  .filter((mapping) => Object.keys(S1_MAPPED_SKILL_REFS).includes(mapping.frameworkSkillId))
+  .map((mapping) => ({
+    ...mapping,
+    ...SECONDARY_SG_BASE,
+    curriculum: 'MOE_SECONDARY_G1_MATH_2021',
+    level: 'S1',
+    levelBand: ['S1'],
+    syllabusRef: S1_MAPPED_SKILL_REFS[mapping.frameworkSkillId] || mapping.syllabusRef,
+    notes: 'Derived from canonical SG primary fraction mappings for Secondary 1 G1 support.',
+  }));
+
+export const fractionCurriculumMappings = [...primaryMappings, ...secondaryMappings];
 
 const mappingByFrameworkId = new Map(
   fractionCurriculumMappings.map((mapping) => [`${mapping.country}::${mapping.curriculum}::${mapping.frameworkSkillId}`, mapping])

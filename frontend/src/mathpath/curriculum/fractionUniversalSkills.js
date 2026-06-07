@@ -51,6 +51,7 @@ const FRACTION_UNIVERSAL_SKILL_ROWS = FRACTION_CANONICAL_SKILL_ROWS.map((row, in
   difficultyBand: difficultyBand(row),
   questionTypes: QUESTION_TYPES_BY_STRAND[row.strand] || ['short_answer'],
   mistakeTypes: MISTAKE_TYPES_BY_TOPIC[row.topic] || [],
+  aliases: Array.isArray(row.aliases) ? [...row.aliases] : [],
   pathwayOrder: index + 1,
 }));
 

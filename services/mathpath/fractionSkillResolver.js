@@ -54,6 +54,11 @@ for (const row of fractionUniversalSkills) {
     aliases: new Set(),
   };
   existing.universalSkillSlug = row.skillId || existing.universalSkillSlug;
+  if (Array.isArray(row.aliases)) {
+    row.aliases.forEach((alias) => {
+      if (alias) existing.aliases.add(alias);
+    });
+  }
   byFramework.set(f, existing);
 }
 

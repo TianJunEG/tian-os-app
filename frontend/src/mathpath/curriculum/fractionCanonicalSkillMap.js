@@ -412,6 +412,7 @@ export const FRACTION_CANONICAL_SKILL_ROWS = [
   {
     frameworkSkillId: 'F025',
     slug: 'fractions.exam_style_applications',
+    aliases: ['fractions.word_problems_basic'],
     displayName: 'Exam-Style Fraction Applications',
     studentName: 'Solving exam-style fraction questions',
     parentName: 'Solving exam-style fraction applications',
@@ -429,6 +430,7 @@ export const FRACTION_CANONICAL_SKILL_ROWS = [
   {
     frameworkSkillId: 'F026',
     slug: 'fractions.mastery_challenge',
+    aliases: ['fractions.word_problems_multi_step'],
     displayName: 'Fractions Mastery Challenge',
     studentName: 'Putting fraction skills together',
     parentName: 'Consolidating fraction skills',
