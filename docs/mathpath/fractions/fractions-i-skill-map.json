@@ -1,0 +1,338 @@
+[
+  {
+    "id": "FR-MIX-01",
+    "title": "Understand Mixed Numbers as Wholes Plus Parts",
+    "concept": "Identify the whole-number part and fractional part of a mixed number and explain what each part represents.",
+    "prerequisites": [
+      "Recognize unit fractions",
+      "Understand denominator as equal parts per whole",
+      "Identify one whole"
+    ],
+    "templates": [
+      "Match a mixed number to a shaded model",
+      "Identify the whole and fractional parts of a mixed number",
+      "Count complete wholes plus remaining equal parts",
+      "Choose the mixed number for a real-world quantity"
+    ],
+    "misconceptionTags": [
+      "mixed_number_ignores_whole_part",
+      "numerator_as_wholes",
+      "mixed_number_read_as_simple_fraction",
+      "denominator_as_total_objects"
+    ],
+    "remediationNotes": "Rebuild the number from complete wholes first, then name the leftover equal parts. Ask the student to verbalize the whole count before the fractional part.",
+    "recheckTemplates": [
+      "Given a model with complete wholes and one partial whole, write the mixed number.",
+      "Explain what the whole-number part and fractional part mean in a context."
+    ],
+    "parentTutorNotes": "A mixed number is one number made from complete wholes plus part of the next whole. Ask the student to point to the wholes before naming the fraction."
+  },
+  {
+    "id": "FR-MIX-02",
+    "title": "Count Unit Fraction Parts in a Mixed Number",
+    "concept": "Convert a mixed number into the total count of unit fractions it contains.",
+    "prerequisites": [
+      "Understand mixed numbers as wholes plus parts",
+      "Know each whole contains denominator-sized unit parts",
+      "Use multiplication as equal groups"
+    ],
+    "templates": [
+      "Find how many unit fractions are in a mixed number",
+      "Fill the total count of thirds, fourths, fifths, or sixths",
+      "Interpret a story quantity as unit fractions",
+      "Count unit parts from a model"
+    ],
+    "misconceptionTags": [
+      "counts_fractional_part_only",
+      "adds_denominator_without_grouping",
+      "changes_denominator_when_counting",
+      "whole_group_size_missed"
+    ],
+    "remediationNotes": "Represent each whole as a full group of denominator-sized unit parts, then add the leftover numerator.",
+    "recheckTemplates": [
+      "Given a mixed number, find the total number of unit fraction parts.",
+      "Show the grouped calculation used to count the unit fraction parts."
+    ],
+    "parentTutorNotes": "This is the foundation for mixed-to-improper conversion. Listen for the student saying how many parts are in each whole."
+  },
+  {
+    "id": "FR-MIX-03",
+    "title": "Simplify the Fractional Part of a Mixed Number",
+    "concept": "Simplify the fraction in a mixed number while keeping the whole-number part unchanged.",
+    "prerequisites": [
+      "Find common factors",
+      "Simplify proper fractions",
+      "Understand that equivalent fractions have the same value"
+    ],
+    "templates": [
+      "Write a mixed number in simplest form",
+      "Fill missing numerator and denominator after simplifying",
+      "Identify equivalent mixed numbers",
+      "Choose the simplest equivalent mixed number"
+    ],
+    "misconceptionTags": [
+      "simplifies_whole_number_part",
+      "uses_different_factors",
+      "not_fully_simplified",
+      "changes_value_during_simplification"
+    ],
+    "remediationNotes": "Temporarily isolate the fractional part, simplify it using a common factor, then restore the unchanged whole-number part.",
+    "recheckTemplates": [
+      "Simplify a mixed number with a reducible fractional part.",
+      "Name the common factor used to simplify the fractional part."
+    ],
+    "parentTutorNotes": "The whole number is not reduced. The student should only simplify the fraction after the whole number."
+  },
+  {
+    "id": "FR-MIX-04",
+    "title": "Place Mixed Numbers on a Number Line",
+    "concept": "Locate a mixed number between whole numbers by partitioning the interval into equal fractional parts.",
+    "prerequisites": [
+      "Read whole-number positions on a number line",
+      "Partition an interval into equal parts",
+      "Understand mixed numbers as positions"
+    ],
+    "templates": [
+      "Mark a mixed number on a number line",
+      "Read a plotted point as a mixed number",
+      "Choose the whole-number interval containing a mixed number",
+      "Complete missing tick labels"
+    ],
+    "misconceptionTags": [
+      "counts_from_zero_instead_of_anchor",
+      "unequal_interval_partition",
+      "denominator_as_tick_label",
+      "fraction_placed_before_whole"
+    ],
+    "remediationNotes": "Anchor at the whole-number part first, split only the next interval into equal parts, then count forward to the fractional part.",
+    "recheckTemplates": [
+      "Identify a mixed number from an unlabeled point between two whole numbers.",
+      "Place a named mixed number on a partitioned number line."
+    ],
+    "parentTutorNotes": "This checks whether the student sees mixed numbers as locations. Ask which two whole numbers the value sits between."
+  },
+  {
+    "id": "FR-IMP-01",
+    "title": "Understand Improper Fractions as More Than One Whole",
+    "concept": "Recognize improper fractions as total counts of equal parts that can exceed one whole.",
+    "prerequisites": [
+      "Count unit fractions",
+      "Understand one whole as denominator-over-denominator",
+      "Read numerator and denominator roles"
+    ],
+    "templates": [
+      "Match an improper fraction to a model",
+      "Count shaded unit parts across more than one whole",
+      "Classify a fraction as less than, equal to, or greater than one",
+      "Write an improper fraction from a visual model"
+    ],
+    "misconceptionTags": [
+      "improper_fraction_seen_as_invalid",
+      "all_fractions_less_than_one",
+      "counts_whole_objects_not_unit_parts",
+      "reverses_numerator_denominator"
+    ],
+    "remediationNotes": "Build one whole as denominator-over-denominator, then add extra unit parts and count the total numerator.",
+    "recheckTemplates": [
+      "Given several complete wholes plus a partial whole, write the improper fraction.",
+      "Explain why a fraction with numerator greater than denominator can be valid."
+    ],
+    "parentTutorNotes": "An improper fraction is valid. It counts equal parts, even when the total passes one whole."
+  },
+  {
+    "id": "FR-IMP-02",
+    "title": "Convert Mixed Numbers to Improper Fractions",
+    "concept": "Use the whole number, denominator, and numerator to find the total count of equal fractional parts.",
+    "prerequisites": [
+      "Count unit fraction parts in mixed numbers",
+      "Multiply whole-number groups",
+      "Keep denominator meaning constant"
+    ],
+    "templates": [
+      "Convert a mixed number to an improper fraction",
+      "Complete the missing numerator in an improper fraction",
+      "Convert a story quantity into an improper fraction",
+      "Explain the conversion from a model"
+    ],
+    "misconceptionTags": [
+      "adds_all_three_numbers",
+      "changes_denominator_during_conversion",
+      "multiplies_numerator_by_denominator",
+      "omits_leftover_numerator"
+    ],
+    "remediationNotes": "Connect the shortcut to grouped unit parts: wholes create full groups, then leftover parts are added. Keep the denominator unchanged.",
+    "recheckTemplates": [
+      "Convert a mixed number with denominator 3, 4, 5, or 6 to an improper fraction.",
+      "Show the grouped calculation or model behind the conversion."
+    ],
+    "parentTutorNotes": "The denominator stays the same because the part size stays the same. Only the number of parts changes."
+  },
+  {
+    "id": "FR-IMP-03",
+    "title": "Convert Improper Fractions to Mixed Numbers",
+    "concept": "Divide the numerator by the denominator to form complete wholes and a remaining fractional part.",
+    "prerequisites": [
+      "Understand division with remainders",
+      "Know one whole as denominator-over-denominator",
+      "Group unit fractions into wholes"
+    ],
+    "templates": [
+      "Convert an improper fraction to a mixed number",
+      "Fill quotient and remainder in a conversion",
+      "Group a model into complete wholes",
+      "Choose the equivalent mixed number"
+    ],
+    "misconceptionTags": [
+      "quotient_written_as_numerator",
+      "remainder_used_as_denominator",
+      "zero_remainder_mishandled",
+      "rounds_instead_of_using_remainder"
+    ],
+    "remediationNotes": "Group the numerator into sets the size of the denominator. Full groups become the whole number and leftovers become the numerator.",
+    "recheckTemplates": [
+      "Convert an improper fraction with a nonzero remainder to a mixed number.",
+      "Explain the meaning of the quotient and remainder in the answer."
+    ],
+    "parentTutorNotes": "The student is regrouping parts into wholes. Ask how many full wholes can be made and what remains."
+  },
+  {
+    "id": "FR-IMP-04",
+    "title": "Match Equivalent Mixed and Improper Forms",
+    "concept": "Recognize and produce equivalent mixed-number, improper-fraction, and model representations of the same quantity.",
+    "prerequisites": [
+      "Convert mixed numbers to improper fractions",
+      "Convert improper fractions to mixed numbers",
+      "Count unit parts from models"
+    ],
+    "templates": [
+      "Match mixed and improper forms",
+      "Choose all equivalent representations",
+      "Complete a representation table",
+      "Find and correct a conversion error"
+    ],
+    "misconceptionTags": [
+      "forms_seen_as_different_values",
+      "matches_by_digits_only",
+      "denominator_consistency_missed",
+      "simplified_equivalent_missed"
+    ],
+    "remediationNotes": "Use a three-column organizer for model, mixed number, and improper fraction. Verify each by counting the same unit parts.",
+    "recheckTemplates": [
+      "Given one representation, produce the other two equivalent forms.",
+      "Select the matching form from distractors with similar digits."
+    ],
+    "parentTutorNotes": "This checks flexibility. The student should be able to change form without changing value."
+  },
+  {
+    "id": "FR-CMP-01",
+    "title": "Compare Mixed Numbers with Like Denominators",
+    "concept": "Compare mixed numbers by whole-number part first and fractional part second when denominators match.",
+    "prerequisites": [
+      "Understand mixed-number structure",
+      "Compare proper fractions with the same denominator",
+      "Use inequality symbols"
+    ],
+    "templates": [
+      "Choose the greater or lesser mixed number",
+      "Fill an inequality symbol",
+      "Compare story quantities",
+      "Explain the comparison using whole part then fraction part"
+    ],
+    "misconceptionTags": [
+      "compares_numerators_only",
+      "ignores_whole_number_part",
+      "inequality_symbol_reversed",
+      "larger_denominator_assumed_larger"
+    ],
+    "remediationNotes": "Compare whole-number parts first. If those match, compare fractional numerators because the denominator means the part size is the same.",
+    "recheckTemplates": [
+      "Compare pairs where whole-number parts differ.",
+      "Compare pairs where whole-number parts match and fractional numerators differ."
+    ],
+    "parentTutorNotes": "Use a two-step comparison: whole numbers first, fractional parts second."
+  },
+  {
+    "id": "FR-CMP-02",
+    "title": "Compare Improper Fractions with Common Denominators",
+    "concept": "Compare improper fractions by making the part sizes the same, then comparing numerators.",
+    "prerequisites": [
+      "Understand improper fractions",
+      "Create equivalent fractions",
+      "Find common denominators"
+    ],
+    "templates": [
+      "Compare two improper fractions",
+      "Complete equivalent fractions before comparing",
+      "Fill an inequality symbol",
+      "Select the larger amount from two models"
+    ],
+    "misconceptionTags": [
+      "smaller_denominator_assumed_larger",
+      "denominator_compared_after_conversion",
+      "only_one_fraction_converted",
+      "equivalent_value_lost"
+    ],
+    "remediationNotes": "Name the part size first. If part sizes differ, rewrite both fractions with a shared denominator before comparing numerators.",
+    "recheckTemplates": [
+      "Compare two improper fractions with unlike denominators.",
+      "Show the common-denominator rewrite before choosing the greater value."
+    ],
+    "parentTutorNotes": "The student is comparing fairly by using same-sized parts. Ask to see both rewritten fractions before the decision."
+  },
+  {
+    "id": "FR-CMP-03",
+    "title": "Compare Mixed Numbers and Improper Fractions",
+    "concept": "Compare values written in different forms by converting to a shared representation.",
+    "prerequisites": [
+      "Convert between mixed numbers and improper fractions",
+      "Compare fractions with common denominators",
+      "Estimate values greater than one"
+    ],
+    "templates": [
+      "Compare a mixed number with an improper fraction",
+      "Choose a conversion strategy",
+      "Fill an inequality symbol",
+      "Identify the more efficient comparison route"
+    ],
+    "misconceptionTags": [
+      "compares_whole_to_numerator",
+      "compares_unlike_forms_directly",
+      "conversion_changes_value",
+      "inequality_symbol_reversed"
+    ],
+    "remediationNotes": "Choose one comparison lane: convert both to improper fractions or both to mixed numbers. Estimate size before writing the inequality symbol.",
+    "recheckTemplates": [
+      "Compare one mixed number and one improper fraction that are close in value.",
+      "Require conversion plus an inequality statement."
+    ],
+    "parentTutorNotes": "Different forms can describe the same quantity. The comparison is fair only after both values are interpreted in a compatible way."
+  },
+  {
+    "id": "FR-CMP-04",
+    "title": "Order Mixed and Improper Fractions",
+    "concept": "Order three or more values that may include mixed numbers, improper fractions, and whole-number equivalents.",
+    "prerequisites": [
+      "Compare mixed and improper fractions",
+      "Find common denominators",
+      "Use increasing and decreasing order"
+    ],
+    "templates": [
+      "Arrange values from least to greatest",
+      "Place values on a number line",
+      "Identify the greatest or smallest value",
+      "Repair an incorrectly ordered list"
+    ],
+    "misconceptionTags": [
+      "orders_by_numerator_only",
+      "whole_number_equivalent_mishandled",
+      "no_common_comparison_form",
+      "increasing_decreasing_confused"
+    ],
+    "remediationNotes": "Convert all values into one chosen form, annotate approximate size, then order. Use a number line when values are close.",
+    "recheckTemplates": [
+      "Order four values containing mixed, improper, and whole-number forms.",
+      "Justify why the first value is smallest and the last value is greatest."
+    ],
+    "parentTutorNotes": "This is a synthesis skill. The student must choose a strategy, preserve equivalent values, and compare several numbers consistently."
+  }
+]

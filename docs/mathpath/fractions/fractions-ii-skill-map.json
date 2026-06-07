@@ -1,0 +1,373 @@
+[
+  {
+    "id": "FR-ADD-01",
+    "title": "Add like fractions with sum greater than one whole",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Add fractions with the same denominator, recognize when the sum is greater than one whole, and convert the result when mixed-number form is required.",
+    "prerequisites": [
+      "Understand numerator and denominator roles",
+      "Add like fractions within one whole",
+      "Recognize improper fractions",
+      "Convert improper fractions to mixed numbers",
+      "Simplify fractional parts"
+    ],
+    "answerForms": [
+      "improper_fraction",
+      "mixed_number",
+      "mixed_number_simplest_form",
+      "short_explanation"
+    ],
+    "templateTypes": [
+      "Add two like fractions where the numerator sum is greater than the denominator",
+      "Convert an improper sum into a mixed number",
+      "Choose the correct mixed-number answer from close distractors",
+      "Explain how many wholes and remaining parts are in the sum"
+    ],
+    "misconceptionTags": [
+      "adds_denominators",
+      "does_not_convert_improper",
+      "wrong_mixed_number_conversion",
+      "not_simplified"
+    ],
+    "remediationNotes": "Use a visual or unit-part model to show that the denominator names the size of each part. Add only the counts of parts, then group denominator-sized sets into wholes.",
+    "recheckTemplates": [
+      "Add two like fractions with a different denominator and write the answer as a mixed number in simplest form.",
+      "Show how the improper numerator was regrouped into wholes and leftover parts."
+    ],
+    "parentTutorNotes": "The student is learning that fractions can add to more than one whole. Ask them to count the parts first, then regroup those parts into wholes.",
+    "difficultyProgression": [
+      "Sum is just over one whole and already in simplest form",
+      "Sum requires mixed-number conversion",
+      "Sum requires mixed-number conversion and simplification",
+      "Student explains the regrouping process in words"
+    ]
+  },
+  {
+    "id": "FR-ADD-02",
+    "title": "Add unlike fractions using common denominators",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Rewrite unlike fractions as equivalent fractions with a shared denominator, then add and simplify the result.",
+    "prerequisites": [
+      "Equivalent fractions",
+      "Common multiples",
+      "Add like fractions",
+      "Simplify fractions",
+      "Convert improper fractions to mixed numbers"
+    ],
+    "answerForms": [
+      "proper_fraction_simplest_form",
+      "improper_fraction",
+      "mixed_number_simplest_form",
+      "equivalent_fraction_working"
+    ],
+    "templateTypes": [
+      "Add two proper fractions with unlike denominators",
+      "Fill missing equivalent-fraction numerators before adding",
+      "Add unlike fractions where the sum is greater than one",
+      "Choose a common denominator before solving"
+    ],
+    "misconceptionTags": [
+      "adds_denominators",
+      "no_common_denominator",
+      "wrong_common_multiple",
+      "incorrect_equivalent_fraction",
+      "not_simplified",
+      "does_not_convert_improper"
+    ],
+    "remediationNotes": "Make the same-sized-parts idea explicit. Rewrite both fractions with the same denominator, check each equivalent fraction, then add only the numerators.",
+    "recheckTemplates": [
+      "Add two unlike fractions with denominators that have a manageable common multiple.",
+      "Show equivalent-fraction setup and final simplest form."
+    ],
+    "parentTutorNotes": "The student is making the parts the same size before adding. Ask them to show how each fraction changed into an equivalent fraction.",
+    "difficultyProgression": [
+      "One denominator is a multiple of the other",
+      "Denominators need a shared multiple that is not one of the originals",
+      "Sum requires simplification",
+      "Sum requires conversion to mixed-number form"
+    ]
+  },
+  {
+    "id": "FR-SUB-01",
+    "title": "Subtract unlike fractions using common denominators",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Rewrite unlike fractions with a shared denominator, subtract the numerators, and simplify the difference.",
+    "prerequisites": [
+      "Equivalent fractions",
+      "Common denominators",
+      "Subtract like fractions",
+      "Simplify fractions",
+      "Compare fraction sizes before subtracting"
+    ],
+    "answerForms": [
+      "proper_fraction_simplest_form",
+      "equivalent_fraction_working",
+      "short_reasoning"
+    ],
+    "templateTypes": [
+      "Subtract two unlike proper fractions",
+      "Complete missing equivalent-fraction values and subtract",
+      "Choose the correct subtraction result from distractors",
+      "Explain why a common denominator is needed"
+    ],
+    "misconceptionTags": [
+      "adds_denominators",
+      "no_common_denominator",
+      "wrong_common_multiple",
+      "incorrect_equivalent_fraction",
+      "wrong_operation_add_subtract",
+      "not_simplified"
+    ],
+    "remediationNotes": "Use a same-sized-parts model. Rewrite both fractions with the same denominator before subtracting counts of parts.",
+    "recheckTemplates": [
+      "Subtract unlike fractions and write both equivalent fractions before subtracting.",
+      "Simplify the final difference."
+    ],
+    "parentTutorNotes": "Subtraction also needs equal-sized parts. The student should not subtract until both denominators match.",
+    "difficultyProgression": [
+      "One denominator is a multiple of the other",
+      "Denominators require a new shared multiple",
+      "Result needs simplification",
+      "Problem includes distractors that tempt addition or denominator subtraction"
+    ]
+  },
+  {
+    "id": "FR-SUB-02",
+    "title": "Subtract a fraction from a whole number",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Rename a whole number as denominator-sized parts, subtract the fraction, and express the remaining amount correctly.",
+    "prerequisites": [
+      "Understand one whole as denominator-over-denominator",
+      "Convert whole numbers to equivalent fractions",
+      "Subtract like fractions",
+      "Simplify fractions",
+      "Convert improper fractions and mixed numbers"
+    ],
+    "answerForms": [
+      "proper_fraction",
+      "mixed_number",
+      "simplest_form",
+      "regrouping_working"
+    ],
+    "templateTypes": [
+      "Subtract a proper fraction from one whole",
+      "Subtract a proper fraction from a whole number greater than one",
+      "Rename one whole inside a mixed amount and subtract",
+      "Explain why a whole can be written using the fraction denominator"
+    ],
+    "misconceptionTags": [
+      "whole_number_regrouping_error",
+      "incorrect_equivalent_fraction",
+      "does_not_convert_improper",
+      "wrong_mixed_number_conversion",
+      "not_simplified"
+    ],
+    "remediationNotes": "Rename the whole as a full set of denominator-sized parts. Subtract from that full set, then restore any untouched wholes.",
+    "recheckTemplates": [
+      "Subtract a fraction from a whole number with a different denominator.",
+      "Show the whole number as an equivalent fraction before subtracting."
+    ],
+    "parentTutorNotes": "The student is rewriting the whole in matching parts, not changing its value.",
+    "difficultyProgression": [
+      "Subtract from one whole",
+      "Subtract from a whole number greater than one",
+      "Subtract from a mixed number requiring regrouping",
+      "Solve a word problem where a whole item is partly used"
+    ]
+  },
+  {
+    "id": "FR-ADD-03",
+    "title": "Add three or more fractions",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Add multiple fractions by converting all terms into compatible form, then simplify or convert the final total.",
+    "prerequisites": [
+      "Add unlike fractions",
+      "Find common multiples",
+      "Create equivalent fractions",
+      "Simplify fractions",
+      "Convert improper fractions to mixed numbers"
+    ],
+    "answerForms": [
+      "proper_fraction_simplest_form",
+      "mixed_number_simplest_form",
+      "all_terms_common_denominator_working"
+    ],
+    "templateTypes": [
+      "Add three fractions where two denominators already match",
+      "Add three unlike fractions using a shared denominator",
+      "Identify efficient grouping before adding",
+      "Add multiple fractions where the final result must be simplified or converted"
+    ],
+    "misconceptionTags": [
+      "stops_after_first_step",
+      "no_common_denominator",
+      "wrong_common_multiple",
+      "incorrect_equivalent_fraction",
+      "does_not_convert_improper",
+      "not_simplified"
+    ],
+    "remediationNotes": "List every denominator and choose a denominator that works for all terms. Use a checklist to confirm each fraction was converted before addition.",
+    "recheckTemplates": [
+      "Add three fractions with at least two unlike denominators.",
+      "Show common-denominator setup for every fraction and write the final simplest-form answer."
+    ],
+    "parentTutorNotes": "This skill checks organization as much as calculation. Encourage the student to account for every fraction before adding.",
+    "difficultyProgression": [
+      "Three fractions where two denominators match",
+      "Three fractions where one denominator is a multiple of the others",
+      "Three fractions requiring a new shared denominator",
+      "Final answer requires simplification and mixed-number conversion"
+    ]
+  },
+  {
+    "id": "FR-WP-ADD-01",
+    "title": "Solve addition fraction word problems",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Identify joining or combining contexts, add relevant fractional quantities, and report the answer with correct units.",
+    "prerequisites": [
+      "Add like and unlike fractions",
+      "Simplify final answers",
+      "Interpret units in word problems",
+      "Use bar models or part-whole diagrams"
+    ],
+    "answerForms": [
+      "fraction_simplest_form",
+      "mixed_number_simplest_form",
+      "unit_labeled_answer",
+      "operation_explanation"
+    ],
+    "templateTypes": [
+      "Combine two measured amounts from a shared context",
+      "Find total distance, mass, volume, or time from two fractional parts",
+      "Use a bar model to represent two known parts being joined",
+      "Choose the correct operation before calculating"
+    ],
+    "misconceptionTags": [
+      "wrong_operation_add_subtract",
+      "ignores_units",
+      "adds_denominators",
+      "no_common_denominator",
+      "not_simplified",
+      "weak_bar_model_interpretation"
+    ],
+    "remediationNotes": "Underline the quantities, circle the unit, and draw a parts-joining bar. Add only after the story structure is clear.",
+    "recheckTemplates": [
+      "Solve a joining-context word problem with unlike denominators.",
+      "State the operation, show the addition, and include the unit in the answer."
+    ],
+    "parentTutorNotes": "The student should decide the story structure before calculating. Ask whether parts are being combined, compared, or taken away.",
+    "difficultyProgression": [
+      "Two like-denominator quantities in the same unit",
+      "Two unlike-denominator quantities in the same unit",
+      "Addition result greater than one whole",
+      "Context includes extra text or a tempting subtraction phrase"
+    ]
+  },
+  {
+    "id": "FR-WP-SUB-01",
+    "title": "Solve subtraction fraction word problems",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Identify take-away, difference, or remaining-amount contexts and subtract fractional quantities accurately.",
+    "prerequisites": [
+      "Subtract unlike fractions",
+      "Subtract a fraction from a whole number",
+      "Interpret units",
+      "Represent part-whole relationships with a bar model",
+      "Simplify fractions"
+    ],
+    "answerForms": [
+      "fraction_simplest_form",
+      "mixed_number_simplest_form",
+      "unit_labeled_answer",
+      "common_denominator_or_regrouping_working"
+    ],
+    "templateTypes": [
+      "Find how much is left after fractional amounts are used",
+      "Find the difference between two measured fractional quantities",
+      "Use a total-minus-known-parts structure",
+      "Complete a bar model where the unknown is the remaining part"
+    ],
+    "misconceptionTags": [
+      "wrong_operation_add_subtract",
+      "whole_number_regrouping_error",
+      "no_common_denominator",
+      "ignores_units",
+      "weak_bar_model_interpretation",
+      "not_simplified"
+    ],
+    "remediationNotes": "Identify the starting amount, removed amount, and unknown remainder or difference. Use a bar model to show which segment is missing.",
+    "recheckTemplates": [
+      "Solve a remaining-amount problem where a whole or mixed amount loses a fractional part.",
+      "Show operation choice, denominator work, and unit label."
+    ],
+    "parentTutorNotes": "For subtraction stories, find the starting amount and what is being removed or compared before solving.",
+    "difficultyProgression": [
+      "Take away a like-denominator fraction",
+      "Take away an unlike-denominator fraction",
+      "Subtract from one whole or a mixed number",
+      "Use a bar model with total and multiple known parts"
+    ]
+  },
+  {
+    "id": "FR-WP-2STEP-01",
+    "title": "Solve two-step addition/subtraction fraction word problems",
+    "domain": "fractions",
+    "strand": "addition-subtraction",
+    "sourceReference": "Fractions II",
+    "concept": "Plan and solve two-step fraction contexts involving addition, subtraction, or working backward.",
+    "prerequisites": [
+      "Add unlike fractions",
+      "Subtract unlike fractions",
+      "Subtract from whole numbers",
+      "Interpret bar models",
+      "Track units and intermediate results"
+    ],
+    "answerForms": [
+      "fraction_simplest_form",
+      "mixed_number_simplest_form",
+      "unit_labeled_answer",
+      "two_labeled_operations",
+      "optional_bar_model_or_table"
+    ],
+    "templateTypes": [
+      "Add two known parts, then subtract from a total",
+      "Work backward from a final amount after one addition and one subtraction event",
+      "Find a missing part in a multi-segment bar model",
+      "Solve a context where one step uses unlike-denominator addition and the next uses subtraction"
+    ],
+    "misconceptionTags": [
+      "stops_after_first_step",
+      "wrong_operation_add_subtract",
+      "ignores_units",
+      "weak_bar_model_interpretation",
+      "no_common_denominator",
+      "not_simplified"
+    ],
+    "remediationNotes": "Use a plan-before-calculate routine: identify what is known, what is unknown, and what must be found first. Label Step 1 and Step 2 before arithmetic.",
+    "recheckTemplates": [
+      "Solve a two-step context with one addition step and one subtraction step.",
+      "Provide a labeled plan, two operations, and a final answer with units."
+    ],
+    "parentTutorNotes": "This skill is about mathematical planning. The student may know the arithmetic but need help deciding what to find first.",
+    "difficultyProgression": [
+      "Add two known fractions, then subtract from one whole",
+      "Subtract one fraction, then add another",
+      "Work backward from a final mixed amount",
+      "Interpret a multi-segment bar model with an unknown part"
+    ]
+  }
+]
