@@ -104,14 +104,62 @@ function AttentionTable({ rows = [] }) {
   );
 }
 
+function MistakeLearningAuditTable({ audit = {} }) {
+  const rows = audit.rows || [];
+  if (!rows.length) return <p className="text-sm text-success-700">No reviewed-without-evidence mistake chains found in this sample.</p>;
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full text-left text-sm">
+        <thead className="text-xs uppercase tracking-[0.08em] text-ink-500">
+          <tr>
+            <th className="pb-2 pr-4">Mistake</th>
+            <th className="pb-2 pr-4">Student</th>
+            <th className="pb-2 pr-4">Skill</th>
+            <th className="pb-2 pr-4">Learning</th>
+            <th className="pb-2">Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.slice(0, 12).map((row) => (
+            <tr key={`${row.mistakeId}-${row.riskType}`} className="border-t border-hairline">
+              <td className="py-3 pr-4 font-mono text-xs text-ink-700">{row.mistakeId}</td>
+              <td className="py-3 pr-4 font-mono text-xs text-ink-600">{row.studentId}</td>
+              <td className="py-3 pr-4 text-ink-700">{row.skillCode || '—'}</td>
+              <td className="py-3 pr-4"><Badge tone={row.learningStatus === 'mastered' ? 'success' : 'gold'}>{row.learningStatus}</Badge></td>
+              <td className="py-3"><Badge tone={row.riskType === 'resolved_without_evidence' ? 'error' : 'yellow'}>{row.riskType}</Badge></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AuditStat({ label, value, tone = 'ink' }) {
+  const toneClass = {
+    ink: 'bg-ink-50 text-ink-800',
+    amber: 'bg-amber-50 text-amber-900',
+    rose: 'bg-rose-50 text-rose-900',
+  }[tone] || 'bg-ink-50 text-ink-800';
+  return (
+    <div className={`rounded-2xl px-4 py-3 ${toneClass}`}>
+      <p className="font-mono text-2xl font-semibold tabular-nums">{number(value)}</p>
+      <p className="mt-1 text-sm font-semibold">{label}</p>
+    </div>
+  );
+}
+
 export default function PilotInterventionsPage() {
   const [state, setState] = useState({ loading: true, error: '', data: null });
 
   useEffect(() => {
     let active = true;
-    adminAPI.getPilotInterventionMetrics({ subjectId: 'math', domainId: 'fractions' })
-      .then((res) => {
-        if (active) setState({ loading: false, error: '', data: res.data });
+    Promise.all([
+      adminAPI.getPilotInterventionMetrics({ subjectId: 'math', domainId: 'fractions' }),
+      adminAPI.getMistakeLearningAudit({ module: 'MathPath', limit: 100 }),
+    ])
+      .then(([metrics, mistakeAudit]) => {
+        if (active) setState({ loading: false, error: '', data: { ...metrics.data, mistakeLearningAudit: mistakeAudit.data } });
       })
       .catch((err) => {
         if (active) setState({ loading: false, error: err?.response?.data?.error || 'Could not load intervention metrics.', data: null });
@@ -193,6 +241,17 @@ export default function PilotInterventionsPage() {
       <section className="mt-5">
         <SectionCard title="Students Needing Attention">
           <AttentionTable rows={data.studentsNeedingAttention || []} />
+        </SectionCard>
+      </section>
+
+      <section className="mt-5">
+        <SectionCard title="Mistake Learning Evidence Audit">
+          <div className="mb-4 grid gap-3 sm:grid-cols-3">
+            <AuditStat label="Reviewed Without Evidence" value={data.mistakeLearningAudit?.reviewedWithoutEvidenceCount} tone="amber" />
+            <AuditStat label="Resolved Without Evidence" value={data.mistakeLearningAudit?.resolvedWithoutEvidenceCount} tone="rose" />
+            <AuditStat label="Mistakes Checked" value={data.mistakeLearningAudit?.checkedMistakes} />
+          </div>
+          <MistakeLearningAuditTable audit={data.mistakeLearningAudit || {}} />
         </SectionCard>
       </section>
 
