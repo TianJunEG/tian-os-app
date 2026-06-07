@@ -122,6 +122,40 @@ describe('mathpath paper analysis routes', () => {
     expect(doc.save).toHaveBeenCalled();
   });
 
+  it('blocks paper-analysis review for an unrelated child before mutating the record', async () => {
+    const doc = {
+      _id: 'analysis_1',
+      studentId: 'unrelated_child',
+      detectedQuestions: [],
+      weakSkillIds: [],
+      recommendedActions: [],
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    findByIdMock.mockResolvedValueOnce(doc);
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/analysis_1/review', {
+      method: 'PATCH',
+      body: {
+        detectedQuestions: [
+          {
+            questionNumber: '1',
+            questionText: 'Add 1/3 and 1/6.',
+            detectedSkillIds: ['F015'],
+            adultConfirmedWrong: true,
+          },
+        ],
+      },
+    });
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(doc.save).not.toHaveBeenCalled();
+  });
+
   it('creates a Recovery Pack when paper-analysis weak skills are confirmed', async () => {
     const doc = {
       _id: 'analysis_1',
@@ -154,6 +188,30 @@ describe('mathpath paper analysis routes', () => {
       assignedByUserId: 'adult_1',
       assignedByRole: 'parent',
     });
+  });
+
+  it('blocks assigning practice from an unrelated child paper analysis', async () => {
+    const doc = {
+      _id: 'analysis_1',
+      studentId: 'unrelated_child',
+      status: 'reviewed',
+      weakSkillIds: ['F015'],
+      detectedQuestions: [],
+      recommendedActions: [],
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    findByIdMock.mockResolvedValueOnce(doc);
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/analysis_1/assign-practice', { method: 'POST' });
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(createAssignmentFromPaperAnalysisMock).not.toHaveBeenCalled();
+    expect(doc.save).not.toHaveBeenCalled();
   });
 
   it('allows student care staff to assign practice from reviewed paper analysis', async () => {

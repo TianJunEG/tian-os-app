@@ -1,4 +1,5 @@
 import { getActiveProvider } from '../../utils/aiProvider.js';
+import { detectMisconceptions } from './misconceptionDetectionService.js';
 
 const FRACTIONS_KEYWORDS = [
   { skillId: 'F006', keywords: ['equivalent fraction', 'equivalent fractions', 'same value'], misconception: 'equivalence_scale_error' },
@@ -50,12 +51,22 @@ export function mapPaperQuestionToSkills(question = {}, { manualSkillIds = [], t
 
   const detectedSkillIds = unique(matches.slice(0, 3).map((row) => row.skillId));
   const confidence = detectedSkillIds.length ? Math.min(0.85, 0.25 + matches[0].hits * 0.2) : 0;
+  const misconceptionResult = detectMisconceptions({
+    questionText: question.questionText || '',
+    studentAnswer: question.studentAnswer || question.teacherMark || '',
+    teacherMarkedCorrect: question.teacherMarkedCorrect,
+  });
 
   return {
     detectedSkillIds,
     confidence,
     reasons: matches.slice(0, 3).map((row) => `Matched ${row.matchedKeywords.join(', ')} for ${row.skillId}.`),
-    suggestedMisconceptions: unique(matches.slice(0, 3).map((row) => row.misconception)),
+    suggestedMisconceptions: unique([
+      ...matches.slice(0, 3).map((row) => row.misconception),
+      ...(misconceptionResult.misconceptionTags || []),
+    ]),
+    misconceptionConfidence: misconceptionResult.confidence,
+    misconceptionEvidence: misconceptionResult.misconceptionEvidence || [],
     source: detectedSkillIds.length ? 'keyword_mapping' : 'unmapped',
     skillMappingConfidence: confidence,
     needsAdultReview: confidence < 0.85,

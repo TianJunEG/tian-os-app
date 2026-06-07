@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useParams, useSearchParams } from 'react-router-dom';
 import { FileText, FileUp, Save, Wand2 } from 'lucide-react';
 import { Button, Card, ErrorState, PageHeader } from '../../components/ui';
-import { mathpathAPI, worksheetGenAPI } from '../../services/api';
+import { familyAPI, mathpathAPI, worksheetGenAPI } from '../../services/api';
 
 const UPLOAD_TYPES = [
   ['completed_unmarked', 'Completed, unmarked'],
@@ -36,6 +36,7 @@ function confidenceText(value) {
 
 export default function PaperAnalysisPage() {
   const params = useParams();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const routeStudentId = params.studentId || '';
   const analysisId = searchParams.get('analysis') || '';
@@ -47,13 +48,62 @@ export default function PaperAnalysisPage() {
   const [error, setError] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [message, setMessage] = useState('');
+  const [routeAccess, setRouteAccess] = useState('allowed');
   const parsedRows = useMemo(() => parseQuestionRows(questionRows), [questionRows]);
+
+  const requiresParentChildAccess = Boolean(routeStudentId && location.pathname.startsWith('/parent/children/'));
+
+  useEffect(() => {
+    if (!requiresParentChildAccess) {
+      setRouteAccess('allowed');
+      return undefined;
+    }
+    let mounted = true;
+    setRouteAccess('checking');
+    setError('');
+    familyAPI.children()
+      .then((res) => {
+        if (!mounted) return;
+        const children = res.data.children || [];
+        const allowed = children.some((child) => String(child.studentId) === String(routeStudentId));
+        setRouteAccess(allowed ? 'allowed' : 'blocked');
+        if (!allowed) {
+          setAnalysis(null);
+          setQuestionRows('');
+          setMessage('');
+          setError('You do not have access to this child.');
+        }
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setRouteAccess('blocked');
+        setAnalysis(null);
+        setQuestionRows('');
+        setMessage('');
+        setError('Could not verify child access.');
+      });
+    return () => { mounted = false; };
+  }, [requiresParentChildAccess, routeStudentId]);
+
+  useEffect(() => {
+    setStudentId(routeStudentId);
+    if (!analysisId) {
+      setAnalysis(null);
+      setQuestionRows('');
+      setError('');
+      setMessage('');
+    }
+  }, [routeStudentId, analysisId]);
 
   useEffect(() => {
     if (!analysisId) return;
+    if (routeAccess !== 'allowed') return;
     let mounted = true;
     setLoading(true);
     setError('');
+    setMessage('');
+    setAnalysis(null);
+    setQuestionRows('');
     mathpathAPI.paperAnalysis(analysisId)
       .then((res) => {
         if (!mounted) return;
@@ -74,9 +124,10 @@ export default function PaperAnalysisPage() {
         if (mounted) setLoading(false);
       });
     return () => { mounted = false; };
-  }, [analysisId, routeStudentId]);
+  }, [analysisId, routeAccess, routeStudentId]);
 
   const upload = async () => {
+    if (routeAccess !== 'allowed') return;
       setLoading(true);
       setError('');
       setMessage('');
@@ -134,6 +185,7 @@ export default function PaperAnalysisPage() {
         subtitle="Upload a worksheet or test script, confirm weak questions, and map them to targeted practice."
       />
       <div className="space-y-4">
+        {routeAccess === 'blocked' && error && <ErrorState message={error} />}
         <Card className="p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm text-ink-700">
@@ -174,10 +226,10 @@ export default function PaperAnalysisPage() {
           <p className="mt-2 text-xs text-ink-500">
             Tian OS will attempt OCR, question detection, mark detection, and skill mapping. Adult confirmation is required before assigning intervention.
           </p>
-          {error && <ErrorState message={error} />}
+          {routeAccess !== 'blocked' && error && <ErrorState message={error} />}
           {message && <p className="mt-2 text-sm font-semibold text-success-700">{message}</p>}
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button icon={FileUp} onClick={upload} disabled={loading}>{loading ? 'Uploading...' : 'Upload for Review'}</Button>
+            <Button icon={FileUp} onClick={upload} disabled={loading || routeAccess !== 'allowed'}>{loading ? 'Uploading...' : 'Upload for Review'}</Button>
             {analysis?._id && <Button icon={Save} variant="secondary" onClick={saveReview} disabled={loading}>Save Review</Button>}
           </div>
         </Card>
