@@ -488,6 +488,64 @@ function inferAllowedInputTools(answerFormat) {
   return [];
 }
 
+function normalizeVisualType(value = '') {
+  const raw = String(value || '').trim().toLowerCase();
+  const aliases = {
+    fraction_bar: 'fraction_strip',
+    fraction_model: 'shaded_fraction_model',
+    shaded_shape: 'shaded_fraction_model',
+    shaded_grid: 'shaded_fraction_model',
+    part_whole_cards: 'picture_model',
+    comparison_models: 'bar_model',
+  };
+  return aliases[raw] || raw;
+}
+
+function visualTypesForGeneratedQuestion({ skillId, prompt = '', diagramSpec = null }) {
+  const bySkill = {
+    F001: ['shaded_fraction_model'],
+    F002: ['shaded_fraction_model'],
+    F003: ['shaded_fraction_model'],
+    F004: ['fraction_strip'],
+    F005: ['number_line'],
+    F006: ['fraction_strip'],
+    F007: ['fraction_strip'],
+    F008: ['fraction_strip'],
+    F009: ['number_line'],
+    F010: ['fraction_strip'],
+    F011: ['fraction_strip'],
+    F012: ['fraction_strip'],
+    F013: ['shaded_fraction_model'],
+    F014: ['shaded_fraction_model'],
+    F015: ['fraction_strip'],
+    F016: ['fraction_strip'],
+    F017: ['fraction_strip'],
+    F018: ['fraction_strip'],
+    F019: ['fraction_strip'],
+    F020: ['picture_model'],
+    F021: ['shaded_fraction_model'],
+    F022: ['fraction_strip'],
+    F023: ['bar_model'],
+    F024: ['bar_model'],
+    F025: ['bar_model'],
+    F026: ['bar_model'],
+  };
+  const required = new Set(bySkill[skillId] || []);
+  const text = String(prompt || '');
+  if (/number\s*line/i.test(text)) required.add('number_line');
+  if (/remainder|left|spent|gave away|at first|more than|less than/i.test(text)) required.add('bar_model');
+  if (/shaded|shape|equal parts?|whole/i.test(text)) required.add('shaded_fraction_model');
+  if (/\bof\s+\d+\b|objects?|cards?|apples?|stickers?/i.test(text)) required.add('picture_model');
+  const provided = new Set([normalizeVisualType(diagramSpec?.type)].filter(Boolean));
+  if (diagramSpec?.type === 'fraction_bar' && Number(diagramSpec?.data?.shaded || 0) > 0) {
+    provided.add('shaded_fraction_model');
+  }
+  return {
+    requiredVisualTypes: [...required],
+    providedVisualTypes: [...provided],
+  };
+}
+
 function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt, answer, acceptedAnswers, allowedInputTools, workingRequired, mentalMathEligible, solutionSteps, diagramSpec }) {
   const family = getQuestionFamily(questionFamilyId) || {};
   const primaryMapping = getSkillCurriculumMapping(skillId, {
@@ -500,6 +558,7 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
   });
   const workedSolution = Array.isArray(solutionSteps) ? solutionSteps.join(' ') : '';
   const answerFormat = inferAnswerInputType(answer);
+  const visualMetadata = visualTypesForGeneratedQuestion({ skillId, prompt, diagramSpec });
   const assessmentMetadata = buildFractionAssessmentMetadata({
     skillId,
     family,
@@ -540,6 +599,9 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     solutionSteps,
     workedSolution,
     diagramSpec,
+    requiredVisualTypes: visualMetadata.requiredVisualTypes,
+    providedVisualTypes: visualMetadata.providedVisualTypes,
+    visualCoverageStatus: visualMetadata.requiredVisualTypes.every((type) => visualMetadata.providedVisualTypes.includes(type)) ? 'present' : 'missing',
     requiresDiagram: Boolean(diagramSpec),
     requiresVisual: Boolean(diagramSpec),
     commonMistakePatterns: SKILL_MISTAKES[skillId] || ['M010'],

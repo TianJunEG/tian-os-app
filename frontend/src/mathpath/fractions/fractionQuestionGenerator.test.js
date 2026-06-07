@@ -27,6 +27,8 @@ describe('fractionQuestionGenerator', () => {
       type: 'fraction_bar',
       data: { labelMode: 'none' },
     });
+    expect(q.requiredVisualTypes).toContain('shaded_fraction_model');
+    expect(q.providedVisualTypes).toEqual(expect.arrayContaining(['fraction_strip', 'shaded_fraction_model']));
   });
 
   it('scores comparison questions using symbol answers (F006)', () => {

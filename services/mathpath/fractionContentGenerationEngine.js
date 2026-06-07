@@ -16,6 +16,7 @@ import { getFractionMistakeTaxonomy } from '../../frontend/src/mathpath/fraction
 import {
   runFractionsContentCoverageAudit,
 } from './contentCoverageEngine.js';
+import { evaluateQuestionVisualCoverage } from './skillVisualRequirementEngine.js';
 
 dotenv.config();
 
@@ -295,6 +296,18 @@ function buildExplanation(solutionSteps = [], questionCategory = 'practice') {
   return `${base}${base && categoryNote ? ' ' : ''}${categoryNote}`.trim();
 }
 
+function visualMetadataForQuestion(question = {}) {
+  const coverage = evaluateQuestionVisualCoverage({
+    ...question,
+    questionText: question.prompt,
+  });
+  return {
+    requiredVisualTypes: coverage.requiredVisualTypes,
+    providedVisualTypes: coverage.providedVisualTypes,
+    visualCoverageStatus: coverage.status,
+  };
+}
+
 export function validateGeneratedQuestion(question = {}) {
   const errors = [];
   if (!question.skillId || !getSkill(question.skillId)) errors.push('Invalid or missing skillId.');
@@ -361,6 +374,7 @@ function generateSingleQuestion({
     ...(generated.commonMistakePatterns || []),
     ...(family.misconceptionTags || []),
   ]);
+  const generatedVisualMetadata = visualMetadataForQuestion(generated);
 
   const doc = {
     domainId: DEFAULT_DOMAIN_ID,
@@ -379,6 +393,9 @@ function generateSingleQuestion({
     finalAnswer,
     explanation: buildExplanation(generated.solutionSteps || [], questionCategory),
     misconceptionTags,
+    requiredVisualTypes: generated.requiredVisualTypes || generatedVisualMetadata.requiredVisualTypes,
+    providedVisualTypes: generated.providedVisualTypes || generatedVisualMetadata.providedVisualTypes,
+    visualCoverageStatus: generated.visualCoverageStatus || generatedVisualMetadata.visualCoverageStatus,
     workingRequired: Boolean(generated.workingRequired),
     mentalMathEligible: Boolean(generated.mentalMathEligible),
     difficultyLevel,
@@ -511,6 +528,7 @@ function generateFallbackQuestion({
     finalAnswer,
     explanation: buildExplanation(solutionSteps, questionCategory),
     misconceptionTags,
+    ...visualMetadataForQuestion({ skillId, prompt }),
     workingRequired: true,
     mentalMathEligible: false,
     difficultyLevel,
