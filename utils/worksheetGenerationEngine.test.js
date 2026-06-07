@@ -109,6 +109,8 @@ describe('worksheetGenerationEngine', () => {
       'Section C: Challenge Questions',
     ]);
     expect(result.worksheet.content.personalization.notRandom).toBe(true);
+    expect(result.worksheet.content.visualModelReferences.length).toBeGreaterThan(0);
+    expect(result.worksheet.content.visualModelReferences[0].requiredVisualTypes).toContain('bar_model');
     expect(result.worksheet.answerKey).toHaveLength(10);
   });
 

@@ -12,6 +12,10 @@ import {
   resolveAssignedByRole,
   updateAssignmentProgress,
 } from '../services/mathpath/mathPathAssignmentService.js';
+import {
+  getRecoveryPackTeachingFlow,
+  updateRecoveryPackTeachingProgress,
+} from '../services/mathpath/recoveryPackTeachingFlowService.js';
 
 const router = express.Router();
 
@@ -95,6 +99,31 @@ router.get('/:id', protect, async (req, res) => {
     return res.json({ assignment });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load MathPath assignment.' });
+  }
+});
+
+router.get('/:id/teaching-flow', protect, async (req, res) => {
+  try {
+    await loadAccessibleAssignment(req, req.params.id);
+    const recoveryPack = await getRecoveryPackTeachingFlow({ assignmentId: req.params.id });
+    return res.json({ recoveryPack });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not load Recovery Pack teaching flow.' });
+  }
+});
+
+router.patch('/:id/teaching-progress', protect, async (req, res) => {
+  try {
+    await loadAccessibleAssignment(req, req.params.id);
+    const recoveryPack = await updateRecoveryPackTeachingProgress({
+      assignmentId: req.params.id,
+      stageId: req.body?.stageId,
+      questionId: req.body?.questionId,
+      correct: Boolean(req.body?.correct),
+    });
+    return res.json({ recoveryPack });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not update Recovery Pack progress.' });
   }
 });
 

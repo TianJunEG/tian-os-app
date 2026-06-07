@@ -24,11 +24,15 @@ export default function WorksheetHome() {
   const base = `/parent/children/${studentId}/worksheets`;
 
   useEffect(() => {
+    let alive = true;
     setError(false);
+    setLoading(true);
+    setWorksheets([]);
     worksheetGenAPI.list({ studentId })
-      .then((r) => setWorksheets(r.data.worksheets || []))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
+      .then((r) => { if (alive) setWorksheets(r.data.worksheets || []); })
+      .catch(() => { if (alive) setError(true); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, [studentId]);
 
   return (

@@ -5,6 +5,12 @@ import PaperAnalysis from '../../models/mathpath/PaperAnalysis.js';
 import Student from '../../models/Student.js';
 import { startAdaptiveDiagnostic } from '../diagnostics/diagnosticRuntime.js';
 import { evaluateRecheckReadiness } from './recheckRecommendationService.js';
+import {
+  attachLearningPathToAssignmentPayload,
+  getOrCreateLearningPathForSkillMisconception,
+  updateAssignmentLearningPathProgress,
+} from './learningPathService.js';
+import { deriveAssignmentAssetMetadata } from './recoveryPackAssetService.js';
 
 function uniqueSkillIds(values = []) {
   return [...new Set((values || [])
@@ -43,6 +49,51 @@ function weakSkillsFromPaper(analysis = {}) {
   return uniqueSkillIds([...(analysis.weakSkillIds || []), ...confirmed]);
 }
 
+function misconceptionFromDiagnostic(session = {}, skillId = '') {
+  const row = (session.perSkillSnapshot || []).find((item) => item.skillId === skillId);
+  return row?.misconceptionTags?.[0] || '';
+}
+
+function misconceptionFromPaper(analysis = {}, skillId = '') {
+  const row = (analysis.detectedQuestions || []).find((question) => {
+    const skills = question.detectedSkillIds || [];
+    return skills.includes(skillId) && (question.adultConfirmedWrong || question.teacherMarkedCorrect === false);
+  });
+  return row?.misconceptionTags?.[0] || '';
+}
+
+async function withPersistedLearningPath(payload = {}, { misconceptionId = '' } = {}) {
+  const firstSkillId = payload.skillIds?.[0] || '';
+  const enriched = attachLearningPathToAssignmentPayload(payload, { misconceptionId });
+  if (!firstSkillId) return enriched;
+  await getOrCreateLearningPathForSkillMisconception({
+    skillId: firstSkillId,
+    misconceptionId,
+    subjectId: enriched.subjectId || 'math',
+    domainId: enriched.domainId || 'fractions',
+  });
+  return enriched;
+}
+
+function misconceptionIdsFromDiagnostic(session = {}, skillIds = []) {
+  const result = session.result || session.resultPayload || {};
+  return [...new Set([
+    ...(result.misconceptionTags || []),
+    ...(result.misconceptions || []).map((item) => item.misconceptionId || item.id || item),
+    ...((session.perSkillSnapshot || [])
+      .filter((row) => !skillIds.length || skillIds.includes(String(row.skillId || '').toUpperCase()))
+      .flatMap((row) => row.misconceptionTags || [])),
+  ].map((tag) => String(tag || '').trim()).filter(Boolean))];
+}
+
+function misconceptionIdsFromPaper(analysis = {}, skillIds = []) {
+  return [...new Set((analysis.detectedQuestions || [])
+    .filter((question) => !skillIds.length || (question.detectedSkillIds || []).some((skillId) => skillIds.includes(String(skillId || '').toUpperCase())))
+    .flatMap((question) => question.misconceptionTags || [])
+    .map((tag) => String(tag || '').trim())
+    .filter(Boolean))];
+}
+
 function shapeAssignment(assignment) {
   if (!assignment) return null;
   const raw = typeof assignment.toObject === 'function' ? assignment.toObject() : assignment;
@@ -75,7 +126,16 @@ export async function createAssignmentFromDiagnostic({
     err.status = 400;
     throw err;
   }
-  const assignment = await MathPathAssignment.create({
+  const assetMetadata = deriveAssignmentAssetMetadata({
+    skillIds,
+    misconceptionIds: misconceptionIdsFromDiagnostic(diagnostic, skillIds),
+    evidenceSource: {
+      sourceType: 'diagnostic',
+      sourceId: String(diagnostic.diagnosticSessionId),
+      studentExplanation: 'Your diagnostic found skills that need more practice. This Recovery Pack starts with an example, then gives guided practice before a recheck.',
+    },
+  });
+  const payload = await withPersistedLearningPath({
     studentId: String(studentId),
     assignedByUserId: String(assignedByUserId || ''),
     assignedByRole,
@@ -86,6 +146,7 @@ export async function createAssignmentFromDiagnostic({
     title: 'Fractions Recovery Pack',
     description: 'Targeted practice based on the latest diagnostic weak skills.',
     skillIds,
+    ...assetMetadata,
     targetQuestionCount: targetCountFor(skillIds),
     completion: {
       questionsAssigned: targetCountFor(skillIds),
@@ -93,7 +154,8 @@ export async function createAssignmentFromDiagnostic({
       correctCount: 0,
       accuracy: 0,
     },
-  });
+  }, { misconceptionId: misconceptionFromDiagnostic(diagnostic, skillIds[0]) });
+  const assignment = await MathPathAssignment.create(payload);
   return shapeAssignment(assignment);
 }
 
@@ -120,7 +182,16 @@ export async function createAssignmentFromPaperAnalysis({
     err.status = 409;
     throw err;
   }
-  const assignment = await MathPathAssignment.create({
+  const assetMetadata = deriveAssignmentAssetMetadata({
+    skillIds,
+    misconceptionIds: misconceptionIdsFromPaper(analysis, skillIds),
+    evidenceSource: {
+      sourceType: 'paper_analysis',
+      sourceId: String(analysis._id),
+      studentExplanation: 'An uploaded paper showed questions to strengthen. This Recovery Pack teaches the method, then checks it again.',
+    },
+  });
+  const payload = await withPersistedLearningPath({
     studentId: String(analysis.studentId),
     assignedByUserId: String(assignedByUserId || ''),
     assignedByRole,
@@ -131,6 +202,7 @@ export async function createAssignmentFromPaperAnalysis({
     title: 'Paper Recovery Pack',
     description: 'Targeted practice based on confirmed wrong questions from an uploaded paper.',
     skillIds,
+    ...assetMetadata,
     targetQuestionCount: targetCountFor(skillIds),
     completion: {
       questionsAssigned: targetCountFor(skillIds),
@@ -138,7 +210,8 @@ export async function createAssignmentFromPaperAnalysis({
       correctCount: 0,
       accuracy: 0,
     },
-  });
+  }, { misconceptionId: misconceptionFromPaper(analysis, skillIds[0]) });
+  const assignment = await MathPathAssignment.create(payload);
   analysis.status = 'assigned';
   analysis.weakSkillIds = skillIds;
   analysis.recommendedActions = (analysis.recommendedActions || []).map((action) => {
@@ -174,17 +247,26 @@ export async function createAssignmentFromLessonPrep({
     throw err;
   }
   const targetQuestionCount = targetCountFor(normalizedSkillIds);
-  const assignment = await MathPathAssignment.create({
+  const assetMetadata = deriveAssignmentAssetMetadata({
+    skillIds: normalizedSkillIds,
+    evidenceSource: {
+      sourceType,
+      sourceId: sourceId || `lesson_prep_${Date.now()}`,
+      studentExplanation: 'This Recovery Pack was chosen from your lesson plan to help you practise the next skill clearly.',
+    },
+  });
+  const payload = await withPersistedLearningPath({
     studentId: String(studentId || ''),
     assignedByUserId: String(assignedByUserId || ''),
     assignedByRole,
     sourceType,
-    sourceId: sourceId || `lesson_prep_${Date.now()}`,
+    sourceId: assetMetadata.evidenceSource.sourceId,
     subjectId,
     domainId,
     title,
     description,
     skillIds: normalizedSkillIds,
+    ...assetMetadata,
     targetQuestionCount,
     completion: {
       questionsAssigned: targetQuestionCount,
@@ -193,6 +275,7 @@ export async function createAssignmentFromLessonPrep({
       accuracy: 0,
     },
   });
+  const assignment = await MathPathAssignment.create(payload);
   return shapeAssignment(assignment);
 }
 
@@ -238,6 +321,7 @@ export async function updateAssignmentProgress({ assignmentId, attempt } = {}) {
     assignment.status = 'completed';
     assignment.completion.completedAt = assignment.completion.completedAt || new Date();
   }
+  await updateAssignmentLearningPathProgress(assignment);
   await assignment.save();
   await evaluateRecheckRecommendation({ assignmentId: assignment._id });
   return shapeAssignment(await MathPathAssignment.findById(assignment._id).lean());
@@ -250,6 +334,7 @@ export async function evaluateRecheckRecommendation({ assignmentId } = {}) {
     err.status = 404;
     throw err;
   }
+  await updateAssignmentLearningPathProgress(assignment);
   const readiness = evaluateRecheckReadiness(assignment);
   const { recommended, reason } = readiness;
   if (recommended && !assignment.recheck?.recommended) {
@@ -316,7 +401,14 @@ export async function createRecheckForAssignment({ assignmentId, requestedByUser
   await assignment.save();
   await MathPathDiagnosticSession.findOneAndUpdate(
     { diagnosticSessionId: diagnostic.sessionId },
-    { $set: { assignmentId: String(assignment._id), sourceType: 'assignment', sourceId: String(assignment._id) } }
+    {
+      $set: {
+        assignmentId: String(assignment._id),
+        sourceType: 'assignment',
+        sourceId: String(assignment._id),
+        targetSkillIds: assignment.skillIds || [],
+      },
+    }
   );
   return {
     created: true,

@@ -18,7 +18,17 @@ export default function WorksheetPreview() {
   const [error, setError] = useState('');
 
   const load = () => worksheetGenAPI.get(worksheetId).then((r) => setW(r.data.worksheet)).catch((e) => setError(e.response?.data?.error || 'Could not load worksheet.')).finally(() => setLoading(false));
-  useEffect(() => { load(); }, [worksheetId]);
+  useEffect(() => {
+    let alive = true;
+    setW(null);
+    setError('');
+    setLoading(true);
+    worksheetGenAPI.get(worksheetId)
+      .then((r) => { if (alive) setW(r.data.worksheet); })
+      .catch((e) => { if (alive) setError(e.response?.data?.error || 'Could not load worksheet.'); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [studentId, worksheetId]);
 
   const assign = async () => {
     setAssigning(true);

@@ -3,6 +3,8 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 const resolveStudentMock = vi.fn();
 const createFromDiagnosticMock = vi.fn();
 const getStudentAssignmentsMock = vi.fn();
+const getAssignmentByIdMock = vi.fn();
+const getRecoveryPackTeachingFlowMock = vi.fn();
 
 vi.mock('../middleware/auth.js', () => ({
   protect: (req, _res, next) => {
@@ -24,10 +26,15 @@ vi.mock('../services/mathpath/mathPathAssignmentService.js', () => ({
   createAssignmentFromPaperAnalysis: vi.fn(),
   createRecheckForAssignment: vi.fn(),
   evaluateRecheckRecommendation: vi.fn(),
-  getAssignmentById: vi.fn(),
+  getAssignmentById: (...args) => getAssignmentByIdMock(...args),
   getStudentAssignments: (...args) => getStudentAssignmentsMock(...args),
   resolveAssignedByRole: () => 'parent',
   updateAssignmentProgress: vi.fn(),
+}));
+
+vi.mock('../services/mathpath/recoveryPackTeachingFlowService.js', () => ({
+  getRecoveryPackTeachingFlow: (...args) => getRecoveryPackTeachingFlowMock(...args),
+  updateRecoveryPackTeachingProgress: vi.fn(),
 }));
 
 let router;
@@ -88,6 +95,22 @@ describe('MathPath assignment routes', () => {
     }));
   });
 
+  it('blocks diagnostic recovery pack creation for an unrelated child', async () => {
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/from-diagnostic', {
+      method: 'POST',
+      body: { studentId: 'unrelated_child', diagnosticSessionId: 'diag_1' },
+    });
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(createFromDiagnosticMock).not.toHaveBeenCalled();
+  });
+
   it('allows a student to create a Recovery Pack from their own diagnostic', async () => {
     resolveStudentMock.mockResolvedValueOnce({ _id: 'student_1' });
     createFromDiagnosticMock.mockResolvedValueOnce({ id: 'assignment_1', skillIds: ['F015'] });
@@ -140,5 +163,35 @@ describe('MathPath assignment routes', () => {
 
     expect(res.status).toBe(200);
     expect(res.data.assignments).toEqual([{ id: 'assignment_1', title: 'Fractions Recovery Pack' }]);
+  });
+
+  it('blocks assignment lists for an unrelated child', async () => {
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/?studentId=unrelated_child');
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(getStudentAssignmentsMock).not.toHaveBeenCalled();
+  });
+
+  it('blocks recovery-pack teaching flow when the assignment belongs to an unrelated child', async () => {
+    getAssignmentByIdMock.mockResolvedValueOnce({
+      id: 'assignment_1',
+      studentId: 'unrelated_child',
+    });
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/assignment_1/teaching-flow');
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(getRecoveryPackTeachingFlowMock).not.toHaveBeenCalled();
   });
 });

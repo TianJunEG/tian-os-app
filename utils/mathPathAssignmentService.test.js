@@ -10,6 +10,15 @@ const attemptFind = vi.fn();
 const paperFindById = vi.fn();
 const studentFindById = vi.fn();
 const startAdaptiveDiagnostic = vi.fn();
+const attachLearningPathToAssignmentPayload = vi.fn((payload) => ({
+  ...payload,
+  learningPathId: `lp_${String(payload.domainId || 'fractions').toLowerCase()}_${String(payload.skillIds?.[0] || 'skill').toLowerCase()}_test`,
+  currentStage: 'concept_introduction',
+  completedStages: [],
+  stageHistory: [],
+}));
+const getOrCreateLearningPathForSkillMisconception = vi.fn();
+const updateAssignmentLearningPathProgress = vi.fn(async (assignment) => assignment);
 
 vi.mock('../models/mathpath/MathPathAssignment.js', () => ({
   default: {
@@ -41,6 +50,12 @@ vi.mock('../models/Student.js', () => ({
 
 vi.mock('../services/diagnostics/diagnosticRuntime.js', () => ({
   startAdaptiveDiagnostic: (...args) => startAdaptiveDiagnostic(...args),
+}));
+
+vi.mock('../services/mathpath/learningPathService.js', () => ({
+  attachLearningPathToAssignmentPayload: (...args) => attachLearningPathToAssignmentPayload(...args),
+  getOrCreateLearningPathForSkillMisconception: (...args) => getOrCreateLearningPathForSkillMisconception(...args),
+  updateAssignmentLearningPathProgress: (...args) => updateAssignmentLearningPathProgress(...args),
 }));
 
 const service = await import('../services/mathpath/mathPathAssignmentService.js');
@@ -88,6 +103,14 @@ describe('mathPathAssignmentService', () => {
       sourceType: 'diagnostic',
       sourceId: 'diag_1',
       skillIds: ['F015'],
+      misconceptionIds: expect.arrayContaining(['mixed_improper_conversion_error']),
+      interventionIds: expect.arrayContaining(['mixed_improper_conversion_error']),
+      evidenceSource: expect.objectContaining({
+        sourceType: 'diagnostic',
+        sourceId: 'diag_1',
+        studentExplanation: expect.stringMatching(/diagnostic/i),
+      }),
+      guidedPracticeFlow: expect.objectContaining({ status: 'ready' }),
       targetQuestionCount: 12,
     }));
     expect(assignment.id).toBe('assignment_1');
@@ -136,6 +159,11 @@ describe('mathPathAssignmentService', () => {
       sourceType: 'paper_analysis',
       sourceId: 'paper_1',
       skillIds: ['F019'],
+      misconceptionIds: expect.arrayContaining(['common_denominator_missing']),
+      evidenceSource: expect.objectContaining({
+        sourceType: 'paper_analysis',
+        sourceId: 'paper_1',
+      }),
     }));
     expect(paper.status).toBe('assigned');
     expect(paper.save).toHaveBeenCalled();
@@ -158,6 +186,8 @@ describe('mathPathAssignmentService', () => {
       assignedByRole: 'tutor',
       sourceType: 'tutor',
       skillIds: ['F023'],
+      misconceptionIds: expect.arrayContaining(['operation_mismatch']),
+      guidedPracticeFlow: expect.objectContaining({ status: 'ready' }),
       targetQuestionCount: 12,
     }));
   });
@@ -236,7 +266,14 @@ describe('mathPathAssignmentService', () => {
     }));
     expect(diagnosticFindOneAndUpdate).toHaveBeenCalledWith(
       { diagnosticSessionId: 'diag_recheck_1' },
-      { $set: { assignmentId: 'assignment_1', sourceType: 'assignment', sourceId: 'assignment_1' } }
+      {
+        $set: {
+          assignmentId: 'assignment_1',
+          sourceType: 'assignment',
+          sourceId: 'assignment_1',
+          targetSkillIds: ['F015'],
+        },
+      }
     );
     expect(result.created).toBe(true);
     expect(result.diagnosticSessionId).toBe('diag_recheck_1');

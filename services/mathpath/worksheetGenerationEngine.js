@@ -6,6 +6,7 @@ import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticS
 import MathPathAssignment from '../../models/mathpath/MathPathAssignment.js';
 import PaperAnalysis from '../../models/mathpath/PaperAnalysis.js';
 import { selectWorksheetQuestions, WORKSHEET_TYPE_RULES } from './worksheetQuestionSelector.js';
+import { evaluateQuestionVisualCoverage } from './skillVisualRequirementEngine.js';
 
 const SOURCE_TYPE_TO_MODE = {
   diagnostic: 'diagnostic_intervention',
@@ -176,16 +177,41 @@ function answerKeyFor(questions = []) {
   }));
 }
 
+function frameworkSkillIdForQuestion(question = {}) {
+  const populatedSkill = typeof question.skillId === 'object' ? question.skillId : null;
+  return String(
+    question.frameworkSkillId ||
+    question.officialSkillCode ||
+    question.metadata?.mathPathSkillId ||
+    populatedSkill?.metadata?.mathPathSkillId ||
+    populatedSkill?.metadata?.frameworkCode ||
+    populatedSkill?.slug ||
+    ''
+  ).trim().toUpperCase();
+}
+
 function shapeQuestion(question = {}, index = 0, sectionKey = '') {
+  const frameworkSkillId = frameworkSkillIdForQuestion(question);
+  const visualCoverage = evaluateQuestionVisualCoverage({
+    ...question,
+    skillId: frameworkSkillId,
+    questionText: question.stem,
+  });
   return {
     n: index + 1,
     questionId: question._id,
     skillId: String(question.skillId?._id || question.skillId || ''),
+    frameworkSkillId,
     stem: question.stem,
     type: question.type,
     choices: question.choices,
     visual: question.visual || null,
     diagramSpec: question.diagramSpec || question.metadata?.diagramSpec || null,
+    requiredVisualTypes: visualCoverage.requiredVisualTypes,
+    optionalVisualTypes: visualCoverage.optionalVisualTypes,
+    providedVisualTypes: visualCoverage.providedVisualTypes,
+    visualModelRequired: visualCoverage.visualModelRequired,
+    visualCoverageStatus: visualCoverage.status,
     answer: question.answer || question.modelAnswer || '',
     workedSolution: question.workedSolution || question.explanation || '',
     targetsMisconception: question.targetsMisconception || question.misconceptionTag || '',
@@ -300,6 +326,16 @@ export async function generateInterventionWorksheet({
       ],
       recommendedUse: 'Complete Section A first, review guided examples in Section B, then use Section C to check recheck readiness.',
     },
+    visualModelReferences: questions
+      .filter((question) => question.visualModelRequired || question.requiredVisualTypes?.length)
+      .map((question) => ({
+        questionId: String(question.questionId || ''),
+        n: question.n,
+        skillId: question.frameworkSkillId || question.skillId,
+        requiredVisualTypes: question.requiredVisualTypes || [],
+        providedVisualTypes: question.providedVisualTypes || [],
+        status: question.visualCoverageStatus,
+      })),
   };
 
   const worksheet = await Worksheet.create({
