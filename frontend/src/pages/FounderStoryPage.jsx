@@ -45,7 +45,7 @@ const MODULES = [
   { icon: ScanLine, label: 'AI Math Diagnostic', sub: 'Snap a mistake, find the gap' },
   { icon: FileText, label: 'Mastery Worksheets', sub: 'Targeted, auto-generated practice' },
   { icon: FlaskConical, label: 'Primary Science Revision', sub: 'Adaptive open-ended quizzes' },
-  { icon: Calculator, label: 'Home Math · P1–P6', sub: 'Structured tutoring programme' },
+  { icon: Calculator, label: 'MathPath · Fractions pilot', sub: 'Targeted intervention programme' },
   { icon: SpellCheck, label: 'Spelling · EN · CN · ML', sub: 'Independent self-testing' },
 ];
 const WHY_TM = [
@@ -104,7 +104,7 @@ export default function FounderStoryPage() {
         <Reveal><Headline>Primary. Secondary.<br />Special learning needs.</Headline></Reveal>
         <div style={{ marginTop: 44, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 24 }}>
           {[
-            { lvl: 'Primary', sub: 'P1 – P6 · PSLE prep', stats: [['Years taught', '15+'], ['Subjects', 'Math · Sci · Eng']] },
+            { lvl: 'Primary', sub: 'Fractions intervention pilot · PSLE foundations', stats: [['Years taught', '15+'], ['Subjects', 'Math · Sci · Eng']] },
             { lvl: 'Secondary', sub: 'Sec 1 – Sec 4 · O-Level', stats: [['Years taught', '12+'], ['Subjects', 'Math · A-Math · Sci']] },
             { lvl: 'Learning needs', sub: 'Dyslexia · ADHD · slower processing', stats: [['Approach', 'Adaptive scaffolds'], ['Coaching', 'Confidence-first']] },
           ].map((t, i) => (

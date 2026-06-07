@@ -96,7 +96,7 @@ export default function MethodologyPage() {
                 Start Learning <ArrowRight className="h-4 w-4" />
               </Link>
               <Link to="/founder" className="btn-secondary w-full sm:w-auto">
-                Explore MathPath
+                Read Our Story
               </Link>
             </div>
           </div>
