@@ -28,7 +28,9 @@ export default function ParentHome() {
   const activeId = params.get('child');
 
   useEffect(() => {
+    let alive = true;
     familyAPI.children().then((r) => {
+      if (!alive) return;
       const list = r.data.children || [];
       setChildren(list);
       if (!activeId) {
@@ -39,23 +41,44 @@ export default function ParentHome() {
         if (list[0]) setParams({ child: String(list[0].studentId) }, { replace: true });
       }
       setLoading(false);
-    }).catch(() => { setChildren([]); setLoading(false); });
+    }).catch(() => { if (alive) { setChildren([]); setLoading(false); } });
+    return () => { alive = false; };
   }, []); // eslint-disable-line
 
   useEffect(() => {
+    if (!children || !activeId) return;
+    const allowed = children.some((c) => String(c.studentId) === String(activeId));
+    if (!allowed && children.length > 0) {
+      setRecs([]);
+      setAssignments([]);
+      setRecsError(false);
+      setAssignmentsError(false);
+      setParams({ child: String(children[0].studentId) }, { replace: true });
+    }
+  }, [activeId, children, setParams]);
+
+  useEffect(() => {
     if (!activeId) return;
+    let alive = true;
+    setRecs([]);
+    setAssignments([]);
+    setRecsError(false);
+    setAssignmentsError(false);
     familyAPI.recommendations(activeId)
-      .then((r) => setRecs(r.data.recommendations || []))
+      .then((r) => { if (alive) setRecs(r.data.recommendations || []); })
       .catch(() => {
+        if (!alive) return;
         setRecsError(true);
         setRecs([]);
       });
     assignmentsAPI.list({ studentId: activeId })
-      .then((r) => setAssignments(r.data.assignments || []))
+      .then((r) => { if (alive) setAssignments(r.data.assignments || []); })
       .catch(() => {
+        if (!alive) return;
         setAssignmentsError(true);
         setAssignments([]);
       });
+    return () => { alive = false; };
   }, [activeId]);
 
   if (loading) return <Spinner label="Loading…" />;

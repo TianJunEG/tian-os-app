@@ -38,6 +38,7 @@ vi.mock('../services/partners/partnerAccessService.js', () => ({
 }));
 
 const { resolveStudent } = await import('./studentContext.js');
+const StudentGuardian = (await import('../models/StudentGuardian.js')).default;
 
 describe('resolveStudent', () => {
   beforeEach(() => {
@@ -77,6 +78,27 @@ describe('resolveStudent', () => {
     }, 'student_1')).rejects.toMatchObject({
       status: 403,
       message: 'No access to this student.',
+    });
+  });
+
+  it('allows only an explicit StudentGuardian relationship for parent child access', async () => {
+    state.guardian = {
+      studentId: 'student_1',
+      guardianUserId: 'parent_user',
+      relation: 'parent',
+      status: 'active',
+    };
+
+    await expect(resolveStudent({
+      user: { id: 'parent_user', role: 'parent' },
+      workspaceId: 'family_workspace',
+      body: {},
+      query: {},
+    }, 'student_1')).resolves.toBe(state.student);
+
+    expect(StudentGuardian.findOne).toHaveBeenCalledWith({
+      studentId: 'student_1',
+      guardianUserId: 'parent_user',
     });
   });
 

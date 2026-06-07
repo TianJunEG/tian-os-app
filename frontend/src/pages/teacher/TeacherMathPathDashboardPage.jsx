@@ -421,7 +421,7 @@ export default function TeacherMathPathDashboardPage() {
       <ClassNav classId={id} name={meta?.name || 'Class'} level={meta?.level} />
       <PageHeader
         title="Teacher MathPath Dashboard"
-        subtitle="Class-level mastery, fluency, retention, readiness, and actions."
+        subtitle="Fractions intervention pilot view of class-level mastery, fluency, retention, readiness, and actions."
         action={<Button onClick={() => navigate(`/teacher/classes/${id}/assign`)}>Assign Intervention</Button>}
       />
       <Card className="mb-4 p-4">

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Clock3, FileText, Flame, Target, Upload, AlertTriangle } from 'lucide-react';
 import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
@@ -430,10 +430,19 @@ export default function ParentMathPathDashboardPage() {
   const [assignmentMessage, setAssignmentMessage] = useState('');
   const [workingReview, setWorkingReview] = useState(null);
   const [fluencySummary, setFluencySummary] = useState(null);
+  const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
+    const requestId = loadRequestRef.current + 1;
+    loadRequestRef.current = requestId;
     setLoading(true);
     setError('');
+    setSummary(null);
+    setPlacement(null);
+    setDiagnosticGrowth(null);
+    setWorkingReview(null);
+    setFluencySummary(null);
+    setAssignmentMessage('');
     try {
       const [masteryRes, latestRes, growthRes, workingRes, fluencyRes] = await Promise.all([
         mathpathAPI.mastery({ studentId }),
@@ -442,6 +451,7 @@ export default function ParentMathPathDashboardPage() {
         mathpathAPI.workingReviewSummary({ studentId }),
         mathpathAPI.fluency(studentId),
       ]);
+      if (requestId !== loadRequestRef.current) return;
       const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {}, workingRes?.data?.summary || {});
       setSummary(parentPayload);
       setPlacement(latestRes?.data?.result || null);
@@ -449,9 +459,10 @@ export default function ParentMathPathDashboardPage() {
       setWorkingReview(workingRes?.data || null);
       setFluencySummary(fluencyRes?.data || null);
     } catch (e) {
+      if (requestId !== loadRequestRef.current) return;
       setError(e?.response?.data?.error || e.message || 'Could not load parent MathPath dashboard.');
     } finally {
-      setLoading(false);
+      if (requestId === loadRequestRef.current) setLoading(false);
     }
   }, [studentId]);
 
@@ -510,7 +521,7 @@ export default function ParentMathPathDashboardPage() {
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
       <PageHeader
         title="Parent MathPath Dashboard"
-        subtitle="A clear weekly view of mastery, fluency, retention, and next actions."
+        subtitle="Fractions intervention pilot view of mastery, fluency, retention, and next actions."
         action={(
           <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
         )}

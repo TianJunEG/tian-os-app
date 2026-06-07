@@ -111,7 +111,15 @@ router.get('/students/:id', async (req, res) => {
   res.json({
     student: { id: student._id, name: student.name, level: student.level, focusArea: student.profile?.mainFocus || 'MathPath' },
     mastery: { overall: sum.overallMastery, masteredCount: sum.masteredCount, records: sum.records.map((r) => ({ skillId: r.skillId?._id, skillName: r.skillId?.name, score: r.score, status: r.status })) },
-    mistakes: mistakes.map((m) => ({ id: m._id, skillName: m.skillId?.name, questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer })),
+    mistakes: mistakes.map((m) => ({
+      id: m._id,
+      skillName: m.skillId?.name,
+      questionStem: m.questionStem,
+      studentAnswer: m.studentAnswer,
+      correctAnswer: m.correctAnswer,
+      learningStatus: m.learningStatus || (m.reviewed ? 'acknowledged' : 'new'),
+      masteryEvidence: m.masteryEvidence || {},
+    })),
     assignments: assignments.map((a) => ({ id: a._id, module: a.module, status: a.status, score: a.score, skillNames: a.skillIds.map((s) => s.name), dueDate: a.dueDate })),
     lessonNotes: notes.map((n) => ({ id: n._id, covered: n.covered, createdAt: n.createdAt, parentUpdateStatus: n.parentUpdateStatus })),
   });

@@ -7,6 +7,14 @@ import { Card, Button, Badge, StatusBadge, StatTile, Spinner, ErrorState } from 
 import { MathText } from '../../components/ui/Fraction';
 import StudentSciencePanel from '../../components/StudentSciencePanel';
 
+const MISTAKE_LEARNING_LABEL = {
+  new: 'New',
+  acknowledged: 'Reviewed',
+  corrected: 'Corrected',
+  understood: 'Understood',
+  mastered: 'Mastered',
+};
+
 // One student, understood quickly: mastery, recent mistakes, homework, notes.
 export default function TutorStudentProfile() {
   const { id } = useParams();
@@ -46,7 +54,11 @@ export default function TutorStudentProfile() {
             <ul className="space-y-3">
               {mistakes.slice(0, 5).map((m) => (
                 <li key={m.id} className="text-sm">
-                  <p className="font-medium text-ink-700">{m.skillName}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-medium text-ink-700">{m.skillName}</p>
+                    <StatusBadge status={m.learningStatus === 'mastered' ? 'mastered' : m.learningStatus === 'new' ? 'needs_review' : 'learning'} />
+                  </div>
+                  <p className="text-xs font-semibold text-ink-500">{MISTAKE_LEARNING_LABEL[m.learningStatus || 'new'] || 'Learning'}</p>
                   <p className="text-ink-500"><MathText text={m.questionStem} /></p>
                 </li>
               ))}

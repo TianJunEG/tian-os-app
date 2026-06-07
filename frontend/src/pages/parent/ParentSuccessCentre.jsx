@@ -32,9 +32,20 @@ export default function ParentSuccessCentre() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    if (loadingChildren || !children.length || !activeId) return;
+    const allowed = children.some((item) => String(item.studentId) === String(activeId));
+    if (!allowed) {
+      setPayload(null);
+      setError('');
+      setParams({ child: String(children[0].studentId) }, { replace: true });
+    }
+  }, [activeId, children, loadingChildren, setParams]);
+
+  useEffect(() => {
     if (!activeId) return;
     let mounted = true;
     setLoadingCentre(true);
+    setPayload(null);
     setError('');
     mathpathAPI.parentSuccessCentre({ studentId: activeId })
       .then((res) => {

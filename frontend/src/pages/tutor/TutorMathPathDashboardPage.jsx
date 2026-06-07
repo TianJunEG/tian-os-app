@@ -811,7 +811,7 @@ export default function TutorMathPathDashboardPage() {
       <TutorStudentNav studentId={id} name={studentMeta?.name || 'Student'} level={studentMeta?.level} />
       <PageHeader
         title="Tutor MathPath Dashboard"
-        subtitle="Root causes, fluency bottlenecks, retention risk, and session planning."
+        subtitle="Fractions intervention pilot view of root causes, fluency bottlenecks, retention risk, and session planning."
         action={<Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>}
       />
       {!!placement?.recommendedStartingSkill?.name && (
