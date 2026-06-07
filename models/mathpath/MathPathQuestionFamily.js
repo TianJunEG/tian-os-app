@@ -19,6 +19,9 @@ const mathPathQuestionFamilySchema = new mongoose.Schema(
     mentalMathEligible: { type: Boolean, default: false },
     workingRequired: { type: Boolean, default: true },
     misconceptionTags: { type: [String], default: [] },
+    requiredVisualTypes: { type: [String], default: [] },
+    optionalVisualTypes: { type: [String], default: [] },
+    visualCoverageStatus: { type: String, enum: ['', 'not_required', 'present', 'missing', 'partial'], default: '' },
     assessmentRelevant: { type: Boolean, default: true },
     isActive: { type: Boolean, default: true },
   },
@@ -31,4 +34,3 @@ mathPathQuestionFamilySchema.index({ mentalMathEligible: 1 });
 mathPathQuestionFamilySchema.index({ workingRequired: 1 });
 
 export default mongoose.model('MathPathQuestionFamily', mathPathQuestionFamilySchema);
-

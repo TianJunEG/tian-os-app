@@ -28,6 +28,9 @@ const generatedQuestionSchema = new mongoose.Schema(
     finalAnswer: { type: String, default: '' },
     explanation: { type: String, default: '' },
     misconceptionTags: { type: [String], default: [] },
+    requiredVisualTypes: { type: [String], default: [] },
+    providedVisualTypes: { type: [String], default: [] },
+    visualCoverageStatus: { type: String, enum: ['', 'not_required', 'present', 'missing', 'partial'], default: '' },
 
     workingRequired: { type: Boolean, default: false },
     mentalMathEligible: { type: Boolean, default: false },

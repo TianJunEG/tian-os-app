@@ -6,6 +6,11 @@ const getPilotAnalytics = vi.fn();
 const getPilotInterventionMetrics = vi.fn();
 const getPilotInterventionSummary = vi.fn();
 const getQuestionQualityAudit = vi.fn();
+const getQuestionVisualQualityAudit = vi.fn();
+const getDiagnosticValidationReport = vi.fn();
+const getRecoveryPackQualityReport = vi.fn();
+const getInterventionEffectivenessReport = vi.fn();
+const getRecoveryPackAssetReport = vi.fn();
 const recordLearningEvent = vi.fn();
 
 vi.mock('../middleware/auth.js', () => ({
@@ -36,6 +41,26 @@ vi.mock('../services/mathpath/pilotInterventionMetricsService.js', () => ({
 
 vi.mock('../services/mathpath/questionQualityAuditService.js', () => ({
   getQuestionQualityAudit: (...args) => getQuestionQualityAudit(...args),
+}));
+
+vi.mock('../services/mathpath/visualQualityAuditService.js', () => ({
+  getQuestionVisualQualityAudit: (...args) => getQuestionVisualQualityAudit(...args),
+}));
+
+vi.mock('../services/mathpath/diagnosticValidationEngine.js', () => ({
+  getDiagnosticValidationReport: (...args) => getDiagnosticValidationReport(...args),
+}));
+
+vi.mock('../services/mathpath/recoveryPackQualityService.js', () => ({
+  getRecoveryPackQualityReport: (...args) => getRecoveryPackQualityReport(...args),
+}));
+
+vi.mock('../services/mathpath/interventionEffectivenessService.js', () => ({
+  getInterventionEffectivenessReport: (...args) => getInterventionEffectivenessReport(...args),
+}));
+
+vi.mock('../services/mathpath/recoveryPackAssetService.js', () => ({
+  getRecoveryPackAssetReport: (...args) => getRecoveryPackAssetReport(...args),
 }));
 
 async function loadRouter(path) {
@@ -183,6 +208,90 @@ describe('learning telemetry analytics routes', () => {
     expect(res.status).toBe(200);
     expect(getQuestionQualityAudit).toHaveBeenCalledWith({ domainId: 'fractions', limit: 100 });
     expect(res.data.averageQualityScore).toBe(72);
+  });
+
+  it('returns admin question visual quality audit', async () => {
+    getQuestionVisualQualityAudit.mockResolvedValueOnce({
+      totalQuestions: 26,
+      visualCoveragePercent: 64,
+      skillsMissingVisuals: [],
+    });
+
+    const res = await request(pilotRouter, '/question-visual-quality', {
+      query: { domainId: 'fractions', limit: 100 },
+    });
+
+    expect(res.status).toBe(200);
+    expect(getQuestionVisualQualityAudit).toHaveBeenCalledWith({ domainId: 'fractions', limit: 100 });
+    expect(res.data.visualCoveragePercent).toBe(64);
+  });
+
+  it('returns admin diagnostic validation report', async () => {
+    getDiagnosticValidationReport.mockResolvedValueOnce({
+      sessionCount: 2,
+      confidenceDistribution: { high: 1, medium: 1, low: 0 },
+      falsePositives: [],
+    });
+
+    const res = await request(pilotRouter, '/diagnostic-validation', {
+      query: { subjectId: 'math', domainId: 'fractions', limit: 25 },
+    });
+
+    expect(res.status).toBe(200);
+    expect(getDiagnosticValidationReport).toHaveBeenCalledWith({
+      studentId: undefined,
+      subjectId: 'math',
+      domainId: 'fractions',
+      limit: 25,
+    });
+    expect(res.data.sessionCount).toBe(2);
+  });
+
+  it('returns admin remediation quality report', async () => {
+    getRecoveryPackQualityReport.mockResolvedValueOnce({
+      assignmentCount: 3,
+      averageQualityScore: 78,
+      lowQualityRecoveryPacks: [],
+    });
+    getInterventionEffectivenessReport.mockResolvedValueOnce({
+      recheckSuccessRate: 67,
+      strongestInterventions: [],
+    });
+
+    const res = await request(pilotRouter, '/remediation-quality', {
+      query: { domainId: 'fractions', limit: 50 },
+    });
+
+    expect(res.status).toBe(200);
+    expect(getRecoveryPackQualityReport).toHaveBeenCalledWith({
+      studentId: undefined,
+      domainId: 'fractions',
+      limit: 50,
+    });
+    expect(getInterventionEffectivenessReport).toHaveBeenCalledWith({
+      studentId: undefined,
+      domainId: 'fractions',
+      limit: 50,
+    });
+    expect(res.data.effectiveness.recheckSuccessRate).toBe(67);
+  });
+
+  it('returns admin Recovery Pack asset report', async () => {
+    getRecoveryPackAssetReport.mockResolvedValueOnce({
+      assetCoveragePercent: 100,
+      missingWorkedExamples: [],
+    });
+
+    const res = await request(pilotRouter, '/recovery-pack-assets', {
+      query: { domainId: 'fractions', limit: 50 },
+    });
+
+    expect(res.status).toBe(200);
+    expect(getRecoveryPackAssetReport).toHaveBeenCalledWith({
+      domainId: 'fractions',
+      limit: 50,
+    });
+    expect(res.data.assetCoveragePercent).toBe(100);
   });
 
   it('blocks question quality audit for non-admin users', async () => {

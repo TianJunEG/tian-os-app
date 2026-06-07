@@ -60,6 +60,8 @@ export default function DiagnosticResultScreen() {
   const [result, setResult] = useState(location.state?.result || null);
   const [timingAnalytics, setTimingAnalytics] = useState(location.state?.timingAnalytics || null);
   const [loading, setLoading] = useState(!location.state?.result || !location.state?.timingAnalytics);
+  const [recheckSummary, setRecheckSummary] = useState(location.state?.recheckSummary || null);
+  const [recheckSummaryLoading, setRecheckSummaryLoading] = useState(false);
   const [assigningRecovery, setAssigningRecovery] = useState(false);
   const [assignmentMessage, setAssignmentMessage] = useState('');
   const [assignmentError, setAssignmentError] = useState('');
@@ -73,7 +75,13 @@ export default function DiagnosticResultScreen() {
         const { data } = await mathpathAPI.getDiagnostic(diagnosticSessionId);
         if (!mounted) return;
         const persisted = data?.result || null;
-        setResult(persisted ? { ...persisted, sessionId: data.sessionId, mode: data.mode } : null);
+        setResult(persisted ? {
+          ...persisted,
+          sessionId: data.sessionId,
+          mode: data.mode,
+          diagnosticPurpose: data.diagnosticPurpose,
+          assignmentId: data.assignmentId,
+        } : null);
         setTimingAnalytics(data?.timingAnalytics || null);
       } catch (_) {
         if (mounted) setResult(null);
@@ -83,6 +91,24 @@ export default function DiagnosticResultScreen() {
     })();
     return () => { mounted = false; };
   }, [diagnosticSessionId, location.state?.result, location.state?.timingAnalytics]);
+
+  useEffect(() => {
+    let mounted = true;
+    const purpose = result?.diagnosticPurpose || location.state?.diagnosticPurpose;
+    if (purpose !== 'recheck' || recheckSummary || !diagnosticSessionId) return () => { mounted = false; };
+    setRecheckSummaryLoading(true);
+    mathpathAPI.getRecheckSummary(diagnosticSessionId, { assignmentId: result?.assignmentId || location.state?.assignmentId || '' })
+      .then((res) => {
+        if (mounted) setRecheckSummary(res.data?.summary || null);
+      })
+      .catch(() => {
+        if (mounted) setRecheckSummary(null);
+      })
+      .finally(() => {
+        if (mounted) setRecheckSummaryLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [diagnosticSessionId, location.state?.assignmentId, location.state?.diagnosticPurpose, recheckSummary, result?.assignmentId, result?.diagnosticPurpose]);
 
   const shaped = useMemo(() => {
     if (!result) return null;
@@ -158,13 +184,103 @@ export default function DiagnosticResultScreen() {
   const summaryText = score <= 0
     ? 'This check-in did not show secure Fractions evidence yet. Start with the recommended skill and build from there.'
     : (shaped.studentFriendlySummary || 'Your diagnostic is complete. Let’s begin at the recommended skill.');
+
+  if ((shaped.diagnosticPurpose || location.state?.diagnosticPurpose) === 'recheck') {
+    if (recheckSummaryLoading && !recheckSummary) {
+      return <Spinner label="Loading your recheck progress..." />;
+    }
+    const summary = recheckSummary;
+    if (summary) {
+      return (
+        <div className="mx-auto max-w-3xl">
+          <PageHeader title={summary.title || 'Recheck Complete'} subtitle="Here is what changed after your Recovery Pack." />
+          <div className="space-y-4">
+            <Card className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Nice work</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-navy-800">{summary.encouragementMessage}</h2>
+              {summary.recoveryPackContext?.message && (
+                <p className="mt-3 rounded-xl bg-navy-50 px-3 py-2 text-sm font-semibold text-navy-800">
+                  {summary.recoveryPackContext.message}
+                </p>
+              )}
+              {summary.overallImprovement !== null && summary.overallImprovement !== undefined && (
+                <p className="mt-3 text-sm text-ink-600">
+                  Overall improvement: <span className="font-semibold text-navy-700">{summary.overallImprovement > 0 ? '+' : ''}{summary.overallImprovement}</span>
+                </p>
+              )}
+              <p className="mt-3 text-sm text-ink-700">{summary.coachingExplanation}</p>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card className="p-5">
+                <p className="font-semibold text-ink-800">What improved</p>
+                {summary.improvedSkills?.length ? (
+                  <div className="mt-3 space-y-2">
+                    {summary.improvedSkills.map((skill) => (
+                      <div key={skill.displayName} className="rounded-xl bg-success-100 px-3 py-2">
+                        <p className="font-semibold text-success-700">{skill.displayName}</p>
+                        <p className="mt-1 text-sm text-success-700">You improved by {skill.improvement > 0 ? '+' : ''}{skill.improvement} points.</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-ink-500">This recheck helps us choose the next practice step.</p>
+                )}
+              </Card>
+
+              <Card className="p-5">
+                <p className="font-semibold text-ink-800">Keep practising</p>
+                {summary.stillNeedsWork?.length ? (
+                  <div className="mt-3 space-y-2">
+                    {summary.stillNeedsWork.map((skill) => (
+                      <div key={skill.displayName} className="rounded-xl bg-gold-100 px-3 py-2">
+                        <p className="font-semibold text-gold-800">{skill.displayName}</p>
+                        <p className="mt-1 text-sm text-gold-800">You are getting better, and this still needs a little more practice.</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-ink-500">No major areas from this pack need extra practice right now.</p>
+                )}
+              </Card>
+            </div>
+
+            {summary.resolvedMisconceptions?.length ? (
+              <Card className="p-5">
+                <p className="font-semibold text-ink-800">A tricky mistake you are improving</p>
+                <div className="mt-3 space-y-2">
+                  {summary.resolvedMisconceptions.map((item) => (
+                    <p key={item.title} className="rounded-xl bg-paper px-3 py-2 text-sm text-ink-700">{item.explanation}</p>
+                  ))}
+                </div>
+              </Card>
+            ) : null}
+
+            <Card className="p-5">
+              <p className="font-semibold text-ink-800">Try this next</p>
+              <p className="mt-2 text-lg font-semibold text-navy-800">{summary.nextRecommendedAction?.label || 'Continue Practice'}</p>
+              <p className="mt-1 text-sm text-ink-600">{summary.nextRecommendedAction?.reason || 'This will help you keep building confidence.'}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button icon={ArrowRight} onClick={() => navigate('/student/mathpath/assignments')}>
+                  Continue
+                </Button>
+                <Button variant="secondary" onClick={() => navigate('/student/progress')}>
+                  View Progress
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      );
+    }
+  }
   const assignRecoveryPack = async () => {
     setAssignmentMessage('');
     setAssignmentError('');
     setAssigningRecovery(true);
     try {
       await mathpathAPI.createAssignmentFromDiagnostic({ diagnosticSessionId });
-      setAssignmentMessage('Recovery Pack assigned.');
+      setAssignmentMessage('Recovery Pack created.');
       navigate('/student/mathpath/assignments');
     } catch (err) {
       setAssignmentError(err?.response?.data?.error || 'Could not assign a Recovery Pack from this diagnostic yet.');
@@ -424,7 +540,7 @@ export default function DiagnosticResultScreen() {
               onClick={assignRecoveryPack}
               disabled={assigningRecovery}
             >
-              {assigningRecovery ? 'Assigning...' : 'Assign Recovery Pack'}
+              {assigningRecovery ? 'Creating...' : 'Create Recovery Pack'}
             </Button>
           )}
           <Button size="l" variant="secondary" onClick={() => navigate('/student/mathpath')}>

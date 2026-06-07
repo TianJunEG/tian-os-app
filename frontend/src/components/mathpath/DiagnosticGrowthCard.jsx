@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, BarChart3, RefreshCw } from 'lucide-react';
 import { Button, Card } from '../ui';
+import { getUniversalSkillByFrameworkId } from '../../mathpath/curriculum/fractionUniversalSkills';
 
 function score(value) {
   const n = Number(value);
@@ -12,6 +13,13 @@ function dateText(value) {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '-';
   return d.toLocaleDateString();
+}
+
+function skillLabel(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  const skill = getUniversalSkillByFrameworkId(raw.toUpperCase());
+  return skill?.title || raw;
 }
 
 export default function DiagnosticGrowthCard({
@@ -28,7 +36,7 @@ export default function DiagnosticGrowthCard({
   const topImproved = (growth?.perSkillGrowth || [])
     .filter((row) => Number(row.improvement) > 0)
     .sort((a, b) => Number(b.improvement || 0) - Number(a.improvement || 0))[0];
-  const remainingWeak = growth?.remainingWeakSkills?.[0] || '';
+  const remainingWeak = skillLabel(growth?.remainingWeakSkills?.[0]);
 
   return (
     <Card className="p-4">
@@ -59,7 +67,7 @@ export default function DiagnosticGrowthCard({
       </div>
       <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
         <p className="rounded-xl bg-mint-50 px-3 py-2 text-ink-700">
-          Top improved skill: <span className="font-semibold">{topImproved?.skillName || topImproved?.skillId || 'Not enough data yet'}</span>
+          Top improved skill: <span className="font-semibold">{topImproved?.skillName || skillLabel(topImproved?.skillId) || 'Not enough data yet'}</span>
         </p>
         <p className="rounded-xl bg-gold-50 px-3 py-2 text-ink-700">
           Remaining weak skill: <span className="font-semibold">{remainingWeak || 'None flagged'}</span>

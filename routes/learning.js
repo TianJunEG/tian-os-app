@@ -7,8 +7,10 @@ import express from 'express';
 import SpellingAttempt from '../models/SpellingAttempt.js';
 import LearningResult from '../models/LearningResult.js';
 import User from '../models/User.js';
+import Student from '../models/Student.js';
+import StudentGuardian from '../models/StudentGuardian.js';
 import { computeWordStats } from '../utils/spellingStats.js';
-import { spellingContribution, resultsToContributions, buildProfile, ownsChild } from '../utils/learningProfile.js';
+import { spellingContribution, resultsToContributions, buildProfile } from '../utils/learningProfile.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -73,15 +75,27 @@ router.get('/profile', async (req, res) => {
 // A parent's children, each with a headline readiness for the overview.
 router.get('/children', async (req, res) => {
   try {
-    const u = await User.findById(req.user.id);
-    const kids = (u && u.children) || [];
+    const links = await StudentGuardian.find({ guardianUserId: req.user.id });
+    const students = links.length
+      ? await Student.find({ _id: { $in: links.map((link) => link.studentId) } })
+      : [];
     const children = [];
-    for (const c of kids) {
-      const p = await buildLearnerProfile(req.user.id, c._id);
-      children.push({ id: c._id, name: c.name, level: c.level, overall: p.overall, band: p.band, subjects: p.subjects.length });
+    for (const student of students) {
+      const p = await buildLearnerProfile(req.user.id, student._id);
+      children.push({
+        id: student._id,
+        studentId: student._id,
+        name: student.name,
+        level: student.level,
+        overall: p.overall,
+        band: p.band,
+        subjects: p.subjects.length,
+      });
     }
-    // Graceful fallback for accounts that only have the legacy single embedded child.
-    if (!children.length && u && u.parentProfile && u.parentProfile.studentName) {
+    // Compatibility only: this does not grant access to a child record. New
+    // parent-child access must be represented by StudentGuardian.
+    const u = !children.length ? await User.findById(req.user.id) : null;
+    if (!children.length && u?.parentProfile?.studentName) {
       const p = await buildLearnerProfile(req.user.id, null);
       children.push({ id: 'self', name: u.parentProfile.studentName, level: u.parentProfile.gradeLevel || '', overall: p.overall, band: p.band, subjects: p.subjects.length });
     }
@@ -110,10 +124,15 @@ router.get('/children/:childId/profile', async (req, res) => {
   try {
     const { childId } = req.params;
     if (childId === 'self') return res.json({ success: true, child: { id: 'self' }, profile: await buildLearnerProfile(req.user.id, null) });
-    const u = await User.findById(req.user.id);
-    if (!ownsChild(u && u.children, childId)) return res.status(404).json({ error: 'Child not found for this account' });
-    const child = u.children.find((c) => String(c._id) === String(childId));
-    res.json({ success: true, child: { id: child._id, name: child.name, level: child.level }, profile: await buildLearnerProfile(req.user.id, child._id) });
+    const link = await StudentGuardian.findOne({ studentId: childId, guardianUserId: req.user.id });
+    if (!link) return res.status(404).json({ error: 'Child not found for this account' });
+    const student = await Student.findById(childId);
+    if (!student) return res.status(404).json({ error: 'Child not found for this account' });
+    res.json({
+      success: true,
+      child: { id: student._id, studentId: student._id, name: student.name, level: student.level },
+      profile: await buildLearnerProfile(req.user.id, student._id),
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

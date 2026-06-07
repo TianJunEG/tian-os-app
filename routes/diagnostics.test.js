@@ -9,6 +9,8 @@ const getDiagnosticDomain = vi.fn();
 const listDiagnosticDomains = vi.fn();
 const getDiagnosticHistory = vi.fn();
 const getDiagnosticGrowth = vi.fn();
+const getStudentRecheckSummary = vi.fn();
+const resolveStudentMock = vi.fn(async () => MOCK_STUDENT);
 
 vi.mock('../middleware/auth.js', () => ({
   protect: (req, _res, next) => {
@@ -18,7 +20,7 @@ vi.mock('../middleware/auth.js', () => ({
 }));
 
 vi.mock('../utils/studentContext.js', () => ({
-  resolveStudent: vi.fn(async () => MOCK_STUDENT),
+  resolveStudent: (...args) => resolveStudentMock(...args),
 }));
 
 vi.mock('../services/diagnostics/diagnosticRuntime.js', () => ({
@@ -34,6 +36,10 @@ vi.mock('../services/diagnostics/diagnosticDomainRegistry.js', () => ({
 vi.mock('../services/diagnostics/diagnosticGrowthService.js', () => ({
   getDiagnosticHistory: (...args) => getDiagnosticHistory(...args),
   getDiagnosticGrowth: (...args) => getDiagnosticGrowth(...args),
+}));
+
+vi.mock('../services/mathpath/studentRecheckSummaryService.js', () => ({
+  getStudentRecheckSummary: (...args) => getStudentRecheckSummary(...args),
 }));
 
 let router;
@@ -78,6 +84,7 @@ describe('diagnostics routes registry contract', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    resolveStudentMock.mockImplementation(async () => MOCK_STUDENT);
   });
 
   it('lists registered diagnostic domains', async () => {
@@ -148,6 +155,19 @@ describe('diagnostics routes registry contract', () => {
     expect(res.data.history.map((item) => item.diagnosticSessionId)).toEqual(['diag_1', 'diag_2']);
   });
 
+  it('blocks diagnostic history for an unrelated child before reading diagnostic data', async () => {
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/history?studentId=unrelated_child&subjectId=math&domainId=fractions');
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(getDiagnosticHistory).not.toHaveBeenCalled();
+  });
+
   it('returns diagnostic growth for the resolved student and domain', async () => {
     getDiagnosticDomain.mockReturnValueOnce({ subjectId: 'math', domainId: 'fractions' });
     getDiagnosticGrowth.mockResolvedValueOnce({
@@ -172,6 +192,19 @@ describe('diagnostics routes registry contract', () => {
       domainId: 'fractions',
       overallImprovement: 36,
     });
+  });
+
+  it('blocks diagnostic growth for an unrelated child before reading growth data', async () => {
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/growth?studentId=unrelated_child&subjectId=math&domainId=fractions');
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(getDiagnosticGrowth).not.toHaveBeenCalled();
   });
 
   it('returns diagnostic history in the service order', async () => {
@@ -208,6 +241,47 @@ describe('diagnostics routes registry contract', () => {
     expect(res.status).toBe(200);
     expect(res.data.overallImprovement).toBe(36);
     expect(res.data.recommendedActions[0]).toMatchObject({ skillId: 'F015' });
+  });
+
+  it('returns a student-facing recheck summary for a completed recheck', async () => {
+    getDiagnosticDomain.mockReturnValueOnce({ subjectId: 'math', domainId: 'fractions' });
+    getStudentRecheckSummary.mockResolvedValueOnce({
+      title: 'Recovery Pack Recheck',
+      encouragementMessage: 'Great work. Your practice is showing clear progress.',
+      improvedSkills: [{ displayName: 'Adding fractions with different denominators', improvement: 37 }],
+      stillNeedsWork: [],
+      nextRecommendedAction: {
+        label: 'Start Next Learning Path',
+        reason: 'You are ready to keep building.',
+      },
+    });
+
+    const res = await request('/recheck-summary/diag_recheck_1');
+
+    expect(res.status).toBe(200);
+    expect(getDiagnosticDomain).toHaveBeenCalledWith({ subjectId: 'math', domainId: 'fractions' });
+    expect(getStudentRecheckSummary).toHaveBeenCalledWith({
+      studentId: MOCK_STUDENT._id,
+      diagnosticSessionId: 'diag_recheck_1',
+      assignmentId: '',
+      subjectId: 'math',
+      domainId: 'fractions',
+    });
+    expect(res.data.summary.title).toBe('Recovery Pack Recheck');
+    expect(JSON.stringify(res.data.summary)).not.toMatch(/\bF\d{3}\b/);
+  });
+
+  it('blocks recheck summaries for an unrelated child before reading recheck evidence', async () => {
+    resolveStudentMock.mockRejectedValueOnce({
+      status: 403,
+      message: 'No access to this student.',
+    });
+
+    const res = await request('/recheck-summary/diag_recheck_1?studentId=unrelated_child');
+
+    expect(res.status).toBe(403);
+    expect(res.data.error).toBe('No access to this student.');
+    expect(getStudentRecheckSummary).not.toHaveBeenCalled();
   });
 
   it('returns a clean error for unavailable diagnostic domains', async () => {

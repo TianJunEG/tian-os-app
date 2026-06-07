@@ -47,6 +47,7 @@ const PracticeSession = lazy(() => import('./pages/student/mathpath/PracticeSess
 const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResult'));
 const QuestionReviewPage = lazy(() => import('./pages/student/mathpath/QuestionReviewPage'));
 const MathPathAssignments = lazy(() => import('./pages/student/mathpath/MathPathAssignments'));
+const RecoveryPackTeachingFlow = lazy(() => import('./pages/student/mathpath/RecoveryPackTeachingFlow'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
 const FractionsStoryModeSession = lazy(() => import('./pages/student/mathpath/FractionsStoryModeSession'));
 const StoryModeDomainRoute = lazy(() => import('./pages/student/mathpath/StoryModeDomainRoute'));
@@ -85,6 +86,14 @@ const PaperAnalysisPage = lazy(() => import('./pages/mathpath/PaperAnalysisPage'
 const PilotAnalyticsPage = lazy(() => import('./pages/admin/PilotAnalyticsPage'));
 const PilotInterventionsPage = lazy(() => import('./pages/admin/PilotInterventionsPage'));
 const QuestionQualityPage = lazy(() => import('./pages/admin/QuestionQualityPage'));
+const FractionsSkillIntegrityPage = lazy(() => import('./pages/admin/FractionsSkillIntegrityPage'));
+const QuestionVisualQualityPage = lazy(() => import('./pages/admin/QuestionVisualQualityPage'));
+const DiagnosticValidationPage = lazy(() => import('./pages/admin/DiagnosticValidationPage'));
+const RemediationQualityPage = lazy(() => import('./pages/admin/RemediationQualityPage'));
+const LearningPathQualityPage = lazy(() => import('./pages/admin/LearningPathQualityPage'));
+const RecoveryPackAssetsPage = lazy(() => import('./pages/admin/RecoveryPackAssetsPage'));
+const DomainHealthPage = lazy(() => import('./pages/admin/DomainHealthPage'));
+const MisconceptionCoveragePage = lazy(() => import('./pages/admin/MisconceptionCoveragePage'));
 const BillingPage = lazy(() => import('./pages/admin/BillingPage'));
 const PartnersPage = lazy(() => import('./pages/admin/PartnersPage'));
 const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
@@ -233,7 +242,7 @@ const LegacyDashboardRedirect = () => {
 
 // Landing Page — cinematic Tian OS look (matches the launch video / founder story).
 const LANDING_FEATURES = [
-  { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake becomes targeted mastery — worksheets and revision adapt to each child.' },
+  { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake can guide targeted practice toward mastery — worksheets and revision adapt to each child.' },
   { icon: Layers, title: 'One connected profile', body: 'Spelling, maths and science progress unify into a single readiness picture for parents.' },
   { icon: GraduationCap, title: 'Powered by teachers', body: 'Expert tutors and an enrichment marketplace, matched to how your child learns.' },
 ];
@@ -448,6 +457,14 @@ function App() {
           <Route path="/admin/pilot-analytics" element={<ProtectedRoute><FeatureGuard feature="admin"><PilotAnalyticsPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/pilot/interventions" element={<ProtectedRoute><FeatureGuard feature="admin"><PilotInterventionsPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/question-quality" element={<ProtectedRoute><FeatureGuard feature="admin"><QuestionQualityPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/fractions-skill-integrity" element={<ProtectedRoute><FeatureGuard feature="admin"><FractionsSkillIntegrityPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/question-visual-quality" element={<ProtectedRoute><FeatureGuard feature="admin"><QuestionVisualQualityPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/diagnostic-validation" element={<ProtectedRoute><FeatureGuard feature="admin"><DiagnosticValidationPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/remediation-quality" element={<ProtectedRoute><FeatureGuard feature="admin"><RemediationQualityPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/learning-path-quality" element={<ProtectedRoute><FeatureGuard feature="admin"><LearningPathQualityPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/recovery-pack-assets" element={<ProtectedRoute><FeatureGuard feature="admin"><RecoveryPackAssetsPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/domain-health" element={<ProtectedRoute><FeatureGuard feature="admin"><DomainHealthPage /></FeatureGuard></ProtectedRoute>} />
+          <Route path="/admin/misconception-coverage" element={<ProtectedRoute><FeatureGuard feature="admin"><MisconceptionCoveragePage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/billing" element={<ProtectedRoute><FeatureGuard feature="admin"><BillingPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/partners" element={<ProtectedRoute><FeatureGuard feature="admin"><PartnersPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/admin/partners/:partnerId" element={<ProtectedRoute><FeatureGuard feature="admin"><PartnerDetailPage /></FeatureGuard></ProtectedRoute>} />
@@ -482,6 +499,7 @@ function App() {
             <Route path="/student/mathpath/results/:sessionId" element={<PracticeResult />} />
             <Route path="/student/mathpath/review" element={<QuestionReviewPage />} />
             <Route path="/student/mathpath/assignments" element={<MathPathAssignments />} />
+            <Route path="/student/mathpath/recovery-pack/:assignmentId" element={<RecoveryPackTeachingFlow />} />
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
             <Route path="/student/mathpath/fractions/story" element={<FractionsStoryModeSession />} />
             <Route path="/student/mathpath/fractions/story/:skillId" element={<FractionsStoryModeSession />} />

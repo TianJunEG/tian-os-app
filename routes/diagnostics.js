@@ -13,6 +13,7 @@ import {
   getDiagnosticGrowth,
   getDiagnosticHistory,
 } from '../services/diagnostics/diagnosticGrowthService.js';
+import { getStudentRecheckSummary } from '../services/mathpath/studentRecheckSummaryService.js';
 
 const router = express.Router();
 
@@ -67,6 +68,29 @@ router.get('/growth', protect, async (req, res) => {
     return res.json({ studentId: String(student._id), subjectId, domainId, ...growth });
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to load diagnostic growth.');
+  }
+});
+
+router.get('/recheck-summary/:sessionId', protect, async (req, res) => {
+  try {
+    const {
+      subjectId = 'math',
+      domainId = 'fractions',
+      studentId = '',
+      assignmentId = '',
+    } = req.query || {};
+    getDiagnosticDomain({ subjectId, domainId });
+    const student = await resolveStudent(req, studentId);
+    const summary = await getStudentRecheckSummary({
+      studentId: String(student._id),
+      diagnosticSessionId: req.params.sessionId,
+      assignmentId,
+      subjectId,
+      domainId,
+    });
+    return res.json({ studentId: String(student._id), subjectId, domainId, diagnosticSessionId: req.params.sessionId, summary });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to load recheck summary.');
   }
 });
 

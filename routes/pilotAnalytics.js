@@ -6,6 +6,11 @@ import {
   getPilotInterventionSummary,
 } from '../services/mathpath/pilotInterventionMetricsService.js';
 import { getQuestionQualityAudit } from '../services/mathpath/questionQualityAuditService.js';
+import { getQuestionVisualQualityAudit } from '../services/mathpath/visualQualityAuditService.js';
+import { getDiagnosticValidationReport } from '../services/mathpath/diagnosticValidationEngine.js';
+import { getRecoveryPackQualityReport } from '../services/mathpath/recoveryPackQualityService.js';
+import { getInterventionEffectivenessReport } from '../services/mathpath/interventionEffectivenessService.js';
+import { getRecoveryPackAssetReport } from '../services/mathpath/recoveryPackAssetService.js';
 
 const router = express.Router();
 const adminOnly = [protect, authorize('admin')];
@@ -61,6 +66,64 @@ router.get('/question-quality', adminOnly, async (req, res) => {
     res.json(audit);
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load question quality audit.' });
+  }
+});
+
+router.get('/question-visual-quality', adminOnly, async (req, res) => {
+  try {
+    const audit = await getQuestionVisualQualityAudit({
+      domainId: req.query.domainId || 'fractions',
+      limit: req.query.limit || 500,
+    });
+    res.json(audit);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load question visual quality audit.' });
+  }
+});
+
+router.get('/diagnostic-validation', adminOnly, async (req, res) => {
+  try {
+    const report = await getDiagnosticValidationReport({
+      studentId: req.query.studentId,
+      subjectId: req.query.subjectId || 'math',
+      domainId: req.query.domainId || 'fractions',
+      limit: req.query.limit || 50,
+    });
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load diagnostic validation report.' });
+  }
+});
+
+router.get('/remediation-quality', adminOnly, async (req, res) => {
+  try {
+    const [quality, effectiveness] = await Promise.all([
+      getRecoveryPackQualityReport({
+        studentId: req.query.studentId,
+        domainId: req.query.domainId || 'fractions',
+        limit: req.query.limit || 100,
+      }),
+      getInterventionEffectivenessReport({
+        studentId: req.query.studentId,
+        domainId: req.query.domainId || 'fractions',
+        limit: req.query.limit || 200,
+      }),
+    ]);
+    res.json({ ...quality, effectiveness });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load remediation quality report.' });
+  }
+});
+
+router.get('/recovery-pack-assets', adminOnly, async (req, res) => {
+  try {
+    const report = await getRecoveryPackAssetReport({
+      domainId: req.query.domainId || 'fractions',
+      limit: req.query.limit || 100,
+    });
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to load Recovery Pack asset report.' });
   }
 });
 

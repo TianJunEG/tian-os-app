@@ -6,6 +6,7 @@ import Booking from '../models/Booking.js';
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
 import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
+import Mistake from '../models/Mistake.js';
 import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
 import MathPathWorkingSession from '../models/mathpath/MathPathWorkingSession.js';
 import { protect, authorize } from '../middleware/auth.js';
@@ -15,6 +16,15 @@ import {
   getPartnerBillingSummary,
   setBillingSubscription,
 } from '../services/billing/billingAdminService.js';
+import { getDomainHealthReport } from '../services/domains/domainRegistry.js';
+import { buildMisconceptionCoverageMatrix } from '../services/mathpath/misconceptionCoverageService.js';
+import { getDiagnosticValidationReport } from '../services/mathpath/diagnosticValidationEngine.js';
+import { getLearningPathQualityReport } from '../services/mathpath/learningPathService.js';
+import { auditMasteryInflationRisk } from '../services/mathpath/mistakeCorrectionFlow.js';
+import { getLegacyMistakeEvidenceAudit } from '../services/mathpath/legacyMistakeEvidenceAuditService.js';
+import { buildFractionsSkillIntegrityReport } from '../services/mathpath/questionSkillIntegrityService.js';
+import { listCanonicalFractionSkills } from '../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
+import { fractionQuestionFamilies } from '../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
 
 const router = express.Router();
 
@@ -94,6 +104,119 @@ router.post(
     }
   }
 );
+
+// ============================================================================
+// DOMAIN HEALTH
+// ============================================================================
+
+router.get('/domain-health', adminOnly, async (req, res) => {
+  try {
+    res.json(getDomainHealthReport());
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load domain health.' });
+  }
+});
+
+router.get('/misconception-coverage', adminOnly, async (req, res) => {
+  try {
+    res.json(buildMisconceptionCoverageMatrix());
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load misconception coverage.' });
+  }
+});
+
+router.get('/fractions-skill-integrity', adminOnly, async (req, res) => {
+  try {
+    res.json(buildFractionsSkillIntegrityReport({
+      canonicalSkills: listCanonicalFractionSkills(),
+      questionFamilies: fractionQuestionFamilies,
+    }));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load Fractions skill integrity report.' });
+  }
+});
+
+router.get('/diagnostic-validation', adminOnly, async (req, res) => {
+  try {
+    const report = await getDiagnosticValidationReport({
+      studentId: req.query.studentId,
+      subjectId: req.query.subjectId || 'math',
+      domainId: req.query.domainId || 'fractions',
+      limit: req.query.limit || 50,
+    });
+    res.json(report);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load diagnostic validation.' });
+  }
+});
+
+router.get('/learning-path-quality', adminOnly, async (req, res) => {
+  try {
+    const report = await getLearningPathQualityReport({
+      domainId: req.query.domainId || 'fractions',
+      limit: req.query.limit || 100,
+    });
+    res.json(report);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load learning path quality.' });
+  }
+});
+
+router.get('/mistake-learning-audit', adminOnly, async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit || 100), 500);
+    const mistakes = await Mistake.find({ module: req.query.module || 'MathPath' })
+      .sort({ occurredAt: -1 })
+      .limit(limit)
+      .lean();
+    const audit = auditMasteryInflationRisk({ mistakes });
+    const reviewedWithoutEvidence = mistakes.filter((mistake) => (
+      mistake.reviewed
+      && !mistake.masteryEvidence?.evidenceType
+      && !mistake.understandingCheck?.passed
+      && mistake.learningStatus !== 'mastered'
+    ));
+    const resolvedWithoutEvidence = mistakes.filter((mistake) => (
+      (mistake.status === 'resolved' || mistake.resolved)
+      && !mistake.masteryEvidence?.evidenceType
+    ));
+    res.json({
+      generatedAt: new Date().toISOString(),
+      checkedMistakes: mistakes.length,
+      ...audit,
+      rows: [...reviewedWithoutEvidence, ...resolvedWithoutEvidence].slice(0, 50).map((mistake) => ({
+        mistakeId: String(mistake._id),
+        studentId: String(mistake.studentId || ''),
+        skillCode: mistake.skillCode || '',
+        learningStatus: mistake.learningStatus || (mistake.reviewed ? 'acknowledged' : 'new'),
+        status: mistake.status,
+        reviewed: Boolean(mistake.reviewed),
+        hasUnderstandingEvidence: Boolean(mistake.understandingCheck?.passed),
+        hasMasteryEvidence: Boolean(mistake.masteryEvidence?.evidenceType),
+        riskType: (mistake.status === 'resolved' || mistake.resolved) && !mistake.masteryEvidence?.evidenceType
+          ? 'resolved_without_evidence'
+          : 'reviewed_without_evidence',
+      })),
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake learning audit.' });
+  }
+});
+
+router.get('/mathpath/legacy-mistake-evidence-audit', adminOnly, async (req, res) => {
+  try {
+    const report = await getLegacyMistakeEvidenceAudit({
+      MistakeModel: Mistake,
+      module: req.query.module || 'MathPath',
+      studentId: req.query.studentId || '',
+      limit: req.query.limit || 500,
+      exportRows: req.query.export === '1' || req.query.export === 'true',
+    });
+    res.json(report);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load legacy mistake evidence audit.' });
+  }
+});
 
 // ============================================================================
 // 1. USER MANAGEMENT
