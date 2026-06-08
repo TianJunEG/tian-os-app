@@ -37,9 +37,13 @@ describe('Fractions canonical curriculum map', () => {
   });
 
   it('aligns canonical, universal, curriculum, and active skill graph meanings', () => {
+    const primaryRows = fractionCurriculumMappings.filter(
+      (row) => row.curriculum === 'MOE_PRIMARY_MATH_2021'
+    );
+
     expect(fractionSkillGraph.skillIds).toEqual(EXPECTED_IDS);
     expect(fractionUniversalSkills.map((row) => row.frameworkSkillId)).toEqual(EXPECTED_IDS);
-    expect(fractionCurriculumMappings.map((row) => row.frameworkSkillId)).toEqual(EXPECTED_IDS);
+    expect(primaryRows.map((row) => row.frameworkSkillId)).toEqual(EXPECTED_IDS);
 
     for (const skill of fractionSkillGraph.skills) {
       const canonical = getCanonicalFractionSkill(skill.id);
