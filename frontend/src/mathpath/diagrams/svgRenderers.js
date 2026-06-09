@@ -1,3 +1,5 @@
+import { diagramSvgRenderers as sharedRenderers } from '../../../../shared/diagramEngine/svg/renderers.js';
+
 function esc(s) {
   return String(s ?? '')
     .replaceAll('&', '&amp;')
@@ -179,6 +181,7 @@ function lineGraph(spec) {
 }
 
 export const renderers = {
+  ...sharedRenderers,
   fraction_bar: fractionBar,
   fraction_circle: fractionCircle,
   number_line: numberLine,
