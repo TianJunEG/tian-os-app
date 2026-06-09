@@ -39,6 +39,7 @@
     "test": "vitest run",
     "purge:recordings": "node scripts/purgeExpiredRecordings.js",
     "digest:weekly": "node scripts/sendWeeklyParentDigest.js",
+    "remind:trials": "node scripts/sendTrialEndingReminders.js",
     "capture:skills": "node scripts/captureSkillPanels.js",
     "qa:pilot:preflight": "node scripts/qa-pilot-preflight.js",
     "qa:pilot:backend": "node scripts/qa-e2e-safe.js && node scripts/qa-founder-bundle-safe.js && node scripts/qa-mathpath-dashboard-contract.js",

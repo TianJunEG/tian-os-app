@@ -218,7 +218,7 @@ describe('p1MoneyQuestionGenerator', () => {
       expect(q.answer).toBeGreaterThan(0);
       expect(q.prompt).toContain('Count');
       expect(q.diagramSpec).toBeDefined();
-      expect(q.diagramSpec.type).toBe('picture_collections');
+      expect(q.diagramSpec.type).toBe('money_display');
     });
 
     it('generates a mixed coins and notes counting question', () => {

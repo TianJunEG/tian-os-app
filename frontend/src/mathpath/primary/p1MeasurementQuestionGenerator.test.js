@@ -239,9 +239,10 @@ describe('p1MeasurementQuestionGenerator', () => {
       expect(q.answer).toBeLessThanOrEqual(12);
     });
 
-    it('does not include a clock diagram (not available in helpers)', () => {
+    it('includes a clock diagram', () => {
       const q = generateQuestion('P1-MEA-05');
-      expect(q.diagramSpec).toBeUndefined();
+      expect(q.diagramSpec).toBeDefined();
+      expect(q.diagramSpec.type).toBe('clock');
     });
   });
 
@@ -261,9 +262,10 @@ describe('p1MeasurementQuestionGenerator', () => {
       expect(q.answer).toMatch(/:30$/);
     });
 
-    it('does not include a clock diagram', () => {
+    it('includes a clock diagram', () => {
       const q = generateQuestion('P1-MEA-06');
-      expect(q.diagramSpec).toBeUndefined();
+      expect(q.diagramSpec).toBeDefined();
+      expect(q.diagramSpec.type).toBe('clock');
     });
   });
 
@@ -286,10 +288,10 @@ describe('p1MeasurementQuestionGenerator', () => {
       expect(q.answer).toBeLessThanOrEqual(12);
     });
 
-    it('has number line diagram', () => {
+    it('has length measurement diagram', () => {
       const q = generateQuestion('P1-MEA-07');
       expect(q.diagramSpec).toBeDefined();
-      expect(q.diagramSpec.type).toBe('number_line');
+      expect(q.diagramSpec.type).toBe('length_measurement');
     });
   });
 

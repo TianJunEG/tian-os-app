@@ -2,6 +2,7 @@ import { getSkill } from './p1GeometrySkillGraph.js';
 import { getQuestionFamiliesBySkill } from './p1GeometryQuestionFamilies.js';
 import {
   pictureCollectionDiagram,
+  numberLineDiagram,
 } from './p1DiagramHelpers.js';
 
 const SHAPES_2D = ['circle', 'triangle', 'square', 'rectangle'];
@@ -208,7 +209,7 @@ function generateContinuePattern(familyId) {
     return {
       skillId: 'P1-GEO-04',
       questionFamilyId: familyId,
-      prompt: `What comes next? ${pattern.join(', ')}, ___`,
+      prompt: `What comes next? ${pattern.join(', ')}, ___?`,
       answer,
       answerType: 'choice',
       choices,
@@ -235,7 +236,7 @@ function generateContinuePattern(familyId) {
   return {
     skillId: 'P1-GEO-04',
     questionFamilyId: familyId,
-    prompt: `What comes next? ${pattern.join(', ')}, ___`,
+    prompt: `What comes next? ${pattern.join(', ')}, ___?`,
     answer,
     answerType: 'choice',
     choices,
@@ -260,7 +261,7 @@ function generateCreatePattern(familyId) {
     return {
       skillId: 'P1-GEO-05',
       questionFamilyId: familyId,
-      prompt: `Continue the AB pattern: ${shown.join(', ')}, ___`,
+      prompt: `Continue the AB pattern: ${shown.join(', ')}, ___?`,
       answer,
       answerType: 'choice',
       choices,
@@ -283,7 +284,7 @@ function generateCreatePattern(familyId) {
   return {
     skillId: 'P1-GEO-05',
     questionFamilyId: familyId,
-    prompt: `Continue the ABB pattern: ${shown.join(', ')}, ___`,
+    prompt: `Continue the ABB pattern: ${shown.join(', ')}, ___?`,
     answer,
     answerType: 'choice',
     choices,
@@ -349,7 +350,17 @@ function generatePositionWords(familyId) {
     choices,
     instructionHint: 'Choose the correct object.',
     solutionText: `The ${answer} is ${positionType} ${positionType === 'between' ? `the ${leftObj} and the ${rightObj}` : `the ${middleObj}`}.`,
-    diagramSpec: undefined,
+    diagramSpec: numberLineDiagram({
+      start: 1,
+      end: 3,
+      step: 1,
+      points: [
+        { value: 1, label: leftObj },
+        { value: 2, label: middleObj },
+        { value: 3, label: rightObj },
+      ],
+      title: 'Objects in a row',
+    }),
     misconceptionTraps: positionType === 'between'
       ? ['confuses_between_beside']
       : ['confuses_left_right'],

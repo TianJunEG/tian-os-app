@@ -219,8 +219,7 @@ describe('p1GeometryQuestionGenerator', () => {
     it('pattern answer is consistent with the pattern', () => {
       for (let i = 0; i < 10; i++) {
         const q = generateQuestion('P1-GEO-04', { questionFamilyId: 'QF_P1-GEO-04_001' });
-        const parts = q.prompt.replace('What comes next? ', '').replace(', ___', '').split(', ');
-        // AB pattern: answer should equal the first element
+        const parts = q.prompt.replace('What comes next? ', '').replace(', ___?', '').split(', ');
         expect(q.answer).toBe(parts[0]);
       }
     });
@@ -251,11 +250,13 @@ describe('p1GeometryQuestionGenerator', () => {
       expect(q.choices).toContain(q.answer);
     });
 
-    it('generates a left/right/between question', () => {
+    it('generates a left/right/between question with number line diagram', () => {
       const q = generateQuestion('P1-GEO-06', { questionFamilyId: 'QF_P1-GEO-06_002' });
       expect(q).not.toBeNull();
       expect(q.prompt).toMatch(/left|right|between/);
       expect(q.choices).toContain(q.answer);
+      expect(q.diagramSpec).toBeDefined();
+      expect(q.diagramSpec.type).toBe('number_line');
     });
   });
 

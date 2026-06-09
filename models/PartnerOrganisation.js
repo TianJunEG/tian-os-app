@@ -26,6 +26,10 @@ const partnerOrganisationSchema = new mongoose.Schema(
     contactPhone: { type: String, default: '', trim: true, maxlength: 40 },
     address: { type: String, default: '', trim: true, maxlength: 500 },
     notes: { type: String, default: '', trim: true, maxlength: 4000 },
+    // Stripe Connect (Gap B): tutor payments settle to the agency's own account.
+    stripeConnectAccountId: { type: String, default: '', trim: true },
+    connectStatus: { type: String, enum: ['not_started', 'onboarding', 'active', 'restricted'], default: 'not_started' },
+    connectOnboardedAt: { type: Date, default: null },
   },
   { timestamps: true, collection: 'partner_organisations' }
 );

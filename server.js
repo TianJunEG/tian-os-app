@@ -61,6 +61,8 @@ import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
 import assessmentUploadRoutes from './routes/assessmentUploads.js';
 import notificationRoutes from './routes/notifications.js';
 import recordingRoutes from './routes/recordings.js';
+import adminLicenceRoutes from './routes/adminLicences.js';
+import agencyRoutes from './routes/agency.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -154,6 +156,8 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/partners', adminPartnerRoutes);
+app.use('/api/admin/partners/:pid/licence', adminLicenceRoutes);
+app.use('/api/agency', agencyRoutes);
 // Structured worksheet generator must mount BEFORE the legacy /api/worksheets
 // router so /gen/* is not captured by its /:id route.
 app.use('/api/worksheets/gen', featureGate({ feature: 'worksheets', minVersion: 'v0.2' }), worksheetGenRoutes);

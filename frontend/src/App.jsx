@@ -6,6 +6,7 @@ import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headl
 
 // Demo
 const StrokeReplayDemo = lazy(() => import('./pages/StrokeReplayDemo'));
+const DiagramDemo = lazy(() => import('./pages/DiagramDemo'));
 
 // Pages
 const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
@@ -365,6 +366,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/demo/stroke-replay" element={<StrokeReplayDemo />} />
+          <Route path="/demo/diagrams" element={<DiagramDemo />} />
           <Route path="/founder" element={<FounderStoryPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />

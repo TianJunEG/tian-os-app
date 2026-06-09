@@ -61,6 +61,35 @@ CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear 
 | Raffles EOY 2025 | Q13 | SAQ | Read fraction from number line | FR1.03 (number line) |
 | Raffles EOY 2025 | Q14 | SAQ | Add 2/4 + 3/8 | FR4.06 |
 | Raffles EOY 2025 | Q20 | SAQ | Read fractions from 2 number lines, find sum | FR1.03, FR4.06 |
+| ACSP EOY 2025 | Q2 | MCQ | Identify fraction NOT equivalent to 2/3 from four options | FR2.09 |
+| ACSP EOY 2025 | Q13 | SAQ | Arrange 3 unlike fractions smallest to greatest | FR2.07 |
+| AiTong EOY 2025 | Q4 | MCQ | Identify smallest same-numerator fraction from four options | FR2.03 |
+| AiTong EOY 2025 | Q10 | MCQ | Subtract unlike fractions 5/9 - 1/3 | FR4.09 |
+| AiTong EOY 2025 | Q14 | SAQ | Arrange 3 unlike fractions greatest to smallest | FR2.07 |
+| AiTong EOY 2025 | Q23a | WP | Find remainder fraction of cake after one person eats part | FR6.05, FR4.04 |
+| AiTong EOY 2025 | Q23b | WP | Add unlike fractions eaten by two people to find total | FR6.03, FR4.06 |
+| MahaBodhi EOY 2025 | Q5 | MCQ | Find missing numerator in equivalent fraction 2/5 = ?/10 | FR2.10, FR2.12 |
+| MahaBodhi EOY 2025 | Q8 | MCQ | Arrange 3 unlike fractions greatest to smallest | FR2.07 |
+| MahaBodhi EOY 2025 | Q18 | SAQ | Add unlike fractions 1/12 + 1/6 in simplest form | FR4.06, FR2.13 |
+| NanHua EOY 2025 | Q4 | MCQ | Find missing numerator in equivalent fraction 3/4 = ?/8 | FR2.10, FR2.12 |
+| NanHua EOY 2025 | Q7 | MCQ | Identify true fraction comparison statement from four options | FR2.03, FR2.04, FR2.07 |
+| NanHua EOY 2025 | Q8 | MCQ | Arrange 3 unlike fractions smallest to greatest | FR2.07 |
+| NanHua EOY 2025 | Q13 | SAQ | Subtract unlike fractions 7/12 - 1/4 | FR4.09 |
+| NanHua EOY 2025 | Q15 | SAQ | Identify unshaded fraction of figure in simplest form | FR1.03, FR2.13 |
+| Northland EOY 2025 | Q8 | MCQ | Arrange 3 unlike fractions largest to smallest | FR2.07 |
+| Northland EOY 2025 | Q14 | SAQ | Find missing num/denom in equivalent chain 3/4 = 6/A = B/16 | FR2.10, FR2.12 |
+| Northland EOY 2025 | Q17 | SAQ | Add unlike fractions 1/2 + 3/8 | FR4.06 |
+| StHilda EOY 2025 | Q7 | MCQ | Add unlike fractions 1/4 + 3/8 as missing-sum MCQ | FR4.06 |
+| StHilda EOY 2025 | Q21 | SAQ | Find missing numerator in equivalent fraction 4/10 = ?/5 | FR2.11, FR2.12 |
+| StHilda EOY 2025 | Q23 | SAQ | Arrange 3 unlike fractions greatest to smallest | FR2.07 |
+| StNicholas EOY 2025 | Q2 | MCQ | Identify true fraction comparison statement from four options | FR2.01, FR2.03, FR2.04 |
+| StNicholas EOY 2025 | Q6 | MCQ | Subtract unlike fractions 1/2 - 4/12 in simplest form | FR4.09, FR2.13 |
+| StNicholas EOY 2025 | Q17 | SAQ | Arrange 3 unlike fractions greatest to smallest | FR2.07 |
+| TaoNan EOY 2025 | Q4 | MCQ | Identify equivalent fraction of 2/3 from four options | FR2.10 |
+| TaoNan EOY 2025 | Q13 | SAQ | Identify shaded fraction of figure with identical rectangles | FR1.02 |
+| TaoNan EOY 2025 | Q14 | SAQ | Arrange 3 unlike fractions greatest to smallest | FR2.07 |
+| TaoNan EOY 2025 | Q22a | WP | Add unlike fractions eaten by two people to find total shared | FR6.03, FR4.06 |
+| TaoNan EOY 2025 | Q22b | WP | Find how much more one person ate than another via subtraction | FR6.06, FR4.09 |
 
 ### 2024 EOY Papers
 
@@ -205,6 +234,48 @@ CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear 
 | Rosyth SA2 2019 | Q18 | SAQ | Find missing numerator in equivalent fraction | FR2.10, FR2.12 |
 | Rosyth SA2 2019 | Q31 | SAQ | Arrange 3 unlike fractions ascending | FR2.07 |
 
+### 2019 SA2 Papers (batch 3 — remaining schools)
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| Maris Stella SA2 2019 | Q24 | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+| Nanyang SA2 2019 | Q8 | MCQ | Identify non-equivalent fraction from set | FR2.09 |
+| Nanyang SA2 2019 | Q9 | MCQ | Order 3 unlike fractions ascending | FR2.07 |
+| Nanyang SA2 2019 | Q22 | SAQ | Find missing numerator in equivalent fraction | FR2.10, FR2.12 |
+| Nanyang SA2 2019 | Q29 | SAQ | Shade more parts to reach target fraction | FR1.02, FR5.01 |
+| Nanyang SA2 2019 | Q30 | SAQ | Read fraction from number line, find sum | FR1.03, FR4.06 |
+| Pei Chun SA2 2019 | Q3 | MCQ | Order 3 unlike fractions ascending | FR2.07 |
+| Pei Chun SA2 2019 | Q13 | SAQ | Express fraction in simplest form | FR2.13 |
+| Pei Chun SA2 2019 | Q19 | SAQ | Add unlike fractions, simplest form | FR4.06, FR2.13 |
+| Pei Chun SA2 2019 | Q20 | SAQ | Shade additional parts to reach target fraction | FR1.02, FR5.01 |
+| SCGS SA2 2019 | Q5 | MCQ | Find missing numerator in equivalent fraction | FR2.10, FR2.12 |
+| SCGS SA2 2019 | Q8 | MCQ | Express fraction in simplest form | FR2.13 |
+| SCGS SA2 2019 | Q10 | MCQ | Find fraction remaining after multiple events | FR6.05, FR4.09 |
+| SCGS SA2 2019 | Q13 | SAQ | Compare fractions to one-half | FR2.05 |
+| MGS SA2 2019 | Q12 | MCQ | Shade figure to show target fraction | FR1.02 |
+| MGS SA2 2019 | Q17 | MCQ | Order unit fractions ascending (inverse logic) | FR2.01, FR2.07 |
+| MGS SA2 2019 | Q21 | SAQ | Express fraction in simplest form | FR2.13 |
+| MGS SA2 2019 | Q29 | SAQ | Add unlike fractions | FR4.06 |
+| Maha Bodhi SA2 2019 | Q5 | MCQ | Subtract unlike fractions | FR4.09 |
+| Maha Bodhi SA2 2019 | Q13 | MCQ | Shade more parts to reach target fraction | FR1.02, FR5.01 |
+| Maha Bodhi SA2 2019 | Q21 | SAQ | Express fraction in simplest form | FR2.13 |
+| Maha Bodhi SA2 2019 | Q22 | SAQ | State fraction of composite figure shaded | FR1.02 |
+| St Hildas SA2 2019 | Q6 | MCQ | Find missing denominator in equivalent fraction | FR2.11 |
+| St Hildas SA2 2019 | Q15 | SAQ | State fraction of figure shaded, simplest form | FR1.02, FR2.13 |
+| St Hildas SA2 2019 | Q21 | SAQ | Add unlike fractions, simplest form | FR4.06, FR2.13 |
+| St Hildas SA2 2019 | Q32 | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+| St Hildas SA2 2019 | Q33 | WP | Fraction subtraction word problem | FR4.09, FR6.05 |
+| St Nicholas SA2 2019 | Q7 | MCQ | Find missing denominator in equivalent fraction | FR2.11 |
+| St Nicholas SA2 2019 | Q15 | SAQ | Read fraction from number line | FR1.03 |
+| St Nicholas SA2 2019 | Q20 | SAQ | Find complement to 1 whole | FR4.03 |
+| St Nicholas SA2 2019 | Q27 | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+| Tao Nan SA2 2019 | Q3 | MCQ | Identify equivalent fraction | FR2.10 |
+| Tao Nan SA2 2019 | Q4 | MCQ | Find fraction remaining after multiple events | FR6.05, FR4.09 |
+| Tao Nan SA2 2019 | Q12 | SAQ | Shade figure to show target fraction | FR1.02 |
+| Tao Nan SA2 2019 | Q13 | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+
+**Skill frequency this batch (35 Qs from 9 papers):** Ordering/comparing (8), Simplest form (6), Shade-to-target (5), Unlike fraction addition (5), Equivalent fraction (4), Number line (3), Fraction remainder WP (2), Composite figure (1), Complement to 1 (1).
+
 ### 2025 WA Papers (Term 2-3)
 
 | Paper | Q# | Type | Pattern | FR codes |
@@ -227,6 +298,32 @@ CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear 
 | Henry Park WA2 2025 | Q10 | SAQ | Order 3 fractions ascending | FR2.07 |
 | Henry Park WA2 2025 | Q12 | WP | Spent 1/5, had 3/10 left, find fraction on cookie | FR6.05, FR4.06 |
 
+### 2021 EOY/Review Papers + PastYear EOY
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| Henry Park RV4 2021 | Q1 | MCQ | Greatest among same-numerator fractions (3/5, 3/6, 3/7, 3/4) | FR2.05 |
+| Henry Park RV4 2021 | Q6 | SAQ | Write equivalent fraction for 6/9 | FR2.10 |
+| Henry Park RV4 2021 | Q11 | SAQ | Order fractions 7/9, 5/9, 7/8 descending | FR2.07 |
+| Henry Park RV4 2021 | Q15a | SAQ | Add unlike fractions 2/3 + 1/6 | FR4.06 |
+| Henry Park RV4 2021 | Q15b | SAQ | Subtract unlike fractions 5/8 - 1/4 | FR4.09 |
+| Henry Park RV4 2021 | Q16 | SAQ | Fraction of figure shaded, simplest form | FR1.02, FR2.13 |
+| MGS EOY PastYr | Q7 | MCQ | Identify equivalent fraction to 2/5 | FR2.10 |
+| MGS EOY PastYr | Q13 | MCQ | Identify fraction greater than 5/9 (same numerator) | FR2.05 |
+| MGS EOY PastYr | Q25 | SAQ | Subtract 7/12 - 1/3, simplest form | FR4.09, FR2.13 |
+| MGS EOY PastYr | Q26 | SAQ | Order 4 fractions (3/8, 1/2, 3/7, 3/5) ascending | FR2.07 |
+| Pei Chun EOY PastYr | Q3 | MCQ | Order 3 fractions descending (1/10, 3/5, 1/2) | FR2.07 |
+| Pei Chun EOY PastYr | Q13 | SAQ | Express 9/12 in simplest form | FR2.13 |
+| Pei Chun EOY PastYr | Q19 | SAQ | Add 1/3 + 2/6, simplest form | FR4.06, FR2.13 |
+| Pei Chun EOY PastYr | Q20 | SAQ | Shade more parts so 3/5 of figure shaded | FR1.02, FR5.01 |
+| Tao Nan PP 2024 | Q3 | MCQ | Identify equivalent fraction to 3/5 | FR2.10 |
+| Tao Nan PP 2024 | Q4 | MCQ | Pizza cut into sixths, each ate 1/6, fraction remaining | FR4.03, FR6.05 |
+| Tao Nan PP 2024 | Q12 | SAQ | Find fraction of figure unshaded, simplest form | FR1.02, FR2.13 |
+| Tao Nan PP 2024 | Q13 | SAQ | Add 3 fractions: 1/4 + 1/8 + 1/2 | FR4.06 |
+
+**TaoNan EY2 2021**: ZERO fractions (whole number word problems only).
+**PeiChun SA2 2021**: Duplicate of PeiChun EOY PastYr paper (same questions).
+
 ### 2021 EOY Papers
 
 | Paper | Q# | Type | Pattern | FR codes |
@@ -241,6 +338,107 @@ CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear 
 | Tao Nan EY1 2021 | Q4 | MCQ | Find greatest among 4 unlike fractions | FR2.07 |
 | Tao Nan EY1 2021 | Q13 | SAQ | Shade more squares to reach 3/4 | FR1.02, FR5.01 |
 | Tao Nan EY1 2021 | Q16 | SAQ | Subtract 4/5 - 3/10, simplest form | FR4.09, FR2.13 |
+
+### 2024 WA3 Papers
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| Catholic High WA3 2024 | Q3 | MCQ | Identify fraction marked on number line between 0 and 1 | FR1.03 (number line) |
+| Catholic High WA3 2024 | Q6 | SAQ | State fraction of a figure that is shaded | FR1.02 |
+| Catholic High WA3 2024 | Q8 | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+| Catholic High WA3 2024 | Q10 | SAQ | Find missing fraction in addition equation | FR4.06 |
+| Rosyth WA3 2024 | Q3 | MCQ | Identify smallest among 4 unit fractions | FR2.01 |
+| Rosyth WA3 2024 | Q4 | MCQ | Find missing denominator in equivalent fraction | FR2.11 |
+| Rosyth WA3 2024 | Q5 | MCQ | Identify fraction greater than 1/2 | FR2.05 |
+| Rosyth WA3 2024 | Q9 | SAQ | Subtract unlike fractions with related denominators | FR4.09 |
+| Rosyth WA3 2024 | Q10 | SAQ | Read two unknown fractions on number line given benchmarks | FR1.03 (number line) |
+| Rulang WA3 2024 | Q10 | SAQ | Shade additional parts to reach target fraction | FR1.02, FR5.01 |
+| Rulang WA3 2024 | Q11 | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+
+### 2025 WA3 Papers (additional)
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| Ai Tong WA3 2025 | Q1 | SAQ | Add unlike fractions with related denominators | FR4.06 |
+| Ai Tong WA3 2025 | Q2 | SAQ | Subtract unlike fractions with related denominators | FR4.09 |
+| Ai Tong WA3 2025 | Q7a | SAQ | Read fraction from number line (0-1) | FR1.03 (number line) |
+| Ai Tong WA3 2025 | Q7b | SAQ | Find missing denominator in equivalent fraction | FR2.11 |
+| Ai Tong WA3 2025 | Q8 | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+| Ai Tong WA3 2025 | Q9 | SAQ | Find midpoint fraction between two fractions on number line | FR1.03 (number line) |
+| Ai Tong WA3 2025 | Q10 | SAQ | Shade fraction of figure and count additional parts needed | FR1.02, FR5.01 |
+| Ai Tong WA3 2025 | Q11 | SAQ | Express fraction of composite figure in simplest form | FR1.02, FR2.13 |
+| Nan Hua WA3 2025 | Q3 | MCQ | Identify fraction NOT equivalent to 1/2 | FR2.09 |
+| Nan Hua WA3 2025 | Q4 | MCQ | Identify point on number line representing fraction | FR1.03 (number line) |
+| Nan Hua WA3 2025 | Q5 | MCQ | Identify fraction of figure that is shaded | FR1.02 |
+| Nan Hua WA3 2025 | Q7 | SAQ | Order 3 unlike fractions descending | FR2.07 |
+| Nan Hua WA3 2025 | Q9a | SAQ | Subtract unlike fractions with related denominators | FR4.09 |
+| Nan Hua WA3 2025 | Q9b | SAQ | Add unlike fractions with related denominators | FR4.06 |
+
+### WA2 Papers (Term 2, 2024-2025)
+
+Only 4 of 17 WA2 papers had fractions. 13 had zero (confirming fractions mostly taught after Term 2).
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| Raffles WA2 2024 | Q3 | MCQ | Identify which figure shows given unit fraction shaded | FR1.02 |
+| Raffles WA2 2024 | Q4 | MCQ | Identify fraction already in simplest form | FR2.13 |
+| Raffles WA2 2024 | Q6 | SAQ | Arrange 3 unlike fractions descending | FR2.07 |
+| Raffles WA2 2024 | Q7 | SAQ | Find difference of 2 unlike fractions | FR4.09 |
+| Rosyth WA2 2024 | Q4 | SAQ | Arrange 3 same-numerator fractions ascending | FR2.05, FR2.07 |
+| Rosyth WA2 2024 | Q8 | SAQ | Express fraction in simplest form | FR2.13 |
+| Rosyth WA2 2024 | Q9 | SAQ | Fraction of figure shaded, simplest form | FR1.02, FR2.13 |
+| Rosyth WA2 2024 | Q10 | SAQ | Subtract unlike fractions, simplest form | FR4.09, FR2.13 |
+| Rosyth WA2 2024 | Q11 | SAQ | Add unlike fractions | FR4.06 |
+| Maha Bodhi WA2 2025 | Q3 | MCQ | Identify which figure shows given unit fraction shaded | FR1.02 |
+| Maha Bodhi WA2 2025 | Q4 | MCQ | Count more parts to shade to reach target fraction | FR1.02, FR5.01 |
+| Maha Bodhi WA2 2025 | Q5 | MCQ | Arrange 3 unlike fractions descending | FR2.07 |
+| Maha Bodhi WA2 2025 | Q9 | SAQ | Express fraction in simplest form | FR2.13 |
+| Maha Bodhi WA2 2025 | Q11 | SAQ | Find fraction of pizza left after eating two portions | FR4.06, FR6.05 |
+| Maha Bodhi WA2 2025 | Q12 | SAQ | Find missing fraction in addition equation | FR4.06 |
+| Henry Park WA2 2024 | Q4 | MCQ | Identify equivalent fraction | FR2.10 |
+| Henry Park WA2 2024 | Q9 | SAQ | Subtract unlike fractions, simplest form | FR4.09, FR2.13 |
+| Henry Park WA2 2024 | Q10 | SAQ | Arrange 3 unlike fractions descending | FR2.07 |
+| Henry Park WA2 2024 | Q12 | SAQ | Fraction of composite figure that is shaded | FR1.02 |
+
+**WA2 papers with ZERO fractions (13 of 17):** Catholic High 2024, Nan Hua 2024, Nanyang 2024, Rulang 2024, St Hilda 2024, ACSJ 2025, Ai Tong 2025, Nan Hua 2025, Nanyang 2025, Northland 2025, Rosyth 2025, St Hilda 2025, Tao Nan 2025.
+
+### CA2 Papers (2019-2020)
+
+Note: CA2 naming varies by school. Some "CA2" papers are actually Term 3 assessments (e.g. River Valley CA2 2019 = WA3, Nan Hua CA2 2020 = Term 3 WA).
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| River Valley CA2 2019 | Q4 | MCQ | Order 3 unlike fractions descending | FR2.07 |
+| River Valley CA2 2019 | Q6 | SAQ | State fraction of figure that is shaded | FR1.02 |
+| River Valley CA2 2019 | Q7 | SAQ | Find two missing values in equivalent fraction chain | FR2.10, FR2.12 |
+| River Valley CA2 2019 | Q8 | SAQ | Add unlike fractions, simplify | FR4.06, FR2.13 |
+| River Valley CA2 2019 | Q9 | SAQ | Subtract unlike fractions, simplest form | FR4.09, FR2.13 |
+| Rosyth CA2 2019 | Q2 | SAQ | Express fraction in simplest form | FR2.13 |
+| Rosyth CA2 2019 | Q6 | SAQ | Order 3 same-numerator fractions descending | FR2.05, FR2.07 |
+| Rosyth CA2 2019 | Q7 | SAQ | Subtract like fractions, simplest form | FR4.03, FR2.13 |
+| Nan Hua CA2 2020 | Q1 | MCQ | Find missing denominator in equivalent fraction | FR2.11 |
+| Nan Hua CA2 2020 | Q2 | MCQ | Identify fraction already in simplest form | FR2.13 |
+| Nan Hua CA2 2020 | Q3 | MCQ | Identify fraction greater than 1/2 | FR2.05 |
+| Nan Hua CA2 2020 | Q4 | MCQ | Count additional parts to shade to reach target fraction | FR1.02, FR5.01 |
+| Nan Hua CA2 2020 | Q5 | MCQ | Express fraction in simplest form | FR2.13 |
+| Nan Hua CA2 2020 | Q6 | MCQ | Subtract unlike fractions | FR4.09 |
+| Nan Hua CA2 2020 | Q7 | MCQ | Identify greatest fraction among 4 unlike fractions | FR2.07 |
+| Nan Hua CA2 2020 | Q8 | MCQ | Add unlike fractions | FR4.06 |
+| Nan Hua CA2 2020 | Q9a | SAQ | Simplify 12/14 | FR2.13 |
+| Nan Hua CA2 2020 | Q9b | SAQ | Simplify 6/9 | FR2.13 |
+| Nan Hua CA2 2020 | Q10a | SAQ | Order 3 unlike fractions ascending | FR2.07 |
+| Nan Hua CA2 2020 | Q10b | SAQ | Order 3 unlike fractions descending | FR2.07 |
+| Nan Hua CA2 2020 | Q11a | SAQ | Add unlike fractions, simplest form | FR4.06, FR2.13 |
+| Nan Hua CA2 2020 | Q11b | SAQ | Subtract unlike fractions, simplest form | FR4.09, FR2.13 |
+| Nan Hua CA2 2020 | Q12a | SAQ | Shade 1/4 of a grid figure | FR1.02 |
+| Nan Hua CA2 2020 | Q12b | SAQ | Find missing addend fraction in equation, simplify | FR4.06, FR2.13 |
+| Nan Hua CA2 2020 | Q13a | SAQ | Subtract fraction from 1 whole, simplest form | FR4.03, FR2.13 |
+| Nan Hua CA2 2020 | Q13b | SAQ | Find fraction to add to 1/8 to make 3/4 | FR4.06, FR2.13 |
+| Rosyth CA2 2020 | Q2 | SAQ | State fraction of figure that is shaded | FR1.02 |
+| Rosyth CA2 2020 | Q3 | SAQ | Order 3 unit fractions ascending | FR2.01, FR2.07 |
+| Rosyth CA2 2020 | Q4 | SAQ | Subtract like fractions | FR4.03 |
+
+**Papers with ZERO fractions:** Henry Park CA2 2019, Red Swastika CA2 2019, Maha Bodhi CA2 2020.
 
 ## Implementation Notes
 
@@ -262,7 +460,7 @@ CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear 
 | 2023 | EOY | 5 | 8 (agents running) |
 | 2022 | EOY/SA2 | 5 | 7 (agents running) |
 | 2021 | EOY | 2 | 2 (agents running) |
-| 2019 | SA2 | 5 | 14 (agents running) |
+| 2019 | SA2 | 24 | 0 (complete) |
 | 2020 | SA2 | 0 | 16 (agents running) |
 | PastYr | EOY | 0 | 2 (agents running) |
 | 2019-2020 | SA1 | 0 | 17 (agents running) |

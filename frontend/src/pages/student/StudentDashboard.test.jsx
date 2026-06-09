@@ -11,16 +11,18 @@ const profileSummary = vi.fn();
 const profileTimeline = vi.fn();
 const mastery = vi.fn();
 
+const DEFAULT_USER = {
+  id: 'student-1',
+  name: 'Demo Student',
+  email: 'demo.student@tianos.test',
+  role: 'student',
+  visualMode: 'upper_primary',
+};
+
+const authState = vi.hoisted(() => ({ user: null }));
+
 vi.mock('../../context/AuthContext', () => ({
-  useAuth: () => ({
-    user: {
-      id: 'student-1',
-      name: 'Demo Student',
-      email: 'demo.student@tianos.test',
-      role: 'student',
-      visualMode: 'upper_primary',
-    },
-  }),
+  useAuth: () => ({ user: authState.user }),
 }));
 
 vi.mock('../../services/api', () => ({
@@ -77,6 +79,7 @@ function renderDashboard() {
 describe('StudentDashboard analytics cards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authState.user = { ...DEFAULT_USER };
     getLatestDiagnostic.mockResolvedValue({
       data: {
         hasPlacement: true,
@@ -224,5 +227,34 @@ describe('StudentDashboard analytics cards', () => {
     expect(screen.getAllByText('0')[0]).toBeInTheDocument();
     expect(screen.queryByText('+120 XP today')).not.toBeInTheDocument();
     expect(screen.queryByText('Earned 120 XP')).not.toBeInTheDocument();
+  });
+
+  it('renders the playful lower-primary layout for P1-P3 students', async () => {
+    authState.user = { ...DEFAULT_USER, id: 'student-lp', visualMode: 'lower_primary' };
+    studentAnalytics.mockResolvedValue({
+      data: {
+        questionsAnswered: 3,
+        accuracyRate: 67,
+        workingSubmissionRate: 33,
+        confidenceBuckets: { confidentCorrect: 1 },
+      },
+    });
+
+    renderDashboard();
+
+    expect(await screen.findByText("Today's Plan")).toBeInTheDocument();
+    // Four stat cards, including the Brain Power / Level card unique to lower primary.
+    expect(screen.getByText('Skills Mastered')).toBeInTheDocument();
+    expect(screen.getByText('Current Streak')).toBeInTheDocument();
+    expect(screen.getByText('Learning XP')).toBeInTheDocument();
+    expect(screen.getByText('Brain Power')).toBeInTheDocument();
+    expect(screen.getByText('Amazing progress!')).toBeInTheDocument();
+    // Recommended Next with descriptions + encouragement banner.
+    expect(screen.getByText('Recommended Next')).toBeInTheDocument();
+    expect(screen.getByText('Continue Learning')).toBeInTheDocument();
+    expect(screen.getByText('Review Mistakes')).toBeInTheDocument();
+    expect(screen.getByText("You've got this! 💪")).toBeInTheDocument();
+    // The upper-primary-only analytics panel should not render here.
+    expect(screen.queryByText('Learning Insight')).not.toBeInTheDocument();
   });
 });

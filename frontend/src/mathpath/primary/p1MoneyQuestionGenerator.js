@@ -4,6 +4,7 @@ import {
   pictureCollectionDiagram,
   comparisonModelDiagram,
   barModelDiagram,
+  moneyDisplayDiagram,
 } from './p1DiagramHelpers.js';
 
 const COINS = [
@@ -53,8 +54,8 @@ function formatCents(cents) {
 }
 
 function coinDiagram(coins, title) {
-  const categories = coins.map((c) => ({ label: c.label, count: c.count }));
-  return pictureCollectionDiagram(categories, { symbol: '●', title });
+  const items = coins.map((c) => ({ label: c.label, count: c.count }));
+  return moneyDisplayDiagram(items, { title });
 }
 
 // --- P1-MON-01: Recognise Singapore coins and notes ---

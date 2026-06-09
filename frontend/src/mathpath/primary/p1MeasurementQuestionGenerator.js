@@ -2,7 +2,8 @@ import { getSkill } from './p1MeasurementSkillGraph.js';
 import { getQuestionFamiliesBySkill } from './p1MeasurementQuestionFamilies.js';
 import {
   comparisonModelDiagram,
-  numberLineDiagram,
+  clockDiagram,
+  lengthMeasurementDiagram,
 } from './p1DiagramHelpers.js';
 
 const LENGTH_OBJECTS = [
@@ -55,7 +56,7 @@ const EVENT_SEQUENCES = [
   { events: ['put on uniform', 'pack school bag', 'walk to the bus stop'], period: 'morning' },
   { events: ['eat breakfast', 'brush teeth', 'leave for school'], period: 'morning' },
   { events: ['come home', 'take a shower', 'eat dinner'], period: 'evening' },
-  { events: ['wake up', 'eat lunch', 'go to sleep'], period: 'full day' },
+  { events: ['eat lunch', 'have science class', 'go for PE'], period: 'afternoon' },
 ];
 
 const MEASURE_OBJECTS = ['pencil', 'book', 'ribbon', 'eraser', 'ruler', 'box', 'straw', 'toy car'];
@@ -338,6 +339,7 @@ function generateTimeOClock(familyId) {
       answerType: 'number',
       instructionHint: 'Write the hour number.',
       solutionText: `The short hand on ${hour} and the long hand on 12 means it is ${hour} o'clock.`,
+      diagramSpec: clockDiagram(hour, 0, { title: `${hour} o'clock` }),
       misconceptionTraps: ['clock_reads_minute_as_hour', 'clock_confuses_hands'],
     };
   }
@@ -350,6 +352,7 @@ function generateTimeOClock(familyId) {
     answerType: 'number',
     instructionHint: 'Write the number.',
     solutionText: `At ${hour} o'clock, the short hand points to ${hour} and the long hand points to 12.`,
+    diagramSpec: clockDiagram(hour, 0, { title: `${hour} o'clock` }),
     misconceptionTraps: ['clock_reads_minute_as_hour', 'clock_confuses_hands'],
   };
 }
@@ -368,6 +371,7 @@ function generateTimeHalfPast(familyId) {
       answerType: 'choice',
       instructionHint: 'Choose the correct time.',
       solutionText: `The short hand between ${hour} and ${hour === 12 ? 1 : hour + 1} with the long hand on 6 means it is half past ${hour} (${hour}:30).`,
+      diagramSpec: clockDiagram(hour, 30, { title: `Half past ${hour}` }),
       misconceptionTraps: ['half_past_reads_wrong_hour', 'half_past_writes_06'],
     };
   }
@@ -380,6 +384,7 @@ function generateTimeHalfPast(familyId) {
     answerType: 'choice',
     instructionHint: 'Choose the correct digital time.',
     solutionText: `Half past ${hour} is written as ${hour}:30. The long hand on 6 means 30 minutes, not 6 minutes.`,
+    diagramSpec: clockDiagram(hour, 30, { title: `Half past ${hour}` }),
     misconceptionTraps: ['half_past_reads_wrong_hour', 'half_past_writes_06'],
   };
 }
@@ -399,14 +404,11 @@ function generateNonStandardUnits(familyId) {
     answerType: 'number',
     instructionHint: 'Write the number of units.',
     solutionText: `The ${object} is ${measurement} ${unit} long. Each ${isPaperClips ? 'paper clip' : 'cube'} is placed end to end with no gaps and no overlaps.`,
-    diagramSpec: numberLineDiagram({
+    diagramSpec: lengthMeasurementDiagram({
       start: 0,
       end: measurement,
-      step: 1,
-      points: [
-        { value: 0, label: '0' },
-        { value: measurement, label: String(measurement) },
-      ],
+      unit,
+      objects: [{ label: object, start: 0, end: measurement }],
       title: `${object}: ${measurement} ${unit}`,
     }),
     misconceptionTraps: ['units_gaps_overlaps', 'units_mixed_sizes'],
