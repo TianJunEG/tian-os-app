@@ -49,12 +49,14 @@ import familyRoutes from './routes/family.js';
 import tutorWorkspaceRoutes from './routes/tutor.js';
 import tutorInviteRoutes from './routes/tutorInvites.js';
 import teacherRoutes from './routes/teacher.js';
+import schoolAdminRoutes from './routes/schoolAdmin.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
 import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
 import assessmentUploadRoutes from './routes/assessmentUploads.js';
+import notificationRoutes from './routes/notifications.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -69,6 +71,17 @@ app.use(helmet({
   // allow the separate-origin frontend to load images served from /uploads
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
+
+// ── Serve the built React frontend's static assets EARLY ──────────────
+// Mounted before CORS and rate-limiter so that JS / CSS / image bundles
+// from frontend/dist are never rejected by the CORS origin allowlist and
+// are not counted against API rate limits.  The SPA catch-all (index.html
+// fallback for client-side routing) is mounted later, after all API routes.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const clientDist = path.resolve(__dirname, 'frontend', 'dist');
+if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+  app.use(express.static(clientDist));
+}
 
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
 // Vercel preview domains are also allowed by pattern.
@@ -164,22 +177,20 @@ app.use('/api/family', featureGate({ feature: 'parent', minVersion: 'v0.1' }), f
 app.use('/api/tutor/invites', featureGate({ feature: 'tutor', minVersion: 'v0.1' }), tutorInviteRoutes);
 app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
 app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
+app.use('/api/school-admin', schoolAdminRoutes);
 app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
 app.use('/api/assessment-uploads', assessmentUploadRoutes);
+app.use('/api/notifications', notificationRoutes);
 
-// Serve the built React frontend (single-service deployment).
-// When frontend/dist exists (produced by `npm run build`), this lets one
-// Railway/host serve both the API and the app from the same origin. API,
-// uploads, and health routes are mounted above and take precedence; every
-// other path falls through to the SPA's index.html for client-side routing.
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const clientDist = path.resolve(__dirname, 'frontend', 'dist');
+// SPA fallback: every non-API path that didn't match a real static file
+// in frontend/dist gets index.html so client-side routing works.
+// (express.static is mounted earlier — before CORS — so asset requests
+// are already handled by the time we reach here.)
 if (fs.existsSync(path.join(clientDist, 'index.html'))) {
-  app.use(express.static(clientDist));
   app.get('*', (req, res, next) => {
     if (
       req.path.startsWith('/api') ||
