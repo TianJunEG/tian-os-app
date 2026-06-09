@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
@@ -167,6 +170,27 @@ app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
 app.use('/api/assessment-uploads', assessmentUploadRoutes);
+
+// Serve the built React frontend (single-service deployment).
+// When frontend/dist exists (produced by `npm run build`), this lets one
+// Railway/host serve both the API and the app from the same origin. API,
+// uploads, and health routes are mounted above and take precedence; every
+// other path falls through to the SPA's index.html for client-side routing.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const clientDist = path.resolve(__dirname, 'frontend', 'dist');
+if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (
+      req.path.startsWith('/api') ||
+      req.path.startsWith('/uploads') ||
+      req.path === '/healthz'
+    ) {
+      return next();
+    }
+    return res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use(notFoundHandler);

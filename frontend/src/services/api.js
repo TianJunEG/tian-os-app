@@ -1,8 +1,27 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+// Resolve the API base URL.
+// 1. An explicit VITE_API_URL (set at build time) always wins.
+// 2. Otherwise, when the app is served from a real host (single-service
+//    deployment: one Railway service serves both this frontend and the API),
+//    default to a same-origin "/api" so no backend URL needs to be hardcoded.
+// 3. Falling back to localhost only applies during local development.
+const resolveApiBaseUrl = () => {
+  const explicit = import.meta.env.VITE_API_URL;
+  if (explicit) return explicit;
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname;
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
+    if (!isLocal) return '/api';
+  }
+  return 'http://localhost:5001/api';
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 // Backend origin (without the /api suffix) for serving uploaded files.
+// For the same-origin "/api" default this resolves to "" → "/uploads/..."
+// which correctly points back at the serving host.
 export const SERVER_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, '');
 
 const api = axios.create({
