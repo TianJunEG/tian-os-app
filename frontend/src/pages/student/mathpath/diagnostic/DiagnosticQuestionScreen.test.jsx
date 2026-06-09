@@ -125,7 +125,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     fireEvent.click(await screen.findByRole('button', { name: '7' }));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
     fireEvent.click(screen.getByRole('button', { name: /I know this 100%/i }));
-    fireEvent.click(screen.getByLabelText(/I did not need working for this question/i));
+    fireEvent.click(screen.getByLabelText(/I really didn't need working for this one/i));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
 
     await waitFor(() => expect(answerDiagnostic).toHaveBeenCalledTimes(1));
@@ -188,7 +188,7 @@ describe('DiagnosticQuestionScreen adaptive flow', () => {
     fireEvent.click(await screen.findByRole('button', { name: '6' }));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[0]);
     fireEvent.click(screen.getByRole('button', { name: /^I need help$/i }));
-    fireEvent.click(screen.getByLabelText(/I did not need working for this question/i));
+    fireEvent.click(screen.getByLabelText(/I really didn't need working for this one/i));
     fireEvent.click((await screen.findAllByRole('button', { name: /Next Question/i }))[1]);
 
     await waitFor(() => expect(screen.getByText('Diagnostic results')).toBeInTheDocument());

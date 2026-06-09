@@ -1,21 +1,26 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   Award,
   BadgeCheck,
   BookOpen,
+  Check,
   CheckCircle2,
   Clock,
   Flame,
   Lock,
+  Pencil,
   PenLine,
   Sparkles,
+  Star,
   Target,
   Trophy,
+  X,
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 const iconMap = {
   badge: Award,
@@ -30,6 +35,46 @@ const iconMap = {
   fluency: Clock,
   checkpoint: Target,
 };
+
+const ACHIEVEMENT_DISPLAY = {
+  first_question: { title: 'First Step', description: 'Answered your very first question!', emoji: '🌟' },
+  first_correct: { title: 'Right On!', description: 'Got your first answer correct!', emoji: '✅' },
+  streak_3: { title: 'Streak Starter', description: '3 correct answers in a row!', emoji: '🔥' },
+  streak_5: { title: 'On Fire!', description: '5 correct answers in a row!', emoji: '🔥🔥' },
+  streak_10: { title: 'Unstoppable!', description: '10 correct answers in a row!', emoji: '💥' },
+  first_skill_mastered: { title: 'Skill Master', description: 'Mastered your first skill!', emoji: '🏆' },
+  ten_skills_mastered: { title: 'Knowledge Builder', description: 'Mastered 10 skills!', emoji: '📚' },
+  hundred_questions: { title: 'Century Club', description: 'Answered 100 questions!', emoji: '💯' },
+  first_mistake_reviewed: { title: 'Learning Detective', description: 'Reviewed your first mistake!', emoji: '🔍' },
+  first_working_submitted: { title: 'Show Your Work', description: 'Submitted working for the first time!', emoji: '📝' },
+  all_diagnostic_complete: { title: 'Diagnostic Hero', description: 'Completed all diagnostic questions!', emoji: '🎯' },
+  first_recovery_pack: { title: 'Recovery Star', description: 'Completed your first recovery pack!', emoji: '⭐' },
+  fluency_started: { title: 'Speed Builder', description: 'Started fluency practice!', emoji: '⚡' },
+};
+
+function getAchievementDisplay(achievement) {
+  const display = ACHIEVEMENT_DISPLAY[achievement?.code] || {};
+  return {
+    title: display.title || achievement?.title || achievement?.code || 'Achievement',
+    description: display.description || achievement?.description || '',
+    emoji: display.emoji || '🏅',
+  };
+}
+
+function NextToUnlockBanner({ achievements = [] }) {
+  const nextLocked = achievements.find((a) => !a.unlocked);
+  if (!nextLocked) return null;
+  const display = getAchievementDisplay(nextLocked);
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-gold-200 bg-gradient-to-r from-gold-50 to-ivory p-4">
+      <Star className="h-6 w-6 text-gold-500" />
+      <div>
+        <p className="text-sm font-bold text-navy-800">Next to unlock: {display.title}</p>
+        <p className="text-xs text-ink-500">{display.description}</p>
+      </div>
+    </div>
+  );
+}
 
 function initials(name = 'Student') {
   return String(name)
@@ -120,19 +165,19 @@ function SnapshotCard({ icon: Icon, label, value, visual }) {
 }
 
 function AchievementBadge({ achievement, visual }) {
-  const Icon = iconMap[achievement.icon] || Award;
+  const display = getAchievementDisplay(achievement);
   return (
-    <Card className={`p-4 ${achievement.unlocked ? visual.styles.card : 'bg-slate-50 opacity-75'}`}>
+    <Card className={`p-4 ${achievement.unlocked ? 'border-gold-300 bg-gradient-to-br from-gold-100 to-gold-50' : 'border-hairline bg-bone opacity-75'}`}>
       <div className="flex items-start gap-3">
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${achievement.unlocked ? visual.styles.icon : 'bg-bone text-ink-400'}`}>
-          {achievement.unlocked ? <Icon className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl ${achievement.unlocked ? 'bg-gold-200' : 'bg-hairline text-ink-400'}`}>
+          {achievement.unlocked ? display.emoji : <Lock className="h-5 w-5" />}
         </span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-sm font-semibold text-ink-900">{achievement.title}</h3>
+            <h3 className="text-sm font-semibold text-ink-900">{display.title}</h3>
             <Badge tone={achievement.unlocked ? 'success' : 'neutral'}>{achievement.unlocked ? 'Unlocked' : 'Locked'}</Badge>
           </div>
-          <p className="mt-1 text-sm leading-5 text-ink-500">{achievement.description}</p>
+          <p className="mt-1 text-sm leading-5 text-ink-500">{display.description}</p>
         </div>
       </div>
     </Card>
@@ -157,6 +202,37 @@ function TimelineItem({ event }) {
 
 export default function StudentProfile() {
   const [state, setState] = useState({ loading: true, error: '', data: null });
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
+  const nameInputRef = useRef(null);
+
+  const startEditName = () => {
+    setNameValue(state.data?.summary?.student?.name || '');
+    setEditingName(true);
+    setTimeout(() => nameInputRef.current?.focus(), 50);
+  };
+  const cancelEditName = () => { setEditingName(false); setNameValue(''); };
+  const saveName = async () => {
+    const trimmed = nameValue.trim();
+    if (!trimmed || trimmed === state.data?.summary?.student?.name) { cancelEditName(); return; }
+    setNameSaving(true);
+    try {
+      await studentProfileAPI.updateName(trimmed);
+      setState((prev) => ({
+        ...prev,
+        data: {
+          ...prev.data,
+          summary: { ...prev.data?.summary, student: { ...prev.data?.summary?.student, name: trimmed } },
+        },
+      }));
+      setEditingName(false);
+    } catch (err) {
+      console.error('Failed to update name:', err);
+    } finally {
+      setNameSaving(false);
+    }
+  };
 
   const load = useCallback(() => {
     let active = true;
@@ -187,8 +263,14 @@ export default function StudentProfile() {
 
   useEffect(() => load(), [load]);
 
+  const visibleAchievements = useMemo(() => {
+    return (state.data?.achievements || []).filter(
+      (a) => a.code !== 'fluency_started' || FEATURE_FLAGS.fluency
+    );
+  }, [state.data]);
+
   const groupedAchievements = useMemo(() => {
-    const rows = state.data?.achievements || [];
+    const rows = visibleAchievements;
     return rows.reduce((acc, achievement) => {
       const key = achievement.category || 'Learning';
       acc[key] = acc[key] || [];
@@ -244,7 +326,27 @@ export default function StudentProfile() {
               )}
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink-500">{copy.profileTitle}</p>
-                <h1 className={`mt-1 truncate font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{student.name || 'Student'}</h1>
+                {editingName ? (
+                  <div className="mt-1 flex items-center gap-2">
+                    <input
+                      ref={nameInputRef}
+                      type="text"
+                      value={nameValue}
+                      onChange={(e) => setNameValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') cancelEditName(); }}
+                      className="rounded-lg border border-hairline bg-white px-3 py-1.5 text-lg font-bold text-navy-800 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                      maxLength={100}
+                      disabled={nameSaving}
+                    />
+                    <button onClick={saveName} disabled={nameSaving} className="rounded-lg bg-teal-500 p-1.5 text-white hover:bg-teal-600 disabled:opacity-50"><Check className="h-4 w-4" /></button>
+                    <button onClick={cancelEditName} className="rounded-lg bg-bone p-1.5 text-ink-500 hover:bg-hairline"><X className="h-4 w-4" /></button>
+                  </div>
+                ) : (
+                  <div className="mt-1 flex items-center gap-2">
+                    <h1 className={`truncate font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{student.name || 'Student'}</h1>
+                    <button onClick={startEditName} className="rounded-lg p-1 text-ink-400 hover:bg-bone hover:text-ink-600" title="Edit name"><Pencil className="h-4 w-4" /></button>
+                  </div>
+                )}
                 <p className="mt-1 text-sm text-ink-500">{student.level || 'Learning with Tian OS'}</p>
               </div>
             </div>
@@ -317,7 +419,8 @@ export default function StudentProfile() {
             <p className="mt-1 text-sm text-ink-500">{copy.achievementSubtitle}</p>
           </div>
         </div>
-        <div className="space-y-5">
+        <NextToUnlockBanner achievements={visibleAchievements} />
+        <div className="mt-4 space-y-5">
           {Object.entries(groupedAchievements).map(([category, achievements]) => (
             <div key={category}>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.08em] text-ink-400">{category}</h3>

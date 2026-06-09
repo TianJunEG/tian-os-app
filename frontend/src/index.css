@@ -13,19 +13,31 @@
   /* Brand */
   --navy-900:#0E1A36; --navy-700:#1A2A4F; --navy-500:#2E4477;
   --navy-300:#6B7FA8; --navy-100:#DDE3F0; --navy-50:#F1F4FA;
-  --gold-700:#8E6F1F; --gold-500:#C9A23C; --gold-300:#E3C97A; --gold-100:#F6EBC9;
+  --gold-700:#B88F1E; --gold-500:#D4A935; --gold-300:#FFD166; --gold-100:#FFEFCC;
+  /* Teal */
+  --teal-900:#052D3A; --teal-800:#073B4C; --teal-700:#0A3542; --teal-600:#0D4150;
+  --teal-500:#0F4C5C; --teal-400:#3FBAC8; --teal-300:#6DCAD4; --teal-200:#9DD9E0;
+  --teal-100:#C5E8EC; --teal-50:#E8F5F7;
+  /* Sky */
+  --sky-500:#75BEE0; --sky-400:#8ECBE8; --sky-300:#A7D8F0; --sky-200:#BDDFF5; --sky-100:#D6ECFA;
+  /* Lavender */
+  --lavender-500:#A388D2; --lavender-400:#B69FDB; --lavender-300:#C9B6E4;
+  --lavender-200:#DBCCEb; --lavender-100:#EDE5F5;
+  /* Coral */
+  --coral-600:#E06B56; --coral-500:#F28C7A; --coral-400:#F0A090;
+  --coral-300:#F5B8AE; --coral-200:#F9D4CE; --coral-100:#FDEDEA;
   /* Neutrals (ink/paper/lines) */
   --ink-900:#0E1320; --ink-700:#1F2330; --ink-500:#5B5F6E; --ink-300:#9A9DA9; --ink-100:#C9CBD3;
-  --paper:#FFFFFF; --ivory:#FAFBFC; --bone:#F3F1EA; --hairline:#EFEDE6;
+  --paper:#FFFFFF; --ivory:#FFF8EA; --bone:#F3EED8; --hairline:#EDE8D4;
   --lavender:#F1ECFF; --mint:#EAF9F1; --sky:#EAF4FF;
   --peach:#FFF1E8; --soft-yellow:#FFF8E1; --rose:#FFEFF3;
   /* Semantic */
   --success-500:#2F8F6F; --success-100:#DEF0E8;
-  --warn-500:#C9A23C;    --warn-100:#F6EBC9;
+  --warn-500:#D4A935;    --warn-100:#FFF8E5;
   --error-500:#B4453C;   --error-100:#F4DAD6;
-  /* Mastery heatmap scale */
-  --mastery-0:#F3F1EA; --mastery-1:#DDE3F0; --mastery-2:#B5C2DD;
-  --mastery-3:#6B7FA8; --mastery-4:#2E4477; --mastery-5:#1A2A4F;
+  /* Mastery heatmap scale (teal gradient) */
+  --mastery-0:#E8F5F7; --mastery-1:#C5E8EC; --mastery-2:#9DD9E0;
+  --mastery-3:#6DCAD4; --mastery-4:#3FBAC8; --mastery-5:#0F4C5C;
   /* Type */
   --font-display:'Fraunces',Georgia,serif;
   --font-text:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
@@ -76,7 +88,7 @@ code {
 /* Reusable, design-system component classes for the public site */
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-navy-700 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-navy-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2 disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 disabled:opacity-60;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2;
@@ -91,6 +103,7 @@ code {
     @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
   }
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full bg-gold-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gold-700;
+    @apply inline-flex items-center gap-2 rounded-full bg-gold-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gold-600;
+  .brand-teal { color: #0F4C5C; }
   }
 }

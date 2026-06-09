@@ -137,6 +137,34 @@ export const MISCONCEPTION_INTERVENTION_MAP = Object.freeze({
     recheckStrategy: 'same_method_new_numbers',
     workedExampleFocus: ['method may be correct but calculation must be checked', 'estimate reasonableness', 'common trap: not reviewing arithmetic'],
   },
+  wrong_whole_identified: {
+    interventionType: 'visual_fraction_model',
+    worksheetType: 'recovery_worksheet',
+    guidedPracticeSequence: ['part_whole_identification', 'worked_example', 'guided_practice', 'recheck'],
+    recheckStrategy: 'visual_part_whole_check',
+    workedExampleFocus: ['denominator counts equal parts per shape not number of shapes', 'identify the whole correctly', 'common trap: counting shapes as denominator'],
+  },
+  improper_fraction_conversion_error: {
+    interventionType: 'mixed_improper_visual_model',
+    worksheetType: 'recovery_worksheet',
+    guidedPracticeSequence: ['division_remainder_model', 'worked_example', 'guided_practice', 'independent_practice', 'recheck'],
+    recheckStrategy: 'division_remainder_check',
+    workedExampleFocus: ['divide numerator by denominator carefully', 'quotient is whole part and remainder is new numerator', 'common trap: wrong remainder from division'],
+  },
+  answer_form_mismatch: {
+    interventionType: 'form_awareness_review',
+    worksheetType: 'recovery_worksheet',
+    guidedPracticeSequence: ['identify_requested_form', 'worked_example', 'guided_practice', 'recheck'],
+    recheckStrategy: 'bidirectional_form_check',
+    workedExampleFocus: ['read what form the question asks for', 'convert if the form does not match', 'common trap: giving correct value in wrong form'],
+  },
+  number_line_partition_error: {
+    interventionType: 'number_line_visual_model',
+    worksheetType: 'recovery_worksheet',
+    guidedPracticeSequence: ['count_partitions', 'label_tick_marks', 'guided_practice', 'recheck'],
+    recheckStrategy: 'number_line_placement_check',
+    workedExampleFocus: ['count spaces between tick marks not the marks themselves', 'label each partition', 'common trap: miscounting tick marks'],
+  },
 });
 
 export function getInterventionForMisconception(misconceptionId = '') {

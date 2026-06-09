@@ -9,8 +9,8 @@ export const FLAGS = {
   progress: true,
 
   // optional features (enable via env FEAT_* = '1')
-  worksheets: process.env.FEAT_WORKSHEETS === '1',
-  parent: process.env.FEAT_PARENT === '1',
+  worksheets: process.env.FEAT_WORKSHEETS !== '0',
+  parent: process.env.FEAT_PARENT !== '0',
   tutor: process.env.FEAT_TUTOR === '1',
   teacher: process.env.FEAT_TEACHER === '1',
   lifelab: process.env.FEAT_LIFELAB === '1',

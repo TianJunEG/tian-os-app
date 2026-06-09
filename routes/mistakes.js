@@ -107,6 +107,8 @@ router.get('/', protect, async (req, res) => {
     if (req.query.source) filter.source = req.query.source;
     // Default to MathPath mistakes; other modules (e.g. Spelling) pass ?module=.
     filter.module = req.query.module || 'MathPath';
+    // Exclude demo/test data created by seed scripts unless explicitly requested.
+    if (req.query.includeSeeded !== 'true') filter.seeded = { $ne: true };
     // The Fractions intervention pilot review must show fraction mistakes only.
     // Fraction practice mistakes carry a framework skill code (F001–F026); fluency
     // drills (e.g. "7 + 4", "8 × 11") and other DB-served items do not. Scoping by

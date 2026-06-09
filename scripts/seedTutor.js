@@ -53,7 +53,7 @@ async function seedStudent({ tutor, ws, name, level, skillScores, skills }) {
           questionId: q?._id || new mongoose.Types.ObjectId(), skillId: skill._id, module: 'MathPath',
           questionStem: q?.stem || `Practice question for ${skill.name}`,
           workedSolution: q?.workedSolution || '', studentAnswer: '?', correctAnswer: q?.answer || '',
-          mistakeType: 'concept_gap', status: 'open',
+          mistakeType: 'concept_gap', status: 'open', seeded: true,
         });
       }
     }

@@ -184,6 +184,7 @@ async function addMistake({ student, workspaceId, skill, source, stem, studentAn
     misconceptionTag,
     status: 'open',
     source,
+    seeded: true,
     occurredAt: new Date(),
   });
   return true;

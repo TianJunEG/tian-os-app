@@ -79,6 +79,34 @@ const EXAMPLE_BANK = {
     visualExplanation: 'Use a checking routine: estimate, calculate, compare.',
     keyTakeaway: 'Good method plus careful checking leads to reliable answers.',
   },
+  wrong_whole_identified: {
+    incorrectMethod: '3 circles each divided into 4 parts, 9 parts shaded → student writes 9/3.',
+    whyIncorrect: 'The student used the number of shapes (3) as the denominator instead of the number of equal parts per shape (4).',
+    correctMethod: 'Each shape has 4 equal parts, so the denominator is 4. The fraction is 9/4.',
+    visualExplanation: 'Point to one shape and count its equal parts. That count is the denominator.',
+    keyTakeaway: 'The denominator counts equal parts in one whole, not the number of shapes.',
+  },
+  improper_fraction_conversion_error: {
+    incorrectMethod: '13/5 → student writes 2 1/5.',
+    whyIncorrect: '13 ÷ 5 = 2 remainder 3, not remainder 1. The student made a division or remainder error.',
+    correctMethod: '13 ÷ 5 = 2 remainder 3, so the mixed number is 2 3/5.',
+    visualExplanation: 'Use fraction strips: lay out 13 fifth-pieces, group into wholes of 5, count leftover pieces.',
+    keyTakeaway: 'Check your division and remainder carefully when converting improper fractions.',
+  },
+  answer_form_mismatch: {
+    incorrectMethod: 'Question asks for a mixed number; student writes 7/3 instead of 2 1/3.',
+    whyIncorrect: '7/3 is the correct value but the wrong form. The question asked for a mixed number.',
+    correctMethod: 'Convert 7/3 to 2 1/3 to match the requested form.',
+    visualExplanation: 'Read the question one more time: does it say "as a mixed number" or "as an improper fraction"?',
+    keyTakeaway: 'Always check what form the question asks for before writing your answer.',
+  },
+  number_line_partition_error: {
+    incorrectMethod: 'On a number line from 0 to 2 divided into 8 parts, student places 5/4 at the 5th tick mark.',
+    whyIncorrect: 'The tick marks divide the line into 8 equal spaces (4 per whole). The 5th space from 0 is 5/4, but the 5th tick mark is at a different position.',
+    correctMethod: 'Count spaces, not marks. 5/4 = 1 1/4, so it sits one space past the 1 mark.',
+    visualExplanation: 'Label each space between tick marks, then count from 0.',
+    keyTakeaway: 'Count the spaces between tick marks, not the tick marks themselves.',
+  },
 };
 
 const VISUAL_BY_INTERVENTION = [
