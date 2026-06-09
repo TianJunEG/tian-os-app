@@ -191,18 +191,15 @@ export default function MistakeReview() {
                 })()}
               </div>
               {openHelp === m.id && (
-                <div className="mt-4 rounded-xl border border-hairline bg-navy-50 p-4">
-                  <p className="mb-3 text-sm font-semibold text-navy-700">Try Together</p>
-                  <RemediationPanel
-                    skillId={m.skillId}
-                    recentAttempts={[{
-                      correct: false,
-                      misconceptionTag: m.misconceptionTag,
-                      workingAnalysisResult: m.workingInsight || m.workingAnalysisResult || null,
-                    }]}
-                    onPractise={() => practiseSimilar(m.skillId)}
-                  />
-                </div>
+                <RemediationPanel
+                  skillId={m.skillId}
+                  recentAttempts={[{
+                    correct: false,
+                    misconceptionTag: m.misconceptionTag,
+                    workingAnalysisResult: m.workingInsight || m.workingAnalysisResult || null,
+                  }]}
+                  onPractise={() => practiseSimilar(m.skillId)}
+                />
               )}
               </>
               )}
