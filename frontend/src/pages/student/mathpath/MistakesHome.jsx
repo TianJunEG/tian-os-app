@@ -63,6 +63,21 @@ export default function MistakesHome() {
     if (starting) return;
     setStarting(true);
     try {
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(),
+            questionCount: 5,
+            sessionType: 'remediation',
+            source: 'mistakes-home',
+            backTo: '/student/mathpath/mistakes',
+            homeBase: '/student/mathpath/mistakes',
+            homeLabel: 'Back to mistake review',
+          },
+        });
+        return;
+      }
       const { data: s } = await mathpathAPI.startSession({ feature: 'Mistake-to-Mastery', skillId, questionCount: 5 });
       navigate(`/student/mathpath/practice/${s.session_id}`, {
         state: {

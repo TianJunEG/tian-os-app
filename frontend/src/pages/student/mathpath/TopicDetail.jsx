@@ -27,6 +27,19 @@ export default function TopicDetail() {
     if (starting) return;
     setStarting(true);
     try {
+      const skillId = payload?.skillId || '';
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(),
+            questionCount: 10,
+            sessionType: 'practice',
+            source: 'topic-detail',
+          },
+        });
+        return;
+      }
       const { data } = await mathpathAPI.startSession({ ...payload, questionCount: 10 });
       navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items } });
     } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setStarting(false); }
