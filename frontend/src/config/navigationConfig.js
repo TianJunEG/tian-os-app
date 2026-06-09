@@ -1,6 +1,7 @@
 import {
   Home, Calculator, ClipboardList, GitBranch, FileText, Users, BookOpen, CalendarDays,
   LayoutGrid, CheckSquare, Book, MessageSquare, Sparkles, UserCircle,
+  Bell, CreditCard, Link2,
 } from 'lucide-react';
 import FEATURE_FLAGS from './featureFlags';
 import VERSION from './version';
@@ -28,6 +29,8 @@ export const NAV_ITEMS = [
   { key: 'parent.weak', label: 'Weak Areas', path: '/parent/children/:studentId/weak-topics', icon: BookOpen, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
   { key: 'parent.recommend', label: 'Recommendations', path: '/parent/children/:studentId/actions', icon: CalendarDays, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
   { key: 'parent.worksheets', label: 'Worksheets', path: '/parent/children/:studentId/worksheets', icon: FileText, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'worksheets' },
+  { key: 'parent.tutoraccess', label: 'Tutor Access', path: '/parent/link-requests', icon: Link2, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
+  { key: 'parent.notifications', label: 'Notifications', path: '/parent/notifications', icon: Bell, roles: ['parent'], minVersion: 'v0.3', featureFlag: 'parent' },
 
   // Tutor (v0.4+)
   { key: 'tutor.home', label: 'Home', path: '/tutor', icon: Home, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
@@ -36,6 +39,8 @@ export const NAV_ITEMS = [
   { key: 'tutor.assign', label: 'Assign Practice', path: '/tutor/students/:id/assign-homework', icon: ClipboardList, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
   { key: 'tutor.mistakehistory', label: 'Mistake History', path: '/tutor/students/:id/mistakes', icon: BookOpen, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
   { key: 'tutor.worksheets', label: 'Worksheets', path: '/parent/children/:studentId/worksheets', icon: FileText, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'worksheets' },
+  { key: 'tutor.requestaccess', label: 'Request Access', path: '/tutor/request-access', icon: Link2, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
+  { key: 'tutor.subscription', label: 'Subscription', path: '/tutor/subscription', icon: CreditCard, roles: ['tutor'], minVersion: 'v0.4', featureFlag: 'tutor' },
 
   // Teacher (v0.5+)
   { key: 'teacher.home', label: 'Home', path: '/teacher', icon: Home, roles: ['teacher'], minVersion: 'v0.5', featureFlag: 'teacher' },
