@@ -74,7 +74,7 @@ export default function MistakeReview() {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await mathpathAPI.mistakes();
+        const { data } = await mathpathAPI.mistakes({ domain: 'fractions' });
         const loaded = data.mistakes || [];
         console.info('[mistakes] displayed', { view: 'review', count: loaded.length });
         setMistakes(loaded);

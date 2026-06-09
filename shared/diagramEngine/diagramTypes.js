@@ -17,6 +17,7 @@ export const DIAGRAM_TYPE_DEFINITIONS = [
   { code: 'DG014', type: 'clock', name: 'Clock' },
   { code: 'DG015', type: 'length_measurement', name: 'Length Measurement' },
   { code: 'DG016', type: 'comparison_model', name: 'Comparison Model' },
+  { code: 'DG017', type: 'money_display', name: 'Money Display' },
 ];
 
 export const LEGACY_DIAGRAM_TYPE_ALIASES = {

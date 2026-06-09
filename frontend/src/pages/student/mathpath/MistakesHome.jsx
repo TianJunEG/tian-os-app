@@ -38,7 +38,7 @@ export default function MistakesHome() {
   useEffect(() => {
     (async () => {
       try {
-        const [mk, ms] = await Promise.all([mathpathAPI.mistakes(), mathpathAPI.mastery()]);
+        const [mk, ms] = await Promise.all([mathpathAPI.mistakes({ domain: 'fractions' }), mathpathAPI.mastery()]);
         console.info('[mistakes] loaded', {
           count: mk.data?.mistakes?.length || 0,
           weakSkillCount: mk.data?.weakSkills?.length || 0,

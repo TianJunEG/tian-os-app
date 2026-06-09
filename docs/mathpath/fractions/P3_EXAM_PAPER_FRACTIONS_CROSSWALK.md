@@ -171,6 +171,40 @@ CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear 
 | Henry Park SA2 2019 | Q11 | MCQ | Select fraction equivalent to 4/7 from options | FR2.10 |
 | Henry Park SA2 2019 | Q12 | SAQ | State fraction of triangle composite figure that is shaded | FR1.02 |
 
+### 2019 SA2 Papers (continued)
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| Pei Hwa SA2 2019 | Q6 | MCQ | Identify fraction NOT equivalent to given fraction | FR2.10, FR2.11 |
+| Pei Hwa SA2 2019 | Q7 | MCQ | Add unlike fractions in painting context | FR4.06, FR6.03 |
+| Pei Hwa SA2 2019 | Q8 | MCQ | Read fraction from number line (0-1) | FR1.03 (number line) |
+| Pei Hwa SA2 2019 | Q17 | SAQ | Arrange 3 unlike fractions ascending | FR2.07 |
+| Pei Hwa SA2 2019 | Q18 | SAQ | Shade more parts to reach target fraction of figure | FR1.02, FR5.01 |
+| Pei Hwa SA2 2019 | Q19 | SAQ | Subtract unlike fractions | FR4.09 |
+| Pei Hwa SA2 2019 | Q26 | WP | Given sum and difference of two fractions, find both | FR4.06, FR4.09, FR7.01 |
+| Raffles SA2 2019 | Q3 | MCQ | Identify non-equivalent fraction from set | FR2.09 |
+| Raffles SA2 2019 | Q9 | MCQ | Subtract unlike fractions | FR4.09 |
+| Raffles SA2 2019 | Q12 | MCQ | Pizza slice problem, fraction left after giving away | FR5.01, FR6.05 |
+| Raffles SA2 2019 | Q21 | SAQ | Express fraction in simplest form | FR2.13 |
+| Raffles SA2 2019 | Q30 | SAQ | Arrange 3 unlike fractions descending | FR2.07 |
+| Red Swastika SA2 2019 | Q14 | MCQ | Missing num/denom in equivalent chain | FR2.10, FR2.12 |
+| Red Swastika SA2 2019 | Q15 | MCQ | Add unlike fractions in pizza context | FR4.06, FR6.03 |
+| Red Swastika SA2 2019 | Q23 | SAQ | Arrange 3 unlike fractions ascending | FR2.07 |
+| Red Swastika SA2 2019 | Q24 | SAQ | Add unlike fractions, simplest form | FR4.06, FR2.13 |
+| Red Swastika SA2 2019 | Q25 | SAQ | Subtract unlike fractions, simplest form | FR4.09, FR2.13 |
+| Red Swastika SA2 2019 | Q38 | SAQ | Fraction of composite figure (two squares) shaded | FR1.02 |
+| Red Swastika SA2 2019 | Q39 | SAQ | Arrange 3 fractions ascending | FR2.07 |
+| Red Swastika SA2 2019 | Q40a | SAQ | True/false about combined fraction eaten | FR4.06, FR2.07 |
+| Red Swastika SA2 2019 | Q40b | SAQ | Compare portions eaten by two people (true/false) | FR2.05 |
+| River Valley SA2 2019 | Q5 | MCQ | Identify equivalent fraction | FR2.10 |
+| River Valley SA2 2019 | Q23 | SAQ | Arrange 3 unlike fractions ascending | FR2.07 |
+| River Valley SA2 2019 | Q24 | SAQ | Add unlike fractions, simplest form | FR4.06, FR2.13 |
+| River Valley SA2 2019 | Q25 | SAQ | Subtract unlike fractions, simplest form | FR4.09, FR2.13 |
+| Rosyth SA2 2019 | Q14 | MCQ | Identify greatest fraction among 4 options | FR2.07 |
+| Rosyth SA2 2019 | Q15 | MCQ | Add unlike fractions | FR4.06 |
+| Rosyth SA2 2019 | Q18 | SAQ | Find missing numerator in equivalent fraction | FR2.10, FR2.12 |
+| Rosyth SA2 2019 | Q31 | SAQ | Arrange 3 unlike fractions ascending | FR2.07 |
+
 ### 2025 WA Papers (Term 2-3)
 
 | Paper | Q# | Type | Pattern | FR codes |

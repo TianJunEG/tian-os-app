@@ -107,6 +107,15 @@ router.get('/', protect, async (req, res) => {
     if (req.query.source) filter.source = req.query.source;
     // Default to MathPath mistakes; other modules (e.g. Spelling) pass ?module=.
     filter.module = req.query.module || 'MathPath';
+    // The Fractions intervention pilot review must show fraction mistakes only.
+    // Fraction practice mistakes carry a framework skill code (F001–F026); fluency
+    // drills (e.g. "7 + 4", "8 × 11") and other DB-served items do not. Scoping by
+    // ?domain=fractions keeps times-table/fluency slips out of the fractions review
+    // so they are not mistaken for fraction gaps. Opt-in, so other callers are
+    // unaffected. Fluency slips are surfaced separately by the fluency module.
+    if (String(req.query.domain || '').toLowerCase() === 'fractions') {
+      filter.skillCode = { $regex: /^F\d{3}$/i };
+    }
 
     const mistakes = await Mistake.find(filter)
       .populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } })
