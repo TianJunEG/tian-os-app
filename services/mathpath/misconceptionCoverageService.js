@@ -112,6 +112,37 @@ export function buildMisconceptionCoverageMatrix() {
   };
 }
 
+export function buildMisconceptionDensityReport() {
+  const matrix = buildMisconceptionCoverageMatrix();
+  const allMisconceptions = listMisconceptions();
+  const referencedIds = new Set(
+    matrix.rows.flatMap((row) => row.misconceptionsCurrentlyCovered)
+  );
+  const unreferencedMisconceptions = allMisconceptions
+    .filter((m) => !referencedIds.has(m.misconceptionId))
+    .map((m) => m.misconceptionId);
+
+  const sparseSkills = matrix.rows
+    .filter((row) => row.misconceptionsCurrentlyCovered.length < 2)
+    .map((row) => ({ skillId: row.skillId, skillName: row.skillName, count: row.misconceptionsCurrentlyCovered.length }));
+
+  const weakEvidenceAreas = matrix.rows
+    .filter((row) => row.coverageBand === 'thin')
+    .map((row) => ({ skillId: row.skillId, skillName: row.skillName, coverageScore: row.coverageScore }));
+
+  return {
+    generatedAt: new Date().toISOString(),
+    coveragePercent: matrix.coveragePercent,
+    totalMisconceptions: allMisconceptions.length,
+    referencedMisconceptions: referencedIds.size,
+    unreferencedMisconceptions,
+    sparseSkills,
+    weakEvidenceAreas,
+    skillCount: matrix.skillCount,
+  };
+}
+
 export default {
   buildMisconceptionCoverageMatrix,
+  buildMisconceptionDensityReport,
 };

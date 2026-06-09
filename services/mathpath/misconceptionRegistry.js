@@ -127,6 +127,34 @@ export const MATHPATH_MISCONCEPTIONS = Object.freeze([
     evidencePatterns: [/calculation error/i, /arithmetic/i, /careless/i],
     recommendedInterventions: ['FLUENCY', 'CHECKING_ROUTINE', 'TARGETED_PRACTICE'],
   },
+  {
+    misconceptionId: 'wrong_whole_identified',
+    misconceptionName: 'Wrong whole identified',
+    description: 'Student counts total shapes instead of total equal parts as the denominator.',
+    evidencePatterns: [/wrong whole/i, /counted shapes/i, /number of shapes/i, /total shapes/i],
+    recommendedInterventions: ['VISUAL_MODEL', 'CONCEPT_REVIEW', 'TARGETED_PRACTICE'],
+  },
+  {
+    misconceptionId: 'improper_fraction_conversion_error',
+    misconceptionName: 'Improper fraction conversion error',
+    description: 'Student makes a remainder or division error when converting an improper fraction to a mixed number.',
+    evidencePatterns: [/remainder/i, /improper.*mixed/i, /divide.*denominator/i, /quotient/i],
+    recommendedInterventions: ['GUIDED_EXAMPLE', 'VISUAL_MODEL', 'TARGETED_PRACTICE'],
+  },
+  {
+    misconceptionId: 'answer_form_mismatch',
+    misconceptionName: 'Answer form mismatch',
+    description: 'Student gives an improper fraction when a mixed number is requested or vice versa.',
+    evidencePatterns: [/wrong form/i, /as a mixed/i, /as an improper/i, /expected.*form/i],
+    recommendedInterventions: ['GUIDED_EXAMPLE', 'TARGETED_PRACTICE'],
+  },
+  {
+    misconceptionId: 'number_line_partition_error',
+    misconceptionName: 'Number line partition error',
+    description: 'Student places a value at the wrong tick mark or miscounts partitions on a number line.',
+    evidencePatterns: [/number line/i, /tick mark/i, /partition/i, /wrong position/i],
+    recommendedInterventions: ['NUMBER_LINE', 'VISUAL_MODEL', 'TARGETED_PRACTICE'],
+  },
 ]);
 
 const registryById = new Map(MATHPATH_MISCONCEPTIONS.map((item) => [item.misconceptionId, item]));

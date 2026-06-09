@@ -856,6 +856,81 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F013': {
+      if (familyId.endsWith('_001')) {
+        const d = seq(s, 2, 8);
+        const proper = seq(s + 2, 1, d - 1);
+        const improper = seq(s + 5, d + 1, d * 3);
+        const options = [
+          { value: `${proper}/${d}`, isImproper: false },
+          { value: `${improper}/${d}`, isImproper: true },
+          { value: `${seq(s + 7, 1, d - 1)}/${d + 2}`, isImproper: false },
+        ];
+        return {
+          prompt: `Which of these fractions is greater than 1 whole? ${options.map((o) => o.value).join(', ')}`,
+          answer: { type: 'text', value: `${improper}/${d}`, display: `${improper}/${d}` },
+          acceptedAnswers: [`${improper}/${d}`],
+          solutionSteps: ['A fraction is greater than 1 when the numerator is larger than the denominator.', `${improper}/${d} has numerator ${improper} > denominator ${d}.`],
+        };
+      }
+      if (familyId.endsWith('_002')) {
+        const d = seq(s, 2, 6);
+        const wholes = seq(s + 3, 2, 3);
+        const extra = seq(s + 5, 1, d - 1);
+        const totalShaded = wholes * d + extra;
+        return {
+          prompt: `${wholes + 1} shapes are each divided into ${d} equal parts. ${totalShaded} parts are shaded in total. Write this as a fraction.`,
+          answer: answerPayloadFraction(totalShaded, d),
+          acceptedAnswers: [fracStr({ numerator: totalShaded, denominator: d })],
+          diagramSpec: {
+            type: 'fraction_bar',
+            width: 640,
+            height: 180,
+            data: { parts: d, shaded: totalShaded, wholes: wholes + 1, labelMode: 'none' },
+          },
+          solutionSteps: [`Count all shaded parts: ${totalShaded}.`, `Each shape has ${d} equal parts, so the denominator is ${d}.`, `The fraction is ${totalShaded}/${d}.`],
+        };
+      }
+      if (familyId.endsWith('_003')) {
+        const d = seq(s, 2, 6);
+        const n = seq(s + 3, d + 1, d * 2);
+        const m = toMixed({ numerator: n, denominator: d });
+        return {
+          prompt: `Show ${n}/${d} using a model. How many whole shapes are fully shaded and how many extra parts?`,
+          answer: answerPayloadMixed(m.whole, m.numerator, m.denominator),
+          acceptedAnswers: [mixedStr(m), fracStr({ numerator: n, denominator: d })],
+          diagramSpec: {
+            type: 'fraction_bar',
+            width: 640,
+            height: 180,
+            data: { parts: d, shaded: n, wholes: m.whole + 1, labelMode: 'none' },
+          },
+          solutionSteps: [`${n} ÷ ${d} = ${m.whole} whole${m.whole > 1 ? 's' : ''} with ${m.numerator} part${m.numerator > 1 ? 's' : ''} left over.`, `So ${n}/${d} = ${mixedStr(m)}.`],
+        };
+      }
+      if (familyId.endsWith('_004')) {
+        const d = seq(s, 2, 6);
+        const n = seq(s + 3, d + 1, d * 3);
+        const m = toMixed({ numerator: n, denominator: d });
+        const noun = COUNTABLE_CONTEXT_NOUNS[Math.abs(s) % COUNTABLE_CONTEXT_NOUNS.length];
+        return {
+          prompt: `A box holds ${d} ${noun} per layer. You have ${n} ${noun} in total. How many full layers and how many extra ${noun}?`,
+          answer: answerPayloadMixed(m.whole, m.numerator, m.denominator),
+          acceptedAnswers: [mixedStr(m), `${m.whole} full layers and ${m.numerator} extra`],
+          solutionSteps: [`${n} ÷ ${d} = ${m.whole} remainder ${m.numerator}.`, `${m.whole} full layers and ${m.numerator} extra ${noun}.`],
+        };
+      }
+      if (familyId.endsWith('_005')) {
+        const d = seq(s, 3, 8);
+        const a = seq(s + 2, 1, d - 1);
+        const b = seq(s + 5, -(d - 1), -1);
+        const greater = a > 0 && b < 0 ? '>' : '<';
+        return {
+          prompt: `Which is greater: ${a}/${d} or ${b}/${d}?`,
+          answer: { type: 'text', value: greater, display: greater },
+          acceptedAnswers: [greater],
+          solutionSteps: ['Positive fractions are always greater than negative fractions.', `${a}/${d} is positive and ${b}/${d} is negative, so the answer is "${greater}".`],
+        };
+      }
       const d = seq(s, 2, 8);
       const n = seq(s + 3, d + 1, d * 3);
       return {
@@ -866,6 +941,89 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F014': {
+      if (familyId.endsWith('_001')) {
+        const w = seq(s, 1, 4);
+        const n = seq(s + 3, 1, 5);
+        const d = seq(s + 5, n + 1, 8);
+        return {
+          prompt: `What is the whole-number part and what is the fractional part of ${w} ${n}/${d}?`,
+          answer: answerPayloadMixed(w, n, d),
+          acceptedAnswers: [mixedStr({ whole: w, numerator: n, denominator: d })],
+          solutionSteps: [`The whole-number part is ${w}.`, `The fractional part is ${n}/${d}.`, `Together: ${w} ${n}/${d}.`],
+        };
+      }
+      if (familyId.endsWith('_002')) {
+        const w = seq(s, 1, 4);
+        const n = seq(s + 3, 1, 4);
+        const d = seq(s + 5, n + 1, 8);
+        const noun = COUNTABLE_CONTEXT_NOUNS[Math.abs(s + 1) % COUNTABLE_CONTEXT_NOUNS.length];
+        return {
+          prompt: `A recipe needs ${w} whole cups and ${n}/${d} of a cup of ${noun}. Write this as a mixed number.`,
+          answer: answerPayloadMixed(w, n, d),
+          acceptedAnswers: [mixedStr({ whole: w, numerator: n, denominator: d })],
+          solutionSteps: [`Combine the whole part (${w}) with the fraction (${n}/${d}).`, `The mixed number is ${w} ${n}/${d}.`],
+        };
+      }
+      if (familyId.endsWith('_003')) {
+        const w = seq(s, 1, 3);
+        const d = seq(s + 3, 2, 6);
+        const n = seq(s + 5, 1, d - 1);
+        return {
+          prompt: `The model shows ${w} fully shaded shapes and ${n} out of ${d} parts shaded in the next shape. Write the mixed number.`,
+          answer: answerPayloadMixed(w, n, d),
+          acceptedAnswers: [mixedStr({ whole: w, numerator: n, denominator: d })],
+          diagramSpec: {
+            type: 'fraction_bar',
+            width: 640,
+            height: 180,
+            data: { parts: d, shaded: w * d + n, wholes: w + 1, labelMode: 'none' },
+          },
+          solutionSteps: [`${w} shapes are fully shaded = ${w} wholes.`, `${n} out of ${d} parts are shaded in the last shape.`, `Mixed number: ${w} ${n}/${d}.`],
+        };
+      }
+      if (familyId.endsWith('_004')) {
+        const w1 = seq(s, 1, 4);
+        const w2 = seq(s + 3, 1, 4);
+        const d = seq(s + 5, 3, 8);
+        const n1 = seq(s + 7, 1, d - 1);
+        const n2 = seq(s + 9, 1, d - 1);
+        const cmp = w1 !== w2 ? (w1 > w2 ? '>' : '<') : (n1 === n2 ? '=' : (n1 > n2 ? '>' : '<'));
+        return {
+          prompt: `Compare: ${w1} ${n1}/${d} __ ${w2} ${n2}/${d}. Fill in >, < or =.`,
+          answer: { type: 'text', value: cmp, display: cmp },
+          acceptedAnswers: [cmp],
+          solutionSteps: [
+            w1 !== w2
+              ? `Compare whole parts: ${w1} vs ${w2}.`
+              : `Whole parts are equal (${w1}). Compare fractions: ${n1}/${d} vs ${n2}/${d}.`,
+            `The answer is "${cmp}".`,
+          ],
+        };
+      }
+      if (familyId.endsWith('_005')) {
+        const pairs = [
+          { frac: frac(1, 2), decimal: '0.5' },
+          { frac: frac(1, 4), decimal: '0.25' },
+          { frac: frac(3, 4), decimal: '0.75' },
+          { frac: frac(1, 5), decimal: '0.2' },
+        ];
+        const picked = pairs[Math.abs(s) % pairs.length];
+        const otherFrac = frac(seq(s + 3, 1, 3), seq(s + 5, 4, 8));
+        const items = [fracStr(picked.frac), picked.decimal, fracStr(otherFrac)];
+        const values = [picked.frac.numerator / picked.frac.denominator, parseFloat(picked.decimal), otherFrac.numerator / otherFrac.denominator];
+        const indexed = values.map((v, i) => ({ v, label: items[i] })).sort((a, b) => a.v - b.v);
+        const sorted = indexed.map((x) => x.label);
+        const shown = ensureNotAlreadySorted(
+          deterministicShuffle(indexed.map((x) => ({ numerator: Math.round(x.v * 1000), denominator: 1000 })), s).map((_, i) => items[i]),
+          sorted,
+        );
+        return {
+          prompt: `Order from smallest to largest: ${shown.join(', ')}`,
+          answer: { type: 'list', value: sorted, display: sorted.join(', ') },
+          acceptedAnswers: [sorted.join(','), sorted.join(', ')],
+          solutionSteps: ['Convert all values to decimals or fractions with a common denominator.', `Order: ${sorted.join(', ')}.`],
+        };
+      }
       const w = seq(s, 1, 5); const n = seq(s + 3, 1, 5); const d = seq(s + 5, n + 1, 8);
       const imp = frac(w * d + n, d);
       return {
@@ -877,16 +1035,83 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F015': {
-      if (familyId.endsWith('_004') || familyId.endsWith('_005')) {
-        const d = seq(s, 3, 10);
-        const a = seq(s + 2, 1, d - 1);
-        const b = seq(s + 6, 1, d - 1);
-        const ans = frac(a + b, d);
+      if (familyId.endsWith('_001')) {
+        const d = seq(s, 2, 8); const w = seq(s + 2, 1, 4); const n = seq(s + 5, 1, d - 1);
+        const imp = frac(w * d + n, d);
         return {
-          prompt: `Add and simplify if needed: ${a}/${d} + ${b}/${d}`,
-          answer: answerPayloadFraction(ans.numerator, ans.denominator),
-          acceptedAnswers: [fracStr(ans)],
-          solutionSteps: ['Keep denominator the same.', `Add numerators: ${a} + ${b} = ${a + b}.`, `Simplify to ${fracStr(ans)} if possible.`],
+          prompt: `Convert ${w} ${n}/${d} to an improper fraction.`,
+          answer: answerPayloadFraction(imp.numerator, imp.denominator),
+          acceptedAnswers: [fracStr(imp)],
+          solutionSteps: [`Multiply ${w} × ${d} = ${w * d}.`, `Add ${n}: ${w * d} + ${n} = ${w * d + n}.`, `Result: ${imp.numerator}/${imp.denominator}.`],
+          allowedInputTools: ['fraction', 'clear'],
+        };
+      }
+      if (familyId.endsWith('_002')) {
+        const d = seq(s, 2, 8);
+        const n = seq(s + 3, d + 1, d * 3);
+        const m = toMixed({ numerator: n, denominator: d });
+        return {
+          prompt: `Write ${n}/${d} as a mixed number.`,
+          answer: answerPayloadMixed(m.whole, m.numerator, m.denominator),
+          acceptedAnswers: [mixedStr(m), fracStr({ numerator: n, denominator: d })],
+          solutionSteps: [`Divide: ${n} ÷ ${d} = ${m.whole} remainder ${m.numerator}.`, `Mixed number: ${mixedStr(m)}.`],
+        };
+      }
+      if (familyId.endsWith('_003')) {
+        const d = seq(s, 2, 6); const w = seq(s + 2, 1, 3); const n = seq(s + 5, 1, d - 1);
+        const imp = frac(w * d + n, d);
+        const m = toMixed({ numerator: w * d + n, denominator: d });
+        const noun = COUNTABLE_CONTEXT_NOUNS[Math.abs(s + 2) % COUNTABLE_CONTEXT_NOUNS.length];
+        const askImproper = variant % 2 === 0;
+        return {
+          prompt: askImproper
+            ? `A baker used ${mixedStr(m)} trays of ${noun}. Write this as an improper fraction.`
+            : `A baker used ${fracStr(imp)} trays of ${noun}. Write this as a mixed number.`,
+          answer: askImproper
+            ? answerPayloadFraction(imp.numerator, imp.denominator)
+            : answerPayloadMixed(m.whole, m.numerator, m.denominator),
+          acceptedAnswers: askImproper ? [fracStr(imp)] : [mixedStr(m)],
+          solutionSteps: askImproper
+            ? [`Multiply ${m.whole} × ${d} = ${m.whole * d}.`, `Add ${m.numerator}: ${m.whole * d + m.numerator}.`, `Result: ${fracStr(imp)}.`]
+            : [`Divide: ${imp.numerator} ÷ ${imp.denominator} = ${m.whole} remainder ${m.numerator}.`, `Mixed number: ${mixedStr(m)}.`],
+        };
+      }
+      if (familyId.endsWith('_004')) {
+        const d = seq(s, 2, 6); const w = seq(s + 2, 1, 3); const n = seq(s + 5, 1, d - 1);
+        const impA = w * d + n;
+        const impB = seq(s + 8, d + 1, d * 3);
+        const cmp = impA === impB ? '=' : (impA > impB ? '>' : '<');
+        const mixedA = toMixed({ numerator: impA, denominator: d });
+        return {
+          prompt: `Which is greater: ${mixedStr(mixedA)} or ${impB}/${d}?`,
+          answer: { type: 'text', value: cmp, display: cmp },
+          acceptedAnswers: [cmp],
+          solutionSteps: [`Convert ${mixedStr(mixedA)} to improper: ${impA}/${d}.`, `Compare ${impA}/${d} and ${impB}/${d}.`, `The answer is "${cmp}".`],
+        };
+      }
+      if (familyId.endsWith('_005')) {
+        const d = seq(s, 2, 6); const w = seq(s + 2, 1, 3); const n = seq(s + 5, 1, d - 1);
+        const impVal = w * d + n;
+        const m = toMixed({ numerator: impVal, denominator: d });
+        const pos = impVal / d;
+        const maxWhole = w + 2;
+        return {
+          prompt: `On a number line from 0 to ${maxWhole}, locate ${impVal}/${d}. Write your answer as a mixed number.`,
+          answer: answerPayloadMixed(m.whole, m.numerator, m.denominator),
+          acceptedAnswers: [mixedStr(m), fracStr({ numerator: impVal, denominator: d })],
+          diagramSpec: {
+            type: 'number_line',
+            width: 640,
+            height: 180,
+            data: {
+              min: 0,
+              max: maxWhole,
+              minStepCount: d * maxWhole,
+              points: [{ value: pos, label: '?' }],
+              endpointLabels: ['0', String(maxWhole)],
+            },
+          },
+          solutionSteps: [`${impVal} ÷ ${d} = ${m.whole} remainder ${m.numerator}.`, `The point is at ${mixedStr(m)} on the number line.`],
         };
       }
       const d = seq(s, 2, 8); const w = seq(s + 2, 1, 4); const n = seq(s + 5, 1, d - 1);

@@ -17,7 +17,8 @@ import {
   setBillingSubscription,
 } from '../services/billing/billingAdminService.js';
 import { getDomainHealthReport } from '../services/domains/domainRegistry.js';
-import { buildMisconceptionCoverageMatrix } from '../services/mathpath/misconceptionCoverageService.js';
+import { buildMisconceptionCoverageMatrix, buildMisconceptionDensityReport } from '../services/mathpath/misconceptionCoverageService.js';
+import { auditMisconceptionInterventionCoverage } from '../services/mathpath/misconceptionInterventionMap.js';
 import { getDiagnosticValidationReport } from '../services/mathpath/diagnosticValidationEngine.js';
 import { getLearningPathQualityReport } from '../services/mathpath/learningPathService.js';
 import { auditMasteryInflationRisk } from '../services/mathpath/mistakeCorrectionFlow.js';
@@ -122,6 +123,38 @@ router.get('/misconception-coverage', adminOnly, async (req, res) => {
     res.json(buildMisconceptionCoverageMatrix());
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load misconception coverage.' });
+  }
+});
+
+router.get('/fractions-misconception-integrity', adminOnly, async (req, res) => {
+  try {
+    const coverage = buildMisconceptionCoverageMatrix();
+    const density = buildMisconceptionDensityReport();
+    const interventions = auditMisconceptionInterventionCoverage();
+    const weakRechecks = interventions.rows
+      .filter((row) => !row.recheckStrategy || row.recheckStrategy === 'skill_recheck')
+      .map((row) => row.misconceptionId);
+    const weakInterventions = interventions.missingInterventions.map((row) => ({
+      misconceptionId: row.misconceptionId,
+      missing: row.missing,
+    }));
+    res.json({
+      generatedAt: new Date().toISOString(),
+      coveragePercent: coverage.coveragePercent,
+      sparseSkills: density.sparseSkills,
+      unreferencedMisconceptions: density.unreferencedMisconceptions,
+      weakRechecks,
+      weakInterventions,
+      confidenceDistribution: {
+        strongSkills: coverage.rows.filter((r) => r.coverageBand === 'strong').length,
+        partialSkills: coverage.rows.filter((r) => r.coverageBand === 'partial').length,
+        thinSkills: coverage.rows.filter((r) => r.coverageBand === 'thin').length,
+      },
+      totalMisconceptions: density.totalMisconceptions,
+      totalSkills: coverage.skillCount,
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load misconception integrity report.' });
   }
 });
 

@@ -47,13 +47,17 @@ describe('fractionQuestionGenerator', () => {
     expect(checkFractionAnswer({ studentAnswer: '1/0', correctAnswer }).correct).toBe(false);
   });
 
-  it('asks F014 students to convert mixed numbers to improper fractions', () => {
+  it('asks F014_001 students to read mixed numbers', () => {
     const q = generateFractionQuestion({ skillId: 'F014', questionFamilyId: 'QF_F014_001', difficulty: 3, variant: 7, mode: 'practice' });
-    expect(q.prompt).toMatch(/Convert the mixed number .* to an improper fraction\./);
-    expect(q.answer?.type).toBe('fraction');
-    expect(q.answer.numerator).toBeGreaterThan(q.answer.denominator);
-    expect(q.allowedInputTools).toEqual(['fraction', 'clear']);
-    expect(q.acceptedAnswers).toEqual([q.answer.display]);
+    expect(q.prompt).toMatch(/whole-number part|fractional part/);
+    expect(q.answer?.type).toBe('mixed');
+    expect(q.answer.whole).toBeGreaterThanOrEqual(1);
+  });
+
+  it('asks F014 students to convert mixed numbers to improper fractions (default)', () => {
+    const q = generateFractionQuestion({ skillId: 'F014', questionFamilyId: 'QF_F014_002', difficulty: 3, variant: 7, mode: 'practice' });
+    expect(q.prompt).toMatch(/recipe|cups|mixed number/i);
+    expect(q.answer?.type).toBe('mixed');
   });
 
   it('scores equal-denominator and equal-numerator comparisons as symbols (F007/F008/F011)', () => {
