@@ -128,6 +128,19 @@ File: `frontend/src/App.jsx`
 
 Note: The student/teacher/parent LifeLab pages are behind the `lifelab`, `parent`, or `teacher` feature flags respectively. Parent and teacher flags are enabled by default; the `lifelab` flag (for the prototype SPA) is not.
 
+### 3.4 Navigation Tab Exposure (Risk)
+
+**LifeLab tabs are hardcoded into role nav components without feature flag guards:**
+
+| Component | File | Line | Visible when |
+|---|---|---|---|
+| `ClassNav` | `frontend/src/pages/teacher/ClassNav.jsx` | 19 | Always — every teacher class view shows a "LifeLab" tab |
+| `ChildNav` | `frontend/src/pages/parent/ChildNav.jsx` | 26 | Always — every parent child view shows a "LifeLab" tab |
+
+Because the `teacher` and `parent` feature flags are **enabled by default**, clicking these tabs loads the LifeLab page components. However, all API calls then 404 because the backend `featureGate` blocks `/api/lifelab` (requires `FEAT_LIFELAB=1` or version `v0.6`). The result: **teachers and parents see a LifeLab tab that renders an empty or errored state during the MathPath pilot.**
+
+**Recommended fix:** Either wrap the LifeLab tab entries in a feature flag check (`FEATURE_FLAGS.lifelab`) or remove them from `ClassNav` / `ChildNav` until LifeLab is enabled for pilot.
+
 ---
 
 ## 4. API Endpoints
@@ -216,6 +229,7 @@ Indexes: `(classId, activityId)`, `(studentId, status)`.
 | **Tutor view** | Low | TutorViewScreen is prototype-only; no DB-backed tutor route exists |
 | **Rubric/scoring** | Medium | No scoring model; teacher feedback is freetext only |
 | **Version gate** | Info | Backend requires `v0.6` to pass version gate; current version is `v0.1`. Must either bump version or set `FEAT_LIFELAB=1` |
+| **Nav tab exposure** | High | `ClassNav.jsx:19` and `ChildNav.jsx:26` hardcode a "LifeLab" tab visible to all teachers and parents. The tab loads the page (teacher/parent flags are on) but API calls 404 (backend gate is off). Teachers and parents see a broken/empty LifeLab tab during MathPath pilot. Must be feature-flagged or removed before pilot. |
 
 ### 7.3 Recommendation
 
