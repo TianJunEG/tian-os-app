@@ -3,6 +3,9 @@ import { protect } from '../middleware/auth.js';
 import Student from '../models/Student.js';
 import User from '../models/User.js';
 import StudentGuardian from '../models/StudentGuardian.js';
+import LessonRecording from '../models/LessonRecording.js';
+import LessonInkEvent from '../models/LessonInkEvent.js';
+import r2 from '../services/storage/r2.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Skill from '../models/Skill.js';
 import SpellingList from '../models/SpellingList.js';
@@ -173,6 +176,41 @@ router.get('/children/:studentId/recommendations', protect, async (req, res) => 
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load recommendations.' });
   }
+});
+
+// Confirm the caller is a guardian of the student. Returns true/false.
+async function isGuardianOf(req, studentId) {
+  const link = await StudentGuardian.findOne({ studentId, guardianUserId: req.user.id });
+  return Boolean(link);
+}
+
+// GET /api/family/children/:studentId/recordings — lesson recordings a tutor
+// has shared with the parent for this child.
+router.get('/children/:studentId/recordings', protect, async (req, res) => {
+  if (!(await isGuardianOf(req, req.params.studentId))) {
+    return res.status(403).json({ error: 'No access to this student.' });
+  }
+  const recordings = await LessonRecording.find({
+    studentId: req.params.studentId, visibility: 'shared_parent', status: 'ready',
+  }).sort({ createdAt: -1 });
+  res.json({ recordings });
+});
+
+// GET /api/family/recordings/:rid — replay manifest for a shared recording.
+// Requires the caller be a guardian of the recording's student AND the
+// recording be shared with parents.
+router.get('/recordings/:rid', protect, async (req, res) => {
+  const rec = await LessonRecording.findById(req.params.rid);
+  if (!rec || rec.visibility !== 'shared_parent') {
+    return res.status(404).json({ error: 'Recording not found.' });
+  }
+  if (!(await isGuardianOf(req, rec.studentId))) {
+    return res.status(403).json({ error: 'No access to this recording.' });
+  }
+  const ink = await LessonInkEvent.find({ recordingId: rec._id }).sort({ seq: 1 });
+  let audioUrl = null;
+  if (rec.audioStorageKey) audioUrl = await r2.getSignedDownloadUrl(rec.audioStorageKey, 300);
+  res.json({ recording: rec, audioUrl, ink });
 });
 
 export default router;

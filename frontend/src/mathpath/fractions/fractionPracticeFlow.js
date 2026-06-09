@@ -297,15 +297,22 @@ export function submitFractionPracticeAttempt(options = {}) {
     };
   });
 
-  const correctCount = results.filter((r) => r.correct).length;
-  const accuracyPct = results.length ? Math.round((correctCount / results.length) * 1000) / 10 : 0;
-  const avgTime = average(results.map((r) => r.timeTaken));
-  const familyFluencySummary = toFamilySummary(results.filter((r) => !r.error));
+  // Only score responses that map to a real question in this session. Phantom rows
+  // (response.questionId not found in the session) carry { error, correct: false }
+  // and must never enter the accuracy denominator or any rate metric — otherwise a
+  // stale/duplicate/regenerated questionId silently drives accuracy down (e.g. a
+  // student who answered everything correctly seeing "50%"). Skipped questions are
+  // intentionally retained as incorrect answered attempts.
+  const scoredResults = results.filter((r) => !r.error);
+  const correctCount = scoredResults.filter((r) => r.correct).length;
+  const accuracyPct = scoredResults.length ? Math.round((correctCount / scoredResults.length) * 1000) / 10 : 0;
+  const avgTime = average(scoredResults.map((r) => r.timeTaken));
+  const familyFluencySummary = toFamilySummary(scoredResults);
 
   const accuracySummary = {
-    totalQuestions: results.length,
+    totalQuestions: scoredResults.length,
     correctCount,
-    incorrectCount: Math.max(0, results.length - correctCount),
+    incorrectCount: Math.max(0, scoredResults.length - correctCount),
     accuracyPercentage: accuracyPct,
     averageSeconds: avgTime,
   };
@@ -318,20 +325,20 @@ export function submitFractionPracticeAttempt(options = {}) {
   };
   const hasWorkingSubmitted = (result = {}) => Boolean(result.workingSubmitted || result.workingUploaded || result.fullscreenWorkingSubmitted);
   const hasWorkingDecision = (result = {}) => Boolean(hasWorkingSubmitted(result) || result.workingOnPaper || result.workingNotNeeded);
-  const workingSubmittedResults = results.filter(hasWorkingSubmitted);
-  const workingOnPaperResults = results.filter((r) => r.workingOnPaper);
-  const mentalFluencyResults = results.filter((r) => r.workingNotNeeded);
-  const overconfidentNoWorkingResults = results.filter((r) => !r.correct && r.workingNotNeeded && isHighConfidence(r.confidence));
-  const highRequirementNoWorkingIncorrect = results.filter((r) => !r.correct && r.workingNotNeeded && r.workingRequirementLevel === 'HIGH');
+  const workingSubmittedResults = scoredResults.filter(hasWorkingSubmitted);
+  const workingOnPaperResults = scoredResults.filter((r) => r.workingOnPaper);
+  const mentalFluencyResults = scoredResults.filter((r) => r.workingNotNeeded);
+  const overconfidentNoWorkingResults = scoredResults.filter((r) => !r.correct && r.workingNotNeeded && isHighConfidence(r.confidence));
+  const highRequirementNoWorkingIncorrect = scoredResults.filter((r) => !r.correct && r.workingNotNeeded && r.workingRequirementLevel === 'HIGH');
   const workingEvidenceMetrics = {
-    studentWorkingRate: results.length ? Math.round((workingSubmittedResults.length / results.length) * 1000) / 10 : 0,
+    studentWorkingRate: scoredResults.length ? Math.round((workingSubmittedResults.length / scoredResults.length) * 1000) / 10 : 0,
     workingAccuracy: workingSubmittedResults.length
       ? Math.round((workingSubmittedResults.filter((r) => r.correct).length / workingSubmittedResults.length) * 1000) / 10
       : null,
     mentalFluencyAccuracy: mentalFluencyResults.length
       ? Math.round((mentalFluencyResults.filter((r) => r.correct).length / mentalFluencyResults.length) * 1000) / 10
       : null,
-    overconfidenceRate: results.length ? Math.round((overconfidentNoWorkingResults.length / results.length) * 1000) / 10 : 0,
+    overconfidenceRate: scoredResults.length ? Math.round((overconfidentNoWorkingResults.length / scoredResults.length) * 1000) / 10 : 0,
     highRequirementNoWorkingIncorrectCount: highRequirementNoWorkingIncorrect.length,
     interventionPriorityRaised: highRequirementNoWorkingIncorrect.length > 0,
   };
@@ -416,7 +423,7 @@ export function submitFractionPracticeAttempt(options = {}) {
         : paperWorkingResults.length > 0
           ? 'Upload paper working'
           : 'Ready to continue',
-      allNoWorkingDeclarations: results.length > 0 && results.every((result) => result.workingNotNeeded),
+      allNoWorkingDeclarations: scoredResults.length > 0 && scoredResults.every((result) => result.workingNotNeeded),
       questionRefs: session.questions.map((question) => {
         const match = results.find((result) => result.questionId === question.questionId);
         return {

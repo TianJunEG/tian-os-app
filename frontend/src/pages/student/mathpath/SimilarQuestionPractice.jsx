@@ -6,6 +6,7 @@ import { Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../.
 import { MathText } from '../../../components/ui/Fraction';
 import FractionExpressionQuestion, { extractFractionExpression } from './components/FractionExpressionQuestion';
 import AnswerInputRenderer from './components/AnswerInputRenderer';
+import QuestionDiagram from './components/QuestionDiagram';
 import WorkingCanvas, { resolveWorkingRequirement } from '../../../components/learning/WorkingCanvas';
 import { hasWorkingDecision, resolveWorkingRequirementLevel } from '../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from './components/SubmissionReviewModal';
@@ -203,6 +204,11 @@ export default function SimilarQuestionPractice() {
       </div>
       <ProgressBar value={progress} max={questions.length} className="mb-5" />
       <Card className="p-5">
+        {/* Visual-required variants (e.g. "what fraction is shaded") must show the
+            model. QuestionDiagram renders the diagram when one is available and a
+            friendly "couldn't load" card when a required visual is missing — so a
+            Try-Again retry is never served as an impossible text-only question. */}
+        <QuestionDiagram question={q} />
         {expressionQuestion ? (
           <FractionExpressionQuestion
             prompt={q.prompt}

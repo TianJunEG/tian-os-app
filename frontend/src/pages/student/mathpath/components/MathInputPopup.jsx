@@ -16,13 +16,26 @@ export default function MathInputPopup({
   wholeRef,
   numeratorRef,
   denominatorRef,
+  floating = false,
+  style = null,
 }) {
   const showWhole = mode === 'mixed' || mode === 'whole';
   const showFraction = mode !== 'whole';
   const denominatorIsZero = String(parts.denominator || '').trim() === '0';
 
+  // When floating, the popup is rendered in a portal with fixed positioning so it
+  // is never clipped by an overflow-hidden card or an overflow-y-auto answer pane
+  // (which previously hid the Insert button). The non-floating fallback keeps the
+  // original inline anchoring for any caller that does not pass a position.
+  const positionClass = floating
+    ? 'fixed z-50 w-[min(22rem,calc(100vw-2rem))]'
+    : 'absolute left-1/2 top-full z-30 mt-3 w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2';
+
   return (
-    <div className="absolute left-1/2 top-full z-30 mt-3 w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 rounded-3xl border border-hairline bg-white p-5 shadow-floating">
+    <div
+      style={floating ? style || undefined : undefined}
+      className={`${positionClass} rounded-3xl border border-hairline bg-white p-5 shadow-floating`}
+    >
       <button
         type="button"
         className="absolute right-3 top-3 rounded-full px-2 py-1 text-sm font-semibold text-ink-400 hover:bg-slate-50 hover:text-ink-700"

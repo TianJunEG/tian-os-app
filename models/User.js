@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['parent', 'tutor', 'teacher', 'admin', 'student', 'student_care'],
+    enum: ['parent', 'tutor', 'teacher', 'admin', 'student', 'student_care', 'school_admin'],
     default: 'parent'
   },
   // Tian OS multi-role model: a single account may hold several roles
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   // of truth for feature access going forward. See docs/tian-os-master-product-spec.md §4.
   roles: {
     type: [String],
-    enum: ['parent', 'tutor', 'teacher', 'admin', 'student', 'student_care'],
+    enum: ['parent', 'tutor', 'teacher', 'admin', 'student', 'student_care', 'school_admin'],
     default: undefined
   },
   // The workspace a user lands in by default after login.

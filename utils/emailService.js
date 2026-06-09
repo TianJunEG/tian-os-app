@@ -100,6 +100,25 @@ export const sendTutorApprovalEmail = async (tutor) => {
 };
 
 /**
+ * Send a parent/guardian an invite to view their child's school progress.
+ */
+export const sendParentInvite = async ({ to, studentName, schoolName, inviteUrl, expiresAt } = {}) => {
+  const safeStudent = escapeHtml(studentName || 'your child');
+  const safeSchool = escapeHtml(schoolName || 'their school');
+  const expiryNote = expiresAt ? `<p style="color:#666;font-size:13px;">This invite expires on ${escapeHtml(new Date(expiresAt).toDateString())}.</p>` : '';
+  const html = `
+    <h2>You're invited to follow ${safeStudent}'s progress</h2>
+    <p>${safeSchool} uses MathPath to track each student's mastery, skill by skill.</p>
+    <p>You've been invited to a free, view-only parent dashboard so you can see how ${safeStudent} is doing and where they need support.</p>
+    <p><a href="${inviteUrl}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">View ${safeStudent}'s progress</a></p>
+    ${expiryNote}
+    <p style="color:#666;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${escapeHtml(inviteUrl)}</p>
+    <p>Best regards,<br>The MathPath Team</p>
+  `;
+  return sendEmail({ to, subject: `Follow ${studentName || 'your child'}'s progress on MathPath`, html });
+};
+
+/**
  * Send tutor verification rejection email
  */
 export const sendTutorRejectionEmail = async (tutor, notes) => {

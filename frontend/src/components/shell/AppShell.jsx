@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut, Check } from 'lucide-react';
+import { ChevronDown, LogOut, Check, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useWorkspace } from '../../context/WorkspaceContext';
 import { NAV } from '../../config/nav';
+import { notificationsAPI } from '../../services/api';
 import { Spinner } from '../ui';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 
@@ -70,6 +71,36 @@ function RoleSwitcher() {
 const navItemClass = ({ isActive }) =>
   `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${isActive ? 'bg-navy-50 text-navy-700' : 'text-ink-500 hover:bg-navy-50 hover:text-navy-700'}`;
 
+// In-app notification bell with unread badge. Polls on mount, on route change,
+// and every 60s. Links to the parent feed.
+function NotificationBell() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () => notificationsAPI.unreadCount()
+      .then((r) => { if (active) setCount(r.data.count || 0); })
+      .catch(() => {});
+    refresh();
+    const t = setInterval(refresh, 60000);
+    return () => { active = false; clearInterval(t); };
+  }, [location.pathname]);
+
+  return (
+    <button onClick={() => navigate('/parent/notifications')} aria-label="Notifications"
+      className="relative flex items-center rounded-lg px-2.5 py-2 text-ink-500 hover:bg-navy-50 hover:text-navy-700">
+      <Bell className="h-[18px] w-[18px]" />
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 grid min-w-[18px] place-items-center rounded-full bg-error-500 px-1 text-[10px] font-bold leading-[18px] text-white">
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 export default function AppShell({ children }) {
   const { loading, role } = useWorkspace();
   const { logout, user } = useAuth();
@@ -110,6 +141,7 @@ export default function AppShell({ children }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-2">
+            {role === 'parent' && <NotificationBell />}
             <RoleSwitcher />
             <WorkspaceSwitcher />
             <button onClick={handleLogout} className="hidden items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-ink-500 hover:bg-navy-50 md:flex">

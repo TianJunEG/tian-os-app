@@ -11,5 +11,5 @@ export const NAV = roles.reduce((acc, r) => ({
 }), {});
 
 export const ROLE_HOME = {
-  student: '/student', parent: '/parent', tutor: '/tutor', teacher: '/teacher', admin: '/admin', student_care: '/student-care/dashboard',
+  student: '/student', parent: '/parent', tutor: '/tutor', teacher: '/teacher', admin: '/admin', student_care: '/student-care/dashboard', school_admin: '/school-admin',
 };

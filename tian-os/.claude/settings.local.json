@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/mco/Documents/edu-os-app/**)",
+      "Read(//Users/mco/Documents/edu-os-app/frontend/**)"
+    ]
+  }
+}

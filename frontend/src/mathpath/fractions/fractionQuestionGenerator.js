@@ -47,6 +47,26 @@ function normalizeFractionPromptSignature(prompt = '') {
     .trim();
 }
 
+// Signature used to detect questions that render identically to the student within
+// a single session — by prompt text AND operands AND answer. Unlike
+// normalizeFractionPromptSignature (which strips digits to compare structure), this
+// PRESERVES operands so "2/3 + 1/2" and "4/5 + 3/4" are treated as distinct, while
+// the same "Compute: 2/3 + 1/2" served under different families is caught as a
+// duplicate. The answer is included so visual questions with a fixed prompt
+// (e.g. "What fraction of the shape is shaded?") but different diagrams/answers are
+// not wrongly merged.
+function renderedQuestionSignature(question = {}) {
+  const prompt = String(question.prompt || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9/+\-=.,?]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const answer = String(question?.answer?.display ?? question?.answer ?? '')
+    .toLowerCase()
+    .replace(/\s+/g, '');
+  return `${prompt}::${answer}`;
+}
+
 function inferAllowedOperations(prompt = '') {
   const text = String(prompt || '').toLowerCase();
   const ops = new Set();
@@ -139,8 +159,17 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+// Monotonic per-call nonce. Date.now() + hash(seed) alone collide when several
+// questions are generated in the same millisecond with the same prompt seed (e.g.
+// recognise-fraction items that share the prompt "What fraction of the shape is
+// shaded?" but have different answers). Colliding questionIds caused the session's
+// questionById map to resolve responses to the wrong stored question, scoring
+// correct answers as wrong (the "all correct but 50%" report). The nonce guarantees
+// every generated question id is unique within the process.
+let questionIdNonce = 0;
 function makeId(prefix, seed = '') {
-  return `${prefix}_${Date.now()}_${Math.abs(hash(seed)).toString(36).slice(0, 6)}`;
+  questionIdNonce += 1;
+  return `${prefix}_${Date.now()}_${Math.abs(hash(seed)).toString(36).slice(0, 6)}_${questionIdNonce.toString(36)}`;
 }
 
 function hash(input = '') {
@@ -1254,19 +1283,52 @@ export function generatePracticeQuestionSet(options = {}) {
   const { practiceQueue = [], count = 8 } = options;
   if (!practiceQueue.length) return [];
   const out = [];
+  const seenSignatures = new Set();
+  // Distinct variant seed per generation attempt so a regeneration produces a
+  // genuinely different question rather than the same deterministic output.
+  let variantSeed = 0;
+  const MAX_VARIANT_ATTEMPTS = 8;
+
   for (let i = 0; i < count; i += 1) {
     const row = practiceQueue[i % practiceQueue.length];
     const familyIds = row.questionFamilyIds || (row.questionFamilyId ? [row.questionFamilyId] : []);
     if (!familyIds.length) continue;
-    out.push(
-      generateFractionQuestion({
-        skillId: row.skillId,
-        questionFamilyId: familyIds[i % familyIds.length],
-        difficulty: 2,
-        mode: 'practice',
-        variant: i,
-      })
-    );
+    const familyId = familyIds[i % familyIds.length];
+
+    let chosen = null;
+    let fallback = null;
+    // Try several variants; accept the first whose rendered signature has not
+    // already been served this session. This dedupes by what the student actually
+    // sees (prompt + operands + answer), not just questionId/family — so the same
+    // sum cannot appear repeatedly under different family labels.
+    for (let attempt = 0; attempt < MAX_VARIANT_ATTEMPTS; attempt += 1) {
+      variantSeed += 1;
+      let candidate;
+      try {
+        candidate = generateFractionQuestion({
+          skillId: row.skillId,
+          questionFamilyId: familyId,
+          difficulty: 2,
+          mode: 'practice',
+          variant: variantSeed,
+        });
+      } catch (err) {
+        continue;
+      }
+      if (!candidate) continue;
+      fallback = candidate;
+      const signature = renderedQuestionSignature(candidate);
+      if (!seenSignatures.has(signature)) {
+        seenSignatures.add(signature);
+        chosen = candidate;
+        break;
+      }
+    }
+
+    // If every attempt collided (very small operand space), keep the last generated
+    // question so the session still has its full length rather than dropping items.
+    const selected = chosen || fallback;
+    if (selected) out.push(selected);
   }
   return out;
 }

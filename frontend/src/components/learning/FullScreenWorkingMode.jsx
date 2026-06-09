@@ -2,6 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Button } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
+import {
+  drawStroke,
+  drawMathStamp,
+  pointFromEvent as extractPoint,
+  beginStrokeData,
+  finalizeStroke,
+} from './drawingUtils';
 
 const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 900;
@@ -41,60 +48,8 @@ const TEXT_OBJECT_DEFAULT = {
   height: 48,
 };
 
-function drawStroke(ctx, stroke) {
-  if (stroke?.tool === 'stamp') {
-    drawMathStamp(ctx, stroke);
-    return;
-  }
-  const points = stroke?.points || [];
-  if (points.length < 2) return;
-  ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : stroke.tool === 'shade' ? 0.24 : 1;
-  ctx.strokeStyle = stroke.colour || WORKING_COLOURS[0].value;
-  ctx.fillStyle = stroke.colour || WORKING_COLOURS[0].value;
-  const baseSize = Number(stroke.size || 4);
-  ctx.lineWidth = stroke.tool === 'eraser'
-    ? 24
-    : stroke.tool === 'shade'
-      ? Math.max(34, baseSize * 8)
-      : stroke.tool === 'highlighter'
-      ? Math.max(56, baseSize * 10)
-      : stroke.tool === 'pencil'
-        ? Math.max(1, baseSize - 1)
-        : baseSize;
-
-  if (stroke.tool === 'line') {
-    const start = points[0];
-    const end = points.at(-1);
-    ctx.beginPath();
-    ctx.moveTo(start.x, start.y);
-    ctx.lineTo(end.x, end.y);
-    ctx.stroke();
-    ctx.restore();
-    return;
-  }
-
-  if (stroke.tool === 'rectangle') {
-    const start = points[0];
-    const end = points.at(-1);
-    const x = Math.min(start.x, end.x);
-    const y = Math.min(start.y, end.y);
-    const width = Math.abs(end.x - start.x);
-    const height = Math.abs(end.y - start.y);
-    ctx.strokeRect(x, y, width, height);
-    ctx.restore();
-    return;
-  }
-
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y);
-  points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
-  ctx.stroke();
-  ctx.restore();
-}
+/* drawStroke → imported from ./drawingUtils */
+const FS_STAMP_SCALE = CANVAS_WIDTH / 900; // ~1.56 for 1400px canvas
 
 function drawMathObject(ctx, object) {
   if (!object) return;
@@ -112,82 +67,10 @@ function drawMathObject(ctx, object) {
     colour: object.colour,
     ...object.value,
     points: [{ x: object.x, y: object.y }],
-  });
+  }, { stampScale: FS_STAMP_SCALE });
 }
 
-function drawMathStamp(ctx, stroke) {
-  const point = stroke?.points?.[0] || { x: 720, y: 260 };
-  const colour = stroke.colour || '#f97316';
-  const x = point.x;
-  const y = point.y;
-  ctx.save();
-  ctx.strokeStyle = colour;
-  ctx.fillStyle = colour;
-  ctx.lineWidth = 4;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.font = '42px Georgia, serif';
-
-  if (stroke.template === 'fraction') {
-    const numerator = String(stroke.numerator || 'x');
-    const denominator = String(stroke.denominator || 'y');
-    const width = Math.max(70, ctx.measureText(numerator).width, ctx.measureText(denominator).width) + 24;
-    const center = x + width / 2;
-    ctx.textAlign = 'center';
-    ctx.fillText(numerator, center, y - 18);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + width, y);
-    ctx.stroke();
-    ctx.fillText(denominator, center, y + 52);
-    ctx.textAlign = 'start';
-  } else if (stroke.template === 'subscript') {
-    ctx.fillText(String(stroke.base || 'x'), x, y);
-    ctx.font = '26px Georgia, serif';
-    ctx.fillText(String(stroke.subscript || 'a'), x + 36, y + 16);
-  } else if (stroke.template === 'power') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 16);
-    ctx.font = '26px Georgia, serif';
-    ctx.fillText(String(stroke.exponent || 'b'), x + 36, y - 18);
-  } else if (stroke.template === 'subscriptPower') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 8);
-    ctx.font = '24px Georgia, serif';
-    ctx.fillText(String(stroke.exponent || 'b'), x + 36, y - 22);
-    ctx.fillText(String(stroke.subscript || 'a'), x + 36, y + 28);
-  } else if (stroke.template === 'mixed') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 16);
-    ctx.font = '32px Georgia, serif';
-    ctx.fillText(String(stroke.numerator || 'b'), x + 52, y - 18);
-    ctx.beginPath();
-    ctx.moveTo(x + 44, y);
-    ctx.lineTo(x + 116, y);
-    ctx.stroke();
-    ctx.fillText(String(stroke.denominator || 'a'), x + 62, y + 44);
-  } else if (stroke.template === 'root') {
-    const radicand = String(stroke.radicand || 'x');
-    ctx.font = '58px Georgia, serif';
-    ctx.fillText('√', x + 24, y + 18);
-    ctx.beginPath();
-    ctx.moveTo(x + 82, y - 32);
-    ctx.lineTo(x + 82 + Math.max(70, ctx.measureText(radicand).width + 24), y - 32);
-    ctx.stroke();
-    ctx.font = '42px Georgia, serif';
-    ctx.fillText(radicand, x + 94, y + 10);
-    ctx.font = '22px Georgia, serif';
-    ctx.fillText(String(stroke.index || 'n'), x, y - 10);
-  } else if (stroke.template === 'degree') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 16);
-    ctx.font = '28px Georgia, serif';
-    ctx.fillText('°', x + 36, y - 16);
-  } else if (stroke.template === 'angle') {
-    ctx.fillText('∠', x, y + 16);
-  } else if (stroke.template === 'pi') {
-    ctx.fillText('π', x, y + 16);
-  } else if (stroke.template === 'theta') {
-    ctx.fillText('θ', x, y + 16);
-  }
-  ctx.restore();
-}
+/* drawMathStamp → imported from ./drawingUtils (used with FS_STAMP_SCALE) */
 
 function createMathObject(template, values = {}, count = 0) {
   return {
@@ -507,7 +390,7 @@ export default function FullScreenWorkingMode({
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    nextStrokes.forEach((stroke) => drawStroke(ctx, stroke));
+    nextStrokes.forEach((stroke) => drawStroke(ctx, stroke, { stampScale: FS_STAMP_SCALE }));
   };
 
   useEffect(() => {
@@ -542,13 +425,7 @@ export default function FullScreenWorkingMode({
     if (open) redraw(strokes);
   }, [open, strokes]);
 
-  const pointFromEvent = (event) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    return {
-      x: ((event.clientX - rect.left) / rect.width) * CANVAS_WIDTH,
-      y: ((event.clientY - rect.top) / rect.height) * CANVAS_HEIGHT,
-    };
-  };
+  const pointFromEvent = (event) => extractPoint(event, canvasRef.current, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   const beginStroke = (event) => {
     event.preventDefault();
@@ -567,12 +444,10 @@ export default function FullScreenWorkingMode({
     }
     drawingRef.current = true;
     if (event.pointerId !== undefined) canvasRef.current?.setPointerCapture?.(event.pointerId);
-    currentStrokeRef.current = {
-      tool: toolRef.current,
-      colour: colourRef.current,
-      size: brushSizeRef.current,
-      points: [pointFromEvent(event)],
-    };
+    currentStrokeRef.current = beginStrokeData(
+      event, toolRef.current, colourRef.current, brushSizeRef.current,
+      canvasRef.current, CANVAS_WIDTH, CANVAS_HEIGHT,
+    );
     setHasCanvasMarks(true);
   };
 
@@ -584,9 +459,9 @@ export default function FullScreenWorkingMode({
     setHasCanvasMarks(true);
     if (stroke.tool === 'line' || stroke.tool === 'rectangle') {
       redraw(strokesRef.current);
-      drawStroke(canvasRef.current.getContext('2d'), stroke);
+      drawStroke(canvasRef.current.getContext('2d'), stroke, { stampScale: FS_STAMP_SCALE });
     } else {
-      drawStroke(canvasRef.current.getContext('2d'), { ...stroke, points: stroke.points.slice(-2) });
+      drawStroke(canvasRef.current.getContext('2d'), { ...stroke, points: stroke.points.slice(-2) }, { stampScale: FS_STAMP_SCALE });
     }
   };
 
@@ -595,9 +470,10 @@ export default function FullScreenWorkingMode({
     event?.preventDefault?.();
     if (event?.pointerId !== undefined) canvasRef.current?.releasePointerCapture?.(event.pointerId);
     drawingRef.current = false;
-    const stroke = currentStrokeRef.current;
+    const raw = currentStrokeRef.current;
     currentStrokeRef.current = null;
-    if (!stroke || stroke.points.length < 2) return;
+    const stroke = finalizeStroke(raw);
+    if (!stroke) return;
     setStrokes((prev) => {
       const next = [...prev, stroke];
       strokesRef.current = next;
@@ -639,7 +515,7 @@ export default function FullScreenWorkingMode({
     const exportCtx = exportCanvas.getContext('2d');
     paintPaper(exportCtx);
     paintQuestionPanel(exportCtx, questionText);
-    strokesRef.current.forEach((stroke) => drawStroke(exportCtx, stroke));
+    strokesRef.current.forEach((stroke) => drawStroke(exportCtx, stroke, { stampScale: FS_STAMP_SCALE }));
     mathObjectsRef.current.forEach((object) => drawMathObject(exportCtx, object));
     onSave?.({
       workingImage: exportCanvas?.toDataURL('image/png') || canvas?.toDataURL('image/png') || '',

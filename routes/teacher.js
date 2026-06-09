@@ -16,6 +16,7 @@ import MathPathAssignment from '../models/mathpath/MathPathAssignment.js';
 import Worksheet from '../models/Worksheet.js';
 import { buildSuggestedGroups } from '../utils/teacherGrouping.js';
 import { buildWeakGroupsForClass } from '../services/teacher/weakGroupEngine.js';
+import { buildClassDashboard } from '../services/teacher/classDashboardService.js';
 import { createAssignmentFromLessonPrep, createRecheckForAssignment } from '../services/mathpath/mathPathAssignmentService.js';
 import { userCanAccessPartnerStudent } from '../services/partners/partnerAccessService.js';
 import { generateWorksheet } from '../utils/worksheetGen.js';
@@ -205,6 +206,26 @@ router.get('/classes/:id/students', async (req, res) => {
       interventionStatus: intByStudent[String(s._id)] || null };
   });
   res.json({ students: out });
+});
+
+// Real-data class dashboard: class overview, the "Needs you this week" flag list
+// (students who need in-person remediation, the exact skill + reason), per-domain
+// grasp, and a per-skill mastery heatmap. Replaces the synthetic client builders.
+router.get('/classes/:id/dashboard', async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = await rosterIds(c._id);
+  const students = await Student.find({ _id: { $in: ids } }).select('name level').lean();
+  const subjectKey = req.query.subject || 'Math';
+  try {
+    const dashboard = await buildClassDashboard({ studentIds: ids, students, subjectKey });
+    res.json({
+      class: { id: c._id, name: c.name, level: c.level, modules: c.modules },
+      ...dashboard,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to build class dashboard.' });
+  }
 });
 
 // Single student detail (must be enrolled in a class in this workspace).

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import MathToolbar, { FRACTION_TOOL_IDS } from './MathToolbar';
 import MathInputPopup from './MathInputPopup';
 
@@ -110,12 +111,51 @@ export default function FractionAnswerInput({
   const wholeRef = useRef(null);
   const numeratorRef = useRef(null);
   const denominatorRef = useRef(null);
+  const hostRef = useRef(null);
   const parsedValue = useMemo(() => parseParts(value), [value]);
   const [parts, setParts] = useState(parsedValue);
   const [answerMode, setAnswerMode] = useState(() => initialMode || (allowWhole || parsedValue.whole ? 'mixed' : 'fraction'));
   const [popupOpen, setPopupOpen] = useState(false);
+  const [popupPos, setPopupPos] = useState(null);
   const partsRef = useRef(parsedValue);
   const lastEmittedValueRef = useRef(value || '');
+
+  // Position the floating popup (rendered in a portal) just below the answer box,
+  // flipping above when there isn't room. Fixed positioning keeps it clear of the
+  // practice card's overflow clipping so the Insert button is always reachable.
+  useLayoutEffect(() => {
+    if (!popupOpen) {
+      setPopupPos(null);
+      return undefined;
+    }
+    const updatePosition = () => {
+      const host = hostRef.current;
+      if (!host || typeof window === 'undefined') return;
+      const rect = host.getBoundingClientRect();
+      const width = Math.min(352, window.innerWidth - 32);
+      const estHeight = 280;
+      let left = rect.left + rect.width / 2 - width / 2;
+      left = Math.max(16, Math.min(left, window.innerWidth - width - 16));
+      let top = rect.bottom + 8;
+      if (top + estHeight > window.innerHeight - 16) {
+        top = Math.max(16, rect.top - estHeight - 8);
+      }
+      setPopupPos({ left, top, width });
+    };
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [popupOpen]);
+
+  // Close the popup once the question is locked (after submit) so it never lingers
+  // over the "Correct" feedback.
+  useEffect(() => {
+    if (disabled) setPopupOpen(false);
+  }, [disabled]);
 
   useEffect(() => {
     if (String(value || '') === String(lastEmittedValueRef.current || '')) return;
@@ -210,7 +250,12 @@ export default function FractionAnswerInput({
       numeratorRef.current?.focus();
       return;
     }
-    if (event.key === 'Enter') onEnter?.();
+    if (event.key === 'Enter') {
+      // Commit the typed value and close the popup before submitting so feedback
+      // is not blocked by a lingering input panel.
+      insertValue();
+      onEnter?.();
+    }
   };
 
   const isInline = mode === 'inline';
@@ -272,7 +317,7 @@ export default function FractionAnswerInput({
   }
 
   return (
-    <div className="relative rounded-xl border border-hairline bg-white px-3 py-2">
+    <div ref={hostRef} className="relative rounded-xl border border-hairline bg-white px-3 py-2">
       <div className="flex flex-wrap items-center gap-2">
         <span className="min-w-[5rem] flex-1 text-sm font-semibold leading-tight text-ink-700 sm:flex-none">{helperText}</span>
         <button
@@ -300,7 +345,7 @@ export default function FractionAnswerInput({
           label="Fraction answer tools"
         />
         </div>
-        {popupOpen && (
+        {popupOpen && popupPos && typeof document !== 'undefined' && createPortal(
           <MathInputPopup
             mode={answerMode}
             parts={parts}
@@ -313,7 +358,10 @@ export default function FractionAnswerInput({
             wholeRef={wholeRef}
             numeratorRef={numeratorRef}
             denominatorRef={denominatorRef}
-          />
+            floating
+            style={{ left: popupPos.left, top: popupPos.top, width: popupPos.width }}
+          />,
+          document.body
         )}
       </div>
     </div>
