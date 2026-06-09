@@ -107,6 +107,8 @@ router.get('/', protect, async (req, res) => {
     if (req.query.source) filter.source = req.query.source;
     // Default to MathPath mistakes; other modules (e.g. Spelling) pass ?module=.
     filter.module = req.query.module || 'MathPath';
+    // Exclude demo/test data created by seed scripts unless explicitly requested.
+    if (req.query.includeSeeded !== 'true') filter.seeded = { $ne: true };
 
     const mistakes = await Mistake.find(filter)
       .populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } })

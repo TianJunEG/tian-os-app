@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, PartyPopper, Wand2 } from 'lucide-react';
+import { ArrowRight, AlertTriangle, PartyPopper, Wand2, Zap } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
 import { getModelDrawingTrainerForMistake } from '../../../mathpath/fractions/fractionMistakeToMasteryEngine';
+import { groupTimesTableMistakes } from '../../../mathpath/timesTablesEngine';
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation', careless: 'Careless',
@@ -84,22 +85,21 @@ export default function MistakeReview() {
     })();
   }, []);
 
-  const practiseSimilar = async (skillId) => {
+  const practiseSimilar = (skillId) => {
     if (starting) return;
     setStarting(true);
-    try {
-      const { data } = await mathpathAPI.startSession({ skillId, questionCount: 5, feature: 'Mistake-to-Mastery' });
-      navigate(`/student/mathpath/practice/${data.session_id}`, {
-        state: {
-          items: data.items,
-          resultsBase: '/student/mathpath',
-          backTo: '/student/mathpath/mistakes',
-          homeBase: '/student/mathpath/mistakes',
-          homeLabel: 'Back to mistake review',
-          mistakesBase: '/student/mathpath/mistakes',
-        },
-      });
-    } catch (_) { setStarting(false); }
+    navigate('/student/mathpath/practice/recommended-pathway', {
+      state: {
+        skillId,
+        sessionType: 'remediation',
+        questionCount: 5,
+        resultsBase: '/student/mathpath',
+        backTo: '/student/mathpath/mistakes/review',
+        homeBase: '/student/mathpath/mistakes',
+        homeLabel: 'Back to mistake review',
+        mistakesBase: '/student/mathpath/mistakes',
+      },
+    });
   };
 
   if (loading) return <Spinner label="Loading mistakes…" />;
@@ -117,7 +117,36 @@ export default function MistakeReview() {
         </EmptyState>
       ) : (
         <div className="space-y-4">
-          {mistakes.map((m) => (
+          {(() => {
+            const { tableMistakes, nonTableMistakes, weakFacts, hasTableMistakes } = groupTimesTableMistakes(mistakes);
+            return (
+              <>
+                {hasTableMistakes && (
+                  <Card className="border-2 border-teal-200 bg-teal-50 p-5 sm:p-6">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500 text-white">
+                        <Zap className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-teal-800">Times Table Practice Needed</h3>
+                        <p className="text-sm text-teal-600">{tableMistakes.length} mistake{tableMistakes.length !== 1 ? 's' : ''} from times tables</p>
+                      </div>
+                    </div>
+                    {weakFacts.length > 0 && (
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        {weakFacts.map((fact) => (
+                          <span key={fact} className="rounded-full bg-teal-100 px-3 py-1 text-sm font-medium text-teal-700">
+                            {fact.replace('x', ' × ')}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <Button size="s" onClick={() => navigate('/student/mathpath/fluency/times-tables')}>
+                      Practise Times Tables
+                    </Button>
+                  </Card>
+                )}
+                {nonTableMistakes.map((m) => (
             <Card key={m.id} className="p-5 sm:p-6">
               {!hasCompleteReviewData(m) ? (
                 <div className="space-y-3">
@@ -207,7 +236,10 @@ export default function MistakeReview() {
               </>
               )}
             </Card>
-          ))}
+                ))}
+              </>
+            );
+          })()}
         </div>
       )}
     </>

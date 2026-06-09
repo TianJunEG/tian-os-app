@@ -1,5 +1,6 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
+import User from '../models/User.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import {
   getStudentAchievements,
@@ -40,6 +41,24 @@ router.get('/achievements', protect, async (req, res) => {
 
 router.get('/timeline', protect, async (req, res) => {
   await withStudent(req, res, (student) => getStudentLearningTimeline(student));
+});
+
+router.patch('/name', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const newName = String(req.body.name || '').trim();
+    if (!newName || newName.length > 100) {
+      return res.status(400).json({ error: 'Name must be between 1 and 100 characters.' });
+    }
+    student.name = newName;
+    await student.save();
+    if (student.userId) {
+      await User.findByIdAndUpdate(student.userId, { name: newName });
+    }
+    res.json({ success: true, name: newName });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to update name.' });
+  }
 });
 
 export default router;

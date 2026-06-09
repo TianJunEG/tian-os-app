@@ -70,7 +70,7 @@ async function main() {
       weakStudentId = weakStudentId || student._id;
       const q = await Question.findOne({ skillId: skills[0]._id });
       for (let k = 0; k < 3; k++) {
-        await Mistake.create({ studentId: student._id, workspaceId: ws._id, questionId: q?._id || new mongoose.Types.ObjectId(), skillId: skills[0]._id, module: 'MathPath', questionStem: q?.stem || 'Practice question', studentAnswer: '?', correctAnswer: q?.answer || '', mistakeType: 'concept_gap', status: 'open' });
+        await Mistake.create({ studentId: student._id, workspaceId: ws._id, questionId: q?._id || new mongoose.Types.ObjectId(), skillId: skills[0]._id, module: 'MathPath', questionStem: q?.stem || 'Practice question', studentAnswer: '?', correctAnswer: q?.answer || '', mistakeType: 'concept_gap', status: 'open', seeded: true });
       }
     }
   }

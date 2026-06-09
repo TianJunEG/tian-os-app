@@ -127,6 +127,8 @@ const mistakeSchema = new mongoose.Schema({
     enum: ['open', 'reviewed', 'resolved'],
     default: 'open'
   },
+  // True for demo/test data inserted by seed scripts. Excluded from student-facing views.
+  seeded: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   occurredAt: { type: Date, default: Date.now }
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, ChevronRight, ChevronDown, GraduationCap, Compass, ClipboardCheck, PencilLine, Wand2 } from 'lucide-react';
+import { ArrowRight, AlertTriangle, ChevronRight, ChevronDown, GraduationCap, Compass, ClipboardCheck, PencilLine, Wand2, Zap } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, Spinner, EmptyState } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
@@ -485,6 +485,16 @@ export default function MathPathHome() {
               <p className="mt-1 flex-1 text-sm text-ink-500">Generate reusable practice sets from sample questions.</p>
               <Button to="/student/mathpath/fractions/model-trainer#similar-question-generator" variant="secondary" className="mt-4 w-full">
                 Open Generator
+              </Button>
+            </Card>
+          )}
+          {FEATURE_FLAGS.fluency && (
+            <Card className="flex h-full flex-col border-teal-100 bg-gradient-to-br from-teal-50 via-white to-sky-50 p-4">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-teal-100 text-teal-700"><Zap className="h-6 w-6" /></span>
+              <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Speed &amp; Accuracy</h3>
+              <p className="mt-1 flex-1 text-sm text-ink-500">Build times-table fluency with flash quizzes.</p>
+              <Button to="/student/mathpath/fluency/times-tables" variant="secondary" className="mt-4 w-full border-teal-200 bg-white/80 text-teal-700 hover:bg-teal-50">
+                Practise Now
               </Button>
             </Card>
           )}

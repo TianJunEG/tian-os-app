@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, Maximize2, X } from 'lucide-react';
+import { ArrowRight, Check, Lightbulb, Maximize2, X } from 'lucide-react';
 import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
@@ -339,7 +339,8 @@ export function buildAnswerFeedback({
   };
 }
 
-function AnswerFeedbackCard({ feedback, correctAnswer }) {
+function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
+  const [showSteps, setShowSteps] = useState(false);
   if (!feedback) return null;
   const correct = Boolean(feedback.correct);
   const title = feedback.title || (correct ? 'Correct' : feedback.skipped ? 'Skipped' : 'Review');
@@ -404,6 +405,25 @@ function AnswerFeedbackCard({ feedback, correctAnswer }) {
       )}
       {!correct && correctAnswer && (
         <p className="relative mt-1 text-sm text-ink-700">Answer: <MathText text={correctAnswer} className="font-mono font-semibold" /></p>
+      )}
+      {!correct && Array.isArray(solutionSteps) && solutionSteps.length > 0 && (
+        <div className="relative mt-2">
+          <button
+            type="button"
+            onClick={() => setShowSteps((v) => !v)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+          >
+            <Lightbulb className="h-3.5 w-3.5" />
+            {showSteps ? 'Hide steps' : 'Show me how'}
+          </button>
+          {showSteps && (
+            <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-ink-700">
+              {solutionSteps.map((step, i) => (
+                <li key={i}><MathText text={step} /></li>
+              ))}
+            </ol>
+          )}
+        </div>
       )}
     </div>
   );

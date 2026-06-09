@@ -70,6 +70,8 @@ const StudentWorksheetPreview = lazy(() => import('./pages/student/worksheets/Wo
 // MathPath features (Phase 4): Fluency + Mistake-to-Mastery
 const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyHome'));
 const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
+const TimesTablesHome = lazy(() => import('./pages/student/mathpath/fluency/TimesTablesHome'));
+const TimesTablesFlashQuiz = lazy(() => import('./pages/student/mathpath/fluency/TimesTablesFlashQuiz'));
 const MistakesHome = lazy(() => import('./pages/student/mathpath/MistakesHome'));
 const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'));
 const DiagnosticIntroScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticIntroScreen'));
@@ -193,7 +195,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -225,7 +227,7 @@ const PublicRoute = ({ children }) => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to={ROLE_HOME[user?.role] || '/student'} />;
+    return <Navigate to={ROLE_HOME[user?.role] || '/student'} replace />;
   }
 
   return children;
@@ -527,6 +529,8 @@ function App() {
             {/* Fluency (MathPath feature). Practice/results reuse the shared MathPath screens. */}
             <Route path="/student/mathpath/fluency" element={<FluencyHome />} />
             <Route path="/student/mathpath/fluency/skills" element={<FluencySkills />} />
+            <Route path="/student/mathpath/fluency/times-tables" element={<TimesTablesHome />} />
+            <Route path="/student/mathpath/fluency/times-tables/flash-quiz" element={<TimesTablesFlashQuiz />} />
             <Route path="/student/fluency" element={<Navigate to="/student/mathpath/fluency" replace />} />
             <Route path="/student/worksheets" element={<FeatureGuard feature="worksheets"><StudentWorksheets /></FeatureGuard>} />
             <Route path="/student/worksheets/new" element={<FeatureGuard feature="worksheets"><StudentWorksheetSetup /></FeatureGuard>} />
@@ -628,7 +632,7 @@ function App() {
           </Route>
 
           {/* 404 */}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Suspense>
         </ErrorBoundary>

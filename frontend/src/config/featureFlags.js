@@ -7,7 +7,7 @@ const flagEnabled = (name, fallback = false) => {
   if (viteValue !== undefined || rawValue !== undefined) return envTrue(viteValue) || envTrue(rawValue);
   return fallback;
 };
-const WORKSHEETS_ENABLED = flagEnabled('WORKSHEETS', false);
+const WORKSHEETS_ENABLED = flagEnabled('WORKSHEETS', true);
 const FLUENCY_ENABLED = flagEnabled('FLUENCY_PILOT', false);
 const ASSESSMENTS_ENABLED = flagEnabled('ASSESSMENTS_PILOT', false);
 const MODEL_TRAINER_ENABLED = flagEnabled('MODEL_TRAINER_PILOT', false);

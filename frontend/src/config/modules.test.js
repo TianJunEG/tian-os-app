@@ -7,14 +7,13 @@ describe('pilot feature visibility', () => {
   it('hides unstable student modules by default for the pilot', () => {
     expect(FEATURE_FLAGS.fluency).toBe(false);
     expect(FEATURE_FLAGS.assessments).toBe(false);
-    expect(FEATURE_FLAGS.worksheets).toBe(false);
+    expect(FEATURE_FLAGS.worksheets).toBe(true);
     expect(FEATURE_FLAGS.science).toBe(false);
     expect(FEATURE_FLAGS.modelTrainer).toBe(false);
 
     const moduleKeys = MODULES.map((module) => module.key);
-    expect(moduleKeys).toEqual(expect.arrayContaining(['mathpath', 'mistakes', 'progress']));
+    expect(moduleKeys).toEqual(expect.arrayContaining(['mathpath', 'mistakes', 'progress', 'worksheets']));
     expect(moduleKeys).not.toContain('fluency');
-    expect(moduleKeys).not.toContain('worksheets');
     expect(moduleKeys).not.toContain('science');
   });
 
