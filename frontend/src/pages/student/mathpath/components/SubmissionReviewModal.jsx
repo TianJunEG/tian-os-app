@@ -4,7 +4,7 @@ import WorkingEvidenceDecision from '../../../../components/learning/WorkingEvid
 
 export default function SubmissionReviewModal({
   open,
-  title = 'Review your response',
+  title = 'Before you submit',
   reflection,
   reflectionOptions = [],
   onReflectionChange,
@@ -15,7 +15,7 @@ export default function SubmissionReviewModal({
   onOpenWorking,
   onConfirm,
   onClose,
-  confirmLabel = 'Submit',
+  confirmLabel = 'Submit answer',
   busy = false,
   canSubmit,
   workingQuestionLabel,
@@ -50,7 +50,7 @@ export default function SubmissionReviewModal({
         </div>
 
         <div>
-          <h3 className="mb-1 text-base font-semibold text-ink-800">Working</h3>
+          <h3 className="mb-1 text-base font-semibold text-ink-800">Show your working</h3>
           <WorkingEvidenceDecision
             working={working}
             requirementLevel={workingRequirementLevel}
@@ -74,7 +74,7 @@ export default function SubmissionReviewModal({
         </div>
 
         <div className="flex justify-end gap-2 pt-1">
-          <Button variant="secondary" disabled={busy} onClick={onClose}>Not yet</Button>
+          <Button variant="secondary" disabled={busy} onClick={onClose}>Go back</Button>
           <Button disabled={busy || !confirmEnabled} onClick={onConfirm}>
             {busy ? 'Submitting…' : confirmLabel}
           </Button>

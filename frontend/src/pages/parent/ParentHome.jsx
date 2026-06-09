@@ -1,10 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, Users } from 'lucide-react';
-import { familyAPI, assignmentsAPI } from '../../services/api';
+import { ArrowRight, AlertTriangle, Eye, Users } from 'lucide-react';
+import { familyAPI, assignmentsAPI, parentInvitesAPI } from '../../services/api';
 import { Card, Button, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, Badge, Alert } from '../../components/ui';
+import { TrialBanner, UpgradeButton } from '../../components/PremiumHomeUpgrade';
 
 const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
+
+// School-invited children: view-only progress (no assign/worksheet actions).
+// Premium Home is the upsell that turns this into full control at home.
+function SchoolChildrenSection({ rows = [] }) {
+  if (!rows.length) return null;
+  return (
+    <div className="mb-6">
+      <h3 className="mb-3 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">
+        <Eye className="h-4 w-4" /> School progress (view-only)
+      </h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {rows.map((c) => (
+          <Card key={String(c.studentId)} className="p-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-sm font-semibold text-ink-700">{c.name} <span className="font-normal text-ink-500">· {c.level}</span></p>
+              <Badge tone="navy">View-only</Badge>
+            </div>
+            <div className="mt-2 font-display text-xl font-semibold text-navy-700">{c.hasData ? `${c.overallMastery}%` : '—'}</div>
+            <ProgressBar value={c.overallMastery} className="mt-2" />
+            {c.weakestSkill ? <p className="mt-2 text-sm text-ink-500">Needs work: {c.weakestSkill}</p> : null}
+          </Card>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <p className="text-xs text-ink-400">Upgrade to a Premium Home plan to assign practice and unlock the full dashboard at home.</p>
+        <UpgradeButton size="s" variant="secondary" />
+      </div>
+    </div>
+  );
+}
 
 // Parent home — clear, confidence-building, action-oriented. Child selector +
 // overall status + the single top recommended action.
@@ -24,8 +55,17 @@ export default function ParentHome() {
   const [assignments, setAssignments] = useState([]);
   const [assignmentsError, setAssignmentsError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [schoolChildren, setSchoolChildren] = useState([]);
 
   const activeId = params.get('child');
+
+  useEffect(() => {
+    let alive = true;
+    parentInvitesAPI.myChildren()
+      .then((r) => { if (alive) setSchoolChildren(r.data?.children || []); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -86,7 +126,11 @@ export default function ParentHome() {
     return (
       <>
         <PageHeader title="Your children" />
-        <EmptyState icon={Users} message="No children linked yet. Once a child is added to your family, their progress appears here." />
+        <TrialBanner />
+        <SchoolChildrenSection rows={schoolChildren} />
+        {schoolChildren.length === 0 && (
+          <EmptyState icon={Users} message="No children linked yet. Once a child is added to your family, their progress appears here." />
+        )}
       </>
     );
   }
@@ -108,6 +152,9 @@ export default function ParentHome() {
           </select>
         ) : null}
       />
+
+      <TrialBanner />
+      <SchoolChildrenSection rows={schoolChildren} />
 
       {/* Overall status — kept as the cross-subject headline */}
       <Card className="mb-4 p-5">

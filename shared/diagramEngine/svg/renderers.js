@@ -86,15 +86,14 @@ function renderEqualGroups(spec) {
   const groups = Math.max(1, Number(d.groups) || 1);
   const itemsPerGroup = Math.max(1, Number(d.itemsPerGroup) || 1);
   const w = Number(spec.width) || 640;
-  const h = Number(spec.height) || 360;
   const padding = 22;
   const usableW = w - (padding * 2);
   const groupW = usableW / groups;
   const maxRows = Math.ceil(itemsPerGroup / 5);
   const rowGap = 16;
   const dotR = 5;
-  const groupTop = 56;
-  const totalH = Math.max(120, maxRows * rowGap + 30);
+  const groupTop = 16;
+  const totalH = Math.max(60, maxRows * rowGap + 30);
   let body = '';
 
   for (let g = 0; g < groups; g += 1) {
@@ -109,8 +108,11 @@ function renderEqualGroups(spec) {
     }
     body += `<text x="${gx + groupW / 2}" y="${groupTop + totalH + 18}" font-size="11" text-anchor="middle" fill="#111111">Group ${g + 1}</text>`;
   }
-  body += `<text x="${w / 2}" y="${h - 12}" font-size="14" text-anchor="middle" fill="#111111">${groups} groups of ${itemsPerGroup}</text>`;
-  return svgShell(spec, body, spec.title || 'Equal groups diagram');
+  const summaryY = groupTop + totalH + 40;
+  body += `<text x="${w / 2}" y="${summaryY}" font-size="14" text-anchor="middle" fill="#111111">${groups} groups of ${itemsPerGroup}</text>`;
+  const tightH = summaryY + 16;
+  const tightSpec = { ...spec, width: w, height: tightH };
+  return svgShell(tightSpec, body, spec.title || 'Equal groups diagram');
 }
 
 function renderArrays(spec) {
@@ -119,10 +121,10 @@ function renderArrays(spec) {
   const columns = Math.max(1, Number(d.columns) || 1);
   const filled = clamp(Number(d.filled ?? rows * columns), 0, rows * columns);
   const w = Number(spec.width) || 640;
-  const h = Number(spec.height) || 360;
   const margin = 36;
-  const cellW = (w - margin * 2) / columns;
-  const cellH = (h - margin * 2) / rows;
+  const cellSize = Math.min((w - margin * 2) / columns, 40);
+  const cellW = cellSize;
+  const cellH = cellSize;
   let body = '';
   for (let r = 0; r < rows; r += 1) {
     for (let c = 0; c < columns; c += 1) {
@@ -132,8 +134,11 @@ function renderArrays(spec) {
       body += `<rect x="${x}" y="${y}" width="${cellW}" height="${cellH}" fill="${idx < filled ? '#dbeafe' : '#ffffff'}" stroke="#111111" stroke-width="1"/>`;
     }
   }
-  body += `<text x="${w / 2}" y="${h - 10}" font-size="14" text-anchor="middle" fill="#111111">${rows} rows × ${columns} columns</text>`;
-  return svgShell(spec, body, spec.title || 'Array diagram');
+  const gridBottom = margin + rows * cellH;
+  body += `<text x="${w / 2}" y="${gridBottom + 24}" font-size="14" text-anchor="middle" fill="#111111">${rows} rows × ${columns} columns</text>`;
+  const tightH = gridBottom + 40;
+  const tightSpec = { ...spec, width: w, height: tightH };
+  return svgShell(tightSpec, body, spec.title || 'Array diagram');
 }
 
 function renderPictureCollections(spec) {
@@ -141,10 +146,10 @@ function renderPictureCollections(spec) {
   const categories = Array.isArray(d.categories) ? d.categories : [];
   const symbol = d.symbol || '●';
   const w = Number(spec.width) || 640;
-  const h = Number(spec.height) || 360;
-  const top = 40;
-  const lineH = categories.length ? (h - 80) / categories.length : 0;
+  const top = 24;
+  const lineH = 36;
   let body = '';
+  let maxY = top;
   categories.forEach((cat, idx) => {
     const y = top + idx * lineH;
     const count = Math.max(0, Number(cat.count) || 0);
@@ -156,9 +161,13 @@ function renderPictureCollections(spec) {
       const x = 120 + col * 22;
       const yy = y + 6 + row * 16;
       body += `<text x="${x}" y="${yy}" font-size="13" fill="#111111">${esc(symbol)}</text>`;
+      maxY = Math.max(maxY, yy + 16);
     }
+    maxY = Math.max(maxY, y + 20);
   });
-  return svgShell(spec, body, spec.title || 'Picture collection diagram');
+  const tightH = maxY + 16;
+  const tightSpec = { ...spec, width: w, height: tightH };
+  return svgShell(tightSpec, body, spec.title || 'Picture collection diagram');
 }
 
 function renderPlaceValueBlocks(spec) {
@@ -167,28 +176,36 @@ function renderPlaceValueBlocks(spec) {
   const tens = clamp(Math.round(Number(d.tens) || 0), 0, 9);
   const ones = clamp(Math.round(Number(d.ones) || 0), 0, 9);
   const w = Number(spec.width) || 640;
-  const h = Number(spec.height) || 360;
+  const topY = 20;
+  let maxBottom = topY;
   let body = '';
 
   for (let i = 0; i < hundreds; i += 1) {
-    const pos = gridPosition(i, 3, 44, 44, 28, 42, 10, 10);
+    const pos = gridPosition(i, 3, 44, 44, 28, topY, 10, 10);
     body += `<rect x="${pos.x}" y="${pos.y}" width="44" height="44" fill="#fef3c7" stroke="#111111" stroke-width="1"/>`;
+    maxBottom = Math.max(maxBottom, pos.y + 44);
   }
-  body += `<text x="90" y="${h - 20}" text-anchor="middle" font-size="12" fill="#111111">Hundreds</text>`;
 
   for (let i = 0; i < tens; i += 1) {
-    const pos = gridPosition(i, 3, 14, 56, 250, 34, 10, 10);
+    const pos = gridPosition(i, 3, 14, 56, 250, topY, 10, 10);
     body += `<rect x="${pos.x}" y="${pos.y}" width="14" height="56" fill="#e0f2fe" stroke="#111111" stroke-width="1"/>`;
+    maxBottom = Math.max(maxBottom, pos.y + 56);
   }
-  body += `<text x="280" y="${h - 20}" text-anchor="middle" font-size="12" fill="#111111">Tens</text>`;
 
   for (let i = 0; i < ones; i += 1) {
-    const pos = gridPosition(i, 3, 14, 14, 470, 80, 12, 12);
+    const pos = gridPosition(i, 3, 14, 14, 470, topY + 20, 12, 12);
     body += `<rect x="${pos.x}" y="${pos.y}" width="14" height="14" fill="#dcfce7" stroke="#111111" stroke-width="1"/>`;
+    maxBottom = Math.max(maxBottom, pos.y + 14);
   }
-  body += `<text x="500" y="${h - 20}" text-anchor="middle" font-size="12" fill="#111111">Ones</text>`;
-  body += `<text x="${w / 2}" y="${h - 2}" text-anchor="middle" font-size="14" fill="#111111">${hundreds}${tens}${ones}</text>`;
-  return svgShell(spec, body, spec.title || 'Place value blocks diagram');
+
+  const labelY = maxBottom + 20;
+  body += `<text x="90" y="${labelY}" text-anchor="middle" font-size="12" fill="#111111">Hundreds</text>`;
+  body += `<text x="280" y="${labelY}" text-anchor="middle" font-size="12" fill="#111111">Tens</text>`;
+  body += `<text x="500" y="${labelY}" text-anchor="middle" font-size="12" fill="#111111">Ones</text>`;
+  body += `<text x="${w / 2}" y="${labelY + 22}" text-anchor="middle" font-size="14" fill="#111111">${hundreds}${tens}${ones}</text>`;
+  const tightH = labelY + 38;
+  const tightSpec = { ...spec, width: w, height: tightH };
+  return svgShell(tightSpec, body, spec.title || 'Place value blocks diagram');
 }
 
 function renderBarGraph(spec) {
@@ -287,16 +304,19 @@ function renderShapeLibrary(spec) {
   const d = specData(spec);
   const shapes = Array.isArray(d.shapes) ? d.shapes : [];
   const w = Number(spec.width) || 640;
-  const h = Number(spec.height) || 360;
   const cols = 5;
   const size = 56;
   let body = '';
+  let maxBottom = 28;
   shapes.forEach((shape, idx) => {
     const pos = gridPosition(idx, cols, 108, 84, 24, 28, 10, 14);
     body += `<g fill="#f3f4f6" stroke="#111111" stroke-width="1.2">${shapePath(shape.type, pos.x + 24, pos.y + 6, size)}</g>`;
     body += `<text x="${pos.x + 52}" y="${pos.y + 78}" font-size="10" text-anchor="middle" fill="#111111">${esc(shape.label || shape.type)}</text>`;
+    maxBottom = Math.max(maxBottom, pos.y + 90);
   });
-  return svgShell(spec, body, spec.title || 'Shape library diagram');
+  const tightH = maxBottom + 10;
+  const tightSpec = { ...spec, width: w, height: tightH };
+  return svgShell(tightSpec, body, spec.title || 'Shape library diagram');
 }
 
 function renderShapeComposition(spec) {
@@ -418,11 +438,10 @@ function renderComparisonModels(spec) {
   const rightLabel = d.rightLabel || 'B';
   const mode = d.mode || 'difference';
   const w = Number(spec.width) || 640;
-  const h = Number(spec.height) || 360;
   const x = 140;
   const usable = w - 200;
-  const topY = h / 2 - 46;
-  const bottomY = h / 2 + 8;
+  const topY = 50;
+  const bottomY = topY + 46;
   const leftW = (leftValue / maxValue) * usable;
   const rightW = (rightValue / maxValue) * usable;
   let body = '';
@@ -440,7 +459,44 @@ function renderComparisonModels(spec) {
   }
   body += `<text x="${x + leftW + 8}" y="${topY + 18}" font-size="11" fill="#111111">${leftValue}</text>`;
   body += `<text x="${x + rightW + 8}" y="${bottomY + 18}" font-size="11" fill="#111111">${rightValue}</text>`;
-  return svgShell(spec, body, spec.title || 'Comparison model diagram');
+  const tightH = bottomY + 46;
+  const tightSpec = { ...spec, width: w, height: tightH };
+  return svgShell(tightSpec, body, spec.title || 'Comparison model diagram');
+}
+
+function renderMoneyDisplay(spec) {
+  const d = specData(spec);
+  const items = Array.isArray(d.items) ? d.items : [];
+  const w = Number(spec.width) || 640;
+  const gap = 12;
+  const coinR = 22;
+  const noteW = 60;
+  const noteH = 32;
+  let cursor = 30;
+  const cy = 60;
+  let body = '';
+
+  for (const item of items) {
+    const count = Math.max(0, Number(item.count) || 1);
+    const label = item.label || '';
+    const isCoin = /cent|¢|coin|c$/i.test(label);
+    for (let i = 0; i < count; i += 1) {
+      if (isCoin) {
+        body += `<circle cx="${cursor + coinR}" cy="${cy}" r="${coinR}" fill="#fef3c7" stroke="#a16207" stroke-width="1.5"/>`;
+        body += `<text x="${cursor + coinR}" y="${cy + 5}" text-anchor="middle" font-size="11" fill="#92400e">${esc(label)}</text>`;
+        cursor += coinR * 2 + gap;
+      } else {
+        body += `<rect x="${cursor}" y="${cy - noteH / 2}" width="${noteW}" height="${noteH}" rx="4" fill="#dcfce7" stroke="#166534" stroke-width="1.5"/>`;
+        body += `<text x="${cursor + noteW / 2}" y="${cy + 5}" text-anchor="middle" font-size="11" fill="#166534">${esc(label)}</text>`;
+        cursor += noteW + gap;
+      }
+    }
+  }
+
+  const totalW = Math.max(cursor + 20, 200);
+  const totalH = cy + coinR + 40;
+  const tightSpec = { ...spec, width: totalW, height: totalH };
+  return svgShell(tightSpec, body, spec.title || 'Money display diagram');
 }
 
 export const diagramSvgRenderers = {
@@ -461,4 +517,5 @@ export const diagramSvgRenderers = {
   length_measurement: renderLengthMeasurement,
   comparison_model: renderComparisonModels,
   comparison_models: renderComparisonModels,
+  money_display: renderMoneyDisplay,
 };

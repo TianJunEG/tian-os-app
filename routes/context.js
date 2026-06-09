@@ -3,6 +3,7 @@ import { protect } from '../middleware/auth.js';
 import User from '../models/User.js';
 import Workspace from '../models/Workspace.js';
 import WorkspaceMember from '../models/WorkspaceMember.js';
+import { resolveEntitlements } from '../services/billing/entitlements.js';
 
 const router = express.Router();
 
@@ -57,6 +58,23 @@ router.post('/switch', protect, async (req, res) => {
     res.json({ activeWorkspace: { id: workspace._id, type: workspace.type, name: workspace.name, role: workspace.role } });
   } catch (err) {
     res.status(400).json({ error: 'Invalid workspace.' });
+  }
+});
+
+// @route   GET /api/context/entitlements
+// @desc    The current account's product tier + capability set (School / Premium
+//          Home / Trial). One source of truth for client-side feature gating.
+// @access  Private
+router.get('/entitlements', protect, async (req, res) => {
+  try {
+    const entitlements = await resolveEntitlements({
+      ownerType: 'user',
+      ownerId: req.user.id,
+      role: req.user.role || '',
+    });
+    res.json({ entitlements });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load entitlements' });
   }
 });
 

@@ -51,6 +51,8 @@ import tutorInviteRoutes from './routes/tutorInvites.js';
 import teacherRoutes from './routes/teacher.js';
 import schoolAdminRoutes from './routes/schoolAdmin.js';
 import parentInviteRoutes from './routes/parentInvites.js';
+import joinRoutes from './routes/join.js';
+import billingRoutes from './routes/billing.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
@@ -58,6 +60,7 @@ import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js'
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
 import assessmentUploadRoutes from './routes/assessmentUploads.js';
 import notificationRoutes from './routes/notifications.js';
+import recordingRoutes from './routes/recordings.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -183,10 +186,14 @@ app.use('/api/skills', skillRoutes);
 // Pilot hotfix: keep family endpoints reachable in v0.1 baseline builds.
 app.use('/api/family', featureGate({ feature: 'parent', minVersion: 'v0.1' }), familyRoutes);
 app.use('/api/tutor/invites', featureGate({ feature: 'tutor', minVersion: 'v0.1' }), tutorInviteRoutes);
+// Mounted before /api/tutor so /recordings isn't shadowed by the workspace router.
+app.use('/api/tutor/recordings', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), recordingRoutes);
 app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
 app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
 app.use('/api/school-admin', schoolAdminRoutes);
 app.use('/api/parent-invites', parentInviteRoutes);
+app.use('/api/join', joinRoutes);
+app.use('/api/billing', billingRoutes);
 app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);

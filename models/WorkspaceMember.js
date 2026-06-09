@@ -8,7 +8,7 @@ const workspaceMemberSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   role: {
     type: String,
-    enum: ['parent', 'tutor', 'teacher', 'admin', 'student_care'],
+    enum: ['parent', 'tutor', 'teacher', 'admin', 'student_care', 'school_admin'],
     required: true
   },
   status: { type: String, enum: ['active', 'invited', 'suspended'], default: 'active' },

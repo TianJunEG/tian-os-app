@@ -11,6 +11,7 @@ export default function TutorStudentNav({ studentId, name, level }) {
     ['MathPath', `${base}/mathpath`],
     ['Lesson prep', `${base}/lesson-prep`],
     ['Lesson notes', `${base}/lesson-notes`],
+    ['Record', `${base}/record`],
     ['Assign homework', `${base}/assign-homework`],
   ];
   return (
