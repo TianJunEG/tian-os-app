@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Card, Badge } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
+
+const StrokeReplayPlayer = lazy(() => import('../../components/learning/StrokeReplayPlayer'));
 
 // Shared mistake card. Previously Math and Science rendered the same data
 // (a question, the student's answer, the correct answer) in two very
@@ -51,6 +53,21 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
       </div>
       {m.workedSolution && (
         <p className="mt-3 text-sm text-ink-500"><Stem text={m.workedSolution} /></p>
+      )}
+      {m.tutorExplanation?.strokes?.length > 0 && (
+        <div className="mt-4 rounded-xl border border-navy-100 bg-navy-50/50 p-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-navy-700">
+            Tutor explanation
+          </p>
+          <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-navy-100" />}>
+            <StrokeReplayPlayer
+              strokes={m.tutorExplanation.strokes}
+              background="ruled"
+              compact
+              autoPlay={false}
+            />
+          </Suspense>
+        </div>
       )}
       {action && <div className="mt-4">{action}</div>}
     </Card>

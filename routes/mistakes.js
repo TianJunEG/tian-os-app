@@ -134,6 +134,13 @@ router.get('/', protect, async (req, res) => {
       ...(await loadWorkingInsightForMistake(m, student._id)),
       ...shapeMistakeLearningFields(m),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
+      // Tutor explanation for list view: include strokes for inline replay but
+      // omit the heavy base64 image (only needed as fallback in the detail view).
+      tutorExplanation: m.tutorExplanation?.recordedAt ? {
+        strokes: m.tutorExplanation.strokes || [],
+        recordedAt: m.tutorExplanation.recordedAt,
+        durationMs: m.tutorExplanation.durationMs || null,
+      } : null,
     })));
 
     // Group by skill for the home/weak-skills view.
@@ -234,6 +241,12 @@ router.get('/:id', protect, async (req, res) => {
       ...(await loadWorkingInsightForMistake(m, m.studentId)),
       ...shapeMistakeLearningFields(m),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
+      tutorExplanation: m.tutorExplanation?.recordedAt ? {
+        strokes: m.tutorExplanation.strokes || [],
+        image: m.tutorExplanation.image || '',
+        recordedAt: m.tutorExplanation.recordedAt,
+        durationMs: m.tutorExplanation.durationMs || null,
+      } : null,
     });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake.' });

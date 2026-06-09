@@ -70,7 +70,8 @@ api.interceptors.response.use(
 // Tian OS role/workspace context
 export const contextAPI = {
   get: () => api.get('/context'),
-  switch: (workspaceId) => api.post('/context/switch', { workspaceId })
+  switch: (workspaceId) => api.post('/context/switch', { workspaceId }),
+  entitlements: () => api.get('/context/entitlements')
 };
 
 // MathPath (Phase 2): mastery, topic map, practice sessions, mistakes.
@@ -229,18 +230,42 @@ export const tutorAPI = {
   assignLessonPrepRecoveryPack: (id, data) => api.post(`/tutor/students/${id}/lesson-prep/assign-recovery-pack`, data),
   lessonNotes: (id) => api.get(`/tutor/students/${id}/lesson-notes`),
   createLessonNote: (id, data) => api.post(`/tutor/students/${id}/lesson-notes`, data),
+  sendLessonNote: (id, noteId) => api.post(`/tutor/students/${id}/lesson-notes/${noteId}/send`),
   mathPathLessonNotes: (params = {}) => api.get('/tutor/lesson-notes', { params }),
   createMathPathLessonNote: (data) => api.post('/tutor/lesson-notes', data),
   homework: () => api.get('/tutor/homework'),
   availability: () => api.get('/tutor/availability'),
   updateAvailability: (data) => api.put('/tutor/availability', data),
-  certification: () => api.get('/tutor/certification')
+  certification: () => api.get('/tutor/certification'),
+  mistake: (studentId, mistakeId) => api.get(`/tutor/students/${studentId}/mistakes/${mistakeId}`),
+  saveExplanation: (studentId, mistakeId, data) => api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation`, data),
 };
 
 export const tutorInviteAPI = {
   create: (data = {}) => api.post('/tutor/invites', data),
   preview: (token) => api.get(`/tutor/invites/${token}`),
   accept: (token, data = {}) => api.post(`/tutor/invites/${token}/accept`, data),
+};
+
+// In-app notifications (user-scoped, spans all of a parent's children).
+export const notificationsAPI = {
+  list: (params = {}) => api.get('/notifications', { params }),
+  unreadCount: () => api.get('/notifications/unread-count'),
+  markRead: (id) => api.post(`/notifications/${id}/read`),
+};
+
+// Lesson recordings. Tutor capture (workspace-scoped) + parent replay.
+export const recordingsAPI = {
+  create: (data) => api.post('/tutor/recordings', data),
+  appendInk: (rid, events) => api.post(`/tutor/recordings/${rid}/ink`, { events }),
+  uploadAudio: (rid, formData) => api.post(`/tutor/recordings/${rid}/audio`, formData),
+  finalise: (rid, data = {}) => api.post(`/tutor/recordings/${rid}/finalise`, data),
+  setVisibility: (rid, visibility) => api.patch(`/tutor/recordings/${rid}`, { visibility }),
+  get: (rid) => api.get(`/tutor/recordings/${rid}`),
+  remove: (rid) => api.delete(`/tutor/recordings/${rid}`),
+  // Parent side
+  childRecordings: (studentId) => api.get(`/family/children/${studentId}/recordings`),
+  parentRecording: (rid) => api.get(`/family/recordings/${rid}`),
 };
 
 // Teacher workspace (Phase 5). Scoped to the active school/teacher workspace.
@@ -250,6 +275,7 @@ export const teacherAPI = {
   classOverview: (id) => api.get(`/teacher/classes/${id}`),
   classMastery: (id, subject) => api.get(`/teacher/classes/${id}/mastery`, { params: subject ? { subject } : {} }),
   classStudents: (id) => api.get(`/teacher/classes/${id}/students`),
+  classDashboard: (id, subject) => api.get(`/teacher/classes/${id}/dashboard`, { params: subject ? { subject } : {} }),
   student: (id) => api.get(`/teacher/students/${id}`),
   groups: (id) => api.get(`/teacher/classes/${id}/groups`),
   saveGroup: (id, data) => api.post(`/teacher/classes/${id}/groups`, data),
@@ -512,6 +538,39 @@ export const adminAPI = {
   linkPartnerStudent: (partnerId, data) => api.post(`/admin/partners/${partnerId}/students`, data),
   removePartnerStudent: (partnerId, partnerStudentId) => api.delete(`/admin/partners/${partnerId}/students/${partnerStudentId}`),
   getPartnerImpactReport: (partnerId) => api.get(`/admin/partners/${partnerId}/impact-report`)
+};
+
+// School administrator console (HOD / IT) — onboarding + roster management.
+export const schoolAdminAPI = {
+  overview: () => api.get('/school-admin/overview'),
+  createClass: (data) => api.post('/school-admin/classes', data),
+  createStudent: (data) => api.post('/school-admin/students', data),
+  bulkImport: (data) => api.post('/school-admin/students/bulk', data),
+  createJoinCode: (classId, data = {}) => api.post(`/school-admin/classes/${classId}/join-code`, data),
+  getJoinCode: (classId) => api.get(`/school-admin/classes/${classId}/join-code`),
+};
+
+// Parent email invitations (school version) + view-only school children.
+export const parentInvitesAPI = {
+  create: (data) => api.post('/parent-invites', data),
+  preview: (token) => api.get(`/parent-invites/${token}`),
+  accept: (token, data = {}) => api.post(`/parent-invites/${token}/accept`, data),
+  myChildren: () => api.get('/parent-invites/children/list'),
+};
+
+// Student self-enrolment via a class join code.
+export const joinAPI = {
+  preview: (code) => api.get(`/join/${code}`),
+  redeem: (code) => api.post(`/join/${code}`),
+};
+
+// Trial + Premium Home checkout.
+export const billingAPI = {
+  me: () => api.get('/billing/me'),
+  startTrial: () => api.post('/billing/start-trial'),
+  checkoutPremiumHome: (billing = 'monthly') => api.post('/billing/checkout/premium-home', { billing }),
+  confirmCheckout: (sessionId) => api.post('/billing/checkout/confirm', { sessionId }),
+  devActivatePremiumHome: () => api.post('/billing/dev/activate-premium-home'),
 };
 
 export const learningTelemetryAPI = {
