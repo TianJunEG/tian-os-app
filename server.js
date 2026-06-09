@@ -50,6 +50,7 @@ import tutorWorkspaceRoutes from './routes/tutor.js';
 import tutorInviteRoutes from './routes/tutorInvites.js';
 import teacherRoutes from './routes/teacher.js';
 import schoolAdminRoutes from './routes/schoolAdmin.js';
+import parentInviteRoutes from './routes/parentInvites.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
@@ -91,6 +92,13 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http:/
   .filter(Boolean);
 const frontendUrl = (process.env.FRONTEND_URL || '').trim();
 if (frontendUrl) allowedOrigins.push(frontendUrl);
+
+// When running on Railway, auto-allow the service's own public URL so that
+// same-origin browser requests (which still send an Origin header for fetch /
+// module-script loads) are not rejected by the CORS middleware.
+const railwayPublicDomain = (process.env.RAILWAY_PUBLIC_DOMAIN || '').trim();
+if (railwayPublicDomain) allowedOrigins.push(`https://${railwayPublicDomain}`);
+
 const vercelPreviewRegex = /^https:\/\/[a-z0-9-]+(\-[a-z0-9-]+)*\.vercel\.app$/i;
 const localDevOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
 
@@ -178,6 +186,7 @@ app.use('/api/tutor/invites', featureGate({ feature: 'tutor', minVersion: 'v0.1'
 app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
 app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
 app.use('/api/school-admin', schoolAdminRoutes);
+app.use('/api/parent-invites', parentInviteRoutes);
 app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
