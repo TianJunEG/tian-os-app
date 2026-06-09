@@ -13,6 +13,12 @@ import {
 } from '../../../mathpath/fractions/fractionPracticeFlow';
 import { checkFractionAnswer } from '../../../mathpath/fractions/fractionQuestionGenerator';
 import {
+  isP1SkillId,
+  startP1PracticeFlow,
+  submitP1PracticeAttempt,
+  checkP1AnswerForSession,
+} from '../../../mathpath/primary/p1PracticeFlow';
+import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
@@ -182,7 +188,9 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
   const normalized = String(routeSessionId || '').toLowerCase();
   const normalizeFrameworkSkillId = (value) => {
     const skillId = String(value || '').toUpperCase();
-    return /^F\d{3}$/.test(skillId) ? skillId : null;
+    if (/^F\d{3}$/.test(skillId)) return skillId;
+    if (/^P1-(NUM|ADD|MON|MEA|GEO|EQG|DAT)-\d{2}$/.test(skillId)) return skillId;
+    return null;
   };
   const nextSkill = normalizeFrameworkSkillId(progress?.currentSkillId) || normalizeFrameworkSkillId(progress?.nextSkillId);
   const candidateWeak = Array.isArray(progress?.weakSkills)
@@ -192,10 +200,11 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 
   if (normalized.startsWith('skill-')) {
     const skillId = String(routeSessionId || '').slice(6).toUpperCase();
+    const resolvedSkillId = normalizeFrameworkSkillId(skillId);
     return {
-      requestedSkillId: /^F\d{3}$/i.test(skillId) ? skillId : null,
+      requestedSkillId: resolvedSkillId,
       sessionType: 'practice',
-      questionCount: 8,
+      questionCount: isP1SkillId(resolvedSkillId) ? 6 : 8,
     };
   }
 
@@ -923,7 +932,27 @@ export default function PracticeSession() {
             setLoading(false);
             return;
           }
+        } else if (isP1SkillId(resolvedIntent.requestedSkillId)) {
+          // ── P1 domain (client-side generation) ──────────────────────
+          started = startP1PracticeFlow({
+            studentId,
+            sessionType,
+            requestedSkillId: resolvedIntent.requestedSkillId,
+            requestedQuestionFamilyId: locationQuestionFamilyId,
+            sessionLength:
+              resolvedIntent.questionCount
+              || (sessionType === 'warmup'
+                ? 3
+                : sessionType === 'diagnostic' || sessionType === 'mastery_check'
+                  ? 10
+                  : sessionType === 'remediation'
+                    ? 5
+                : 6),
+            weakSkillIds: locationWeakSkillIds,
+            recentMistakeTypes: locationRecentMistakeTypes,
+          });
         } else {
+          // ── Fractions domain (API first, client fallback) ───────────
           try {
             const { data } = await mathpathAPI.startFractionPractice({
               sessionType,
@@ -1035,7 +1064,7 @@ export default function PracticeSession() {
       return {
         questionId: question.questionId,
         skillId: question.skillId || flowSession.targetSkillId || '',
-        domainId: question.domainId || 'fractions',
+        domainId: question.domainId || flowSession?.domainId || 'fractions',
         sessionId: practiceSessionId,
         prompt: question.prompt || question.stem || '',
         correctAnswer: question.answer?.display || '',
@@ -1050,7 +1079,7 @@ export default function PracticeSession() {
     mathpathAPI.createWorkingSession({
       studentId,
       practiceSessionId,
-      domainId: 'fractions',
+      domainId: flowSession?.domainId || 'fractions',
       skillIds: [...new Set(questionRefs.map((ref) => ref.skillId).filter(Boolean))],
       questionRefs,
       inputMethod: 'paper',
@@ -1118,11 +1147,13 @@ export default function PracticeSession() {
     if (!currentQuestionValidation.ok) return;
     if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
-    const answerCheck = checkFractionAnswer({
-      studentAnswer: answer,
-      correctAnswer: q.answer,
-      acceptedAnswers: q.acceptedAnswers || [],
-    });
+    const answerCheck = isP1SkillId(q.skillId)
+      ? checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+      : checkFractionAnswer({
+          studentAnswer: answer,
+          correctAnswer: q.answer,
+          acceptedAnswers: q.acceptedAnswers || [],
+        });
     const attemptId = createClientAttemptId({
       sessionId: flowSession.practiceSessionId || routeSessionId,
       questionId: q.questionId,
@@ -1294,7 +1325,15 @@ export default function PracticeSession() {
         attemptNumber: r.attemptNumber,
       }));
       let submitted;
-      if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
+      const isP1Session = isP1SkillId(flowSession?.targetSkillId || questions[0]?.skillId);
+      if (isP1Session) {
+        submitted = submitP1PracticeAttempt({
+          practiceSessionId: flowSession.practiceSessionId || routeSessionId,
+          studentId,
+          sessionType,
+          responses: payload,
+        });
+      } else if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
         const { data } = await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
           sessionType,
           responses: payload,
