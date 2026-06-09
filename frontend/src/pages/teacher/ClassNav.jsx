@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 // Shared header + tabs for the teacher's per-class screens.
 export default function ClassNav({ classId, name, level }) {
@@ -16,9 +17,9 @@ export default function ClassNav({ classId, name, level }) {
     ['Assign', `${base}/assign`],
     ['Intervention', `${base}/interventions`],
     ['Worksheets', `${base}/worksheets`],
-    ['LifeLab', `${base}/lifelab`],
+    FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`],
     ['Reports', `${base}/reports`],
-  ];
+  ].filter(Boolean);
   return (
     <div className="mb-5">
       <button onClick={() => navigate('/teacher/classes')} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
