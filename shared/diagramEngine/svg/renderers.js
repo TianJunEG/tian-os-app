@@ -493,8 +493,13 @@ function renderMoneyDisplay(spec) {
     }
   }
 
+  // Label row below the coins/notes for accessibility and visual consistency.
+  const labelY = cy + coinR + 18;
+  if (spec.title) {
+    body += `<text x="${Math.max(cursor, 200) / 2}" y="${labelY}" text-anchor="middle" font-size="13" fill="#111111">${esc(spec.title)}</text>`;
+  }
   const totalW = Math.max(cursor + 20, 200);
-  const totalH = cy + coinR + 40;
+  const totalH = labelY + 16;
   const tightSpec = { ...spec, width: totalW, height: totalH };
   return svgShell(tightSpec, body, spec.title || 'Money display diagram');
 }
