@@ -52,15 +52,22 @@ export default function WorkingEvidenceDecision({
   const onPaper = Boolean(working.workingOnPaper);
   const notNeeded = Boolean(working.workingNotNeeded);
   const levelTone = requirementLevel === 'HIGH' ? 'error' : requirementLevel === 'MEDIUM' ? 'gold' : 'neutral';
+  // Child-friendly label instead of the internal HIGH/MEDIUM/LOW tag.
+  const levelLabel = requirementLevel === 'HIGH'
+    ? 'Working helps a lot'
+    : requirementLevel === 'MEDIUM'
+      ? 'Working helps'
+      : 'Working optional';
+  const workingRecommended = requirementLevel === 'HIGH' || requirementLevel === 'MEDIUM';
 
   return (
     <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-ink-700">Working Evidence</p>
-          <p className="mt-1 text-xs text-ink-500">Choose how you solved this before submitting.</p>
+          <p className="text-sm font-semibold text-ink-700">Show your working</p>
+          <p className="mt-1 text-xs text-ink-500">Tell us how you solved this before you submit.</p>
         </div>
-        <Badge tone={levelTone}>{requirementLevel}</Badge>
+        <Badge tone={levelTone}>{levelLabel}</Badge>
       </div>
 
       <div className="mt-3 space-y-2">
@@ -91,12 +98,18 @@ export default function WorkingEvidenceDecision({
               disabled={disabled}
               onChange={(event) => onDeclareNotNeeded?.(event.target.checked)}
             />
-            <span className="font-semibold">I did not need working for this question</span>
+            <span className="font-semibold">I really didn't need working for this one</span>
           </label>
         )}
 
+        {!submitted && notNeeded && workingRecommended && (
+          <p className="rounded-lg bg-gold-50 px-3 py-2 text-xs text-gold-800">
+            Sure? For this question, showing your steps really helps us see your thinking. You can still tap “Show your working” above.
+          </p>
+        )}
+
         {submitted && (
-          <p className="text-xs text-ink-500">Because working has been submitted, the declaration is locked.</p>
+          <p className="text-xs text-ink-500">Your working is saved, so this choice is locked.</p>
         )}
       </div>
     </div>

@@ -48,11 +48,21 @@ async function resolveSkillRefToIds(refs = []) {
 }
 
 // Shape a question for the client (never leak the answer mid-session).
+// Visual/diagram metadata MUST be forwarded: a visual-required question (e.g.
+// "What fraction of the shape is shaded?") is impossible without its diagram, and
+// the client renderer keys off diagramSpec / requiresVisual / requiredVisualTypes.
+// These fields carry no answer, so forwarding them does not leak the solution.
 const clientQuestion = (q) => ({
   questionId: q._id, stem: q.stem, type: q.type, choices: q.choices,
   difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
   skillName: q.skillId?.name, topicId: q.skillId?.topicId,
   visual: q.visual || null,
+  diagramSpec: q.diagramSpec || null,
+  diagram: q.diagram || null,
+  requiresDiagram: q.requiresDiagram ?? (q.requiresVisual ?? undefined),
+  requiresVisual: q.requiresVisual ?? undefined,
+  requiredVisualTypes: q.requiredVisualTypes || undefined,
+  providedVisualTypes: q.providedVisualTypes || undefined,
   answerInputType: answerInputTypeFor(q.answer),
   hasFigure: !!q.hasFigure,
   figureUrl: q.figureUrl || '',

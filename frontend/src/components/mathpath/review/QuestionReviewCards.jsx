@@ -94,8 +94,8 @@ export function MistakeInsightCard({ insight, onModelDrawing }) {
   if (!insight) {
     return (
       <Card className="p-4">
-        <p className="text-sm font-semibold text-ink-800">Mistake Insight</p>
-        <p className="mt-2 text-sm text-ink-500">No specific mistake pattern was detected for this question.</p>
+        <p className="text-sm font-semibold text-ink-800">Nice work</p>
+        <p className="mt-2 text-sm text-ink-600">Great job on this one — there's nothing to fix here. Keep going!</p>
       </Card>
     );
   }
@@ -124,10 +124,10 @@ export function WorkingStatusCard({ item }) {
   const quality = item.workingQualityBand;
   return (
     <Card className="p-4">
-      <p className="text-sm font-semibold text-ink-800">Working Status</p>
-      {!required && <p className="mt-2 text-sm text-ink-600">Working was not required for this question.</p>}
-      {required && uploaded && <p className="mt-2 text-sm text-success-700">Working uploaded and ready for review.</p>}
-      {required && !uploaded && <p className="mt-2 text-sm text-gold-800">Working was expected but not uploaded.</p>}
+      <p className="text-sm font-semibold text-ink-800">Your working</p>
+      {!required && <p className="mt-2 text-sm text-ink-600">No working needed for this one.</p>}
+      {required && uploaded && <p className="mt-2 text-sm text-success-700">Nice — your working is saved.</p>}
+      {required && !uploaded && <p className="mt-2 text-sm text-ink-600">No working this time. Showing your steps next time helps us help you.</p>}
       {quality && <p className="mt-1 text-sm text-ink-600">Working quality: <span className="font-semibold text-ink-800">{quality}</span></p>}
     </Card>
   );

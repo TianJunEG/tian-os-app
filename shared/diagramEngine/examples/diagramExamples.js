@@ -92,6 +92,11 @@ export const diagramExamples = {
     ex('DG016_EX2', 'comparison_model', { leftLabel: 'Red', rightLabel: 'Blue', leftValue: 12, rightValue: 9, mode: 'more' }, 'More Than Model'),
     ex('DG016_EX3', 'comparison_model', { leftLabel: 'Before', rightLabel: 'After', leftValue: 15, rightValue: 10, mode: 'less' }, 'Less Than Model'),
   ],
+  money_display: [
+    ex('DG017_EX1', 'money_display', { items: [{ label: '$1', count: 2 }, { label: '50c', count: 1 }] }, '$2.50 in Notes and Coins'),
+    ex('DG017_EX2', 'money_display', { items: [{ label: '$5', count: 1 }, { label: '$1', count: 3 }] }, '$8 in Notes'),
+    ex('DG017_EX3', 'money_display', { items: [{ label: '20c', count: 3 }, { label: '10c', count: 1 }] }, '70 Cents in Coins'),
+  ],
 };
 
 export const allDiagramExamples = Object.values(diagramExamples).flat();

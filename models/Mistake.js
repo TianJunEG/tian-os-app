@@ -121,6 +121,16 @@ const mistakeSchema = new mongoose.Schema({
     enum: ['student', 'parent', 'tutor', 'teacher', null],
     default: null
   },
+  // Tutor-recorded visual explanation (canvas drawing with timestamped strokes).
+  // Saved when a tutor records an explanation for how to solve this question.
+  // Parents see the replay in MistakeCard; students see it during review.
+  tutorExplanation: {
+    strokes: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    image: { type: String, default: '' },
+    recordedAt: { type: Date, default: null },
+    recordedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    durationMs: { type: Number, default: null },
+  },
   // Set to 'resolved' once the underlying skill is mastered (derived, not manual).
   status: {
     type: String,

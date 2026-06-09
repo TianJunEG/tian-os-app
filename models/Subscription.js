@@ -17,6 +17,9 @@ const subscriptionSchema = new mongoose.Schema(
     studentLimit: { type: Number, default: null, min: 0 },
     staffLimit: { type: Number, default: null, min: 0 },
     featureFlags: { type: mongoose.Schema.Types.Mixed, default: {} },
+    // Agency provenance (Gap B): set when a tutor sits on an agency-granted plan.
+    originOrganisationId: { type: mongoose.Schema.Types.ObjectId, ref: 'PartnerOrganisation', default: null },
+    agencyTutorPlanId: { type: mongoose.Schema.Types.ObjectId, ref: 'AgencyTutorPlan', default: null },
     pilotOverride: {
       type: { type: String, enum: PILOT_OVERRIDE_TYPES, default: '' },
       reason: { type: String, default: '', trim: true },

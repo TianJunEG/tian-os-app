@@ -71,7 +71,10 @@ function actionFromNext(nextAction, assessmentReady = false) {
   if (action === 'attemptAssessment') return FEATURE_FLAGS.assessments && assessmentReady
     ? { label: 'Start Assessment', to: '/student/mathpath/assessment' }
     : { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' };
-  if (action === 'uploadWorking') return { label: 'Upload Working', to: '/student/mathpath/working/upload' };
+  // ?source=manual lets the upload screen open standalone (it lazily creates a
+  // working session on submit). Without it the bare link dead-ends on an error
+  // screen, forcing extra clicks/navigation to reach the upload canvas.
+  if (action === 'uploadWorking') return { label: 'Upload Working', to: '/student/mathpath/working/upload?source=manual' };
   if (action === 'followRemediationPlan') return { label: 'Practise This Skill', to: '/student/mathpath/practice/recommended-remediation' };
   if (action === 'advanceSkill') return { label: 'Move to Next Skill', to: '/student/mathpath/practice/recommended-next' };
   return { label: 'Continue Practice', to: '/student/mathpath/practice/recommended-pathway' };

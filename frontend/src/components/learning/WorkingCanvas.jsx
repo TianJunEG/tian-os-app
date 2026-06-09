@@ -3,9 +3,17 @@ import { Check, Grid, Paperclip } from 'lucide-react';
 import { Button, Badge } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  drawStroke,
+  paintBackground,
+  exportCanvas as exportCanvasImage,
+  pointFromEvent as extractPoint,
+  beginStrokeData,
+  finalizeStroke,
+} from './drawingUtils';
 
-const CANVAS_WIDTH = 900;
-const CANVAS_HEIGHT = 320;
 const EMPTY_STROKES = [];
 const MATH_STAMPS = [
   { id: 'fraction', label: 'x/y' },
@@ -100,137 +108,7 @@ export function resolveWorkingRequirement(question = {}, sessionType = 'practice
   };
 }
 
-function drawStroke(ctx, stroke) {
-  if (stroke?.tool === 'stamp') {
-    drawMathStamp(ctx, stroke);
-    return;
-  }
-  const points = stroke?.points || [];
-  if (points.length < 2) return;
-  ctx.save();
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
-  ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : 1;
-  ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
-  const baseSize = Number(stroke.size || 3);
-  ctx.lineWidth = stroke.tool === 'eraser'
-    ? 24
-    : stroke.tool === 'highlighter'
-      ? Math.max(48, baseSize * 10)
-      : stroke.tool === 'pencil'
-        ? Math.max(1, baseSize - 1)
-        : baseSize;
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y);
-  points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawMathStamp(ctx, stroke) {
-  const point = stroke?.points?.[0] || { x: 40, y: 56 };
-  const colour = stroke.colour || '#f97316';
-  ctx.save();
-  ctx.strokeStyle = colour;
-  ctx.fillStyle = colour;
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.font = '30px Georgia, serif';
-  const x = point.x;
-  const y = point.y;
-  if (stroke.template === 'fraction') {
-    const numerator = String(stroke.numerator || 'x');
-    const denominator = String(stroke.denominator || 'y');
-    const width = Math.max(48, ctx.measureText(numerator).width, ctx.measureText(denominator).width) + 18;
-    const center = x + (width / 2);
-    ctx.textAlign = 'center';
-    ctx.fillText(numerator, center, y - 14);
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + width, y);
-    ctx.stroke();
-    ctx.fillText(denominator, center, y + 36);
-    ctx.textAlign = 'start';
-  } else if (stroke.template === 'subscript') {
-    ctx.fillText(String(stroke.base || 'x'), x, y);
-    ctx.font = '20px Georgia, serif';
-    ctx.fillText(String(stroke.subscript || 'a'), x + 25, y + 10);
-  } else if (stroke.template === 'power') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 10);
-    ctx.font = '20px Georgia, serif';
-    ctx.fillText(String(stroke.exponent || 'b'), x + 25, y - 10);
-  } else if (stroke.template === 'subscriptPower') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 8);
-    ctx.font = '18px Georgia, serif';
-    ctx.fillText(String(stroke.exponent || 'b'), x + 25, y - 14);
-    ctx.fillText(String(stroke.subscript || 'a'), x + 25, y + 20);
-  } else if (stroke.template === 'mixed') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 10);
-    ctx.font = '24px Georgia, serif';
-    ctx.fillText(String(stroke.numerator || 'b'), x + 34, y - 12);
-    ctx.beginPath();
-    ctx.moveTo(x + 28, y);
-    ctx.lineTo(x + 74, y);
-    ctx.stroke();
-    ctx.fillText(String(stroke.denominator || 'a'), x + 42, y + 30);
-  } else if (stroke.template === 'root') {
-    const radicand = String(stroke.radicand || 'x');
-    ctx.font = '42px Georgia, serif';
-    ctx.fillText('√', x + 16, y + 14);
-    ctx.beginPath();
-    ctx.moveTo(x + 58, y - 22);
-    ctx.lineTo(x + 58 + Math.max(48, ctx.measureText(radicand).width + 16), y - 22);
-    ctx.stroke();
-    ctx.font = '30px Georgia, serif';
-    ctx.fillText(radicand, x + 66, y + 8);
-    ctx.font = '16px Georgia, serif';
-    ctx.fillText(String(stroke.index || 'n'), x, y - 6);
-  } else if (stroke.template === 'degree') {
-    ctx.fillText(String(stroke.base || 'x'), x, y + 10);
-    ctx.font = '20px Georgia, serif';
-    ctx.fillText('°', x + 25, y - 8);
-  } else if (stroke.template === 'angle') {
-    ctx.fillText('∠', x, y + 10);
-  } else if (stroke.template === 'pi') {
-    ctx.fillText('π', x, y + 10);
-  } else if (stroke.template === 'theta') {
-    ctx.fillText('θ', x, y + 10);
-  }
-  ctx.restore();
-}
-
-function paintBackground(ctx, background) {
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  ctx.strokeStyle = background === 'grid' ? '#dbe4ef' : '#e8eef7';
-  ctx.lineWidth = 1;
-  if (background === 'grid') {
-    for (let x = 24; x < CANVAS_WIDTH; x += 24) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, CANVAS_HEIGHT);
-      ctx.stroke();
-    }
-  }
-  for (let y = 40; y < CANVAS_HEIGHT; y += 32) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(CANVAS_WIDTH, y);
-    ctx.stroke();
-  }
-}
-
-function exportCanvas(canvas, background) {
-  const output = document.createElement('canvas');
-  output.width = CANVAS_WIDTH;
-  output.height = CANVAS_HEIGHT;
-  const ctx = output.getContext('2d');
-  paintBackground(ctx, background);
-  ctx.drawImage(canvas, 0, 0);
-  return output.toDataURL('image/png');
-}
+/* drawStroke, drawMathStamp, paintBackground, exportCanvas → imported from ./drawingUtils */
 
 function MathDraftInput({ value, placeholder, onChange, onEnter, compact = false, autoFocus = false }) {
   return (
@@ -323,14 +201,7 @@ export default function WorkingCanvas({
     redraw(nextStrokes, submittedImage);
   }, [questionId, submittedImage, submittedStrokes, initialSubmitted, initialWorkingNotNeeded]);
 
-  const pointFromEvent = (event) => {
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: ((event.clientX - rect.left) / rect.width) * CANVAS_WIDTH,
-      y: ((event.clientY - rect.top) / rect.height) * CANVAS_HEIGHT,
-    };
-  };
+  const pointFromEvent = (event) => extractPoint(event, canvasRef.current);
 
   const emitChange = (next = {}) => {
     onChange?.({
@@ -344,9 +215,8 @@ export default function WorkingCanvas({
   const beginStroke = (event) => {
     if (readOnly) return;
     event.preventDefault();
-    const point = pointFromEvent(event);
     drawingRef.current = true;
-    currentStrokeRef.current = { tool, colour, size: brushSize, points: [point] };
+    currentStrokeRef.current = beginStrokeData(event, tool, colour, brushSize, canvasRef.current);
   };
 
   const moveStroke = (event) => {
@@ -362,9 +232,10 @@ export default function WorkingCanvas({
   const endStroke = () => {
     if (!drawingRef.current || readOnly) return;
     drawingRef.current = false;
-    const stroke = currentStrokeRef.current;
+    const raw = currentStrokeRef.current;
     currentStrokeRef.current = null;
-    if (!stroke || stroke.points.length < 2) return;
+    const stroke = finalizeStroke(raw);
+    if (!stroke) return;
     const nextStrokes = [...strokes, stroke];
     setStrokes(nextStrokes);
     setRedoStack([]);
@@ -420,7 +291,7 @@ export default function WorkingCanvas({
   };
 
   const submit = () => {
-    const image = attachedImage || exportCanvas(canvasRef.current, background);
+    const image = attachedImage || exportCanvasImage(canvasRef.current, CANVAS_WIDTH, CANVAS_HEIGHT, background);
     const payload = {
       workingImage: image,
       workingStrokes: strokes,

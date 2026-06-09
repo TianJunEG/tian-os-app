@@ -3,11 +3,13 @@ import {
   COUNTABLE_CONTEXT_NOUNS,
   generateFractionQuestion,
   generateAssessmentQuestionSet,
+  generatePracticeQuestionSet,
   checkFractionAnswer,
   isWholeNumber,
   validateCountableFractionSequence,
   validateFractionQuestionGenerator,
 } from './fractionQuestionGenerator';
+import { getQuestionFamiliesBySkill } from './fractionQuestionFamilies';
 import {
   ASSESSMENT_LOCK_MESSAGE,
   FRACTIONS_ASSESSMENT_BLUEPRINT,
@@ -285,5 +287,42 @@ describe('fractionQuestionGenerator', () => {
     expect(result.checks.workingRuleCorrect).toBe(true);
     expect(result.checks.mentalRuleCorrect).toBe(true);
     expect(result.checks.noZeroDenominator).toBe(true);
+  });
+});
+
+describe('generatePracticeQuestionSet rendered-signature dedupe (U1)', () => {
+  const signatureOf = (q) =>
+    `${String(q.prompt || '').toLowerCase().replace(/\s+/g, ' ').trim()}::${String(
+      q?.answer?.display ?? ''
+    )
+      .toLowerCase()
+      .replace(/\s+/g, '')}`;
+
+  it('does not serve the same rendered question twice across sibling F018 families', () => {
+    // The four "Add Unlike Fractions" families (LCM Scaffolded / Independent /
+    // Simplify & Convert / In Context) previously shared a template and could emit
+    // identical prompts such as "Compute: 2/3 + 1/2" under different labels.
+    const families = getQuestionFamiliesBySkill('F018')
+      .filter((f) => /add unlike/i.test(f.name))
+      .map((f) => ({ skillId: 'F018', questionFamilyId: f.id, questionFamilyIds: [f.id] }));
+    expect(families.length).toBeGreaterThanOrEqual(2);
+
+    const questions = generatePracticeQuestionSet({ practiceQueue: families, count: 8 });
+    expect(questions.length).toBeGreaterThan(0);
+
+    const signatures = questions.map(signatureOf);
+    expect(new Set(signatures).size).toBe(signatures.length);
+  });
+
+  it('keeps distinct operands distinct (does not over-dedupe different sums)', () => {
+    const families = getQuestionFamiliesBySkill('F018')
+      .slice(0, 3)
+      .map((f) => ({ skillId: 'F018', questionFamilyId: f.id, questionFamilyIds: [f.id] }));
+    const questions = generatePracticeQuestionSet({ practiceQueue: families, count: 6 });
+    // With dedupe in place we should still get a full-length, varied set rather than
+    // the engine collapsing everything to a single question.
+    expect(questions.length).toBeGreaterThanOrEqual(4);
+    const signatures = questions.map(signatureOf);
+    expect(new Set(signatures).size).toBe(signatures.length);
   });
 });

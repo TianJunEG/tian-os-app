@@ -1,14 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { teacherAPI } from '../../services/api';
-import { Card, Badge, StatusBadge, StatTile, PageHeader, Spinner, ErrorState } from '../../components/ui';
+import { ArrowLeft, Copy, Mail } from 'lucide-react';
+import { teacherAPI, parentInvitesAPI } from '../../services/api';
+import { useEntitlements } from '../../context/useEntitlements';
+import { Card, Badge, Button, StatusBadge, StatTile, PageHeader, Spinner, ErrorState } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
 import StudentSciencePanel from '../../components/StudentSciencePanel';
+
+// Invite a parent/guardian by email to a free, view-only progress dashboard.
+function InviteParentCard({ studentId }) {
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const send = async () => {
+    if (!email.trim()) return;
+    setBusy(true); setError(''); setResult(null);
+    try {
+      const res = await parentInvitesAPI.create({ studentId, email: email.trim() });
+      setResult(res.data);
+      setEmail('');
+    } catch (e) {
+      setError(e?.response?.data?.error || 'Could not send invite.');
+    } finally { setBusy(false); }
+  };
+  const copy = () => { if (result?.inviteUrl) navigator.clipboard?.writeText(result.inviteUrl); };
+  return (
+    <Card className="mt-5 p-5">
+      <div className="mb-2 flex items-center gap-2"><Mail className="h-4 w-4 text-ink-400" /><h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Invite parent</h3></div>
+      <p className="mb-3 text-sm text-ink-500">Send a guardian a free, view-only link to this student's progress.</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@email.com" className="flex-1 min-w-[180px] rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-navy-300" />
+        <Button onClick={send} disabled={busy || !email.trim()} icon={Mail}>{busy ? 'Sending…' : 'Send invite'}</Button>
+      </div>
+      {error ? <p className="mt-2 text-sm text-error-700">{error}</p> : null}
+      {result ? (
+        <div className="mt-3 rounded-lg border border-hairline bg-ivory p-3 text-sm">
+          <p className="text-ink-600">Invite sent to <span className="font-medium text-ink-700">{result.email}</span>.</p>
+          <div className="mt-2 flex items-center gap-2">
+            <code className="min-w-0 flex-1 truncate text-xs text-ink-500">{result.inviteUrl}</code>
+            <Button size="s" variant="secondary" icon={Copy} onClick={copy}>Copy link</Button>
+          </div>
+        </div>
+      ) : null}
+    </Card>
+  );
+}
 
 export default function TeacherStudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { can } = useEntitlements();
   const [data, setData] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const load = () => { setLoadError(false); setData(null); teacherAPI.student(id).then((r) => setData(r.data)).catch(() => setLoadError(true)); };
@@ -63,6 +105,8 @@ export default function TeacherStudentDetail() {
       </div>
 
       <StudentSciencePanel studentId={id} />
+
+      {can('inviteParents') ? <InviteParentCard studentId={id} /> : null}
 
       {mistakes.length > 0 && (
         <Card className="mt-5 p-5">

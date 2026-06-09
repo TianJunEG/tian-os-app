@@ -16,7 +16,8 @@ const FIELDS = [
   ['parentSummary', 'Parent-friendly summary'],
 ];
 
-// Record lesson notes; the parent summary is saved (sending awaits messaging).
+// Record lesson notes; "Send to parent" delivers the summary as an in-app
+// notification to the student's guardians and marks the note sent.
 export default function LessonNotes() {
   const { id } = useParams();
   const meta = useTutorStudent(id);
@@ -26,6 +27,17 @@ export default function LessonNotes() {
   const [saveError, setSaveError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [sendingId, setSendingId] = useState(null);
+
+  const sendToParent = async (noteId) => {
+    setSendingId(noteId);
+    try {
+      await tutorAPI.sendLessonNote(id, noteId);
+      load();
+    } catch {
+      setSaveError("Couldn't send to parent. Please try again.");
+    } finally { setSendingId(null); }
+  };
 
   const load = () => {
     setLoadError(false);
@@ -75,6 +87,13 @@ export default function LessonNotes() {
               </div>
               <p className="text-sm text-ink-700">{n.covered}</p>
               {n.parentSummary && <p className="mt-1 text-sm text-ink-500">Parent: {n.parentSummary}</p>}
+              {n.parentUpdateStatus !== 'sent' && (
+                <Button size="s" variant="secondary" className="mt-3"
+                  disabled={sendingId === n._id}
+                  onClick={() => sendToParent(n._id)}>
+                  {sendingId === n._id ? 'Sending…' : 'Send to parent'}
+                </Button>
+              )}
             </Card>
           ))}
         </div>

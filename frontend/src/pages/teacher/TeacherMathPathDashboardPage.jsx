@@ -1,19 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Clock3, FileText, Users } from 'lucide-react';
+import { AlertTriangle, Clock3, FileText, Search, Users } from 'lucide-react';
 import { teacherAPI, mathpathAPI } from '../../services/api';
-import { buildTeacherMathPathDashboard } from '../../mathpath/dashboard/teacherMathPathDashboardEngine';
 import ClassNav from './ClassNav';
 import { useClass } from './useClass';
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
-
-function toneForIssue(issueType) {
-  if (issueType === 'accurateButSlow') return 'gold';
-  if (issueType === 'fastButInaccurate' || issueType === 'inconsistent') return 'error';
-  return 'neutral';
-}
 
 function toneForSeverity(severity) {
   if (severity === 'high') return 'error';
@@ -21,129 +14,98 @@ function toneForSeverity(severity) {
   return 'neutral';
 }
 
-function syntheticStatusFromMastery(overallMastery = 0) {
-  const score = Number(overallMastery || 0);
-  if (score >= 85) return 'retained';
-  if (score >= 70) return 'fluent';
-  if (score >= 55) return 'accurate';
-  if (score >= 35) return 'learning';
-  return 'needsReview';
+function masteryTone(pct) {
+  if (pct >= 70) return 'navy';
+  if (pct >= 55) return 'gold';
+  return 'error';
 }
 
-function buildSyntheticStudentProgressStates(students = []) {
-  return (students || []).map((s) => {
-    const sid = s.studentId;
-    const baseStatus = syntheticStatusFromMastery(s.overallMastery);
-    const skillStatuses = {
-      F001: baseStatus === 'needsReview' ? 'learning' : 'retained',
-      F010: baseStatus === 'retained' ? 'fluent' : baseStatus === 'fluent' ? 'accurate' : 'needsReview',
-      F018: baseStatus === 'retained' ? 'fluent' : baseStatus === 'fluent' ? 'learning' : 'needsReview',
-      F020: baseStatus === 'retained' ? 'accurate' : 'learning',
-      F023: baseStatus === 'retained' ? 'accurate' : 'learning',
-      F026: baseStatus === 'retained' ? 'learning' : 'notStarted',
-    };
-    if (s.weakestSkill && typeof s.weakestSkill === 'string' && /^F\d{3}$/.test(s.weakestSkill)) {
-      skillStatuses[s.weakestSkill] = 'needsReview';
-    }
-    return {
-      studentId: sid,
-      skillStatuses,
-      masteryProgress: {
-        percentageMastered: Math.max(0, Math.min(100, Number(s.overallMastery || 0))),
-        percentageFluent: Math.max(0, Math.min(100, Number(s.overallMastery || 0) - 20)),
-        percentageRetained: Math.max(0, Math.min(100, Number(s.overallMastery || 0) - 35)),
-      },
-      readinessLevel: {
-        readinessScore: Math.max(0, Math.min(100, Number(s.overallMastery || 0))),
-        readinessBand:
-          Number(s.overallMastery || 0) >= 80 ? 'advanced'
-            : Number(s.overallMastery || 0) >= 65 ? 'ready'
-              : Number(s.overallMastery || 0) >= 45 ? 'progressing'
-                : 'developing',
-      },
-      fluencyState: {
-        questionFamilyResults: [
-          {
-            skillId: 'F020',
-            questionFamilyId: 'QF_F020_001',
-            status: Number(s.overallMastery || 0) >= 70 ? 'accurateButSlow' : 'weak',
-            accuracy: Math.max(40, Math.min(98, Number(s.overallMastery || 0))),
-            averageTime: Number(s.overallMastery || 0) >= 70 ? 24 : 31,
-            benchmarkTime: 18,
-            consistencyScore: Number(s.overallMastery || 0) >= 70 ? 64 : 45,
-            attemptsCount: 6,
-          },
-        ],
-      },
-      retentionProgress: {
-        retainedSkillIds: Number(s.overallMastery || 0) >= 80 ? ['F001', 'F010'] : ['F001'],
-        skillsDueForReview: Number(s.overallMastery || 0) >= 55 ? ['F003'] : ['F003', 'F010'],
-        skillsNeedingRefresh: Number(s.overallMastery || 0) < 55 ? ['F010'] : [],
-      },
-    };
-  });
+// The hero of the page: students who need the teacher's attention this week,
+// sorted by severity, each with the exact skill to target and why.
+function NeedsAttentionCard({ rows = [], onOpenStudent }) {
+  return (
+    <Card className="p-5 border-l-4 border-l-amber-400">
+      <div className="mb-3 flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4 text-amber-500" />
+        <h3 className="text-sm font-semibold text-ink-700">Needs you this week</h3>
+        {rows.length ? <Badge tone="error">{rows.length}</Badge> : null}
+      </div>
+      {rows.length ? (
+        <div className="space-y-2">
+          {rows.map((s) => (
+            <button
+              key={s.studentId}
+              type="button"
+              onClick={() => onOpenStudent?.(s.studentId)}
+              className="w-full rounded-lg border border-hairline p-3 text-left transition hover:border-navy-300 hover:bg-navy-50/40"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-semibold text-ink-700">{s.name}</p>
+                <div className="flex items-center gap-2">
+                  {s.needsInPersonRemediation ? <Badge tone="error">In-person</Badge> : null}
+                  <Badge tone={toneForSeverity(s.severity)}>{s.overallMastery}%</Badge>
+                </div>
+              </div>
+              {s.focusSkill ? (
+                <p className="mt-1 text-sm text-ink-600">
+                  Focus: <span className="font-medium text-ink-700">{s.focusSkill.skillName}</span> ({s.focusSkill.score}%)
+                </p>
+              ) : null}
+              <ul className="mt-1 list-disc pl-5 text-sm text-ink-500">
+                {s.reasons.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-1 text-sm text-ink-500">No students flagged for remediation right now. 🎉</p>
+      )}
+    </Card>
+  );
 }
 
-function buildSyntheticAssessment(students = []) {
-  return (students || []).map((s) => ({
-    studentId: s.studentId,
-    latestScore: Number(s.overallMastery || 0),
-    readinessBand:
-      Number(s.overallMastery || 0) >= 80 ? 'strong'
-        : Number(s.overallMastery || 0) >= 60 ? 'approaching'
-          : Number(s.overallMastery || 0) >= 45 ? 'developing'
-            : 'notReady',
-    weakSkills: s.weakestSkill && /^F\d{3}$/.test(s.weakestSkill) ? [s.weakestSkill] : ['F010'],
-  }));
-}
-
-function buildSyntheticMistakePlans(students = []) {
-  return (students || [])
-    .filter((s) => Number(s.overallMastery || 0) < 75)
-    .map((s) => ({
-      studentId: s.studentId,
-      focusMistakes: [
-        {
-          mistakeCode: Number(s.overallMastery || 0) < 55 ? 'M001' : 'M007',
-          count: Number(s.overallMastery || 0) < 55 ? 3 : 2,
-          highestSeverity: Number(s.overallMastery || 0) < 55 ? 'high' : 'medium',
-        },
-      ],
-      rootCauseSkillIds: Number(s.overallMastery || 0) < 55 ? ['F010'] : ['F011'],
-    }));
-}
-
-function buildSyntheticWorkingSummaries(students = []) {
-  return (students || []).map((s) => ({
-    studentId: s.studentId,
-    averageWorkingQuality: Math.max(45, Math.min(90, Number(s.overallMastery || 0))),
-    missingWorkingCount: Number(s.overallMastery || 0) < 55 ? 2 : Number(s.overallMastery || 0) < 70 ? 1 : 0,
-    missingWorkingQuestions: Number(s.overallMastery || 0) < 70 ? ['q1'] : [],
-    unreadableWorkingQuestions: Number(s.overallMastery || 0) < 45 ? ['q2'] : [],
-  }));
-}
-
-function TeacherClassOverviewCard({ data }) {
+function ClassOverviewCard({ data }) {
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Class Readiness</h3>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div><p className="text-xs text-ink-500">Total</p><p className="font-mono text-xl text-navy-700">{data.totalStudents}</p></div>
-        <div><p className="text-xs text-ink-500">On Track</p><p className="font-mono text-xl text-navy-700">{data.studentsOnTrack}</p></div>
-        <div><p className="text-xs text-ink-500">Need Support</p><p className="font-mono text-xl text-navy-700">{data.studentsNeedingSupport}</p></div>
+        <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-navy-700">{data.totalStudents}</p></div>
+        <div><p className="text-xs text-ink-500">On Track</p><p className="font-mono text-xl text-emerald-600">{data.studentsOnTrack}</p></div>
+        <div><p className="text-xs text-ink-500">Need Support</p><p className="font-mono text-xl text-amber-600">{data.studentsNeedingSupport}</p></div>
         <div><p className="text-xs text-ink-500">Extension</p><p className="font-mono text-xl text-navy-700">{data.studentsReadyForExtension}</p></div>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-ink-600 sm:grid-cols-4">
-        <p>Mastery: {data.averageMastery}%</p>
-        <p>Fluency: {data.averageFluency}%</p>
-        <p>Retention: {data.averageRetention}%</p>
-        <p>Readiness: {data.averageReadiness}%</p>
+      <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-ink-600 sm:grid-cols-3">
+        <p>Avg mastery: {data.averageMastery}%</p>
+        <p>Avg fluency: {data.averageFluency}%</p>
+        <p>With data: {data.studentsWithData}/{data.totalStudents}</p>
       </div>
     </Card>
   );
 }
 
-function SkillMasteryHeatmapCard({ rows = [] }) {
+// Per-domain grasp at a glance — one chip per domain, sorted weakest first.
+function DomainGraspCard({ rows = [] }) {
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-ink-700">Grasp by Domain</h3>
+      {rows.length ? (
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {rows.map((d) => (
+            <div key={d.domain} className="rounded-lg border border-hairline p-3">
+              <div className="flex items-center justify-between">
+                <p className="font-medium text-ink-700">{d.domain}</p>
+                <Badge tone={masteryTone(d.averageMastery)}>{d.averageMastery}%</Badge>
+              </div>
+              <p className="mt-1 text-xs text-ink-500">{d.skillCount} skills · {d.weakCount} weak</p>
+            </div>
+          ))}
+        </div>
+      ) : <p className="mt-2 text-sm text-ink-500">No domain data yet.</p>}
+    </Card>
+  );
+}
+
+function SkillMasteryHeatmapCard({ rows = [], onOpenStudent }) {
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Skill Mastery Heatmap</h3>
@@ -159,18 +121,18 @@ function SkillMasteryHeatmapCard({ rows = [] }) {
                 <th className="px-2 py-2">Fluent</th>
                 <th className="px-2 py-2">Retained</th>
                 <th className="px-2 py-2">Weak</th>
-                <th className="px-2 py-2">Mastery %</th>
+                <th className="px-2 py-2">Class %</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.skillId} className="border-t border-hairline">
+                <tr key={String(row.skillId)} className="border-t border-hairline">
                   <td className="px-2 py-2 text-ink-700">{row.skillName}</td>
                   <td className="px-2 py-2">{row.masteredCount}</td>
                   <td className="px-2 py-2">{row.fluentCount}</td>
                   <td className="px-2 py-2">{row.retainedCount}</td>
-                  <td className="px-2 py-2">{row.weakCount}</td>
-                  <td className="px-2 py-2">{row.classMasteryPercentage}%</td>
+                  <td className="px-2 py-2 text-amber-600">{row.weakCount}</td>
+                  <td className="px-2 py-2"><Badge tone={masteryTone(row.classMasteryPercentage)}>{row.classMasteryPercentage}%</Badge></td>
                 </tr>
               ))}
             </tbody>
@@ -181,150 +143,107 @@ function SkillMasteryHeatmapCard({ rows = [] }) {
   );
 }
 
-function InterventionGroupsCard({ groups = [] }) {
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-ink-700">Intervention Groups</h3>
-      {groups.length ? (
-        <div className="mt-3 space-y-2 text-sm">
-          {groups.map((g) => (
-            <div key={g.groupId} className="rounded-lg border border-hairline p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-semibold text-ink-700">{g.groupName}</p>
-                <Badge tone="navy">{g.estimatedDurationMinutes} min</Badge>
-              </div>
-              <p className="text-ink-600">Focus: {g.focusSkillName}</p>
-              <p className="text-ink-600">Students: {g.studentIds.length}</p>
-              <p className="text-ink-600">Reason: {g.reason}</p>
-              <p className="text-ink-600">Activity: {g.recommendedActivity}</p>
-            </div>
-          ))}
-        </div>
-      ) : <p className="mt-2 text-sm text-ink-500">No intervention groups generated yet.</p>}
-    </Card>
-  );
+const STATUS_FILTERS = [
+  ['all', 'All'],
+  ['flagged', 'Needs support'],
+  ['on_track', 'On track'],
+  ['extension', 'Extension'],
+  ['no_data', 'No data'],
+];
+
+function statusBadge(s) {
+  if (s.status === 'flagged') return <Badge tone={s.severity === 'high' ? 'error' : 'gold'}>Needs support</Badge>;
+  if (s.status === 'extension') return <Badge tone="navy">Extension</Badge>;
+  if (s.status === 'on_track') return <Badge tone="success">On track</Badge>;
+  return <Badge tone="neutral">No data</Badge>;
 }
 
-function ClassFluencyBottlenecksCard({ rows = [] }) {
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-ink-700">Fluency Bottlenecks</h3>
-      {rows.length ? (
-        <div className="mt-3 space-y-2 text-sm">
-          {rows.map((row) => (
-            <div key={`${row.skillId}-${row.issueType}`} className="rounded-lg border border-hairline p-3">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-ink-700">{row.skillName}</p>
-                <Badge tone={toneForIssue(row.issueType)}>{row.issueType}</Badge>
-              </div>
-              <p className="text-ink-600">Affected students: {row.affectedStudentIds.length}</p>
-              <p className="text-ink-600">Time: {row.averageTime}s vs benchmark {row.benchmarkTime}s</p>
-              <p className="text-ink-600">{row.recommendation}</p>
-            </div>
-          ))}
-        </div>
-      ) : <p className="mt-2 text-sm text-ink-500">No class fluency bottlenecks detected yet.</p>}
-    </Card>
-  );
-}
+// Searchable, filterable class roster — the per-student view a teacher scans.
+function StudentRosterCard({ students = [], onOpenStudent }) {
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('all');
 
-function RetentionRisksCard({ rows = [] }) {
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-ink-700">Retention Risks</h3>
-      {rows.length ? (
-        <div className="mt-3 space-y-2 text-sm">
-          {rows.map((row) => (
-            <div key={row.skillId} className="rounded-lg border border-hairline p-3">
-              <p className="font-semibold text-ink-700">{row.skillName}</p>
-              <p className="text-ink-600">Due: {row.studentsDueForReview.length} · At risk: {row.studentsAtRisk.length} · Forgotten: {row.studentsForgotten.length}</p>
-              <p className="text-ink-600">{row.recommendation}</p>
-            </div>
-          ))}
-        </div>
-      ) : <p className="mt-2 text-sm text-ink-500">No retention risk data available yet.</p>}
-    </Card>
-  );
-}
+  const counts = useMemo(() => {
+    const c = { all: students.length, flagged: 0, on_track: 0, extension: 0, no_data: 0 };
+    for (const s of students) c[s.status] = (c[s.status] || 0) + 1;
+    return c;
+  }, [students]);
 
-function AssessmentReadinessCard({ data }) {
-  const hasData = data.latestAssessmentAverage > 0 || (data.strongStudents?.length || data.developingStudents?.length || data.studentsNeedingSupport?.length);
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-ink-700">Assessment Readiness</h3>
-      {hasData ? (
-        <div className="mt-2 space-y-2 text-sm text-ink-600">
-          <p>Latest class average: {data.latestAssessmentAverage}%</p>
-          <p>Distribution: notReady {data.readinessDistribution.notReady}, developing {data.readinessDistribution.developing}, approaching {data.readinessDistribution.approaching}, ready {data.readinessDistribution.ready}, strong {data.readinessDistribution.strong}</p>
-          <p>Strong students: {data.strongStudents.length} · Developing: {data.developingStudents.length} · Need support: {data.studentsNeedingSupport.length}</p>
-          <p>Weak skills across class: {data.weakSkillsAcrossClass?.join(', ') || 'None'}</p>
-        </div>
-      ) : <p className="mt-2 text-sm text-ink-500">No assessment results available yet.</p>}
-    </Card>
-  );
-}
+  const rows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return students.filter((s) => {
+      if (filter !== 'all' && s.status !== filter) return false;
+      if (q && !s.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [students, query, filter]);
 
-function CommonMistakePatternsCard({ rows = [] }) {
   return (
     <Card className="p-5">
-      <h3 className="text-sm font-semibold text-ink-700">Common Mistake Patterns</h3>
-      {rows.length ? (
-        <div className="mt-3 space-y-2 text-sm">
-          {rows.map((row) => (
-            <div key={row.mistakeCode} className="rounded-lg border border-hairline p-3">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-ink-700">{row.mistakeCode} {row.mistakeName}</p>
-                <Badge tone={toneForSeverity(row.severity)}>{row.severity}</Badge>
-              </div>
-              <p className="text-ink-600">Affected students: {row.affectedStudentCount}</p>
-              <p className="text-ink-600">Affected skills: {(row.affectedSkills || []).join(', ') || '—'}</p>
-              <p className="text-ink-600">{row.recommendedClassIntervention}</p>
-            </div>
-          ))}
-        </div>
-      ) : <p className="mt-2 text-sm text-ink-500">No recurring mistake patterns detected yet.</p>}
-    </Card>
-  );
-}
-
-function WorkingQualityOverviewCard({ data }) {
-  return (
-    <Card className="p-5">
-      <h3 className="text-sm font-semibold text-ink-700">Working Quality Overview</h3>
-      <div className="mt-2 space-y-1 text-sm text-ink-600">
-        <p>Average working quality: {data.averageWorkingQuality || 0}</p>
-        <p>Students missing working: {data.studentsMissingWorking?.length || 0}</p>
-        <p>Students with unreadable working: {data.studentsWithUnreadableWorking?.length || 0}</p>
-        <p>Common issues: {(data.commonWorkingIssues || []).join(', ') || 'None'}</p>
+      <h3 className="text-sm font-semibold text-ink-700">Students</h3>
+      <div className="mt-3 flex items-center gap-2 rounded-lg border border-hairline px-3 py-2">
+        <Search className="h-4 w-4 text-ink-400" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by student name…"
+          className="w-full bg-transparent text-sm text-ink-700 outline-none placeholder:text-ink-400"
+        />
       </div>
-      <p className="mt-2 text-sm text-ink-600">{data.recommendation}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {STATUS_FILTERS.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setFilter(key)}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${filter === key ? 'border-navy-700 bg-navy-50 text-navy-700' : 'border-hairline text-ink-500 hover:text-navy-700'}`}
+          >
+            {label} ({counts[key] || 0})
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 divide-y divide-hairline">
+        {rows.length ? rows.map((s) => (
+          <button
+            key={s.studentId}
+            type="button"
+            onClick={() => onOpenStudent?.(s.studentId)}
+            className="flex w-full items-center justify-between gap-3 py-2.5 text-left transition hover:bg-navy-50/40"
+          >
+            <div className="min-w-0">
+              <p className="truncate font-medium text-ink-700">{s.name}</p>
+              {s.focusSkillName ? <p className="truncate text-xs text-ink-500">Focus: {s.focusSkillName}</p> : null}
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="font-mono text-sm text-ink-600">{s.hasData ? `${s.overallMastery}%` : '—'}</span>
+              {statusBadge(s)}
+            </div>
+          </button>
+        )) : <p className="py-3 text-sm text-ink-500">No students match “{query || filter}”.</p>}
+      </div>
     </Card>
   );
 }
 
-function RecommendedTeacherActionsCard({ rows = [], onAssign }) {
+// Lets a teacher with more than one class jump between dashboards.
+function ClassSwitcher({ classes = [], currentId, onChange }) {
+  if (!classes || classes.length < 2) return null;
   return (
-    <Card className="p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-ink-700">Recommended Teacher Actions</h3>
-        <Button size="s" icon={ArrowRight} onClick={onAssign}>Assign Intervention</Button>
-      </div>
-      {rows.length ? (
-        <div className="space-y-2 text-sm">
-          {rows.map((row) => (
-            <div key={`${row.actionType}-${row.priority}-${row.title}`} className="rounded-lg border border-hairline p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-semibold text-ink-700">P{row.priority}: {row.title}</p>
-                <Badge tone="navy">{row.estimatedDurationMinutes} min</Badge>
-              </div>
-              <p className="text-ink-600">{row.actionType} · {row.description}</p>
-              <p className="text-ink-600">Target students: {row.targetStudentIds?.length || 0}</p>
-              <p className="text-ink-600">Target skills: {(row.targetSkillIds || []).join(', ') || '—'}</p>
-            </div>
-          ))}
-        </div>
-      ) : <p className="text-sm text-ink-500">No actions recommended yet.</p>}
-    </Card>
+    <div className="mb-4 flex items-center gap-2">
+      <Users className="h-4 w-4 text-ink-400" />
+      <select
+        value={currentId}
+        onChange={(e) => onChange(e.target.value)}
+        className="rounded-lg border border-hairline bg-paper px-3 py-1.5 text-sm font-semibold text-ink-700 outline-none focus:border-navy-300"
+      >
+        {classes.map((c) => (
+          <option key={c.classId} value={c.classId}>
+            {c.name}{c.level ? ` · ${c.level}` : ''} ({c.studentCount})
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 
@@ -332,44 +251,53 @@ export default function TeacherMathPathDashboardPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const meta = useClass(id);
-  const [students, setStudents] = useState(null);
-  const [error, setError] = useState(false);
   const [dashboard, setDashboard] = useState(null);
+  const [error, setError] = useState(false);
   const [placedCount, setPlacedCount] = useState(0);
+  const [studentCount, setStudentCount] = useState(0);
   const [workingReview, setWorkingReview] = useState(null);
   const [classDiagnosticGrowth, setClassDiagnosticGrowth] = useState(null);
+  const [classes, setClasses] = useState([]);
+
+  const openStudent = useCallback((sid) => navigate(`/teacher/students/${sid}`), [navigate]);
+
+  useEffect(() => {
+    let alive = true;
+    teacherAPI.classes().then((r) => { if (alive) setClasses(r?.data?.classes || []); }).catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const load = useCallback(async () => {
     setError(false);
-    setStudents(null);
     setDashboard(null);
     try {
-      const [studentsRes, workingRes] = await Promise.all([
+      const [dashRes, studentsRes, workingRes] = await Promise.all([
+        teacherAPI.classDashboard(id),
         teacherAPI.classStudents(id),
         mathpathAPI.workingReviewSummary({ limit: 100 }),
       ]);
-      const list = studentsRes?.data?.students || [];
-      setStudents(list);
+      setDashboard(dashRes?.data || null);
       setWorkingReview(workingRes?.data || null);
+      const list = studentsRes?.data?.students || [];
+      setStudentCount(list.length);
+
+      // Real diagnostic placement + growth (these endpoints are already real).
       const placementRows = await Promise.all(
         list.map(async (s) => {
           try {
             const r = await mathpathAPI.getLatestDiagnostic({ studentId: s.studentId });
             return Boolean(r?.data?.hasPlacement);
-          } catch (_) {
-            return false;
-          }
+          } catch (_) { return false; }
         })
       );
       setPlacedCount(placementRows.filter(Boolean).length);
+
       const growthRows = await Promise.all(
         list.slice(0, 30).map(async (s) => {
           try {
             const r = await mathpathAPI.getDiagnosticGrowth({ studentId: s.studentId });
             return r?.data || null;
-          } catch (_) {
-            return null;
-          }
+          } catch (_) { return null; }
         })
       );
       const validGrowth = growthRows.filter((row) => row?.latest);
@@ -378,9 +306,7 @@ export default function TeacherMathPathDashboardPage() {
         if (!values.length) return null;
         return Math.round(values.reduce((sum, n) => sum + n, 0) / values.length);
       };
-      const avgImprovement = validGrowth
-        .map((row) => Number(row.overallImprovement))
-        .filter(Number.isFinite);
+      const avgImprovement = validGrowth.map((row) => Number(row.overallImprovement)).filter(Number.isFinite);
       setClassDiagnosticGrowth(validGrowth.length ? {
         baseline: { readinessScore: avg(validGrowth, 'baseline') },
         latest: { readinessScore: avg(validGrowth, 'latest'), completedAt: validGrowth[0]?.latest?.completedAt },
@@ -390,20 +316,6 @@ export default function TeacherMathPathDashboardPage() {
         perSkillGrowth: validGrowth.flatMap((row) => row.perSkillGrowth || []),
         remainingWeakSkills: [...new Set(validGrowth.flatMap((row) => row.remainingWeakSkills || []))],
       } : null);
-      const studentProgressStates = buildSyntheticStudentProgressStates(list);
-      const assessmentResults = buildSyntheticAssessment(list);
-      const mistakePlans = buildSyntheticMistakePlans(list);
-      const workingAnalysisSummaries = buildSyntheticWorkingSummaries(list);
-      const result = buildTeacherMathPathDashboard({
-        teacherId: 'teacher',
-        classId: id,
-        domainId: 'fractions',
-        studentProgressStates,
-        assessmentResults,
-        mistakePlans,
-        workingAnalysisSummaries,
-      });
-      setDashboard(result);
     } catch (_) {
       setError(true);
     }
@@ -411,27 +323,32 @@ export default function TeacherMathPathDashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const hasData = useMemo(() => (students || []).length > 0, [students]);
+  const hasData = useMemo(
+    () => Boolean(dashboard?.classOverview?.studentsWithData),
+    [dashboard]
+  );
 
   if (error) return <ErrorState message="Couldn't load Teacher MathPath dashboard." onRetry={load} />;
-  if (!students || !dashboard) return <Spinner label="Loading Teacher MathPath dashboard…" />;
+  if (!dashboard) return <Spinner label="Loading Teacher MathPath dashboard…" />;
 
   return (
     <>
       <ClassNav classId={id} name={meta?.name || 'Class'} level={meta?.level} />
+      <ClassSwitcher classes={classes} currentId={id} onChange={(cid) => navigate(`/teacher/classes/${cid}/mathpath`)} />
       <PageHeader
         title="Teacher MathPath Dashboard"
-        subtitle="Fractions intervention pilot view of class-level mastery, fluency, retention, readiness, and actions."
+        subtitle="Class-level mastery, fluency, per-domain grasp, and the students who need you most this week."
         action={<Button onClick={() => navigate(`/teacher/classes/${id}/assign`)}>Assign Intervention</Button>}
       />
       <Card className="mb-4 p-4">
-        <p className="text-sm text-ink-600">Students with saved Fractions placement: <span className="font-semibold text-ink-700">{placedCount}/{students.length}</span></p>
+        <p className="text-sm text-ink-600">Students with saved Fractions placement: <span className="font-semibold text-ink-700">{placedCount}/{studentCount}</span></p>
       </Card>
 
-      {!hasData ? (
-        <EmptyState message="No MathPath data available for this class yet." />
-      ) : (
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <NeedsAttentionCard rows={dashboard.flaggedStudents || []} onOpenStudent={openStudent} />
+        <ClassOverviewCard data={dashboard.classOverview} />
+
+        {classDiagnosticGrowth ? (
           <DiagnosticGrowthCard
             title="Class Diagnostic Growth"
             growth={classDiagnosticGrowth}
@@ -439,40 +356,35 @@ export default function TeacherMathPathDashboardPage() {
             onRunRecheck={() => navigate(`/teacher/classes/${id}/assign?task=diagnostic_recheck`)}
             onAssignRecovery={() => navigate(`/teacher/classes/${id}/assign?task=recovery_pack`)}
           />
-          <TeacherClassOverviewCard data={dashboard.classOverview} />
-          <AdultWorkingReviewPanel review={workingReview || {}} title="Class Working and Help Requests" />
+        ) : null}
 
-          <RecommendedTeacherActionsCard
-            rows={dashboard.recommendedTeacherActions}
-            onAssign={() => navigate(`/teacher/classes/${id}/assign`)}
-          />
+        {!hasData ? (
+          <EmptyState message="No MathPath activity for this class yet. Once students complete work, their grasp and flags appear here." />
+        ) : (
+          <>
+            <DomainGraspCard rows={dashboard.domains || []} />
+            <StudentRosterCard students={dashboard.students || []} onOpenStudent={openStudent} />
+            <AdultWorkingReviewPanel review={workingReview || {}} title="Class Working and Help Requests" />
 
-          <CollapsibleSection
-            title="Class diagnostic details"
-            summary="Skill heatmap, intervention groups, fluency, retention, assessment readiness, mistakes, and working quality."
-            surface={false}
-            action={<Button size="s" variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath/test-spec`)}>School Test</Button>}
-          >
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-              <SkillMasteryHeatmapCard rows={dashboard.skillMasteryHeatmap} />
-              <InterventionGroupsCard groups={dashboard.interventionGroups} />
-              <ClassFluencyBottlenecksCard rows={dashboard.fluencyBottlenecks} />
-              <RetentionRisksCard rows={dashboard.retentionRisks} />
-              <AssessmentReadinessCard data={dashboard.assessmentReadiness} />
-              <CommonMistakePatternsCard rows={dashboard.commonMistakePatterns} />
-              <WorkingQualityOverviewCard data={dashboard.workingQualityOverview} />
-            </div>
-          </CollapsibleSection>
+            <CollapsibleSection
+              title="Skill detail"
+              summary="Per-skill mastery heatmap across the class."
+              surface={false}
+              action={<Button size="s" variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath/test-spec`)}>School Test</Button>}
+            >
+              <SkillMasteryHeatmapCard rows={dashboard.skillHeatmap || []} onOpenStudent={openStudent} />
+            </CollapsibleSection>
 
-          <CollapsibleSection title="Secondary actions" summary="Review groups and mini lesson tools." surface={false}>
-            <div className="flex flex-wrap gap-2">
-              <Button size="s" variant="secondary" icon={FileText} onClick={() => navigate(`/teacher/classes/${id}/assign?module=Mastery%20Worksheet&worksheetType=class`)}>Generate Worksheet</Button>
-              <Button size="s" variant="secondary" icon={Users} onClick={() => navigate(`/teacher/classes/${id}/groups`)}>Assign Review Groups</Button>
-              <Button size="s" variant="secondary" icon={Clock3} onClick={() => navigate(`/teacher/classes/${id}/interventions`)}>Start Mini Lesson</Button>
-            </div>
-          </CollapsibleSection>
-        </div>
-      )}
+            <CollapsibleSection title="Secondary actions" summary="Review groups and mini lesson tools." surface={false}>
+              <div className="flex flex-wrap gap-2">
+                <Button size="s" variant="secondary" icon={FileText} onClick={() => navigate(`/teacher/classes/${id}/assign?module=Mastery%20Worksheet&worksheetType=class`)}>Generate Worksheet</Button>
+                <Button size="s" variant="secondary" icon={Users} onClick={() => navigate(`/teacher/classes/${id}/groups`)}>Assign Review Groups</Button>
+                <Button size="s" variant="secondary" icon={Clock3} onClick={() => navigate(`/teacher/classes/${id}/interventions`)}>Start Mini Lesson</Button>
+              </div>
+            </CollapsibleSection>
+          </>
+        )}
+      </div>
     </>
   );
 }

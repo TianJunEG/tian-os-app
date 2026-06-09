@@ -14,7 +14,7 @@ const workspaceSchema = new mongoose.Schema({
   // The role exercised inside this workspace (drives available features).
   role: {
     type: String,
-    enum: ['parent', 'tutor', 'teacher', 'admin'],
+    enum: ['parent', 'tutor', 'teacher', 'admin', 'school_admin'],
     required: true
   },
   ownerUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

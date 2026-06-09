@@ -33,6 +33,7 @@ const familiesBySkillBlueprint = {
     { name: 'Reject Non-Fraction Partitions', description: 'Distinguish equal vs unequal partitions.', difficulty: 2, fluencyTargetSeconds: 22, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M003', 'M010'] },
     { name: 'Check Equal-Sized Parts', description: 'Identify when shaded counts are misleading because parts are unequal.', difficulty: 2, fluencyTargetSeconds: 22, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M003', 'M010'] },
     { name: 'Complete-Whole Recognition', description: 'Decide whether a figure represents a complete whole before naming the fraction.', difficulty: 3, fluencyTargetSeconds: 24, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M003', 'M001'] },
+    { name: 'Composite Figure Fraction Identification', description: 'Identify shaded fraction of a figure made from identical sub-shapes such as triangles or rectangles.', difficulty: 3, fluencyTargetSeconds: 26, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M003', 'M001', 'M010'] },
   ],
   F002: [
     { name: 'Name Numerator and Denominator', description: 'Label top and bottom numbers correctly.', difficulty: 1, fluencyTargetSeconds: 16, workingRequired: false, mentalMathEligible: true, misconceptionTags: ['M003', 'M010'] },
@@ -55,6 +56,8 @@ const familiesBySkillBlueprint = {
     { name: 'Locate Unit Fractions on Number Lines', description: 'Place simple unit fractions on 0-1 lines.', difficulty: 2, fluencyTargetSeconds: 18, misconceptionTags: ['M003'] },
     { name: 'Locate Non-Unit Fractions on Number Lines', description: 'Place fractions like 3/4 or 5/6 correctly.', difficulty: 2, fluencyTargetSeconds: 20, misconceptionTags: ['M003'] },
     { name: 'Compare Positions on Number Lines', description: 'Use number-line positions to compare values.', difficulty: 3, fluencyTargetSeconds: 22, misconceptionTags: ['M001'] },
+    { name: 'Read Fraction from Number Line Position', description: 'Read the fraction indicated by an arrow or mark on a 0-1 number line with equal intervals.', difficulty: 2, fluencyTargetSeconds: 20, workingRequired: false, mentalMathEligible: true, misconceptionTags: ['M003', 'M001'] },
+    { name: 'Number Line Reading with Operation', description: 'Read fractions from two number lines and compute their sum or difference.', difficulty: 4, fluencyTargetSeconds: 30, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M003', 'M007'] },
   ],
   F006: [
     { name: 'Compare Unit Fractions by Denominator', description: 'Compare 1/a and 1/b with denominator logic.', difficulty: 2, fluencyTargetSeconds: 14, workingRequired: false, mentalMathEligible: true, misconceptionTags: ['M001'] },
@@ -75,16 +78,19 @@ const familiesBySkillBlueprint = {
     { name: 'Order Fractions with Same Denominator', description: 'Quick ordering where denominator is fixed.', difficulty: 2, fluencyTargetSeconds: 16, mentalMathEligible: true, misconceptionTags: ['M003'] },
     { name: 'Order Fractions with Related Denominators', description: 'Order by converting to shared denominator.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M004'] },
     { name: 'Order Unlike Fraction Sets', description: 'Order broader sets including distractors.', difficulty: 4, fluencyTargetSeconds: 24, misconceptionTags: ['M004'] },
+    { name: 'Evaluate Multiple Comparison Statements', description: 'Decide whether each of several fraction comparison statements is true or false.', difficulty: 3, fluencyTargetSeconds: 26, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M004', 'M002'] },
   ],
   F010: [
     { name: 'Recognise Equivalent Fractions', description: 'Identify equivalent fractions in pairs.', difficulty: 2, fluencyTargetSeconds: 16, workingRequired: false, mentalMathEligible: true, misconceptionTags: ['M004'] },
     { name: 'Equivalent Fractions from Visual Models', description: 'Match equivalent values using bars/areas.', difficulty: 2, fluencyTargetSeconds: 20, misconceptionTags: ['M004'] },
     { name: 'Equivalent Fraction Validation', description: 'Confirm if statements are equivalent or not.', difficulty: 3, fluencyTargetSeconds: 22, misconceptionTags: ['M004'] },
+    { name: 'Identify Non-Equivalent Fraction', description: 'Pick the odd-one-out fraction that is NOT equivalent to the others in a set.', difficulty: 3, fluencyTargetSeconds: 22, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M004', 'M005'] },
   ],
   F011: [
     { name: 'Generate Equivalents by Multiplication', description: 'Scale numerator and denominator by same factor.', difficulty: 2, fluencyTargetSeconds: 16, mentalMathEligible: true, misconceptionTags: ['M004', 'M005'] },
     { name: 'Generate Missing Terms in Equivalents', description: 'Fill blanks in equivalent-fraction equations.', difficulty: 3, fluencyTargetSeconds: 18, misconceptionTags: ['M004', 'M005'] },
     { name: 'Generate Multi-Step Equivalent Chains', description: 'Create multiple equivalent forms progressively.', difficulty: 3, fluencyTargetSeconds: 22, misconceptionTags: ['M004', 'M010'] },
+    { name: 'Two-Unknown Equivalent Fraction Chain', description: 'Find two missing values in a chain like A/4 = 6/8 = 9/B using cross-multiplication.', difficulty: 4, fluencyTargetSeconds: 28, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M004', 'M005', 'M010'] },
     { name: 'Compare Same Denominator with Equality Cases', description: 'Compare same-denominator fractions including equal numerators.', difficulty: 2, fluencyTargetSeconds: 16, mentalMathEligible: true, misconceptionTags: ['M003', 'M002'] },
     { name: 'Visual Same-Denominator Comparison Checks', description: 'Match same-denominator symbolic comparison with model evidence.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M003', 'M010'] },
   ],
@@ -121,6 +127,7 @@ const familiesBySkillBlueprint = {
     { name: 'Add Like Fractions (Simplify Result)', description: 'Add and simplify final fraction where needed.', difficulty: 3, fluencyTargetSeconds: 16, mentalMathEligible: true, misconceptionTags: ['M007', 'M005'] },
     { name: 'Add Like Fractions in Context', description: 'Apply addition in short context problems.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M007'] },
     { name: 'Add Like Fractions with Improper Result', description: 'Add like fractions and convert improper result to mixed number.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M007', 'answer_form_mismatch', 'mixed_number_conversion_error'] },
+    { name: 'Find Missing Addend in Fraction Equation', description: 'Determine the missing fraction in equations like ? + 1/2 = 3/4 or 6/10 + ? = 1.', difficulty: 3, fluencyTargetSeconds: 22, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M007', 'M004'] },
   ],
   F017: [
     { name: 'Subtract Like Fractions (No Regrouping)', description: 'Subtract fractions with same denominator directly.', difficulty: 2, fluencyTargetSeconds: 12, mentalMathEligible: true, misconceptionTags: ['M007'] },
@@ -141,6 +148,7 @@ const familiesBySkillBlueprint = {
     { name: 'Subtract Unlike Fractions (Independent)', description: 'Independently convert and subtract unlike fractions.', difficulty: 4, fluencyTargetSeconds: 24, misconceptionTags: ['M007', 'M004'] },
     { name: 'Subtract Unlike Fractions (Regrouping Cases)', description: 'Handle regrouping through mixed number conversions.', difficulty: 4, fluencyTargetSeconds: 30, misconceptionTags: ['M007', 'M006'] },
     { name: 'Subtract Unlike Fractions in Context', description: 'Apply unlike-fraction subtraction in contexts.', difficulty: 5, fluencyTargetSeconds: 34, misconceptionTags: ['M007', 'M008'] },
+    { name: 'Find Missing Subtrahend in Fraction Equation', description: 'Determine the missing fraction in equations like 11/12 - ?/3 = 1/4.', difficulty: 4, fluencyTargetSeconds: 28, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M007', 'M004'] },
   ],
   F020: [
     { name: 'Unit Fractions of Quantity', description: 'Compute unit fractions of whole-number quantities.', difficulty: 2, fluencyTargetSeconds: 16, mentalMathEligible: true, misconceptionTags: ['M008'] },
@@ -149,6 +157,7 @@ const familiesBySkillBlueprint = {
     { name: 'Fraction of Quantity (Non-Multiples)', description: 'Handle non-multiple values requiring decomposition.', difficulty: 4, fluencyTargetSeconds: 28, misconceptionTags: ['M008', 'M010'] },
     { name: 'Fraction of Quantity Word Problems', description: 'Apply fraction-of-quantity to realistic contexts.', difficulty: 4, fluencyTargetSeconds: 34, misconceptionTags: ['M008'] },
     { name: 'Fraction of Quantity Multi-Step Applications', description: 'Solve exam-style multi-step quantity scenarios.', difficulty: 5, fluencyTargetSeconds: 42, misconceptionTags: ['M008', 'M010'] },
+    { name: 'Shade Additional Parts to Reach Target Fraction', description: 'Given a partially shaded figure, determine how many more parts to shade so the figure shows a target fraction.', difficulty: 3, fluencyTargetSeconds: 26, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M003', 'M008'] },
   ],
   F021: [
     { name: 'Multiply Fraction by Whole Number', description: 'Use repeated-addition and direct multiplication forms.', difficulty: 3, fluencyTargetSeconds: 18, misconceptionTags: ['M009'] },
@@ -171,6 +180,7 @@ const familiesBySkillBlueprint = {
     { name: 'Short Structured Responses', description: 'Word problems requiring clear working lines.', difficulty: 5, fluencyTargetSeconds: 48, misconceptionTags: ['M008', 'M010'] },
     { name: 'Ratio with Fractions and Decimals', description: 'Solve ratio items involving fractional and decimal terms.', difficulty: 5, fluencyTargetSeconds: 44, misconceptionTags: ['M008', 'M012'] },
     { name: 'Set-Based Fraction Counting', description: 'Find fractional parts of object sets using count-based reasoning.', difficulty: 3, fluencyTargetSeconds: 24, misconceptionTags: ['M003', 'M008'] },
+    { name: 'Fraction Remainder After Multiple Events', description: 'Find the fraction remaining after two or more fractional parts are removed from a whole.', difficulty: 4, fluencyTargetSeconds: 32, workingRequired: true, mentalMathEligible: false, misconceptionTags: ['M008', 'M007'] },
   ],
   F024: [
     { name: 'Two-Step Fraction Problems', description: 'Solve two-step fraction procedures with explicit sequencing.', difficulty: 4, fluencyTargetSeconds: 40, misconceptionTags: ['M008', 'M010'] },

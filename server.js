@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
@@ -46,12 +49,21 @@ import familyRoutes from './routes/family.js';
 import tutorWorkspaceRoutes from './routes/tutor.js';
 import tutorInviteRoutes from './routes/tutorInvites.js';
 import teacherRoutes from './routes/teacher.js';
+import schoolAdminRoutes from './routes/schoolAdmin.js';
+import parentInviteRoutes from './routes/parentInvites.js';
+import joinRoutes from './routes/join.js';
+import billingRoutes from './routes/billing.js';
 import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
 import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
 import assessmentUploadRoutes from './routes/assessmentUploads.js';
+import notificationRoutes from './routes/notifications.js';
+import recordingRoutes from './routes/recordings.js';
+import adminLicenceRoutes from './routes/adminLicences.js';
+import agencyRoutes from './routes/agency.js';
+import studentLinkRoutes from './routes/studentLinks.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -67,6 +79,17 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
+// ── Serve the built React frontend's static assets EARLY ──────────────
+// Mounted before CORS and rate-limiter so that JS / CSS / image bundles
+// from frontend/dist are never rejected by the CORS origin allowlist and
+// are not counted against API rate limits.  The SPA catch-all (index.html
+// fallback for client-side routing) is mounted later, after all API routes.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const clientDist = path.resolve(__dirname, 'frontend', 'dist');
+if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+  app.use(express.static(clientDist));
+}
+
 // Allowed origins come from CORS_ORIGIN (comma-separated); defaults to local dev.
 // Vercel preview domains are also allowed by pattern.
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
@@ -75,6 +98,13 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000,http:/
   .filter(Boolean);
 const frontendUrl = (process.env.FRONTEND_URL || '').trim();
 if (frontendUrl) allowedOrigins.push(frontendUrl);
+
+// When running on Railway, auto-allow the service's own public URL so that
+// same-origin browser requests (which still send an Origin header for fetch /
+// module-script loads) are not rejected by the CORS middleware.
+const railwayPublicDomain = (process.env.RAILWAY_PUBLIC_DOMAIN || '').trim();
+if (railwayPublicDomain) allowedOrigins.push(`https://${railwayPublicDomain}`);
+
 const vercelPreviewRegex = /^https:\/\/[a-z0-9-]+(\-[a-z0-9-]+)*\.vercel\.app$/i;
 const localDevOriginRegex = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
 
@@ -127,6 +157,9 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/partners', adminPartnerRoutes);
+app.use('/api/admin/partners/:pid/licence', adminLicenceRoutes);
+app.use('/api/agency', agencyRoutes);
+app.use('/api/student-links', studentLinkRoutes);
 // Structured worksheet generator must mount BEFORE the legacy /api/worksheets
 // router so /gen/* is not captured by its /:id route.
 app.use('/api/worksheets/gen', featureGate({ feature: 'worksheets', minVersion: 'v0.2' }), worksheetGenRoutes);
@@ -159,14 +192,38 @@ app.use('/api/skills', skillRoutes);
 // Pilot hotfix: keep family endpoints reachable in v0.1 baseline builds.
 app.use('/api/family', featureGate({ feature: 'parent', minVersion: 'v0.1' }), familyRoutes);
 app.use('/api/tutor/invites', featureGate({ feature: 'tutor', minVersion: 'v0.1' }), tutorInviteRoutes);
+// Mounted before /api/tutor so /recordings isn't shadowed by the workspace router.
+app.use('/api/tutor/recordings', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), recordingRoutes);
 app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
 app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
+app.use('/api/school-admin', schoolAdminRoutes);
+app.use('/api/parent-invites', parentInviteRoutes);
+app.use('/api/join', joinRoutes);
+app.use('/api/billing', billingRoutes);
 app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
 app.use('/api/assessment-uploads', assessmentUploadRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+// SPA fallback: every non-API path that didn't match a real static file
+// in frontend/dist gets index.html so client-side routing works.
+// (express.static is mounted earlier — before CORS — so asset requests
+// are already handled by the time we reach here.)
+if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+  app.get('*', (req, res, next) => {
+    if (
+      req.path.startsWith('/api') ||
+      req.path.startsWith('/uploads') ||
+      req.path === '/healthz'
+    ) {
+      return next();
+    }
+    return res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use(notFoundHandler);

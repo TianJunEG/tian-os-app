@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "npm install --prefix frontend && npm run build --prefix frontend",
+    "build": "npm install --prefix frontend --include=dev && npm run build --prefix frontend",
     "seed:demo": "node scripts/seedDemo.js",
     "seed:foundation": "node scripts/seedFoundation.js",
     "seed:questions": "node scripts/seedQuestions.js",
@@ -37,6 +37,9 @@
     "seed:all": "node seed-tutors.js && node seed-reviews.js",
     "seed:fresh": "node clear-db.js && node seed-tutors.js && node seed-reviews.js",
     "test": "vitest run",
+    "purge:recordings": "node scripts/purgeExpiredRecordings.js",
+    "digest:weekly": "node scripts/sendWeeklyParentDigest.js",
+    "remind:trials": "node scripts/sendTrialEndingReminders.js",
     "capture:skills": "node scripts/captureSkillPanels.js",
     "qa:pilot:preflight": "node scripts/qa-pilot-preflight.js",
     "qa:pilot:backend": "node scripts/qa-e2e-safe.js && node scripts/qa-founder-bundle-safe.js && node scripts/qa-mathpath-dashboard-contract.js",

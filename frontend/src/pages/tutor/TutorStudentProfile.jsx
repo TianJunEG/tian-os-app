@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Pencil, CheckCircle2 } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
 import TutorStudentNav from './TutorStudentNav';
 import { Card, Button, Badge, StatusBadge, StatTile, Spinner, ErrorState } from '../../components/ui';
@@ -60,6 +60,16 @@ export default function TutorStudentProfile() {
                   </div>
                   <p className="text-xs font-semibold text-ink-500">{MISTAKE_LEARNING_LABEL[m.learningStatus || 'new'] || 'Learning'}</p>
                   <p className="text-ink-500"><MathText text={m.questionStem} /></p>
+                  <button
+                    onClick={() => navigate(`/tutor/students/${id}/mistakes/${m.id}/explain`)}
+                    className="mt-1.5 inline-flex items-center gap-1 rounded-lg border border-hairline bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition hover:bg-navy-50"
+                  >
+                    {m.hasTutorExplanation ? (
+                      <><CheckCircle2 className="h-3.5 w-3.5 text-success-600" /> Edit explanation</>
+                    ) : (
+                      <><Pencil className="h-3.5 w-3.5" /> Record explanation</>
+                    )}
+                  </button>
                 </li>
               ))}
             </ul>

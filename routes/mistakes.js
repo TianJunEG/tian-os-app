@@ -109,6 +109,15 @@ router.get('/', protect, async (req, res) => {
     filter.module = req.query.module || 'MathPath';
     // Exclude demo/test data created by seed scripts unless explicitly requested.
     if (req.query.includeSeeded !== 'true') filter.seeded = { $ne: true };
+    // The Fractions intervention pilot review must show fraction mistakes only.
+    // Fraction practice mistakes carry a framework skill code (F001–F026); fluency
+    // drills (e.g. "7 + 4", "8 × 11") and other DB-served items do not. Scoping by
+    // ?domain=fractions keeps times-table/fluency slips out of the fractions review
+    // so they are not mistaken for fraction gaps. Opt-in, so other callers are
+    // unaffected. Fluency slips are surfaced separately by the fluency module.
+    if (String(req.query.domain || '').toLowerCase() === 'fractions') {
+      filter.skillCode = { $regex: /^F\d{3}$/i };
+    }
 
     const mistakes = await Mistake.find(filter)
       .populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } })
@@ -136,6 +145,13 @@ router.get('/', protect, async (req, res) => {
       ...(await loadWorkingInsightForMistake(m, student._id)),
       ...shapeMistakeLearningFields(m),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
+      // Tutor explanation for list view: include strokes for inline replay but
+      // omit the heavy base64 image (only needed as fallback in the detail view).
+      tutorExplanation: m.tutorExplanation?.recordedAt ? {
+        strokes: m.tutorExplanation.strokes || [],
+        recordedAt: m.tutorExplanation.recordedAt,
+        durationMs: m.tutorExplanation.durationMs || null,
+      } : null,
     })));
 
     // Group by skill for the home/weak-skills view.
@@ -236,6 +252,12 @@ router.get('/:id', protect, async (req, res) => {
       ...(await loadWorkingInsightForMistake(m, m.studentId)),
       ...shapeMistakeLearningFields(m),
       status: m.status, reviewed: m.reviewed, reviewedAt: m.reviewedAt, occurredAt: m.occurredAt, timestamp: m.timestamp || m.occurredAt,
+      tutorExplanation: m.tutorExplanation?.recordedAt ? {
+        strokes: m.tutorExplanation.strokes || [],
+        image: m.tutorExplanation.image || '',
+        recordedAt: m.tutorExplanation.recordedAt,
+        durationMs: m.tutorExplanation.durationMs || null,
+      } : null,
     });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake.' });

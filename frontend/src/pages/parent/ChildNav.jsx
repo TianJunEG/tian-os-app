@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { Button } from '../../components/ui';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 
 // Shared header + tab strip for the parent's per-child screens. Keeps the child
 // context visible and navigation consistent across progress / weak topics /
@@ -22,9 +23,9 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
     ['Weak topics', `${base}/weak-topics`, true],
     ['Practice Tasks', `${base}/assignments`, true],
     ['Worksheets', `${base}/worksheets`, false],
-    ['Science', `${base}/science`, true],
-    ['LifeLab', `${base}/lifelab`, true],
-  ];
+    FEATURE_FLAGS.science && ['Science', `${base}/science`, true],
+    FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`, true],
+  ].filter(Boolean);
   return (
     <div className="mb-5">
       <button onClick={() => navigate('/parent/children')} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">

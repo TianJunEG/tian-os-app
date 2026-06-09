@@ -1475,7 +1475,27 @@ export default function PracticeSession() {
       </div>
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono tabular-nums">Question {idx + 1} of {questions.length}</span>
-        <span className="font-mono">{elapsedSec}s</span>
+        <div className="flex items-center gap-3">
+          <span className="font-mono">{elapsedSec}s</span>
+          <button
+            type="button"
+            onClick={() => {
+              // Leaving mid-session never completes the session or counts toward
+              // mastery — completion only happens when the student finishes. Confirm
+              // only when there is in-progress work that would be lost.
+              const exitTo = location.state?.homeBase || location.state?.backTo || '/student/mathpath';
+              const hasProgress = responses.length > 0 || Boolean(answer);
+              if (hasProgress && typeof window !== 'undefined'
+                && !window.confirm('Exit practice? This session won’t be saved and won’t count yet. You can start again any time.')) {
+                return;
+              }
+              navigate(exitTo, { replace: true });
+            }}
+            className="rounded-lg border border-hairline bg-white px-3 py-1 text-xs font-semibold text-ink-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+          >
+            Exit practice
+          </button>
+        </div>
       </div>
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-4" barClassName={visualStyles.progress} />
 
@@ -1619,7 +1639,7 @@ export default function PracticeSession() {
       />
       <SubmissionReviewModal
         open={submissionReviewOpen}
-        title="Review your response"
+        title="Before you submit"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
         onReflectionChange={(value) => setReflection(value)}

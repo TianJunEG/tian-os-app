@@ -8,6 +8,7 @@ import Mistake from '../models/Mistake.js';
 import Assignment from '../models/Assignment.js';
 import TutorStudentLink from '../models/TutorStudentLink.js';
 import LessonNote from '../models/LessonNote.js';
+import StudentGuardian from '../models/StudentGuardian.js';
 import TutorAvailability from '../models/TutorAvailability.js';
 import TutorCertification from '../models/TutorCertification.js';
 import { buildLessonPrep } from '../utils/tutorLessonPrep.js';
@@ -17,6 +18,7 @@ import {
   listPartnerStudentIdsForUser,
   userCanAccessPartnerStudent,
 } from '../services/partners/partnerAccessService.js';
+import { notify } from '../services/notifications/notificationService.js';
 
 const router = express.Router();
 
@@ -119,6 +121,7 @@ router.get('/students/:id', async (req, res) => {
       correctAnswer: m.correctAnswer,
       learningStatus: m.learningStatus || (m.reviewed ? 'acknowledged' : 'new'),
       masteryEvidence: m.masteryEvidence || {},
+      hasTutorExplanation: Boolean(m.tutorExplanation?.recordedAt),
     })),
     assignments: assignments.map((a) => ({ id: a._id, module: a.module, status: a.status, score: a.score, skillNames: a.skillIds.map((s) => s.name), dueDate: a.dueDate })),
     lessonNotes: notes.map((n) => ({ id: n._id, covered: n.covered, createdAt: n.createdAt, parentUpdateStatus: n.parentUpdateStatus })),
@@ -182,6 +185,119 @@ router.post('/students/:id/lesson-notes', async (req, res) => {
     parentUpdateStatus: 'draft',
   });
   res.status(201).json({ lessonNote: note });
+});
+
+// @route POST /api/tutor/students/:id/lesson-notes/:noteId/send
+// Delivers a lesson note's parent summary to the student's guardians as an
+// in-app notification and marks it sent. Idempotent: re-sending a 'sent' note
+// notifies no one again.
+router.post('/students/:id/lesson-notes/:noteId/send', async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  const note = await LessonNote.findOne({
+    _id: req.params.noteId, studentId: student._id, workspaceId: req.workspaceId,
+  });
+  if (!note) return res.status(404).json({ error: 'Lesson note not found.' });
+  if (note.parentUpdateStatus === 'sent') {
+    return res.json({ lessonNote: note, notified: 0, alreadySent: true });
+  }
+  const guardians = await StudentGuardian.find({ studentId: student._id });
+  await Promise.all(guardians.map((g) => notify({
+    recipientUserId: g.guardianUserId,
+    type: 'lesson_summary',
+    title: `New lesson update for ${student.name}`,
+    body: note.parentSummary || note.covered || 'Your tutor shared a lesson update.',
+    linkPath: `/parent/children/${student._id}/progress`,
+    sourceType: 'LessonNote',
+    sourceId: note._id,
+  })));
+  note.parentUpdateStatus = 'sent';
+  await note.save();
+  res.json({ lessonNote: note, notified: guardians.length });
+});
+
+// ── Tutor Explanation Recording ──────────────────────────────────────────
+// Tutors record a visual canvas explanation for how to solve a specific
+// mistake. Parents see the replay in MistakeCard.
+
+// @route GET /api/tutor/students/:id/mistakes/:mistakeId — full mistake detail
+router.get('/students/:id/mistakes/:mistakeId', async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const mistake = await Mistake.findOne({ _id: req.params.mistakeId, studentId: student._id })
+      .populate({ path: 'skillId', model: Skill });
+    if (!mistake) return res.status(404).json({ error: 'Mistake not found.' });
+    res.json({
+      mistake: {
+        id: mistake._id,
+        skillName: mistake.skillId?.name || '',
+        skillCode: mistake.skillCode,
+        questionStem: mistake.questionStem,
+        questionText: mistake.questionText,
+        studentAnswer: mistake.studentAnswer,
+        correctAnswer: mistake.correctAnswer,
+        workedSolution: mistake.workedSolution,
+        workingImage: mistake.workingImage,
+        workingStrokes: mistake.workingStrokes,
+        learningStatus: mistake.learningStatus,
+        mistakeType: mistake.mistakeType,
+        mistakeCategory: mistake.mistakeCategory,
+        severity: mistake.severity,
+        tutorExplanation: mistake.tutorExplanation?.recordedAt ? {
+          strokes: mistake.tutorExplanation.strokes,
+          image: mistake.tutorExplanation.image,
+          recordedAt: mistake.tutorExplanation.recordedAt,
+          durationMs: mistake.tutorExplanation.durationMs,
+        } : null,
+        occurredAt: mistake.occurredAt,
+      },
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake.' });
+  }
+});
+
+// @route POST /api/tutor/students/:id/mistakes/:mistakeId/explanation
+// Save a tutor's visual explanation for a mistake (canvas strokes + snapshot).
+router.post('/students/:id/mistakes/:mistakeId/explanation', async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res); if (!student) return;
+  try {
+    const mistake = await Mistake.findOne({ _id: req.params.mistakeId, studentId: student._id });
+    if (!mistake) return res.status(404).json({ error: 'Mistake not found.' });
+
+    const { strokes, image, durationMs } = req.body || {};
+    if (!Array.isArray(strokes) || !strokes.length) {
+      return res.status(400).json({ error: 'At least one stroke is required.' });
+    }
+
+    mistake.tutorExplanation = {
+      strokes,
+      image: image || '',
+      recordedAt: new Date(),
+      recordedByUserId: req.user.id,
+      durationMs: typeof durationMs === 'number' ? durationMs : null,
+    };
+    await mistake.save();
+
+    // Notify guardians (fire-and-forget — don't let notification failure block the response).
+    StudentGuardian.find({ studentId: student._id }).then((guardians) =>
+      Promise.all(guardians.map((g) => notify({
+        recipientUserId: g.guardianUserId,
+        type: 'tutor_explanation',
+        title: `Tutor explanation for ${student.name}`,
+        body: `Your tutor recorded an explanation for: ${mistake.questionStem?.slice(0, 80) || 'a recent mistake'}`,
+        linkPath: `/parent/children/${student._id}/mistakes`,
+        sourceType: 'Mistake',
+        sourceId: mistake._id,
+      })))
+    ).catch((err) => console.error('[tutor] Failed to notify guardians of explanation:', err.message));
+
+    res.json({ id: mistake._id, tutorExplanation: mistake.tutorExplanation });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to save explanation.' });
+  }
 });
 
 // @route GET/POST /api/tutor/lesson-notes — MathPath lesson notes API
