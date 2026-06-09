@@ -71,27 +71,41 @@ export async function resolveEntitlements({ ownerType = 'user', ownerId = '', ro
   const planType = plan.planType || 'free';
   const subscription = billingContext?.subscription || null;
 
-  // Trial handling: an active trial grants the trialled plan's tier; once
-  // trialEnd has passed the account is downgraded to the Trial tier (so paid
-  // capabilities switch off) and we surface the expiry so the UI can upsell.
-  let trial = null;
+  const now = Date.now();
+  const windowInfo = (endValue) => {
+    const endMs = new Date(endValue).getTime();
+    if (!Number.isFinite(endMs)) return null;
+    return { expired: endMs < now, endsAt: endValue, daysLeft: Math.max(0, Math.ceil((endMs - now) / 86400000)) };
+  };
+
   let effectiveTier = tierForPlanType(planType);
+
+  // Trial: an active trial grants the trialled plan's tier; once trialEnd passes
+  // the account drops to the Trial tier (paid capabilities switch off).
+  let trial = null;
   if (subscription && subscription.status === 'trial' && subscription.trialEnd) {
-    const endMs = new Date(subscription.trialEnd).getTime();
-    const now = Date.now();
-    const expired = Number.isFinite(endMs) && endMs < now;
-    trial = {
-      active: !expired,
-      expired,
-      endsAt: subscription.trialEnd,
-      daysLeft: Number.isFinite(endMs) ? Math.max(0, Math.ceil((endMs - now) / 86400000)) : null,
-    };
-    if (expired) effectiveTier = PRODUCT_TIERS.TRIAL;
+    const w = windowInfo(subscription.trialEnd);
+    if (w) {
+      trial = { active: !w.expired, expired: w.expired, endsAt: w.endsAt, daysLeft: w.daysLeft };
+      if (w.expired) effectiveTier = PRODUCT_TIERS.TRIAL;
+    }
+  }
+
+  // Paid annual access: a Premium Home year. When currentPeriodEnd passes, access
+  // is hard-locked back to the Trial tier (paid features blocked immediately).
+  // `renewal` powers reminder + early-renewal prompts before expiry.
+  let renewal = null;
+  if (subscription && subscription.status === 'active' && subscription.currentPeriodEnd) {
+    const w = windowInfo(subscription.currentPeriodEnd);
+    if (w) {
+      renewal = { active: !w.expired, expired: w.expired, endsAt: w.endsAt, daysLeft: w.daysLeft };
+      if (w.expired) effectiveTier = PRODUCT_TIERS.TRIAL;
+    }
   }
 
   const capabilities = capabilitiesForTier(effectiveTier, { role });
   let status = subscription?.status || (billingContext?.source === 'subscription' ? 'active' : 'none');
-  if (trial?.expired) status = 'expired';
+  if (trial?.expired || renewal?.expired) status = 'expired';
 
   return {
     tier: effectiveTier,
@@ -100,6 +114,7 @@ export async function resolveEntitlements({ ownerType = 'user', ownerId = '', ro
     source: billingContext?.source || 'role_default',
     status,
     trial,
+    renewal,
     pilotOverrideActive: Boolean(billingContext?.pilotOverrideActive),
     limits: plan.limits || {},
     features: plan.features || {},

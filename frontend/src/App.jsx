@@ -115,6 +115,11 @@ const ScienceNotes = lazy(() => import('./pages/student/science/ScienceNotes'));
 const ParentHome = lazy(() => import('./pages/parent/ParentHome'));
 const ParentNotifications = lazy(() => import('./pages/parent/Notifications'));
 const ParentLessonReplay = lazy(() => import('./pages/parent/LessonReplay'));
+const ParentLinkRequests = lazy(() => import('./pages/parent/LinkRequests'));
+const AgencyDashboard = lazy(() => import('./pages/agency/AgencyDashboard'));
+const TutorAgencyMembership = lazy(() => import('./pages/tutor/AgencyMembership'));
+const TutorRequestStudentLink = lazy(() => import('./pages/tutor/RequestStudentLink'));
+const PartnerLicencePage = lazy(() => import('./pages/admin/PartnerLicencePage'));
 const ParentChildren = lazy(() => import('./pages/parent/ParentChildren'));
 const ChildProgress = lazy(() => import('./pages/parent/ChildProgress'));
 const ParentSuccessCentre = lazy(() => import('./pages/parent/ParentSuccessCentre'));
@@ -154,6 +159,8 @@ const TutorInviteConnectPage = lazy(() => import('./pages/TutorInviteConnectPage
 const ParentInviteConnectPage = lazy(() => import('./pages/ParentInviteConnectPage'));
 const JoinClassPage = lazy(() => import('./pages/student/JoinClassPage'));
 const BillingSuccessPage = lazy(() => import('./pages/BillingSuccessPage'));
+const PremiumHomeUpgradePage = lazy(() => import('./pages/parent/PremiumHomeUpgradePage'));
+const PendingUpgradesPage = lazy(() => import('./pages/admin/PendingUpgradesPage'));
 const ClassMasteryMap = lazy(() => import('./pages/teacher/ClassMasteryMap'));
 const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
@@ -395,6 +402,8 @@ function App() {
           <Route path="/join" element={<ProtectedRoute><JoinClassPage /></ProtectedRoute>} />
           <Route path="/join/:code" element={<ProtectedRoute><JoinClassPage /></ProtectedRoute>} />
           <Route path="/billing/success" element={<ProtectedRoute><BillingSuccessPage /></ProtectedRoute>} />
+          <Route path="/parent/upgrade" element={<RoleGuard role="parent"><PremiumHomeUpgradePage /></RoleGuard>} />
+          <Route path="/admin/pending-upgrades" element={<ProtectedRoute><FeatureGuard feature="admin"><PendingUpgradesPage /></FeatureGuard></ProtectedRoute>} />
 
           {/* Legacy dashboard retired → unified Tian OS role home */}
           <Route path="/dashboard" element={<LegacyDashboardRedirect />} />
@@ -572,6 +581,8 @@ function App() {
             {/* Parent (Phase 3) */}
             <Route path="/parent" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentHome /></FeatureGuard>} />
             <Route path="/parent/notifications" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentNotifications /></FeatureGuard>} />
+            <Route path="/parent/link-requests" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentLinkRequests /></FeatureGuard>} />
+            <Route path="/parent/recordings/:rid" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentLessonReplay /></FeatureGuard>} />
             <Route path="/parent/success-centre" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentSuccessCentre /></FeatureGuard>} />
             <Route path="/parent/children" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentChildren /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/progress" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildProgress /></FeatureGuard>} />
@@ -612,6 +623,10 @@ function App() {
             <Route path="/tutor/students/:id/lesson-prep" element={<FeatureGuard feature="tutor"><LessonPrep /></FeatureGuard>} />
             <Route path="/tutor/students/:id/lesson-notes" element={<FeatureGuard feature="tutor"><LessonNotes /></FeatureGuard>} />
             <Route path="/tutor/students/:id/record" element={<FeatureGuard feature="tutor"><LessonRecorder /></FeatureGuard>} />
+            <Route path="/tutor/subscription" element={<FeatureGuard feature="tutor"><TutorAgencyMembership /></FeatureGuard>} />
+            <Route path="/tutor/request-access" element={<FeatureGuard feature="tutor"><TutorRequestStudentLink /></FeatureGuard>} />
+            <Route path="/agency" element={<AgencyDashboard />} />
+            <Route path="/admin/partners/:pid/licence" element={<PartnerLicencePage />} />
             <Route path="/tutor/students/:id/assign-homework" element={<FeatureGuard feature="tutor"><AssignHomework /></FeatureGuard>} />
             <Route path="/tutor/homework" element={<FeatureGuard feature="tutor"><TutorHomework /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mistakes/:mistakeId/explain" element={<FeatureGuard feature="tutor"><TutorExplanationRecorder /></FeatureGuard>} />

@@ -268,6 +268,41 @@ export const recordingsAPI = {
   parentRecording: (rid) => api.get(`/family/recordings/${rid}`),
 };
 
+// Gap B — agency admin + tutor self-service.
+export const agencyAPI = {
+  overview: () => api.get('/agency/overview'),
+  tutors: () => api.get('/agency/tutors'),
+  tutorPlans: () => api.get('/agency/tutor-plans'),
+  createTutorPlan: (data) => api.post('/agency/tutor-plans', data),
+  grantTrial: (tutorUserId, planId) => api.post(`/agency/tutors/${tutorUserId}/grant-trial`, { planId }),
+  connectOnboard: () => api.post('/agency/connect/onboard'),
+  connectStatus: () => api.get('/agency/connect/status'),
+  charges: () => api.get('/agency/charges'),
+  // Tutor self-service
+  membership: () => api.get('/agency/membership'),
+  pay: () => api.post('/agency/membership/pay'),
+};
+
+// Gap B — platform-admin licence blocks for a partner org.
+export const adminLicenceAPI = {
+  list: (pid) => api.get(`/admin/partners/${pid}/licence`),
+  add: (pid, data) => api.post(`/admin/partners/${pid}/licence`, data),
+  update: (pid, licenceId, data) => api.patch(`/admin/partners/${pid}/licence/${licenceId}`, data),
+};
+
+// Gap C — consented tutor<->school-student linking.
+export const studentLinksAPI = {
+  tutorRequest: (studentId) => api.post('/student-links/tutor/request', { studentId }),
+  requests: () => api.get('/student-links/requests'),
+  consent: (id, scopes) => api.post(`/student-links/requests/${id}/consent`, scopes ? { scopes } : {}),
+  decline: (id) => api.post(`/student-links/requests/${id}/decline`),
+  mine: () => api.get('/student-links/mine'),
+  setScopes: (id, scopes) => api.patch(`/student-links/${id}/scopes`, { scopes }),
+  revoke: (id) => api.post(`/student-links/${id}/revoke`),
+  issueClaimCode: (studentId) => api.post('/student-links/claim-code/issue', { studentId }),
+  redeemClaimCode: (code) => api.post('/student-links/claim-code/redeem', { code }),
+};
+
 // Teacher workspace (Phase 5). Scoped to the active school/teacher workspace.
 export const teacherAPI = {
   home: () => api.get('/teacher/home'),
@@ -568,6 +603,13 @@ export const joinAPI = {
 export const billingAPI = {
   me: () => api.get('/billing/me'),
   startTrial: () => api.post('/billing/start-trial'),
+  // Annual PayNow flow (primary parent path).
+  premiumHomeOffer: () => api.get('/billing/premium-home/offer'),
+  requestUpgrade: () => api.post('/billing/premium-home/request'),
+  pendingUpgrades: () => api.get('/billing/premium-home/pending'),
+  activateUpgrade: (id) => api.post(`/billing/premium-home/requests/${id}/activate`),
+  rejectUpgrade: (id, note = '') => api.post(`/billing/premium-home/requests/${id}/reject`, { note }),
+  // Legacy Stripe path (kept available, no longer the default).
   checkoutPremiumHome: (billing = 'monthly') => api.post('/billing/checkout/premium-home', { billing }),
   confirmCheckout: (sessionId) => api.post('/billing/checkout/confirm', { sessionId }),
   devActivatePremiumHome: () => api.post('/billing/dev/activate-premium-home'),

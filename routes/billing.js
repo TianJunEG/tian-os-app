@@ -1,10 +1,33 @@
+import crypto from 'crypto';
 import express from 'express';
 import Stripe from 'stripe';
 import { protect } from '../middleware/auth.js';
 import { resolveEntitlements } from '../services/billing/entitlements.js';
 import { upsertSubscription, DEFAULT_PLAN_CATALOG } from '../services/billing/featureAccessService.js';
+import { getPremiumHomePricing, getPayNowDetails } from '../services/billing/premiumHomePricing.js';
+import Subscription from '../models/Subscription.js';
+import UpgradeRequest from '../models/UpgradeRequest.js';
+import User from '../models/User.js';
 
 const router = express.Router();
+
+const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
+function isBillingAdmin(req) {
+  return req.user?.role === 'admin' || req.user?.role === 'school_admin';
+}
+
+// Short, human-readable reference a parent quotes in their PayNow comment.
+function makeReference() {
+  return `PH-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+}
+
+// Is this caller renewing early? Eligible for the discount when they currently
+// hold active access whose remaining days fall within the early-renewal window.
+function earlyRenewalEligible(entitlements, windowDays) {
+  const r = entitlements?.renewal;
+  return Boolean(r && r.active && !r.expired && r.daysLeft <= windowDays);
+}
 
 // Premium Home maps onto the parent_plus billing plan.
 const PREMIUM_HOME_PLAN = 'parent_plus';
@@ -99,6 +122,110 @@ router.post('/dev/activate-premium-home', protect, async (req, res) => {
   if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found.' });
   await upsertSubscription({ ownerType: 'user', ownerId: req.user.id, planType: PREMIUM_HOME_PLAN, status: 'active' });
   res.json({ entitlements: await entitlementsFor(req) });
+});
+
+// ── Annual PayNow flow (primary parent path: prepaid yearly fee, no recurring) ──
+
+// GET /api/billing/premium-home/offer — price + PayNow details + early-renewal
+// eligibility for the current caller.
+router.get('/premium-home/offer', protect, async (req, res) => {
+  const pricing = getPremiumHomePricing();
+  const entitlements = await entitlementsFor(req);
+  const early = earlyRenewalEligible(entitlements, pricing.earlyRenewalWindowDays);
+  res.json({
+    pricing,
+    payNow: getPayNowDetails(),
+    earlyRenewalEligible: early,
+    amountSgd: early ? pricing.earlyRenewalSgd : pricing.annualSgd,
+    renewal: entitlements.renewal || null,
+    tier: entitlements.tier,
+  });
+});
+
+// POST /api/billing/premium-home/request — parent records that they will PayNow.
+// Creates a pending request with a reference to quote; an admin activates it
+// the next business day after confirming the payment landed.
+router.post('/premium-home/request', protect, async (req, res) => {
+  try {
+    const pricing = getPremiumHomePricing();
+    const entitlements = await entitlementsFor(req);
+    const early = earlyRenewalEligible(entitlements, pricing.earlyRenewalWindowDays);
+    const amountSgd = early ? pricing.earlyRenewalSgd : pricing.annualSgd;
+
+    // One open request at a time — reuse it so re-clicking doesn't spawn dupes.
+    let request = await UpgradeRequest.findOne({ userId: req.user.id, status: 'pending' });
+    if (!request) {
+      const me = await User.findById(req.user.id).select('name email');
+      request = await UpgradeRequest.create({
+        userId: req.user.id,
+        userName: me?.name || '',
+        userEmail: me?.email || '',
+        planType: PREMIUM_HOME_PLAN,
+        amountSgd,
+        earlyRenewal: early,
+        reference: makeReference(),
+        paymentMethod: 'paynow',
+        status: 'pending',
+      });
+    }
+    res.status(201).json({
+      reference: request.reference,
+      amountSgd: request.amountSgd,
+      earlyRenewal: request.earlyRenewal,
+      payNow: getPayNowDetails(),
+      message: 'We’ll verify your PayNow payment the next business day and activate your access.',
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Could not create the upgrade request.' });
+  }
+});
+
+// GET /api/billing/premium-home/pending — admin queue of payments to verify.
+router.get('/premium-home/pending', protect, async (req, res) => {
+  if (!isBillingAdmin(req)) return res.status(403).json({ error: 'Admin access required.' });
+  const pending = await UpgradeRequest.find({ status: 'pending' }).sort({ createdAt: 1 }).lean();
+  res.json({ requests: pending });
+});
+
+// POST /api/billing/premium-home/requests/:id/activate — admin confirms payment.
+// Grants a 12-month period; an early renewal extends from the current end date.
+router.post('/premium-home/requests/:id/activate', protect, async (req, res) => {
+  if (!isBillingAdmin(req)) return res.status(403).json({ error: 'Admin access required.' });
+  const request = await UpgradeRequest.findById(req.params.id);
+  if (!request) return res.status(404).json({ error: 'Request not found.' });
+  if (request.status !== 'pending') return res.status(400).json({ error: `Request already ${request.status}.` });
+
+  const now = new Date();
+  const existing = await Subscription.findOne({ ownerType: 'user', ownerId: String(request.userId) });
+  const base = (existing && existing.status === 'active' && existing.currentPeriodEnd && new Date(existing.currentPeriodEnd) > now)
+    ? new Date(existing.currentPeriodEnd) // early renewal stacks on top
+    : now;
+  const periodEnd = new Date(base.getTime() + YEAR_MS);
+
+  await upsertSubscription({ ownerType: 'user', ownerId: String(request.userId), planType: request.planType, status: 'active' });
+  await Subscription.updateOne(
+    { ownerType: 'user', ownerId: String(request.userId) },
+    { $set: { currentPeriodStart: now, currentPeriodEnd: periodEnd } }
+  );
+
+  request.status = 'activated';
+  request.activatedByUserId = req.user.id;
+  request.activatedAt = now;
+  request.periodEnd = periodEnd;
+  await request.save();
+
+  res.json({ activated: true, userId: request.userId, periodEnd });
+});
+
+// POST /api/billing/premium-home/requests/:id/reject — admin dismisses a request.
+router.post('/premium-home/requests/:id/reject', protect, async (req, res) => {
+  if (!isBillingAdmin(req)) return res.status(403).json({ error: 'Admin access required.' });
+  const request = await UpgradeRequest.findById(req.params.id);
+  if (!request) return res.status(404).json({ error: 'Request not found.' });
+  request.status = 'rejected';
+  request.note = String(req.body?.note || '');
+  await request.save();
+  res.json({ rejected: true });
 });
 
 export default router;

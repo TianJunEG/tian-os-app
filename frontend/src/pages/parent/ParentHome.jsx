@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, Eye, Users } from 'lucide-react';
 import { familyAPI, assignmentsAPI, parentInvitesAPI } from '../../services/api';
 import { Card, Button, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, Badge, Alert } from '../../components/ui';
-import { TrialBanner, UpgradeButton } from '../../components/PremiumHomeUpgrade';
+import { TrialBanner, RenewalBanner, UpgradeButton } from '../../components/PremiumHomeUpgrade';
 
 const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
 
@@ -127,6 +127,7 @@ export default function ParentHome() {
       <>
         <PageHeader title="Your children" />
         <TrialBanner />
+        <RenewalBanner />
         <SchoolChildrenSection rows={schoolChildren} />
         {schoolChildren.length === 0 && (
           <EmptyState icon={Users} message="No children linked yet. Once a child is added to your family, their progress appears here." />
@@ -154,6 +155,7 @@ export default function ParentHome() {
       />
 
       <TrialBanner />
+      <RenewalBanner />
       <SchoolChildrenSection rows={schoolChildren} />
 
       {/* Overall status — kept as the cross-subject headline */}
