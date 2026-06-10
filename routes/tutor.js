@@ -122,6 +122,7 @@ router.get('/students/:id', async (req, res) => {
       learningStatus: m.learningStatus || (m.reviewed ? 'acknowledged' : 'new'),
       masteryEvidence: m.masteryEvidence || {},
       hasTutorExplanation: Boolean(m.tutorExplanation?.recordedAt),
+      explanationFeedback: m.tutorExplanation?.feedback || null,
     })),
     assignments: assignments.map((a) => ({ id: a._id, module: a.module, status: a.status, score: a.score, skillNames: a.skillIds.map((s) => s.name), dueDate: a.dueDate })),
     lessonNotes: notes.map((n) => ({ id: n._id, covered: n.covered, createdAt: n.createdAt, parentUpdateStatus: n.parentUpdateStatus })),
