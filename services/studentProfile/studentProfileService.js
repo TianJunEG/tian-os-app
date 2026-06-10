@@ -150,28 +150,30 @@ function uniqueCount(values = []) {
   return new Set(values.filter(Boolean).map(String)).size;
 }
 
-function dateKey(date) {
+function localDateKey(date, offsetHours = 8) {
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toISOString().slice(0, 10);
+  const local = new Date(d.getTime() + offsetHours * 3600000);
+  return local.toISOString().slice(0, 10);
 }
 
-function calculateActivityStreak(dates = []) {
-  const days = new Set(dates.map(dateKey).filter(Boolean));
+function calculateActivityStreak(dates = [], offsetHours = 8) {
+  const days = new Set(dates.map((d) => localDateKey(d, offsetHours)).filter(Boolean));
   if (!days.size) return 0;
-  let cursor = new Date();
+  const now = new Date(Date.now() + offsetHours * 3600000);
+  let cursor = now;
   let streak = 0;
   for (;;) {
     const key = cursor.toISOString().slice(0, 10);
     if (!days.has(key)) {
       if (streak === 0) {
-        cursor.setUTCDate(cursor.getUTCDate() - 1);
+        cursor = new Date(cursor.getTime() - 86400000);
         if (days.has(cursor.toISOString().slice(0, 10))) continue;
       }
       break;
     }
     streak += 1;
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
+    cursor = new Date(cursor.getTime() - 86400000);
   }
   return streak;
 }
