@@ -67,6 +67,14 @@ describe('timesTablesEngine', () => {
       const qs = generateQuestions({}, TABLES, 5);
       expect(qs).toHaveLength(5);
     });
+    it('always returns the requested count across many random draws (no under-generation)', () => {
+      // The weighted sampler previously drew against the full pool weight while
+      // skipping used items, so some rounds selected nothing. Run repeatedly to
+      // guard against that regression regardless of Math.random() outcomes.
+      for (let trial = 0; trial < 200; trial++) {
+        expect(generateQuestions({}, TABLES, 12)).toHaveLength(12);
+      }
+    });
     it('each question has a, b, product', () => {
       const qs = generateQuestions({}, TABLES, 3);
       for (const q of qs) {

@@ -265,9 +265,11 @@ export function shouldCreatePracticeMistake(result = {}) {
 
 function normalizeSkillGraphStatus(status = '') {
   const value = String(status || '').toLowerCase();
-  if (['mastered', 'accurate', 'fluent', 'retained'].includes(value)) return 'mastered';
+  // Mastery requires retention/recheck evidence. Practice competence (accurate/fluent) is
+  // surfaced as "in progress" until a passing recheck/retention promotes the skill to retained.
+  if (['mastered', 'retained'].includes(value)) return 'mastered';
+  if (['accurate', 'fluent', 'learning', 'in_progress'].includes(value)) return 'learning';
   if (['needsreview', 'needs_review', 'weak', 'forgotten'].includes(value)) return 'needs_review';
-  if (['learning', 'in_progress'].includes(value)) return 'learning';
   return 'not_started';
 }
 
@@ -316,6 +318,28 @@ export function buildFractionsPersistedSkillGraphView(skillStates = []) {
     recordsBySkill,
     masteredIds,
   });
+}
+
+// Build the MathPathPracticeSession fields for a client-generated ("offline
+// recovery") session that is being persisted for the first time at submit time.
+// Returns null when the self-contained payload is missing required data
+// (questions + a target skill), in which case the submit should stay a 404.
+export function buildOfflineRecoveryPracticeSessionFields({ practiceSessionId, studentId, body = {} } = {}) {
+  const ingestQuestions = Array.isArray(body?.questions) ? body.questions : [];
+  const ingestSkillId = String(body?.targetSkillId || ingestQuestions[0]?.skillId || '').trim();
+  if (!ingestQuestions.length || !ingestSkillId) return null;
+  return {
+    practiceSessionId,
+    studentId,
+    domainId: 'fractions',
+    targetSkillId: ingestSkillId,
+    targetQuestionFamilyIds: Array.isArray(body?.targetQuestionFamilyIds) ? body.targetQuestionFamilyIds : [],
+    sessionGoal: 'offline_recovery',
+    estimatedQuestionCount: ingestQuestions.length,
+    questions: ingestQuestions,
+    assignmentId: String(body?.assignmentId || '').trim(),
+    status: 'inProgress',
+  };
 }
 
 export function buildResetStudentStateDeletionPlan({ studentId, studentObjectId, mathPathSessionIds = [] } = {}) {
@@ -481,12 +505,28 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
-    const existing = await MathPathPracticeSession.findOne({
+    let existing = await MathPathPracticeSession.findOne({
       practiceSessionId: req.params.practiceSessionId,
       studentId,
       domainId: 'fractions',
     });
-    if (!existing) return res.status(404).json({ error: 'Practice session not found.' });
+    if (!existing) {
+      // Backend-down fallback recovery: when the start API was unreachable the
+      // session is generated client-side, so no record exists. If the submit
+      // carries the self-contained payload (the client-generated questions),
+      // recreate the session here so attempts and skill-state are persisted now
+      // that the backend is reachable again. Without a payload this stays a 404.
+      const recoveryFields = buildOfflineRecoveryPracticeSessionFields({
+        practiceSessionId: req.params.practiceSessionId,
+        studentId,
+        body: req.body,
+      });
+      if (!recoveryFields) {
+        return res.status(404).json({ error: 'Practice session not found.' });
+      }
+      existing = new MathPathPracticeSession({ ...recoveryFields, startedAt: new Date() });
+      await existing.save();
+    }
     if (existing.status === 'completed' && existing.summary?.results?.length) {
       return res.json({ ...existing.summary, persisted: true, duplicateIgnored: true, lifecycleLog: existing.lifecycleLog || {} });
     }
@@ -602,12 +642,13 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
     }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
+      // Practice accuracy establishes competence (accurate), never mastery. Mastery requires a
+      // passing recheck/retention, which is the only writer of the retained status + masteredAt.
       const set = {
-        status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview',
+        status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview',
         accuracy,
         lastPractisedAt: new Date(),
       };
-      if (accuracy >= 90) set.masteredAt = new Date();
       return MathPathStudentSkillState.findOneAndUpdate(
         { studentId, domainId: 'fractions', skillId },
         { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set },
@@ -1235,12 +1276,13 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
       }, {});
       await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
         const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
+        // Practice accuracy establishes competence (accurate), never mastery. masteredAt is set
+        // only by a passing recheck/retention (see recheckMasteryEvidenceService).
         const skillStateSet = {
           status: accuracy >= 85 ? 'accurate' : accuracy >= 50 ? 'learning' : 'needsReview',
           accuracy,
           lastPractisedAt: new Date(),
         };
-        if (accuracy >= 85) skillStateSet.masteredAt = new Date();
         return MathPathStudentSkillState.findOneAndUpdate(
           { studentId, domainId: 'fractions', skillId },
           {

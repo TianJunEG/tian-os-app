@@ -838,9 +838,20 @@ ${warnings}
 `;
 }
 
+// Total questions the audit found across all skills. Zero means the data source
+// (the database) had no seeded content — used to avoid overwriting a real,
+// committed coverage report with an empty one when run against an unseeded DB.
+export function coverageReportQuestionTotal(report = {}) {
+  return (report?.skillCoverage || []).reduce(
+    (sum, skill) => sum + (Number(skill?.totalQuestions) || 0),
+    0,
+  );
+}
+
 export const contentCoverageEngine = {
   runFractionsContentCoverageAudit,
   buildFractionsCoverageMarkdown,
+  coverageReportQuestionTotal,
 };
 
 export default contentCoverageEngine;

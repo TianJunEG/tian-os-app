@@ -13,7 +13,11 @@ import WorkspaceMember from '../models/WorkspaceMember.js';
 import { userCanAccessPartnerStudent } from '../services/partners/partnerAccessService.js';
 
 // Throws { status, message } on no access. Returns the Student doc.
-export async function resolveStudent(req, explicitId) {
+// Pass { write: true } on routes that mutate student-linked data: a view-only
+// guardian (e.g. a school-invited parent) may read but is rejected on writes.
+// The student acting on their own record, full guardians, tutors, workspace
+// members and partner staff are unaffected.
+export async function resolveStudent(req, explicitId, { write = false } = {}) {
   const studentId = explicitId || req.body?.studentId || req.query?.studentId;
 
   if (studentId) {
@@ -23,7 +27,12 @@ export async function resolveStudent(req, explicitId) {
     if (student.userId && String(student.userId) === String(req.user.id)) return student;
     // A guardian of the student:
     const guardian = await StudentGuardian.findOne({ studentId: student._id, guardianUserId: req.user.id });
-    if (guardian) return student;
+    if (guardian) {
+      if (write && guardian.accessLevel === 'view_only') {
+        throw { status: 403, message: 'View-only access does not permit this action.' };
+      }
+      return student;
+    }
     // A tutor explicitly assigned to this student in the active tutor workspace:
     const tutorLink = await TutorStudentLink.findOne({
       studentId: student._id,

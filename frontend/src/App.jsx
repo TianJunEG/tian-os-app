@@ -38,7 +38,8 @@ import LifeLabLayout from './components/LifeLab/LifeLabLayout';
 // Tian OS unified shell (Phase 1 foundation)
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import AppShell from './components/shell/AppShell';
-import { ToastProvider } from './components/ui';
+import { ToastProvider, useToast } from './components/ui';
+import { registerApiErrorHandler } from './services/api';
 import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
@@ -367,11 +368,31 @@ const ShellLayout = () => (
 );
 
 // Main App
+// Bridges the axios interceptor (which runs outside React) to the toast system.
+// Surfaces server (5xx) and rate-limit (429) errors that would otherwise fail
+// silently, throttled to one toast per window so background-call bursts (e.g.
+// telemetry mirrors) can't spam the student.
+function ApiErrorToastBridge() {
+  const toast = useToast();
+  React.useEffect(() => {
+    let lastShownAt = 0;
+    registerApiErrorHandler(({ message }) => {
+      const now = Date.now();
+      if (now - lastShownAt < 5000) return;
+      lastShownAt = now;
+      toast(message, { tone: 'error' });
+    });
+    return () => registerApiErrorHandler(null);
+  }, [toast]);
+  return null;
+}
+
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ToastProvider>
+        <ApiErrorToastBridge />
         <PwaManager />
         <ErrorBoundary>
         <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><span className="h-8 w-8 animate-spin rounded-full border-2 border-bone border-t-navy-700" /></div>}>

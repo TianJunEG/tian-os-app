@@ -19,6 +19,7 @@ Tian OS is in pilot hardening mode. No new major modules should be added before 
 Run these before each pilot day:
 
 ```bash
+node scripts/qa-pilot-env-check.js   # verify env first: Node, MONGODB_URI, reachable+seeded DB, frontend build
 npm test
 npm --prefix frontend run build
 node scripts/auditFractionsQuestionQuality.js --variants=12

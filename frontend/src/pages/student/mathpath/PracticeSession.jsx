@@ -788,9 +788,9 @@ function LegacyPracticeSession() {
       weakSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) < 80
         ? [{ skillId: String(q.skillId || ''), skillName: canonicalSkillName(q.skillId, q.skillName || '') }]
         : [],
-      masteredSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) >= 90
-        ? [String(q.skillId || '')].filter(Boolean)
-        : [],
+      // C3: practice accuracy never confers mastery — only a passing recheck
+      // (written by the backend) does. Don't optimistically claim mastery here.
+      masteredSkillIds: [],
     });
     navigate(`${resultsBase}/results/${sessionId}`, { replace: true, state: resultState });
   };
@@ -1548,12 +1548,42 @@ export default function PracticeSession() {
         });
         submitted = data;
       } else {
+        // This session was generated client-side because the backend was
+        // unavailable at start. Compute the result locally for display, then make
+        // a best-effort attempt to persist it now in case the backend has
+        // recovered — so attempts/skill-state evidence isn't silently lost.
         submitted = await submitFractionPracticeAttempt({
           practiceSessionId: flowSession.practiceSessionId || routeSessionId,
           studentId,
           sessionType,
           responses: payload,
         });
+        try {
+          await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
+            sessionType,
+            responses: payload,
+            questions,
+            targetSkillId: flowSession?.targetSkillId || q.skillId || '',
+            targetQuestionFamilyIds: flowSession?.targetQuestionFamilyIds || [],
+            assignmentId: flowSession?.assignmentId || locationAssignmentId || '',
+          });
+          submitted = { ...submitted, persisted: true };
+        } catch (persistErr) {
+          // Backend still unreachable — keep the local result but mark the session
+          // as unpersisted so pilot analytics can see degraded-mode evidence gaps.
+          submitted = { ...submitted, persisted: false, evidenceMode: 'local_unpersisted' };
+          Promise.resolve(
+            learningTelemetryAPI.recordEvent({
+              studentId,
+              eventType: 'practice_session_unpersisted',
+              domain: 'fractions',
+              skillCode: flowSession?.targetSkillId || q.skillId || '',
+              sessionId: flowSession.practiceSessionId || routeSessionId,
+              timestamp: new Date().toISOString(),
+              metadata: { sessionType, answered: Array.isArray(payload) ? payload.length : 0 },
+            })
+          ).catch(() => {});
+        }
       }
       try {
         await persistGeneratedFractionMistakes({
@@ -1595,9 +1625,9 @@ export default function PracticeSession() {
         sessionType,
         currentSkillId: flowSession?.targetSkillId || q.skillId || null,
         weakSkillIds: weakSkillRows,
-        masteredSkillIds: submitted.accuracySummary?.accuracyPercentage >= 90
-          ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
-          : [],
+        // C3: practice accuracy never confers mastery — only a passing recheck
+        // (written by the backend) does. Don't optimistically claim mastery here.
+        masteredSkillIds: [],
         fluentSkillIds: submitted.fluencySummary?.fluentCount > 0
           ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
           : [],
