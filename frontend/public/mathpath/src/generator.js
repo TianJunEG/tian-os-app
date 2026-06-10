@@ -1286,12 +1286,625 @@ function genProbability(skill) {
   return choiceProblem(skill, `A bag has ${total} balls; ${fav} are red. A ball is drawn at random. P(red) = ?`, answer, shuffle(choices.slice(0, 4)), 'probability', { fav, total });
 }
 
+// ---------- Fraction identification, conceptual & comparison generators ----------
+
+// F001: Identify the fraction of a shape that is shaded (or not shaded)
+function genFractionIdentify(skill) {
+  const denoms = [2, 3, 4, 5, 6, 8, 10, 12];
+  const simp = (n, d) => { const g = gcd(n, d); return `${n / g}/${d / g}`; };
+  for (let t = 0; t < 300; t++) {
+    const d = pickFrom(denoms);
+    if (d < 4) continue; // need enough room for 4 distinct choices
+    const n = randInt(1, d - 1);
+    const askShaded = Math.random() < 0.6;
+    const partNum = askShaded ? n : d - n;
+    const answer = simp(partNum, d);
+    const word = askShaded ? 'shaded' : 'not shaded';
+    const display = `A shape is divided into ${d} equal parts. ${n} parts are shaded. What fraction of the shape is ${word}?`;
+    const seen = new Set([answer]), choices = [answer];
+    const add = (s) => { if (s && !seen.has(s)) { seen.add(s); choices.push(s); } };
+    add(`${partNum}/${d}`);                          // unsimplified form
+    add(`${d}/${partNum}`);                           // swapped numerator/denominator
+    add(simp(Math.min(partNum + 1, d - 1), d));       // off-by-one up
+    add(simp(askShaded ? d - n : n, d));              // complement fraction
+    add(simp(Math.max(1, partNum - 1), d));           // off-by-one down
+    for (let u = 0; u < 50 && choices.length < 4; u++) add(simp(randInt(1, 11), randInt(2, 12)));
+    if (choices.length < 4) continue;
+    return choiceProblem(skill, display, answer, shuffle(choices.slice(0, 4)), 'fractionIdentify', { d, n, askShaded });
+  }
+  return choiceProblem(skill, 'A shape is divided into 4 equal parts. 1 part is shaded. What fraction of the shape is shaded?', '1/4', shuffle(['1/4', '4/1', '3/4', '2/4']), 'fractionIdentify', { d: 4, n: 1, askShaded: true });
+}
+
+// F002: Name the numerator or denominator of a fraction
+function genFractionNaming(skill) {
+  for (let t = 0; t < 300; t++) {
+    const d = randInt(3, 12);
+    const a = randInt(1, d - 1);
+    const askNum = Math.random() < 0.5;
+    const part = askNum ? 'numerator' : 'denominator';
+    const answer = String(askNum ? a : d);
+    const display = `In the fraction ${a}/${d}, what is the ${part}?`;
+    const seen = new Set([answer]), choices = [answer];
+    const add = (s) => { if (s && !seen.has(s)) { seen.add(s); choices.push(s); } };
+    add(String(askNum ? d : a));
+    add(String(a + d));
+    add(String(Math.abs(d - a)));
+    add('1');
+    add(String(d + 1));
+    if (choices.length < 4) continue;
+    return choiceProblem(skill, display, answer, shuffle(choices.slice(0, 4)), 'fractionNaming', { a, d, askNum });
+  }
+  return choiceProblem(skill, 'In the fraction 3/7, what is the numerator?', '3', shuffle(['3', '7', '10', '4']), 'fractionNaming', { a: 3, d: 7, askNum: true });
+}
+
+// F003: Fraction from a model (bar/rectangle/circle)
+function genFractionFromModel(skill) {
+  const shapes = ['bar', 'rectangle', 'circle'];
+  const denoms = [3, 4, 5, 6, 8, 10, 12];
+  for (let t = 0; t < 300; t++) {
+    const shape = pickFrom(shapes);
+    const d = pickFrom(denoms);
+    const n = randInt(1, d - 1);
+    const answer = `${n}/${d}`;
+    const display = `A ${shape} is divided into ${d} equal parts. ${n} parts are shaded. What fraction is shaded?`;
+    const seen = new Set([answer]), choices = [answer];
+    const add = (s) => { if (s && !seen.has(s)) { seen.add(s); choices.push(s); } };
+    add(`${d}/${n}`);
+    add(`${d - n}/${d}`);
+    add(`${n}/${d + 1}`);
+    add(`${Math.min(n + 1, d - 1)}/${d}`);
+    add(`${Math.max(n - 1, 1)}/${d}`);
+    for (let u = 0; u < 50 && choices.length < 4; u++) add(`${randInt(1, 9)}/${randInt(2, 12)}`);
+    if (choices.length < 4) continue;
+    return choiceProblem(skill, display, answer, shuffle(choices.slice(0, 4)), 'fractionFromModel', { shape, d, n });
+  }
+  return choiceProblem(skill, 'A bar is divided into 4 equal parts. 1 part is shaded. What fraction is shaded?', '1/4', shuffle(['1/4', '4/1', '3/4', '1/3']), 'fractionFromModel', { shape: 'bar', d: 4, n: 1 });
+}
+
+// F004: Identify unit fractions and compare them
+function genUnitFractionId(skill) {
+  const variant = Math.random() < 0.6 ? 'identify' : 'largest';
+  if (variant === 'identify') {
+    const d = randInt(2, 12);
+    const answer = `1/${d}`;
+    const seen = new Set([answer]), choices = [answer];
+    const add = (s) => { if (!seen.has(s)) { seen.add(s); choices.push(s); } };
+    for (let t = 0; t < 200 && choices.length < 4; t++) {
+      const nd = randInt(2, 12), nn = randInt(2, Math.max(2, nd - 1));
+      add(`${nn}/${nd}`);
+    }
+    return choiceProblem(skill, 'Which of these is a unit fraction?', answer, shuffle(choices.slice(0, 4)), 'unitFractionId', { variant, d });
+  }
+  const ds = shuffle([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]).slice(0, 4);
+  ds.sort((a, b) => a - b);
+  const answer = `1/${ds[0]}`;
+  const choices = ds.map((d) => `1/${d}`);
+  return choiceProblem(skill, 'Which is the largest unit fraction?', answer, shuffle(choices), 'unitFractionId', { variant, ds });
+}
+
+// F005: Fraction on a number line
+function genFractionNumberLine(skill) {
+  const ordinal = (n) => n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : n + 'th';
+  const denoms = [3, 4, 5, 6, 8, 10];
+  const simp = (n, d) => { const g = gcd(n, d); return `${n / g}/${d / g}`; };
+  for (let t = 0; t < 300; t++) {
+    const d = pickFrom(denoms);
+    const n = randInt(1, d - 1);
+    const answer = simp(n, d);
+    const display = `A number line from 0 to 1 is divided into ${d} equal parts. The arrow points to the ${ordinal(n)} mark. What fraction does the arrow show?`;
+    const seen = new Set([answer]), choices = [answer];
+    const add = (s) => { if (s && !seen.has(s)) { seen.add(s); choices.push(s); } };
+    add(`${n}/${d}`);
+    add(`${n}/${d + 1}`);
+    add(simp(d - n, d));
+    add(simp(Math.min(n + 1, d - 1), d));
+    add(simp(Math.max(n - 1, 1), d));
+    for (let u = 0; u < 50 && choices.length < 4; u++) add(simp(randInt(1, 11), randInt(2, 12)));
+    if (choices.length < 4) continue;
+    return choiceProblem(skill, display, answer, shuffle(choices.slice(0, 4)), 'fractionNumberLine', { d, n });
+  }
+  return choiceProblem(skill, 'A number line from 0 to 1 is divided into 4 equal parts. The arrow points to the 1st mark. What fraction does the arrow show?', '1/4', shuffle(['1/4', '1/5', '3/4', '2/4']), 'fractionNumberLine', { d: 4, n: 1 });
+}
+
+// F005/F007/F008/F009: Order fractions in ascending or descending order
+function genFractionOrder(skill) {
+  const simp = (n, d) => { const g = gcd(n, d); return `${n / g}/${d / g}`; };
+  for (let t = 0; t < 300; t++) {
+    const d1 = randInt(2, 6), d2 = randInt(2, 6), d3 = randInt(2, 6);
+    const L = lcm(lcm(d1, d2), d3);
+    if (L > 12) continue;
+    const n1 = randInt(1, d1 - 1), n2 = randInt(1, d2 - 1), n3 = randInt(1, d3 - 1);
+    const v1 = n1 / d1, v2 = n2 / d2, v3 = n3 / d3;
+    if (v1 === v2 || v2 === v3 || v1 === v3) continue;
+    const fracs = [{ s: simp(n1, d1), v: v1 }, { s: simp(n2, d2), v: v2 }, { s: simp(n3, d3), v: v3 }];
+    const asc = Math.random() < 0.5;
+    const sorted = [...fracs].sort((a, b) => asc ? a.v - b.v : b.v - a.v);
+    const answer = sorted.map((f) => f.s).join(', ');
+    const reversed = [...sorted].reverse().map((f) => f.s).join(', ');
+    const swap12 = [sorted[1], sorted[0], sorted[2]].map((f) => f.s).join(', ');
+    const swap23 = [sorted[0], sorted[2], sorted[1]].map((f) => f.s).join(', ');
+    const display = `Arrange these fractions in ${asc ? 'ascending' : 'descending'} order: ${fracs.map((f) => f.s).join(', ')}`;
+    return choiceProblem(skill, display, answer, shuffle([answer, reversed, swap12, swap23]), 'fractionOrder', { fracs: fracs.map((f) => f.s), asc });
+  }
+  return choiceProblem(skill, 'Arrange these fractions in ascending order: 1/2, 1/4, 3/4', '1/4, 1/2, 3/4', shuffle(['1/4, 1/2, 3/4', '3/4, 1/2, 1/4', '1/2, 1/4, 3/4', '1/4, 3/4, 1/2']), 'fractionOrder', { fracs: ['1/2', '1/4', '3/4'], asc: true });
+}
+
+// F006: Benchmark a fraction against 1/2
+function genFractionBenchmark(skill) {
+  const denoms = [3, 4, 5, 6, 7, 8, 9, 10, 12];
+  const makeFrac = (wantGreater) => {
+    for (let t = 0; t < 100; t++) {
+      const d = pickFrom(denoms);
+      const n = randInt(1, d - 1);
+      if (n * 2 === d) continue;
+      const isGreater = n * 2 > d;
+      if (isGreater === wantGreater) return { s: `${n}/${d}`, n, d };
+    }
+    return wantGreater ? { s: '3/4', n: 3, d: 4 } : { s: '1/4', n: 1, d: 4 };
+  };
+  for (let t = 0; t < 300; t++) {
+    const askGreater = Math.random() < 0.5;
+    const word = askGreater ? 'greater than' : 'less than';
+    const correct = makeFrac(askGreater);
+    const seen = new Set([correct.s]), choices = [correct.s];
+    const add = (s) => { if (!seen.has(s)) { seen.add(s); choices.push(s); } };
+    for (let u = 0; u < 100 && choices.length < 4; u++) {
+      const f = makeFrac(!askGreater);
+      add(f.s);
+    }
+    if (choices.length < 4) continue;
+    return choiceProblem(skill, `Which fraction is ${word} 1/2?`, correct.s, shuffle(choices.slice(0, 4)), 'fractionBenchmark', { askGreater });
+  }
+  return choiceProblem(skill, 'Which fraction is greater than 1/2?', '3/4', shuffle(['3/4', '1/3', '2/5', '3/8']), 'fractionBenchmark', { askGreater: true });
+}
+
+// F009: Identify the correct comparison statement among four
+function genCompareStatements(skill) {
+  const simp = (n, d) => { const g = gcd(n, d); return `${n / g}/${d / g}`; };
+  const makeStatement = (forceTrue) => {
+    for (let t = 0; t < 100; t++) {
+      const d1 = randInt(2, 8), d2 = randInt(2, 8);
+      if (d1 === d2) continue;
+      const n1 = randInt(1, d1 - 1), n2 = randInt(1, d2 - 1);
+      const v1 = n1 / d1, v2 = n2 / d2;
+      if (Math.abs(v1 - v2) < 1e-9) continue;
+      const f1 = simp(n1, d1), f2 = simp(n2, d2);
+      const gt = v1 > v2;
+      if (forceTrue) return gt ? `${f1} > ${f2}` : `${f1} < ${f2}`;
+      return gt ? `${f1} < ${f2}` : `${f1} > ${f2}`;
+    }
+    return forceTrue ? '2/3 > 1/2' : '1/3 > 1/2';
+  };
+  for (let t = 0; t < 300; t++) {
+    const answer = makeStatement(true);
+    const seen = new Set([answer]), choices = [answer];
+    const add = (s) => { if (!seen.has(s)) { seen.add(s); choices.push(s); } };
+    for (let u = 0; u < 100 && choices.length < 4; u++) {
+      add(makeStatement(false));
+    }
+    if (choices.length < 4) continue;
+    return choiceProblem(skill, 'Which of these statements is correct?', answer, shuffle(choices.slice(0, 4)), 'compareStatements', {});
+  }
+  return choiceProblem(skill, 'Which of these statements is correct?', '2/3 > 1/2', shuffle(['2/3 > 1/2', '1/3 > 1/2', '3/4 < 1/2', '2/5 > 3/4']), 'compareStatements', {});
+}
+
+// ---------- Equivalence, simplification & number-type generators ----------
+
+// Express a fraction in simplest form (MCQ) — F012
+function genSimplestForm(skill) {
+  const denoms = [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20];
+  const factors = [2, 3, 4, 5, 6];
+  for (let t = 0; t < 300; t++) {
+    const d = pickFrom(denoms);
+    const k = pickFrom(factors);
+    if (d % k !== 0) continue;
+    const b = d / k;
+    if (b < 2) continue;
+    const a = randInt(1, b - 1);
+    if (gcd(a, b) !== 1) continue;
+    const num = a * k, den = d;
+    const answer = `${a}/${b}`;
+    const seen = new Set([answer]);
+    const choices = [answer];
+    const partial = k > 2 && k % 2 === 0 ? `${num / 2}/${den / 2}` : k > 3 && k % 3 === 0 ? `${num / 3}/${den / 3}` : null;
+    if (partial && !seen.has(partial)) { seen.add(partial); choices.push(partial); }
+    const swapped = `${b}/${a}`;
+    if (!seen.has(swapped) && a !== b) { seen.add(swapped); choices.push(swapped); }
+    if (a > 1 && b > 1) { const sub1 = `${a - 1}/${b - 1}`; if (!seen.has(sub1)) { seen.add(sub1); choices.push(sub1); } }
+    const orig = `${num}/${den}`;
+    if (!seen.has(orig)) { seen.add(orig); choices.push(orig); }
+    while (choices.length < 4) {
+      const fn = randInt(1, b), fd = randInt(2, b + 2);
+      const c = `${fn}/${fd}`;
+      if (!seen.has(c)) { seen.add(c); choices.push(c); }
+    }
+    return choiceProblem(skill, `Express ${num}/${den} in its simplest form.`, answer, shuffle(choices.slice(0, 4)), 'simplestForm', { num, den, a, b, k });
+  }
+  return choiceProblem(skill, `Express 6/8 in its simplest form.`, '3/4', shuffle(['3/4', '2/4', '4/3', '6/8']), 'simplestForm', { num: 6, den: 8, a: 3, b: 4, k: 2 });
+}
+
+// Find the missing term in an equivalent fraction (integer answer) — F011
+function genFractionMissingTerm(skill) {
+  for (let t = 0; t < 300; t++) {
+    const b = randInt(2, 8);
+    const a = randInt(1, b - 1);
+    if (gcd(a, b) !== 1) continue;
+    const k = randInt(2, 6);
+    if (Math.random() < 0.5) {
+      const answer = a * k;
+      return problem(skill, `${a}/${b} = ?/${b * k}`, answer, 'fractionMissingTerm', { a, b, k, missing: 'numerator' });
+    }
+    const answer = b * k;
+    return problem(skill, `${a}/${b} = ${a * k}/?`, answer, 'fractionMissingTerm', { a, b, k, missing: 'denominator' });
+  }
+  return problem(skill, `1/3 = ?/9`, 3, 'fractionMissingTerm', { a: 1, b: 3, k: 3, missing: 'numerator' });
+}
+
+// Identify the non-equivalent fraction from a set (MCQ) — F010
+function genNonEquivalent(skill) {
+  for (let t = 0; t < 300; t++) {
+    const b = randInt(2, 6);
+    const a = randInt(1, b - 1);
+    if (gcd(a, b) !== 1) continue;
+    const equivs = [2, 3, 4].map((k) => `${a * k}/${b * k}`);
+    const wk = pickFrom([2, 3, 4]);
+    const off = pickFrom([1, -1]);
+    const wrongNum = a * wk + off;
+    const wrongDen = b * wk;
+    if (wrongNum < 1 || wrongNum >= wrongDen) continue;
+    if (wrongNum / wrongDen === a / b) continue;
+    const wrong = `${wrongNum}/${wrongDen}`;
+    const choices = shuffle([...equivs, wrong]);
+    return choiceProblem(skill, `Which fraction is NOT equivalent to ${a}/${b}?`, wrong, choices, 'nonEquivalent', { a, b, wrong, equivs });
+  }
+  return choiceProblem(skill, `Which fraction is NOT equivalent to 1/3?`, '3/8', shuffle(['2/6', '3/9', '4/12', '3/8']), 'nonEquivalent', { a: 1, b: 3, wrong: '3/8', equivs: ['2/6', '3/9', '4/12'] });
+}
+
+// Find the missing value in a chain of equivalent fractions (integer answer) — F011
+function genEquivChain(skill) {
+  for (let t = 0; t < 300; t++) {
+    const b = randInt(2, 6);
+    const a = randInt(1, b - 1);
+    if (gcd(a, b) !== 1) continue;
+    const ks = shuffle([2, 3, 4]).slice(0, 2);
+    ks.unshift(1);
+    const fracs = ks.map((k) => ({ n: a * k, d: b * k }));
+    const hideIdx = randInt(0, 2);
+    const hideNum = Math.random() < 0.5;
+    const answer = hideNum ? fracs[hideIdx].n : fracs[hideIdx].d;
+    const parts = fracs.map((f, i) => {
+      if (i === hideIdx) return hideNum ? `?/${f.d}` : `${f.n}/?`;
+      return `${f.n}/${f.d}`;
+    });
+    const display = parts.join(' = ');
+    return problem(skill, display, answer, 'equivChain', { a, b, ks, hideIdx, hideNum });
+  }
+  return problem(skill, `1/2 = ?/4 = 3/6`, 2, 'equivChain', { a: 1, b: 2, ks: [1, 2, 3], hideIdx: 1, hideNum: true });
+}
+
+// Simplify a fraction after addition/subtraction (MCQ) — F012
+function genSimplifyAfterOp(skill) {
+  const denoms = [4, 6, 8, 10, 12];
+  for (let t = 0; t < 300; t++) {
+    const d = pickFrom(denoms);
+    const a = randInt(1, d - 1);
+    const b = randInt(1, d - a);
+    const sum = a + b;
+    if (sum >= d) continue;
+    const g = gcd(sum, d);
+    if (g < 2) continue;
+    const simpNum = sum / g, simpDen = d / g;
+    const answer = `${simpNum}/${simpDen}`;
+    const seen = new Set([answer]);
+    const choices = [answer];
+    const raw = `${sum}/${d}`;
+    if (!seen.has(raw)) { seen.add(raw); choices.push(raw); }
+    const wrong1 = `${Math.max(1, Math.floor(sum / g))}/${d}`;
+    if (wrong1 !== answer && !seen.has(wrong1)) { seen.add(wrong1); choices.push(wrong1); }
+    const comp = `${d - sum}/${d}`;
+    if (!seen.has(comp)) { seen.add(comp); choices.push(comp); }
+    const wrong2 = `${simpNum + 1}/${simpDen}`;
+    if (!seen.has(wrong2) && simpNum + 1 < simpDen) { seen.add(wrong2); choices.push(wrong2); }
+    while (choices.length < 4) {
+      const rn = randInt(1, d - 1), rd = randInt(2, d);
+      const c = `${rn}/${rd}`;
+      if (!seen.has(c)) { seen.add(c); choices.push(c); }
+    }
+    const op = Math.random() < 0.5 ? PLUS : MINUS;
+    let displayA = a, displayB = b;
+    if (op === MINUS) { displayA = sum; displayB = sum - a; }
+    return choiceProblem(skill, `Simplify: ${displayA}/${d} ${op} ${displayB}/${d}`, answer, shuffle(choices.slice(0, 4)), 'simplifyAfterOp', { a: displayA, b: displayB, d, op, sum, simpNum, simpDen });
+  }
+  return choiceProblem(skill, `Simplify: 2/8 ${PLUS} 2/8`, '1/2', shuffle(['1/2', '4/8', '4/16', '2/4']), 'simplifyAfterOp', { a: 2, b: 2, d: 8, op: PLUS, sum: 4, simpNum: 1, simpDen: 2 });
+}
+
+// Identify an improper fraction or count wholes in one (MCQ / integer) — F013
+function genImproperFractionId(skill) {
+  if (Math.random() < 0.5) {
+    for (let t = 0; t < 300; t++) {
+      const impD = randInt(2, 8);
+      const impN = randInt(impD, impD + 6);
+      const answer = `${impN}/${impD}`;
+      const seen = new Set([answer]);
+      const choices = [answer];
+      while (choices.length < 4) {
+        const pd = randInt(2, 9);
+        const pn = randInt(1, pd - 1);
+        const c = `${pn}/${pd}`;
+        if (!seen.has(c)) { seen.add(c); choices.push(c); }
+      }
+      return choiceProblem(skill, `Which of these is an improper fraction?`, answer, shuffle(choices), 'improperFractionId', { variant: 'identify', impN, impD });
+    }
+    return choiceProblem(skill, `Which of these is an improper fraction?`, '7/4', shuffle(['7/4', '3/5', '2/7', '1/3']), 'improperFractionId', { variant: 'identify', impN: 7, impD: 4 });
+  }
+  const d = randInt(2, 8);
+  const wholes = randInt(1, 5);
+  const rem = randInt(1, d - 1);
+  const n = wholes * d + rem;
+  return problem(skill, `How many wholes are in ${n}/${d}?`, wholes, 'improperFractionId', { variant: 'wholes', n, d, wholes, rem });
+}
+
+// Convert between mixed numbers and improper fractions (MCQ / integer) — F014
+function genMixedNumberRead(skill) {
+  if (Math.random() < 0.5) {
+    for (let t = 0; t < 300; t++) {
+      const d = randInt(2, 8);
+      const whole = randInt(1, 5);
+      const num = randInt(1, d - 1);
+      const improper = whole * d + num;
+      const answer = `${whole} ${num}/${d}`;
+      const seen = new Set([answer]);
+      const choices = [answer];
+      const w1 = `${whole + 1} ${num}/${d}`;
+      if (!seen.has(w1)) { seen.add(w1); choices.push(w1); }
+      const w2 = whole > 1 ? `${whole - 1} ${num}/${d}` : `${whole + 2} ${num}/${d}`;
+      if (!seen.has(w2)) { seen.add(w2); choices.push(w2); }
+      const swapped = num !== d - num ? `${whole} ${d - num}/${d}` : `${whole} 1/${d}`;
+      if (!seen.has(swapped)) { seen.add(swapped); choices.push(swapped); }
+      const wd = `${whole} ${num}/${d + 1}`;
+      if (!seen.has(wd)) { seen.add(wd); choices.push(wd); }
+      while (choices.length < 4) {
+        const rw = randInt(1, 6), rn = randInt(1, d - 1);
+        const c = `${rw} ${rn}/${d}`;
+        if (!seen.has(c)) { seen.add(c); choices.push(c); }
+      }
+      return choiceProblem(skill, `Which mixed number is equal to ${improper}/${d}?`, answer, shuffle(choices.slice(0, 4)), 'mixedNumberRead', { variant: 'toMixed', improper, d, whole, num });
+    }
+    return choiceProblem(skill, `Which mixed number is equal to 7/3?`, '2 1/3', shuffle(['2 1/3', '3 1/3', '1 1/3', '2 2/3']), 'mixedNumberRead', { variant: 'toMixed', improper: 7, d: 3, whole: 2, num: 1 });
+  }
+  const d = randInt(2, 8);
+  const whole = randInt(1, 5);
+  const num = randInt(1, d - 1);
+  const answer = whole * d + num;
+  return problem(skill, `Write ${whole} ${num}/${d} as an improper fraction over ${d}. What is the numerator?`, answer, 'mixedNumberRead', { variant: 'toImproper', d, whole, num });
+}
+
+// ---------- Operations, word-problem & exam-style generators ----------
+
+// F020: shade-to-target — "How many more parts must be shaded so that T/D is shaded?"
+function genShadeToTarget(skill) {
+  const denoms = [4, 6, 8, 10, 12];
+  for (let t = 0; t < 300; t++) {
+    const D = pickFrom(denoms);
+    const N = randInt(1, D - 2);
+    const T = randInt(N + 1, D - 1);
+    const answer = T - N;
+    return problem(
+      skill,
+      `A figure has ${D} equal parts. ${N} ${N === 1 ? 'part is' : 'parts are'} already shaded. How many more parts must be shaded so that ${T}/${D} of the figure is shaded?`,
+      answer,
+      'shadeToTarget',
+      { D, N, T }
+    );
+  }
+  return problem(skill, 'A figure has 8 equal parts. 2 parts are already shaded. How many more parts must be shaded so that 5/8 of the figure is shaded?', 3, 'shadeToTarget', { D: 8, N: 2, T: 5 });
+}
+
+// F023: fraction remainder word problem — "What fraction of the cake is left?"
+function genFractionRemainderWP(skill) {
+  const names = ['Ali', 'Ben', 'Mei', 'Siti', 'Raj', 'Tom', 'Lily'];
+  const foods = ['cake', 'pizza', 'pie'];
+  const denoms = [2, 3, 4, 5, 6];
+  for (let t = 0; t < 300; t++) {
+    const d1 = pickFrom(denoms);
+    let d2 = pickFrom(denoms);
+    if (d2 === d1) continue;
+    const L = lcm(d1, d2);
+    const a1 = randInt(1, d1 - 1);
+    const a2 = randInt(1, d2 - 1);
+    const v1 = a1 * (L / d1);
+    const v2 = a2 * (L / d2);
+    if (v1 + v2 >= L) continue;
+    const answer = L - v1 - v2;
+    const n1 = pickFrom(names);
+    let n2 = pickFrom(names);
+    while (n2 === n1) n2 = pickFrom(names);
+    const food = pickFrom(foods);
+    return problem(
+      skill,
+      `${n1} ate ${a1}/${d1} of a ${food}. ${n2} ate ${a2}/${d2} of the same ${food}. What fraction of the ${food} is left? Express your answer as ?/${L}.`,
+      answer,
+      'fractionRemainderWP',
+      { a1, d1, a2, d2, L, n1, n2, food }
+    );
+  }
+  return problem(skill, 'Ali ate 1/3 of a cake. Mei ate 1/4 of the same cake. What fraction of the cake is left? Express your answer as ?/12.', 5, 'fractionRemainderWP', { a1: 1, d1: 3, a2: 1, d2: 4, L: 12, n1: 'Ali', n2: 'Mei', food: 'cake' });
+}
+
+// F005: number line operation — read two arrows, compute sum or difference
+function genNumberLineOp(skill) {
+  const denoms = [3, 4, 5, 6, 8, 10];
+  for (let t = 0; t < 300; t++) {
+    const d = pickFrom(denoms);
+    const isAdd = Math.random() < 0.5;
+    if (isAdd) {
+      const a1 = randInt(1, d - 1);
+      const a2 = randInt(1, d - a1);
+      const answer = a1 + a2;
+      return problem(skill, `On a number line, arrow A points to ${a1}/${d} and arrow B points to ${a2}/${d}. Find A ${PLUS} B. Express your answer as ?/${d}.`, answer, 'numberLineOp', { a1, a2, d, op: '+' });
+    }
+    const a1 = randInt(2, d);
+    const a2 = randInt(1, a1 - 1);
+    const answer = a1 - a2;
+    return problem(skill, `On a number line, arrow A points to ${a1}/${d} and arrow B points to ${a2}/${d}. Find A ${MINUS} B. Express your answer as ?/${d}.`, answer, 'numberLineOp', { a1, a2, d, op: '-' });
+  }
+  return problem(skill, `On a number line, arrow A points to 3/8 and arrow B points to 2/8. Find A ${PLUS} B. Express your answer as ?/8.`, 5, 'numberLineOp', { a1: 3, a2: 2, d: 8, op: '+' });
+}
+
+// F024: two-step fraction word problem
+function genTwoStepFraction(skill) {
+  const names = ['Ali', 'Ben', 'Mei', 'Siti', 'Raj', 'Tom', 'Lily', 'Sarah', 'John', 'Mary'];
+  const pattern = pickFrom(['A', 'B']);
+  if (pattern === 'A') {
+    const items = ['stickers', 'marbles', 'beads', 'stamps', 'coins'];
+    const heShe = { Ali: 'He', Ben: 'He', Raj: 'He', Tom: 'He', John: 'He', Mei: 'She', Siti: 'She', Lily: 'She', Sarah: 'She', Mary: 'She' };
+    for (let t = 0; t < 300; t++) {
+      const d = randInt(2, 6);
+      const a = randInt(1, d - 1);
+      const k = randInt(2, 8);
+      const Q = d * k;
+      const gave = Q * a / d;
+      const M = randInt(1, 20);
+      const answer = Q - gave + M;
+      const name = pickFrom(names);
+      const pro = heShe[name] || 'He';
+      const item = pickFrom(items);
+      return problem(skill, `${name} had ${Q} ${item}. ${pro} gave ${a}/${d} of them away and received ${M} more. How many ${item} does ${name} have now?`, answer, 'twoStepFractionA', { Q, a, d, M, name, item });
+    }
+    return problem(skill, 'Ali had 20 stickers. He gave 1/4 of them away and received 3 more. How many stickers does Ali have now?', 18, 'twoStepFractionA', { Q: 20, a: 1, d: 4, M: 3, name: 'Ali', item: 'stickers' });
+  }
+  const materials = ['ribbon', 'string', 'rope', 'wire'];
+  const heSheB = { Ali: 'He', Ben: 'He', Raj: 'He', Tom: 'He', John: 'He', Mei: 'She', Siti: 'She', Lily: 'She', Sarah: 'She', Mary: 'She' };
+  for (let t = 0; t < 300; t++) {
+    const d = randInt(3, 10);
+    const aNum = randInt(2, d - 1);
+    const bNum = randInt(1, aNum - 1);
+    const answer = aNum - bNum;
+    const name = pickFrom(names);
+    const pro = heSheB[name] || 'He';
+    const mat = pickFrom(materials);
+    return problem(skill, `${name} had ${aNum}/${d} of a ${mat}. ${pro} used ${bNum}/${d} of the ${mat}. What fraction of the ${mat} is left? Express your answer as ?/${d}.`, answer, 'twoStepFractionB', { aNum, bNum, d, name, mat });
+  }
+  return problem(skill, 'Mei had 5/8 of a ribbon. She used 2/8 of the ribbon. What fraction of the ribbon is left? Express your answer as ?/8.', 3, 'twoStepFractionB', { aNum: 5, bNum: 2, d: 8, name: 'Mei', mat: 'ribbon' });
+}
+
+// F025: exam-style MCQ — mixed fraction sub-patterns
+function genExamStyleFraction(skill) {
+  const sub = pickFrom(['simplest', 'working', 'findNumber']);
+  if (sub === 'simplest') {
+    for (let t = 0; t < 300; t++) {
+      const d = randInt(3, 12);
+      const n = randInt(1, d - 1);
+      if (gcd(n, d) !== 1) continue;
+      const simplified = `${n}/${d}`;
+      const distractors = [];
+      const seen = new Set([simplified]);
+      for (let u = 0; u < 200 && distractors.length < 3; u++) {
+        const dd = randInt(4, 12);
+        const nn = randInt(1, dd - 1);
+        if (gcd(nn, dd) === 1) continue;
+        const frac = `${nn}/${dd}`;
+        if (seen.has(frac)) continue;
+        seen.add(frac);
+        distractors.push(frac);
+      }
+      if (distractors.length < 3) continue;
+      return choiceProblem(skill, 'Which of these fractions is in its simplest form?', simplified, shuffle([simplified, ...distractors]), 'examSimplest', { n, d });
+    }
+    return choiceProblem(skill, 'Which of these fractions is in its simplest form?', '3/7', shuffle(['3/7', '4/8', '6/9', '2/10']), 'examSimplest', { n: 3, d: 7 });
+  }
+  if (sub === 'working') {
+    for (let t = 0; t < 300; t++) {
+      const d1 = randInt(2, 6), d2 = randInt(2, 6);
+      if (d1 === d2) continue;
+      const L = lcm(d1, d2);
+      const a = randInt(1, d1 - 1), b = randInt(1, d2 - 1);
+      const v1 = a * (L / d1), v2 = b * (L / d2);
+      if (v1 + v2 > L) continue;
+      const correct = `${v1}/${L} ${PLUS} ${v2}/${L} = ${v1 + v2}/${L}`;
+      const wrongAddDenom = `${a + b}/${d1 + d2}`;
+      const wrongLCD = `${a}/${L} ${PLUS} ${b}/${L} = ${a + b}/${L}`;
+      const wrongNoSimplify = v1 + v2 > 1 && gcd(v1 + v2, L) > 1
+        ? `${(v1 + v2) / gcd(v1 + v2, L)}/${L / gcd(v1 + v2, L)}`
+        : `${v1 + v2 + 1}/${L}`;
+      const choices = [correct, `${a}/${d1} ${PLUS} ${b}/${d2} = ${wrongAddDenom}`, wrongLCD, wrongNoSimplify];
+      return choiceProblem(skill, `Which shows the correct working for ${a}/${d1} ${PLUS} ${b}/${d2}?`, correct, shuffle(choices), 'examWorking', { a, d1, b, d2, L });
+    }
+    return choiceProblem(skill, `Which shows the correct working for 1/3 ${PLUS} 1/4?`, `4/12 ${PLUS} 3/12 = 7/12`, shuffle([`4/12 ${PLUS} 3/12 = 7/12`, '2/7', '1/12 + 1/12 = 2/12', '8/12']), 'examWorking', { a: 1, d1: 3, b: 1, d2: 4, L: 12 });
+  }
+  for (let t = 0; t < 300; t++) {
+    const b = randInt(2, 8);
+    const a = randInt(1, b - 1);
+    const ans = randInt(2, 12) * b;
+    const C = (ans * a) / b;
+    if (C !== Math.floor(C) || C < 1) continue;
+    return problem(skill, `${a}/${b} of a number is ${C}. What is the number?`, ans, 'examFindNumber', { a, b, C });
+  }
+  return problem(skill, '1/3 of a number is 5. What is the number?', 15, 'examFindNumber', { a: 1, b: 3, C: 5 });
+}
+
+// F026: mastery drill — meta-generator dispatching to simpler fraction patterns
+function genMasteryDrill(skill) {
+  const kind = pickFrom(['fractionLike_add', 'fractionLike_sub', 'equiv', 'simplify', 'of_set']);
+  if (kind === 'fractionLike_add') {
+    const d = randInt(2, 12);
+    const a = randInt(1, d - 1);
+    const b = randInt(1, d - a);
+    return problem(skill, `${a}/${d} ${PLUS} ${b}/${d} = ?/${d}`, a + b, 'masteryAdd', { a, b, d });
+  }
+  if (kind === 'fractionLike_sub') {
+    const d = randInt(2, 12);
+    const a = randInt(2, d);
+    const b = randInt(1, a - 1);
+    return problem(skill, `${a}/${d} ${MINUS} ${b}/${d} = ?/${d}`, a - b, 'masterySub', { a, b, d });
+  }
+  if (kind === 'equiv') {
+    const b = randInt(2, 6);
+    const k = randInt(2, 5);
+    const a = randInt(1, b - 1);
+    return problem(skill, `${a}/${b} = ?/${b * k}`, a * k, 'masteryEquiv', { a, b, k });
+  }
+  if (kind === 'simplify') {
+    for (let t = 0; t < 300; t++) {
+      const g = randInt(2, 5);
+      const sn = randInt(1, 6);
+      const sd = randInt(sn + 1, 8);
+      if (gcd(sn, sd) !== 1) continue;
+      const n = sn * g, d = sd * g;
+      const answer = `${sn}/${sd}`;
+      const distractors = [];
+      const seen = new Set([answer]);
+      const tryAdd = (s) => { if (!seen.has(s) && distractors.length < 3) { seen.add(s); distractors.push(s); } };
+      tryAdd(`${n}/${sd}`);
+      tryAdd(`${sn}/${d}`);
+      tryAdd(`${sn + 1}/${sd}`);
+      tryAdd(`${sn}/${sd + 1}`);
+      if (distractors.length < 3) continue;
+      return choiceProblem(skill, `What is ${n}/${d} in its simplest form?`, answer, shuffle([answer, ...distractors]), 'masterySimplify', { n, d, sn, sd });
+    }
+    return choiceProblem(skill, 'What is 6/9 in its simplest form?', '2/3', shuffle(['2/3', '6/3', '2/9', '3/6']), 'masterySimplify', { n: 6, d: 9, sn: 2, sd: 3 });
+  }
+  const d = randInt(2, 8);
+  const k = randInt(2, 6);
+  const set = d * k;
+  const a = randInt(1, d - 1);
+  return problem(skill, `${a}/${d} of ${set} =`, (set / d) * a, 'masteryOfSet', { a, d, set });
+}
+
 const KINDS = {
   barModel: genBarModel,
   compoundToUnit: genCompoundToUnit, duration: genDuration, moneyConvert: genMoneyConvert, barChart: genBarChart,
   moneyCount: genMoneyCount, moneyCompare: genMoneyCompare, moneyAddSub: genMoneyAddSub, moneyChange: genMoneyChange,
   numberInWords: genNumberInWords, shapeName: genShapeName, chartCategory: genChartCategory, clockRead: genClockRead,
   ordinal: genOrdinal, solidName: genSolidName, clock24: genClock24, fractionOfWhole: genFractionOfWhole,
+  fractionIdentify: genFractionIdentify, fractionNaming: genFractionNaming, fractionFromModel: genFractionFromModel,
+  unitFractionId: genUnitFractionId, fractionNumberLine: genFractionNumberLine, fractionOrder: genFractionOrder,
+  fractionBenchmark: genFractionBenchmark, compareStatements: genCompareStatements,
+  simplestForm: genSimplestForm, fractionMissingTerm: genFractionMissingTerm, nonEquivalent: genNonEquivalent,
+  equivChain: genEquivChain, simplifyAfterOp: genSimplifyAfterOp, improperFractionId: genImproperFractionId,
+  mixedNumberRead: genMixedNumberRead, shadeToTarget: genShadeToTarget, fractionRemainderWP: genFractionRemainderWP,
+  numberLineOp: genNumberLineOp, twoStepFraction: genTwoStepFraction, examStyleFraction: genExamStyleFraction,
+  masteryDrill: genMasteryDrill,
   add: genAdd, sub: genSub, mul: genMul, div: genDiv,
   missing: genMissing, placeValue: genPlaceValue, compare: genCompare, pattern: genPattern,
   parity: genParity, fractionLike: genFractionLike,
