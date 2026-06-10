@@ -791,7 +791,7 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
   );
 }
 
-function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0 }) {
+function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0, visual }) {
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
   });
@@ -833,7 +833,7 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
   return (
     <section>
       <div className="mb-4">
-        <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink-900">Recommended Next <Sparkles className="h-6 w-6 text-violet-300" /></h2>
+        <h2 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink-900">Recommended Next <Sparkles className="h-6 w-6 text-sky-300" /></h2>
         <p className="mt-1 text-sm text-ink-500">Choose one focused action. You do not need to do everything today.</p>
       </div>
       <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -848,7 +848,7 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
             )}
             <h3 className="mt-4 font-display text-lg font-semibold text-ink-900">{title}</h3>
             <p className="mt-1 flex-1 text-sm leading-5 text-ink-600">{body}</p>
-            <Button to={disabled ? undefined : to} state={state} size="m" variant="primary" icon={ArrowRight} className="mt-4 w-full bg-violet-600 hover:bg-violet-700" disabled={disabled} aria-label={title}>
+            <Button to={disabled ? undefined : to} state={state} size="m" variant="primary" icon={ArrowRight} className={`mt-4 w-full ${visual?.styles?.primaryCta || "bg-violet-600 hover:bg-violet-700"}`} disabled={disabled} aria-label={title}>
               Go
             </Button>
           </Card>
@@ -1135,7 +1135,7 @@ export default function StudentDashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative hidden items-center gap-2 rounded-full border border-violet-100 bg-white/90 py-2 pl-2 pr-4 shadow-resting sm:flex">
+            <div className="relative hidden items-center gap-2 rounded-full border border-sky-100 bg-white/90 py-2 pl-2 pr-4 shadow-resting sm:flex">
               <img src="/illustrations/mascot-star.png" alt="" aria-hidden="true" className="h-12 w-12 shrink-0 object-contain drop-shadow-sm" />
               <span className="text-sm font-semibold text-navy-700">Let's go! 💪</span>
               <span className="absolute -bottom-3 -right-2 rotate-6 rounded-lg border border-gold-200 bg-tianYellow px-2 py-0.5 text-[11px] font-semibold text-gold-700 shadow-resting">You've got this!</span>
@@ -1171,6 +1171,7 @@ export default function StudentDashboard() {
           nextAction={vm.nextAction}
           hasPlacement={vm.hasPlacement}
           masteredSkillCount={safeMasteredCount}
+          visual={visual}
         />
 
         <LowerPrimaryBanner />

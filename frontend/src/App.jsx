@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, Outlet } from 'react-router-dom';
 import { Sparkles, Layers, GraduationCap, ArrowRight } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { GOLD, GOLD_SOFT, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, TianOSKeyframes } from './components/tianos';
+import { CORAL, CORAL_GLOW, TEAL, TEAL_DARK, IVORY, SKY, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, TianOSKeyframes } from './components/tianos';
 
 // Demo
 const StrokeReplayDemo = lazy(() => import('./pages/StrokeReplayDemo'));

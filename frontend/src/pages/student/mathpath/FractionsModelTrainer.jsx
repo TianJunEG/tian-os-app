@@ -970,7 +970,9 @@ export default function FractionsModelTrainer() {
         {mode !== 'you_do' ? (
           <div className="grid gap-5 lg:grid-cols-[1fr,1.1fr]">
             <div>
-              <p className="mb-4 rounded-xl bg-bone px-4 py-3 text-base leading-7 text-ink-800">{visibleInstruction}</p>
+              <div className="mb-4 rounded-xl bg-bone px-4 py-3">
+                <HighlightedQuestion text={visibleInstruction} step={currentStep} />
+              </div>
               {mode === 'we_do' && prompt && (
               <div className="rounded-xl border border-hairline bg-white p-4">
                 {expressionQuestion ? (
@@ -1156,7 +1158,7 @@ export default function FractionsModelTrainer() {
           <Button variant="secondary" icon={ArrowLeft} disabled={stepIndex === 0 || mode === 'you_do'} onClick={() => goToStep(stepIndex - 1)}>Back</Button>
           <div className="flex gap-2">
             <Button variant="ghost" icon={RotateCcw} onClick={() => { setStepIndex(0); setYouDoAnswer(''); resetStepInput(); }}>Reset</Button>
-            <Button icon={ArrowRight} disabled={nextDisabled} onClick={handleNext}>Next</Button>
+            <Button icon={ArrowRight} disabled={nextDisabled} onClick={handleNext}>{transitionCTA?.label || 'Next'}</Button>
           </div>
         </div>
       </Card>

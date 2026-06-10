@@ -1402,10 +1402,10 @@ export default function PracticeSession() {
   };
 
   const openSubmissionReview = () => {
-    if (!answer) return;
+    if (!answer || !reflection) return;
     if (!currentQuestionValidation.ok) return;
-    // During retry, skip the modal — just re-check directly
     if (retrying) { onSubmitCurrent(); return; }
+    if (workingReady) { onSubmitCurrent(); return; }
     setSubmissionReviewOpen(true);
   };
 
@@ -1815,6 +1815,25 @@ export default function PracticeSession() {
               )}
             </div>
 
+            {!answered && answer && (
+              <div className="mt-2 rounded-xl border border-hairline bg-white p-2">
+                <p className="mb-1 text-xs font-semibold text-ink-600">How sure are you?</p>
+                <div className="grid grid-cols-3 gap-1">
+                  {REFLECTION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setReflection(opt.value)}
+                      className={`rounded-lg border px-2 py-1.5 text-xs ${reflection === opt.value ? 'border-navy-500 bg-navy-50 font-semibold text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-2">
               <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} solutionSteps={q.solutionSteps} onTryAgain={handleTryAgain} />
             </div>
@@ -1823,7 +1842,7 @@ export default function PracticeSession() {
               {!answered ? (
                 <>
                   <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
-                  <Button disabled={busy || !answer} onClick={openSubmissionReview}>Submit answer</Button>
+                  <Button disabled={busy || !answer || !reflection} onClick={openSubmissionReview}>Submit answer</Button>
                 </>
               ) : (
                 <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
