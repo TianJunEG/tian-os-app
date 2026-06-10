@@ -1541,6 +1541,16 @@ export default function PracticeSession() {
           sessionType,
           responses: payload,
         });
+        try {
+          const apiSubmit = isP3Session ? mathpathAPI.submitP3Practice : mathpathAPI.submitP1Practice;
+          const { data: persisted } = await apiSubmit(
+            flowSession.practiceSessionId || routeSessionId,
+            { sessionType, responses: payload },
+          );
+          submitted = { ...submitted, ...persisted, persisted: true };
+        } catch (persistErr) {
+          console.error('[session-complete] P1/P3 backend persist failed — results saved locally', persistErr);
+        }
       } else if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
         const { data } = await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
           sessionType,
