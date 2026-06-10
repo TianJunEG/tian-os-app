@@ -20,6 +20,16 @@ export default {
         resting: '0 6px 24px rgba(0,0,0,0.04)',
         active: '0 10px 32px rgba(0,0,0,0.07)',
       },
+      keyframes: {
+        'pulse-once': {
+          '0%': { boxShadow: '0 0 0 0 rgba(232, 189, 62, 0.5)' },
+          '50%': { boxShadow: '0 0 0 8px rgba(232, 189, 62, 0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(232, 189, 62, 0)' },
+        },
+      },
+      animation: {
+        'pulse-once': 'pulse-once 1.5s ease-out 0.3s 2',
+      },
       colors: {
         // Tian OS neutral system — ink (text), paper/ivory/bone (surfaces), hairline (borders).
         ink: { 900: '#0E1320', 700: '#1F2330', 500: '#5B5F6E', 300: '#9A9DA9', 100: '#C9CBD3' },
