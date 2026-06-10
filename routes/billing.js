@@ -13,8 +13,11 @@ const router = express.Router();
 
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
+// Premium Home is a home (B2C) purchase paid to the company, so reconciling
+// PayNow payments and activating access is a platform-admin task — not a school
+// HOD's. This matches the frontend route guard (FeatureGuard feature="admin").
 function isBillingAdmin(req) {
-  return req.user?.role === 'admin' || req.user?.role === 'school_admin';
+  return req.user?.role === 'admin';
 }
 
 // Short, human-readable reference a parent quotes in their PayNow comment.
