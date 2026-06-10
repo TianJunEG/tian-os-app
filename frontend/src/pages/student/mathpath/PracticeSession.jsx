@@ -884,6 +884,7 @@ function LegacyPracticeSession() {
       </Card>
       <FullScreenWorkingMode
         open={fullscreenOpen}
+        questionId={q.questionId}
         questionText={q.stem || q.prompt || ''}
         questionContent={(
           <div className="space-y-4 text-base">
@@ -1903,6 +1904,7 @@ export default function PracticeSession() {
       </Card>
       <FullScreenWorkingMode
         open={fullscreenQuestionId === q.questionId}
+        questionId={q.questionId}
         questionText={questionText}
         questionContent={(
           <div className="space-y-4 text-base">
