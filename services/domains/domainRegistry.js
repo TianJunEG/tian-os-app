@@ -161,6 +161,28 @@ export function registerDefaultDomains() {
 
 registerDefaultDomains();
 
+// Problem Solving Lab — guided heuristic word-problem reasoning (bar models).
+// PSL uses the shared mastery engine (module: 'PSL') and Mistake model; it does
+// not need diagnostic/assignment/worksheet adapters — its session lifecycle is
+// self-contained in services/psl/.
+if (!hasDomain({ subjectId: 'math', domainId: 'psl' })) {
+  registerDomain({
+    subjectId: 'math',
+    domainId: 'psl',
+    displayName: 'Problem Solving Lab',
+    domainVersion: 'psl-v0.1',
+    diagnosticAdapter: null,
+    assignmentAdapter: null,
+    worksheetAdapter: null,
+    paperAnalysisAdapter: null,
+    interventionAdapter: null,
+    skillGraphAdapter: {
+      status: 'available',
+      notes: 'PSL skill graph defined in scripts/seedPSLSkills.js with prerequisite chains.',
+    },
+  });
+}
+
 export default {
   registerDomain,
   getDomain,
