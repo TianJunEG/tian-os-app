@@ -1772,7 +1772,7 @@ export default function PracticeSession() {
 
           </section>
 
-          <aside className="min-w-0 min-h-0 rounded-2xl bg-violet-50/60 p-2 sm:p-3 xl:h-full xl:overflow-y-auto">
+          <aside className={`min-w-0 min-h-0 rounded-2xl p-2 sm:p-3 xl:h-full xl:overflow-y-auto ${visualStyles.softCard}`}>
             <div className="rounded-xl border border-hairline bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (

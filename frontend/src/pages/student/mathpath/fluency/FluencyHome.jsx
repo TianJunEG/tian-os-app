@@ -103,7 +103,7 @@ export default function FluencyHome() {
       <PageHeader title="Fluency Practice" subtitle="MathPath · short, focused sessions for automaticity and retention" />
 
       <Card className={`p-5 ${visualStyles.heroCard}`}>
-        <div className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-violet-700">Recommended now</div>
+        <div className={`mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] ${visualStyles.accent}`}>Recommended now</div>
         {recommended ? (
           <>
             <div className="font-display text-xl font-semibold text-ink-900">{recommended.name}</div>
