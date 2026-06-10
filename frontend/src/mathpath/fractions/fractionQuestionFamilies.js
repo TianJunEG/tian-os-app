@@ -138,6 +138,7 @@ const familiesBySkillBlueprint = {
     { name: 'Simplify After Intermediate Steps', description: 'Simplify in multi-step symbolic expressions.', difficulty: 4, fluencyTargetSeconds: 24, misconceptionTags: ['M005', 'M010'] },
     { name: 'Compare Same Numerator Reasoning', description: 'Compare same-numerator fractions through part-size reasoning.', difficulty: 2, fluencyTargetSeconds: 16, mentalMathEligible: true, misconceptionTags: ['M002', 'M003'] },
     { name: 'Same Numerator Visual Mismatch Checks', description: 'Identify when visual model disagrees with symbolic comparison.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M002', 'M010'] },
+    { name: 'Simplify with Prime Factor Recognition', description: 'Simplify fractions by recognising shared prime factors.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M005', 'M004'] },
   ],
   F013: [
     { name: 'Identify Improper Fractions', description: 'Classify fractions as improper/proper.', difficulty: 2, fluencyTargetSeconds: 14, workingRequired: false, mentalMathEligible: true, misconceptionTags: ['M006'] },
