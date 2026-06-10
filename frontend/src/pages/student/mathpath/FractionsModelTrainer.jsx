@@ -799,7 +799,10 @@ export default function FractionsModelTrainer() {
   });
   const isLastStep = stepIndex >= steps.length - 1;
   const canProceedFromCurrentStep = mode === 'you_do' ? step5Completion.canProceed : weDoStepComplete;
-  const nextDisabled = mode === 'you_do' ? !canProceedFromCurrentStep : isLastStep || !canProceedFromCurrentStep;
+  const transitionCTA = getTransitionCTA(mode, isLastStep);
+  const nextDisabled = mode === 'you_do'
+    ? !canProceedFromCurrentStep
+    : transitionCTA ? !canProceedFromCurrentStep : (isLastStep || !canProceedFromCurrentStep);
   const modelRevealState = buildModelRevealStates({
     model: currentStep.model || {},
     expectedAction,
@@ -920,23 +923,36 @@ export default function FractionsModelTrainer() {
       />
 
       <div className="mb-4 grid grid-cols-3 gap-2">
-        {Object.entries(MODE_META).map(([key, meta]) => (
-          <button
-            key={key}
-            onClick={() => {
-              setMode(key);
-              resetStepInput();
-              setYouDoAnswer('');
-              if (key === 'you_do') setShowYouDoModel(false);
-            }}
-            className={`rounded-xl border px-3 py-2 text-left text-sm font-semibold ${
-              mode === key ? 'border-navy-700 bg-navy-50 text-navy-700' : 'border-hairline bg-white text-ink-600'
-            }`}
-          >
-            <span className="block">{meta.label}</span>
-            <span className="block text-xs font-medium text-ink-500">{meta.helper}</span>
-          </button>
-        ))}
+        {Object.entries(MODE_META).map(([key, meta]) => {
+          const status = getPhaseStatus(key, mode, completedPhases);
+          const StatusIcon = status === 'completed' ? CheckCircle : status === 'locked' ? Lock : Circle;
+          const isDisabled = status === 'locked';
+          return (
+            <button
+              key={key}
+              disabled={isDisabled}
+              onClick={() => {
+                if (isDisabled) return;
+                setMode(key);
+                resetStepInput();
+                setYouDoAnswer('');
+                if (key === 'you_do') setShowYouDoModel(false);
+              }}
+              className={`rounded-xl border px-3 py-2 text-left text-sm font-semibold ${
+                status === 'current' ? 'border-navy-700 bg-navy-50 text-navy-700'
+                  : status === 'completed' ? 'border-success-300 bg-success-50 text-success-700'
+                  : status === 'next' ? 'border-hairline bg-white text-ink-600'
+                  : 'border-hairline bg-slate-50 text-ink-400 cursor-not-allowed'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <StatusIcon className="h-4 w-4" />
+                {meta.label}
+              </span>
+              <span className="block text-xs font-medium text-ink-500">{meta.helper}</span>
+            </button>
+          );
+        })}
       </div>
 
       <Card className="p-4 md:p-5">
