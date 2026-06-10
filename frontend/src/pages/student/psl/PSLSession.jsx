@@ -1,0 +1,239 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { pslAPI } from '../../../services/api';
+import { Spinner } from '../../../components/ui';
+import StepProgressBar from './components/StepProgressBar';
+import StoryPanel from './components/StoryPanel';
+import QuestionIdentifier from './components/QuestionIdentifier';
+import ModelSelector from './components/ModelSelector';
+import SolvePanel from './components/SolvePanel';
+import CheckPanel from './components/CheckPanel';
+import StepFeedbackCard from './components/StepFeedbackCard';
+
+const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
+
+function UnderstandStep({ onSelect, selectedIndex }) {
+  const choices = [
+    'It\'s about finding a total or combining groups',
+    'It\'s about comparing two quantities',
+    'It\'s about finding what\'s left after removing some',
+    'It\'s about sharing equally or grouping',
+  ];
+  return <QuestionIdentifier choices={choices} selectedIndex={selectedIndex} onSelect={onSelect} />;
+}
+
+export default function PSLSession() {
+  const { sessionId } = useParams();
+  const navigate = useNavigate();
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState({});
+  const [feedback, setFeedback] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [stepResponses, setStepResponses] = useState({});
+  const [retryCount, setRetryCount] = useState({});
+
+  useEffect(() => {
+    pslAPI.getSession(sessionId)
+      .then((res) => setSession(res.data))
+      .catch(() => navigate('/student/psl'))
+      .finally(() => setLoading(false));
+  }, [sessionId, navigate]);
+
+  const currentProblem = session?.currentProblem;
+  const currentStepId = STEP_IDS[currentStepIdx];
+  const totalProblems = session?.summary?.totalProblems || session?.problems?.length || 5;
+  const problemIndex = session?.currentProblemIndex || 0;
+
+  const buildResponse = useCallback(() => {
+    const resp = stepResponses[currentStepId];
+    switch (currentStepId) {
+      case 'understand':
+        return { selectedIndex: resp?.selectedIndex };
+      case 'identify_info':
+        return { numbers: resp?.numbers || [] };
+      case 'identify_question':
+        return { selectedIndex: resp?.selectedIndex };
+      case 'plan':
+        return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition };
+      case 'solve':
+        return {
+          answer: Number(resp?.answer),
+          operation: resp?.expression?.match(/[+\-×÷*/]/)?.[0] || '',
+          expression: resp?.expression || '',
+          intermediates: resp?.step1Answer ? [Number(resp.step1Answer)] : [],
+        };
+      case 'check':
+        return { reasonable: resp?.reasonable };
+      default:
+        return resp || {};
+    }
+  }, [currentStepId, stepResponses]);
+
+  const handleSubmitStep = async () => {
+    if (submitting || !currentProblem) return;
+    setSubmitting(true);
+    setFeedback(null);
+    try {
+      const res = await pslAPI.submitStep(sessionId, currentProblem.problemId, {
+        stepId: currentStepId,
+        response: buildResponse(),
+        timeSpentMs: 0,
+      });
+      const result = res.data;
+      setCompletedSteps((prev) => ({ ...prev, [currentStepId]: result }));
+      setFeedback(result);
+
+      if (!result.correct && !result.partial && (retryCount[currentStepId] || 0) < 1) {
+        setRetryCount((prev) => ({ ...prev, [currentStepId]: (prev[currentStepId] || 0) + 1 }));
+      }
+    } catch (err) {
+      setFeedback({ correct: false, feedback: err.response?.data?.error || 'Something went wrong.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleContinue = async () => {
+    setFeedback(null);
+    if (currentStepIdx < STEP_IDS.length - 1) {
+      setCurrentStepIdx(currentStepIdx + 1);
+    } else {
+      try {
+        const res = await pslAPI.completeProblem(sessionId, currentProblem.problemId);
+        if (res.data.hasNextProblem) {
+          setSession((prev) => ({
+            ...prev,
+            currentProblem: res.data.nextProblem,
+            currentProblemIndex: res.data.nextProblemIndex,
+          }));
+          setCurrentStepIdx(0);
+          setCompletedSteps({});
+          setStepResponses({});
+          setRetryCount({});
+        } else {
+          await pslAPI.completeSession(sessionId);
+          navigate(`/student/psl/results/${sessionId}`);
+        }
+      } catch {
+        navigate(`/student/psl/results/${sessionId}`);
+      }
+    }
+  };
+
+  const updateResponse = (stepId, data) => {
+    setStepResponses((prev) => ({ ...prev, [stepId]: { ...prev[stepId], ...data } }));
+  };
+
+  if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
+  if (!currentProblem) return <div className="p-6 text-center text-ink-500">No problem available.</div>;
+
+  const canSubmit = (() => {
+    const resp = stepResponses[currentStepId];
+    switch (currentStepId) {
+      case 'understand': return resp?.selectedIndex !== undefined;
+      case 'identify_info': return (resp?.numbers || []).length > 0;
+      case 'identify_question': return resp?.selectedIndex !== undefined;
+      case 'plan': return resp?.modelType && resp?.unknownPosition;
+      case 'solve': return resp?.answer !== undefined && resp?.answer !== '';
+      case 'check': return resp?.reasonable !== undefined;
+      default: return false;
+    }
+  })();
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-24 sm:p-6">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-ink-400">
+          Problem {problemIndex + 1} of {totalProblems}
+        </span>
+        <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
+      </div>
+
+      <StoryPanel
+        storyText={currentProblem.storyText}
+        highlightMode={currentStepId === 'identify_info'}
+        highlightedNumbers={stepResponses.identify_info?.numbers || []}
+        onToggleNumber={(num) => {
+          const current = stepResponses.identify_info?.numbers || [];
+          const next = current.includes(num) ? current.filter((n) => n !== num) : [...current, num];
+          updateResponse('identify_info', { numbers: next });
+        }}
+      />
+
+      <div className="rounded-2xl border border-ink-200 bg-white p-4 sm:p-5">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-400">
+          Step {currentStepIdx + 1}: {STEP_IDS[currentStepIdx]?.replace('_', ' ')}
+        </h3>
+
+        {currentStepId === 'understand' && (
+          <UnderstandStep
+            selectedIndex={stepResponses.understand?.selectedIndex}
+            onSelect={(idx) => updateResponse('understand', { selectedIndex: idx })}
+          />
+        )}
+
+        {currentStepId === 'identify_info' && (
+          <p className="text-sm text-ink-600">
+            Tap the numbers in the story above that you need to solve this problem.
+            You have selected <strong>{(stepResponses.identify_info?.numbers || []).length}</strong> number(s).
+          </p>
+        )}
+
+        {currentStepId === 'identify_question' && (
+          <QuestionIdentifier
+            selectedIndex={stepResponses.identify_question?.selectedIndex}
+            onSelect={(idx) => updateResponse('identify_question', { selectedIndex: idx })}
+          />
+        )}
+
+        {currentStepId === 'plan' && (
+          <ModelSelector
+            modelType={stepResponses.plan?.modelType}
+            unknownPosition={stepResponses.plan?.unknownPosition}
+            onSelectModel={(mt) => updateResponse('plan', { modelType: mt, unknownPosition: undefined })}
+            onSelectPosition={(pos) => updateResponse('plan', { unknownPosition: pos })}
+          />
+        )}
+
+        {currentStepId === 'solve' && (
+          <SolvePanel
+            twoStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')?.type === 'twoStep'}
+            value={stepResponses.solve || {}}
+            onChange={(val) => updateResponse('solve', val)}
+          />
+        )}
+
+        {currentStepId === 'check' && (
+          <CheckPanel
+            answer={stepResponses.solve?.answer}
+            selected={stepResponses.check?.reasonable}
+            onSelect={(val) => updateResponse('check', { reasonable: val })}
+          />
+        )}
+      </div>
+
+      {feedback && (
+        <StepFeedbackCard
+          correct={feedback.correct}
+          partial={feedback.partial}
+          feedback={feedback.feedback}
+          misconceptionTag={feedback.misconceptionTag}
+          onContinue={handleContinue}
+        />
+      )}
+
+      {!feedback && (
+        <button
+          type="button"
+          onClick={handleSubmitStep}
+          disabled={!canSubmit || submitting}
+          className="w-full rounded-xl bg-gold-400 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-500 disabled:opacity-40"
+        >
+          {submitting ? 'Checking...' : 'Check'}
+        </button>
+      )}
+    </div>
+  );
+}
