@@ -92,6 +92,19 @@ export default function FluencySkills() {
   const start = async (skillId) => {
     setBusy(skillId);
     try {
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(),
+            questionCount: 8,
+            sessionType: 'practice',
+            source: 'fluency-skills',
+            backTo: '/student/mathpath/fluency',
+          },
+        });
+        return;
+      }
       const { data } = await mathpathAPI.startSession({ feature: 'Fluency Practice', mode: 'fluency', skillId, questionCount: 8 });
       navigate(`/student/mathpath/practice/${data.session_id}`, { state: { items: data.items, backTo: '/student/mathpath/fluency' } });
     } catch (e) { setError(e.response?.data?.error || 'Could not start practice.'); setBusy(null); }

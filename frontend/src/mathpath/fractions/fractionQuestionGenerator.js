@@ -601,6 +601,12 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     domainId: DOMAIN_ID,
     skillId,
     questionFamilyId,
+    // Propagate the family's quarantine status so the runtime evidence-integrity audit
+    // flags any reference to a quarantined item. Generation still works for explicit
+    // calls (e.g. re-scoring a previously served item); selection paths never pick these.
+    quarantined: Boolean(family.quarantined),
+    quarantineReason: family.quarantineReason || '',
+    canonicalSkillId: family.canonicalSkillId || skillId,
     questionCategory: mode,
     questionType: assessmentMetadata.questionType,
     responseType: 'short_answer',

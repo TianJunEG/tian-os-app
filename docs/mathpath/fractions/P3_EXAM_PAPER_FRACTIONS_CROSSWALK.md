@@ -1,7 +1,7 @@
 # P3 Exam Paper Fractions Crosswalk
 
-Status: reference crosswalk
-Scope: 216 P3 Math exam papers (2019-2025), 30+ sampled in detail (remaining in progress)
+Status: reference crosswalk — NEAR COMPLETE
+Scope: 216 P3 Math exam papers (2019-2025), ~197 extracted, ~19 WA papers partially extracted
 Source: `/Users/mco/Documents/Test Papers Zipped Files/P3/Math/`
 
 ## Purpose
@@ -19,24 +19,27 @@ This document maps P3 exam fractions question patterns to MathPath micro-skills 
 
 CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear consistently from Term 3 WA onwards and in all EOY papers.
 
-## Question Pattern Frequency (across 30+ sampled papers)
+## Question Pattern Frequency (567 questions across ~160 papers)
 
-| Rank | Pattern | Exam frequency | MathPath skill | Question families |
-|---|---|---|---|---|
-| 1 | Order 3-4 unlike fractions | ~80% of EOY | F009 (FR2.07) | F009 has 4 families |
-| 2 | Equivalent fraction missing num/denom | ~70% of EOY | F011 (FR2.10-FR2.12) | F011 has 6 families incl chain variant |
-| 3 | Add/subtract unlike fractions | ~60% of EOY | F018/F019 (FR4.05-FR4.09) | Well covered |
-| 4 | Visual composite figure fraction ID | ~50% of papers | F001 (FR1.02) | NEW: Composite Figure Fraction Identification |
-| 5 | Express in simplest form | ~50% of papers | F012 (FR2.13-FR2.15) | Well covered |
-| 6 | Shade more parts to reach target fraction | ~40% of papers | F001/F020 (FR1.02/FR5.01) | NEW: Shade Additional Parts to Reach Target Fraction |
-| 7 | Fraction on number line (read) | ~40% of papers | F005 (FR1.03 area) | NEW: Read Fraction from Number Line Position |
-| 8 | Benchmark comparison (vs 1/2) | ~30% of papers | F008/F009 (FR2.04-FR2.05) | Covered |
-| 9 | Fraction word problem with remainder | ~20% of EOY | F023/F024 (FR6.05-FR6.08) | NEW: Fraction Remainder After Multiple Events |
-| 10 | Missing fraction in equation | ~15% of papers | F016/F018/F019 | NEW: Find Missing Addend/Subtrahend |
-| 11 | Non-equivalent odd-one-out | ~15% of papers | F010 (FR2.09) | NEW: Identify Non-Equivalent Fraction |
-| 12 | Multi-statement true/false evaluation | ~15% of papers | F009 (FR2.07) | NEW: Evaluate Multiple Comparison Statements |
-| 13 | Number line + operation combo | ~10% of papers | F005 + F018/F019 | NEW: Number Line Reading with Operation |
-| 14 | Two-unknown equivalent chain | rare | F011 (FR2.10) | NEW: Two-Unknown Equivalent Fraction Chain |
+| Rank | Pattern | Hits | % of papers | MathPath skill | Question families |
+|---|---|---|---|---|---|
+| 1 | Order/arrange 3-4 fractions | 122 | ~85% of EOY | F009 (FR2.07) | 4 families |
+| 2 | Express in simplest form | 101 | ~70% of papers | F012 (FR2.13) | Well covered |
+| 3 | Fraction of figure shaded / composite figure | 97 | ~65% of papers | F001 (FR1.02) | Incl composite figure family |
+| 4 | Add unlike fractions | 85 | ~60% of EOY | F018 (FR4.06) | Well covered |
+| 5 | Subtract unlike fractions | 71 | ~50% of EOY | F019 (FR4.09) | Well covered |
+| 6 | Identify/generate equivalent fractions | 48 | ~40% of papers | F010/F011 (FR2.10) | 6 families incl chain variant |
+| 7 | Missing num/denom in equivalent fraction | 40 | ~35% of papers | F011 (FR2.12) | Covered |
+| 8 | Shade more parts to reach target fraction | 37 | ~30% of papers | F001/F020 (FR5.01) | Shade Additional Parts family |
+| 9 | Read fraction from number line | 26 | ~20% of papers | F005 (FR1.03) | Number line families |
+| 10 | Fraction word problem (remainder) | 24 | ~18% of papers | F023 (FR6.05) | Fraction Remainder family |
+| 11 | Non-equivalent odd-one-out | 20 | ~15% of papers | F010 (FR2.09) | Non-Equivalent family |
+| 12 | Subtract like / complement to 1 | 18 | ~15% of papers | F017 (FR4.03) | Covered |
+| 13 | Benchmark comparison (vs 1/2) | 29 | ~20% of papers | F008/F009 (FR2.04-FR2.05) | Covered |
+| 14 | Missing denominator in equivalent | 16 | ~12% of papers | F011 (FR2.11) | Covered |
+| 15 | Multi-statement true/false evaluation | ~10 | ~8% of papers | F009 (FR2.07) | Evaluate Comparison Statements family |
+| 16 | Number line + operation combo | ~6 | ~5% of papers | F005 + F018/F019 | Number Line + Operation family |
+| 17 | Two-unknown equivalent chain | ~5 | rare | F011 (FR2.10) | Two-Unknown Chain family |
 
 ## Detailed Crosswalk by School and Year
 
@@ -369,6 +372,86 @@ CA1 and WA1 papers (Term 1) have **zero fractions questions**. Fractions appear 
 
 **Skill frequency this batch (35 Qs from 9 papers):** Ordering/comparing (8), Simplest form (6), Shade-to-target (5), Unlike fraction addition (5), Equivalent fraction (4), Number line (3), Fraction remainder WP (2), Composite figure (1), Complement to 1 (1).
 
+### 2020 SA2 Papers (all 16 schools)
+
+| Paper | Q# | Type | Pattern | FR codes |
+|---|---|---|---|---|
+| ACSJ SA2 2020 | Q3 | MCQ | Identify figure showing 3/4 shaded | FR1.02 |
+| ACSJ SA2 2020 | Q5 | MCQ | Identify fraction of a set of objects circled | FR5.01 |
+| ACSJ SA2 2020 | Q6 | MCQ | Identify equivalent fraction of 4/6 | FR2.10 |
+| ACSJ SA2 2020 | Q20 | SAQ | Find missing denominator 3/4 = 9/? | FR2.11 |
+| ACSJ SA2 2020 | Q22 | SAQ | Subtract like fractions 7/8 - 3/8 | FR4.03 |
+| ACSJ SA2 2020 | Q23 | SAQ | Order 1/6, 5/6, 3/6 smallest to greatest | FR2.02, FR2.07 |
+| ACSP SA2 2020 | Q8 | MCQ | Identify fraction on number line | FR1.03 |
+| ACSP SA2 2020 | Q16 | SAQ | Express shaded fraction in simplest form | FR1.02, FR2.13 |
+| ACSP SA2 2020 | Q28 | SAQ | Arrange 3 unlike fractions smallest to greatest | FR2.07 |
+| Ai Tong SA2 2020 | Q2 | MCQ | Identify figure with 1/4 shaded | FR1.02 |
+| Ai Tong SA2 2020 | Q3 | MCQ | Identify equivalent fraction pair | FR2.10 |
+| Ai Tong SA2 2020 | Q18 | SAQ | Add unlike fractions 1/3 + 1/6 | FR4.06 |
+| Ai Tong SA2 2020 | Q22 | SAQ | Shade additional parts to make 3/4 | FR1.02, FR5.01 |
+| Ai Tong SA2 2020 | Q23 | SAQ | Find missing numerator 2/5 = ?/10 | FR2.12 |
+| Catholic High SA2 2020 | Q9 | MCQ | Fraction of shaded figure, simplest form | FR1.02, FR2.13 |
+| Catholic High SA2 2020 | Q21 | SAQ | Find equivalent fraction missing denominator | FR2.12 |
+| Catholic High SA2 2020 | Q26 | SAQ | Add unlike fractions, simplify | FR4.06, FR2.13 |
+| Catholic High SA2 2020 | Q30 | SAQ | Order 3 unlike fractions greatest to smallest | FR2.07 |
+| Catholic High SA2 2020 | Q31 | SAQ | Fraction of composite figure shaded | FR1.02 |
+| MGS SA2 2020 | Q6 | SAQ | Find missing denominator 6/21 = 2/? | FR2.12 |
+| MGS SA2 2020 | Q7 | SAQ | Add unlike fractions 1/4 + 5/12 | FR4.06 |
+| MGS SA2 2020 | Q23 | SAQ | Subtract unlike fractions 7/10 - 1/5, simplest form | FR4.09, FR2.13 |
+| MGS SA2 2020 | Q24 | SAQ | Shaded fraction of figure, simplest form | FR1.02, FR2.13 |
+| MGS SA2 2020 | Q26 | SAQ | Order 1/2, 3/5, 5/12 greatest to smallest | FR2.07 |
+| Maha Bodhi SA2 2020 | Q6 | MCQ | Identify figure showing 2/3 shaded | FR1.02 |
+| Maha Bodhi SA2 2020 | Q14 | SAQ | Find missing denominator 6/? = 9/12 | FR2.12 |
+| Maha Bodhi SA2 2020 | Q21 | SAQ | Order unit fractions 1/3, 1/2, 1/7 smallest to greatest | FR2.01, FR2.07 |
+| Maha Bodhi SA2 2020 | Q22 | SAQ | Add unlike fractions 2/9 + 2/3 | FR4.06 |
+| Maris Stella SA2 2020 | Q9 | MCQ | Identify fraction on 0-to-1 number line | FR1.03 |
+| Maris Stella SA2 2020 | Q13 | SAQ | Shade additional parts to make 2/3 | FR1.02, FR5.01 |
+| Maris Stella SA2 2020 | Q14 | SAQ | Fraction of figure (6 identical rectangles) | FR1.02 |
+| Maris Stella SA2 2020 | Q15 | SAQ | Order 1/2, 3/7, 3/5 smallest to greatest | FR2.07 |
+| Maris Stella SA2 2020 | Q19 | SAQ | Subtract unlike fractions 5/9 - 1/3 | FR4.09 |
+| Maris Stella SA2 2020 | Q20 | SAQ | Find missing numerator 3/4 = ?/12 | FR2.12 |
+| Nan Hua SA2 2020 | Q5 | MCQ | Find missing denominator 5/10 = 1/? | FR2.12 |
+| Nan Hua SA2 2020 | Q9 | MCQ | Identify shaded fraction of figure | FR1.02 |
+| Nan Hua SA2 2020 | Q13 | SAQ | Add unlike fractions 2/5 + 3/10 | FR4.06 |
+| Nan Hua SA2 2020 | Q18 | SAQ | Order 2/3, 5/6, 7/12 | FR2.07 |
+| Nanyang SA2 2020 | Q8 | MCQ | Identify fraction NOT equivalent to 1/3 | FR2.09 |
+| Nanyang SA2 2020 | Q9 | MCQ | Order 4 fractions greatest to smallest | FR2.07 |
+| Nanyang SA2 2020 | Q22 | SAQ | Find missing numerator 2/7 = ?/28 | FR2.12 |
+| Nanyang SA2 2020 | Q24 | SAQ | Add unlike fractions 3/8 + 1/4 | FR4.06 |
+| Nanyang SA2 2020 | Q29 | SAQ | Shaded fraction of figure, simplest form | FR1.02, FR2.13 |
+| Nanyang SA2 2020 | Q30 | SAQ | Identify two fractions that add to 1 whole | FR4.06, FR4.03 |
+| PLMGS SA2 2020 | Q8 | MCQ | Identify fraction NOT equivalent to 2/6 | FR2.09 |
+| PLMGS SA2 2020 | Q13 | WP | Ate 1/8 and 3/4 of pizza, find fraction left | FR4.06, FR6.05 |
+| PLMGS SA2 2020 | Q21a | SAQ | Add unlike fractions 1/12 + 3/4 | FR4.06 |
+| PLMGS SA2 2020 | Q21b | SAQ | Subtract from 1 whole: 1 - 1/9 | FR4.03 |
+| PLMGS SA2 2020 | Q27 | SAQ | Shade more triangles so 2/3 of 12 shaded | FR1.02, FR5.01 |
+| Raffles SA2 2020 | Q5 | MCQ | Find missing denominator 3/8 = 12/? | FR2.12 |
+| Raffles SA2 2020 | Q10 | MCQ | Add unlike fractions 1/3 + 2/9 | FR4.06 |
+| Raffles SA2 2020 | Q14 | WP | Daughter/son ate fractions, find total eaten | FR4.09, FR6.05 |
+| Raffles SA2 2020 | Q21 | SAQ | Simplify 18/24 | FR2.13 |
+| Raffles SA2 2020 | Q33 | SAQ | Arrange 1/8, 3/4, 5/12 smallest to biggest | FR2.07 |
+| Red Swastika SA2 2020 | Q14 | SAQ | Fraction of rectangle shaded | FR1.02 |
+| Red Swastika SA2 2020 | Q15 | SAQ | Fraction at midpoint on number line | FR1.03 |
+| Red Swastika SA2 2020 | Q38 | SAQ | Find missing values in chain 2/a = 6/15 = b/25 | FR2.10, FR2.12 |
+| Red Swastika SA2 2020 | Q39 | SAQ | Identify fraction smaller than 1/3 from set | FR2.04 |
+| Red Swastika SA2 2020 | Q40 | WP | Three people share cake, shade remainder | FR4.06, FR6.05 |
+| Rosyth SA2 2020 | Q14 | MCQ | Identify fraction greater than 3/5 | FR2.07 |
+| Rosyth SA2 2020 | Q15 | SAQ | Find missing fraction: ? - 1/5 = 3/5 | FR4.03 |
+| Rosyth SA2 2020 | Q23 | SAQ | Add unlike fractions 1/3 + 2/9 | FR4.06 |
+| Rosyth SA2 2020 | Q30 | SAQ | Arrange 5/12, 3/4, 1/6 greatest to smallest | FR2.07 |
+| Rosyth SA2 2020 | Q31 | SAQ | Shaded fraction of 6 identical squares, simplest form | FR1.02, FR2.13 |
+| SCGS SA2 2020 | Q5 | MCQ | Identify fraction NOT equivalent to 1/2 | FR2.09 |
+| SCGS SA2 2020 | Q13 | SAQ | Subtract 2/4 from 6/8 | FR4.09 |
+| SCGS SA2 2020 | Q20 | SAQ | Arrange 5/6, 1/2, 2/3 greatest to smallest | FR2.07 |
+| St Nicholas SA2 2020 | Q7 | MCQ | Identify figure showing exactly 1/4 shaded | FR1.02 |
+| St Nicholas SA2 2020 | Q15 | MCQ | Identify two fractions that add to 1 whole | FR4.06, FR2.10 |
+| St Nicholas SA2 2020 | Q20 | SAQ | Express 6/10 in simplest form | FR2.13 |
+| St Nicholas SA2 2020 | Q27 | SAQ | Find unshaded fraction of figure | FR1.02 |
+| Tao Nan SA2 2020 | Q3 | MCQ | Identify fraction NOT equivalent to 2/3 | FR2.09 |
+| Tao Nan SA2 2020 | Q4 | MCQ | Find fraction of staircase figure NOT shaded | FR1.02 |
+| Tao Nan SA2 2020 | Q14 | SAQ | Arrange 5/10, 1/3, 4/6 greatest to smallest | FR2.07 |
+| Tao Nan SA2 2020 | P2-Q3 | WP | Gave 5/12 to Rani, 1/4 to Tom, find fraction kept simplest form | FR4.06, FR6.05, FR2.13 |
+
 ### 2025 WA Papers (Term 2-3)
 
 | Paper | Q# | Type | Pattern | FR codes |
@@ -647,17 +730,20 @@ Note: SA1 falls in Term 2. Many schools don't cover fractions by SA1. Several pa
 
 ## Extraction Status
 
-| Year | Paper type | Papers extracted | Papers remaining |
+| Year | Paper type | Papers extracted | Status |
 |---|---|---|---|
-| 2025 | EOY | 13 | 0 (agents completing remaining) |
-| 2024 | EOY | 13 | 0 (agents completing remaining) |
-| 2023 | EOY | 5 | 8 (agents running) |
-| 2022 | EOY/SA2 | 5 | 7 (agents running) |
-| 2021 | EOY | 2 | 2 (agents running) |
-| 2019 | SA2 | 24 | 0 (complete) |
-| 2020 | SA2 | 0 | 16 (agents running) |
-| PastYr | EOY | 0 | 2 (agents running) |
-| 2019-2020 | SA1 | 0 | 17 (agents running) |
-| 2019-2020 | CA2 | 0 | 7 (agents running) |
-| 2021-2025 | WA2/WA3 | 4 | ~50 (agents running) |
-| All years | CA1/WA1 | — | 36 (skipped, zero fractions) |
+| 2025 | EOY | 13 | ✅ Complete |
+| 2024 | EOY | 13 | ✅ Complete |
+| 2023 | EOY | 13 | ✅ Complete |
+| 2022 | EOY/SA2 | 12 | ✅ Complete |
+| 2021 | EOY/Review | 2 | ✅ Complete |
+| 2019 | SA2 | 24 | ✅ Complete (all schools) |
+| 2020 | SA2 | 16 | ✅ Complete (all schools) |
+| 2021 | WA/Misc | 17 | ✅ Complete (12 had Qs, 5 zero) |
+| 2019-2020 | SA1 | 17 | ✅ Complete (5 had Qs, 12 zero) |
+| 2019-2020 | CA2 | 7 | ✅ Complete |
+| PastYr | EOY | 2 | ✅ Complete |
+| 2024-2025 | WA2 | 17 | ✅ Complete (4 had Qs, 13 zero) |
+| 2024-2025 | WA3 | ~8 | ✅ Complete |
+| 2022-2023 | WA2/WA3 | ~19 | ⚠️ Partially extracted (agent interrupted) |
+| All years | CA1/WA1 | 36 | ⏭️ Skipped (zero fractions confirmed) |

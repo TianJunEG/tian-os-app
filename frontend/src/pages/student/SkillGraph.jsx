@@ -244,6 +244,18 @@ export default function SkillGraph() {
     if (!skill?.skillId || starting || skill.locked) return;
     setStarting(true);
     try {
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skill.skillId || ''));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skill.skillId).toUpperCase(),
+            questionCount: 10,
+            sessionType: 'practice',
+            source: 'skill-graph',
+          },
+        });
+        return;
+      }
       const { data: session } = await mathpathAPI.startSession({ skillId: skill.skillId, questionCount: 10 });
       navigate(`/student/mathpath/practice/${session.session_id}`, { state: { items: session.items } });
     } catch (e) {

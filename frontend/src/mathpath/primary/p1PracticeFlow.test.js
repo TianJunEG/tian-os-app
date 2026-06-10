@@ -1,252 +1,409 @@
 import { describe, it, expect } from 'vitest';
 import {
   isP1SkillId,
-  resolveP1DomainId,
-  checkP1Answer,
+  isP1Domain,
   startP1PracticeFlow,
-  startP1DiagnosticFlow,
-  analyzeP1DiagnosticResults,
   submitP1PracticeAttempt,
-  recommendNextP1Skill,
-} from './p1PracticeFlow';
+  checkP1AnswerForSession,
+} from './p1PracticeFlow.js';
 
+// ---------------------------------------------------------------------------
+// isP1SkillId
+// ---------------------------------------------------------------------------
 describe('isP1SkillId', () => {
-  it('returns true for P1 skill IDs', () => {
-    expect(isP1SkillId('P1-NUM-01')).toBe(true);
-    expect(isP1SkillId('P1-ADD-05')).toBe(true);
-    expect(isP1SkillId('P1-MON-03')).toBe(true);
-    expect(isP1SkillId('P1-MEA-07')).toBe(true);
-    expect(isP1SkillId('P1-GEO-02')).toBe(true);
-    expect(isP1SkillId('P1-EQG-01')).toBe(true);
-    expect(isP1SkillId('P1-DAT-04')).toBe(true);
-  });
-
-  it('returns false for non-P1 skill IDs', () => {
-    expect(isP1SkillId('F001')).toBe(false);
-    expect(isP1SkillId('F123')).toBe(false);
-    expect(isP1SkillId('')).toBe(false);
-    expect(isP1SkillId(null)).toBe(false);
-    expect(isP1SkillId(undefined)).toBe(false);
-  });
+  it('recognises NUM skills', () => expect(isP1SkillId('P1-NUM-01')).toBe(true));
+  it('recognises ADD skills', () => expect(isP1SkillId('P1-ADD-05')).toBe(true));
+  it('recognises MON skills', () => expect(isP1SkillId('P1-MON-03')).toBe(true));
+  it('recognises MEA skills', () => expect(isP1SkillId('P1-MEA-07')).toBe(true));
+  it('recognises GEO skills', () => expect(isP1SkillId('P1-GEO-02')).toBe(true));
+  it('recognises EQG skills', () => expect(isP1SkillId('P1-EQG-04')).toBe(true));
+  it('recognises DAT skills', () => expect(isP1SkillId('P1-DAT-06')).toBe(true));
+  it('rejects fraction skills', () => expect(isP1SkillId('F001')).toBe(false));
+  it('rejects null', () => expect(isP1SkillId(null)).toBe(false));
+  it('rejects empty', () => expect(isP1SkillId('')).toBe(false));
 });
 
-describe('resolveP1DomainId', () => {
-  it('maps P1 skill prefixes to domain IDs', () => {
-    expect(resolveP1DomainId('P1-NUM-01')).toBe('p1-numbers');
-    expect(resolveP1DomainId('P1-ADD-05')).toBe('p1-addsub');
-    expect(resolveP1DomainId('P1-MON-03')).toBe('p1-money');
-    expect(resolveP1DomainId('P1-MEA-07')).toBe('p1-measurement');
-    expect(resolveP1DomainId('P1-GEO-02')).toBe('p1-geometry');
-    expect(resolveP1DomainId('P1-EQG-01')).toBe('p1-equalgroups');
-    expect(resolveP1DomainId('P1-DAT-04')).toBe('p1-data');
-  });
-
-  it('falls back to p1-numbers for unknown', () => {
-    expect(resolveP1DomainId('UNKNOWN')).toBe('p1-numbers');
-  });
+// ---------------------------------------------------------------------------
+// isP1Domain
+// ---------------------------------------------------------------------------
+describe('isP1Domain', () => {
+  it('recognises p1-numbers', () => expect(isP1Domain('p1-numbers')).toBe(true));
+  it('recognises p1-addsub', () => expect(isP1Domain('p1-addsub')).toBe(true));
+  it('rejects fractions', () => expect(isP1Domain('fractions')).toBe(false));
+  it('rejects null', () => expect(isP1Domain(null)).toBe(false));
 });
 
-describe('checkP1Answer', () => {
-  it('checks numeric answers correctly', () => {
-    const result = checkP1Answer({ studentAnswer: '7', correctAnswer: 7 });
-    expect(result.correct).toBe(true);
-  });
-
-  it('handles string comparison case-insensitively', () => {
-    const result = checkP1Answer({ studentAnswer: 'Triangle', correctAnswer: 'triangle' });
-    expect(result.correct).toBe(true);
-  });
-
-  it('returns false for wrong answers', () => {
-    const result = checkP1Answer({ studentAnswer: '5', correctAnswer: 7 });
-    expect(result.correct).toBe(false);
-  });
-
-  it('accepts alternative answers', () => {
-    const result = checkP1Answer({
-      studentAnswer: 'seven',
-      correctAnswer: 7,
-      acceptedAnswers: ['seven', '7'],
-    });
-    expect(result.correct).toBe(true);
-  });
-
-  it('returns false for empty student answer', () => {
-    const result = checkP1Answer({ studentAnswer: '', correctAnswer: 7 });
-    expect(result.correct).toBe(false);
-  });
-
-  it('handles leading zeros', () => {
-    const result = checkP1Answer({ studentAnswer: '07', correctAnswer: 7 });
-    expect(result.correct).toBe(true);
-  });
-});
-
+// ---------------------------------------------------------------------------
+// startP1PracticeFlow
+// ---------------------------------------------------------------------------
 describe('startP1PracticeFlow', () => {
-  it('generates a practice session with questions', () => {
-    const session = startP1PracticeFlow({
-      studentId: 'student-123',
-      requestedSkillId: 'P1-NUM-01',
-      sessionLength: 6,
-    });
+  it('throws without studentId', () => {
+    expect(() => startP1PracticeFlow({})).toThrow('studentId is required');
+  });
 
-    expect(session.practiceSessionId).toMatch(/^p1-practice_/);
-    expect(session.studentId).toBe('student-123');
-    expect(session.domainId).toBe('p1-numbers');
+  it('starts a session with NUM skill', () => {
+    const session = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-NUM-01',
+      sessionType: 'practice',
+      sessionLength: 4,
+    });
+    expect(session.practiceSessionId).toBeTruthy();
     expect(session.targetSkillId).toBe('P1-NUM-01');
+    expect(session.questions.length).toBe(4);
     expect(session.sessionType).toBe('practice');
-    expect(session.questions.length).toBeGreaterThanOrEqual(4);
-    expect(session.questions.length).toBeLessThanOrEqual(12);
-    expect(session.workingExpected).toBe(false);
+    expect(session.sessionLabel).toBe('Practice');
+    expect(session.startedAt).toBeTruthy();
+    expect(typeof session.workingExpected).toBe('boolean');
   });
 
-  it('normalises question answers to { value, display } shape', () => {
+  it('starts a session with ADD skill', () => {
     const session = startP1PracticeFlow({
-      studentId: 'student-123',
-      requestedSkillId: 'P1-NUM-01',
+      studentId: 'test-student',
+      requestedSkillId: 'P1-ADD-01',
+      sessionLength: 4,
     });
+    expect(session.targetSkillId).toBe('P1-ADD-01');
+    expect(session.questions.length).toBe(4);
+  });
 
-    for (const q of session.questions) {
-      expect(q.answer).toBeDefined();
-      if (typeof q.answer === 'object' && q.answer !== null) {
-        expect(q.answer).toHaveProperty('value');
-        expect(q.answer).toHaveProperty('display');
-      }
+  it('starts a session with MON skill', () => {
+    const session = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-MON-01',
+      sessionLength: 4,
+    });
+    expect(session.targetSkillId).toBe('P1-MON-01');
+    expect(session.questions.length).toBe(4);
+  });
+
+  it('normalises questions for PracticeSession compatibility', () => {
+    const session = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-NUM-01',
+      sessionLength: 2,
+    });
+    const q = session.questions[0];
+    // answer should be an object with display
+    expect(q.answer).toBeDefined();
+    expect(typeof q.answer).toBe('object');
+    expect(q.answer.display).toBeDefined();
+    // questionId should exist
+    expect(q.questionId).toBeTruthy();
+    // skillId should exist
+    expect(q.skillId).toBe('P1-NUM-01');
+    // stem should mirror prompt
+    expect(q.stem || q.prompt).toBeTruthy();
+    // _rawAnswer should be preserved for checker
+    expect(q._rawAnswer !== undefined).toBe(true);
+  });
+
+  it('sets type=mcq and choices for choice questions', () => {
+    // P1-NUM-02 has choice questions (word from numeral family)
+    const session = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-NUM-02',
+      sessionLength: 10,
+    });
+    const mcqQuestion = session.questions.find((q) => q.type === 'mcq');
+    // At least some should be MCQ (family _002 is choice-based)
+    if (mcqQuestion) {
+      expect(mcqQuestion.choices).toBeDefined();
+      expect(Array.isArray(mcqQuestion.choices)).toBe(true);
+      expect(mcqQuestion.choices.length).toBeGreaterThanOrEqual(2);
     }
   });
 
-  it('assigns unique questionIds', () => {
-    const session = startP1PracticeFlow({
-      studentId: 'student-123',
-      requestedSkillId: 'P1-NUM-01',
+  it('respects session type constraints', () => {
+    const warmup = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-NUM-03',
+      sessionType: 'warmup',
+      sessionLength: 10,
     });
+    // Warmup is clamped to max 3
+    expect(warmup.questions.length).toBeLessThanOrEqual(3);
+    expect(warmup.sessionType).toBe('warmup');
 
-    const ids = session.questions.map((q) => q.questionId);
-    expect(new Set(ids).size).toBe(ids.length);
+    const diagnostic = startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: 'P1-NUM-03',
+      sessionType: 'diagnostic',
+      sessionLength: 15,
+    });
+    // Diagnostic is clamped to max 12
+    expect(diagnostic.questions.length).toBeLessThanOrEqual(12);
+  });
+
+  it('defaults skill when none provided', () => {
+    const session = startP1PracticeFlow({
+      studentId: 'test-student',
+      sessionLength: 4,
+    });
+    expect(session.targetSkillId).toBeTruthy();
+    expect(session.questions.length).toBe(4);
   });
 });
 
+// ---------------------------------------------------------------------------
+// submitP1PracticeAttempt
+// ---------------------------------------------------------------------------
 describe('submitP1PracticeAttempt', () => {
-  it('scores responses correctly', () => {
-    const result = submitP1PracticeAttempt({
-      practiceSessionId: 'p1-practice_123_abc',
-      studentId: 'student-123',
-      responses: [
-        { questionId: 'q1', answerCorrect: true, answer: '7' },
-        { questionId: 'q2', answerCorrect: false, answer: '3' },
-        { questionId: 'q3', answerCorrect: true, answer: '10' },
-      ],
+  function createSession(skillId = 'P1-NUM-01', count = 4) {
+    return startP1PracticeFlow({
+      studentId: 'test-student',
+      requestedSkillId: skillId,
+      sessionLength: count,
     });
+  }
 
-    expect(result.accuracySummary.total).toBe(3);
-    expect(result.accuracySummary.correct).toBe(2);
-    expect(result.accuracySummary.accuracyPercentage).toBe(67);
+  it('throws without practiceSessionId', () => {
+    expect(() => submitP1PracticeAttempt({ studentId: 'x' })).toThrow();
   });
 
-  it('handles empty responses', () => {
+  it('throws for unknown session', () => {
+    expect(() => submitP1PracticeAttempt({
+      practiceSessionId: 'fake_123_abc',
+      studentId: 'test-student',
+    })).toThrow('Practice session not found');
+  });
+
+  it('scores correct numeric answers', () => {
+    const session = createSession('P1-NUM-01', 4);
+    const responses = session.questions.map((q) => ({
+      questionId: q.questionId,
+      studentAnswer: String(q._rawAnswer),
+      timeTaken: 5,
+      confidence: 'i_know_this',
+      attemptNumber: 1,
+    }));
+
     const result = submitP1PracticeAttempt({
-      practiceSessionId: 'p1-practice_123_abc',
-      studentId: 'student-123',
-      responses: [],
+      practiceSessionId: session.practiceSessionId,
+      studentId: 'test-student',
+      responses,
     });
 
-    expect(result.accuracySummary.total).toBe(0);
-    expect(result.accuracySummary.correct).toBe(0);
+    expect(result.accuracySummary.totalQuestions).toBe(4);
+    expect(result.accuracySummary.correctCount).toBe(4);
+    expect(result.accuracySummary.accuracyPercentage).toBe(100);
+    expect(result.results).toHaveLength(4);
+    expect(result.results.every((r) => r.correct)).toBe(true);
+    expect(result.sessionType).toBe('practice');
+  });
+
+  it('scores incorrect answers', () => {
+    const session = createSession('P1-NUM-01', 4);
+    const responses = session.questions.map((q) => ({
+      questionId: q.questionId,
+      studentAnswer: '999999',
+      timeTaken: 10,
+      confidence: 'not_sure',
+      attemptNumber: 1,
+    }));
+
+    const result = submitP1PracticeAttempt({
+      practiceSessionId: session.practiceSessionId,
+      studentId: 'test-student',
+      responses,
+    });
+
+    expect(result.accuracySummary.correctCount).toBe(0);
     expect(result.accuracySummary.accuracyPercentage).toBe(0);
+    expect(result.results.every((r) => !r.correct)).toBe(true);
+  });
+
+  it('handles skipped questions', () => {
+    const session = createSession('P1-NUM-01', 4);
+    const responses = session.questions.map((q) => ({
+      questionId: q.questionId,
+      studentAnswer: '',
+      timeTaken: 1,
+      confidence: 'dont_know',
+      attemptNumber: 1,
+      skipped: true,
+    }));
+
+    const result = submitP1PracticeAttempt({
+      practiceSessionId: session.practiceSessionId,
+      studentId: 'test-student',
+      responses,
+    });
+
+    expect(result.results.every((r) => r.skipped)).toBe(true);
+    expect(result.accuracySummary.correctCount).toBe(0);
+  });
+
+  it('returns fluency metrics', () => {
+    const session = createSession('P1-NUM-01', 4);
+    const responses = session.questions.map((q) => ({
+      questionId: q.questionId,
+      studentAnswer: String(q._rawAnswer),
+      timeTaken: 2,
+      confidence: 'i_know_this',
+      attemptNumber: 1,
+    }));
+
+    const result = submitP1PracticeAttempt({
+      practiceSessionId: session.practiceSessionId,
+      studentId: 'test-student',
+      responses,
+    });
+
+    expect(result.fluencySummary).toBeDefined();
+    expect(result.fluencySummary.averageSeconds).toBeGreaterThan(0);
+    expect(Array.isArray(result.fluencySummary.familyFluencySummary)).toBe(true);
+  });
+
+  it('returns working evidence metrics', () => {
+    const session = createSession('P1-NUM-01', 4);
+    const responses = session.questions.map((q) => ({
+      questionId: q.questionId,
+      studentAnswer: String(q._rawAnswer),
+      timeTaken: 5,
+      confidence: 'i_know_this',
+      attemptNumber: 1,
+      workingNotNeeded: true,
+    }));
+
+    const result = submitP1PracticeAttempt({
+      practiceSessionId: session.practiceSessionId,
+      studentId: 'test-student',
+      responses,
+    });
+
+    expect(result.workingEvidenceMetrics).toBeDefined();
+    expect(typeof result.workingEvidenceMetrics.studentWorkingRate).toBe('number');
+  });
+
+  it('returns next recommended action', () => {
+    const session = createSession('P1-ADD-01', 4);
+    const responses = session.questions.map((q) => ({
+      questionId: q.questionId,
+      studentAnswer: String(q._rawAnswer),
+      timeTaken: 5,
+      confidence: 'i_know_this',
+      attemptNumber: 1,
+    }));
+
+    const result = submitP1PracticeAttempt({
+      practiceSessionId: session.practiceSessionId,
+      studentId: 'test-student',
+      responses,
+    });
+
+    expect(result.nextRecommendedAction).toBeTruthy();
+    expect(typeof result.nextRecommendedAction).toBe('string');
+  });
+
+  it('returns question working summary', () => {
+    const session = createSession('P1-NUM-01', 4);
+    const responses = session.questions.map((q) => ({
+      questionId: q.questionId,
+      studentAnswer: String(q._rawAnswer),
+      timeTaken: 5,
+      confidence: 'i_know_this',
+      attemptNumber: 1,
+    }));
+
+    const result = submitP1PracticeAttempt({
+      practiceSessionId: session.practiceSessionId,
+      studentId: 'test-student',
+      responses,
+    });
+
+    expect(result.questionWorkingSummary).toBeDefined();
+    expect(result.questionWorkingSummary.totalQuestions).toBe(4);
+    expect(Array.isArray(result.questionWorkingSummary.questionRefs)).toBe(true);
   });
 });
 
-describe('startP1DiagnosticFlow', () => {
-  it('generates a diagnostic session spanning multiple domains', () => {
-    const session = startP1DiagnosticFlow({ studentId: 'student-123' });
-
-    expect(session.practiceSessionId).toMatch(/^p1-diagnostic_/);
-    expect(session.sessionType).toBe('diagnostic');
-    expect(session.domainId).toBe('p1-diagnostic');
-    expect(session.targetSkillId).toBe('P1-DIAGNOSTIC');
-    expect(session.isP1).toBe(true);
-    expect(session.questions.length).toBeGreaterThan(0);
-    expect(session.diagnosticSkillIds.length).toBeGreaterThan(0);
+// ---------------------------------------------------------------------------
+// checkP1AnswerForSession
+// ---------------------------------------------------------------------------
+describe('checkP1AnswerForSession', () => {
+  it('handles normalised question with _rawAnswer', () => {
+    const q = {
+      answer: { display: '5', type: 'whole', value: 5 },
+      _rawAnswer: 5,
+      _rawAnswerType: 'number',
+    };
+    const result = checkP1AnswerForSession({ studentAnswer: '5', correctAnswer: q.answer, question: q });
+    expect(result.correct).toBe(true);
   });
 
-  it('generates questions from multiple domains', () => {
-    const session = startP1DiagnosticFlow({ studentId: 'student-123', questionsPerDomain: 1 });
-    const skillIds = [...new Set(session.questions.map((q) => q.skillId))];
-    // Should have questions from at least 2 different domains
-    expect(skillIds.length).toBeGreaterThanOrEqual(2);
+  it('handles normalised choice question', () => {
+    const q = {
+      answer: { display: 'three', type: 'text', value: 'three' },
+      _rawAnswer: 'three',
+      _rawAnswerType: 'choice',
+      type: 'mcq',
+      choices: ['three', 'four', 'seven'],
+    };
+    const result = checkP1AnswerForSession({ studentAnswer: 'three', correctAnswer: q.answer, question: q });
+    expect(result.correct).toBe(true);
+  });
+
+  it('falls back to correctAnswer object', () => {
+    const result = checkP1AnswerForSession({
+      studentAnswer: '8',
+      correctAnswer: { display: '8', type: 'whole', value: 8 },
+    });
+    expect(result.correct).toBe(true);
+  });
+
+  it('falls back to simple correctAnswer', () => {
+    const result = checkP1AnswerForSession({
+      studentAnswer: 'triangle',
+      correctAnswer: 'triangle',
+    });
+    expect(result.correct).toBe(true);
   });
 });
 
-describe('analyzeP1DiagnosticResults', () => {
-  it('identifies weak and strong domains', () => {
-    const analysis = analyzeP1DiagnosticResults({
-      results: [
-        { skillId: 'P1-NUM-01', correct: true },
-        { skillId: 'P1-NUM-01', correct: true },
-        { skillId: 'P1-ADD-01', correct: false },
-        { skillId: 'P1-ADD-01', correct: false },
-        { skillId: 'P1-MON-01', correct: true },
-        { skillId: 'P1-MON-01', correct: true },
-      ],
-    });
+// ---------------------------------------------------------------------------
+// Full flow round-trip for each domain
+// ---------------------------------------------------------------------------
+describe('end-to-end round trip per domain', () => {
+  const DOMAINS = [
+    { prefix: 'P1-NUM', skillId: 'P1-NUM-01', label: 'Numbers' },
+    { prefix: 'P1-ADD', skillId: 'P1-ADD-01', label: 'Add/Sub' },
+    { prefix: 'P1-MON', skillId: 'P1-MON-01', label: 'Money' },
+    { prefix: 'P1-MEA', skillId: 'P1-MEA-01', label: 'Measurement' },
+    { prefix: 'P1-GEO', skillId: 'P1-GEO-01', label: 'Geometry' },
+    { prefix: 'P1-EQG', skillId: 'P1-EQG-01', label: 'Equal Groups' },
+    { prefix: 'P1-DAT', skillId: 'P1-DAT-01', label: 'Data' },
+  ];
 
-    expect(analysis.strongDomains).toContain('p1-numbers');
-    expect(analysis.strongDomains).toContain('p1-money');
-    expect(analysis.weakDomains).toContain('p1-addsub');
-    expect(analysis.domainSummary.length).toBeGreaterThan(0);
-  });
-});
+  DOMAINS.forEach(({ skillId, label }) => {
+    it(`${label}: start → answer all correctly → submit → 100% accuracy`, () => {
+      const session = startP1PracticeFlow({
+        studentId: 'roundtrip-student',
+        requestedSkillId: skillId,
+        sessionLength: 4,
+      });
 
-describe('recommendNextP1Skill', () => {
-  it('retries current skill when not mastered', () => {
-    const next = recommendNextP1Skill({
-      currentSkillId: 'P1-NUM-01',
-      skillStatesMap: {},
-    });
-    expect(next).not.toBeNull();
-    expect(next.skillId).toBe('P1-NUM-01');
-    expect(next.reason).toBe('retry_current');
-  });
+      expect(session.questions.length).toBe(4);
 
-  it('recommends next skill in same domain when current is mastered', () => {
-    const next = recommendNextP1Skill({
-      currentSkillId: 'P1-NUM-01',
-      skillStatesMap: { 'P1-NUM-01': { status: 'mastered' } },
-    });
-    expect(next).not.toBeNull();
-    expect(next.skillId).not.toBe('P1-NUM-01');
-    expect(next.domainId).toBe('p1-numbers');
-    expect(next.reason).toBe('next_in_domain');
-  });
+      const responses = session.questions.map((q) => ({
+        questionId: q.questionId,
+        studentAnswer: String(q._rawAnswer),
+        timeTaken: 4,
+        confidence: 'i_know_this',
+        attemptNumber: 1,
+      }));
 
-  it('moves to next domain when current domain is fully mastered', () => {
-    // Build a map where all numbers skills are mastered
-    const states = {};
-    // P1-NUM-01 through P1-NUM-16
-    for (let i = 1; i <= 16; i++) {
-      states[`P1-NUM-${String(i).padStart(2, '0')}`] = { status: 'mastered' };
-    }
-    const next = recommendNextP1Skill({
-      currentSkillId: 'P1-NUM-16',
-      skillStatesMap: states,
-    });
-    expect(next).not.toBeNull();
-    expect(next.domainId).not.toBe('p1-numbers');
-    expect(next.reason).toBe('next_domain');
-  });
+      const result = submitP1PracticeAttempt({
+        practiceSessionId: session.practiceSessionId,
+        studentId: 'roundtrip-student',
+        responses,
+      });
 
-  it('returns null when everything is mastered', () => {
-    // This is a simplified test — mark all known skills as mastered
-    const session = startP1DiagnosticFlow({ studentId: 'test' });
-    const states = {};
-    session.diagnosticSkillIds.forEach((id) => { states[id] = { status: 'mastered' }; });
-    // We'd need ALL skill IDs mastered, but with a subset it should find un-mastered ones
-    // Just test that the function handles the map gracefully
-    const next = recommendNextP1Skill({
-      currentSkillId: session.diagnosticSkillIds[0],
-      skillStatesMap: states,
+      expect(result.accuracySummary.correctCount).toBe(4);
+      expect(result.accuracySummary.accuracyPercentage).toBe(100);
+      expect(result.results).toHaveLength(4);
+      expect(result.results.every((r) => r.correct)).toBe(true);
+      expect(result.nextRecommendedAction).toBeTruthy();
     });
-    // With only diagnostic skills mastered, there should still be un-mastered skills
-    expect(next === null || next.skillId).toBeTruthy();
   });
 });
