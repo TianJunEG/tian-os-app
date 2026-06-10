@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, Lightbulb, Maximize2, X } from 'lucide-react';
+import { ArrowRight, Check, Lightbulb, Maximize2, Volume2, VolumeX, X } from 'lucide-react';
 import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
 import { confettiBurst } from '../../../utils/confetti';
 import { useAuth } from '../../../context/AuthContext';
@@ -347,6 +347,56 @@ export function buildAnswerFeedback({
     streakMessage: getStreakMessage(streak),
     showConfetti: streak >= 3 && streak % 3 === 0,
   };
+}
+
+function speakText(text) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean = String(text || '')
+    .replace(/\$[^$]*\$/g, '')
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 over $2')
+    .replace(/\\times/g, ' times ')
+    .replace(/\\div/g, ' divided by ')
+    .replace(/[\\{}]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!clean) return;
+  const utterance = new SpeechSynthesisUtterance(clean);
+  utterance.rate = 0.9;
+  utterance.pitch = 1.1;
+  window.speechSynthesis.speak(utterance);
+}
+
+function ReadAloudButton({ text }) {
+  const [speaking, setSpeaking] = useState(false);
+  const handleClick = () => {
+    if (speaking) {
+      window.speechSynthesis?.cancel();
+      setSpeaking(false);
+    } else {
+      speakText(text);
+      setSpeaking(true);
+      const check = setInterval(() => {
+        if (!window.speechSynthesis?.speaking) { setSpeaking(false); clearInterval(check); }
+      }, 200);
+    }
+  };
+  if (typeof window === 'undefined' || !window.speechSynthesis) return null;
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className={`inline-flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-bold transition ${
+        speaking
+          ? 'border-orange-400 bg-orange-50 text-orange-600'
+          : 'border-sky-200 bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50'
+      }`}
+      title={speaking ? 'Stop reading' : 'Read question aloud'}
+    >
+      {speaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+      {speaking ? 'Stop' : 'Read aloud'}
+    </button>
+  );
 }
 
 function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
@@ -1563,7 +1613,8 @@ export default function PracticeSession() {
         ) : (
           <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.72fr)]">
           <section className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
-            <div className="mb-2 flex justify-end">
+            <div className="mb-2 flex items-center justify-end gap-2">
+              <ReadAloudButton text={q.prompt || q.stem || ''} />
               <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
             </div>
             <div ref={questionSurfaceRef} className="relative origin-top-left" style={{ zoom: questionZoom }}>

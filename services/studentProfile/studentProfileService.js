@@ -134,7 +134,7 @@ function resolveStudentVisualMode(student = {}) {
   const secondary = level.match(/(?:secondary|sec|s)\s*([1-6])/i);
   if (secondary) return 'secondary';
   const primary = level.match(/(?:primary|p)\s*([1-6])/i);
-  if (primary && Number(primary[1]) <= 3) return 'lower_primary';
+  if (primary && Number(primary[1]) <= 4) return 'lower_primary';
   if (primary) return 'upper_primary';
   return 'upper_primary';
 }
