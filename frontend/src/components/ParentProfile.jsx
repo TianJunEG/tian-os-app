@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { parentsAPI } from '../services/api';
-import './ParentProfile.css';
+import { ProgressBar, Spinner, Alert } from './ui/index.jsx';
 
 const ParentProfile = ({ onComplete }) => {
   const navigate = useNavigate();
@@ -193,45 +193,51 @@ const ParentProfile = ({ onComplete }) => {
     }
   };
 
-  const renderStep1 = () => (
-    <div className="profile-step">
-      <h2>👨‍🎓 Tell Us About Your Student</h2>
-      <p className="step-subtitle">Basic information about who needs tutoring</p>
+  const inputCls = 'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const selectCls = `${inputCls} appearance-none pr-10`;
 
-      <div className="form-group">
-        <label htmlFor="studentName">Student's Name</label>
+  const renderStep1 = () => (
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">👨‍🎓 Tell Us About Your Student</h2>
+      <p className="text-sm text-ink-500 mb-6">Basic information about who needs tutoring</p>
+
+      <div className="ds-form-group">
+        <label htmlFor="studentName" className="ds-form-label">Student's Name</label>
         <input
           id="studentName"
           name="studentName"
           type="text"
+          className={inputCls}
           value={formData.studentName}
           onChange={handleInputChange}
           placeholder="e.g., Sarah"
         />
-        {errors.studentName && <span className="error">{errors.studentName}</span>}
+        {errors.studentName && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.studentName}</p>}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="studentAge">Age</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="ds-form-group">
+          <label htmlFor="studentAge" className="ds-form-label">Age</label>
           <input
             id="studentAge"
             name="studentAge"
             type="number"
             min="5"
             max="80"
+            className={inputCls}
             value={formData.studentAge}
             onChange={handleInputChange}
             placeholder="e.g., 14"
           />
-          {errors.studentAge && <span className="error">{errors.studentAge}</span>}
+          {errors.studentAge && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.studentAge}</p>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="gradeLevel">Grade Level</label>
+        <div className="ds-form-group">
+          <label htmlFor="gradeLevel" className="ds-form-label">Grade Level</label>
           <select
             id="gradeLevel"
             name="gradeLevel"
+            className={selectCls}
             value={formData.gradeLevel}
             onChange={handleInputChange}
           >
@@ -240,70 +246,73 @@ const ParentProfile = ({ onComplete }) => {
               <option key={grade} value={grade}>{grade}</option>
             ))}
           </select>
-          {errors.gradeLevel && <span className="error">{errors.gradeLevel}</span>}
+          {errors.gradeLevel && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.gradeLevel}</p>}
         </div>
       </div>
 
-      <div className="info-box">
-        <p>💡 This helps us match you with tutors who specialize in your student's age group.</p>
-      </div>
+      <Alert tone="info" className="mt-4">
+        💡 This helps us match you with tutors who specialize in your student's age group.
+      </Alert>
     </div>
   );
 
   const renderStep2 = () => (
-    <div className="profile-step">
-      <h2>📚 What Subjects Need Help?</h2>
-      <p className="step-subtitle">Select the primary subject and any additional ones</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">📚 What Subjects Need Help?</h2>
+      <p className="text-sm text-ink-500 mb-6">Select the primary subject and any additional ones</p>
 
-      <div className="form-group">
-        <label>Primary Subject *</label>
+      <div className="ds-form-group">
+        <label className="ds-form-label">Primary Subject *</label>
         <select
+          className={selectCls}
           value={formData.primarySubject}
           onChange={(e) => setFormData(prev => ({ ...prev, primarySubject: e.target.value }))}
-          className="form-select"
         >
           <option value="">Choose primary subject...</option>
           {subjects.map(subject => (
             <option key={subject} value={subject}>{subject}</option>
           ))}
         </select>
-        {errors.primarySubject && <span className="error">{errors.primarySubject}</span>}
+        {errors.primarySubject && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.primarySubject}</p>}
       </div>
 
-      <div className="form-group">
-        <label>Additional Subjects (Optional)</label>
-        <div className="checkbox-grid">
+      <div className="ds-form-group">
+        <label className="ds-form-label">Additional Subjects (Optional)</label>
+        <div className="ds-checkbox-grid">
           {subjects.map(subject => (
-            <label key={subject} className="checkbox-item">
+            <label key={subject} className="ds-checkbox-item">
               <input
                 type="checkbox"
+                className="h-4 w-4 rounded border-hairline accent-navy-700"
                 checked={formData.otherSubjects.includes(subject)}
                 onChange={() => handleSubjectToggle(subject)}
               />
-              <span>{subject}</span>
+              <span className="text-sm text-ink-700">{subject}</span>
             </label>
           ))}
         </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="learningGoals">Learning Goals *</label>
+      <div className="ds-form-group">
+        <label htmlFor="learningGoals" className="ds-form-label">Learning Goals *</label>
         <textarea
           id="learningGoals"
           name="learningGoals"
+          className="w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y"
           value={formData.learningGoals}
           onChange={handleInputChange}
           placeholder="e.g., Improve grade from C to A, prepare for SAT, understand algebra concepts..."
           rows="3"
         />
-        {errors.learningGoals && <span className="error">{errors.learningGoals}</span>}
+        {errors.learningGoals && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.learningGoals}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="specificChallenges">Specific Challenges (Optional)</label>
+      <div className="ds-form-group">
+        <label htmlFor="specificChallenges" className="ds-form-label">Specific Challenges (Optional)</label>
         <textarea
           id="specificChallenges"
           name="specificChallenges"
+          className="w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y"
           value={formData.specificChallenges}
           onChange={handleInputChange}
           placeholder="e.g., Struggles with word problems, test anxiety, slow reading speed..."
@@ -314,16 +323,17 @@ const ParentProfile = ({ onComplete }) => {
   );
 
   const renderStep3 = () => (
-    <div className="profile-step">
-      <h2>🎯 Your Preferences</h2>
-      <p className="step-subtitle">Help us find the perfect tutor match</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">🎯 Your Preferences</h2>
+      <p className="text-sm text-ink-500 mb-6">Help us find the perfect tutor match</p>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="learningStyle">Learning Style</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="ds-form-group">
+          <label htmlFor="learningStyle" className="ds-form-label">Learning Style</label>
           <select
             id="learningStyle"
             name="learningStyle"
+            className={selectCls}
             value={formData.learningStyle}
             onChange={handleInputChange}
           >
@@ -335,11 +345,12 @@ const ParentProfile = ({ onComplete }) => {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="preferredSessionType">Session Type</label>
+        <div className="ds-form-group">
+          <label htmlFor="preferredSessionType" className="ds-form-label">Session Type</label>
           <select
             id="preferredSessionType"
             name="preferredSessionType"
+            className={selectCls}
             value={formData.preferredSessionType}
             onChange={handleInputChange}
           >
@@ -350,12 +361,13 @@ const ParentProfile = ({ onComplete }) => {
         </div>
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="preferredTutorGender">Tutor Gender (Optional)</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="ds-form-group">
+          <label htmlFor="preferredTutorGender" className="ds-form-label">Tutor Gender (Optional)</label>
           <select
             id="preferredTutorGender"
             name="preferredTutorGender"
+            className={selectCls}
             value={formData.preferredTutorGender}
             onChange={handleInputChange}
           >
@@ -365,8 +377,8 @@ const ParentProfile = ({ onComplete }) => {
           </select>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="budget">Budget ($/hour) *</label>
+        <div className="ds-form-group">
+          <label htmlFor="budget" className="ds-form-label">Budget ($/hour) *</label>
           <input
             id="budget"
             name="budget"
@@ -374,51 +386,55 @@ const ParentProfile = ({ onComplete }) => {
             min="10"
             max="200"
             step="5"
+            className={inputCls}
             value={formData.budget}
             onChange={handleInputChange}
             placeholder="e.g., 50"
           />
-          {errors.budget && <span className="error">{errors.budget}</span>}
+          {errors.budget && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.budget}</p>}
         </div>
       </div>
 
-      <div className="info-box">
-        <p>💡 <strong>Budget tip:</strong> Most tutors charge $30-75/hour. Setting a higher budget increases your match options.</p>
-      </div>
+      <Alert tone="info" className="mt-4">
+        💡 <strong>Budget tip:</strong> Most tutors charge $30-75/hour. Setting a higher budget increases your match options.
+      </Alert>
     </div>
   );
 
   const renderStep4 = () => (
-    <div className="profile-step">
-      <h2>⏰ When Can You Schedule Sessions?</h2>
-      <p className="step-subtitle">Your preferred tutoring times</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">⏰ When Can You Schedule Sessions?</h2>
+      <p className="text-sm text-ink-500 mb-6">Your preferred tutoring times</p>
 
-      <div className="availability-grid">
+      <div className="ds-availability-grid">
         {Object.entries(formData.availability).map(([day, times]) => (
-          <div key={day} className="availability-day">
-            <label className="day-checkbox">
+          <div key={day} className="ds-availability-day">
+            <label className="flex items-center gap-2 mb-3 cursor-pointer font-semibold text-ink-700">
               <input
                 type="checkbox"
+                className="h-4 w-4 rounded border-hairline accent-navy-700"
                 checked={times.available}
                 onChange={(e) => handleAvailabilityChange(day, 'available', e.target.checked)}
               />
-              <span className="day-name">{day.charAt(0).toUpperCase() + day.slice(1)}</span>
+              <span className="capitalize">{day}</span>
             </label>
 
             {times.available && (
-              <div className="day-times">
-                <div className="time-input">
-                  <label>From</label>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-ink-500">From</label>
                   <input
                     type="time"
+                    className={`${inputCls} h-9 text-sm`}
                     value={times.start}
                     onChange={(e) => handleAvailabilityChange(day, 'start', e.target.value)}
                   />
                 </div>
-                <div className="time-input">
-                  <label>To</label>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-ink-500">To</label>
                   <input
                     type="time"
+                    className={`${inputCls} h-9 text-sm`}
                     value={times.end}
                     onChange={(e) => handleAvailabilityChange(day, 'end', e.target.value)}
                   />
@@ -428,65 +444,74 @@ const ParentProfile = ({ onComplete }) => {
           </div>
         ))}
       </div>
-      {errors.availability && <span className="error">{errors.availability}</span>}
+      {errors.availability && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.availability}</p>}
 
-      <div className="form-group" style={{ marginTop: '24px' }}>
-        <label className="checkbox-item full-width">
+      <div className="ds-form-group mt-6">
+        <label className="ds-checkbox-item">
           <input
             type="checkbox"
+            className="h-4 w-4 rounded border-hairline accent-navy-700"
             checked={formData.agreeToTerms}
             onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
           />
-          <span>I agree to the Terms of Service and understand tutor availability may vary</span>
+          <span className="text-sm text-ink-700">I agree to the Terms of Service and understand tutor availability may vary</span>
         </label>
-        {errors.agreeToTerms && <span className="error">{errors.agreeToTerms}</span>}
+        {errors.agreeToTerms && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.agreeToTerms}</p>}
       </div>
 
-      {error && <div className="error-box">{error}</div>}
+      {error && <Alert tone="error" className="mt-4">{error}</Alert>}
     </div>
   );
 
   if (success) {
     return (
-      <div className="profile-container">
-        <div className="success-message">
-          <div className="success-icon">✓</div>
-          <h2>Profile Complete!</h2>
-          <p>Your profile is all set. Let's find the perfect tutor for you!</p>
-          <div className="spinner"></div>
+      <div className="ds-wizard-shell">
+        <div className="flex flex-col items-center gap-4 text-center py-16 px-10">
+          <span className="text-[80px] text-success-500">✓</span>
+          <h2 className="text-2xl font-bold text-ink-700">Profile Complete!</h2>
+          <p className="text-sm text-ink-500">Your profile is all set. Let's find the perfect tutor for you!</p>
+          <Spinner />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="profile-container">
-      <div className="profile-card">
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${(step / 4) * 100}%` }}></div>
-        </div>
+    <div className="ds-wizard-shell">
+      <div className="ds-wizard-card">
+        <ProgressBar value={step} max={4} barClassName="bg-navy-700" className="rounded-none" />
 
-        <div className="progress-text">Step {step} of 4</div>
+        <div className="text-center text-xs font-semibold text-ink-500 py-3 border-b border-hairline">
+          Step {step} of 4
+        </div>
 
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}
         {step === 4 && renderStep4()}
 
-        <div className="button-group">
+        <div className="ds-wizard-footer">
           {step > 1 && (
-            <button className="btn-secondary" onClick={handlePrev} disabled={loading}>
+            <button
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] border border-hairline bg-paper text-navy-700 transition hover:bg-navy-50 disabled:opacity-50"
+              onClick={handlePrev}
+              disabled={loading}
+            >
               ← Previous
             </button>
           )}
 
           {step < 4 ? (
-            <button className="btn-primary" onClick={handleNext} disabled={loading}>
+            <button
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-navy-700 text-white transition hover:bg-navy-800 disabled:opacity-50"
+              onClick={handleNext}
+              disabled={loading}
+            >
               Next →
             </button>
           ) : (
             <button
-              className="btn-primary btn-submit"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-success-500 text-white transition hover:bg-success-700 disabled:opacity-50"
               onClick={handleSubmit}
               disabled={loading}
             >
