@@ -999,6 +999,7 @@ export default function PracticeSession() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [retrying, setRetrying] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -1457,6 +1458,7 @@ export default function PracticeSession() {
       setHelpRequested(false);
       setFeedback(null);
       setRetryCount(0);
+      setRetrying(false);
       setQuestionStartedAt(Date.now());
       return;
     }
@@ -1582,6 +1584,8 @@ export default function PracticeSession() {
       setReflection('');
       setHelpRequested(false);
       setFeedback(null);
+      setRetryCount(0);
+      setRetrying(false);
       setQuestionStartedAt(Date.now());
       return;
     }
