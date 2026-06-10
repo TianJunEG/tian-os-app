@@ -16,7 +16,7 @@ import Skill from '../models/Skill.js';
 function hintFor(misconception, strategy) {
   if (misconception?.label) {
     // Turn the misconception statement into a gentle "watch-out" without naming the error harshly.
-    return `Quick check: ${strategy || 'look carefully at this step'} — that’s the part this question is testing.`;
+    return strategy || 'Look carefully at this step.';
   }
   return strategy || 'Let’s take it one small step at a time.';
 }
@@ -96,16 +96,16 @@ export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills 
   const gen = generateQuestionsForSkill(skill.name, 2);
   const stub = md.questionStructures?.[0] || null;
   const worked = gen[0]
-    ? { type: 'worked-example', stem: gen[0].stem, solution: gen[0].workedSolution, answer: gen[0].answer }
+    ? { type: 'worked-example', stem: gen[0].stem, solution: gen[0].workedSolution, answer: gen[0].answer, diagramSpec: gen[0].diagramSpec || null }
     : (stub ? { type: 'worked-example', stem: stub.stem, solution: md.remediation?.strategy || '', answer: null } : null);
   const guided = gen[1]
-    ? { type: 'guided-replication', stem: gen[1].stem, answer: gen[1].answer, reveal: 'step-by-step',
+    ? { type: 'guided-replication', stem: gen[1].stem, answer: gen[1].answer, diagramSpec: gen[1].diagramSpec || null, reveal: 'step-by-step',
         prompt: 'Try the same steps on this one — I’ll reveal each step only if you need it.' }
     : (stub ? { type: 'guided-replication', stem: stub.stem, answer: null, reveal: 'step-by-step' } : null);
 
   const steps = orderSteps({
     reassure: { type: 'reassure', text: 'No worries — let’s look at this one together.' },
-    hint: { type: 'hint', text: workingAdjustment?.text || hintFor(misconception, md.remediation?.strategy) },
+    hint: { type: 'hint', text: (workingAdjustment?.type !== 'working-habit' && workingAdjustment?.text) || hintFor(misconception, md.remediation?.strategy) },
     workingHabit: workingAdjustment?.type === 'working-habit' ? workingAdjustment : null,
     reinforce: reinforceSlugs.length
       ? { type: 'reinforce-prerequisite', skills: reinforceSlugs, text: 'Let’s warm up the building block first.' } : null,

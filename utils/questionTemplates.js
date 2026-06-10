@@ -163,8 +163,10 @@ function buildOne(skillName, difficulty) {
     const n = rnd(1, parts - 1);
     const step = 1 / parts;
     const val = Number((start + n * step).toFixed(2));
-    return short(`On a number line, the distance from ${start} to ${start + 1} is split into ${parts} equal parts. What value is ${n} part${n > 1 ? 's' : ''} to the right of ${start}?`,
+    const q = short(`On a number line, the distance from ${start} to ${start + 1} is split into ${parts} equal parts. What value is ${n} part${n > 1 ? 's' : ''} to the right of ${start}?`,
       val.toFixed(2), `Each part is 1/${parts} = ${step.toFixed(2)}. ${n} parts is ${(n * step).toFixed(2)}. So ${start} + ${(n * step).toFixed(2)} = ${val.toFixed(2)}.`, 'decimal/number-line', difficulty);
+    q.diagramSpec = { type: 'number_line', width: 640, height: 180, data: { min: start, max: start + 1, minStepCount: parts, points: [{ value: val, label: '?' }], endpointLabels: [String(start), String(start + 1)] } };
+    return q;
   }
   if (name.includes('ordering decimals')) {
     const set = new Set();
@@ -386,13 +388,17 @@ function buildOne(skillName, difficulty) {
   }
   if (name.includes('equivalent fraction')) {
     const n = rnd(1, 4), d = rnd(n + 1, 6), k = rnd(2, 4);
-    return short(`Fill in: ${n}/${d} = ?/${d * k}`, n * k, `Multiply top and bottom by ${k}: ${n}×${k}=${n * k}, ${d}×${k}=${d * k}.`, 'frac/scale-one-part', difficulty);
+    const q = short(`Fill in: ${n}/${d} = ?/${d * k}`, n * k, `Multiply top and bottom by ${k}: ${n}×${k}=${n * k}, ${d}×${k}=${d * k}.`, 'frac/scale-one-part', difficulty);
+    q.diagramSpec = { type: 'fraction_bar', width: 640, height: 140, data: { parts: d, shaded: n, labelMode: 'none' } };
+    return q;
   }
   if (name.includes('simplif')) {
     const k = rnd(2, 5), n = rnd(1, 4), d = rnd(n + 1, 6);
     const num = n * k, den = d * k, g = gcd(num, den);
-    return short(`Simplify ${num}/${den} to its lowest terms.`, `${num / g}/${den / g}`,
+    const q = short(`Simplify ${num}/${den} to its lowest terms.`, `${num / g}/${den / g}`,
       `Divide top and bottom by ${g}: ${num}/${den} = ${num / g}/${den / g}.`, 'frac/incomplete-simplify', difficulty);
+    q.diagramSpec = { type: 'fraction_bar', width: 640, height: 140, data: { parts: den, shaded: num, labelMode: 'none' } };
+    return q;
   }
   if (
     name.includes('adding like') ||
@@ -401,8 +407,10 @@ function buildOne(skillName, difficulty) {
     name.includes('add same denominator')
   ) {
     const d = rnd(4, 10), a = rnd(1, d - 2), b = rnd(1, d - a - 1);
-    return short(`${a}/${d} + ${b}/${d} = ?  (give your answer as a fraction)`, `${a + b}/${d}`,
+    const q = short(`${a}/${d} + ${b}/${d} = ?  (give your answer as a fraction)`, `${a + b}/${d}`,
       `Same denominator: add the tops. ${a}+${b}=${a + b}, keep /${d}.`, 'frac/add-denominators', difficulty);
+    q.diagramSpec = { type: 'fraction_bar', width: 640, height: 140, data: { parts: d, shaded: a + b, labelMode: 'none' } };
+    return q;
   }
   if (name.includes('adding unlike') || (name.includes('add') && name.includes('unlike'))) {
     if (difficulty === 'medium') return { ...addingUnlikeFractionsSample };
@@ -560,14 +568,18 @@ function buildOne(skillName, difficulty) {
   }
   if (name.includes('understanding fraction')) {
     const total = [10, 12, 15, 16, 20][rnd(0, 4)], part = rnd(1, total - 1), g = gcd(part, total);
-    return short(`In a group of ${total} marbles, ${part} are red. What fraction of the marbles are red? (Give your answer in lowest terms.)`,
+    const q = short(`In a group of ${total} marbles, ${part} are red. What fraction of the marbles are red? (Give your answer in lowest terms.)`,
       `${part / g}/${total / g}`, `${part} out of ${total} = ${part}/${total} = ${part / g}/${total / g}.`, 'frac/of-set', difficulty);
+    q.diagramSpec = { type: 'fraction_bar', width: 640, height: 140, data: { parts: total / g, shaded: part / g, labelMode: 'none' } };
+    return q;
   }
   if (name.includes('number line')) {
     const start = rnd(1, 8), parts = [4, 5, 8, 10][rnd(0, 3)], n = rnd(1, parts - 1);
     const val = Number((start + n / parts).toFixed(3)), per = Number((n / parts).toFixed(3));
-    return short(`On a number line, the distance from ${start} to ${start + 1} is split into ${parts} equal parts. What value is ${n} part${n > 1 ? 's' : ''} to the right of ${start}?`,
+    const q = short(`On a number line, the distance from ${start} to ${start + 1} is split into ${parts} equal parts. What value is ${n} part${n > 1 ? 's' : ''} to the right of ${start}?`,
       val, `Each part = 1 ÷ ${parts} = ${Number((1 / parts).toFixed(3))}. ${n} parts = ${per}, so ${start} + ${per} = ${val}.`, 'decimal/number-line', difficulty);
+    q.diagramSpec = { type: 'number_line', width: 640, height: 180, data: { min: start, max: start + 1, minStepCount: parts, points: [{ value: val, label: '?' }], endpointLabels: [String(start), String(start + 1)] } };
+    return q;
   }
   // ──────────────────────────────────────────────────────────────────────────
   // Figure-free coverage for the developmental skill graph. Each branch below is
@@ -638,8 +650,10 @@ function buildOne(skillName, difficulty) {
   // ---- Fractions (figure-free) ----
   if (name.includes('unit fraction')) {
     const d = rnd(2, 8);
-    return short(`A pizza is cut into ${d} equal slices. What fraction is one slice? (Give as a fraction.)`,
+    const q = short(`A pizza is cut into ${d} equal slices. What fraction is one slice? (Give as a fraction.)`,
       `1/${d}`, `One of ${d} equal parts is 1/${d}.`, 'frac/unit', difficulty);
+    q.diagramSpec = { type: 'fraction_bar', width: 640, height: 140, data: { parts: d, shaded: 1, labelMode: 'none' } };
+    return q;
   }
   if (name.includes('numerator and denominator') || (name.includes('numerator') && name.includes('denominator'))) {
     const d = rnd(3, 9), n = rnd(1, d - 1);
@@ -652,8 +666,10 @@ function buildOne(skillName, difficulty) {
   }
   if (name.includes('parts of a whole') || name.includes('fraction of a whole') || name.includes('recognise fraction')) {
     const d = rnd(3, 8), n = rnd(1, d - 1);
-    return short(`A bar is divided into ${d} equal parts and ${n} are shaded. What fraction is shaded? (Give as a fraction.)`,
+    const q = short(`A bar is divided into ${d} equal parts and ${n} ${n === 1 ? 'is' : 'are'} shaded. What fraction is shaded? (Give as a fraction.)`,
       `${n}/${d}`, `${n} shaded out of ${d} equal parts = ${n}/${d}.`, 'frac/part-whole', difficulty);
+    q.diagramSpec = { type: 'fraction_bar', width: 640, height: 140, data: { parts: d, shaded: n, labelMode: 'none' } };
+    return q;
   }
   if (name.includes('fraction of a set') || name.includes('fraction of a quantity')) {
     const d = rnd(2, 6), per = rnd(2, 6), total = d * per, n = rnd(1, d - 1);
@@ -663,8 +679,10 @@ function buildOne(skillName, difficulty) {
   if (name.includes('comparing fraction') && name.includes('same denominator')) {
     const d = rnd(4, 9); let a = rnd(1, d - 1), b = rnd(1, d - 1); if (a === b) b = (b % (d - 1)) + 1;
     const bigger = Math.max(a, b);
-    return short(`Which is greater: ${a}/${d} or ${b}/${d}? Write the greater fraction.`,
+    const q = short(`Which is greater: ${a}/${d} or ${b}/${d}? Write the greater fraction.`,
       `${bigger}/${d}`, `Same denominator — the larger numerator wins: ${bigger}/${d}.`, 'frac/compare-denom', difficulty);
+    q.diagramSpec = { type: 'fraction_bar', width: 640, height: 140, data: { parts: d, shaded: bigger, labelMode: 'none' } };
+    return q;
   }
   if (name.includes('comparing fraction') && name.includes('same numerator')) {
     const n = rnd(1, 4); let d1 = rnd(n + 1, 9), d2 = rnd(n + 1, 9); if (d1 === d2) d2 = d1 + 1;
