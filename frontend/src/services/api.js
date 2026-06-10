@@ -144,6 +144,9 @@ export const mathpathAPI = {
   uploadPaperAnalysis: (formData) => api.post('/mathpath/paper-analysis/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
+  studentUploadPaper: (formData) => api.post('/mathpath/paper-analysis/student-upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
   paperAnalysis: (id) => api.get(`/mathpath/paper-analysis/${id}`),
   reviewPaperAnalysis: (id, data) => api.patch(`/mathpath/paper-analysis/${id}/review`, data),
   assignPaperAnalysisPractice: (id, data = {}) => api.post(`/mathpath/paper-analysis/${id}/assign-practice`, data),
