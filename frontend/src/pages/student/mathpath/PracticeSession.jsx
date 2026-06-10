@@ -1016,11 +1016,16 @@ export default function PracticeSession() {
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
   const questionSurfaceRef = useRef(null);
+  const sessionStartingRef = useRef(false);
 
   const isMainFlowRender = isMathPathRoute && !hasLegacyItems && sessionType !== 'story';
 
   useEffect(() => {
     if (!isMainFlowRender) return undefined;
+    // Guard against re-entry — the effect can re-fire before the first API
+    // call completes (e.g. navigate changes routeSessionId in the deps).
+    if (sessionStartingRef.current) return undefined;
+    sessionStartingRef.current = true;
     let mounted = true;
     (async () => {
       try {
@@ -1173,7 +1178,10 @@ export default function PracticeSession() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => { mounted = false; sessionStartingRef.current = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is a stable
+  // ref from react-router v6; including it caused re-entry loops that spammed
+  // 1800+ duplicate sessions during the pilot.
   }, [
     isMainFlowRender,
     studentId,
@@ -1185,7 +1193,6 @@ export default function PracticeSession() {
     locationAssignmentId,
     locationWeakSkillIdsKey,
     locationRecentMistakeTypesKey,
-    navigate,
   ]);
 
   useEffect(() => {
