@@ -262,9 +262,11 @@ async function deriveMetrics(student) {
   const currentSkillId = recentState?.skillId || recentAttempt?.skillId || 'F001';
   const currentDomain = recentState?.domainId || recentAttempt?.domainId || 'fractions';
   const currentSkill = await getSkillName(currentSkillId);
-  const recordStreak = masteryStreakRows.reduce((best, row) => Math.max(best, row.bestStreak || row.streak || 0), 0);
+  // MasteryRecord.streak/bestStreak counts consecutive correct answers on a
+  // single skill — NOT daily login streak.  Only use activity-date-based streak
+  // for the profile "days active" counter.
   const activityStreak = calculateActivityStreak(activityDates);
-  const streak = Math.max(recordStreak, activityStreak);
+  const streak = activityStreak;
   const totalSkills = currentDomain === 'fractions' ? Math.max(totalFractionsSkills || 0, 26) : Math.max(uniqueCount(masteredCodes), 1);
 
   return {
