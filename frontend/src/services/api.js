@@ -184,6 +184,7 @@ export const studentProfileAPI = {
   summary: () => api.get('/student-profile/summary'),
   achievements: () => api.get('/student-profile/achievements'),
   timeline: () => api.get('/student-profile/timeline'),
+  personalBests: () => api.get('/student-profile/personal-bests'),
   updateName: (name) => api.patch('/student-profile/name', { name }),
 };
 
