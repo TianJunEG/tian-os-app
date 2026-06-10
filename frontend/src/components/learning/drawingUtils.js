@@ -154,20 +154,34 @@ export function drawStroke(ctx, stroke, options = {}) {
     && points.some((p) => p.p != null);
 
   if (hasPressure) {
-    // Pressure-sensitive: draw segment-by-segment with varying width
+    // Pressure-sensitive: draw segment-by-segment with varying width and smooth curves
     for (let i = 1; i < points.length; i++) {
       const pressure = points[i].p ?? 0.5;
       ctx.lineWidth = lineWidth * (0.3 + pressure * 0.7);
       ctx.beginPath();
       ctx.moveTo(points[i - 1].x, points[i - 1].y);
-      ctx.lineTo(points[i].x, points[i].y);
+      if (i >= 2) {
+        const mid = { x: (points[i - 1].x + points[i].x) / 2, y: (points[i - 1].y + points[i].y) / 2 };
+        ctx.quadraticCurveTo(points[i - 1].x, points[i - 1].y, mid.x, mid.y);
+      } else {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
       ctx.stroke();
     }
   } else {
-    // Uniform width: single path (fastest)
+    // Uniform width: smooth quadratic bezier curves through midpoints
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
-    points.slice(1).forEach((p) => ctx.lineTo(p.x, p.y));
+    if (points.length === 2) {
+      ctx.lineTo(points[1].x, points[1].y);
+    } else {
+      for (let i = 1; i < points.length - 1; i++) {
+        const mid = { x: (points[i].x + points[i + 1].x) / 2, y: (points[i].y + points[i + 1].y) / 2 };
+        ctx.quadraticCurveTo(points[i].x, points[i].y, mid.x, mid.y);
+      }
+      const last = points[points.length - 1];
+      ctx.lineTo(last.x, last.y);
+    }
     ctx.stroke();
   }
 
