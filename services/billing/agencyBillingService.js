@@ -91,15 +91,20 @@ export async function chargeTutor({ organisationId, tutorUserId }) {
     stripePaymentIntentId: result.paymentIntentId || '',
     connectAccountId: org.stripeConnectAccountId,
     applicationFee: 0,
-    status: result.configured ? 'pending' : 'pending',
+    status: 'pending',
   });
 
-  // Activate the subscription period (payment confirmation webhook would finalise
-  // in production; here we advance optimistically for the self-pay flow).
-  sub.status = 'active';
-  sub.currentPeriodStart = periodStart;
-  sub.currentPeriodEnd = periodEnd;
-  await sub.save();
+  // Subscription activation is GATED ON PAYMENT. With live Stripe the charge is
+  // 'pending' until the webhook (payment_intent.succeeded) marks it succeeded
+  // and activates the subscription — so we do NOT advance the period here.
+  // Without Stripe configured (dev/offline) there's no webhook, so activate
+  // optimistically to keep the self-pay flow usable.
+  if (!result.configured) {
+    sub.status = 'active';
+    sub.currentPeriodStart = periodStart;
+    sub.currentPeriodEnd = periodEnd;
+    await sub.save();
+  }
 
   return { charge, subscription: sub, clientSecret: result.clientSecret || null, stripeConfigured: result.configured };
 }

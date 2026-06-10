@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, AlertTriangle, GraduationCap, FileText } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
-import { Card, Button, Badge, StatTile, PageHeader, Spinner, ErrorState } from '../../components/ui';
+import { Card, Button, Badge, StatTile, PageHeader, Spinner, ErrorState, EmptyState } from '../../components/ui';
 
 const CERT_LABEL = { not_started: 'Not started', in_training: 'In training', assessment_pending: 'Assessment pending', interview_pending: 'Interview pending', approved: 'Approved', suspended: 'Suspended' };
 

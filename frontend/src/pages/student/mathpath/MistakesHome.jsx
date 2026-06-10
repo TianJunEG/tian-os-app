@@ -63,6 +63,21 @@ export default function MistakesHome() {
     if (starting) return;
     setStarting(true);
     try {
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(),
+            questionCount: 5,
+            sessionType: 'remediation',
+            source: 'mistakes-home',
+            backTo: '/student/mathpath/mistakes',
+            homeBase: '/student/mathpath/mistakes',
+            homeLabel: 'Back to mistake review',
+          },
+        });
+        return;
+      }
       const { data: s } = await mathpathAPI.startSession({ feature: 'Mistake-to-Mastery', skillId, questionCount: 5 });
       navigate(`/student/mathpath/practice/${s.session_id}`, {
         state: {
@@ -95,10 +110,10 @@ export default function MistakesHome() {
     <div className={`${visualStyles.page} space-y-6`}>
       <PageHeader title="Mistake-to-Mastery" subtitle="MathPath · turn recent slips into mastery" />
 
-      <Card className={`border-violet-100 p-5 ${visualStyles.heroCard}`}>
-        <div className="mb-1 flex items-center gap-2 text-violet-700"><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
+      <Card className={`p-5 ${visualStyles.heroCard}`}>
+        <div className={`mb-1 flex items-center gap-2 ${visualStyles.accent}`}><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
         <div className="font-display text-2xl font-semibold text-ink-900">{data ? data.mistakes.length : 0} to review</div>
-        {recommended && <p className="mb-4 mt-1 text-sm text-ink-600">Recommended: practise <b className="font-semibold text-violet-700">{recommended.skillName}</b></p>}
+        {recommended && <p className="mb-4 mt-1 text-sm text-ink-600">Recommended: practise <b className={`font-semibold ${visualStyles.accent}`}>{recommended.skillName}</b></p>}
         {fallbackMessage && <p className="mb-3 rounded-xl bg-gold-100 px-3 py-2 text-sm font-semibold text-gold-700">{fallbackMessage}</p>}
         <div className="flex flex-wrap gap-2">
           {hasMistakes ? (

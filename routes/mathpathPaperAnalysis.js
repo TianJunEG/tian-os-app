@@ -182,6 +182,47 @@ router.post('/upload', protect, upload.single('paper'), async (req, res) => {
   }
 });
 
+// Student self-upload: students can upload their own marked papers.
+// No assertAdultUploader — resolveStudent(req) returns their own record.
+router.post('/student-upload', protect, upload.single('paper'), async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    if (!req.file) return res.status(400).json({ error: 'Upload a PDF, JPG or PNG of your test paper.' });
+
+    const saved = await saveUpload(req.file);
+    const analysis = await PaperAnalysis.create({
+      studentId: String(student._id),
+      uploadedByUserId: String(req.user?.id || req.user?._id || ''),
+      uploadedByRole: 'student',
+      sourceType: 'student_upload',
+      subjectId: req.body?.subjectId || 'math',
+      domainId: req.body?.domainId || 'fractions',
+      uploadType: req.body?.uploadType || 'marked_script',
+      pageCount: Math.max(1, Number(req.body?.pageCount || 1)),
+      status: 'uploaded',
+      detectedQuestions: [],
+      ...saved,
+    });
+    // Run the AI analysis pipeline in the background
+    try {
+      const analysed = await runPaperAnalysisPipeline({
+        analysisId: analysis._id,
+        fileBuffer: req.file.buffer,
+        mimeType: req.file.mimetype,
+        filename: req.file.originalname,
+      });
+      return res.status(201).json({ analysis: analysed });
+    } catch (pipelineErr) {
+      return res.status(201).json({
+        analysis: await PaperAnalysis.findById(analysis._id).lean(),
+        warning: 'Paper uploaded! Your teacher or parent will review it shortly.',
+      });
+    }
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not upload paper.' });
+  }
+});
+
 router.get('/:id', protect, async (req, res) => {
   try {
     const analysis = await PaperAnalysis.findById(req.params.id).lean();

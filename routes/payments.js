@@ -3,6 +3,8 @@ import { body, validationResult } from 'express-validator';
 import Stripe from 'stripe';
 import Payment from '../models/Payment.js';
 import Booking from '../models/Booking.js';
+import AgencyTutorCharge from '../models/AgencyTutorCharge.js';
+import Subscription from '../models/Subscription.js';
 import User from '../models/User.js';
 import TutorProfile from '../models/TutorProfile.js';
 import { protect, authorize } from '../middleware/auth.js';
@@ -333,6 +335,27 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             await booking.save();
           }
         }
+        // Gap B: finalise an agency→tutor charge (direct charge on a connected
+        // account, matched by PaymentIntent id) and activate its subscription.
+        {
+          const agencyCharge = await AgencyTutorCharge.findOne({
+            stripePaymentIntentId: paymentIntent.id,
+            status: { $ne: 'succeeded' },
+          });
+          if (agencyCharge) {
+            agencyCharge.status = 'succeeded';
+            await agencyCharge.save();
+            if (agencyCharge.subscriptionId) {
+              await Subscription.findByIdAndUpdate(agencyCharge.subscriptionId, {
+                $set: {
+                  status: 'active',
+                  currentPeriodStart: agencyCharge.periodStart,
+                  currentPeriodEnd: agencyCharge.periodEnd,
+                },
+              });
+            }
+          }
+        }
         break;
 
       case 'payment_intent.payment_failed':
@@ -345,6 +368,10 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
           failedPayment.status = 'failed';
           await failedPayment.save();
         }
+        await AgencyTutorCharge.findOneAndUpdate(
+          { stripePaymentIntentId: failedIntent.id, status: { $ne: 'succeeded' } },
+          { $set: { status: 'failed' } }
+        );
         break;
 
       default:

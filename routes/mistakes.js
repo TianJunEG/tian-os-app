@@ -11,6 +11,7 @@ import {
   applyMistakeLearningAction,
   shapeMistakeLearningFields,
 } from '../services/mathpath/mistakeCorrectionFlow.js';
+import r2 from '../services/storage/r2.js';
 
 const router = express.Router();
 
@@ -151,6 +152,8 @@ router.get('/', protect, async (req, res) => {
         strokes: m.tutorExplanation.strokes || [],
         recordedAt: m.tutorExplanation.recordedAt,
         durationMs: m.tutorExplanation.durationMs || null,
+        hasAudio: Boolean(m.tutorExplanation.audioStorageKey),
+        feedback: m.tutorExplanation.feedback || null,
       } : null,
     })));
 
@@ -257,10 +260,43 @@ router.get('/:id', protect, async (req, res) => {
         image: m.tutorExplanation.image || '',
         recordedAt: m.tutorExplanation.recordedAt,
         durationMs: m.tutorExplanation.durationMs || null,
+        hasAudio: Boolean(m.tutorExplanation.audioStorageKey),
+        feedback: m.tutorExplanation.feedback || null,
       } : null,
+      explanationAudioUrl: await (async () => {
+        const key = m.tutorExplanation?.audioStorageKey;
+        if (!key) return null;
+        try { return await r2.getSignedDownloadUrl(key, 300); } catch { return null; }
+      })(),
     });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake.' });
+  }
+});
+
+// @route PATCH /api/mistakes/:id/explanation-feedback
+// @desc  Parent submits thumbs-up / thumbs-down on a tutor explanation.
+// @access Private (parent)
+router.patch('/:id/explanation-feedback', protect, async (req, res) => {
+  try {
+    const { feedback } = req.body;
+    if (!['helpful', 'not_helpful'].includes(feedback)) {
+      return res.status(400).json({ error: 'feedback must be "helpful" or "not_helpful".' });
+    }
+    const m = await Mistake.findById(req.params.id);
+    if (!m) return res.status(404).json({ error: 'Mistake not found.' });
+    await resolveStudent(req, m.studentId); // access check
+    if (!m.tutorExplanation?.recordedAt) {
+      return res.status(400).json({ error: 'No tutor explanation to rate.' });
+    }
+    m.tutorExplanation.feedback = feedback;
+    m.tutorExplanation.feedbackAt = new Date();
+    m.tutorExplanation.feedbackByUserId = req.user.id;
+    await m.save();
+    console.info('[mistakes] explanation feedback', { mistakeId: String(m._id), feedback });
+    res.json({ id: m._id, feedback });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to save feedback.' });
   }
 });
 

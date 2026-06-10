@@ -136,6 +136,16 @@ export const mathpathAPI = {
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),
+  // P1 practice persistence
+  startP1Practice: (data = {}) => api.post('/mastery/p1/practice/start', data),
+  getP1Practice: (practiceSessionId) => api.get(`/mastery/p1/practice/${practiceSessionId}`),
+  submitP1Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p1/practice/${practiceSessionId}/submit`, data),
+  getP1SkillStates: () => api.get('/mastery/p1/skill-states'),
+  // P3 practice persistence
+  startP3Practice: (data = {}) => api.post('/mastery/p3/practice/start', data),
+  getP3Practice: (practiceSessionId) => api.get(`/mastery/p3/practice/${practiceSessionId}`),
+  submitP3Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p3/practice/${practiceSessionId}/submit`, data),
+  getP3SkillStates: () => api.get('/mastery/p3/skill-states'),
   startSession: (data) => api.post('/practice/sessions', data),
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),
@@ -149,6 +159,7 @@ export const mathpathAPI = {
   recordMistakes: (mistakes) => api.post('/mistakes/bulk', { mistakes }),
   reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
   updateMistakeLearning: (id, data) => api.patch(`/mistakes/${id}/learning`, data),
+  explanationFeedback: (id, feedback) => api.patch(`/mistakes/${id}/explanation-feedback`, { feedback }),
   placement: (attempts) => api.post('/mastery/placement', { attempts }),
   modelTrainerTemplates: (params) => api.get('/mastery/fractions/model-trainer', { params }),
   modelTrainerForSkill: (skillId) => api.get(`/mastery/fractions/model-trainer/skill/${skillId}`),
@@ -173,6 +184,9 @@ export const mathpathAPI = {
   markNoWorking: (workingSessionId, data) => api.post(`/mathpath-working/${workingSessionId}/no-working`, data),
   updateWorkingAnalysis: (workingSessionId, data) => api.post(`/mathpath-working/${workingSessionId}/analysis`, data),
   uploadPaperAnalysis: (formData) => api.post('/mathpath/paper-analysis/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  studentUploadPaper: (formData) => api.post('/mathpath/paper-analysis/student-upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   paperAnalysis: (id) => api.get(`/mathpath/paper-analysis/${id}`),
@@ -212,6 +226,7 @@ export const studentProfileAPI = {
   summary: () => api.get('/student-profile/summary'),
   achievements: () => api.get('/student-profile/achievements'),
   timeline: () => api.get('/student-profile/timeline'),
+  personalBests: () => api.get('/student-profile/personal-bests'),
   updateName: (name) => api.patch('/student-profile/name', { name }),
 };
 
@@ -276,6 +291,10 @@ export const tutorAPI = {
   certification: () => api.get('/tutor/certification'),
   mistake: (studentId, mistakeId) => api.get(`/tutor/students/${studentId}/mistakes/${mistakeId}`),
   saveExplanation: (studentId, mistakeId, data) => api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation`, data),
+  uploadExplanationAudio: (studentId, mistakeId, formData) =>
+    api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation-audio`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export const tutorInviteAPI = {

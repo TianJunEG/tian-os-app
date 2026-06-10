@@ -1,21 +1,29 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   Award,
   BadgeCheck,
   BookOpen,
+  Calendar,
   Check,
   CheckCircle2,
   Clock,
+  Crown,
   Flame,
   Lock,
+  Minus,
   Pencil,
   PenLine,
   Sparkles,
   Star,
   Target,
+  Timer,
   Trophy,
+  TrendingUp,
   X,
+  Zap,
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
@@ -197,6 +205,171 @@ function TimelineItem({ event }) {
         {event.xpAwarded > 0 && <p className="mt-2 text-sm font-semibold text-gold-700">Earned {event.xpAwarded} XP</p>}
       </div>
     </li>
+  );
+}
+
+function PersonalBestTile({ icon: Icon, label, value, subtitle, tone = 'default', visual }) {
+  const tones = {
+    gold: 'border-gold-200 bg-gradient-to-br from-gold-50 to-yellow-50',
+    fire: 'border-orange-200 bg-gradient-to-br from-orange-50 to-red-50',
+    sky: 'border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50',
+    mint: 'border-mint-200 bg-gradient-to-br from-mint-50 to-emerald-50',
+    violet: 'border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50',
+    default: visual.styles.card,
+  };
+  const iconTones = {
+    gold: 'bg-gold-100 text-gold-700',
+    fire: 'bg-orange-100 text-orange-600',
+    sky: 'bg-sky-100 text-sky-700',
+    mint: 'bg-mint-100 text-emerald-700',
+    violet: 'bg-violet-100 text-violet-700',
+    default: visual.styles.icon,
+  };
+  return (
+    <Card className={`relative overflow-hidden p-4 ${tones[tone]}`}>
+      <div className="flex items-start gap-3">
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${iconTones[tone]}`}>
+          <Icon className="h-5 w-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="font-mono text-2xl font-bold leading-none text-ink-900 tabular-nums">{value}</p>
+          <p className="mt-1 text-sm font-semibold text-ink-700">{label}</p>
+          {subtitle && <p className="mt-0.5 text-xs text-ink-400">{subtitle}</p>}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function WeeklyComparison({ thisWeek, lastWeek, visual }) {
+  const diff = thisWeek - lastWeek;
+  const trending = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
+  const TrendIcon = trending === 'up' ? ArrowUp : trending === 'down' ? ArrowDown : Minus;
+  const trendColor = trending === 'up' ? 'text-emerald-600' : trending === 'down' ? 'text-red-500' : 'text-ink-400';
+  const trendBg = trending === 'up' ? 'bg-emerald-50' : trending === 'down' ? 'bg-red-50' : 'bg-slate-50';
+  const trendLabel = trending === 'up' ? `+${diff} more than last week!` : trending === 'down' ? `${Math.abs(diff)} fewer than last week` : 'Same as last week';
+  return (
+    <Card className={`p-4 ${visual.styles.card}`}>
+      <p className="text-sm font-semibold text-ink-500">This Week vs Last Week</p>
+      <div className="mt-3 flex items-end gap-4">
+        <div className="flex-1">
+          <div className="flex items-end gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">This week</p>
+              <p className="font-mono text-3xl font-bold text-ink-900 tabular-nums">{thisWeek}</p>
+            </div>
+            <p className="pb-1 text-lg text-ink-300">vs</p>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">Last week</p>
+              <p className="font-mono text-3xl font-bold text-ink-400 tabular-nums">{lastWeek}</p>
+            </div>
+          </div>
+        </div>
+        <span className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${trendBg} ${trendColor}`}>
+          <TrendIcon className="h-3.5 w-3.5" />
+          {trending === 'up' ? 'Up' : trending === 'down' ? 'Down' : 'Even'}
+        </span>
+      </div>
+      <p className={`mt-2 text-sm font-medium ${trendColor}`}>{trendLabel}</p>
+    </Card>
+  );
+}
+
+function PersonalBestsSection({ visual }) {
+  const [bests, setBests] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    studentProfileAPI.personalBests()
+      .then((res) => { if (active) setBests(res.data); })
+      .catch(() => {})
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  if (loading) return <div className="mt-6 flex justify-center"><Spinner label="Loading personal bests…" /></div>;
+  if (!bests) return null;
+
+  const lp = isLowerPrimary(visual.mode);
+
+  return (
+    <section className="mt-7">
+      <div className="mb-4">
+        <h2 className="font-display text-2xl font-semibold text-ink-900">
+          {lp ? '🏆 My Personal Bests' : 'Personal Bests'}
+        </h2>
+        <p className="mt-1 text-sm text-ink-500">
+          {lp ? 'Can you beat your own records?' : 'Compete against yourself — break your own records.'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <PersonalBestTile
+          visual={visual}
+          icon={Crown}
+          label="Best Session Accuracy"
+          value={`${bests.bestSessionAccuracy?.value || 0}%`}
+          subtitle={bests.bestSessionAccuracy?.date ? `Set ${new Date(bests.bestSessionAccuracy.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : null}
+          tone="gold"
+        />
+        <PersonalBestTile
+          visual={visual}
+          icon={Zap}
+          label="Longest Correct Streak"
+          value={`${bests.longestCorrectStreak?.value || 0} in a row`}
+          subtitle={bests.longestCorrectStreak?.date ? `Reached ${new Date(bests.longestCorrectStreak.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : null}
+          tone="fire"
+        />
+        <PersonalBestTile
+          visual={visual}
+          icon={Flame}
+          label="Best Daily Streak"
+          value={`${bests.bestDailyStreak?.value || 0} day${bests.bestDailyStreak?.value === 1 ? '' : 's'}`}
+          subtitle="Consecutive days with activity"
+          tone="fire"
+        />
+        <PersonalBestTile
+          visual={visual}
+          icon={TrendingUp}
+          label="Most Questions in a Day"
+          value={formatNumber(bests.mostQuestionsInDay?.value || 0)}
+          subtitle={bests.mostQuestionsInDay?.date || null}
+          tone="sky"
+        />
+        <PersonalBestTile
+          visual={visual}
+          icon={Timer}
+          label="Fastest Correct Answer"
+          value={bests.fastestCorrectAnswer?.value ? `${bests.fastestCorrectAnswer.value}s` : '—'}
+          subtitle={bests.fastestCorrectAnswer?.date ? `Set ${new Date(bests.fastestCorrectAnswer.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : null}
+          tone="mint"
+        />
+        <PersonalBestTile
+          visual={visual}
+          icon={Star}
+          label="Perfect Sessions"
+          value={formatNumber(bests.perfectSessions?.value || 0)}
+          subtitle="100% accuracy, 5+ questions"
+          tone="violet"
+        />
+        <PersonalBestTile
+          visual={visual}
+          icon={Calendar}
+          label="Total Days Active"
+          value={formatNumber(bests.totalDaysActive || 0)}
+          tone="default"
+        />
+      </div>
+
+      <div className="mt-4">
+        <WeeklyComparison
+          thisWeek={bests.thisWeekQuestions || 0}
+          lastWeek={bests.lastWeekQuestions || 0}
+          visual={visual}
+        />
+      </div>
+    </section>
   );
 }
 
@@ -382,6 +555,8 @@ export default function StudentProfile() {
         <SnapshotCard visual={visual} icon={BookOpen} label="Practice Sessions" value={formatNumber(summary.practiceSessions)} />
         <SnapshotCard visual={visual} icon={PenLine} label="Working Records" value={formatNumber(summary.workingSubmissions)} />
       </section>
+
+      <PersonalBestsSection visual={visual} />
 
       <section className="mt-5 grid gap-5 lg:grid-cols-[1fr_22rem]">
         <Card className={`p-5 sm:p-6 ${visual.styles.card}`}>

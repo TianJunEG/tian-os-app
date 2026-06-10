@@ -16,7 +16,7 @@ import Skill from '../models/Skill.js';
 function hintFor(misconception, strategy) {
   if (misconception?.label) {
     // Turn the misconception statement into a gentle "watch-out" without naming the error harshly.
-    return `Quick check: ${strategy || 'look carefully at this step'} — that’s the part this question is testing.`;
+    return strategy || 'Look carefully at this step.';
   }
   return strategy || 'Let’s take it one small step at a time.';
 }
@@ -75,9 +75,17 @@ function workingStrategyFromInsight(insight = {}) {
   return null;
 }
 
+// Fallback: turn a slug like 'fr.meaning.parts' into 'Meaning parts'.
+function slugToDisplayName(slug) {
+  const parts = slug.split('.');
+  // Drop the first segment (domain prefix like 'fr', 'op', 'ns') if there are 2+
+  const meaningful = parts.length > 1 ? parts.slice(1) : parts;
+  return meaningful.join(' ').replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase());
+}
+
 // Pure core. `skill` is a Skill doc (with metadata); `recentAttempts` the failing
 // attempts [{ correct, misconceptionTag }]; `prereqSkills` resolved prereq docs.
-export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills = [] }) {
+export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills = [], reinforceSkills = [] }) {
   const md = skill.metadata || {};
   // 1) Likely misconception: most frequent tag seen, else the skill's primary one.
   const counts = {};
@@ -87,6 +95,9 @@ export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills 
 
   // 2) Prerequisite reinforcement (skill's declared reinforcement, else its prereqs).
   const reinforceSlugs = (md.remediation?.reinforce?.length ? md.remediation.reinforce : prereqSkills.map((p) => p.slug)) || [];
+  // Resolve slugs → human-readable names for display
+  const nameMap = Object.fromEntries([...prereqSkills, ...reinforceSkills].map(s => [s.slug, s.name]));
+  const reinforceNames = reinforceSlugs.map(slug => nameMap[slug] || slugToDisplayName(slug));
   const workingInsight = latestWorkingInsight(recentAttempts);
   const workingAdjustment = workingStrategyFromInsight(workingInsight);
   const strategy = workingAdjustment?.strategy || md.remediation?.onRepeatedFail || 'worked-example';
@@ -96,19 +107,19 @@ export function buildRemediationPlan({ skill, recentAttempts = [], prereqSkills 
   const gen = generateQuestionsForSkill(skill.name, 2);
   const stub = md.questionStructures?.[0] || null;
   const worked = gen[0]
-    ? { type: 'worked-example', stem: gen[0].stem, solution: gen[0].workedSolution, answer: gen[0].answer }
+    ? { type: 'worked-example', stem: gen[0].stem, solution: gen[0].workedSolution, answer: gen[0].answer, diagramSpec: gen[0].diagramSpec || null }
     : (stub ? { type: 'worked-example', stem: stub.stem, solution: md.remediation?.strategy || '', answer: null } : null);
   const guided = gen[1]
-    ? { type: 'guided-replication', stem: gen[1].stem, answer: gen[1].answer, reveal: 'step-by-step',
+    ? { type: 'guided-replication', stem: gen[1].stem, answer: gen[1].answer, diagramSpec: gen[1].diagramSpec || null, reveal: 'step-by-step',
         prompt: 'Try the same steps on this one — I’ll reveal each step only if you need it.' }
     : (stub ? { type: 'guided-replication', stem: stub.stem, answer: null, reveal: 'step-by-step' } : null);
 
   const steps = orderSteps({
     reassure: { type: 'reassure', text: 'No worries — let’s look at this one together.' },
-    hint: { type: 'hint', text: workingAdjustment?.text || hintFor(misconception, md.remediation?.strategy) },
+    hint: { type: 'hint', text: (workingAdjustment?.type !== 'working-habit' && workingAdjustment?.text) || hintFor(misconception, md.remediation?.strategy) },
     workingHabit: workingAdjustment?.type === 'working-habit' ? workingAdjustment : null,
     reinforce: reinforceSlugs.length
-      ? { type: 'reinforce-prerequisite', skills: reinforceSlugs, text: 'Let’s warm up the building block first.' } : null,
+      ? { type: 'reinforce-prerequisite', skills: reinforceNames, text: 'Let’s warm up the building block first.' } : null,
     worked,
     guided,
     retry: { type: 'retry', text: 'Now you’re ready — try a fresh one on your own.' },
@@ -138,5 +149,12 @@ export async function buildRemediation(skillSlug, recentAttempts = []) {
   const skill = await Skill.findOne({ slug: skillSlug });
   if (!skill) return null;
   const prereqSkills = await Skill.find({ _id: { $in: skill.prerequisiteSkillIds || [] } });
-  return buildRemediationPlan({ skill, recentAttempts, prereqSkills });
+  // If metadata specifies extra reinforce slugs beyond the prereqs, resolve their names too
+  const reinforceMeta = skill.metadata?.remediation?.reinforce || [];
+  const prereqSlugSet = new Set(prereqSkills.map(p => p.slug));
+  const extraSlugs = reinforceMeta.filter(s => !prereqSlugSet.has(s));
+  const reinforceSkills = extraSlugs.length
+    ? await Skill.find({ slug: { $in: extraSlugs } }, 'slug name')
+    : [];
+  return buildRemediationPlan({ skill, recentAttempts, prereqSkills, reinforceSkills });
 }

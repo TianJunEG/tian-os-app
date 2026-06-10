@@ -54,10 +54,13 @@ const QuestionReviewPage = lazy(() => import('./pages/student/mathpath/QuestionR
 const MathPathAssignments = lazy(() => import('./pages/student/mathpath/MathPathAssignments'));
 const RecoveryPackTeachingFlow = lazy(() => import('./pages/student/mathpath/RecoveryPackTeachingFlow'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
+const P1LearningPathPage = lazy(() => import('./pages/student/mathpath/P1LearningPathPage'));
+const P3LearningPathPage = lazy(() => import('./pages/student/mathpath/P3LearningPathPage'));
 const FractionsStoryModeSession = lazy(() => import('./pages/student/mathpath/FractionsStoryModeSession'));
 const StoryModeDomainRoute = lazy(() => import('./pages/student/mathpath/StoryModeDomainRoute'));
 const FractionsModelTrainer = lazy(() => import('./pages/student/mathpath/FractionsModelTrainer'));
 const SimilarQuestionPractice = lazy(() => import('./pages/student/mathpath/SimilarQuestionPractice'));
+const UploadPaperPage = lazy(() => import('./pages/student/mathpath/UploadPaperPage'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
 // Spelling Practice (Phase 6) — shared-core wiring
@@ -551,6 +554,8 @@ function App() {
             <Route path="/student/mathpath/assignments" element={<MathPathAssignments />} />
             <Route path="/student/mathpath/recovery-pack/:assignmentId" element={<RecoveryPackTeachingFlow />} />
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
+            <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
+            <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />
             <Route path="/student/mathpath/fractions/story" element={<FractionsStoryModeSession />} />
             <Route path="/student/mathpath/fractions/story/:skillId" element={<FractionsStoryModeSession />} />
             <Route path="/student/mathpath/:domain/story" element={<StoryModeDomainRoute />} />
@@ -571,6 +576,7 @@ function App() {
             <Route path="/student/mathpath/assessment/review/:assessmentSessionId" element={<AssessmentReviewScreen />} />
             <Route path="/student/mathpath/assessment/working/:assessmentSessionId" element={<AssessmentWorkingPromptScreen />} />
             <Route path="/student/mathpath/assessment/results/:assessmentSessionId" element={<AssessmentResultScreen />} />
+            <Route path="/student/mathpath/upload-paper" element={<UploadPaperPage />} />
             <Route path="/student/mathpath/working/upload" element={<WorkingUploadScreen />} />
             <Route path="/student/mathpath/working/review" element={<WorkingUploadReviewScreen />} />
             <Route path="/student/mathpath/working/success" element={<WorkingUploadSuccessScreen />} />

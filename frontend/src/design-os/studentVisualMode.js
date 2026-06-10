@@ -30,8 +30,8 @@ export function resolveStudentVisualMode(studentOrUser = {}) {
     || '';
   const parsed = levelNumber(level);
   if (parsed.band === 'secondary') return STUDENT_VISUAL_MODES.SECONDARY;
-  if (parsed.band === 'primary' && parsed.year > 0 && parsed.year <= 3) return STUDENT_VISUAL_MODES.LOWER_PRIMARY;
-  if (parsed.band === 'primary' && parsed.year >= 4) return STUDENT_VISUAL_MODES.UPPER_PRIMARY;
+  if (parsed.band === 'primary' && parsed.year > 0 && parsed.year <= 4) return STUDENT_VISUAL_MODES.LOWER_PRIMARY;
+  if (parsed.band === 'primary' && parsed.year >= 5) return STUDENT_VISUAL_MODES.UPPER_PRIMARY;
   return STUDENT_VISUAL_MODES.UPPER_PRIMARY;
 }
 
@@ -61,6 +61,7 @@ export const VISUAL_MODE_STYLES = Object.freeze({
     icon: 'bg-white/80 text-navy-700 shadow-resting',
     primaryIcon: 'bg-gradient-to-br from-sky-400 to-gold-400 text-white',
     title: 'text-ink-900',
+    accent: 'text-navy-700',
     muted: 'text-ink-500',
     buttonSize: 'l',
     missionLabel: "🎯 Today's Mission",
@@ -87,6 +88,7 @@ export const VISUAL_MODE_STYLES = Object.freeze({
     icon: 'bg-violet-50 text-violet-700',
     primaryIcon: 'bg-violet-600 text-white',
     title: 'text-ink-900',
+    accent: 'text-violet-700',
     muted: 'text-ink-500',
     buttonSize: 'm',
     missionLabel: "Today's Mission",
@@ -113,6 +115,7 @@ export const VISUAL_MODE_STYLES = Object.freeze({
     icon: 'bg-slate-100 text-ink-700',
     primaryIcon: 'bg-ink-900 text-white',
     title: 'text-ink-900',
+    accent: 'text-navy-700',
     muted: 'text-ink-500',
     buttonSize: 'm',
     missionLabel: 'Focus',

@@ -2,6 +2,10 @@ import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticS
 import MathPathAttempt from '../../models/mathpath/MathPathAttempt.js';
 import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.js';
 import User from '../../models/User.js';
+import Student from '../../models/Student.js';
+import StudentGuardian from '../../models/StudentGuardian.js';
+import MasteryRecord from '../../models/MasteryRecord.js';
+import Skill from '../../models/Skill.js';
 import { evaluateDiagnosticReplayPolicy } from '../../utils/diagnosticReplayPolicy.js';
 import {
   calculateDiagnosticReadinessScore,
@@ -18,7 +22,8 @@ import {
   applyDiagnosticCompletionMetadata,
   resolveDiagnosticLineage,
 } from './diagnosticGrowthService.js';
-import { applyRecheckMasteryEvidence } from '../mathpath/recheckMasteryEvidenceService.js';
+import { createAssignmentFromDiagnostic } from '../mathpath/mathPathAssignmentService.js';
+import { notify } from '../notifications/notificationService.js';
 
 const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
 const COMPLETION_REASONS = Object.freeze({
@@ -841,13 +846,9 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
   }
   await session.save();
   if (sessionComplete) {
-    // A passing recheck is the only path that promotes a fractions skill to mastered (retained).
-    // Guarded + best-effort so it never blocks diagnostic completion.
-    try {
-      await applyRecheckMasteryEvidence({ session });
-    } catch (err) {
-      console.error('applyRecheckMasteryEvidence failed', err?.message || err);
-    }
+    handleDiagnosticCompletion({ student, session }).catch((err) =>
+      console.warn('handleDiagnosticCompletion error:', err.message)
+    );
   }
   const lifecycleLog = logDiagnosticLifecycle({
     sessionId: session.diagnosticSessionId,
@@ -969,6 +970,87 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     supportiveCopy: domain.getSupportiveCopy(decision.decisionType),
     result: sessionComplete ? session.result : null,
   };
+}
+
+async function handleDiagnosticCompletion({ student, session }) {
+  const studentId = String(student._id);
+  const diagnosticSessionId = session.diagnosticSessionId;
+  const result = session.result || {};
+
+  // 1. Auto-assign recovery pack from weak skills
+  try {
+    const weakSkills = result.weakSkillIds || result.weakSkills || [];
+    if (weakSkills.length) {
+      await createAssignmentFromDiagnostic({
+        studentId,
+        diagnosticSessionId,
+        assignedByUserId: studentId,
+        assignedByRole: 'system',
+      });
+    }
+  } catch (err) {
+    console.warn('Post-diagnostic auto-assignment skipped:', err.message);
+  }
+
+  // 2. Seed mastery records from per-skill diagnostic evidence
+  try {
+    const snapshots = session.perSkillSnapshots || result.perSkillSnapshots || [];
+    if (snapshots.length) {
+      const studentDoc = await Student.findById(studentId).select('workspaceId');
+      const workspaceId = studentDoc?.workspaceId;
+      if (workspaceId) {
+        for (const snap of snapshots) {
+          const frameworkId = snap.skillId || snap.frameworkSkillId || '';
+          if (!frameworkId) continue;
+          const dbSkill = await Skill.findOne({
+            $or: [
+              { 'metadata.mathPathSkillId': frameworkId },
+              { 'metadata.frameworkCode': frameworkId },
+            ],
+          }).select('_id');
+          if (!dbSkill) continue;
+          const existing = await MasteryRecord.findOne({ studentId, skillId: dbSkill._id });
+          if (existing) continue;
+          const score = snap.readinessScore ?? snap.score ?? 0;
+          const status = score >= 80 ? 'mastered' : score >= 50 ? 'learning' : score > 0 ? 'needs_review' : 'not_started';
+          await MasteryRecord.create({
+            studentId,
+            skillId: dbSkill._id,
+            workspaceId,
+            module: 'MathPath',
+            subject: 'Math',
+            score,
+            status,
+            attempts: snap.attempts ?? 1,
+            lastPracticedAt: session.completedAt,
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Post-diagnostic mastery seeding skipped:', err.message);
+  }
+
+  // 3. Notify linked parents/tutors
+  try {
+    const band = result.readinessBand || result.overallReadinessBand || '';
+    const guardians = await StudentGuardian.find({ studentId }).select('guardianUserId');
+    for (const g of guardians) {
+      await notify({
+        recipientUserId: g.guardianUserId,
+        type: 'diagnostic_completed',
+        title: `${student.name || 'Your child'} completed a diagnostic`,
+        body: band
+          ? `Readiness band: ${band}. Check their dashboard for details and next steps.`
+          : 'Check their dashboard for results and recommended practice.',
+        linkPath: `/parent/mathpath/dashboard`,
+        sourceType: 'diagnostic',
+        sourceId: diagnosticSessionId,
+      });
+    }
+  } catch (err) {
+    console.warn('Post-diagnostic notification skipped:', err.message);
+  }
 }
 
 export default {

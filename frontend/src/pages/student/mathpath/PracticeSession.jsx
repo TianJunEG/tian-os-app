@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, Lightbulb, Maximize2, X } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, HelpCircle, Lightbulb, Maximize2, RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
 import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
+import { confettiBurst } from '../../../utils/confetti';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
@@ -12,6 +13,18 @@ import {
   submitFractionPracticeAttempt,
 } from '../../../mathpath/fractions/fractionPracticeFlow';
 import { checkFractionAnswer } from '../../../mathpath/fractions/fractionQuestionGenerator';
+import {
+  isP1SkillId,
+  startP1PracticeFlow,
+  submitP1PracticeAttempt,
+  checkP1AnswerForSession,
+} from '../../../mathpath/primary/p1PracticeFlow';
+import {
+  isP3SkillId,
+  startP3PracticeFlow,
+  submitP3PracticeAttempt,
+  checkP3AnswerForSession,
+} from '../../../mathpath/primary/p3PracticeFlow';
 import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
@@ -182,7 +195,10 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
   const normalized = String(routeSessionId || '').toLowerCase();
   const normalizeFrameworkSkillId = (value) => {
     const skillId = String(value || '').toUpperCase();
-    return /^F\d{3}$/.test(skillId) ? skillId : null;
+    if (/^F\d{3}$/.test(skillId)) return skillId;
+    if (/^P1-(NUM|ADD|MON|MEA|GEO|EQG|DAT)-\d{2}$/.test(skillId)) return skillId;
+    if (/^P3-(WN|AS|MD|MON|MT|AP|ST|WP)-\d{2}$/.test(skillId)) return skillId;
+    return null;
   };
   const nextSkill = normalizeFrameworkSkillId(progress?.currentSkillId) || normalizeFrameworkSkillId(progress?.nextSkillId);
   const candidateWeak = Array.isArray(progress?.weakSkills)
@@ -192,10 +208,11 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 
   if (normalized.startsWith('skill-')) {
     const skillId = String(routeSessionId || '').slice(6).toUpperCase();
+    const resolvedSkillId = normalizeFrameworkSkillId(skillId);
     return {
-      requestedSkillId: /^F\d{3}$/i.test(skillId) ? skillId : null,
+      requestedSkillId: resolvedSkillId,
       sessionType: 'practice',
-      questionCount: 8,
+      questionCount: (isP1SkillId(resolvedSkillId) || isP3SkillId(resolvedSkillId)) ? 6 : 8,
     };
   }
 
@@ -216,15 +233,21 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 }
 
 function isPersistedPracticeSessionId(value = '') {
-  return /^practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
+  return /^(?:frac|p1_|p3_)?practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
 }
 
+function deriveDomainKey(skillId) {
+  if (!skillId) return 'fractions';
+  if (isP3SkillId(skillId)) return 'p3';
+  if (isP1SkillId(skillId)) return 'p1';
+  return 'fractions';
+}
 function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [], masteredSkillIds = [], fluentSkillIds = [] }) {
   if (!studentId) return;
-  const existing = getMathPathDomainProgressState(studentId, 'fractions') || {};
+  const existing = getMathPathDomainProgressState(studentId, deriveDomainKey(currentSkillId)) || {};
   const existingMastered = Array.isArray(existing.masteredSkillIds) ? existing.masteredSkillIds : [];
   const existingFluent = Array.isArray(existing.fluentSkillIds) ? existing.fluentSkillIds : [];
-  setMathPathDomainProgressState(studentId, 'fractions', {
+  setMathPathDomainProgressState(studentId, deriveDomainKey(currentSkillId), {
     ...existing,
     lastSessionAt: new Date().toISOString(),
     currentSkillId: currentSkillId || existing.currentSkillId || null,
@@ -339,11 +362,65 @@ export function buildAnswerFeedback({
   };
 }
 
-function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
-  const [showSteps, setShowSteps] = useState(false);
+function speakText(text) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean = String(text || '')
+    .replace(/\$[^$]*\$/g, '')
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 over $2')
+    .replace(/\\times/g, ' times ')
+    .replace(/\\div/g, ' divided by ')
+    .replace(/[\\{}]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!clean) return;
+  const utterance = new SpeechSynthesisUtterance(clean);
+  utterance.rate = 0.9;
+  utterance.pitch = 1.1;
+  window.speechSynthesis.speak(utterance);
+}
+
+function ReadAloudButton({ text }) {
+  const [speaking, setSpeaking] = useState(false);
+  const handleClick = () => {
+    if (speaking) {
+      window.speechSynthesis?.cancel();
+      setSpeaking(false);
+    } else {
+      speakText(text);
+      setSpeaking(true);
+      const check = setInterval(() => {
+        if (!window.speechSynthesis?.speaking) { setSpeaking(false); clearInterval(check); }
+      }, 200);
+    }
+  };
+  if (typeof window === 'undefined' || !window.speechSynthesis) return null;
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className={`inline-flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-bold transition ${
+        speaking
+          ? 'border-orange-400 bg-orange-50 text-orange-600'
+          : 'border-sky-200 bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50'
+      }`}
+      title={speaking ? 'Stop reading' : 'Read question aloud'}
+    >
+      {speaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+      {speaking ? 'Stop' : 'Read aloud'}
+    </button>
+  );
+}
+
+function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain }) {
+  const [hintsRevealed, setHintsRevealed] = useState(0);
+  const [showAllSteps, setShowAllSteps] = useState(false);
   if (!feedback) return null;
   const correct = Boolean(feedback.correct);
   const title = feedback.title || (correct ? 'Correct' : feedback.skipped ? 'Skipped' : 'Review');
+  const hasSteps = !correct && Array.isArray(solutionSteps) && solutionSteps.length > 0;
+  const allHintsUsed = hasSteps && hintsRevealed >= solutionSteps.length;
+  const showAnswer = !correct && (feedback.retryExhausted || allHintsUsed || !hasSteps);
   return (
     <div className={`relative min-h-[92px] overflow-hidden rounded-xl border p-4 ${correct ? 'tian-correct-card border-success-200 bg-success-100' : 'border-error-200 bg-error-100'}`}>
       <style>{`
@@ -366,10 +443,15 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
           35% { opacity: 1; }
           100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1); }
         }
+        @keyframes tian-hint-in {
+          from { opacity: 0; transform: translateX(-6px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
         .tian-correct-card { animation: tian-feedback-in 420ms ease-out both; }
         .tian-check-pop { animation: tian-check-pop 420ms ease-out both; }
         .tian-sparkle-dot { animation: tian-sparkle 820ms ease-out both; }
         .tian-confetti-dot { animation: tian-confetti 760ms ease-out both; }
+        .tian-hint-step { animation: tian-hint-in 320ms ease-out both; }
       `}</style>
       {correct && (
         <>
@@ -403,20 +485,65 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
       {feedback.streakMessage && (
         <p className="relative mt-2 text-sm font-semibold text-success-700">{feedback.streakMessage}</p>
       )}
-      {!correct && correctAnswer && (
-        <p className="relative mt-1 text-sm text-ink-700">Answer: <MathText text={correctAnswer} className="font-mono font-semibold" /></p>
+
+      {/* Guided hints — progressive one-at-a-time reveal */}
+      {hasSteps && !correct && (
+        <div className="relative mt-3 space-y-2">
+          {hintsRevealed > 0 && (
+            <ol className="space-y-1.5 pl-0">
+              {solutionSteps.slice(0, hintsRevealed).map((step, i) => (
+                <li key={i} className="tian-hint-step flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-ink-700">
+                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  <span><span className="font-semibold text-amber-700">Step {i + 1}:</span> <MathText text={step} /></span>
+                </li>
+              ))}
+            </ol>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {!allHintsUsed && !feedback.retryExhausted && (
+              <button
+                type="button"
+                onClick={() => setHintsRevealed((h) => h + 1)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100"
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                {hintsRevealed === 0 ? 'Need a hint?' : `Next hint (${hintsRevealed}/${solutionSteps.length})`}
+              </button>
+            )}
+            {hintsRevealed > 0 && !allHintsUsed && !feedback.retryExhausted && onTryAgain && (
+              <button
+                type="button"
+                onClick={onTryAgain}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 transition hover:bg-sky-100"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Try again
+              </button>
+            )}
+          </div>
+        </div>
       )}
-      {!correct && Array.isArray(solutionSteps) && solutionSteps.length > 0 && (
+
+      {showAnswer && correctAnswer && (
+        <div className="relative mt-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2">
+          <p className="text-sm text-ink-700">
+            <span className="font-semibold text-teal-700">Answer:</span>{' '}
+            <MathText text={correctAnswer} className="font-mono font-semibold" />
+          </p>
+        </div>
+      )}
+
+      {showAnswer && hasSteps && hintsRevealed < solutionSteps.length && (
         <div className="relative mt-2">
           <button
             type="button"
-            onClick={() => setShowSteps((v) => !v)}
+            onClick={() => setShowAllSteps((v) => !v)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
           >
             <Lightbulb className="h-3.5 w-3.5" />
-            {showSteps ? 'Hide steps' : 'Show me how'}
+            {showAllSteps ? 'Hide steps' : 'Show full solution'}
           </button>
-          {showSteps && (
+          {showAllSteps && (
             <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-ink-700">
               {solutionSteps.map((step, i) => (
                 <li key={i}><MathText text={step} /></li>
@@ -837,8 +964,10 @@ export default function PracticeSession() {
   const isMathPathRoute = location.pathname.startsWith('/student/mathpath/practice/');
   const hasLegacyItems = Boolean(location.state?.items?.length);
   const authenticatedStudentId = user?._id || user?.id || user?.email || '';
+  const requestedSkillId = location.state?.skillId || '';
+  const progressDomainKey = deriveDomainKey(requestedSkillId);
   const progressState = authenticatedStudentId
-    ? getMathPathDomainProgressState(authenticatedStudentId, 'fractions') || {}
+    ? getMathPathDomainProgressState(authenticatedStudentId, progressDomainKey) || {}
     : {};
   const resolvedIntent = resolvePracticeIntent({
     routeSessionId,
@@ -855,22 +984,6 @@ export default function PracticeSession() {
   const storyModeEnabled = isFractionsStoryModeEnabled();
   const sessionMeta = SESSION_META[sessionType];
 
-  if (sessionType === 'story') {
-    if (!storyModeEnabled) {
-      return (
-        <Card className="mx-auto max-w-xl p-6">
-          <p className="text-sm text-ink-700">Problem Solving Story is not enabled yet.</p>
-          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
-        </Card>
-      );
-    }
-    return <FractionsStoryModeSession />;
-  }
-
-  // Compatibility shim: older non-framework sessions still navigate with pre-baked
-  // `items` payload. Keep this path until all callers route through skillId/sessionType.
-  if (!isMathPathRoute || hasLegacyItems) return <LegacyPracticeSession />;
-
   const studentId = authenticatedStudentId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -884,6 +997,8 @@ export default function PracticeSession() {
   const [elapsedSec, setElapsedSec] = useState(0);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [retrying, setRetrying] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -895,7 +1010,10 @@ export default function PracticeSession() {
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
   const questionSurfaceRef = useRef(null);
 
+  const isMainFlowRender = isMathPathRoute && !hasLegacyItems && sessionType !== 'story';
+
   useEffect(() => {
+    if (!isMainFlowRender) return undefined;
     let mounted = true;
     (async () => {
       try {
@@ -923,7 +1041,30 @@ export default function PracticeSession() {
             setLoading(false);
             return;
           }
+        } else if (isP1SkillId(resolvedIntent.requestedSkillId) || isP3SkillId(resolvedIntent.requestedSkillId)) {
+          // ── P1 / P3 domain (client-side generation) ────────────────
+          const startFn = isP3SkillId(resolvedIntent.requestedSkillId)
+            ? startP3PracticeFlow
+            : startP1PracticeFlow;
+          started = startFn({
+            studentId,
+            sessionType,
+            requestedSkillId: resolvedIntent.requestedSkillId,
+            requestedQuestionFamilyId: locationQuestionFamilyId,
+            sessionLength:
+              resolvedIntent.questionCount
+              || (sessionType === 'warmup'
+                ? 3
+                : sessionType === 'diagnostic' || sessionType === 'mastery_check'
+                  ? 10
+                  : sessionType === 'remediation'
+                    ? 5
+                : 6),
+            weakSkillIds: locationWeakSkillIds,
+            recentMistakeTypes: locationRecentMistakeTypes,
+          });
         } else {
+          // ── Fractions domain (API first, client fallback) ───────────
           try {
             const { data } = await mathpathAPI.startFractionPractice({
               sessionType,
@@ -943,7 +1084,7 @@ export default function PracticeSession() {
               assignmentId: locationAssignmentId,
             });
             started = data;
-            if (data?.practiceSessionId) {
+            if (mounted && data?.practiceSessionId) {
               navigate(`/student/mathpath/practice/${data.practiceSessionId}`, {
                 replace: true,
                 state: {
@@ -990,7 +1131,15 @@ export default function PracticeSession() {
         setQuestions(valid);
         setWorkingSession(null);
         setWorkingCodeByQuestion({});
-        setFullscreenWorkingByQuestion({});
+        // Pre-populate workingNotNeeded for P1/P3 LOW-requirement questions so
+        // students don't have to manually check the box for simple counting etc.
+        const workingInit = {};
+        valid.forEach((q) => {
+          if ((isP1SkillId(q.skillId) || isP3SkillId(q.skillId)) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
+            workingInit[q.questionId] = { workingNotNeeded: true, workingNotNeededAt: new Date().toISOString() };
+          }
+        });
+        setFullscreenWorkingByQuestion(workingInit);
         setFullscreenQuestionId(null);
         if (!valid.length) setError(skipped.length ? DIAGRAM_LOAD_ERROR_MESSAGE : 'No questions generated yet. Please try another skill.');
       } catch (e) {
@@ -1002,6 +1151,7 @@ export default function PracticeSession() {
     })();
     return () => { mounted = false; };
   }, [
+    isMainFlowRender,
     studentId,
     routeSessionId,
     sessionType,
@@ -1015,18 +1165,21 @@ export default function PracticeSession() {
   ]);
 
   useEffect(() => {
+    if (!isMainFlowRender) return;
     if (summary || loading || !questions.length) return;
     setQuestionStartedAt(Date.now());
     setElapsedSec(0);
-  }, [idx, summary, loading, questions.length]);
+  }, [isMainFlowRender, idx, summary, loading, questions.length]);
 
   useEffect(() => {
+    if (!isMainFlowRender) return undefined;
     if (summary || loading || !questions.length) return undefined;
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
-  }, [summary, loading, questions.length, questionStartedAt]);
+  }, [isMainFlowRender, summary, loading, questions.length, questionStartedAt]);
 
   useEffect(() => {
+    if (!isMainFlowRender) return undefined;
     if (!flowSession || !questions.length || workingSession) return undefined;
     let cancelled = false;
     const practiceSessionId = flowSession.practiceSessionId || routeSessionId;
@@ -1035,7 +1188,7 @@ export default function PracticeSession() {
       return {
         questionId: question.questionId,
         skillId: question.skillId || flowSession.targetSkillId || '',
-        domainId: question.domainId || 'fractions',
+        domainId: question.domainId || flowSession?.domainId || 'fractions',
         sessionId: practiceSessionId,
         prompt: question.prompt || question.stem || '',
         correctAnswer: question.answer?.display || '',
@@ -1050,7 +1203,7 @@ export default function PracticeSession() {
     mathpathAPI.createWorkingSession({
       studentId,
       practiceSessionId,
-      domainId: 'fractions',
+      domainId: flowSession?.domainId || 'fractions',
       skillIds: [...new Set(questionRefs.map((ref) => ref.skillId).filter(Boolean))],
       questionRefs,
       inputMethod: 'paper',
@@ -1072,7 +1225,21 @@ export default function PracticeSession() {
         }
       });
     return () => { cancelled = true; };
-  }, [flowSession, questions, routeSessionId, sessionType, studentId, workingSession]);
+  }, [isMainFlowRender, flowSession, questions, routeSessionId, sessionType, studentId, workingSession]);
+
+  // ── Conditional early returns (all hooks declared above) ──
+  if (sessionType === 'story') {
+    if (!storyModeEnabled) {
+      return (
+        <Card className="mx-auto max-w-xl p-6">
+          <p className="text-sm text-ink-700">Problem Solving Story is not enabled yet.</p>
+          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
+        </Card>
+      );
+    }
+    return <FractionsStoryModeSession />;
+  }
+  if (!isMathPathRoute || hasLegacyItems) return <LegacyPracticeSession />;
 
   if (loading) return <Spinner />;
   if (error) {
@@ -1088,8 +1255,14 @@ export default function PracticeSession() {
   const q = questions[idx];
   const currentQuestionValidation = validatePracticeQuestionForDisplay(q);
   const isLast = idx === questions.length - 1;
-  const answered = Boolean(feedback);
+  const answered = Boolean(feedback) && !retrying;
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
+
+  const handleTryAgain = () => {
+    setAnswer('');
+    setRetrying(true);
+    setRetryCount((c) => c + 1);
+  };
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
   const workingRequirementLevel = resolveWorkingRequirementLevel(q, sessionType);
@@ -1116,13 +1289,53 @@ export default function PracticeSession() {
   const onSubmitCurrent = () => {
     if (busy || answered) return;
     if (!currentQuestionValidation.ok) return;
+
+    // Retry path — student is re-submitting after using hints
+    if (retrying && answer) {
+      const retryCheck = (isP1SkillId(q.skillId) || isP3SkillId(q.skillId))
+        ? (isP3SkillId(q.skillId)
+          ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q }))
+        : checkFractionAnswer({
+            studentAnswer: answer,
+            correctAnswer: q.answer,
+            acceptedAnswers: q.acceptedAnswers || [],
+          });
+      setRetrying(false);
+      if (retryCheck.correct) {
+        const nextStreak = correctStreak + 1;
+        setCorrectStreak(nextStreak);
+        setFeedback({
+          correct: true,
+          skipped: false,
+          title: 'Got it!',
+          message: 'You worked it out with the hints — great learning!',
+          streakMessage: '',
+          showConfetti: false,
+          correctAnswer: null,
+        });
+        confettiBurst({ count: 60, duration: 1200 });
+      } else {
+        setFeedback((prev) => ({
+          ...prev,
+          retryExhausted: true,
+          message: "Not quite — let's review the full solution.",
+        }));
+      }
+      return;
+    }
+
     if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
-    const answerCheck = checkFractionAnswer({
-      studentAnswer: answer,
-      correctAnswer: q.answer,
-      acceptedAnswers: q.acceptedAnswers || [],
-    });
+    const answerCheck = (isP1SkillId(q.skillId) || isP3SkillId(q.skillId))
+      ? (isP3SkillId(q.skillId)
+        ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+        : checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q }))
+      : checkFractionAnswer({
+          studentAnswer: answer,
+          correctAnswer: q.answer,
+          acceptedAnswers: q.acceptedAnswers || [],
+        });
     const attemptId = createClientAttemptId({
       sessionId: flowSession.practiceSessionId || routeSessionId,
       questionId: q.questionId,
@@ -1163,11 +1376,12 @@ export default function PracticeSession() {
       attemptNumber: 1,
       _skipped: false,
       _correct: answerCheck.correct,
+      hintsUsed: retryCount,
     };
     const nextStreak = answerCheck.correct ? correctStreak + 1 : 0;
     setCorrectStreak(nextStreak);
     setResponses((prev) => [...prev, current]);
-    setFeedback({
+    const answerFeedback = {
       ...buildAnswerFeedback({
         correct: answerCheck.correct,
         timeTaken,
@@ -1179,12 +1393,18 @@ export default function PracticeSession() {
       correct: answerCheck.correct,
       skipped: false,
       correctAnswer: q.answer?.display || null,
-    });
+    };
+    setFeedback(answerFeedback);
+    if (answerCheck.correct) {
+      confettiBurst({ count: nextStreak >= 3 ? 160 : 80, duration: nextStreak >= 3 ? 2200 : 1400 });
+    }
   };
 
   const openSubmissionReview = () => {
     if (!answer) return;
     if (!currentQuestionValidation.ok) return;
+    // During retry, skip the modal — just re-check directly
+    if (retrying) { onSubmitCurrent(); return; }
     setSubmissionReviewOpen(true);
   };
 
@@ -1253,6 +1473,8 @@ export default function PracticeSession() {
       setReflection('');
       setHelpRequested(false);
       setFeedback(null);
+      setRetryCount(0);
+      setRetrying(false);
       setQuestionStartedAt(Date.now());
       return;
     }
@@ -1294,7 +1516,18 @@ export default function PracticeSession() {
         attemptNumber: r.attemptNumber,
       }));
       let submitted;
-      if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
+      const sessionSkillId = flowSession?.targetSkillId || questions[0]?.skillId;
+      const isP1Session = isP1SkillId(sessionSkillId);
+      const isP3Session = isP3SkillId(sessionSkillId);
+      if (isP1Session || isP3Session) {
+        const submitFn = isP3Session ? submitP3PracticeAttempt : submitP1PracticeAttempt;
+        submitted = submitFn({
+          practiceSessionId: flowSession.practiceSessionId || routeSessionId,
+          studentId,
+          sessionType,
+          responses: payload,
+        });
+      } else if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
         const { data } = await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
           sessionType,
           responses: payload,
@@ -1400,6 +1633,8 @@ export default function PracticeSession() {
       setReflection('');
       setHelpRequested(false);
       setFeedback(null);
+      setRetryCount(0);
+      setRetrying(false);
       setQuestionStartedAt(Date.now());
       return;
     }
@@ -1529,7 +1764,15 @@ export default function PracticeSession() {
       </div>
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-4" barClassName={visualStyles.progress} />
 
-      <Card className={`overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
+      <Card className={`notebook-bg overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
+        <style>{`
+          .notebook-bg {
+            background-image:
+              linear-gradient(to right, transparent 39px, #e8d5c4 39px, #e8d5c4 41px, transparent 41px),
+              repeating-linear-gradient(transparent, transparent 31px, #e0dce8 31px, #e0dce8 32px);
+            background-color: #fefcf9;
+          }
+        `}</style>
         {!currentQuestionValidation.ok ? (
           <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
             <p className="font-semibold text-navy-700">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
@@ -1541,7 +1784,8 @@ export default function PracticeSession() {
         ) : (
           <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.72fr)]">
           <section className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
-            <div className="mb-2 flex justify-end">
+            <div className="mb-2 flex items-center justify-end gap-2">
+              <ReadAloudButton text={q.prompt || q.stem || ''} />
               <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
             </div>
             <div ref={questionSurfaceRef} className="relative origin-top-left" style={{ zoom: questionZoom }}>
@@ -1566,7 +1810,7 @@ export default function PracticeSession() {
 
           </section>
 
-          <aside className="min-w-0 min-h-0 rounded-2xl bg-violet-50/60 p-2 sm:p-3 xl:h-full xl:overflow-y-auto">
+          <aside className={`min-w-0 min-h-0 rounded-2xl p-2 sm:p-3 xl:h-full xl:overflow-y-auto ${visualStyles.softCard}`}>
             <div className="rounded-xl border border-hairline bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
@@ -1601,7 +1845,7 @@ export default function PracticeSession() {
             </div>
 
             <div className="mt-2">
-              <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} />
+              <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} solutionSteps={q.solutionSteps} onTryAgain={handleTryAgain} />
             </div>
 
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">

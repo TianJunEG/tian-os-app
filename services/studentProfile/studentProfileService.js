@@ -134,7 +134,7 @@ function resolveStudentVisualMode(student = {}) {
   const secondary = level.match(/(?:secondary|sec|s)\s*([1-6])/i);
   if (secondary) return 'secondary';
   const primary = level.match(/(?:primary|p)\s*([1-6])/i);
-  if (primary && Number(primary[1]) <= 3) return 'lower_primary';
+  if (primary && Number(primary[1]) <= 4) return 'lower_primary';
   if (primary) return 'upper_primary';
   return 'upper_primary';
 }
@@ -152,28 +152,30 @@ function uniqueCount(values = []) {
   return new Set(values.filter(Boolean).map(String)).size;
 }
 
-function dateKey(date) {
+function localDateKey(date, offsetHours = 8) {
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toISOString().slice(0, 10);
+  const local = new Date(d.getTime() + offsetHours * 3600000);
+  return local.toISOString().slice(0, 10);
 }
 
-function calculateActivityStreak(dates = []) {
-  const days = new Set(dates.map(dateKey).filter(Boolean));
+function calculateActivityStreak(dates = [], offsetHours = 8) {
+  const days = new Set(dates.map((d) => localDateKey(d, offsetHours)).filter(Boolean));
   if (!days.size) return 0;
-  let cursor = new Date();
+  const now = new Date(Date.now() + offsetHours * 3600000);
+  let cursor = now;
   let streak = 0;
   for (;;) {
     const key = cursor.toISOString().slice(0, 10);
     if (!days.has(key)) {
       if (streak === 0) {
-        cursor.setUTCDate(cursor.getUTCDate() - 1);
+        cursor = new Date(cursor.getTime() - 86400000);
         if (days.has(cursor.toISOString().slice(0, 10))) continue;
       }
       break;
     }
     streak += 1;
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
+    cursor = new Date(cursor.getTime() - 86400000);
   }
   return streak;
 }
@@ -262,9 +264,11 @@ async function deriveMetrics(student) {
   const currentSkillId = recentState?.skillId || recentAttempt?.skillId || 'F001';
   const currentDomain = recentState?.domainId || recentAttempt?.domainId || 'fractions';
   const currentSkill = await getSkillName(currentSkillId);
-  const recordStreak = masteryStreakRows.reduce((best, row) => Math.max(best, row.bestStreak || row.streak || 0), 0);
+  // MasteryRecord.streak/bestStreak counts consecutive correct answers on a
+  // single skill — NOT daily login streak.  Only use activity-date-based streak
+  // for the profile "days active" counter.
   const activityStreak = calculateActivityStreak(activityDates);
-  const streak = Math.max(recordStreak, activityStreak);
+  const streak = activityStreak;
   const totalSkills = currentDomain === 'fractions' ? Math.max(totalFractionsSkills || 0, 26) : Math.max(uniqueCount(masteredCodes), 1);
 
   return {
@@ -464,4 +468,163 @@ export async function getStudentLearningTimeline(student) {
       domainId: event.domainId || '',
       skillId: event.skillId || '',
     }));
+}
+
+// ── Personal Bests ──────────────────────────────────────────────────
+// Computed from raw attempt and session data — student competes against
+// themselves, not others.
+
+function weekKey(date, offsetHours = 8) {
+  const d = new Date(new Date(date).getTime() + offsetHours * 3600000);
+  const dayOfWeek = d.getUTCDay();
+  const monday = new Date(d);
+  monday.setUTCDate(monday.getUTCDate() - ((dayOfWeek + 6) % 7));
+  return monday.toISOString().slice(0, 10);
+}
+
+export async function getStudentPersonalBests(student, offsetHours = 8) {
+  const studentId = String(student._id);
+
+  const [allAttempts, completedSessions] = await Promise.all([
+    MathPathAttempt.find({ studentId })
+      .sort({ createdAt: -1 })
+      .select('correct timeTaken createdAt sessionId skillId')
+      .lean(),
+    MathPathPracticeSession.find({ studentId, status: 'completed' })
+      .sort({ completedAt: -1 })
+      .select('summary completedAt startedAt practiceSessionId targetSkillId')
+      .lean(),
+  ]);
+
+  // 1. Best session accuracy (min 3 questions)
+  let bestSessionAccuracy = 0;
+  let bestSessionAccuracyDate = null;
+  for (const session of completedSessions) {
+    const acc = session.summary?.accuracySummary;
+    if (acc && acc.total >= 3) {
+      const pct = acc.accuracyPercentage ?? (acc.total ? Math.round((acc.correct / acc.total) * 100) : 0);
+      if (pct > bestSessionAccuracy) {
+        bestSessionAccuracy = pct;
+        bestSessionAccuracyDate = session.completedAt;
+      }
+    }
+  }
+
+  // 2. Longest correct streak (consecutive correct answers across all attempts, ordered by time)
+  const sorted = [...allAttempts].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+  let longestCorrectStreak = 0;
+  let currentCorrectStreak = 0;
+  let longestStreakEndDate = null;
+  for (const attempt of sorted) {
+    if (attempt.correct) {
+      currentCorrectStreak += 1;
+      if (currentCorrectStreak > longestCorrectStreak) {
+        longestCorrectStreak = currentCorrectStreak;
+        longestStreakEndDate = attempt.createdAt;
+      }
+    } else {
+      currentCorrectStreak = 0;
+    }
+  }
+
+  // 3. Best daily streak (consecutive days with activity)
+  const activityDates = allAttempts.map((a) => a.createdAt).filter(Boolean);
+  const bestDailyStreak = calculateBestDailyStreak(activityDates, offsetHours);
+
+  // 4. Most questions in a single day
+  const dayBuckets = {};
+  for (const attempt of allAttempts) {
+    const key = localDateKey(attempt.createdAt, offsetHours);
+    if (!key) continue;
+    dayBuckets[key] = (dayBuckets[key] || 0) + 1;
+  }
+  let mostQuestionsInDay = 0;
+  let mostQuestionsDate = null;
+  for (const [day, count] of Object.entries(dayBuckets)) {
+    if (count > mostQuestionsInDay) {
+      mostQuestionsInDay = count;
+      mostQuestionsDate = day;
+    }
+  }
+
+  // 5. Weekly XP comparison (this week vs last week)
+  const now = new Date(Date.now() + offsetHours * 3600000);
+  const thisWeekKey = weekKey(now, 0); // already offset
+  const lastMonday = new Date(now);
+  lastMonday.setUTCDate(lastMonday.getUTCDate() - 7);
+  const lastWeekKey = weekKey(lastMonday, 0);
+
+  const weekBuckets = {};
+  for (const attempt of allAttempts) {
+    const wk = weekKey(attempt.createdAt, offsetHours);
+    if (!wk) continue;
+    weekBuckets[wk] = (weekBuckets[wk] || 0) + 1;
+  }
+  const thisWeekQuestions = weekBuckets[thisWeekKey] || 0;
+  const lastWeekQuestions = weekBuckets[lastWeekKey] || 0;
+
+  // 6. Perfect sessions (100% accuracy, min 5 questions)
+  let perfectSessions = 0;
+  for (const session of completedSessions) {
+    const acc = session.summary?.accuracySummary;
+    if (acc && acc.total >= 5 && acc.correct === acc.total) {
+      perfectSessions += 1;
+    }
+  }
+
+  // 7. Fastest correct answer (excluding outliers under 1s)
+  let fastestCorrectMs = null;
+  let fastestCorrectDate = null;
+  for (const attempt of allAttempts) {
+    if (!attempt.correct) continue;
+    const ms = attempt.timeTaken;
+    if (!ms || ms < 1000) continue; // skip sub-1s outliers
+    if (fastestCorrectMs === null || ms < fastestCorrectMs) {
+      fastestCorrectMs = ms;
+      fastestCorrectDate = attempt.createdAt;
+    }
+  }
+
+  // 8. Total days active
+  const uniqueDays = new Set(activityDates.map((d) => localDateKey(d, offsetHours)).filter(Boolean));
+  const totalDaysActive = uniqueDays.size;
+
+  return {
+    bestSessionAccuracy: { value: bestSessionAccuracy, date: bestSessionAccuracyDate },
+    longestCorrectStreak: { value: longestCorrectStreak, date: longestStreakEndDate },
+    bestDailyStreak: { value: bestDailyStreak },
+    mostQuestionsInDay: { value: mostQuestionsInDay, date: mostQuestionsDate },
+    thisWeekQuestions,
+    lastWeekQuestions,
+    weeklyTrend: thisWeekQuestions >= lastWeekQuestions ? 'up' : 'down',
+    perfectSessions: { value: perfectSessions },
+    fastestCorrectAnswer: {
+      value: fastestCorrectMs ? Math.round(fastestCorrectMs / 1000 * 10) / 10 : null,
+      date: fastestCorrectDate,
+    },
+    totalDaysActive,
+    totalQuestions: allAttempts.length,
+    totalSessions: completedSessions.length,
+  };
+}
+
+function calculateBestDailyStreak(dates = [], offsetHours = 8) {
+  const days = [...new Set(dates.map((d) => localDateKey(d, offsetHours)).filter(Boolean))].sort();
+  if (!days.length) return 0;
+  let best = 1;
+  let current = 1;
+  for (let i = 1; i < days.length; i++) {
+    const prev = new Date(days[i - 1] + 'T00:00:00Z');
+    const curr = new Date(days[i] + 'T00:00:00Z');
+    const diff = (curr.getTime() - prev.getTime()) / 86400000;
+    if (diff === 1) {
+      current += 1;
+      if (current > best) best = current;
+    } else {
+      current = 1;
+    }
+  }
+  return best;
 }

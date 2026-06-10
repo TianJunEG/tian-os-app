@@ -721,6 +721,386 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
   }
 });
 
+// =========================================================================
+// P1 Practice — persists client-generated P1 sessions using the same
+// domain-agnostic MathPath models (MathPathPracticeSession, MathPathAttempt,
+// MathPathStudentSkillState). Questions are generated on the frontend;
+// the backend just stores sessions, scores, and updates mastery state.
+// =========================================================================
+
+const P1_DOMAIN_PREFIXES = ['P1-NUM', 'P1-ADD', 'P1-MON', 'P1-MEA', 'P1-GEO', 'P1-EQG', 'P1-DAT'];
+function isP1DomainId(domainId) {
+  return String(domainId || '').startsWith('p1-');
+}
+function isP1SkillId(skillId) {
+  return P1_DOMAIN_PREFIXES.some((p) => String(skillId || '').startsWith(p));
+}
+function resolveP1DomainId(skillId) {
+  const sid = String(skillId || '');
+  if (sid.startsWith('P1-NUM')) return 'p1-numbers';
+  if (sid.startsWith('P1-ADD')) return 'p1-addsub';
+  if (sid.startsWith('P1-MON')) return 'p1-money';
+  if (sid.startsWith('P1-MEA')) return 'p1-measurement';
+  if (sid.startsWith('P1-GEO')) return 'p1-geometry';
+  if (sid.startsWith('P1-EQG')) return 'p1-equalgroups';
+  if (sid.startsWith('P1-DAT')) return 'p1-data';
+  return 'p1-numbers';
+}
+
+function p1PracticeAttemptDoc({ studentId, result, sessionId, sessionType, domainId, question = {} } = {}) {
+  return {
+    attemptId: result.attemptId || `attempt_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    studentId,
+    domainId,
+    skillId: result.skillId || question.skillId || '',
+    questionFamilyId: result.questionFamilyId || question.questionFamilyId || '',
+    questionId: result.questionId,
+    sessionId,
+    assignmentId: '',
+    sessionType,
+    answer: String(result.answer ?? result.studentAnswer ?? ''),
+    answerCorrect: Boolean(result.answerCorrect ?? result.correct),
+    studentAnswer: String(result.studentAnswer ?? result.answer ?? ''),
+    correctAnswer: String(result.correctAnswer ?? ''),
+    correct: Boolean(result.correct ?? result.answerCorrect),
+    timeTaken: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+    timeSpentSeconds: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+    confidence: String(result.confidence || result.confidenceLevel || result.reflection || ''),
+    confidenceLevel: String(result.confidenceLevel || result.confidence || result.reflection || ''),
+    reflection: String(result.reflection || result.confidence || ''),
+    helpRequested: Boolean(result.helpRequested),
+    confidenceCalibration: String(result.confidenceCalibration || ''),
+    possibleMisconception: Boolean(result.possibleMisconception),
+    skipped: Boolean(result.skipped),
+    timedOut: Boolean(result.timedOut),
+    questionStartedAt: toDateLike(result.questionStartedAt),
+    questionEndedAt: toDateLike(result.questionEndedAt) || toDateLike(result.answeredAt) || new Date(),
+    timestamp: toDateLike(result.timestamp) || toDateLike(result.answeredAt) || new Date(),
+    attemptNumber: Number(result.attemptNumber || 1),
+    workingExpected: false,
+    workingUploaded: false,
+    workingOnPaper: false,
+    workingSubmitted: false,
+    workingNotNeeded: true,
+  };
+}
+
+router.post('/p1/practice/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const {
+      practiceSessionId,
+      domainId,
+      targetSkillId,
+      sessionType = 'practice',
+      sessionLabel = 'Practice',
+      questions = [],
+    } = req.body || {};
+
+    if (!practiceSessionId || !targetSkillId) {
+      return res.status(400).json({ error: 'practiceSessionId and targetSkillId are required.' });
+    }
+    const resolvedDomainId = domainId || resolveP1DomainId(targetSkillId);
+
+    const lifecycleLog = buildPracticeLifecycleLog({
+      sessionId: practiceSessionId,
+      studentId,
+      targetQuestions: questions.length || 0,
+      completionReason: 'in_progress',
+    });
+
+    await MathPathPracticeSession.findOneAndUpdate(
+      { practiceSessionId },
+      {
+        $setOnInsert: {
+          practiceSessionId,
+          studentId,
+          domainId: resolvedDomainId,
+          targetSkillId,
+          targetQuestionFamilyIds: [],
+          workingSessionId: '',
+          assignmentId: '',
+          sessionGoal: sessionLabel,
+          estimatedQuestionCount: questions.length,
+          workingExpected: false,
+          questions,
+          responses: [],
+          status: 'inProgress',
+          startedAt: new Date(),
+        },
+        $set: { lifecycleLog },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    logPracticeLifecycle(lifecycleLog);
+
+    await recordLearningEvents([
+      {
+        studentId,
+        eventType: 'session_started',
+        domain: resolvedDomainId,
+        sessionId: practiceSessionId,
+        metadata: { source: 'mathpath_p1_practice', sessionType, targetSkillId },
+      },
+      {
+        studentId,
+        eventType: 'practice_started',
+        domain: resolvedDomainId,
+        sessionId: practiceSessionId,
+        metadata: { source: 'mathpath_p1_practice', sessionType, targetSkillId },
+      },
+    ]);
+
+    res.json({ practiceSessionId, studentId, domainId: resolvedDomainId, persisted: true, lifecycleLog });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start P1 practice.' });
+  }
+});
+
+router.get('/p1/practice/:practiceSessionId', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const session = await MathPathPracticeSession.findOne({
+      practiceSessionId: req.params.practiceSessionId,
+      studentId: String(student._id),
+    }).lean();
+    if (!session) return res.status(404).json({ error: 'P1 practice session not found.' });
+    if (!isP1DomainId(session.domainId)) return res.status(404).json({ error: 'Session is not a P1 session.' });
+    res.json({
+      practiceSessionId: session.practiceSessionId,
+      studentId: session.studentId,
+      domainId: session.domainId,
+      targetSkillId: session.targetSkillId,
+      sessionType: session.summary?.sessionType || 'practice',
+      questions: session.questions || [],
+      responses: session.responses || [],
+      status: session.status,
+      summary: session.summary || {},
+      lifecycleLog: session.lifecycleLog || {},
+      startedAt: session.startedAt,
+      completedAt: session.completedAt,
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load P1 practice session.' });
+  }
+});
+
+router.post('/p1/practice/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({
+      practiceSessionId: req.params.practiceSessionId,
+      studentId,
+    });
+    if (!existing) return res.status(404).json({ error: 'P1 practice session not found.' });
+    if (!isP1DomainId(existing.domainId)) return res.status(400).json({ error: 'Session is not a P1 session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const submitted = req.body || {};
+    const sessionType = submitted.sessionType || 'practice';
+    const results = Array.isArray(submitted.responses) ? submitted.responses : [];
+    const domainId = existing.domainId;
+    const questionsById = new Map(
+      (existing.questions || []).map((q) => [String(q.questionId), q])
+    );
+
+    // Build attempt documents
+    const attemptDocs = results
+      .filter((r) => r.questionId)
+      .map((r) => p1PracticeAttemptDoc({
+        studentId,
+        result: r,
+        sessionId: req.params.practiceSessionId,
+        sessionType,
+        domainId,
+        question: questionsById.get(String(r.questionId)) || {},
+      }));
+
+    let attemptSaved = false;
+    if (attemptDocs.length) {
+      const write = await MathPathAttempt.bulkWrite(
+        attemptDocs.map((doc) => ({
+          updateOne: {
+            filter: { attemptId: doc.attemptId },
+            update: { $setOnInsert: doc },
+            upsert: true,
+          },
+        })),
+        { ordered: false }
+      );
+      attemptSaved = Boolean((write.upsertedCount || 0) + (write.matchedCount || 0));
+    }
+
+    // Create mistake records for wrong answers
+    const wrongResults = results.filter(shouldCreatePracticeMistake);
+    for (const result of wrongResults) {
+      const question = questionsById.get(String(result.questionId)) || {};
+      const attempt = attemptDocs.find((doc) => doc.questionId === result.questionId);
+      const mistakeTag = result.misconceptionTag || result.mistakeCode || 'practice_error';
+      await MathPathMistakeRecord.findOneAndUpdate(
+        {
+          studentId,
+          domainId,
+          mistakeCode: mistakeTag,
+          skillId: result.skillId || question.skillId || '',
+          questionFamilyId: result.questionFamilyId || question.questionFamilyId || '',
+        },
+        {
+          $inc: { frequency: 1 },
+          $set: {
+            mistakeName: mistakeTag,
+            severity: result.confidence === 'i_know_this' ? 'high' : 'medium',
+            lastSeenAt: new Date(),
+          },
+          $push: {
+            evidence: {
+              source: 'practice-incorrect',
+              questionId: result.questionId,
+              sessionId: req.params.practiceSessionId,
+              attemptId: attempt?.attemptId || result.attemptId || '',
+              prompt: question.prompt || question.stem || '',
+              studentAnswer: result.studentAnswer || result.answer || '',
+              correctAnswer: result.correctAnswer || String(question.answer?.display ?? question.answer ?? ''),
+              answerCorrect: false,
+              confidence: result.confidence || '',
+              timeTaken: normalizeTimeSpentSeconds(result.timeTaken, result.questionStartedAt, result.questionEndedAt),
+              seenAt: new Date(),
+            },
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    }
+
+    // Update per-skill mastery state
+    const bySkill = results.filter((r) => !r.error).reduce((acc, r) => {
+      const skillId = r.skillId || '';
+      if (!skillId) return acc;
+      if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 };
+      acc[skillId].total += 1;
+      if (r.correct) acc[skillId].correct += 1;
+      return acc;
+    }, {});
+
+    await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
+      const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
+      const set = {
+        status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview',
+        accuracy,
+        lastPractisedAt: new Date(),
+      };
+      if (accuracy >= 90) set.masteredAt = new Date();
+      return MathPathStudentSkillState.findOneAndUpdate(
+        { studentId, domainId, skillId },
+        { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    }));
+
+    const progressUpdated = Object.keys(bySkill).length > 0;
+    const lifecycleLog = buildPracticeLifecycleLog({
+      sessionId: req.params.practiceSessionId,
+      studentId,
+      questionId: results.at(-1)?.questionId || '',
+      attemptSaved,
+      mistakeCreated: wrongResults.length > 0,
+      progressUpdated,
+      answeredQuestions: results.length,
+      targetQuestions: existing.estimatedQuestionCount || existing.questions?.length || results.length,
+      completionReason: 'target_reached',
+    });
+
+    const total = results.length;
+    const correctCount = results.filter((r) => r.correct).length;
+    const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
+
+    const summary = {
+      practiceSessionId: req.params.practiceSessionId,
+      sessionType,
+      results,
+      accuracySummary: { total, correct: correctCount, accuracyPercentage: accuracy },
+      persisted: true,
+      lifecycleLog,
+    };
+
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = req.body?.responses || [];
+    existing.summary = summary;
+    existing.lifecycleLog = lifecycleLog;
+    await existing.save();
+
+    logPracticeLifecycle(lifecycleLog);
+
+    await recordLearningEvents([
+      ...attemptDocs.map((attempt) => ({
+        studentId,
+        eventType: attempt.skipped ? 'question_skipped' : 'question_answered',
+        domain: domainId,
+        skillCode: attempt.skillId,
+        questionId: attempt.questionId,
+        sessionId: req.params.practiceSessionId,
+        metadata: {
+          answerCorrect: attempt.correct,
+          confidence: normalizeConfidence(attempt.confidence),
+          timeTakenSeconds: attempt.timeTaken,
+          skipped: attempt.skipped,
+        },
+      })),
+      {
+        studentId,
+        eventType: 'session_completed',
+        domain: domainId,
+        sessionId: req.params.practiceSessionId,
+        metadata: { source: 'mathpath_p1_practice', total, correct: correctCount },
+      },
+      {
+        studentId,
+        eventType: 'practice_completed',
+        domain: domainId,
+        sessionId: req.params.practiceSessionId,
+        metadata: { source: 'mathpath_p1_practice', total, correct: correctCount },
+      },
+    ]);
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit P1 practice.' });
+  }
+});
+
+// Get P1 skill states for a student (for mastery badges on skill cards)
+router.get('/p1/skill-states', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const states = await MathPathStudentSkillState.find({
+      studentId,
+      domainId: { $regex: /^p1-/ },
+    }).lean();
+    res.json({ skillStates: states });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load P1 skill states.' });
+  }
+});
+
+// Get P3 skill states for a student (for mastery badges on skill cards)
+router.get('/p3/skill-states', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const states = await MathPathStudentSkillState.find({
+      studentId,
+      domainId: { $regex: /^p3-/ },
+    }).lean();
+    res.json({ skillStates: states });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load P3 skill states.' });
+  }
+});
+
 router.post('/fractions/question-patterns/analyze', protect, async (req, res) => {
   try {
     if (!canTrainQuestionPatterns(req.user)) return res.status(403).json({ error: 'Only teachers, tutors, and admins can train question patterns.' });

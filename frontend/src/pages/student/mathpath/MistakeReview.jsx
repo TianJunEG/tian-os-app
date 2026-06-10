@@ -85,21 +85,41 @@ export default function MistakeReview() {
     })();
   }, []);
 
-  const practiseSimilar = (skillId) => {
+  const practiseSimilar = async (skillId) => {
     if (starting) return;
     setStarting(true);
-    navigate('/student/mathpath/practice/recommended-pathway', {
-      state: {
-        skillId,
-        sessionType: 'remediation',
-        questionCount: 5,
-        resultsBase: '/student/mathpath',
-        backTo: '/student/mathpath/mistakes/review',
-        homeBase: '/student/mathpath/mistakes',
-        homeLabel: 'Back to mistake review',
-        mistakesBase: '/student/mathpath/mistakes',
-      },
-    });
+    try {
+      // Framework skill IDs (F001–F026) route through the recommended-pathway
+      // so PracticeSession generates questions with diagramSpec via
+      // startFractionPractice. Legacy ObjectId-based skills fall back to
+      // the generic startSession route.
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(),
+            questionCount: 5,
+            sessionType: 'remediation',
+            source: 'mistake-review',
+            backTo: '/student/mathpath/mistakes',
+            homeBase: '/student/mathpath/mistakes',
+            homeLabel: 'Back to mistake review',
+          },
+        });
+        return;
+      }
+      const { data } = await mathpathAPI.startSession({ skillId, questionCount: 5, feature: 'Mistake-to-Mastery' });
+      navigate(`/student/mathpath/practice/${data.session_id}`, {
+        state: {
+          items: data.items,
+          resultsBase: '/student/mathpath',
+          backTo: '/student/mathpath/mistakes',
+          homeBase: '/student/mathpath/mistakes',
+          homeLabel: 'Back to mistake review',
+          mistakesBase: '/student/mathpath/mistakes',
+        },
+      });
+    } catch (_) { setStarting(false); }
   };
 
   if (loading) return <Spinner label="Loading mistakes…" />;
