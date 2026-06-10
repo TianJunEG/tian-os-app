@@ -56,15 +56,24 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
       )}
       {m.tutorExplanation?.strokes?.length > 0 && (
         <div className="mt-4 rounded-xl border border-navy-100 bg-navy-50/50 p-3">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-navy-700">
-            Tutor explanation
-          </p>
+          <div className="mb-2 flex items-center gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-navy-700">
+              Tutor explanation
+            </p>
+            {m.tutorExplanation.hasAudio && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-navy-100 px-1.5 py-0.5 text-[10px] font-semibold text-navy-600">
+                <svg viewBox="0 0 16 16" className="h-3 w-3 fill-current"><path d="M8 1a2 2 0 0 0-2 2v5a2 2 0 1 0 4 0V3a2 2 0 0 0-2-2ZM4 7a1 1 0 0 0-2 0 6 6 0 0 0 5 5.91V14H5a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H9v-1.09A6 6 0 0 0 14 7a1 1 0 1 0-2 0 4 4 0 0 1-8 0Z" /></svg>
+                Voice
+              </span>
+            )}
+          </div>
           <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-navy-100" />}>
             <StrokeReplayPlayer
               strokes={m.tutorExplanation.strokes}
               background="ruled"
               compact
               autoPlay={false}
+              audioSrc={m.explanationAudioUrl || undefined}
             />
           </Suspense>
         </div>

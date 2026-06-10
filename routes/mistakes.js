@@ -11,6 +11,7 @@ import {
   applyMistakeLearningAction,
   shapeMistakeLearningFields,
 } from '../services/mathpath/mistakeCorrectionFlow.js';
+import r2 from '../services/storage/r2.js';
 
 const router = express.Router();
 
@@ -151,6 +152,8 @@ router.get('/', protect, async (req, res) => {
         strokes: m.tutorExplanation.strokes || [],
         recordedAt: m.tutorExplanation.recordedAt,
         durationMs: m.tutorExplanation.durationMs || null,
+        hasAudio: Boolean(m.tutorExplanation.audioStorageKey),
+        feedback: m.tutorExplanation.feedback || null,
       } : null,
     })));
 
@@ -257,7 +260,14 @@ router.get('/:id', protect, async (req, res) => {
         image: m.tutorExplanation.image || '',
         recordedAt: m.tutorExplanation.recordedAt,
         durationMs: m.tutorExplanation.durationMs || null,
+        hasAudio: Boolean(m.tutorExplanation.audioStorageKey),
+        feedback: m.tutorExplanation.feedback || null,
       } : null,
+      explanationAudioUrl: await (async () => {
+        const key = m.tutorExplanation?.audioStorageKey;
+        if (!key) return null;
+        try { return await r2.getSignedDownloadUrl(key, 300); } catch { return null; }
+      })(),
     });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake.' });

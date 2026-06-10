@@ -19,8 +19,11 @@ import {
   userCanAccessPartnerStudent,
 } from '../services/partners/partnerAccessService.js';
 import { notify } from '../services/notifications/notificationService.js';
+import multer from 'multer';
+import r2 from '../services/storage/r2.js';
 
 const router = express.Router();
+const audioUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
 // Every tutor route runs inside the active tutor workspace. requireWorkspace
 // rejects requests whose X-Workspace-Id the tutor isn't a member of — so school
@@ -297,6 +300,31 @@ router.post('/students/:id/mistakes/:mistakeId/explanation', async (req, res) =>
     res.json({ id: mistake._id, tutorExplanation: mistake.tutorExplanation });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to save explanation.' });
+  }
+});
+
+// @route POST /api/tutor/students/:id/mistakes/:mistakeId/explanation-audio
+// Upload voice narration for a tutor explanation. Stored in R2 alongside strokes.
+router.post('/students/:id/mistakes/:mistakeId/explanation-audio', audioUpload.single('audio'), async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res);
+  if (!student) return;
+  try {
+    const mistake = await Mistake.findOne({ _id: req.params.mistakeId, studentId: student._id });
+    if (!mistake) return res.status(404).json({ error: 'Mistake not found.' });
+    if (!mistake.tutorExplanation?.recordedAt) {
+      return res.status(400).json({ error: 'Save the drawing first before uploading audio.' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No audio file.' });
+    const key = `explanations/${mistake._id}/audio.webm`;
+    await r2.putAudioObject(key, req.file.buffer, req.file.mimetype || 'audio/webm');
+    mistake.tutorExplanation.audioStorageKey = key;
+    mistake.tutorExplanation.audioMimeType = req.file.mimetype || 'audio/webm';
+    await mistake.save();
+    console.info('[tutor] Saved explanation audio', { mistakeId: String(mistake._id), key });
+    res.json({ stored: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to upload explanation audio.' });
   }
 });
 
