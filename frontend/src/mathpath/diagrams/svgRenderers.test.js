@@ -113,3 +113,83 @@ describe('part_whole_bar and comparison_bar animations', () => {
     expect(ratio).toContain('Red');
   });
 });
+
+describe('geometry and chart diagram animations', () => {
+  it('rectangle_area draws outline then grid lines then labels', () => {
+    const svg = renderers.rectangle_area({
+      width: 400, height: 300,
+      data: { widthUnits: 4, heightUnits: 3 },
+    });
+
+    // Outline dash animation + grid opacity animations + 2 label opacity animations
+    expect(svg).toContain('stroke-dashoffset');
+    expect(svg).toContain('<animate');
+    const opacityAnims = [...svg.matchAll(/attributeName="opacity"/g)];
+    // 3 vertical + 2 horizontal grid lines + 2 labels = 7 opacity animations
+    expect(opacityAnims.length).toBe(7);
+  });
+
+  it('triangle_area draws outline then height line then labels', () => {
+    const svg = renderers.triangle_area({
+      width: 400, height: 300,
+      data: { base: 6, height: 4 },
+    });
+
+    // Polygon dash + height line dash + 2 label opacity = 4 animate elements
+    const animates = [...svg.matchAll(/<animate /g)];
+    expect(animates.length).toBe(4);
+    expect(svg).toContain('stroke-dashoffset');
+    expect(svg).toContain('base 6');
+    expect(svg).toContain('height 4');
+  });
+
+  it('cuboid draws front face, back face, edges, then labels', () => {
+    const svg = renderers.cuboid({
+      width: 500, height: 350,
+      data: { length: 5, width: 3, height: 4 },
+    });
+
+    // 2 face dash animations + 4 edge opacity + 3 label opacity = 9 animate elements
+    const animates = [...svg.matchAll(/<animate /g)];
+    expect(animates.length).toBe(9);
+    expect(svg).toContain('stroke-dashoffset');
+  });
+
+  it('angle_on_line draws base, arm, arc, then label', () => {
+    const svg = renderers.angle_on_line({
+      width: 400, height: 300,
+      data: { angleDegrees: 45 },
+    });
+
+    // 3 dash animations (base + arm + arc) + 1 label opacity = 4 animate elements
+    const animates = [...svg.matchAll(/<animate /g)];
+    expect(animates.length).toBe(4);
+    expect(svg).toContain('45');
+  });
+
+  it('bar_chart axes draw then bars grow upward with staggered timing', () => {
+    const svg = renderers.bar_chart({
+      width: 400, height: 300,
+      data: { bars: [{ value: 10, label: 'A' }, { value: 7, label: 'B' }, { value: 4, label: 'C' }] },
+    });
+
+    // 2 axis dash + 3 bars (height+y each = 6) + 3 label opacity = 11 animate elements
+    const animates = [...svg.matchAll(/<animate /g)];
+    expect(animates.length).toBe(11);
+    // Bars grow from y0 (bottom)
+    expect(svg).toContain('attributeName="height"');
+    expect(svg).toContain('attributeName="y"');
+  });
+
+  it('line_graph axes draw, path traces, then dots pop in', () => {
+    const svg = renderers.line_graph({
+      width: 400, height: 300,
+      data: { points: [{ x: 1, y: 2 }, { x: 3, y: 5 }, { x: 5, y: 3 }] },
+    });
+
+    // 2 axis dash + 1 path dash + 3 dots (r grow + r settle each = 6) = 9 animate elements
+    const animates = [...svg.matchAll(/<animate /g)];
+    expect(animates.length).toBe(9);
+    expect(svg).toContain('stroke-dashoffset');
+  });
+});
