@@ -3,6 +3,7 @@ import { Sparkles, ChevronRight, ChevronLeft, Lightbulb, BookOpen, RefreshCw } f
 import { mathpathAPI } from '../../services/api';
 import { Button, Spinner, ProgressBar } from '../ui';
 import { MathText } from '../ui/Fraction';
+import QuestionDiagram from '../../pages/student/mathpath/components/QuestionDiagram';
 
 const STEP_ICON = {
   reassure: Sparkles, hint: Lightbulb, 'reinforce-prerequisite': BookOpen,
@@ -69,6 +70,11 @@ export default function RemediationPanel({ skillId, skillSlug, recentAttempts = 
             <div className="mt-4 rounded-2xl bg-white/70 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400 mb-2">Question</p>
               <div className="text-xl leading-8 text-ink-900 sm:text-2xl sm:leading-10"><MathText text={s.stem} /></div>
+              {s.diagramSpec && (
+                <div className="mt-3">
+                  <QuestionDiagram question={{ diagramSpec: s.diagramSpec, stem: s.stem }} />
+                </div>
+              )}
             </div>
           )}
           {s.solution && (
