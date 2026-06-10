@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ClipboardList } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
-import { Card, StatusBadge, PageHeader, Spinner, ErrorState } from '../../components/ui';
+import { Card, StatusBadge, PageHeader, Spinner, ErrorState, EmptyState } from '../../components/ui';
 
 const fmt = (d) => (d ? new Date(d).toLocaleDateString() : '—');
 
