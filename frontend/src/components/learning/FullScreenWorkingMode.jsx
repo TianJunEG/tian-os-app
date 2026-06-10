@@ -455,13 +455,43 @@ export default function FullScreenWorkingMode({
     if (!drawingRef.current) return;
     event.preventDefault();
     const stroke = currentStrokeRef.current;
-    stroke.points.push(pointFromEvent(event));
+    const coalescedEvents = event.getCoalescedEvents?.() || [event];
+    for (const e of coalescedEvents) {
+      stroke.points.push(pointFromEvent(e));
+    }
     setHasCanvasMarks(true);
     if (stroke.tool === 'line' || stroke.tool === 'rectangle') {
       redraw(strokesRef.current);
       drawStroke(canvasRef.current.getContext('2d'), stroke, { stampScale: FS_STAMP_SCALE });
     } else {
-      drawStroke(canvasRef.current.getContext('2d'), { ...stroke, points: stroke.points.slice(-2) }, { stampScale: FS_STAMP_SCALE });
+      const pts = stroke.points;
+      const ctx = canvasRef.current.getContext('2d');
+      if (pts.length < 3) {
+        drawStroke(ctx, { ...stroke, points: pts.slice(-2) }, { stampScale: FS_STAMP_SCALE });
+      } else {
+        const tail = pts.slice(-3);
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.globalCompositeOperation = stroke.tool === 'eraser' ? 'destination-out' : 'source-over';
+        ctx.globalAlpha = stroke.tool === 'highlighter' ? 0.18 : stroke.tool === 'shade' ? 0.24 : 1;
+        ctx.strokeStyle = stroke.tool === 'eraser' ? '#ffffff' : (stroke.colour || '#172554');
+        const baseSize = Number(stroke.size || 4);
+        const hasPressure = (stroke.tool === 'pen' || stroke.tool === 'pencil') && tail[2].p != null;
+        ctx.lineWidth = stroke.tool === 'eraser' ? 24
+          : stroke.tool === 'shade' ? Math.max(34, baseSize * 8)
+          : stroke.tool === 'highlighter' ? Math.max(48, baseSize * 10)
+          : stroke.tool === 'pencil' ? Math.max(1, baseSize - 1)
+          : hasPressure ? baseSize * (0.3 + (tail[2].p ?? 0.5) * 0.7)
+          : baseSize;
+        const mid0 = { x: (tail[0].x + tail[1].x) / 2, y: (tail[0].y + tail[1].y) / 2 };
+        const mid1 = { x: (tail[1].x + tail[2].x) / 2, y: (tail[1].y + tail[2].y) / 2 };
+        ctx.beginPath();
+        ctx.moveTo(mid0.x, mid0.y);
+        ctx.quadraticCurveTo(tail[1].x, tail[1].y, mid1.x, mid1.y);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   };
 
