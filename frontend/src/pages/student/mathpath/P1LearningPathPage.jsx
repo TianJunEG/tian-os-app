@@ -5,7 +5,6 @@ import { Badge, Button, Card, PageHeader } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
-import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
 import { p1NumbersSkillGraph } from '../../../mathpath/primary/p1SkillGraph';
 import { p1AddSubSkillGraph } from '../../../mathpath/primary/p1AddSubSkillGraph';
 import { p1MoneySkillGraph } from '../../../mathpath/primary/p1MoneySkillGraph';

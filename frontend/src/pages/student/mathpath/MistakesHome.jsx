@@ -111,7 +111,7 @@ export default function MistakesHome() {
       <PageHeader title="Mistake-to-Mastery" subtitle="MathPath · turn recent slips into mastery" />
 
       <Card className={`p-5 ${visualStyles.heroCard}`}>
-        <div className="mb-1 flex items-center gap-2 ${visualStyles.accent}"><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
+        <div className={`mb-1 flex items-center gap-2 ${visualStyles.accent}`}><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>
         <div className="font-display text-2xl font-semibold text-ink-900">{data ? data.mistakes.length : 0} to review</div>
         {recommended && <p className="mb-4 mt-1 text-sm text-ink-600">Recommended: practise <b className={`font-semibold ${visualStyles.accent}`}>{recommended.skillName}</b></p>}
         {fallbackMessage && <p className="mb-3 rounded-xl bg-gold-100 px-3 py-2 text-sm font-semibold text-gold-700">{fallbackMessage}</p>}
