@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Pencil, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Pencil, CheckCircle2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { tutorAPI } from '../../services/api';
 import TutorStudentNav from './TutorStudentNav';
 import { Card, Button, Badge, StatusBadge, StatTile, Spinner, ErrorState } from '../../components/ui';
@@ -60,16 +60,28 @@ export default function TutorStudentProfile() {
                   </div>
                   <p className="text-xs font-semibold text-ink-500">{MISTAKE_LEARNING_LABEL[m.learningStatus || 'new'] || 'Learning'}</p>
                   <p className="text-ink-500"><MathText text={m.questionStem} /></p>
-                  <button
-                    onClick={() => navigate(`/tutor/students/${id}/mistakes/${m.id}/explain`)}
-                    className="mt-1.5 inline-flex items-center gap-1 rounded-lg border border-hairline bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition hover:bg-navy-50"
-                  >
-                    {m.hasTutorExplanation ? (
-                      <><CheckCircle2 className="h-3.5 w-3.5 text-success-600" /> Edit explanation</>
-                    ) : (
-                      <><Pencil className="h-3.5 w-3.5" /> Record explanation</>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => navigate(`/tutor/students/${id}/mistakes/${m.id}/explain`)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-hairline bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition hover:bg-navy-50"
+                    >
+                      {m.hasTutorExplanation ? (
+                        <><CheckCircle2 className="h-3.5 w-3.5 text-success-600" /> Edit explanation</>
+                      ) : (
+                        <><Pencil className="h-3.5 w-3.5" /> Record explanation</>
+                      )}
+                    </button>
+                    {m.explanationFeedback === 'helpful' && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
+                        <ThumbsUp className="h-3 w-3" /> Parent found this helpful
+                      </span>
                     )}
-                  </button>
+                    {m.explanationFeedback === 'not_helpful' && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                        <ThumbsDown className="h-3 w-3" /> Parent requested a new explanation
+                      </span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

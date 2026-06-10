@@ -123,6 +123,7 @@ export const mathpathAPI = {
   recordMistakes: (mistakes) => api.post('/mistakes/bulk', { mistakes }),
   reviewMistake: (id, data) => api.post(`/mistakes/${id}/review`, data),
   updateMistakeLearning: (id, data) => api.patch(`/mistakes/${id}/learning`, data),
+  explanationFeedback: (id, feedback) => api.patch(`/mistakes/${id}/explanation-feedback`, { feedback }),
   placement: (attempts) => api.post('/mastery/placement', { attempts }),
   modelTrainerTemplates: (params) => api.get('/mastery/fractions/model-trainer', { params }),
   modelTrainerForSkill: (skillId) => api.get(`/mastery/fractions/model-trainer/skill/${skillId}`),

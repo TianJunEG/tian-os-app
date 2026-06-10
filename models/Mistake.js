@@ -130,6 +130,13 @@ const mistakeSchema = new mongoose.Schema({
     recordedAt: { type: Date, default: null },
     recordedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     durationMs: { type: Number, default: null },
+    // Voice narration stored in R2 alongside the stroke replay.
+    audioStorageKey: { type: String, default: '' },
+    audioMimeType: { type: String, default: '' },
+    // Parent feedback on this explanation.
+    feedback: { type: String, enum: ['helpful', 'not_helpful', null], default: null },
+    feedbackAt: { type: Date, default: null },
+    feedbackByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   // Set to 'resolved' once the underlying skill is mastered (derived, not manual).
   status: {

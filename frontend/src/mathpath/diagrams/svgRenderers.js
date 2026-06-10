@@ -128,11 +128,25 @@ function partWholeBar(spec) {
   const parts = spec.data.parts || [];
   const total = parts.reduce((s, p) => s + Number(p.value || 0), 0) || 1;
   const w = spec.width; const h = spec.height; const x = 40; const y = h / 2 - 20; const bw = w - 80; const bh = 40;
-  let cursor = x; let body = '';
+  if (REDUCE_MOTION) {
+    let cursor = x; let body = '';
+    for (const p of parts) {
+      const pw = bw * (Number(p.value || 0) / total);
+      body += `<rect x="${cursor}" y="${y}" width="${pw}" height="${bh}" fill="${esc(p.fill || '#dbeafe')}" stroke="#111"/><text x="${cursor + pw / 2}" y="${y + 25}" font-size="13" text-anchor="middle">${esc(p.label || '')}</text>`;
+      cursor += pw;
+    }
+    return svgShell(spec, body, 'part whole bar');
+  }
+  const perPart = Math.min(0.2, 1.0 / (parts.length || 1));
+  let cursor = x; let body = ''; let idx = 0;
   for (const p of parts) {
     const pw = bw * (Number(p.value || 0) / total);
-    body += `<rect x="${cursor}" y="${y}" width="${pw}" height="${bh}" fill="${esc(p.fill || '#dbeafe')}" stroke="#111"/><text x="${cursor + pw / 2}" y="${y + 25}" font-size="13" text-anchor="middle">${esc(p.label || '')}</text>`;
+    const delay = (idx * perPart).toFixed(2);
+    const labelDelay = (idx * perPart + 0.25).toFixed(2);
+    body += `<rect x="${cursor}" y="${y}" width="0" height="${bh}" fill="${esc(p.fill || '#dbeafe')}" stroke="#111"><animate attributeName="width" from="0" to="${pw}" dur="0.3s" begin="${delay}s" fill="freeze"/></rect>`;
+    body += `<text x="${cursor + pw / 2}" y="${y + 25}" font-size="13" text-anchor="middle" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="${labelDelay}s" fill="freeze"/>${esc(p.label || '')}</text>`;
     cursor += pw;
+    idx += 1;
   }
   return svgShell(spec, body, 'part whole bar');
 }
@@ -143,7 +157,20 @@ function comparisonBar(spec) {
   const w = spec.width; const h = spec.height; const x = 130; const bw = w - 170;
   const h1 = (leftValue / max) * (bw); const h2 = (rightValue / max) * (bw);
   const y1 = h / 2 - 45; const y2 = h / 2 + 15;
-  const body = `<text x="40" y="${y1 + 18}" font-size="14">${esc(leftLabel)}</text><rect x="${x}" y="${y1}" width="${h1}" height="28" fill="#bfdbfe" stroke="#111"/><text x="${x + h1 + 8}" y="${y1 + 18}" font-size="14">${leftValue}</text><text x="40" y="${y2 + 18}" font-size="14">${esc(rightLabel)}</text><rect x="${x}" y="${y2}" width="${h2}" height="28" fill="#ddd6fe" stroke="#111"/><text x="${x + h2 + 8}" y="${y2 + 18}" font-size="14">${rightValue}</text>`;
+  if (REDUCE_MOTION) {
+    const body = `<text x="40" y="${y1 + 18}" font-size="14">${esc(leftLabel)}</text><rect x="${x}" y="${y1}" width="${h1}" height="28" fill="#bfdbfe" stroke="#111"/><text x="${x + h1 + 8}" y="${y1 + 18}" font-size="14">${leftValue}</text><text x="40" y="${y2 + 18}" font-size="14">${esc(rightLabel)}</text><rect x="${x}" y="${y2}" width="${h2}" height="28" fill="#ddd6fe" stroke="#111"/><text x="${x + h2 + 8}" y="${y2 + 18}" font-size="14">${rightValue}</text>`;
+    return svgShell(spec, body, 'comparison bar');
+  }
+  let body = '';
+  // Labels fade in first
+  body += `<text x="40" y="${y1 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" fill="freeze"/>${esc(leftLabel)}</text>`;
+  body += `<text x="40" y="${y2 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.15s" fill="freeze"/>${esc(rightLabel)}</text>`;
+  // Top bar grows, then bottom bar
+  body += `<rect x="${x}" y="${y1}" width="0" height="28" fill="#bfdbfe" stroke="#111"><animate attributeName="width" from="0" to="${h1}" dur="0.4s" begin="0.2s" fill="freeze"/></rect>`;
+  body += `<rect x="${x}" y="${y2}" width="0" height="28" fill="#ddd6fe" stroke="#111"><animate attributeName="width" from="0" to="${h2}" dur="0.4s" begin="0.4s" fill="freeze"/></rect>`;
+  // Values fade in after their bar finishes
+  body += `<text x="${x + h1 + 8}" y="${y1 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.6s" fill="freeze"/>${leftValue}</text>`;
+  body += `<text x="${x + h2 + 8}" y="${y2 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.8s" fill="freeze"/>${rightValue}</text>`;
   return svgShell(spec, body, 'comparison bar');
 }
 

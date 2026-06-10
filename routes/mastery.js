@@ -1045,6 +1045,21 @@ router.get('/p1/skill-states', protect, async (req, res) => {
   }
 });
 
+// Get P3 skill states for a student (for mastery badges on skill cards)
+router.get('/p3/skill-states', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const states = await MathPathStudentSkillState.find({
+      studentId,
+      domainId: { $regex: /^p3-/ },
+    }).lean();
+    res.json({ skillStates: states });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load P3 skill states.' });
+  }
+});
+
 router.post('/fractions/question-patterns/analyze', protect, async (req, res) => {
   try {
     if (!canTrainQuestionPatterns(req.user)) return res.status(403).json({ error: 'Only teachers, tutors, and admins can train question patterns.' });
