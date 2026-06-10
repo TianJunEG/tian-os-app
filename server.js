@@ -196,10 +196,10 @@ app.use('/api/tutor/invites', featureGate({ feature: 'tutor', minVersion: 'v0.1'
 app.use('/api/tutor/recordings', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), recordingRoutes);
 app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
 app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
-app.use('/api/school-admin', schoolAdminRoutes);
-app.use('/api/parent-invites', parentInviteRoutes);
-app.use('/api/join', joinRoutes);
-app.use('/api/billing', billingRoutes);
+app.use('/api/school-admin', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), schoolAdminRoutes);
+app.use('/api/parent-invites', featureGate({ feature: 'parent', minVersion: 'v0.1' }), parentInviteRoutes);
+app.use('/api/join', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), joinRoutes);
+app.use('/api/billing', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), billingRoutes);
 app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }), lifelabRoutes);
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);

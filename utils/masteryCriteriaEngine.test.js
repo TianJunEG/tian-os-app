@@ -30,8 +30,9 @@ describe('masteryCriteriaEngine', () => {
     });
 
     expect(progress.completedStages).toContain('guided_practice');
-    expect(progress.completedStages).toContain('mastery_check');
-    expect(progress.currentStage).toBe('recheck_ready');
+    expect(progress.completedStages).toContain('independent_practice');
+    expect(progress.completedStages).not.toContain('mastery_check');
+    expect(progress.currentStage).toBe('mastery_check');
   });
 
   it('requires full path completion and mastery check before recheck', () => {
@@ -63,6 +64,7 @@ describe('masteryCriteriaEngine', () => {
         ],
         completion: { accuracy: 82 },
       },
+      evidence: { misconceptionResolved: true },
     });
 
     expect(result.readyForRecheck).toBe(true);

@@ -83,6 +83,7 @@ async function validateSpecOwnership(req, specData) {
       studentId: specData.targetStudentId,
     });
     if (!guard) return { ok: false, code: 403, error: 'Parent can only target linked children.' };
+    if (guard.accessLevel === 'view_only') return { ok: false, code: 403, error: 'View-only access does not permit this action.' };
     return { ok: true, workspaceId: guard.workspaceId || workspaceId };
   }
 

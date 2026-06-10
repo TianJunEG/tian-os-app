@@ -53,7 +53,7 @@ export const DEFAULT_LEARNING_PATH_STAGES = Object.freeze([
 export const DEFAULT_MASTERY_CRITERIA = Object.freeze({
   minAccuracy: 75,
   minStageCompletion: 1,
-  requiresMisconceptionResolved: false,
+  requiresMisconceptionResolved: true,
   requiresConfidenceImproved: false,
   requiresMasteryCheck: true,
 });
@@ -136,7 +136,6 @@ export function inferCompletedStagesFromProgress({ assignment = {}, learningPath
   if (target > 0 && attempted >= Math.ceil(target * 0.25)) inferred.push('worked_example');
   if (target > 0 && attempted >= Math.ceil(target * 0.5)) inferred.push('guided_practice');
   if (target > 0 && attempted >= Math.ceil(target * 0.8)) inferred.push('independent_practice');
-  if ((assignment.status === 'completed' || (target > 0 && attempted >= target)) && accuracy >= 70) inferred.push('mastery_check');
 
   const validStageIds = new Set(stages.map((stage) => stage.stageId));
   const completedStages = unique(inferred).filter((stageId) => validStageIds.has(stageId));

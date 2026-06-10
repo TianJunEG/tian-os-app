@@ -100,6 +100,9 @@ async function validateOwnership(req, ownerType) {
         },
       };
     }
+    if (guardian.accessLevel === 'view_only') {
+      return { ok: false, status: 403, error: 'View-only access does not permit uploads.' };
+    }
     return {
       ok: true,
       scope: {

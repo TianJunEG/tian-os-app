@@ -56,7 +56,7 @@ describe('recheckRecommendationService', () => {
       ],
       currentStage: 'recheck_ready',
       completion: { questionsAttempted: 12, accuracy: 85 },
-    });
+    }, { evidence: { misconceptionResolved: true } });
 
     expect(result.recommended).toBe(true);
     expect(result.learningPathReady).toBe(true);

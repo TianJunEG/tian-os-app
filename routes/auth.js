@@ -1,8 +1,10 @@
 import express from 'express';
+import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import { protect, getSignedToken } from '../middleware/auth.js';
 import { authRateLimit } from '../middleware/rateLimiter.js';
+import { sendPasswordResetEmail } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -149,6 +151,63 @@ router.put('/update-profile', protect, async (req, res) => {
     );
 
     res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/forgot-password', authRateLimit, async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const hashed = crypto.createHash('sha256').update(token).digest('hex');
+    user.resetPasswordToken = hashed;
+    user.resetPasswordExpire = new Date(Date.now() + 60 * 60 * 1000);
+    await user.save({ validateBeforeSave: false });
+
+    const baseUrl = process.env.FRONTEND_URL || process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : 'http://localhost:5173';
+    const resetUrl = `${baseUrl}/reset-password/${token}`;
+
+    await sendPasswordResetEmail({ to: user.email, name: user.name, resetUrl });
+    res.json({ success: true, message: 'If that email exists, a reset link has been sent.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not send reset email. Try again later.' });
+  }
+});
+
+router.post('/reset-password/:token', async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const hashed = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const user = await User.findOne({
+      resetPasswordToken: hashed,
+      resetPasswordExpire: { $gt: Date.now() },
+    }).select('+resetPasswordToken +resetPasswordExpire +password');
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    const token = getSignedToken(user._id, user.role);
+    res.json({ success: true, token });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

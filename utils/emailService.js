@@ -279,6 +279,20 @@ export const sendPartnerInquiryAcknowledgementEmail = async (inquiry) => {
   });
 };
 
+export const sendPasswordResetEmail = async ({ to, name, resetUrl, expiresInMinutes = 60 }) => {
+  const safeName = escapeHtml(name || 'there');
+  const html = `
+    <h2>Password Reset Request</h2>
+    <p>Hi ${safeName},</p>
+    <p>We received a request to reset your password. Click the button below to set a new one:</p>
+    <p><a href="${resetUrl}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Reset Password</a></p>
+    <p style="color:#666;font-size:13px;">This link expires in ${expiresInMinutes} minutes. If you didn't request this, you can safely ignore this email.</p>
+    <p style="color:#666;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${escapeHtml(resetUrl)}</p>
+    <p>Best regards,<br>The MathPath Team</p>
+  `;
+  return sendEmail({ to, subject: 'Password Reset Request', html });
+};
+
 export default {
   sendEmail,
   sendTutorApprovalEmail,
@@ -287,5 +301,6 @@ export default {
   sendSessionReminderEmail,
   sendPaymentConfirmationEmail,
   sendPartnerInquiryNotificationEmail,
-  sendPartnerInquiryAcknowledgementEmail
+  sendPartnerInquiryAcknowledgementEmail,
+  sendPasswordResetEmail,
 };

@@ -1,5 +1,18 @@
 import jwt from 'jsonwebtoken';
 
+function verifyWithRotation(token) {
+  const current = process.env.JWT_SECRET;
+  const previous = process.env.JWT_SECRET_PREVIOUS;
+  try {
+    return jwt.verify(token, current);
+  } catch (err) {
+    if (previous && err.name === 'JsonWebTokenError') {
+      return jwt.verify(token, previous);
+    }
+    throw err;
+  }
+}
+
 export const protect = (req, res, next) => {
   let token;
 
@@ -12,7 +25,7 @@ export const protect = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = verifyWithRotation(token);
     req.user = decoded;
     next();
   } catch (error) {
