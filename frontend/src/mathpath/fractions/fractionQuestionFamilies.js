@@ -2,9 +2,49 @@ import { fractionSkillGraph } from './fractionSkillGraph.js';
 
 const SKILL_IDS = new Set(fractionSkillGraph.skillIds);
 
+/**
+ * Quarantined question families — pilot content-integrity gate.
+ *
+ * Source: docs/mathpath/FRACTIONS_QUESTION_SKILL_INTEGRITY_AUDIT.md (the 14 "Incorrect Mapping"
+ * pilot blockers). Each family below either tests a skill it is NOT mapped to, or covers content
+ * outside the active F001-F026 primary Fractions pilot scope (signed/negative, decimal-mixed,
+ * ratio, percentage, or algebraic fraction notation).
+ *
+ * NOTE: the audit (2026-06-07) referenced these by older positional ids (e.g. QF_F011_004).
+ * Since then families were added/reordered, so the same problematic content now carries the ids
+ * below. The mapping is keyed by current id + the audit finding so it stays auditable.
+ *
+ * Quarantined families are excluded from live generation (diagnostic, practice, assessment,
+ * worksheet, recovery-pack) via getQuestionFamiliesBySkill(). They remain resolvable by
+ * getQuestionFamily() so historical attempts still score, and any question generated from one
+ * carries a `quarantined` flag for the runtime evidence-integrity service to flag.
+ */
+export const QUARANTINED_FRACTION_FAMILY_IDS = Object.freeze({
+  QF_F011_005: 'Same-denominator comparison mapped to equivalent-fraction generation (belongs near F007).',
+  QF_F011_006: 'Visual same-denominator comparison mapped to equivalent-fraction generation (belongs near F007).',
+  QF_F012_004: 'Same-numerator comparison mapped to simplification (belongs near F008).',
+  QF_F012_005: 'Same-numerator visual comparison mapped to simplification (belongs near F008).',
+  QF_F013_005: 'Signed/negative fraction comparison is outside the active F001-F026 pilot scope.',
+  QF_F014_005: 'Fraction/decimal ordering is outside mixed-number interpretation and pilot scope.',
+  QF_F017_004: 'Signed fraction addition is outside same-denominator subtraction and pilot scope.',
+  QF_F018_005: 'Signed fraction subtraction is outside unlike-denominator addition and pilot scope.',
+  QF_F018_006: 'Unlike-fraction subtraction mapped to unlike-fraction addition (belongs to F019).',
+  QF_F021_005: 'Fraction-decimal mixed multiplication is outside pure fraction multiplication scope.',
+  QF_F022_005: 'Signed fraction division is outside active primary fraction division scope.',
+  QF_F023_005: 'Ratio with fractions and decimals is outside one-step fraction word problems.',
+  QF_F025_005: 'Percentage/fraction/decimal conversion is outside exam-style Fractions applications.',
+  QF_F026_005: 'Algebraic fraction notation is outside the active Fractions mastery challenge scope.',
+});
+
+export function isQuarantinedFamilyId(familyId) {
+  return Object.prototype.hasOwnProperty.call(QUARANTINED_FRACTION_FAMILY_IDS, familyId);
+}
+
 function buildFamily(skillId, index, config) {
+  const id = `QF_${skillId}_${String(index).padStart(3, '0')}`;
+  const quarantined = isQuarantinedFamilyId(id);
   return {
-    id: `QF_${skillId}_${String(index).padStart(3, '0')}`,
+    id,
     skillId,
     name: config.name,
     description: config.description,
@@ -14,7 +54,10 @@ function buildFamily(skillId, index, config) {
     masteryTargetAccuracy: config.masteryTargetAccuracy ?? 90,
     masteryQuestionCount: config.masteryQuestionCount ?? 20,
     misconceptionTags: config.misconceptionTags ?? [],
-    assessmentRelevant: config.assessmentRelevant ?? true,
+    // Quarantined families are never assessment-relevant regardless of their original config.
+    assessmentRelevant: quarantined ? false : (config.assessmentRelevant ?? true),
+    quarantined,
+    quarantineReason: quarantined ? QUARANTINED_FRACTION_FAMILY_IDS[id] : null,
     mentalMathEligible: config.mentalMathEligible ?? false,
     workingRequired: config.workingRequired ?? true,
     fluencyBenchmarks: config.fluencyBenchmarks ?? {
@@ -210,12 +253,26 @@ export const fractionQuestionFamilies = Object.entries(familiesBySkillBlueprint)
 
 const familyById = new Map(fractionQuestionFamilies.map((family) => [family.id, family]));
 
+// Families safe for live generation (diagnostic, practice, assessment, worksheet, recovery pack).
+export const activeFractionQuestionFamilies = fractionQuestionFamilies.filter((family) => !family.quarantined);
+
 export function getQuestionFamily(familyId) {
   return familyById.get(familyId) || null;
 }
 
-export function getQuestionFamiliesBySkill(skillId) {
-  return fractionQuestionFamilies.filter((family) => family.skillId === skillId);
+/**
+ * Returns the question families for a skill. Quarantined families (see
+ * QUARANTINED_FRACTION_FAMILY_IDS) are excluded by default so they never reach a student.
+ * Pass { includeQuarantined: true } only for audit/QA tooling.
+ */
+export function getQuestionFamiliesBySkill(skillId, { includeQuarantined = false } = {}) {
+  return fractionQuestionFamilies.filter(
+    (family) => family.skillId === skillId && (includeQuarantined || !family.quarantined)
+  );
+}
+
+export function getQuarantinedQuestionFamilies() {
+  return fractionQuestionFamilies.filter((family) => family.quarantined);
 }
 
 export function getQuestionFamilyCountsBySkill() {
@@ -282,6 +339,8 @@ export function validateFractionQuestionFamilies() {
   return {
     isValid: errors.length === 0,
     totalQuestionFamilies: fractionQuestionFamilies.length,
+    activeQuestionFamilies: activeFractionQuestionFamilies.length,
+    quarantinedQuestionFamilies: getQuarantinedQuestionFamilies().length,
     familiesPerSkill: skillCoverage,
     summary: {
       duplicateIds: [...new Set(duplicateIds)],
@@ -289,6 +348,7 @@ export function validateFractionQuestionFamilies() {
       missingSkillCoverage,
       lowFamilyCountSkills,
       weakProgressionSkills,
+      quarantinedFamilyIds: getQuarantinedQuestionFamilies().map((family) => family.id),
       workingRequirement: getWorkingRequirementSummary(),
       mentalMathEligible: getMentalMathEligibleSummary(),
       assessmentRelevant: getAssessmentRelevantSummary(),
@@ -299,9 +359,11 @@ export function validateFractionQuestionFamilies() {
 
 export const fractionQuestionFamilyArchitecture = {
   domainId: 'fractions',
-  version: '1.0.0',
+  version: '1.1.0',
   totalSkills: fractionSkillGraph.skillIds.length,
   totalQuestionFamilies: fractionQuestionFamilies.length,
+  activeQuestionFamilies: activeFractionQuestionFamilies.length,
+  quarantinedQuestionFamilies: getQuarantinedQuestionFamilies().length,
   families: fractionQuestionFamilies,
 };
 

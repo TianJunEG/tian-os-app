@@ -601,6 +601,11 @@ function buildQuestionCore({ skillId, questionFamilyId, mode, difficulty, prompt
     domainId: DOMAIN_ID,
     skillId,
     questionFamilyId,
+    // Quarantined families should never reach live generation, but if one is forced through
+    // (e.g. a stale stored reference) carry the flag so the runtime evidence-integrity service
+    // flags any record sourced from it.
+    quarantined: Boolean(family.quarantined),
+    quarantineReason: family.quarantineReason || null,
     questionCategory: mode,
     questionType: assessmentMetadata.questionType,
     responseType: 'short_answer',

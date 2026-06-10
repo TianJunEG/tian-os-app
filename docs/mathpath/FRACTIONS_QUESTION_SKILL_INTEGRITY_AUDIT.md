@@ -2,6 +2,27 @@
 
 Date: 2026-06-07
 
+## Status Update (2026-06-10): 14 incorrect families quarantined
+
+The 14 "Incorrect Mapping" pilot blockers below have been **quarantined** in
+`frontend/src/mathpath/fractions/fractionQuestionFamilies.js` via
+`QUARANTINED_FRACTION_FAMILY_IDS`. Quarantined families are excluded from all live generation
+(diagnostic, practice, assessment, worksheet, recovery-pack) through `getQuestionFamiliesBySkill()`,
+and any question forced from one now carries a `quarantined` flag that the runtime evidence
+integrity service flags (`quarantined_question_reference`, high severity).
+
+Because families were added/reordered after this audit, the same problematic *content* now carries
+different positional ids than the table below. The current quarantined ids are:
+
+`QF_F011_005`, `QF_F011_006`, `QF_F012_004`, `QF_F012_005`, `QF_F013_005`, `QF_F014_005`,
+`QF_F017_004`, `QF_F018_005`, `QF_F018_006`, `QF_F021_005`, `QF_F022_005`, `QF_F023_005`,
+`QF_F025_005`, `QF_F026_005`.
+
+Remapping (rather than quarantine) of the clear-target cases (e.g. F011/F012 comparison → F007/F008,
+F018 unlike subtraction → F019) is deferred as content authoring work; quarantine is the pilot-safe
+default so no student sees evidence generated against the wrong skill. The 21 "questionable" rows
+remain active and should be reviewed in the next content sprint.
+
 ## Executive Summary
 
 This audit checks whether Fractions question-family content genuinely matches the canonical F001-F026 skill map.
