@@ -265,9 +265,11 @@ export function shouldCreatePracticeMistake(result = {}) {
 
 function normalizeSkillGraphStatus(status = '') {
   const value = String(status || '').toLowerCase();
-  if (['mastered', 'accurate', 'fluent', 'retained'].includes(value)) return 'mastered';
+  // Mastery requires retention/recheck evidence. Practice competence (accurate/fluent) is
+  // surfaced as "in progress" until a passing recheck/retention promotes the skill to retained.
+  if (['mastered', 'retained'].includes(value)) return 'mastered';
+  if (['accurate', 'fluent', 'learning', 'in_progress'].includes(value)) return 'learning';
   if (['needsreview', 'needs_review', 'weak', 'forgotten'].includes(value)) return 'needs_review';
-  if (['learning', 'in_progress'].includes(value)) return 'learning';
   return 'not_started';
 }
 
@@ -602,12 +604,13 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
     }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
+      // Practice accuracy establishes competence (accurate), never mastery. Mastery requires a
+      // passing recheck/retention, which is the only writer of the retained status + masteredAt.
       const set = {
-        status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview',
+        status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview',
         accuracy,
         lastPractisedAt: new Date(),
       };
-      if (accuracy >= 90) set.masteredAt = new Date();
       return MathPathStudentSkillState.findOneAndUpdate(
         { studentId, domainId: 'fractions', skillId },
         { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set },
@@ -855,12 +858,13 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
       }, {});
       await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
         const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
+        // Practice accuracy establishes competence (accurate), never mastery. masteredAt is set
+        // only by a passing recheck/retention (see recheckMasteryEvidenceService).
         const skillStateSet = {
           status: accuracy >= 85 ? 'accurate' : accuracy >= 50 ? 'learning' : 'needsReview',
           accuracy,
           lastPractisedAt: new Date(),
         };
-        if (accuracy >= 85) skillStateSet.masteredAt = new Date();
         return MathPathStudentSkillState.findOneAndUpdate(
           { studentId, domainId: 'fractions', skillId },
           {

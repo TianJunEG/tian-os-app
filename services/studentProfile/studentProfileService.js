@@ -139,7 +139,9 @@ function resolveStudentVisualMode(student = {}) {
   return 'upper_primary';
 }
 
-const MASTERED_STATES = ['accurate', 'fluent', 'retained'];
+// Mastery requires retention/recheck evidence. Practice competence (accurate/fluent) does not
+// count as mastered until a passing recheck/retention promotes the skill state to retained.
+const MASTERED_STATES = ['retained'];
 const SUBMITTED_ASSESSMENT_STATES = ['submitted', 'marked', 'reviewed'];
 const domainLabel = (domainId = '') => {
   if (!domainId) return 'MathPath';

@@ -18,6 +18,7 @@ import {
   applyDiagnosticCompletionMetadata,
   resolveDiagnosticLineage,
 } from './diagnosticGrowthService.js';
+import { applyRecheckMasteryEvidence } from '../mathpath/recheckMasteryEvidenceService.js';
 
 const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
 const COMPLETION_REASONS = Object.freeze({
@@ -839,6 +840,15 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
     session.resultPayload = session.result;
   }
   await session.save();
+  if (sessionComplete) {
+    // A passing recheck is the only path that promotes a fractions skill to mastered (retained).
+    // Guarded + best-effort so it never blocks diagnostic completion.
+    try {
+      await applyRecheckMasteryEvidence({ session });
+    } catch (err) {
+      console.error('applyRecheckMasteryEvidence failed', err?.message || err);
+    }
+  }
   const lifecycleLog = logDiagnosticLifecycle({
     sessionId: session.diagnosticSessionId,
     studentId: String(student._id),
