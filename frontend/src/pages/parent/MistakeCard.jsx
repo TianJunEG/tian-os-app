@@ -119,7 +119,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
             </button>
             {feedback && (
               <span className="text-[11px] text-ink-400">
-                {feedback === 'helpful' ? 'Thanks for the feedback!' : 'We'll let the tutor know.'}
+                {feedback === 'helpful' ? 'Thanks for the feedback!' : "We'll let the tutor know."}
               </span>
             )}
           </div>
