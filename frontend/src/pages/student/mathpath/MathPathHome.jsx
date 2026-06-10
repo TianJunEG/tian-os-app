@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, ChevronRight, ChevronDown, GraduationCap, Compass, ClipboardCheck, PencilLine, Wand2, Zap } from 'lucide-react';
+import { ArrowRight, AlertTriangle, ChevronRight, ChevronDown, GraduationCap, Compass, ClipboardCheck, PencilLine, Wand2, Zap, Hash } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatusBadge, ProgressBar, StatTile, Spinner, EmptyState } from '../../../components/ui';
 import { useAuth } from '../../../context/AuthContext';
@@ -437,6 +437,14 @@ export default function MathPathHome() {
               }}
             >
               Continue
+            </Button>
+          </Card>
+          <Card className="flex h-full flex-col border-gold-100 bg-gradient-to-br from-gold-50 via-white to-orange-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gold-100 text-gold-700"><Hash className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P1 Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">58 skills across 7 domains — Singapore MOE P1 syllabus.</p>
+            <Button to="/student/mathpath/p1" variant="secondary" className="mt-4 w-full border-gold-200 bg-white/80 text-gold-700 hover:bg-gold-50">
+              Explore P1
             </Button>
           </Card>
           <Card className="flex h-full flex-col border-mint-100 bg-gradient-to-br from-mint-50 via-white to-sky-50 p-4">
