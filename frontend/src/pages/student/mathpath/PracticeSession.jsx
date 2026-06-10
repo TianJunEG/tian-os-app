@@ -13,6 +13,14 @@ import {
 } from '../../../mathpath/fractions/fractionPracticeFlow';
 import { checkFractionAnswer } from '../../../mathpath/fractions/fractionQuestionGenerator';
 import {
+  isP1SkillId,
+  startP1PracticeFlow,
+  startP1DiagnosticFlow,
+  checkP1Answer,
+  submitP1PracticeAttempt,
+  recommendNextP1Skill,
+} from '../../../mathpath/primary/p1PracticeFlow';
+import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
@@ -192,6 +200,15 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 
   if (normalized.startsWith('skill-')) {
     const skillId = String(routeSessionId || '').slice(6).toUpperCase();
+    // P1 skill IDs: P1-NUM-01, P1-ADD-02, etc.
+    if (isP1SkillId(skillId)) {
+      return {
+        requestedSkillId: skillId,
+        sessionType: locationState?.sessionType || 'practice',
+        questionCount: locationState?.questionCount || 6,
+        isP1: true,
+      };
+    }
     return {
       requestedSkillId: /^F\d{3}$/i.test(skillId) ? skillId : null,
       sessionType: 'practice',
@@ -208,6 +225,17 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     };
   }
 
+  // P1 skill ID from location state (e.g. navigating from P1LearningPathPage)
+  const locationSkillId = String(locationState?.skillId || '').toUpperCase();
+  if (isP1SkillId(locationSkillId)) {
+    return {
+      requestedSkillId: locationSkillId,
+      sessionType: normalizeSessionType(locationState?.sessionType),
+      questionCount: locationState?.questionCount || 6,
+      isP1: true,
+    };
+  }
+
   return {
     requestedSkillId: normalizeFrameworkSkillId(locationState?.skillId) || skillFallback,
     sessionType: normalizeSessionType(locationState?.sessionType),
@@ -216,15 +244,16 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 }
 
 function isPersistedPracticeSessionId(value = '') {
-  return /^practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
+  const v = String(value || '');
+  return /^practice_\d+_[a-z0-9]+$/i.test(v) || /^p1-practice_\d+_[a-z0-9]+$/i.test(v);
 }
 
-function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [], masteredSkillIds = [], fluentSkillIds = [] }) {
+function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [], masteredSkillIds = [], fluentSkillIds = [], domainKey = 'fractions' }) {
   if (!studentId) return;
-  const existing = getMathPathDomainProgressState(studentId, 'fractions') || {};
+  const existing = getMathPathDomainProgressState(studentId, domainKey) || {};
   const existingMastered = Array.isArray(existing.masteredSkillIds) ? existing.masteredSkillIds : [];
   const existingFluent = Array.isArray(existing.fluentSkillIds) ? existing.fluentSkillIds : [];
-  setMathPathDomainProgressState(studentId, 'fractions', {
+  setMathPathDomainProgressState(studentId, domainKey, {
     ...existing,
     lastSessionAt: new Date().toISOString(),
     currentSkillId: currentSkillId || existing.currentSkillId || null,
@@ -852,6 +881,7 @@ export default function PracticeSession() {
   const locationWeakSkillIdsKey = locationWeakSkillIds.join('|');
   const locationRecentMistakeTypesKey = locationRecentMistakeTypes.join('|');
   const sessionType = resolvedIntent.sessionType;
+  const isP1Session = Boolean(resolvedIntent.isP1) || isP1SkillId(resolvedIntent.requestedSkillId);
   const storyModeEnabled = isFractionsStoryModeEnabled();
   const sessionMeta = SESSION_META[sessionType];
 
@@ -901,7 +931,9 @@ export default function PracticeSession() {
       try {
         let started = null;
         if (isPersistedPracticeSessionId(routeSessionId)) {
-          const { data } = await mathpathAPI.getFractionPractice(routeSessionId);
+          // Resuming an already-persisted session
+          const getApi = isP1Session ? mathpathAPI.getP1Practice : mathpathAPI.getFractionPractice;
+          const { data } = await getApi(routeSessionId);
           started = {
             practiceSessionId: data.practiceSessionId,
             studentId: data.studentId,
@@ -914,6 +946,8 @@ export default function PracticeSession() {
             workingSessionId: data.workingSessionId || null,
             assignmentId: data.assignmentId || locationAssignmentId,
             startedAt: data.startedAt,
+            isP1: isP1Session || isP1SkillId(data.targetSkillId),
+            persisted: true,
           };
           if (data.status === 'completed' && data.summary?.results?.length) {
             if (!mounted) return;
@@ -923,7 +957,47 @@ export default function PracticeSession() {
             setLoading(false);
             return;
           }
+        } else if (isP1Session) {
+          // ---- P1 flow: generate questions client-side, persist to backend ----
+          if (sessionType === 'diagnostic') {
+            started = startP1DiagnosticFlow({ studentId });
+          } else {
+            started = startP1PracticeFlow({
+              studentId,
+              sessionType,
+              requestedSkillId: resolvedIntent.requestedSkillId,
+              sessionLength: resolvedIntent.questionCount || 6,
+            });
+          }
+          started.isP1 = true;
+          // Persist the session to backend (fire-and-forget, don't block)
+          try {
+            const { data } = await mathpathAPI.startP1Practice({
+              practiceSessionId: started.practiceSessionId,
+              domainId: started.domainId,
+              targetSkillId: started.targetSkillId,
+              sessionType: started.sessionType,
+              sessionLabel: started.sessionLabel,
+              questions: started.questions,
+            });
+            started.persisted = Boolean(data?.persisted);
+          } catch (persistErr) {
+            console.warn('[P1Practice] Backend persistence failed, continuing client-side', persistErr);
+            started.persisted = false;
+          }
+          if (started.practiceSessionId) {
+            navigate(`/student/mathpath/practice/${started.practiceSessionId}`, {
+              replace: true,
+              state: {
+                ...location.state,
+                skillId: started.targetSkillId,
+                sessionType: started.sessionType,
+                questionCount: started.questions?.length || resolvedIntent.questionCount,
+              },
+            });
+          }
         } else {
+          // ---- Fractions flow (existing) ----
           try {
             const { data } = await mathpathAPI.startFractionPractice({
               sessionType,
@@ -990,7 +1064,14 @@ export default function PracticeSession() {
         setQuestions(valid);
         setWorkingSession(null);
         setWorkingCodeByQuestion({});
-        setFullscreenWorkingByQuestion({});
+        // P1 sessions: pre-set workingNotNeeded for all questions
+        if (started?.isP1 || isP1Session) {
+          const p1WorkingState = {};
+          valid.forEach((question) => { p1WorkingState[question.questionId] = { workingNotNeeded: true }; });
+          setFullscreenWorkingByQuestion(p1WorkingState);
+        } else {
+          setFullscreenWorkingByQuestion({});
+        }
         setFullscreenQuestionId(null);
         if (!valid.length) setError(skipped.length ? DIAGRAM_LOAD_ERROR_MESSAGE : 'No questions generated yet. Please try another skill.');
       } catch (e) {
@@ -1076,10 +1157,13 @@ export default function PracticeSession() {
 
   if (loading) return <Spinner />;
   if (error) {
+    const errorBackTo = location.state?.homeBase || '/student/mathpath';
     return (
       <Card className="mx-auto max-w-xl p-6">
         <p className="text-sm text-error-700">{error}</p>
-        <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
+        <Button className="mt-4" onClick={() => navigate(errorBackTo, { replace: true })}>
+          {isP1Session ? 'Back to P1 Maths' : 'Back to MathPath'}
+        </Button>
       </Card>
     );
   }
@@ -1092,9 +1176,10 @@ export default function PracticeSession() {
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
-  const workingRequirementLevel = resolveWorkingRequirementLevel(q, sessionType);
+  const workingRequirementLevel = isP1Session ? 'LOW' : resolveWorkingRequirementLevel(q, sessionType);
   const currentFullscreenWorking = fullscreenWorkingByQuestion[q.questionId] || {};
-  const workingReady = hasWorkingDecision(currentFullscreenWorking);
+  // P1 sessions skip the working evidence requirement entirely
+  const workingReady = isP1Session ? true : hasWorkingDecision(currentFullscreenWorking);
   const questionText = q.prompt || q.stem || '';
   const primaryWorkingImage = currentFullscreenWorking.workingImage || '';
   const primaryWorkingStrokes = currentFullscreenWorking.workingStrokes || [];
@@ -1118,11 +1203,18 @@ export default function PracticeSession() {
     if (!currentQuestionValidation.ok) return;
     if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
-    const answerCheck = checkFractionAnswer({
-      studentAnswer: answer,
-      correctAnswer: q.answer,
-      acceptedAnswers: q.acceptedAnswers || [],
-    });
+    const answerCheck = (flowSession?.isP1 || isP1Session)
+      ? checkP1Answer({
+          studentAnswer: answer,
+          correctAnswer: typeof q.answer === 'object' ? (q.answer?.value ?? q.answer?.display ?? q.answer) : q.answer,
+          acceptedAnswers: q.acceptedAnswers || [],
+          type: q.type || q.answerType || '',
+        })
+      : checkFractionAnswer({
+          studentAnswer: answer,
+          correctAnswer: q.answer,
+          acceptedAnswers: q.acceptedAnswers || [],
+        });
     const attemptId = createClientAttemptId({
       sessionId: flowSession.practiceSessionId || routeSessionId,
       questionId: q.questionId,
@@ -1263,7 +1355,10 @@ export default function PracticeSession() {
         attemptId: r.attemptId || '',
         questionId: r.questionId,
         skillId: questions.find((question) => question.questionId === r.questionId)?.skillId || flowSession?.targetSkillId || '',
+        questionFamilyId: questions.find((question) => question.questionId === r.questionId)?.questionFamilyId || '',
         answer: r.answer ?? r.studentAnswer,
+        correctAnswer: (() => { const matchQ = questions.find((question) => question.questionId === r.questionId); return matchQ?.answer?.display || String(matchQ?.answer ?? ''); })(),
+        correct: Boolean(r.answerCorrect ?? r._correct),
         answerCorrect: Boolean(r.answerCorrect ?? r._correct),
         studentAnswer: r.studentAnswer,
         timeTaken: r.timeTaken,
@@ -1294,28 +1389,60 @@ export default function PracticeSession() {
         attemptNumber: r.attemptNumber,
       }));
       let submitted;
-      if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
-        const { data } = await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
-          sessionType,
-          responses: payload,
-        });
-        submitted = data;
+      const sessionId = flowSession.practiceSessionId || routeSessionId;
+      const sessionIsP1 = flowSession?.isP1 || isP1Session;
+
+      if (sessionIsP1) {
+        // ---- P1 submission flow ----
+        if (flowSession?.persisted || isPersistedPracticeSessionId(sessionId)) {
+          try {
+            const { data } = await mathpathAPI.submitP1Practice(sessionId, {
+              sessionType,
+              responses: payload,
+            });
+            submitted = data;
+          } catch (submitErr) {
+            console.warn('[P1Practice] Backend submit failed, falling back to client-side', submitErr);
+            submitted = submitP1PracticeAttempt({
+              practiceSessionId: sessionId,
+              studentId,
+              sessionType,
+              responses: payload,
+            });
+          }
+        } else {
+          submitted = submitP1PracticeAttempt({
+            practiceSessionId: sessionId,
+            studentId,
+            sessionType,
+            responses: payload,
+          });
+        }
       } else {
-        submitted = await submitFractionPracticeAttempt({
-          practiceSessionId: flowSession.practiceSessionId || routeSessionId,
-          studentId,
-          sessionType,
-          responses: payload,
-        });
-      }
-      try {
-        await persistGeneratedFractionMistakes({
-          practiceSessionId: flowSession.practiceSessionId || routeSessionId,
-          results: submitted.results || [],
-          questions,
-        });
-      } catch (err) {
-        console.error('[mistakes] failed to create generated fraction mistakes', err);
+        // ---- Fractions submission flow (existing) ----
+        if (flowSession?.persisted || isPersistedPracticeSessionId(sessionId)) {
+          const { data } = await mathpathAPI.submitFractionPractice(sessionId, {
+            sessionType,
+            responses: payload,
+          });
+          submitted = data;
+        } else {
+          submitted = await submitFractionPracticeAttempt({
+            practiceSessionId: sessionId,
+            studentId,
+            sessionType,
+            responses: payload,
+          });
+        }
+        try {
+          await persistGeneratedFractionMistakes({
+            practiceSessionId: sessionId,
+            results: submitted.results || [],
+            questions,
+          });
+        } catch (err) {
+          console.error('[mistakes] failed to create generated fraction mistakes', err);
+        }
       }
       const digitalWorking = buildDigitalWorkingUploadPayload({
         responses: submitted.results || payload,
@@ -1354,6 +1481,7 @@ export default function PracticeSession() {
         fluentSkillIds: submitted.fluencySummary?.fluentCount > 0
           ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
           : [],
+        domainKey: sessionIsP1 ? (flowSession?.domainId || 'p1-numbers') : 'fractions',
       });
       setSummary(submitted);
     } catch (e) {
@@ -1453,14 +1581,47 @@ export default function PracticeSession() {
                   source: 'practice',
                   reviewItems,
                   nextAction: summary.nextRecommendedAction,
-                  primaryAction: '/student/mathpath',
-                  backTo: '/student/mathpath',
+                  primaryAction: location.state?.homeBase || '/student/mathpath',
+                  backTo: location.state?.backTo || '/student/mathpath',
                 },
               })}
             >
               Review questions
             </Button>
-            <Button onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
+            {isP1Session && (() => {
+              const next = recommendNextP1Skill({
+                currentSkillId: flowSession?.targetSkillId || '',
+                skillStatesMap: summary?.accuracySummary?.accuracyPercentage >= 90
+                  ? { [flowSession?.targetSkillId]: { status: 'mastered' } }
+                  : {},
+              });
+              if (next && next.skillId !== flowSession?.targetSkillId) {
+                return (
+                  <Button
+                    icon={ArrowRight}
+                    onClick={() => navigate(`/student/mathpath/practice/skill-${next.skillId}`, {
+                      state: {
+                        skillId: next.skillId,
+                        questionCount: 6,
+                        sessionType: 'practice',
+                        source: 'p1-adaptive-next',
+                        backTo: '/student/mathpath/p1',
+                        homeBase: '/student/mathpath/p1',
+                      },
+                    })}
+                  >
+                    Next Skill
+                  </Button>
+                );
+              }
+              return null;
+            })()}
+            <Button
+              variant={isP1Session ? 'secondary' : 'primary'}
+              onClick={() => navigate(location.state?.homeBase || location.state?.backTo || '/student/mathpath', { replace: true })}
+            >
+              {isP1Session ? 'Back to P1 Maths' : 'Back to MathPath'}
+            </Button>
           </div>
         </Card>
       </div>

@@ -1,7 +1,6 @@
 week_start,student_id,sessions_planned,sessions_completed,sessions_per_day,completion_rate,questions_answered,avg_accuracy,weak_skill_focus,weak_skill_accuracy,mastery_gain,mistake_count_start,mistake_count_current,mistake_reduction,working_usage_rate,high_confidence_wrong,low_confidence_correct,help_requests,readiness_band,blocking_issue,severity,owner,next_action
-2026-06-01,S001,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
-2026-06-01,S002,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
-2026-06-01,S003,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
-2026-06-01,S004,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
-2026-06-01,S005,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,,None,,,
-2026-06-01,S005,2,0,0,0,0,0,0,0,,,None,,,
+2026-06-09,S001,4,0,0,0,0,0,,0,0,0,0,0,0,0,0,0,baseline,None,,,Start diagnostic
+2026-06-09,S002,4,0,0,0,0,0,F001,0,0,0,0,0,0,0,0,0,baseline,None,,,Start diagnostic
+2026-06-09,S003,4,0,0,0,0,0,F010,0,0,0,0,0,0,0,0,0,baseline,None,,,Start diagnostic
+2026-06-09,S004,4,0,0,0,0,0,F005,0,0,0,0,0,0,0,0,0,baseline,None,,,Start diagnostic
+2026-06-09,S005,4,0,0,0,0,0,F003,0,0,0,0,0,0,0,0,0,baseline,None,,,Start diagnostic

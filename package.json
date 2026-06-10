@@ -13,6 +13,8 @@
     "build": "npm install --prefix frontend --include=dev && npm run build --prefix frontend",
     "seed:demo": "node scripts/seedDemo.js",
     "seed:foundation": "node scripts/seedFoundation.js",
+    "seed:school": "node scripts/seedSchoolProduct.js",
+    "remind:renewals": "node scripts/sendRenewalReminders.js",
     "seed:questions": "node scripts/seedQuestions.js",
     "seed:exampapers": "node scripts/seedExamPapers.js",
     "seed:domains": "node scripts/seedDomain.js",
