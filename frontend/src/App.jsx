@@ -58,6 +58,7 @@ const FractionsStoryModeSession = lazy(() => import('./pages/student/mathpath/Fr
 const StoryModeDomainRoute = lazy(() => import('./pages/student/mathpath/StoryModeDomainRoute'));
 const FractionsModelTrainer = lazy(() => import('./pages/student/mathpath/FractionsModelTrainer'));
 const SimilarQuestionPractice = lazy(() => import('./pages/student/mathpath/SimilarQuestionPractice'));
+const UploadPaperPage = lazy(() => import('./pages/student/mathpath/UploadPaperPage'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
 // Spelling Practice (Phase 6) — shared-core wiring
@@ -552,6 +553,7 @@ function App() {
             <Route path="/student/mathpath/assessment/review/:assessmentSessionId" element={<AssessmentReviewScreen />} />
             <Route path="/student/mathpath/assessment/working/:assessmentSessionId" element={<AssessmentWorkingPromptScreen />} />
             <Route path="/student/mathpath/assessment/results/:assessmentSessionId" element={<AssessmentResultScreen />} />
+            <Route path="/student/mathpath/upload-paper" element={<UploadPaperPage />} />
             <Route path="/student/mathpath/working/upload" element={<WorkingUploadScreen />} />
             <Route path="/student/mathpath/working/review" element={<WorkingUploadReviewScreen />} />
             <Route path="/student/mathpath/working/success" element={<WorkingUploadSuccessScreen />} />
