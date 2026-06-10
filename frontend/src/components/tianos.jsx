@@ -1,22 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Tian OS design kit — the launch-video visual language as reusable components.
-// Deep navy + soft gold, Fraunces serif headlines, Manrope body, glassmorphism, gold glow.
-export const GOLD = '#d4af37';
-export const GOLD_SOFT = 'rgba(212,175,55,0.35)';
-export const INK = '#f5efe1';
-export const INK_SOFT = 'rgba(240,235,220,0.62)';
+export const GOLD = '#D4A935';
+export const GOLD_SOFT = 'rgba(212,169,53,0.25)';
+export const CORAL = '#F28C7A';
+export const CORAL_GLOW = 'rgba(242,140,122,0.35)';
+export const TEAL = '#0F4C5C';
+export const TEAL_DARK = '#073B4C';
+export const IVORY = '#FFF8EA';
+export const SKY = '#A7D8F0';
+export const LAVENDER = '#C9B6E4';
+export const INK = '#0F4C5C';
+export const INK_SOFT = 'rgba(15,76,92,0.62)';
 export const BLUE = '#7aa6e8';
-export const BG = '#050a14';
+export const BG = '#FFF8EA';
 export const SERIF = "'Fraunces', Georgia, serif";
 export const SANS = "'Manrope', system-ui, sans-serif";
 
-export const glassPanel = (glow = false) => ({
-  background: 'rgba(20,36,68,0.55)',
-  border: `1px solid ${glow ? GOLD_SOFT : 'rgba(180,200,240,0.18)'}`,
+export const glassPanel = (accent = false) => ({
+  background: '#FFFFFF',
+  border: `1px solid ${accent ? 'rgba(212,169,53,0.3)' : 'rgba(15,76,92,0.10)'}`,
   borderRadius: 18,
-  backdropFilter: 'blur(20px)',
-  boxShadow: glow ? '0 24px 50px rgba(0,0,0,0.4), 0 0 40px rgba(212,175,55,0.10)' : '0 24px 50px rgba(0,0,0,0.4)',
+  boxShadow: '0 4px 24px rgba(0,0,0,0.05)',
 });
 
 export function Reveal({ children, delay = 0, y = 26, className = '', style }) {
@@ -43,7 +47,7 @@ export function Reveal({ children, delay = 0, y = 26, className = '', style }) {
 }
 
 export const Eyebrow = ({ children, style }) => (
-  <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: GOLD, ...style }}>{children}</div>
+  <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: TEAL, ...style }}>{children}</div>
 );
 
 export const Headline = ({ children, className = '', style }) => (
@@ -54,26 +58,25 @@ export const GlassCard = ({ children, glow = false, className = '', style }) => 
   <div className={className} style={{ ...glassPanel(glow), ...style }}>{children}</div>
 );
 
-export function Wordmark({ size = 30, onDark = true }) {
+export function Wordmark({ size = 30, onDark = false }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ width: size, height: size, borderRadius: size * 0.3, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 800, color: '#0a1a33', fontSize: size * 0.56, background: `radial-gradient(circle at 30% 30%, #ffe8a0, ${GOLD} 60%, #a8852b)`, boxShadow: `0 0 24px ${GOLD_SOFT}` }}>E</span>
-      <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: size * 0.62, color: onDark ? INK : '#0a1a33', letterSpacing: '-0.01em' }}>Tian<span style={{ color: GOLD }}>OS</span></span>
+      <span style={{ width: size, height: size, borderRadius: size * 0.3, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 800, color: '#fff', fontSize: size * 0.56, background: TEAL, boxShadow: '0 0 16px rgba(15,76,92,0.18)' }}>E</span>
+      <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: size * 0.62, color: onDark ? IVORY : TEAL, letterSpacing: '-0.01em' }}>Tian<span style={{ color: CORAL }}>OS</span></span>
     </span>
   );
 }
 
-export function Avatar({ label, size = 96 }) {
+export function Avatar({ label, size = 96, onDark = false }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: size, height: size, borderRadius: '50%', background: 'radial-gradient(circle at 35% 30%, rgba(122,166,232,0.5), rgba(20,36,68,0.9))', border: `3px solid ${GOLD_SOFT}`, boxShadow: `0 16px 40px rgba(0,0,0,0.5), 0 0 24px ${GOLD_SOFT}`, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, color: INK, fontSize: size * 0.34 }}>{label[0]}</div>
-      <div style={{ fontFamily: SANS, fontSize: 13, color: INK, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
+      <div style={{ width: size, height: size, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, ${SKY}, ${TEAL})`, border: '3px solid rgba(15,76,92,0.2)', boxShadow: '0 12px 32px rgba(0,0,0,0.10)', display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, color: IVORY, fontSize: size * 0.34 }}>{label[0]}</div>
+      <div style={{ fontFamily: SANS, fontSize: 13, color: onDark ? IVORY : INK, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
     </div>
   );
 }
 
-// Signature Parent·Child·Tutor·Educator ring around a glowing TIAN·OS orb.
-export function TrustRing({ nodes }) {
+export function TrustRing({ nodes, onDark = false }) {
   const ring = nodes || [
     { lbl: 'Parent', x: 50, y: 11 }, { lbl: 'Child', x: 89, y: 50 },
     { lbl: 'Tutor', x: 50, y: 89 }, { lbl: 'Educator', x: 11, y: 50 },
@@ -83,25 +86,24 @@ export function TrustRing({ nodes }) {
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
         <defs>
           <linearGradient id="tianos-conn" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stopColor={GOLD} stopOpacity="0.7" />
-            <stop offset="100%" stopColor={BLUE} stopOpacity="0.7" />
+            <stop offset="0%" stopColor={TEAL} stopOpacity="0.5" />
+            <stop offset="100%" stopColor={SKY} stopOpacity="0.5" />
           </linearGradient>
         </defs>
         {ring.map((n, i) => (
           <line key={i} x1="50" y1="50" x2={n.x} y2={n.y} stroke="url(#tianos-conn)" strokeWidth="0.5" strokeDasharray="1.6 2" vectorEffect="non-scaling-stroke" />
         ))}
       </svg>
-      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '30%', aspectRatio: '1/1', borderRadius: '50%', background: `radial-gradient(circle at 30% 30%, #ffe8a0 0%, ${GOLD} 55%, #a8852b 100%)`, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, fontSize: 'clamp(13px,2.4vw,22px)', color: '#1a1f2e', letterSpacing: '0.06em', boxShadow: `0 0 70px ${GOLD}88, 0 30px 60px rgba(0,0,0,0.5), inset 0 0 30px rgba(255,255,255,0.3)`, animation: 'tianosPulse 4s ease-in-out infinite' }}>TIAN·OS</div>
+      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '30%', aspectRatio: '1/1', borderRadius: '50%', background: `radial-gradient(circle at 30% 30%, ${SKY} 0%, ${TEAL} 70%)`, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, fontSize: 'clamp(13px,2.4vw,22px)', color: IVORY, letterSpacing: '0.06em', boxShadow: '0 0 50px rgba(15,76,92,0.3), 0 20px 50px rgba(0,0,0,0.15)', animation: 'tianosPulse 4s ease-in-out infinite' }}>TIAN·OS</div>
       {ring.map((n) => (
         <div key={n.lbl} style={{ position: 'absolute', left: `${n.x}%`, top: `${n.y}%`, transform: 'translate(-50%,-50%)' }}>
-          <Avatar label={n.lbl} size={104} />
+          <Avatar label={n.lbl} size={104} onDark={onDark} />
         </div>
       ))}
     </div>
   );
 }
 
-// Global keyframes used by the kit (orb pulse). Mount once near the app root.
 export const TianOSKeyframes = () => (
   <style>{`@keyframes tianosPulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.05)}}`}</style>
 );
