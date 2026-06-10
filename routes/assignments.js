@@ -13,7 +13,7 @@ const router = express.Router();
 // @access Private
 router.post('/', protect, async (req, res) => {
   try {
-    const student = await resolveStudent(req, req.body.studentId);
+    const student = await resolveStudent(req, req.body.studentId, { write: true });
     const assignedByRole = req.body.assignedByRole || req.user.role || 'parent';
     const a = await Assignment.create({
       workspaceId: student.workspaceId,
@@ -105,7 +105,7 @@ router.patch('/:id/status', protect, async (req, res) => {
   try {
     const a = await Assignment.findById(req.params.id);
     if (!a) return res.status(404).json({ error: 'Assignment not found.' });
-    await resolveStudent(req, a.studentId);
+    await resolveStudent(req, a.studentId, { write: true });
 
     const allowed = ['not_started', 'started', 'in_progress', 'completed', 'skipped', 'expired', 'overdue'];
     const status = allowed.includes(req.body.status) ? req.body.status : a.status;

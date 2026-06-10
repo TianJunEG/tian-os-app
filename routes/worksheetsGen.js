@@ -20,7 +20,7 @@ const router = express.Router();
 // @access Private
 router.post('/generate', protect, async (req, res) => {
   try {
-    const student = await resolveStudent(req, req.body.studentId);
+    const student = await resolveStudent(req, req.body.studentId, { write: true });
     const {
       mode = 'recommended', worksheetType = '', domain = 'fractions', generatedFor = null,
       skillIds = [], topicId = null,
@@ -74,7 +74,7 @@ router.post('/generate', protect, async (req, res) => {
 // @access Private
 router.post('/intervention', protect, async (req, res) => {
   try {
-    const student = await resolveStudent(req, req.body?.studentId);
+    const student = await resolveStudent(req, req.body?.studentId, { write: true });
     const result = await generateInterventionWorksheet({
       studentId: student._id,
       sourceType: req.body?.sourceType || 'manual',
@@ -145,7 +145,7 @@ router.post('/:id/assign', protect, async (req, res) => {
   try {
     const w = await Worksheet.findById(req.params.id);
     if (!w || !w.sourceMode) return res.status(404).json({ error: 'Worksheet not found.' });
-    const student = await resolveStudent(req, w.studentId);
+    const student = await resolveStudent(req, w.studentId, { write: true });
 
     // Mastery Worksheet stays the module so practice.js can pull the exact
     // generated questions via linkedAssignmentId; the worksheet's subject

@@ -50,7 +50,7 @@ async function loadAccessibleAssignment(req, id) {
 router.post('/from-diagnostic', protect, async (req, res) => {
   try {
     assertCanAssign(req, { allowStudentDiagnosticSelfAssign: true });
-    const student = await resolveStudent(req, req.body?.studentId);
+    const student = await resolveStudent(req, req.body?.studentId, { write: true });
     const assignment = await createAssignmentFromDiagnostic({
       studentId: String(student._id),
       diagnosticSessionId: req.body?.diagnosticSessionId,
@@ -68,7 +68,7 @@ router.post('/from-paper-analysis', protect, async (req, res) => {
     assertCanAssign(req);
     const analysis = await PaperAnalysis.findById(req.body?.paperAnalysisId).lean();
     if (!analysis) return res.status(404).json({ error: 'Paper analysis not found.' });
-    await resolveStudent(req, analysis.studentId);
+    await resolveStudent(req, analysis.studentId, { write: true });
     const assignment = await createAssignmentFromPaperAnalysis({
       paperAnalysisId: req.body?.paperAnalysisId,
       assignedByUserId: userId(req),

@@ -460,7 +460,7 @@ router.use(protect);
 
 router.post('/sessions', async (req, res) => {
   try {
-    const student = await resolveStudent(req, req.body?.studentId);
+    const student = await resolveStudent(req, req.body?.studentId, { write: true });
     const studentId = String(student._id);
     const userId = authUserId(req);
 

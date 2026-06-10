@@ -75,7 +75,7 @@ const clientQuestion = (q) => ({
 // @access Private
 router.post('/sessions', protect, async (req, res) => {
   try {
-    const student = await resolveStudent(req);
+    const student = await resolveStudent(req, undefined, { write: true });
     const {
       mode = 'independent', feature = null, skillId, skillIds = [], topicId = null,
       questionCount = 10, assignmentId = null, excludeQuestionId = null,
@@ -186,7 +186,7 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
-    const student = await resolveStudent(req, session.studentId);
+    const student = await resolveStudent(req, session.studentId, { write: true });
 
     const {
       questionId,
@@ -343,7 +343,7 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
-    const student = await resolveStudent(req, session.studentId);
+    const student = await resolveStudent(req, session.studentId, { write: true });
     const wasCompleted = session.status === 'completed';
 
     const attempts = await PracticeAttempt.find({ sessionId: session._id });
@@ -478,7 +478,7 @@ router.patch('/sessions/:id/abandon', protect, async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
-    await resolveStudent(req, session.studentId);
+    await resolveStudent(req, session.studentId, { write: true });
 
     session.status = 'abandoned';
     session.endedAt = new Date();
