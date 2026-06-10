@@ -17,6 +17,7 @@ export const FLAGS = {
   science: process.env.FEAT_SCIENCE === '1',
   mechanisms: process.env.FEAT_MECHANISMS === '1',
   spelling: process.env.FEAT_SPELLING === '1',
+  psl: process.env.FEAT_PSL === '1',
   admin: true,
 };
 

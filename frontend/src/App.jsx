@@ -109,6 +109,11 @@ const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
 const WorkingUploadScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadScreen'));
 const WorkingUploadReviewScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadReviewScreen'));
 const WorkingUploadSuccessScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadSuccessScreen'));
+// Problem Solving Lab (PSL) — guided word-problem reasoning
+const PSLHome = lazy(() => import('./pages/student/psl/PSLHome'));
+const PSLSession = lazy(() => import('./pages/student/psl/PSLSession'));
+const PSLResults = lazy(() => import('./pages/student/psl/PSLResults'));
+const PSLMistakeReview = lazy(() => import('./pages/student/psl/PSLMistakeReview'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
@@ -585,6 +590,12 @@ function App() {
             <Route path="/student/spelling/practice/:sessionId" element={<FeatureGuard feature="spelling"><SpellingSelfTest /></FeatureGuard>} />
             <Route path="/student/spelling/results/:sessionId" element={<FeatureGuard feature="spelling"><SpellingPracticeResults /></FeatureGuard>} />
             <Route path="/student/spelling/mistakes" element={<FeatureGuard feature="spelling"><SpellingPracticeMistakes /></FeatureGuard>} />
+
+            {/* Problem Solving Lab */}
+            <Route path="/student/psl" element={<FeatureGuard feature="psl"><PSLHome /></FeatureGuard>} />
+            <Route path="/student/psl/session/:sessionId" element={<FeatureGuard feature="psl"><PSLSession /></FeatureGuard>} />
+            <Route path="/student/psl/results/:sessionId" element={<FeatureGuard feature="psl"><PSLResults /></FeatureGuard>} />
+            <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
             <Route path="/student/progress" element={<SkillGraph />} />
 

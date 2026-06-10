@@ -229,6 +229,19 @@ export const lifelabAPI = {
   submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data)
 };
 
+// Problem Solving Lab (PSL) — guided heuristic word-problem reasoning.
+export const pslAPI = {
+  home: () => api.get('/psl/home'),
+  readiness: (skillId) => api.get(`/psl/skills/${skillId}/readiness`),
+  startSession: (data) => api.post('/psl/sessions', data),
+  getSession: (sessionId) => api.get(`/psl/sessions/${sessionId}`),
+  submitStep: (sessionId, problemId, data) => api.post(`/psl/sessions/${sessionId}/problems/${problemId}/step`, data),
+  completeProblem: (sessionId, problemId) => api.post(`/psl/sessions/${sessionId}/problems/${problemId}/complete`),
+  completeSession: (sessionId) => api.post(`/psl/sessions/${sessionId}/complete`),
+  abandonSession: (sessionId) => api.patch(`/psl/sessions/${sessionId}/abandon`),
+  mistakes: () => api.get('/psl/mistakes'),
+};
+
 // Mechanisms Playground (Secondary D&T). Completing a mechanism's concept check
 // records practice/mistakes/mastery against the D&T skill in the shared core.
 export const mechanismsAPI = {
