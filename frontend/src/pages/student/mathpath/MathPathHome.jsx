@@ -374,7 +374,7 @@ export default function MathPathHome() {
     <>
       <div className={`${visualStyles.page} space-y-6`}>
       <div>
-        <p className="text-sm font-semibold text-violet-700">{welcomeTitle}</p>
+        <p className={`text-sm font-semibold ${visualStyles.accent}`}>{welcomeTitle}</p>
         <h1 className="font-display text-3xl font-semibold text-ink-900">Learning Paths</h1>
       </div>
 
@@ -389,7 +389,7 @@ export default function MathPathHome() {
             <span className="absolute bottom-4 right-6 font-mono text-7xl font-semibold opacity-25">=</span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold uppercase text-violet-700">Math Mastery</p>
+            <p className={`text-sm font-semibold uppercase ${visualStyles.accent}`}>Math Mastery</p>
             <h2 className="mt-1 font-display text-4xl font-semibold text-ink-900">Fractions</h2>
             <p className="mt-2 text-sm text-ink-500">
               {recommended
@@ -412,7 +412,7 @@ export default function MathPathHome() {
           <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} barClassName={visualStyles.progress} />
           <div className="mt-2 flex items-center justify-between text-sm font-semibold text-ink-500">
             <span>{courseMasteredCount}/{totalFractionsSkills} skills mastered</span>
-            <span className="text-violet-700">{courseProgressPct}%</span>
+            <span className={visualStyles.accent}>{courseProgressPct}%</span>
           </div>
         </div>
       </Card>
@@ -424,7 +424,7 @@ export default function MathPathHome() {
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className={`flex h-full flex-col p-4 ${visualStyles.accentCard}`}>
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-50 text-violet-700"><GraduationCap className="h-6 w-6" /></span>
+            <span className={`grid h-11 w-11 place-items-center rounded-2xl ${visualStyles.icon}`}><GraduationCap className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Continue Learning</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Follow your recommended pathway.</p>
             <Button
