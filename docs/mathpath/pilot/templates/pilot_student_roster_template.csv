@@ -1,7 +1,6 @@
 student_id,student_name,level,parent_name,parent_contact,device_primary,device_backup,onboarding_status,consent_status,baseline_diagnostic_status,baseline_assessment_status,recommended_start_skill,notes
-S001,,,,,,,,,,,,
-S002,,,,,,,,,,,,
-S003,,,,,,,,,,,,
-S004,,,,,,,,,,,,
-S005,,,,,,,,,,,,
-S005,,,,,,,,,,,,
+S001,Pilot Student 1 Brand New,Primary 4,Pilot Parent,pilot.parent@tianos.test,,,seeded,pending,not_started,not_started,,Brand-new P4 student with no seeded MathPath history
+S002,Pilot Student 2 Weak Fractions,Primary 4,Pilot Parent,pilot.parent@tianos.test,,,seeded,pending,not_started,not_started,F001,P4 student with weak early fractions and open remediation items
+S003,Pilot Student 3 Strong Fractions,Primary 4,Pilot Parent,pilot.parent@tianos.test,,,seeded,pending,not_started,not_started,F010,P4 student with secure early fractions and higher readiness
+S004,Pilot Student 4 Careless Fast,Primary 4,Pilot Parent,pilot.parent@tianos.test,,,seeded,pending,not_started,not_started,F005,P4 student with fast responses overconfidence and careless mistakes
+S005,Pilot Student 5 Slow Low Confidence,Primary 4,Pilot Parent,pilot.parent@tianos.test,,,seeded,pending,not_started,not_started,F003,P4 student with correct-but-slow attempts and low confidence

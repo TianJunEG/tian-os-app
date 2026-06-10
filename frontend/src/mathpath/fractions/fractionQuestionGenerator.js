@@ -778,6 +778,28 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F008': {
+      if (familyId.endsWith('_003')) {
+        // Visual: show one fraction as a bar model, compare with a symbolic fraction
+        const n = seq(s, 1, 4);
+        const a = seq(s + 2, n + 1, 10);
+        const b = distinctSeq(s + 5, n + 1, 10, a);
+        const barFrac = Math.abs(s) % 2 === 0 ? a : b;
+        const symFrac = barFrac === a ? b : a;
+        const barVal = n / barFrac;
+        const symVal = n / symFrac;
+        const answer = barVal > symVal ? `${n}/${barFrac}` : `${n}/${symFrac}`;
+        return {
+          prompt: `The bar model shows ${n}/${barFrac}. Which is greater: the shaded fraction or ${n}/${symFrac}?`,
+          answer: { type: 'text', value: answer, display: answer },
+          acceptedAnswers: [answer],
+          diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: barFrac, shaded: n, labelMode: 'none' } },
+          solutionSteps: [
+            'Both fractions have the same numerator.',
+            'The fraction with the smaller denominator has larger parts.',
+            `Answer: ${answer}.`,
+          ],
+        };
+      }
       const n = seq(s, 1, 6);
       const a = seq(s + 2, n + 1, 12);
       const b = distinctSeq(s + 5, n + 1, 12, a);
@@ -809,6 +831,25 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F010': {
+      if (familyId.endsWith('_002')) {
+        // Visual: show a bar model with k×n shaded out of k×d, ask for the simplest equivalent
+        const n = seq(s, 1, 3);
+        const d = seq(s + 3, n + 1, 6);
+        const k = [2, 3][Math.abs(s) % 2];
+        const shaded = n * k;
+        const total = d * k;
+        const simp = simplifyFraction(shaded, total);
+        return {
+          prompt: `The bar model shows a fraction. Write the fraction in its simplest form.`,
+          answer: answerPayloadFraction(simp.numerator, simp.denominator),
+          acceptedAnswers: [fracStr(simp), `${shaded}/${total}`],
+          diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: total, shaded, labelMode: 'none' } },
+          solutionSteps: [
+            `The model shows ${shaded} out of ${total} parts shaded: ${shaded}/${total}.`,
+            `Simplify by dividing both by ${k}: ${fracStr(simp)}.`,
+          ],
+        };
+      }
       const n = seq(s, 1, 5);
       const d = seq(s + 5, n + 1, 9);
       const k = [2, 3, 4][Math.abs(s) % 3];
@@ -844,6 +885,26 @@ function templateForSkill(skillId, variant, ctx) {
           solutionSteps: ['Both fractions have equal-sized parts.', 'Compare the number of parts shaded.', `Answer: ${greater}.`],
         };
       }
+      if (familyId.endsWith('_006')) {
+        // Visual: two bars with same denominator, check if the symbolic comparison matches
+        const d = seq(s, 4, 10);
+        const a = seq(s + 1, 1, d - 1);
+        const b = distinctSeq(s + 6, 1, d - 1, a);
+        const correctSymbol = a > b ? '>' : '<';
+        const claimCorrect = Math.abs(s) % 3 !== 0;
+        const claimSymbol = claimCorrect ? correctSymbol : (correctSymbol === '>' ? '<' : '>');
+        const answer = claimCorrect ? 'True' : 'False';
+        return {
+          prompt: `The bar models show ${a}/${d} and ${b}/${d}. Is this statement true? ${a}/${d} ${claimSymbol} ${b}/${d}`,
+          answer: { type: 'text', value: answer, display: answer },
+          acceptedAnswers: [answer, answer.toLowerCase()],
+          diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: d, shaded: a, labelMode: 'none' } },
+          solutionSteps: [
+            `Compare numerators: ${a} vs ${b} (same denominator ${d}).`,
+            `${a}/${d} ${correctSymbol} ${b}/${d}, so the statement is ${answer}.`,
+          ],
+        };
+      }
       const n = seq(s, 1, 6);
       const d = seq(s + 6, n + 1, 12);
       const k = [2, 3][Math.abs(s) % 2];
@@ -868,14 +929,17 @@ function templateForSkill(skillId, variant, ctx) {
         };
       }
       if (familyId.endsWith('_005')) {
-        const n = seq(s, 1, 5);
+        // Visual: bar model for one fraction, compare with the other symbolically
+        const n = seq(s, 1, 4);
         const a = seq(s + 1, n + 1, 10);
-        const b = seq(s + 5, n + 1, 10);
+        const b = distinctSeq(s + 5, n + 1, 10, a);
         const greater = a <= b ? `${n}/${a}` : `${n}/${b}`;
+        const barDenom = Math.abs(s) % 2 === 0 ? a : b;
         return {
-          prompt: `Compare ${n}/${a} and ${n}/${b}. Which fraction is larger?`,
+          prompt: `The bar model shows ${n}/${barDenom}. Compare it with ${n}/${barDenom === a ? b : a}. Which fraction is larger?`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
+          diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: barDenom, shaded: n, labelMode: 'none' } },
           solutionSteps: ['Same numerator means same number of parts selected.', 'Larger part size comes from smaller denominator.', `Answer: ${greater}.`],
         };
       }
@@ -1243,6 +1307,26 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F020': {
+      if (familyId.endsWith('_006')) {
+        // Multi-step: find fraction of quantity, then fraction of the remainder
+        const names = ['Ali', 'Ben', 'Mei', 'Siti', 'Raj', 'Lily'][Math.abs(s) % 6];
+        const items = ['stickers', 'marbles', 'beads', 'stamps', 'coins'][Math.abs(s + 1) % 5];
+        const f1 = frac(1, [2, 3, 4, 5][Math.abs(s + 2) % 4]);
+        const f2 = frac(1, [2, 3, 4][Math.abs(s + 4) % 3]);
+        const { total, final, steps } = sequentialWholeCountTotal(s, 24, 80, [f1, f2]);
+        const step1 = steps[0];
+        const step2 = steps[1];
+        return {
+          prompt: `${names} had ${total} ${items}. He gave away ${fracStr(f1)} of them, then lost ${fracStr(f2)} of the remainder. How many ${items} does ${names} have now?`,
+          answer: answerPayloadWhole(final),
+          acceptedAnswers: [String(final)],
+          solutionSteps: [
+            `Step 1: ${fracStr(f1)} of ${total} = ${step1.amount}. Remainder: ${step1.remaining}.`,
+            `Step 2: ${fracStr(f2)} of ${step1.remaining} = ${step2.amount}. Remainder: ${step2.remaining}.`,
+            `Answer: ${final}.`,
+          ],
+        };
+      }
       const d = [2, 3, 4, 5, 8][Math.abs(s) % 5];
       const n = seq(s + 3, 1, d - 1);
       const base = seq(s + 5, 2, 12);
@@ -1312,6 +1396,71 @@ function templateForSkill(skillId, variant, ctx) {
       };
     }
     case 'F023': {
+      if (familyId.endsWith('_002')) {
+        // Mixed-operation word problem: two different fraction operations
+        const names = ['Ali', 'Ben', 'Mei', 'Siti', 'Raj', 'Lily'];
+        const name = names[Math.abs(s) % names.length];
+        const foods = ['cake', 'pizza', 'pie'];
+        const food = foods[Math.abs(s + 1) % foods.length];
+        const f1 = frac(1, [3, 4, 5, 6][Math.abs(s + 2) % 4]);
+        const f2 = frac(1, [2, 3, 4][Math.abs(s + 4) % 3]);
+        const { total, final, steps } = sequentialWholeCountTotal(s, 12, 48, [f1, f2]);
+        const step1 = steps[0];
+        const step2 = steps[1];
+        return {
+          prompt: `${name} baked ${total} pieces of ${food}. He gave ${fracStr(f1)} to his friends and ate ${fracStr(f2)} of the remainder. How many pieces are left?`,
+          answer: answerPayloadWhole(final),
+          acceptedAnswers: [String(final)],
+          solutionSteps: [
+            `Gave away: ${fracStr(f1)} of ${total} = ${step1.amount}. Left: ${step1.remaining}.`,
+            `Ate: ${fracStr(f2)} of ${step1.remaining} = ${step2.amount}. Left: ${step2.remaining}.`,
+            `Answer: ${final}.`,
+          ],
+        };
+      }
+      if (familyId.endsWith('_003')) {
+        // Word problem with a comparison constraint
+        const names = ['Ali', 'Ben', 'Mei', 'Siti'];
+        const name1 = names[Math.abs(s) % names.length];
+        const name2 = names[(Math.abs(s) + 1) % names.length];
+        const items = ['stickers', 'marbles', 'stamps', 'coins'];
+        const item = items[Math.abs(s + 2) % items.length];
+        const d = [2, 3, 4, 5][Math.abs(s + 3) % 4];
+        const base = seq(s + 5, 3, 10);
+        const total = base * d;
+        const n = seq(s + 7, 1, d - 1);
+        const gave = (total / d) * n;
+        const bought = seq(s + 9, 2, 15);
+        const ans = total - gave + bought;
+        return {
+          prompt: `${name1} had ${total} ${item}. She gave ${n}/${d} of them to ${name2} and then bought ${bought} more. How many ${item} does ${name1} have now?`,
+          answer: answerPayloadWhole(ans),
+          acceptedAnswers: [String(ans)],
+          solutionSteps: [
+            `Gave away: ${n}/${d} of ${total} = ${gave}.`,
+            `Remaining: ${total} − ${gave} = ${total - gave}.`,
+            `After buying: ${total - gave} + ${bought} = ${ans}.`,
+          ],
+        };
+      }
+      if (familyId.endsWith('_004')) {
+        // Structured response: same computation as _002/_003 but with explicit working prompt
+        const f1 = frac(1, [2, 3, 4][Math.abs(s) % 3]);
+        const f2 = frac(1, [2, 3, 4][Math.abs(s + 3) % 3]);
+        const { total, final, steps } = sequentialWholeCountTotal(s, 20, 60, [f1, f2]);
+        const step1 = steps[0];
+        const step2 = steps[1];
+        return {
+          prompt: `A shop had ${total} items. ${fracStr(f1)} were sold in the morning and ${fracStr(f2)} of the rest were sold in the afternoon. How many items are left? Show your working.`,
+          answer: answerPayloadWhole(final),
+          acceptedAnswers: [String(final)],
+          solutionSteps: [
+            `Morning: ${fracStr(f1)} of ${total} = ${step1.amount} sold. Left: ${step1.remaining}.`,
+            `Afternoon: ${fracStr(f2)} of ${step1.remaining} = ${step2.amount} sold. Left: ${step2.remaining}.`,
+            `Answer: ${final} items.`,
+          ],
+        };
+      }
       if (familyId.endsWith('_005')) {
         const a = frac([1, 2, 3][Math.abs(s) % 3], [2, 4, 5][Math.abs(s + 2) % 3]);
         const b = frac([1, 2, 3][Math.abs(s + 3) % 3], [2, 5, 10][Math.abs(s + 4) % 3]);
