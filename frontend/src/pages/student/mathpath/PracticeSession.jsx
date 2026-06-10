@@ -1072,6 +1072,21 @@ export default function PracticeSession() {
             weakSkillIds: locationWeakSkillIds,
             recentMistakeTypes: locationRecentMistakeTypes,
           });
+          // Persist the session to the backend so the submit route can find it.
+          // Fire-and-forget — the student starts practicing immediately.
+          const apiStart = isP2SkillId(resolvedIntent.requestedSkillId)
+            ? mathpathAPI.startP2Practice
+            : isP3SkillId(resolvedIntent.requestedSkillId)
+              ? mathpathAPI.startP3Practice
+              : mathpathAPI.startP1Practice;
+          apiStart({
+            practiceSessionId: started.practiceSessionId,
+            domainId: started.domainId || '',
+            targetSkillId: started.targetSkillId || resolvedIntent.requestedSkillId,
+            sessionType: started.sessionType || sessionType,
+            sessionLabel: started.sessionLabel || 'Practice',
+            questions: started.questions || [],
+          }).catch((err) => console.warn('[session-start] backend persist failed', err));
         } else {
           // ── Fractions domain (API first, client fallback) ───────────
           try {
@@ -1542,14 +1557,14 @@ export default function PracticeSession() {
           responses: payload,
         });
         try {
-          const apiSubmit = isP3Session ? mathpathAPI.submitP3Practice : mathpathAPI.submitP1Practice;
+          const apiSubmit = isP2Session ? mathpathAPI.submitP2Practice : isP3Session ? mathpathAPI.submitP3Practice : mathpathAPI.submitP1Practice;
           const { data: persisted } = await apiSubmit(
             flowSession.practiceSessionId || routeSessionId,
             { sessionType, responses: payload },
           );
           submitted = { ...submitted, ...persisted, persisted: true };
         } catch (persistErr) {
-          console.error('[session-complete] P1/P3 backend persist failed — results saved locally', persistErr);
+          console.error('[session-complete] primary practice backend persist failed — results saved locally', persistErr);
         }
       } else if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
         const { data } = await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
