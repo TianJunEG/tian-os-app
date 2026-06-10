@@ -233,15 +233,21 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 }
 
 function isPersistedPracticeSessionId(value = '') {
-  return /^(?:frac|p1_)?practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
+  return /^(?:frac|p1_|p3_)?practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
 }
 
+function deriveDomainKey(skillId) {
+  if (!skillId) return 'fractions';
+  if (isP3SkillId(skillId)) return 'p3';
+  if (isP1SkillId(skillId)) return 'p1';
+  return 'fractions';
+}
 function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [], masteredSkillIds = [], fluentSkillIds = [] }) {
   if (!studentId) return;
-  const existing = getMathPathDomainProgressState(studentId, 'fractions') || {};
+  const existing = getMathPathDomainProgressState(studentId, deriveDomainKey(currentSkillId)) || {};
   const existingMastered = Array.isArray(existing.masteredSkillIds) ? existing.masteredSkillIds : [];
   const existingFluent = Array.isArray(existing.fluentSkillIds) ? existing.fluentSkillIds : [];
-  setMathPathDomainProgressState(studentId, 'fractions', {
+  setMathPathDomainProgressState(studentId, deriveDomainKey(currentSkillId), {
     ...existing,
     lastSessionAt: new Date().toISOString(),
     currentSkillId: currentSkillId || existing.currentSkillId || null,
@@ -958,8 +964,10 @@ export default function PracticeSession() {
   const isMathPathRoute = location.pathname.startsWith('/student/mathpath/practice/');
   const hasLegacyItems = Boolean(location.state?.items?.length);
   const authenticatedStudentId = user?._id || user?.id || user?.email || '';
+  const requestedSkillId = location.state?.skillId || '';
+  const progressDomainKey = deriveDomainKey(requestedSkillId);
   const progressState = authenticatedStudentId
-    ? getMathPathDomainProgressState(authenticatedStudentId, 'fractions') || {}
+    ? getMathPathDomainProgressState(authenticatedStudentId, progressDomainKey) || {}
     : {};
   const resolvedIntent = resolvePracticeIntent({
     routeSessionId,
