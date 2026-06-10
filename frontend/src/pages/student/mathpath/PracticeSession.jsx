@@ -999,6 +999,7 @@ export default function PracticeSession() {
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [retrying, setRetrying] = useState(false);
   const [correctStreak, setCorrectStreak] = useState(0);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -1150,18 +1151,21 @@ export default function PracticeSession() {
   ]);
 
   useEffect(() => {
+    if (!isMainFlowRender) return;
     if (summary || loading || !questions.length) return;
     setQuestionStartedAt(Date.now());
     setElapsedSec(0);
-  }, [idx, summary, loading, questions.length]);
+  }, [isMainFlowRender, idx, summary, loading, questions.length]);
 
   useEffect(() => {
+    if (!isMainFlowRender) return undefined;
     if (summary || loading || !questions.length) return undefined;
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
-  }, [summary, loading, questions.length, questionStartedAt]);
+  }, [isMainFlowRender, summary, loading, questions.length, questionStartedAt]);
 
   useEffect(() => {
+    if (!isMainFlowRender) return undefined;
     if (!flowSession || !questions.length || workingSession) return undefined;
     let cancelled = false;
     const practiceSessionId = flowSession.practiceSessionId || routeSessionId;
@@ -1207,7 +1211,21 @@ export default function PracticeSession() {
         }
       });
     return () => { cancelled = true; };
-  }, [flowSession, questions, routeSessionId, sessionType, studentId, workingSession]);
+  }, [isMainFlowRender, flowSession, questions, routeSessionId, sessionType, studentId, workingSession]);
+
+  // ── Conditional early returns (all hooks declared above) ──
+  if (sessionType === 'story') {
+    if (!storyModeEnabled) {
+      return (
+        <Card className="mx-auto max-w-xl p-6">
+          <p className="text-sm text-ink-700">Problem Solving Story is not enabled yet.</p>
+          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
+        </Card>
+      );
+    }
+    return <FractionsStoryModeSession />;
+  }
+  if (!isMathPathRoute || hasLegacyItems) return <LegacyPracticeSession />;
 
   if (loading) return <Spinner />;
   if (error) {
@@ -1223,7 +1241,6 @@ export default function PracticeSession() {
   const q = questions[idx];
   const currentQuestionValidation = validatePracticeQuestionForDisplay(q);
   const isLast = idx === questions.length - 1;
-  const [retrying, setRetrying] = useState(false);
   const answered = Boolean(feedback) && !retrying;
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
 
@@ -1441,6 +1458,7 @@ export default function PracticeSession() {
       setHelpRequested(false);
       setFeedback(null);
       setRetryCount(0);
+      setRetrying(false);
       setQuestionStartedAt(Date.now());
       return;
     }
@@ -1566,6 +1584,8 @@ export default function PracticeSession() {
       setReflection('');
       setHelpRequested(false);
       setFeedback(null);
+      setRetryCount(0);
+      setRetrying(false);
       setQuestionStartedAt(Date.now());
       return;
     }

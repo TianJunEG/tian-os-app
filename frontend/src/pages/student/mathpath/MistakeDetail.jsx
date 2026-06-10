@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Check, Dumbbell, AlertTriangle, Lightbulb, Wand2 } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
@@ -6,6 +6,8 @@ import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSectio
 import { MathText } from '../../../components/ui/Fraction';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
 import { getModelDrawingTrainerForMistake } from '../../../mathpath/fractions/fractionMistakeToMasteryEngine';
+
+const StrokeReplayPlayer = lazy(() => import('../../../components/learning/StrokeReplayPlayer'));
 
 const TYPE_LABEL = {
   concept_gap: 'Concept gap', calculation_error: 'Calculation error',
@@ -204,6 +206,32 @@ export default function MistakeDetail() {
             </div>
           </section>
           <WorkingReviewCard mistake={m} />
+          {m.tutorExplanation?.strokes?.length > 0 && (
+            <section className="rounded-3xl bg-navy-50 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-navy-500">
+                  Tutor explanation
+                </p>
+                {m.tutorExplanation.recordedAt && (
+                  <span className="text-[11px] text-ink-400">
+                    {new Date(m.tutorExplanation.recordedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-sm text-ink-600">
+                Your tutor drew this explanation to help you understand. Press play to watch step by step.
+              </p>
+              <div className="mt-3">
+                <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-navy-100" />}>
+                  <StrokeReplayPlayer
+                    strokes={m.tutorExplanation.strokes}
+                    background="ruled"
+                    autoPlay={false}
+                  />
+                </Suspense>
+              </div>
+            </section>
+          )}
         </div>
 
         <section className="mt-5 rounded-3xl border border-hairline bg-paper p-4">
