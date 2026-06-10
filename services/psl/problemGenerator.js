@@ -70,6 +70,7 @@ function buildScaffoldSteps(scaffold, vars) {
     if (raw.type === 'mc') {
       step.prompt = substituteTokens(raw.prompt, vars);
       step.expectedResponse = { correctIndex: raw.correctIndex };
+      if (raw.choices) step.choices = raw.choices.map((c) => substituteTokens(c, vars));
     } else if (raw.type === 'highlight') {
       step.prompt = 'Tap the numbers that are given in the story.';
       step.expectedResponse = { numbers: (raw.expected || []).map((t) => substituteTokens(t, vars)).map(Number).filter(Boolean) };
