@@ -672,6 +672,7 @@ function LegacyPracticeSession() {
   const [reflection, setReflection] = useState('');
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const questionSurfaceRef = useRef(null);
+  const isMainFlowRender = isMathPathRoute && !hasLegacyItems && sessionType !== 'story';
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
   useEffect(() => { setStartedAt(Date.now()); }, [idx]);
@@ -1017,6 +1018,7 @@ export default function PracticeSession() {
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
   const questionSurfaceRef = useRef(null);
+  const isMainFlowRender = isMathPathRoute && !hasLegacyItems && sessionType !== 'story';
 
   useEffect(() => {
     let mounted = true;
