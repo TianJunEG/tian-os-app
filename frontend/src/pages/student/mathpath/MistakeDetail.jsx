@@ -108,7 +108,23 @@ export default function MistakeDetail() {
   const practise = async () => {
     if (starting) return; setStarting(true);
     try {
-      const { data } = await mathpathAPI.startSession({ feature: 'Mistake-to-Mastery', skillId: m.skillId, questionCount: 5 });
+      const skillId = m.skillId;
+      const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
+      if (isFrameworkSkillId) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(),
+            questionCount: 5,
+            sessionType: 'remediation',
+            source: 'mistake-detail',
+            backTo: '/student/mathpath/mistakes',
+            homeBase: '/student/mathpath/mistakes',
+            homeLabel: 'Back to mistake review',
+          },
+        });
+        return;
+      }
+      const { data } = await mathpathAPI.startSession({ feature: 'Mistake-to-Mastery', skillId, questionCount: 5 });
       navigate(`/student/mathpath/practice/${data.session_id}`, {
         state: {
           items: data.items,

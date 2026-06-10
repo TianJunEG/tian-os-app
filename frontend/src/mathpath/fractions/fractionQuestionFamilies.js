@@ -2,10 +2,48 @@ import { fractionSkillGraph } from './fractionSkillGraph.js';
 
 const SKILL_IDS = new Set(fractionSkillGraph.skillIds);
 
+// Families flagged by the Fractions Question→Skill Integrity audit as testing the
+// wrong skill or content outside the F001–F026 pilot scope. Quarantined families are
+// never served for practice, diagnostics, worksheets, recovery packs, or rechecks, so
+// they cannot corrupt diagnostic routing or pilot evidence. `canonicalSkillId` records
+// the better home for cross-skill remap candidates (applied later after content review).
+//
+// Identified by CONTENT against the current source: the 2026-06-07 audit's indices had
+// drifted (e.g. its "QF_F015_004/005 like-denominator addition" families were already
+// removed, and F013/F014's signed/decimal items shifted to the last position). 12 of the
+// original 14 flagged families remain live; these are them.
+const QUARANTINED_FAMILIES = {
+  QF_F011_005: { reason: 'Same-denominator comparison filed under equivalent-fraction generation.', canonicalSkillId: 'F007' },
+  QF_F012_004: { reason: 'Same-numerator comparison filed under simplification.', canonicalSkillId: 'F008' },
+  QF_F013_005: { reason: 'Signed/negative fraction comparison is outside the F001–F026 pilot scope.' },
+  QF_F014_005: { reason: 'Fraction/decimal ordering is outside mixed-number interpretation and pilot scope.' },
+  QF_F017_004: { reason: 'Signed fraction addition is outside same-denominator subtraction and pilot scope.' },
+  QF_F018_005: { reason: 'Signed fraction subtraction is outside unlike-denominator addition and pilot scope.' },
+  QF_F018_006: { reason: 'Unlike-fraction subtraction filed under unlike-fraction addition.', canonicalSkillId: 'F019' },
+  QF_F021_005: { reason: 'Fraction-decimal mixed multiplication is outside pure fraction multiplication and pilot scope.' },
+  QF_F022_005: { reason: 'Signed fraction division is outside the active fraction division and pilot scope.' },
+  QF_F023_005: { reason: 'Ratio with fractions and decimals is outside one-step fraction word problems and pilot scope.' },
+  QF_F025_005: { reason: 'Percentage/fraction/decimal conversion is outside exam-style fraction applications and pilot scope.' },
+  QF_F026_005: { reason: 'Algebraic fraction notation is outside the fraction mastery challenge and pilot scope.' },
+};
+
+export function getQuarantinedFamilyIds() {
+  return Object.keys(QUARANTINED_FAMILIES);
+}
+
+export function isQuarantinedFamily(familyId) {
+  return Boolean(QUARANTINED_FAMILIES[familyId]);
+}
+
 function buildFamily(skillId, index, config) {
+  const id = `QF_${skillId}_${String(index).padStart(3, '0')}`;
+  const quarantine = QUARANTINED_FAMILIES[id] || null;
   return {
-    id: `QF_${skillId}_${String(index).padStart(3, '0')}`,
+    id,
     skillId,
+    quarantined: Boolean(quarantine),
+    quarantineReason: quarantine?.reason || '',
+    canonicalSkillId: quarantine?.canonicalSkillId || skillId,
     name: config.name,
     description: config.description,
     difficulty: config.difficulty,
@@ -100,6 +138,7 @@ const familiesBySkillBlueprint = {
     { name: 'Simplify After Intermediate Steps', description: 'Simplify in multi-step symbolic expressions.', difficulty: 4, fluencyTargetSeconds: 24, misconceptionTags: ['M005', 'M010'] },
     { name: 'Compare Same Numerator Reasoning', description: 'Compare same-numerator fractions through part-size reasoning.', difficulty: 2, fluencyTargetSeconds: 16, mentalMathEligible: true, misconceptionTags: ['M002', 'M003'] },
     { name: 'Same Numerator Visual Mismatch Checks', description: 'Identify when visual model disagrees with symbolic comparison.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M002', 'M010'] },
+    { name: 'Simplify with Prime Factor Recognition', description: 'Simplify fractions by recognising shared prime factors.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['M005', 'M004'] },
   ],
   F013: [
     { name: 'Identify Improper Fractions', description: 'Classify fractions as improper/proper.', difficulty: 2, fluencyTargetSeconds: 14, workingRequired: false, mentalMathEligible: true, misconceptionTags: ['M006'] },
@@ -214,8 +253,19 @@ export function getQuestionFamily(familyId) {
   return familyById.get(familyId) || null;
 }
 
+// Active families only — quarantined families are withheld from every selection path
+// (practice, diagnostic, assessment, worksheet, recovery, fluency, tutor dashboard).
 export function getQuestionFamiliesBySkill(skillId) {
+  return fractionQuestionFamilies.filter((family) => family.skillId === skillId && !family.quarantined);
+}
+
+// Full list including quarantined families — for audit/admin/integrity reporting only.
+export function getAllQuestionFamiliesBySkill(skillId) {
   return fractionQuestionFamilies.filter((family) => family.skillId === skillId);
+}
+
+export function getQuarantinedFamilies() {
+  return fractionQuestionFamilies.filter((family) => family.quarantined);
 }
 
 export function getQuestionFamilyCountsBySkill() {
