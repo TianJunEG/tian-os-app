@@ -12,14 +12,15 @@ import StepFeedbackCard from './components/StepFeedbackCard';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
-function UnderstandStep({ onSelect, selectedIndex }) {
-  const choices = [
-    'It\'s about finding a total or combining groups',
-    'It\'s about comparing two quantities',
-    'It\'s about finding what\'s left after removing some',
-    'It\'s about sharing equally or grouping',
-  ];
-  return <QuestionIdentifier choices={choices} selectedIndex={selectedIndex} onSelect={onSelect} />;
+const DEFAULT_UNDERSTAND_CHOICES = [
+  'It\'s about finding a total or combining groups',
+  'It\'s about comparing two quantities',
+  'It\'s about finding what\'s left after removing some',
+  'It\'s about sharing equally or grouping',
+];
+
+function UnderstandStep({ choices, onSelect, selectedIndex }) {
+  return <QuestionIdentifier choices={choices?.length ? choices : DEFAULT_UNDERSTAND_CHOICES} selectedIndex={selectedIndex} onSelect={onSelect} />;
 }
 
 export default function PSLSession() {
@@ -126,6 +127,9 @@ export default function PSLSession() {
     setStepResponses((prev) => ({ ...prev, [stepId]: { ...prev[stepId], ...data } }));
   };
 
+  const getStepChoices = (stepId) =>
+    currentProblem?.scaffoldSteps?.find((s) => s.stepId === stepId)?.choices || [];
+
   if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
   if (!currentProblem) return <div className="p-6 text-center text-ink-500">No problem available.</div>;
 
@@ -169,6 +173,7 @@ export default function PSLSession() {
 
         {currentStepId === 'understand' && (
           <UnderstandStep
+            choices={getStepChoices('understand')}
             selectedIndex={stepResponses.understand?.selectedIndex}
             onSelect={(idx) => updateResponse('understand', { selectedIndex: idx })}
           />
@@ -183,6 +188,7 @@ export default function PSLSession() {
 
         {currentStepId === 'identify_question' && (
           <QuestionIdentifier
+            choices={getStepChoices('identify_question').length ? getStepChoices('identify_question') : undefined}
             selectedIndex={stepResponses.identify_question?.selectedIndex}
             onSelect={(idx) => updateResponse('identify_question', { selectedIndex: idx })}
           />
