@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Check, Lightbulb, Maximize2, X } from 'lucide-react';
 import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
+import { confettiBurst } from '../../../utils/confetti';
 import { useAuth } from '../../../context/AuthContext';
 import { Card, Button, ProgressBar, Spinner } from '../../../components/ui';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
@@ -1198,7 +1199,7 @@ export default function PracticeSession() {
     const nextStreak = answerCheck.correct ? correctStreak + 1 : 0;
     setCorrectStreak(nextStreak);
     setResponses((prev) => [...prev, current]);
-    setFeedback({
+    const answerFeedback = {
       ...buildAnswerFeedback({
         correct: answerCheck.correct,
         timeTaken,
@@ -1210,7 +1211,11 @@ export default function PracticeSession() {
       correct: answerCheck.correct,
       skipped: false,
       correctAnswer: q.answer?.display || null,
-    });
+    };
+    setFeedback(answerFeedback);
+    if (answerCheck.correct) {
+      confettiBurst({ count: nextStreak >= 3 ? 160 : 80, duration: nextStreak >= 3 ? 2200 : 1400 });
+    }
   };
 
   const openSubmissionReview = () => {
@@ -1538,7 +1543,15 @@ export default function PracticeSession() {
       </div>
       <ProgressBar value={idx + (answered ? 1 : 0)} max={questions.length} className="mb-4" barClassName={visualStyles.progress} />
 
-      <Card className={`overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
+      <Card className={`notebook-bg overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
+        <style>{`
+          .notebook-bg {
+            background-image:
+              linear-gradient(to right, transparent 39px, #e8d5c4 39px, #e8d5c4 41px, transparent 41px),
+              repeating-linear-gradient(transparent, transparent 31px, #e0dce8 31px, #e0dce8 32px);
+            background-color: #fefcf9;
+          }
+        `}</style>
         {!currentQuestionValidation.ok ? (
           <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
             <p className="font-semibold text-navy-700">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
