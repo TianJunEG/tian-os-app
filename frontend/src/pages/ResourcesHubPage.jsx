@@ -44,12 +44,12 @@ export default function ResourcesHubPage() {
   const pill = (active) =>
     `rounded-full px-4 py-2 text-sm font-medium transition ${
       active
-        ? 'bg-navy-600 text-white shadow-sm'
-        : 'border border-slate-200 bg-white text-slate-600 hover:border-navy-200 hover:text-navy-700'
+        ? 'bg-teal-500 text-white shadow-sm'
+        : 'border border-hairline bg-white text-ink-500 hover:border-teal-200 hover:text-teal-700'
     }`;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ivory">
       <Seo
         title="Resources"
         description="Free learning resources from Tian Jun Education Group: MOE syllabus guides, practice papers, and family activities."
@@ -59,13 +59,13 @@ export default function ResourcesHubPage() {
       <SiteHeader />
 
       <main id="main">
-        <section className="bg-gradient-to-b from-navy-50 via-white to-white">
+        <section className="bg-gradient-to-b from-teal-50 via-ivory to-ivory">
           <div className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
             <span className="eyebrow">Free resources</span>
-            <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl">
               Learning resources for families
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-ink-500">
               Guides to the MOE syllabus, our own practice papers, and activities families can do
               together — free from {GROUP_NAME}.
             </p>
@@ -73,7 +73,7 @@ export default function ResourcesHubPage() {
             <div className="mx-auto mt-8 max-w-md">
               <label htmlFor="resource-search" className="sr-only">Search resources</label>
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-300" />
                 <input
                   id="resource-search"
                   type="search"
@@ -100,9 +100,9 @@ export default function ResourcesHubPage() {
           </div>
 
           {loading ? (
-            <p className="text-center text-slate-500" role="status">Loading resources...</p>
+            <p className="text-center text-ink-300" role="status">Loading resources...</p>
           ) : resources.length === 0 ? (
-            <p className="text-center text-slate-500">No resources here yet — check back soon.</p>
+            <p className="text-center text-ink-300">No resources here yet — check back soon.</p>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {resources.map((resource) => (
@@ -112,7 +112,7 @@ export default function ResourcesHubPage() {
                   className="card group flex flex-col p-6 transition hover:-translate-y-1 hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-navy-700">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-teal-700">
                       {categoryName(resource.category)}
                     </span>
                     {resource.gated && (
@@ -121,12 +121,12 @@ export default function ResourcesHubPage() {
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-3 font-display text-lg font-semibold text-slate-900">{resource.title}</h3>
-                  {resource.summary && <p className="mt-2 flex-1 text-sm text-slate-600">{resource.summary}</p>}
-                  <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                    {resource.level && <span className="rounded bg-slate-100 px-2 py-1">{resource.level}</span>}
-                    {resource.subject && <span className="rounded bg-slate-100 px-2 py-1">{resource.subject}</span>}
-                    <span className="ml-auto inline-flex items-center gap-1 font-semibold text-navy-600 opacity-0 transition group-hover:opacity-100">
+                  <h3 className="mt-3 font-display text-lg font-semibold text-ink-900">{resource.title}</h3>
+                  {resource.summary && <p className="mt-2 flex-1 text-sm text-ink-500">{resource.summary}</p>}
+                  <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink-300">
+                    {resource.level && <span className="rounded bg-bone px-2 py-1">{resource.level}</span>}
+                    {resource.subject && <span className="rounded bg-bone px-2 py-1">{resource.subject}</span>}
+                    <span className="ml-auto inline-flex items-center gap-1 font-semibold text-teal-500 opacity-0 transition group-hover:opacity-100">
                       Read <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                   </div>

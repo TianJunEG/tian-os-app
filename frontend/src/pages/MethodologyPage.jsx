@@ -71,7 +71,7 @@ export default function MethodologyPage() {
   const flowRows = [flowSteps.slice(0, 4), flowSteps.slice(4)];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ivory">
       <Seo
         title="The Tian OS MathPath Framework"
         description="Learn how the Tian OS MathPath remediation framework supports students with diagnostic assessment, targeted practice, working evidence, and progress monitoring."
@@ -81,13 +81,13 @@ export default function MethodologyPage() {
       <SiteHeader />
 
       <main id="main">
-        <section className="bg-gradient-to-b from-navy-50 via-white to-white">
+        <section className="bg-gradient-to-b from-teal-50 via-ivory to-ivory">
           <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8 lg:py-24">
             <span className="eyebrow">MathPath Methodology</span>
-            <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+            <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-ink-900 sm:text-5xl lg:text-6xl">
               The Tian OS MathPath Framework
             </h1>
-            <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-slate-600">
+            <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-ink-500">
               MathPath is designed to help students move from mistakes to mastery through diagnostic assessment,
               targeted practice, working analysis, confidence tracking and progress monitoring.
             </p>
@@ -104,33 +104,33 @@ export default function MethodologyPage() {
 
         <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <h2 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Why remediation needs more than more questions</h2>
-            <p className="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-slate-600">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">Why remediation needs more than more questions</h2>
+            <p className="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-ink-500">
               Many students do not improve simply by doing more questions. They improve when the learning gap is first
               found, the method is shown clearly, and practice is targeted to the exact skill they need next.
             </p>
-            <p className="mx-auto mt-3 max-w-3xl text-lg leading-relaxed text-slate-600">
+            <p className="mx-auto mt-3 max-w-3xl text-lg leading-relaxed text-ink-500">
               Tian OS MathPath is built around this principle.
             </p>
           </div>
         </section>
 
-        <section className="bg-slate-50 py-16">
+        <section className="bg-teal-50/50 py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <span className="eyebrow">Evidence-informed principles</span>
-              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Built for sustained learning, not short-term guessing</h2>
+              <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">Built for sustained learning, not short-term guessing</h2>
             </div>
             <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {principles.map((item) => {
                 const Icon = item.icon;
                 return (
                   <div key={item.title} className="card p-6">
-                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
+                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-teal-500">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <h3 className="font-display text-lg font-semibold text-slate-900">{item.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.body}</p>
+                    <h3 className="font-display text-lg font-semibold text-ink-900">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-ink-500">{item.body}</p>
                   </div>
                 );
               })}
@@ -141,7 +141,7 @@ export default function MethodologyPage() {
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <span className="eyebrow">How MathPath works</span>
-            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">A clear learning loop</h2>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">A clear learning loop</h2>
           </div>
 
           <div className="mt-10 space-y-6">
@@ -150,40 +150,40 @@ export default function MethodologyPage() {
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   {row.map((step, index) => (
                     <Fragment key={step}>
-                      <div className="min-w-52 rounded-xl border border-slate-200 bg-white px-4 py-3 text-center md:min-w-56">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-navy-600">Step {rowIndex * 4 + index + 1}</p>
-                        <p className="mt-1 text-sm font-semibold text-slate-900 sm:text-base">{step}</p>
+                      <div className="min-w-52 rounded-xl border border-hairline bg-white px-4 py-3 text-center md:min-w-56">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-teal-500">Step {rowIndex * 4 + index + 1}</p>
+                        <p className="mt-1 text-sm font-semibold text-ink-900 sm:text-base">{step}</p>
                       </div>
                       {index < row.length - 1 && (
-                        <ArrowRight className="h-4 w-4 text-slate-300 md:h-5 md:w-5" />
+                        <ArrowRight className="h-4 w-4 text-ink-100 md:h-5 md:w-5" />
                       )}
                     </Fragment>
                   ))}
                 </div>
                 {rowIndex < flowRows.length - 1 && (
                   <div className="mt-3 flex justify-center md:hidden">
-                    <ArrowDown className="h-4 w-4 text-slate-300" />
+                    <ArrowDown className="h-4 w-4 text-ink-100" />
                   </div>
                 )}
               </div>
             ))}
           </div>
-          <p className="mt-5 text-sm text-slate-500">The sequence is designed so students revisit methods before moving on.</p>
+          <p className="mt-5 text-sm text-ink-300">The sequence is designed so students revisit methods before moving on.</p>
         </section>
 
-        <section className="bg-navy-50/60 py-16">
+        <section className="bg-teal-50/60 py-16">
           <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
             <span className="eyebrow">What makes Tian OS different</span>
             <div className="mx-auto mt-3 max-w-4xl">
-              <h2 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              <h2 className="font-display text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
                 Right answers, right signals
               </h2>
-              <p className="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-slate-600">
+              <p className="mx-auto mt-5 max-w-3xl text-lg leading-relaxed text-ink-500">
                 Most systems can tell whether an answer is right or wrong. Tian OS is being built to understand the
                 learning behaviour around the answer: confidence, time taken, working evidence, repeated mistakes and
                 remediation progress.
               </p>
-              <p className="mx-auto mt-4 max-w-3xl text-lg leading-relaxed text-slate-600">
+              <p className="mx-auto mt-4 max-w-3xl text-lg leading-relaxed text-ink-500">
                 This helps parents, tutors and teachers understand what kind of support a student may need next.
               </p>
             </div>
@@ -193,13 +193,13 @@ export default function MethodologyPage() {
         <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center">
             <span className="eyebrow">Research alignment</span>
-            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Evidence-informed, with careful framing</h2>
+            <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">Evidence-informed, with careful framing</h2>
           </div>
-          <p className="mx-auto mt-5 max-w-4xl text-lg leading-relaxed text-slate-600">
+          <p className="mx-auto mt-5 max-w-4xl text-lg leading-relaxed text-ink-500">
             Tian OS MathPath is designed around intervention principles consistent with recommendations from recognised education research
             bodies, including:
           </p>
-          <ul className="mx-auto mt-6 max-w-4xl list-disc space-y-3 pl-6 text-slate-700">
+          <ul className="mx-auto mt-6 max-w-4xl list-disc space-y-3 pl-6 text-ink-700">
             {references.map((item) => (
               <li key={item.title}>
                 <span className="font-semibold">{item.title}:</span> {item.subtitle}{' '}
@@ -207,7 +207,7 @@ export default function MethodologyPage() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-navy-600 underline hover:text-navy-700"
+                  className="text-teal-500 underline hover:text-teal-700"
                 >
                   source
                 </a>

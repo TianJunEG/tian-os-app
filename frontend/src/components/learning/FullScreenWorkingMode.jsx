@@ -384,7 +384,6 @@ export default function FullScreenWorkingMode({
 
   useEffect(() => {
     if (!open) {
-      syncedSourceSignature.current = null;
       return;
     }
     const rawStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];

@@ -150,7 +150,7 @@ export default function FounderStoryPage() {
               <div style={{ fontSize: 11, letterSpacing: '0.14em', color: INK_SOFT, textTransform: 'uppercase', marginBottom: 8 }}>On paper</div>
               <div style={{ fontSize: 24, color: INK, marginBottom: 20, fontFamily: SERIF }}>"Qualified"</div>
               {['Degree · NIE certified', '10 years experience', 'Strong A-Level results', 'Charges $90 / hr'].map((line, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: i > 0 ? '1px solid rgba(15,76,92,0.08)' : 'none' }}>
                   <span style={{ width: 18, height: 18, borderRadius: '50%', border: `1.5px solid ${INK_SOFT}`, flexShrink: 0 }} />
                   <span style={{ fontSize: 16, color: INK }}>{line}</span>
                 </div>
@@ -162,7 +162,7 @@ export default function FounderStoryPage() {
               <div style={{ fontSize: 11, letterSpacing: '0.14em', color: CORAL, textTransform: 'uppercase', marginBottom: 8, fontWeight: 700 }}>What actually matters</div>
               <div style={{ fontSize: 24, color: INK, marginBottom: 20, fontFamily: SERIF }}>Can they teach?</div>
               {['Diagnoses misconceptions accurately', "Explains clearly at the child's level", 'Adapts to learning style', 'Builds confidence, not just scores'].map((line, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderTop: i > 0 ? '1px solid rgba(15,76,92,0.08)' : 'none' }}>
                   <span style={{ width: 18, height: 18, borderRadius: '50%', background: CORAL, color: '#fff', display: 'grid', placeItems: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>✓</span>
                   <span style={{ fontSize: 16, color: INK }}>{line}</span>
                 </div>
