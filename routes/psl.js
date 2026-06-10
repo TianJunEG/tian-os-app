@@ -77,9 +77,9 @@ router.post('/sessions', protect, resolveStudent, async (req, res) => {
   }
 });
 
-router.get('/sessions/:sessionId', protect, async (req, res) => {
+router.get('/sessions/:sessionId', protect, resolveStudent, async (req, res) => {
   try {
-    const session = await getSession(req.params.sessionId);
+    const session = await getSession(req.params.sessionId, { studentId: req.studentId });
     res.json(session);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });

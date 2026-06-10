@@ -52,8 +52,10 @@ export async function startSession({ studentId, skillId, workspaceId, problemCou
   };
 }
 
-export async function getSession(sessionId) {
-  const session = await PSLSession.findOne({ sessionId }).lean();
+export async function getSession(sessionId, { studentId } = {}) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query).lean();
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
   return {
     ...session,
