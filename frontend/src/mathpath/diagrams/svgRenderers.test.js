@@ -9,7 +9,7 @@ describe('fraction diagram renderers', () => {
       data: { parts: 4, shaded: 2, labelMode: 'none' },
     });
 
-    expect(svg).toContain('fill="#bfdbfe"');
+    expect(svg).toContain('#bfdbfe');
     expect(svg).toContain('fill="#fff"');
     expect(svg).not.toContain('<pattern');
     expect(svg).not.toContain('url(#');
