@@ -73,15 +73,14 @@ export function generateQuestions(factState = {}, tables = TABLES, count = QUIZ_
     return { a, b, weight: weights[rec.strength] || 2 };
   });
 
-  const totalWeight = pool.reduce((sum, p) => sum + p.weight, 0);
   const questions = [];
   const used = new Set();
 
   for (let i = 0; i < count && used.size < pool.length; i++) {
-    let rand = Math.random() * totalWeight;
-    for (const item of pool) {
-      const key = factKey(item.a, item.b);
-      if (used.has(key)) continue;
+    const available = pool.filter((p) => !used.has(factKey(p.a, p.b)));
+    const availableWeight = available.reduce((sum, p) => sum + p.weight, 0);
+    let rand = Math.random() * availableWeight;
+    for (const item of available) {
       rand -= item.weight;
       if (rand <= 0) {
         // Randomly swap operand order for variety
@@ -91,7 +90,7 @@ export function generateQuestions(factState = {}, tables = TABLES, count = QUIZ_
           b: swap ? item.a : item.b,
           product: item.a * item.b,
         });
-        used.add(key);
+        used.add(factKey(item.a, item.b));
         break;
       }
     }
