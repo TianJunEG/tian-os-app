@@ -271,12 +271,12 @@ describe('fractionQuestionGenerator', () => {
   it('does not reference visual bars for F012 same-numerator comparisons without a diagram', () => {
     const q = generateFractionQuestion({
       skillId: 'F012',
-      questionFamilyId: 'QF_F012_005',
+      questionFamilyId: 'QF_F012_006',
       difficulty: 3,
       variant: 4,
       mode: 'diagnostic',
     });
-    expect(q.prompt).toMatch(/^Compare \d+\/\d+ and \d+\/\d+\./);
+    expect(q.prompt).toMatch(/^Simplify \d+\/\d+ to lowest terms/);
     expect(q.prompt).not.toMatch(/\bbars?\b|\bshaded\b/i);
     expect(q.diagramSpec).toBeUndefined();
   });

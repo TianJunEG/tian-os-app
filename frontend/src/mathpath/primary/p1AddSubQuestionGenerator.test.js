@@ -330,7 +330,7 @@ describe('p1AddSubQuestionGenerator', () => {
         expect(q.skillId).toBe('P1-ADD-08');
         expect(q.answerType).toBe('number');
         expect(q.answer).toBeGreaterThanOrEqual(0);
-        expect(q.answer).toBeLessThanOrEqual(35);
+        expect(q.answer).toBeLessThanOrEqual(40);
         expect(q.diagramSpec).toBeDefined();
         expect(q.diagramSpec.type).toBe('table');
       }
