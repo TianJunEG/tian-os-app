@@ -165,7 +165,7 @@ router.get('/me', protect, async (req, res) => {
 router.post('/submissions/:id/submit', protect, async (req, res) => {
   const sub = await LifeLabSubmission.findById(req.params.id);
   if (!sub) return res.status(404).json({ error: 'Submission not found.' });
-  await resolveStudent(req, sub.studentId); // access check (student or guardian/member)
+  await resolveStudent(req, sub.studentId, { write: true }); // access check; view-only guardians may not submit
   sub.dataRecorded = req.body.dataRecorded || '';
   sub.reflectionResponse = req.body.reflectionResponse || '';
   sub.evidenceUrl = req.body.evidenceUrl || '';

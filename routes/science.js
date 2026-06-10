@@ -156,7 +156,7 @@ router.get('/student-notes', async (req, res) => {
 //        from the widget naturally clears it).
 router.put('/student-notes', async (req, res) => {
   try {
-    const student = await resolveStudent(req);
+    const student = await resolveStudent(req, undefined, { write: true });
     const { heading, text = '', topicName = '' } = req.body || {};
     if (!heading || typeof heading !== 'string') return res.status(400).json({ error: 'heading is required.' });
     const trimmed = String(text).trim();

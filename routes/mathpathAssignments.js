@@ -36,14 +36,14 @@ function assertCanAssign(req, { allowStudentDiagnosticSelfAssign = false } = {})
   throw err;
 }
 
-async function loadAccessibleAssignment(req, id) {
+async function loadAccessibleAssignment(req, id, { write = false } = {}) {
   const assignment = await getAssignmentById(id);
   if (!assignment) {
     const err = new Error('MathPath assignment not found.');
     err.status = 404;
     throw err;
   }
-  await resolveStudent(req, assignment.studentId);
+  await resolveStudent(req, assignment.studentId, { write });
   return assignment;
 }
 
@@ -114,7 +114,7 @@ router.get('/:id/teaching-flow', protect, async (req, res) => {
 
 router.patch('/:id/teaching-progress', protect, async (req, res) => {
   try {
-    await loadAccessibleAssignment(req, req.params.id);
+    await loadAccessibleAssignment(req, req.params.id, { write: true });
     const recoveryPack = await updateRecoveryPackTeachingProgress({
       assignmentId: req.params.id,
       stageId: req.body?.stageId,
@@ -129,7 +129,7 @@ router.patch('/:id/teaching-progress', protect, async (req, res) => {
 
 router.patch('/:id/progress', protect, async (req, res) => {
   try {
-    await loadAccessibleAssignment(req, req.params.id);
+    await loadAccessibleAssignment(req, req.params.id, { write: true });
     const assignment = await updateAssignmentProgress({
       assignmentId: req.params.id,
       attempt: req.body?.attempt || null,
@@ -152,7 +152,7 @@ router.post('/:id/recheck-recommendation', protect, async (req, res) => {
 
 router.post('/:id/create-recheck', protect, async (req, res) => {
   try {
-    await loadAccessibleAssignment(req, req.params.id);
+    await loadAccessibleAssignment(req, req.params.id, { write: true });
     const result = await createRecheckForAssignment({
       assignmentId: req.params.id,
       requestedByUserId: userId(req),
