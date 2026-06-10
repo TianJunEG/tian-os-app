@@ -447,6 +447,14 @@ export default function MathPathHome() {
               Explore P1
             </Button>
           </Card>
+          <Card className="flex h-full flex-col border-violet-100 bg-gradient-to-br from-violet-50 via-white to-mint-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Hash className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P2 Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">22 skills across 9 domains — Singapore MOE P2 syllabus.</p>
+            <Button to="/student/mathpath/p2" variant="secondary" className="mt-4 w-full border-violet-200 bg-white/80 text-violet-700 hover:bg-violet-50">
+              Explore P2
+            </Button>
+          </Card>
           <Card className="flex h-full flex-col border-sky-100 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-100 text-navy-700"><Layers className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P3 Mathematics</h3>

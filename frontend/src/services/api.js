@@ -105,6 +105,11 @@ export const mathpathAPI = {
   getP1Practice: (practiceSessionId) => api.get(`/mastery/p1/practice/${practiceSessionId}`),
   submitP1Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p1/practice/${practiceSessionId}/submit`, data),
   getP1SkillStates: () => api.get('/mastery/p1/skill-states'),
+  // P2 practice persistence
+  startP2Practice: (data = {}) => api.post('/mastery/p2/practice/start', data),
+  getP2Practice: (practiceSessionId) => api.get(`/mastery/p2/practice/${practiceSessionId}`),
+  submitP2Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p2/practice/${practiceSessionId}/submit`, data),
+  getP2SkillStates: () => api.get('/mastery/p2/skill-states'),
   // P3 practice persistence
   startP3Practice: (data = {}) => api.post('/mastery/p3/practice/start', data),
   getP3Practice: (practiceSessionId) => api.get(`/mastery/p3/practice/${practiceSessionId}`),
