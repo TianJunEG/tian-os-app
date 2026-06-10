@@ -162,13 +162,10 @@ function comparisonBar(spec) {
     return svgShell(spec, body, 'comparison bar');
   }
   let body = '';
-  // Labels fade in first
   body += `<text x="40" y="${y1 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" fill="freeze"/>${esc(leftLabel)}</text>`;
   body += `<text x="40" y="${y2 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.15s" fill="freeze"/>${esc(rightLabel)}</text>`;
-  // Top bar grows, then bottom bar
   body += `<rect x="${x}" y="${y1}" width="0" height="28" fill="#bfdbfe" stroke="#111"><animate attributeName="width" from="0" to="${h1}" dur="0.4s" begin="0.2s" fill="freeze"/></rect>`;
   body += `<rect x="${x}" y="${y2}" width="0" height="28" fill="#ddd6fe" stroke="#111"><animate attributeName="width" from="0" to="${h2}" dur="0.4s" begin="0.4s" fill="freeze"/></rect>`;
-  // Values fade in after their bar finishes
   body += `<text x="${x + h1 + 8}" y="${y1 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.6s" fill="freeze"/>${leftValue}</text>`;
   body += `<text x="${x + h2 + 8}" y="${y2 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.8s" fill="freeze"/>${rightValue}</text>`;
   return svgShell(spec, body, 'comparison bar');
@@ -187,14 +184,33 @@ function ratioBar(spec) {
 function rectangleArea(spec) {
   const { widthUnits, heightUnits } = spec.data;
   const w = spec.width; const h = spec.height; const x = 90; const y = 50; const rw = w - 180; const rh = h - 120;
-  let body = `<rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="#fff" stroke="#111"/>`;
+  if (REDUCE_MOTION) {
+    let body = `<rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="#fff" stroke="#111"/>`;
+    for (let i = 1; i < widthUnits; i += 1) body += `<line x1="${x + (rw * i) / widthUnits}" y1="${y}" x2="${x + (rw * i) / widthUnits}" y2="${y + rh}" stroke="#9ca3af"/>`;
+    for (let j = 1; j < heightUnits; j += 1) body += `<line x1="${x}" y1="${y + (rh * j) / heightUnits}" x2="${x + rw}" y2="${y + (rh * j) / heightUnits}" stroke="#9ca3af"/>`;
+    body += `<text x="${x + rw / 2}" y="${y + rh + 28}" text-anchor="middle" font-size="14">${widthUnits} units</text><text x="${x - 14}" y="${y + rh / 2}" text-anchor="middle" font-size="14" transform="rotate(-90 ${x - 14} ${y + rh / 2})">${heightUnits} units</text>`;
+    return svgShell(spec, body, 'rectangle area');
+  }
+  const perim = 2 * (rw + rh);
+  let body = `<rect x="${x}" y="${y}" width="${rw}" height="${rh}" fill="#fff" stroke="#111" stroke-dasharray="${perim}" stroke-dashoffset="${perim}"><animate attributeName="stroke-dashoffset" from="${perim}" to="0" dur="0.5s" fill="freeze"/></rect>`;
+  const gridTotal = (widthUnits - 1) + (heightUnits - 1);
+  const perGrid = Math.min(0.06, 0.6 / (gridTotal || 1));
+  let gi = 0;
   for (let i = 1; i < widthUnits; i += 1) {
-    body += `<line x1="${x + (rw * i) / widthUnits}" y1="${y}" x2="${x + (rw * i) / widthUnits}" y2="${y + rh}" stroke="#9ca3af"/>`;
+    const gx = x + (rw * i) / widthUnits;
+    const delay = (0.5 + gi * perGrid).toFixed(2);
+    body += `<line x1="${gx}" y1="${y}" x2="${gx}" y2="${y + rh}" stroke="#9ca3af" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="${delay}s" fill="freeze"/></line>`;
+    gi += 1;
   }
   for (let j = 1; j < heightUnits; j += 1) {
-    body += `<line x1="${x}" y1="${y + (rh * j) / heightUnits}" x2="${x + rw}" y2="${y + (rh * j) / heightUnits}" stroke="#9ca3af"/>`;
+    const gy = y + (rh * j) / heightUnits;
+    const delay = (0.5 + gi * perGrid).toFixed(2);
+    body += `<line x1="${x}" y1="${gy}" x2="${x + rw}" y2="${gy}" stroke="#9ca3af" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.1s" begin="${delay}s" fill="freeze"/></line>`;
+    gi += 1;
   }
-  body += `<text x="${x + rw / 2}" y="${y + rh + 28}" text-anchor="middle" font-size="14">${widthUnits} units</text><text x="${x - 14}" y="${y + rh / 2}" text-anchor="middle" font-size="14" transform="rotate(-90 ${x - 14} ${y + rh / 2})">${heightUnits} units</text>`;
+  const labelDelay = (0.5 + gridTotal * perGrid + 0.15).toFixed(2);
+  body += `<text x="${x + rw / 2}" y="${y + rh + 28}" text-anchor="middle" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="${labelDelay}s" fill="freeze"/>${widthUnits} units</text>`;
+  body += `<text x="${x - 14}" y="${y + rh / 2}" text-anchor="middle" font-size="14" transform="rotate(-90 ${x - 14} ${y + rh / 2})" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="${labelDelay}s" fill="freeze"/>${heightUnits} units</text>`;
   return svgShell(spec, body, 'rectangle area');
 }
 
@@ -202,7 +218,19 @@ function triangleArea(spec) {
   const { base, height } = spec.data;
   const w = spec.width; const h = spec.height;
   const x0 = 100; const y0 = h - 70; const x1 = w - 100; const y1 = h - 70; const xt = (x0 + x1) / 2; const yt = 70;
-  const body = `<polygon points="${x0},${y0} ${x1},${y1} ${xt},${yt}" fill="#eff6ff" stroke="#111"/><line x1="${xt}" y1="${yt}" x2="${xt}" y2="${y0}" stroke="#1d4ed8" stroke-dasharray="5 4"/><text x="${(x0 + x1) / 2}" y="${y0 + 24}" text-anchor="middle" font-size="14">base ${base}</text><text x="${xt + 12}" y="${(yt + y0) / 2}" font-size="14">height ${height}</text>`;
+  if (REDUCE_MOTION) {
+    const body = `<polygon points="${x0},${y0} ${x1},${y1} ${xt},${yt}" fill="#eff6ff" stroke="#111"/><line x1="${xt}" y1="${yt}" x2="${xt}" y2="${y0}" stroke="#1d4ed8" stroke-dasharray="5 4"/><text x="${(x0 + x1) / 2}" y="${y0 + 24}" text-anchor="middle" font-size="14">base ${base}</text><text x="${xt + 12}" y="${(yt + y0) / 2}" font-size="14">height ${height}</text>`;
+    return svgShell(spec, body, 'triangle area');
+  }
+  const s1 = Math.hypot(x1 - x0, y1 - y0);
+  const s2 = Math.hypot(xt - x1, yt - y1);
+  const s3 = Math.hypot(x0 - xt, y0 - yt);
+  const perim = s1 + s2 + s3;
+  const hLine = y0 - yt;
+  let body = `<polygon points="${x0},${y0} ${x1},${y1} ${xt},${yt}" fill="#eff6ff" stroke="#111" stroke-dasharray="${perim}" stroke-dashoffset="${perim}"><animate attributeName="stroke-dashoffset" from="${perim}" to="0" dur="0.5s" fill="freeze"/></polygon>`;
+  body += `<line x1="${xt}" y1="${yt}" x2="${xt}" y2="${y0}" stroke="#1d4ed8" stroke-dasharray="${hLine}" stroke-dashoffset="${hLine}"><animate attributeName="stroke-dashoffset" from="${hLine}" to="0" dur="0.3s" begin="0.5s" fill="freeze"/></line>`;
+  body += `<text x="${(x0 + x1) / 2}" y="${y0 + 24}" text-anchor="middle" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.8s" fill="freeze"/>base ${base}</text>`;
+  body += `<text x="${xt + 12}" y="${(yt + y0) / 2}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.8s" fill="freeze"/>height ${height}</text>`;
   return svgShell(spec, body, 'triangle area');
 }
 
@@ -210,7 +238,22 @@ function cuboid(spec) {
   const { length, width, height } = spec.data;
   const w = spec.width; const h = spec.height;
   const x = 120; const y = 90; const fw = 220; const fh = 140; const ox = 70; const oy = -45;
-  const body = `<rect x="${x}" y="${y}" width="${fw}" height="${fh}" fill="#fff" stroke="#111"/><rect x="${x + ox}" y="${y + oy}" width="${fw}" height="${fh}" fill="#f8fafc" stroke="#111"/><line x1="${x}" y1="${y}" x2="${x + ox}" y2="${y + oy}" stroke="#111"/><line x1="${x + fw}" y1="${y}" x2="${x + fw + ox}" y2="${y + oy}" stroke="#111"/><line x1="${x}" y1="${y + fh}" x2="${x + ox}" y2="${y + fh + oy}" stroke="#111"/><line x1="${x + fw}" y1="${y + fh}" x2="${x + fw + ox}" y2="${y + fh + oy}" stroke="#111"/><text x="${x + fw / 2}" y="${y + fh + 24}" font-size="14" text-anchor="middle">length ${length}</text><text x="${x - 30}" y="${y + fh / 2}" font-size="14">height ${height}</text><text x="${x + fw + ox + 12}" y="${y + oy + fh / 2}" font-size="14">width ${width}</text>`;
+  if (REDUCE_MOTION) {
+    const body = `<rect x="${x}" y="${y}" width="${fw}" height="${fh}" fill="#fff" stroke="#111"/><rect x="${x + ox}" y="${y + oy}" width="${fw}" height="${fh}" fill="#f8fafc" stroke="#111"/><line x1="${x}" y1="${y}" x2="${x + ox}" y2="${y + oy}" stroke="#111"/><line x1="${x + fw}" y1="${y}" x2="${x + fw + ox}" y2="${y + oy}" stroke="#111"/><line x1="${x}" y1="${y + fh}" x2="${x + ox}" y2="${y + fh + oy}" stroke="#111"/><line x1="${x + fw}" y1="${y + fh}" x2="${x + fw + ox}" y2="${y + fh + oy}" stroke="#111"/><text x="${x + fw / 2}" y="${y + fh + 24}" font-size="14" text-anchor="middle">length ${length}</text><text x="${x - 30}" y="${y + fh / 2}" font-size="14">height ${height}</text><text x="${x + fw + ox + 12}" y="${y + oy + fh / 2}" font-size="14">width ${width}</text>`;
+    return svgShell(spec, body, 'cuboid');
+  }
+  const frontPerim = 2 * (fw + fh);
+  const backPerim = 2 * (fw + fh);
+  let body = '';
+  body += `<rect x="${x}" y="${y}" width="${fw}" height="${fh}" fill="#fff" stroke="#111" stroke-dasharray="${frontPerim}" stroke-dashoffset="${frontPerim}"><animate attributeName="stroke-dashoffset" from="${frontPerim}" to="0" dur="0.4s" fill="freeze"/></rect>`;
+  body += `<rect x="${x + ox}" y="${y + oy}" width="${fw}" height="${fh}" fill="#f8fafc" stroke="#111" stroke-dasharray="${backPerim}" stroke-dashoffset="${backPerim}"><animate attributeName="stroke-dashoffset" from="${backPerim}" to="0" dur="0.4s" begin="0.3s" fill="freeze"/></rect>`;
+  const edges = [[x, y, x + ox, y + oy], [x + fw, y, x + fw + ox, y + oy], [x, y + fh, x + ox, y + fh + oy], [x + fw, y + fh, x + fw + ox, y + fh + oy]];
+  edges.forEach(([lx1, ly1, lx2, ly2]) => {
+    body += `<line x1="${lx1}" y1="${ly1}" x2="${lx2}" y2="${ly2}" stroke="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.6s" fill="freeze"/></line>`;
+  });
+  body += `<text x="${x + fw / 2}" y="${y + fh + 24}" font-size="14" text-anchor="middle" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.8s" fill="freeze"/>length ${length}</text>`;
+  body += `<text x="${x - 30}" y="${y + fh / 2}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.8s" fill="freeze"/>height ${height}</text>`;
+  body += `<text x="${x + fw + ox + 12}" y="${y + oy + fh / 2}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.8s" fill="freeze"/>width ${width}</text>`;
   return svgShell(spec, body, 'cuboid');
 }
 
@@ -219,7 +262,18 @@ function angleOnLine(spec) {
   const w = spec.width; const h = spec.height; const cx = w / 2; const cy = h / 2 + 30; const r = Math.min(w, h) * 0.28;
   const rad = (Math.PI * angleDegrees) / 180;
   const x2 = cx + r * Math.cos(Math.PI - rad); const y2 = cy - r * Math.sin(Math.PI - rad);
-  const body = `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2"/><path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111"/><text x="${cx - 24}" y="${cy - 16}" font-size="14">${angleDegrees}°</text>`;
+  if (REDUCE_MOTION) {
+    const body = `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2"/><path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111"/><text x="${cx - 24}" y="${cy - 16}" font-size="14">${angleDegrees}°</text>`;
+    return svgShell(spec, body, 'angle on line');
+  }
+  const baseLen = 2 * r;
+  const armLen = Math.hypot(x2 - cx, y2 - cy);
+  const arcLen = 40 * rad;
+  let body = '';
+  body += `<line x1="${cx - r}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="#111" stroke-width="2" stroke-dasharray="${baseLen}" stroke-dashoffset="${baseLen}"><animate attributeName="stroke-dashoffset" from="${baseLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
+  body += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="${armLen}" stroke-dashoffset="${armLen}"><animate attributeName="stroke-dashoffset" from="${armLen}" to="0" dur="0.3s" begin="0.3s" fill="freeze"/></line>`;
+  body += `<path d="M ${cx - 40} ${cy} A 40 40 0 0 1 ${cx - 40 * Math.cos(rad)} ${cy - 40 * Math.sin(rad)}" fill="none" stroke="#111" stroke-dasharray="${arcLen}" stroke-dashoffset="${arcLen}"><animate attributeName="stroke-dashoffset" from="${arcLen}" to="0" dur="0.3s" begin="0.6s" fill="freeze"/></path>`;
+  body += `<text x="${cx - 24}" y="${cy - 16}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.85s" fill="freeze"/>${angleDegrees}°</text>`;
   return svgShell(spec, body, 'angle on line');
 }
 
@@ -240,11 +294,28 @@ function barChart(spec) {
   const w = spec.width; const h = spec.height; const x0 = 50; const y0 = h - 45; const cw = w - 90; const ch = h - 80;
   const max = Math.max(...bars.map((b) => Number(b.value || 0)), 1);
   const bw = cw / bars.length;
-  let body = `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111"/>`;
+  if (REDUCE_MOTION) {
+    let body = `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111"/>`;
+    bars.forEach((b, i) => {
+      const bh = (Number(b.value || 0) / max) * ch;
+      const bx = x0 + i * bw + 8;
+      body += `<rect x="${bx}" y="${y0 - bh}" width="${bw - 16}" height="${bh}" fill="#93c5fd" stroke="#111"/><text x="${bx + (bw - 16) / 2}" y="${y0 + 16}" text-anchor="middle" font-size="12">${esc(b.label || '')}</text>`;
+    });
+    return svgShell(spec, body, 'bar chart');
+  }
+  const xAxisLen = w - 20 - x0;
+  const yAxisLen = y0 - 20;
+  let body = '';
+  body += `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111" stroke-dasharray="${xAxisLen}" stroke-dashoffset="${xAxisLen}"><animate attributeName="stroke-dashoffset" from="${xAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
+  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111" stroke-dasharray="${yAxisLen}" stroke-dashoffset="${yAxisLen}"><animate attributeName="stroke-dashoffset" from="${yAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
+  const perBar = Math.min(0.18, 1.0 / (bars.length || 1));
   bars.forEach((b, i) => {
     const bh = (Number(b.value || 0) / max) * ch;
-    const x = x0 + i * bw + 8;
-    body += `<rect x="${x}" y="${y0 - bh}" width="${bw - 16}" height="${bh}" fill="#93c5fd" stroke="#111"/><text x="${x + (bw - 16) / 2}" y="${y0 + 16}" text-anchor="middle" font-size="12">${esc(b.label || '')}</text>`;
+    const bx = x0 + i * bw + 8;
+    const delay = (0.3 + i * perBar).toFixed(2);
+    const labelDelay = (0.3 + i * perBar + 0.2).toFixed(2);
+    body += `<rect x="${bx}" y="${y0}" width="${bw - 16}" height="0" fill="#93c5fd" stroke="#111"><animate attributeName="height" from="0" to="${bh}" dur="0.3s" begin="${delay}s" fill="freeze"/><animate attributeName="y" from="${y0}" to="${y0 - bh}" dur="0.3s" begin="${delay}s" fill="freeze"/></rect>`;
+    body += `<text x="${bx + (bw - 16) / 2}" y="${y0 + 16}" text-anchor="middle" font-size="12" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="${labelDelay}s" fill="freeze"/>${esc(b.label || '')}</text>`;
   });
   return svgShell(spec, body, 'bar chart');
 }
@@ -253,10 +324,29 @@ function lineGraph(spec) {
   const { points = [] } = spec.data;
   const w = spec.width; const h = spec.height; const x0 = 50; const y0 = h - 45; const cw = w - 90; const ch = h - 80;
   const maxX = Math.max(...points.map((p) => p.x), 1); const maxY = Math.max(...points.map((p) => p.y), 1);
-  const toX = (x) => x0 + (x / maxX) * cw; const toY = (y) => y0 - (y / maxY) * ch;
+  const toX = (px) => x0 + (px / maxX) * cw; const toY = (py) => y0 - (py / maxY) * ch;
   const d = points.map((p, i) => `${i ? 'L' : 'M'} ${toX(p.x)} ${toY(p.y)}`).join(' ');
-  let body = `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111"/><path d="${d}" fill="none" stroke="#1d4ed8" stroke-width="2"/>`;
-  points.forEach((p) => { body += `<circle cx="${toX(p.x)}" cy="${toY(p.y)}" r="3" fill="#1d4ed8"/>`; });
+  if (REDUCE_MOTION) {
+    let body = `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111"/><path d="${d}" fill="none" stroke="#1d4ed8" stroke-width="2"/>`;
+    points.forEach((p) => { body += `<circle cx="${toX(p.x)}" cy="${toY(p.y)}" r="3" fill="#1d4ed8"/>`; });
+    return svgShell(spec, body, 'line graph');
+  }
+  const xAxisLen = w - 20 - x0;
+  const yAxisLen = y0 - 20;
+  let body = '';
+  body += `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111" stroke-dasharray="${xAxisLen}" stroke-dashoffset="${xAxisLen}"><animate attributeName="stroke-dashoffset" from="${xAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
+  body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111" stroke-dasharray="${yAxisLen}" stroke-dashoffset="${yAxisLen}"><animate attributeName="stroke-dashoffset" from="${yAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
+  let pathLen = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    pathLen += Math.hypot(toX(points[i].x) - toX(points[i - 1].x), toY(points[i].y) - toY(points[i - 1].y));
+  }
+  pathLen = Math.max(pathLen, 1);
+  body += `<path d="${d}" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="${pathLen}" stroke-dashoffset="${pathLen}"><animate attributeName="stroke-dashoffset" from="${pathLen}" to="0" dur="0.6s" begin="0.3s" fill="freeze"/></path>`;
+  const perDot = Math.min(0.12, 0.6 / (points.length || 1));
+  points.forEach((p, i) => {
+    const delay = (0.9 + i * perDot).toFixed(2);
+    body += `<circle cx="${toX(p.x)}" cy="${toY(p.y)}" r="0" fill="#1d4ed8"><animate attributeName="r" from="0" to="4" dur="0.12s" begin="${delay}s" fill="freeze"/><animate attributeName="r" from="4" to="3" dur="0.08s" begin="${(0.9 + i * perDot + 0.12).toFixed(2)}s" fill="freeze"/></circle>`;
+  });
   return svgShell(spec, body, 'line graph');
 }
 

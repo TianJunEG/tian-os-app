@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pause, Play, RotateCcw, SkipBack, SkipForward } from 'lucide-react';
+import { Pause, Play, RotateCcw, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
 import {
   CANVAS_WIDTH as DEFAULT_WIDTH,
   CANVAS_HEIGHT as DEFAULT_HEIGHT,
@@ -45,6 +45,7 @@ function controlButton(active = false, disabled = false) {
  *  - compact:      smaller controls layout
  *  - className:    extra class names on the outer wrapper
  *  - onTimeUpdate: (timeMs: number) => void — called during playback
+ *  - audioSrc:     optional URL for synced voice narration (blob or signed R2 URL)
  */
 export default function StrokeReplayPlayer({
   strokes = [],
@@ -56,11 +57,17 @@ export default function StrokeReplayPlayer({
   compact = false,
   className = '',
   onTimeUpdate,
+  audioSrc,
 }) {
   // ── State (drives React UI) ──
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [displayTimeMs, setDisplayTimeMs] = useState(0);
+
+  // ── Audio state ──
+  const audioRef = useRef(null);
+  const [muted, setMuted] = useState(false);
+  const hasAudio = Boolean(audioSrc);
 
   // ── Refs (drive animation loop without re-renders) ──
   const canvasRef = useRef(null);
@@ -73,6 +80,12 @@ export default function StrokeReplayPlayer({
   const speedRef = useRef(speed);
 
   useEffect(() => { speedRef.current = speed; }, [speed]);
+
+  // ── Audio sync: keep playbackRate in sync ──
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) audio.playbackRate = speed;
+  }, [speed]);
 
   // ── Derived data ──
   const timeline = useMemo(() => buildReplayTimeline(strokes), [strokes]);
@@ -207,17 +220,28 @@ export default function StrokeReplayPlayer({
       setPlaying(false);
       setDisplayTimeMs(totalDuration);
       onTimeUpdate?.(totalDuration);
+      // Pause audio when animation reaches the end
+      const audio = audioRef.current;
+      if (audio && !audio.paused) audio.pause();
     } else {
       rafRef.current = requestAnimationFrame(animate);
     }
   }, [totalDuration, drawForwardTo, onTimeUpdate]);
 
-  // Start/stop animation
+  // Start/stop animation + audio sync
   useEffect(() => {
+    const audio = audioRef.current;
     if (!playing) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       lastFrameRef.current = null;
+      if (audio && !audio.paused) audio.pause();
       return;
+    }
+    // Sync audio position before playing
+    if (audio) {
+      audio.currentTime = currentTimeMsRef.current / 1000;
+      audio.playbackRate = speedRef.current;
+      audio.play().catch(() => { /* autoplay blocked — drawing still plays */ });
     }
     rafRef.current = requestAnimationFrame(animate);
     return () => {
@@ -261,6 +285,8 @@ export default function StrokeReplayPlayer({
         setDisplayTimeMs(0);
         const canvas = canvasRef.current;
         if (canvas) canvas.getContext('2d').clearRect(0, 0, canvasWidth, canvasHeight);
+        const audio = audioRef.current;
+        if (audio) audio.currentTime = 0;
       }
       return !prev;
     });
@@ -273,6 +299,8 @@ export default function StrokeReplayPlayer({
     setDisplayTimeMs(0);
     const canvas = canvasRef.current;
     if (canvas) canvas.getContext('2d').clearRect(0, 0, canvasWidth, canvasHeight);
+    const audio = audioRef.current;
+    if (audio) { audio.pause(); audio.currentTime = 0; }
   }, [canvasWidth, canvasHeight]);
 
   const scrubTo = useCallback((timeMs) => {
@@ -282,6 +310,8 @@ export default function StrokeReplayPlayer({
     setDisplayTimeMs(clamped);
     fullRedrawUpTo(clamped);
     onTimeUpdate?.(clamped);
+    const audio = audioRef.current;
+    if (audio) { audio.pause(); audio.currentTime = clamped / 1000; }
   }, [totalDuration, fullRedrawUpTo, onTimeUpdate]);
 
   const stepForward = useCallback(() => {
@@ -348,6 +378,17 @@ export default function StrokeReplayPlayer({
       className={`rounded-xl border border-hairline bg-white outline-none focus-within:ring-2 focus-within:ring-navy-300/30 ${className}`}
       data-testid="stroke-replay-player"
     >
+      {/* Hidden audio element for synced voice narration */}
+      {hasAudio && (
+        <audio
+          ref={audioRef}
+          src={audioSrc}
+          muted={muted}
+          preload="auto"
+          style={{ display: 'none' }}
+        />
+      )}
+
       {/* ── Canvas ── */}
       <div className={`overflow-auto rounded-t-xl border-b border-hairline ${backgroundCSS}`}>
         <canvas
@@ -483,6 +524,21 @@ export default function StrokeReplayPlayer({
               </button>
             ))}
           </div>
+
+          {/* Audio mute/unmute toggle */}
+          {hasAudio && (
+            <button
+              type="button"
+              aria-label={muted ? 'Unmute narration' : 'Mute narration'}
+              title={muted ? 'Unmute narration' : 'Mute narration'}
+              className={controlButton(false, false)}
+              onClick={() => setMuted((prev) => !prev)}
+            >
+              {muted
+                ? <VolumeX className="h-3.5 w-3.5 text-ink-400" />
+                : <Volume2 className="h-3.5 w-3.5" />}
+            </button>
+          )}
 
           {/* Reset */}
           <button

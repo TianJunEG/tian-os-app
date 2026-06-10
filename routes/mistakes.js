@@ -176,7 +176,7 @@ router.get('/', protect, async (req, res) => {
 // @access Private
 router.post('/bulk', protect, async (req, res) => {
   try {
-    const student = await resolveStudent(req);
+    const student = await resolveStudent(req, undefined, { write: true });
     const rows = Array.isArray(req.body?.mistakes) ? req.body.mistakes : [];
     const docs = [];
 
@@ -307,7 +307,7 @@ router.post('/:id/review', protect, async (req, res) => {
   try {
     const m = await Mistake.findById(req.params.id);
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
-    await resolveStudent(req, m.studentId); // access check
+    await resolveStudent(req, m.studentId, { write: true }); // access check
 
     applyMistakeLearningAction(m, {
       action: 'acknowledge',
@@ -335,7 +335,7 @@ router.patch('/:id/learning', protect, async (req, res) => {
   try {
     const m = await Mistake.findById(req.params.id);
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
-    await resolveStudent(req, m.studentId);
+    await resolveStudent(req, m.studentId, { write: true });
 
     const result = applyMistakeLearningAction(m, {
       action: req.body?.action,

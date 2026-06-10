@@ -11,6 +11,7 @@ import p3MoneySkillGraph from '../../../mathpath/primary/p3MoneySkillGraph';
 import p3MeasTimeSkillGraph from '../../../mathpath/primary/p3MeasTimeSkillGraph';
 import p3AreaPerimSkillGraph from '../../../mathpath/primary/p3AreaPerimSkillGraph';
 import p3StatSkillGraph from '../../../mathpath/primary/p3StatSkillGraph';
+import p3FractionsSkillGraph from '../../../mathpath/primary/p3FractionsSkillGraph';
 import p3WordProbSkillGraph from '../../../mathpath/primary/p3WordProbSkillGraph';
 
 // ---------------------------------------------------------------------------
@@ -50,11 +51,19 @@ const DOMAIN_GROUPS = [
     graph: p3MoneySkillGraph,
   },
   {
+    key: 'fractions',
+    label: 'Fractions',
+    description: 'Equivalent fractions and adding/subtracting related fractions with denominators up to 12.',
+    icon: Shapes,
+    color: 'mint',
+    graph: p3FractionsSkillGraph,
+  },
+  {
     key: 'meastime',
     label: 'Measurement & Time',
     description: 'Length and mass conversions, 24-hour time, and calculating elapsed time.',
     icon: Ruler,
-    color: 'mint',
+    color: 'sky',
     graph: p3MeasTimeSkillGraph,
   },
   {
@@ -275,8 +284,8 @@ export default function P3LearningPathPage() {
       <PageHeader
         title="Primary 3 Mathematics"
         subtitle={totalMastered > 0
-          ? `${totalMastered}/${totalSkills} skills mastered — ${totalSkills} skills across 8 domains.`
-          : `${totalSkills} skills across 8 domains — Singapore MOE P3 syllabus.`}
+          ? `${totalMastered}/${totalSkills} skills mastered — ${totalSkills} skills across 9 domains.`
+          : `${totalSkills} skills across 9 domains — Singapore MOE P3 syllabus.`}
       />
 
       <Card className="p-5">

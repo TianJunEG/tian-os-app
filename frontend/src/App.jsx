@@ -38,7 +38,8 @@ import LifeLabLayout from './components/LifeLab/LifeLabLayout';
 // Tian OS unified shell (Phase 1 foundation)
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import AppShell from './components/shell/AppShell';
-import { ToastProvider } from './components/ui';
+import { ToastProvider, useToast } from './components/ui';
+import { registerApiErrorHandler } from './services/api';
 import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
@@ -54,6 +55,7 @@ const MathPathAssignments = lazy(() => import('./pages/student/mathpath/MathPath
 const RecoveryPackTeachingFlow = lazy(() => import('./pages/student/mathpath/RecoveryPackTeachingFlow'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
 const P1LearningPathPage = lazy(() => import('./pages/student/mathpath/P1LearningPathPage'));
+const P2LearningPathPage = lazy(() => import('./pages/student/mathpath/P2LearningPathPage'));
 const P3LearningPathPage = lazy(() => import('./pages/student/mathpath/P3LearningPathPage'));
 const FractionsStoryModeSession = lazy(() => import('./pages/student/mathpath/FractionsStoryModeSession'));
 const StoryModeDomainRoute = lazy(() => import('./pages/student/mathpath/StoryModeDomainRoute'));
@@ -109,6 +111,11 @@ const PartnerDetailPage = lazy(() => import('./pages/admin/PartnerDetailPage'));
 const WorkingUploadScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadScreen'));
 const WorkingUploadReviewScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadReviewScreen'));
 const WorkingUploadSuccessScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadSuccessScreen'));
+// Problem Solving Lab (PSL) — guided word-problem reasoning
+const PSLHome = lazy(() => import('./pages/student/psl/PSLHome'));
+const PSLSession = lazy(() => import('./pages/student/psl/PSLSession'));
+const PSLResults = lazy(() => import('./pages/student/psl/PSLResults'));
+const PSLMistakeReview = lazy(() => import('./pages/student/psl/PSLMistakeReview'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
@@ -366,11 +373,31 @@ const ShellLayout = () => (
 );
 
 // Main App
+// Bridges the axios interceptor (which runs outside React) to the toast system.
+// Surfaces server (5xx) and rate-limit (429) errors that would otherwise fail
+// silently, throttled to one toast per window so background-call bursts (e.g.
+// telemetry mirrors) can't spam the student.
+function ApiErrorToastBridge() {
+  const toast = useToast();
+  React.useEffect(() => {
+    let lastShownAt = 0;
+    registerApiErrorHandler(({ message }) => {
+      const now = Date.now();
+      if (now - lastShownAt < 5000) return;
+      lastShownAt = now;
+      toast(message, { tone: 'error' });
+    });
+    return () => registerApiErrorHandler(null);
+  }, [toast]);
+  return null;
+}
+
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ToastProvider>
+        <ApiErrorToastBridge />
         <PwaManager />
         <ErrorBoundary>
         <Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><span className="h-8 w-8 animate-spin rounded-full border-2 border-bone border-t-navy-700" /></div>}>
@@ -534,6 +561,7 @@ function App() {
             <Route path="/student/mathpath/recovery-pack/:assignmentId" element={<RecoveryPackTeachingFlow />} />
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
+            <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
             <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />
             <Route path="/student/mathpath/fractions/story" element={<FractionsStoryModeSession />} />
             <Route path="/student/mathpath/fractions/story/:skillId" element={<FractionsStoryModeSession />} />
@@ -585,6 +613,12 @@ function App() {
             <Route path="/student/spelling/practice/:sessionId" element={<FeatureGuard feature="spelling"><SpellingSelfTest /></FeatureGuard>} />
             <Route path="/student/spelling/results/:sessionId" element={<FeatureGuard feature="spelling"><SpellingPracticeResults /></FeatureGuard>} />
             <Route path="/student/spelling/mistakes" element={<FeatureGuard feature="spelling"><SpellingPracticeMistakes /></FeatureGuard>} />
+
+            {/* Problem Solving Lab */}
+            <Route path="/student/psl" element={<FeatureGuard feature="psl"><PSLHome /></FeatureGuard>} />
+            <Route path="/student/psl/session/:sessionId" element={<FeatureGuard feature="psl"><PSLSession /></FeatureGuard>} />
+            <Route path="/student/psl/results/:sessionId" element={<FeatureGuard feature="psl"><PSLResults /></FeatureGuard>} />
+            <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
             <Route path="/student/progress" element={<SkillGraph />} />
 

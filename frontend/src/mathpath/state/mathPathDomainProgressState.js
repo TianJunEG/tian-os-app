@@ -120,6 +120,15 @@ export function buildMathPathDomainProgressState({
     acc[String(r.skillId)] = r.status || 'not_started';
     return acc;
   }, {});
+  // Backend is authoritative for mastery. Only 'mastered'/'retained' count: practice
+  // accuracy alone reaches 'accurate'/'learning' (competence), never mastery, which
+  // requires a passing recheck/retention. Deriving the mastered list here from backend
+  // records overrides any optimistic local cache (which marks ≥90% practice accuracy as
+  // mastered) so the progress view — and the assessment-readiness gate that reads it —
+  // can never overstate mastery beyond backend truth.
+  const masteredSkillIds = Object.entries(skillMasteryStatus)
+    .filter(([, status]) => status === 'mastered' || status === 'retained')
+    .map(([skillId]) => skillId);
 
   const totalSkills = (map.topics || []).reduce((sum, t) => sum + Number(t.total || 0), 0);
   const masteredCount = (map.topics || []).reduce((sum, t) => sum + Number(t.masteredCount || 0), 0);
@@ -140,6 +149,7 @@ export function buildMathPathDomainProgressState({
     lastSessionAt: mostRecentPractice || diagnosticCompletedAt || existingState?.lastSessionAt || null,
     currentSkillId,
     skillMasteryStatus,
+    masteredSkillIds,
     weakSkills: weakSkills.map((w) => ({
       skillId: w.skillId || null,
       skillName: w.skillName || '',

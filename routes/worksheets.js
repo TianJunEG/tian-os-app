@@ -129,7 +129,7 @@ router.post(
 
 async function generateStructuredWorksheet(req, res) {
   try {
-    const student = await resolveStudent(req, req.body.studentId);
+    const student = await resolveStudent(req, req.body.studentId, { write: true });
     const {
       worksheetType = 'recommended',
       mode = worksheetType,
@@ -348,7 +348,7 @@ router.post('/:id/submit', protect, async (req, res) => {
   try {
     const worksheet = await Worksheet.findById(req.params.id);
     if (!worksheet || !worksheet.sourceMode) return res.status(404).json({ error: 'Worksheet not found' });
-    const student = await resolveStudent(req, worksheet.studentId);
+    const student = await resolveStudent(req, worksheet.studentId, { write: true });
     const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
     if (!answers.length) return res.status(400).json({ error: 'Submit at least one answer.' });
 

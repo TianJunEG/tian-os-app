@@ -848,7 +848,7 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
             )}
             <h3 className="mt-4 font-display text-lg font-semibold text-ink-900">{title}</h3>
             <p className="mt-1 flex-1 text-sm leading-5 text-ink-600">{body}</p>
-            <Button to={disabled ? undefined : to} state={state} size="m" variant="primary" icon={ArrowRight} className={`mt-4 w-full ${visual?.styles?.primaryCta || "bg-violet-600 hover:bg-violet-700"}`} disabled={disabled} aria-label={title}>
+            <Button to={disabled ? undefined : to} state={state} size="m" variant="primary" icon={ArrowRight} className={`mt-4 w-full ${visual?.styles?.primaryCta || 'bg-violet-600 hover:bg-violet-700'}`} disabled={disabled} aria-label={title}>
               Go
             </Button>
           </Card>
@@ -1101,6 +1101,19 @@ export default function StudentDashboard() {
 
         <EncouragementBanner />
 
+        {FEATURE_FLAGS.psl && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
+              <Brain className="h-5 w-5 text-gold-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>
+              <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
+            </div>
+            <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
+          </Card>
+        )}
+
         {showDiagnosticPrompt && (
           <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
@@ -1259,6 +1272,19 @@ export default function StudentDashboard() {
           visual={visual}
           assessmentReady={assessmentGate.ready}
       />
+
+      {FEATURE_FLAGS.psl && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
+            <Brain className="h-5 w-5 text-gold-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>
+            <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
+          </div>
+          <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
+        </Card>
+      )}
 
       {showDiagnosticPrompt && (
         <Card className="mt-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">

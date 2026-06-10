@@ -55,13 +55,47 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Map any axios error to a single, consistent, student-friendly message so the
+// whole app describes failures the same way (instead of each caller inventing
+// its own copy or showing nothing). Used by callers via `error.userMessage`
+// and by the global error toast below.
+export function describeApiError(error) {
+  const status = error?.response?.status;
+  const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
+  if (status === 400) return serverMessage || 'That didn’t go through. Please check and try again.';
+  if (status === 401) return 'Your session has expired. Please sign in again.';
+  if (status === 403) return serverMessage || 'You don’t have access to that.';
+  if (status === 404) return serverMessage || 'We couldn’t find what you were looking for.';
+  if (status === 408 || error?.code === 'ECONNABORTED') return 'That took too long. Please check your connection and try again.';
+  if (status === 429) return 'You’re going a bit fast — please wait a moment and try again.';
+  if (typeof status === 'number' && status >= 500) return 'Something went wrong on our end. Please try again in a moment.';
+  if (!error?.response) return 'We couldn’t reach the server. Please check your connection and try again.';
+  return serverMessage || 'Something went wrong. Please try again.';
+}
+
+// The axios interceptor runs outside React, so a component (mounted under the
+// ToastProvider) registers a handler here to surface server/rate-limit errors.
+let apiErrorHandler = null;
+export function registerApiErrorHandler(fn) {
+  apiErrorHandler = typeof fn === 'function' ? fn : null;
+}
+
 // Handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    // Attach a consistent, user-facing message to every rejection so callers can
+    // surface `error.userMessage` instead of inventing their own copy.
+    error.userMessage = describeApiError(error);
+    if (status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+    } else if ((status === 429 || (typeof status === 'number' && status >= 500))
+      && !error.config?.skipErrorToast && apiErrorHandler) {
+      // Server/rate-limit errors otherwise fail silently (blank/stale screens).
+      // Surface a single throttled toast; control-flow 4xx are left to callers.
+      apiErrorHandler({ message: error.userMessage, status });
     }
     return Promise.reject(error);
   }
@@ -97,14 +131,23 @@ export const mathpathAPI = {
   getDiagnosticGrowth: (params) => diagnosticsAPI.growth({ subjectId: 'math', domainId: 'fractions', ...params }),
   getRecheckSummary: (sessionId, params) => diagnosticsAPI.recheckSummary(sessionId, { subjectId: 'math', domainId: 'fractions', ...params }),
   resetTestStudentState: (data = {}) => api.post('/mastery/test/reset-state', data),
-  startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data),
+  // skipErrorToast: a start failure falls back to a local session, so a server
+  // error here is recovered from and shouldn't raise a global error toast.
+  startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),
+  submitP1Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p1/practice/${practiceSessionId}/submit`, data),
+  submitP3Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p3/practice/${practiceSessionId}/submit`, data),
   // P1 practice persistence
   startP1Practice: (data = {}) => api.post('/mastery/p1/practice/start', data),
   getP1Practice: (practiceSessionId) => api.get(`/mastery/p1/practice/${practiceSessionId}`),
   submitP1Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p1/practice/${practiceSessionId}/submit`, data),
   getP1SkillStates: () => api.get('/mastery/p1/skill-states'),
+  // P2 practice persistence
+  startP2Practice: (data = {}) => api.post('/mastery/p2/practice/start', data),
+  getP2Practice: (practiceSessionId) => api.get(`/mastery/p2/practice/${practiceSessionId}`),
+  submitP2Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p2/practice/${practiceSessionId}/submit`, data),
+  getP2SkillStates: () => api.get('/mastery/p2/skill-states'),
   // P3 practice persistence
   startP3Practice: (data = {}) => api.post('/mastery/p3/practice/start', data),
   getP3Practice: (practiceSessionId) => api.get(`/mastery/p3/practice/${practiceSessionId}`),
@@ -229,6 +272,19 @@ export const lifelabAPI = {
   submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data)
 };
 
+// Problem Solving Lab (PSL) — guided heuristic word-problem reasoning.
+export const pslAPI = {
+  home: () => api.get('/psl/home'),
+  readiness: (skillId) => api.get(`/psl/skills/${skillId}/readiness`),
+  startSession: (data) => api.post('/psl/sessions', data),
+  getSession: (sessionId) => api.get(`/psl/sessions/${sessionId}`),
+  submitStep: (sessionId, problemId, data) => api.post(`/psl/sessions/${sessionId}/problems/${problemId}/step`, data),
+  completeProblem: (sessionId, problemId) => api.post(`/psl/sessions/${sessionId}/problems/${problemId}/complete`),
+  completeSession: (sessionId) => api.post(`/psl/sessions/${sessionId}/complete`),
+  abandonSession: (sessionId) => api.patch(`/psl/sessions/${sessionId}/abandon`),
+  mistakes: () => api.get('/psl/mistakes'),
+};
+
 // Mechanisms Playground (Secondary D&T). Completing a mechanism's concept check
 // records practice/mistakes/mastery against the D&T skill in the shared core.
 export const mechanismsAPI = {
@@ -255,6 +311,10 @@ export const tutorAPI = {
   certification: () => api.get('/tutor/certification'),
   mistake: (studentId, mistakeId) => api.get(`/tutor/students/${studentId}/mistakes/${mistakeId}`),
   saveExplanation: (studentId, mistakeId, data) => api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation`, data),
+  uploadExplanationAudio: (studentId, mistakeId, formData) =>
+    api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation-audio`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export const tutorInviteAPI = {
