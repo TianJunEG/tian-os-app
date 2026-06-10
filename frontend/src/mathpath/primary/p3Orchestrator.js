@@ -6,12 +6,14 @@ import * as measTimeGen from './p3MeasTimeQuestionGenerator.js';
 import * as areaPerimGen from './p3AreaPerimQuestionGenerator.js';
 import * as statGen from './p3StatQuestionGenerator.js';
 import * as wordProbGen from './p3WordProbQuestionGenerator.js';
+import * as fractionsGen from './p3FractionsQuestionGenerator.js';
 
 const domains = [
   { id: 'p3-wholenumbers', prefix: 'P3-WN', generator: wholeNumbersGen },
   { id: 'p3-addsub', prefix: 'P3-AS', generator: addSubGen },
   { id: 'p3-muldiv', prefix: 'P3-MD', generator: mulDivGen },
   { id: 'p3-money', prefix: 'P3-MON', generator: moneyGen },
+  { id: 'p3-fractions', prefix: 'P3-FR', generator: fractionsGen },
   { id: 'p3-meastime', prefix: 'P3-MT', generator: measTimeGen },
   { id: 'p3-areaperim', prefix: 'P3-AP', generator: areaPerimGen },
   { id: 'p3-stat', prefix: 'P3-ST', generator: statGen },
