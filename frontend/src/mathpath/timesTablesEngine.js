@@ -73,28 +73,35 @@ export function generateQuestions(factState = {}, tables = TABLES, count = QUIZ_
     return { a, b, weight: weights[rec.strength] || 2 };
   });
 
-  const totalWeight = pool.reduce((sum, p) => sum + p.weight, 0);
   const questions = [];
   const used = new Set();
 
   for (let i = 0; i < count && used.size < pool.length; i++) {
-    let rand = Math.random() * totalWeight;
-    for (const item of pool) {
-      const key = factKey(item.a, item.b);
-      if (used.has(key)) continue;
+    // Weighted sample WITHOUT replacement. Draw against the weight of the items
+    // still available this round (not the full pool): once high-weight items are
+    // used, a draw against the full weight could exceed the remaining weight and
+    // select nothing, returning fewer than `count` questions.
+    const available = pool.filter((item) => !used.has(factKey(item.a, item.b)));
+    const remainingWeight = available.reduce((sum, item) => sum + item.weight, 0);
+    let rand = Math.random() * remainingWeight;
+    // Default to the last item so floating-point rounding can never leave the
+    // round empty-handed.
+    let chosen = available[available.length - 1];
+    for (const item of available) {
       rand -= item.weight;
       if (rand <= 0) {
-        // Randomly swap operand order for variety
-        const swap = Math.random() < 0.5;
-        questions.push({
-          a: swap ? item.b : item.a,
-          b: swap ? item.a : item.b,
-          product: item.a * item.b,
-        });
-        used.add(key);
+        chosen = item;
         break;
       }
     }
+    // Randomly swap operand order for variety.
+    const swap = Math.random() < 0.5;
+    questions.push({
+      a: swap ? chosen.b : chosen.a,
+      b: swap ? chosen.a : chosen.b,
+      product: chosen.a * chosen.b,
+    });
+    used.add(factKey(chosen.a, chosen.b));
   }
   return questions;
 }
