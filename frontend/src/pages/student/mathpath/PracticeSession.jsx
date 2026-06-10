@@ -225,7 +225,7 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 }
 
 function isPersistedPracticeSessionId(value = '') {
-  return /^practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
+  return /^(?:frac|p1_)?practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
 }
 
 function persistDomainSessionProgress({ studentId, sessionType, currentSkillId, weakSkillIds = [], masteredSkillIds = [], fluentSkillIds = [] }) {
@@ -972,7 +972,7 @@ export default function PracticeSession() {
               assignmentId: locationAssignmentId,
             });
             started = data;
-            if (data?.practiceSessionId) {
+            if (mounted && data?.practiceSessionId) {
               navigate(`/student/mathpath/practice/${data.practiceSessionId}`, {
                 replace: true,
                 state: {
