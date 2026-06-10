@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, PencilLine, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle, Circle, Lock, PencilLine, RotateCcw } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
@@ -16,6 +16,57 @@ const MODE_META = {
   we_do: { label: 'We Do', helper: 'Pause and choose the next step.' },
   you_do: { label: 'You Do', helper: 'Try the model independently.' },
 };
+
+export const MODE_ORDER = ['i_do', 'we_do', 'you_do'];
+
+export function getPhaseStatus(phaseKey, currentMode, completedPhases) {
+  if (completedPhases.has(phaseKey)) return 'completed';
+  if (phaseKey === currentMode) return 'current';
+  const currentIdx = MODE_ORDER.indexOf(currentMode);
+  const phaseIdx = MODE_ORDER.indexOf(phaseKey);
+  if (phaseIdx === currentIdx + 1) return 'next';
+  return 'locked';
+}
+
+export function getTransitionCTA(mode, isLastStep) {
+  if (!isLastStep) return null;
+  if (mode === 'i_do') return { label: 'Continue to We Do', nextMode: 'we_do' };
+  if (mode === 'we_do') return { label: 'Continue to You Do', nextMode: 'you_do' };
+  if (mode === 'you_do') return { label: 'See results', nextMode: null };
+  return null;
+}
+
+export function extractCueHighlights(questionText = '', step = {}) {
+  const cuePhrase = step.questionHighlightPhrase || step.reasoningCue || '';
+  if (!cuePhrase || !questionText) return { segments: [{ text: questionText, highlighted: false }], cueExplanation: '' };
+  const phrases = Array.isArray(cuePhrase) ? cuePhrase : [cuePhrase];
+  const cueExplanation = step.cueExplanation || '';
+  const escaped = phrases.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(${escaped.join('|')})`, 'gi');
+  const parts = questionText.split(regex);
+  const lowerPhrases = new Set(phrases.map((p) => p.toLowerCase()));
+  const segments = parts.filter(Boolean).map((part) => ({
+    text: part,
+    highlighted: lowerPhrases.has(part.toLowerCase()),
+  }));
+  return { segments, cueExplanation };
+}
+
+function HighlightedQuestion({ text, step }) {
+  const { segments, cueExplanation } = extractCueHighlights(text, step);
+  return (
+    <div>
+      <p className="text-lg leading-8 text-ink-800">
+        {segments.map((seg, i) =>
+          seg.highlighted
+            ? <mark key={i} className="rounded bg-gold-200 px-0.5 font-semibold text-gold-900">{seg.text}</mark>
+            : <span key={i}>{seg.text}</span>
+        )}
+      </p>
+      {cueExplanation && <p className="mt-1 text-sm italic text-ink-500">{cueExplanation}</p>}
+    </div>
+  );
+}
 
 function normalizeAnswer(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
@@ -675,6 +726,7 @@ export default function FractionsModelTrainer() {
   const [showYouDoModel, setShowYouDoModel] = useState(false);
   const [fullScreenDrawingOpen, setFullScreenDrawingOpen] = useState(false);
   const [reflectionAnswer, setReflectionAnswer] = useState('');
+  const [completedPhases, setCompletedPhases] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -728,7 +780,8 @@ export default function FractionsModelTrainer() {
   const expressionQuestion = isFractionAnswer && Boolean(extractFractionExpression(prompt?.question || ''));
   const checkedCorrect = feedback === 'correct';
   const shouldRevealTeacherSolution = mode === 'i_do' || !prompt || checkedCorrect;
-  const weDoStepComplete = mode !== 'we_do' || !prompt || checkedCorrect || Boolean(reflectionAnswer);
+  const weDoStepNeedsReflection = Boolean(currentStep?.sense_check && mode === 'we_do');
+  const weDoStepComplete = mode !== 'we_do' || !prompt || (checkedCorrect && (!weDoStepNeedsReflection || Boolean(reflectionAnswer)));
   const drawingBypassAllowed = Boolean(template?.allowDrawingBypass || currentStep?.allowDrawingBypass);
   const finalStep = steps[steps.length - 1] || {};
   const finalAnswerParts = splitFinalAnswerUnit(finalStep?.model?.finalAnswer || '');
@@ -813,10 +866,26 @@ export default function FractionsModelTrainer() {
     step5Completion.canProceed,
   ]);
 
+  const transitionToPhase = (nextMode) => {
+    setCompletedPhases((prev) => new Set([...prev, mode]));
+    setMode(nextMode);
+    setStepIndex(0);
+    resetStepInput();
+    setYouDoAnswer('');
+    if (nextMode === 'you_do') setShowYouDoModel(false);
+  };
+
   const handleNext = () => {
-    if (mode === 'you_do' && isLastStep && step5Completion.canProceed) {
-      navigate('/student/mathpath');
-      return;
+    if (isLastStep) {
+      const cta = getTransitionCTA(mode, true);
+      if (cta?.nextMode) {
+        transitionToPhase(cta.nextMode);
+        return;
+      }
+      if (mode === 'you_do' && step5Completion.canProceed) {
+        navigate('/student/mathpath');
+        return;
+      }
     }
     goToStep(stepIndex + 1);
   };

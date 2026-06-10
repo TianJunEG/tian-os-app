@@ -877,6 +877,7 @@ function LegacyPracticeSession() {
       </Card>
       <FullScreenWorkingMode
         open={fullscreenOpen}
+        questionId={q.questionId}
         questionText={q.stem || q.prompt || ''}
         questionContent={(
           <div className="space-y-4 text-base">
@@ -1135,7 +1136,7 @@ export default function PracticeSession() {
         // students don't have to manually check the box for simple counting etc.
         const workingInit = {};
         valid.forEach((q) => {
-          if ((isP1SkillId(q.skillId) || isP3SkillId(q.skillId)) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
+          if (resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
             workingInit[q.questionId] = { workingNotNeeded: true, workingNotNeededAt: new Date().toISOString() };
           }
         });
@@ -1780,7 +1781,7 @@ export default function PracticeSession() {
 
           </section>
 
-          <aside className="min-w-0 min-h-0 rounded-2xl bg-violet-50/60 p-2 sm:p-3 xl:h-full xl:overflow-y-auto">
+          <aside className={`min-w-0 min-h-0 rounded-2xl p-2 sm:p-3 xl:h-full xl:overflow-y-auto ${visualStyles.softCard}`}>
             <div className="rounded-xl border border-hairline bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
@@ -1849,6 +1850,7 @@ export default function PracticeSession() {
       </Card>
       <FullScreenWorkingMode
         open={fullscreenQuestionId === q.questionId}
+        questionId={q.questionId}
         questionText={questionText}
         questionContent={(
           <div className="space-y-4 text-base">

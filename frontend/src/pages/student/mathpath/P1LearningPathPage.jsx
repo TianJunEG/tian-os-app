@@ -4,6 +4,8 @@ import { ArrowRight, CheckCircle2, Lock, Hash, Plus, DollarSign, Ruler, Shapes, 
 import { Badge, Button, Card, PageHeader } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
+import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
 import { p1NumbersSkillGraph } from '../../../mathpath/primary/p1SkillGraph';
 import { p1AddSubSkillGraph } from '../../../mathpath/primary/p1AddSubSkillGraph';
 import { p1MoneySkillGraph } from '../../../mathpath/primary/p1MoneySkillGraph';
@@ -213,6 +215,7 @@ function DomainSection({ domain, onSkillStart, skillStatesMap }) {
 export default function P1LearningPathPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [skillStatesMap, setSkillStatesMap] = useState({});
 
   const totalSkills = useMemo(
@@ -273,7 +276,7 @@ export default function P1LearningPathPage() {
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-violet-700">Skill Path</p>
+            <p className={`text-sm font-semibold uppercase ${visualStyles.accent}`}>Skill Path</p>
             <h2 className="font-display text-3xl font-semibold text-ink-900">P1 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 1 skills and start practising any topic.

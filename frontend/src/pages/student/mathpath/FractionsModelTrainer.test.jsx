@@ -6,8 +6,12 @@ import {
   buildModelRevealStates,
   buildRevealedModelForPrompt,
   buildFinalAnswerQuestion,
+  extractCueHighlights,
+  getPhaseStatus,
   getStep5CompletionState,
+  getTransitionCTA,
   getVisibleWeDoInstruction,
+  MODE_ORDER,
 } from './FractionsModelTrainer';
 
 const fifthsModel = {
@@ -247,5 +251,69 @@ describe('FractionsModelTrainer reveal states', () => {
       modelAnswerRevealed: true,
       canProceed: true,
     });
+  });
+});
+
+describe('Phase progression', () => {
+  it('defines the correct phase order', () => {
+    expect(MODE_ORDER).toEqual(['i_do', 'we_do', 'you_do']);
+  });
+
+  it('marks completed phases', () => {
+    const completed = new Set(['i_do']);
+    expect(getPhaseStatus('i_do', 'we_do', completed)).toBe('completed');
+    expect(getPhaseStatus('we_do', 'we_do', completed)).toBe('current');
+    expect(getPhaseStatus('you_do', 'we_do', completed)).toBe('next');
+  });
+
+  it('locks phases beyond the next one', () => {
+    expect(getPhaseStatus('you_do', 'i_do', new Set())).toBe('locked');
+  });
+
+  it('returns transition CTA on last step of each phase', () => {
+    expect(getTransitionCTA('i_do', true)).toMatchObject({ label: 'Continue to We Do', nextMode: 'we_do' });
+    expect(getTransitionCTA('we_do', true)).toMatchObject({ label: 'Continue to You Do', nextMode: 'you_do' });
+    expect(getTransitionCTA('you_do', true)).toMatchObject({ label: 'See results', nextMode: null });
+  });
+
+  it('returns null when not on last step', () => {
+    expect(getTransitionCTA('i_do', false)).toBeNull();
+    expect(getTransitionCTA('we_do', false)).toBeNull();
+  });
+});
+
+describe('Cue highlighting', () => {
+  it('highlights a matching phrase in question text', () => {
+    const result = extractCueHighlights(
+      'Ali had 24 stickers. He gave 1/3 of them away.',
+      { questionHighlightPhrase: '1/3 of them', cueExplanation: 'This tells us the fraction.' },
+    );
+    expect(result.segments).toEqual([
+      { text: 'Ali had 24 stickers. He gave ', highlighted: false },
+      { text: '1/3 of them', highlighted: true },
+      { text: ' away.', highlighted: false },
+    ]);
+    expect(result.cueExplanation).toBe('This tells us the fraction.');
+  });
+
+  it('returns the full text as a single segment when no cue phrase matches', () => {
+    const result = extractCueHighlights('Find 2/5 of 30.', { reasoningCue: 'no match here' });
+    expect(result.segments).toEqual([{ text: 'Find 2/5 of 30.', highlighted: false }]);
+  });
+
+  it('returns unhighlighted text when step has no cue', () => {
+    const result = extractCueHighlights('Simple question.', {});
+    expect(result.segments).toEqual([{ text: 'Simple question.', highlighted: false }]);
+  });
+
+  it('highlights multiple phrases', () => {
+    const result = extractCueHighlights(
+      'Ali had 24 stickers and gave 1/3 away.',
+      { questionHighlightPhrase: ['24 stickers', '1/3'] },
+    );
+    const highlighted = result.segments.filter((s) => s.highlighted);
+    expect(highlighted).toHaveLength(2);
+    expect(highlighted[0].text).toBe('24 stickers');
+    expect(highlighted[1].text).toBe('1/3');
   });
 });
