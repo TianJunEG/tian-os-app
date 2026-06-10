@@ -221,7 +221,13 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
     <Card className={`relative overflow-hidden p-0 ${visual.styles.card}`}>
       <DecorativeMotifs enabled={visual.styles.decorative} />
       <div className="grid gap-0 lg:grid-cols-[16rem_1fr]">
-        <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-100 text-navy-700" />
+        {isLowerPrimary(visual.mode) ? (
+          <div className="relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-violet-100 via-sky-50 to-pink-50 p-4">
+            <img src="/illustrations/mission-fractions.png" alt="" aria-hidden="true" className="max-h-48 w-auto object-contain" />
+          </div>
+        ) : (
+          <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-100 text-navy-700" />
+        )}
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="navy">{visual.styles.missionLabel}</Badge>
@@ -747,7 +753,7 @@ function brainPower(xp = 0) {
   return { level, into, perLevel: XP_PER_LEVEL, percent: Math.round((into / XP_PER_LEVEL) * 100) };
 }
 
-function LowerPrimaryStatCard({ icon: Icon, label, value, subtitle, caption, tone = 'success', progress }) {
+function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption, tone = 'success', progress }) {
   const tones = {
     success: { card: 'border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40', icon: 'bg-emerald-100 text-emerald-600', label: 'text-emerald-700', bar: 'bg-emerald-500' },
     gold: { card: 'border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50/50', icon: 'bg-orange-100 text-orange-500', label: 'text-orange-600', bar: 'bg-orange-400' },
@@ -758,9 +764,13 @@ function LowerPrimaryStatCard({ icon: Icon, label, value, subtitle, caption, ton
   return (
     <Card className={`relative overflow-hidden p-5 ${t.card}`}>
       <div className="flex items-start gap-3">
-        <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ${t.icon} shadow-resting`}>
-          <Icon className="h-7 w-7" />
-        </span>
+        {img ? (
+          <img src={img} alt="" aria-hidden="true" className="h-14 w-14 shrink-0 object-contain drop-shadow-sm" />
+        ) : (
+          <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ${t.icon} shadow-resting`}>
+            <Icon className="h-7 w-7" />
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <p className={`text-sm font-semibold ${t.label}`}>{label}</p>
           <p className="mt-0.5 font-display text-3xl font-semibold text-ink-900">{value}</p>
@@ -799,6 +809,7 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
   const cards = [
     {
       icon: BookOpen,
+      img: '/illustrations/icon-book.png',
       title: 'Continue Learning',
       body: 'Pick up where you left off',
       to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
@@ -806,10 +817,11 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       tone: 'border-emerald-100 from-emerald-50 to-white text-emerald-600',
       disabled: action.disabled,
     },
-    { icon: Search, title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'border-rose-100 from-rose-50 to-white text-rose-500' },
-    ...(FEATURE_FLAGS.fluency ? [{ icon: Timer, title: 'Fluency Challenge', body: 'Get faster and more sure', to: '/student/mathpath/fluency', tone: 'border-sky-100 from-sky-50 to-white text-sky-600' }] : []),
+    { icon: Search, img: '/illustrations/icon-magnifier.png', title: 'Review Mistakes', body: 'Learn from your recent mistakes', to: '/student/mathpath/mistakes', tone: 'border-rose-100 from-rose-50 to-white text-rose-500' },
+    ...(FEATURE_FLAGS.fluency ? [{ icon: Timer, img: '/illustrations/icon-stopwatch.png', title: 'Fluency Challenge', body: 'Get faster and more sure', to: '/student/mathpath/fluency', tone: 'border-sky-100 from-sky-50 to-white text-sky-600' }] : []),
     ...(FEATURE_FLAGS.assessments ? [{
       icon: Award,
+      img: '/illustrations/icon-crown.png',
       title: 'Mastery Check',
       body: assessmentGate.ready ? "See if you're ready to level up" : ASSESSMENT_LOCK_MESSAGE,
       to: assessmentGate.ready ? '/student/mathpath/assessment' : null,
@@ -825,11 +837,15 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
         <p className="mt-1 text-sm text-ink-500">Choose one focused action. You do not need to do everything today.</p>
       </div>
       <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map(({ icon: Icon, title, body, to, state, tone, disabled }) => (
+        {cards.map(({ icon: Icon, img, title, body, to, state, tone, disabled }) => (
           <Card key={title} className={`flex h-full flex-col rounded-[20px] border bg-gradient-to-br p-5 shadow-resting ${tone}`}>
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-white/80 shadow-resting">
-              <Icon className="h-8 w-8" />
-            </span>
+            {img ? (
+              <img src={img} alt="" aria-hidden="true" className="h-16 w-16 object-contain drop-shadow-sm" />
+            ) : (
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-white/80 shadow-resting">
+                <Icon className="h-8 w-8" />
+              </span>
+            )}
             <h3 className="mt-4 font-display text-lg font-semibold text-ink-900">{title}</h3>
             <p className="mt-1 flex-1 text-sm leading-5 text-ink-600">{body}</p>
             <Button to={disabled ? undefined : to} state={state} size="m" variant="primary" icon={ArrowRight} className="mt-4 w-full bg-violet-600 hover:bg-violet-700" disabled={disabled} aria-label={title}>
@@ -844,12 +860,17 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
 
 function LowerPrimaryBanner() {
   return (
-    <div className="relative overflow-hidden rounded-[22px] border border-yellow-100 bg-gradient-to-r from-yellow-50 via-white to-emerald-50 px-6 py-5">
-      <span className="pointer-events-none absolute right-8 top-4 grid h-12 w-12 place-items-center rounded-full bg-yellow-200/80 text-2xl shadow-resting" aria-hidden>☀️</span>
-      <div className="pointer-events-none absolute bottom-0 right-24 h-12 w-32 rounded-t-[60%] bg-emerald-200/70" />
-      <div className="pointer-events-none absolute bottom-0 right-40 h-16 w-40 rounded-t-[60%] bg-emerald-300/60" />
-      <p className="relative font-display text-lg font-semibold text-navy-700">Small steps every day lead to big progress.</p>
-      <p className="relative mt-1 text-sm font-medium text-ink-600">You've got this! 💪</p>
+    <div className="relative overflow-hidden rounded-[22px] border border-yellow-100 bg-gradient-to-r from-yellow-50 via-white to-emerald-50">
+      <img
+        src="/illustrations/banner-hills.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-1/2 object-cover object-left opacity-90 [mask-image:linear-gradient(to_right,transparent,black_35%)] sm:block"
+      />
+      <div className="relative px-6 py-5">
+        <p className="font-display text-lg font-semibold text-navy-700">Small steps every day lead to big progress.</p>
+        <p className="mt-1 text-sm font-medium text-ink-600">You've got this! 💪</p>
+      </div>
     </div>
   );
 }
@@ -1114,9 +1135,10 @@ export default function StudentDashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-full border border-violet-100 bg-white/90 px-4 py-2 shadow-resting sm:flex">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-gold-100 text-xl" aria-hidden>⭐</span>
+            <div className="relative hidden items-center gap-2 rounded-full border border-violet-100 bg-white/90 py-2 pl-2 pr-4 shadow-resting sm:flex">
+              <img src="/illustrations/mascot-star.png" alt="" aria-hidden="true" className="h-12 w-12 shrink-0 object-contain drop-shadow-sm" />
               <span className="text-sm font-semibold text-navy-700">Let's go! 💪</span>
+              <span className="absolute -bottom-3 -right-2 rotate-6 rounded-lg border border-gold-200 bg-tianYellow px-2 py-0.5 text-[11px] font-semibold text-gold-700 shadow-resting">You've got this!</span>
             </div>
             {canResetStudentState && (
               <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
@@ -1138,10 +1160,10 @@ export default function StudentDashboard() {
         />
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <LowerPrimaryStatCard icon={Trophy} label="Skills Mastered" value={`${safeMasteredCount}/${totalSkills}`} subtitle="Amazing progress!" tone="success" />
-          <LowerPrimaryStatCard icon={Flame} label="Current Streak" value={streakLabel} subtitle={displayStreak > 0 ? "Keep it up! You're on fire! 🔥" : 'Start your streak today!'} tone="gold" />
-          <LowerPrimaryStatCard icon={Gem} label="Learning XP" value={displayXp} subtitle="Keep learning to earn more!" tone="sky" />
-          <LowerPrimaryStatCard icon={Brain} label="Brain Power" value={`Level ${bp.level}`} caption={`${bp.into}/${bp.perLevel} XP`} progress={bp.percent} tone="rose" />
+          <LowerPrimaryStatCard img="/illustrations/icon-trophy.png" label="Skills Mastered" value={`${safeMasteredCount}/${totalSkills}`} subtitle="Amazing progress!" tone="success" />
+          <LowerPrimaryStatCard img="/illustrations/icon-flame.png" label="Current Streak" value={streakLabel} subtitle={displayStreak > 0 ? "Keep it up! You're on fire! 🔥" : 'Start your streak today!'} tone="gold" />
+          <LowerPrimaryStatCard img="/illustrations/icon-gem.png" label="Learning XP" value={displayXp} subtitle="Keep learning to earn more!" tone="sky" />
+          <LowerPrimaryStatCard img="/illustrations/icon-brain.png" label="Brain Power" value={`Level ${bp.level}`} caption={`${bp.into}/${bp.perLevel} XP`} progress={bp.percent} tone="rose" />
         </section>
 
         <LowerPrimaryRecommendedNext
