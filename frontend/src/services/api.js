@@ -100,6 +100,8 @@ export const mathpathAPI = {
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),
+  submitP1Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p1/practice/${practiceSessionId}/submit`, data),
+  submitP3Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p3/practice/${practiceSessionId}/submit`, data),
   // P1 practice persistence
   startP1Practice: (data = {}) => api.post('/mastery/p1/practice/start', data),
   getP1Practice: (practiceSessionId) => api.get(`/mastery/p1/practice/${practiceSessionId}`),
