@@ -779,7 +779,6 @@ function templateForSkill(skillId, variant, ctx) {
     }
     case 'F008': {
       if (familyId.endsWith('_003')) {
-        // Visual: show one fraction as a bar model, compare with a symbolic fraction
         const n = seq(s, 1, 4);
         const a = seq(s + 2, n + 1, 10);
         const b = distinctSeq(s + 5, n + 1, 10, a);
@@ -788,16 +787,26 @@ function templateForSkill(skillId, variant, ctx) {
         const barVal = n / barFrac;
         const symVal = n / symFrac;
         const answer = barVal > symVal ? `${n}/${barFrac}` : `${n}/${symFrac}`;
+        const steps = [
+          'Both fractions have the same numerator.',
+          'The fraction with the smaller denominator has larger parts.',
+          `Answer: ${answer}.`,
+        ];
+        if (ctx.mode === 'diagnostic') {
+          return {
+            prompt: `Compare ${n}/${barFrac} and ${n}/${symFrac}. Which fraction is greater?`,
+            answer: { type: 'text', value: answer, display: answer },
+            acceptedAnswers: [answer],
+            solutionSteps: steps,
+          };
+        }
+        // Visual: show one fraction as a bar model, compare with a symbolic fraction
         return {
           prompt: `The bar model shows ${n}/${barFrac}. Which is greater: the shaded fraction or ${n}/${symFrac}?`,
           answer: { type: 'text', value: answer, display: answer },
           acceptedAnswers: [answer],
           diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: barFrac, shaded: n, labelMode: 'none' } },
-          solutionSteps: [
-            'Both fractions have the same numerator.',
-            'The fraction with the smaller denominator has larger parts.',
-            `Answer: ${answer}.`,
-          ],
+          solutionSteps: steps,
         };
       }
       const n = seq(s, 1, 6);
@@ -929,11 +938,19 @@ function templateForSkill(skillId, variant, ctx) {
         };
       }
       if (familyId.endsWith('_005')) {
-        // Visual: bar model for one fraction, compare with the other symbolically
         const n = seq(s, 1, 4);
         const a = seq(s + 1, n + 1, 10);
         const b = distinctSeq(s + 5, n + 1, 10, a);
         const greater = a <= b ? `${n}/${a}` : `${n}/${b}`;
+        if (ctx.mode === 'diagnostic') {
+          return {
+            prompt: `Compare ${n}/${a} and ${n}/${b}. Which fraction is larger?`,
+            answer: { type: 'text', value: greater, display: greater },
+            acceptedAnswers: [greater],
+            solutionSteps: ['Same numerator means same number of parts selected.', 'Larger part size comes from smaller denominator.', `Answer: ${greater}.`],
+          };
+        }
+        // Visual: bar model for one fraction, compare with the other symbolically
         const barDenom = Math.abs(s) % 2 === 0 ? a : b;
         return {
           prompt: `The bar model shows ${n}/${barDenom}. Compare it with ${n}/${barDenom === a ? b : a}. Which fraction is larger?`,
