@@ -55,9 +55,10 @@ export async function startSession({ studentId, skillId, workspaceId, problemCou
 export async function getSession(sessionId) {
   const session = await PSLSession.findOne({ sessionId }).lean();
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
+  const { problems, ...rest } = session;
   return {
-    ...session,
-    currentProblem: sanitizeProblemForClient(session.problems[session.currentProblemIndex]),
+    ...rest,
+    currentProblem: sanitizeProblemForClient(problems[session.currentProblemIndex]),
   };
 }
 
@@ -138,32 +139,37 @@ export async function completeProblem({ sessionId, problemId }) {
 
   const attempt = await PSLAttempt.findOne({ sessionId, problemId }).lean();
   if (attempt) {
-    await recordAttempt({
-      studentId: session.studentId,
-      skillId: session.skillId,
-      workspaceId: session.workspaceId,
-      correct: attempt.overallCorrect,
-      timeMs: attempt.totalTimeMs,
-      module: 'PSL',
-      subject: 'Math',
-    });
+    const pslSkill = await PSLSkill.findOne({ skillId: session.skillId }).lean();
+    if (pslSkill) {
+      await recordAttempt({
+        studentId: session.studentId,
+        skillId: pslSkill._id,
+        workspaceId: session.workspaceId,
+        correct: attempt.overallCorrect,
+        timeMs: attempt.totalTimeMs,
+        module: 'PSL',
+        subject: 'Math',
+      });
+    }
 
     if (!attempt.overallCorrect) {
       const wrongSteps = attempt.steps.filter((s) => !s.correct);
       for (const step of wrongSteps) {
+        const scaffoldStep = problem.scaffoldSteps.find((sc) => sc.stepId === step.stepId);
         await Mistake.create({
           studentId: session.studentId,
           workspaceId: session.workspaceId,
+          skillId: pslSkill?._id || null,
           questionId: `${problemId}:${step.stepId}`,
           sessionId,
           module: 'PSL',
           questionText: problem.storyText,
           studentAnswer: JSON.stringify(step.response),
-          correctAnswer: JSON.stringify(step.stepId),
+          correctAnswer: JSON.stringify(scaffoldStep?.expectedResponse || step.stepId),
           answerCorrect: false,
           misconceptionTag: step.misconceptionTag,
           mistakeCategory: 'procedure_error',
-          severity: step.score === 0 ? 'high' : 'medium',
+          severity: step.score === 0 ? 'major' : 'moderate',
         });
       }
     }
