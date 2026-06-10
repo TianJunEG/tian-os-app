@@ -138,9 +138,11 @@ function normalizeP3Question(raw) {
 // ---------------------------------------------------------------------------
 
 const P3_PREFIXES = ['P3-WN', 'P3-AS', 'P3-MD', 'P3-MON', 'P3-MT', 'P3-AP', 'P3-ST', 'P3-WP'];
+const P3_SPECIAL_IDS = ['P3-DIAGNOSTIC'];
 
 export function isP3SkillId(skillId) {
   if (!skillId) return false;
+  if (P3_SPECIAL_IDS.includes(skillId)) return true;
   return P3_PREFIXES.some((prefix) => skillId.startsWith(prefix));
 }
 

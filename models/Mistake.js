@@ -133,6 +133,7 @@ const mistakeSchema = new mongoose.Schema({
     // Voice narration stored in R2 alongside the stroke replay.
     audioStorageKey: { type: String, default: '' },
     audioMimeType: { type: String, default: '' },
+    // Parent feedback on this explanation.
     feedback: { type: String, enum: ['helpful', 'not_helpful', null], default: null },
     feedbackAt: { type: Date, default: null },
     feedbackByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
