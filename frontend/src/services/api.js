@@ -255,6 +255,10 @@ export const tutorAPI = {
   certification: () => api.get('/tutor/certification'),
   mistake: (studentId, mistakeId) => api.get(`/tutor/students/${studentId}/mistakes/${mistakeId}`),
   saveExplanation: (studentId, mistakeId, data) => api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation`, data),
+  uploadExplanationAudio: (studentId, mistakeId, formData) =>
+    api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation-audio`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export const tutorInviteAPI = {

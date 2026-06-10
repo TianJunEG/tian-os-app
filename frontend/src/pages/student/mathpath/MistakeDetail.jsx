@@ -219,7 +219,8 @@ export default function MistakeDetail() {
                 )}
               </div>
               <p className="mt-1 text-sm text-ink-600">
-                Your tutor drew this explanation to help you understand. Press play to watch step by step.
+                Your tutor {m.tutorExplanation.hasAudio ? 'recorded' : 'drew'} this explanation to help you understand.
+                Press play to watch{m.tutorExplanation.hasAudio ? ' and listen' : ''} step by step.
               </p>
               <div className="mt-3">
                 <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-navy-100" />}>
@@ -227,6 +228,7 @@ export default function MistakeDetail() {
                     strokes={m.tutorExplanation.strokes}
                     background="ruled"
                     autoPlay={false}
+                    audioSrc={m.explanationAudioUrl || undefined}
                   />
                 </Suspense>
               </div>
