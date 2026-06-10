@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, Lightbulb, Maximize2, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, HelpCircle, Lightbulb, Maximize2, RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
 import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
 import { confettiBurst } from '../../../utils/confetti';
 import { useAuth } from '../../../context/AuthContext';
@@ -399,11 +399,15 @@ function ReadAloudButton({ text }) {
   );
 }
 
-function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
-  const [showSteps, setShowSteps] = useState(false);
+function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain }) {
+  const [hintsRevealed, setHintsRevealed] = useState(0);
+  const [showAllSteps, setShowAllSteps] = useState(false);
   if (!feedback) return null;
   const correct = Boolean(feedback.correct);
   const title = feedback.title || (correct ? 'Correct' : feedback.skipped ? 'Skipped' : 'Review');
+  const hasSteps = !correct && Array.isArray(solutionSteps) && solutionSteps.length > 0;
+  const allHintsUsed = hasSteps && hintsRevealed >= solutionSteps.length;
+  const showAnswer = !correct && (feedback.retryExhausted || allHintsUsed || !hasSteps);
   return (
     <div className={`relative min-h-[92px] overflow-hidden rounded-xl border p-4 ${correct ? 'tian-correct-card border-success-200 bg-success-100' : 'border-error-200 bg-error-100'}`}>
       <style>{`
@@ -426,10 +430,15 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
           35% { opacity: 1; }
           100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1); }
         }
+        @keyframes tian-hint-in {
+          from { opacity: 0; transform: translateX(-6px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
         .tian-correct-card { animation: tian-feedback-in 420ms ease-out both; }
         .tian-check-pop { animation: tian-check-pop 420ms ease-out both; }
         .tian-sparkle-dot { animation: tian-sparkle 820ms ease-out both; }
         .tian-confetti-dot { animation: tian-confetti 760ms ease-out both; }
+        .tian-hint-step { animation: tian-hint-in 320ms ease-out both; }
       `}</style>
       {correct && (
         <>
@@ -463,20 +472,65 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps }) {
       {feedback.streakMessage && (
         <p className="relative mt-2 text-sm font-semibold text-success-700">{feedback.streakMessage}</p>
       )}
-      {!correct && correctAnswer && (
-        <p className="relative mt-1 text-sm text-ink-700">Answer: <MathText text={correctAnswer} className="font-mono font-semibold" /></p>
+
+      {/* Guided hints — progressive one-at-a-time reveal */}
+      {hasSteps && !correct && (
+        <div className="relative mt-3 space-y-2">
+          {hintsRevealed > 0 && (
+            <ol className="space-y-1.5 pl-0">
+              {solutionSteps.slice(0, hintsRevealed).map((step, i) => (
+                <li key={i} className="tian-hint-step flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-ink-700">
+                  <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  <span><span className="font-semibold text-amber-700">Step {i + 1}:</span> <MathText text={step} /></span>
+                </li>
+              ))}
+            </ol>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {!allHintsUsed && !feedback.retryExhausted && (
+              <button
+                type="button"
+                onClick={() => setHintsRevealed((h) => h + 1)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:bg-amber-100"
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                {hintsRevealed === 0 ? 'Need a hint?' : `Next hint (${hintsRevealed}/${solutionSteps.length})`}
+              </button>
+            )}
+            {hintsRevealed > 0 && !allHintsUsed && !feedback.retryExhausted && onTryAgain && (
+              <button
+                type="button"
+                onClick={onTryAgain}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-bold text-sky-700 transition hover:bg-sky-100"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Try again
+              </button>
+            )}
+          </div>
+        </div>
       )}
-      {!correct && Array.isArray(solutionSteps) && solutionSteps.length > 0 && (
+
+      {showAnswer && correctAnswer && (
+        <div className="relative mt-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2">
+          <p className="text-sm text-ink-700">
+            <span className="font-semibold text-teal-700">Answer:</span>{' '}
+            <MathText text={correctAnswer} className="font-mono font-semibold" />
+          </p>
+        </div>
+      )}
+
+      {showAnswer && hasSteps && hintsRevealed < solutionSteps.length && (
         <div className="relative mt-2">
           <button
             type="button"
-            onClick={() => setShowSteps((v) => !v)}
+            onClick={() => setShowAllSteps((v) => !v)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
           >
             <Lightbulb className="h-3.5 w-3.5" />
-            {showSteps ? 'Hide steps' : 'Show me how'}
+            {showAllSteps ? 'Hide steps' : 'Show full solution'}
           </button>
-          {showSteps && (
+          {showAllSteps && (
             <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-ink-700">
               {solutionSteps.map((step, i) => (
                 <li key={i}><MathText text={step} /></li>
@@ -944,6 +998,7 @@ export default function PracticeSession() {
   const [elapsedSec, setElapsedSec] = useState(0);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [correctStreak, setCorrectStreak] = useState(0);
   const [responses, setResponses] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -1168,8 +1223,15 @@ export default function PracticeSession() {
   const q = questions[idx];
   const currentQuestionValidation = validatePracticeQuestionForDisplay(q);
   const isLast = idx === questions.length - 1;
-  const answered = Boolean(feedback);
+  const [retrying, setRetrying] = useState(false);
+  const answered = Boolean(feedback) && !retrying;
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
+
+  const handleTryAgain = () => {
+    setAnswer('');
+    setRetrying(true);
+    setRetryCount((c) => c + 1);
+  };
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
   const workingRequirementLevel = resolveWorkingRequirementLevel(q, sessionType);
@@ -1196,10 +1258,46 @@ export default function PracticeSession() {
   const onSubmitCurrent = () => {
     if (busy || answered) return;
     if (!currentQuestionValidation.ok) return;
+
+    // Retry path — student is re-submitting after using hints
+    if (retrying && answer) {
+      const retryCheck = isP1SkillId(q.skillId)
+        ? checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+        : checkFractionAnswer({
+            studentAnswer: answer,
+            correctAnswer: q.answer,
+            acceptedAnswers: q.acceptedAnswers || [],
+          });
+      setRetrying(false);
+      if (retryCheck.correct) {
+        const nextStreak = correctStreak + 1;
+        setCorrectStreak(nextStreak);
+        setFeedback({
+          correct: true,
+          skipped: false,
+          title: 'Got it!',
+          message: 'You worked it out with the hints — great learning!',
+          streakMessage: '',
+          showConfetti: false,
+          correctAnswer: null,
+        });
+        confettiBurst({ count: 60, duration: 1200 });
+      } else {
+        setFeedback((prev) => ({
+          ...prev,
+          retryExhausted: true,
+          message: "Not quite — let's review the full solution.",
+        }));
+      }
+      return;
+    }
+
     if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
-    const answerCheck = isP1SkillId(q.skillId)
-      ? checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+    const answerCheck = (isP1SkillId(q.skillId) || isP3SkillId(q.skillId))
+      ? (isP3SkillId(q.skillId)
+        ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+        : checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q }))
       : checkFractionAnswer({
           studentAnswer: answer,
           correctAnswer: q.answer,
@@ -1245,6 +1343,7 @@ export default function PracticeSession() {
       attemptNumber: 1,
       _skipped: false,
       _correct: answerCheck.correct,
+      hintsUsed: retryCount,
     };
     const nextStreak = answerCheck.correct ? correctStreak + 1 : 0;
     setCorrectStreak(nextStreak);
@@ -1271,6 +1370,8 @@ export default function PracticeSession() {
   const openSubmissionReview = () => {
     if (!answer) return;
     if (!currentQuestionValidation.ok) return;
+    // During retry, skip the modal — just re-check directly
+    if (retrying) { onSubmitCurrent(); return; }
     setSubmissionReviewOpen(true);
   };
 
@@ -1339,6 +1440,7 @@ export default function PracticeSession() {
       setReflection('');
       setHelpRequested(false);
       setFeedback(null);
+      setRetryCount(0);
       setQuestionStartedAt(Date.now());
       return;
     }
@@ -1674,7 +1776,7 @@ export default function PracticeSession() {
             </div>
 
             <div className="mt-2">
-              <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} />
+              <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} solutionSteps={q.solutionSteps} onTryAgain={handleTryAgain} />
             </div>
 
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
