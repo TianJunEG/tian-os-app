@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, X } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
@@ -11,6 +11,9 @@ import MistakeCard from './MistakeCard';
 // targeted practice on the same skill. Honours ?skill=<id> so a WeakTopics
 // "Review mistakes" link lands filtered to that skill (previously it opened
 // the unfiltered list, which was a mild bait-and-switch).
+//
+// Also honours ?highlight=<mistakeId> from notification deep-links so the
+// relevant card scrolls into view and gets a brief gold ring.
 export default function MistakeHistory() {
   const { studentId } = useParams();
   const navigate = useNavigate();
@@ -20,12 +23,25 @@ export default function MistakeHistory() {
   const [error, setError] = useState(null);
 
   const skillFilter = params.get('skill') || '';
+  const highlightId = params.get('highlight') || '';
+
+  // Scroll-to-highlight refs
+  const highlightRef = useRef(null);
+  const didScroll = useRef(false);
 
   const load = useCallback(() => {
     setError(null); setMistakes(null);
     mathpathAPI.mistakes({ studentId }).then((r) => setMistakes(r.data.mistakes || [])).catch((e) => setError(e));
   }, [studentId]);
   useEffect(() => { load(); }, [load]);
+
+  // Scroll to highlighted mistake once the list renders
+  useEffect(() => {
+    if (highlightId && highlightRef.current && !didScroll.current) {
+      didScroll.current = true;
+      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightId, mistakes]);
 
   const visible = useMemo(() => {
     if (!mistakes) return null;
@@ -61,22 +77,30 @@ export default function MistakeHistory() {
         />
       ) : (
         <div className="space-y-4">
-          {visible.map((m) => (
-            <MistakeCard
-              key={m.id}
-              mistake={m}
-              formula
-              action={
-                <Button
-                  size="s"
-                  variant="secondary"
-                  onClick={() => navigate(`/parent/children/${studentId}/assign-practice?skill=${m.skillId}`)}
-                >
-                  Assign practice
-                </Button>
-              }
-            />
-          ))}
+          {visible.map((m) => {
+            const isHighlighted = highlightId && String(m.id) === String(highlightId);
+            return (
+              <div
+                key={m.id}
+                ref={isHighlighted ? highlightRef : undefined}
+                className={isHighlighted ? 'rounded-2xl ring-2 ring-gold-400 animate-pulse-once' : ''}
+              >
+                <MistakeCard
+                  mistake={m}
+                  formula
+                  action={
+                    <Button
+                      size="s"
+                      variant="secondary"
+                      onClick={() => navigate(`/parent/children/${studentId}/assign-practice?skill=${m.skillId}`)}
+                    >
+                      Assign practice
+                    </Button>
+                  }
+                />
+              </div>
+            );
+          })}
         </div>
       )}
     </>

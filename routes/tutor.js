@@ -292,7 +292,7 @@ router.post('/students/:id/mistakes/:mistakeId/explanation', async (req, res) =>
         type: 'tutor_explanation',
         title: `Tutor explanation for ${student.name}`,
         body: `Your tutor recorded an explanation for: ${mistake.questionStem?.slice(0, 80) || 'a recent mistake'}`,
-        linkPath: `/parent/children/${student._id}/mistakes`,
+        linkPath: `/parent/children/${student._id}/mistakes?highlight=${mistake._id}`,
         sourceType: 'Mistake',
         sourceId: mistake._id,
       })))
