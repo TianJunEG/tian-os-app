@@ -14,6 +14,9 @@ function svgShell(spec, body, ariaLabel = '') {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(ariaLabel)}"><rect x="0" y="0" width="${w}" height="${h}" fill="#fff"/>${body}</svg>`;
 }
 
+// Respect OS-level reduced-motion preference — render the final state instantly.
+const REDUCE_MOTION = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
 const SHADED_FILL = '#bfdbfe';
 const UNSHADED_FILL = '#fff';
 const BORDER_STROKE = '#111';
@@ -24,6 +27,12 @@ function fractionBar(spec) {
   const w = spec.width; const h = spec.height;
   const x = 40; const y = h / 2 - 24; const bw = w - 80; const bh = 48;
   const seg = bw / parts;
+  if (REDUCE_MOTION) {
+    let body = '';
+    for (let i = 0; i < parts; i += 1) body += `<rect x="${x + i * seg}" y="${y}" width="${seg}" height="${bh}" fill="${i < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
+    if (labelMode !== 'none') body += `<text x="${w / 2}" y="${y + bh + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
+    return svgShell(spec, body, 'fraction bar');
+  }
   const perSeg = Math.min(0.18, 1.2 / (shaded || 1));
   const shadeEnd = shaded * perSeg;
   let body = '';
@@ -46,23 +55,52 @@ function fractionCircle(spec) {
   const { parts, shaded } = spec.data;
   const w = spec.width; const h = spec.height;
   const cx = w / 2; const cy = h / 2; const r = Math.min(w, h) * 0.32;
+  if (REDUCE_MOTION) {
+    let body = '';
+    for (let i = 0; i < parts; i += 1) {
+      const a0 = (i / parts) * Math.PI * 2 - Math.PI / 2;
+      const a1 = ((i + 1) / parts) * Math.PI * 2 - Math.PI / 2;
+      const x0 = cx + r * Math.cos(a0); const y0 = cy + r * Math.sin(a0);
+      const x1 = cx + r * Math.cos(a1); const y1 = cy + r * Math.sin(a1);
+      body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${i < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${BORDER_STROKE}"/>`;
+    }
+    body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
+    return svgShell(spec, body, 'fraction circle');
+  }
+  const perSlice = Math.min(0.18, 1.2 / (shaded || 1));
+  const shadeEnd = shaded * perSlice;
   let body = '';
   for (let i = 0; i < parts; i += 1) {
     const a0 = (i / parts) * Math.PI * 2 - Math.PI / 2;
     const a1 = ((i + 1) / parts) * Math.PI * 2 - Math.PI / 2;
     const x0 = cx + r * Math.cos(a0); const y0 = cy + r * Math.sin(a0);
     const x1 = cx + r * Math.cos(a1); const y1 = cy + r * Math.sin(a1);
-    body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${i < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${BORDER_STROKE}"/>`;
+    if (i < shaded) {
+      const delay = (i * perSlice).toFixed(2);
+      body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${UNSHADED_FILL}" stroke="${BORDER_STROKE}"><animate attributeName="fill" from="${UNSHADED_FILL}" to="${SHADED_FILL}" dur="0.3s" begin="${delay}s" fill="freeze"/></path>`;
+    } else {
+      body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z" fill="${UNSHADED_FILL}" stroke="${BORDER_STROKE}"/>`;
+    }
   }
-  body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111">${shaded}/${parts}</text>`;
+  const labelDelay = (shadeEnd + 0.15).toFixed(2);
+  body += `<text x="${cx}" y="${cy + r + 28}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${shaded}/${parts}</text>`;
   return svgShell(spec, body, 'fraction circle');
 }
 
 function numberLine(spec) {
   const { points = [], minStepCount = 10, min = 0, max = 1, endpointLabels = [] } = spec.data;
   const w = spec.width; const h = spec.height; const x0 = 50; const x1 = w - 50; const y = h / 2;
-  const lineLen = x1 - x0;
   const steps = minStepCount;
+  if (REDUCE_MOTION) {
+    let body = `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" stroke="#111" stroke-width="2"/>`;
+    for (let i = 0; i <= steps; i += 1) { const t = i / steps; const tx = x0 + (x1 - x0) * t; body += `<line x1="${tx}" x2="${tx}" y1="${y - 8}" y2="${y + 8}" stroke="#111"/>`; }
+    const leftLabel = endpointLabels[0] ?? min; const rightLabel = endpointLabels[1] ?? max;
+    body += `<text x="${x0}" y="${y + 34}" font-size="16" text-anchor="middle" fill="#111">${esc(leftLabel)}</text>`;
+    body += `<text x="${x1}" y="${y + 34}" font-size="16" text-anchor="middle" fill="#111">${esc(rightLabel)}</text>`;
+    for (const p of points) { const t = (p.value - min) / (max - min || 1); const px = x0 + (x1 - x0) * t; body += `<circle cx="${px}" cy="${y}" r="7" fill="#17345f"/><text x="${px}" y="${y - 18}" font-size="18" font-weight="700" text-anchor="middle" fill="#17345f">${esc(p.label ?? p.value)}</text>`; }
+    return svgShell(spec, body, 'number line');
+  }
+  const lineLen = x1 - x0;
   const tickEnd = 0.5 + steps * 0.03;
   const labelT = tickEnd + 0.1;
   const pointT = labelT + 0.25;

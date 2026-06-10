@@ -672,7 +672,6 @@ function LegacyPracticeSession() {
   const [reflection, setReflection] = useState('');
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const questionSurfaceRef = useRef(null);
-  const isMainFlowRender = isMathPathRoute && !hasLegacyItems && sessionType !== 'story';
 
   useEffect(() => { if (!items.length) navigate(homeBase, { replace: true }); }, [items, navigate, homeBase]);
   useEffect(() => { setStartedAt(Date.now()); }, [idx]);
@@ -977,22 +976,6 @@ export default function PracticeSession() {
   const storyModeEnabled = isFractionsStoryModeEnabled();
   const sessionMeta = SESSION_META[sessionType];
 
-  if (sessionType === 'story') {
-    if (!storyModeEnabled) {
-      return (
-        <Card className="mx-auto max-w-xl p-6">
-          <p className="text-sm text-ink-700">Problem Solving Story is not enabled yet.</p>
-          <Button className="mt-4" onClick={() => navigate('/student/mathpath', { replace: true })}>Back to MathPath</Button>
-        </Card>
-      );
-    }
-    return <FractionsStoryModeSession />;
-  }
-
-  // Compatibility shim: older non-framework sessions still navigate with pre-baked
-  // `items` payload. Keep this path until all callers route through skillId/sessionType.
-  if (!isMathPathRoute || hasLegacyItems) return <LegacyPracticeSession />;
-
   const studentId = authenticatedStudentId;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -1018,9 +1001,11 @@ export default function PracticeSession() {
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
   const questionSurfaceRef = useRef(null);
+
   const isMainFlowRender = isMathPathRoute && !hasLegacyItems && sessionType !== 'story';
 
   useEffect(() => {
+    if (!isMainFlowRender) return undefined;
     let mounted = true;
     (async () => {
       try {
@@ -1158,6 +1143,7 @@ export default function PracticeSession() {
     })();
     return () => { mounted = false; };
   }, [
+    isMainFlowRender,
     studentId,
     routeSessionId,
     sessionType,
