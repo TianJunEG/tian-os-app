@@ -20,6 +20,12 @@ import {
   checkP1AnswerForSession,
 } from '../../../mathpath/primary/p1PracticeFlow';
 import {
+  isP3SkillId,
+  startP3PracticeFlow,
+  submitP3PracticeAttempt,
+  checkP3AnswerForSession,
+} from '../../../mathpath/primary/p3PracticeFlow';
+import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
@@ -191,6 +197,7 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     const skillId = String(value || '').toUpperCase();
     if (/^F\d{3}$/.test(skillId)) return skillId;
     if (/^P1-(NUM|ADD|MON|MEA|GEO|EQG|DAT)-\d{2}$/.test(skillId)) return skillId;
+    if (/^P3-(WN|AS|MD|MON|MT|AP|ST|WP)-\d{2}$/.test(skillId)) return skillId;
     return null;
   };
   const nextSkill = normalizeFrameworkSkillId(progress?.currentSkillId) || normalizeFrameworkSkillId(progress?.nextSkillId);
@@ -205,7 +212,7 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     return {
       requestedSkillId: resolvedSkillId,
       sessionType: 'practice',
-      questionCount: isP1SkillId(resolvedSkillId) ? 6 : 8,
+      questionCount: (isP1SkillId(resolvedSkillId) || isP3SkillId(resolvedSkillId)) ? 6 : 8,
     };
   }
 
@@ -1039,9 +1046,12 @@ export default function PracticeSession() {
             setLoading(false);
             return;
           }
-        } else if (isP1SkillId(resolvedIntent.requestedSkillId)) {
-          // ── P1 domain (client-side generation) ──────────────────────
-          started = startP1PracticeFlow({
+        } else if (isP1SkillId(resolvedIntent.requestedSkillId) || isP3SkillId(resolvedIntent.requestedSkillId)) {
+          // ── P1 / P3 domain (client-side generation) ────────────────
+          const startFn = isP3SkillId(resolvedIntent.requestedSkillId)
+            ? startP3PracticeFlow
+            : startP1PracticeFlow;
+          started = startFn({
             studentId,
             sessionType,
             requestedSkillId: resolvedIntent.requestedSkillId,
@@ -1126,7 +1136,15 @@ export default function PracticeSession() {
         setQuestions(valid);
         setWorkingSession(null);
         setWorkingCodeByQuestion({});
-        setFullscreenWorkingByQuestion({});
+        // Pre-populate workingNotNeeded for P1/P3 LOW-requirement questions so
+        // students don't have to manually check the box for simple counting etc.
+        const workingInit = {};
+        valid.forEach((q) => {
+          if ((isP1SkillId(q.skillId) || isP3SkillId(q.skillId)) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
+            workingInit[q.questionId] = { workingNotNeeded: true, workingNotNeededAt: new Date().toISOString() };
+          }
+        });
+        setFullscreenWorkingByQuestion(workingInit);
         setFullscreenQuestionId(null);
         if (!valid.length) setError(skipped.length ? DIAGRAM_LOAD_ERROR_MESSAGE : 'No questions generated yet. Please try another skill.');
       } catch (e) {
@@ -1278,8 +1296,10 @@ export default function PracticeSession() {
 
     // Retry path — student is re-submitting after using hints
     if (retrying && answer) {
-      const retryCheck = isP1SkillId(q.skillId)
-        ? checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+      const retryCheck = (isP1SkillId(q.skillId) || isP3SkillId(q.skillId))
+        ? (isP3SkillId(q.skillId)
+          ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q }))
         : checkFractionAnswer({
             studentAnswer: answer,
             correctAnswer: q.answer,
@@ -1500,9 +1520,12 @@ export default function PracticeSession() {
         attemptNumber: r.attemptNumber,
       }));
       let submitted;
-      const isP1Session = isP1SkillId(flowSession?.targetSkillId || questions[0]?.skillId);
-      if (isP1Session) {
-        submitted = submitP1PracticeAttempt({
+      const sessionSkillId = flowSession?.targetSkillId || questions[0]?.skillId;
+      const isP1Session = isP1SkillId(sessionSkillId);
+      const isP3Session = isP3SkillId(sessionSkillId);
+      if (isP1Session || isP3Session) {
+        const submitFn = isP3Session ? submitP3PracticeAttempt : submitP1PracticeAttempt;
+        submitted = submitFn({
           practiceSessionId: flowSession.practiceSessionId || routeSessionId,
           studentId,
           sessionType,
