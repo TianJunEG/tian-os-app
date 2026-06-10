@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, Grid, Paperclip } from 'lucide-react';
+import { Check, Grid, Paperclip, PenLine, ListOrdered, Calculator } from 'lucide-react';
 import { Button, Badge } from '../ui';
 import WorkingToolbar, { WORKING_COLOURS } from './WorkingToolbar';
+import MathStepsEditor from './MathStepsEditor';
+import ColumnOperationsGrid, { makeEmptyGrid } from './ColumnOperationsGrid';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import {
   CANVAS_WIDTH,
@@ -13,6 +15,12 @@ import {
   beginStrokeData,
   finalizeStroke,
 } from './drawingUtils';
+
+const WORKING_MODES = [
+  { id: 'draw', label: 'Draw', icon: PenLine },
+  { id: 'steps', label: 'Add Steps', icon: ListOrdered },
+  { id: 'column', label: 'Four Ops', icon: Calculator },
+];
 
 const EMPTY_STROKES = [];
 const MATH_STAMPS = [
@@ -156,6 +164,9 @@ export default function WorkingCanvas({
   const [notNeeded, setNotNeeded] = useState(Boolean(initialWorkingNotNeeded));
   const [attachedImage, setAttachedImage] = useState(submittedImage || '');
   const [mathDraft, setMathDraft] = useState(null);
+  const [workingMode, setWorkingMode] = useState('draw');
+  const [mathSteps, setMathSteps] = useState([{ id: 'step-1', text: '' }]);
+  const [columnGrid, setColumnGrid] = useState(() => makeEmptyGrid('addition', 0));
 
   const status = useMemo(() => {
     if (readOnly) return 'Review';
@@ -208,6 +219,9 @@ export default function WorkingCanvas({
       workingSubmitted: submitted,
       workingNotNeeded: notNeeded,
       workingStrokes: strokes,
+      workingSteps: mathSteps,
+      workingColumnGrid: columnGrid,
+      workingMode,
       ...next,
     });
   };
@@ -290,15 +304,22 @@ export default function WorkingCanvas({
     node.scrollBy({ left, top, behavior: 'smooth' });
   };
 
+  const hasStepsContent = mathSteps.some((s) => s.text.trim());
+  const hasColumnContent = columnGrid?.rows?.some((r) => r.some((c) => c)) || columnGrid?.dividend?.some((c) => c);
+  const hasAnyWorking = strokes.length > 0 || attachedImage || hasStepsContent || hasColumnContent;
+
   const submit = () => {
     const image = attachedImage || exportCanvasImage(canvasRef.current, CANVAS_WIDTH, CANVAS_HEIGHT, background);
     const payload = {
       workingImage: image,
       workingStrokes: strokes,
+      workingSteps: mathSteps,
+      workingColumnGrid: columnGrid,
+      workingMode,
       workingSubmitted: true,
       workingSubmittedAt: new Date().toISOString(),
       workingNotNeeded: false,
-      source: attachedImage ? 'photo_attachment' : 'canvas_working',
+      source: workingMode === 'steps' ? 'typed_steps' : workingMode === 'column' ? 'column_operations' : attachedImage ? 'photo_attachment' : 'canvas_working',
     };
     setSubmitted(true);
     setNotNeeded(false);
@@ -421,12 +442,30 @@ export default function WorkingCanvas({
       )}
 
       <div className={`${compact ? 'mb-1.5' : 'mb-2'} flex flex-wrap items-center gap-1.5`}>
+        {WORKING_MODES.map((mode) => (
+          <button
+            key={mode.id}
+            type="button"
+            onClick={() => setWorkingMode(mode.id)}
+            className={`inline-flex h-9 items-center gap-1.5 rounded-xl border-2 px-3 text-xs font-bold transition ${
+              workingMode === mode.id
+                ? 'border-orange-500 bg-orange-500 text-white shadow-sm'
+                : 'border-slate-200 bg-white text-ink-600 hover:border-orange-300 hover:bg-orange-50'
+            }`}
+          >
+            <mode.icon className="h-4 w-4" />
+            {mode.label}
+          </button>
+        ))}
+        <span className="mx-1 h-6 w-px bg-slate-200" aria-hidden="true" />
         <Button size="s" className="min-h-[32px] px-2 text-xs" variant="ghost" icon={Paperclip} onClick={() => fileInputRef.current?.click()}>
           Attach photo
         </Button>
-        <Button size="s" className="min-h-[32px] px-2 text-xs" variant="ghost" icon={Grid} onClick={() => setBackground((value) => (value === 'grid' ? 'ruled' : 'grid'))}>
-          {background === 'grid' ? 'Ruled' : 'Grid'}
-        </Button>
+        {workingMode === 'draw' && (
+          <Button size="s" className="min-h-[32px] px-2 text-xs" variant="ghost" icon={Grid} onClick={() => setBackground((value) => (value === 'grid' ? 'ruled' : 'grid'))}>
+            {background === 'grid' ? 'Ruled' : 'Grid'}
+          </Button>
+        )}
         <input
           ref={fileInputRef}
           type="file"
@@ -437,6 +476,7 @@ export default function WorkingCanvas({
         {attachedImage && <Badge tone="success">Photo attached</Badge>}
       </div>
 
+      {workingMode === 'draw' && <>
       <div className={compact ? 'mb-1.5' : 'mb-2'}>
         <WorkingToolbar
           tool={tool}
@@ -574,12 +614,43 @@ export default function WorkingCanvas({
           aria-label="Working canvas"
         />
       </div>
+      </>}
+
+      {workingMode === 'steps' && (
+        <div className="rounded-lg border border-hairline bg-slate-50 p-3">
+          <MathStepsEditor
+            steps={mathSteps}
+            onChange={(next) => {
+              setMathSteps(next);
+              setSubmitted(false);
+              setNotNeeded(false);
+              emitChange({ workingSubmitted: false, workingNotNeeded: false, workingSteps: next });
+            }}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
+
+      {workingMode === 'column' && (
+        <div className="rounded-lg border border-hairline bg-slate-50 p-3">
+          <ColumnOperationsGrid
+            grid={columnGrid}
+            onChange={(next) => {
+              setColumnGrid(next);
+              setSubmitted(false);
+              setNotNeeded(false);
+              emitChange({ workingSubmitted: false, workingNotNeeded: false, workingColumnGrid: next });
+            }}
+            readOnly={readOnly}
+          />
+        </div>
+      )}
 
       <div className={`${compact ? 'mt-2' : 'mt-3'} grid grid-cols-1 gap-2 sm:grid-cols-2`}>
         {allowNoWorking && (
           <Button size="s" variant="secondary" onClick={markNotNeeded}>Working not needed</Button>
         )}
-        <Button size="s" icon={Check} disabled={!strokes.length && !attachedImage} onClick={submit} className={allowNoWorking ? '' : 'sm:col-span-2'}>
+        <Button size="s" icon={Check} disabled={!hasAnyWorking} onClick={submit} className={allowNoWorking ? '' : 'sm:col-span-2'}>
           {submitted ? 'Redo/Edit workings' : 'Submit workings'}
         </Button>
       </div>
