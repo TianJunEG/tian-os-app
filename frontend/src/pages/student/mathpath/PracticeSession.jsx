@@ -1019,7 +1019,13 @@ export default function PracticeSession() {
         setQuestions(valid);
         setWorkingSession(null);
         setWorkingCodeByQuestion({});
-        setFullscreenWorkingByQuestion({});
+        const workingInit = {};
+        valid.forEach(q => {
+          if (isP1SkillId(q.skillId) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
+            workingInit[q.questionId] = { workingNotNeeded: true, workingNotNeededAt: new Date().toISOString() };
+          }
+        });
+        setFullscreenWorkingByQuestion(workingInit);
         setFullscreenQuestionId(null);
         if (!valid.length) setError(skipped.length ? DIAGRAM_LOAD_ERROR_MESSAGE : 'No questions generated yet. Please try another skill.');
       } catch (e) {
