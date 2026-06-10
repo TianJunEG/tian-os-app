@@ -781,9 +781,9 @@ function LegacyPracticeSession() {
       weakSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) < 80
         ? [{ skillId: String(q.skillId || ''), skillName: canonicalSkillName(q.skillId, q.skillName || '') }]
         : [],
-      masteredSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) >= 90
-        ? [String(q.skillId || '')].filter(Boolean)
-        : [],
+      // C3: practice accuracy never confers mastery — only a passing recheck
+      // (written by the backend) does. Don't optimistically claim mastery here.
+      masteredSkillIds: [],
     });
     navigate(`${resultsBase}/results/${sessionId}`, { replace: true, state: resultState });
   };
@@ -1611,9 +1611,9 @@ export default function PracticeSession() {
         sessionType,
         currentSkillId: flowSession?.targetSkillId || q.skillId || null,
         weakSkillIds: weakSkillRows,
-        masteredSkillIds: submitted.accuracySummary?.accuracyPercentage >= 90
-          ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
-          : [],
+        // C3: practice accuracy never confers mastery — only a passing recheck
+        // (written by the backend) does. Don't optimistically claim mastery here.
+        masteredSkillIds: [],
         fluentSkillIds: submitted.fluencySummary?.fluentCount > 0
           ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
           : [],
