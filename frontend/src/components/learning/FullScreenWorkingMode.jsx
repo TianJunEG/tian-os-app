@@ -383,10 +383,7 @@ export default function FullScreenWorkingMode({
   };
 
   useEffect(() => {
-    if (!open) {
-      syncedSourceSignature.current = null;
-      return;
-    }
+    if (!open) return;
     const rawStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];
     const legacyMathObjects = rawStrokes.map(stampStrokeToMathObject).filter(Boolean);
     const nextStrokes = rawStrokes.filter((stroke) => stroke?.tool !== 'stamp');

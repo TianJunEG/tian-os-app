@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, PencilLine, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle, Circle, Lock, PencilLine, RotateCcw } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { isFractionLikeAnswerValue } from './components/FractionAnswerInput';
@@ -16,6 +16,57 @@ const MODE_META = {
   we_do: { label: 'We Do', helper: 'Pause and choose the next step.' },
   you_do: { label: 'You Do', helper: 'Try the model independently.' },
 };
+
+export const MODE_ORDER = ['i_do', 'we_do', 'you_do'];
+
+export function getPhaseStatus(phaseKey, currentMode, completedPhases) {
+  if (completedPhases.has(phaseKey)) return 'completed';
+  if (phaseKey === currentMode) return 'current';
+  const currentIdx = MODE_ORDER.indexOf(currentMode);
+  const phaseIdx = MODE_ORDER.indexOf(phaseKey);
+  if (phaseIdx === currentIdx + 1) return 'next';
+  return 'locked';
+}
+
+export function getTransitionCTA(mode, isLastStep) {
+  if (!isLastStep) return null;
+  if (mode === 'i_do') return { label: 'Continue to We Do', nextMode: 'we_do' };
+  if (mode === 'we_do') return { label: 'Continue to You Do', nextMode: 'you_do' };
+  if (mode === 'you_do') return { label: 'See results', nextMode: null };
+  return null;
+}
+
+export function extractCueHighlights(questionText = '', step = {}) {
+  const cuePhrase = step.questionHighlightPhrase || step.reasoningCue || '';
+  if (!cuePhrase || !questionText) return { segments: [{ text: questionText, highlighted: false }], cueExplanation: '' };
+  const phrases = Array.isArray(cuePhrase) ? cuePhrase : [cuePhrase];
+  const cueExplanation = step.cueExplanation || '';
+  const escaped = phrases.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(`(${escaped.join('|')})`, 'gi');
+  const parts = questionText.split(regex);
+  const lowerPhrases = new Set(phrases.map((p) => p.toLowerCase()));
+  const segments = parts.filter(Boolean).map((part) => ({
+    text: part,
+    highlighted: lowerPhrases.has(part.toLowerCase()),
+  }));
+  return { segments, cueExplanation };
+}
+
+function HighlightedQuestion({ text, step }) {
+  const { segments, cueExplanation } = extractCueHighlights(text, step);
+  return (
+    <div>
+      <p className="text-lg leading-8 text-ink-800">
+        {segments.map((seg, i) =>
+          seg.highlighted
+            ? <mark key={i} className="rounded bg-gold-200 px-0.5 font-semibold text-gold-900">{seg.text}</mark>
+            : <span key={i}>{seg.text}</span>
+        )}
+      </p>
+      {cueExplanation && <p className="mt-1 text-sm italic text-ink-500">{cueExplanation}</p>}
+    </div>
+  );
+}
 
 function normalizeAnswer(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
@@ -675,6 +726,7 @@ export default function FractionsModelTrainer() {
   const [showYouDoModel, setShowYouDoModel] = useState(false);
   const [fullScreenDrawingOpen, setFullScreenDrawingOpen] = useState(false);
   const [reflectionAnswer, setReflectionAnswer] = useState('');
+  const [completedPhases, setCompletedPhases] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -728,7 +780,8 @@ export default function FractionsModelTrainer() {
   const expressionQuestion = isFractionAnswer && Boolean(extractFractionExpression(prompt?.question || ''));
   const checkedCorrect = feedback === 'correct';
   const shouldRevealTeacherSolution = mode === 'i_do' || !prompt || checkedCorrect;
-  const weDoStepComplete = mode !== 'we_do' || !prompt || checkedCorrect || Boolean(reflectionAnswer);
+  const weDoStepNeedsReflection = Boolean(currentStep?.sense_check && mode === 'we_do');
+  const weDoStepComplete = mode !== 'we_do' || !prompt || (checkedCorrect && (!weDoStepNeedsReflection || Boolean(reflectionAnswer)));
   const drawingBypassAllowed = Boolean(template?.allowDrawingBypass || currentStep?.allowDrawingBypass);
   const finalStep = steps[steps.length - 1] || {};
   const finalAnswerParts = splitFinalAnswerUnit(finalStep?.model?.finalAnswer || '');
@@ -746,7 +799,10 @@ export default function FractionsModelTrainer() {
   });
   const isLastStep = stepIndex >= steps.length - 1;
   const canProceedFromCurrentStep = mode === 'you_do' ? step5Completion.canProceed : weDoStepComplete;
-  const nextDisabled = mode === 'you_do' ? !canProceedFromCurrentStep : isLastStep || !canProceedFromCurrentStep;
+  const transitionCTA = getTransitionCTA(mode, isLastStep);
+  const nextDisabled = mode === 'you_do'
+    ? !canProceedFromCurrentStep
+    : transitionCTA ? !canProceedFromCurrentStep : (isLastStep || !canProceedFromCurrentStep);
   const modelRevealState = buildModelRevealStates({
     model: currentStep.model || {},
     expectedAction,
@@ -813,10 +869,26 @@ export default function FractionsModelTrainer() {
     step5Completion.canProceed,
   ]);
 
+  const transitionToPhase = (nextMode) => {
+    setCompletedPhases((prev) => new Set([...prev, mode]));
+    setMode(nextMode);
+    setStepIndex(0);
+    resetStepInput();
+    setYouDoAnswer('');
+    if (nextMode === 'you_do') setShowYouDoModel(false);
+  };
+
   const handleNext = () => {
-    if (mode === 'you_do' && isLastStep && step5Completion.canProceed) {
-      navigate('/student/mathpath');
-      return;
+    if (isLastStep) {
+      const cta = getTransitionCTA(mode, true);
+      if (cta?.nextMode) {
+        transitionToPhase(cta.nextMode);
+        return;
+      }
+      if (mode === 'you_do' && step5Completion.canProceed) {
+        navigate('/student/mathpath');
+        return;
+      }
     }
     goToStep(stepIndex + 1);
   };
@@ -851,23 +923,36 @@ export default function FractionsModelTrainer() {
       />
 
       <div className="mb-4 grid grid-cols-3 gap-2">
-        {Object.entries(MODE_META).map(([key, meta]) => (
-          <button
-            key={key}
-            onClick={() => {
-              setMode(key);
-              resetStepInput();
-              setYouDoAnswer('');
-              if (key === 'you_do') setShowYouDoModel(false);
-            }}
-            className={`rounded-xl border px-3 py-2 text-left text-sm font-semibold ${
-              mode === key ? 'border-navy-700 bg-navy-50 text-navy-700' : 'border-hairline bg-white text-ink-600'
-            }`}
-          >
-            <span className="block">{meta.label}</span>
-            <span className="block text-xs font-medium text-ink-500">{meta.helper}</span>
-          </button>
-        ))}
+        {Object.entries(MODE_META).map(([key, meta]) => {
+          const status = getPhaseStatus(key, mode, completedPhases);
+          const StatusIcon = status === 'completed' ? CheckCircle : status === 'locked' ? Lock : Circle;
+          const isDisabled = status === 'locked';
+          return (
+            <button
+              key={key}
+              disabled={isDisabled}
+              onClick={() => {
+                if (isDisabled) return;
+                setMode(key);
+                resetStepInput();
+                setYouDoAnswer('');
+                if (key === 'you_do') setShowYouDoModel(false);
+              }}
+              className={`rounded-xl border px-3 py-2 text-left text-sm font-semibold ${
+                status === 'current' ? 'border-navy-700 bg-navy-50 text-navy-700'
+                  : status === 'completed' ? 'border-success-300 bg-success-50 text-success-700'
+                  : status === 'next' ? 'border-hairline bg-white text-ink-600'
+                  : 'border-hairline bg-slate-50 text-ink-400 cursor-not-allowed'
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <StatusIcon className="h-4 w-4" />
+                {meta.label}
+              </span>
+              <span className="block text-xs font-medium text-ink-500">{meta.helper}</span>
+            </button>
+          );
+        })}
       </div>
 
       <Card className="p-4 md:p-5">
