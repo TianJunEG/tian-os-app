@@ -5,6 +5,7 @@ import { resolveStudent } from '../utils/studentContext.js';
 import {
   getStudentAchievements,
   getStudentLearningTimeline,
+  getStudentPersonalBests,
   getStudentProfileSummary,
 } from '../services/studentProfile/studentProfileService.js';
 
@@ -41,6 +42,10 @@ router.get('/achievements', protect, async (req, res) => {
 
 router.get('/timeline', protect, async (req, res) => {
   await withStudent(req, res, (student) => getStudentLearningTimeline(student));
+});
+
+router.get('/personal-bests', protect, async (req, res) => {
+  await withStudent(req, res, (student) => getStudentPersonalBests(student));
 });
 
 router.patch('/name', protect, async (req, res) => {
