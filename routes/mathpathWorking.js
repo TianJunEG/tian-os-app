@@ -456,6 +456,21 @@ async function runAutomaticAnalysisForWorkingRecords(session, records = []) {
   return analysed;
 }
 
+// A working session must anchor to a practice or assessment session so its
+// evidence stays linkable. Resolve the anchor ids (accepting the `sessionId`
+// alias for practice) and expose a predicate used to reject orphan uploads.
+export function resolveWorkingSessionAnchor(body = {}) {
+  return {
+    practiceSessionId: body?.practiceSessionId || body?.sessionId || null,
+    assessmentSessionId: body?.assessmentSessionId || null,
+  };
+}
+
+export function hasWorkingSessionAnchor(body = {}) {
+  const { practiceSessionId, assessmentSessionId } = resolveWorkingSessionAnchor(body);
+  return Boolean(practiceSessionId || assessmentSessionId);
+}
+
 router.use(protect);
 
 router.post('/sessions', async (req, res) => {
@@ -464,8 +479,13 @@ router.post('/sessions', async (req, res) => {
     const studentId = String(student._id);
     const userId = authUserId(req);
 
-    const practiceSessionId = req.body?.practiceSessionId || req.body?.sessionId || null;
-    const assessmentSessionId = req.body?.assessmentSessionId || null;
+    const { practiceSessionId, assessmentSessionId } = resolveWorkingSessionAnchor(req.body);
+    if (!practiceSessionId && !assessmentSessionId) {
+      // Prevent orphan working sessions: without a practice/assessment anchor the
+      // evidence cannot be linked back to a question. Reject so the client can
+      // route the student back instead of creating an unlinked record.
+      return res.status(400).json({ error: 'A working upload must be linked to a practice or assessment session.' });
+    }
     const domainId = String(req.body?.domainId || 'fractions').trim();
     const questionRefs = Array.isArray(req.body?.questionRefs) ? req.body.questionRefs : [];
     const questionWorkingMap = buildQuestionWorkingMap(questionRefs, {

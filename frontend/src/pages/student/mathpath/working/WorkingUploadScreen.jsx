@@ -113,7 +113,9 @@ export default function WorkingUploadScreen() {
     });
   };
 
-  if (!state.workingSessionId && !state.practiceSessionId && !state.assessmentSessionId && source !== 'manual') {
+  if (!state.workingSessionId && !state.practiceSessionId && !state.assessmentSessionId) {
+    // No session context (including a manual open) — route back instead of
+    // creating an orphan working session with nothing to link the evidence to.
     return <ErrorState message="Couldn't find a working session. Start from practice or assessment summary." onRetry={() => navigate('/student/mathpath')} />;
   }
 
