@@ -7,61 +7,143 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'system-ui', 'sans-serif'],
-        serif: ['Fraunces', 'Georgia', 'serif'],
-        // main's pages use font-display for headers; map it to our brand serif.
-        display: ['Fraunces', 'Georgia', 'serif'],
-        hand: ['Caveat', 'cursive'],
-        // Tian OS unified shell: Inter for UI/body, JetBrains Mono for numerics.
+        sans: ['Nunito', 'system-ui', 'sans-serif'],
+        display: ['Nunito', 'system-ui', 'sans-serif'],
         ui: ['Inter', '-apple-system', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'Menlo', 'monospace'],
       },
+      fontSize: {
+        'xs': ['12px', { lineHeight: '1.5' }],
+        'sm': ['14px', { lineHeight: '1.5' }],
+        'base': ['16px', { lineHeight: '1.6' }],
+        'lg': ['18px', { lineHeight: '1.5' }],
+        'xl': ['22px', { lineHeight: '1.35' }],
+        '2xl': ['28px', { lineHeight: '1.25' }],
+      },
+      borderRadius: {
+        'card': '20px',
+        'btn': '14px',
+      },
       boxShadow: {
-        resting: '0 6px 24px rgba(0,0,0,0.04)',
-        active: '0 10px 32px rgba(0,0,0,0.07)',
+        resting: '0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+        active: '0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04)',
+        glow: '0 0 0 3px rgba(16,185,129,0.25)',
       },
       keyframes: {
-        'pulse-once': {
-          '0%': { boxShadow: '0 0 0 0 rgba(232, 189, 62, 0.5)' },
-          '50%': { boxShadow: '0 0 0 8px rgba(232, 189, 62, 0)' },
-          '100%': { boxShadow: '0 0 0 0 rgba(232, 189, 62, 0)' },
+        'pulse-emerald': {
+          '0%': { boxShadow: '0 0 0 0 rgba(16, 185, 129, 0.5)' },
+          '50%': { boxShadow: '0 0 0 8px rgba(16, 185, 129, 0)' },
+          '100%': { boxShadow: '0 0 0 0 rgba(16, 185, 129, 0)' },
+        },
+        'bounce-in': {
+          '0%': { transform: 'scale(0.3)', opacity: '0' },
+          '50%': { transform: 'scale(1.05)' },
+          '70%': { transform: 'scale(0.95)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(12px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
       },
       animation: {
-        'pulse-once': 'pulse-once 1.5s ease-out 0.3s 2',
+        'pulse-emerald': 'pulse-emerald 1.5s ease-out 0.3s 2',
+        'bounce-in': 'bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1)',
+        'slide-up': 'slide-up 0.3s ease-out',
       },
       colors: {
-        // Tian OS neutral system — ink (text), paper/ivory/bone (surfaces), hairline (borders).
-        ink: { 900: '#0E1320', 700: '#1F2330', 500: '#5B5F6E', 300: '#9A9DA9', 100: '#C9CBD3' },
-        paper: '#FFFFFF', ivory: '#FFF8EA', bone: '#F3EED8', hairline: '#EDE8D4',
-        tianLavender: '#F1ECFF',
-        tianMint: '#EAF9F1',
-        tianSky: '#EAF4FF',
-        tianPeach: '#FFF1E8',
-        tianYellow: '#FFF8E1',
-        tianRose: '#FFEFF3',
-        // Mastery heatmap scale (ivory → navy).
-        mastery: { 0: '#E8F5F7', 1: '#C5E8EC', 2: '#9DD9E0', 3: '#6DCAD4', 4: '#3FBAC8', 5: '#0F4C5C' },
-        success: { 100: '#DEF0E8', 500: '#2F8F6F', 700: '#1F6B53' },
-        error: { 100: '#F4DAD6', 500: '#B4453C', 700: '#8A2F28' },
-        // Tian OS brand palette — clean white + deep navy + soft gold.
+        // Emerald primary — the brand colour
+        emerald: {
+          50: '#ECFDF5', 100: '#D1FAE5', 200: '#A7F3D0', 300: '#6EE7B7',
+          400: '#34D399', 500: '#10B981', 600: '#059669', 700: '#047857',
+          800: '#065F46', 900: '#064E3B',
+        },
+        // Sunshine — warm accent (achievements, streaks, gold stars)
+        sunshine: {
+          50: '#FFFBEB', 100: '#FEF3C7', 200: '#FDE68A', 300: '#FCD34D',
+          400: '#FBBF24', 500: '#F59E0B', 600: '#D97706', 700: '#B45309',
+        },
+        // Violet — cool accent (special badges, mastery highlights)
+        violet: {
+          50: '#F5F3FF', 100: '#EDE9FE', 200: '#DDD6FE', 300: '#C4B5FD',
+          400: '#A78BFA', 500: '#8B5CF6', 600: '#7C3AED', 700: '#6D28D9',
+        },
+        // Sky — info / trust
+        sky: {
+          50: '#F0F9FF', 100: '#E0F2FE', 200: '#BAE6FD', 300: '#7DD3FC',
+          400: '#38BDF8', 500: '#0EA5E9', 600: '#0284C7', 700: '#0369A1',
+        },
+        // Rose — errors / attention
+        rose: {
+          50: '#FFF1F2', 100: '#FFE4E6', 200: '#FECDD3', 300: '#FDA4AF',
+          400: '#FB7185', 500: '#F43F5E', 600: '#E11D48', 700: '#BE123C',
+        },
+        // Slate neutral system
+        slate: {
+          50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1',
+          400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155',
+          800: '#1E293B', 900: '#0F172A',
+        },
+        // Surfaces
+        paper: '#FFFFFF',
+        canvas: '#F8FAFC',
+        subtle: '#F1F5F9',
+        // Tinted surfaces for card tones
+        'tint-emerald': '#ECFDF5',
+        'tint-sunshine': '#FFFBEB',
+        'tint-violet': '#F5F3FF',
+        'tint-sky': '#F0F9FF',
+        'tint-rose': '#FFF1F2',
+        'tint-slate': '#F8FAFC',
+        // Mastery heatmap scale (emerald gradient)
+        mastery: {
+          0: '#ECFDF5', 1: '#D1FAE5', 2: '#A7F3D0',
+          3: '#6EE7B7', 4: '#34D399', 5: '#064E3B',
+        },
+        // Semantic
+        success: { 100: '#D1FAE5', 500: '#10B981', 600: '#059669', 700: '#047857' },
+        error: { 100: '#FFE4E6', 500: '#F43F5E', 600: '#E11D48', 700: '#BE123C' },
+        // Backward-compat aliases
+        ink: { 900: '#0F172A', 700: '#334155', 600: '#475569', 500: '#64748B', 400: '#94A3B8', 300: '#CBD5E1', 100: '#F1F5F9' },
+        hairline: '#E2E8F0',
+        bone: '#F1F5F9',
+        ivory: '#F8FAFC',
+        // Legacy navy → maps to emerald for gradual migration
         navy: {
-          50: '#f3f6fb', 100: '#e2e9f3', 200: '#c5d3e7', 300: '#9fb3d1',
-          400: '#5d7aa8', 500: '#2f4f7e', 600: '#1d3a63', 700: '#142b4d',
-          800: '#0e2240', 900: '#0a1a33',
+          50: '#ECFDF5', 100: '#D1FAE5', 200: '#A7F3D0', 300: '#6EE7B7',
+          400: '#34D399', 500: '#059669', 600: '#047857', 700: '#065F46',
+          800: '#064E3B', 900: '#064E3B',
         },
         gold: {
-          50: '#FFF8E5', 100: '#FFEFCC', 200: '#FFE099', 300: '#FFD166',
-          400: '#E8BD3E', 500: '#D4A935', 600: '#B88F1E',
+          50: '#FFFBEB', 100: '#FEF3C7', 200: '#FDE68A', 300: '#FCD34D',
+          400: '#FBBF24', 500: '#F59E0B', 600: '#D97706', 700: '#B45309',
         },
-        teal: { 50: '#E8F5F7', 100: '#C5E8EC', 200: '#9DD9E0', 300: '#6DCAD4', 400: '#3FBAC8', 500: '#0F4C5C', 600: '#0D4150', 700: '#0A3542', 800: '#073B4C', 900: '#052D3A' },
-        sky: { 100: '#D6ECFA', 200: '#BDDFF5', 300: '#A7D8F0', 400: '#8ECBE8', 500: '#75BEE0' },
-        lavender: { 100: '#EDE5F5', 200: '#DBCCEb', 300: '#C9B6E4', 400: '#B69FDB', 500: '#A388D2' },
-        coral: { 100: '#FDEDEA', 200: '#F9D4CE', 300: '#F5B8AE', 400: '#F0A090', 500: '#F28C7A', 600: '#E06B56' },
-        // primary repointed to teal so existing primary-* usages adopt the brand.
+        // Remaining legacy aliases
+        teal: {
+          50: '#ECFDF5', 100: '#D1FAE5', 200: '#A7F3D0', 300: '#6EE7B7',
+          400: '#34D399', 500: '#059669', 600: '#047857', 700: '#065F46',
+          800: '#064E3B', 900: '#064E3B',
+        },
+        coral: {
+          100: '#FFE4E6', 200: '#FECDD3', 300: '#FDA4AF',
+          400: '#FB7185', 500: '#F43F5E', 600: '#E11D48',
+        },
+        lavender: {
+          100: '#EDE9FE', 200: '#DDD6FE', 300: '#C4B5FD',
+          400: '#A78BFA', 500: '#8B5CF6',
+        },
         primary: {
-          DEFAULT: '#0F4C5C', 50: '#E8F5F7', 100: '#C5E8EC', 200: '#9DD9E0', 300: '#6DCAD4', 400: '#3FBAC8', 500: '#0F4C5C', 600: '#0D4150', 700: '#0A3542', 800: '#073B4C', 900: '#052D3A',
+          DEFAULT: '#059669', 50: '#ECFDF5', 100: '#D1FAE5', 200: '#A7F3D0',
+          300: '#6EE7B7', 400: '#34D399', 500: '#059669', 600: '#047857',
+          700: '#065F46', 800: '#064E3B', 900: '#064E3B',
         },
+        // Tinted surface aliases for existing components
+        tianLavender: '#F5F3FF',
+        tianMint: '#ECFDF5',
+        tianSky: '#F0F9FF',
+        tianPeach: '#FFF1F2',
+        tianYellow: '#FFFBEB',
+        tianRose: '#FFF1F2',
       },
     },
   },
