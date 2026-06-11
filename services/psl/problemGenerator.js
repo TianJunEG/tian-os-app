@@ -206,6 +206,73 @@ function buildScaffoldSteps(scaffold, vars) {
     } else if (raw.type === 'reasonableness') {
       step.prompt = substituteTokens(raw.prompt, vars);
       step.expectedResponse = { reasonable: true };
+    } else if (raw.type === 'reverse_steps') {
+      step.prompt = substituteTokens(raw.prompt || 'Identify the operations to reverse.', vars);
+      step.expectedResponse = {
+        type: 'reverse_steps',
+        operations: (raw.operations || []).map((o) => substituteTokens(o, vars)),
+        finalResult: Number(substituteTokens(String(raw.finalResult || ''), vars)),
+      };
+    } else if (raw.type === 'reverse_chain') {
+      step.prompt = substituteTokens(raw.prompt || 'Reverse each step to find the original number.', vars);
+      step.expectedResponse = {
+        type: 'reverse_chain',
+        steps: (raw.steps || []).map((s) => Number(substituteTokens(String(s), vars))),
+        answer: Number(substituteTokens(String(raw.answer), vars)),
+      };
+    } else if (raw.type === 'table_setup') {
+      step.prompt = substituteTokens(raw.prompt || 'Set up a table to organise the pattern.', vars);
+      step.expectedResponse = {
+        type: 'table_setup',
+        columnCount: raw.columnCount || 2,
+        columns: (raw.columns || []).map((c) => substituteTokens(c, vars)),
+      };
+    } else if (raw.type === 'find_rule') {
+      step.prompt = substituteTokens(raw.prompt || 'Find the rule and use it to get the answer.', vars);
+      step.expectedResponse = {
+        type: 'find_rule',
+        rule: substituteTokens(raw.rule || '', vars),
+        answer: Number(substituteTokens(String(raw.answer), vars)),
+      };
+    } else if (raw.type === 'equation_setup') {
+      step.prompt = substituteTokens(raw.prompt || 'Which quantity appears in both equations? Pick what to eliminate.', vars);
+      step.expectedResponse = {
+        type: 'equation_setup',
+        eliminateVar: raw.eliminateVar || '',
+        equations: (raw.equations || []).map((eq) => substituteTokens(eq, vars)),
+      };
+    } else if (raw.type === 'eliminate') {
+      step.prompt = substituteTokens(raw.prompt || 'Scale, subtract, and solve.', vars);
+      step.expectedResponse = {
+        type: 'eliminate',
+        answer: Number(substituteTokens(String(raw.answer), vars)),
+      };
+    } else if (raw.type === 'list_candidates') {
+      step.prompt = substituteTokens(raw.prompt || 'List the conditions and the range to search.', vars);
+      step.expectedResponse = {
+        type: 'list_candidates',
+        conditionCount: raw.conditionCount || 2,
+        conditions: (raw.conditions || []).map((c) => substituteTokens(c, vars)),
+      };
+    } else if (raw.type === 'list_check') {
+      step.prompt = substituteTokens(raw.prompt || 'Find the number that satisfies all conditions.', vars);
+      step.expectedResponse = {
+        type: 'list_check',
+        answer: Number(substituteTokens(String(raw.answer), vars)),
+      };
+    } else if (raw.type === 'guess_setup') {
+      step.prompt = substituteTokens(raw.prompt || 'Identify the two constraints for your guess table.', vars);
+      step.expectedResponse = {
+        type: 'guess_setup',
+        constraint1: substituteTokens(raw.constraint1 || '', vars),
+        constraint2: substituteTokens(raw.constraint2 || '', vars),
+      };
+    } else if (raw.type === 'guess_table') {
+      step.prompt = substituteTokens(raw.prompt || 'Guess, check, and adjust until both constraints match.', vars);
+      step.expectedResponse = {
+        type: 'guess_table',
+        answer: Number(substituteTokens(String(raw.answer), vars)),
+      };
     }
     return step;
   });
@@ -261,23 +328,27 @@ export async function generateProblem(skillId, options = {}) {
 
   const scaffoldSteps = buildScaffoldSteps(template.scaffold, vars);
 
-  const isBarModel = ['partWhole', 'comparison', 'twoStep'].includes(template.structure);
-  return {
+  const result = {
     problemId: crypto.randomUUID(),
     templateId: template.templateId,
-    heuristic: template.heuristic || (isBarModel ? 'bar-model' : template.structure),
+    heuristic: template.heuristic || 'bar-model',
     structure: template.structure,
     storyText,
     givenNumbers,
     correctAnswer,
-    barModelSpec: isBarModel ? {
-      modelType: template.structure === 'twoStep' ? 'partWhole' : template.structure,
-      unknownPosition: template.unknownPosition,
-      values: nums,
-    } : null,
     scaffoldSteps,
     status: 'pending',
   };
+
+  if (!template.heuristic || template.heuristic === 'bar-model') {
+    result.barModelSpec = {
+      modelType: template.structure === 'twoStep' ? 'partWhole' : template.structure,
+      unknownPosition: template.unknownPosition,
+      values: nums,
+    };
+  }
+
+  return result;
 }
 
 export async function generateProblemsForSession(skillId, count = 5) {

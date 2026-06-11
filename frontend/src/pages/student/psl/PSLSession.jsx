@@ -6,8 +6,8 @@ import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
 import StoryPanel from './components/StoryPanel';
 import QuestionIdentifier from './components/QuestionIdentifier';
-import ModelSelector from './components/ModelSelector';
-import SolvePanel from './components/SolvePanel';
+import PlanDispatcher from './components/PlanDispatcher';
+import SolveDispatcher from './components/SolveDispatcher';
 import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
 import ReasoningInput from './components/ReasoningInput';
@@ -81,19 +81,26 @@ export default function PSLSession() {
         return { numbers: resp?.numbers || [], reasoning: resp?.reasoning || '' };
       case 'identify_question':
         return { selectedIndex: resp?.selectedIndex, reasoning: resp?.reasoning || '' };
-      case 'plan':
-        if (getPlanStepType(currentProblem) === 'strategySelect') {
-          return { selectedIndex: resp?.selectedIndex, reasoning: resp?.reasoning || '' };
+      case 'plan': {
+        const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
+        const planType = planStep?.type || 'model';
+        if (planType === 'model') return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, reasoning: resp?.reasoning || '' };
+        return { ...(resp || {}), reasoning: resp?.reasoning || '' };
+      }
+      case 'solve': {
+        const solveStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'solve');
+        const solveType = solveStep?.type;
+        if (solveType === 'expression' || solveType === 'twoStep') {
+          return {
+            answer: Number(resp?.answer),
+            operation: resp?.expression?.match(/[+\-×÷*/]/)?.[0] || '',
+            expression: resp?.expression || '',
+            intermediates: resp?.step1Answer ? [Number(resp.step1Answer)] : [],
+            reasoning: resp?.reasoning || '',
+          };
         }
-        return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, reasoning: resp?.reasoning || '' };
-      case 'solve':
-        return {
-          answer: Number(resp?.answer),
-          operation: resp?.expression?.match(/[+\-×÷*/]/)?.[0] || '',
-          expression: resp?.expression || '',
-          intermediates: resp?.step1Answer ? [Number(resp.step1Answer)] : [],
-          reasoning: resp?.reasoning || '',
-        };
+        return { answer: Number(resp?.answer), ...(resp || {}), reasoning: resp?.reasoning || '' };
+      }
       case 'check':
         return { reasonable: resp?.reasonable, reasoning: resp?.reasoning || '' };
       default:
@@ -168,7 +175,12 @@ export default function PSLSession() {
       case 'understand': return resp?.selectedIndex !== undefined;
       case 'identify_info': return (resp?.numbers || []).length > 0;
       case 'identify_question': return resp?.selectedIndex !== undefined;
-      case 'plan': return getPlanStepType(currentProblem) === 'strategySelect' ? resp?.selectedIndex !== undefined : (resp?.modelType && resp?.unknownPosition);
+      case 'plan': {
+        const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
+        const planType = planStep?.type || 'model';
+        if (planType === 'model') return resp?.modelType && resp?.unknownPosition;
+        return resp && Object.keys(resp).length > 0;
+      }
       case 'solve': return resp?.answer !== undefined && resp?.answer !== '';
       case 'check': return resp?.reasonable !== undefined;
       default: return false;
@@ -234,12 +246,11 @@ export default function PSLSession() {
           />
         )}
 
-        {currentStepId === 'plan' && getPlanStepType(currentProblem) === 'model' && (
-          <ModelSelector
-            modelType={stepResponses.plan?.modelType}
-            unknownPosition={stepResponses.plan?.unknownPosition}
-            onSelectModel={(mt) => updateResponse('plan', { modelType: mt, unknownPosition: undefined })}
-            onSelectPosition={(pos) => updateResponse('plan', { unknownPosition: pos })}
+        {currentStepId === 'plan' && (
+          <PlanDispatcher
+            scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
+            response={stepResponses.plan}
+            onChange={(val) => updateResponse('plan', val)}
           />
         )}
 
@@ -252,9 +263,9 @@ export default function PSLSession() {
         )}
 
         {currentStepId === 'solve' && (
-          <SolvePanel
-            twoStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')?.type === 'twoStep'}
-            value={stepResponses.solve || {}}
+          <SolveDispatcher
+            scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
+            response={stepResponses.solve || {}}
             onChange={(val) => updateResponse('solve', val)}
           />
         )}

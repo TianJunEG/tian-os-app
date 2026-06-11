@@ -801,6 +801,690 @@ const TEMPLATES = [
     },
     misconceptions: { plan: ['psl/wrong-model-type'], solve: ['psl/arithmetic-error'] },
   },
+  // ══════════════════════════════════════════════════════════════════════
+  //  H2: FIND A PATTERN — LINEAR SEQUENCE (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h2-linear-01',
+    skillId: 'psl-p3-pattern-linear', structure: null, heuristic: 'find-pattern',
+    operations: ['addition'], difficulty: 1,
+    contexts: [{ setting: 'number pattern', verb: 'starts' }],
+    constraints: { start: { min: 1, max: 9 }, step: { options: [2, 3, 5, 10] }, targetPos: { min: 6, max: 8 } },
+    storyTemplate: 'Look at the pattern: {term1}, {term2}, {term3}, {term4}, … What is the {ordTarget} number?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem asking you to do?', correctIndex: 0, choices: [
+        'Find a number further along in a pattern', 'Add all the numbers together', 'Find the difference between two numbers', 'Arrange numbers from smallest to largest',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{term1}', '{term2}', '{term3}', '{term4}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The {ordTarget} number in the pattern', 'The sum of all numbers', 'How many numbers are in the pattern', 'The smallest number',
+      ]},
+      plan: { type: 'table_setup', prompt: 'Set up a table to organise the pattern.', columns: ['Position', 'Value'], knownRows: [[1, '{term1}'], [2, '{term2}'], [3, '{term3}'], [4, '{term4}']], requiredCount: 2 },
+      solve: { type: 'find_rule', prompt: 'Complete the table and find the {ordTarget} term.', columns: ['Position', 'Value'], knownRows: [[1, '{term1}'], [2, '{term2}'], [3, '{term3}'], [4, '{term4}']], targetPosition: '{targetPos}', answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Does your answer fit the pattern? Check that each step adds the same amount.' },
+    },
+    misconceptions: { solve: ['psl/wrong-rule', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h2-linear-02',
+    skillId: 'psl-p3-pattern-linear', structure: null, heuristic: 'find-pattern',
+    operations: ['addition'], difficulty: 1,
+    contexts: [{ setting: 'growing collection', verb: 'adds' }],
+    constraints: { start: { min: 2, max: 12 }, step: { min: 3, max: 10 }, targetPos: { min: 8, max: 12 } },
+    storyTemplate: '{nameA} saves stickers. After week 1 there are {term1}, week 2 there are {term2}, week 3 there are {term3}, week 4 there are {term4}. How many stickers after week {targetPos}?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding how a collection grows each week', 'Sharing stickers equally', 'Comparing two collections', 'Finding the total given away',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{term1}', '{term2}', '{term3}', '{term4}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of stickers after week {targetPos}', 'How many stickers were given away', 'The difference between week 1 and week 4', 'The total across all weeks',
+      ]},
+      plan: { type: 'table_setup', prompt: 'Set up a table with weeks and sticker counts.', columns: ['Week', 'Stickers'], knownRows: [[1, '{term1}'], [2, '{term2}'], [3, '{term3}'], [4, '{term4}']], requiredCount: 2 },
+      solve: { type: 'find_rule', prompt: 'Extend the table to week {targetPos}.', columns: ['Week', 'Stickers'], knownRows: [[1, '{term1}'], [2, '{term2}'], [3, '{term3}'], [4, '{term4}']], targetPosition: '{targetPos}', answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: the sticker count should increase by the same amount each week.' },
+    },
+    misconceptions: { solve: ['psl/wrong-rule', 'psl/off-by-one'] },
+  },
+  {
+    templateId: 'psl-tpl-h2-linear-03',
+    skillId: 'psl-p3-pattern-linear', structure: null, heuristic: 'find-pattern',
+    operations: ['addition', 'subtraction'], difficulty: 1,
+    contexts: [{ setting: 'decreasing pattern', verb: 'starts' }],
+    constraints: { start: { min: 50, max: 100 }, step: { options: [-3, -5, -7, -10] }, targetPos: { min: 7, max: 10 } },
+    storyTemplate: 'A number pattern goes: {term1}, {term2}, {term3}, {term4}, … What is the {ordTarget} number?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What do you notice about this pattern?', correctIndex: 0, choices: [
+        'The numbers are decreasing by a fixed amount', 'The numbers are increasing', 'The numbers are all even', 'The numbers are random',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{term1}', '{term2}', '{term3}', '{term4}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The {ordTarget} number in the decreasing pattern', 'Why the pattern is decreasing', 'The sum of the pattern', 'The average of the numbers',
+      ]},
+      plan: { type: 'table_setup', prompt: 'Set up a table to track the pattern.', columns: ['Position', 'Value'], knownRows: [[1, '{term1}'], [2, '{term2}'], [3, '{term3}'], [4, '{term4}']], requiredCount: 2 },
+      solve: { type: 'find_rule', prompt: 'Find the rule and the {ordTarget} term.', columns: ['Position', 'Value'], knownRows: [[1, '{term1}'], [2, '{term2}'], [3, '{term3}'], [4, '{term4}']], targetPosition: '{targetPos}', answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: subtract the step from each term to confirm the pattern continues.' },
+    },
+    misconceptions: { solve: ['psl/wrong-rule', 'psl/arithmetic-error'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H2: FIND A PATTERN — SHAPE PATTERN (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h2-shape-01',
+    skillId: 'psl-p3-pattern-geometric', structure: null, heuristic: 'find-pattern',
+    operations: ['multiplication', 'addition'], difficulty: 2,
+    contexts: [{ setting: 'matchstick squares', verb: 'builds' }],
+    constraints: { multiplier: 3, constant: 1, targetPos: { min: 5, max: 12 } },
+    storyTemplate: '{nameA} builds squares in a row with matchsticks. 1 square needs 4 sticks, 2 squares need 7, 3 need 10. How many matchsticks for {targetPos} squares?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding how many matchsticks are needed for more squares', 'Counting the total number of squares', 'Dividing matchsticks equally', 'Finding the area of squares',
+      ]},
+      identify_info: { type: 'highlight', expected: ['4', '7', '10'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'Matchsticks needed for {targetPos} squares', 'How many squares can be made with 30 sticks', 'The length of one matchstick', 'How many sticks are shared between squares',
+      ]},
+      plan: { type: 'table_setup', prompt: 'Set up a table of squares vs matchsticks.', columns: ['Squares', 'Matchsticks'], knownRows: [[1, 4], [2, 7], [3, 10]], requiredCount: 2 },
+      solve: { type: 'find_rule', prompt: 'Find the rule and work out sticks for {targetPos} squares.', columns: ['Squares', 'Matchsticks'], knownRows: [[1, 4], [2, 7], [3, 10]], targetPosition: '{targetPos}', answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: each new square adds 3 sticks. Rule is 3n + 1.' },
+    },
+    misconceptions: { solve: ['psl/wrong-rule', 'psl/off-by-one'] },
+  },
+  {
+    templateId: 'psl-tpl-h2-shape-02',
+    skillId: 'psl-p3-pattern-geometric', structure: null, heuristic: 'find-pattern',
+    operations: ['multiplication', 'addition'], difficulty: 2,
+    contexts: [{ setting: 'matchstick triangles', verb: 'arranges' }],
+    constraints: { multiplier: 2, constant: 1, targetPos: { min: 6, max: 15 } },
+    storyTemplate: '{nameA} arranges triangles in a row with matchsticks. 1 triangle uses 3 sticks, 2 use 5, 3 use 7. How many matchsticks for {targetPos} triangles?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding matchsticks needed for a row of triangles', 'Counting triangles', 'Finding the perimeter of a triangle', 'Splitting sticks into equal groups',
+      ]},
+      identify_info: { type: 'highlight', expected: ['3', '5', '7'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'Matchsticks needed for {targetPos} triangles', 'How many triangles can be made', 'The size of each triangle', 'The number of shared sides',
+      ]},
+      plan: { type: 'table_setup', prompt: 'Set up a table of triangles vs matchsticks.', columns: ['Triangles', 'Matchsticks'], knownRows: [[1, 3], [2, 5], [3, 7]], requiredCount: 2 },
+      solve: { type: 'find_rule', prompt: 'Find the rule and work out sticks for {targetPos} triangles.', columns: ['Triangles', 'Matchsticks'], knownRows: [[1, 3], [2, 5], [3, 7]], targetPosition: '{targetPos}', answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: each new triangle adds 2 sticks. Rule is 2n + 1.' },
+    },
+    misconceptions: { solve: ['psl/wrong-rule', 'psl/off-by-one'] },
+  },
+  {
+    templateId: 'psl-tpl-h2-shape-03',
+    skillId: 'psl-p3-pattern-geometric', structure: null, heuristic: 'find-pattern',
+    operations: ['multiplication'], difficulty: 2,
+    contexts: [{ setting: 'dot pattern', verb: 'draws' }],
+    constraints: { multiplier: 4, constant: 0, targetPos: { min: 8, max: 15 } },
+    storyTemplate: '{nameA} draws a cross pattern with dots. Pattern 1 has 4 dots, pattern 2 has 8, pattern 3 has 12. How many dots in pattern {targetPos}?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding how many dots in a growing pattern', 'Drawing cross shapes', 'Comparing dot sizes', 'Counting the number of patterns',
+      ]},
+      identify_info: { type: 'highlight', expected: ['4', '8', '12'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of dots in pattern {targetPos}', 'How many patterns fit on a page', 'The size of each dot', 'The total dots across all patterns',
+      ]},
+      plan: { type: 'table_setup', prompt: 'Set up a table of pattern number vs dots.', columns: ['Pattern', 'Dots'], knownRows: [[1, 4], [2, 8], [3, 12]], requiredCount: 2 },
+      solve: { type: 'find_rule', prompt: 'Find the rule and work out dots for pattern {targetPos}.', columns: ['Pattern', 'Dots'], knownRows: [[1, 4], [2, 8], [3, 12]], targetPosition: '{targetPos}', answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: each pattern adds 4 dots. Rule is 4n.' },
+    },
+    misconceptions: { solve: ['psl/wrong-rule', 'psl/arithmetic-error'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H3: SUBSTITUTION — SAME COEFFICIENT (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h3-same-01',
+    skillId: 'psl-p3-sub-same-coeff', structure: null, heuristic: 'substitution',
+    operations: ['addition', 'subtraction'], difficulty: 1,
+    contexts: [{ setting: 'fruit shop', verb: 'buys' }],
+    constraints: { applePrice: { min: 3, max: 12 }, orangePrice: { min: 2, max: 9 } },
+    storyTemplate: '2 apples and 1 orange cost ${totalA}. 2 apples and 3 oranges cost ${totalB}. Find the cost of 1 orange.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding prices using two pieces of information', 'Adding fruit prices', 'Comparing two shops', 'Sharing fruit equally',
+      ]},
+      identify_info: { type: 'highlight', expected: ['${totalA}', '${totalB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The cost of 1 orange', 'The total cost of fruit', 'How many fruits were bought', 'The cost of all apples',
+      ]},
+      plan: { type: 'equation_setup', prompt: 'Which variable can you eliminate by subtracting?', equations: ['2 apples + 1 orange = ${totalA}', '2 apples + 3 oranges = ${totalB}'], variables: ['apples', 'oranges'] },
+      solve: { type: 'eliminate', prompt: 'Subtract equation 1 from equation 2 to eliminate apples.', steps: ['Subtract: ({totalB} − {totalA}) = 2 oranges', 'So 1 orange = ...'], variables: ['orange', 'apple'], answer: '{orangePrice}' },
+      check: { type: 'reasonableness', prompt: 'Check: 2 × apple + 1 × {orangePrice} = ${totalA}? 2 × apple + 3 × {orangePrice} = ${totalB}?' },
+    },
+    misconceptions: { solve: ['psl/wrong-elimination', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h3-same-02',
+    skillId: 'psl-p3-sub-same-coeff', structure: null, heuristic: 'substitution',
+    operations: ['addition', 'subtraction'], difficulty: 1,
+    contexts: [{ setting: 'stationery shop', verb: 'buys' }],
+    constraints: { rulerPrice: { min: 2, max: 6 }, penPrice: { min: 1.5, max: 3 } },
+    storyTemplate: '2 rulers and 3 pens cost ${totalA}. 4 rulers and 3 pens cost ${totalB}. Find the cost of 1 ruler.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding prices by comparing two purchases', 'Counting stationery items', 'Sharing pens equally', 'Finding the total stationery',
+      ]},
+      identify_info: { type: 'highlight', expected: ['${totalA}', '${totalB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The cost of 1 ruler', 'The total number of items', 'The cost of all pens', 'How many rulers were bought',
+      ]},
+      plan: { type: 'equation_setup', prompt: 'Which variable has the same coefficient in both equations?', equations: ['2 rulers + 3 pens = ${totalA}', '4 rulers + 3 pens = ${totalB}'], variables: ['rulers', 'pens'] },
+      solve: { type: 'eliminate', prompt: 'Subtract to eliminate pens (same coefficient: 3).', steps: ['Subtract: ({totalB} − {totalA}) = 2 rulers', 'So 1 ruler = ...'], variables: ['ruler', 'pen'], answer: '{rulerPrice}' },
+      check: { type: 'reasonableness', prompt: 'Check: 2 × {rulerPrice} + 3 × pen = ${totalA}?' },
+    },
+    misconceptions: { solve: ['psl/wrong-elimination', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h3-same-03',
+    skillId: 'psl-p3-sub-same-coeff', structure: null, heuristic: 'substitution',
+    operations: ['addition', 'subtraction'], difficulty: 1,
+    contexts: [{ setting: 'bakery', verb: 'buys' }],
+    constraints: { cakePrice: { min: 3, max: 10 }, muffinPrice: { min: 2, max: 5 } },
+    storyTemplate: '1 cake and 2 muffins cost ${totalA}. 1 cake and 5 muffins cost ${totalB}. Find the cost of 1 muffin.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding bakery prices from two orders', 'Counting cakes', 'Sharing muffins equally', 'Comparing bakeries',
+      ]},
+      identify_info: { type: 'highlight', expected: ['${totalA}', '${totalB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The cost of 1 muffin', 'The total cost', 'The number of cakes', 'The cost of the cake',
+      ]},
+      plan: { type: 'equation_setup', prompt: 'Which variable can you eliminate?', equations: ['1 cake + 2 muffins = ${totalA}', '1 cake + 5 muffins = ${totalB}'], variables: ['cake', 'muffins'] },
+      solve: { type: 'eliminate', prompt: 'Subtract to eliminate cakes.', steps: ['Subtract: ({totalB} − {totalA}) = 3 muffins', 'So 1 muffin = ...'], variables: ['muffin', 'cake'], answer: '{muffinPrice}' },
+      check: { type: 'reasonableness', prompt: 'Check: cake + 2 × {muffinPrice} = ${totalA}?' },
+    },
+    misconceptions: { solve: ['psl/wrong-elimination', 'psl/arithmetic-error'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H3: SUBSTITUTION — SCALING NEEDED (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h3-scale-01',
+    skillId: 'psl-p3-sub-scale', structure: null, heuristic: 'substitution',
+    operations: ['multiplication', 'subtraction'], difficulty: 2,
+    contexts: [{ setting: 'clothing shop', verb: 'buys' }],
+    constraints: { shortsPrice: { min: 4, max: 15 }, topPrice: { min: 5, max: 18 } },
+    storyTemplate: '3 shorts and 2 tops cost ${totalA}. 5 shorts and 4 tops cost ${totalB}. Find the cost of 1 top.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding clothing prices from two orders', 'Counting clothes', 'Comparing two shops', 'Sharing clothes equally',
+      ]},
+      identify_info: { type: 'highlight', expected: ['${totalA}', '${totalB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The cost of 1 top', 'The total spending', 'How many items were bought', 'The cost of 1 shorts',
+      ]},
+      plan: { type: 'equation_setup', prompt: 'Neither variable has matching coefficients. Which should you eliminate?', equations: ['3 shorts + 2 tops = ${totalA}', '5 shorts + 4 tops = ${totalB}'], variables: ['shorts', 'tops'] },
+      solve: { type: 'eliminate', prompt: 'Double equation 1 (6 shorts + 4 tops), then subtract equation 2.', steps: ['2 × eq1: 6 shorts + 4 tops = ${doubledA}', 'Subtract eq2: 1 short = ${doubledA} − ${totalB}', 'Back-substitute to find 1 top'], variables: ['top', 'shorts'], answer: '{topPrice}' },
+      check: { type: 'reasonableness', prompt: 'Check: 3 × shorts + 2 × {topPrice} = ${totalA}?' },
+    },
+    misconceptions: { solve: ['psl/wrong-scale-factor', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h3-scale-02',
+    skillId: 'psl-p3-sub-scale', structure: null, heuristic: 'substitution',
+    operations: ['multiplication', 'subtraction'], difficulty: 2,
+    contexts: [{ setting: 'toy shop', verb: 'buys' }],
+    constraints: { carPrice: { min: 3, max: 8 }, dollPrice: { min: 5, max: 12 } },
+    storyTemplate: '2 toy cars and 1 doll cost ${totalA}. 3 toy cars and 2 dolls cost ${totalB}. Find the cost of 1 doll.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding toy prices from two purchases', 'Counting toys', 'Sharing toys', 'Comparing toy shops',
+      ]},
+      identify_info: { type: 'highlight', expected: ['${totalA}', '${totalB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The cost of 1 doll', 'The total cost of toys', 'How many toys were bought', 'The cost of 1 car',
+      ]},
+      plan: { type: 'equation_setup', prompt: 'How can you make the coefficients match?', equations: ['2 cars + 1 doll = ${totalA}', '3 cars + 2 dolls = ${totalB}'], variables: ['cars', 'dolls'] },
+      solve: { type: 'eliminate', prompt: 'Multiply equation 1 by 2, then subtract equation 2 to eliminate dolls.', steps: ['2 × eq1: 4 cars + 2 dolls = ${doubledA}', 'Subtract eq2: 1 car = ${doubledA} − ${totalB}', 'Substitute back for 1 doll'], variables: ['doll', 'car'], answer: '{dollPrice}' },
+      check: { type: 'reasonableness', prompt: 'Check: 2 × car + {dollPrice} = ${totalA}?' },
+    },
+    misconceptions: { solve: ['psl/wrong-scale-factor', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h3-scale-03',
+    skillId: 'psl-p3-sub-scale', structure: null, heuristic: 'substitution',
+    operations: ['multiplication', 'subtraction'], difficulty: 2,
+    contexts: [{ setting: 'food stall', verb: 'buys' }],
+    constraints: { burgerPrice: { min: 4, max: 10 }, drinkPrice: { min: 2, max: 5 } },
+    storyTemplate: '3 burgers and 1 drink cost ${totalA}. 2 burgers and 3 drinks cost ${totalB}. Find the cost of 1 drink.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding food prices from two orders', 'Counting items ordered', 'Comparing food stalls', 'Sharing the bill',
+      ]},
+      identify_info: { type: 'highlight', expected: ['${totalA}', '${totalB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The cost of 1 drink', 'The total bill', 'How many items were ordered', 'The cost of 1 burger',
+      ]},
+      plan: { type: 'equation_setup', prompt: 'Which variable will you eliminate? What scaling do you need?', equations: ['3 burgers + 1 drink = ${totalA}', '2 burgers + 3 drinks = ${totalB}'], variables: ['burgers', 'drinks'] },
+      solve: { type: 'eliminate', prompt: 'Multiply equation 1 by 3, then subtract equation 2 to eliminate drinks.', steps: ['3 × eq1: 9 burgers + 3 drinks = ${tripledA}', 'Subtract eq2: 7 burgers = ${tripledA} − ${totalB}', 'Find 1 burger, then substitute for 1 drink'], variables: ['drink', 'burger'], answer: '{drinkPrice}' },
+      check: { type: 'reasonableness', prompt: 'Check: 3 × burger + {drinkPrice} = ${totalA}? 2 × burger + 3 × {drinkPrice} = ${totalB}?' },
+    },
+    misconceptions: { solve: ['psl/wrong-scale-factor', 'psl/arithmetic-error'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H4: MAKE A LIST — SINGLE CONDITION (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h4-simple-01',
+    skillId: 'psl-p3-list-simple', structure: null, heuristic: 'make-list',
+    operations: ['multiplication'], difficulty: 1,
+    contexts: [{ setting: 'number puzzle', verb: 'is' }],
+    constraints: { answer: { options: [15, 25, 35, 45, 55, 65, 75, 85, 95] }, rangeSpread: { min: 3, max: 4 } },
+    storyTemplate: 'I am a number between {lo} and {hi}. I am odd and a multiple of 5. What number am I?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding a number that meets specific conditions', 'Adding numbers together', 'Finding the biggest number', 'Dividing numbers',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{lo}', '{hi}', 'odd', 'multiple of 5'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number that satisfies all conditions', 'The range of numbers', 'How many multiples of 5 exist', 'The sum of all odd numbers',
+      ]},
+      plan: { type: 'list_candidates', prompt: 'What conditions must the answer satisfy?', conditions: ['Between {lo} and {hi}', 'Odd number', 'Multiple of 5'], showRange: true },
+      solve: { type: 'list_check', prompt: 'List the multiples of 5 in range, then keep only the odd one.', conditions: ['Between {lo} and {hi}', 'Odd', 'Multiple of 5'], answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Is {answer} between {lo} and {hi}? Is it odd? Is it a multiple of 5?' },
+    },
+    misconceptions: { solve: ['psl/missed-candidate', 'psl/wrong-condition'] },
+  },
+  {
+    templateId: 'psl-tpl-h4-simple-02',
+    skillId: 'psl-p3-list-simple', structure: null, heuristic: 'make-list',
+    operations: ['multiplication'], difficulty: 1,
+    contexts: [{ setting: 'number puzzle', verb: 'is' }],
+    constraints: { answer: { options: [14, 28, 42, 56, 70, 84, 98] }, rangeSpread: { min: 5, max: 6 } },
+    storyTemplate: 'I am a number between {lo} and {hi}. I am even and a multiple of 7. What number am I?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding a number that meets multiple conditions', 'Multiplying two numbers', 'Finding all even numbers', 'Comparing numbers',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{lo}', '{hi}', 'even', 'multiple of 7'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The even multiple of 7 in the range', 'All multiples of 7', 'The largest even number', 'The sum of the range',
+      ]},
+      plan: { type: 'list_candidates', prompt: 'What conditions must the answer satisfy?', conditions: ['Between {lo} and {hi}', 'Even number', 'Multiple of 7'], showRange: true },
+      solve: { type: 'list_check', prompt: 'List multiples of 7 in range, keep the even one.', conditions: ['Between {lo} and {hi}', 'Even', 'Multiple of 7'], answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Is {answer} even? Is it divisible by 7? Is it in range?' },
+    },
+    misconceptions: { solve: ['psl/missed-candidate', 'psl/wrong-condition'] },
+  },
+  {
+    templateId: 'psl-tpl-h4-simple-03',
+    skillId: 'psl-p3-list-simple', structure: null, heuristic: 'make-list',
+    operations: ['multiplication'], difficulty: 1,
+    contexts: [{ setting: 'locker puzzle', verb: 'is' }],
+    constraints: { answer: { options: [12, 18, 24, 30, 36] }, rangeSpread: { min: 4, max: 6 } },
+    storyTemplate: 'A locker number between {lo} and {hi} is a multiple of both 3 and {secondFactor}. What is the locker number?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding a number that is a common multiple', 'Counting lockers', 'Finding the difference between lockers', 'Ordering locker numbers',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{lo}', '{hi}', '3', '{secondFactor}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The locker number that is a multiple of both', 'How many lockers there are', 'The smallest multiple', 'The sum of all locker numbers',
+      ]},
+      plan: { type: 'list_candidates', prompt: 'What conditions must the answer satisfy?', conditions: ['Between {lo} and {hi}', 'Multiple of 3', 'Multiple of {secondFactor}'], showRange: true },
+      solve: { type: 'list_check', prompt: 'List common multiples in range.', conditions: ['Between {lo} and {hi}', 'Multiple of 3', 'Multiple of {secondFactor}'], answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Is {answer} divisible by both 3 and {secondFactor}?' },
+    },
+    misconceptions: { solve: ['psl/missed-candidate'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H4: MAKE A LIST — MULTIPLE CONDITIONS (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h4-multi-01',
+    skillId: 'psl-p3-list-multi', structure: null, heuristic: 'make-list',
+    operations: ['division'], difficulty: 2,
+    contexts: [{ setting: 'remainder puzzle', verb: 'is' }],
+    constraints: { divisor1: { options: [5, 6, 7] }, divisor2: { options: [4, 8, 9] } },
+    storyTemplate: 'A number between {lo} and {hi} leaves remainder {rem1} when divided by {div1}, and remainder {rem2} when divided by {div2}. Find it.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding a number with specific remainders', 'Dividing two numbers', 'Finding the quotient', 'Comparing remainders',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{lo}', '{hi}', '{rem1}', '{div1}', '{rem2}', '{div2}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number with both specified remainders', 'The remainder when dividing', 'The quotient of division', 'The largest number in range',
+      ]},
+      plan: { type: 'list_candidates', prompt: 'What conditions must the answer satisfy?', conditions: ['Between {lo} and {hi}', 'Remainder {rem1} when ÷ {div1}', 'Remainder {rem2} when ÷ {div2}'], showRange: true },
+      solve: { type: 'list_check', prompt: 'List numbers with remainder {rem1} on ÷{div1}, then check ÷{div2}.', conditions: ['Remainder {rem1} when ÷ {div1}', 'Remainder {rem2} when ÷ {div2}'], answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: {answer} ÷ {div1} gives remainder {rem1}? {answer} ÷ {div2} gives remainder {rem2}?' },
+    },
+    misconceptions: { solve: ['psl/missed-candidate', 'psl/forgot-condition'] },
+  },
+  {
+    templateId: 'psl-tpl-h4-multi-02',
+    skillId: 'psl-p3-list-multi', structure: null, heuristic: 'make-list',
+    operations: ['multiplication', 'division'], difficulty: 2,
+    contexts: [{ setting: 'marble jar', verb: 'holds' }],
+    constraints: { stackA: 8, stackB: 9 },
+    storyTemplate: 'A jar holds between {lo} and {hi} marbles. In stacks of {stackA} there are {extraA} left over. In stacks of {stackB} it is {shortB} short of a full stack. How many marbles?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding a number that fits two stacking conditions', 'Counting marbles', 'Sharing marbles equally', 'Comparing two jars',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{lo}', '{hi}', '{stackA}', '{extraA}', '{stackB}', '{shortB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of marbles in the jar', 'How many stacks can be made', 'The leftover marbles', 'The size of each stack',
+      ]},
+      plan: { type: 'list_candidates', prompt: 'What conditions must the answer satisfy?', conditions: ['Between {lo} and {hi}', '{extraA} left over in stacks of {stackA}', '{shortB} short of a full stack of {stackB}'], showRange: true },
+      solve: { type: 'list_check', prompt: 'List numbers that are {extraA} more than a multiple of {stackA}, then check the second condition.', conditions: ['{extraA} more than a multiple of {stackA}', '{shortB} short of a multiple of {stackB}'], answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: {answer} ÷ {stackA} has remainder {extraA}? {answer} + {shortB} is a multiple of {stackB}?' },
+    },
+    misconceptions: { solve: ['psl/missed-candidate', 'psl/forgot-condition'] },
+  },
+  {
+    templateId: 'psl-tpl-h4-multi-03',
+    skillId: 'psl-p3-list-multi', structure: null, heuristic: 'make-list',
+    operations: ['multiplication'], difficulty: 2,
+    contexts: [{ setting: 'common multiple', verb: 'is' }],
+    constraints: { factorA: { options: [8, 10, 12] }, factorB: { options: [12, 15, 9] } },
+    storyTemplate: 'Find the number between {lo} and {hi} that is a multiple of both {factorA} and {factorB}.',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding a common multiple in a range', 'Multiplying two numbers', 'Finding the largest multiple', 'Adding multiples',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{lo}', '{hi}', '{factorA}', '{factorB}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The common multiple in the given range', 'The product of the two numbers', 'All multiples of {factorA}', 'The smallest multiple',
+      ]},
+      plan: { type: 'list_candidates', prompt: 'What conditions must the answer satisfy?', conditions: ['Between {lo} and {hi}', 'Multiple of {factorA}', 'Multiple of {factorB}'], showRange: true },
+      solve: { type: 'list_check', prompt: 'List multiples of {factorA}, check which are also multiples of {factorB}.', conditions: ['Multiple of {factorA}', 'Multiple of {factorB}', 'In range {lo}–{hi}'], answer: '{answer}' },
+      check: { type: 'reasonableness', prompt: 'Check: is {answer} ÷ {factorA} a whole number? Is {answer} ÷ {factorB} a whole number?' },
+    },
+    misconceptions: { solve: ['psl/missed-candidate'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H5: GUESS AND CHECK — COINS (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h5-coins-01',
+    skillId: 'psl-p3-guess-coins', structure: null, heuristic: 'guess-check',
+    operations: ['addition', 'multiplication'], difficulty: 1,
+    contexts: [{ setting: 'piggy bank', verb: 'has' }],
+    constraints: { tenCent: { min: 2, max: 6 }, fiveCent: { min: 2, max: 6 } },
+    storyTemplate: 'A piggy bank holds only 10-cent and 5-cent coins — {totalCoins} coins worth {totalValue} cents in all. How many 10-cent coins are there?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding how many of each coin type there are', 'Counting total coins', 'Finding the value of one coin', 'Sharing coins equally',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{totalCoins}', '{totalValue}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of 10-cent coins', 'The total value', 'The number of coins altogether', 'The value of one coin',
+      ]},
+      plan: { type: 'guess_setup', prompt: 'What conditions must your answer satisfy?', constraints: ['The total number of coins is {totalCoins}', 'The total value is {totalValue} cents'] },
+      solve: { type: 'guess_table', prompt: 'Guess the number of 10¢ coins and check.', columns: ['10¢ coins', '5¢ coins', 'Total value'], maxGuesses: 5, answer: '{tenCent}' },
+      check: { type: 'reasonableness', prompt: 'Check: {tenCent} ten-cent + {fiveCent} five-cent = {totalCoins} coins and {totalValue} cents?' },
+    },
+    misconceptions: { solve: ['psl/random-guess', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h5-coins-02',
+    skillId: 'psl-p3-guess-coins', structure: null, heuristic: 'guess-check',
+    operations: ['addition', 'multiplication'], difficulty: 1,
+    contexts: [{ setting: 'coin jar', verb: 'contains' }],
+    constraints: { twentyCent: { min: 3, max: 8 }, tenCent: { min: 3, max: 8 } },
+    storyTemplate: 'A jar {verb} 20-cent and 10-cent coins — {totalCoins} coins worth {totalValue} cents. How many 20-cent coins are there?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding the mix of two coin types', 'Adding up all the coins', 'Comparing two jars', 'Finding the biggest coin',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{totalCoins}', '{totalValue}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of 20-cent coins', 'The total number of coins', 'The value of one coin', 'How many cents are left over',
+      ]},
+      plan: { type: 'guess_setup', prompt: 'What conditions must your answer satisfy?', constraints: ['The total number of coins is {totalCoins}', 'The total value is {totalValue} cents'] },
+      solve: { type: 'guess_table', prompt: 'Guess the number of 20¢ coins and check.', columns: ['20¢ coins', '10¢ coins', 'Total value'], maxGuesses: 5, answer: '{twentyCent}' },
+      check: { type: 'reasonableness', prompt: 'Verify: {twentyCent} × 20 + {tenCent} × 10 = {totalValue}?' },
+    },
+    misconceptions: { solve: ['psl/random-guess', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h5-coins-03',
+    skillId: 'psl-p3-guess-coins', structure: null, heuristic: 'guess-check',
+    operations: ['addition', 'multiplication'], difficulty: 1,
+    contexts: [{ setting: 'wallet', verb: 'has' }],
+    constraints: { fiftyCent: { min: 2, max: 6 }, twentyCent: { min: 2, max: 8 } },
+    storyTemplate: '{nameA} {verb} only 50-cent and 20-cent coins — {totalCoins} coins worth ${totalDollars} in total. How many 50-cent coins does {nameA} have?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding how many of each coin type', 'Counting all coins', 'Sharing money equally', 'Comparing coin sizes',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{totalCoins}', '{totalDollars}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of 50-cent coins', 'The total amount of money', 'The number of 20-cent coins', 'How much each coin is worth',
+      ]},
+      plan: { type: 'guess_setup', prompt: 'What conditions must be satisfied?', constraints: ['Total coins = {totalCoins}', 'Total value = ${totalDollars}'] },
+      solve: { type: 'guess_table', prompt: 'Guess the number of 50¢ coins and check.', columns: ['50¢ coins', '20¢ coins', 'Total value'], maxGuesses: 5, answer: '{fiftyCent}' },
+      check: { type: 'reasonableness', prompt: 'Check: {fiftyCent} × 50¢ + {twentyCent} × 20¢ = ${totalDollars}?' },
+    },
+    misconceptions: { solve: ['psl/random-guess', 'psl/arithmetic-error'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H5: GUESS AND CHECK — ANIMALS (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h5-animals-01',
+    skillId: 'psl-p3-guess-animals', structure: null, heuristic: 'guess-check',
+    operations: ['addition', 'multiplication'], difficulty: 2,
+    contexts: [{ setting: 'farm', verb: 'has' }],
+    constraints: { chickens: { min: 4, max: 12 }, rabbits: { min: 3, max: 9 } },
+    storyTemplate: 'A {setting} {verb} chickens and rabbits — {totalHeads} heads and {totalLegs} legs in all. How many rabbits are there?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding the number of each animal', 'Counting total animals', 'Comparing chickens and rabbits', 'Finding the number of legs on one animal',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{totalHeads}', '{totalLegs}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of rabbits', 'The total number of legs', 'The total number of heads', 'The difference between chickens and rabbits',
+      ]},
+      plan: { type: 'guess_setup', prompt: 'What conditions must be satisfied?', constraints: ['Total heads (animals) = {totalHeads}', 'Total legs = {totalLegs} (chickens have 2, rabbits have 4)'] },
+      solve: { type: 'guess_table', prompt: 'Guess the number of rabbits and check the leg count.', columns: ['Rabbits', 'Chickens', 'Total legs'], maxGuesses: 5, answer: '{rabbits}' },
+      check: { type: 'reasonableness', prompt: 'Check: {rabbits} × 4 + {chickens} × 2 = {totalLegs} legs, and {rabbits} + {chickens} = {totalHeads} heads?' },
+    },
+    misconceptions: { solve: ['psl/random-guess', 'psl/forgot-constraint'] },
+  },
+  {
+    templateId: 'psl-tpl-h5-animals-02',
+    skillId: 'psl-p3-guess-animals', structure: null, heuristic: 'guess-check',
+    operations: ['addition', 'multiplication'], difficulty: 2,
+    contexts: [{ setting: 'pet shop', verb: 'has' }],
+    constraints: { spiders: { min: 2, max: 6 }, beetles: { min: 3, max: 8 } },
+    storyTemplate: 'A {setting} has spiders (8 legs) and beetles (6 legs). There are {totalCreatures} creatures with {totalLegs} legs in all. How many spiders are there?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding how many of each creature', 'Counting total legs', 'Comparing spider and beetle sizes', 'Finding how many legs one creature has',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{totalCreatures}', '{totalLegs}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of spiders', 'The total number of creatures', 'The number of beetles', 'The number of legs on each',
+      ]},
+      plan: { type: 'guess_setup', prompt: 'What conditions must be satisfied?', constraints: ['Total creatures = {totalCreatures}', 'Total legs = {totalLegs} (spiders 8, beetles 6)'] },
+      solve: { type: 'guess_table', prompt: 'Guess the number of spiders and check.', columns: ['Spiders', 'Beetles', 'Total legs'], maxGuesses: 5, answer: '{spiders}' },
+      check: { type: 'reasonableness', prompt: 'Check: {spiders} × 8 + {beetles} × 6 = {totalLegs}?' },
+    },
+    misconceptions: { solve: ['psl/random-guess', 'psl/forgot-constraint'] },
+  },
+  {
+    templateId: 'psl-tpl-h5-animals-03',
+    skillId: 'psl-p3-guess-animals', structure: null, heuristic: 'guess-check',
+    operations: ['addition', 'multiplication'], difficulty: 2,
+    contexts: [{ setting: 'pond', verb: 'has' }],
+    constraints: { ducks: { min: 3, max: 10 }, turtles: { min: 2, max: 8 } },
+    storyTemplate: 'A {setting} {verb} ducks and turtles. There are {totalAnimals} animals. The ducks have {totalWings} wings in total (ducks have 2 wings; turtles have 0). How many turtles are there?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this problem about?', correctIndex: 0, choices: [
+        'Finding how many of each animal', 'Counting wings', 'Comparing ducks and turtles', 'Finding the total number of animals',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{totalAnimals}', '{totalWings}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number of turtles', 'The number of ducks', 'The total wings', 'How many wings a duck has',
+      ]},
+      plan: { type: 'guess_setup', prompt: 'What conditions must be satisfied?', constraints: ['Total animals = {totalAnimals}', 'Total wings = {totalWings} (ducks 2, turtles 0)'] },
+      solve: { type: 'guess_table', prompt: 'Guess the number of turtles and check.', columns: ['Turtles', 'Ducks', 'Total wings'], maxGuesses: 5, answer: '{turtles}' },
+      check: { type: 'reasonableness', prompt: 'Check: {ducks} × 2 = {totalWings} wings, and {ducks} + {turtles} = {totalAnimals}?' },
+    },
+    misconceptions: { solve: ['psl/random-guess', 'psl/arithmetic-error'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H6: WORKING BACKWARDS — TWO OPERATIONS (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h6-twoOp-01',
+    skillId: 'psl-p3-reverse-twoOp', structure: null, heuristic: 'work-backwards',
+    operations: ['multiplication', 'addition'], difficulty: 1,
+    contexts: [
+      { setting: 'number puzzle', verb: 'thinks of' },
+      { setting: 'classroom', verb: 'picks' },
+    ],
+    constraints: { original: { min: 3, max: 15 }, multiplier: { min: 2, max: 4 }, addend: { min: 5, max: 20 } },
+    storyTemplate: '{nameA} {verb} a number, multiplies it by {multiplier}, then adds {addend}, and gets {result}. What was the original number?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
+        'Finding the starting number by undoing operations', 'Adding two numbers together', 'Comparing two quantities', 'Dividing into equal groups',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{multiplier}', '{addend}', '{result}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The original number', 'The final result', 'The multiplier', 'The sum of two numbers',
+      ]},
+      plan: { type: 'reverse_steps', prompt: 'What operations do we need to reverse?', operations: ['Multiply by {multiplier}', 'Add {addend}'], finalResult: '{result}' },
+      solve: { type: 'reverse_chain', prompt: 'Work backwards from {result} to find the original number.', steps: ['{step1}'], answer: '{original}' },
+      check: { type: 'reasonableness', prompt: 'Is your answer reasonable? Multiply it by {multiplier} and add {addend} — do you get {result}?' },
+    },
+    misconceptions: { plan: ['psl/wrong-step-order'], solve: ['psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h6-twoOp-02',
+    skillId: 'psl-p3-reverse-twoOp', structure: null, heuristic: 'work-backwards',
+    operations: ['addition', 'subtraction'], difficulty: 1,
+    contexts: [
+      { setting: 'savings', verb: 'had' },
+      { setting: 'sticker collection', verb: 'had' },
+    ],
+    constraints: { original: { min: 20, max: 100 }, addend: { min: 10, max: 50 }, subtrahend: { min: 5, max: 30 } },
+    storyTemplate: '{nameA} {verb} some {entityA}. After receiving {addend} more and then giving away {subtrahend}, {nameA} had {result} left. How many did {nameA} start with?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
+        'Finding what someone started with by undoing changes', 'Finding the total of two groups', 'Comparing two people\'s amounts', 'Sharing equally',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{addend}', '{subtrahend}', '{result}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'How many {nameA} started with', 'How many were given away', 'The total received', 'How many are left',
+      ]},
+      plan: { type: 'reverse_steps', prompt: 'What operations do we need to reverse?', operations: ['Add {addend}', 'Subtract {subtrahend}'], finalResult: '{result}' },
+      solve: { type: 'reverse_chain', prompt: 'Work backwards from {result}.', steps: ['{step1}'], answer: '{original}' },
+      check: { type: 'reasonableness', prompt: 'Check: {original} + {addend} − {subtrahend} = {result}?' },
+    },
+    misconceptions: { plan: ['psl/wrong-step-order'], solve: ['psl/wrong-reverse'] },
+  },
+  {
+    templateId: 'psl-tpl-h6-twoOp-03',
+    skillId: 'psl-p3-reverse-twoOp', structure: null, heuristic: 'work-backwards',
+    operations: ['multiplication', 'subtraction'], difficulty: 1,
+    contexts: [
+      { setting: 'bakery', verb: 'baked' },
+      { setting: 'farm', verb: 'picked' },
+    ],
+    constraints: { original: { min: 5, max: 20 }, multiplier: { min: 2, max: 5 }, subtrahend: { min: 3, max: 15 } },
+    storyTemplate: 'A {setting} had some {entityA}. They tripled the amount, then {subtrahend} were sold. Now there are {result}. How many were there at the start?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
+        'Finding the starting amount by undoing steps', 'Finding the total after tripling', 'Comparing amounts before and after', 'Dividing equally',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{subtrahend}', '{result}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The number at the start', 'The number that were sold', 'The final total', 'How many times it was multiplied',
+      ]},
+      plan: { type: 'reverse_steps', prompt: 'What operations do we need to reverse?', operations: ['Multiply by 3', 'Subtract {subtrahend}'], finalResult: '{result}' },
+      solve: { type: 'reverse_chain', prompt: 'Work backwards from {result}.', steps: ['{step1}'], answer: '{original}' },
+      check: { type: 'reasonableness', prompt: 'Check: {original} × 3 − {subtrahend} = {result}?' },
+    },
+    misconceptions: { solve: ['psl/arithmetic-error', 'psl/wrong-reverse'] },
+  },
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  H6: WORKING BACKWARDS — THREE OPERATIONS (3 templates)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    templateId: 'psl-tpl-h6-threeOp-01',
+    skillId: 'psl-p3-reverse-threeOp', structure: null, heuristic: 'work-backwards',
+    operations: ['addition', 'multiplication', 'subtraction'], difficulty: 2,
+    contexts: [
+      { setting: 'number puzzle', verb: 'thinks of' },
+    ],
+    constraints: { original: { min: 3, max: 12 }, addend: { min: 2, max: 10 }, multiplier: { min: 2, max: 3 }, subtrahend: { min: 2, max: 10 } },
+    storyTemplate: '{nameA} {verb} a number, adds {addend}, multiplies by {multiplier}, then subtracts {subtrahend}. The result is {result}. What was the number?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
+        'Reversing three operations to find the starting number', 'Adding three numbers', 'Finding the average', 'Comparing results',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{addend}', '{multiplier}', '{subtrahend}', '{result}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'The original number', 'The sum of operations', 'The multiplier', 'The final result',
+      ]},
+      plan: { type: 'reverse_steps', prompt: 'List the three operations to reverse.', operations: ['Add {addend}', 'Multiply by {multiplier}', 'Subtract {subtrahend}'], finalResult: '{result}' },
+      solve: { type: 'reverse_chain', prompt: 'Work backwards from {result}.', steps: ['{step1}', '{step2}'], answer: '{original}' },
+      check: { type: 'reasonableness', prompt: 'Check: ({original} + {addend}) × {multiplier} − {subtrahend} = {result}?' },
+    },
+    misconceptions: { plan: ['psl/wrong-step-order'], solve: ['psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h6-threeOp-02',
+    skillId: 'psl-p3-reverse-threeOp', structure: null, heuristic: 'work-backwards',
+    operations: ['subtraction', 'multiplication', 'addition'], difficulty: 2,
+    contexts: [
+      { setting: 'pocket money', verb: 'had' },
+    ],
+    constraints: { original: { min: 20, max: 80 }, subtrahend: { min: 5, max: 15 }, multiplier: { min: 2, max: 3 }, addend: { min: 10, max: 30 } },
+    storyTemplate: '{nameA} {verb} some money. After spending ${subtrahend}, doubling what was left, and receiving ${addend} more, {nameA} had ${result}. How much did {nameA} start with?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
+        'Finding the starting amount by reversing money changes', 'Adding up all spending', 'Comparing pocket money', 'Sharing money equally',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{subtrahend}', '{addend}', '{result}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'How much {nameA} started with', 'How much was spent', 'The total received', 'How much is left',
+      ]},
+      plan: { type: 'reverse_steps', prompt: 'List the operations to reverse.', operations: ['Subtract {subtrahend}', 'Multiply by 2', 'Add {addend}'], finalResult: '{result}' },
+      solve: { type: 'reverse_chain', prompt: 'Work backwards from {result}.', steps: ['{step1}', '{step2}'], answer: '{original}' },
+      check: { type: 'reasonableness', prompt: 'Check: ({original} − {subtrahend}) × 2 + {addend} = {result}?' },
+    },
+    misconceptions: { solve: ['psl/wrong-reverse', 'psl/arithmetic-error'] },
+  },
+  {
+    templateId: 'psl-tpl-h6-threeOp-03',
+    skillId: 'psl-p3-reverse-threeOp', structure: null, heuristic: 'work-backwards',
+    operations: ['multiplication', 'addition', 'subtraction'], difficulty: 2,
+    contexts: [
+      { setting: 'game', verb: 'started with' },
+    ],
+    constraints: { original: { min: 4, max: 15 }, multiplier: { min: 2, max: 4 }, addend: { min: 5, max: 20 }, subtrahend: { min: 3, max: 12 } },
+    storyTemplate: '{nameA} {verb} some points. After multiplying by {multiplier}, earning {addend} bonus points, and losing {subtrahend} points, {nameA} ended with {result} points. How many points did {nameA} start with?',
+    scaffold: {
+      understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
+        'Finding starting points by undoing changes', 'Adding up all the points', 'Comparing scores', 'Splitting points between players',
+      ]},
+      identify_info: { type: 'highlight', expected: ['{multiplier}', '{addend}', '{subtrahend}', '{result}'] },
+      identify_question: { type: 'mc', prompt: 'What do we need to find?', correctIndex: 0, choices: [
+        'How many points {nameA} started with', 'The total bonus points', 'How many points were lost', 'The final score',
+      ]},
+      plan: { type: 'reverse_steps', prompt: 'List the operations to reverse.', operations: ['Multiply by {multiplier}', 'Add {addend}', 'Subtract {subtrahend}'], finalResult: '{result}' },
+      solve: { type: 'reverse_chain', prompt: 'Work backwards from {result}.', steps: ['{step1}', '{step2}'], answer: '{original}' },
+      check: { type: 'reasonableness', prompt: 'Check: {original} × {multiplier} + {addend} − {subtrahend} = {result}?' },
+    },
+    misconceptions: { plan: ['psl/wrong-step-order'], solve: ['psl/arithmetic-error'] },
+  },
 ];
 
 async function seed() {

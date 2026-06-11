@@ -110,6 +110,131 @@ const P3_SKILLS = [
     pslPrerequisites: ['psl-p3-bar-comp-find-larger', 'psl-p3-bar-pw-find-whole'],
     commonMisconceptions: ['psl/wrong-model-type', 'psl/used-wrong-numbers', 'psl/arithmetic-error'],
   },
+  // ══════════════════════════════════════════════════════════════════════
+  //  H2: FIND A PATTERN (2)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    skillId: 'psl-p3-pattern-linear',
+    name: 'Find a pattern: linear sequence',
+    description: 'Identify and extend an arithmetic (constant difference) number pattern.',
+    level: 'P3', heuristic: 'find-pattern', structure: null, unknownPosition: '',
+    planType: 'table_setup', solveType: 'find_rule',
+    difficulty: 1,
+    mathPathPrerequisites: ['add-algo-4d'],
+    pslPrerequisites: [],
+    commonMisconceptions: ['psl/wrong-rule', 'psl/arithmetic-error'],
+  },
+  {
+    skillId: 'psl-p3-pattern-geometric',
+    name: 'Find a pattern: shape pattern',
+    description: 'Use a table to find the rule behind a growing shape pattern (e.g. matchstick figures).',
+    level: 'P3', heuristic: 'find-pattern', structure: null, unknownPosition: '',
+    planType: 'table_setup', solveType: 'find_rule',
+    difficulty: 2,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: ['psl-p3-pattern-linear'],
+    commonMisconceptions: ['psl/wrong-rule', 'psl/off-by-one'],
+  },
+  // ══════════════════════════════════════════════════════════════════════
+  //  H3: SUBSTITUTION (2)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    skillId: 'psl-p3-sub-same-coeff',
+    name: 'Substitution: same coefficient',
+    description: 'Solve two equations where one variable has the same coefficient in both — subtract to eliminate.',
+    level: 'P3', heuristic: 'substitution', structure: null, unknownPosition: '',
+    planType: 'equation_setup', solveType: 'eliminate',
+    difficulty: 1,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: [],
+    commonMisconceptions: ['psl/wrong-elimination', 'psl/arithmetic-error'],
+  },
+  {
+    skillId: 'psl-p3-sub-scale',
+    name: 'Substitution: scaling needed',
+    description: 'Solve two equations by scaling one equation before subtracting to eliminate a variable.',
+    level: 'P3', heuristic: 'substitution', structure: null, unknownPosition: '',
+    planType: 'equation_setup', solveType: 'eliminate',
+    difficulty: 2,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: ['psl-p3-sub-same-coeff'],
+    commonMisconceptions: ['psl/wrong-scale-factor', 'psl/arithmetic-error'],
+  },
+  // ══════════════════════════════════════════════════════════════════════
+  //  H4: MAKE A LIST (2)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    skillId: 'psl-p3-list-simple',
+    name: 'Make a list: single condition',
+    description: 'List candidates that satisfy a single condition within a range to find the answer.',
+    level: 'P3', heuristic: 'make-list', structure: null, unknownPosition: '',
+    planType: 'list_candidates', solveType: 'list_check',
+    difficulty: 1,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: [],
+    commonMisconceptions: ['psl/missed-candidate', 'psl/wrong-condition'],
+  },
+  {
+    skillId: 'psl-p3-list-multi',
+    name: 'Make a list: multiple conditions',
+    description: 'List candidates satisfying multiple conditions (e.g. divisibility + odd/even) to find the answer.',
+    level: 'P3', heuristic: 'make-list', structure: null, unknownPosition: '',
+    planType: 'list_candidates', solveType: 'list_check',
+    difficulty: 2,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: ['psl-p3-list-simple'],
+    commonMisconceptions: ['psl/missed-candidate', 'psl/forgot-condition'],
+  },
+  // ══════════════════════════════════════════════════════════════════════
+  //  H5: GUESS AND CHECK (2)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    skillId: 'psl-p3-guess-coins',
+    name: 'Guess and check: coin problems',
+    description: 'Use systematic guessing to find how many of each type of coin satisfy the given conditions.',
+    level: 'P3', heuristic: 'guess-check', structure: null, unknownPosition: '',
+    planType: 'guess_setup', solveType: 'guess_table',
+    difficulty: 1,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: [],
+    commonMisconceptions: ['psl/random-guess', 'psl/arithmetic-error'],
+  },
+  {
+    skillId: 'psl-p3-guess-animals',
+    name: 'Guess and check: heads and legs',
+    description: 'Use guess and check to find the number of each type of animal given total heads and legs.',
+    level: 'P3', heuristic: 'guess-check', structure: null, unknownPosition: '',
+    planType: 'guess_setup', solveType: 'guess_table',
+    difficulty: 2,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: ['psl-p3-guess-coins'],
+    commonMisconceptions: ['psl/random-guess', 'psl/forgot-constraint'],
+  },
+  // ══════════════════════════════════════════════════════════════════════
+  //  H6: WORKING BACKWARDS (2)
+  // ══════════════════════════════════════════════════════════════════════
+  {
+    skillId: 'psl-p3-reverse-twoOp',
+    name: 'Work backwards: two operations',
+    description: 'Reverse two operations to find the original number.',
+    level: 'P3', heuristic: 'work-backwards', structure: null, unknownPosition: '',
+    planType: 'reverse_steps', solveType: 'reverse_chain',
+    difficulty: 1,
+    mathPathPrerequisites: ['add-algo-4d'],
+    pslPrerequisites: [],
+    commonMisconceptions: ['psl/wrong-reverse', 'psl/arithmetic-error'],
+  },
+  {
+    skillId: 'psl-p3-reverse-threeOp',
+    name: 'Work backwards: three operations',
+    description: 'Reverse three operations to find the starting value.',
+    level: 'P3', heuristic: 'work-backwards', structure: null, unknownPosition: '',
+    planType: 'reverse_steps', solveType: 'reverse_chain',
+    difficulty: 2,
+    mathPathPrerequisites: ['add-algo-4d', 'mul-tables-6789'],
+    pslPrerequisites: ['psl-p3-reverse-twoOp'],
+    commonMisconceptions: ['psl/wrong-step-order', 'psl/arithmetic-error'],
+  },
 ];
 
 async function seed() {

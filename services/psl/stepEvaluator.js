@@ -42,7 +42,7 @@ function evaluateIdentifyQuestion(response, expected) {
   return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/confused-question' };
 }
 
-function evaluatePlan(response, expected) {
+function evaluatePlanModel(response, expected) {
   if (expected?.correctIndex !== undefined) {
     const correct = Number(response?.selectedIndex) === expected.correctIndex;
     return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-strategy' };
@@ -59,7 +59,56 @@ function evaluatePlan(response, expected) {
   return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-model-type' };
 }
 
-function evaluateSolve(response, expected) {
+function evaluatePlanReverseSteps(response, expected) {
+  const ops = (response?.operations || []).map(normalizeText);
+  const expectedOps = (expected?.operations || []).map(normalizeText);
+  if (!expectedOps.length) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  const correct = ops.length === expectedOps.length && ops.every((o, i) => o === expectedOps[i]);
+  if (correct) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  const overlap = ops.filter((o) => expectedOps.includes(o)).length;
+  if (overlap > 0) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/wrong-step-order' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-operations' };
+}
+
+function evaluatePlanTable(response, expected) {
+  const correct = Number(response?.columnCount) === expected?.columnCount;
+  return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-table-setup' };
+}
+
+function evaluatePlanEquation(response, expected) {
+  const correct = normalizeText(response?.eliminateVar) === normalizeText(expected?.eliminateVar);
+  return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-variable' };
+}
+
+function evaluatePlanList(response, expected) {
+  const correct = Number(response?.conditionCount) === expected?.conditionCount;
+  return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-conditions' };
+}
+
+function evaluatePlanGuess(response, expected) {
+  const c1Match = normalizeText(response?.constraint1) === normalizeText(expected?.constraint1);
+  const c2Match = normalizeText(response?.constraint2) === normalizeText(expected?.constraint2);
+  if (c1Match && c2Match) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  if (c1Match || c2Match) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/missed-constraint' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-constraints' };
+}
+
+const PLAN_EVALUATORS = {
+  model: evaluatePlanModel,
+  reverse_steps: evaluatePlanReverseSteps,
+  table_setup: evaluatePlanTable,
+  equation_setup: evaluatePlanEquation,
+  list_candidates: evaluatePlanList,
+  guess_setup: evaluatePlanGuess,
+};
+
+function evaluatePlan(response, expected) {
+  const type = expected?.type || 'model';
+  const evaluator = PLAN_EVALUATORS[type] || evaluatePlanModel;
+  return evaluator(response, expected);
+}
+
+function evaluateSolveExpression(response, expected) {
   const submittedAnswer = Number(response?.answer);
   const correctAnswer = Number(expected?.answer);
 
@@ -86,6 +135,47 @@ function evaluateSolve(response, expected) {
     return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/arithmetic-error' };
   }
   return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-operation' };
+}
+
+function evaluateSolveNumeric(response, expected) {
+  const submitted = Number(response?.answer);
+  const correct = Number(expected?.answer);
+  if (submitted === correct) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-answer' };
+}
+
+function evaluateSolveReverseChain(response, expected) {
+  const submitted = Number(response?.answer);
+  const correct = Number(expected?.answer);
+  if (submitted === correct) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  const steps = response?.steps || [];
+  const expectedSteps = expected?.steps || [];
+  const someCorrect = steps.some((s, i) => expectedSteps[i] && Number(s) === Number(expectedSteps[i]));
+  if (someCorrect) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/arithmetic-error' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-reverse' };
+}
+
+function evaluateSolveGuessTable(response, expected) {
+  const submitted = Number(response?.answer);
+  const correct = Number(expected?.answer);
+  if (submitted === correct) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-guess' };
+}
+
+const SOLVE_EVALUATORS = {
+  expression: evaluateSolveExpression,
+  twoStep: evaluateSolveExpression,
+  find_rule: evaluateSolveNumeric,
+  eliminate: evaluateSolveNumeric,
+  list_check: evaluateSolveNumeric,
+  guess_table: evaluateSolveGuessTable,
+  reverse_chain: evaluateSolveReverseChain,
+};
+
+function evaluateSolve(response, expected) {
+  const type = expected?.type || (expected?.steps ? 'twoStep' : 'expression');
+  const evaluator = SOLVE_EVALUATORS[type] || evaluateSolveExpression;
+  return evaluator(response, expected);
 }
 
 function evaluateCheck(response) {
