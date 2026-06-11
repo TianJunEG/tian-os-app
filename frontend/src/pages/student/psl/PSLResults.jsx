@@ -53,7 +53,7 @@ function ProblemCard({ attempt, problem, index }) {
             })}
           </div>
           {problem?.solutionText && (
-            <WorkedSolutionWalkthrough solutionText={problem.solutionText} visualSpec={problem.visualSpec} />
+            <WorkedSolutionWalkthrough solutionText={problem.solutionText} visualSpec={problem.visualSpec} heuristic={problem.heuristic} structure={problem.structure} unknownPosition={problem.unknownPosition} />
           )}
         </div>
       )}
