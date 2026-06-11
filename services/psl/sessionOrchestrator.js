@@ -57,9 +57,19 @@ export async function getSession(sessionId, { studentId } = {}) {
   if (studentId) query.studentId = studentId;
   const session = await PSLSession.findOne(query).lean();
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
+
+  const [attempts, skill] = await Promise.all([
+    PSLAttempt.find({ sessionId }).lean(),
+    PSLSkill.findOne({ skillId: session.skillId }).lean(),
+  ]);
+  const attemptsByProblem = {};
+  for (const a of attempts) attemptsByProblem[a.problemId] = a;
+
   return {
     ...session,
+    skillName: skill?.name || session.skillId,
     currentProblem: sanitizeProblemForClient(session.problems[session.currentProblemIndex]),
+    attempts: attemptsByProblem,
   };
 }
 
