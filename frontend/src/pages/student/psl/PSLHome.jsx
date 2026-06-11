@@ -5,8 +5,19 @@ import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
 
-const STRUCTURE_LABELS = { partWhole: 'Part-Whole', comparison: 'Comparison', twoStep: 'Two-Step' };
-const STRUCTURE_ORDER = ['partWhole', 'comparison', 'twoStep'];
+const HEURISTIC_LABELS = {
+  'bar-model': 'Bar Model (Units & Parts)',
+  'before-after': 'Before-After',
+  'work-backwards': 'Work Backwards',
+  'multi-step': 'Multi-Step Arithmetic',
+  'guess-check': 'Guess & Check / Supposition',
+  'ratio': 'Proportional & Ratio Reasoning',
+  'data-interpretation': 'Data Interpretation',
+  'excess-shortage': 'Excess & Shortage',
+};
+const HEURISTIC_ORDER = ['bar-model', 'before-after', 'work-backwards', 'multi-step', 'guess-check', 'ratio', 'data-interpretation', 'excess-shortage'];
+const LEVEL_LABELS = { P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6' };
+const LEVEL_ORDER = ['P3', 'P4', 'P5', 'P6'];
 
 function MasteryBadge({ mastery }) {
   if (!mastery) return <span className="text-xs text-ink-400">Not started</span>;
@@ -63,11 +74,17 @@ export default function PSLHome() {
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
 
   const skills = data?.skills || [];
-  const grouped = STRUCTURE_ORDER.map((s) => ({
-    structure: s,
-    label: STRUCTURE_LABELS[s],
-    skills: skills.filter((sk) => sk.structure === s),
+  const [filterLevel, setFilterLevel] = useState(null);
+  const filtered = filterLevel ? skills.filter((sk) => sk.level === filterLevel) : skills;
+  const grouped = HEURISTIC_ORDER.map((h) => ({
+    heuristic: h,
+    label: HEURISTIC_LABELS[h] || h,
+    skills: filtered.filter((sk) => sk.heuristic === h),
   })).filter((g) => g.skills.length > 0);
+  const levelCounts = LEVEL_ORDER.reduce((acc, lvl) => {
+    acc[lvl] = skills.filter((sk) => sk.level === lvl).length;
+    return acc;
+  }, {});
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4 pb-24 sm:p-6">
@@ -104,8 +121,28 @@ export default function PSLHome() {
         </Card>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setFilterLevel(null)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${!filterLevel ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
+        >
+          All ({skills.length})
+        </button>
+        {LEVEL_ORDER.map((lvl) => levelCounts[lvl] > 0 && (
+          <button
+            key={lvl}
+            type="button"
+            onClick={() => setFilterLevel(filterLevel === lvl ? null : lvl)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${filterLevel === lvl ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
+          >
+            {LEVEL_LABELS[lvl]} ({levelCounts[lvl]})
+          </button>
+        ))}
+      </div>
+
       {grouped.map((group) => (
-        <div key={group.structure}>
+        <div key={group.heuristic}>
           <h2 className="mb-2 text-sm font-semibold text-ink-500">{group.label}</h2>
           <div className="space-y-2">
             {group.skills.map((skill) => {
