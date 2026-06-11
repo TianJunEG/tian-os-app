@@ -382,14 +382,19 @@ export default function FullScreenWorkingMode({
     nextStrokes.forEach((stroke) => drawStroke(ctx, stroke, { stampScale: FS_STAMP_SCALE }));
   };
 
+  const prevInitRef = useRef({ strokes: null, objects: null, questionId: null });
   useEffect(() => {
     if (!open) return;
     const rawStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];
+    const rawObjects = Array.isArray(initialMathObjects) ? initialMathObjects : [];
+    const sKey = rawStrokes.length ? JSON.stringify(rawStrokes) : '[]';
+    const oKey = rawObjects.length ? JSON.stringify(rawObjects) : '[]';
+    const prev = prevInitRef.current;
+    if (prev.strokes === sKey && prev.objects === oKey && prev.questionId === questionId) return;
+    prevInitRef.current = { strokes: sKey, objects: oKey, questionId };
     const legacyMathObjects = rawStrokes.map(stampStrokeToMathObject).filter(Boolean);
     const nextStrokes = rawStrokes.filter((stroke) => stroke?.tool !== 'stamp');
-    const savedMathObjects = Array.isArray(initialMathObjects)
-      ? initialMathObjects.map(normaliseMathObject).filter(Boolean)
-      : [];
+    const savedMathObjects = rawObjects.map(normaliseMathObject).filter(Boolean);
     const nextMathObjects = savedMathObjects.length ? savedMathObjects : legacyMathObjects;
     strokesRef.current = nextStrokes;
     mathObjectsRef.current = nextMathObjects;
