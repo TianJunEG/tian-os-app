@@ -84,6 +84,7 @@ const TimesTablesHome = lazy(() => import('./pages/student/mathpath/fluency/Time
 const TimesTablesFlashQuiz = lazy(() => import('./pages/student/mathpath/fluency/TimesTablesFlashQuiz'));
 const MistakesHome = lazy(() => import('./pages/student/mathpath/MistakesHome'));
 const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'));
+const RemediationJourney = lazy(() => import('./pages/student/mathpath/RemediationJourney'));
 const DiagnosticIntroScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticIntroScreen'));
 const DiagnosticQuestionScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticQuestionScreen'));
 const DiagnosticResultScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticResultScreen'));
@@ -576,6 +577,7 @@ function App() {
             <Route path="/student/mathpath/mistakes" element={<MistakesHome />} />
             <Route path="/student/mathpath/mistakes/review" element={<MistakeReview />} />
             <Route path="/student/mathpath/mistakes/:mistakeId" element={<MistakeDetail />} />
+            <Route path="/student/mathpath/remediation/:id" element={<RemediationJourney />} />
             <Route path="/student/mathpath/diagnostic" element={<DiagnosticIntroScreen />} />
             <Route path="/student/mathpath/diagnostic/session/:diagnosticSessionId" element={<DiagnosticQuestionScreen />} />
             <Route path="/student/mathpath/diagnostic/results/:diagnosticSessionId" element={<DiagnosticResultScreen />} />
