@@ -11,6 +11,14 @@ function skillName(skillId) {
   return getUniversalSkillByFrameworkId(normalized)?.title || normalized;
 }
 
+function mapConfidenceLevel(level) {
+  const v = String(level || '').toLowerCase();
+  if (v === 'high' || v === 'i_know_this') return 0.85;
+  if (v === 'medium' || v === 'pretty_sure' || v === 'not_sure') return 0.65;
+  if (v === 'low' || v === 'i_need_help') return 0.45;
+  return 0.45;
+}
+
 function readinessBand(score = 0) {
   if (score >= 85) return 'Strong';
   if (score >= 70) return 'On Track';
@@ -133,7 +141,7 @@ export default function DiagnosticResultScreen() {
         estimatedDifficulty: readinessBand(result.overallFractionReadinessScore || 0),
         suggestedFirstSession: `Start with ${skillName(result.recommendedStartingSkillId || 'F001')} practice (6–10 questions).`,
       },
-      confidenceScore: result.confidenceLevel === 'high' ? 0.85 : result.confidenceLevel === 'medium' ? 0.65 : 0.45,
+      confidenceScore: mapConfidenceLevel(result.confidenceLevel),
       studentFriendlySummary: result.studentFriendlySummary,
       timingAnalytics,
     };

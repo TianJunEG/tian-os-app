@@ -32,10 +32,10 @@ function toNum(value, fallback = 0) {
 
 function mapConfidence(value = '') {
   const raw = String(value || '').trim().toLowerCase();
-  if (raw === 'very confident') return 0.95;
-  if (raw === 'confident') return 0.82;
-  if (raw === 'unsure') return 0.58;
-  if (raw === 'guessing') return 0.28;
+  if (raw === 'i_know_this' || raw === 'very confident') return 0.95;
+  if (raw === 'pretty_sure' || raw === 'confident') return 0.82;
+  if (raw === 'not_sure' || raw === 'unsure') return 0.58;
+  if (raw === 'i_need_help' || raw === 'guessing') return 0.28;
 
   const numeric = Number(raw);
   if (Number.isFinite(numeric)) {
