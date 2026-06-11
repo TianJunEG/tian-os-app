@@ -19,7 +19,12 @@ function generateNumbers(constraints, structure) {
       }
       if (constraints._compute) {
         for (const [key, expr] of Object.entries(constraints._compute)) {
-          nums[key] = expr(nums);
+          if (typeof expr === 'function') {
+            nums[key] = expr(nums);
+          } else if (typeof expr === 'string') {
+            const fn = new Function('n', 'with(n){return(' + expr + ')}');
+            nums[key] = fn(nums);
+          }
         }
       }
       if (constraints.answer?.min && (nums.answer || 0) < constraints.answer.min) continue;
@@ -338,6 +343,26 @@ function buildVisualSpec(template, nums, vars) {
       };
     }
     return null;
+  }
+
+  if (h === 'data-interpretation') {
+    const chart = template.constraints?._chart;
+    if (!chart) return null;
+    const labels = (chart.labels || []).map(l => substituteTokens(l, vars));
+    const values = (chart.valueKeys || []).map(k => nums[k] ?? 0);
+    const spec = { type: chart.type, title: chart.title || '', labels, values };
+    if (chart.type === 'pieChart') {
+      spec.percentages = (chart.pctKeys || []).map(k => nums[k] ?? 0);
+      spec.total = nums[chart.totalKey] || nums.totalVal || 0;
+    }
+    if (chart.type === 'multiTable') {
+      spec.tables = (chart.tables || []).map(t => ({
+        title: t.title || '',
+        labels: (t.labels || []).map(l => substituteTokens(l, vars)),
+        values: (t.valueKeys || []).map(k => nums[k] ?? 0),
+      }));
+    }
+    return spec;
   }
 
   return null;

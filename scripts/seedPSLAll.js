@@ -37,8 +37,8 @@ const SEEDS = [
   'seedPSLExcessShortageTemplates.js',
   'seedPSLSimultaneousTemplates.js',
   'seedPSLPatternTemplates.js',
-  execSync('node scripts/seedPSLAssumptionSkills.js', opts);
-  execSync('node scripts/seedPSLAssumptionTemplates.js', opts);
+  'seedPSLAssumptionSkills.js',
+  'seedPSLAssumptionTemplates.js',
 ];
 
 console.log('=== PSL Full Seed ===\n');

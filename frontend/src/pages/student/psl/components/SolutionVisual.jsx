@@ -1,4 +1,5 @@
 import React from 'react';
+import { DataTableVisual, BarChartVisual, LineGraphVisual, PieChartVisual, MultiTableVisual } from './ChartVisuals';
 
 function BarModelVisual({ spec }) {
   if (spec.modelType === 'comparison') {
@@ -264,6 +265,11 @@ export default function SolutionVisual({ visualSpec, revealedSteps }) {
     guessCheck: GuessCheckVisual,
     excessShortage: ExcessShortageVisual,
     assumption: AssumptionVisual,
+    dataTable: DataTableVisual,
+    barChart: BarChartVisual,
+    lineGraph: LineGraphVisual,
+    pieChart: PieChartVisual,
+    multiTable: MultiTableVisual,
   };
 
   const Renderer = RENDERERS[visualSpec.type];
