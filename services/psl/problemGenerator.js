@@ -248,6 +248,8 @@ function buildVisualSpec(template, nums, vars) {
       type: 'ratioBar',
       ratioA: nums.ratioA,
       ratioB: nums.ratioB,
+      totalValue: nums.totalValue || nums.total,
+      totalLabel: vars.itemPlural || '',
       valuePerPart: nums.valuePerPart,
       valueA: nums.valueA,
       valueB: nums.valueB,
@@ -257,12 +259,12 @@ function buildVisualSpec(template, nums, vars) {
   }
 
   if (h === 'work-backwards') {
-    const steps = [{ label: 'Start', value: '?', op: null }];
+    const steps = [{ label: 'Start', value: nums.answer, op: null }];
     if (nums.step2 !== undefined) {
-      steps.push({ label: 'Step 1', value: '...', op: String(nums.step1) });
-      steps.push({ label: 'Step 2', value: '...', op: String(nums.step2) });
+      steps.push({ label: 'Step 1', value: nums.answer - nums.step1, op: String(nums.step1) });
+      steps.push({ label: 'Step 2', value: nums.end, op: String(nums.step2) });
     } else if (nums.step1 !== undefined) {
-      steps.push({ label: 'Step 1', value: '...', op: String(nums.step1) });
+      steps.push({ label: 'Step 1', value: nums.end, op: String(nums.step1) });
     }
     steps.push({ label: 'End', value: nums.end, op: null });
     return { type: 'workBackwards', steps };

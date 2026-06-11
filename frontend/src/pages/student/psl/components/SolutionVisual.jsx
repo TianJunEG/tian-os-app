@@ -56,8 +56,9 @@ function BarModelVisual({ spec }) {
   );
 }
 
-function BeforeAfterVisual({ spec }) {
+function BeforeAfterVisual({ spec, step }) {
   const opLabel = spec.operation === 'subtraction' ? `− ${spec.change}` : `+ ${spec.change}`;
+  const showAnswer = step >= 3;
   return (
     <div className="flex items-center gap-1">
       <div className="flex-1 rounded-lg bg-sky-100 px-2 py-2 text-center">
@@ -68,18 +69,23 @@ function BeforeAfterVisual({ spec }) {
         <div className="text-[10px] font-semibold text-amber-600 bg-amber-50 rounded px-1.5 py-0.5">{opLabel}</div>
         <svg className="h-2 w-6 text-ink-300" viewBox="0 0 24 8"><path d="M0 4h20m-4-3l4 3-4 3" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
       </div>
-      <div className="flex-1 rounded-lg bg-emerald-100 px-2 py-2 text-center">
-        <p className="text-[10px] font-medium text-emerald-500">After</p>
-        <p className="text-sm font-bold text-emerald-700">{spec.answer}</p>
+      <div className={`flex-1 rounded-lg px-2 py-2 text-center ${showAnswer ? 'bg-emerald-100' : 'bg-ink-100'}`}>
+        <p className={`text-[10px] font-medium ${showAnswer ? 'text-emerald-500' : 'text-ink-400'}`}>After</p>
+        <p className={`text-sm font-bold ${showAnswer ? 'text-emerald-700' : 'text-ink-400'}`}>{showAnswer ? spec.answer : '?'}</p>
       </div>
     </div>
   );
 }
 
-function RatioBarVisual({ spec }) {
+function RatioBarVisual({ spec, step }) {
   const total = spec.ratioA + spec.ratioB;
+  const showPerPart = step >= 2;
+  const showTotals = step >= 3;
   return (
     <div className="space-y-2">
+      <div className="text-center text-xs text-ink-500">
+        Total: <span className="font-semibold text-ink-700">{spec.totalValue}</span> {spec.totalLabel || ''}
+      </div>
       <div className="flex gap-0.5 rounded-lg overflow-hidden border border-ink-200">
         {Array.from({ length: total }, (_, i) => {
           const isA = i < spec.ratioA;
@@ -91,41 +97,52 @@ function RatioBarVisual({ spec }) {
               }`}
               style={{ minHeight: 28 }}
             >
-              {spec.valuePerPart}
+              {showPerPart ? spec.valuePerPart : '?'}
             </div>
           );
         })}
       </div>
       <div className="flex justify-between text-[10px]">
-        <span className="font-semibold text-gold-600">{spec.labelA}: {spec.ratioA} parts = {spec.valueA}</span>
-        <span className="font-semibold text-sky-600">{spec.labelB}: {spec.ratioB} parts = {spec.valueB}</span>
+        <span className="font-semibold text-gold-600">
+          {spec.labelA}: {spec.ratioA} parts{showTotals ? ` = ${spec.valueA}` : ''}
+        </span>
+        <span className="font-semibold text-sky-600">
+          {spec.labelB}: {spec.ratioB} parts{showTotals ? ` = ${spec.valueB}` : ''}
+        </span>
       </div>
     </div>
   );
 }
 
-function WorkBackwardsVisual({ spec }) {
+function WorkBackwardsVisual({ spec, step }) {
   return (
     <div className="flex items-center gap-1 overflow-x-auto">
-      {spec.steps.map((s, i) => (
-        <React.Fragment key={i}>
-          <div className="shrink-0 rounded-lg bg-sky-100 px-2 py-1.5 text-center">
-            <p className="text-[10px] text-sky-500">{s.label}</p>
-            <p className="text-sm font-bold text-sky-700">{s.value}</p>
-          </div>
-          {i < spec.steps.length - 1 && (
-            <div className="flex flex-col items-center shrink-0 px-0.5">
-              <div className="text-[9px] font-semibold text-amber-600 bg-amber-50 rounded px-1 py-0.5">{spec.steps[i + 1].op}</div>
-              <svg className="h-2 w-5 text-ink-300" viewBox="0 0 20 8"><path d="M0 4h16m-3-3l3 3-3 3" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+      {spec.steps.map((s, i) => {
+        const isEnd = i === spec.steps.length - 1;
+        const isStart = i === 0;
+        const showValue = isEnd || (step >= spec.steps.length - 1 - i && !isStart) || (isStart && step >= spec.steps.length - 1);
+        return (
+          <React.Fragment key={i}>
+            <div className={`shrink-0 rounded-lg px-2 py-1.5 text-center ${isEnd ? 'bg-emerald-100' : 'bg-sky-100'}`}>
+              <p className={`text-[10px] ${isEnd ? 'text-emerald-500' : 'text-sky-500'}`}>{s.label}</p>
+              <p className={`text-sm font-bold ${isEnd ? 'text-emerald-700' : 'text-sky-700'}`}>
+                {showValue ? s.value : '?'}
+              </p>
             </div>
-          )}
-        </React.Fragment>
-      ))}
+            {i < spec.steps.length - 1 && (
+              <div className="flex flex-col items-center shrink-0 px-0.5">
+                <div className="text-[9px] font-semibold text-amber-600 bg-amber-50 rounded px-1 py-0.5">{spec.steps[i + 1].op}</div>
+                <svg className="h-2 w-5 text-ink-300" viewBox="0 0 20 8"><path d="M0 4h16m-3-3l3 3-3 3" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 }
 
-function GuessCheckVisual({ spec }) {
+function GuessCheckVisual({ spec, step }) {
   return (
     <div className="overflow-hidden rounded-lg border border-ink-200 text-xs">
       <table className="w-full">
@@ -137,25 +154,33 @@ function GuessCheckVisual({ spec }) {
           </tr>
         </thead>
         <tbody>
-          {spec.rows.map((row, i) => (
-            <tr key={i} className={row.correct ? 'bg-emerald-50' : ''}>
-              <td className="px-2 py-1 font-mono">{row.a}</td>
-              <td className="px-2 py-1 font-mono">{row.b}</td>
-              <td className="px-2 py-1">
-                {row.correct
-                  ? <span className="font-semibold text-emerald-600">✓</span>
-                  : <span className="text-ink-400">{row.check}</span>
-                }
-              </td>
-            </tr>
-          ))}
+          {step < 1 && (
+            <tr><td colSpan="3" className="px-2 py-2 text-center text-ink-400">Try values...</td></tr>
+          )}
+          {spec.rows.map((row, i) => {
+            if (i === 0 && step < 1) return null;
+            if (i > 0 && step < 2) return null;
+            return (
+              <tr key={i} className={row.correct ? 'bg-emerald-50' : ''}>
+                <td className="px-2 py-1 font-mono">{row.a}</td>
+                <td className="px-2 py-1 font-mono">{row.b}</td>
+                <td className="px-2 py-1">
+                  {row.correct
+                    ? <span className="font-semibold text-emerald-600">✓</span>
+                    : <span className="text-ink-400">{row.check}</span>
+                  }
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
   );
 }
 
-function ExcessShortageVisual({ spec }) {
+function ExcessShortageVisual({ spec, step }) {
+  const showDiff = step >= 2;
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
@@ -170,18 +195,21 @@ function ExcessShortageVisual({ spec }) {
           <span className="text-xs font-semibold text-red-700">{spec.shortage} short</span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <div className="w-16 text-right text-[10px] text-ink-500">Difference</div>
-        <div className="flex-1 rounded-lg bg-sky-100 px-3 py-1.5 text-center">
-          <span className="text-xs font-semibold text-sky-700">{spec.excess} + {spec.shortage} = {spec.excess + spec.shortage}</span>
+      {showDiff && (
+        <div className="flex items-center gap-2 transition-all duration-300">
+          <div className="w-16 text-right text-[10px] text-ink-500">Difference</div>
+          <div className="flex-1 rounded-lg bg-sky-100 px-3 py-1.5 text-center">
+            <span className="text-xs font-semibold text-sky-700">{spec.excess} + {spec.shortage} = {spec.excess + spec.shortage}</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-export default function SolutionVisual({ visualSpec }) {
+export default function SolutionVisual({ visualSpec, revealedSteps }) {
   if (!visualSpec) return null;
+  const step = revealedSteps || 0;
 
   const RENDERERS = {
     barModel: BarModelVisual,
@@ -197,7 +225,7 @@ export default function SolutionVisual({ visualSpec }) {
 
   return (
     <div className="rounded-lg border border-ink-200 bg-paper p-3">
-      <Renderer spec={visualSpec} />
+      <Renderer spec={visualSpec} step={step} />
     </div>
   );
 }
