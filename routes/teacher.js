@@ -20,6 +20,9 @@ import { buildClassDashboard } from '../services/teacher/classDashboardService.j
 import { createAssignmentFromLessonPrep, createRecheckForAssignment } from '../services/mathpath/mathPathAssignmentService.js';
 import { userCanAccessPartnerStudent } from '../services/partners/partnerAccessService.js';
 import { generateWorksheet } from '../utils/worksheetGen.js';
+import PSLSession from '../models/psl/PSLSession.js';
+import PSLSkill from '../models/psl/PSLSkill.js';
+import PSLAttempt from '../models/psl/PSLAttempt.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -538,6 +541,108 @@ router.get('/classes/:id/reports', async (req, res) => {
     overallMastery: overall, studentCount: ids.length,
     assignmentCompletion: assignments.length ? Math.round((assignments.filter((a) => a.status === 'completed').length / assignments.length) * 100) : 0,
     topics: Object.entries(byTopic).map(([t, arr]) => ({ topic: t, avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) })).sort((a, b) => a.avg - b.avg),
+  });
+});
+
+// ── PSL class dashboard ─────────────────────────────────────────────
+router.get('/classes/:id/psl/dashboard', async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const c = await getOwnedClass(req);
+  if (!c) return res.status(404).json({ error: 'Class not found.' });
+  const ids = await rosterIds(c._id);
+  const students = await Student.find({ _id: { $in: ids } }).select('name level').lean();
+
+  const sessions = await PSLSession.find({ studentId: { $in: ids } }).lean();
+  const attempts = await PSLAttempt.find({ studentId: { $in: ids } }).lean();
+  const skills = await PSLSkill.find({ isActive: true }).lean();
+  const masteryRecs = await MasteryRecord.find({ studentId: { $in: ids }, module: 'PSL' }).lean();
+
+  const completedSessions = sessions.filter((s) => s.status === 'completed');
+  const studentsAttempted = new Set(sessions.map((s) => String(s.studentId)));
+  const studentsMastered = new Set(masteryRecs.filter((r) => r.status === 'mastered').map((r) => String(r.studentId)));
+  const avgAccuracy = attempts.length
+    ? Math.round((attempts.reduce((a, at) => a + at.overallScore, 0) / attempts.length) * 100)
+    : 0;
+
+  const skillMap = {};
+  for (const sk of skills) {
+    const skSessions = sessions.filter((s) => s.skillId === sk.skillId);
+    const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
+    const skStudents = new Set(skSessions.map((s) => String(s.studentId)));
+    const skMastered = masteryRecs.filter((r) => r.skillId?.toString() === sk.skillId && r.status === 'mastered');
+    const avgScore = skAttempts.length
+      ? Math.round((skAttempts.reduce((a, at) => a + at.overallScore, 0) / skAttempts.length) * 100)
+      : 0;
+    const miscCounts = {};
+    for (const at of skAttempts) {
+      for (const step of at.steps || []) {
+        if (step.misconceptionTag) miscCounts[step.misconceptionTag] = (miscCounts[step.misconceptionTag] || 0) + 1;
+      }
+    }
+    const topMisconceptions = Object.entries(miscCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([tag, count]) => ({ tag, count }));
+    skillMap[sk.skillId] = {
+      skillId: sk.skillId, name: sk.name, heuristic: sk.heuristic, level: sk.level,
+      sessions: skSessions.length, students: skStudents.size, mastered: skMastered.length,
+      averageScore: avgScore, topMisconceptions,
+    };
+  }
+
+  const studentScores = {};
+  for (const at of attempts) {
+    const sid = String(at.studentId);
+    (studentScores[sid] ||= []).push(at.overallScore);
+  }
+  const flaggedStudents = Object.entries(studentScores)
+    .map(([sid, scores]) => ({ studentId: sid, avgScore: Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 100) }))
+    .filter((s) => s.avgScore < 60)
+    .sort((a, b) => a.avgScore - b.avgScore)
+    .slice(0, 10)
+    .map((s) => {
+      const stu = students.find((st) => String(st._id) === s.studentId);
+      const stuAttempts = attempts.filter((a) => String(a.studentId) === s.studentId);
+      const miscCounts = {};
+      for (const at of stuAttempts) {
+        for (const step of at.steps || []) {
+          if (step.misconceptionTag) miscCounts[step.misconceptionTag] = (miscCounts[step.misconceptionTag] || 0) + 1;
+        }
+      }
+      const topMisc = Object.entries(miscCounts).sort((a, b) => b[1] - a[1])[0];
+      return { studentId: s.studentId, name: stu?.name || 'Unknown', avgScore: s.avgScore, topMisconception: topMisc?.[0] || null };
+    });
+
+  const classMiscCounts = {};
+  for (const at of attempts) {
+    for (const step of at.steps || []) {
+      if (step.misconceptionTag) classMiscCounts[step.misconceptionTag] = (classMiscCounts[step.misconceptionTag] || 0) + 1;
+    }
+  }
+  const topMisconceptions = Object.entries(classMiscCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([tag, count]) => ({ tag, count }));
+
+  const heuristicMap = {};
+  for (const sk of skills) {
+    const h = sk.heuristic;
+    if (!heuristicMap[h]) heuristicMap[h] = { heuristic: h, sessions: 0, avgScore: 0, _scores: [] };
+    const skSessions = sessions.filter((s) => s.skillId === sk.skillId);
+    const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
+    heuristicMap[h].sessions += skSessions.length;
+    heuristicMap[h]._scores.push(...skAttempts.map((a) => a.overallScore));
+  }
+  const heuristics = Object.values(heuristicMap).map((h) => ({
+    heuristic: h.heuristic, sessions: h.sessions,
+    avgScore: h._scores.length ? Math.round((h._scores.reduce((a, b) => a + b, 0) / h._scores.length) * 100) : 0,
+  }));
+
+  res.json({
+    class: { id: c._id, name: c.name, level: c.level },
+    classOverview: {
+      totalStudents: ids.length, studentsAttempted: studentsAttempted.size,
+      studentsMastered: studentsMastered.size, totalSessions: completedSessions.length,
+      averageAccuracy: avgAccuracy,
+    },
+    skills: Object.values(skillMap),
+    flaggedStudents,
+    topMisconceptions,
+    heuristics,
   });
 });
 
