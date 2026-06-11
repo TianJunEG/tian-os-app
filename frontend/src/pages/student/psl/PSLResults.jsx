@@ -5,6 +5,7 @@ import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import BarModelViewer from './components/BarModelViewer';
 import { getMisconception } from './utils/misconceptions';
+import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 
 function StepBadge({ step }) {
   if (step.correct) return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct</span>;
@@ -59,10 +60,7 @@ function ProblemCard({ attempt, problem, index }) {
             })}
           </div>
           {problem?.solutionText && (
-            <div className="rounded-lg border border-sky-200 bg-sky-50 p-3">
-              <p className="text-xs font-semibold text-sky-700 mb-1">Worked Solution</p>
-              <p className="text-sm text-sky-800 whitespace-pre-line">{problem.solutionText}</p>
-            </div>
+            <WorkedSolutionWalkthrough solutionText={problem.solutionText} />
           )}
         </div>
       )}
