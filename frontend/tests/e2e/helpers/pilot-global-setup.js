@@ -1,5 +1,5 @@
 const backendPort = process.env.BACKEND_PORT || '5001';
-const apiBase = process.env.PLAYWRIGHT_API_BASE_URL || `http://127.0.0.1:${backendPort}/api`;
+const apiBase = process.env.PLAYWRIGHT_API_BASE_URL || `http://localhost:${backendPort}/api`;
 
 async function globalSetup() {
   const maxRetries = 10;
