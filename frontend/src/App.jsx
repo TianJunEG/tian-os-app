@@ -308,7 +308,7 @@ const LandingPage = () => (
           <Reveal><Eyebrow style={{ color: 'rgba(167,243,208,0.9)' }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
             <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: '#fff' }}>
-              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
+              AI-Native Learning.<br /><span style={{ color: '#34D399' }}>Built for Schools.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
