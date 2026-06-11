@@ -335,6 +335,7 @@ export const tutorAPI = {
   availability: () => api.get('/tutor/availability'),
   updateAvailability: (data) => api.put('/tutor/availability', data),
   certification: () => api.get('/tutor/certification'),
+  pslDashboard: (studentId) => api.get(`/tutor/students/${studentId}/psl/dashboard`),
   mistake: (studentId, mistakeId) => api.get(`/tutor/students/${studentId}/mistakes/${mistakeId}`),
   saveExplanation: (studentId, mistakeId, data) => api.post(`/tutor/students/${studentId}/mistakes/${mistakeId}/explanation`, data),
   uploadExplanationAudio: (studentId, mistakeId, formData) =>
