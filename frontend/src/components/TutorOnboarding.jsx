@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { tutorsAPI } from '../services/api';
-import './TutorOnboarding.css';
+import { ProgressBar, Spinner, Alert } from './ui/index.jsx';
 
 const TutorOnboarding = () => {
   const navigate = useNavigate();
@@ -46,7 +46,6 @@ const TutorOnboarding = () => {
 
   const [errors, setErrors] = useState({});
 
-  // Subject options
   const subjects = [
     'Mathematics', 'English', 'Science', 'Biology', 'Chemistry', 'Physics',
     'History', 'Geography', 'Economics', 'Spanish', 'French', 'Chinese',
@@ -116,7 +115,6 @@ const TutorOnboarding = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -161,7 +159,7 @@ const TutorOnboarding = () => {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (file && file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file && file.size > 5 * 1024 * 1024) {
       setErrors(prev => ({ ...prev, credentials: 'File must be smaller than 5MB' }));
       return;
     }
@@ -179,7 +177,7 @@ const TutorOnboarding = () => {
 
     if (step === 1) isValid = validateStep1();
     else if (step === 2) isValid = validateStep2();
-    else if (step === 3) isValid = true; // Availability is optional
+    else if (step === 3) isValid = true;
     else if (step === 4) isValid = validateStep4();
     else if (step === 5) isValid = validateStep5();
 
@@ -203,17 +201,13 @@ const TutorOnboarding = () => {
     setError('');
 
     try {
-      // Upload credentials file first
       let credentialsUrl = null;
       if (formData.credentials) {
         const uploadFormData = new FormData();
         uploadFormData.append('file', formData.credentials);
-
-        // Simulate file upload (in real app, use S3 or similar)
         credentialsUrl = `/credentials/${Date.now()}-${formData.credentials.name}`;
       }
 
-      // Submit tutor profile
       const response = await tutorsAPI.completeOnboarding({
         specialties: formData.specialties,
         gradeLevel: formData.gradeLevel,
@@ -234,7 +228,6 @@ const TutorOnboarding = () => {
 
       if (response.data.success) {
         setSuccess(true);
-        // Redirect after 2 seconds
         setTimeout(() => {
           navigate('/dashboard');
         }, 2000);
@@ -246,49 +239,55 @@ const TutorOnboarding = () => {
     }
   };
 
+  const inputCls = 'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const selectCls = `${inputCls} appearance-none pr-10`;
+  const textareaCls = 'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y';
+
   // Step 1: Basic Info
   const renderStep1 = () => (
-    <div className="onboarding-step">
-      <h2>📚 What Do You Teach?</h2>
-      <p className="step-subtitle">Select your specialties (choose at least one)</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">📚 What Do You Teach?</h2>
+      <p className="text-sm text-ink-500 mb-6">Select your specialties (choose at least one)</p>
 
-      <div className="form-group">
-        <label>Subjects</label>
-        <div className="checkbox-grid">
+      <div className="ds-form-group">
+        <label className="ds-form-label">Subjects</label>
+        <div className="ds-checkbox-grid">
           {subjects.map(subject => (
-            <label key={subject} className="checkbox-item">
+            <label key={subject} className="ds-checkbox-item">
               <input
                 type="checkbox"
+                className="h-4 w-4 rounded border-hairline accent-navy-700"
                 checked={formData.specialties.includes(subject)}
                 onChange={() => handleSubjectToggle(subject)}
               />
-              <span>{subject}</span>
+              <span className="text-sm text-ink-700">{subject}</span>
             </label>
           ))}
         </div>
-        {errors.specialties && <span className="error">{errors.specialties}</span>}
+        {errors.specialties && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.specialties}</p>}
       </div>
 
-      <div className="form-group">
-        <label>Grade Levels You Teach</label>
-        <div className="checkbox-grid">
+      <div className="ds-form-group">
+        <label className="ds-form-label">Grade Levels You Teach</label>
+        <div className="ds-checkbox-grid">
           {grades.map(grade => (
-            <label key={grade} className="checkbox-item">
+            <label key={grade} className="ds-checkbox-item">
               <input
                 type="checkbox"
+                className="h-4 w-4 rounded border-hairline accent-navy-700"
                 checked={formData.gradeLevel.includes(grade)}
                 onChange={() => handleGradeToggle(grade)}
               />
-              <span>{grade}</span>
+              <span className="text-sm text-ink-700">{grade}</span>
             </label>
           ))}
         </div>
-        {errors.gradeLevel && <span className="error">{errors.gradeLevel}</span>}
+        {errors.gradeLevel && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.gradeLevel}</p>}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="hourlyRate">Hourly Rate ($)</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="ds-form-group">
+          <label htmlFor="hourlyRate" className="ds-form-label">Hourly Rate ($)</label>
           <input
             id="hourlyRate"
             name="hourlyRate"
@@ -296,43 +295,46 @@ const TutorOnboarding = () => {
             min="10"
             max="200"
             step="5"
+            className={inputCls}
             value={formData.hourlyRate}
             onChange={handleInputChange}
             placeholder="e.g., 50"
           />
-          {errors.hourlyRate && <span className="error">{errors.hourlyRate}</span>}
+          {errors.hourlyRate && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.hourlyRate}</p>}
         </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="bio">About You (Your Teaching Philosophy)</label>
+      <div className="ds-form-group">
+        <label htmlFor="bio" className="ds-form-label">About You (Your Teaching Philosophy)</label>
         <textarea
           id="bio"
           name="bio"
+          className={textareaCls}
           value={formData.bio}
           onChange={handleInputChange}
           placeholder="Tell parents about your teaching style, experience, and approach..."
           rows="5"
         />
-        <div className="char-count">
+        <span className="text-xs text-ink-300 mt-1.5 block">
           {formData.bio.length}/500 characters (minimum 50)
-        </div>
-        {errors.bio && <span className="error">{errors.bio}</span>}
+        </span>
+        {errors.bio && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.bio}</p>}
       </div>
     </div>
   );
 
   // Step 2: Qualifications
   const renderStep2 = () => (
-    <div className="onboarding-step">
-      <h2>🎓 Your Qualifications</h2>
-      <p className="step-subtitle">Tell us about your background</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">🎓 Your Qualifications</h2>
+      <p className="text-sm text-ink-500 mb-6">Tell us about your background</p>
 
-      <div className="form-group">
-        <label htmlFor="education">Highest Education Level</label>
+      <div className="ds-form-group">
+        <label htmlFor="education" className="ds-form-label">Highest Education Level</label>
         <select
           id="education"
           name="education"
+          className={selectCls}
           value={formData.education}
           onChange={handleInputChange}
         >
@@ -343,92 +345,98 @@ const TutorOnboarding = () => {
           <option value="masters">Master's Degree</option>
           <option value="phd">PhD/Doctorate</option>
         </select>
-        {errors.education && <span className="error">{errors.education}</span>}
+        {errors.education && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.education}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="experience">Years of Teaching Experience</label>
+      <div className="ds-form-group">
+        <label htmlFor="experience" className="ds-form-label">Years of Teaching Experience</label>
         <input
           id="experience"
           name="experience"
           type="number"
           min="0"
           max="50"
+          className={inputCls}
           value={formData.experience}
           onChange={handleInputChange}
           placeholder="e.g., 5"
         />
-        {errors.experience && <span className="error">{errors.experience}</span>}
+        {errors.experience && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.experience}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="certifications">Certifications or Licenses (Optional)</label>
+      <div className="ds-form-group">
+        <label htmlFor="certifications" className="ds-form-label">Certifications or Licenses (Optional)</label>
         <input
           id="certifications"
           name="certifications"
           type="text"
+          className={inputCls}
           value={formData.certifications}
           onChange={handleInputChange}
           placeholder="e.g., TEFL, PGCE, State Teaching License..."
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="credentials">Upload Credentials Document</label>
-        <div className="file-upload-box">
+      <div className="ds-form-group">
+        <label htmlFor="credentials" className="ds-form-label">Upload Credentials Document</label>
+        <div className="flex items-center gap-4 p-5 rounded-xl border-2 border-dashed border-hairline bg-navy-50/30 transition hover:border-navy-300 cursor-pointer">
           <input
             id="credentials"
             type="file"
+            className="text-sm text-ink-700 file:mr-3 file:rounded-lg file:border-0 file:bg-navy-700 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-800"
             onChange={handleFileUpload}
             accept=".pdf,.doc,.docx"
           />
-          <span className="file-hint">
+          <span className="text-xs text-ink-500">
             {formData.credentials
               ? `✓ ${formData.credentials.name}`
-              : 'Upload degree, certificate, or teaching license (PDF, DOC, DOCX - max 5MB)'}
+              : 'PDF, DOC, DOCX — max 5MB'}
           </span>
         </div>
-        {errors.credentials && <span className="error">{errors.credentials}</span>}
+        {errors.credentials && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.credentials}</p>}
       </div>
 
-      <div className="info-box">
-        <p>💡 <strong>Tip:</strong> Upload clear documents showing your qualifications. This helps you get verified faster!</p>
-      </div>
+      <Alert tone="info" className="mt-4">
+        💡 <strong>Tip:</strong> Upload clear documents showing your qualifications. This helps you get verified faster!
+      </Alert>
     </div>
   );
 
   // Step 3: Availability
   const renderStep3 = () => (
-    <div className="onboarding-step">
-      <h2>⏰ Your Availability</h2>
-      <p className="step-subtitle">Set your typical hours (you can adjust per session later)</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">⏰ Your Availability</h2>
+      <p className="text-sm text-ink-500 mb-6">Set your typical hours (you can adjust per session later)</p>
 
-      <div className="availability-grid">
+      <div className="ds-availability-grid">
         {Object.entries(formData.availability).map(([day, times]) => (
-          <div key={day} className="availability-day">
-            <label className="day-checkbox">
+          <div key={day} className="ds-availability-day">
+            <label className="flex items-center gap-2 mb-3 cursor-pointer font-semibold text-ink-700">
               <input
                 type="checkbox"
+                className="h-4 w-4 rounded border-hairline accent-navy-700"
                 checked={times.available}
                 onChange={(e) => handleAvailabilityChange(day, 'available', e.target.checked)}
               />
-              <span className="day-name">{day.charAt(0).toUpperCase() + day.slice(1)}</span>
+              <span className="capitalize">{day}</span>
             </label>
 
             {times.available && (
-              <div className="day-times">
-                <div className="time-input">
-                  <label>From</label>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-ink-500">From</label>
                   <input
                     type="time"
+                    className={`${inputCls} h-9 text-sm`}
                     value={times.start}
                     onChange={(e) => handleAvailabilityChange(day, 'start', e.target.value)}
                   />
                 </div>
-                <div className="time-input">
-                  <label>To</label>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs font-semibold text-ink-500">To</label>
                   <input
                     type="time"
+                    className={`${inputCls} h-9 text-sm`}
                     value={times.end}
                     onChange={(e) => handleAvailabilityChange(day, 'end', e.target.value)}
                   />
@@ -439,40 +447,42 @@ const TutorOnboarding = () => {
         ))}
       </div>
 
-      <div className="info-box">
-        <p>💡 <strong>Note:</strong> This is optional. You can leave it blank and adjust availability per session.</p>
-      </div>
+      <Alert tone="info" className="mt-4">
+        💡 <strong>Note:</strong> This is optional. You can leave it blank and adjust availability per session.
+      </Alert>
     </div>
   );
 
   // Step 4: Banking
   const renderStep4 = () => (
-    <div className="onboarding-step">
-      <h2>🏦 Banking Information</h2>
-      <p className="step-subtitle">Where should we send your earnings?</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">🏦 Banking Information</h2>
+      <p className="text-sm text-ink-500 mb-6">Where should we send your earnings?</p>
 
-      <div className="info-box warning">
-        <p>🔒 <strong>Secure:</strong> Your banking information is encrypted and only used for payouts. We never charge your account.</p>
-      </div>
+      <Alert tone="warning" className="mb-6">
+        🔒 <strong>Secure:</strong> Your banking information is encrypted and only used for payouts. We never charge your account.
+      </Alert>
 
-      <div className="form-group">
-        <label htmlFor="bankAccountName">Account Holder Name</label>
+      <div className="ds-form-group">
+        <label htmlFor="bankAccountName" className="ds-form-label">Account Holder Name</label>
         <input
           id="bankAccountName"
           name="bankAccountName"
           type="text"
+          className={inputCls}
           value={formData.bankAccountName}
           onChange={handleInputChange}
           placeholder="Name as it appears on your bank account"
         />
-        {errors.bankAccountName && <span className="error">{errors.bankAccountName}</span>}
+        {errors.bankAccountName && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.bankAccountName}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="accountType">Account Type</label>
+      <div className="ds-form-group">
+        <label htmlFor="accountType" className="ds-form-label">Account Type</label>
         <select
           id="accountType"
           name="accountType"
+          className={selectCls}
           value={formData.accountType}
           onChange={handleInputChange}
         >
@@ -481,120 +491,118 @@ const TutorOnboarding = () => {
         </select>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="bankRoutingNumber">Routing Number</label>
+      <div className="ds-form-group">
+        <label htmlFor="bankRoutingNumber" className="ds-form-label">Routing Number</label>
         <input
           id="bankRoutingNumber"
           name="bankRoutingNumber"
           type="text"
+          className={inputCls}
           value={formData.bankRoutingNumber}
           onChange={handleInputChange}
           placeholder="9-digit routing number"
           maxLength="9"
         />
-        {errors.bankRoutingNumber && <span className="error">{errors.bankRoutingNumber}</span>}
+        {errors.bankRoutingNumber && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.bankRoutingNumber}</p>}
       </div>
 
-      <div className="form-group">
-        <label htmlFor="bankAccountNumber">Account Number</label>
+      <div className="ds-form-group">
+        <label htmlFor="bankAccountNumber" className="ds-form-label">Account Number</label>
         <input
           id="bankAccountNumber"
           name="bankAccountNumber"
           type="password"
+          className={inputCls}
           value={formData.bankAccountNumber}
           onChange={handleInputChange}
           placeholder="Your account number"
         />
-        {errors.bankAccountNumber && <span className="error">{errors.bankAccountNumber}</span>}
+        {errors.bankAccountNumber && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.bankAccountNumber}</p>}
       </div>
 
-      <div className="info-box">
-        <p>💡 <strong>Find your details:</strong> Check a check, online banking portal, or call your bank. Routing number is on the left side of your checks.</p>
-      </div>
+      <Alert tone="info" className="mt-4">
+        💡 <strong>Find your details:</strong> Check a check, online banking portal, or call your bank. Routing number is on the left side of your checks.
+      </Alert>
     </div>
   );
 
   // Step 5: Review
   const renderStep5 = () => (
-    <div className="onboarding-step">
-      <h2>✓ Review Your Application</h2>
-      <p className="step-subtitle">Make sure everything looks correct</p>
+    <div className="ds-wizard-step">
+      <h2 className="text-2xl font-bold text-ink-700 mb-2">✓ Review Your Application</h2>
+      <p className="text-sm text-ink-500 mb-6">Make sure everything looks correct</p>
 
-      <div className="review-section">
-        <h3>📚 Teaching Info</h3>
-        <p><strong>Subjects:</strong> {formData.specialties.join(', ')}</p>
-        <p><strong>Grades:</strong> {formData.gradeLevel.join(', ')}</p>
-        <p><strong>Rate:</strong> ${formData.hourlyRate}/hour</p>
+      <div className="bg-navy-50/40 p-4 rounded-xl mb-4 border-l-4 border-navy-500">
+        <h3 className="text-sm font-semibold text-ink-700 mb-2">📚 Teaching Info</h3>
+        <p className="text-sm text-ink-700 mb-1"><strong>Subjects:</strong> {formData.specialties.join(', ')}</p>
+        <p className="text-sm text-ink-700 mb-1"><strong>Grades:</strong> {formData.gradeLevel.join(', ')}</p>
+        <p className="text-sm text-ink-700"><strong>Rate:</strong> ${formData.hourlyRate}/hour</p>
       </div>
 
-      <div className="review-section">
-        <h3>🎓 Qualifications</h3>
-        <p><strong>Education:</strong> {formData.education}</p>
-        <p><strong>Experience:</strong> {formData.experience} years</p>
-        {formData.certifications && <p><strong>Certifications:</strong> {formData.certifications}</p>}
-        <p><strong>Credentials:</strong> {formData.credentials ? '✓ Uploaded' : 'Not uploaded'}</p>
+      <div className="bg-navy-50/40 p-4 rounded-xl mb-4 border-l-4 border-navy-500">
+        <h3 className="text-sm font-semibold text-ink-700 mb-2">🎓 Qualifications</h3>
+        <p className="text-sm text-ink-700 mb-1"><strong>Education:</strong> {formData.education}</p>
+        <p className="text-sm text-ink-700 mb-1"><strong>Experience:</strong> {formData.experience} years</p>
+        {formData.certifications && <p className="text-sm text-ink-700 mb-1"><strong>Certifications:</strong> {formData.certifications}</p>}
+        <p className="text-sm text-ink-700"><strong>Credentials:</strong> {formData.credentials ? '✓ Uploaded' : 'Not uploaded'}</p>
       </div>
 
-      <div className="review-section">
-        <h3>🏦 Payout Details</h3>
-        <p><strong>Account Holder:</strong> {formData.bankAccountName}</p>
-        <p><strong>Account Type:</strong> {formData.accountType}</p>
-        <p><strong>Routing #:</strong> {formData.bankRoutingNumber}</p>
+      <div className="bg-navy-50/40 p-4 rounded-xl mb-4 border-l-4 border-navy-500">
+        <h3 className="text-sm font-semibold text-ink-700 mb-2">🏦 Payout Details</h3>
+        <p className="text-sm text-ink-700 mb-1"><strong>Account Holder:</strong> {formData.bankAccountName}</p>
+        <p className="text-sm text-ink-700 mb-1"><strong>Account Type:</strong> {formData.accountType}</p>
+        <p className="text-sm text-ink-700"><strong>Routing #:</strong> {formData.bankRoutingNumber}</p>
       </div>
 
-      <label className="checkbox-item full-width">
+      <label className="ds-checkbox-item mt-4">
         <input
           type="checkbox"
+          className="h-4 w-4 rounded border-hairline accent-navy-700"
           checked={formData.agreeToTerms}
           onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
         />
-        <span>I agree to the Terms of Service and confirm all information is accurate</span>
+        <span className="text-sm text-ink-700">I agree to the Terms of Service and confirm all information is accurate</span>
       </label>
-      {errors.agreeToTerms && <span className="error">{errors.agreeToTerms}</span>}
+      {errors.agreeToTerms && <p className="mt-1.5 text-xs font-medium text-error-700">{errors.agreeToTerms}</p>}
 
-      {error && <div className="error-box">{error}</div>}
+      {error && <Alert tone="error" className="mt-4">{error}</Alert>}
     </div>
   );
 
   if (success) {
     return (
-      <div className="onboarding-container">
-        <div className="success-message">
-          <div className="success-icon">✓</div>
-          <h2>Application Submitted!</h2>
-          <p>Thank you for applying to become a tutor with Tian Jun Education Group.</p>
-          <p>We're reviewing your application and will notify you within 24-48 hours.</p>
-          <p>Check your email for updates!</p>
-          <div className="spinner"></div>
+      <div className="ds-wizard-shell">
+        <div className="flex flex-col items-center gap-4 text-center py-16 px-10">
+          <span className="text-[80px] text-success-500">✓</span>
+          <h2 className="text-2xl font-bold text-ink-700">Application Submitted!</h2>
+          <p className="text-sm text-ink-500">Thank you for applying to become a tutor with Tian Jun Education Group.</p>
+          <p className="text-sm text-ink-500">We're reviewing your application and will notify you within 24-48 hours.</p>
+          <p className="text-sm text-ink-500">Check your email for updates!</p>
+          <Spinner />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="onboarding-container">
-      <div className="onboarding-card">
-        {/* Progress Bar */}
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${(step / 5) * 100}%` }}></div>
-        </div>
+    <div className="ds-wizard-shell">
+      <div className="ds-wizard-card">
+        <ProgressBar value={step} max={5} barClassName="bg-navy-700" className="rounded-none" />
 
-        <div className="progress-text">
+        <div className="text-center text-xs font-semibold text-ink-500 py-3 border-b border-hairline">
           Step {step} of 5
         </div>
 
-        {/* Step Content */}
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
         {step === 3 && renderStep3()}
         {step === 4 && renderStep4()}
         {step === 5 && renderStep5()}
 
-        {/* Navigation Buttons */}
-        <div className="button-group">
+        <div className="ds-wizard-footer">
           {step > 1 && (
             <button
-              className="btn-secondary"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] border border-hairline bg-paper text-navy-700 transition hover:bg-navy-50 disabled:opacity-50"
               onClick={handlePrev}
               disabled={loading}
             >
@@ -604,7 +612,7 @@ const TutorOnboarding = () => {
 
           {step < 5 ? (
             <button
-              className="btn-primary"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-navy-700 text-white transition hover:bg-navy-800 disabled:opacity-50"
               onClick={handleNext}
               disabled={loading}
             >
@@ -612,7 +620,7 @@ const TutorOnboarding = () => {
             </button>
           ) : (
             <button
-              className="btn-primary btn-submit"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-success-500 text-white transition hover:bg-success-700 disabled:opacity-50"
               onClick={handleSubmit}
               disabled={loading}
             >
