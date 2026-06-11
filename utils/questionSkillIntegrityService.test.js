@@ -5,8 +5,8 @@ import {
   buildFractionsSkillIntegrityReport,
   validateQuestionSkillMapping,
 } from '../services/mathpath/questionSkillIntegrityService.js';
-import { listCanonicalFractionSkills } from '../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
-import { fractionQuestionFamilies } from '../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
+import { listCanonicalFractionSkills } from '../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
+import { fractionQuestionFamilies } from '../shared/mathpath/fractions/fractionQuestionFamilies.js';
 
 const canonicalSkills = listCanonicalFractionSkills();
 

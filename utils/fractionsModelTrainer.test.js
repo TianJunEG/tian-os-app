@@ -8,7 +8,7 @@ import {
   listFractionsModelTrainerTemplates,
   validateFractionsModelTrainerTemplates,
 } from '../services/mathpath/fractionsModelTrainer.js';
-import { getRemediationForMistake } from '../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
+import { getRemediationForMistake } from '../shared/mathpath/fractions/fractionMistakeToMasteryEngine.js';
 
 describe('Fractions Model Drawing Trainer templates', () => {
   it('exposes the three MVP templates with linked Fractions skills', () => {

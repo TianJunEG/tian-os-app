@@ -37,7 +37,7 @@ export const FEATURE_FLAGS = {
   psl: flagEnabled('PSL', true),
   tutor: flagEnabled('TUTOR', true),
   teacher: flagEnabled('TEACHER', true),
-  admin: flagEnabled('ADMIN'),
+  admin: flagEnabled('ADMIN', true),
   payments: flagEnabled('PAYMENTS'),
   tutorMarketplace: flagEnabled('TUTOR_MARKETPLACE'),
   certification: flagEnabled('CERTIFICATION'),

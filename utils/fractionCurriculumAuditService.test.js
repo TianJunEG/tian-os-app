@@ -6,7 +6,7 @@ import {
   buildCanonicalFractionMappingTable,
   confidenceLabelForEvidence,
 } from '../services/mathpath/fractionCurriculumAuditService.js';
-import { FRACTION_CANONICAL_SKILL_ROWS } from '../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
+import { FRACTION_CANONICAL_SKILL_ROWS } from '../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
 
 describe('fractionCurriculumAuditService', () => {
   it('builds a complete parent-safe F001-F026 canonical mapping table', () => {

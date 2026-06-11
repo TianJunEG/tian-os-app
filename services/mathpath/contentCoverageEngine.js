@@ -4,9 +4,9 @@ import Question from '../../models/Question.js';
 import Skill from '../../models/Skill.js';
 import fractionsDomain from '../../scripts/domains/fractions.js';
 import { generateQuestionsForSkill, isGeneratable } from '../../utils/questionTemplates.js';
-import { fractionSkillGraph, getDependents } from '../../frontend/src/mathpath/fractions/fractionSkillGraph.js';
-import { fractionQuestionFamilies, getQuestionFamiliesBySkill } from '../../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
-import { getFractionMistakeTaxonomy } from '../../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
+import { fractionSkillGraph, getDependents } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
+import { fractionQuestionFamilies, getQuestionFamiliesBySkill } from '../../shared/mathpath/fractions/fractionQuestionFamilies.js';
+import { getFractionMistakeTaxonomy } from '../../shared/mathpath/fractions/fractionMistakeToMasteryEngine.js';
 import {
   resolveFractionSkillId,
   getCanonicalFractionSkillLinks,

@@ -3,11 +3,11 @@ import {
   FRACTIONS_PILOT_SCOPE_LABEL,
   getCanonicalFractionSkill,
   getCanonicalFractionSkillBySlug,
-} from '../../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
-import { fractionQuestionFamilies } from '../../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
-import { fractionSkillGraph } from '../../frontend/src/mathpath/fractions/fractionSkillGraph.js';
-import { fractionCurriculumMappings } from '../../frontend/src/mathpath/curriculum/fractionCurriculumMappings.js';
-import { fractionUniversalSkills } from '../../frontend/src/mathpath/curriculum/fractionUniversalSkills.js';
+} from '../../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
+import { fractionQuestionFamilies } from '../../shared/mathpath/fractions/fractionQuestionFamilies.js';
+import { fractionSkillGraph } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
+import { fractionCurriculumMappings } from '../../shared/mathpath/curriculum/fractionCurriculumMappings.js';
+import { fractionUniversalSkills } from '../../shared/mathpath/curriculum/fractionUniversalSkills.js';
 
 const F_CODE_RE = /^F\d{3}$/i;
 

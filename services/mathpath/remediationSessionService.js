@@ -4,7 +4,7 @@ import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkil
 import MathPathAssignment from '../../models/mathpath/MathPathAssignment.js';
 import RetentionReview from '../../models/RetentionReview.js';
 import { createAssignmentFromLessonPrep } from './mathPathAssignmentService.js';
-import { getPrerequisites, getSkill } from '../../frontend/src/mathpath/fractions/fractionSkillGraph.js';
+import { getPrerequisites, getSkill } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
 import { buildRetentionReviews } from '../../utils/fluencyEngine.js';
 
 const WEAK_STATUSES = new Set(['notStarted', 'needsReview', 'weak', 'forgotten']);

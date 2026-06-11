@@ -12,7 +12,7 @@ import {
   FRACTIONS_PILOT_SCOPE_LABEL,
   getCanonicalFractionSkill,
   getCanonicalFractionSkillBySlug,
-} from '../../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
+} from '../../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
 import { getMisconceptionsForSkill } from './skillMisconceptionMap.js';
 import { buildRecoveryPackTeachingFlow } from './recoveryPackTeachingFlowService.js';
 import { generateInterventionWorksheet } from './worksheetGenerationEngine.js';

@@ -88,7 +88,7 @@ export function applyMistakeLearningAction(mistake, {
     mistake.reviewedAt = mistake.reviewedAt || now;
     mistake.reviewedByUserId = mistake.reviewedByUserId || userId;
     mistake.reviewSource = source;
-    if (mistake.status === 'open') mistake.status = 'reviewed';
+    if (mistake.status === 'open' || mistake.status === 'viewed') mistake.status = 'reviewed';
     return { mistake, learningStatus: mistake.learningStatus, message: statusCopy(mistake.learningStatus) };
   }
 
@@ -111,12 +111,13 @@ export function applyMistakeLearningAction(mistake, {
     mistake.reviewedAt = mistake.reviewedAt || now;
     mistake.reviewedByUserId = mistake.reviewedByUserId || userId;
     mistake.reviewSource = source;
-    if (mistake.status === 'open') mistake.status = 'reviewed';
-    mistake.learningStatus = correctionMatches(mistake, correctionAttempt) ? 'corrected' : 'acknowledged';
+    const matched = correctionMatches(mistake, correctionAttempt);
+    mistake.status = matched ? 'corrected' : 'correction_attempted';
+    mistake.learningStatus = matched ? 'corrected' : 'acknowledged';
     return {
       mistake,
       learningStatus: mistake.learningStatus,
-      correctionCorrect: mistake.learningStatus === 'corrected',
+      correctionCorrect: matched,
       message: statusCopy(mistake.learningStatus),
     };
   }

@@ -1,11 +1,11 @@
-import { fractionsKnowledgeMapV1 } from '../../frontend/src/mathpath/fractions/fractionsKnowledgeMapV1.js';
-import { fractionsRemediationMapV1 } from '../../frontend/src/mathpath/fractions/fractionsRemediationMapV1.js';
-import { fractionsRemediationAssetMapV1 } from '../../frontend/src/mathpath/fractions/fractionsRemediationAssetMapV1.js';
-import { flattenMicroSkills, getMicroSkillById } from '../../frontend/src/mathpath/knowledge/knowledgeMapModel.js';
-import { getRemediationEntryByMicroSkillId } from '../../frontend/src/mathpath/knowledge/remediationMapModel.js';
-import { getRemediationAssetEntryByMicroSkillId } from '../../frontend/src/mathpath/knowledge/remediationAssetModel.js';
-import { getWordMicroSkillById, getWordStructureById } from '../../frontend/src/wordpath/wordStructureModel.js';
-import { wordPathKnowledgeMapV1 } from '../../frontend/src/wordpath/wordPathKnowledgeMapV1.js';
+import { fractionsKnowledgeMapV1 } from '../../shared/mathpath/fractions/fractionsKnowledgeMapV1.js';
+import { fractionsRemediationMapV1 } from '../../shared/mathpath/fractions/fractionsRemediationMapV1.js';
+import { fractionsRemediationAssetMapV1 } from '../../shared/mathpath/fractions/fractionsRemediationAssetMapV1.js';
+import { flattenMicroSkills, getMicroSkillById } from '../../shared/mathpath/knowledge/knowledgeMapModel.js';
+import { getRemediationEntryByMicroSkillId } from '../../shared/mathpath/knowledge/remediationMapModel.js';
+import { getRemediationAssetEntryByMicroSkillId } from '../../shared/mathpath/knowledge/remediationAssetModel.js';
+import { getWordMicroSkillById, getWordStructureById } from '../../shared/wordpath/wordStructureModel.js';
+import { wordPathKnowledgeMapV1 } from '../../shared/wordpath/wordPathKnowledgeMapV1.js';
 
 export const PAPER_REVIEW_STATUS = Object.freeze({
   UPLOADED: 'uploaded',

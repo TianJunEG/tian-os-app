@@ -3,16 +3,16 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import GeneratedQuestion from '../../models/mathpath/GeneratedQuestion.js';
 import { QUESTION_CATEGORIES } from '../../models/mathpath/GeneratedQuestion.js';
-import { fractionSkillGraph, getSkill } from '../../frontend/src/mathpath/fractions/fractionSkillGraph.js';
+import { fractionSkillGraph, getSkill } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
 import {
   fractionQuestionFamilies,
   getQuestionFamily,
   getQuestionFamiliesBySkill,
-} from '../../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
+} from '../../shared/mathpath/fractions/fractionQuestionFamilies.js';
 import {
   generateFractionQuestion,
-} from '../../frontend/src/mathpath/fractions/fractionQuestionGenerator.js';
-import { getFractionMistakeTaxonomy } from '../../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
+} from '../../shared/mathpath/fractions/fractionQuestionGenerator.js';
+import { getFractionMistakeTaxonomy } from '../../shared/mathpath/fractions/fractionMistakeToMasteryEngine.js';
 import {
   runFractionsContentCoverageAudit,
 } from './contentCoverageEngine.js';
