@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, XCircle } from 'lucide-react';
 
-export default function CheckPanel({ answer, selected, onSelect }) {
+export default function CheckPanel({ answer, selected, onSelect, onGoBack }) {
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium text-ink-600">
@@ -22,12 +22,8 @@ export default function CheckPanel({ answer, selected, onSelect }) {
         </button>
         <button
           type="button"
-          onClick={() => onSelect(false)}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-colors ${
-            selected === false
-              ? 'border-red-400 bg-red-50 text-red-700'
-              : 'border-ink-200 bg-white text-ink-600 hover:border-red-300'
-          }`}
+          onClick={() => onGoBack ? onGoBack() : onSelect(false)}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-ink-200 bg-white px-4 py-3 text-sm font-semibold text-ink-600 transition-colors hover:border-red-300"
         >
           <XCircle className="h-5 w-5" />
           No, let me re-check

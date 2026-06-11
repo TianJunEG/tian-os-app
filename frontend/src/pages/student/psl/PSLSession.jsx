@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -34,10 +35,26 @@ export default function PSLSession() {
   const [submitting, setSubmitting] = useState(false);
   const [stepResponses, setStepResponses] = useState({});
   const [retryCount, setRetryCount] = useState({});
+  const stepStartRef = useRef(Date.now());
+
+  useEffect(() => { stepStartRef.current = Date.now(); }, [currentStepIdx]);
 
   useEffect(() => {
     pslAPI.getSession(sessionId)
-      .then((res) => setSession(res.data))
+      .then((res) => {
+        const data = res.data;
+        setSession(data);
+        const problem = data.currentProblem;
+        const attempt = data.attempts?.[problem?.problemId];
+        if (attempt?.steps?.length) {
+          const done = {};
+          for (const s of attempt.steps) done[s.stepId] = s;
+          setCompletedSteps(done);
+          const lastIdx = STEP_IDS.findIndex((id) => !done[id]);
+          if (lastIdx >= 0) setCurrentStepIdx(lastIdx);
+          else setCurrentStepIdx(STEP_IDS.length - 1);
+        }
+      })
       .catch(() => navigate('/student/psl'))
       .finally(() => setLoading(false));
   }, [sessionId, navigate]);
@@ -80,7 +97,7 @@ export default function PSLSession() {
       const res = await pslAPI.submitStep(sessionId, currentProblem.problemId, {
         stepId: currentStepId,
         response: buildResponse(),
-        timeSpentMs: 0,
+        timeSpentMs: Date.now() - stepStartRef.current,
       });
       const result = res.data;
       setCompletedSteps((prev) => ({ ...prev, [currentStepId]: result }));
@@ -153,6 +170,17 @@ export default function PSLSession() {
           Problem {problemIndex + 1} of {totalProblems}
         </span>
         <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
+        <button
+          type="button"
+          onClick={async () => {
+            try { await pslAPI.abandonSession(sessionId); } catch {}
+            navigate('/student/psl');
+          }}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
+          aria-label="Exit session"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       <StoryPanel
@@ -168,7 +196,7 @@ export default function PSLSession() {
 
       <div className="rounded-2xl border border-ink-200 bg-white p-4 sm:p-5">
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-400">
-          Step {currentStepIdx + 1}: {STEP_IDS[currentStepIdx]?.replace('_', ' ')}
+          Step {currentStepIdx + 1}: {STEP_IDS[currentStepIdx]?.replaceAll('_', ' ')}
         </h3>
 
         {currentStepId === 'understand' && (
@@ -216,6 +244,10 @@ export default function PSLSession() {
             answer={stepResponses.solve?.answer}
             selected={stepResponses.check?.reasonable}
             onSelect={(val) => updateResponse('check', { reasonable: val })}
+            onGoBack={() => {
+              setFeedback(null);
+              setCurrentStepIdx(STEP_IDS.indexOf('solve'));
+            }}
           />
         )}
       </div>
