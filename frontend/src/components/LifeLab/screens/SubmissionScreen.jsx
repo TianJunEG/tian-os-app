@@ -90,11 +90,11 @@ export default function SubmissionScreen({ assignment, onBack }) {
           <div className="ll-nav-bar-title"><h1>My Submissions</h1></div>
         </div>
         <div className="ll-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Icon name="sparkle" size={32} color="#13315C" />
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Icon name="sparkle" size={32} color="#064E3B" />
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#0B1F3F', marginBottom: 8 }}>No Pending Activities</div>
-          <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}>No Pending Activities</div>
+          <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6, marginBottom: 28 }}>
             When your teacher assigns a LifeLab activity, it will appear here for you to complete.
           </div>
           <button className="ll-btn ll-btn-primary" style={{ width: '100%' }} onClick={onBack}>
@@ -124,15 +124,15 @@ export default function SubmissionScreen({ assignment, onBack }) {
           {/* Data collection section */}
           {template.data_fields?.length > 0 && (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0B1F3F', marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>
                 Data Collection
               </div>
               {template.data_fields.map((field) => (
                 <div key={field.name} className="ll-input-field">
                   <label className="ll-input-label">
                     {field.label}
-                    {field.unit && <span style={{ color: '#A7B1C2', fontWeight: 400 }}> ({field.unit})</span>}
-                    {field.required && <span style={{ color: '#B86B1A' }}> *</span>}
+                    {field.unit && <span style={{ color: '#94A3B8', fontWeight: 400 }}> ({field.unit})</span>}
+                    {field.required && <span style={{ color: '#B45309' }}> *</span>}
                   </label>
                   {field.type === 'number' ? (
                     <input
@@ -166,13 +166,13 @@ export default function SubmissionScreen({ assignment, onBack }) {
               flexDirection: 'column',
               alignItems: 'center',
               padding: 20,
-              border: '2px dashed #C8A042',
+              border: '2px dashed #F59E0B',
               borderRadius: 10,
               cursor: 'pointer',
-              background: '#FAF7EE',
+              background: '#ECFDF5',
             }}>
-              <Icon name="camera" size={32} color="#C8A042" />
-              <span style={{ marginTop: 8, fontSize: 13, color: '#0B1F3F', fontWeight: 600 }}>
+              <Icon name="camera" size={32} color="#F59E0B" />
+              <span style={{ marginTop: 8, fontSize: 13, color: '#0F172A', fontWeight: 600 }}>
                 {photoFile ? photoFile.name : 'Upload photo'}
               </span>
               <input
@@ -187,7 +187,7 @@ export default function SubmissionScreen({ assignment, onBack }) {
           {/* Reflection questions */}
           {template.reflection_questions?.length > 0 && (
             <div style={{ marginBottom: 80 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0B1F3F', marginBottom: 12 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>
                 Reflection
               </div>
               {template.reflection_questions.map((q) => (
@@ -205,7 +205,7 @@ export default function SubmissionScreen({ assignment, onBack }) {
           )}
         </form>
 
-        <div style={{ padding: '16px 20px', borderTop: '1px solid #F1F3F8', display: 'flex', gap: 8 }}>
+        <div style={{ padding: '16px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 8 }}>
           <button className="ll-btn ll-btn-secondary" onClick={onBack}>Save Draft</button>
           <button className="ll-btn ll-btn-primary" onClick={handleSubmit} disabled={loading}>
             {loading ? 'Submitting...' : 'Submit Response'}

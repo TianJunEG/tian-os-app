@@ -9,7 +9,7 @@ import { MECHANISMS } from '../content.js';
 const M = MECHANISMS.gears;
 const BLUE = '#4A7FBF';
 const GOLD = '#C99A4A';
-const INK = '#142b4d';
+const INK = '#064E3B';
 
 // One toothed gear. Ported from the prototype's GearSVG — trapezoidal teeth,
 // hub, spokes and a direction marker, rotated by `rotation` degrees.

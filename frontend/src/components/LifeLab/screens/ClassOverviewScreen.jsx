@@ -54,26 +54,26 @@ export default function ClassOverviewScreen({ onBack }) {
             overview.map((item, idx) => (
               <div key={idx} className="ll-card">
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0B1F3F' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>
                     {item.assignment?.template_id?.title}
                   </div>
-                  <div style={{ fontSize: 12, color: '#6B7A95', marginTop: 2 }}>
+                  <div style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
                     Assigned on {new Date(item.assignment?.createdAt).toLocaleDateString()}
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                  <div style={{ background: '#EEF2FA', padding: 8, borderRadius: 8, textAlign: 'center' }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#0B2545' }}>{item.submissions}</div>
-                    <div style={{ fontSize: 10, color: '#6B7A95' }}>Submitted</div>
+                  <div style={{ background: '#E0F2FE', padding: 8, borderRadius: 8, textAlign: 'center' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#1E293B' }}>{item.submissions}</div>
+                    <div style={{ fontSize: 10, color: '#64748B' }}>Submitted</div>
                   </div>
-                  <div style={{ background: '#FBEEDD', padding: 8, borderRadius: 8, textAlign: 'center' }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#B86B1A' }}>{item.reviewed}</div>
-                    <div style={{ fontSize: 10, color: '#6B7A95' }}>Reviewed</div>
+                  <div style={{ background: '#FEF3C7', padding: 8, borderRadius: 8, textAlign: 'center' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#B45309' }}>{item.reviewed}</div>
+                    <div style={{ fontSize: 10, color: '#64748B' }}>Reviewed</div>
                   </div>
-                  <div style={{ background: '#FAF7EE', padding: 8, borderRadius: 8, textAlign: 'center' }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: '#9A7A23' }}>{item.pending}</div>
-                    <div style={{ fontSize: 10, color: '#6B7A95' }}>Pending</div>
+                  <div style={{ background: '#ECFDF5', padding: 8, borderRadius: 8, textAlign: 'center' }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: '#B45309' }}>{item.pending}</div>
+                    <div style={{ fontSize: 10, color: '#64748B' }}>Pending</div>
                   </div>
                 </div>
               </div>

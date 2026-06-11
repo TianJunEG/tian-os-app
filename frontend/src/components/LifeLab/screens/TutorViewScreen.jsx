@@ -26,10 +26,10 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      assigned: { bg: '#EEF2FA', color: '#13315C', label: 'Assigned' },
-      in_progress: { bg: '#EEF2FA', color: '#13315C', label: 'In Progress' },
-      submitted: { bg: '#FBEEDD', color: '#B86B1A', label: 'Submitted' },
-      reviewed: { bg: '#E7F3EC', color: '#2E7A5A', label: 'Reviewed' },
+      assigned: { bg: '#E0F2FE', color: '#064E3B', label: 'Assigned' },
+      in_progress: { bg: '#E0F2FE', color: '#064E3B', label: 'In Progress' },
+      submitted: { bg: '#FEF3C7', color: '#B45309', label: 'Submitted' },
+      reviewed: { bg: '#D1FAE5', color: '#059669', label: 'Reviewed' },
     };
     return statusMap[status] || statusMap.assigned;
   };
@@ -52,11 +52,11 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
             <div className="ll-loading">Loading...</div>
           ) : assignments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-                <Icon name="compass" size={32} color="#13315C" />
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#E0F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <Icon name="compass" size={32} color="#064E3B" />
               </div>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#0B1F3F', marginBottom: 8 }}>No Activities Assigned Yet</div>
-              <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}>No Activities Assigned Yet</div>
+              <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6, marginBottom: 28 }}>
                 Assign a LifeLab activity from the library to get started. Students will appear here once an activity is set.
               </div>
               <button className="ll-btn ll-btn-primary" style={{ width: '100%' }} onClick={onBack}>
@@ -70,13 +70,13 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
                 <div key={assignment._id} className="ll-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0B1F3F' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>
                         {assignment.template_id?.title}
                       </div>
-                      <div style={{ fontSize: 12, color: '#6B7A95', marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>
                         To: {assignment.student_name || 'Student'}
                       </div>
-                      <div style={{ fontSize: 11, color: '#A7B1C2', marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
                         {assignment.template_id?.subject} • {assignment.template_id?.duration}
                       </div>
                     </div>
@@ -94,7 +94,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
                   </div>
 
                   {assignment.due_date && (
-                    <div style={{ fontSize: 12, color: '#6B7A95', marginBottom: 8 }}>
+                    <div style={{ fontSize: 12, color: '#64748B', marginBottom: 8 }}>
                       Due: {new Date(assignment.due_date).toLocaleDateString('en-SG')}
                     </div>
                   )}
@@ -104,7 +104,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
                       View
                     </button>
                     {assignment.status === 'submitted' && (
-                      <button className="ll-btn ll-btn-primary ll-btn-sm" style={{ flex: 1, background: '#C8A042' }}>
+                      <button className="ll-btn ll-btn-primary ll-btn-sm" style={{ flex: 1, background: '#F59E0B' }}>
                         Review
                       </button>
                     )}

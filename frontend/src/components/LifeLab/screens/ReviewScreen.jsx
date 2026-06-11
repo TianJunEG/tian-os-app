@@ -43,11 +43,11 @@ export default function ReviewScreen({ submission, onBack }) {
           <div className="ll-nav-bar-title"><h1>Inbox</h1></div>
         </div>
         <div className="ll-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#E7F3EC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Icon name="chat" size={32} color="#2E7A5A" />
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#D1FAE5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Icon name="chat" size={32} color="#059669" />
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#0B1F3F', marginBottom: 8 }}>All Caught Up</div>
-          <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}>All Caught Up</div>
+          <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6, marginBottom: 28 }}>
             Student submissions that need your review will appear here.
           </div>
           <button className="ll-btn ll-btn-primary" style={{ width: '100%' }} onClick={onBack}>
@@ -71,11 +71,11 @@ export default function ReviewScreen({ submission, onBack }) {
 
       <div className="ll-content">
         <div className="ll-content-scroll" style={{ padding: '16px 20px' }}>
-          <div style={{ background: '#E6EEF7', padding: 12, borderRadius: 10, marginBottom: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#13315C', marginBottom: 8 }}>
+          <div style={{ background: '#E0F2FE', padding: 12, borderRadius: 10, marginBottom: 16 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#064E3B', marginBottom: 8 }}>
               Student Response
             </div>
-            <div style={{ fontSize: 13, color: '#13315C', lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, color: '#064E3B', lineHeight: 1.6 }}>
               <p>Data collected and reflection questions answered.</p>
               <p>Photo evidence: Provided ✓</p>
             </div>
@@ -93,11 +93,11 @@ export default function ReviewScreen({ submission, onBack }) {
               />
             </div>
 
-            <div style={{ background: '#E7F3EC', padding: 12, borderRadius: 10, marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#2E7A5A', marginBottom: 8 }}>
+            <div style={{ background: '#D1FAE5', padding: 12, borderRadius: 10, marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#059669', marginBottom: 8 }}>
                 AI Generated Insights
               </div>
-              <div style={{ fontSize: 12, color: '#2E7A5A', lineHeight: 1.6 }}>
+              <div style={{ fontSize: 12, color: '#059669', lineHeight: 1.6 }}>
                 <div><strong>Summary:</strong> Student showed good understanding of core concepts.</div>
                 <div style={{ marginTop: 8 }}><strong>Misconceptions:</strong> None detected</div>
                 <div style={{ marginTop: 8 }}><strong>Follow-up:</strong> Consider extending with related activity</div>
@@ -106,7 +106,7 @@ export default function ReviewScreen({ submission, onBack }) {
           </form>
         </div>
 
-        <div style={{ padding: '16px 20px', borderTop: '1px solid #F1F3F8', display: 'flex', gap: 8 }}>
+        <div style={{ padding: '16px 20px', borderTop: '1px solid #F1F5F9', display: 'flex', gap: 8 }}>
           <button type="button" className="ll-btn ll-btn-secondary" onClick={onBack}>
             Cancel
           </button>

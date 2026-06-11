@@ -104,7 +104,7 @@ export default function LibraryScreen({ onSelectTemplate, onAssign, onNavigate }
           </div>
 
           <div className="ll-search-bar">
-            <Icon name="search" size={18} color="#6B7A95" />
+            <Icon name="search" size={18} color="#64748B" />
             <input
               type="text"
               placeholder="Search 124 LifeLab activities…"
@@ -151,7 +151,7 @@ export default function LibraryScreen({ onSelectTemplate, onAssign, onNavigate }
                     </div>
                     <button
                       className="ll-btn ll-btn-primary"
-                      style={{ marginTop: 12, background: '#C8A042' }}
+                      style={{ marginTop: 12, background: '#F59E0B' }}
                       onClick={() => onAssign(filteredTemplates[0])}
                     >
                       Assign Now

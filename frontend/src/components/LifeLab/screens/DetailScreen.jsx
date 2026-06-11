@@ -3,10 +3,10 @@ import Icon from '../Icon';
 
 // Tone → colour palette (matches design system)
 const TONES = {
-  gold:  { bg: '#F3EED8', fg: '#B88F1E', ring: '#D4A935' },
+  gold:  { bg: '#F3EED8', fg: '#B45309', ring: '#F59E0B' },
   leaf:  { bg: '#DEF0E8', fg: '#2F8F6F', ring: '#2F8F6F' },
-  sun:   { bg: '#FFEFCC', fg: '#B88F1E', ring: '#D4A935' },
-  cream: { bg: '#F3EED8', fg: '#B88F1E', ring: '#D4A935' },
+  sun:   { bg: '#FFEFCC', fg: '#B45309', ring: '#F59E0B' },
+  cream: { bg: '#F3EED8', fg: '#B45309', ring: '#F59E0B' },
   blue:  { bg: '#DDE3F0', fg: '#1A2A4F', ring: '#6B7FA8' },
   plum:  { bg: '#EDE5F5', fg: '#A388D2', ring: '#B69FDB' },
 };
@@ -171,7 +171,7 @@ export default function DetailScreen({ template, onAssign, onBack }) {
 
               {/* Common mistake */}
               {template.common_mistake && (
-                <Section title="Common mistake" accent="#B86B1A">
+                <Section title="Common mistake" accent="#B45309">
                   <div style={{
                     background: 'var(--gold-100)', borderRadius: 10, padding: '10px 14px',
                     display: 'flex', gap: 10, alignItems: 'flex-start',
@@ -188,12 +188,12 @@ export default function DetailScreen({ template, onAssign, onBack }) {
               {template.tip && (
                 <Section title="Tip for parents, teachers &amp; tutors" accent="var(--gold-500)">
                   <div style={{
-                    background: '#FAF7EE', borderRadius: 10, padding: '10px 14px',
+                    background: '#ECFDF5', borderRadius: 10, padding: '10px 14px',
                     display: 'flex', gap: 10, alignItems: 'flex-start',
                     border: '1px solid #E5D8B5',
                   }}>
                     <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
-                    <span style={{ fontSize: 13, color: '#5A4010', lineHeight: 1.55 }}>
+                    <span style={{ fontSize: 13, color: '#B45309', lineHeight: 1.55 }}>
                       {template.tip}
                     </span>
                   </div>
@@ -202,7 +202,7 @@ export default function DetailScreen({ template, onAssign, onBack }) {
 
               {/* Topics */}
               {template.topic_tags?.length > 0 && (
-                <Section title="Topics covered" accent="#A7B1C2">
+                <Section title="Topics covered" accent="#94A3B8">
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {template.topic_tags.map((tag) => (
                       <span key={tag} className="ll-pill navy">{tag}</span>

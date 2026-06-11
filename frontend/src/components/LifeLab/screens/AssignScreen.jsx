@@ -64,11 +64,11 @@ export default function AssignScreen({ template, onBack }) {
     return (
       <>
         <div className="ll-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#E7F3EC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-            <Icon name="check_circle" size={32} color="#2E7A5A" />
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#D1FAE5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <Icon name="check_circle" size={32} color="#059669" />
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#0B1F3F', marginBottom: 8 }}>Activity Assigned!</div>
-          <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}>Activity Assigned!</div>
+          <div style={{ fontSize: 13, color: '#64748B', lineHeight: 1.6, marginBottom: 28 }}>
             <strong>{template.title}</strong> has been assigned to <strong>{formData.student_name}</strong>.
           </div>
           <button className="ll-btn ll-btn-primary" style={{ width: '100%' }} onClick={onBack}>
@@ -149,7 +149,7 @@ export default function AssignScreen({ template, onBack }) {
             </div>
           )}
 
-          <div style={{ background: '#EEF2FA', padding: 12, borderRadius: 10, marginTop: 8, fontSize: 12, color: '#13315C', lineHeight: 1.5 }}>
+          <div style={{ background: '#E0F2FE', padding: 12, borderRadius: 10, marginTop: 8, fontSize: 12, color: '#064E3B', lineHeight: 1.5 }}>
             <strong>Assignment Summary:</strong>
             <div style={{ marginTop: 6 }}>
               • Activity: {template.title}<br />
@@ -163,7 +163,7 @@ export default function AssignScreen({ template, onBack }) {
           </div>
         </form>
 
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #F1F3F8', background: '#fff', display: 'flex', gap: 8 }}>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #F1F5F9', background: '#fff', display: 'flex', gap: 8 }}>
           <button type="button" className="ll-btn ll-btn-secondary" style={{ width: 'auto', paddingLeft: 16, paddingRight: 16 }} onClick={onBack}>
             Cancel
           </button>
