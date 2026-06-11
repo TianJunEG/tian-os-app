@@ -3,25 +3,30 @@ import { createPortal } from 'react-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
-// Tian OS shared UI primitives. Warm pastel identity, soft shadows, rounded cards,
-// JetBrains Mono numerics. Built on the Tailwind tokens added in tailwind.config.js
-// + index.css. Reuse these everywhere — do not hand-roll card/badge markup.
+// Tian OS shared UI primitives — emerald green design system for ages 7–12.
+// Nunito font, rounded shapes, warm celebrations. Built on Tailwind tokens
+// from tailwind.config.js + index.css. Reuse everywhere.
 
 // ─── Card ───────────────────────────────────────────────────────────
 const CARD_TONES = {
   paper: 'bg-paper',
-  lavender: 'bg-tianLavender',
-  mint: 'bg-tianMint',
-  sky: 'bg-tianSky',
-  peach: 'bg-tianPeach',
-  yellow: 'bg-tianYellow',
-  rose: 'bg-tianRose',
+  emerald: 'bg-tint-emerald',
+  mint: 'bg-tint-emerald',
+  sunshine: 'bg-tint-sunshine',
+  violet: 'bg-tint-violet',
+  sky: 'bg-tint-sky',
+  rose: 'bg-tint-rose',
+  slate: 'bg-tint-slate',
+  // Legacy aliases
+  lavender: 'bg-tint-violet',
+  peach: 'bg-tint-rose',
+  yellow: 'bg-tint-sunshine',
 };
 
 export function Card({ children, className = '', interactive = false, tone = 'paper', ...rest }) {
   return (
     <div
-      className={`rounded-[24px] border border-white/70 ${CARD_TONES[tone] || CARD_TONES.paper} shadow-resting ${interactive ? 'transition hover:shadow-active' : ''} ${className}`}
+      className={`rounded-[20px] border border-slate-200/70 ${CARD_TONES[tone] || CARD_TONES.paper} shadow-resting ${interactive ? 'transition hover:shadow-active hover:-translate-y-0.5' : ''} ${className}`}
       {...rest}
     >
       {children}
@@ -41,44 +46,47 @@ export function CollapsibleSection({
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
   const Wrapper = surface ? Card : 'section';
-  const wrapperClass = surface ? className : `rounded-2xl border border-hairline bg-transparent ${className}`;
+  const wrapperClass = surface ? className : `rounded-[20px] border border-slate-200 bg-transparent ${className}`;
   return (
     <Wrapper className={wrapperClass}>
       <div className="flex items-start justify-between gap-3 p-4 sm:p-5">
         <button
           type="button"
-          className="flex min-w-0 flex-1 items-start gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+          className="flex min-w-0 flex-1 items-start gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
           aria-expanded={open}
           onClick={() => setOpen((prev) => !prev)}
         >
-          <span className="mt-0.5 shrink-0 text-ink-400">
+          <span className="mt-0.5 shrink-0 text-slate-400">
             {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </span>
           <span className="min-w-0">
-            <span className="block text-sm font-semibold text-ink-700">{title}</span>
-            {summary && <span className="mt-1 block text-sm text-ink-500">{summary}</span>}
+            <span className="block text-sm font-bold text-slate-700">{title}</span>
+            {summary && <span className="mt-1 block text-sm text-slate-500">{summary}</span>}
           </span>
         </button>
         {action && <div className="shrink-0">{action}</div>}
       </div>
-      {open && <div className={`border-t border-hairline p-4 sm:p-5 ${contentClassName}`}>{children}</div>}
+      {open && <div className={`border-t border-slate-200 p-4 sm:p-5 ${contentClassName}`}>{children}</div>}
     </Wrapper>
   );
 }
 
 // ─── Button ─────────────────────────────────────────────────────────
 const BTN_VARIANTS = {
-  primary: 'bg-navy-700 text-white hover:bg-navy-800',
-  secondary: 'bg-paper text-navy-700 border border-hairline hover:bg-navy-50',
-  ghost: 'bg-transparent text-navy-700 hover:bg-navy-50',
-  gold: 'bg-gold-400 text-navy-900 hover:bg-gold-500',
-  // For use on dark/navy surfaces (e.g. hero cards).
-  outlineLight: 'bg-transparent text-white border border-white/40 hover:bg-white/10',
+  primary: 'bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800',
+  secondary: 'bg-paper text-emerald-700 border-2 border-emerald-200 hover:bg-emerald-50 active:bg-emerald-100',
+  ghost: 'bg-transparent text-emerald-700 hover:bg-emerald-50 active:bg-emerald-100',
+  gold: 'bg-sunshine-400 text-slate-900 hover:bg-sunshine-500 active:bg-sunshine-600',
+  outlineLight: 'bg-transparent text-white border-2 border-white/40 hover:bg-white/10',
 };
-const BTN_SIZES = { s: 'h-9 px-3.5 text-[13px]', m: 'h-12 px-5 text-[15px]', l: 'h-14 px-6 text-base' };
+const BTN_SIZES = {
+  s: 'h-9 px-3.5 text-sm',
+  m: 'h-[52px] px-5 text-base',
+  l: 'h-14 px-6 text-lg',
+};
 
 export function Button({ children, variant = 'primary', size = 'm', as, to, className = '', icon: Icon, ...rest }) {
-  const cls = `inline-flex items-center justify-center gap-2 rounded-[14px] font-semibold tracking-[-0.01em] transition disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 ${BTN_VARIANTS[variant]} ${BTN_SIZES[size]} ${className}`;
+  const cls = `inline-flex items-center justify-center gap-2 rounded-[14px] font-bold tracking-[-0.01em] transition-all duration-200 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 focus-visible:ring-offset-2 ${BTN_VARIANTS[variant]} ${BTN_SIZES[size]} ${className}`;
   const content = (<>{Icon && <Icon className="h-[18px] w-[18px]" />}{children}</>);
   if (to) return <Link to={to} className={cls} {...rest}>{content}</Link>;
   const Tag = as || 'button';
@@ -87,26 +95,35 @@ export function Button({ children, variant = 'primary', size = 'm', as, to, clas
 
 // ─── Badge / StatusBadge ────────────────────────────────────────────
 const BADGE_TONES = {
-  neutral: 'bg-bone text-ink-700', navy: 'bg-navy-50 text-navy-700',
-  gold: 'bg-gold-100 text-gold-700', success: 'bg-success-100 text-success-700',
-  error: 'bg-tianPeach text-error-700', outline: 'bg-paper text-ink-700 border border-hairline',
-  lavender: 'bg-tianLavender text-navy-700', mint: 'bg-tianMint text-success-700',
-  sky: 'bg-tianSky text-navy-700', peach: 'bg-tianPeach text-error-700',
-  yellow: 'bg-tianYellow text-gold-700', rose: 'bg-tianRose text-error-700',
+  neutral: 'bg-slate-100 text-slate-700',
+  emerald: 'bg-emerald-100 text-emerald-800',
+  success: 'bg-emerald-100 text-emerald-800',
+  sunshine: 'bg-sunshine-100 text-sunshine-700',
+  gold: 'bg-sunshine-100 text-sunshine-700',
+  violet: 'bg-violet-100 text-violet-700',
+  sky: 'bg-sky-100 text-sky-700',
+  rose: 'bg-rose-100 text-rose-700',
+  error: 'bg-rose-100 text-rose-700',
+  outline: 'bg-paper text-slate-700 border border-slate-200',
+  // Legacy aliases
+  navy: 'bg-emerald-100 text-emerald-800',
+  lavender: 'bg-violet-100 text-violet-700',
+  mint: 'bg-emerald-100 text-emerald-800',
+  peach: 'bg-rose-100 text-rose-700',
+  yellow: 'bg-sunshine-100 text-sunshine-700',
 };
 export function Badge({ children, tone = 'neutral', className = '' }) {
-  return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE_TONES[tone]} ${className}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${BADGE_TONES[tone]} ${className}`}>{children}</span>;
 }
 
-// Maps domain statuses to a fixed tone + label so badges stay consistent.
+// Maps domain statuses to a fixed tone + label.
 const STATUS_MAP = {
-  mastered: ['success', 'Mastered'], learning: ['navy', 'Learning'],
-  needs_review: ['error', 'Needs review'], needs_support: ['error', 'Needs support'],
-  not_started: ['neutral', 'Not started'], in_progress: ['navy', 'In progress'],
-  completed: ['success', 'Completed'], overdue: ['error', 'Overdue'],
-  prepared: ['success', 'Prepared'], improving: ['success', 'Improving'], stable: ['navy', 'Stable'],
-  // mastery v2 vocabulary (derived 5-state ladder)
-  developing: ['gold', 'Developing'], practising: ['navy', 'Practising'], fluent: ['success', 'Fluent'],
+  mastered: ['success', 'Mastered'], learning: ['emerald', 'Learning'],
+  needs_review: ['rose', 'Needs review'], needs_support: ['rose', 'Needs support'],
+  not_started: ['neutral', 'Not started'], in_progress: ['emerald', 'In progress'],
+  completed: ['success', 'Completed'], overdue: ['rose', 'Overdue'],
+  prepared: ['success', 'Prepared'], improving: ['success', 'Improving'], stable: ['emerald', 'Stable'],
+  developing: ['sunshine', 'Developing'], practising: ['emerald', 'Practising'], fluent: ['success', 'Fluent'],
 };
 export function StatusBadge({ status }) {
   const [tone, label] = STATUS_MAP[status] || ['neutral', String(status || '').replace(/_/g, ' ')];
@@ -114,10 +131,10 @@ export function StatusBadge({ status }) {
 }
 
 // ─── ProgressBar ────────────────────────────────────────────────────
-export function ProgressBar({ value = 0, max = 100, className = '', barClassName = 'bg-navy-700' }) {
+export function ProgressBar({ value = 0, max = 100, className = '', barClassName = 'bg-emerald-500' }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   return (
-    <div className={`h-1.5 w-full overflow-hidden rounded-full bg-bone ${className}`}>
+    <div className={`h-2 w-full overflow-hidden rounded-full bg-slate-100 ${className}`}>
       <div className={`h-full rounded-full transition-[width] duration-500 ${barClassName}`} style={{ width: `${pct}%` }} />
     </div>
   );
@@ -127,9 +144,9 @@ export function ProgressBar({ value = 0, max = 100, className = '', barClassName
 export function StatTile({ label, value, suffix }) {
   return (
     <div className="min-w-0 flex-1">
-      <div className="mb-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</div>
-      <div className="font-mono text-2xl font-semibold leading-none tracking-[-0.02em] text-navy-700 tabular-nums">
-        {value}{suffix && <span className="ml-0.5 text-[13px] font-medium text-ink-500">{suffix}</span>}
+      <div className="mb-1 flex items-center gap-1 text-xs font-bold uppercase tracking-[0.06em] text-slate-500">{label}</div>
+      <div className="font-mono text-2xl font-bold leading-none tracking-[-0.02em] text-emerald-700 tabular-nums">
+        {value}{suffix && <span className="ml-0.5 text-sm font-medium text-slate-500">{suffix}</span>}
       </div>
     </div>
   );
@@ -140,8 +157,8 @@ export function PageHeader({ title, subtitle, action }) {
   return (
     <div className="mb-5 flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <h1 className="font-display text-2xl font-semibold tracking-[-0.02em] text-navy-700">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-ink-500">{subtitle}</p>}
+        <h1 className="font-display text-2xl font-bold tracking-[-0.02em] text-slate-800">{title}</h1>
+        {subtitle && <p className="mt-1 text-base text-slate-500">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -152,27 +169,23 @@ export function PageHeader({ title, subtitle, action }) {
 export function EmptyState({ icon: Icon, message, children }) {
   return (
     <Card className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-      {Icon && <span className="grid h-12 w-12 place-items-center rounded-2xl bg-bone text-ink-500"><Icon className="h-6 w-6" /></span>}
-      <p className="max-w-sm text-sm text-ink-500">{message}</p>
+      {Icon && <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600"><Icon className="h-6 w-6" /></span>}
+      <p className="max-w-sm text-base text-slate-500">{message}</p>
       {children}
     </Card>
   );
 }
 
 // ─── ErrorState ─────────────────────────────────────────────────────
-// Distinct from EmptyState because "no data yet" and "we failed to fetch"
-// are different signals to the user. Pages that previously swallowed errors
-// (.catch(() => setData([]))) ended up showing reassuring empty messages
-// when the real state was "the API errored" — actively misleading.
 export function ErrorState({ message = "Couldn't load this. Try again?", onRetry }) {
   return (
     <Card className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-error-100 text-error-700">!</span>
-      <p className="max-w-sm text-sm text-ink-600">{message}</p>
+      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-rose-100 text-rose-600">!</span>
+      <p className="max-w-sm text-base text-slate-600">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}
-          className="rounded-xl border border-hairline px-3 py-1.5 text-sm font-semibold text-navy-700 hover:bg-navy-50"
+          className="rounded-[14px] border border-slate-200 px-4 py-2 text-sm font-bold text-emerald-700 hover:bg-emerald-50"
         >
           Retry
         </button>
@@ -184,9 +197,9 @@ export function ErrorState({ message = "Couldn't load this. Try again?", onRetry
 // ─── Spinner ────────────────────────────────────────────────────────
 export function Spinner({ label = 'Loading…' }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-16 text-ink-500">
-      <span className="h-8 w-8 animate-spin rounded-full border-2 border-bone border-t-navy-700" />
-      <span className="text-sm">{label}</span>
+    <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-500">
+      <span className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-100 border-t-emerald-600" />
+      <span className="text-sm font-medium">{label}</span>
     </div>
   );
 }
@@ -198,11 +211,11 @@ export function ModuleCard({ module, footer }) {
   const inner = (
     <Card interactive={!soon} className={`flex h-full flex-col p-5 ${soon ? 'opacity-70' : ''}`}>
       <div className="mb-3 flex items-center justify-between">
-        <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700"><Icon className="h-5 w-5" /></span>
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><Icon className="h-5 w-5" /></span>
         {soon && <Badge tone="neutral">Coming soon</Badge>}
       </div>
-      <h3 className="font-semibold text-ink-700">{name}</h3>
-      <p className="mt-1 flex-1 text-sm text-ink-500">{purpose}</p>
+      <h3 className="font-bold text-slate-700">{name}</h3>
+      <p className="mt-1 flex-1 text-sm text-slate-500">{purpose}</p>
       {footer && <div className="mt-3">{footer}</div>}
     </Card>
   );
@@ -211,20 +224,17 @@ export function ModuleCard({ module, footer }) {
 }
 
 // ─── Form controls ──────────────────────────────────────────────────
-// One shared input style so every form matches: rounded, hairline border, gold
-// focus ring, ink text. Use <Field> to add a label/hint/error around any control.
-// text-base (16px) on mobile prevents iOS auto-zoom on focus; tighten to 14px ≥sm.
 const CONTROL_BASE =
-  'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 disabled:cursor-not-allowed disabled:opacity-50';
+  'w-full rounded-xl bg-paper text-base sm:text-sm text-slate-700 placeholder:text-slate-400 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 disabled:cursor-not-allowed disabled:opacity-50';
 const controlBorder = (invalid) =>
-  invalid ? 'border border-error-500 focus-visible:border-error-500' : 'border border-hairline focus-visible:border-navy-400';
+  invalid ? 'border border-rose-500 focus-visible:border-rose-500' : 'border border-slate-200 focus-visible:border-emerald-400';
 
 export const Input = React.forwardRef(function Input({ icon: Icon, invalid, className = '', ...props }, ref) {
   const base = `${CONTROL_BASE} ${controlBorder(invalid)} h-11`;
   if (Icon) {
     return (
       <div className="relative">
-        <Icon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-300" aria-hidden />
+        <Icon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" aria-hidden />
         <input ref={ref} aria-invalid={invalid || undefined} className={`${base} pl-10 pr-3.5 ${className}`} {...props} />
       </div>
     );
@@ -244,29 +254,26 @@ export const Select = React.forwardRef(function Select({ invalid, className = ''
         className={`${CONTROL_BASE} ${controlBorder(invalid)} h-11 appearance-none pl-3.5 pr-10 ${className}`} {...props}>
         {children}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" aria-hidden />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
     </div>
   );
 });
 
 export function Checkbox({ label, className = '', type = 'checkbox', ...props }) {
   return (
-    <label className={`flex cursor-pointer items-center gap-2.5 text-sm text-ink-700 ${className}`}>
+    <label className={`flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 ${className}`}>
       <input type={type}
-        className="h-4 w-4 rounded border-hairline text-navy-700 accent-navy-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+        className="h-4 w-4 rounded border-slate-300 text-emerald-600 accent-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
         {...props} />
       {label && <span>{label}</span>}
     </label>
   );
 }
 
-// Radio is a checkbox with type=radio (same look, accent navy).
 export function Radio(props) {
   return <Checkbox type="radio" {...props} />;
 }
 
-// Field — label + optional hint/error around a single control. Generates an id,
-// wires htmlFor + aria-describedby, and flags the control invalid on error.
 export function Field({ label, hint, error, required, children, className = '' }) {
   const autoId = React.useId();
   const isEl = React.isValidElement(children);
@@ -282,24 +289,24 @@ export function Field({ label, hint, error, required, children, className = '' }
   return (
     <div className={`mb-4 last:mb-0 ${className}`}>
       {label && (
-        <label htmlFor={controlId} className="mb-1.5 block text-sm font-medium text-ink-700">
-          {label}{required && <span className="text-error-500"> *</span>}
+        <label htmlFor={controlId} className="mb-1.5 block text-sm font-semibold text-slate-700">
+          {label}{required && <span className="text-rose-500"> *</span>}
         </label>
       )}
       {control}
       {error
-        ? <p id={msgId} className="mt-1.5 text-xs font-medium text-error-700">{error}</p>
-        : hint ? <p id={msgId} className="mt-1.5 text-xs text-ink-500">{hint}</p> : null}
+        ? <p id={msgId} className="mt-1.5 text-xs font-medium text-rose-700">{error}</p>
+        : hint ? <p id={msgId} className="mt-1.5 text-xs text-slate-500">{hint}</p> : null}
     </div>
   );
 }
 
-// ─── Alert — info/success/warning/error callout banner ──────────────
+// ─── Alert ──────────────────────────────────────────────────────────
 const ALERT_TONES = {
-  info: 'border-l-navy-500 bg-navy-50 text-ink-700',
-  success: 'border-l-success-500 bg-success-100 text-success-700',
-  warning: 'border-l-gold-400 bg-gold-50 text-ink-700',
-  error: 'border-l-error-500 bg-error-100 text-error-700',
+  info: 'border-l-emerald-500 bg-emerald-50 text-slate-700',
+  success: 'border-l-emerald-500 bg-emerald-50 text-emerald-800',
+  warning: 'border-l-sunshine-400 bg-sunshine-50 text-slate-700',
+  error: 'border-l-rose-500 bg-rose-50 text-rose-800',
 };
 export function Alert({ tone = 'info', icon: Icon, children, className = '' }) {
   return (
@@ -310,16 +317,16 @@ export function Alert({ tone = 'info', icon: Icon, children, className = '' }) {
   );
 }
 
-// ─── Segmented — pill toggle for a small set of mutually-exclusive values ──
+// ─── Segmented ──────────────────────────────────────────────────────
 export function Segmented({ label, value, options, onChange, size = 'm', className = '' }) {
   const pad = size === 's' ? 'px-3 py-1.5 text-xs' : 'px-3.5 py-2 text-sm';
   return (
-    <div role="tablist" aria-label={label} className={`inline-flex rounded-xl border border-hairline bg-paper p-0.5 ${className}`}>
+    <div role="tablist" aria-label={label} className={`inline-flex rounded-xl border border-slate-200 bg-paper p-0.5 ${className}`}>
       {options.map((o) => {
         const active = o.value === value;
         return (
           <button key={o.value} type="button" role="tab" aria-selected={active} onClick={() => onChange(o.value)}
-            className={`rounded-lg font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 ${pad} ${active ? 'bg-navy-700 text-white' : 'text-ink-500 hover:text-navy-700'}`}>
+            className={`rounded-lg font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 ${pad} ${active ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:text-emerald-700'}`}>
             {o.label}
           </button>
         );
@@ -328,13 +335,13 @@ export function Segmented({ label, value, options, onChange, size = 'm', classNa
   );
 }
 
-// ─── Tabs — underline tab bar for routed page sections (NavLink) ────────
+// ─── Tabs ───────────────────────────────────────────────────────────
 export function Tabs({ items, className = '' }) {
   return (
-    <div className={`flex gap-1 overflow-x-auto border-b border-hairline ${className}`}>
+    <div className={`flex gap-1 overflow-x-auto border-b border-slate-200 ${className}`}>
       {items.map(({ label, to, end }) => (
         <NavLink key={to} to={to} end={end}
-          className={({ isActive }) => `whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition focus-visible:outline-none ${isActive ? 'border-navy-700 text-navy-700' : 'border-transparent text-ink-500 hover:text-navy-700'}`}>
+          className={({ isActive }) => `whitespace-nowrap border-b-2 px-3 py-2 text-sm font-bold transition focus-visible:outline-none ${isActive ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-slate-500 hover:text-emerald-700'}`}>
           {label}
         </NavLink>
       ))}
@@ -342,18 +349,18 @@ export function Tabs({ items, className = '' }) {
   );
 }
 
-// ─── Breadcrumb — Tian OS › Section › Page ──────────────────────────
+// ─── Breadcrumb ─────────────────────────────────────────────────────
 export function Breadcrumb({ items, className = '' }) {
   return (
-    <nav aria-label="Breadcrumb" className={`mb-3 flex flex-wrap items-center gap-1.5 text-xs font-medium text-ink-500 ${className}`}>
+    <nav aria-label="Breadcrumb" className={`mb-3 flex flex-wrap items-center gap-1.5 text-xs font-medium text-slate-500 ${className}`}>
       {items.map((it, i) => {
         const last = i === items.length - 1;
         return (
           <React.Fragment key={i}>
             {it.to && !last
-              ? <Link to={it.to} className="hover:text-navy-700">{it.label}</Link>
-              : <span className={last ? 'font-semibold text-navy-700' : ''}>{it.label}</span>}
-            {!last && <ChevronRight className="h-3.5 w-3.5 text-ink-300" aria-hidden />}
+              ? <Link to={it.to} className="hover:text-emerald-700">{it.label}</Link>
+              : <span className={last ? 'font-bold text-slate-700' : ''}>{it.label}</span>}
+            {!last && <ChevronRight className="h-3.5 w-3.5 text-slate-300" aria-hidden />}
           </React.Fragment>
         );
       })}
@@ -363,55 +370,55 @@ export function Breadcrumb({ items, className = '' }) {
 
 // ─── Divider ────────────────────────────────────────────────────────
 export function Divider({ className = '' }) {
-  return <hr className={`border-0 border-t border-hairline ${className}`} />;
+  return <hr className={`border-0 border-t border-slate-200 ${className}`} />;
 }
 
-// ─── IconButton — square, accessible icon-only button ───────────────
+// ─── IconButton ─────────────────────────────────────────────────────
 const ICONBTN_VARIANTS = {
-  ghost: 'text-ink-500 hover:bg-navy-50 hover:text-navy-700',
-  secondary: 'border border-hairline bg-paper text-navy-700 hover:bg-navy-50',
+  ghost: 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-700',
+  secondary: 'border border-slate-200 bg-paper text-emerald-700 hover:bg-emerald-50',
 };
 export function IconButton({ icon: Icon, label, variant = 'ghost', size = 'm', className = '', ...rest }) {
   const dim = size === 's' ? 'h-9 w-9' : 'h-11 w-11';
   return (
     <button type="button" aria-label={label} title={label}
-      className={`inline-grid place-items-center rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 ${ICONBTN_VARIANTS[variant]} ${dim} ${className}`} {...rest}>
+      className={`inline-grid place-items-center rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 ${ICONBTN_VARIANTS[variant]} ${dim} ${className}`} {...rest}>
       <Icon className="h-[18px] w-[18px]" />
     </button>
   );
 }
 
-// ─── Avatar — initials fallback, optional image ─────────────────────
+// ─── Avatar ─────────────────────────────────────────────────────────
 export function Avatar({ name = '', src, size = 'm', className = '' }) {
   const dim = size === 's' ? 'h-8 w-8 text-xs' : size === 'l' ? 'h-12 w-12 text-base' : 'h-10 w-10 text-sm';
   const initials = name.split(' ').filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?';
   if (src) return <img src={src} alt={name} className={`rounded-full object-cover ${dim} ${className}`} />;
   return (
-    <span aria-hidden className={`grid place-items-center rounded-full bg-navy-50 font-semibold text-navy-700 ${dim} ${className}`}>
+    <span aria-hidden className={`grid place-items-center rounded-full bg-emerald-50 font-bold text-emerald-700 ${dim} ${className}`}>
       {initials}
     </span>
   );
 }
 
-// ─── Skeleton — loading placeholder ─────────────────────────────────
+// ─── Skeleton ───────────────────────────────────────────────────────
 export function Skeleton({ className = '' }) {
-  return <span className={`block animate-pulse rounded-md bg-bone ${className}`} />;
+  return <span className={`block animate-pulse rounded-md bg-slate-100 ${className}`} />;
 }
 
-// ─── Tooltip — hover/focus label (CSS only) ─────────────────────────
+// ─── Tooltip ────────────────────────────────────────────────────────
 export function Tooltip({ label, children, className = '' }) {
   return (
     <span className={`group relative inline-flex ${className}`}>
       {children}
       <span role="tooltip"
-        className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-lg bg-ink-900 px-2 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+        className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-lg bg-slate-800 px-2 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
         {label}
       </span>
     </span>
   );
 }
 
-// ─── Modal — centered dialog over a scrim (portal) ──────────────────
+// ─── Modal ──────────────────────────────────────────────────────────
 export function Modal({ open, onClose, title, children, footer, className = '', containerClassName = 'p-4' }) {
   React.useEffect(() => {
     if (!open) return undefined;
@@ -422,27 +429,27 @@ export function Modal({ open, onClose, title, children, footer, className = '', 
   if (!open) return null;
   return createPortal(
     <div className={`fixed inset-0 z-[90] flex items-center justify-center ${containerClassName}`} role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative z-10 w-full max-w-lg rounded-2xl border border-hairline bg-paper shadow-active ${className}`}>
-        <div className="flex items-start justify-between gap-3 border-b border-hairline p-5">
-          <h2 className="font-display text-lg font-semibold text-navy-700">{title}</h2>
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative z-10 w-full max-w-lg rounded-[20px] border border-slate-200 bg-paper shadow-active ${className}`}>
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-5">
+          <h2 className="font-display text-lg font-bold text-slate-800">{title}</h2>
           <IconButton icon={X} label="Close" size="s" onClick={onClose} className="-mr-1.5 -mt-1.5" />
         </div>
         <div className="p-5">{children}</div>
-        {footer && <div className="flex justify-end gap-2 border-t border-hairline p-4">{footer}</div>}
+        {footer && <div className="flex justify-end gap-2 border-t border-slate-200 p-4">{footer}</div>}
       </div>
     </div>,
     document.body,
   );
 }
 
-// ─── Toast — transient notifications via context ────────────────────
+// ─── Toast ──────────────────────────────────────────────────────────
 const ToastContext = React.createContext(() => {});
 export function useToast() { return React.useContext(ToastContext); }
 
 const TOAST_TONES = {
-  info: 'border-l-navy-500', success: 'border-l-success-500',
-  warning: 'border-l-gold-400', error: 'border-l-error-500',
+  info: 'border-l-emerald-500', success: 'border-l-emerald-500',
+  warning: 'border-l-sunshine-400', error: 'border-l-rose-500',
 };
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = React.useState([]);
@@ -458,9 +465,9 @@ export function ToastProvider({ children }) {
         <div className="fixed bottom-4 right-4 z-[100] flex max-w-sm flex-col gap-2">
           {toasts.map((t) => (
             <div key={t.id} role="status"
-              className={`flex items-start gap-2.5 rounded-xl border border-hairline border-l-4 bg-paper p-3.5 text-sm text-ink-700 shadow-active ${TOAST_TONES[t.tone]}`}>
+              className={`flex items-start gap-2.5 rounded-xl border border-slate-200 border-l-4 bg-paper p-3.5 text-sm text-slate-700 shadow-active ${TOAST_TONES[t.tone]}`}>
               <span className="flex-1">{t.message}</span>
-              <button type="button" aria-label="Dismiss" onClick={() => setToasts((x) => x.filter((y) => y.id !== t.id))} className="text-ink-300 hover:text-ink-700"><X className="h-4 w-4" /></button>
+              <button type="button" aria-label="Dismiss" onClick={() => setToasts((x) => x.filter((y) => y.id !== t.id))} className="text-slate-400 hover:text-slate-700"><X className="h-4 w-4" /></button>
             </div>
           ))}
         </div>,
