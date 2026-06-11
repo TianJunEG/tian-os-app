@@ -44,7 +44,7 @@ function ProblemCard({ attempt, problem, index }) {
           <div className="space-y-1.5">
             {(attempt.steps || []).map((step) => (
               <div key={step.stepId} className="flex items-center justify-between rounded-lg bg-white px-3 py-2">
-                <span className="text-sm capitalize text-ink-600">{step.stepId.replace('_', ' ')}</span>
+                <span className="text-sm capitalize text-ink-600">{step.stepId.replaceAll('_', ' ')}</span>
                 <StepBadge step={step} />
               </div>
             ))}
@@ -82,7 +82,7 @@ export default function PSLResults() {
           <Award className="h-8 w-8 text-gold-500" />
         </div>
         <h1 className="mt-3 text-xl font-bold text-ink-800">Session Complete!</h1>
-        <p className="text-sm text-ink-500">{data.skillId}</p>
+        <p className="text-sm text-ink-500">{data.skillName || data.skillId}</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -122,18 +122,21 @@ export default function PSLResults() {
       <div>
         <h2 className="mb-3 text-sm font-semibold text-ink-500">Problems</h2>
         <div className="space-y-2">
-          {problems.map((problem, i) => (
-            <ProblemCard
-              key={problem.problemId}
-              problem={problem}
-              attempt={{
-                overallCorrect: problem.status === 'completed',
-                overallScore: summary.overallScore || 0,
-                steps: problem.scaffoldSteps || [],
-              }}
-              index={i}
-            />
-          ))}
+          {problems.map((problem, i) => {
+            const attempt = data.attempts?.[problem.problemId];
+            return (
+              <ProblemCard
+                key={problem.problemId}
+                problem={problem}
+                attempt={attempt || {
+                  overallCorrect: problem.status === 'completed',
+                  overallScore: 0,
+                  steps: [],
+                }}
+                index={i}
+              />
+            );
+          })}
         </div>
       </div>
 

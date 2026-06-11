@@ -107,7 +107,7 @@ export default function AppShell({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const set = NAV[role] || NAV.student;
-  const activityShell = /^\/student\/mathpath\/(?:diagnostic\/session|practice\/|assessment\/session|fractions\/similar-practice)/.test(location.pathname);
+  const activityShell = /^\/student\/mathpath\/(?:diagnostic\/session|practice\/|assessment\/session|fractions\/similar-practice)|^\/student\/psl\/session\//.test(location.pathname);
   const isStudentShell = role === 'student' || location.pathname.startsWith('/student');
   const visualMode = resolveStudentVisualMode(user || {});
   const visualStyles = getVisualModeStyles(visualMode);
@@ -153,17 +153,19 @@ export default function AppShell({ children }) {
         <main className={`mx-auto px-4 pb-28 pt-6 sm:px-6 md:pb-10 ${activityShell ? 'max-w-[96rem]' : 'max-w-6xl'}`}>{children}</main>
       </div>
 
-      {/* Bottom nav — mobile */}
-      <nav className={`fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-3xl border px-2 shadow-active backdrop-blur md:hidden ${isStudentShell ? 'border-white/80 bg-white/90' : 'border-hairline bg-paper/90'}`}
-        style={{ height: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        {set.bottom.map((item) => (
-          <NavLink key={item.to} to={item.to} end={item.end !== false}
-            className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 transition ${isActive ? activeNavClass : 'text-ink-300'}`}>
-            <item.icon className="h-5 w-5" />
-            <span className="text-[10px] font-semibold">{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+      {/* Bottom nav — mobile (hidden during immersive activities) */}
+      {!activityShell && (
+        <nav className={`fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-3xl border px-2 shadow-active backdrop-blur md:hidden ${isStudentShell ? 'border-white/80 bg-white/90' : 'border-hairline bg-paper/90'}`}
+          style={{ height: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          {set.bottom.map((item) => (
+            <NavLink key={item.to} to={item.to} end={item.end !== false}
+              className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl py-2 transition ${isActive ? activeNavClass : 'text-ink-300'}`}>
+              <item.icon className="h-5 w-5" />
+              <span className="text-[10px] font-semibold">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

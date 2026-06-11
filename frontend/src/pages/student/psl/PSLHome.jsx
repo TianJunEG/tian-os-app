@@ -130,7 +130,7 @@ export default function PSLHome() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-ink-700 truncate">{skill.name}</p>
-                        <p className="text-xs text-ink-400 truncate">{skill.description}</p>
+                        <p className="text-xs text-ink-400 line-clamp-2">{skill.description}</p>
                       </div>
                       <MasteryBadge mastery={skill.mastery} />
                       <ChevronRight className="h-4 w-4 text-ink-300" />
