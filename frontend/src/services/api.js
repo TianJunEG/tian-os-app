@@ -55,13 +55,47 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Map any axios error to a single, consistent, student-friendly message so the
+// whole app describes failures the same way (instead of each caller inventing
+// its own copy or showing nothing). Used by callers via `error.userMessage`
+// and by the global error toast below.
+export function describeApiError(error) {
+  const status = error?.response?.status;
+  const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
+  if (status === 400) return serverMessage || 'That didn’t go through. Please check and try again.';
+  if (status === 401) return 'Your session has expired. Please sign in again.';
+  if (status === 403) return serverMessage || 'You don’t have access to that.';
+  if (status === 404) return serverMessage || 'We couldn’t find what you were looking for.';
+  if (status === 408 || error?.code === 'ECONNABORTED') return 'That took too long. Please check your connection and try again.';
+  if (status === 429) return 'You’re going a bit fast — please wait a moment and try again.';
+  if (typeof status === 'number' && status >= 500) return 'Something went wrong on our end. Please try again in a moment.';
+  if (!error?.response) return 'We couldn’t reach the server. Please check your connection and try again.';
+  return serverMessage || 'Something went wrong. Please try again.';
+}
+
+// The axios interceptor runs outside React, so a component (mounted under the
+// ToastProvider) registers a handler here to surface server/rate-limit errors.
+let apiErrorHandler = null;
+export function registerApiErrorHandler(fn) {
+  apiErrorHandler = typeof fn === 'function' ? fn : null;
+}
+
 // Handle errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    // Attach a consistent, user-facing message to every rejection so callers can
+    // surface `error.userMessage` instead of inventing their own copy.
+    error.userMessage = describeApiError(error);
+    if (status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+    } else if ((status === 429 || (typeof status === 'number' && status >= 500))
+      && !error.config?.skipErrorToast && apiErrorHandler) {
+      // Server/rate-limit errors otherwise fail silently (blank/stale screens).
+      // Surface a single throttled toast; control-flow 4xx are left to callers.
+      apiErrorHandler({ message: error.userMessage, status });
     }
     return Promise.reject(error);
   }
@@ -97,19 +131,43 @@ export const mathpathAPI = {
   getDiagnosticGrowth: (params) => diagnosticsAPI.growth({ subjectId: 'math', domainId: 'fractions', ...params }),
   getRecheckSummary: (sessionId, params) => diagnosticsAPI.recheckSummary(sessionId, { subjectId: 'math', domainId: 'fractions', ...params }),
   resetTestStudentState: (data = {}) => api.post('/mastery/test/reset-state', data),
-  startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data),
+  // skipErrorToast: a start failure falls back to a local session, so a server
+  // error here is recovered from and shouldn't raise a global error toast.
+  startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),
+  submitP1Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p1/practice/${practiceSessionId}/submit`, data),
+  submitP3Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p3/practice/${practiceSessionId}/submit`, data),
   // P1 practice persistence
   startP1Practice: (data = {}) => api.post('/mastery/p1/practice/start', data),
   getP1Practice: (practiceSessionId) => api.get(`/mastery/p1/practice/${practiceSessionId}`),
   submitP1Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p1/practice/${practiceSessionId}/submit`, data),
   getP1SkillStates: () => api.get('/mastery/p1/skill-states'),
+  // P2 practice persistence
+  startP2Practice: (data = {}) => api.post('/mastery/p2/practice/start', data),
+  getP2Practice: (practiceSessionId) => api.get(`/mastery/p2/practice/${practiceSessionId}`),
+  submitP2Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p2/practice/${practiceSessionId}/submit`, data),
+  getP2SkillStates: () => api.get('/mastery/p2/skill-states'),
   // P3 practice persistence
   startP3Practice: (data = {}) => api.post('/mastery/p3/practice/start', data),
   getP3Practice: (practiceSessionId) => api.get(`/mastery/p3/practice/${practiceSessionId}`),
   submitP3Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p3/practice/${practiceSessionId}/submit`, data),
   getP3SkillStates: () => api.get('/mastery/p3/skill-states'),
+  // P4 practice persistence
+  startP4Practice: (data = {}) => api.post('/mastery/p4/practice/start', data),
+  getP4Practice: (practiceSessionId) => api.get(`/mastery/p4/practice/${practiceSessionId}`),
+  submitP4Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p4/practice/${practiceSessionId}/submit`, data),
+  getP4SkillStates: () => api.get('/mastery/p4/skill-states'),
+  // P5 practice persistence
+  startP5Practice: (data = {}) => api.post('/mastery/p5/practice/start', data),
+  getP5Practice: (practiceSessionId) => api.get(`/mastery/p5/practice/${practiceSessionId}`),
+  submitP5Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p5/practice/${practiceSessionId}/submit`, data),
+  getP5SkillStates: () => api.get('/mastery/p5/skill-states'),
+  // P6 practice persistence
+  startP6Practice: (data = {}) => api.post('/mastery/p6/practice/start', data),
+  getP6Practice: (practiceSessionId) => api.get(`/mastery/p6/practice/${practiceSessionId}`),
+  submitP6Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p6/practice/${practiceSessionId}/submit`, data),
+  getP6SkillStates: () => api.get('/mastery/p6/skill-states'),
   startSession: (data) => api.post('/practice/sessions', data),
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),

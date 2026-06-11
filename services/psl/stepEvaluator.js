@@ -1,5 +1,12 @@
 export const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
+function safeEval(expr) {
+  const sanitised = String(expr).replace(/×/g, '*').replace(/÷/g, '/');
+  if (!/^[\d\s+\-*/().]+$/.test(sanitised)) return NaN;
+  try { return Function(`"use strict"; return (${sanitised})`)(); } catch { return NaN; }
+}
+
+
 function normalizeText(t) { return String(t || '').toLowerCase().trim().replace(/\s+/g, ' '); }
 
 function evaluateUnderstand(response, expected) {
@@ -56,7 +63,7 @@ function evaluateSolve(response, expected) {
     if (submittedAnswer === correctAnswer) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
     const intermediateCorrect = (response?.intermediates || []).some((v, i) => {
       const expStep = expected.steps[i];
-      return expStep && Number(v) === eval(expStep.expression.replace(/×/g, '*'));
+      return expStep && Number(v) === safeEval(expStep.expression);
     });
     if (intermediateCorrect) {
       return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/arithmetic-error' };

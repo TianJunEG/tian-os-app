@@ -17,6 +17,13 @@ function pickAudioMime() {
   return candidates.find((t) => MediaRecorder.isTypeSupported?.(t)) || '';
 }
 
+/** Format seconds as m:ss */
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 /**
  * Tutor Explanation Recorder
  *
@@ -53,6 +60,10 @@ export default function TutorExplanationRecorder() {
   const [micDenied, setMicDenied] = useState(false);
   const [micReady, setMicReady] = useState(false);
 
+  // ── Recording timer ──
+  const timerRef = useRef(null);
+  const [elapsed, setElapsed] = useState(0);
+
   // ── Audio preview ──
   const [previewAudioUrl, setPreviewAudioUrl] = useState('');
 
@@ -60,6 +71,7 @@ export default function TutorExplanationRecorder() {
   useEffect(() => () => {
     if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
     if (previewAudioUrl) URL.revokeObjectURL(previewAudioUrl);
+    if (timerRef.current) clearInterval(timerRef.current);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load the mistake detail
@@ -84,11 +96,13 @@ export default function TutorExplanationRecorder() {
       }
       mediaRef.current = null;
       streamRef.current = null;
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
       setMicActive(false);
       return;
     }
 
     // Start recording audio
+    setMicDenied(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -104,6 +118,8 @@ export default function TutorExplanationRecorder() {
       mediaRef.current = mr;
       setMicActive(true);
       setMicReady(true);
+      setElapsed(0);
+      timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
     } catch {
       setMicDenied(true);
     }
@@ -127,6 +143,9 @@ export default function TutorExplanationRecorder() {
       image: data.workingImage || '',
     };
     setHasStrokes(capturedRef.current.strokes.length > 0);
+
+    // Stop timer
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
 
     // Stop audio recording and create preview blob
     const mr = mediaRef.current;
@@ -196,6 +215,7 @@ export default function TutorExplanationRecorder() {
     setPreviewAudioUrl('');
     chunksRef.current = [];
     setMicReady(false);
+    setElapsed(0);
     setShowPreview(false);
     setRecordingKey((k) => k + 1);
   }, [previewAudioUrl]);
@@ -402,9 +422,20 @@ export default function TutorExplanationRecorder() {
                 {/* Mic toggle */}
                 <div className="flex flex-col items-end gap-1">
                   {micDenied ? (
-                    <span className="flex items-center gap-1 text-xs text-ink-400">
-                      <MicOff className="h-3.5 w-3.5" /> Mic access denied
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="flex items-center gap-1 text-xs text-error-600">
+                        <MicOff className="h-3.5 w-3.5" /> Microphone blocked
+                      </span>
+                      <span className="max-w-[180px] text-right text-[11px] leading-tight text-ink-400">
+                        Allow mic access in your browser settings, then try again.
+                      </span>
+                      <button
+                        onClick={toggleMic}
+                        className="mt-0.5 text-[11px] font-semibold text-navy-600 hover:underline"
+                      >
+                        Retry
+                      </button>
+                    </div>
                   ) : (
                     <Button
                       size="s"
@@ -417,13 +448,13 @@ export default function TutorExplanationRecorder() {
                     </Button>
                   )}
                   {micActive && (
-                    <span className="flex items-center gap-1 text-xs text-error-600">
+                    <span className="flex items-center gap-1.5 text-xs text-error-600">
                       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-error-500" />
-                      Voice recording
+                      <span className="tabular-nums">{fmtTime(elapsed)}</span>
                     </span>
                   )}
                   {!micActive && micReady && (
-                    <span className="text-xs text-ink-400">Voice captured ✓</span>
+                    <span className="text-xs text-ink-400">Voice captured ✓ ({fmtTime(elapsed)})</span>
                   )}
                 </div>
               </div>

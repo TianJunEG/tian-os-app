@@ -102,6 +102,72 @@ describe('resolveStudent', () => {
     });
   });
 
+  it('rejects a view-only guardian on a write action', async () => {
+    state.guardian = {
+      studentId: 'student_1',
+      guardianUserId: 'school_parent',
+      relation: 'parent',
+      accessLevel: 'view_only',
+      status: 'active',
+    };
+
+    await expect(resolveStudent({
+      user: { id: 'school_parent', role: 'parent' },
+      workspaceId: 'family_workspace',
+      body: {},
+      query: {},
+    }, 'student_1', { write: true })).rejects.toMatchObject({
+      status: 403,
+      message: 'View-only access does not permit this action.',
+    });
+  });
+
+  it('still allows a view-only guardian to read', async () => {
+    state.guardian = {
+      studentId: 'student_1',
+      guardianUserId: 'school_parent',
+      relation: 'parent',
+      accessLevel: 'view_only',
+      status: 'active',
+    };
+
+    await expect(resolveStudent({
+      user: { id: 'school_parent', role: 'parent' },
+      workspaceId: 'family_workspace',
+      body: {},
+      query: {},
+    }, 'student_1')).resolves.toBe(state.student);
+  });
+
+  it('allows a full guardian to write', async () => {
+    state.guardian = {
+      studentId: 'student_1',
+      guardianUserId: 'parent_user',
+      relation: 'parent',
+      accessLevel: 'full',
+      status: 'active',
+    };
+
+    await expect(resolveStudent({
+      user: { id: 'parent_user', role: 'parent' },
+      workspaceId: 'family_workspace',
+      body: {},
+      query: {},
+    }, 'student_1', { write: true })).resolves.toBe(state.student);
+  });
+
+  it('never blocks the student acting on their own record, even on writes', async () => {
+    // A view-only guardian link must not be consulted for the student themselves.
+    state.guardian = { accessLevel: 'view_only' };
+
+    await expect(resolveStudent({
+      user: { id: 'student_user', role: 'student' },
+      workspaceId: 'family_workspace',
+      body: {},
+      query: {},
+    }, 'student_1', { write: true })).resolves.toBe(state.student);
+  });
+
   it('allows partner staff linked to the student through a partner organisation', async () => {
     state.partnerAllowed = true;
 

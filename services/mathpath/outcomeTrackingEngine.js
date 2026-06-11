@@ -144,7 +144,8 @@ async function getCurrentSkillMetrics(studentId, domainId) {
       const fluencyLevel = String(state.fluencyLevel || '');
       const retentionStatus = String(state.retentionStatus || '');
 
-      if (['accurate', 'fluent', 'retained'].includes(status)) mastered.add(state.skillId);
+      // Mastered requires retention evidence (status 'retained'); accurate/fluent are competence.
+      if (status === 'retained' || retentionStatus === 'retained') mastered.add(state.skillId);
       if (['fluent', 'retained'].includes(status) || ['gold', 'platinum'].includes(fluencyLevel)) {
         fluent.add(state.skillId);
       }

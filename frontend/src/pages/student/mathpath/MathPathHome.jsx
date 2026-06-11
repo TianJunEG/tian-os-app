@@ -447,12 +447,44 @@ export default function MathPathHome() {
               Explore P1
             </Button>
           </Card>
+          <Card className="flex h-full flex-col border-violet-100 bg-gradient-to-br from-violet-50 via-white to-mint-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Hash className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P2 Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">22 skills across 9 domains — Singapore MOE P2 syllabus.</p>
+            <Button to="/student/mathpath/p2" variant="secondary" className="mt-4 w-full border-violet-200 bg-white/80 text-violet-700 hover:bg-violet-50">
+              Explore P2
+            </Button>
+          </Card>
           <Card className="flex h-full flex-col border-sky-100 bg-gradient-to-br from-sky-50 via-white to-violet-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-sky-100 text-navy-700"><Layers className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P3 Mathematics</h3>
-            <p className="mt-1 flex-1 text-sm text-ink-500">24 skills across 8 domains — Singapore MOE P3 syllabus.</p>
+            <p className="mt-1 flex-1 text-sm text-ink-500">26 skills across 9 domains — Singapore MOE P3 syllabus.</p>
             <Button to="/student/mathpath/p3" variant="secondary" className="mt-4 w-full border-sky-200 bg-white/80 text-navy-700 hover:bg-sky-50">
               Explore P3
+            </Button>
+          </Card>
+          <Card className="flex h-full flex-col border-teal-100 bg-gradient-to-br from-teal-50 via-white to-sky-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-teal-100 text-teal-700"><Layers className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P4 Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">22 skills across 7 domains — Singapore MOE P4 syllabus.</p>
+            <Button to="/student/mathpath/p4" variant="secondary" className="mt-4 w-full border-teal-200 bg-white/80 text-teal-700 hover:bg-teal-50">
+              Explore P4
+            </Button>
+          </Card>
+          <Card className="flex h-full flex-col border-coral-100 bg-gradient-to-br from-coral-50 via-white to-gold-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-coral-100 text-coral-700"><Layers className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P5 Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">26 skills across 9 domains — Singapore MOE P5 syllabus.</p>
+            <Button to="/student/mathpath/p5" variant="secondary" className="mt-4 w-full border-coral-200 bg-white/80 text-coral-700 hover:bg-coral-50">
+              Explore P5
+            </Button>
+          </Card>
+          <Card className="flex h-full flex-col border-navy-100 bg-gradient-to-br from-navy-50 via-white to-violet-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-navy-100 text-navy-700"><GraduationCap className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P6 / PSLE</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">26 skills across 9 domains — Singapore MOE P6 / PSLE syllabus.</p>
+            <Button to="/student/mathpath/p6" variant="secondary" className="mt-4 w-full border-navy-200 bg-white/80 text-navy-700 hover:bg-navy-50">
+              Explore P6
             </Button>
           </Card>
           <Card className="flex h-full flex-col border-mint-100 bg-gradient-to-br from-mint-50 via-white to-sky-50 p-4">

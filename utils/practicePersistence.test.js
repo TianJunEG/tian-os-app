@@ -142,6 +142,7 @@ describe('MathPath practice persistence helpers', () => {
   it('builds Fractions progress from persisted MathPath skill states with the full skill denominator', () => {
     const view = buildFractionsPersistedSkillGraphView([
       {
+        // Accurate in practice but no recheck yet → counts as in progress, NOT mastered.
         skillId: 'F001',
         status: 'accurate',
         accuracy: 92,
@@ -162,17 +163,30 @@ describe('MathPath practice persistence helpers', () => {
         attemptCount: 2,
         lastPractisedAt: new Date('2026-06-04T01:20:00.000Z'),
       },
+      {
+        // Passed a recheck/retention → retained is the only state that counts as mastered.
+        skillId: 'F004',
+        status: 'retained',
+        accuracy: 95,
+        attemptCount: 5,
+        lastPractisedAt: new Date('2026-06-04T01:30:00.000Z'),
+      },
     ]);
 
     expect(view.summary.total).toBe(26);
     expect(view.summary.mastered).toBe(1);
-    expect(view.summary.inProgress).toBe(2);
-    expect(view.summary.notStarted).toBe(23);
+    expect(view.summary.inProgress).toBe(3);
+    expect(view.summary.notStarted).toBe(22);
     const flat = view.topics.flatMap((topic) => topic.skills);
     expect(flat.find((skill) => skill.skillId === 'F001')).toMatchObject({
-      status: 'mastered',
+      status: 'learning',
       attempts: 4,
       score: 92,
+    });
+    expect(flat.find((skill) => skill.skillId === 'F004')).toMatchObject({
+      status: 'mastered',
+      attempts: 5,
+      score: 95,
     });
     expect(flat.find((skill) => skill.skillId === 'F003')).toMatchObject({
       status: 'needs_review',

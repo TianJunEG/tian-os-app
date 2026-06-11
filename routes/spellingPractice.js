@@ -72,7 +72,7 @@ router.get('/lists/:id', protect, async (req, res) => {
 // @route POST /api/spelling-practice/sessions — start a self-test on a list
 router.post('/sessions', protect, async (req, res) => {
   try {
-    const student = await resolveStudent(req);
+    const student = await resolveStudent(req, undefined, { write: true });
     // Launched from an assignment? Take its list (stored in skillIds[0]).
     let listId = req.body.listId;
     const assignmentId = req.body.assignmentId || null;
@@ -97,7 +97,7 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
-    const student = await resolveStudent(req, session.studentId);
+    const student = await resolveStudent(req, session.studentId, { write: true });
     const listId = session.skillIds[0];
     const list = await SpellingList.findById(listId);
     const word = list?.words.id(req.body.wordId);

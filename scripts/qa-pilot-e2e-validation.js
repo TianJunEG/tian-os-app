@@ -270,13 +270,15 @@ async function validateMistakeToMastery() {
 
   // 3e. Remediation
   console.log('\n💊 3e. Remediation plan...');
-  const graphRes = await api('GET', '/api/mastery/graph', null, studentToken);
+  // GET /api/mastery/ returns recommended.skillId as a Mongo ObjectId
+  const masteryRoot = await api('GET', '/api/mastery/', null, studentToken);
   let remSkillId = null;
-  if (graphRes.ok) {
-    const skills = graphRes.data?.skills || [];
-    record('M2M', 'Skill graph loaded', skills.length > 0, `${skills.length} skills`);
-    const match = skills.find(s => s.mongoId);
-    remSkillId = match?.mongoId;
+  if (masteryRoot.ok) {
+    // Try recommended skill first, then weak skills, then any mastery record
+    remSkillId = masteryRoot.data?.recommended?.skillId
+      || masteryRoot.data?.weakSkills?.[0]?.skillId
+      || masteryRoot.data?.records?.[0]?.skillId;
+    record('M2M', 'Mastery root loaded', true, `records=${masteryRoot.data?.records?.length || 0}, recommended=${Boolean(remSkillId)}`);
   }
 
   if (remSkillId) {
@@ -295,7 +297,7 @@ async function validateMistakeToMastery() {
       record('Remediation', 'Working evidence flag', p.workingEvidenceUsed !== undefined, `used=${p.workingEvidenceUsed}`);
     }
   } else {
-    record('Remediation', 'Skill resolution from graph', false, 'No mongoId in graph skills');
+    record('Remediation', 'Skill resolution', false, 'No Skill ObjectId found from mastery endpoint');
   }
 
   // 3f. Parent Dashboard
@@ -312,7 +314,8 @@ async function validateMistakeToMastery() {
     record('Parent', 'GET /fluency/student/:id', pFluency.ok, pFluency.ok ? '' : `${pFluency.status}`);
 
     const pGraph = await api('GET', `/api/mastery/graph?studentId=${sid}`, null, parentToken);
-    record('Parent', 'GET /graph', pGraph.ok, pGraph.ok ? `skills=${pGraph.data?.skills?.length}` : `${pGraph.status}`);
+    const pGraphSkillCount = pGraph.ok ? (pGraph.data?.topics || []).reduce((sum, t) => sum + (t.skills?.length || 0), 0) : 0;
+    record('Parent', 'GET /graph', pGraph.ok, pGraph.ok ? `skills=${pGraphSkillCount}` : `${pGraph.status}`);
 
     if (pAnalytics.ok) {
       const d = pAnalytics.data;
@@ -334,7 +337,8 @@ async function validateMistakeToMastery() {
     record('Tutor', 'GET /analytics', tAnalytics.ok, tAnalytics.ok ? '' : `${tAnalytics.status}`);
 
     const tGraph = await api('GET', `/api/mastery/graph?studentId=${sid}`, null, tutorToken);
-    record('Tutor', 'GET /graph', tGraph.ok, tGraph.ok ? `skills=${tGraph.data?.skills?.length}` : `${tGraph.status}`);
+    const tGraphSkillCount = tGraph.ok ? (tGraph.data?.topics || []).reduce((sum, t) => sum + (t.skills?.length || 0), 0) : 0;
+    record('Tutor', 'GET /graph', tGraph.ok, tGraph.ok ? `skills=${tGraphSkillCount}` : `${tGraph.status}`);
 
     const tFluency = await api('GET', `/api/fluency/student/${sid}`, null, tutorToken);
     record('Tutor', 'GET /fluency/student/:id', tFluency.ok, tFluency.ok ? '' : `${tFluency.status}`);

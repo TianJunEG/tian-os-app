@@ -104,6 +104,54 @@ code {
   }
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full bg-gold-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gold-600;
-  .brand-teal { color: #0F4C5C; }
   }
+  .brand-teal { color: #0F4C5C; }
+
+  /* ── Admin data table ─────────────────────────────────────────────── */
+  .ds-table          { @apply w-full border-collapse text-sm; }
+  .ds-table thead    { @apply bg-navy-50; }
+  .ds-table th       { @apply px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-ink-500 border-b-2 border-hairline; }
+  .ds-table td       { @apply px-3 py-3 text-ink-700 border-b border-hairline; }
+  .ds-table tbody tr:last-child td { @apply border-b-0; }
+  .ds-table tbody tr:hover { @apply bg-navy-50/50; }
+
+  /* ── Form wizard (onboarding / profile flows) ─────────────────────── */
+  .ds-wizard-shell   { @apply min-h-screen bg-ivory flex items-center justify-center p-5 sm:p-10; }
+  .ds-wizard-card    { @apply w-full max-w-[600px] overflow-hidden rounded-[24px] border border-hairline bg-paper shadow-active; }
+  .ds-wizard-step    { @apply p-6 sm:p-10; animation: ds-fadeInUp 0.3s ease; }
+  .ds-wizard-footer  { @apply flex gap-3 justify-between border-t border-hairline bg-navy-50/30 p-4 sm:px-10; }
+
+  /* ── Wizard form groups ───────────────────────────────────────────── */
+  .ds-form-group     { @apply mb-6 last:mb-0; }
+  .ds-form-label     { @apply block text-sm font-semibold text-ink-700 mb-2; }
+  .ds-checkbox-grid  { @apply grid gap-3 mb-4; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .ds-checkbox-item  { @apply flex items-center gap-2.5 cursor-pointer p-2.5 rounded-xl border border-hairline transition hover:border-navy-300 hover:bg-navy-50/40 select-none; }
+  .ds-availability-grid { @apply grid gap-4 mb-4; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .ds-availability-day  { @apply border border-hairline rounded-xl p-4 bg-navy-50/30; }
+
+  /* ── Admin metric card ────────────────────────────────────────────── */
+  .ds-metric-card       { @apply rounded-[24px] border border-hairline bg-paper p-5 shadow-resting; }
+  .ds-metric-card h3    { @apply text-sm font-semibold text-ink-700 mb-3 pb-2.5 border-b-2 border-navy-500; }
+  .ds-metric-row        { @apply flex justify-between py-2 border-b border-hairline text-sm; }
+  .ds-metric-row:last-child { @apply border-b-0; }
+  .ds-metric-row span   { @apply text-ink-500; }
+  .ds-metric-row strong { @apply font-semibold text-ink-700; }
+
+  /* ── Pagination ───────────────────────────────────────────────────── */
+  .ds-pagination        { @apply flex justify-center items-center gap-4 mt-5 pt-5 border-t border-hairline; }
+  .ds-pagination button { @apply h-9 px-3.5 text-sm font-semibold rounded-[14px] border border-hairline bg-paper text-navy-700 transition hover:bg-navy-700 hover:text-white hover:border-navy-700 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .ds-pagination span   { @apply text-sm text-ink-500; }
+
+  /* ── Resource form ────────────────────────────────────────────────── */
+  .ds-resource-form     { @apply rounded-[24px] border border-hairline bg-paper p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5; }
+  .ds-resource-form .full-width { @apply sm:col-span-2; }
+  .ds-resource-form label { @apply block text-xs font-semibold text-ink-700 mb-1; }
+  .ds-resource-form input[type='text'],
+  .ds-resource-form textarea,
+  .ds-resource-form select { @apply w-full rounded-xl border border-hairline bg-paper px-3 py-2 text-sm text-ink-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400; }
+}
+
+@keyframes ds-fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

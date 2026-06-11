@@ -53,13 +53,14 @@ export async function startSession({ studentId, skillId, workspaceId, problemCou
   };
 }
 
-export async function getSession(sessionId) {
-  const session = await PSLSession.findOne({ sessionId }).lean();
+export async function getSession(sessionId, { studentId } = {}) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query).lean();
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
-  const { problems, ...rest } = session;
   return {
-    ...rest,
-    currentProblem: sanitizeProblemForClient(problems[session.currentProblemIndex]),
+    ...session,
+    currentProblem: sanitizeProblemForClient(session.problems[session.currentProblemIndex]),
   };
 }
 
@@ -140,18 +141,15 @@ export async function completeProblem({ sessionId, problemId }) {
 
   const attempt = await PSLAttempt.findOne({ sessionId, problemId }).lean();
   if (attempt) {
-    const pslSkill = await PSLSkill.findOne({ skillId: session.skillId }).lean();
-    if (pslSkill) {
-      await recordAttempt({
-        studentId: session.studentId,
-        skillId: pslSkill._id,
-        workspaceId: session.workspaceId,
-        correct: attempt.overallCorrect,
-        timeMs: attempt.totalTimeMs,
-        module: 'PSL',
-        subject: 'Math',
-      });
-    }
+    await recordAttempt({
+      studentId: session.studentId,
+      skillId: session.skillId,
+      workspaceId: session.workspaceId,
+      correct: attempt.overallCorrect,
+      timeMs: attempt.totalTimeMs,
+      module: 'PSL',
+      subject: 'Math',
+    });
 
     if (!attempt.overallCorrect) {
       const wrongSteps = attempt.steps.filter((s) => !s.correct);
@@ -160,7 +158,6 @@ export async function completeProblem({ sessionId, problemId }) {
         await Mistake.create({
           studentId: session.studentId,
           workspaceId: session.workspaceId,
-          skillId: pslSkill?._id || null,
           questionId: `${problemId}:${step.stepId}`,
           sessionId,
           module: 'PSL',
@@ -170,7 +167,7 @@ export async function completeProblem({ sessionId, problemId }) {
           answerCorrect: false,
           misconceptionTag: step.misconceptionTag,
           mistakeCategory: 'procedure_error',
-          severity: step.score === 0 ? 'major' : 'moderate',
+          severity: step.score === 0 ? 'high' : 'medium',
         });
       }
     }
@@ -235,6 +232,7 @@ export async function completeSession(sessionId) {
     mastered: session.summary.overallScore >= 0.85,
     minutes: Math.round(totalTime / 60000),
   });
+
 
   return {
     sessionId,

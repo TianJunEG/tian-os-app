@@ -26,6 +26,30 @@ import {
   checkP3AnswerForSession,
 } from '../../../mathpath/primary/p3PracticeFlow';
 import {
+  isP2SkillId,
+  startP2PracticeFlow,
+  submitP2PracticeAttempt,
+  checkP2AnswerForSession,
+} from '../../../mathpath/primary/p2PracticeFlow';
+import {
+  isP4SkillId,
+  startP4PracticeFlow,
+  submitP4PracticeAttempt,
+  checkP4AnswerForSession,
+} from '../../../mathpath/primary/p4PracticeFlow';
+import {
+  isP5SkillId,
+  startP5PracticeFlow,
+  submitP5PracticeAttempt,
+  checkP5AnswerForSession,
+} from '../../../mathpath/primary/p5PracticeFlow';
+import {
+  isP6SkillId,
+  startP6PracticeFlow,
+  submitP6PracticeAttempt,
+  checkP6AnswerForSession,
+} from '../../../mathpath/primary/p6PracticeFlow';
+import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
@@ -212,7 +236,7 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     return {
       requestedSkillId: resolvedSkillId,
       sessionType: 'practice',
-      questionCount: (isP1SkillId(resolvedSkillId) || isP3SkillId(resolvedSkillId)) ? 6 : 8,
+      questionCount: (isP1SkillId(resolvedSkillId) || isP2SkillId(resolvedSkillId) || isP3SkillId(resolvedSkillId) || isP4SkillId(resolvedSkillId) || isP5SkillId(resolvedSkillId) || isP6SkillId(resolvedSkillId)) ? 6 : 8,
     };
   }
 
@@ -233,12 +257,16 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
 }
 
 function isPersistedPracticeSessionId(value = '') {
-  return /^(?:frac|p1_|p3_)?practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
+  return /^(?:frac|p1_|p2_|p3_|p4_|p5_|p6_)?practice_\d+_[a-z0-9]+$/i.test(String(value || ''));
 }
 
 function deriveDomainKey(skillId) {
   if (!skillId) return 'fractions';
+  if (isP6SkillId(skillId)) return 'p6';
+  if (isP5SkillId(skillId)) return 'p5';
+  if (isP4SkillId(skillId)) return 'p4';
   if (isP3SkillId(skillId)) return 'p3';
+  if (isP2SkillId(skillId)) return 'p2';
   if (isP1SkillId(skillId)) return 'p1';
   return 'fractions';
 }
@@ -781,9 +809,9 @@ function LegacyPracticeSession() {
       weakSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) < 80
         ? [{ skillId: String(q.skillId || ''), skillName: canonicalSkillName(q.skillId, q.skillName || '') }]
         : [],
-      masteredSkillIds: Number.isFinite(Number(completion?.scorePct)) && Number(completion?.scorePct) >= 90
-        ? [String(q.skillId || '')].filter(Boolean)
-        : [],
+      // C3: practice accuracy never confers mastery — only a passing recheck
+      // (written by the backend) does. Don't optimistically claim mastery here.
+      masteredSkillIds: [],
     });
     navigate(`${resultsBase}/results/${sessionId}`, { replace: true, state: resultState });
   };
@@ -877,6 +905,7 @@ function LegacyPracticeSession() {
       </Card>
       <FullScreenWorkingMode
         open={fullscreenOpen}
+        questionId={q.questionId}
         questionText={q.stem || q.prompt || ''}
         questionContent={(
           <div className="space-y-4 text-base">
@@ -1009,11 +1038,16 @@ export default function PracticeSession() {
   const [workingSession, setWorkingSession] = useState(null);
   const [workingCodeByQuestion, setWorkingCodeByQuestion] = useState({});
   const questionSurfaceRef = useRef(null);
+  const sessionStartingRef = useRef(false);
 
   const isMainFlowRender = isMathPathRoute && !hasLegacyItems && sessionType !== 'story';
 
   useEffect(() => {
     if (!isMainFlowRender) return undefined;
+    // Guard against re-entry — the effect can re-fire before the first API
+    // call completes (e.g. navigate changes routeSessionId in the deps).
+    if (sessionStartingRef.current) return undefined;
+    sessionStartingRef.current = true;
     let mounted = true;
     (async () => {
       try {
@@ -1041,9 +1075,17 @@ export default function PracticeSession() {
             setLoading(false);
             return;
           }
-        } else if (isP1SkillId(resolvedIntent.requestedSkillId) || isP3SkillId(resolvedIntent.requestedSkillId)) {
+        } else if (isP1SkillId(resolvedIntent.requestedSkillId) || isP2SkillId(resolvedIntent.requestedSkillId) || isP3SkillId(resolvedIntent.requestedSkillId) || isP4SkillId(resolvedIntent.requestedSkillId) || isP5SkillId(resolvedIntent.requestedSkillId) || isP6SkillId(resolvedIntent.requestedSkillId)) {
           // ── P1 / P3 domain (client-side generation) ────────────────
-          const startFn = isP3SkillId(resolvedIntent.requestedSkillId)
+          const startFn = isP6SkillId(resolvedIntent.requestedSkillId)
+            ? startP6PracticeFlow
+            : isP5SkillId(resolvedIntent.requestedSkillId)
+            ? startP5PracticeFlow
+            : isP4SkillId(resolvedIntent.requestedSkillId)
+            ? startP4PracticeFlow
+            : isP2SkillId(resolvedIntent.requestedSkillId)
+            ? startP2PracticeFlow
+            : isP3SkillId(resolvedIntent.requestedSkillId)
             ? startP3PracticeFlow
             : startP1PracticeFlow;
           started = startFn({
@@ -1063,6 +1105,27 @@ export default function PracticeSession() {
             weakSkillIds: locationWeakSkillIds,
             recentMistakeTypes: locationRecentMistakeTypes,
           });
+          // Persist the session to the backend so the submit route can find it.
+          // Fire-and-forget — the student starts practicing immediately.
+          const apiStart = isP6SkillId(resolvedIntent.requestedSkillId)
+            ? mathpathAPI.startP6Practice
+            : isP5SkillId(resolvedIntent.requestedSkillId)
+              ? mathpathAPI.startP5Practice
+            : isP4SkillId(resolvedIntent.requestedSkillId)
+              ? mathpathAPI.startP4Practice
+            : isP2SkillId(resolvedIntent.requestedSkillId)
+              ? mathpathAPI.startP2Practice
+            : isP3SkillId(resolvedIntent.requestedSkillId)
+              ? mathpathAPI.startP3Practice
+              : mathpathAPI.startP1Practice;
+          apiStart({
+            practiceSessionId: started.practiceSessionId,
+            domainId: started.domainId || '',
+            targetSkillId: started.targetSkillId || resolvedIntent.requestedSkillId,
+            sessionType: started.sessionType || sessionType,
+            sessionLabel: started.sessionLabel || 'Practice',
+            questions: started.questions || [],
+          }).catch((err) => console.warn('[session-start] backend persist failed', err));
         } else {
           // ── Fractions domain (API first, client fallback) ───────────
           try {
@@ -1135,7 +1198,7 @@ export default function PracticeSession() {
         // students don't have to manually check the box for simple counting etc.
         const workingInit = {};
         valid.forEach((q) => {
-          if ((isP1SkillId(q.skillId) || isP3SkillId(q.skillId)) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
+          if ((isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId) || isP4SkillId(q.skillId) || isP5SkillId(q.skillId) || isP6SkillId(q.skillId)) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
             workingInit[q.questionId] = { workingNotNeeded: true, workingNotNeededAt: new Date().toISOString() };
           }
         });
@@ -1149,7 +1212,10 @@ export default function PracticeSession() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => { mounted = false; sessionStartingRef.current = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- navigate is a stable
+  // ref from react-router v6; including it caused re-entry loops that spammed
+  // 1800+ duplicate sessions during the pilot.
   }, [
     isMainFlowRender,
     studentId,
@@ -1161,7 +1227,6 @@ export default function PracticeSession() {
     locationAssignmentId,
     locationWeakSkillIdsKey,
     locationRecentMistakeTypesKey,
-    navigate,
   ]);
 
   useEffect(() => {
@@ -1292,8 +1357,16 @@ export default function PracticeSession() {
 
     // Retry path — student is re-submitting after using hints
     if (retrying && answer) {
-      const retryCheck = (isP1SkillId(q.skillId) || isP3SkillId(q.skillId))
-        ? (isP3SkillId(q.skillId)
+      const retryCheck = (isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId) || isP4SkillId(q.skillId) || isP5SkillId(q.skillId) || isP6SkillId(q.skillId))
+        ? (isP6SkillId(q.skillId)
+          ? checkP6AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP5SkillId(q.skillId)
+          ? checkP5AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP4SkillId(q.skillId)
+          ? checkP4AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP2SkillId(q.skillId)
+          ? checkP2AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP3SkillId(q.skillId)
           ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
           : checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q }))
         : checkFractionAnswer({
@@ -1327,8 +1400,16 @@ export default function PracticeSession() {
 
     if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
-    const answerCheck = (isP1SkillId(q.skillId) || isP3SkillId(q.skillId))
-      ? (isP3SkillId(q.skillId)
+    const answerCheck = (isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId) || isP4SkillId(q.skillId) || isP5SkillId(q.skillId) || isP6SkillId(q.skillId))
+      ? (isP6SkillId(q.skillId)
+          ? checkP6AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP5SkillId(q.skillId)
+          ? checkP5AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP4SkillId(q.skillId)
+          ? checkP4AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP2SkillId(q.skillId)
+          ? checkP2AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP3SkillId(q.skillId)
         ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
         : checkP1AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q }))
       : checkFractionAnswer({
@@ -1401,10 +1482,10 @@ export default function PracticeSession() {
   };
 
   const openSubmissionReview = () => {
-    if (!answer) return;
+    if (!answer || !reflection) return;
     if (!currentQuestionValidation.ok) return;
-    // During retry, skip the modal — just re-check directly
     if (retrying) { onSubmitCurrent(); return; }
+    if (workingReady) { onSubmitCurrent(); return; }
     setSubmissionReviewOpen(true);
   };
 
@@ -1518,15 +1599,29 @@ export default function PracticeSession() {
       let submitted;
       const sessionSkillId = flowSession?.targetSkillId || questions[0]?.skillId;
       const isP1Session = isP1SkillId(sessionSkillId);
+      const isP2Session = isP2SkillId(sessionSkillId);
       const isP3Session = isP3SkillId(sessionSkillId);
-      if (isP1Session || isP3Session) {
-        const submitFn = isP3Session ? submitP3PracticeAttempt : submitP1PracticeAttempt;
+      const isP4Session = isP4SkillId(sessionSkillId);
+      const isP5Session = isP5SkillId(sessionSkillId);
+      const isP6Session = isP6SkillId(sessionSkillId);
+      if (isP1Session || isP2Session || isP3Session || isP4Session || isP5Session || isP6Session) {
+        const submitFn = isP6Session ? submitP6PracticeAttempt : isP5Session ? submitP5PracticeAttempt : isP4Session ? submitP4PracticeAttempt : isP2Session ? submitP2PracticeAttempt : isP3Session ? submitP3PracticeAttempt : submitP1PracticeAttempt;
         submitted = submitFn({
           practiceSessionId: flowSession.practiceSessionId || routeSessionId,
           studentId,
           sessionType,
           responses: payload,
         });
+        try {
+          const apiSubmit = isP6Session ? mathpathAPI.submitP6Practice : isP5Session ? mathpathAPI.submitP5Practice : isP4Session ? mathpathAPI.submitP4Practice : isP2Session ? mathpathAPI.submitP2Practice : isP3Session ? mathpathAPI.submitP3Practice : mathpathAPI.submitP1Practice;
+          const { data: persisted } = await apiSubmit(
+            flowSession.practiceSessionId || routeSessionId,
+            { sessionType, responses: payload },
+          );
+          submitted = { ...submitted, ...persisted, persisted: true };
+        } catch (persistErr) {
+          console.error('[session-complete] primary practice backend persist failed — results saved locally', persistErr);
+        }
       } else if (flowSession?.persisted || isPersistedPracticeSessionId(flowSession.practiceSessionId || routeSessionId)) {
         const { data } = await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
           sessionType,
@@ -1534,12 +1629,42 @@ export default function PracticeSession() {
         });
         submitted = data;
       } else {
+        // This session was generated client-side because the backend was
+        // unavailable at start. Compute the result locally for display, then make
+        // a best-effort attempt to persist it now in case the backend has
+        // recovered — so attempts/skill-state evidence isn't silently lost.
         submitted = await submitFractionPracticeAttempt({
           practiceSessionId: flowSession.practiceSessionId || routeSessionId,
           studentId,
           sessionType,
           responses: payload,
         });
+        try {
+          await mathpathAPI.submitFractionPractice(flowSession.practiceSessionId || routeSessionId, {
+            sessionType,
+            responses: payload,
+            questions,
+            targetSkillId: flowSession?.targetSkillId || q.skillId || '',
+            targetQuestionFamilyIds: flowSession?.targetQuestionFamilyIds || [],
+            assignmentId: flowSession?.assignmentId || locationAssignmentId || '',
+          });
+          submitted = { ...submitted, persisted: true };
+        } catch (persistErr) {
+          // Backend still unreachable — keep the local result but mark the session
+          // as unpersisted so pilot analytics can see degraded-mode evidence gaps.
+          submitted = { ...submitted, persisted: false, evidenceMode: 'local_unpersisted' };
+          Promise.resolve(
+            learningTelemetryAPI.recordEvent({
+              studentId,
+              eventType: 'practice_session_unpersisted',
+              domain: 'fractions',
+              skillCode: flowSession?.targetSkillId || q.skillId || '',
+              sessionId: flowSession.practiceSessionId || routeSessionId,
+              timestamp: new Date().toISOString(),
+              metadata: { sessionType, answered: Array.isArray(payload) ? payload.length : 0 },
+            })
+          ).catch(() => {});
+        }
       }
       try {
         await persistGeneratedFractionMistakes({
@@ -1581,9 +1706,9 @@ export default function PracticeSession() {
         sessionType,
         currentSkillId: flowSession?.targetSkillId || q.skillId || null,
         weakSkillIds: weakSkillRows,
-        masteredSkillIds: submitted.accuracySummary?.accuracyPercentage >= 90
-          ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
-          : [],
+        // C3: practice accuracy never confers mastery — only a passing recheck
+        // (written by the backend) does. Don't optimistically claim mastery here.
+        masteredSkillIds: [],
         fluentSkillIds: submitted.fluencySummary?.fluentCount > 0
           ? [flowSession?.targetSkillId || q.skillId].filter(Boolean)
           : [],
@@ -1814,6 +1939,25 @@ export default function PracticeSession() {
               )}
             </div>
 
+            {!answered && answer && (
+              <div className="mt-2 rounded-xl border border-hairline bg-white p-2">
+                <p className="mb-1 text-xs font-semibold text-ink-600">How sure are you?</p>
+                <div className="grid grid-cols-3 gap-1">
+                  {REFLECTION_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setReflection(opt.value)}
+                      className={`rounded-lg border px-2 py-1.5 text-xs ${reflection === opt.value ? 'border-navy-500 bg-navy-50 font-semibold text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mt-2">
               <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} solutionSteps={q.solutionSteps} onTryAgain={handleTryAgain} />
             </div>
@@ -1822,7 +1966,7 @@ export default function PracticeSession() {
               {!answered ? (
                 <>
                   <Button variant="outlineLight" disabled={busy} onClick={onSkipCurrent}>Skip</Button>
-                  <Button disabled={busy || !answer} onClick={openSubmissionReview}>Submit answer</Button>
+                  <Button disabled={busy || !answer || !reflection} onClick={openSubmissionReview}>Submit answer</Button>
                 </>
               ) : (
                 <Button className="sm:col-span-2" icon={ArrowRight} disabled={busy} onClick={nextOrFinish}>
@@ -1849,6 +1993,7 @@ export default function PracticeSession() {
       </Card>
       <FullScreenWorkingMode
         open={fullscreenQuestionId === q.questionId}
+        questionId={q.questionId}
         questionText={questionText}
         questionContent={(
           <div className="space-y-4 text-base">
