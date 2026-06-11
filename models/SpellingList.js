@@ -37,6 +37,12 @@ const spellingListSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  workspaceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workspace',
+    default: null,
+    index: true
+  },
   title: {
     type: String,
     required: [true, 'Please give the list a title'],

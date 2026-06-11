@@ -36,7 +36,7 @@ const ALL_MODULES = [
   },
   {
     key: 'spelling', name: 'Spelling Practice', icon: SpellCheck, path: '/student/spelling',
-    purpose: 'Spelling fluency and retention. English · Spelling.', status: 'soon',
+    purpose: 'Spelling fluency and retention. English · Spelling.', status: 'live',
   },
   {
     key: 'science', name: 'Science Adaptive Revision', icon: FlaskConical, path: '/student/science',
@@ -44,7 +44,7 @@ const ALL_MODULES = [
   },
   {
     key: 'lifelab', name: 'LifeLab', icon: Sprout, path: '/student/lifelab',
-    purpose: 'Real-life Math and Science activities.', status: 'soon',
+    purpose: 'Real-life Math and Science activities.', status: 'live',
   },
   {
     key: 'mechanisms', name: 'Mechanisms Playground', icon: Cog, path: '/secondary/mechanisms',
