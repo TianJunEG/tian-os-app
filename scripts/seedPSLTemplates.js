@@ -57,6 +57,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 20, max: 150 }, partB: { min: 20, max: 150 }, answer: { max: 300 } },
     storyTemplate: '{nameA} {verb} {partA} {entityA}. {nameA} also {verb} {partB} {entityB}. How many {itemPlural} did {nameA} {verb} altogether?',
+    solutionTemplate: 'Step 1: We know the two parts — {partA} {entityA} and {partB} {entityB}.\nStep 2: Draw a bar model with two parts joining into one whole.\nStep 3: Add the parts: {partA} + {partB} = {answer}.\nAnswer: {nameA} {verb} {answer} {itemPlural} altogether.',
     scaffold: pwWholeScaffold(
       ['Combining two groups of items to find the total', 'Comparing two groups to find the difference', 'Taking away items from a group', 'Sharing items equally'],
       ['The total number of {itemPlural}', 'How many more {entityA} than {entityB}', 'How many {entityA} are left', 'How many groups there are'],
@@ -73,6 +74,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 30, max: 200 }, partB: { min: 30, max: 200 }, answer: { max: 400 } },
     storyTemplate: 'A {setting} had {partA} {entityA} and {partB} {entityB}. How many {itemPlural} were there altogether?',
+    solutionTemplate: 'Step 1: The two parts are {partA} {entityA} and {partB} {entityB}.\nStep 2: We need to find the whole (total).\nStep 3: Add the parts: {partA} + {partB} = {answer}.\nAnswer: There were {answer} {itemPlural} altogether.',
     scaffold: pwWholeScaffold(
       ['Counting two types of items together', 'Finding how many fewer of one type', 'Removing items from a collection', 'Dividing items into groups'],
       ['The total number of {itemPlural}', 'How many {entityA} were sold', 'The difference between {entityA} and {entityB}', 'How many {entityB} are left'],
@@ -90,6 +92,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 15, max: 120 }, partB: { min: 15, max: 120 }, answer: { max: 240 } },
     storyTemplate: 'The {setting} {verb} {partA} {entityA} and {partB} {entityB}. How many {itemPlural} were there in all?',
+    solutionTemplate: 'Step 1: The two parts are {partA} {entityA} and {partB} {entityB}.\nStep 2: We need to find the whole — the total number of {itemPlural}.\nStep 3: Add the parts: {partA} + {partB} = {answer}.\nAnswer: There were {answer} {itemPlural} in all.',
     scaffold: pwWholeScaffold(
       ['Adding two groups to find the total', 'Subtracting to find the remainder', 'Comparing two different quantities', 'Splitting a group into equal parts'],
       ['The total number of {itemPlural}', 'How many more {entityA} than {entityB}', 'How many {entityA} were left', 'How many each person gets'],
@@ -106,6 +109,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 25, max: 180 }, partB: { min: 25, max: 180 }, answer: { max: 360 } },
     storyTemplate: '{nameA} {verb} {partA} {entityA} and {partB} {entityB}. How many {itemPlural} did {nameA} have altogether?',
+    solutionTemplate: 'Step 1: The two parts are {partA} {entityA} and {partB} {entityB}.\nStep 2: In the bar model, both parts combine to make the whole.\nStep 3: Add: {partA} + {partB} = {answer}.\nAnswer: {nameA} had {answer} {itemPlural} altogether.',
     scaffold: pwWholeScaffold(
       ['Combining two types to find the total', 'Finding how many more of one type', 'Giving away some items', 'Arranging items in rows'],
       ['The total number of {itemPlural}', 'How many {entityA} {nameA} gave away', 'The difference between the two types', 'How many were in each group'],
@@ -126,6 +130,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 50, max: 300 }, partA: { min: 20, max: 200 }, answer: { min: 10 } },
     storyTemplate: 'There {verb} {whole} {entityA} in the {setting}. {partA} of them {verb} {entityB}. How many {entityC} {verb} there?',
+    solutionTemplate: 'Step 1: The whole is {whole} {entityA}. One part is {partA} {entityB}.\nStep 2: We need to find the other part ({entityC}).\nStep 3: Subtract the known part from the whole: {whole} - {partA} = {answer}.\nAnswer: There are {answer} {entityC}.',
     scaffold: pwPartScaffold(
       ['Finding a missing part when the total is known', 'Comparing two groups to find the difference', 'Adding two groups together', 'Sharing items equally among groups'],
       ['The number of {entityC}', 'The total number of {entityA}', 'How many more {entityB} than {entityC}', 'How many {entityB} were removed'],
@@ -142,6 +147,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 40, max: 250 }, partA: { min: 15, max: 180 }, answer: { min: 10 } },
     storyTemplate: '{nameA} {verb} {whole} {entityA}. {nameA} {verbPast} {partA} of them. How many {entityA} did {nameA} have left?',
+    solutionTemplate: 'Step 1: The whole is {whole} {entityA}. One part ({verbPast}) is {partA}.\nStep 2: We need to find the remaining part.\nStep 3: Subtract: {whole} - {partA} = {answer}.\nAnswer: {nameA} had {answer} {entityA} left.',
     scaffold: pwPartScaffold(
       ['Starting with a total and removing some', 'Comparing what two people have', 'Adding what two people collected', 'Grouping items into equal sets'],
       ['How many {entityA} are left', 'The total number of {entityA}', 'How many more {entityA} {nameA} needs', 'How many {nameA} gave to each person'],
@@ -158,6 +164,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 30, max: 200 }, partA: { min: 10, max: 150 }, answer: { min: 5 } },
     storyTemplate: '{nameA} {verb} {whole} {entityA}. {partA} of the {entityA} {verbPast}. How many {entityA} were left?',
+    solutionTemplate: 'Step 1: The whole is {whole} {entityA}. One part ({verbPast}) is {partA}.\nStep 2: We need to find how many are left.\nStep 3: Subtract: {whole} - {partA} = {answer}.\nAnswer: {answer} {entityA} were left.',
     scaffold: pwPartScaffold(
       ['Starting with a total and some are removed', 'Finding the total of two groups', 'Comparing amounts between two people', 'Dividing into equal parts'],
       ['How many {entityA} are left', 'How many {entityA} there were at the start', 'The difference between what two people had', 'How many groups of {entityA}'],
@@ -174,6 +181,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 60, max: 350 }, partA: { min: 30, max: 250 }, answer: { min: 15 } },
     storyTemplate: '{nameA} {verb} {whole} {entityA}. {partA} of them were {entityB}. The rest were {entityC}. How many {entityC} did {nameA} buy?',
+    solutionTemplate: 'Step 1: The whole is {whole} {entityA}. One part is {partA} {entityB}.\nStep 2: The rest are {entityC} — we need to find this missing part.\nStep 3: Subtract: {whole} - {partA} = {answer}.\nAnswer: {nameA} bought {answer} {entityC}.',
     scaffold: pwPartScaffold(
       ['Finding how many are in the remaining group', 'Adding the groups to find the total', 'Comparing the two groups', 'Sorting items into equal piles'],
       ['The number of {entityC}', 'The total number of {entityA}', 'How many more {entityB} than {entityC}', 'How many {entityA} each person gets'],
@@ -194,6 +202,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 15, max: 100 }, partB: { min: 15, max: 100 }, partC: { min: 15, max: 100 }, answer: { max: 300 } },
     storyTemplate: 'The {setting} {verb} {partA} {entityA}, {partB} {entityB} and {partC} {entityC}. How many {itemPlural} were {verb} altogether?',
+    solutionTemplate: 'Step 1: There are three parts — {partA} {entityA}, {partB} {entityB}, and {partC} {entityC}.\nStep 2: We need to find the whole by adding all three parts.\nStep 3: Add: {partA} + {partB} + {partC} = {answer}.\nAnswer: {answer} {itemPlural} were {verb} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Combining three groups to find the total', 'Finding the difference between three groups', 'Taking items away from a group', 'Sharing items among three people',
@@ -218,6 +227,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 10, max: 80 }, partB: { min: 10, max: 80 }, partC: { min: 10, max: 80 }, answer: { max: 240 } },
     storyTemplate: '{nameA} {verb} {partA} {entityA}, {partB} {entityB} and {partC} {entityC}. How many {itemPlural} did {nameA} {verb} in total?',
+    solutionTemplate: 'Step 1: The three parts are {partA} {entityA}, {partB} {entityB}, and {partC} {entityC}.\nStep 2: Draw a bar model with three parts joining into one whole.\nStep 3: Add: {partA} + {partB} + {partC} = {answer}.\nAnswer: {nameA} {verb} {answer} {itemPlural} in total.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Adding three groups of items together', 'Comparing three different amounts', 'Removing items from three groups', 'Dividing items into three groups',
@@ -242,6 +252,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 12, max: 90 }, partB: { min: 12, max: 90 }, partC: { min: 12, max: 90 }, answer: { max: 270 } },
     storyTemplate: 'On a field trip, the class {verb} {partA} {entityA}, {partB} {entityB} and {partC} {entityC}. How many {itemPlural} did they see altogether?',
+    solutionTemplate: 'Step 1: The three parts are {partA} {entityA}, {partB} {entityB}, and {partC} {entityC}.\nStep 2: To find the total, add all three parts together.\nStep 3: Add: {partA} + {partB} + {partC} = {answer}.\nAnswer: They saw {answer} {itemPlural} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Counting three categories together', 'Finding which category had the fewest', 'Taking away animals from the zoo', 'Splitting animals into cages',
@@ -270,6 +281,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 9 }, perGroup: { min: 3, max: 9 }, answer: { max: 81 } },
     storyTemplate: '{nameA} {verb} {groups} {entityA} of {entityB}. Each {entityA2} had {perGroup} {entityB}. How many {entityB} were there altogether?',
+    solutionTemplate: 'Step 1: There are {groups} equal groups, each with {perGroup} {entityB}.\nStep 2: To find the total, we multiply the number of groups by the amount in each group.\nStep 3: Multiply: {groups} × {perGroup} = {answer}.\nAnswer: There were {answer} {entityB} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the total from equal groups', 'Comparing two amounts', 'Removing items from groups', 'Finding how many groups there are',
@@ -294,6 +306,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 4, max: 8 }, perGroup: { min: 4, max: 9 }, answer: { max: 72 } },
     storyTemplate: 'There are {groups} {entityA} in the {setting}. Each {entityA2} holds {perGroup} {entityB}. How many {entityB} are there in all?',
+    solutionTemplate: 'Step 1: There are {groups} {entityA}, and each {entityA2} holds {perGroup} {entityB}.\nStep 2: Since every group is equal, we use multiplication.\nStep 3: Multiply: {groups} × {perGroup} = {answer}.\nAnswer: There are {answer} {entityB} in all.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Repeated equal groups that make a total', 'Taking away items from shelves', 'Comparing the number on each shelf', 'Sharing books among students',
@@ -318,6 +331,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 9 }, perGroup: { min: 3, max: 8 }, answer: { max: 72 } },
     storyTemplate: '{nameA} {verb} {perGroup} {entityB} in each of {groups} {entityA}. How many {entityB} did {nameA} {verb} altogether?',
+    solutionTemplate: 'Step 1: {nameA} put {perGroup} {entityB} in each of {groups} {entityA}.\nStep 2: Equal groups means we multiply.\nStep 3: Multiply: {groups} × {perGroup} = {answer}.\nAnswer: {nameA} {verb} {answer} {entityB} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Equal amounts in each group, finding the total', 'Removing items from containers', 'Comparing how much is in each container', 'Dividing items between friends',
@@ -346,6 +360,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 50, max: 250 }, smaller: { min: 20, max: 200 }, answer: { min: 10 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityB}. How many more {entityA} did {nameA} {verb} than {nameB}?',
+    solutionTemplate: 'Step 1: {nameA} has {larger} and {nameB} has {smaller}.\nStep 2: Draw a comparison bar model — the difference is the extra part of the longer bar.\nStep 3: Subtract: {larger} - {smaller} = {answer}.\nAnswer: {nameA} {verb} {answer} more than {nameB}.',
     scaffold: compDiffScaffold(
       ['Comparing two amounts to find the difference', 'Combining two amounts to find the total', 'Removing some from a group', 'Sharing items equally'],
       ['How many more {nameA} has than {nameB}', 'The total for {nameA} and {nameB}', 'How many {entityA} are left', 'How many each person gets'],
@@ -362,6 +377,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 30, max: 200 }, smaller: { min: 10, max: 150 }, answer: { min: 5 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. How many fewer {entityA} did {nameB} {verb} than {nameA}?',
+    solutionTemplate: 'Step 1: {nameA} has the larger amount ({larger}). {nameB} has the smaller amount ({smaller}).\nStep 2: \"How many fewer\" means we find the difference.\nStep 3: Subtract: {larger} - {smaller} = {answer}.\nAnswer: {nameB} {verb} {answer} fewer {entityA} than {nameA}.',
     scaffold: compDiffScaffold(
       ['Comparing what two people did', 'Adding what two people did together', 'One person giving to the other', 'Splitting equally between two people'],
       ['How many fewer {nameB} has than {nameA}', 'The total {entityA} for both', 'How many {entityA} {nameA} gave away', 'How many each person still has'],
@@ -378,6 +394,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 40, max: 180 }, smaller: { min: 15, max: 140 }, answer: { min: 8 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. What is the difference between their amounts?',
+    solutionTemplate: 'Step 1: {nameA} has {larger} {entityA}. {nameB} has {smaller} {entityA}.\nStep 2: The difference is how much more one person has than the other.\nStep 3: Subtract: {larger} - {smaller} = {answer}.\nAnswer: The difference is {answer} {entityA}.',
     scaffold: compDiffScaffold(
       ['Comparing to find how much more one has', 'Adding to find the combined total', 'One person spending their savings', 'Sharing savings between friends'],
       ['The difference between the two amounts', 'The total amount they both have', 'How much {nameA} spent', 'How much each person needs to save more'],
@@ -394,6 +411,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 100, max: 300 }, smaller: { min: 60, max: 250 }, answer: { min: 10 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. How much heavier is {nameA} than {nameB}?',
+    solutionTemplate: 'Step 1: {nameA} measures {larger} {entityA}. {nameB} measures {smaller} {entityA}.\nStep 2: In the comparison bar model, the gap between the bars is the difference.\nStep 3: Subtract: {larger} - {smaller} = {answer}.\nAnswer: {nameA} is {answer} {entityA} more than {nameB}.',
     scaffold: compDiffScaffold(
       ['Comparing two measurements', 'Adding two measurements together', 'Reducing one measurement', 'Finding the average of two measurements'],
       ['How much more {nameA} has', 'Their combined measurement', 'How much {nameB} needs to grow', 'The average measurement'],
@@ -414,6 +432,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 30, max: 200 }, difference: { min: 10, max: 100 }, answer: { max: 300 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} does {nameB} have?',
+    solutionTemplate: 'Step 1: {nameA} has {smaller} {entityA}. {nameB} has {difference} more.\nStep 2: \"More than\" means the larger amount = smaller + difference.\nStep 3: Add: {smaller} + {difference} = {answer}.\nAnswer: {nameB} has {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the larger amount using the smaller and the difference', 'Adding both people\'s amounts together', 'Finding how much was spent', 'Splitting between two people',
@@ -438,6 +457,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 20, max: 150 }, difference: { min: 8, max: 80 }, answer: { max: 230 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} did {nameB} {verb}?',
+    solutionTemplate: 'Step 1: {nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} more.\nStep 2: In the comparison model, the longer bar = shorter bar + difference.\nStep 3: Add: {smaller} + {difference} = {answer}.\nAnswer: {nameB} {verb} {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One person has more, and we need to find their amount', 'Finding how many were made altogether', 'Taking some away from a group', 'Finding the average between two people',
@@ -462,6 +482,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 25, max: 160 }, difference: { min: 5, max: 60 }, answer: { max: 220 } },
     storyTemplate: '{nameB} {verb} {difference} {comparison} {nameA} in the {setting}. {nameA} {verb} {smaller} {entityA}. How many {entityA} did {nameB} get?',
+    solutionTemplate: 'Step 1: {nameA} got {smaller} {entityA}. {nameB} got {difference} more.\nStep 2: To find the larger, add the difference to the smaller amount.\nStep 3: Add: {smaller} + {difference} = {answer}.\nAnswer: {nameB} got {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One person scored more, and we need to find their total', 'Finding the combined score', 'Subtracting points as a penalty', 'Dividing points between teams',
@@ -490,6 +511,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 50, max: 250 }, difference: { min: 10, max: 80 }, answer: { min: 10 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} does {nameB} have?',
+    solutionTemplate: 'Step 1: {nameA} has {larger} {entityA}. {nameB} has {difference} less.\nStep 2: \"Shorter/less than\" means the smaller amount = larger - difference.\nStep 3: Subtract: {larger} - {difference} = {answer}.\nAnswer: {nameB} has {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One person has less, and we need to find their amount', 'Adding both amounts together', 'Finding the average', 'Removing some from a total',
@@ -514,6 +536,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 40, max: 200 }, difference: { min: 8, max: 70 }, answer: { min: 10 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} does {nameB} have?',
+    solutionTemplate: 'Step 1: {nameA} has {larger} {entityA}. {nameB} has {difference} fewer.\nStep 2: \"Fewer than\" means we subtract the difference from the larger.\nStep 3: Subtract: {larger} - {difference} = {answer}.\nAnswer: {nameB} has {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the smaller amount using the larger and the gap', 'Combining two collections', 'Giving items away', 'Sorting into groups',
@@ -538,6 +561,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 60, max: 280 }, difference: { min: 12, max: 90 }, answer: { min: 15 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} did {nameB} {verb}?',
+    solutionTemplate: 'Step 1: {nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} less.\nStep 2: To find the smaller, subtract the difference from the larger.\nStep 3: Subtract: {larger} - {difference} = {answer}.\nAnswer: {nameB} {verb} {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One person did less, and we need to find how much', 'Adding what both people did', 'Finding who did the most', 'Splitting equally between both',
@@ -566,6 +590,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 30, max: 150 }, difference: { min: 10, max: 60 }, answer: { max: 400 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {entityB} than {nameA}. How many {entityA} and {entityB} did they {verb} altogether?',
+    solutionTemplate: 'Step 1: {nameA} {verb} {smaller}. {nameB} {verb} {difference} more.\nStep 2: First find {nameB}\'s amount: {smaller} + {difference} = {larger}.\nStep 3: Now add both amounts: {smaller} + {larger} = {answer}.\nAnswer: They {verb} {answer} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'First finding a larger amount, then adding both to get a total', 'Just finding the difference between two groups', 'Subtracting to find what\'s left', 'Sharing items among friends',
@@ -593,6 +618,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 20, max: 120 }, difference: { min: 8, max: 50 }, answer: { max: 300 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {entityB} than {nameA}. How many did they {verb} altogether?',
+    solutionTemplate: 'Step 1: {nameA} {verb} {smaller}. {nameB} {verb} {difference} more.\nStep 2: Find the larger amount: {smaller} + {difference} = {larger}.\nStep 3: Add both to get the total: {smaller} + {larger} = {answer}.\nAnswer: They {verb} {answer} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using a comparison to find one amount, then adding both', 'Only comparing two amounts', 'Giving away items from a total', 'Dividing items into groups',
@@ -620,6 +646,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 25, max: 130 }, difference: { min: 10, max: 55 }, answer: { max: 320 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {entityB} than {nameA}. How many {entityA} did they do in total?',
+    solutionTemplate: 'Step 1: {nameA} {verb} {smaller}. {nameB} {verb} {difference} more.\nStep 2: Find {nameB}\'s amount: {smaller} + {difference} = {larger}.\nStep 3: Find the total: {smaller} + {larger} = {answer}.\nAnswer: They did {answer} {entityA} in total.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the larger, then adding both amounts', 'Just finding who did more', 'Removing some from a group', 'Splitting a total into two'],
@@ -650,6 +677,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 100, max: 300 }, partA: { min: 30, max: 150 }, answer: { min: 5 } },
     storyTemplate: '{entityA} and {entityB} {verb} {whole} {itemPlural} altogether. {entityA} {verb} {partA} {itemPlural}. How many more {itemPlural} did one team score than the other?',
+    solutionTemplate: 'Step 1: Both teams scored {whole} {itemPlural} altogether. {entityA} scored {partA}.\nStep 2: Find {entityB}\'s score: {whole} - {partA} = {partB}.\nStep 3: Find the difference: {partA} - {partB} = {answer}.\nAnswer: One team scored {answer} more {itemPlural} than the other.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a missing part, then comparing the two parts', 'Just adding the scores together', 'Removing points from a team', 'Sharing points equally'],
@@ -676,6 +704,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 80, max: 250 }, partA: { min: 25, max: 130 }, answer: { min: 5 } },
     storyTemplate: '{entityA} and {entityB} {verb} {whole} {itemPlural} in total. {entityA} {verb} {partA} {itemPlural}. How many more {itemPlural} did one class sell than the other?',
+    solutionTemplate: 'Step 1: Total {itemPlural} sold is {whole}. {entityA} sold {partA}.\nStep 2: Find {entityB}\'s sales: {whole} - {partA} = {partB}.\nStep 3: Find the difference: {partA} - {partB} = {answer}.\nAnswer: One class sold {answer} more {itemPlural} than the other.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding one class\'s sales from the total, then comparing', 'Just adding both classes\' sales', 'Finding how many cookies are left over', 'Sharing cookies equally'],
@@ -702,6 +731,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 90, max: 280 }, partA: { min: 30, max: 140 }, answer: { min: 5 } },
     storyTemplate: '{nameA} and {nameB} {verb} {whole} {itemPlural} altogether. {nameA} {verb} {partA} {itemPlural}. How many more {itemPlural} did one person read than the other?',
+    solutionTemplate: 'Step 1: Together they read {whole} {itemPlural}. {nameA} read {partA}.\nStep 2: Find {nameB}\'s pages: {whole} - {partA} = {partB}.\nStep 3: Find the difference: {partA} - {partB} = {answer}.\nAnswer: One person read {answer} more {itemPlural} than the other.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using the total to find one part, then finding the difference', 'Just combining both amounts', 'Finding how many pages are left in the book', 'Splitting pages equally'],
@@ -732,6 +762,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 20, max: 120 }, difference: { min: 10, max: 60 }, answer: { max: 300 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameA} {verb} {difference} {comparison} {entityB} than {entityA}. How many books did {nameA} buy altogether?',
+    solutionTemplate: 'Step 1: {nameA} bought {smaller} {entityA} and {difference} more {entityB}.\nStep 2: Find {entityB}: {smaller} + {difference} = {larger}.\nStep 3: Find the total: {smaller} + {larger} = {answer}.\nAnswer: {nameA} bought {answer} books altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using a comparison to find one amount, then adding to find the total', 'Just comparing two groups', 'Removing items from a shelf', 'Sharing books between friends'],
@@ -758,6 +789,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 15, max: 100 }, difference: { min: 8, max: 50 }, answer: { max: 250 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameA} {verb} {difference} {comparison} {entityB} than {entityA}. How many fruits did {nameA} buy in all?',
+    solutionTemplate: 'Step 1: {nameA} bought {smaller} {entityA} and {difference} more {entityB}.\nStep 2: Find {entityB}: {smaller} + {difference} = {larger}.\nStep 3: Find the total: {smaller} + {larger} = {answer}.\nAnswer: {nameA} bought {answer} fruits in all.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the bigger group first, then adding both groups', 'Only finding the difference', 'Taking fruits out of a basket', 'Splitting fruits equally'],
@@ -784,6 +816,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 18, max: 110 }, difference: { min: 6, max: 45 }, answer: { max: 270 } },
     storyTemplate: 'The {setting} {verb} {smaller} {entityA}. They {verb} {difference} {comparison} {entityB} than {entityA}. How many clothing items did they collect altogether?',
+    solutionTemplate: 'Step 1: They collected {smaller} {entityA} and {difference} more {entityB}.\nStep 2: Find {entityB}: {smaller} + {difference} = {larger}.\nStep 3: Find the total: {smaller} + {larger} = {answer}.\nAnswer: They collected {answer} clothing items altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using a comparison to find one amount, then getting the total', 'Finding the difference between donations', 'Giving clothing away', 'Sorting clothes into piles'],

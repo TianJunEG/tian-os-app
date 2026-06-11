@@ -18,6 +18,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 5 }, perGroup: { min: 20, max: 60 } },
     storyTemplate: '{nameA} {verb} {fracNum}/{fracDen} of the {item} in the {setting}. {nameA} {verb} {part} {item}. How many {item} were there altogether?',
+    solutionTemplate: 'Step 1: {nameA} {verb} {fracNum}/{fracDen} of the {item}, which is {part} {item}.\nStep 2: {fracNum}/{fracDen} of the total = {part}, so 1/{fracDen} of the total = {part} ÷ {fracNum} = {perGroup}.\nStep 3: Total = {perGroup} × {fracDen} = {answer}.\nAnswer: There were {answer} {item} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the total when a fraction of it is known', 'Adding two groups of items together', 'Comparing two fractions', 'Subtracting a fraction from a whole',
@@ -42,6 +43,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 5 }, perGroup: { min: 25, max: 50 } },
     storyTemplate: 'At a {setting}, {fracNum}/{fracDen} of the {item} were sold in the morning. {part} {item} were sold in the morning. How many {item} were there in total?',
+    solutionTemplate: 'Step 1: {fracNum}/{fracDen} of the {item} = {part} {item}.\nStep 2: 1 unit = {part} ÷ {fracNum} = {perGroup}.\nStep 3: Total = {perGroup} × {fracDen} = {answer}.\nAnswer: There were {answer} {item} in total.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the total from a known fraction', 'Comparing morning and afternoon sales', 'Finding the difference between two amounts', 'Sharing items equally among groups',
@@ -66,6 +68,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 4, max: 5 }, perGroup: { min: 20, max: 60 } },
     storyTemplate: '{fracNum}/{fracDen} of the {item} at a {setting} were {verb}. {part} {item} were {verb}. Find the total number of {item} at the {setting}.',
+    solutionTemplate: 'Step 1: {fracNum}/{fracDen} of the {item} were {verb}. That is {part} {item}.\nStep 2: 1 unit = {part} ÷ {fracNum} = {perGroup}.\nStep 3: Total = {perGroup} × {fracDen} = {answer}.\nAnswer: The total number of {item} at the {setting} is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Working out the total when a fraction is given', 'Subtracting to find how many are empty', 'Comparing full and empty seats', 'Dividing seats into equal groups',
@@ -94,6 +97,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 15, max: 40 } },
     storyTemplate: 'There are {total} {item} in the {setting}. {fracNum}/{fracDen} of the {item} {verb} {activity}. How many {item} {verb} {activity}?',
+    solutionTemplate: 'Step 1: There are {total} {item} in the {setting}.\nStep 2: Find {fracNum}/{fracDen} of {total}: {total} ÷ {fracDen} = {perGroup} (1 unit). Then {perGroup} × {fracNum} = {answer}.\nAnswer: {answer} {item} {verb} {activity}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a fraction of a known total', 'Adding two groups together', 'Finding the total from a fraction', 'Comparing two fractions',
@@ -118,6 +122,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 20, max: 35 } },
     storyTemplate: 'A {setting} had {total} {item}. {fracNum}/{fracDen} of them {verb} {activity}. How many {item} {verb} {activity}?',
+    solutionTemplate: 'Step 1: The {setting} had {total} {item}.\nStep 2: {total} ÷ {fracDen} = {perGroup} (value of 1 unit).\nStep 3: {perGroup} × {fracNum} = {answer}.\nAnswer: {answer} {item} {verb} {activity}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding part of a collection using a fraction', 'Removing some items from a collection', 'Sharing items equally among friends', 'Comparing two collections of items',
@@ -142,6 +147,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 4 }, perGroup: { min: 15, max: 40 } },
     storyTemplate: 'There were {total} {item} at the {setting}. {fracNum}/{fracDen} of them {verb} {activity}. Find the number of {item} that {verb} {activity}.',
+    solutionTemplate: 'Step 1: There were {total} {item} at the {setting}.\nStep 2: 1 unit = {total} ÷ {fracDen} = {perGroup}.\nStep 3: {fracNum} units = {perGroup} × {fracNum} = {answer}.\nAnswer: The number of {item} that {verb} {activity} is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Calculating a fraction of a total', 'Adding two amounts together', 'Finding the total from a fraction', 'Finding the difference between two groups',
@@ -170,6 +176,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 3 }, perGroup: { min: 20, max: 50 } },
     storyTemplate: '{nameA} had {total} {item}. {fracNum}/{fracDen} of the {item} {verb}. How many {item} did {nameA} have left?',
+    solutionTemplate: 'Step 1: {nameA} had {total} {item}. {fracNum}/{fracDen} {verb}.\nStep 2: {total} ÷ {fracDen} × {fracNum} = {fractionPart} {item} {verb}.\nStep 3: {total} − {fractionPart} = {answer}.\nAnswer: {nameA} had {answer} {item} left.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding what is left after a fraction is removed', 'Adding more items to a collection', 'Sharing items equally into groups', 'Comparing two different amounts',
@@ -197,6 +204,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 3 }, perGroup: { min: 25, max: 45 } },
     storyTemplate: 'A {setting} had {total} {item}. {fracNum}/{fracDen} of the {item} {verb}. How many {item} were still good?',
+    solutionTemplate: 'Step 1: The {setting} had {total} {item}. {fracNum}/{fracDen} {verb}.\nStep 2: {total} ÷ {fracDen} × {fracNum} = {fractionPart} {item} {verb}.\nStep 3: {total} − {fractionPart} = {answer}.\nAnswer: {answer} {item} were still good.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Subtracting a fractional part to find the rest', 'Finding a fraction of a number', 'Adding items from two groups', 'Comparing good and bad items',
@@ -224,6 +232,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 3 }, perGroup: { min: 30, max: 50 } },
     storyTemplate: 'There were {total} {item} in the {setting}. {fracNum}/{fracDen} of them {verb}. How many {item} remained in the {setting}?',
+    solutionTemplate: 'Step 1: There were {total} {item}. {fracNum}/{fracDen} of them {verb}.\nStep 2: {total} ÷ {fracDen} × {fracNum} = {fractionPart} {item} {verb}.\nStep 3: {total} − {fractionPart} = {answer}.\nAnswer: {answer} {item} remained in the {setting}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the remainder after a fraction is taken away', 'Combining two groups of items', 'Splitting items into equal groups', 'Finding the larger of two groups',
@@ -255,6 +264,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 5 }, perGroup: { min: 10, max: 30 } },
     storyTemplate: '{nameA} and {nameB} shared {total} {item} in the ratio {ratioA} : {ratioB}. How many {item} did {nameA} receive?',
+    solutionTemplate: 'Step 1: {nameA} and {nameB} shared {total} {item} in the ratio {ratioA} : {ratioB}.\nStep 2: Total units = {ratioA} + {ratioB}. Value of 1 unit = {total} ÷ ({ratioA} + {ratioB}) = {perGroup}.\nStep 3: {nameA} gets {perGroup} × {ratioA} = {answer}.\nAnswer: {nameA} received {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Sharing a total in a given ratio', 'Dividing items equally between two people', 'Comparing two collections', 'Finding the total from parts',
@@ -282,6 +292,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 5 }, perGroup: { min: 12, max: 28 } },
     storyTemplate: '{nameA} and {nameB} packed {total} {item} in the ratio {ratioA} : {ratioB}. How many {item} did {nameB} pack?',
+    solutionTemplate: 'Step 1: {nameA} and {nameB} packed {total} {item} in the ratio {ratioA} : {ratioB}.\nStep 2: 1 unit = {total} ÷ ({ratioA} + {ratioB}) = {perGroup}.\nStep 3: {nameB} gets {perGroup} × {ratioB} = {answer}.\nAnswer: {nameB} packed {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Dividing a total into a ratio between two people', 'Adding two amounts together', 'Comparing what two people brought', 'Taking items away from a total',
@@ -309,6 +320,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 5 }, perGroup: { min: 10, max: 25 } },
     storyTemplate: 'The {setting} divided {total} {item} between Class A and Class B in the ratio {ratioA} : {ratioB}. How many {item} did Class A get?',
+    solutionTemplate: 'Step 1: {total} {item} were divided in the ratio {ratioA} : {ratioB}.\nStep 2: 1 unit = {total} ÷ ({ratioA} + {ratioB}) = {perGroup}.\nStep 3: Class A gets {perGroup} × {ratioA} = {answer}.\nAnswer: Class A got {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Sharing a total amount using a ratio', 'Subtracting items from a stock', 'Finding how many groups fit', 'Comparing prices of two items',
@@ -340,6 +352,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 15, max: 35 } },
     storyTemplate: '{nameA} and {nameB} have {item} in the ratio {ratioA} : {ratioB}. {nameA} has {largerAmt} {item}. How many more {item} does {nameA} have than {nameB}?',
+    solutionTemplate: 'Step 1: The ratio is {ratioA} : {ratioB}. {nameA} has {largerAmt} {item}.\nStep 2: 1 unit = {largerAmt} ÷ {ratioA} = {perGroup}.\nStep 3: Difference = {perGroup} × ({ratioA} − {ratioB}) = {answer}.\nAnswer: {nameA} has {answer} more {item} than {nameB}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the difference between two amounts in a ratio', 'Adding two people\'s savings together', 'Finding the total amount saved', 'Sharing money equally',
@@ -367,6 +380,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 18, max: 30 } },
     storyTemplate: 'The number of {item} {nameA} has to the number {nameB} has is {ratioA} : {ratioB}. If {nameB} has {smallerAmt} {item}, how many more {item} does {nameA} have?',
+    solutionTemplate: 'Step 1: The ratio is {ratioA} : {ratioB}. {nameB} has {smallerAmt} {item}.\nStep 2: 1 unit = {smallerAmt} ÷ {ratioB} = {perGroup}.\nStep 3: Difference = {perGroup} × ({ratioA} − {ratioB}) = {answer}.\nAnswer: {nameA} has {answer} more {item} than {nameB}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using a ratio to find how many more one person has', 'Finding the total between two people', 'Splitting items into equal groups', 'Subtracting one amount from another',
@@ -394,6 +408,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 4 }, perGroup: { min: 15, max: 35 } },
     storyTemplate: '{nameA} and {nameB} collected {item} in the ratio {ratioA} : {ratioB}. {nameA} collected {largerAmt} {item}. Find the difference between their collections.',
+    solutionTemplate: 'Step 1: {nameA} and {nameB} collected {item} in the ratio {ratioA} : {ratioB}. {nameA} collected {largerAmt}.\nStep 2: 1 unit = {largerAmt} ÷ {ratioA} = {perGroup}.\nStep 3: Difference = {perGroup} × ({ratioA} − {ratioB}) = {answer}.\nAnswer: The difference between their collections is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Comparing two collections using a ratio', 'Combining two collections together', 'Finding the total across both collections', 'Sharing a collection equally',
@@ -425,6 +440,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 30, max: 150 }, groups: { min: 2, max: 4 } },
     storyTemplate: '{nameA} has {smaller} {entityB}. {nameA} has {groups} times as many {entityA} as {entityB}. How many {entityA} does {nameA} have?',
+    solutionTemplate: 'Step 1: {nameA} has {smaller} {entityB} and {groups} times as many {entityA}.\nStep 2: Number of {entityA} = {smaller} × {groups} = {answer}.\nAnswer: {nameA} has {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One amount is a multiple of another', 'Adding two groups of items', 'Finding the difference between two groups', 'Sharing items between two people',
@@ -449,6 +465,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 40, max: 120 }, groups: { min: 2, max: 4 } },
     storyTemplate: 'A {setting} had {smaller} {entityB}. It had {groups} times as many {entityA} as {entityB}. How many {entityA} were there?',
+    solutionTemplate: 'Step 1: The {setting} had {smaller} {entityB} and {groups} times as many {entityA}.\nStep 2: Number of {entityA} = {smaller} × {groups} = {answer}.\nAnswer: There were {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One quantity being a multiple of another', 'Finding the sum of two quantities', 'Subtracting to find the remainder', 'Dividing items into equal groups',
@@ -473,6 +490,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 35, max: 150 }, groups: { min: 3, max: 4 } },
     storyTemplate: '{nameA} bought {smaller} {entityB} from the {setting}. {nameA} bought {groups} times as many {entityA}. How many {entityA} did {nameA} buy?',
+    solutionTemplate: 'Step 1: {nameA} bought {smaller} {entityB} and {groups} times as many {entityA}.\nStep 2: Number of {entityA} = {smaller} × {groups} = {answer}.\nAnswer: {nameA} bought {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Multiplying to find a larger quantity', 'Adding purchases together', 'Finding the change after buying', 'Splitting a purchase equally',
@@ -501,6 +519,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 20, max: 50 } },
     storyTemplate: '{nameA} had {total} {entityA}. {fracNum}/{fracDen} of them were used. {nameA} also had {otherAmt} {entityB}. How many more {entityB} than remaining {entityA} did {nameA} have?',
+    solutionTemplate: 'Step 1: {nameA} had {total} {entityA}. {fracNum}/{fracDen} were used.\nStep 2: Used = {total} ÷ {fracDen} × {fracNum}. Remaining {entityA} = {total} − used = {remaining}.\nStep 3: {nameA} also had {otherAmt} {entityB}. Difference = {otherAmt} − {remaining} = {answer}.\nAnswer: {nameA} had {answer} more {entityB} than remaining {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a fraction, then comparing with another amount', 'Adding fractions together', 'Sharing items in a ratio', 'Finding the total of two groups',
@@ -528,6 +547,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 4 }, perGroup: { min: 20, max: 45 } },
     storyTemplate: 'A {setting} made {total} {entityA}. {fracNum}/{fracDen} were sold in the morning. In the afternoon, the {setting} made {extraAmt} more {entityA}. How many {entityA} did the {setting} have at the end of the day?',
+    solutionTemplate: 'Step 1: The {setting} made {total} {entityA}. {fracNum}/{fracDen} were sold in the morning.\nStep 2: Sold = {total} ÷ {fracDen} × {fracNum}. Unsold = {total} − sold = {remaining}.\nStep 3: In the afternoon, {extraAmt} more were made. Total = {remaining} + {extraAmt} = {answer}.\nAnswer: The {setting} had {answer} {entityA} at the end of the day.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a remainder after selling a fraction, then adding more', 'Finding a fraction of a total', 'Comparing morning and afternoon sales', 'Dividing items equally between shifts',
@@ -555,6 +575,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 25, max: 50 } },
     storyTemplate: '{nameA} had {total} {entityA}. {nameA} gave away {fracNum}/{fracDen} of them. {nameB} had {groups} times as many {entityA} as {nameA} had left. How many {entityA} did {nameB} have?',
+    solutionTemplate: 'Step 1: {nameA} had {total} {entityA} and gave away {fracNum}/{fracDen}.\nStep 2: Gave away = {total} ÷ {fracDen} × {fracNum}. Left = {total} − gave away = {remaining}.\nStep 3: {nameB} had {groups} times as many = {remaining} × {groups} = {answer}.\nAnswer: {nameB} had {answer} {entityA}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a remainder after a fraction, then multiplying', 'Adding fractions of two amounts', 'Comparing fractions of different totals', 'Sharing items in a ratio',
@@ -586,6 +607,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 5 }, perGroup: { min: 10, max: 25 } },
     storyTemplate: 'The ratio of {entityA} to {entityB} is {ratioA} : {ratioB}. If the {entityB} amount is {knownAmt}, how many points were scored altogether?',
+    solutionTemplate: 'Step 1: The ratio of {entityA} to {entityB} is {ratioA} : {ratioB}. The {entityB} amount is {knownAmt}.\nStep 2: 1 unit = {knownAmt} ÷ {ratioB} = {perGroup}.\nStep 3: Total = {perGroup} × ({ratioA} + {ratioB}) = {answer}.\nAnswer: {answer} points were scored altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using a ratio to find individual parts, then the total', 'Adding two ratios together', 'Comparing two teams\' scores', 'Dividing points equally',
@@ -613,6 +635,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 3, max: 5 }, perGroup: { min: 12, max: 22 } },
     storyTemplate: '{nameA} bought {entityA} and {entityB} in the ratio {ratioA} : {ratioB}. {nameA} bought {knownAmt} {entityA}. After buying {extraAmt} more {entityB}, how many items did {nameA} have altogether?',
+    solutionTemplate: 'Step 1: {nameA} bought {entityA} and {entityB} in the ratio {ratioA} : {ratioB}. {knownAmt} {entityA} were bought.\nStep 2: 1 unit = {knownAmt} ÷ {ratioA} = {perGroup}. {entityB} = {perGroup} × {ratioB}.\nStep 3: After buying {extraAmt} more {entityB}: Total = {knownAmt} + ({perGroup} × {ratioB}) + {extraAmt} = {answer}.\nAnswer: {nameA} had {answer} items altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using a ratio to find quantities, then adding extra', 'Simplifying a ratio', 'Finding the difference between two groups', 'Sharing items between friends',
@@ -640,6 +663,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 4, max: 5 }, perGroup: { min: 10, max: 20 } },
     storyTemplate: 'At a {setting}, the ratio of {entityA} to {entityB} was {ratioA} : {ratioB}. There were {knownAmt} {entityA}. {extraAdults} adults also attended. How many people were at the {setting} altogether?',
+    solutionTemplate: 'Step 1: Ratio of {entityA} to {entityB} is {ratioA} : {ratioB}. There were {knownAmt} {entityA}.\nStep 2: 1 unit = {knownAmt} ÷ {ratioA} = {perGroup}. {entityB} = {perGroup} × {ratioB}.\nStep 3: Total = {knownAmt} + ({perGroup} × {ratioB}) + {extraAdults} = {answer}.\nAnswer: There were {answer} people at the {setting} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding all people using a ratio and an extra group', 'Comparing boys and girls at a camp', 'Finding the difference between groups', 'Splitting campers into tents',
