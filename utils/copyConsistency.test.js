@@ -15,8 +15,9 @@ const guardedFiles = [
   'frontend/src/pages/parent/ChildNav.jsx',
   'frontend/src/pages/parent/AssignPractice.jsx',
   'frontend/src/pages/tutor/TutorMathPathDashboardPage.jsx',
-  'frontend/src/components/LifeLab/screens/TutorViewScreen.jsx',
-  'frontend/src/components/LifeLab/screens/ClassOverviewScreen.jsx',
+  'frontend/src/pages/student/StudentLifeLab.jsx',
+  'frontend/src/pages/teacher/LifeLab.jsx',
+  'frontend/src/pages/parent/ChildLifeLab.jsx',
 ];
 
 const bannedVisiblePhrases = [
