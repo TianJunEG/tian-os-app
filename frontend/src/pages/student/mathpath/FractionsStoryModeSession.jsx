@@ -101,7 +101,7 @@ function StoryNumberLine({ model = {} }) {
           return (
             <div key={index} className="absolute top-2 -translate-x-1/2 text-center" style={{ left }}>
               <div className={`mx-auto h-4 w-1 rounded-full ${index === removed ? 'bg-gold-500' : 'bg-navy-400'}`} />
-              <span className="mt-1 block text-[11px] text-ink-600">{index}/{denominator}</span>
+              <span className="mt-1 block text-[11px] sm:text-xs text-ink-600">{index}/{denominator}</span>
             </div>
           );
         })}
@@ -248,13 +248,21 @@ export default function FractionsStoryModeSession() {
     try {
       setSubmitting(true);
       const started = await ensureBackendSession();
-      if (!started?.sessionId || !started?.questionId) return;
-      await mathpathAPI.attempt(started.sessionId, {
-        questionId: started.questionId,
-        answer: story.answer?.value || '',
-        timeMs: Math.max(1000, (finalResponses.length || 1) * 45000),
-        hintsUsed: Object.values(attemptsByScene).filter((value) => value > 0).length,
-      });
+      if (!started?.sessionId) return;
+      for (const r of finalResponses) {
+        const sc = scenes[r.stepIndex];
+        if (!sc) continue;
+        const sceneAttempts = attemptsByScene[r.stepIndex] || 1;
+        const correct = sc.type === 'reflection' || r.answer === (sc.answer?.value ?? sc.answer ?? sc.correct);
+        await mathpathAPI.attempt(started.sessionId, {
+          questionId: started.questionId || `${story.storyId || story.skillId}_scene_${r.stepIndex}`,
+          answer: String(r.answer ?? ''),
+          timeMs: Math.max(1000, sceneAttempts * 30000),
+          hintsUsed: Math.max(0, sceneAttempts - 1),
+          confidence: sc.type === 'reflection' ? 'reflection' : '',
+          skipped: false,
+        });
+      }
       await mathpathAPI.complete(started.sessionId);
     } finally {
       setSubmitting(false);
@@ -339,7 +347,7 @@ export default function FractionsStoryModeSession() {
           <div>
             <p className="text-sm font-semibold text-navy-700">Scene {sceneIndex + 1} of {scenes.length}</p>
             <h1 className="mt-1 font-display text-2xl font-semibold text-ink-900">{story.missionTitle}</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-600">{scene?.sceneNarration}</p>
+            <p className="mt-2 max-w-2xl break-words text-sm leading-relaxed text-ink-600">{scene?.sceneNarration}</p>
           </div>
         </div>
         <ProgressBar value={sceneIndex + (sceneComplete ? 1 : 0)} max={scenes.length} className="mt-4" />
@@ -354,7 +362,7 @@ export default function FractionsStoryModeSession() {
       </div>
 
       <Card className="p-4 sm:p-6">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] xl:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start">
           <main className="space-y-4">
             <section className="rounded-2xl border border-hairline bg-slate-50 p-4 sm:p-5" aria-label="Story problem">
               <p className="mb-2 text-sm font-semibold text-navy-800">{friendlySceneTitle(scene)}</p>
@@ -362,8 +370,8 @@ export default function FractionsStoryModeSession() {
                 <FractionExpressionQuestion prompt={scene?.questionText || ''} value={answer} onChange={setAnswer} />
               ) : (
                 <>
-                  <p className="text-lg font-semibold leading-relaxed text-ink-900">{story.prompt}</p>
-                  <p className="mt-4 text-base leading-relaxed text-ink-800">{scene?.questionText}</p>
+                  <p className="break-words text-lg font-semibold leading-relaxed text-ink-900">{story.prompt}</p>
+                  <p className="mt-4 break-words text-base leading-relaxed text-ink-800">{scene?.questionText}</p>
                 </>
               )}
             </section>
