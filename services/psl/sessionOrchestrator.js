@@ -16,6 +16,9 @@ function sanitizeProblemForClient(problem) {
     storyText: problem.storyText,
     givenNumbers: problem.givenNumbers,
     status: problem.status,
+    heuristic: problem.heuristic,
+    structure: problem.structure,
+    unknownPosition: problem.unknownPosition || null,
     scaffoldSteps: (problem.scaffoldSteps || []).map((step) => ({
       stepId: step.stepId,
       type: step.type,

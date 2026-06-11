@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { BookOpen, ChevronRight, RotateCcw } from 'lucide-react';
 import SolutionVisual from './SolutionVisual';
+import MascotBubble from './MascotBubble';
+import { getVoiceScripts } from '../utils/voiceScripts';
 
 function parseSteps(text) {
   if (!text) return [];
@@ -21,9 +23,10 @@ function parseSteps(text) {
   return steps;
 }
 
-export default function WorkedSolutionWalkthrough({ solutionText, visualSpec }) {
+export default function WorkedSolutionWalkthrough({ solutionText, visualSpec, heuristic, structure, unknownPosition, operation }) {
   const steps = parseSteps(solutionText);
   const [revealed, setRevealed] = useState(0);
+  const scripts = getVoiceScripts(heuristic, structure, unknownPosition, operation);
 
   if (steps.length === 0) return null;
 
@@ -43,7 +46,7 @@ export default function WorkedSolutionWalkthrough({ solutionText, visualSpec }) 
       )}
 
       <div className="space-y-2">
-        {steps.map((step, i) => {
+        {(() => { let stepIdx = 0; return steps.map((step, i) => {
           const visible = i < revealed;
           return (
             <div
@@ -56,21 +59,27 @@ export default function WorkedSolutionWalkthrough({ solutionText, visualSpec }) 
               style={visible ? { transitionDelay: `${50}ms` } : {}}
             >
               {step.type === 'answer' ? (
-                <div className="rounded-lg bg-sky-100 border border-sky-300 px-3 py-2 mt-1">
-                  <span className="text-sm font-semibold text-sky-800">Answer: </span>
-                  <span className="text-sm text-sky-800">{step.text}</span>
+                <div>
+                  <MascotBubble text={scripts.answer} />
+                  <div className="rounded-lg bg-sky-100 border border-sky-300 px-3 py-2 mt-1">
+                    <span className="text-sm font-semibold text-sky-800">Answer: </span>
+                    <span className="text-sm text-sky-800">{step.text}</span>
+                  </div>
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-200 text-[10px] font-bold text-sky-700 mt-0.5">
-                    {step.number}
-                  </span>
-                  <p className="text-sm text-sky-800 leading-relaxed">{step.text}</p>
+                <div>
+                  <MascotBubble text={scripts.steps[stepIdx++] || null} />
+                  <div className="flex gap-2">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-200 text-[10px] font-bold text-sky-700 mt-0.5">
+                      {step.number}
+                    </span>
+                    <p className="text-sm text-sky-800 leading-relaxed">{step.text}</p>
+                  </div>
                 </div>
               )}
             </div>
           );
-        })}
+        }); })()}
       </div>
 
       <div className="mt-3 flex gap-2">
