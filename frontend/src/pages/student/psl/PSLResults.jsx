@@ -4,6 +4,7 @@ import { Award, ChevronDown, ChevronRight, Clock, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import BarModelViewer from './components/BarModelViewer';
+import { getMisconception } from './utils/misconceptions';
 
 function StepBadge({ step }) {
   if (step.correct) return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct</span>;
@@ -42,13 +43,27 @@ function ProblemCard({ attempt, problem, index }) {
             />
           )}
           <div className="space-y-1.5">
-            {(attempt.steps || []).map((step) => (
-              <div key={step.stepId} className="flex items-center justify-between rounded-lg bg-white px-3 py-2">
-                <span className="text-sm capitalize text-ink-600">{step.stepId.replaceAll('_', ' ')}</span>
-                <StepBadge step={step} />
-              </div>
-            ))}
+            {(attempt.steps || []).map((step) => {
+              const m = step.misconceptionTag ? getMisconception(step.misconceptionTag) : null;
+              return (
+                <div key={step.stepId} className="rounded-lg bg-white px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm capitalize text-ink-600">{step.stepId.replace('_', ' ')}</span>
+                    <StepBadge step={step} />
+                  </div>
+                  {m && !step.correct && (
+                    <p className="mt-1 text-xs text-amber-600">{m.tip}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          {problem?.solutionText && (
+            <div className="rounded-lg border border-sky-200 bg-sky-50 p-3">
+              <p className="text-xs font-semibold text-sky-700 mb-1">Worked Solution</p>
+              <p className="text-sm text-sky-800 whitespace-pre-line">{problem.solutionText}</p>
+            </div>
+          )}
         </div>
       )}
     </Card>

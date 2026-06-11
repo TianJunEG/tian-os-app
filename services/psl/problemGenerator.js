@@ -612,6 +612,7 @@ export async function generateProblem(skillId, options = {}) {
   }
 
   const storyText = substituteTokens(template.storyTemplate, vars);
+  const solutionText = substituteTokens(template.solutionTemplate || '', vars);
   const correctAnswer = computeAnswer(template.scaffold, vars);
   // Ensure answer var is set for token substitution in scaffolds
   if (vars.answer === undefined) vars.answer = correctAnswer;
@@ -628,6 +629,7 @@ export async function generateProblem(skillId, options = {}) {
     heuristic: template.heuristic || 'bar-model',
     structure: template.structure,
     storyText,
+    solutionText,
     givenNumbers,
     correctAnswer,
     scaffoldSteps,

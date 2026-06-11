@@ -12,6 +12,7 @@ const pslProblemTemplateSchema = new mongoose.Schema({
   contexts: { type: [mongoose.Schema.Types.Mixed], default: [] },
   constraints: { type: mongoose.Schema.Types.Mixed, default: {} },
   storyTemplate: { type: String, required: true },
+  solutionTemplate: { type: String, default: '' },
   scaffold: { type: mongoose.Schema.Types.Mixed, default: {} },
   misconceptions: { type: mongoose.Schema.Types.Mixed, default: {} },
 }, { timestamps: true });

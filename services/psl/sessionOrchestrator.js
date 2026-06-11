@@ -10,7 +10,7 @@ import { evaluateStep, evaluateAttempt } from './stepEvaluator.js';
 
 function sanitizeProblemForClient(problem) {
   if (!problem) return null;
-  return {
+  const sanitized = {
     problemId: problem.problemId,
     templateId: problem.templateId,
     storyText: problem.storyText,
@@ -23,6 +23,10 @@ function sanitizeProblemForClient(problem) {
       choices: step.choices || [],
     })),
   };
+  if (problem.status === 'completed' && problem.solutionText) {
+    sanitized.solutionText = problem.solutionText;
+  }
+  return sanitized;
 }
 
 export async function startSession({ studentId, skillId, workspaceId, problemCount = 5, assignmentId = null }) {
