@@ -71,25 +71,43 @@ function evaluatePlanReverseSteps(response, expected) {
 }
 
 function evaluatePlanTable(response, expected) {
-  const correct = Number(response?.columnCount) === expected?.columnCount;
-  return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-table-setup' };
+  // Frontend sends { columns: ['Position', 'Value'] }; expected has columns array and requiredCount
+  const selectedCols = response?.columns || [];
+  const expectedCols = expected?.columns || [];
+  const requiredCount = expected?.requiredCount || expectedCols.length;
+  if (selectedCols.length >= requiredCount) {
+    const allValid = selectedCols.every((c) => expectedCols.includes(c));
+    if (allValid) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  }
+  if (selectedCols.length > 0) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/wrong-table-setup' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-table-setup' };
 }
 
 function evaluatePlanEquation(response, expected) {
-  const correct = normalizeText(response?.eliminateVar) === normalizeText(expected?.eliminateVar);
-  return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-variable' };
+  // Frontend sends { eliminateVar: 'apples' }; expected has variables array
+  // Any variable from the list is a valid elimination choice
+  const chosen = normalizeText(response?.eliminateVar);
+  const validVars = (expected?.variables || []).map(normalizeText);
+  if (chosen && validVars.includes(chosen)) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  if (chosen) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/wrong-variable' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-variable' };
 }
 
 function evaluatePlanList(response, expected) {
-  const correct = Number(response?.conditionCount) === expected?.conditionCount;
-  return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-conditions' };
+  // Frontend sends { conditions: [0, 1, 2], range: '...' }; expected has conditions array
+  const selected = response?.conditions || [];
+  const expectedCount = (expected?.conditions || []).length;
+  if (selected.length >= expectedCount) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  if (selected.length > 0) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/missed-condition' };
+  return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-conditions' };
 }
 
 function evaluatePlanGuess(response, expected) {
-  const c1Match = normalizeText(response?.constraint1) === normalizeText(expected?.constraint1);
-  const c2Match = normalizeText(response?.constraint2) === normalizeText(expected?.constraint2);
-  if (c1Match && c2Match) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
-  if (c1Match || c2Match) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/missed-constraint' };
+  // Frontend sends { constraints: [0, 1] }; expected has constraints array
+  const selected = response?.constraints || [];
+  const expectedCount = (expected?.constraints || []).length;
+  if (selected.length >= expectedCount) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
+  if (selected.length > 0) return { correct: false, partial: true, score: 0.5, misconceptionTag: 'psl/missed-constraint' };
   return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-constraints' };
 }
 
