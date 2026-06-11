@@ -39,8 +39,8 @@ import {
   getDiagnosticGrowth,
   getDiagnosticHistory,
 } from '../services/diagnostics/diagnosticGrowthService.js';
-import { classifyFractionMistake } from '../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
-import { calculateQuestionTiming } from '../frontend/src/mathpath/fractions/fractionFluencyRetentionEngine.js';
+import { classifyFractionMistake } from '../shared/mathpath/fractions/fractionMistakeToMasteryEngine.js';
+import { calculateQuestionTiming } from '../shared/mathpath/fractions/fractionFluencyRetentionEngine.js';
 import {
   getFractionsModelTrainerForSkill,
   getFractionsModelTrainerTemplate,
@@ -49,8 +49,8 @@ import {
 import {
   startFractionPracticeFlow,
   submitFractionPracticeAttempt,
-} from '../frontend/src/mathpath/fractions/fractionPracticeFlow.js';
-import { fractionSkillGraph } from '../frontend/src/mathpath/fractions/fractionSkillGraph.js';
+} from '../shared/mathpath/fractions/fractionPracticeFlow.js';
+import { fractionSkillGraph } from '../shared/mathpath/fractions/fractionSkillGraph.js';
 import {
   approvePracticeSet,
   extractQuestionPattern,
