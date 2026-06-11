@@ -18,10 +18,11 @@ import {
 
 const router = express.Router();
 
-router.get('/home', protect, resolveStudent, async (req, res) => {
+router.get('/home', protect, async (req, res) => {
   try {
-    const studentId = req.studentId;
-    const workspaceId = req.workspaceId;
+    const student = await resolveStudent(req);
+    const studentId = student._id;
+    const workspaceId = student.workspaceId;
     const skills = await PSLSkill.find({ isActive: true }).lean();
 
     const masteryRecords = await MasteryRecord.find({
@@ -52,22 +53,24 @@ router.get('/home', protect, resolveStudent, async (req, res) => {
   }
 });
 
-router.get('/skills/:skillId/readiness', protect, resolveStudent, async (req, res) => {
+router.get('/skills/:skillId/readiness', protect, async (req, res) => {
   try {
-    const result = await checkPrerequisites(req.params.skillId, req.studentId, req.workspaceId);
+    const student = await resolveStudent(req);
+    const result = await checkPrerequisites(req.params.skillId, student._id, student.workspaceId);
     res.json(result);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
 });
 
-router.post('/sessions', protect, resolveStudent, async (req, res) => {
+router.post('/sessions', protect, async (req, res) => {
   try {
+    const student = await resolveStudent(req);
     const { skillId, problemCount = 5 } = req.body;
     const result = await startSession({
-      studentId: req.studentId,
+      studentId: student._id,
       skillId,
-      workspaceId: req.workspaceId,
+      workspaceId: student.workspaceId,
       problemCount,
       assignmentId: req.body.assignmentId || null,
     });
@@ -77,9 +80,10 @@ router.post('/sessions', protect, resolveStudent, async (req, res) => {
   }
 });
 
-router.get('/sessions/:sessionId', protect, resolveStudent, async (req, res) => {
+router.get('/sessions/:sessionId', protect, async (req, res) => {
   try {
-    const session = await getSession(req.params.sessionId, { studentId: req.studentId });
+    const student = await resolveStudent(req);
+    const session = await getSession(req.params.sessionId, { studentId: student._id });
     res.json(session);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -132,10 +136,11 @@ router.patch('/sessions/:sid/abandon', protect, async (req, res) => {
   }
 });
 
-router.get('/mistakes', protect, resolveStudent, async (req, res) => {
+router.get('/mistakes', protect, async (req, res) => {
   try {
+    const student = await resolveStudent(req);
     const mistakes = await Mistake.find({
-      studentId: req.studentId,
+      studentId: student._id,
       module: 'PSL',
     }).sort({ createdAt: -1 }).limit(50).lean();
     res.json({ mistakes });
