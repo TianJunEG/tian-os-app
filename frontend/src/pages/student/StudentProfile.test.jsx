@@ -58,6 +58,8 @@ vi.mock('../../services/api', () => ({
     summary: vi.fn(() => Promise.resolve({ data: profilePayload.summary })),
     achievements: vi.fn(() => Promise.resolve({ data: profilePayload.achievements })),
     timeline: vi.fn(() => Promise.resolve({ data: profilePayload.timeline })),
+    personalBests: vi.fn(() => Promise.resolve({ data: [] })),
+    updateName: vi.fn(() => Promise.resolve({ data: { ok: true } })),
   },
 }));
 
@@ -68,6 +70,8 @@ describe('StudentProfile', () => {
     studentProfileAPI.summary.mockResolvedValue({ data: profilePayload.summary });
     studentProfileAPI.achievements.mockResolvedValue({ data: profilePayload.achievements });
     studentProfileAPI.timeline.mockResolvedValue({ data: profilePayload.timeline });
+    studentProfileAPI.personalBests.mockResolvedValue({ data: [] });
+    studentProfileAPI.updateName.mockResolvedValue({ data: { ok: true } });
   });
 
   it('renders learning identity, achievements, timeline, and continue CTA', async () => {
@@ -87,7 +91,7 @@ describe('StudentProfile', () => {
     expect(screen.getByText('1,240')).toBeInTheDocument();
     expect(screen.getByText('523')).toBeInTheDocument();
     expect(screen.getByText('9 / 26 Skills Mastered')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Continue Learning/i })).toHaveAttribute('href', '/student/mathpath');
+    expect(screen.getByRole('link', { name: /Continue/i })).toHaveAttribute('href', '/student/mathpath');
     expect(screen.getByText('First Practice Session')).toBeInTheDocument();
     expect(screen.getByText('Seven Day Streak')).toBeInTheDocument();
     expect(screen.getByText('Locked')).toBeInTheDocument();
