@@ -16,27 +16,26 @@ export default function SiteFooter() {
               <span className="font-display text-lg font-semibold text-white">{GROUP_NAME}</span>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-slate-400">
-              A social enterprise bringing together a family of education services — built to create
-              opportunity through learning.
+              AI-native learning infrastructure for schools — diagnostic assessment,
+              adaptive practice and real-time mastery analytics.
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-white">Services</p>
+            <p className="text-sm font-semibold text-white">Platform</p>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link className="transition hover:text-white" to="/tutoring">Tutor Matching</Link></li>
-              <li><Link className="transition hover:text-white" to="/edu-apps">Edu Apps</Link></li>
+              <li><Link className="transition hover:text-white" to="/edu-apps">Learning Apps</Link></li>
+              <li><Link className="transition hover:text-white" to="/methodology">Our Approach</Link></li>
               <li><Link className="transition hover:text-white" to="/resources">Resources</Link></li>
-              <li><Link className="transition hover:text-white" to="/methodology">Our Methodology</Link></li>
             </ul>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-white">Get started</p>
+            <p className="text-sm font-semibold text-white">For schools</p>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link className="transition hover:text-white" to="/register">Create an account</Link></li>
+              <li><Link className="transition hover:text-white" to="/register">Request a Demo</Link></li>
               <li><Link className="transition hover:text-white" to="/login">Sign in</Link></li>
-              <li><Link className="transition hover:text-white" to="/#partner">Partner with us</Link></li>
+              <li><Link className="transition hover:text-white" to="/founder">Our Story</Link></li>
             </ul>
           </div>
         </div>
