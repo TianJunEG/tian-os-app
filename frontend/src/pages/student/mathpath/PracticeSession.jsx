@@ -32,6 +32,18 @@ import {
   checkP2AnswerForSession,
 } from '../../../mathpath/primary/p2PracticeFlow';
 import {
+  isP4SkillId,
+  startP4PracticeFlow,
+  submitP4PracticeAttempt,
+  checkP4AnswerForSession,
+} from '../../../mathpath/primary/p4PracticeFlow';
+import {
+  isP5SkillId,
+  startP5PracticeFlow,
+  submitP5PracticeAttempt,
+  checkP5AnswerForSession,
+} from '../../../mathpath/primary/p5PracticeFlow';
+import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
@@ -218,7 +230,7 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     return {
       requestedSkillId: resolvedSkillId,
       sessionType: 'practice',
-      questionCount: (isP1SkillId(resolvedSkillId) || isP2SkillId(resolvedSkillId) || isP3SkillId(resolvedSkillId)) ? 6 : 8,
+      questionCount: (isP1SkillId(resolvedSkillId) || isP2SkillId(resolvedSkillId) || isP3SkillId(resolvedSkillId) || isP4SkillId(resolvedSkillId) || isP5SkillId(resolvedSkillId)) ? 6 : 8,
     };
   }
 
@@ -244,6 +256,8 @@ function isPersistedPracticeSessionId(value = '') {
 
 function deriveDomainKey(skillId) {
   if (!skillId) return 'fractions';
+  if (isP5SkillId(skillId)) return 'p5';
+  if (isP4SkillId(skillId)) return 'p4';
   if (isP3SkillId(skillId)) return 'p3';
   if (isP2SkillId(skillId)) return 'p2';
   if (isP1SkillId(skillId)) return 'p1';
@@ -1054,9 +1068,13 @@ export default function PracticeSession() {
             setLoading(false);
             return;
           }
-        } else if (isP1SkillId(resolvedIntent.requestedSkillId) || isP2SkillId(resolvedIntent.requestedSkillId) || isP3SkillId(resolvedIntent.requestedSkillId)) {
+        } else if (isP1SkillId(resolvedIntent.requestedSkillId) || isP2SkillId(resolvedIntent.requestedSkillId) || isP3SkillId(resolvedIntent.requestedSkillId) || isP4SkillId(resolvedIntent.requestedSkillId) || isP5SkillId(resolvedIntent.requestedSkillId)) {
           // ── P1 / P3 domain (client-side generation) ────────────────
-          const startFn = isP2SkillId(resolvedIntent.requestedSkillId)
+          const startFn = isP5SkillId(resolvedIntent.requestedSkillId)
+            ? startP5PracticeFlow
+            : isP4SkillId(resolvedIntent.requestedSkillId)
+            ? startP4PracticeFlow
+            : isP2SkillId(resolvedIntent.requestedSkillId)
             ? startP2PracticeFlow
             : isP3SkillId(resolvedIntent.requestedSkillId)
             ? startP3PracticeFlow
@@ -1080,7 +1098,11 @@ export default function PracticeSession() {
           });
           // Persist the session to the backend so the submit route can find it.
           // Fire-and-forget — the student starts practicing immediately.
-          const apiStart = isP2SkillId(resolvedIntent.requestedSkillId)
+          const apiStart = isP5SkillId(resolvedIntent.requestedSkillId)
+            ? mathpathAPI.startP5Practice
+            : isP4SkillId(resolvedIntent.requestedSkillId)
+            ? mathpathAPI.startP4Practice
+            : isP2SkillId(resolvedIntent.requestedSkillId)
             ? mathpathAPI.startP2Practice
             : isP3SkillId(resolvedIntent.requestedSkillId)
               ? mathpathAPI.startP3Practice
@@ -1165,7 +1187,7 @@ export default function PracticeSession() {
         // students don't have to manually check the box for simple counting etc.
         const workingInit = {};
         valid.forEach((q) => {
-          if ((isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId)) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
+          if ((isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId) || isP4SkillId(q.skillId) || isP5SkillId(q.skillId)) && resolveWorkingRequirementLevel(q, sessionType) === 'LOW') {
             workingInit[q.questionId] = { workingNotNeeded: true, workingNotNeededAt: new Date().toISOString() };
           }
         });
@@ -1324,8 +1346,12 @@ export default function PracticeSession() {
 
     // Retry path — student is re-submitting after using hints
     if (retrying && answer) {
-      const retryCheck = (isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId))
-        ? (isP2SkillId(q.skillId)
+      const retryCheck = (isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId) || isP4SkillId(q.skillId) || isP5SkillId(q.skillId))
+        ? (isP5SkillId(q.skillId)
+          ? checkP5AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP4SkillId(q.skillId)
+          ? checkP4AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP2SkillId(q.skillId)
           ? checkP2AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
           : isP3SkillId(q.skillId)
           ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
@@ -1361,8 +1387,12 @@ export default function PracticeSession() {
 
     if (!answer || !reflection || !workingReady) return;
     const timeTaken = Math.max(1, Math.floor((Date.now() - questionStartedAt) / 1000));
-    const answerCheck = (isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId))
-      ? (isP2SkillId(q.skillId)
+    const answerCheck = (isP1SkillId(q.skillId) || isP2SkillId(q.skillId) || isP3SkillId(q.skillId) || isP4SkillId(q.skillId) || isP5SkillId(q.skillId))
+      ? (isP5SkillId(q.skillId)
+          ? checkP5AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP4SkillId(q.skillId)
+          ? checkP4AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
+          : isP2SkillId(q.skillId)
           ? checkP2AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
           : isP3SkillId(q.skillId)
         ? checkP3AnswerForSession({ studentAnswer: answer, correctAnswer: q.answer, question: q })
@@ -1556,8 +1586,10 @@ export default function PracticeSession() {
       const isP1Session = isP1SkillId(sessionSkillId);
       const isP2Session = isP2SkillId(sessionSkillId);
       const isP3Session = isP3SkillId(sessionSkillId);
-      if (isP1Session || isP2Session || isP3Session) {
-        const submitFn = isP2Session ? submitP2PracticeAttempt : isP3Session ? submitP3PracticeAttempt : submitP1PracticeAttempt;
+      const isP4Session = isP4SkillId(sessionSkillId);
+      const isP5Session = isP5SkillId(sessionSkillId);
+      if (isP1Session || isP2Session || isP3Session || isP4Session || isP5Session) {
+        const submitFn = isP5Session ? submitP5PracticeAttempt : isP4Session ? submitP4PracticeAttempt : isP2Session ? submitP2PracticeAttempt : isP3Session ? submitP3PracticeAttempt : submitP1PracticeAttempt;
         submitted = submitFn({
           practiceSessionId: flowSession.practiceSessionId || routeSessionId,
           studentId,
@@ -1565,7 +1597,7 @@ export default function PracticeSession() {
           responses: payload,
         });
         try {
-          const apiSubmit = isP2Session ? mathpathAPI.submitP2Practice : isP3Session ? mathpathAPI.submitP3Practice : mathpathAPI.submitP1Practice;
+          const apiSubmit = isP5Session ? mathpathAPI.submitP5Practice : isP4Session ? mathpathAPI.submitP4Practice : isP2Session ? mathpathAPI.submitP2Practice : isP3Session ? mathpathAPI.submitP3Practice : mathpathAPI.submitP1Practice;
           const { data: persisted } = await apiSubmit(
             flowSession.practiceSessionId || routeSessionId,
             { sessionType, responses: payload },

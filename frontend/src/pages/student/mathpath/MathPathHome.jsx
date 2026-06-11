@@ -463,6 +463,22 @@ export default function MathPathHome() {
               Explore P3
             </Button>
           </Card>
+          <Card className="flex h-full flex-col border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><Hash className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P4 Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">22 skills across 7 domains — Singapore MOE P4 syllabus.</p>
+            <Button to="/student/mathpath/p4" variant="secondary" className="mt-4 w-full border-emerald-200 bg-white/80 text-emerald-700 hover:bg-emerald-50">
+              Explore P4
+            </Button>
+          </Card>
+          <Card className="flex h-full flex-col border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-indigo-100 text-indigo-700"><Hash className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">P5 Mathematics</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">26 skills across 9 domains — Singapore MOE P5 syllabus.</p>
+            <Button to="/student/mathpath/p5" variant="secondary" className="mt-4 w-full border-indigo-200 bg-white/80 text-indigo-700 hover:bg-indigo-50">
+              Explore P5
+            </Button>
+          </Card>
           <Card className="flex h-full flex-col border-mint-100 bg-gradient-to-br from-mint-50 via-white to-sky-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-mint-100 text-success-700"><Compass className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Explore Skills</h3>
