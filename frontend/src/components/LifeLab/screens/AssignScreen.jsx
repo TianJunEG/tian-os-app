@@ -62,15 +62,8 @@ export default function AssignScreen({ template, onBack }) {
 
   if (success) {
     return (
-      <div className="lifelab-phone">
-        <div className="status-bar">
-          <span>9:41</span>
-          <div className="status-bar-right">
-            <Icon name="signal" size={14} />
-            <Icon name="wifi" size={14} />
-          </div>
-        </div>
-        <div className="lifelab-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
+      <>
+        <div className="ll-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#E7F3EC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Icon name="check_circle" size={32} color="#2E7A5A" />
           </div>
@@ -78,57 +71,49 @@ export default function AssignScreen({ template, onBack }) {
           <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
             <strong>{template.title}</strong> has been assigned to <strong>{formData.student_name}</strong>.
           </div>
-          <button className="btn btn-primary" style={{ width: '100%' }} onClick={onBack}>
+          <button className="ll-btn ll-btn-primary" style={{ width: '100%' }} onClick={onBack}>
             Back to Library
           </button>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="lifelab-phone">
-      <div className="status-bar">
-        <span>9:41</span>
-        <div className="status-bar-right">
-          <Icon name="signal" size={14} />
-          <Icon name="wifi" size={14} />
-        </div>
-      </div>
-
-      <div className="nav-bar">
-        <button className="nav-bar-btn" onClick={onBack}>
+    <>
+      <div className="ll-nav-bar">
+        <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
         </button>
-        <div className="nav-bar-title">
+        <div className="ll-nav-bar-title">
           <h1>Assign Activity</h1>
           <p>{template.title}</p>
         </div>
       </div>
 
-      <div className="lifelab-content">
-        <form className="content-scroll" style={{ padding: '16px 20px 24px' }} onSubmit={handleSubmit}>
+      <div className="ll-content">
+        <form className="ll-content-scroll" style={{ padding: '16px 20px 24px' }} onSubmit={handleSubmit}>
 
-          <div className="input-field">
-            <label className="input-label">Student Name</label>
+          <div className="ll-input-field">
+            <label className="ll-input-label">Student Name</label>
             <input
               type="text"
               name="student_name"
               value={formData.student_name}
               onChange={handleChange}
-              className="input-control"
+              className="ll-input-control"
               placeholder="e.g. Wei Jie"
               required
             />
           </div>
 
-          <div className="input-field">
-            <label className="input-label">Difficulty Level</label>
+          <div className="ll-input-field">
+            <label className="ll-input-label">Difficulty Level</label>
             <select
               name="difficulty"
               value={formData.difficulty}
               onChange={handleChange}
-              className="input-control"
+              className="ll-input-control"
             >
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
@@ -136,24 +121,24 @@ export default function AssignScreen({ template, onBack }) {
             </select>
           </div>
 
-          <div className="input-field">
-            <label className="input-label">Due Date</label>
+          <div className="ll-input-field">
+            <label className="ll-input-label">Due Date</label>
             <input
               type="date"
               name="due_date"
               value={formData.due_date}
               onChange={handleChange}
-              className="input-control"
+              className="ll-input-control"
             />
           </div>
 
-          <div className="input-field">
-            <label className="input-label">Custom Instructions (Optional)</label>
+          <div className="ll-input-field">
+            <label className="ll-input-label">Custom Instructions (Optional)</label>
             <textarea
               name="custom_instructions"
               value={formData.custom_instructions}
               onChange={handleChange}
-              className="input-control"
+              className="ll-input-control"
               placeholder="Add any special instructions or modifications for this assignment..."
             />
           </div>
@@ -179,14 +164,14 @@ export default function AssignScreen({ template, onBack }) {
         </form>
 
         <div style={{ padding: '12px 20px', borderTop: '1px solid #F1F3F8', background: '#fff', display: 'flex', gap: 8 }}>
-          <button type="button" className="btn btn-secondary" style={{ width: 'auto', paddingLeft: 16, paddingRight: 16 }} onClick={onBack}>
+          <button type="button" className="ll-btn ll-btn-secondary" style={{ width: 'auto', paddingLeft: 16, paddingRight: 16 }} onClick={onBack}>
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary" style={{ flex: 1 }} onClick={handleSubmit} disabled={loading}>
+          <button type="submit" className="ll-btn ll-btn-primary" style={{ flex: 1 }} onClick={handleSubmit} disabled={loading}>
             {loading ? 'Assigning…' : 'Assign Now'}
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

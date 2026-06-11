@@ -35,21 +35,14 @@ export default function ReviewScreen({ submission, onBack }) {
 
   if (!submission) {
     return (
-      <div className="lifelab-phone">
-        <div className="status-bar">
-          <span>9:41</span>
-          <div className="status-bar-right">
-            <Icon name="signal" size={14} />
-            <Icon name="wifi" size={14} />
-          </div>
-        </div>
-        <div className="nav-bar">
-          <button className="nav-bar-btn" onClick={onBack}>
+      <>
+        <div className="ll-nav-bar">
+          <button className="ll-nav-btn" onClick={onBack}>
             <Icon name="arrow_left" size={20} />
           </button>
-          <div className="nav-bar-title"><h1>Inbox</h1></div>
+          <div className="ll-nav-bar-title"><h1>Inbox</h1></div>
         </div>
-        <div className="lifelab-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
+        <div className="ll-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#E7F3EC', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Icon name="chat" size={32} color="#2E7A5A" />
           </div>
@@ -57,35 +50,27 @@ export default function ReviewScreen({ submission, onBack }) {
           <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
             Student submissions that need your review will appear here.
           </div>
-          <button className="btn btn-primary" style={{ width: '100%' }} onClick={onBack}>
+          <button className="ll-btn ll-btn-primary" style={{ width: '100%' }} onClick={onBack}>
             Back to Library
           </button>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="lifelab-phone">
-      <div className="status-bar">
-        <span>9:41</span>
-        <div className="status-bar-right">
-          <Icon name="signal" size={14} />
-          <Icon name="wifi" size={14} />
-        </div>
-      </div>
-
-      <div className="nav-bar">
-        <button className="nav-bar-btn" onClick={onBack}>
+    <>
+      <div className="ll-nav-bar">
+        <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
         </button>
-        <div className="nav-bar-title">
+        <div className="ll-nav-bar-title">
           <h1>Review Submission</h1>
         </div>
       </div>
 
-      <div className="lifelab-content">
-        <div className="content-scroll" style={{ padding: '16px 20px' }}>
+      <div className="ll-content">
+        <div className="ll-content-scroll" style={{ padding: '16px 20px' }}>
           <div style={{ background: '#E6EEF7', padding: 12, borderRadius: 10, marginBottom: 16 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#13315C', marginBottom: 8 }}>
               Student Response
@@ -97,12 +82,12 @@ export default function ReviewScreen({ submission, onBack }) {
           </div>
 
           <form onSubmit={handleSubmitReview}>
-            <div className="input-field">
-              <label className="input-label">Your Feedback</label>
+            <div className="ll-input-field">
+              <label className="ll-input-label">Your Feedback</label>
               <textarea
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
-                className="input-control"
+                className="ll-input-control"
                 placeholder="Provide constructive feedback on the student's response..."
                 rows={6}
               />
@@ -122,14 +107,14 @@ export default function ReviewScreen({ submission, onBack }) {
         </div>
 
         <div style={{ padding: '16px 20px', borderTop: '1px solid #F1F3F8', display: 'flex', gap: 8 }}>
-          <button type="button" className="btn btn-secondary" onClick={onBack}>
+          <button type="button" className="ll-btn ll-btn-secondary" onClick={onBack}>
             Cancel
           </button>
-          <button className="btn btn-primary" onClick={handleSubmitReview} disabled={loading}>
+          <button className="ll-btn ll-btn-primary" onClick={handleSubmitReview} disabled={loading}>
             {loading ? 'Submitting...' : 'Post Review'}
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

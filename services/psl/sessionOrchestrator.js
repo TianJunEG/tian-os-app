@@ -10,12 +10,15 @@ import { evaluateStep, evaluateAttempt } from './stepEvaluator.js';
 
 function sanitizeProblemForClient(problem) {
   if (!problem) return null;
-  return {
+  const sanitized = {
     problemId: problem.problemId,
     templateId: problem.templateId,
     storyText: problem.storyText,
     givenNumbers: problem.givenNumbers,
     status: problem.status,
+    heuristic: problem.heuristic,
+    structure: problem.structure,
+    unknownPosition: problem.unknownPosition || null,
     scaffoldSteps: (problem.scaffoldSteps || []).map((step) => ({
       stepId: step.stepId,
       type: step.type,
@@ -23,6 +26,13 @@ function sanitizeProblemForClient(problem) {
       choices: step.choices || [],
     })),
   };
+  if (problem.status === 'completed' && problem.solutionText) {
+    sanitized.solutionText = problem.solutionText;
+  }
+  if (problem.status === 'completed' && problem.visualSpec) {
+    sanitized.visualSpec = problem.visualSpec;
+  }
+  return sanitized;
 }
 
 export async function startSession({ studentId, skillId, workspaceId, problemCount = 5, assignmentId = null }) {
@@ -58,9 +68,19 @@ export async function getSession(sessionId, { studentId } = {}) {
   if (studentId) query.studentId = studentId;
   const session = await PSLSession.findOne(query).lean();
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
+
+  const [attempts, skill] = await Promise.all([
+    PSLAttempt.find({ sessionId }).lean(),
+    PSLSkill.findOne({ skillId: session.skillId }).lean(),
+  ]);
+  const attemptsByProblem = {};
+  for (const a of attempts) attemptsByProblem[a.problemId] = a;
+
   return {
     ...session,
+    skillName: skill?.name || session.skillId,
     currentProblem: sanitizeProblemForClient(session.problems[session.currentProblemIndex]),
+    attempts: attemptsByProblem,
   };
 }
 

@@ -4,11 +4,11 @@ import {
   getVisibleSkillsForStudentLevel,
   getSkillCurriculumMapping,
   normalizeCurriculum,
-} from '../frontend/src/mathpath/curriculum/index.js';
+} from '../shared/mathpath/curriculum/index.js';
 import {
   generateFractionQuestion,
   checkFractionAnswer,
-} from '../frontend/src/mathpath/fractions/fractionQuestionGenerator.js';
+} from '../shared/mathpath/fractions/fractionQuestionGenerator.js';
 import { getSec1G1FractionsWorksheetSkillPlan } from './worksheetGen.js';
 
 describe('SG Secondary 1 G1 fractions curriculum mapping', () => {

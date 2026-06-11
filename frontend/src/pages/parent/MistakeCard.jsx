@@ -1,36 +1,48 @@
 import React, { lazy, Suspense, useState, useCallback } from 'react';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Clock, ChevronDown } from 'lucide-react';
 import { Card, Badge } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
 import { mathpathAPI } from '../../services/api';
 
 const StrokeReplayPlayer = lazy(() => import('../../components/learning/StrokeReplayPlayer'));
 
-// Shared mistake card. Previously Math and Science rendered the same data
-// (a question, the student's answer, the correct answer) in two very
-// different layouts — Math as a pipe-separated single line, Science as
-// paired coloured boxes. The boxed layout wins on scannability, so it's
-// the one shared here.
-//
-// Props:
-//   mistake.{skillName,topicName,questionStem,studentAnswer,correctAnswer,workedSolution}
-//   formula  — if true, render the stem/answers through <MathText>
-//              (Math worksheets carry LaTeX-ish fragments; Science is plain prose).
-//   action   — optional bottom-right button slot (e.g. "Assign practice").
 const LEARNING_STATUS_LABEL = {
   new: 'New mistake',
   acknowledged: 'Student reviewed this mistake',
+  correction_attempted: 'Student tried to correct — not yet right',
   corrected: 'Student successfully corrected this mistake',
   understood: 'Student showed understanding',
   mastered: 'Student demonstrated mastery',
 };
+
+const LEARNING_STATUS_TONE = {
+  new: 'gold',
+  acknowledged: 'navy',
+  correction_attempted: 'gold',
+  corrected: 'navy',
+  understood: 'navy',
+  mastered: 'success',
+};
+
+const QUALITY_BAND_TONE = {
+  EXCELLENT: 'success',
+  GOOD: 'navy',
+  PARTIAL: 'gold',
+  INSUFFICIENT: 'error',
+};
+
+function formatTimeTaken(seconds) {
+  if (!seconds && seconds !== 0) return null;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+}
 
 export default function MistakeCard({ mistake: m, formula = false, action = null }) {
   const Stem = formula ? MathText : PlainText;
   const Ans = formula ? MathText : PlainText;
   const learningStatus = m.learningStatus || 'new';
 
-  // ── Explanation feedback state ──
   const [feedback, setFeedback] = useState(m.tutorExplanation?.feedback || null);
   const [feedbackBusy, setFeedbackBusy] = useState(false);
   const submitFeedback = useCallback(async (value) => {
@@ -43,17 +55,28 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
     finally { setFeedbackBusy(false); }
   }, [m.id, m._id, feedbackBusy]);
 
+  const timeLabel = formatTimeTaken(m.timeTaken);
+  const hasMetadata = timeLabel || m.confidence || m.misconceptionTag || m.skillCode || m.workingQualityBand;
+
   return (
     <Card className="p-5">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-sm font-semibold text-ink-700">{m.skillName}</span>
         <div className="flex flex-wrap justify-end gap-2">
           {m.topicName && <Badge tone="neutral">{m.topicName}</Badge>}
-          <Badge tone={learningStatus === 'mastered' ? 'success' : learningStatus === 'new' ? 'gold' : 'navy'}>
-            {LEARNING_STATUS_LABEL[learningStatus] || 'Mistake learning'}
+          <Badge tone={LEARNING_STATUS_TONE[learningStatus] || 'neutral'}>
+            {LEARNING_STATUS_LABEL[learningStatus] || learningStatus}
           </Badge>
         </div>
       </div>
+      {m.reviewedAt && (
+        <p className="mt-1 text-[11px] text-ink-400">
+          Last action: {new Date(m.reviewedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+        </p>
+      )}
+      {learningStatus === 'new' && m.occurredAt && (Date.now() - new Date(m.occurredAt).getTime()) > 86400000 && (
+        <p className="mt-1 text-[11px] font-semibold text-amber-600">Needs attention — open for over 24 hours</p>
+      )}
       <div className="text-ink-900"><Stem text={m.questionStem} /></div>
       <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
         <div className="rounded-xl bg-error-100 p-3">
@@ -67,9 +90,45 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
           </div>
         )}
       </div>
+
+      {hasMetadata && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+          {timeLabel && (
+            <span className="inline-flex items-center gap-1 text-ink-400">
+              <Clock className="h-3 w-3" /> {timeLabel}
+            </span>
+          )}
+          {m.confidence && (
+            <Badge tone={m.confidence >= 4 ? 'success' : m.confidence >= 2 ? 'gold' : 'error'}>
+              Confidence {m.confidence}/5
+            </Badge>
+          )}
+          {m.misconceptionTag && (
+            <Badge tone="gold">{m.misconceptionTag}</Badge>
+          )}
+          {m.skillCode && (
+            <span className="font-mono text-ink-300">{m.skillCode}</span>
+          )}
+          {m.workingQualityBand && (
+            <Badge tone={QUALITY_BAND_TONE[m.workingQualityBand] || 'neutral'}>
+              Working: {m.workingQualityBand.charAt(0) + m.workingQualityBand.slice(1).toLowerCase()}
+            </Badge>
+          )}
+        </div>
+      )}
+
       {m.workedSolution && (
         <p className="mt-3 text-sm text-ink-500"><Stem text={m.workedSolution} /></p>
       )}
+
+      {(m.workingImage || m.workingStrokes?.length > 0 || m.workingInsight) && (
+        <WorkingEvidence
+          workingImage={m.workingImage}
+          workingStrokes={m.workingStrokes}
+          workingInsight={m.workingInsight}
+        />
+      )}
+
       {m.tutorExplanation?.strokes?.length > 0 && (
         <div className="mt-4 rounded-xl border border-navy-100 bg-navy-50/50 p-3">
           <div className="mb-2 flex items-center gap-2">
@@ -92,7 +151,6 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
               audioSrc={m.explanationAudioUrl || undefined}
             />
           </Suspense>
-          {/* Feedback buttons */}
           <div className="mt-2 flex items-center gap-2">
             <span className="text-[11px] text-ink-400">Was this helpful?</span>
             <button
@@ -130,6 +188,56 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
   );
 }
 
-// Tiny adapter so we can use the same `<X text={...} />` shape whether or not
-// we're routing through <MathText>.
+function WorkingEvidence({ workingImage, workingStrokes, workingInsight }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mt-4 rounded-xl border border-ink-100 bg-ink-50/50 p-3">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 text-left"
+      >
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">
+          Student working
+        </p>
+        <ChevronDown className={`h-4 w-4 text-ink-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-3">
+          {workingImage && (
+            <div className="overflow-hidden rounded-lg border border-ink-100 bg-white">
+              <img
+                src={workingImage}
+                alt="Student working"
+                className="max-h-80 w-full object-contain"
+              />
+            </div>
+          )}
+          {!workingImage && workingStrokes?.length > 0 && (
+            <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-ink-100" />}>
+              <StrokeReplayPlayer
+                strokes={workingStrokes}
+                background="ruled"
+                compact
+                autoPlay={false}
+              />
+            </Suspense>
+          )}
+          {workingInsight && (
+            <div className="space-y-1 text-xs text-ink-500">
+              {workingInsight.detectedMethod && (
+                <p><span className="font-semibold text-ink-600">Method:</span> {workingInsight.detectedMethod}</p>
+              )}
+              {workingInsight.issue && (
+                <p><span className="font-semibold text-ink-600">Issue:</span> {workingInsight.issue}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PlainText({ text }) { return <>{text}</>; }

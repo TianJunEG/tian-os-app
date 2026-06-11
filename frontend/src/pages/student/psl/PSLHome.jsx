@@ -1,12 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, ChevronRight, Lock, Star, Target } from 'lucide-react';
+import { Brain, ChevronRight, Compass, Lock, Star, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
 
-const STRUCTURE_LABELS = { partWhole: 'Part-Whole', comparison: 'Comparison', twoStep: 'Two-Step' };
-const STRUCTURE_ORDER = ['partWhole', 'comparison', 'twoStep'];
+const HEURISTIC_LABELS = {
+  'bar-model': 'H1: Bar Model (Units & Parts)',
+  'find-pattern': 'H2: Find a Pattern',
+  'substitution': 'H3: Substitution',
+  'make-list': 'H4: Make a List',
+  'guess-check': 'H5: Guess & Check',
+  'work-backwards': 'H6: Working Backwards',
+  'before-after': 'Before-After',
+  'multi-step': 'Multi-Step Arithmetic',
+  'ratio': 'Proportional & Ratio Reasoning',
+  'data-interpretation': 'Data Interpretation',
+  'excess-shortage': 'Excess & Shortage',
+  'simultaneous': 'Simultaneous / Elimination',
+  'pattern-recognition': 'Pattern Recognition',
+};
+const HEURISTIC_ORDER = ['bar-model', 'find-pattern', 'substitution', 'make-list', 'guess-check', 'work-backwards', 'before-after', 'multi-step', 'ratio', 'data-interpretation', 'excess-shortage', 'simultaneous', 'pattern-recognition'];
+const HEURISTIC_COLORS = {
+  'bar-model': 'bg-blue-100 text-blue-700',
+  'find-pattern': 'bg-cyan-100 text-cyan-700',
+  'substitution': 'bg-purple-100 text-purple-700',
+  'make-list': 'bg-amber-100 text-amber-700',
+  'guess-check': 'bg-rose-100 text-rose-700',
+  'work-backwards': 'bg-emerald-100 text-emerald-700',
+  'simultaneous': 'bg-indigo-100 text-indigo-700',
+  'pattern-recognition': 'bg-teal-100 text-teal-700',
+};
+const LEVEL_LABELS = { P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6' };
+const LEVEL_ORDER = ['P3', 'P4', 'P5', 'P6'];
 
 function MasteryBadge({ mastery }) {
   if (!mastery) return <span className="text-xs text-ink-400">Not started</span>;
@@ -63,11 +89,18 @@ export default function PSLHome() {
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
 
   const skills = data?.skills || [];
-  const grouped = STRUCTURE_ORDER.map((s) => ({
-    structure: s,
-    label: STRUCTURE_LABELS[s],
-    skills: skills.filter((sk) => sk.structure === s),
+  const [filterLevel, setFilterLevel] = useState(null);
+  const filtered = filterLevel ? skills.filter((sk) => sk.level === filterLevel) : skills;
+  const grouped = HEURISTIC_ORDER.map((h) => ({
+    heuristic: h,
+    label: HEURISTIC_LABELS[h] || h,
+    colorClass: HEURISTIC_COLORS[h] || 'bg-ink-100 text-ink-700',
+    skills: filtered.filter((sk) => (sk.heuristic || 'bar-model') === h),
   })).filter((g) => g.skills.length > 0);
+  const levelCounts = LEVEL_ORDER.reduce((acc, lvl) => {
+    acc[lvl] = skills.filter((sk) => sk.level === lvl).length;
+    return acc;
+  }, {});
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4 pb-24 sm:p-6">
@@ -104,8 +137,45 @@ export default function PSLHome() {
         </Card>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setFilterLevel(null)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${!filterLevel ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
+        >
+          All ({skills.length})
+        </button>
+        {LEVEL_ORDER.map((lvl) => levelCounts[lvl] > 0 && (
+          <button
+            key={lvl}
+            type="button"
+            onClick={() => setFilterLevel(filterLevel === lvl ? null : lvl)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${filterLevel === lvl ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
+          >
+            {LEVEL_LABELS[lvl]} ({levelCounts[lvl]})
+          </button>
+        ))}
+      </div>
+
+      <Card className="p-4" interactive>
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 text-left"
+          onClick={() => navigate('/student/psl/decision-guide')}
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+            <Compass className="h-4 w-4 text-purple-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-ink-700">Decision Guide</p>
+            <p className="text-xs text-ink-400">Not sure which heuristic to use? Answer a few questions to find out.</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-ink-300" />
+        </button>
+      </Card>
+
       {grouped.map((group) => (
-        <div key={group.structure}>
+        <div key={group.heuristic}>
           <h2 className="mb-2 text-sm font-semibold text-ink-500">{group.label}</h2>
           <div className="space-y-2">
             {group.skills.map((skill) => {
@@ -130,7 +200,7 @@ export default function PSLHome() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-ink-700 truncate">{skill.name}</p>
-                        <p className="text-xs text-ink-400 truncate">{skill.description}</p>
+                        <p className="text-xs text-ink-400 line-clamp-2">{skill.description}</p>
                       </div>
                       <MasteryBadge mastery={skill.mastery} />
                       <ChevronRight className="h-4 w-4 text-ink-300" />

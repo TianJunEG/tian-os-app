@@ -7,7 +7,7 @@ const OUT_DIR = path.join(ROOT, 'docs/mathpath/pilot/logs');
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const outPath = path.join(OUT_DIR, `pilot-qa-gate-${stamp}.md`);
 const BACKEND_PORT = process.env.PORT || process.env.BACKEND_PORT || '5001';
-const DEFAULT_QA_BASE = process.env.QA_BASE || `http://127.0.0.1:${BACKEND_PORT}/api`;
+const DEFAULT_QA_BASE = process.env.QA_BASE || `http://localhost:${BACKEND_PORT}/api`;
 
 function runCommand(cmd, args, options = {}) {
   const run = spawnSync(cmd, args, {
@@ -37,6 +37,9 @@ async function main() {
     QA_BASE: DEFAULT_QA_BASE,
     API_BASE: DEFAULT_QA_BASE,
     BACKEND_API_URL: DEFAULT_QA_BASE,
+    PLAYWRIGHT_API_BASE_URL: DEFAULT_QA_BASE,
+    BACKEND_PORT: BACKEND_PORT,
+    NODE_ENV: 'test',
   };
   const checks = [];
   const push = (area, check, result, artifact = '') => {

@@ -1,7 +1,7 @@
 import {
   getCanonicalFractionSkill,
-} from '../../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
-import { getUniversalSkillByFrameworkId } from '../../frontend/src/mathpath/curriculum/fractionUniversalSkills.js';
+} from '../../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
+import { getUniversalSkillByFrameworkId } from '../../shared/mathpath/curriculum/fractionUniversalSkills.js';
 
 const STUDENT_EXPLANATIONS = {
   F018: 'making the parts the same size before adding',

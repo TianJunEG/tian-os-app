@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Award, ChevronDown, ChevronRight, Clock, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
-import BarModelViewer from './components/BarModelViewer';
+import { getMisconception } from './utils/misconceptions';
+import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 
 function StepBadge({ step }) {
   if (step.correct) return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct</span>;
@@ -34,21 +35,26 @@ function ProblemCard({ attempt, problem, index }) {
       {open && (
         <div className="border-t border-ink-100 bg-ink-50/30 p-4 space-y-3">
           <p className="text-sm text-ink-600">{problem?.storyText}</p>
-          {problem?.barModelSpec && (
-            <BarModelViewer
-              modelType={problem.barModelSpec.modelType}
-              unknownPosition={problem.barModelSpec.unknownPosition}
-              values={problem.barModelSpec.values}
-            />
-          )}
+
           <div className="space-y-1.5">
-            {(attempt.steps || []).map((step) => (
-              <div key={step.stepId} className="flex items-center justify-between rounded-lg bg-white px-3 py-2">
-                <span className="text-sm capitalize text-ink-600">{step.stepId.replace('_', ' ')}</span>
-                <StepBadge step={step} />
-              </div>
-            ))}
+            {(attempt.steps || []).map((step) => {
+              const m = step.misconceptionTag ? getMisconception(step.misconceptionTag) : null;
+              return (
+                <div key={step.stepId} className="rounded-lg bg-white px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm capitalize text-ink-600">{step.stepId.replace('_', ' ')}</span>
+                    <StepBadge step={step} />
+                  </div>
+                  {m && !step.correct && (
+                    <p className="mt-1 text-xs text-amber-600">{m.tip}</p>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          {problem?.solutionText && (
+            <WorkedSolutionWalkthrough solutionText={problem.solutionText} visualSpec={problem.visualSpec} heuristic={problem.heuristic} structure={problem.structure} unknownPosition={problem.unknownPosition} />
+          )}
         </div>
       )}
     </Card>
@@ -82,7 +88,7 @@ export default function PSLResults() {
           <Award className="h-8 w-8 text-gold-500" />
         </div>
         <h1 className="mt-3 text-xl font-bold text-ink-800">Session Complete!</h1>
-        <p className="text-sm text-ink-500">{data.skillId}</p>
+        <p className="text-sm text-ink-500">{data.skillName || data.skillId}</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -122,18 +128,21 @@ export default function PSLResults() {
       <div>
         <h2 className="mb-3 text-sm font-semibold text-ink-500">Problems</h2>
         <div className="space-y-2">
-          {problems.map((problem, i) => (
-            <ProblemCard
-              key={problem.problemId}
-              problem={problem}
-              attempt={{
-                overallCorrect: problem.status === 'completed',
-                overallScore: summary.overallScore || 0,
-                steps: problem.scaffoldSteps || [],
-              }}
-              index={i}
-            />
-          ))}
+          {problems.map((problem, i) => {
+            const attempt = data.attempts?.[problem.problemId];
+            return (
+              <ProblemCard
+                key={problem.problemId}
+                problem={problem}
+                attempt={attempt || {
+                  overallCorrect: problem.status === 'completed',
+                  overallScore: 0,
+                  steps: [],
+                }}
+                index={i}
+              />
+            );
+          })}
         </div>
       </div>
 

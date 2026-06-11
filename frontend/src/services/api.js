@@ -233,7 +233,13 @@ export const mathpathAPI = {
   pilotSuccessMetrics: (params = {}) => api.get('/mathpath/success-centre/pilot-metrics', { params }),
   // ref: a slug string, or { skillId } / { skillSlug }
   remediation: (ref, recentAttempts = []) =>
-    api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts })
+    api.post('/mastery/remediation', { ...(typeof ref === 'string' ? { skillSlug: ref } : ref), recentAttempts }),
+  remediationSessions: (params = {}) => api.get('/remediation-sessions', { params }),
+  remediationSession: (id) => api.get(`/remediation-sessions/${id}`),
+  startRemediationSession: (data) => api.post('/remediation-sessions', data),
+  advanceRemediationStep: (id) => api.post(`/remediation-sessions/${id}/advance`),
+  handleRemediationMastery: (id, data) => api.post(`/remediation-sessions/${id}/handle-mastery`, data),
+  skipRemediationPrerequisite: (id, data) => api.post(`/remediation-sessions/${id}/skip-prerequisite`, data),
 };
 
 // Parent / family (Phase 3): children list + rule-based recommendations.

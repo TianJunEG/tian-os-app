@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { resourcesAPI } from '../services/api';
 import { RESOURCE_CATEGORIES } from '../config/brand';
+import { Badge } from './ui/index.jsx';
 
 const emptyForm = {
   title: '',
@@ -118,11 +119,11 @@ const ResourcesAdmin = () => {
   };
 
   return (
-    <div className="admin-section">
-      <h2>{editingId ? 'Edit Resource' : 'Add Resource'}</h2>
+    <div className="space-y-6">
+      <h2 className="text-xl font-bold text-ink-700">{editingId ? 'Edit Resource' : 'Add Resource'}</h2>
 
-      <form className="resource-form" onSubmit={handleSubmit}>
-        {error && <div className="form-error">{error}</div>}
+      <form className="ds-resource-form" onSubmit={handleSubmit}>
+        {error && <div className="sm:col-span-2 text-sm text-error-500 bg-error-100 border border-error-500/20 p-3 rounded-lg">{error}</div>}
 
         <div className="full-width">
           <label htmlFor="res-title">Title</label>
@@ -182,20 +183,20 @@ const ResourcesAdmin = () => {
             <input type="checkbox" name="gated" checked={form.gated} onChange={handleChange} />
             Require email to access
           </label>
-          <button type="submit" className="btn-success" disabled={saving}>
+          <button type="submit" className="px-4 py-2 text-sm font-semibold rounded-lg bg-success-500 text-white transition hover:bg-success-700 disabled:opacity-50" disabled={saving}>
             {saving ? 'Saving...' : editingId ? 'Update Resource' : 'Create Resource'}
           </button>
           {editingId && (
-            <button type="button" className="btn-small" onClick={resetForm}>
+            <button type="button" className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-hairline bg-paper text-ink-700 transition hover:bg-navy-50" onClick={resetForm}>
               Cancel
             </button>
           )}
         </div>
       </form>
 
-      <h2>All Resources ({resources.length})</h2>
-      <div className="table-wrapper">
-        <table className="admin-table">
+      <h2 className="text-xl font-bold text-ink-700">All Resources ({resources.length})</h2>
+      <div className="overflow-x-auto">
+        <table className="ds-table">
           <thead>
             <tr>
               <th>Title</th>
@@ -218,15 +219,13 @@ const ResourcesAdmin = () => {
                 <td>{r.fileUrl ? '✓' : '—'}</td>
                 <td>{r.gated ? 'Email-gated' : 'Open'}</td>
                 <td>
-                  <span className={`badge ${r.published ? 'badge-success' : 'badge-warning'}`}>
-                    {r.published ? 'Published' : 'Draft'}
-                  </span>
+                  {r.published ? <Badge tone="success">Published</Badge> : <Badge tone="gold">Draft</Badge>}
                 </td>
                 <td>
-                  <button className="btn-small" onClick={() => startEdit(r)}>
+                  <button className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-hairline bg-paper text-ink-700 transition hover:bg-navy-50" onClick={() => startEdit(r)}>
                     Edit
                   </button>
-                  <button className="btn-danger" onClick={() => handleDelete(r._id)}>
+                  <button className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-500 text-white transition hover:bg-error-700" onClick={() => handleDelete(r._id)}>
                     Delete
                   </button>
                 </td>
@@ -236,11 +235,11 @@ const ResourcesAdmin = () => {
         </table>
       </div>
 
-      {resources.length === 0 && <p className="empty-state">No resources yet — add one above.</p>}
+      {resources.length === 0 && <p className="text-center py-10 text-ink-300">No resources yet — add one above.</p>}
 
-      <h2>Captured Leads ({leads.length})</h2>
-      <div className="table-wrapper">
-        <table className="admin-table">
+      <h2 className="text-xl font-bold text-ink-700">Captured Leads ({leads.length})</h2>
+      <div className="overflow-x-auto">
+        <table className="ds-table">
           <thead>
             <tr>
               <th>Email</th>
@@ -262,7 +261,7 @@ const ResourcesAdmin = () => {
         </table>
       </div>
       {leads.length === 0 && (
-        <p className="empty-state">No leads yet — mark a resource "Require email to access" to start capturing.</p>
+        <p className="text-center py-10 text-ink-300">No leads yet — mark a resource "Require email to access" to start capturing.</p>
       )}
     </div>
   );

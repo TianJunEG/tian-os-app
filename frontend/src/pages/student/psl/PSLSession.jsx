@@ -1,16 +1,25 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
 import StoryPanel from './components/StoryPanel';
 import QuestionIdentifier from './components/QuestionIdentifier';
-import ModelSelector from './components/ModelSelector';
-import SolvePanel from './components/SolvePanel';
+import PlanDispatcher from './components/PlanDispatcher';
+import SolveDispatcher from './components/SolveDispatcher';
 import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
+import ReasoningInput from './components/ReasoningInput';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
+
+function getPlanStepType(currentProblem) {
+  const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
+  if (!planStep) return 'model';
+  if (planStep.type === 'strategySelect') return 'strategySelect';
+  return 'model';
+}
 
 const DEFAULT_UNDERSTAND_CHOICES = [
   'It\'s about finding a total or combining groups',
@@ -34,10 +43,26 @@ export default function PSLSession() {
   const [submitting, setSubmitting] = useState(false);
   const [stepResponses, setStepResponses] = useState({});
   const [retryCount, setRetryCount] = useState({});
+  const stepStartRef = useRef(Date.now());
+
+  useEffect(() => { stepStartRef.current = Date.now(); }, [currentStepIdx]);
 
   useEffect(() => {
     pslAPI.getSession(sessionId)
-      .then((res) => setSession(res.data))
+      .then((res) => {
+        const data = res.data;
+        setSession(data);
+        const problem = data.currentProblem;
+        const attempt = data.attempts?.[problem?.problemId];
+        if (attempt?.steps?.length) {
+          const done = {};
+          for (const s of attempt.steps) done[s.stepId] = s;
+          setCompletedSteps(done);
+          const lastIdx = STEP_IDS.findIndex((id) => !done[id]);
+          if (lastIdx >= 0) setCurrentStepIdx(lastIdx);
+          else setCurrentStepIdx(STEP_IDS.length - 1);
+        }
+      })
       .catch(() => navigate('/student/psl'))
       .finally(() => setLoading(false));
   }, [sessionId, navigate]);
@@ -51,22 +76,33 @@ export default function PSLSession() {
     const resp = stepResponses[currentStepId];
     switch (currentStepId) {
       case 'understand':
-        return { selectedIndex: resp?.selectedIndex };
+        return { selectedIndex: resp?.selectedIndex, reasoning: resp?.reasoning || '' };
       case 'identify_info':
-        return { numbers: resp?.numbers || [] };
+        return { numbers: resp?.numbers || [], reasoning: resp?.reasoning || '' };
       case 'identify_question':
-        return { selectedIndex: resp?.selectedIndex };
-      case 'plan':
-        return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition };
-      case 'solve':
-        return {
-          answer: Number(resp?.answer),
-          operation: resp?.expression?.match(/[+\-×÷*/]/)?.[0] || '',
-          expression: resp?.expression || '',
-          intermediates: resp?.step1Answer ? [Number(resp.step1Answer)] : [],
-        };
+        return { selectedIndex: resp?.selectedIndex, reasoning: resp?.reasoning || '' };
+      case 'plan': {
+        const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
+        const planType = planStep?.type || 'model';
+        if (planType === 'model') return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, reasoning: resp?.reasoning || '' };
+        return { ...(resp || {}), reasoning: resp?.reasoning || '' };
+      }
+      case 'solve': {
+        const solveStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'solve');
+        const solveType = solveStep?.type;
+        if (solveType === 'expression' || solveType === 'twoStep') {
+          return {
+            answer: Number(resp?.answer),
+            operation: resp?.expression?.match(/[+\-×÷*/]/)?.[0] || '',
+            expression: resp?.expression || '',
+            intermediates: resp?.step1Answer ? [Number(resp.step1Answer)] : [],
+            reasoning: resp?.reasoning || '',
+          };
+        }
+        return { answer: Number(resp?.answer), ...(resp || {}), reasoning: resp?.reasoning || '' };
+      }
       case 'check':
-        return { reasonable: resp?.reasonable };
+        return { reasonable: resp?.reasonable, reasoning: resp?.reasoning || '' };
       default:
         return resp || {};
     }
@@ -80,7 +116,7 @@ export default function PSLSession() {
       const res = await pslAPI.submitStep(sessionId, currentProblem.problemId, {
         stepId: currentStepId,
         response: buildResponse(),
-        timeSpentMs: 0,
+        timeSpentMs: Date.now() - stepStartRef.current,
       });
       const result = res.data;
       setCompletedSteps((prev) => ({ ...prev, [currentStepId]: result }));
@@ -139,7 +175,12 @@ export default function PSLSession() {
       case 'understand': return resp?.selectedIndex !== undefined;
       case 'identify_info': return (resp?.numbers || []).length > 0;
       case 'identify_question': return resp?.selectedIndex !== undefined;
-      case 'plan': return resp?.modelType && resp?.unknownPosition;
+      case 'plan': {
+        const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
+        const planType = planStep?.type || 'model';
+        if (planType === 'model') return resp?.modelType && resp?.unknownPosition;
+        return resp && Object.keys(resp).length > 0;
+      }
       case 'solve': return resp?.answer !== undefined && resp?.answer !== '';
       case 'check': return resp?.reasonable !== undefined;
       default: return false;
@@ -153,6 +194,17 @@ export default function PSLSession() {
           Problem {problemIndex + 1} of {totalProblems}
         </span>
         <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
+        <button
+          type="button"
+          onClick={async () => {
+            try { await pslAPI.abandonSession(sessionId); } catch {}
+            navigate('/student/psl');
+          }}
+          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
+          aria-label="Exit session"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       <StoryPanel
@@ -168,7 +220,7 @@ export default function PSLSession() {
 
       <div className="rounded-2xl border border-ink-200 bg-white p-4 sm:p-5">
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-400">
-          Step {currentStepIdx + 1}: {STEP_IDS[currentStepIdx]?.replace('_', ' ')}
+          Step {currentStepIdx + 1}: {STEP_IDS[currentStepIdx]?.replaceAll('_', ' ')}
         </h3>
 
         {currentStepId === 'understand' && (
@@ -195,18 +247,25 @@ export default function PSLSession() {
         )}
 
         {currentStepId === 'plan' && (
-          <ModelSelector
-            modelType={stepResponses.plan?.modelType}
-            unknownPosition={stepResponses.plan?.unknownPosition}
-            onSelectModel={(mt) => updateResponse('plan', { modelType: mt, unknownPosition: undefined })}
-            onSelectPosition={(pos) => updateResponse('plan', { unknownPosition: pos })}
+          <PlanDispatcher
+            scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
+            response={stepResponses.plan}
+            onChange={(val) => updateResponse('plan', val)}
+          />
+        )}
+
+        {currentStepId === 'plan' && getPlanStepType(currentProblem) === 'strategySelect' && (
+          <QuestionIdentifier
+            choices={getStepChoices('plan').length ? getStepChoices('plan') : ['Draw a bar model', 'Work backwards', 'Make a list / table', 'Guess and check']}
+            selectedIndex={stepResponses.plan?.selectedIndex}
+            onSelect={(idx) => updateResponse('plan', { selectedIndex: idx })}
           />
         )}
 
         {currentStepId === 'solve' && (
-          <SolvePanel
-            twoStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')?.type === 'twoStep'}
-            value={stepResponses.solve || {}}
+          <SolveDispatcher
+            scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
+            response={stepResponses.solve || {}}
             onChange={(val) => updateResponse('solve', val)}
           />
         )}
@@ -216,8 +275,17 @@ export default function PSLSession() {
             answer={stepResponses.solve?.answer}
             selected={stepResponses.check?.reasonable}
             onSelect={(val) => updateResponse('check', { reasonable: val })}
+            onGoBack={() => {
+              setFeedback(null);
+              setCurrentStepIdx(STEP_IDS.indexOf('solve'));
+            }}
           />
         )}
+
+        <ReasoningInput
+          value={stepResponses[currentStepId]?.reasoning || ''}
+          onChange={(val) => updateResponse(currentStepId, { reasoning: val })}
+        />
       </div>
 
       {feedback && (

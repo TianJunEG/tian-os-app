@@ -3,17 +3,17 @@ import { describe, expect, it } from 'vitest';
 import {
   FRACTION_CANONICAL_SKILL_ROWS,
   getCanonicalFractionSkill,
-} from '../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
+} from '../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
 import {
   fractionCurriculumMappings,
   getFractionCurriculumMappingByFrameworkId,
-} from '../frontend/src/mathpath/curriculum/fractionCurriculumMappings.js';
+} from '../shared/mathpath/curriculum/fractionCurriculumMappings.js';
 import {
   fractionUniversalSkills,
   getUniversalSkillByFrameworkId,
-} from '../frontend/src/mathpath/curriculum/fractionUniversalSkills.js';
-import { fractionSkillGraph } from '../frontend/src/mathpath/fractions/fractionSkillGraph.js';
-import { fractionQuestionFamilies } from '../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
+} from '../shared/mathpath/curriculum/fractionUniversalSkills.js';
+import { fractionSkillGraph } from '../shared/mathpath/fractions/fractionSkillGraph.js';
+import { fractionQuestionFamilies } from '../shared/mathpath/fractions/fractionQuestionFamilies.js';
 import { getSkillDisplayName, replaceSkillIdsForStudents } from '../services/mathpath/skillDisplayNameService.js';
 
 const EXPECTED_IDS = Array.from({ length: 26 }, (_, index) => `F${String(index + 1).padStart(3, '0')}`);

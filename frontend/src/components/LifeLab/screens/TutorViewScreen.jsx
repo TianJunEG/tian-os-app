@@ -35,29 +35,21 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
   };
 
   return (
-    <div className="lifelab-phone">
-      <div className="status-bar">
-        <span>9:41</span>
-        <div className="status-bar-right">
-          <Icon name="signal" size={14} />
-          <Icon name="wifi" size={14} />
-        </div>
-      </div>
-
-      <div className="nav-bar">
-        <button className="nav-bar-btn" onClick={onBack}>
+    <>
+      <div className="ll-nav-bar">
+        <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
         </button>
-        <div className="nav-bar-title">
+        <div className="ll-nav-bar-title">
           <h1>Tutor Dashboard</h1>
           <p>Manage student activities</p>
         </div>
       </div>
 
-      <div className="lifelab-content">
-        <div className="content-scroll" style={{ padding: '16px 20px' }}>
+      <div className="ll-content">
+        <div className="ll-content-scroll" style={{ padding: '16px 20px' }}>
           {loading ? (
-            <div className="loading">Loading...</div>
+            <div className="ll-loading">Loading...</div>
           ) : assignments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -67,7 +59,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
               <div style={{ fontSize: 13, color: '#6B7A95', lineHeight: 1.6, marginBottom: 28 }}>
                 Assign a LifeLab activity from the library to get started. Students will appear here once an activity is set.
               </div>
-              <button className="btn btn-primary" style={{ width: '100%' }} onClick={onBack}>
+              <button className="ll-btn ll-btn-primary" style={{ width: '100%' }} onClick={onBack}>
                 Browse Library
               </button>
             </div>
@@ -75,7 +67,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
             assignments.map((assignment) => {
               const statusInfo = getStatusBadge(assignment.status);
               return (
-                <div key={assignment._id} className="card">
+                <div key={assignment._id} className="ll-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: '#0B1F3F' }}>
@@ -108,11 +100,11 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
                   )}
 
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn btn-secondary btn-sm" style={{ flex: 1 }}>
+                    <button className="ll-btn ll-btn-secondary ll-btn-sm" style={{ flex: 1 }}>
                       View
                     </button>
                     {assignment.status === 'submitted' && (
-                      <button className="btn btn-primary btn-sm" style={{ flex: 1, background: '#C8A042' }}>
+                      <button className="ll-btn ll-btn-primary ll-btn-sm" style={{ flex: 1, background: '#C8A042' }}>
                         Review
                       </button>
                     )}
@@ -124,7 +116,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
         </div>
       </div>
 
-      <div className="bottom-nav">
+      <div className="ll-bottom-nav">
         {[
           { id: 'home',    label: 'Home',    icon: 'home',    action: onBack },
           { id: 'library', label: 'Library', icon: 'compass', action: onBack },
@@ -134,7 +126,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
         ].map(({ id, label, icon, action }) => (
           <button
             key={id}
-            className={`bottom-nav-item ${id === 'me' ? 'active' : ''}`}
+            className={`ll-bottom-nav-item ${id === 'me' ? 'active' : ''}`}
             onClick={action || undefined}
             style={{ background: 'none', border: 'none', cursor: action ? 'pointer' : 'default' }}
           >
@@ -143,6 +135,6 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
           </button>
         ))}
       </div>
-    </div>
+    </>
   );
 }

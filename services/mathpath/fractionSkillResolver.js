@@ -2,7 +2,7 @@ import fractionsDomain from '../../scripts/domains/fractions.js';
 import {
   fractionUniversalSkills,
   getUniversalSkillByFrameworkId,
-} from '../../frontend/src/mathpath/curriculum/fractionUniversalSkills.js';
+} from '../../shared/mathpath/curriculum/fractionUniversalSkills.js';
 
 const LEGACY_ALIASES = {
   F001: ['fr.meaning.parts'],

@@ -4,10 +4,9 @@ import { GraduationCap, Menu, X } from 'lucide-react';
 import { GROUP_NAME, GROUP_SHORT } from '../config/brand';
 
 const navLinks = [
-  { to: '/edu-apps', label: 'Learning Apps' },
-  { to: '/edu-apps', label: 'Edu Apps' },
+  { to: '/edu-apps', label: 'Platform' },
+  { to: '/methodology', label: 'Our Approach' },
   { to: '/resources', label: 'Resources' },
-  { to: '/methodology', label: 'Our Methodology' },
 ];
 
 const linkClass = ({ isActive }) =>

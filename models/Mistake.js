@@ -121,6 +121,7 @@ const mistakeSchema = new mongoose.Schema({
     enum: ['student', 'parent', 'tutor', 'teacher', null],
     default: null
   },
+  originMistakeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Mistake', default: null },
   // Tutor-recorded visual explanation (canvas drawing with timestamped strokes).
   // Saved when a tutor records an explanation for how to solve this question.
   // Parents see the replay in MistakeCard; students see it during review.
@@ -141,7 +142,7 @@ const mistakeSchema = new mongoose.Schema({
   // Set to 'resolved' once the underlying skill is mastered (derived, not manual).
   status: {
     type: String,
-    enum: ['open', 'reviewed', 'resolved'],
+    enum: ['open', 'viewed', 'reviewed', 'reflection_completed', 'correction_attempted', 'corrected', 'recheck_required', 'resolved'],
     default: 'open'
   },
   // True for demo/test data inserted by seed scripts. Excluded from student-facing views.
@@ -155,5 +156,6 @@ mistakeSchema.index({ studentId: 1, skillId: 1, status: 1 });
 mistakeSchema.index({ attemptId: 1 });
 mistakeSchema.index({ workingId: 1 });
 mistakeSchema.index({ remediationId: 1 });
+mistakeSchema.index({ originMistakeId: 1 });
 
 export default mongoose.model('Mistake', mistakeSchema);

@@ -76,6 +76,7 @@ const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
   { value: 'not_sure', label: "I'm not sure" },
   { value: 'dont_know', label: "I don't know" },
+  { value: 'i_need_help', label: 'I need help' },
 ];
 
 function calibrationFromReflection(correct, reflection) {
@@ -221,7 +222,11 @@ function resolvePracticeIntent({ routeSessionId, locationState, progress }) {
     const skillId = String(value || '').toUpperCase();
     if (/^F\d{3}$/.test(skillId)) return skillId;
     if (/^P1-(NUM|ADD|MON|MEA|GEO|EQG|DAT)-\d{2}$/.test(skillId)) return skillId;
+    if (/^P2-(WN|AS|MD|MON|FR|ST|TM|GEO|WP)-\d{2}$/.test(skillId)) return skillId;
     if (/^P3-(WN|AS|MD|MON|MT|AP|ST|WP)-\d{2}$/.test(skillId)) return skillId;
+    if (/^P4-(WN|FM|FO|FR|DEC|WP|ST)-\d{2}$/.test(skillId)) return skillId;
+    if (/^P5-(WN|FR|DEC|PCT|RAT|GEO|AV|ST|WP)-\d{2}$/.test(skillId)) return skillId;
+    if (/^P6-(ALG|AV)-\d{2}$/.test(skillId)) return skillId;
     return null;
   };
   const nextSkill = normalizeFrameworkSkillId(progress?.currentSkillId) || normalizeFrameworkSkillId(progress?.nextSkillId);
@@ -941,7 +946,7 @@ function LegacyPracticeSession() {
         title="Review this submission"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={(value) => setReflection(value)}
+        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
         working={currentFullscreenWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
@@ -2031,7 +2036,7 @@ export default function PracticeSession() {
         title="Before you submit"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={(value) => setReflection(value)}
+        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
         working={currentFullscreenWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setFullscreenWorkingByQuestion((prev) => ({

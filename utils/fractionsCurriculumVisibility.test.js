@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { fractionCurriculumMappings } from '../frontend/src/mathpath/curriculum/fractionCurriculumMappings.js';
-import { getVisibleSkillsForStudentLevel } from '../frontend/src/mathpath/curriculum/curriculumMappingSelectors.js';
+import { fractionCurriculumMappings } from '../shared/mathpath/curriculum/fractionCurriculumMappings.js';
+import { getVisibleSkillsForStudentLevel } from '../shared/mathpath/curriculum/curriculumMappingSelectors.js';
 
 describe('fractions curriculum mapping visibility', () => {
   it('keeps all F001-F026 mapped for SG MOE_PRIMARY_MATH_2021', () => {

@@ -2,20 +2,20 @@ import { describe, it, expect } from 'vitest';
 import {
   fractionQuestionFamilies,
   getQuestionFamiliesBySkill,
-} from '../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
+} from '../shared/mathpath/fractions/fractionQuestionFamilies.js';
 import {
   generateFractionQuestion,
   checkFractionAnswer,
-} from '../frontend/src/mathpath/fractions/fractionQuestionGenerator.js';
+} from '../shared/mathpath/fractions/fractionQuestionGenerator.js';
 import {
   classifyFractionMistake,
   getRemediationForMistake,
-} from '../frontend/src/mathpath/fractions/fractionMistakeToMasteryEngine.js';
+} from '../shared/mathpath/fractions/fractionMistakeToMasteryEngine.js';
 import {
   getFractionsMvpDepthWorksheetPlan,
   getSec1G1FractionsWorksheetSkillPlan,
 } from './worksheetGen.js';
-import { getVisibleSkillsForStudentLevel } from '../frontend/src/mathpath/curriculum/curriculumMappingSelectors.js';
+import { getVisibleSkillsForStudentLevel } from '../shared/mathpath/curriculum/curriculumMappingSelectors.js';
 
 describe('fractions depth pass: family and misconception coverage', () => {
   it('keeps all F001-F026 accessible with at least one family each', () => {
