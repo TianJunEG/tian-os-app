@@ -19,6 +19,9 @@ import {
   userCanAccessPartnerStudent,
 } from '../services/partners/partnerAccessService.js';
 import { notify } from '../services/notifications/notificationService.js';
+import PSLSession from '../models/psl/PSLSession.js';
+import PSLSkill from '../models/psl/PSLSkill.js';
+import PSLAttempt from '../models/psl/PSLAttempt.js';
 import multer from 'multer';
 import r2 from '../services/storage/r2.js';
 
@@ -401,6 +404,127 @@ router.get('/certification', async (req, res) => {
   let cert = await TutorCertification.findOne({ tutorUserId: req.user.id });
   if (!cert) cert = await TutorCertification.create({ tutorUserId: req.user.id });
   res.json({ certification: cert });
+});
+
+// ── PSL student dashboard (tutor view) ────────────────────────────────
+router.get('/students/:id/psl/dashboard', async (req, res) => {
+  if (!ensureTutorWorkspace(req, res)) return;
+  const student = await requireLinkedStudent(req, res);
+  if (!student) return;
+  const studentId = student._id;
+
+  const [sessions, attempts, skills, masteryRecs] = await Promise.all([
+    PSLSession.find({ studentId }).lean(),
+    PSLAttempt.find({ studentId }).lean(),
+    PSLSkill.find({ isActive: true }).lean(),
+    MasteryRecord.find({ studentId, module: 'PSL' }).lean(),
+  ]);
+
+  const completedSessions = sessions.filter((s) => s.status === 'completed');
+  const avgAccuracy = attempts.length
+    ? Math.round((attempts.reduce((a, at) => a + at.overallScore, 0) / attempts.length) * 100)
+    : 0;
+
+  const skillMap = {};
+  for (const sk of skills) {
+    const skSessions = sessions.filter((s) => s.skillId === sk.skillId);
+    const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
+    if (!skSessions.length && !skAttempts.length) continue;
+    const mastered = masteryRecs.find((r) => r.skillId?.toString() === sk.skillId && r.status === 'mastered');
+    const avgScore = skAttempts.length
+      ? Math.round((skAttempts.reduce((a, at) => a + at.overallScore, 0) / skAttempts.length) * 100)
+      : 0;
+    const miscCounts = {};
+    for (const at of skAttempts) {
+      for (const step of at.steps || []) {
+        if (step.misconceptionTag) miscCounts[step.misconceptionTag] = (miscCounts[step.misconceptionTag] || 0) + 1;
+      }
+    }
+    const topMisconceptions = Object.entries(miscCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([tag, count]) => ({ tag, count }));
+    skillMap[sk.skillId] = {
+      skillId: sk.skillId, name: sk.name, heuristic: sk.heuristic, level: sk.level,
+      sessions: skSessions.length, mastered: Boolean(mastered), averageScore: avgScore, topMisconceptions,
+    };
+  }
+
+  const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
+  const STEP_LABELS = { understand: 'Understand', identify_info: 'Identify Info', identify_question: 'Identify Question', plan: 'Plan', solve: 'Solve', check: 'Check' };
+  const stepAgg = {};
+  for (const sid of STEP_IDS) stepAgg[sid] = { total: 0, correct: 0, timeMs: 0, hints: 0, retries: 0, misconceptions: 0 };
+  for (const at of attempts) {
+    for (const step of at.steps || []) {
+      const agg = stepAgg[step.stepId];
+      if (!agg) continue;
+      agg.total++;
+      if (step.correct) agg.correct++;
+      agg.timeMs += step.timeSpentMs || 0;
+      if (step.hintUsed) agg.hints++;
+      if (step.retried) agg.retries++;
+      if (step.misconceptionTag) agg.misconceptions++;
+    }
+  }
+  const stepAnalytics = STEP_IDS.map((sid) => {
+    const a = stepAgg[sid];
+    return {
+      stepId: sid, label: STEP_LABELS[sid], total: a.total,
+      errorRate: a.total ? Math.round(((a.total - a.correct) / a.total) * 100) : 0,
+      avgTimeSec: a.total ? Math.round(a.timeMs / a.total / 1000) : 0,
+      hintRate: a.total ? Math.round((a.hints / a.total) * 100) : 0,
+      retryRate: a.total ? Math.round((a.retries / a.total) * 100) : 0,
+      misconceptionRate: a.total ? Math.round((a.misconceptions / a.total) * 100) : 0,
+    };
+  });
+
+  const heuristicMap = {};
+  for (const sk of Object.values(skillMap)) {
+    const h = sk.heuristic;
+    if (!heuristicMap[h]) heuristicMap[h] = { heuristic: h, sessions: 0, _scores: [] };
+    heuristicMap[h].sessions += sk.sessions;
+    const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
+    heuristicMap[h]._scores.push(...skAttempts.map((a) => a.overallScore));
+  }
+  const heuristics = Object.values(heuristicMap).map((h) => ({
+    heuristic: h.heuristic, sessions: h.sessions,
+    avgScore: h._scores.length ? Math.round((h._scores.reduce((a, b) => a + b, 0) / h._scores.length) * 100) : 0,
+  }));
+
+  const miscCounts = {};
+  for (const at of attempts) {
+    for (const step of at.steps || []) {
+      if (step.misconceptionTag) miscCounts[step.misconceptionTag] = (miscCounts[step.misconceptionTag] || 0) + 1;
+    }
+  }
+  const topMisconceptions = Object.entries(miscCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([tag, count]) => ({ tag, count }));
+
+  const recentSessions = completedSessions
+    .sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt))
+    .slice(0, 10)
+    .map((s) => {
+      const sk = skills.find((sk) => sk.skillId === s.skillId);
+      const sessionAttempts = attempts.filter((a) => a.sessionId === s.sessionId);
+      const avgScore = sessionAttempts.length
+        ? Math.round((sessionAttempts.reduce((a, at) => a + at.overallScore, 0) / sessionAttempts.length) * 100)
+        : 0;
+      return {
+        sessionId: s.sessionId, skillId: s.skillId, skillName: sk?.name || s.skillId,
+        heuristic: sk?.heuristic, date: s.completedAt || s.updatedAt, score: avgScore,
+        problems: s.summary?.totalProblems || 0,
+      };
+    });
+
+  res.json({
+    student: { id: studentId, name: student.name, level: student.level },
+    overview: {
+      totalSessions: completedSessions.length, skillsAttempted: Object.keys(skillMap).length,
+      skillsMastered: masteryRecs.filter((r) => r.status === 'mastered').length,
+      averageAccuracy: avgAccuracy,
+    },
+    skills: Object.values(skillMap),
+    heuristics,
+    stepAnalytics,
+    topMisconceptions,
+    recentSessions,
+  });
 });
 
 export default router;
