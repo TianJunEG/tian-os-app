@@ -3,9 +3,14 @@
 // Curated questions extracted from real Singapore P4 Math exam papers.
 // Each question is mapped to a MathPath skill ID for targeted practice.
 //
-// Source papers: ACSJ, Catholic High, Nanyang (2024-2025)
+// Source papers: ACSJ, Catholic High, Nanyang, Henry Park, Raffles (2021-2025)
 // Figure-dependent questions are excluded — text-only items that can be
 // rendered in the MathPath practice UI without diagrams.
+//
+// NOTE: 6 heuristic WP-02 questions (comparison-with-multiples, substitution,
+// simultaneous-change) have been moved to Problem Solving Lab (PSL) as
+// parameterised templates in scripts/seedPSLTemplates.js. See IDs:
+// CQ-P4-050, CQ-P4-052, CQ-P4-053, CQ-P4-056, CQ-P4-072, CQ-P4-073.
 //
 // Format: each item matches the shape returned by QuestionGenerator so
 // the practice engine can mix curated and generated questions seamlessly.
@@ -1138,27 +1143,6 @@ export const p4CuratedQuestions = [
   // ═══════════════════════════════════════════════════════════════════════
 
   {
-    id: 'CQ-P4-050',
-    skillId: 'P4-WP-02',
-    source: { school: 'Catholic High', exam: 'EOY', year: 2024, section: 'A', qn: 8 },
-    type: 'mcq',
-    marks: 2,
-    prompt: 'The difference in value between 2 numbers is 480. One of the numbers is 3 times the other number. Find the sum of the 2 numbers.',
-    options: ['160', '240', '640', '960'],
-    answer: '960',
-    answerIndex: 3,
-    answerType: 'numeric',
-    difficulty: 3,
-    solutionSteps: [
-      'Let the smaller number = x. Larger = 3x.',
-      '3x − x = 2x = 480 → x = 240',
-      'Sum = x + 3x = 4x = 4 × 240 = 960',
-    ],
-    misconceptionTraps: ['misidentifies_operation'],
-    tags: ['two-step', 'algebra-like', 'word-problem'],
-  },
-
-  {
     id: 'CQ-P4-051',
     skillId: 'P4-WP-02',
     source: { school: 'Catholic High', exam: 'EOY', year: 2024, section: 'A', qn: 9 },
@@ -1176,50 +1160,6 @@ export const p4CuratedQuestions = [
     ],
     misconceptionTraps: ['misidentifies_operation'],
     tags: ['two-step', 'measurement', 'word-problem'],
-  },
-
-  {
-    id: 'CQ-P4-052',
-    skillId: 'P4-WP-02',
-    source: { school: 'Catholic High', exam: 'EOY', year: 2024, section: 'A', qn: 16 },
-    type: 'mcq',
-    marks: 2,
-    prompt: '1 pen costs as much as 4 erasers. Danny paid $8.40 for 1 pen and 3 erasers. Find the cost of 1 eraser.',
-    options: ['$1.20', '$2.10', '$2.40', '$4.80'],
-    answer: '$1.20',
-    answerIndex: 0,
-    answerType: 'numeric',
-    difficulty: 3,
-    solutionSteps: [
-      '1 pen = 4 erasers',
-      '1 pen + 3 erasers = 4 erasers + 3 erasers = 7 erasers',
-      '7 erasers = $8.40',
-      '1 eraser = $8.40 ÷ 7 = $1.20',
-    ],
-    misconceptionTraps: ['misidentifies_operation'],
-    tags: ['two-step', 'substitution', 'money', 'word-problem'],
-  },
-
-  {
-    id: 'CQ-P4-053',
-    skillId: 'P4-WP-02',
-    source: { school: 'Catholic High', exam: 'EOY', year: 2024, section: 'B', qn: 32 },
-    type: 'open',
-    marks: 2,
-    prompt: 'Lionel has 5 more stickers than Marco. Nathan has 4 times as many stickers as Marco. Lionel and Nathan have 120 stickers altogether. How many stickers does Marco have?',
-    options: null,
-    answer: '23',
-    answerIndex: null,
-    answerType: 'numeric',
-    difficulty: 4,
-    solutionSteps: [
-      'Let Marco = M',
-      'Lionel = M + 5, Nathan = 4M',
-      '(M + 5) + 4M = 120',
-      '5M + 5 = 120 → 5M = 115 → M = 23',
-    ],
-    misconceptionTraps: ['misidentifies_operation'],
-    tags: ['two-step', 'algebra-like', 'word-problem'],
   },
 
   {
@@ -1261,29 +1201,6 @@ export const p4CuratedQuestions = [
     ],
     misconceptionTraps: ['misidentifies_operation'],
     tags: ['table-reading', 'subtraction', 'word-problem'],
-  },
-
-  {
-    id: 'CQ-P4-056',
-    skillId: 'P4-WP-02',
-    source: { school: 'Nanyang', exam: 'WA2', year: 2025, section: 'A', qn: 3 },
-    type: 'mcq',
-    marks: 2,
-    prompt: 'The number of sweets sold on Sunday is twice the number of chocolates sold on Sunday. How many chocolates were sold on Sunday?\n(Sunday: Lollipops = 670, Total = 1150)',
-    options: ['120', '160', '320', '480'],
-    answer: '160',
-    answerIndex: 1,
-    answerType: 'numeric',
-    difficulty: 3,
-    solutionSteps: [
-      'Sunday: Sweets + Lollipops + Chocolates = 1150',
-      'Sweets + 670 + Chocolates = 1150',
-      'Sweets + Chocolates = 480',
-      'Sweets = 2 × Chocolates → 3 × Chocolates = 480',
-      'Chocolates = 160',
-    ],
-    misconceptionTraps: ['misidentifies_operation'],
-    tags: ['two-step', 'table-reading', 'word-problem'],
   },
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -1650,51 +1567,6 @@ export const p4CuratedQuestions = [
     ],
     misconceptionTraps: ['uses_weekday_prices', 'miscounts_family_members', 'wrong_age_category'],
     tags: ['table-reading', 'multi-step', 'money'],
-  },
-
-  {
-    id: 'CQ-P4-072',
-    skillId: 'P4-WP-02',
-    source: { school: 'Henry Park', exam: 'EOY', year: 2023, section: 'B', qn: 31 },
-    type: 'open',
-    marks: 2,
-    prompt: 'Shop A has 50 apples more than Shop B. Shop A has twice as many apples as Shop C. Given that shops A, B and C have 250 apples altogether, how many apples does Shop C have?',
-    options: null,
-    answer: '60',
-    answerIndex: null,
-    answerType: 'numeric',
-    difficulty: 3,
-    solutionSteps: [
-      'Let Shop C = x',
-      'Shop A = 2x',
-      'Shop B = 2x − 50',
-      'Total: 2x + (2x − 50) + x = 250',
-      '5x − 50 = 250 → 5x = 300 → x = 60',
-    ],
-    misconceptionTraps: ['wrong_relationship_direction', 'solves_for_wrong_shop'],
-    tags: ['comparison', 'multi-step', 'algebra-like'],
-  },
-
-  {
-    id: 'CQ-P4-073',
-    skillId: 'P4-WP-02',
-    source: { school: 'Henry Park', exam: 'EOY', year: 2023, section: 'B', qn: 33 },
-    type: 'open',
-    marks: 2,
-    prompt: 'The total mass of 2 packets of sugar and 2 packets of flour was 6.54 kg. The mass of 1 packet of flour was twice as heavy as 1 packet of sugar. What was the mass of a packet of flour?',
-    options: null,
-    answer: '2.18',
-    answerIndex: null,
-    answerType: 'decimal',
-    difficulty: 3,
-    solutionSteps: [
-      'Let 1 packet of sugar = s kg',
-      '1 packet of flour = 2s kg',
-      '2s + 2(2s) = 6.54 → 6s = 6.54 → s = 1.09',
-      'Flour = 2 × 1.09 = 2.18 kg',
-    ],
-    misconceptionTraps: ['gives_sugar_not_flour', 'sets_up_equation_wrong'],
-    tags: ['comparison', 'decimals', 'multi-step', 'mass'],
   },
 
   // ═══════════════════════════════════════════════════════════════════════

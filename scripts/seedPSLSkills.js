@@ -112,10 +112,47 @@ const P3_SKILLS = [
   },
 ];
 
+const P4_SKILLS = [
+  // Comparison with multiples (bar model where one quantity is a multiple of another)
+  {
+    skillId: 'psl-p4-bar-comp-multiples',
+    name: 'Bar model: comparison with multiples',
+    description: 'Use a comparison bar model when one quantity is a multiple of another (e.g. "3 times as many") and find unknown quantities from sum or difference.',
+    level: 'P4', heuristic: 'bar-model', structure: 'comparisonMultiples', unknownPosition: 'both',
+    difficulty: 2,
+    mathPathPrerequisites: ['P4-FO-01'],
+    pslPrerequisites: ['psl-p3-bar-comp-find-diff'],
+    commonMisconceptions: ['psl/wrong-unit-count', 'psl/confuses-sum-and-difference', 'psl/wrong-operation'],
+  },
+  // Substitution method (replace one unknown with an equivalent expression)
+  {
+    skillId: 'psl-p4-substitution',
+    name: 'Substitution method',
+    description: 'Replace one item with its equivalent (e.g. "1 pen costs as much as 4 erasers") to reduce a problem to a single unknown.',
+    level: 'P4', heuristic: 'substitution', structure: 'substitution', unknownPosition: 'unit',
+    difficulty: 2,
+    mathPathPrerequisites: ['P4-FO-03'],
+    pslPrerequisites: ['psl-p3-bar-pw-mul'],
+    commonMisconceptions: ['psl/wrong-substitution', 'psl/forgets-to-substitute', 'psl/arithmetic-error'],
+  },
+  // Simultaneous change (two equations with a common unknown eliminated by subtraction)
+  {
+    skillId: 'psl-p4-simultaneous',
+    name: 'Simultaneous change / elimination',
+    description: 'Use two related facts (e.g. different groupings with a common item) to eliminate one unknown and find the other.',
+    level: 'P4', heuristic: 'simultaneous-change', structure: 'simultaneousChange', unknownPosition: 'unit',
+    difficulty: 3,
+    mathPathPrerequisites: ['P4-FO-03', 'P4-DEC-04'],
+    pslPrerequisites: ['psl-p4-bar-comp-multiples'],
+    commonMisconceptions: ['psl/subtracts-wrong-pair', 'psl/divides-by-wrong-count', 'psl/arithmetic-error'],
+  },
+];
+
 async function seed() {
   await connectDB();
+  const ALL_SKILLS = [...P3_SKILLS, ...P4_SKILLS];
   let upserted = 0;
-  for (const skill of P3_SKILLS) {
+  for (const skill of ALL_SKILLS) {
     await PSLSkill.findOneAndUpdate(
       { skillId: skill.skillId },
       { $set: skill },
