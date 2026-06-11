@@ -323,12 +323,15 @@ function barChart(spec) {
 function lineGraph(spec) {
   const { points = [] } = spec.data;
   const w = spec.width; const h = spec.height; const x0 = 50; const y0 = h - 45; const cw = w - 90; const ch = h - 80;
-  const maxX = Math.max(...points.map((p) => p.x), 1); const maxY = Math.max(...points.map((p) => p.y), 1);
+  const isLabeled = points.length > 0 && 'value' in points[0];
+  const pts = isLabeled ? points.map((p, i) => ({ x: i, y: Number(p.value) || 0, label: p.label })) : points;
+  const maxX = isLabeled ? Math.max(pts.length - 1, 1) : Math.max(...pts.map((p) => p.x), 1);
+  const maxY = Math.max(...pts.map((p) => p.y), 1);
   const toX = (px) => x0 + (px / maxX) * cw; const toY = (py) => y0 - (py / maxY) * ch;
-  const d = points.map((p, i) => `${i ? 'L' : 'M'} ${toX(p.x)} ${toY(p.y)}`).join(' ');
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'} ${toX(p.x)} ${toY(p.y)}`).join(' ');
   if (REDUCE_MOTION) {
     let body = `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111"/><line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111"/><path d="${d}" fill="none" stroke="#1d4ed8" stroke-width="2"/>`;
-    points.forEach((p) => { body += `<circle cx="${toX(p.x)}" cy="${toY(p.y)}" r="3" fill="#1d4ed8"/>`; });
+    pts.forEach((p) => { body += `<circle cx="${toX(p.x)}" cy="${toY(p.y)}" r="3" fill="#1d4ed8"/>`; if (p.label) body += `<text x="${toX(p.x)}" y="${y0 + 16}" font-size="11" text-anchor="middle" fill="#111">${esc(p.label)}</text>`; });
     return svgShell(spec, body, 'line graph');
   }
   const xAxisLen = w - 20 - x0;
@@ -337,15 +340,16 @@ function lineGraph(spec) {
   body += `<line x1="${x0}" y1="${y0}" x2="${w - 20}" y2="${y0}" stroke="#111" stroke-dasharray="${xAxisLen}" stroke-dashoffset="${xAxisLen}"><animate attributeName="stroke-dashoffset" from="${xAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
   body += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="20" stroke="#111" stroke-dasharray="${yAxisLen}" stroke-dashoffset="${yAxisLen}"><animate attributeName="stroke-dashoffset" from="${yAxisLen}" to="0" dur="0.3s" fill="freeze"/></line>`;
   let pathLen = 0;
-  for (let i = 1; i < points.length; i += 1) {
-    pathLen += Math.hypot(toX(points[i].x) - toX(points[i - 1].x), toY(points[i].y) - toY(points[i - 1].y));
+  for (let i = 1; i < pts.length; i += 1) {
+    pathLen += Math.hypot(toX(pts[i].x) - toX(pts[i - 1].x), toY(pts[i].y) - toY(pts[i - 1].y));
   }
   pathLen = Math.max(pathLen, 1);
   body += `<path d="${d}" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="${pathLen}" stroke-dashoffset="${pathLen}"><animate attributeName="stroke-dashoffset" from="${pathLen}" to="0" dur="0.6s" begin="0.3s" fill="freeze"/></path>`;
-  const perDot = Math.min(0.12, 0.6 / (points.length || 1));
-  points.forEach((p, i) => {
+  const perDot = Math.min(0.12, 0.6 / (pts.length || 1));
+  pts.forEach((p, i) => {
     const delay = (0.9 + i * perDot).toFixed(2);
     body += `<circle cx="${toX(p.x)}" cy="${toY(p.y)}" r="0" fill="#1d4ed8"><animate attributeName="r" from="0" to="4" dur="0.12s" begin="${delay}s" fill="freeze"/><animate attributeName="r" from="4" to="3" dur="0.08s" begin="${(0.9 + i * perDot + 0.12).toFixed(2)}s" fill="freeze"/></circle>`;
+    if (p.label) body += `<text x="${toX(p.x)}" y="${y0 + 16}" font-size="11" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="${delay}s" fill="freeze"/>${esc(p.label)}</text>`;
   });
   return svgShell(spec, body, 'line graph');
 }

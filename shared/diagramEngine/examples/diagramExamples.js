@@ -97,6 +97,11 @@ export const diagramExamples = {
     ex('DG017_EX2', 'money_display', { items: [{ label: '$5', count: 1 }, { label: '$1', count: 3 }] }, '$8 in Notes'),
     ex('DG017_EX3', 'money_display', { items: [{ label: '20c', count: 3 }, { label: '10c', count: 1 }] }, '70 Cents in Coins'),
   ],
+  pie_chart: [
+    ex('DG018_EX1', 'pie_chart', { segments: [{ label: 'Football', value: 12 }, { label: 'Basketball', value: 8 }, { label: 'Swimming', value: 5 }, { label: 'Badminton', value: 5 }], title: 'Favourite Sport' }, 'Favourite Sport Pie Chart'),
+    ex('DG018_EX2', 'pie_chart', { segments: [{ label: 'Bus', value: 15 }, { label: 'Car', value: 10 }, { label: 'Walk', value: 7 }, { label: 'MRT', value: 8 }] }, 'Transport Modes'),
+    ex('DG018_EX3', 'pie_chart', { segments: [{ label: 'Apple', value: 20 }, { label: 'Mango', value: 14 }, { label: 'Grape', value: 6 }], title: 'Favourite Fruit' }, 'Favourite Fruit Pie Chart'),
+  ],
 };
 
 export const allDiagramExamples = Object.values(diagramExamples).flat();

@@ -176,6 +176,17 @@ const validators = {
     if (!isNonNegative(asNumber(d.leftValue))) errors.push('comparison_models: leftValue must be >= 0.');
     if (!isNonNegative(asNumber(d.rightValue))) errors.push('comparison_models: rightValue must be >= 0.');
   },
+  pie_chart(spec, errors) {
+    const d = spec.data;
+    if (!Array.isArray(d.segments) || d.segments.length === 0) {
+      errors.push('pie_chart: segments must be a non-empty array.');
+      return;
+    }
+    d.segments.forEach((seg, idx) => {
+      if (!seg?.label) errors.push(`pie_chart: segments[${idx}].label is required.`);
+      if (!isNonNegative(asNumber(seg?.value))) errors.push(`pie_chart: segments[${idx}].value must be >= 0.`);
+    });
+  },
 };
 
 export const diagramValidators = validators;

@@ -971,6 +971,71 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'picture_graph', width: 640, height: 280, data: { categories: cats.map((label, i) => ({ label, count: counts[i] })), symbol: '●', symbolValue: sv } };
     return q;
   }
+  if (name.includes('line graph')) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const topics = [
+      { title: 'Temperature (°C)', unit: '°C', items: days },
+      { title: 'Books read', unit: '', items: days },
+      { title: 'Visitors', unit: '', items: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'] },
+    ];
+    const topic = topics[rnd(0, topics.length - 1)];
+    const vals = shuffle([rnd(5, 12), rnd(13, 20), rnd(21, 28), rnd(8, 15), rnd(16, 25)]);
+    const askIdx = rnd(0, topic.items.length - 1);
+    const maxIdx = vals.indexOf(Math.max(...vals));
+    let q;
+    if (Math.random() < 0.5) {
+      q = short(`The line graph shows ${topic.title.toLowerCase()} over 5 ${topic.items === days ? 'days' : 'weeks'}. What was the value on ${topic.items[askIdx]}?`,
+        vals[askIdx], `Read the graph at ${topic.items[askIdx]}: the value is ${vals[askIdx]}${topic.unit ? ' ' + topic.unit : ''}.`,
+        'data/line-graph-read', difficulty);
+    } else {
+      q = mcq(`The line graph shows ${topic.title.toLowerCase()} over 5 ${topic.items === days ? 'days' : 'weeks'}. On which ${topic.items === days ? 'day' : 'week'} was the value highest?`,
+        topic.items[maxIdx], topic.items.filter((_, i) => i !== maxIdx).slice(0, 3),
+        `${topic.items[maxIdx]} has the highest point on the graph (${vals[maxIdx]}).`,
+        'data/line-graph-compare', difficulty);
+    }
+    q.diagramSpec = { type: 'line_graph', width: 640, height: 320, data: { points: topic.items.map((label, i) => ({ label, value: vals[i] })), title: topic.title } };
+    return q;
+  }
+  if (name.includes('pie chart')) {
+    const sets = [
+      { title: 'Favourite sport', cats: ['Football', 'Swimming', 'Running', 'Tennis'] },
+      { title: 'Transport to school', cats: ['Walk', 'Bus', 'Car', 'Bicycle'] },
+      { title: 'Favourite fruit', cats: ['Apple', 'Orange', 'Banana', 'Grape'] },
+    ];
+    const set = sets[rnd(0, sets.length - 1)];
+    const raw = shuffle([rnd(5, 15), rnd(10, 25), rnd(3, 12), rnd(8, 20)]);
+    const total = raw.reduce((s, v) => s + v, 0);
+    const askIdx = rnd(0, set.cats.length - 1);
+    const maxIdx = raw.indexOf(Math.max(...raw));
+    let q;
+    if (Math.random() < 0.5) {
+      q = short(`The pie chart shows ${total} students' ${set.title.toLowerCase()}. How many chose ${set.cats[askIdx]}?`,
+        raw[askIdx], `From the pie chart, ${set.cats[askIdx]} is ${raw[askIdx]} out of ${total} students.`,
+        'data/pie-chart-read', difficulty);
+    } else {
+      q = mcq(`The pie chart shows students' ${set.title.toLowerCase()}. Which category had the most students?`,
+        set.cats[maxIdx], set.cats.filter((_, i) => i !== maxIdx),
+        `${set.cats[maxIdx]} has the largest slice (${raw[maxIdx]} students).`,
+        'data/pie-chart-compare', difficulty);
+    }
+    q.diagramSpec = { type: 'pie_chart', width: 640, height: 320, data: { segments: set.cats.map((label, i) => ({ label, value: raw[i] })), title: set.title } };
+    return q;
+  }
+  if (name.includes('line symmetry')) {
+    const shapes = [
+      { type: 'square', label: 'square', lines: 4 },
+      { type: 'rectangle', label: 'rectangle', lines: 2 },
+      { type: 'triangle', label: 'isosceles triangle', lines: 1 },
+      { type: 'rhombus', label: 'rhombus', lines: 2 },
+      { type: 'trapezium', label: 'isosceles trapezium', lines: 1 },
+    ];
+    const pool = difficulty === 'easy' ? shapes.slice(0, 2) : difficulty === 'medium' ? shapes.slice(0, 4) : shapes;
+    const pick = pool[rnd(0, pool.length - 1)];
+    const q = mcq(`How many lines of symmetry does a ${pick.label} have?`, pick.lines, [pick.lines + 1, Math.max(0, pick.lines - 1), pick.lines + 2],
+      `A ${pick.label} has ${pick.lines} line${pick.lines !== 1 ? 's' : ''} of symmetry.`, 'geo/symmetry-count', difficulty);
+    q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: [{ type: pick.type, label: pick.label }] } };
+    return q;
+  }
   if (name.includes('reading measuring scale')) {
     const scaleEnd = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
     const objLen = rnd(2, Math.floor(scaleEnd * 0.6));

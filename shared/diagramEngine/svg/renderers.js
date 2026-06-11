@@ -504,6 +504,46 @@ function renderMoneyDisplay(spec) {
   return svgShell(tightSpec, body, spec.title || 'Money display diagram');
 }
 
+function renderPieChart(spec) {
+  const d = specData(spec);
+  const segments = Array.isArray(d.segments) ? d.segments : [];
+  const w = Number(spec.width) || 640;
+  const h = Number(spec.height) || 360;
+  const cx = w * 0.38;
+  const cy = h / 2;
+  const r = Math.min(w * 0.35, h * 0.38);
+  const total = segments.reduce((sum, s) => sum + (Number(s.value) || 0), 0) || 1;
+  const fills = ['#bfdbfe', '#fde68a', '#bbf7d0', '#fecaca', '#ddd6fe', '#fed7aa'];
+  let angle = -Math.PI / 2;
+  let body = '';
+  segments.forEach((seg, idx) => {
+    const val = Math.max(0, Number(seg.value) || 0);
+    const sweep = (val / total) * Math.PI * 2;
+    const x1 = cx + r * Math.cos(angle);
+    const y1 = cy + r * Math.sin(angle);
+    const x2 = cx + r * Math.cos(angle + sweep);
+    const y2 = cy + r * Math.sin(angle + sweep);
+    const large = sweep > Math.PI ? 1 : 0;
+    const fill = fills[idx % fills.length];
+    body += `<path d="M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z" fill="${fill}" stroke="#111111" stroke-width="1.2"/>`;
+    if (val / total > 0.04) {
+      const midAngle = angle + sweep / 2;
+      const lx = cx + r * 0.6 * Math.cos(midAngle);
+      const ly = cy + r * 0.6 * Math.sin(midAngle);
+      body += `<text x="${lx}" y="${ly + 4}" text-anchor="middle" font-size="10" fill="#111111">${esc(seg.label || '')}</text>`;
+    }
+    angle += sweep;
+  });
+  const legendX = w * 0.72;
+  segments.forEach((seg, idx) => {
+    const ly = 30 + idx * 22;
+    body += `<rect x="${legendX}" y="${ly - 10}" width="14" height="14" fill="${fills[idx % fills.length]}" stroke="#111111" stroke-width="0.8"/>`;
+    body += `<text x="${legendX + 20}" y="${ly + 2}" font-size="11" fill="#111111">${esc(seg.label || '')} (${Number(seg.value) || 0})</text>`;
+  });
+  if (d.title) body += `<text x="${cx}" y="${h - 10}" text-anchor="middle" font-size="13" font-weight="600" fill="#111111">${esc(d.title)}</text>`;
+  return svgShell(spec, body, spec.title || 'Pie chart');
+}
+
 export const diagramSvgRenderers = {
   number_line: renderNumberLine,
   fraction_model: renderFractionModel,
@@ -523,4 +563,5 @@ export const diagramSvgRenderers = {
   comparison_model: renderComparisonModels,
   comparison_models: renderComparisonModels,
   money_display: renderMoneyDisplay,
+  pie_chart: renderPieChart,
 };

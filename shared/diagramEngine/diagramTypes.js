@@ -18,6 +18,7 @@ export const DIAGRAM_TYPE_DEFINITIONS = [
   { code: 'DG015', type: 'length_measurement', name: 'Length Measurement' },
   { code: 'DG016', type: 'comparison_model', name: 'Comparison Model' },
   { code: 'DG017', type: 'money_display', name: 'Money Display' },
+  { code: 'DG018', type: 'pie_chart', name: 'Pie Chart' },
 ];
 
 export const LEGACY_DIAGRAM_TYPE_ALIASES = {
