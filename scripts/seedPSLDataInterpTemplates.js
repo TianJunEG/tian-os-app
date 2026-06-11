@@ -6,10 +6,11 @@ import PSLProblemTemplate from '../models/psl/PSLProblemTemplate.js';
 import { strategyScaffold, makeTemplate } from './pslTemplateFactory.js';
 
 // Data-Interpretation heuristic – 22 templates across 8 skills (P4–P6)
-const mk = (id, skill, level, story, constraints, choices) =>
+const mk = (id, skill, level, story, constraints, choices, solTpl) =>
   makeTemplate(id, skill, 'dataInterpretation', {
     heuristic: 'data-interpretation', level, storyTemplate: story, constraints,
     scaffold: strategyScaffold('data-interpretation', choices),
+    solutionTemplate: solTpl || '',
   });
 const g4 = () => ({ min: 10, max: 50 });
 const sum4 = (n) => n.valA + n.valB + n.valC + n.valD;
@@ -21,21 +22,24 @@ const templates = [
     { _generic: { valA: g4(), valB: g4(), valC: g4(), valD: g4() },
       _compute: { total: sum4, answer: sum4 }, answer: { min: 40 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}+{{valB}}', correct: false },
-     { text: '{{total}}+10', correct: false }, { text: '{{valA}}', correct: false }]),
+     { text: '{{total}}+10', correct: false }, { text: '{{valA}}', correct: false }],
+    'Step 1: Read the values: {{valA}}, {{valB}}, {{valC}}, {{valD}}.\nStep 2: Add them: {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{answer}}.\nAnswer: {{answer}}.'),
 
   mk('psl-p4-di-table-read-02', 'psl-p4-di-table-read', 'P4',
     'The canteen recorded food orders for Monday: chicken rice {{valA}}, nasi lemak {{valB}}, fishball noodles {{valC}}, mee rebus {{valD}}. How many orders were there altogether?',
     { _generic: { valA: {min:15,max:60}, valB: {min:15,max:60}, valC: {min:15,max:60}, valD: {min:15,max:60} },
       _compute: { total: sum4, answer: sum4 }, answer: { min: 60 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}+{{valC}}', correct: false },
-     { text: '{{total}}-{{valD}}', correct: false }, { text: '{{valB}}+{{valD}}', correct: false }]),
+     { text: '{{total}}-{{valD}}', correct: false }, { text: '{{valB}}+{{valD}}', correct: false }],
+    'Step 1: Read the values: {{valA}}, {{valB}}, {{valC}}, {{valD}}.\nStep 2: Add them: {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{answer}}.\nAnswer: {{answer}}.'),
 
   mk('psl-p4-di-table-read-03', 'psl-p4-di-table-read', 'P4',
     'A table shows CCA attendance this week: Art Club {{valA}}, Robotics {{valB}}, Basketball {{valC}}, Choir {{valD}}. How many more students attended Robotics than Art Club?',
     { _generic: { valA: {min:8,max:25}, valB: {min:26,max:50}, valC: {min:10,max:40}, valD: {min:10,max:40} },
       _compute: { diff: (n) => n.valB-n.valA, answer: (n) => n.valB-n.valA }, answer: { min: 1 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valB}}', correct: false },
-     { text: '{{valA}}', correct: false }, { text: '{{valB}}+{{valA}}', correct: false }]),
+     { text: '{{valA}}', correct: false }, { text: '{{valB}}+{{valA}}', correct: false }],
+    'Step 1: Read the values: Art Club = {{valA}}, Robotics = {{valB}}.\nStep 2: Find the difference: {{valB}} − {{valA}} = {{answer}}.\nAnswer: {{answer}} more students.'),
 
   // ── P4: psl-p4-di-bar-chart (3) ──
   mk('psl-p4-di-bar-chart-01', 'psl-p4-di-bar-chart', 'P4',
@@ -43,21 +47,24 @@ const templates = [
     { _generic: { valA: {min:50,max:120}, valB: {min:50,max:120}, valC: {min:50,max:120}, valD: {min:50,max:120} },
       _compute: { answer: (n) => Math.max(n.valA,n.valB,n.valC,n.valD) }, answer: { min: 50 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}', correct: false },
-     { text: '{{valD}}', correct: false }, { text: '{{valB}}+{{valC}}', correct: false }]),
+     { text: '{{valD}}', correct: false }, { text: '{{valB}}+{{valC}}', correct: false }],
+    'Step 1: Read each bar: {{valA}}, {{valB}}, {{valC}}, {{valD}}.\nStep 2: Compare to find the largest value = {{answer}}.\nAnswer: {{answer}} points.'),
 
   mk('psl-p4-di-bar-chart-02', 'psl-p4-di-bar-chart', 'P4',
     'The bar chart shows library books borrowed: Jan {{valA}}, Feb {{valB}}, Mar {{valC}}, Apr {{valD}}. What is the total number of books borrowed?',
     { _generic: { valA: {min:20,max:80}, valB: {min:20,max:80}, valC: {min:20,max:80}, valD: {min:20,max:80} },
       _compute: { total: sum4, answer: sum4 }, answer: { min: 80 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}+{{valB}}', correct: false },
-     { text: '{{total}}+{{valC}}', correct: false }, { text: '{{valD}}', correct: false }]),
+     { text: '{{total}}+{{valC}}', correct: false }, { text: '{{valD}}', correct: false }],
+    'Step 1: Read the values: {{valA}}, {{valB}}, {{valC}}, {{valD}}.\nStep 2: Add them: {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{answer}}.\nAnswer: {{answer}}.'),
 
   mk('psl-p4-di-bar-chart-03', 'psl-p4-di-bar-chart', 'P4',
     'A bar chart shows hawker stall sales on Saturday: Stall A sold {{valA}} plates, Stall B {{valB}}, Stall C {{valC}}, Stall D {{valD}}. How many fewer plates did Stall C sell than Stall B?',
     { _generic: { valA: {min:30,max:80}, valB: {min:50,max:100}, valC: {min:10,max:49}, valD: {min:30,max:80} },
       _compute: { answer: (n) => n.valB-n.valC }, answer: { min: 1 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valB}}', correct: false },
-     { text: '{{valC}}', correct: false }, { text: '{{valB}}+{{valC}}', correct: false }]),
+     { text: '{{valC}}', correct: false }, { text: '{{valB}}+{{valC}}', correct: false }],
+    'Step 1: Read Stall B = {{valB}} and Stall C = {{valC}}.\nStep 2: Difference = {{valB}} − {{valC}} = {{answer}}.\nAnswer: {{answer}} fewer plates.'),
 
   // ── P4: psl-p4-di-line-graph (2) ──
   mk('psl-p4-di-line-graph-01', 'psl-p4-di-line-graph', 'P4',
@@ -65,14 +72,16 @@ const templates = [
     { _generic: { valA: {min:27,max:35}, valB: {min:27,max:35}, valC: {min:27,max:35}, valD: {min:27,max:35} },
       _compute: { answer: (n) => Math.max(n.valA,n.valB,n.valC,n.valD)-Math.min(n.valA,n.valB,n.valC,n.valD) }, answer: { min: 0 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}', correct: false },
-     { text: '{{valD}}-{{valA}}', correct: false }, { text: '{{valB}}', correct: false }]),
+     { text: '{{valD}}-{{valA}}', correct: false }, { text: '{{valB}}', correct: false }],
+    'Step 1: Read the values: {{valA}}°C, {{valB}}°C, {{valC}}°C, {{valD}}°C.\nStep 2: Find the highest and lowest temperatures.\nStep 3: Difference = highest − lowest = {{answer}}°C.\nAnswer: {{answer}}°C.'),
 
   mk('psl-p4-di-line-graph-02', 'psl-p4-di-line-graph', 'P4',
     'A line graph tracks MRT ridership (in thousands): Week 1 {{valA}}, Week 2 {{valB}}, Week 3 {{valC}}, Week 4 {{valD}}. By how many thousand did ridership increase from Week 1 to Week 4?',
     { _generic: { valA: {min:50,max:80}, valB: {min:60,max:90}, valC: {min:70,max:100}, valD: {min:80,max:120} },
       _compute: { answer: (n) => n.valD-n.valA }, answer: { min: 0 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valD}}', correct: false },
-     { text: '{{valA}}', correct: false }, { text: '{{valC}}-{{valB}}', correct: false }]),
+     { text: '{{valA}}', correct: false }, { text: '{{valC}}-{{valB}}', correct: false }],
+    'Step 1: Read Week 1 = {{valA}} and Week 4 = {{valD}}.\nStep 2: Increase = {{valD}} − {{valA}} = {{answer}}.\nAnswer: {{answer}} thousand.'),
 
   // ── P5: psl-p5-di-average (3) ──
   mk('psl-p5-di-average-01', 'psl-p5-di-average', 'P5',
@@ -80,21 +89,24 @@ const templates = [
     { _generic: { valA: {min:60,max:100}, valB: {min:60,max:100}, valC: {min:60,max:100}, valD: {min:60,max:100} },
       _compute: { total: sum4, answer: (n) => sum4(n)/4 }, answer: { min: 60 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{total}}', correct: false },
-     { text: '{{valA}}', correct: false }, { text: '{{total}}/2', correct: false }]),
+     { text: '{{valA}}', correct: false }, { text: '{{total}}/2', correct: false }],
+    'Step 1: Add all scores: {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{total}}.\nStep 2: Average = {{total}} ÷ 4 = {{answer}}.\nAnswer: {{answer}}.'),
 
   mk('psl-p5-di-average-02', 'psl-p5-di-average', 'P5',
     'The school fundraiser collected donations over 4 weeks: Week 1 ${{valA}}, Week 2 ${{valB}}, Week 3 ${{valC}}, Week 4 ${{valD}}. What was the average weekly collection?',
     { _generic: { valA: {min:100,max:500}, valB: {min:100,max:500}, valC: {min:100,max:500}, valD: {min:100,max:500} },
       _compute: { total: sum4, answer: (n) => sum4(n)/4 }, answer: { min: 100 } },
     [{ text: '${{answer}}', correct: true }, { text: '${{total}}', correct: false },
-     { text: '${{valA}}', correct: false }, { text: '${{total}}/3', correct: false }]),
+     { text: '${{valA}}', correct: false }, { text: '${{total}}/3', correct: false }],
+    'Step 1: Add all donations: {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{total}}.\nStep 2: Average = {{total}} ÷ 4 = {{answer}}.\nAnswer: ${{answer}}.'),
 
   mk('psl-p5-di-average-03', 'psl-p5-di-average', 'P5',
     'A table records laps run by 4 pupils during PE: {{name1}} ran {{valA}}, {{name2}} ran {{valB}}, {{name3}} ran {{valC}}, {{name4}} ran {{valD}}. What is the average number of laps?',
     { _generic: { valA: {min:4,max:20}, valB: {min:4,max:20}, valC: {min:4,max:20}, valD: {min:4,max:20} },
       _compute: { total: sum4, answer: (n) => sum4(n)/4 }, answer: { min: 4 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{total}}', correct: false },
-     { text: '{{valC}}', correct: false }, { text: '{{total}}/2', correct: false }]),
+     { text: '{{valC}}', correct: false }, { text: '{{total}}/2', correct: false }],
+    'Step 1: Add all laps: {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{total}}.\nStep 2: Average = {{total}} ÷ 4 = {{answer}}.\nAnswer: {{answer}} laps.'),
 
   // ── P5: psl-p5-di-pie-chart (3) ──
   mk('psl-p5-di-pie-chart-01', 'psl-p5-di-pie-chart', 'P5',
@@ -102,21 +114,24 @@ const templates = [
     { _generic: { totalVal: {min:100,max:400}, pctA: {min:20,max:45}, pctB: {min:15,max:30}, pctC: {min:10,max:25}, pctD: {min:10,max:25} },
       _compute: { answer: (n) => Math.round(n.totalVal*n.pctA/100) }, answer: { min: 20 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{pctA}}', correct: false },
-     { text: '{{totalVal}}', correct: false }, { text: '{{totalVal}}/2', correct: false }]),
+     { text: '{{totalVal}}', correct: false }, { text: '{{totalVal}}/2', correct: false }],
+    'Step 1: Bus percentage = {{pctA}}%. Total students = {{totalVal}}.\nStep 2: Students taking bus = {{pctA}}% × {{totalVal}} = {{answer}}.\nAnswer: {{answer}} students.'),
 
   mk('psl-p5-di-pie-chart-02', 'psl-p5-di-pie-chart', 'P5',
     'A pie chart shows favourite CCAs among {{totalVal}} students: Basketball {{pctA}}%, Badminton {{pctB}}%, Swimming {{pctC}}%, Track {{pctD}}%. How many more students prefer Basketball over Swimming?',
     { _generic: { totalVal: {min:100,max:300}, pctA: {min:30,max:45}, pctB: {min:10,max:25}, pctC: {min:10,max:25}, pctD: {min:10,max:20} },
       _compute: { answer: (n) => Math.round(n.totalVal*(n.pctA-n.pctC)/100) }, answer: { min: 5 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{pctA}}-{{pctC}}', correct: false },
-     { text: '{{totalVal}}', correct: false }, { text: '{{pctA}}', correct: false }]),
+     { text: '{{totalVal}}', correct: false }, { text: '{{pctA}}', correct: false }],
+    'Step 1: Basketball = {{pctA}}%, Swimming = {{pctC}}%.\nStep 2: Difference in percentage = {{pctA}}% − {{pctC}}%.\nStep 3: More students = ({{pctA}} − {{pctC}})% × {{totalVal}} = {{answer}}.\nAnswer: {{answer}} more students.'),
 
   mk('psl-p5-di-pie-chart-03', 'psl-p5-di-pie-chart', 'P5',
     'A pie chart shows canteen spending by {{totalVal}} pupils: Drinks {{pctA}}%, Rice {{pctB}}%, Noodles {{pctC}}%, Snacks {{pctD}}%. How many pupils spent on Noodles?',
     { _generic: { totalVal: {min:150,max:400}, pctA: {min:15,max:25}, pctB: {min:25,max:35}, pctC: {min:20,max:30}, pctD: {min:10,max:20} },
       _compute: { answer: (n) => Math.round(n.totalVal*n.pctC/100) }, answer: { min: 30 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{pctC}}', correct: false },
-     { text: '{{totalVal}}', correct: false }, { text: '{{totalVal}}/4', correct: false }]),
+     { text: '{{totalVal}}', correct: false }, { text: '{{totalVal}}/4', correct: false }],
+    'Step 1: Noodles percentage = {{pctC}}%. Total pupils = {{totalVal}}.\nStep 2: Pupils on Noodles = {{pctC}}% × {{totalVal}} = {{answer}}.\nAnswer: {{answer}} pupils.'),
 
   // ── P5: psl-p5-di-two-step (2) ──
   mk('psl-p5-di-two-step-01', 'psl-p5-di-two-step', 'P5',
@@ -124,14 +139,16 @@ const templates = [
     { _generic: { valA: {min:30,max:80}, valB: {min:20,max:60}, valC: {min:20,max:60}, valD: {min:20,max:60}, giveAway: {min:5,max:20} },
       _compute: { answer: (n) => n.valA-n.giveAway }, answer: { min: 10 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}', correct: false },
-     { text: '{{valA}}+{{giveAway}}', correct: false }, { text: '{{valC}}+{{giveAway}}', correct: false }]),
+     { text: '{{valA}}+{{giveAway}}', correct: false }, { text: '{{valC}}+{{giveAway}}', correct: false }],
+    'Step 1: {{name1}} starts with {{valA}} stickers.\nStep 2: After giving away {{giveAway}}: {{valA}} − {{giveAway}} = {{answer}}.\nAnswer: {{answer}} stickers.'),
 
   mk('psl-p5-di-two-step-02', 'psl-p5-di-two-step', 'P5',
     'A chart shows hawker stall earnings: Mon ${{valA}}, Tue ${{valB}}, Wed ${{valC}}, Thu ${{valD}}. The owner spent ${{expense}} on ingredients. What was the profit for the 4 days?',
     { _generic: { valA: {min:80,max:200}, valB: {min:80,max:200}, valC: {min:80,max:200}, valD: {min:80,max:200}, expense: {min:100,max:300} },
       _compute: { total: sum4, answer: (n) => sum4(n)-n.expense }, answer: { min: 20 } },
     [{ text: '${{answer}}', correct: true }, { text: '${{total}}', correct: false },
-     { text: '${{expense}}', correct: false }, { text: '${{valA}}-{{expense}}', correct: false }]),
+     { text: '${{expense}}', correct: false }, { text: '${{valA}}-{{expense}}', correct: false }],
+    'Step 1: Total earnings = {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{total}}.\nStep 2: Profit = {{total}} − {{expense}} = {{answer}}.\nAnswer: ${{answer}}.'),
 
   // ── P6: psl-p6-di-rate (3) ──
   mk('psl-p6-di-rate-01', 'psl-p6-di-rate', 'P6',
@@ -139,21 +156,24 @@ const templates = [
     { _generic: { valA: {min:200,max:600}, valB: {min:200,max:600}, valC: {min:200,max:600}, valD: {min:200,max:600} },
       _compute: { total: sum4, answer: (n) => sum4(n)/4 }, answer: { min: 200 } },
     [{ text: '{{answer}} litres', correct: true }, { text: '{{total}} litres', correct: false },
-     { text: '{{valA}} litres', correct: false }, { text: '{{total}}/2 litres', correct: false }]),
+     { text: '{{valA}} litres', correct: false }, { text: '{{total}}/2 litres', correct: false }],
+    'Step 1: Total usage = {{valA}} + {{valB}} + {{valC}} + {{valD}} = {{total}}.\nStep 2: Average monthly rate = {{total}} ÷ 4 = {{answer}} litres.\nAnswer: {{answer}} litres.'),
 
   mk('psl-p6-di-rate-02', 'psl-p6-di-rate', 'P6',
     'MRT ridership data shows {{valA}} riders/hr in the morning, {{valB}} at midday, {{valC}} in the evening, {{valD}} at night. What is the total ridership over 4 equal 3-hour blocks?',
     { _generic: { valA: {min:500,max:2000}, valB: {min:300,max:1000}, valC: {min:500,max:2000}, valD: {min:200,max:800} },
       _compute: { answer: (n) => (n.valA+n.valB+n.valC+n.valD)*3 }, answer: { min: 4500 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}*3', correct: false },
-     { text: '{{valA}}+{{valB}}+{{valC}}+{{valD}}', correct: false }, { text: '{{valA}}*4', correct: false }]),
+     { text: '{{valA}}+{{valB}}+{{valC}}+{{valD}}', correct: false }, { text: '{{valA}}*4', correct: false }],
+    'Step 1: Total riders per hour = {{valA}} + {{valB}} + {{valC}} + {{valD}}.\nStep 2: Each block is 3 hours, so total = ({{valA}} + {{valB}} + {{valC}} + {{valD}}) × 3 = {{answer}}.\nAnswer: {{answer}} riders.'),
 
   mk('psl-p6-di-rate-03', 'psl-p6-di-rate', 'P6',
     'A graph shows a factory producing {{valA}} toys/hr for the first {{hrsA}} hours, then {{valB}} toys/hr for the next {{hrsB}} hours. How many toys were produced in total?',
     { _generic: { valA: {min:50,max:150}, valB: {min:30,max:100}, hrsA: {min:2,max:5}, hrsB: {min:2,max:5} },
       _compute: { answer: (n) => n.valA*n.hrsA + n.valB*n.hrsB }, answer: { min: 160 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valA}}*{{hrsA}}', correct: false },
-     { text: '{{valB}}*{{hrsB}}', correct: false }, { text: '({{valA}}+{{valB}})*({{hrsA}}+{{hrsB}})', correct: false }]),
+     { text: '{{valB}}*{{hrsB}}', correct: false }, { text: '({{valA}}+{{valB}})*({{hrsA}}+{{hrsB}})', correct: false }],
+    'Step 1: Batch 1 = {{valA}} × {{hrsA}} toys.\nStep 2: Batch 2 = {{valB}} × {{hrsB}} toys.\nStep 3: Total = ({{valA}} × {{hrsA}}) + ({{valB}} × {{hrsB}}) = {{answer}}.\nAnswer: {{answer}} toys.'),
 
   // ── P6: psl-p6-di-multi-source (3) ──
   mk('psl-p6-di-multi-source-01', 'psl-p6-di-multi-source', 'P6',
@@ -161,21 +181,24 @@ const templates = [
     { _generic: { valA: {min:100,max:200}, valB: {min:120,max:250}, valC: {min:100,max:200}, valD: {min:80,max:180}, valE: {min:80,max:119}, valF: {min:80,max:180} },
       _compute: { answer: (n) => n.valB-n.valE }, answer: { min: 1 } },
     [{ text: '{{answer}}', correct: true }, { text: '{{valB}}', correct: false },
-     { text: '{{valE}}', correct: false }, { text: '{{valB}}+{{valE}}', correct: false }]),
+     { text: '{{valE}}', correct: false }, { text: '{{valB}}+{{valE}}', correct: false }],
+    'Step 1: School A P5 = {{valB}}. School B P5 = {{valE}}.\nStep 2: Difference = {{valB}} − {{valE}} = {{answer}}.\nAnswer: {{answer}} more students.'),
 
   mk('psl-p6-di-multi-source-02', 'psl-p6-di-multi-source', 'P6',
     'Chart A shows donations from parents: ${{valA}}. Chart B shows donations from alumni: ${{valB}}. The school fundraiser target is ${{target}}. How much more is needed to reach the target?',
     { _generic: { valA: {min:500,max:2000}, valB: {min:500,max:2000}, target: {min:3000,max:6000} },
       _compute: { collected: (n) => n.valA+n.valB, answer: (n) => n.target-(n.valA+n.valB) }, answer: { min: 100 } },
     [{ text: '${{answer}}', correct: true }, { text: '${{target}}', correct: false },
-     { text: '${{valA}}+${{valB}}', correct: false }, { text: '${{target}}-${{valA}}', correct: false }]),
+     { text: '${{valA}}+${{valB}}', correct: false }, { text: '${{target}}-${{valA}}', correct: false }],
+    'Step 1: Total collected = {{valA}} + {{valB}} = {{collected}}.\nStep 2: Still needed = {{target}} − {{collected}} = {{answer}}.\nAnswer: ${{answer}}.'),
 
   mk('psl-p6-di-multi-source-03', 'psl-p6-di-multi-source', 'P6',
     'Table 1 shows Mon–Wed canteen sales: Mon ${{valA}}, Tue ${{valB}}, Wed ${{valC}}. Table 2 shows Thu–Fri: Thu ${{valD}}, Fri ${{valE}}. What was the average daily sales for the whole week?',
     { _generic: { valA: {min:200,max:600}, valB: {min:200,max:600}, valC: {min:200,max:600}, valD: {min:200,max:600}, valE: {min:200,max:600} },
       _compute: { total: (n) => n.valA+n.valB+n.valC+n.valD+n.valE, answer: (n) => (n.valA+n.valB+n.valC+n.valD+n.valE)/5 }, answer: { min: 200 } },
     [{ text: '${{answer}}', correct: true }, { text: '${{total}}', correct: false },
-     { text: '${{total}}/3', correct: false }, { text: '${{valA}}', correct: false }]),
+     { text: '${{total}}/3', correct: false }, { text: '${{valA}}', correct: false }],
+    'Step 1: Total for the week = {{valA}} + {{valB}} + {{valC}} + {{valD}} + {{valE}} = {{total}}.\nStep 2: Average daily sales = {{total}} ÷ 5 = {{answer}}.\nAnswer: ${{answer}}.'),
 ];
 
 // Upsert seed

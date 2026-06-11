@@ -20,6 +20,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 1000, max: 4500 }, partB: { min: 500, max: 4000 }, answer: { max: 8500 } },
     storyTemplate: 'The {setting} {verb} {partA} {entityA} and {partB} {entityB}. How many {itemPlural} are there altogether?',
+    solutionTemplate: 'Step 1: Draw a bar model with two parts: {partA} and {partB}.\nStep 2: To find the whole bar, we add the two parts together.\nStep 3: {partA} + {partB} = {answer}.\nAnswer: There are {answer} in all.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Combining two groups of items to find the total', 'Comparing two groups to find the difference', 'Taking away items from a group', 'Sharing items equally',
@@ -45,6 +46,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 1200, max: 4800 }, partB: { min: 800, max: 3500 }, answer: { max: 8300 } },
     storyTemplate: '{nameA} {verb} {partA} {entityA} and {partB} {entityB} last month. How many {itemPlural} were there in total?',
+    solutionTemplate: 'Step 1: Draw a bar model with two parts: {partA} and {partB}.\nStep 2: To find the whole bar, we add the two parts together.\nStep 3: {partA} + {partB} = {answer}.\nAnswer: There were {answer} in total.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Counting two types of items together', 'Finding how many fewer of one type', 'Removing items from a collection', 'Dividing items into groups',
@@ -71,6 +73,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 1500, max: 5000 }, partB: { min: 1000, max: 4500 }, answer: { max: 9500 } },
     storyTemplate: 'The {setting} {verb} {partA} {entityA} and {partB} {entityB}. How many {itemPlural} are there in all?',
+    solutionTemplate: 'Step 1: Draw a bar model with two parts: {partA} and {partB}.\nStep 2: The whole bar is unknown, so we add the parts.\nStep 3: {partA} + {partB} = {answer}.\nAnswer: There are {answer} in all.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Adding two groups to find the total', 'Subtracting to find the remainder', 'Comparing two different quantities', 'Splitting a group into equal parts',
@@ -100,6 +103,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 2000, max: 5000 }, partA: { min: 800, max: 3500 }, answer: { min: 200 } },
     storyTemplate: 'There are {whole} {entityA} in the {setting}. {partA} of them are {entityB}. How many {entityC} are there?',
+    solutionTemplate: 'Step 1: Draw a bar model. The whole bar is {whole}. One part is {partA}.\nStep 2: To find the missing part, subtract the known part from the whole.\nStep 3: {whole} - {partA} = {answer}.\nAnswer: There are {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a missing part when the total is known', 'Comparing two groups to find the difference', 'Adding two groups together', 'Sharing items equally among groups',
@@ -125,6 +129,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 2500, max: 5000 }, partA: { min: 1000, max: 3800 }, answer: { min: 300 } },
     storyTemplate: 'A {setting} {verb} {whole} {entityA}. {partA} of them were {verbPast}. How many {entityA} were left?',
+    solutionTemplate: 'Step 1: Draw a bar model. The whole bar is {whole}. One part is {partA}.\nStep 2: To find how many are left, subtract what was removed from the whole.\nStep 3: {whole} - {partA} = {answer}.\nAnswer: There are {answer} left.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Starting with a total and removing some', 'Comparing what two places have', 'Adding what two places collected', 'Grouping items into equal sets',
@@ -150,6 +155,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 3000, max: 5000 }, partA: { min: 1200, max: 4000 }, answer: { min: 400 } },
     storyTemplate: 'The {setting} {verb} {whole} {entityA} in total. {partA} of them were {entityB}. The rest were {entityC}. How many {entityC} were there?',
+    solutionTemplate: 'Step 1: Draw a bar model. The whole bar is {whole}. One part is {partA}.\nStep 2: The rest form the missing part. Subtract to find it.\nStep 3: {whole} - {partA} = {answer}.\nAnswer: There were {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding how many are in the remaining group', 'Adding the groups to find the total', 'Comparing the two groups', 'Sorting items into equal piles',
@@ -179,6 +185,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 500, max: 2500 }, partB: { min: 500, max: 2500 }, partC: { min: 300, max: 2000 }, answer: { max: 7000 } },
     storyTemplate: 'The {setting} {verb} {partA} {entityA}, {partB} {entityB} and {partC} {entityC}. How many {itemPlural} were there altogether?',
+    solutionTemplate: 'Step 1: Draw a bar model with three parts: {partA}, {partB} and {partC}.\nStep 2: To find the whole bar, add all three parts together.\nStep 3: {partA} + {partB} + {partC} = {answer}.\nAnswer: There were {answer} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Combining three groups to find the total', 'Finding the difference between three groups', 'Taking items away from a group', 'Sharing items among three people',
@@ -204,6 +211,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 600, max: 3000 }, partB: { min: 400, max: 2000 }, partC: { min: 200, max: 1500 }, answer: { max: 6500 } },
     storyTemplate: 'The {setting} {verb} {partA} {entityA}, {partB} {entityB} and {partC} {entityC} last week. How many {itemPlural} were there in total?',
+    solutionTemplate: 'Step 1: Draw a bar model with three parts: {partA}, {partB} and {partC}.\nStep 2: To find the whole bar, add all three parts.\nStep 3: {partA} + {partB} + {partC} = {answer}.\nAnswer: There were {answer} in total.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Adding three groups of items together', 'Comparing three different amounts', 'Removing items from three groups', 'Dividing items into three groups',
@@ -229,6 +237,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 800, max: 2800 }, partB: { min: 600, max: 2200 }, partC: { min: 400, max: 1800 }, answer: { max: 6800 } },
     storyTemplate: '{nameA} counted {partA} {entityA}, {partB} {entityB} and {partC} {entityC} at the {setting}. How many {itemPlural} were there in all?',
+    solutionTemplate: 'Step 1: Draw a bar model with three parts: {partA}, {partB} and {partC}.\nStep 2: The whole bar is unknown, so add all three parts.\nStep 3: {partA} + {partB} + {partC} = {answer}.\nAnswer: There were {answer} in all.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Counting three categories together', 'Finding which category had the fewest', 'Taking away items from the shelf', 'Splitting items into piles',
@@ -258,6 +267,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 12, max: 45 }, perGroup: { min: 12, max: 38 }, answer: { max: 1710 } },
     storyTemplate: 'The {setting} {verb} {groups} {entityA} of {entityB}. Each {entityA2} had {perGroup} {entityB}. How many {entityB} were there altogether?',
+    solutionTemplate: 'Step 1: Draw a bar model showing {groups} equal parts, each worth {perGroup}.\nStep 2: To find the total, multiply the number of groups by the amount in each group.\nStep 3: {groups} × {perGroup} = {answer}.\nAnswer: There were {answer} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the total from equal groups', 'Comparing two amounts', 'Removing items from groups', 'Finding how many groups there are',
@@ -283,6 +293,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 15, max: 48 }, perGroup: { min: 12, max: 36 }, answer: { max: 1728 } },
     storyTemplate: 'A {setting} {verb} {perGroup} {entityB} in each of {groups} {entityA}. How many {entityB} were there in total?',
+    solutionTemplate: 'Step 1: Draw a bar model showing {groups} equal parts, each worth {perGroup}.\nStep 2: Since every group has the same amount, we multiply.\nStep 3: {groups} × {perGroup} = {answer}.\nAnswer: There were {answer} in total.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Equal amounts in each group, finding the total', 'Removing items from containers', 'Comparing how much is in each container', 'Dividing items between friends',
@@ -308,6 +319,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 14, max: 42 }, perGroup: { min: 11, max: 35 }, answer: { max: 1470 } },
     storyTemplate: 'There are {groups} {entityA} in the {setting}. Each {entityA2} holds {perGroup} {entityB}. How many {entityB} are there in all?',
+    solutionTemplate: 'Step 1: Draw a bar model showing {groups} equal parts, each worth {perGroup}.\nStep 2: Each group is equal, so multiply to find the total.\nStep 3: {groups} × {perGroup} = {answer}.\nAnswer: There are {answer} in all.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Repeated equal groups that make a total', 'Taking away items from shelves', 'Comparing the number on each shelf', 'Sharing items among customers',
@@ -337,6 +349,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 2000, max: 5000 }, smaller: { min: 800, max: 4000 }, answer: { min: 200 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. How many more {entityA} did {nameA} {verb} than {nameB}?',
+    solutionTemplate: 'Step 1: Draw two bars. The longer bar is {larger}. The shorter bar is {smaller}.\nStep 2: The difference is the extra part of the longer bar. Subtract to find it.\nStep 3: {larger} - {smaller} = {answer}.\nAnswer: The difference is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Comparing two amounts to find the difference', 'Combining two amounts to find the total', 'Removing some from a group', 'Sharing items equally',
@@ -362,6 +375,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 1500, max: 4800 }, smaller: { min: 600, max: 3500 }, answer: { min: 300 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. How many fewer {entityA} did {nameB} have than {nameA}?',
+    solutionTemplate: 'Step 1: Draw two bars. The longer bar is {larger}. The shorter bar is {smaller}.\nStep 2: To find how many fewer, subtract the smaller from the larger.\nStep 3: {larger} - {smaller} = {answer}.\nAnswer: The difference is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Comparing what two people did', 'Adding what two people did together', 'One person giving to the other', 'Splitting equally between two people',
@@ -388,6 +402,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 1800, max: 5000 }, smaller: { min: 700, max: 3800 }, answer: { min: 250 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. What is the difference between their amounts?',
+    solutionTemplate: 'Step 1: Draw two bars side by side. The longer bar is {larger}. The shorter bar is {smaller}.\nStep 2: The difference is found by subtracting the shorter bar from the longer bar.\nStep 3: {larger} - {smaller} = {answer}.\nAnswer: The difference is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Comparing to find how much more one has', 'Adding to find the combined total', 'One person spending their amount', 'Sharing amounts between friends',
@@ -417,6 +432,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 1000, max: 3500 }, difference: { min: 300, max: 2000 }, answer: { max: 5500 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} does {nameB} have?',
+    solutionTemplate: 'Step 1: Draw two bars. The shorter bar is {smaller}. The difference is {difference}.\nStep 2: The longer bar equals the shorter bar plus the difference. Add to find it.\nStep 3: {smaller} + {difference} = {answer}.\nAnswer: The larger amount is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the larger amount using the smaller and the difference', 'Adding both amounts together', 'Finding how much was spent', 'Splitting between two people',
@@ -442,6 +458,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 800, max: 3000 }, difference: { min: 200, max: 1500 }, answer: { max: 4500 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA} in January. {nameA} {verb} {difference} {comparison} that in February. How many {entityA} did {nameA} serve in February?',
+    solutionTemplate: 'Step 1: Draw two bars. The shorter bar is {smaller}. The difference is {difference}.\nStep 2: To find the larger amount, add the difference to the smaller amount.\nStep 3: {smaller} + {difference} = {answer}.\nAnswer: The larger amount is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One amount is more, and we need to find it', 'Finding how many were served altogether', 'Taking some away from a group', 'Finding the average between two months',
@@ -467,6 +484,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 1200, max: 3800 }, difference: { min: 250, max: 1800 }, answer: { max: 5600 } },
     storyTemplate: '{nameB} {verb} {difference} {comparison} {nameA} in the {setting}. {nameA} {verb} {smaller} {entityA}. How many {entityA} did {nameB} get?',
+    solutionTemplate: 'Step 1: Draw two bars. The shorter bar is {smaller}. The difference is {difference}.\nStep 2: The longer bar is the shorter bar plus the extra part.\nStep 3: {smaller} + {difference} = {answer}.\nAnswer: The larger amount is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One person scored more, and we need to find their total', 'Finding the combined score', 'Subtracting points as a penalty', 'Dividing points between teams',
@@ -496,6 +514,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 2000, max: 5000 }, difference: { min: 300, max: 2000 }, answer: { min: 500 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How much does {nameB} weigh?',
+    solutionTemplate: 'Step 1: Draw two bars. The longer bar is {larger}. The difference is {difference}.\nStep 2: The shorter bar equals the longer bar minus the difference. Subtract to find it.\nStep 3: {larger} - {difference} = {answer}.\nAnswer: The smaller amount is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One amount is less, and we need to find it', 'Adding both amounts together', 'Finding the average', 'Removing some from a total',
@@ -521,6 +540,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 1500, max: 4500 }, difference: { min: 400, max: 1800 }, answer: { min: 400 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} does {nameB} have?',
+    solutionTemplate: 'Step 1: Draw two bars. The longer bar is {larger}. The difference is {difference}.\nStep 2: To find the smaller amount, subtract the difference from the larger amount.\nStep 3: {larger} - {difference} = {answer}.\nAnswer: The smaller amount is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the smaller amount using the larger and the gap', 'Combining two collections', 'Giving items away', 'Sorting into groups',
@@ -546,6 +566,7 @@ const TEMPLATES = [
     ],
     constraints: { larger: { min: 1800, max: 5000 }, difference: { min: 350, max: 2200 }, answer: { min: 500 } },
     storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} did {nameB} {verb}?',
+    solutionTemplate: 'Step 1: Draw two bars. The longer bar is {larger}. The difference is {difference}.\nStep 2: The shorter bar is the longer bar minus the gap between them.\nStep 3: {larger} - {difference} = {answer}.\nAnswer: The smaller amount is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'One person did less, and we need to find how much', 'Adding what both people did', 'Finding who did the most', 'Splitting equally between both',
@@ -575,6 +596,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 800, max: 3000 }, difference: { min: 200, max: 1500 }, answer: { max: 7500 } },
     storyTemplate: 'The {setting} {verb} {smaller} {entityA}. It {verb} {difference} {comparison} {entityB} than {entityA}. How many {entityA} and {entityB} were sold altogether?',
+    solutionTemplate: 'Step 1: Draw two bars. The shorter bar is {smaller}. The difference is {difference}.\nStep 2: First, find the longer bar: {smaller} + {difference} = {larger}.\nStep 3: Now add both bars to find the total: {smaller} + {larger} = {answer}.\nAnswer: There were {answer} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'First finding a larger amount, then adding both to get a total', 'Just finding the difference between two groups', 'Subtracting to find what is left', 'Sharing items among friends',
@@ -603,6 +625,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 600, max: 2500 }, difference: { min: 150, max: 1200 }, answer: { max: 6200 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {entityB} than {nameA}. How many did they {verb} altogether?',
+    solutionTemplate: 'Step 1: Draw two bars. The shorter bar is {smaller}. The difference is {difference}.\nStep 2: First, find the longer bar: {smaller} + {difference} = {larger}.\nStep 3: Now add both bars: {smaller} + {larger} = {answer}.\nAnswer: They had {answer} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Using a comparison to find one amount, then adding both', 'Only comparing two amounts', 'Giving away items from a total', 'Dividing items into groups',
@@ -631,6 +654,7 @@ const TEMPLATES = [
     ],
     constraints: { smaller: { min: 1000, max: 3500 }, difference: { min: 300, max: 1800 }, answer: { max: 8800 } },
     storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {entityB} than {nameA}. How many {entityA} did they cover in total?',
+    solutionTemplate: 'Step 1: Draw two bars. The shorter bar is {smaller}. The difference is {difference}.\nStep 2: First, find the longer bar: {smaller} + {difference} = {larger}.\nStep 3: Now find the total: {smaller} + {larger} = {answer}.\nAnswer: The total is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the larger, then adding both amounts', 'Just finding who did more', 'Removing some from a group', 'Splitting a total into two',
@@ -662,6 +686,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 12, max: 30 }, perGroup: { min: 10, max: 25 }, extra: { min: 200, max: 1500 }, answer: { max: 2250 } },
     storyTemplate: '{nameA} {verb} {groups} packs of {entityA}. Each pack had {perGroup} {entityA}. {nameA} also {verb} {extra} {entityB}. How many items did {nameA} buy altogether?',
+    solutionTemplate: 'Step 1: First, find the total from the equal groups: {groups} × {perGroup} = {product}.\nStep 2: Then add the extra amount: {product} + {extra} = {answer}.\nAnswer: There were {answer} items altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding the total of equal groups, then adding another amount', 'Just finding the difference between two items', 'Sharing items equally among friends', 'Removing items from a total',
@@ -689,6 +714,7 @@ const TEMPLATES = [
     ],
     constraints: { partA: { min: 800, max: 2500 }, partB: { min: 500, max: 2000 }, removed: { min: 200, max: 1000 }, answer: { min: 500 } },
     storyTemplate: 'For the CC event, {nameA} {verb} {partA} {entityA} and {partB} {entityB}. After some residents left, {removed} {entityA} were removed. How many {entityA} and {entityB} are left?',
+    solutionTemplate: 'Step 1: First, find the total set up: {partA} + {partB} = {total}.\nStep 2: Then subtract what was removed: {total} - {removed} = {answer}.\nAnswer: There are {answer} left.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Adding two amounts, then taking some away', 'Comparing two different groups', 'Multiplying groups to find a total', 'Sharing items among residents',
@@ -716,6 +742,7 @@ const TEMPLATES = [
     ],
     constraints: { startA: { min: 1200, max: 3000 }, soldA: { min: 400, max: 2000 }, partB: { min: 500, max: 2000 }, answer: { max: 4600 } },
     storyTemplate: 'A {setting} {verb} {startA} {entityA}. After lunch, {soldA} {entityA} were sold. The stall also had {partB} {entityB}. How many dishes were left in all?',
+    solutionTemplate: 'Step 1: First, find how many were left after selling: {startA} - {soldA} = {remainingA}.\nStep 2: Then add the other dish: {remainingA} + {partB} = {answer}.\nAnswer: There were {answer} dishes left in all.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Removing some from one group, then combining with another group', 'Comparing two types of food', 'Finding the total prepared at the start', 'Dividing food among customers',
@@ -747,6 +774,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 800, max: 4800 }, divisor: { value: 4 }, answer: { min: 200 } },
     storyTemplate: '{nameA} {verb} {whole} {entityA}. {nameA} gave {fraction} of them to the {setting}. How many {entityA} did {nameA} have left?',
+    solutionTemplate: 'Step 1: Draw a bar model for {whole}. Divide it into {divisor} equal parts to show {fraction}.\nStep 2: Find the fraction given away: {whole} ÷ {divisor} = {fractionPart}.\nStep 3: Subtract from the whole to find the remainder: {whole} - {fractionPart} = {answer}.\nAnswer: There were {answer} left.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a fraction of a total, then subtracting to find the remainder', 'Adding fractions together', 'Comparing two groups of books', 'Sharing books equally among classes',
@@ -774,6 +802,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 600, max: 3600 }, divisor: { value: 3 }, extra: { min: 200, max: 1000 }, answer: { max: 2200 } },
     storyTemplate: '{nameA} {verb} {whole} {entityA}. {nameA} sold {fraction} of them. {nameA} then {verb} {extra} more {entityB}. How many {entityA} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Draw a bar model for {whole}. Divide it into {divisor} equal parts to show {fraction}.\nStep 2: Find the fraction sold: {whole} ÷ {divisor} = {fractionPart}.\nStep 3: Subtract the sold amount: {whole} - {fractionPart} = {remaining}. Then add the extras: {remaining} + {extra} = {answer}.\nAnswer: There are {answer} now.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a fraction that was sold, subtracting it, then adding more', 'Multiplying to find the total baked', 'Comparing two batches of cookies', 'Sharing cookies among friends',
@@ -801,6 +830,7 @@ const TEMPLATES = [
     ],
     constraints: { whole: { min: 1000, max: 5000 }, divisor: { value: 5 }, answer: { min: 200 } },
     storyTemplate: 'The {setting} {verb} {whole} {entityA}. By recess, {fraction} of them were sold. How many {entityA} were left after recess?',
+    solutionTemplate: 'Step 1: Draw a bar model for {whole}. Divide it into {divisor} equal parts to show {fraction}.\nStep 2: Find the fraction sold: {whole} ÷ {divisor} = {fractionPart}.\nStep 3: Subtract from the whole to find the remainder: {whole} - {fractionPart} = {answer}.\nAnswer: There were {answer} left after recess.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
         'Finding a fraction that was sold, then subtracting from the whole', 'Comparing drinks between two stalls', 'Adding more drinks after recess', 'Dividing drinks equally among classes',
