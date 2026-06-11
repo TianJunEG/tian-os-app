@@ -3,6 +3,7 @@ import PSLSession from '../../models/psl/PSLSession.js';
 import PSLAttempt from '../../models/psl/PSLAttempt.js';
 import PSLSkill from '../../models/psl/PSLSkill.js';
 import Mistake from '../../models/Mistake.js';
+import LearningResult from '../../models/LearningResult.js';
 import { recordAttempt } from '../../utils/masteryEngine.js';
 import { generateProblemsForSession } from './problemGenerator.js';
 import { evaluateStep, evaluateAttempt } from './stepEvaluator.js';
@@ -153,6 +154,7 @@ export async function completeProblem({ sessionId, problemId }) {
     if (!attempt.overallCorrect) {
       const wrongSteps = attempt.steps.filter((s) => !s.correct);
       for (const step of wrongSteps) {
+        const scaffoldStep = problem.scaffoldSteps.find((sc) => sc.stepId === step.stepId);
         await Mistake.create({
           studentId: session.studentId,
           workspaceId: session.workspaceId,
@@ -161,7 +163,7 @@ export async function completeProblem({ sessionId, problemId }) {
           module: 'PSL',
           questionText: problem.storyText,
           studentAnswer: JSON.stringify(step.response),
-          correctAnswer: JSON.stringify(step.stepId),
+          correctAnswer: JSON.stringify(scaffoldStep?.expectedResponse || step.stepId),
           answerCorrect: false,
           misconceptionTag: step.misconceptionTag,
           mistakeCategory: 'procedure_error',
@@ -219,6 +221,18 @@ export async function completeSession(sessionId) {
     overallScore: completed ? Math.round((totalScore / completed) * 100) / 100 : 0,
   };
   await session.save();
+
+  const pslSkill = await PSLSkill.findOne({ skillId: session.skillId }).lean();
+  await LearningResult.create({
+    user: session.studentId,
+    source: 'psl',
+    subject: 'emath',
+    topic: pslSkill?.name || session.skillId,
+    accuracy: Math.round(session.summary.overallScore * 100),
+    mastered: session.summary.overallScore >= 0.85,
+    minutes: Math.round(totalTime / 60000),
+  });
+
 
   return {
     sessionId,

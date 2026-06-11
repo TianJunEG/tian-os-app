@@ -13,8 +13,7 @@ export async function checkPrerequisites(skillId, studentId, workspaceId) {
   for (const mpCode of pslSkill.mathPathPrerequisites || []) {
     const skill = await Skill.findOne({ code: mpCode }).lean();
     if (!skill) {
-      prerequisites.push({ code: mpCode, name: mpCode, type: 'mathpath', ready: false, reason: 'Skill not found' });
-      blockers.push({ code: mpCode, name: mpCode, type: 'mathpath' });
+      prerequisites.push({ code: mpCode, name: mpCode, type: 'mathpath', ready: true, reason: 'Skill not catalogued' });
       continue;
     }
     const rec = await MasteryRecord.findOne({ studentId, skillId: skill._id, workspaceId }).lean();
