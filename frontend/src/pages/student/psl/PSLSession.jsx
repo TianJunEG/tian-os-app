@@ -14,12 +14,7 @@ import ReasoningInput from './components/ReasoningInput';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
-function getPlanStepType(currentProblem) {
-  const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
-  if (!planStep) return 'model';
-  if (planStep.type === 'strategySelect') return 'strategySelect';
-  return 'model';
-}
+
 
 const DEFAULT_UNDERSTAND_CHOICES = [
   'It\'s about finding a total or combining groups',
@@ -251,14 +246,6 @@ export default function PSLSession() {
             scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
             response={stepResponses.plan}
             onChange={(val) => updateResponse('plan', val)}
-          />
-        )}
-
-        {currentStepId === 'plan' && getPlanStepType(currentProblem) === 'strategySelect' && (
-          <QuestionIdentifier
-            choices={getStepChoices('plan').length ? getStepChoices('plan') : ['Draw a bar model', 'Work backwards', 'Make a list / table', 'Guess and check']}
-            selectedIndex={stepResponses.plan?.selectedIndex}
-            onSelect={(idx) => updateResponse('plan', { selectedIndex: idx })}
           />
         )}
 
