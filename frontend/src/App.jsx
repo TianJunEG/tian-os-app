@@ -276,7 +276,7 @@ const LegacyDashboardRedirect = () => {
 const LANDING_FEATURES = [
   { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake can guide targeted practice toward mastery — worksheets and revision adapt to each child.' },
   { icon: Layers, title: 'One connected profile', body: 'Spelling, maths and science progress unify into a single readiness picture for parents.' },
-  { icon: GraduationCap, title: 'Powered by teachers', body: 'Expert tutors and an enrichment marketplace, matched to how your child learns.' },
+  { icon: GraduationCap, title: 'Powered by teachers', body: 'Designed by experienced educators and refined through real classroom practice.' },
 ];
 const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
 
@@ -311,8 +311,8 @@ const LandingPage = () => (
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register?role=parent" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Find a Tutor <ArrowRight size={18} /></Link>
-            <Link to="/register?role=tutor" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>Become a Tutor</Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Get Started Free <ArrowRight size={18} /></Link>
+            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See How It Works</Link>
           </Reveal>
           <Reveal delay={0.4}>
             <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: IVORY, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
