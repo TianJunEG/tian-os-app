@@ -24,7 +24,7 @@ export default function SiteFooter() {
           <div>
             <p className="text-sm font-semibold text-white">Services</p>
             <ul className="mt-4 space-y-2 text-sm">
-              <li><Link className="transition hover:text-white" to="/tutoring">Tutor Matching</Link></li>
+              <li><Link className="transition hover:text-white" to="/edu-apps">Learning Apps</Link></li>
               <li><Link className="transition hover:text-white" to="/edu-apps">Edu Apps</Link></li>
               <li><Link className="transition hover:text-white" to="/resources">Resources</Link></li>
               <li><Link className="transition hover:text-white" to="/methodology">Our Methodology</Link></li>

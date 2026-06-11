@@ -4,7 +4,7 @@ import { GraduationCap, Menu, X } from 'lucide-react';
 import { GROUP_NAME, GROUP_SHORT } from '../config/brand';
 
 const navLinks = [
-  { to: '/tutoring', label: 'Tutoring' },
+  { to: '/edu-apps', label: 'Learning Apps' },
   { to: '/edu-apps', label: 'Edu Apps' },
   { to: '/resources', label: 'Resources' },
   { to: '/methodology', label: 'Our Methodology' },

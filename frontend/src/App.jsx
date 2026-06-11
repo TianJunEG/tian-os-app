@@ -275,54 +275,54 @@ const LegacyDashboardRedirect = () => {
 const LANDING_FEATURES = [
   { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake can guide targeted practice toward mastery — worksheets and revision adapt to each child.' },
   { icon: Layers, title: 'One connected profile', body: 'Spelling, maths and science progress unify into a single readiness picture for parents.' },
-  { icon: GraduationCap, title: 'Powered by teachers', body: 'Expert tutors and an enrichment marketplace, matched to how your child learns.' },
+  { icon: GraduationCap, title: 'Powered by teachers', body: 'Designed by experienced educators and refined through real classroom practice.' },
 ];
-const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: ‘none’ };
+const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
 
 const LandingPage = () => (
-  <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: ‘100vh’, overflowX: ‘hidden’ }}>
+  <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
     <TianOSKeyframes />
-    <header style={{ position: ‘sticky’, top: 0, zIndex: 40, backdropFilter: ‘blur(12px)’, background: ‘rgba(255,248,234,0.85)’, borderBottom: ‘1px solid rgba(15,76,92,0.08)’ }}>
-      <div style={{ maxWidth: 1200, margin: ‘0 auto’, padding: ‘16px 24px’, display: ‘flex’, alignItems: ‘center’, justifyContent: ‘space-between’ }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,248,234,0.85)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/"><Wordmark /></Link>
-        <nav style={{ display: ‘flex’, alignItems: ‘center’, gap: 22 }}>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
           <Link to="/founder" style={navLink}>Our story</Link>
           <Link to="/methodology" style={navLink}>Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
-          <Link to="/register" style={{ padding: ‘10px 20px’, borderRadius: 999, background: CORAL, color: ‘#fff’, fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: ‘none’, boxShadow: `0 10px 24px -8px ${CORAL_GLOW}` }}>Sign Up</Link>
+          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: CORAL, color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${CORAL_GLOW}` }}>Sign Up</Link>
         </nav>
       </div>
     </header>
 
       <main>
-        <section style={{ position: ‘relative’, overflow: ‘hidden’, background: `linear-gradient(to bottom, ${TEAL_DARK}, ${TEAL}, ${BG})` }}>
-        <div style={{ position: ‘absolute’, right: ‘-6%’, top: ‘-10%’, width: 620, height: 620, borderRadius: ‘50%’, background: ‘radial-gradient(circle, rgba(167,216,240,0.25) 0%, transparent 60%)’, filter: ‘blur(40px)’, pointerEvents: ‘none’, opacity: 0.5 }} />
-        <div style={{ position: ‘relative’, maxWidth: 980, margin: ‘0 auto’, padding: ‘120px 24px 130px’, textAlign: ‘center’ }}>
+        <section style={{ position: 'relative', overflow: 'hidden', background: `linear-gradient(to bottom, ${TEAL_DARK}, ${TEAL}, ${BG})` }}>
+        <div style={{ position: 'absolute', right: '-6%', top: '-10%', width: 620, height: 620, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,216,240,0.25) 0%, transparent 60%)', filter: 'blur(40px)', pointerEvents: 'none', opacity: 0.5 }} />
+        <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
           <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
-            <Headline style={{ marginTop: 22, fontSize: ‘clamp(40px, 7vw, 78px)’, color: IVORY }}>
+            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY }}>
               AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Every Student.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
-            <p style={{ marginTop: 24, fontSize: ‘clamp(17px, 2.2vw, 21px)’, color: ‘rgba(255,248,234,0.8)’, maxWidth: 620, margin: ‘24px auto 0’, lineHeight: 1.6 }}>
+            <p style={{ marginTop: 24, fontSize: 'clamp(17px, 2.2vw, 21px)', color: 'rgba(255,248,234,0.8)', maxWidth: 620, margin: '24px auto 0', lineHeight: 1.6 }}>
               Powered by teachers. Designed for parents. Personalized by AI.
             </p>
           </Reveal>
-          <Reveal delay={0.3} style={{ marginTop: 40, display: ‘flex’, flexWrap: ‘wrap’, gap: 16, justifyContent: ‘center’ }}>
-            <Link to="/register?role=parent" style={{ display: ‘inline-flex’, alignItems: ‘center’, gap: 9, padding: ‘15px 30px’, borderRadius: 999, background: CORAL, color: ‘#fff’, fontWeight: 700, fontSize: 16, textDecoration: ‘none’, boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Find a Tutor <ArrowRight size={18} /></Link>
-            <Link to="/register?role=tutor" style={{ padding: ‘15px 30px’, borderRadius: 999, background: ‘rgba(255,255,255,0.12)’, border: ‘1px solid rgba(255,248,234,0.3)’, color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: ‘none’ }}>Become a Tutor</Link>
+          <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Get Started Free <ArrowRight size={18} /></Link>
+            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See How It Works</Link>
           </Reveal>
           <Reveal delay={0.4}>
-            <Link to="/founder" style={{ display: ‘inline-flex’, alignItems: ‘center’, gap: 7, marginTop: 28, color: IVORY, fontWeight: 600, fontSize: 15, textDecoration: ‘none’ }}>Read our founder story <ArrowRight size={15} /></Link>
+            <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: IVORY, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
           </Reveal>
         </div>
       </section>
 
-      <section id="methodology" style={{ maxWidth: 1000, margin: ‘0 auto’, padding: ‘90px 24px 10px’ }}>
+      <section id="methodology" style={{ maxWidth: 1000, margin: '0 auto', padding: '90px 24px 10px' }}>
         <Reveal>
           <Eyebrow>Remediation design</Eyebrow>
-          <h2 style={{ marginTop: 18, marginBottom: 18, fontFamily: SERIF, fontWeight: 400, fontSize: ‘clamp(32px, 5vw, 46px)’, lineHeight: 1.15, color: INK }}>
+          <h2 style={{ marginTop: 18, marginBottom: 18, fontFamily: SERIF, fontWeight: 400, fontSize: 'clamp(32px, 5vw, 46px)', lineHeight: 1.15, color: INK }}>
             Built on evidence-informed learning principles
           </h2>
           <p style={{ marginBottom: 16, color: INK_SOFT, fontSize: 18, lineHeight: 1.65, maxWidth: 860 }}>
@@ -332,17 +332,17 @@ const LandingPage = () => (
             Instead of only marking answers right or wrong, Tian OS also looks at confidence, timing, mistakes and working evidence to help identify what a student may need next.
           </p>
           <p style={{ color: INK_SOFT, fontSize: 15, lineHeight: 1.7, maxWidth: 860 }}>
-            Our approach is aligned with intervention principles recommended by education research bodies such as the Institute of Education Sciences’ What Works Clearinghouse and the National Center on Intensive Intervention.
+            Our approach is aligned with intervention principles recommended by education research bodies such as the Institute of Education Sciences' What Works Clearinghouse and the National Center on Intensive Intervention.
           </p>
         </Reveal>
       </section>
 
-      <section style={{ maxWidth: 1140, margin: ‘0 auto’, padding: ‘90px 24px’ }}>
-        <div style={{ display: ‘grid’, gridTemplateColumns: ‘repeat(auto-fit, minmax(280px, 1fr))’, gap: 22 }}>
+      <section style={{ maxWidth: 1140, margin: '0 auto', padding: '90px 24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22 }}>
           {LANDING_FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={i * 0.1}>
-              <GlassCard style={{ padding: 30, height: ‘100%’ }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: ‘rgba(167,216,240,0.25)’, display: ‘grid’, placeItems: ‘center’, marginBottom: 18 }}>
+              <GlassCard style={{ padding: 30, height: '100%' }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(167,216,240,0.25)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
                   <f.icon size={24} color={TEAL} />
                 </div>
                 <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 24, color: INK, margin: 0 }}>{f.title}</h3>
@@ -354,7 +354,7 @@ const LandingPage = () => (
       </section>
     </main>
 
-    <footer style={{ background: TEAL_DARK, borderTop: ‘1px solid rgba(15,76,92,0.2)’, padding: ‘28px 24px’, textAlign: ‘center’, fontSize: 13, color: ‘rgba(255,248,234,0.7)’ }}>
+    <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(15,76,92,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,248,234,0.7)' }}>
       <span style={{ color: IVORY, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
     </footer>
   </div>
