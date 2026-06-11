@@ -43,20 +43,20 @@ export default function ParentViewScreen({ onBack, onNavigate }) {
         </div>
       </div>
 
-      <div className="nav-bar">
-        <button className="nav-bar-btn" onClick={onBack}>
+      <div className="ll-nav-bar">
+        <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
         </button>
-        <div className="nav-bar-title">
+        <div className="ll-nav-bar-title">
           <h1>Your Child's Activities</h1>
           <p>Monitor progress</p>
         </div>
       </div>
 
       <div className="lifelab-content">
-        <div className="content-scroll" style={{ padding: '16px 20px' }}>
+        <div className="ll-content-scroll" style={{ padding: '16px 20px' }}>
           {loading ? (
-            <div className="loading">Loading...</div>
+            <div className="ll-loading">Loading...</div>
           ) : assignments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FAF7EE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -71,7 +71,7 @@ export default function ParentViewScreen({ onBack, onNavigate }) {
             assignments.map((assignment) => {
               const statusInfo = getStatusBadge(assignment.status);
               return (
-                <div key={assignment._id} className="card">
+                <div key={assignment._id} className="ll-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: '#0B1F3F' }}>
@@ -110,7 +110,7 @@ export default function ParentViewScreen({ onBack, onNavigate }) {
         </div>
       </div>
 
-      <div className="bottom-nav">
+      <div className="ll-bottom-nav">
         {[
           { id: 'home',    label: 'Home',    icon: 'home',    action: onBack },
           { id: 'library', label: 'Library', icon: 'compass', action: onBack },
@@ -120,7 +120,7 @@ export default function ParentViewScreen({ onBack, onNavigate }) {
         ].map(({ id, label, icon, action }) => (
           <button
             key={id}
-            className={`bottom-nav-item ${id === 'me' ? 'active' : ''}`}
+            className={`ll-bottom-nav-item ${id === 'me' ? 'active' : ''}`}
             onClick={action || undefined}
             style={{ background: 'none', border: 'none', cursor: action ? 'pointer' : 'default' }}
           >

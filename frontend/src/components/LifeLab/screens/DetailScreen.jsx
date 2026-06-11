@@ -79,17 +79,17 @@ export default function DetailScreen({ template, onAssign, onBack }) {
       </div>
 
       {/* Nav */}
-      <div className="nav-bar">
-        <button className="nav-bar-btn" onClick={onBack}>
+      <div className="ll-nav-bar">
+        <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
         </button>
-        <div className="nav-bar-title">
+        <div className="ll-nav-bar-title">
           <h1>Activity Detail</h1>
         </div>
       </div>
 
       <div className="lifelab-content">
-        <div className="content-scroll" style={{ padding: '0 20px 100px' }}>
+        <div className="ll-content-scroll" style={{ padding: '0 20px 100px' }}>
 
           {/* Hero card */}
           <div style={{
@@ -110,9 +110,9 @@ export default function DetailScreen({ template, onAssign, onBack }) {
                   {template.title}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                  <span className="pill navy">{template.subject}</span>
+                  <span className="ll-pill navy">{template.subject}</span>
                   {template.level_tags?.map((t) => (
-                    <span key={t} className="pill ghost">{t}</span>
+                    <span key={t} className="ll-pill ghost">{t}</span>
                   ))}
                 </div>
               </div>
@@ -214,7 +214,7 @@ export default function DetailScreen({ template, onAssign, onBack }) {
                 <Section title="Topics covered" accent="#A7B1C2">
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {template.topic_tags.map((tag) => (
-                      <span key={tag} className="pill navy">{tag}</span>
+                      <span key={tag} className="ll-pill navy">{tag}</span>
                     ))}
                   </div>
                 </Section>
@@ -268,10 +268,10 @@ export default function DetailScreen({ template, onAssign, onBack }) {
           padding: '12px 20px', borderTop: '1px solid #F1F3F8',
           background: '#fff', display: 'flex', gap: 8,
         }}>
-          <button className="btn btn-secondary" style={{ width: 'auto', paddingLeft: 16, paddingRight: 16 }} onClick={onBack}>
+          <button className="ll-btn ll-btn-secondary" style={{ width: 'auto', paddingLeft: 16, paddingRight: 16 }} onClick={onBack}>
             Back
           </button>
-          <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => onAssign(template)}>
+          <button className="ll-btn ll-btn-primary" style={{ flex: 1 }} onClick={() => onAssign(template)}>
             <Icon name="check" size={16} />
             Assign This Activity
           </button>
