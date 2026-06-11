@@ -306,7 +306,7 @@ const LandingPage = () => (
           <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
             <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY }}>
-              AI-Native Learning.<br /><span style={{ color: '#34D399' }}>Built for Schools.</span>
+              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
@@ -315,7 +315,7 @@ const LandingPage = () => (
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: '#fff', color: '#064E3B', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 20px 40px -12px rgba(0,0,0,0.3)' }}>Request a Demo <ArrowRight size={18} /></Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
             <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
