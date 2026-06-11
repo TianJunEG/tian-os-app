@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { accounts, loginAs } from './helpers/auth';
 
-const API_BASE = process.env.PLAYWRIGHT_API_BASE_URL || 'http://127.0.0.1:5001/api';
+const API_BASE = process.env.PLAYWRIGHT_API_BASE_URL || 'http://localhost:5001/api';
 
 const tutorRoutes = ['/tutor', '/tutor/students'];
 const teacherRoutes = [

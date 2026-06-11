@@ -18,7 +18,8 @@ function generateMultiStep(familyId) {
     const count = randInt(3, 9);
     const priceEach = pick([1.50, 2.50, 3.50, 4.50, 5.50, 6.50, 7.50, 8.50]);
     const totalCost = count * priceEach;
-    const paid = Math.ceil(totalCost / 10) * 10 + pick([0, 10, 20]);
+    const ceilTotal = Math.ceil(totalCost / 10) * 10;
+    const paid = ceilTotal + (ceilTotal === totalCost ? pick([10, 20]) : pick([0, 10, 20]));
     const answer = paid - totalCost;
     const itemName = pick(['exercise books', 'folders', 'erasers', 'highlighters', 'rulers']);
     return {

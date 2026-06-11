@@ -15,9 +15,6 @@ const domainsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../s
 
 // Skills that intrinsically need a visual stimulus — left to authored items.
 const FIGURE_ONLY = new Set([
-  'Measuring and drawing angles',
-  'Completing symmetric figures',
-  'Nets and views of solids',
   'Drawing and constructing figures',
 ]);
 
@@ -43,7 +40,7 @@ describe('question generator coverage', async () => {
     const missing = allNames.filter((n) => !isGeneratable(n));
     // The only un-generatable skills must be the figure-dependent set.
     expect(new Set(missing)).toEqual(FIGURE_ONLY);
-    expect(allNames.filter((n) => isGeneratable(n)).length).toBeGreaterThanOrEqual(157);
+    expect(allNames.filter((n) => isGeneratable(n)).length).toBeGreaterThanOrEqual(160);
   });
 
   it('produces structurally valid questions for every generatable skill', () => {

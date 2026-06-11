@@ -10,6 +10,9 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:5001',
     },
+    watch: {
+      ignored: ['**/playwright-report-pilot/**', '**/test-results/**'],
+    },
   },
   build: {
     outDir: 'dist',

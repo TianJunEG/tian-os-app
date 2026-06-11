@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Sprout, CheckCircle2 } from 'lucide-react';
-import { lifelabAPI } from '../../services/api';
+import { lifelabAPI, SERVER_ORIGIN } from '../../services/api';
 import { useChild } from './useChild';
 import ChildNav from './ChildNav';
 import { Card, StatusBadge, Spinner, EmptyState, ErrorState } from '../../components/ui';
@@ -52,6 +52,9 @@ export default function ChildLifeLab() {
                     {a.realLifeContext && <p className="mt-2 text-sm text-ink-500 italic">{a.realLifeContext}</p>}
                     {s.reflectionResponse && (
                       <p className="mt-2 text-sm text-ink-700"><span className="text-ink-400">Reflection:</span> {s.reflectionResponse}</p>
+                    )}
+                    {s.evidenceUrl && (
+                      <p className="mt-1 text-sm"><a href={SERVER_ORIGIN + s.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">View evidence</a></p>
                     )}
                     {s.status === 'reviewed' && s.teacherFeedback && (
                       <p className="mt-2 flex items-center gap-1 text-sm text-success-700"><CheckCircle2 className="h-4 w-4" /> Teacher: {s.teacherFeedback}</p>

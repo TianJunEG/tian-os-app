@@ -9,7 +9,7 @@ import Workspace from '../models/Workspace.js';
 // (set by the frontend WorkspaceContext). Missing/ambiguous workspace = deny.
 export const requireWorkspace = async (req, res, next) => {
   if (process.env.QA_DISABLE_RATE_LIMIT === '1') {
-    req.workspaceId = req.header('X-Workspace-Id') || req.query.workspaceId || 'qa-workspace';
+    req.workspaceId = req.header('X-Workspace-Id') || req.query.workspaceId || '000000000000000000000000';
     req.workspaceRole = req.user?.role === 'tutor' ? 'tutor' : req.user?.role || 'qa';
     return next();
   }

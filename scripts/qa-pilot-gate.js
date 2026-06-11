@@ -37,6 +37,9 @@ async function main() {
     QA_BASE: DEFAULT_QA_BASE,
     API_BASE: DEFAULT_QA_BASE,
     BACKEND_API_URL: DEFAULT_QA_BASE,
+    PLAYWRIGHT_API_BASE_URL: DEFAULT_QA_BASE,
+    BACKEND_PORT: BACKEND_PORT,
+    NODE_ENV: 'test',
   };
   const checks = [];
   const push = (area, check, result, artifact = '') => {

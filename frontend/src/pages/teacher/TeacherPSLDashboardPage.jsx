@@ -91,7 +91,7 @@ function TopMisconceptionsCard({ rows = [] }) {
       </div>
       {rows.length ? (
         <div className="space-y-1.5">
-          {rows.map((m) => (
+          {rows.map((m, i) => (
             <div key={m.tag} className="flex items-center justify-between rounded-lg border border-hairline px-3 py-2">
               <p className="text-sm text-ink-700">{m.tag}</p>
               <Badge tone="neutral">{m.count}</Badge>

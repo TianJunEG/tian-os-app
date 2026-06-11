@@ -3,10 +3,13 @@ import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticS
 import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
 import MathPathAssignment from '../../models/mathpath/MathPathAssignment.js';
 import RetentionReview from '../../models/RetentionReview.js';
+import Skill from '../../models/Skill.js';
 import { createAssignmentFromLessonPrep } from './mathPathAssignmentService.js';
 import { getPrerequisites, getSkill } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
 import { buildRetentionReviews } from '../../utils/fluencyEngine.js';
 import Skill from '../../models/Skill.js';
+
+const SKILL_CODE = /^[A-Z0-9][-A-Z0-9]*$/i;
 
 const SKILL_CODE = /^[A-Z0-9][-A-Z0-9]*$/i;
 

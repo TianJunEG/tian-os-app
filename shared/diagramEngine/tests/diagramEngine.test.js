@@ -8,7 +8,7 @@ import { validateDiagramSpec } from '../diagramValidator.js';
 describe('Diagram Engine v1', () => {
   it('registers all DG001-DG016 diagram types', () => {
     const listed = listDiagramTypes();
-    expect(listed).toHaveLength(22);
+    expect(listed).toHaveLength(23);
     DIAGRAM_TYPE_DEFINITIONS.forEach((typeDef) => {
       expect(listed.find((item) => item.type === typeDef.type)?.code).toBe(typeDef.code);
     });

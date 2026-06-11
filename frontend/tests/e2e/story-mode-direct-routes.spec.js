@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { accounts } from './helpers/auth';
 
-const apiBase = process.env.PLAYWRIGHT_API_BASE_URL || 'http://127.0.0.1:5001/api';
+const apiBase = process.env.PLAYWRIGHT_API_BASE_URL || 'http://localhost:5001/api';
 
 const viewports = [
   { name: 'mobile-360', width: 360, height: 740 },

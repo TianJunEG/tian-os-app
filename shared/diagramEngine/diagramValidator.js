@@ -209,6 +209,11 @@ const validators = {
     const allowed = ['cube', 'cuboid', 'cylinder', 'cone', 'sphere', 'triangular_prism', 'square_pyramid'];
     if (!d.solid || !allowed.includes(d.solid)) errors.push(`solid_3d: solid must be one of ${allowed.join(', ')}.`);
   },
+  nets_3d(spec, errors) {
+    const d = spec.data;
+    const allowed = ['cube', 'cuboid', 'cylinder', 'cone', 'triangular_prism', 'square_pyramid'];
+    if (!d.solid || !allowed.includes(d.solid)) errors.push(`nets_3d: solid must be one of ${allowed.join(', ')}.`);
+  },
   compass_grid(spec, errors) {
     const d = spec.data;
     const gs = asNumber(d.gridSize, NaN);

@@ -2,8 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { spawnSync } from 'child_process';
 
-let API_BASE = process.env.QA_BASE || 'http://127.0.0.1:5001/api';
-const WEB_BASE = process.env.PLAYWRIGHT_BASE_URL || process.env.FRONTEND_URL || 'http://127.0.0.1:3000';
+let API_BASE = process.env.QA_BASE || 'http://localhost:5001/api';
+const WEB_BASE = process.env.PLAYWRIGHT_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000';
 const ROOT = process.cwd();
 const AUTO_SEED_PILOT_ACCOUNTS = process.env.AUTO_SEED_PILOT_ACCOUNTS === '1';
 
@@ -65,7 +65,7 @@ function resolveApiBase(frontendEnv, rootEnv) {
   if (configured) return configured.replace(/\/$/, '');
 
   const port = process.env.PORT || rootEnv.PORT || 5001;
-  return `http://127.0.0.1:${port}/api`;
+  return `http://localhost:${port}/api`;
 }
 
 async function apiCall(method, route, body) {

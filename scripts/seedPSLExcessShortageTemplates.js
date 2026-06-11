@@ -57,8 +57,8 @@ const bothExcessScaffold = () => strategyScaffold({
 const basicConstraints = {
   _generic: { giveA: { min: 3, max: 6 }, giveB: { min: 7, max: 12 }, excess: { min: 3, max: 15 }, shortage: { min: 3, max: 15 } },
   _compute: {
-    diff: (n) => n.giveB - n.giveA,
-    answer: (n) => (n.excess + n.shortage) / (n.giveB - n.giveA),
+    diff: 'giveB - giveA',
+    answer: '(excess + shortage) / (giveB - giveA)',
   },
   answer: { min: 3 },
 };
@@ -66,8 +66,8 @@ const basicConstraints = {
 const bothExcessConstraints = {
   _generic: { giveA: { min: 3, max: 6 }, giveB: { min: 7, max: 12 }, excessA: { min: 10, max: 30 }, excessB: { min: 2, max: 9 } },
   _compute: {
-    diff: (n) => n.giveB - n.giveA,
-    answer: (n) => (n.excessA - n.excessB) / (n.giveB - n.giveA),
+    diff: 'giveB - giveA',
+    answer: '(excessA - excessB) / (giveB - giveA)',
   },
   answer: { min: 3 },
 };
@@ -75,9 +75,9 @@ const bothExcessConstraints = {
 const equalShareConstraints = {
   _generic: { giveA: { min: 3, max: 6 }, giveB: { min: 7, max: 12 }, excess: { min: 4, max: 20 }, shortage: { min: 4, max: 20 } },
   _compute: {
-    diff: (n) => n.giveB - n.giveA,
-    numPeople: (n) => (n.excess + n.shortage) / (n.giveB - n.giveA),
-    answer: (n) => n.giveA * ((n.excess + n.shortage) / (n.giveB - n.giveA)) + n.excess,
+    diff: 'giveB - giveA',
+    numPeople: '(excess + shortage) / (giveB - giveA)',
+    answer: 'giveA * ((excess + shortage) / (giveB - giveA)) + excess',
   },
   answer: { min: 15 },
 };
@@ -85,8 +85,8 @@ const equalShareConstraints = {
 const multiItemConstraints = {
   _generic: { giveA: { min: 2, max: 5 }, giveB: { min: 6, max: 10 }, excess: { min: 4, max: 18 }, shortage: { min: 4, max: 18 } },
   _compute: {
-    diff: (n) => n.giveB - n.giveA,
-    answer: (n) => (n.excess + n.shortage) / (n.giveB - n.giveA),
+    diff: 'giveB - giveA',
+    answer: '(excess + shortage) / (giveB - giveA)',
   },
   answer: { min: 3 },
 };
@@ -94,8 +94,8 @@ const multiItemConstraints = {
 const groupingConstraints = {
   _generic: { perRowA: { min: 4, max: 8 }, perRowB: { min: 9, max: 15 }, excess: { min: 5, max: 20 }, shortage: { min: 5, max: 20 } },
   _compute: {
-    diff: (n) => n.perRowB - n.perRowA,
-    answer: (n) => (n.excess + n.shortage) / (n.perRowB - n.perRowA),
+    diff: 'perRowB - perRowA',
+    answer: '(excess + shortage) / (perRowB - perRowA)',
   },
   answer: { min: 3 },
 };

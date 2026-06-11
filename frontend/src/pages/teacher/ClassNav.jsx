@@ -10,6 +10,7 @@ export default function ClassNav({ classId, name, level }) {
   const tabs = [
     ['Overview', base],
     ['MathPath', `${base}/mathpath`],
+    FEATURE_FLAGS.psl && ['Problem Solving', `${base}/psl`],
     ['Mastery map', `${base}/mastery`],
     ['Students', `${base}/students`],
     ['Groups', `${base}/groups`],

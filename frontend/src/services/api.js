@@ -290,7 +290,12 @@ export const lifelabAPI = {
   competencies: () => api.get('/lifelab/competencies'),             // canonical E21CC list
   me: () => api.get('/lifelab/me'),
   child: (studentId) => api.get(`/lifelab/student/${studentId}`),   // parent/guardian view
-  submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data)
+  submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data),
+  uploadEvidence: (id, file) => {
+    const fd = new FormData();
+    fd.append('evidence', file);
+    return api.post(`/lifelab/submissions/${id}/evidence`, fd);
+  }
 };
 
 // Problem Solving Lab (PSL) — guided heuristic word-problem reasoning.
@@ -421,7 +426,7 @@ export const teacherAPI = {
   generateWeakGroupWorksheet: (id, skillId, data = {}) => api.post(`/teacher/classes/${id}/weak-groups/${skillId}/generate-worksheet`, data),
   assignWeakGroupRecheck: (id, skillId, data = {}) => api.post(`/teacher/classes/${id}/weak-groups/${skillId}/assign-recheck`, data),
   report: (id, params) => api.get(`/teacher/classes/${id}/reports`, { params }),
-  pslDashboard: (id) => api.get(`/teacher/classes/${id}/psl/dashboard`)
+  pslDashboard: (id) => api.get(`/teacher/classes/${id}/psl/dashboard`),
 };
 
 // School-aligned Test Mode specifications (Table of Specification).

@@ -1036,6 +1036,36 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: [{ type: pick.type, label: pick.label }] } };
     return q;
   }
+  if (name.includes('completing symmetric')) {
+    const cols = difficulty === 'easy' ? 7 : difficulty === 'medium' ? 9 : 11;
+    const rows = difficulty === 'easy' ? 7 : difficulty === 'medium' ? 7 : 9;
+    const midCol = Math.floor(cols / 2);
+    const numPoints = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5;
+    const leftPoints = [];
+    const used = new Set();
+    while (leftPoints.length < numPoints) {
+      const c = rnd(0, midCol - 1);
+      const r = rnd(0, rows - 1);
+      const k = `${c},${r}`;
+      if (!used.has(k)) { used.add(k); leftPoints.push({ x: c, y: r }); }
+    }
+    const reflectCol = (c) => cols - 1 - c;
+    const rightPoints = leftPoints.map((p) => ({ x: reflectCol(p.x), y: p.y }));
+    const askIdx = rnd(0, numPoints - 1);
+    const askPt = leftPoints[askIdx];
+    const ansPt = rightPoints[askIdx];
+    const shown = [...leftPoints, ...rightPoints.filter((_, i) => i !== askIdx)];
+    const dist = midCol - askPt.x;
+    const ansCol = ansPt.x + 1;
+    const q = mcq(
+      `A figure is drawn on a dot grid with a vertical line of symmetry at column ${midCol + 1}. A vertex is at column ${askPt.x + 1}, row ${askPt.y + 1}. At which column should its reflection appear?`,
+      ansCol,
+      [ansCol + 1, Math.max(1, ansCol - 1), midCol + 1],
+      `Column ${askPt.x + 1} is ${dist} square${dist !== 1 ? 's' : ''} to the left of the line of symmetry (column ${midCol + 1}). Its reflection is the same distance to the right: column ${midCol + 1} + ${dist} = ${ansCol}.`,
+      'geo/symmetry-reflect', difficulty);
+    q.diagramSpec = { type: 'dot_grid', width: 640, height: 400, data: { rows, columns: cols, symmetryLine: 'vertical', pointsHighlighted: shown } };
+    return q;
+  }
   if (name.includes('parallel and perpendicular')) {
     const makeParallel = () => {
       const y1 = rnd(60, 120);
@@ -1097,6 +1127,23 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
     return q;
   }
+  if (name.includes('measuring') && name.includes('angle')) {
+    let angleDeg;
+    if (difficulty === 'easy') {
+      angleDeg = rnd(3, 8) * 10;
+    } else if (difficulty === 'medium') {
+      angleDeg = rnd(4, 33) * 5;
+    } else {
+      angleDeg = rnd(15, 170);
+    }
+    const supplement = 180 - angleDeg;
+    const q = mcq(`What is the measure of the angle shown?`, angleDeg,
+      [angleDeg + rnd(5, 20), Math.max(1, angleDeg - rnd(5, 20)), Math.max(1, Math.abs(supplement))],
+      `The angle measures ${angleDeg}°.${angleDeg === 90 ? ' It is a right angle.' : angleDeg < 90 ? ' It is an acute angle (less than 90°).' : ' It is an obtuse angle (between 90° and 180°).'}`,
+      'geo/angle-measure', difficulty);
+    q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
+    return q;
+  }
   if (name.includes('3d solid') || name.includes('3d solids')) {
     const solids = [
       { solid: 'cube', faces: 6, edges: 12, vertices: 8 },
@@ -1147,6 +1194,42 @@ function buildOne(skillName, difficulty) {
       `From ${from.label} (row ${from.row}, col ${from.col}) to ${to.label} (row ${to.row}, col ${to.col}): move ${dr < 0 ? 'up' : dr > 0 ? 'down' : ''} ${dc > 0 ? 'right' : dc < 0 ? 'left' : ''} → ${dir}.`,
       'geo/compass-direction', difficulty);
     q.diagramSpec = { type: 'compass_grid', width: 640, height: 360, data: { gridSize, objects: objs } };
+    return q;
+  }
+  if (name.includes('nets and views') || name.includes('nets of solid')) {
+    const solids = [
+      { solid: 'cube', name: 'cube', faces: '6 square faces' },
+      { solid: 'cuboid', name: 'cuboid', faces: '6 rectangular faces' },
+      { solid: 'cylinder', name: 'cylinder', faces: '2 circles and 1 curved surface' },
+      { solid: 'cone', name: 'cone', faces: '1 circle and 1 curved surface (sector)' },
+      { solid: 'triangular_prism', name: 'triangular prism', faces: '2 triangles and 3 rectangles' },
+      { solid: 'square_pyramid', name: 'square pyramid', faces: '1 square base and 4 triangles' },
+    ];
+    const pool = difficulty === 'easy' ? solids.slice(0, 3) : difficulty === 'medium' ? solids.slice(0, 4) : solids;
+    const pick = pool[rnd(0, pool.length - 1)];
+    if (Math.random() < 0.6) {
+      const q = mcq(`This is the net of a 3D solid. Which solid does it fold into?`, pick.name,
+        shuffle(solids.filter((s) => s.solid !== pick.solid)).slice(0, 3).map((s) => s.name),
+        `When you fold this net, it forms a ${pick.name}. A ${pick.name} has ${pick.faces}.`,
+        'geo/net-folding', difficulty);
+      q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
+      return q;
+    }
+    const faceQ = Math.random() < 0.5;
+    if (faceQ) {
+      const faceCount = { cube: 6, cuboid: 6, cylinder: 3, cone: 2, triangular_prism: 5, square_pyramid: 5 };
+      const ans = faceCount[pick.solid];
+      const q = mcq(`Look at the net of this ${pick.name}. How many faces does it have?`, ans,
+        [ans + 1, Math.max(1, ans - 1), ans + 2],
+        `A ${pick.name} has ${pick.faces}, so ${ans} faces in total.`, 'geo/net-folding', difficulty);
+      q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
+      return q;
+    }
+    const q = mcq(`Which net folds into a ${pick.name}?`, `Net of a ${pick.name}`,
+      shuffle(solids.filter((s) => s.solid !== pick.solid)).slice(0, 3).map((s) => `Net of a ${s.name}`),
+      `A ${pick.name} has ${pick.faces}. Only its net has the matching set of faces.`,
+      'geo/net-folding', difficulty);
+    q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
     return q;
   }
   if (name.includes('reading measuring scale')) {

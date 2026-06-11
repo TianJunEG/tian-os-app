@@ -94,9 +94,9 @@ const moneyScaffold = () => strategyScaffold({
 const basicConstraints = {
   _generic: { costA: { min: 2, max: 8 }, costB: { min: 1, max: 5 }, qtyA1: { min: 2, max: 5 }, qtyB1: { min: 1, max: 4 }, qtyA2: { min: 1, max: 3 }, qtyB2: { min: 1, max: 4 } },
   _compute: {
-    total1: (n) => n.qtyA1 * n.costA + n.qtyB1 * n.costB,
-    total2: (n) => n.qtyA2 * n.costA + n.qtyB2 * n.costB,
-    answer: (n) => n.costA,
+    total1: 'qtyA1 * costA + qtyB1 * costB',
+    total2: 'qtyA2 * costA + qtyB2 * costB',
+    answer: 'costA',
   },
   answer: { min: 2 },
 };
@@ -105,9 +105,9 @@ const basicConstraints = {
 const substitutionConstraints = {
   _generic: { costB: { min: 1, max: 5 }, multiplier: { min: 2, max: 4 }, qtyA: { min: 2, max: 4 }, qtyB: { min: 1, max: 5 } },
   _compute: {
-    costA: (n) => n.multiplier * n.costB,
-    total: (n) => n.qtyA * (n.multiplier * n.costB) + n.qtyB * n.costB,
-    answer: (n) => n.multiplier * n.costB,
+    costA: 'multiplier * costB',
+    total: 'qtyA * (multiplier * costB) + qtyB * costB',
+    answer: 'multiplier * costB',
   },
   answer: { min: 4 },
 };
@@ -116,9 +116,9 @@ const substitutionConstraints = {
 const sumDiffConstraints = {
   _generic: { valA: { min: 10, max: 50 }, valB: { min: 5, max: 30 } },
   _compute: {
-    sum: (n) => n.valA + n.valB,
-    diff: (n) => n.valA - n.valB,
-    answer: (n) => n.valA,
+    sum: 'valA + valB',
+    diff: 'valA - valB',
+    answer: 'valA',
   },
   answer: { min: 10 },
 };
@@ -127,9 +127,9 @@ const sumDiffConstraints = {
 const multiplyFirstConstraints = {
   _generic: { costA: { min: 2, max: 8 }, costB: { min: 1, max: 6 }, qtyA1: { min: 2, max: 4 }, qtyB1: { min: 3, max: 5 }, qtyA2: { min: 3, max: 5 }, qtyB2: { min: 2, max: 4 } },
   _compute: {
-    total1: (n) => n.qtyA1 * n.costA + n.qtyB1 * n.costB,
-    total2: (n) => n.qtyA2 * n.costA + n.qtyB2 * n.costB,
-    answer: (n) => n.costA,
+    total1: 'qtyA1 * costA + qtyB1 * costB',
+    total2: 'qtyA2 * costA + qtyB2 * costB',
+    answer: 'costA',
   },
   answer: { min: 2 },
 };
@@ -138,10 +138,10 @@ const multiplyFirstConstraints = {
 const threeItemConstraints = {
   _generic: { costA: { min: 2, max: 6 }, costB: { min: 1, max: 4 }, costCMultiplier: { min: 2, max: 3 }, qtyA1: { min: 1, max: 3 }, qtyB1: { min: 1, max: 3 }, qtyC1: { min: 1, max: 2 }, qtyA2: { min: 1, max: 3 }, qtyB2: { min: 1, max: 3 }, qtyC2: { min: 1, max: 2 } },
   _compute: {
-    costC: (n) => n.costCMultiplier * n.costA,
-    total1: (n) => n.qtyA1 * n.costA + n.qtyB1 * n.costB + n.qtyC1 * (n.costCMultiplier * n.costA),
-    total2: (n) => n.qtyA2 * n.costA + n.qtyB2 * n.costB + n.qtyC2 * (n.costCMultiplier * n.costA),
-    answer: (n) => n.costA,
+    costC: 'costCMultiplier * costA',
+    total1: 'qtyA1 * costA + qtyB1 * costB + qtyC1 * (costCMultiplier * costA)',
+    total2: 'qtyA2 * costA + qtyB2 * costB + qtyC2 * (costCMultiplier * costA)',
+    answer: 'costA',
   },
   answer: { min: 2 },
 };
@@ -150,9 +150,9 @@ const threeItemConstraints = {
 const ageConstraints = {
   _generic: { ageA: { min: 8, max: 40 }, ageB: { min: 5, max: 30 } },
   _compute: {
-    sum: (n) => n.ageA + n.ageB,
-    diff: (n) => n.ageA - n.ageB,
-    answer: (n) => n.ageA,
+    sum: 'ageA + ageB',
+    diff: 'ageA - ageB',
+    answer: 'ageA',
   },
   answer: { min: 8 },
 };
@@ -161,10 +161,10 @@ const ageConstraints = {
 const moneyConstraints = {
   _generic: { countA: { min: 5, max: 20 }, countB: { min: 5, max: 20 }, valueA: { min: 50, max: 100 }, valueB: { min: 10, max: 50 } },
   _compute: {
-    totalCoins: (n) => n.countA + n.countB,
-    totalCents: (n) => n.countA * n.valueA + n.countB * n.valueB,
-    totalDollars: (n) => (n.countA * n.valueA + n.countB * n.valueB) / 100,
-    answer: (n) => n.countA,
+    totalCoins: 'countA + countB',
+    totalCents: 'countA * valueA + countB * valueB',
+    totalDollars: '(countA * valueA + countB * valueB) / 100',
+    answer: 'countA',
   },
   answer: { min: 5 },
 };
@@ -173,9 +173,9 @@ const moneyConstraints = {
 const wordConstraints = {
   _generic: { motorcycles: { min: 5, max: 20 }, cars: { min: 5, max: 20 } },
   _compute: {
-    totalVehicles: (n) => n.motorcycles + n.cars,
-    totalWheels: (n) => n.motorcycles * 2 + n.cars * 4,
-    answer: (n) => n.motorcycles,
+    totalVehicles: 'motorcycles + cars',
+    totalWheels: 'motorcycles * 2 + cars * 4',
+    answer: 'motorcycles',
   },
   answer: { min: 5 },
 };

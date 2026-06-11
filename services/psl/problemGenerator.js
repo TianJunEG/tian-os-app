@@ -5,14 +5,6 @@ const NAMES = ['Wei Ling', 'Jun Hao', 'Ravi', 'Siti', 'Mei Xin', 'Arun', 'Farah'
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function ordinal(n) { const s = ['th', 'st', 'nd', 'rd']; const v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
-
-function resolveConstraintValue(spec) {
-  if (typeof spec === 'number') return spec;
-  if (spec.options) return pick(spec.options);
-  if (spec.min !== undefined && spec.max !== undefined) return randInt(spec.min, spec.max);
-  return spec;
-}
 
 function generateNumbers(constraints, structure) {
   const MAX_TRIES = 50;
@@ -27,8 +19,23 @@ function generateNumbers(constraints, structure) {
       }
       if (constraints._compute) {
         for (const [key, expr] of Object.entries(constraints._compute)) {
-          nums[key] = expr(nums);
+          if (typeof expr === 'function') {
+            nums[key] = expr(nums);
+          } else if (typeof expr === 'string') {
+            const fn = new Function('n', 'with(n){return(' + expr + ')}');
+            nums[key] = fn(nums);
+          }
         }
+      }
+      if (constraints._computeStr) {
+        for (const [key, expr] of Object.entries(constraints._computeStr)) {
+          const fn = new Function('n', 'with(n){return(' + expr + ')}');
+          nums[key] = fn(nums);
+        }
+      }
+      if (constraints._integerKeys) {
+        const allInt = constraints._integerKeys.every((k) => Number.isInteger(nums[k]));
+        if (!allInt) continue;
       }
       if (constraints.answer?.min && (nums.answer || 0) < constraints.answer.min) continue;
       if (constraints.answer?.max && (nums.answer || 0) > constraints.answer.max) continue;
@@ -169,235 +176,26 @@ function generateNumbers(constraints, structure) {
   return null;
 }
 
-function generateH2Numbers(constraints) {
-  const start = resolveConstraintValue(constraints.start ?? { min: 1, max: 9 });
-  const step = resolveConstraintValue(constraints.step ?? { min: 2, max: 5 });
-  const targetPos = resolveConstraintValue(constraints.targetPos ?? { min: 6, max: 8 });
-  const multiplier = constraints.multiplier !== undefined ? resolveConstraintValue(constraints.multiplier) : null;
-  const constant = constraints.constant !== undefined ? resolveConstraintValue(constraints.constant) : null;
-
-  if (multiplier !== null && constant !== null) {
-    // Shape pattern: rule is multiplier*n + constant
-    const answer = multiplier * targetPos + constant;
-    return { start, step: multiplier, targetPos, ordTarget: ordinal(targetPos), answer, multiplier, constant };
-  }
-  // Linear sequence
-  const term1 = start;
-  const term2 = start + step;
-  const term3 = start + 2 * step;
-  const term4 = start + 3 * step;
-  const answer = start + (targetPos - 1) * step;
-  return { start, step, targetPos, ordTarget: ordinal(targetPos), term1, term2, term3, term4, answer };
-}
-
-function generateH3Numbers(constraints) {
-  const MAX_TRIES = 50;
-  for (let i = 0; i < MAX_TRIES; i++) {
-    const nums = {};
-    for (const key of Object.keys(constraints)) {
-      nums[key] = resolveConstraintValue(constraints[key]);
-    }
-    // Compute totals based on which price keys exist
-    if (nums.applePrice !== undefined && nums.orangePrice !== undefined) {
-      nums.totalA = 2 * nums.applePrice + nums.orangePrice;
-      nums.totalB = 2 * nums.applePrice + 3 * nums.orangePrice;
-      nums.answer = nums.orangePrice;
-    } else if (nums.rulerPrice !== undefined && nums.penPrice !== undefined) {
-      nums.totalA = 2 * nums.rulerPrice + 3 * nums.penPrice;
-      nums.totalB = 4 * nums.rulerPrice + 3 * nums.penPrice;
-      nums.answer = nums.rulerPrice;
-    } else if (nums.cakePrice !== undefined && nums.muffinPrice !== undefined) {
-      nums.totalA = nums.cakePrice + 2 * nums.muffinPrice;
-      nums.totalB = nums.cakePrice + 5 * nums.muffinPrice;
-      nums.answer = nums.muffinPrice;
-    } else if (nums.shortsPrice !== undefined && nums.topPrice !== undefined) {
-      nums.totalA = 3 * nums.shortsPrice + 2 * nums.topPrice;
-      nums.totalB = 5 * nums.shortsPrice + 4 * nums.topPrice;
-      nums.doubledA = 2 * nums.totalA;
-      nums.answer = nums.topPrice;
-    } else if (nums.carPrice !== undefined && nums.dollPrice !== undefined) {
-      nums.totalA = 2 * nums.carPrice + nums.dollPrice;
-      nums.totalB = 3 * nums.carPrice + 2 * nums.dollPrice;
-      nums.doubledA = 2 * nums.totalA;
-      nums.answer = nums.dollPrice;
-    } else if (nums.burgerPrice !== undefined && nums.drinkPrice !== undefined) {
-      nums.totalA = 3 * nums.burgerPrice + nums.drinkPrice;
-      nums.totalB = 2 * nums.burgerPrice + 3 * nums.drinkPrice;
-      nums.tripledA = 3 * nums.totalA;
-      nums.answer = nums.drinkPrice;
-    }
-    if (nums.totalA > 0 && nums.totalB > 0 && nums.totalA !== nums.totalB) return nums;
-  }
-  return null;
-}
-
-function generateH4Numbers(constraints) {
-  const MAX_TRIES = 80;
-  for (let i = 0; i < MAX_TRIES; i++) {
-    const nums = {};
-    // "answer" can be a fixed pick or computed
-    if (constraints.answer?.options) {
-      nums.answer = pick(constraints.answer.options);
-    }
-    const spread = resolveConstraintValue(constraints.rangeSpread ?? { min: 3, max: 5 });
-    if (nums.answer !== undefined) {
-      nums.lo = nums.answer - spread;
-      nums.hi = nums.answer + spread;
-    }
-    // Remainder puzzle
-    if (constraints.divisor1) {
-      const div1 = resolveConstraintValue(constraints.divisor1);
-      const div2 = resolveConstraintValue(constraints.divisor2);
-      const ans = randInt(div1 * 3, div1 * 8);
-      nums.answer = ans;
-      nums.div1 = div1;
-      nums.div2 = div2;
-      nums.rem1 = ans % div1;
-      nums.rem2 = ans % div2;
-      if (nums.rem1 === 0 || nums.rem2 === 0) continue;
-      nums.lo = ans - randInt(2, 5);
-      nums.hi = ans + randInt(2, 5);
-    }
-    // Marble jar
-    if (constraints.stackA) {
-      const stackA = resolveConstraintValue(constraints.stackA);
-      const stackB = resolveConstraintValue(constraints.stackB);
-      const ans = randInt(120, 260);
-      nums.answer = ans;
-      nums.stackA = stackA;
-      nums.stackB = stackB;
-      nums.extraA = ans % stackA;
-      nums.shortB = (stackB - (ans % stackB)) % stackB;
-      if (nums.extraA === 0 || nums.shortB === 0) continue;
-      nums.lo = Math.max(100, ans - randInt(8, 15));
-      nums.hi = ans + randInt(8, 15);
-    }
-    // Common multiple
-    if (constraints.factorA) {
-      const factorA = resolveConstraintValue(constraints.factorA);
-      const factorB = resolveConstraintValue(constraints.factorB);
-      const g = gcd(factorA, factorB);
-      const lcm = (factorA * factorB) / g;
-      const mult = randInt(3, 8);
-      nums.answer = lcm * mult;
-      nums.factorA = factorA;
-      nums.factorB = factorB;
-      nums.lo = nums.answer - randInt(1, lcm - 1);
-      nums.hi = nums.answer + randInt(1, lcm - 1);
-    }
-    // Locker puzzle (common multiple of 3 and secondFactor)
-    if (constraints.answer?.options && !constraints.divisor1 && !constraints.stackA && !constraints.factorA) {
-      const ans = nums.answer;
-      const factors = [];
-      for (let f = 2; f <= 12; f++) { if (f !== 3 && ans % f === 0) factors.push(f); }
-      if (factors.length === 0) continue;
-      nums.secondFactor = pick(factors);
-    }
-    if (nums.answer !== undefined) return nums;
-  }
-  return null;
-}
-
-function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
-
-function generateH5Numbers(constraints) {
-  const MAX_TRIES = 50;
-  for (let i = 0; i < MAX_TRIES; i++) {
-    const nums = {};
-    if (constraints.tenCent && constraints.fiveCent) {
-      nums.tenCent = resolveConstraintValue(constraints.tenCent);
-      nums.fiveCent = resolveConstraintValue(constraints.fiveCent);
-      nums.totalCoins = nums.tenCent + nums.fiveCent;
-      nums.totalValue = 10 * nums.tenCent + 5 * nums.fiveCent;
-      nums.answer = nums.tenCent;
-    } else if (constraints.twentyCent && constraints.tenCent) {
-      nums.twentyCent = resolveConstraintValue(constraints.twentyCent);
-      nums.tenCent = resolveConstraintValue(constraints.tenCent);
-      nums.totalCoins = nums.twentyCent + nums.tenCent;
-      nums.totalValue = 20 * nums.twentyCent + 10 * nums.tenCent;
-      nums.answer = nums.twentyCent;
-    } else if (constraints.fiftyCent && constraints.twentyCent) {
-      nums.fiftyCent = resolveConstraintValue(constraints.fiftyCent);
-      nums.twentyCent = resolveConstraintValue(constraints.twentyCent);
-      nums.totalCoins = nums.fiftyCent + nums.twentyCent;
-      const totalCents = 50 * nums.fiftyCent + 20 * nums.twentyCent;
-      nums.totalDollars = (totalCents / 100).toFixed(2);
-      nums.totalValue = totalCents;
-      nums.answer = nums.fiftyCent;
-    } else if (constraints.chickens && constraints.rabbits) {
-      nums.chickens = resolveConstraintValue(constraints.chickens);
-      nums.rabbits = resolveConstraintValue(constraints.rabbits);
-      nums.totalHeads = nums.chickens + nums.rabbits;
-      nums.totalLegs = 2 * nums.chickens + 4 * nums.rabbits;
-      nums.answer = nums.rabbits;
-    } else if (constraints.spiders && constraints.beetles) {
-      nums.spiders = resolveConstraintValue(constraints.spiders);
-      nums.beetles = resolveConstraintValue(constraints.beetles);
-      nums.totalCreatures = nums.spiders + nums.beetles;
-      nums.totalLegs = 8 * nums.spiders + 6 * nums.beetles;
-      nums.answer = nums.spiders;
-    } else if (constraints.ducks && constraints.turtles) {
-      nums.ducks = resolveConstraintValue(constraints.ducks);
-      nums.turtles = resolveConstraintValue(constraints.turtles);
-      nums.totalAnimals = nums.ducks + nums.turtles;
-      nums.totalWings = 2 * nums.ducks;
-      nums.answer = nums.turtles;
-    }
-    if (nums.answer !== undefined) return nums;
-  }
-  return null;
-}
-
-function generateH6Numbers(constraints) {
-  const MAX_TRIES = 50;
-  for (let i = 0; i < MAX_TRIES; i++) {
-    const nums = {};
-    const original = resolveConstraintValue(constraints.original);
-    nums.original = original;
-
-    if (constraints.multiplier && constraints.addend && !constraints.subtrahend) {
-      // multiply then add: result = original * multiplier + addend
-      nums.multiplier = resolveConstraintValue(constraints.multiplier);
-      nums.addend = resolveConstraintValue(constraints.addend);
-      nums.result = original * nums.multiplier + nums.addend;
-      nums.step1 = nums.result - nums.addend; // reverse add → subtract
-      nums.answer = original;
-    } else if (constraints.addend && constraints.subtrahend && !constraints.multiplier) {
-      // add then subtract: result = original + addend - subtrahend
-      nums.addend = resolveConstraintValue(constraints.addend);
-      nums.subtrahend = resolveConstraintValue(constraints.subtrahend);
-      nums.result = original + nums.addend - nums.subtrahend;
-      if (nums.result < 1) continue;
-      nums.step1 = nums.result + nums.subtrahend; // reverse subtract → add
-      nums.answer = original;
-    } else if (constraints.multiplier && constraints.subtrahend && !constraints.addend) {
-      // multiply then subtract: result = original * multiplier - subtrahend
-      const multiplier = resolveConstraintValue(constraints.multiplier);
-      nums.multiplier = multiplier;
-      nums.subtrahend = resolveConstraintValue(constraints.subtrahend);
-      nums.result = original * multiplier - nums.subtrahend;
-      if (nums.result < 1) continue;
-      nums.step1 = nums.result + nums.subtrahend; // reverse subtract → add
-      nums.answer = original;
-    } else if (constraints.addend && constraints.multiplier && constraints.subtrahend) {
-      // Three ops: varies by template
-      nums.addend = resolveConstraintValue(constraints.addend);
-      nums.multiplier = resolveConstraintValue(constraints.multiplier);
-      nums.subtrahend = resolveConstraintValue(constraints.subtrahend);
-      // Default: (original + addend) * multiplier - subtrahend
-      // But some templates are: (original - subtrahend) * multiplier + addend
-      // or: original * multiplier + addend - subtrahend
-      // We'll compute all variants and let the template's storyTemplate pick the right result
-      // The template's operations field tells the order
-      nums.result_add_mul_sub = (original + nums.addend) * nums.multiplier - nums.subtrahend;
-      nums.result_sub_mul_add = (original - nums.subtrahend) * nums.multiplier + nums.addend;
-      nums.result_mul_add_sub = original * nums.multiplier + nums.addend - nums.subtrahend;
-      // Pick the one that's positive
-      nums.answer = original;
-    }
-    if (nums.answer !== undefined && (nums.result === undefined || nums.result >= 1)) return nums;
-  }
-  return null;
+const PAST_TO_BASE = {
+  bought: 'buy', sold: 'sell', saw: 'see', won: 'win', made: 'make',
+  ran: 'run', swam: 'swim', got: 'get', had: 'have', gave: 'give',
+  grew: 'grow', read: 'read', wore: 'wear', ate: 'eat', drank: 'drink',
+  spelt: 'spell', lent: 'lend', set: 'set',
+  baked: 'bake', planted: 'plant', borrowed: 'borrow', counted: 'count',
+  collected: 'collect', invited: 'invite', ordered: 'order', packed: 'pack',
+  arranged: 'arrange', placed: 'place', used: 'use', scored: 'score',
+  saved: 'save', donated: 'donate', returned: 'return', enrolled: 'enroll',
+  served: 'serve', received: 'receive', prepared: 'prepare', displayed: 'display',
+  stocked: 'stock', raised: 'raise', walked: 'walk', welcomed: 'welcome',
+  parked: 'park', recorded: 'record', registered: 'register',
+};
+function toBaseVerb(past) {
+  if (!past) return past;
+  const w = past.split(' ')[0];
+  const rest = past.slice(w.length);
+  if (PAST_TO_BASE[w]) return PAST_TO_BASE[w] + rest;
+  if (w.endsWith('ed')) return w.slice(0, -2) + rest;
+  return past;
 }
 
 function substituteTokens(text, vars) {
@@ -445,101 +243,17 @@ function buildScaffoldSteps(scaffold, vars) {
     } else if (raw.type === 'reasonableness') {
       step.prompt = substituteTokens(raw.prompt, vars);
       step.expectedResponse = { reasonable: true };
-    } else if (raw.type === 'reverse_steps') {
-      step.prompt = substituteTokens(raw.prompt || 'Identify the operations to reverse.', vars);
-      step.expectedResponse = {
-        type: 'reverse_steps',
-        operations: (raw.operations || []).map((o) => substituteTokens(o, vars)),
-        finalResult: Number(substituteTokens(String(raw.finalResult || ''), vars)),
-      };
-    } else if (raw.type === 'reverse_chain') {
-      step.prompt = substituteTokens(raw.prompt || 'Reverse each step to find the original number.', vars);
-      step.expectedResponse = {
-        type: 'reverse_chain',
-        steps: (raw.steps || []).map((s) => Number(substituteTokens(String(s), vars))),
-        answer: Number(substituteTokens(String(raw.answer), vars)),
-      };
-    } else if (raw.type === 'table_setup') {
-      step.prompt = substituteTokens(raw.prompt || 'Set up a table to organise the pattern.', vars);
-      step.expectedResponse = {
-        type: 'table_setup',
-        columns: (raw.columns || []).map((c) => substituteTokens(c, vars)),
-        knownRows: (raw.knownRows || []).map((row) => row.map((cell) => {
-          const sub = substituteTokens(String(cell), vars);
-          const n = Number(sub);
-          return isNaN(n) ? sub : n;
-        })),
-        requiredCount: raw.requiredCount || raw.columns?.length || 2,
-      };
-    } else if (raw.type === 'find_rule') {
-      step.prompt = substituteTokens(raw.prompt || 'Find the rule and use it to get the answer.', vars);
-      step.expectedResponse = {
-        type: 'find_rule',
-        columns: (raw.columns || []).map((c) => substituteTokens(c, vars)),
-        knownRows: (raw.knownRows || []).map((row) => row.map((cell) => {
-          const sub = substituteTokens(String(cell), vars);
-          const n = Number(sub);
-          return isNaN(n) ? sub : n;
-        })),
-        targetPosition: Number(substituteTokens(String(raw.targetPosition || ''), vars)) || undefined,
-        answer: Number(substituteTokens(String(raw.answer), vars)),
-      };
-    } else if (raw.type === 'equation_setup') {
-      step.prompt = substituteTokens(raw.prompt || 'Which quantity appears in both equations? Pick what to eliminate.', vars);
-      step.expectedResponse = {
-        type: 'equation_setup',
-        equations: (raw.equations || []).map((eq) => substituteTokens(eq, vars)),
-        variables: raw.variables || [],
-      };
-    } else if (raw.type === 'eliminate') {
-      step.prompt = substituteTokens(raw.prompt || 'Scale, subtract, and solve.', vars);
-      step.expectedResponse = {
-        type: 'eliminate',
-        steps: (raw.steps || []).map((s) => substituteTokens(s, vars)),
-        variables: raw.variables || [],
-        answer: Number(substituteTokens(String(raw.answer), vars)),
-      };
-    } else if (raw.type === 'list_candidates') {
-      step.prompt = substituteTokens(raw.prompt || 'List the conditions and the range to search.', vars);
-      step.expectedResponse = {
-        type: 'list_candidates',
-        conditions: (raw.conditions || []).map((c) => substituteTokens(c, vars)),
-        showRange: raw.showRange || false,
-      };
-    } else if (raw.type === 'list_check') {
-      step.prompt = substituteTokens(raw.prompt || 'Find the number that satisfies all conditions.', vars);
-      step.expectedResponse = {
-        type: 'list_check',
-        conditions: (raw.conditions || []).map((c) => substituteTokens(c, vars)),
-        answer: Number(substituteTokens(String(raw.answer), vars)),
-      };
-    } else if (raw.type === 'guess_setup') {
-      step.prompt = substituteTokens(raw.prompt || 'Identify the constraints for your guess table.', vars);
-      step.expectedResponse = {
-        type: 'guess_setup',
-        constraints: (raw.constraints || []).map((c) => substituteTokens(c, vars)),
-      };
-    } else if (raw.type === 'guess_table') {
-      step.prompt = substituteTokens(raw.prompt || 'Guess, check, and adjust until both constraints match.', vars);
-      step.expectedResponse = {
-        type: 'guess_table',
-        columns: (raw.columns || []).map((c) => substituteTokens(c, vars)),
-        maxGuesses: raw.maxGuesses || 5,
-        answer: Number(substituteTokens(String(raw.answer), vars)),
-      };
     }
     return step;
   });
 }
 
-function computeAnswer(scaffold, vars) {
+function computeAnswer(scaffold, nums) {
   const solve = scaffold.solve;
-  if (!solve) return vars.answer || 0;
-  if (solve.answer !== undefined) {
-    const resolved = Number(substituteTokens(String(solve.answer), vars));
-    if (!isNaN(resolved)) return resolved;
-  }
-  return vars.answer || 0;
+  if (!solve) return nums.answer || 0;
+  if (solve.type === 'expression') return Number(substituteTokens(String(solve.answer), nums));
+  if (solve.type === 'twoStep') return Number(substituteTokens(String(solve.answer), nums));
+  return nums.answer || 0;
 }
 
 
@@ -625,6 +339,42 @@ function buildVisualSpec(template, nums, vars) {
     return null;
   }
 
+
+  if (h === 'assumption') {
+    if (nums.totalItems !== undefined && nums.totalValue !== undefined) {
+      return {
+        type: 'assumption',
+        totalItems: nums.totalItems,
+        totalValue: nums.totalValue,
+        assumedTotal: nums.assumedTotal,
+        unitA: vars.unitA || nums.unitA || 0,
+        swapDiff: nums.swapDiff,
+        answer: nums.answer,
+      };
+    }
+    return null;
+  }
+
+  if (h === 'data-interpretation') {
+    const chart = template.constraints?._chart;
+    if (!chart) return null;
+    const labels = (chart.labels || []).map(l => substituteTokens(l, vars));
+    const values = (chart.valueKeys || []).map(k => nums[k] ?? 0);
+    const spec = { type: chart.type, title: chart.title || '', labels, values };
+    if (chart.type === 'pieChart') {
+      spec.percentages = (chart.pctKeys || []).map(k => nums[k] ?? 0);
+      spec.total = nums[chart.totalKey] || nums.totalVal || 0;
+    }
+    if (chart.type === 'multiTable') {
+      spec.tables = (chart.tables || []).map(t => ({
+        title: t.title || '',
+        labels: (t.labels || []).map(l => substituteTokens(l, vars)),
+        values: (t.valueKeys || []).map(k => nums[k] ?? 0),
+      }));
+    }
+    return spec;
+  }
+
   return null;
 }
 
@@ -636,51 +386,20 @@ export async function generateProblem(skillId, options = {}) {
   const available = templates.filter((t) => !usedTemplateIds.includes(t.templateId));
   const template = pick(available.length ? available : templates);
 
-  const context = pick(template.contexts);
+  const context = pick(template.contexts) || {};
   const nameA = pick(NAMES);
   let nameB = pick(NAMES.filter((n) => n !== nameA));
   if (!nameB) nameB = 'Ali';
+  let nameC = pick(NAMES.filter((n) => n !== nameA && n !== nameB));
+  if (!nameC) nameC = 'Lina';
+  let nameD = pick(NAMES.filter((n) => n !== nameA && n !== nameB && n !== nameC));
+  if (!nameD) nameD = 'Kai';
 
-  const heuristic = template.heuristic || 'bar-model';
-  let nums;
-  if (heuristic === 'find-pattern') {
-    nums = generateH2Numbers(template.constraints);
-  } else if (heuristic === 'substitution') {
-    nums = generateH3Numbers(template.constraints);
-  } else if (heuristic === 'make-list') {
-    nums = generateH4Numbers(template.constraints);
-  } else if (heuristic === 'guess-check') {
-    nums = generateH5Numbers(template.constraints);
-  } else if (heuristic === 'work-backwards') {
-    nums = generateH6Numbers(template.constraints);
-  } else {
-    nums = generateNumbers(template.constraints, template.structure);
-  }
+  const nums = generateNumbers(template.constraints, template.structure);
   if (!nums) throw new Error(`Number generation failed for template: ${template.templateId}`);
 
-  const vars = { ...context, ...nums, nameA, nameB, entityA2: context.entityA?.replace(/s$/, '') || context.entityA };
-
-  // H6 three-op: pick the correct result based on the template's operation order
-  if (heuristic === 'work-backwards' && nums.result_add_mul_sub !== undefined) {
-    const ops = template.operations || [];
-    if (ops[0] === 'addition' && ops[1] === 'multiplication' && ops[2] === 'subtraction') {
-      vars.result = nums.result_add_mul_sub;
-      vars.step1 = vars.result + nums.subtrahend;
-      vars.step2 = vars.step1 / nums.multiplier;
-    } else if (ops[0] === 'subtraction' && ops[1] === 'multiplication' && ops[2] === 'addition') {
-      vars.result = nums.result_sub_mul_add;
-      vars.step1 = vars.result - nums.addend;
-      vars.step2 = vars.step1 / nums.multiplier;
-    } else if (ops[0] === 'multiplication' && ops[1] === 'addition' && ops[2] === 'subtraction') {
-      vars.result = nums.result_mul_add_sub;
-      vars.step1 = vars.result + nums.subtrahend;
-      vars.step2 = vars.step1 - nums.addend;
-    } else {
-      vars.result = nums.result_add_mul_sub;
-      vars.step1 = vars.result + nums.subtrahend;
-      vars.step2 = vars.step1 / nums.multiplier;
-    }
-  }
+  const vars = { ...context, ...nums, nameA, nameB, nameC, nameD, name1: nameA, name2: nameB, name3: nameC, name4: nameD, entityA2: context.entityA?.replace(/s$/, '') || context.entityA };
+  if (vars.verb) vars.verbBase = toBaseVerb(vars.verb);
 
   // For compare-then-total and two-step templates, compute intermediate values
   if (template.structure === 'comparison' && template.unknownPosition === 'larger' && template.scaffold?.solve?.type === 'twoStep') {
@@ -700,8 +419,6 @@ export async function generateProblem(skillId, options = {}) {
   const storyText = substituteTokens(template.storyTemplate, vars);
   const solutionText = substituteTokens(template.solutionTemplate || '', vars);
   const correctAnswer = computeAnswer(template.scaffold, vars);
-  // Ensure answer var is set for token substitution in scaffolds
-  if (vars.answer === undefined) vars.answer = correctAnswer;
   const givenNumbers = Object.entries(nums)
     .filter(([k]) => k !== 'answer')
     .map(([, v]) => v)
@@ -709,29 +426,25 @@ export async function generateProblem(skillId, options = {}) {
 
   const scaffoldSteps = buildScaffoldSteps(template.scaffold, vars);
 
-  const result = {
+  const isBarModel = ['partWhole', 'comparison', 'twoStep'].includes(template.structure);
+  return {
     problemId: crypto.randomUUID(),
     templateId: template.templateId,
-    heuristic: template.heuristic || 'bar-model',
+    heuristic: template.heuristic || (isBarModel ? 'bar-model' : template.structure),
     structure: template.structure,
     storyText,
     solutionText,
     givenNumbers,
     correctAnswer,
+    barModelSpec: isBarModel ? {
+      modelType: template.structure === 'twoStep' ? 'partWhole' : template.structure,
+      unknownPosition: template.unknownPosition,
+      values: nums,
+    } : null,
     visualSpec: buildVisualSpec(template, nums, vars),
     scaffoldSteps,
     status: 'pending',
   };
-
-  if (!template.heuristic || template.heuristic === 'bar-model') {
-    result.barModelSpec = {
-      modelType: template.structure === 'twoStep' ? 'partWhole' : template.structure,
-      unknownPosition: template.unknownPosition,
-      values: nums,
-    };
-  }
-
-  return result;
 }
 
 export async function generateProblemsForSession(skillId, count = 5) {
