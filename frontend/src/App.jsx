@@ -276,9 +276,9 @@ const LegacyDashboardRedirect = () => {
 
 // Landing Page — cinematic Tian OS look (matches the launch video / founder story).
 const LANDING_FEATURES = [
-  { icon: Sparkles, title: 'Personalized by AI', body: 'Every mistake can guide targeted practice toward mastery — worksheets and revision adapt to each child.' },
-  { icon: Layers, title: 'One connected profile', body: 'Spelling, maths and science progress unify into a single readiness picture for parents.' },
-  { icon: GraduationCap, title: 'Powered by teachers', body: 'Designed by experienced educators and refined through real classroom practice.' },
+  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.' },
+  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.' },
+  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.' },
 ];
 const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
 
@@ -292,7 +292,7 @@ const LandingPage = () => (
           <Link to="/founder" style={navLink}>Our story</Link>
           <Link to="/methodology" style={navLink}>Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
-          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: CORAL, color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${CORAL_GLOW}` }}>Sign Up</Link>
+          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: CORAL, color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${CORAL_GLOW}` }}>Request Demo</Link>
         </nav>
       </div>
     </header>
@@ -304,17 +304,17 @@ const LandingPage = () => (
           <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
             <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY }}>
-              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Every Student.</span>
+              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
             <p style={{ marginTop: 24, fontSize: 'clamp(17px, 2.2vw, 21px)', color: 'rgba(255,248,234,0.8)', maxWidth: 620, margin: '24px auto 0', lineHeight: 1.6 }}>
-              Powered by teachers. Designed for parents. Personalized by AI.
+              Evidence-based intervention tools that close learning gaps across your school — powered by AI, guided by teachers.
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Get Started Free <ArrowRight size={18} /></Link>
-            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See How It Works</Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
+            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
             <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: IVORY, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
@@ -324,18 +324,18 @@ const LandingPage = () => (
 
       <section id="methodology" style={{ maxWidth: 1000, margin: '0 auto', padding: '90px 24px 10px' }}>
         <Reveal>
-          <Eyebrow>Remediation design</Eyebrow>
+          <Eyebrow>Evidence-based approach</Eyebrow>
           <h2 style={{ marginTop: 18, marginBottom: 18, fontFamily: SERIF, fontWeight: 400, fontSize: 'clamp(32px, 5vw, 46px)', lineHeight: 1.15, color: INK }}>
-            Built on evidence-informed learning principles
+            Intervention tools grounded in research
           </h2>
           <p style={{ marginBottom: 16, color: INK_SOFT, fontSize: 18, lineHeight: 1.65, maxWidth: 860 }}>
-            Tian OS MathPath is designed around established mathematics intervention practices: diagnostic assessment, targeted skill-gap practice, visual models, guided review, progress monitoring and data-informed remediation.
+            Tian OS is built around established mathematics intervention practices: diagnostic assessment, targeted skill-gap practice, visual models, guided review, progress monitoring and data-informed remediation — deployed school-wide.
           </p>
           <p style={{ marginBottom: 16, color: INK_SOFT, fontSize: 18, lineHeight: 1.65, maxWidth: 860 }}>
-            Instead of only marking answers right or wrong, Tian OS also looks at confidence, timing, mistakes and working evidence to help identify what a student may need next.
+            Instead of only marking answers right or wrong, the platform analyses confidence, timing, misconceptions and working evidence — giving educators the insight to intervene early and at scale.
           </p>
           <p style={{ color: INK_SOFT, fontSize: 15, lineHeight: 1.7, maxWidth: 860 }}>
-            Our approach is aligned with intervention principles recommended by education research bodies such as the Institute of Education Sciences' What Works Clearinghouse and the National Center on Intensive Intervention.
+            Aligned with intervention principles from the Institute of Education Sciences' What Works Clearinghouse and the National Center on Intensive Intervention.
           </p>
         </Reveal>
       </section>
@@ -358,7 +358,7 @@ const LandingPage = () => (
     </main>
 
     <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(15,76,92,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,248,234,0.7)' }}>
-      <span style={{ color: IVORY, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning. Built for Every Student. · © Tian Jun Education Group
+      <span style={{ color: IVORY, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning Infrastructure for Schools · © Tian Jun Education Group
     </footer>
   </div>
 );
