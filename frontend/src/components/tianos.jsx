@@ -8,6 +8,12 @@ export const INK = '#f5efe1';
 export const INK_SOFT = 'rgba(240,235,220,0.62)';
 export const BLUE = '#7aa6e8';
 export const BG = '#050a14';
+export const CORAL = '#e85d4a';
+export const CORAL_GLOW = 'rgba(232,93,74,0.35)';
+export const TEAL = '#0f4c5c';
+export const TEAL_DARK = '#0a3340';
+export const IVORY = '#fff8ea';
+export const SKY = '#a7d8f0';
 export const SERIF = "'Fraunces', Georgia, serif";
 export const SANS = "'Manrope', system-ui, sans-serif";
 
