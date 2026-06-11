@@ -103,6 +103,44 @@ function TopMisconceptionsCard({ rows = [] }) {
   );
 }
 
+function StepAnalyticsCard({ rows = [] }) {
+  const maxError = Math.max(...rows.map((r) => r.errorRate), 1);
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-ink-700">Step-Level Performance</h3>
+      <p className="mt-1 text-xs text-ink-500">Where students struggle in the 6-step scaffold</p>
+      {rows.every((r) => r.total === 0) ? (
+        <p className="mt-3 text-sm text-ink-500">No step data yet.</p>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {rows.map((step) => (
+            <div key={step.stepId} className="rounded-lg border border-hairline p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-ink-700">{step.label}</p>
+                <Badge tone={step.errorRate >= 40 ? 'error' : step.errorRate >= 20 ? 'gold' : 'navy'}>
+                  {step.errorRate}% errors
+                </Badge>
+              </div>
+              <div className="mt-2 h-2 w-full rounded-full bg-ink-100">
+                <div
+                  className={`h-2 rounded-full transition-all ${step.errorRate >= 40 ? 'bg-red-400' : step.errorRate >= 20 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                  style={{ width: `${Math.round((step.errorRate / maxError) * 100)}%` }}
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-3 text-xs text-ink-500">
+                <span>Avg {step.avgTimeSec}s</span>
+                {step.hintRate > 0 && <span>Hints {step.hintRate}%</span>}
+                {step.retryRate > 0 && <span>Retries {step.retryRate}%</span>}
+                {step.misconceptionRate > 0 && <span>Misconceptions {step.misconceptionRate}%</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function SkillBreakdownCard({ rows = [] }) {
   const [query, setQuery] = useState('');
   const filtered = useMemo(() => {
@@ -197,6 +235,7 @@ export default function TeacherPSLDashboardPage() {
           <>
             <FlaggedStudentsCard rows={dashboard.flaggedStudents || []} onOpenStudent={openStudent} />
             <HeuristicCard rows={dashboard.heuristics || []} />
+            <StepAnalyticsCard rows={dashboard.stepAnalytics || []} />
             <TopMisconceptionsCard rows={dashboard.topMisconceptions || []} />
             <SkillBreakdownCard rows={dashboard.skills || []} />
           </>

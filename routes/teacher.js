@@ -618,6 +618,34 @@ router.get('/classes/:id/psl/dashboard', async (req, res) => {
   }
   const topMisconceptions = Object.entries(classMiscCounts).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([tag, count]) => ({ tag, count }));
 
+  const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
+  const STEP_LABELS = { understand: 'Understand', identify_info: 'Identify Info', identify_question: 'Identify Question', plan: 'Plan', solve: 'Solve', check: 'Check' };
+  const stepAgg = {};
+  for (const sid of STEP_IDS) stepAgg[sid] = { total: 0, correct: 0, timeMs: 0, hints: 0, retries: 0, misconceptions: 0 };
+  for (const at of attempts) {
+    for (const step of at.steps || []) {
+      const agg = stepAgg[step.stepId];
+      if (!agg) continue;
+      agg.total++;
+      if (step.correct) agg.correct++;
+      agg.timeMs += step.timeSpentMs || 0;
+      if (step.hintUsed) agg.hints++;
+      if (step.retried) agg.retries++;
+      if (step.misconceptionTag) agg.misconceptions++;
+    }
+  }
+  const stepAnalytics = STEP_IDS.map((sid) => {
+    const a = stepAgg[sid];
+    return {
+      stepId: sid, label: STEP_LABELS[sid], total: a.total,
+      errorRate: a.total ? Math.round(((a.total - a.correct) / a.total) * 100) : 0,
+      avgTimeSec: a.total ? Math.round(a.timeMs / a.total / 1000) : 0,
+      hintRate: a.total ? Math.round((a.hints / a.total) * 100) : 0,
+      retryRate: a.total ? Math.round((a.retries / a.total) * 100) : 0,
+      misconceptionRate: a.total ? Math.round((a.misconceptions / a.total) * 100) : 0,
+    };
+  });
+
   const heuristicMap = {};
   for (const sk of skills) {
     const h = sk.heuristic;
@@ -643,6 +671,7 @@ router.get('/classes/:id/psl/dashboard', async (req, res) => {
     flaggedStudents,
     topMisconceptions,
     heuristics,
+    stepAnalytics,
   });
 });
 
