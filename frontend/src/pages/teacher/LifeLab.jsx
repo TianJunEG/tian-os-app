@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Sprout, CheckCircle2, MessageSquare, ImageIcon } from 'lucide-react';
+import { Sprout, CheckCircle2, MessageSquare } from 'lucide-react';
 import { lifelabAPI, teacherAPI, SERVER_ORIGIN } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
