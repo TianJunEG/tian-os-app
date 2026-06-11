@@ -35,15 +35,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
   };
 
   return (
-    <div className="lifelab-phone">
-      <div className="status-bar">
-        <span>9:41</span>
-        <div className="status-bar-right">
-          <Icon name="signal" size={14} />
-          <Icon name="wifi" size={14} />
-        </div>
-      </div>
-
+    <>
       <div className="ll-nav-bar">
         <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
@@ -54,7 +46,7 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
         </div>
       </div>
 
-      <div className="lifelab-content">
+      <div className="ll-content">
         <div className="ll-content-scroll" style={{ padding: '16px 20px' }}>
           {loading ? (
             <div className="ll-loading">Loading...</div>
@@ -143,6 +135,6 @@ export default function TutorViewScreen({ onBack, onNavigate }) {
           </button>
         ))}
       </div>
-    </div>
+    </>
   );
 }
