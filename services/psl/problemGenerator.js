@@ -161,6 +161,28 @@ function generateNumbers(constraints, structure) {
   return null;
 }
 
+const PAST_TO_BASE = {
+  bought: 'buy', sold: 'sell', saw: 'see', won: 'win', made: 'make',
+  ran: 'run', swam: 'swim', got: 'get', had: 'have', gave: 'give',
+  grew: 'grow', read: 'read', wore: 'wear', ate: 'eat', drank: 'drink',
+  spelt: 'spell', lent: 'lend', set: 'set',
+  baked: 'bake', planted: 'plant', borrowed: 'borrow', counted: 'count',
+  collected: 'collect', invited: 'invite', ordered: 'order', packed: 'pack',
+  arranged: 'arrange', placed: 'place', used: 'use', scored: 'score',
+  saved: 'save', donated: 'donate', returned: 'return', enrolled: 'enroll',
+  served: 'serve', received: 'receive', prepared: 'prepare', displayed: 'display',
+  stocked: 'stock', raised: 'raise', walked: 'walk', welcomed: 'welcome',
+  parked: 'park', recorded: 'record', registered: 'register',
+};
+function toBaseVerb(past) {
+  if (!past) return past;
+  const w = past.split(' ')[0];
+  const rest = past.slice(w.length);
+  if (PAST_TO_BASE[w]) return PAST_TO_BASE[w] + rest;
+  if (w.endsWith('ed')) return w.slice(0, -2) + rest;
+  return past;
+}
+
 function substituteTokens(text, vars) {
   return text.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? `{${key}}`);
 }
@@ -322,6 +344,7 @@ export async function generateProblem(skillId, options = {}) {
   if (!nums) throw new Error(`Number generation failed for template: ${template.templateId}`);
 
   const vars = { ...context, ...nums, nameA, nameB, entityA2: context.entityA?.replace(/s$/, '') || context.entityA };
+  if (vars.verb) vars.verbBase = toBaseVerb(vars.verb);
 
   // For compare-then-total and two-step templates, compute intermediate values
   if (template.structure === 'comparison' && template.unknownPosition === 'larger' && template.scaffold?.solve?.type === 'twoStep') {

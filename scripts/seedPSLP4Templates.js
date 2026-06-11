@@ -348,7 +348,7 @@ const TEMPLATES = [
       { setting: 'reading challenge', entityA: 'pages', verb: 'read' },
     ],
     constraints: { larger: { min: 2000, max: 5000 }, smaller: { min: 800, max: 4000 }, answer: { min: 200 } },
-    storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. How many more {entityA} did {nameA} {verb} than {nameB}?',
+    storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {smaller} {entityA}. How many more {entityA} did {nameA} {verbBase} than {nameB}?',
     solutionTemplate: 'Step 1: Draw two bars. The longer bar is {larger}. The shorter bar is {smaller}.\nStep 2: The difference is the extra part of the longer bar. Subtract to find it.\nStep 3: {larger} - {smaller} = {answer}.\nAnswer: The difference is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
@@ -565,7 +565,7 @@ const TEMPLATES = [
       { setting: 'book fair', entityA: 'books', verb: 'sold', comparison: 'fewer than' },
     ],
     constraints: { larger: { min: 1800, max: 5000 }, difference: { min: 350, max: 2200 }, answer: { min: 500 } },
-    storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} did {nameB} {verb}?',
+    storyTemplate: '{nameA} {verb} {larger} {entityA}. {nameB} {verb} {difference} {comparison} {nameA}. How many {entityA} did {nameB} {verbBase}?',
     solutionTemplate: 'Step 1: Draw two bars. The longer bar is {larger}. The difference is {difference}.\nStep 2: The shorter bar is the longer bar minus the gap between them.\nStep 3: {larger} - {difference} = {answer}.\nAnswer: The smaller amount is {answer}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
@@ -624,7 +624,7 @@ const TEMPLATES = [
       { setting: 'recycling drive', entityA: 'plastic bottles', entityB: 'aluminium cans', verb: 'collected', comparison: 'more' },
     ],
     constraints: { smaller: { min: 600, max: 2500 }, difference: { min: 150, max: 1200 }, answer: { max: 6200 } },
-    storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {entityB} than {nameA}. How many did they {verb} altogether?',
+    storyTemplate: '{nameA} {verb} {smaller} {entityA}. {nameB} {verb} {difference} {comparison} {entityB} than {nameA}. How many did they {verbBase} altogether?',
     solutionTemplate: 'Step 1: Draw two bars. The shorter bar is {smaller}. The difference is {difference}.\nStep 2: First, find the longer bar: {smaller} + {difference} = {larger}.\nStep 3: Now add both bars: {smaller} + {larger} = {answer}.\nAnswer: They had {answer} altogether.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: [
