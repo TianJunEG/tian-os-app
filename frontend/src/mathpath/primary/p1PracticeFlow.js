@@ -256,7 +256,7 @@ function buildP1PracticeFeedback(result = {}) {
   if (!result.correct) return 'Let’s review this skill before moving on.';
   if (result.fluencyFlag === 'accurateButSlow') return 'Correct! Let’s practise for speed.';
   if (result.fluencyFlag === 'accurateAndFluent' || result.fluencyFlag === 'automatic') {
-    return 'Well done — you answered accurately and quickly.';
+    return 'Fast and accurate — impressive!';
   }
   return 'Correct!';
 }

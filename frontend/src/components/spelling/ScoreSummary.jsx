@@ -5,7 +5,7 @@ import { confettiBurst } from '../../utils/confetti';
 
 export const starsForPct = (pct) => (pct >= 90 ? 3 : pct >= 70 ? 2 : pct >= 50 ? 1 : 0);
 const messageFor = (pct) =>
-  pct >= 90 ? 'Amazing!' : pct >= 70 ? 'Great job!' : pct >= 50 ? 'Good effort!' : 'Keep practising!';
+  pct >= 90 ? 'Incredible work!' : pct >= 70 ? 'Solid effort!' : pct >= 50 ? 'Getting there — keep it up!' : 'Every try makes you stronger!';
 
 // Shared celebratory results screen for quiz-style activities.
 export default function ScoreSummary({ correct, total, onRestart, restartLabel = 'Try again', unit = 'correct' }) {

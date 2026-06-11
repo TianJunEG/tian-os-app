@@ -91,9 +91,9 @@ export function startP4PracticeFlow(options = {}) {
 }
 
 function buildP4PracticeFeedback(result = {}) {
-  if (!result.correct) return "Let's review this skill before moving on.";
-  if (result.fluencyFlag === 'accurateButSlow') return "Correct! Let's practise for speed.";
-  if (result.fluencyFlag === 'accurateAndFluent' || result.fluencyFlag === 'automatic') return 'Well done — you answered accurately and quickly.';
+  if (!result.correct) return "Not quite — let's look at this together.";
+  if (result.fluencyFlag === 'accurateButSlow') return "Correct! Speed will come with practice.";
+  if (result.fluencyFlag === 'accurateAndFluent' || result.fluencyFlag === 'automatic') return 'Fast and accurate — impressive!';
   return 'Correct!';
 }
 

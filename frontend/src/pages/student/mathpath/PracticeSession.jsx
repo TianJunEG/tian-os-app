@@ -323,11 +323,12 @@ function VisualBlock({ visual }) {
 }
 
 const CORRECT_PRAISE_MESSAGES = [
-  'Great job! You got it right.',
-  'Nice work — that was accurate.',
-  "Well done! You're building confidence.",
-  'Excellent — keep going.',
-  'Correct! Your fraction skills are improving.',
+  'Nailed it!',
+  'Spot on — you really know this!',
+  'Boom! That was perfect.',
+  "You're getting stronger every time!",
+  'Look at you go!',
+  'That brain is on fire today!',
 ];
 
 function stableMessageIndex(value = '') {
@@ -338,8 +339,8 @@ function stableMessageIndex(value = '') {
 }
 
 function getStreakMessage(streak = 0) {
-  if (streak === 2) return '2 in a row — keep going!';
-  if (streak >= 3) return `${streak} in a row! You're on a roll.`;
+  if (streak === 2) return '2 in a row — unstoppable!';
+  if (streak >= 3) return `${streak} in a row! You're on fire!`;
   return '';
 }
 
@@ -380,9 +381,9 @@ export function buildAnswerFeedback({
   let message = CORRECT_PRAISE_MESSAGES[stableMessageIndex(questionId || `${streak}-${seconds || ''}`)];
 
   if (Number.isFinite(seconds) && seconds <= fastThreshold) {
-    message = 'Correct — accurate and quick!';
+    message = 'Lightning fast and correct!';
   } else if (Number.isFinite(seconds) && seconds >= slowThreshold) {
-    message = "Correct — good thinking. Let's build speed next.";
+    message = "Correct! Take your time — accuracy wins.";
   }
 
   return {
@@ -1387,7 +1388,7 @@ export default function PracticeSession() {
           correct: true,
           skipped: false,
           title: 'Got it!',
-          message: 'You worked it out with the hints — great learning!',
+          message: 'You figured it out! That takes real grit.',
           streakMessage: '',
           showConfetti: false,
           correctAnswer: null,
