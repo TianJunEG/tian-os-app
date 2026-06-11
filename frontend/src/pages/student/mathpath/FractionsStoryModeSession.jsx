@@ -248,13 +248,21 @@ export default function FractionsStoryModeSession() {
     try {
       setSubmitting(true);
       const started = await ensureBackendSession();
-      if (!started?.sessionId || !started?.questionId) return;
-      await mathpathAPI.attempt(started.sessionId, {
-        questionId: started.questionId,
-        answer: story.answer?.value || '',
-        timeMs: Math.max(1000, (finalResponses.length || 1) * 45000),
-        hintsUsed: Object.values(attemptsByScene).filter((value) => value > 0).length,
-      });
+      if (!started?.sessionId) return;
+      for (const r of finalResponses) {
+        const sc = scenes[r.stepIndex];
+        if (!sc) continue;
+        const sceneAttempts = attemptsByScene[r.stepIndex] || 1;
+        const correct = sc.type === 'reflection' || r.answer === (sc.answer?.value ?? sc.answer ?? sc.correct);
+        await mathpathAPI.attempt(started.sessionId, {
+          questionId: started.questionId || `${story.storyId || story.skillId}_scene_${r.stepIndex}`,
+          answer: String(r.answer ?? ''),
+          timeMs: Math.max(1000, sceneAttempts * 30000),
+          hintsUsed: Math.max(0, sceneAttempts - 1),
+          confidence: sc.type === 'reflection' ? 'reflection' : '',
+          skipped: false,
+        });
+      }
       await mathpathAPI.complete(started.sessionId);
     } finally {
       setSubmitting(false);
