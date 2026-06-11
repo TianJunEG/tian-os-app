@@ -348,6 +348,8 @@ export default function FullScreenWorkingMode({
   onClose,
   onSave,
 }) {
+  const stableStrokes = initialStrokes?.length ? initialStrokes : EMPTY_STROKES;
+  const stableMathObjects = initialMathObjects?.length ? initialMathObjects : EMPTY_MATH_OBJECTS;
   const canvasRef = useRef(null);
   const scrollRef = useRef(null);
   const drawingRef = useRef(false);
@@ -382,19 +384,14 @@ export default function FullScreenWorkingMode({
     nextStrokes.forEach((stroke) => drawStroke(ctx, stroke, { stampScale: FS_STAMP_SCALE }));
   };
 
-  const prevInitRef = useRef({ strokes: null, objects: null, questionId: null });
   useEffect(() => {
     if (!open) return;
-    const rawStrokes = Array.isArray(initialStrokes) ? initialStrokes : [];
-    const rawObjects = Array.isArray(initialMathObjects) ? initialMathObjects : [];
-    const sKey = rawStrokes.length ? JSON.stringify(rawStrokes) : '[]';
-    const oKey = rawObjects.length ? JSON.stringify(rawObjects) : '[]';
-    const prev = prevInitRef.current;
-    if (prev.strokes === sKey && prev.objects === oKey && prev.questionId === questionId) return;
-    prevInitRef.current = { strokes: sKey, objects: oKey, questionId };
+    const rawStrokes = Array.isArray(stableStrokes) ? stableStrokes : [];
     const legacyMathObjects = rawStrokes.map(stampStrokeToMathObject).filter(Boolean);
     const nextStrokes = rawStrokes.filter((stroke) => stroke?.tool !== 'stamp');
-    const savedMathObjects = rawObjects.map(normaliseMathObject).filter(Boolean);
+    const savedMathObjects = Array.isArray(stableMathObjects)
+      ? stableMathObjects.map(normaliseMathObject).filter(Boolean)
+      : [];
     const nextMathObjects = savedMathObjects.length ? savedMathObjects : legacyMathObjects;
     strokesRef.current = nextStrokes;
     mathObjectsRef.current = nextMathObjects;
@@ -407,7 +404,7 @@ export default function FullScreenWorkingMode({
     setHasObjectEdit(false);
     setMathDraft(null);
     setTextDraft(null);
-  }, [open, questionId, initialStrokes, initialMathObjects]);
+  }, [open, questionId, stableStrokes, stableMathObjects]);
 
   useEffect(() => {
     if (open) redraw(strokes);
