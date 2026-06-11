@@ -1127,6 +1127,23 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
     return q;
   }
+  if (name.includes('measuring') && name.includes('angle')) {
+    let angleDeg;
+    if (difficulty === 'easy') {
+      angleDeg = rnd(3, 8) * 10;
+    } else if (difficulty === 'medium') {
+      angleDeg = rnd(4, 33) * 5;
+    } else {
+      angleDeg = rnd(15, 170);
+    }
+    const supplement = 180 - angleDeg;
+    const q = mcq(`What is the measure of the angle shown?`, angleDeg,
+      [angleDeg + rnd(5, 20), Math.max(1, angleDeg - rnd(5, 20)), Math.max(1, Math.abs(supplement))],
+      `The angle measures ${angleDeg}°.${angleDeg === 90 ? ' It is a right angle.' : angleDeg < 90 ? ' It is an acute angle (less than 90°).' : ' It is an obtuse angle (between 90° and 180°).'}`,
+      'geo/angle-measure', difficulty);
+    q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
+    return q;
+  }
   if (name.includes('3d solid') || name.includes('3d solids')) {
     const solids = [
       { solid: 'cube', faces: 6, edges: 12, vertices: 8 },
