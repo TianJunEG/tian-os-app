@@ -38,7 +38,7 @@ export default function WorkedSolutionWalkthrough({ solutionText, visualSpec }) 
 
       {revealed > 0 && visualSpec && (
         <div className="transition-all duration-300 ease-out opacity-100 translate-y-0 mb-3">
-          <SolutionVisual visualSpec={visualSpec} />
+          <SolutionVisual visualSpec={visualSpec} revealedSteps={revealed} />
         </div>
       )}
 
