@@ -66,6 +66,7 @@ import {
   getAssignmentById,
   updateAssignmentProgress,
 } from '../services/mathpath/mathPathAssignmentService.js';
+import { processHelpEscalations } from '../services/mathpath/helpEscalationService.js';
 
 const router = express.Router();
 
@@ -714,6 +715,11 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
         metadata: { source: 'mathpath_practice', total: results.length, correct: results.filter((r) => r.correct).length },
       },
     ]);
+
+    const hasHelpRequest = results.some((r) => Boolean(r.helpRequested));
+    if (hasHelpRequest) {
+      processHelpEscalations({ studentId, workspaceId: student.workspaceId }).catch(() => {});
+    }
 
     res.json({ ...summary, assignmentProgress });
   } catch (err) {

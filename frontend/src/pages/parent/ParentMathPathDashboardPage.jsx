@@ -9,6 +9,7 @@ import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPath
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
+import ConfidenceCalibrationCard from '../../components/mathpath/ConfidenceCalibrationCard';
 
 function statusTone(status) {
   if (status === 'advanced') return 'success';
@@ -529,6 +530,11 @@ export default function ParentMathPathDashboardPage() {
 
       <div className="space-y-4">
         <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} />
+        <ConfidenceCalibrationCard
+          confidenceSignals={summary.adultIntelligence?.confidenceSignals || summary.parentStudentProfile?.confidenceTrends || {}}
+          attempts={summary.adultIntelligence?.rawAttempts || []}
+          audience="parent"
+        />
         <DiagnosticGrowthCard
           growth={diagnosticGrowth}
           onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath`)}

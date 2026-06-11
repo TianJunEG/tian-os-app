@@ -10,6 +10,7 @@ import { buildTutorMathPathDashboard } from '../../mathpath/dashboard/tutorMathP
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
+import ConfidenceCalibrationCard from '../../components/mathpath/ConfidenceCalibrationCard';
 
 function skillLabel(skillId) {
   if (!skillId) return '—';
@@ -860,6 +861,12 @@ export default function TutorMathPathDashboardPage() {
           <InterventionQueueCard priorities={dashboard.interventionPriorities || []} snapshot={snapshot} />
           <SessionRecommendationsMvp plan={dashboard.nextSessionPlan || {}} snapshot={snapshot} />
         </div>
+
+        <ConfidenceCalibrationCard
+          confidenceSignals={dashboard.adultIntelligence?.confidenceSignals || dashboard.tutorStudentProfile?.confidenceCalibration || {}}
+          attempts={dashboard.adultIntelligence?.rawAttempts || []}
+          audience="tutor"
+        />
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           <MistakeInsightsMvp dashboard={dashboard} snapshot={snapshot} />

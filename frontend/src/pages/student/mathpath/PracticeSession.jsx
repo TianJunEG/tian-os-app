@@ -64,6 +64,7 @@ const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
   { value: 'not_sure', label: "I'm not sure" },
   { value: 'dont_know', label: "I don't know" },
+  { value: 'i_need_help', label: 'I need help' },
 ];
 
 function calibrationFromReflection(correct, reflection) {
@@ -927,7 +928,7 @@ function LegacyPracticeSession() {
         title="Review this submission"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={(value) => setReflection(value)}
+        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
         working={currentFullscreenWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setFullscreenWorkingState((prev) => ({
@@ -1999,7 +2000,7 @@ export default function PracticeSession() {
         title="Before you submit"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={(value) => setReflection(value)}
+        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
         working={currentFullscreenWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setFullscreenWorkingByQuestion((prev) => ({

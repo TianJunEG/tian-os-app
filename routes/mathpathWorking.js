@@ -1055,4 +1055,5 @@ router.post('/:workingSessionId/analysis', async (req, res) => {
   }
 });
 
+export { buildHelpRequestSummary };
 export default router;

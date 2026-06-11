@@ -384,7 +384,7 @@ export default function DiagnosticQuestionScreen() {
         title="Review your response"
         reflection={reflection}
         reflectionOptions={REFLECTION_OPTIONS}
-        onReflectionChange={setReflection}
+        onReflectionChange={(value) => { setReflection(value); setHelpRequested(value === 'i_need_help'); }}
         working={currentWorking}
         workingRequirementLevel={workingRequirementLevel}
         onDeclareNotNeeded={(checked) => setWorkingByQuestion((prev) => ({
