@@ -14,13 +14,19 @@ function resolveConstraintValue(spec) {
   return spec;
 }
 
+function evalComputeStr(exprStr, nums) {
+  const keys = Object.keys(nums);
+  const vals = keys.map((k) => nums[k]);
+  try {
+    return new Function('Math', ...keys, `"use strict"; return (${exprStr})`)(Math, ...vals);
+  } catch { return NaN; }
+}
+
 function generateNumbers(constraints, structure) {
   const MAX_TRIES = 50;
   for (let i = 0; i < MAX_TRIES; i++) {
     const nums = {};
 
-    // Generic constraint solver: generate each named variable from its {min,max} range
-    // then compute derived values via constraints.compute entries
     if (constraints._generic) {
       for (const [key, range] of Object.entries(constraints._generic)) {
         nums[key] = randInt(range.min, range.max);
@@ -30,8 +36,17 @@ function generateNumbers(constraints, structure) {
           nums[key] = expr(nums);
         }
       }
+      if (constraints._computeStr) {
+        for (const [key, expr] of Object.entries(constraints._computeStr)) {
+          nums[key] = evalComputeStr(expr, nums);
+        }
+      }
       if (constraints.answer?.min && (nums.answer || 0) < constraints.answer.min) continue;
       if (constraints.answer?.max && (nums.answer || 0) > constraints.answer.max) continue;
+      if (constraints._integerKeys) {
+        const allInt = constraints._integerKeys.every((k) => Number.isInteger(nums[k]));
+        if (!allInt) continue;
+      }
       return nums;
     }
 
@@ -108,7 +123,7 @@ function generateNumbers(constraints, structure) {
       return nums;
     }
 
-    // Ratio: parts and value-per-part
+    // Ratio: parts and value-per-part (2-part with total)
     if (constraints.ratioA && constraints.ratioB && constraints.totalValue) {
       nums.ratioA = randInt(constraints.ratioA.min, constraints.ratioA.max);
       nums.ratioB = randInt(constraints.ratioB.min, constraints.ratioB.max);
@@ -118,7 +133,30 @@ function generateNumbers(constraints, structure) {
       nums.valuePerPart = nums.totalValue / totalParts;
       nums.valueA = nums.ratioA * nums.valuePerPart;
       nums.valueB = nums.ratioB * nums.valuePerPart;
+      nums.difference = nums.valueA - nums.valueB;
+      nums.total = nums.totalValue;
+      nums.fractionA = `${nums.ratioA}/${totalParts}`;
+      nums.fractionB = `${nums.ratioB}/${totalParts}`;
+      nums.fraction = nums.fractionA;
+      nums.percentage = Math.round((nums.ratioA / totalParts) * 100);
+      nums.amountA = nums.valueA;
       nums.answer = nums.valueA;
+      return nums;
+    }
+
+    // Ratio: find total from one known part
+    if (constraints.ratioA && constraints.ratioB && constraints.knownValue) {
+      nums.ratioA = randInt(constraints.ratioA.min, constraints.ratioA.max);
+      nums.ratioB = randInt(constraints.ratioB.min, constraints.ratioB.max);
+      nums.knownValue = randInt(constraints.knownValue.min, constraints.knownValue.max);
+      const knownRatio = constraints.knownIsB ? nums.ratioB : nums.ratioA;
+      if (nums.knownValue % knownRatio !== 0) continue;
+      nums.valuePerPart = nums.knownValue / knownRatio;
+      nums.valueA = nums.ratioA * nums.valuePerPart;
+      nums.valueB = nums.ratioB * nums.valuePerPart;
+      nums.total = nums.valueA + nums.valueB;
+      nums.difference = Math.abs(nums.valueA - nums.valueB);
+      nums.answer = nums.total;
       return nums;
     }
 
@@ -550,10 +588,14 @@ export async function generateProblem(skillId, options = {}) {
   const available = templates.filter((t) => !usedTemplateIds.includes(t.templateId));
   const template = pick(available.length ? available : templates);
 
-  const context = pick(template.contexts);
+  const context = pick(template.contexts) || {};
   const nameA = pick(NAMES);
   let nameB = pick(NAMES.filter((n) => n !== nameA));
   if (!nameB) nameB = 'Ali';
+  let nameC = pick(NAMES.filter((n) => n !== nameA && n !== nameB));
+  if (!nameC) nameC = 'Lina';
+  let nameD = pick(NAMES.filter((n) => n !== nameA && n !== nameB && n !== nameC));
+  if (!nameD) nameD = 'Kai';
 
   const heuristic = template.heuristic || 'bar-model';
   let nums;
@@ -572,7 +614,7 @@ export async function generateProblem(skillId, options = {}) {
   }
   if (!nums) throw new Error(`Number generation failed for template: ${template.templateId}`);
 
-  const vars = { ...context, ...nums, nameA, nameB, entityA2: context.entityA?.replace(/s$/, '') || context.entityA };
+  const vars = { ...context, ...nums, nameA, nameB, nameC, nameD, name1: nameA, name2: nameB, name3: nameC, name4: nameD, entityA2: context.entityA?.replace(/s$/, '') || context.entityA };
 
   // H6 three-op: pick the correct result based on the template's operation order
   if (heuristic === 'work-backwards' && nums.result_add_mul_sub !== undefined) {
