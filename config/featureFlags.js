@@ -11,8 +11,8 @@ export const FLAGS = {
   // optional features (enable via env FEAT_* = '1')
   worksheets: process.env.FEAT_WORKSHEETS !== '0',
   parent: process.env.FEAT_PARENT !== '0',
-  tutor: process.env.FEAT_TUTOR === '1',
-  teacher: process.env.FEAT_TEACHER === '1',
+  tutor: process.env.FEAT_TUTOR !== '0',
+  teacher: process.env.FEAT_TEACHER !== '0',
   lifelab: process.env.FEAT_LIFELAB === '1',
   science: process.env.FEAT_SCIENCE === '1',
   mechanisms: process.env.FEAT_MECHANISMS === '1',
