@@ -4,7 +4,7 @@
   "description": "Tutor Match Platform Frontend",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "rm -rf node_modules/.vite && vite",
     "build": "vite build && node scripts/postbuild-sw.cjs",
     "preview": "vite preview",
     "icons": "node scripts/generate-icons.cjs",
