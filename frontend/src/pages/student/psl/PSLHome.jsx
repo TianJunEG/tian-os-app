@@ -37,6 +37,7 @@ export default function PSLHome() {
   const [error, setError] = useState(null);
   const [readiness, setReadiness] = useState({});
   const [starting, setStarting] = useState(null);
+  const [filterLevel, setFilterLevel] = useState(null);
 
   useEffect(() => {
     pslAPI.home()
@@ -76,7 +77,6 @@ export default function PSLHome() {
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
 
   const skills = data?.skills || [];
-  const [filterLevel, setFilterLevel] = useState(null);
   const filtered = filterLevel ? skills.filter((sk) => sk.level === filterLevel) : skills;
   const grouped = HEURISTIC_ORDER.map((h) => ({
     heuristic: h,
