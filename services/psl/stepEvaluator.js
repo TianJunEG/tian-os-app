@@ -1,3 +1,5 @@
+import { getFeedback as catalogFeedback } from './misconceptionCatalog.js';
+
 export const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
 function safeEval(expr) {

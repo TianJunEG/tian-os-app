@@ -1036,6 +1036,36 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: [{ type: pick.type, label: pick.label }] } };
     return q;
   }
+  if (name.includes('completing symmetric')) {
+    const cols = difficulty === 'easy' ? 7 : difficulty === 'medium' ? 9 : 11;
+    const rows = difficulty === 'easy' ? 7 : difficulty === 'medium' ? 7 : 9;
+    const midCol = Math.floor(cols / 2);
+    const numPoints = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5;
+    const leftPoints = [];
+    const used = new Set();
+    while (leftPoints.length < numPoints) {
+      const c = rnd(0, midCol - 1);
+      const r = rnd(0, rows - 1);
+      const k = `${c},${r}`;
+      if (!used.has(k)) { used.add(k); leftPoints.push({ x: c, y: r }); }
+    }
+    const reflectCol = (c) => cols - 1 - c;
+    const rightPoints = leftPoints.map((p) => ({ x: reflectCol(p.x), y: p.y }));
+    const askIdx = rnd(0, numPoints - 1);
+    const askPt = leftPoints[askIdx];
+    const ansPt = rightPoints[askIdx];
+    const shown = [...leftPoints, ...rightPoints.filter((_, i) => i !== askIdx)];
+    const dist = midCol - askPt.x;
+    const ansCol = ansPt.x + 1;
+    const q = mcq(
+      `A figure is drawn on a dot grid with a vertical line of symmetry at column ${midCol + 1}. A vertex is at column ${askPt.x + 1}, row ${askPt.y + 1}. At which column should its reflection appear?`,
+      ansCol,
+      [ansCol + 1, Math.max(1, ansCol - 1), midCol + 1],
+      `Column ${askPt.x + 1} is ${dist} square${dist !== 1 ? 's' : ''} to the left of the line of symmetry (column ${midCol + 1}). Its reflection is the same distance to the right: column ${midCol + 1} + ${dist} = ${ansCol}.`,
+      'geo/symmetry-reflect', difficulty);
+    q.diagramSpec = { type: 'dot_grid', width: 640, height: 400, data: { rows, columns: cols, symmetryLine: 'vertical', pointsHighlighted: shown } };
+    return q;
+  }
   if (name.includes('parallel and perpendicular')) {
     const makeParallel = () => {
       const y1 = rnd(60, 120);
