@@ -1036,6 +1036,119 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: [{ type: pick.type, label: pick.label }] } };
     return q;
   }
+  if (name.includes('parallel and perpendicular')) {
+    const makeParallel = () => {
+      const y1 = rnd(60, 120);
+      const y2 = y1 + rnd(60, 120);
+      return {
+        type: 'parallel',
+        lines: [
+          { x1: 80, y1, x2: 450, y2: y1, label: 'A' },
+          { x1: 80, y1: y2, x2: 450, y2: y2, label: 'B' },
+        ],
+      };
+    };
+    const makePerp = () => {
+      const cx = rnd(180, 320);
+      const cy = rnd(100, 220);
+      const half = rnd(60, 110);
+      return {
+        type: 'perpendicular',
+        lines: [
+          { x1: cx - half, y1: cy, x2: cx + half, y2: cy, label: 'P' },
+          { x1: cx, y1: cy - half, x2: cx, y2: cy + half, label: 'Q' },
+        ],
+      };
+    };
+    const makeNeither = () => {
+      return {
+        type: 'neither',
+        lines: [
+          { x1: 60, y1: 250, x2: 350, y2: 80, label: 'C' },
+          { x1: 100, y1: 60, x2: 450, y2: 280, label: 'D' },
+        ],
+      };
+    };
+    const pool = difficulty === 'easy' ? [makeParallel, makePerp] : [makeParallel, makePerp, makeNeither];
+    const pick = pool[rnd(0, pool.length - 1)]();
+    const opts = ['parallel', 'perpendicular', 'neither parallel nor perpendicular'].filter((v) => v !== pick.type);
+    const q = mcq(`Look at lines ${pick.lines[0].label} and ${pick.lines[1].label}. These lines are:`,
+      pick.type, [...opts, 'intersecting'],
+      pick.type === 'parallel' ? 'Parallel lines never meet and are always the same distance apart.'
+        : pick.type === 'perpendicular' ? 'Perpendicular lines meet at a right angle (90°).'
+          : 'These lines intersect but not at 90°, so they are neither parallel nor perpendicular.',
+      'geo/parallel-perp', difficulty);
+    q.diagramSpec = { type: 'line_pairs', width: 540, height: 320, data: { lines: pick.lines, showGrid: true } };
+    return q;
+  }
+  if (name.includes('angle types')) {
+    const types = [
+      { name: 'acute', min: 10, max: 80 },
+      { name: 'right', min: 90, max: 90 },
+      { name: 'obtuse', min: 100, max: 170 },
+    ];
+    const pool = difficulty === 'easy' ? types.slice(0, 2) : types;
+    const pick = pool[rnd(0, pool.length - 1)];
+    const angleDeg = rnd(pick.min, pick.max);
+    const q = mcq(`What type of angle is shown?`, pick.name,
+      [...types.map((t) => t.name).filter((n) => n !== pick.name), 'reflex'],
+      `This angle is ${angleDeg}°. ${pick.name === 'right' ? 'A right angle is exactly 90°.' : pick.name === 'acute' ? 'An acute angle is less than 90°.' : 'An obtuse angle is between 90° and 180°.'}`,
+      'geo/angle-type', difficulty);
+    q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
+    return q;
+  }
+  if (name.includes('3d solid') || name.includes('3d solids')) {
+    const solids = [
+      { solid: 'cube', faces: 6, edges: 12, vertices: 8 },
+      { solid: 'cuboid', faces: 6, edges: 12, vertices: 8 },
+      { solid: 'cylinder', faces: 3, edges: 2, vertices: 0 },
+      { solid: 'cone', faces: 2, edges: 1, vertices: 1 },
+      { solid: 'sphere', faces: 1, edges: 0, vertices: 0 },
+      { solid: 'triangular_prism', faces: 5, edges: 9, vertices: 6 },
+      { solid: 'square_pyramid', faces: 5, edges: 8, vertices: 5 },
+    ];
+    const pool = difficulty === 'easy' ? solids.slice(0, 3) : difficulty === 'medium' ? solids.slice(0, 5) : solids;
+    const pick = pool[rnd(0, pool.length - 1)];
+    const prettyName = pick.solid.replace(/_/g, ' ');
+    const props = ['faces', 'edges', 'vertices'];
+    const prop = props[rnd(0, props.length - 1)];
+    const ans = pick[prop];
+    const q = mcq(`How many ${prop} does a ${prettyName} have?`, ans,
+      [ans + 1, Math.max(0, ans - 1), ans + 2],
+      `A ${prettyName} has ${pick.faces} face${pick.faces !== 1 ? 's' : ''}, ${pick.edges} edge${pick.edges !== 1 ? 's' : ''}, and ${pick.vertices} ${pick.vertices !== 1 ? 'vertices' : 'vertex'}.`,
+      'geo/3d-properties', difficulty);
+    q.diagramSpec = { type: 'solid_3d', width: 400, height: 320, data: { solid: pick.solid, label: prettyName } };
+    return q;
+  }
+  if (name.includes('compass direction') || name.includes('position and compass')) {
+    const places = shuffle(['School', 'Park', 'Shop', 'Library', 'Clinic', 'Mosque', 'Church', 'Temple', 'Market', 'Pool']);
+    const gridSize = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5;
+    const coords = shuffle(Array.from({ length: gridSize * gridSize }, (_, i) => [Math.floor(i / gridSize), i % gridSize]));
+    const count = rnd(3, Math.min(5, places.length));
+    const objs = places.slice(0, count).map((label, i) => ({ label, row: coords[i][0], col: coords[i][1] }));
+    const from = objs[rnd(0, objs.length - 1)];
+    const to = objs.filter((o) => o !== from)[rnd(0, objs.length - 2)];
+    const dr = to.row - from.row;
+    const dc = to.col - from.col;
+    let dir;
+    if (dr < 0 && dc === 0) dir = 'North';
+    else if (dr > 0 && dc === 0) dir = 'South';
+    else if (dr === 0 && dc > 0) dir = 'East';
+    else if (dr === 0 && dc < 0) dir = 'West';
+    else if (dr < 0 && dc > 0) dir = 'North-East';
+    else if (dr < 0 && dc < 0) dir = 'North-West';
+    else if (dr > 0 && dc > 0) dir = 'South-East';
+    else dir = 'South-West';
+    const allDirs = difficulty === 'easy'
+      ? ['North', 'South', 'East', 'West']
+      : ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'];
+    const q = mcq(`${to.label} is in which direction from ${from.label}?`, dir,
+      shuffle(allDirs.filter((d) => d !== dir)).slice(0, 3),
+      `From ${from.label} (row ${from.row}, col ${from.col}) to ${to.label} (row ${to.row}, col ${to.col}): move ${dr < 0 ? 'up' : dr > 0 ? 'down' : ''} ${dc > 0 ? 'right' : dc < 0 ? 'left' : ''} → ${dir}.`,
+      'geo/compass-direction', difficulty);
+    q.diagramSpec = { type: 'compass_grid', width: 640, height: 360, data: { gridSize, objects: objs } };
+    return q;
+  }
   if (name.includes('reading measuring scale')) {
     const scaleEnd = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
     const objLen = rnd(2, Math.floor(scaleEnd * 0.6));

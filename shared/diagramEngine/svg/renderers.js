@@ -544,6 +544,186 @@ function renderPieChart(spec) {
   return svgShell(spec, body, spec.title || 'Pie chart');
 }
 
+function renderAngleDisplay(spec) {
+  const d = specData(spec);
+  const angleDeg = clamp(Number(d.angle) || 90, 1, 359);
+  const w = Number(spec.width) || 640;
+  const h = Number(spec.height) || 360;
+  const cx = w * 0.4;
+  const cy = h * 0.65;
+  const rayLen = Math.min(w, h) * 0.45;
+  const rad = (angleDeg * Math.PI) / 180;
+  const x1 = cx + rayLen;
+  const y1 = cy;
+  const x2 = cx + rayLen * Math.cos(-rad);
+  const y2 = cy + rayLen * Math.sin(-rad);
+  let body = '';
+  body += `<line x1="${cx}" y1="${cy}" x2="${x1}" y2="${y1}" stroke="#111111" stroke-width="2"/>`;
+  body += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#111111" stroke-width="2"/>`;
+  const arcR = rayLen * 0.25;
+  const ax1 = cx + arcR;
+  const ay1 = cy;
+  const ax2 = cx + arcR * Math.cos(-rad);
+  const ay2 = cy + arcR * Math.sin(-rad);
+  const large = angleDeg > 180 ? 1 : 0;
+  body += `<path d="M ${ax1} ${ay1} A ${arcR} ${arcR} 0 ${large} 0 ${ax2} ${ay2}" fill="none" stroke="#3b82f6" stroke-width="1.5"/>`;
+  const midRad = -rad / 2;
+  const labelR = arcR + 16;
+  const lx = cx + labelR * Math.cos(midRad);
+  const ly = cy + labelR * Math.sin(midRad);
+  body += `<text x="${lx}" y="${ly + 4}" text-anchor="middle" font-size="13" fill="#111111">${angleDeg}°</text>`;
+  if (d.label) body += `<text x="${cx - 12}" y="${cy + 18}" font-size="12" fill="#111111">${esc(d.label)}</text>`;
+  if (angleDeg === 90) {
+    const sq = 14;
+    body += `<path d="M ${cx + sq} ${cy} L ${cx + sq} ${cy - sq} L ${cx} ${cy - sq}" fill="none" stroke="#111111" stroke-width="1.2"/>`;
+  }
+  return svgShell(spec, body, spec.title || 'Angle diagram');
+}
+
+function renderLinePairs(spec) {
+  const d = specData(spec);
+  const lines = Array.isArray(d.lines) ? d.lines : [];
+  const w = Number(spec.width) || 640;
+  const h = Number(spec.height) || 360;
+  const colors = ['#2563eb', '#dc2626', '#16a34a', '#9333ea'];
+  let body = '';
+  if (d.showGrid) {
+    const gs = 30;
+    for (let x = 0; x <= w; x += gs) body += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="#e5e7eb" stroke-width="0.5"/>`;
+    for (let y = 0; y <= h; y += gs) body += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="#e5e7eb" stroke-width="0.5"/>`;
+  }
+  lines.forEach((ln, idx) => {
+    const color = colors[idx % colors.length];
+    body += `<line x1="${ln.x1}" y1="${ln.y1}" x2="${ln.x2}" y2="${ln.y2}" stroke="${color}" stroke-width="2.5"/>`;
+    body += `<circle cx="${ln.x1}" cy="${ln.y1}" r="3" fill="#111111"/>`;
+    body += `<circle cx="${ln.x2}" cy="${ln.y2}" r="3" fill="#111111"/>`;
+    if (ln.label) {
+      const mx = (ln.x1 + ln.x2) / 2;
+      const my = (ln.y1 + ln.y2) / 2;
+      body += `<text x="${mx}" y="${my - 8}" text-anchor="middle" font-size="13" font-weight="600" fill="${color}">${esc(ln.label)}</text>`;
+    }
+  });
+  return svgShell(spec, body, spec.title || 'Line pairs diagram');
+}
+
+function renderSolid3D(spec) {
+  const d = specData(spec);
+  const solid = d.solid || 'cube';
+  const w = Number(spec.width) || 640;
+  const h = Number(spec.height) || 360;
+  const cx = w / 2;
+  const cy = h / 2;
+  const s = Math.min(w, h) * 0.32;
+  let body = '';
+  const stroke = '#111111';
+  const dash = 'stroke-dasharray="5 4"';
+  const fill = '#dbeafe';
+  if (solid === 'cube' || solid === 'cuboid') {
+    const sx = solid === 'cuboid' ? s * 1.3 : s;
+    const sy = s;
+    const off = s * 0.35;
+    const fl = cx - sx / 2;
+    const ft = cy - sy / 2 + off / 2;
+    body += `<polygon points="${fl},${ft} ${fl + sx},${ft} ${fl + sx},${ft + sy} ${fl},${ft + sy}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<polygon points="${fl},${ft} ${fl + off},${ft - off} ${fl + sx + off},${ft - off} ${fl + sx},${ft}" fill="#bfdbfe" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<polygon points="${fl + sx},${ft} ${fl + sx + off},${ft - off} ${fl + sx + off},${ft + sy - off} ${fl + sx},${ft + sy}" fill="#93c5fd" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${fl}" y1="${ft + sy}" x2="${fl + off}" y2="${ft + sy - off}" stroke="${stroke}" stroke-width="1" ${dash}/>`;
+    body += `<line x1="${fl + off}" y1="${ft + sy - off}" x2="${fl + sx + off}" y2="${ft + sy - off}" stroke="${stroke}" stroke-width="1" ${dash}/>`;
+    body += `<line x1="${fl + off}" y1="${ft - off}" x2="${fl + off}" y2="${ft + sy - off}" stroke="${stroke}" stroke-width="1" ${dash}/>`;
+  } else if (solid === 'cylinder') {
+    const rx = s * 0.5;
+    const ry = s * 0.18;
+    const ch = s * 0.9;
+    const top = cy - ch / 2;
+    const bot = cy + ch / 2;
+    body += `<ellipse cx="${cx}" cy="${bot}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<rect x="${cx - rx}" y="${top}" width="${rx * 2}" height="${ch}" fill="${fill}" stroke="none"/>`;
+    body += `<line x1="${cx - rx}" y1="${top}" x2="${cx - rx}" y2="${bot}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${cx + rx}" y1="${top}" x2="${cx + rx}" y2="${bot}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<ellipse cx="${cx}" cy="${bot}" rx="${rx}" ry="${ry}" fill="none" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<ellipse cx="${cx}" cy="${top}" rx="${rx}" ry="${ry}" fill="#bfdbfe" stroke="${stroke}" stroke-width="1.5"/>`;
+  } else if (solid === 'cone') {
+    const rx = s * 0.45;
+    const ry = s * 0.16;
+    const ch = s * 1.0;
+    const bot = cy + ch * 0.35;
+    const tip = cy - ch * 0.65;
+    body += `<ellipse cx="${cx}" cy="${bot}" rx="${rx}" ry="${ry}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${cx - rx}" y1="${bot}" x2="${cx}" y2="${tip}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${cx + rx}" y1="${bot}" x2="${cx}" y2="${tip}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<path d="M ${cx - rx} ${bot} A ${rx} ${ry} 0 0 1 ${cx + rx} ${bot}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+  } else if (solid === 'sphere') {
+    const r = s * 0.5;
+    body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<ellipse cx="${cx}" cy="${cy}" rx="${r}" ry="${r * 0.35}" fill="none" stroke="${stroke}" stroke-width="1" ${dash}/>`;
+  } else if (solid === 'triangular_prism') {
+    const pw = s * 0.8;
+    const ph = s * 0.8;
+    const off = s * 0.4;
+    const bx = cx - pw / 2;
+    const by = cy + ph / 3;
+    const ax = bx + pw / 2;
+    const ay = cy - ph * 0.6;
+    body += `<polygon points="${bx},${by} ${bx + pw},${by} ${ax},${ay}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${bx}" y1="${by}" x2="${bx + off}" y2="${by - off * 0.5}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${bx + pw}" y1="${by}" x2="${bx + pw + off}" y2="${by - off * 0.5}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${ax}" y1="${ay}" x2="${ax + off}" y2="${ay - off * 0.5}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<polygon points="${bx + off},${by - off * 0.5} ${bx + pw + off},${by - off * 0.5} ${ax + off},${ay - off * 0.5}" fill="#bfdbfe" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${bx + off}" y1="${by - off * 0.5}" x2="${bx}" y2="${by}" stroke="${stroke}" stroke-width="1" ${dash}/>`;
+  } else if (solid === 'square_pyramid') {
+    const bw = s * 0.8;
+    const off = s * 0.3;
+    const fl = cx - bw / 2;
+    const ft = cy + s * 0.15;
+    const tip = cy - s * 0.55;
+    body += `<polygon points="${fl},${ft} ${fl + bw},${ft} ${fl + bw + off},${ft - off} ${fl + off},${ft - off}" fill="${fill}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${fl}" y1="${ft}" x2="${cx}" y2="${tip}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${fl + bw}" y1="${ft}" x2="${cx}" y2="${tip}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${fl + bw + off}" y1="${ft - off}" x2="${cx}" y2="${tip}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<line x1="${fl + off}" y1="${ft - off}" x2="${cx}" y2="${tip}" stroke="${stroke}" stroke-width="1" ${dash}/>`;
+    body += `<line x1="${fl}" y1="${ft}" x2="${fl + off}" y2="${ft - off}" stroke="${stroke}" stroke-width="1" ${dash}/>`;
+  }
+  if (d.label) body += `<text x="${cx}" y="${h - 12}" text-anchor="middle" font-size="14" font-weight="600" fill="#111111">${esc(d.label)}</text>`;
+  return svgShell(spec, body, spec.title || `${solid} 3D diagram`);
+}
+
+function renderCompassGrid(spec) {
+  const d = specData(spec);
+  const gridSize = Math.max(2, Math.min(Number(d.gridSize) || 5, 10));
+  const objects = Array.isArray(d.objects) ? d.objects : [];
+  const w = Number(spec.width) || 640;
+  const h = Number(spec.height) || 360;
+  const margin = 50;
+  const gridW = Math.min(w - 140, h - margin * 2);
+  const cellSize = gridW / gridSize;
+  const gx = margin;
+  const gy = (h - gridW) / 2;
+  let body = '';
+  for (let r = 0; r <= gridSize; r++) {
+    body += `<line x1="${gx}" y1="${gy + r * cellSize}" x2="${gx + gridSize * cellSize}" y2="${gy + r * cellSize}" stroke="#cbd5e1" stroke-width="1"/>`;
+    body += `<line x1="${gx + r * cellSize}" y1="${gy}" x2="${gx + r * cellSize}" y2="${gy + gridSize * cellSize}" stroke="#cbd5e1" stroke-width="1"/>`;
+  }
+  const fills = ['#bfdbfe', '#fde68a', '#bbf7d0', '#fecaca', '#ddd6fe', '#fed7aa', '#e0e7ff', '#fce7f3'];
+  objects.forEach((obj, idx) => {
+    const ox = gx + (obj.col || 0) * cellSize + cellSize / 2;
+    const oy = gy + (obj.row || 0) * cellSize + cellSize / 2;
+    const fill = fills[idx % fills.length];
+    body += `<circle cx="${ox}" cy="${oy}" r="${cellSize * 0.3}" fill="${fill}" stroke="#111111" stroke-width="1.2"/>`;
+    body += `<text x="${ox}" y="${oy + 4}" text-anchor="middle" font-size="${Math.min(11, cellSize * 0.3)}" fill="#111111">${esc(obj.label || '')}</text>`;
+  });
+  const compassX = gx + gridSize * cellSize + 60;
+  const compassY = h / 2;
+  const cr = 28;
+  body += `<circle cx="${compassX}" cy="${compassY}" r="${cr}" fill="none" stroke="#111111" stroke-width="1.2"/>`;
+  body += `<line x1="${compassX}" y1="${compassY - cr + 4}" x2="${compassX}" y2="${compassY + cr - 4}" stroke="#111111" stroke-width="1"/>`;
+  body += `<line x1="${compassX - cr + 4}" y1="${compassY}" x2="${compassX + cr - 4}" y2="${compassY}" stroke="#111111" stroke-width="1"/>`;
+  body += `<text x="${compassX}" y="${compassY - cr - 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">N</text>`;
+  body += `<text x="${compassX}" y="${compassY + cr + 14}" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">S</text>`;
+  body += `<text x="${compassX + cr + 8}" y="${compassY + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">E</text>`;
+  body += `<text x="${compassX - cr - 8}" y="${compassY + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#111111">W</text>`;
+  return svgShell(spec, body, spec.title || 'Compass grid');
+}
+
 export const diagramSvgRenderers = {
   number_line: renderNumberLine,
   fraction_model: renderFractionModel,
@@ -564,4 +744,8 @@ export const diagramSvgRenderers = {
   comparison_models: renderComparisonModels,
   money_display: renderMoneyDisplay,
   pie_chart: renderPieChart,
+  angle_display: renderAngleDisplay,
+  line_pairs: renderLinePairs,
+  solid_3d: renderSolid3D,
+  compass_grid: renderCompassGrid,
 };

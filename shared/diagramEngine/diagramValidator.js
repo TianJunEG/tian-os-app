@@ -187,6 +187,34 @@ const validators = {
       if (!isNonNegative(asNumber(seg?.value))) errors.push(`pie_chart: segments[${idx}].value must be >= 0.`);
     });
   },
+  angle_display(spec, errors) {
+    const d = spec.data;
+    const angle = asNumber(d.angle, NaN);
+    if (!Number.isFinite(angle) || angle <= 0 || angle >= 360) errors.push('angle_display: angle must be between 1 and 359.');
+  },
+  line_pairs(spec, errors) {
+    const d = spec.data;
+    if (!Array.isArray(d.lines) || d.lines.length === 0) {
+      errors.push('line_pairs: lines must be a non-empty array.');
+      return;
+    }
+    d.lines.forEach((ln, idx) => {
+      ['x1', 'y1', 'x2', 'y2'].forEach((f) => {
+        if (!Number.isFinite(asNumber(ln?.[f]))) errors.push(`line_pairs: lines[${idx}].${f} must be numeric.`);
+      });
+    });
+  },
+  solid_3d(spec, errors) {
+    const d = spec.data;
+    const allowed = ['cube', 'cuboid', 'cylinder', 'cone', 'sphere', 'triangular_prism', 'square_pyramid'];
+    if (!d.solid || !allowed.includes(d.solid)) errors.push(`solid_3d: solid must be one of ${allowed.join(', ')}.`);
+  },
+  compass_grid(spec, errors) {
+    const d = spec.data;
+    const gs = asNumber(d.gridSize, NaN);
+    if (!Number.isFinite(gs) || gs < 2 || gs > 10) errors.push('compass_grid: gridSize must be 2-10.');
+    if (!Array.isArray(d.objects) || d.objects.length === 0) errors.push('compass_grid: objects must be a non-empty array.');
+  },
 };
 
 export const diagramValidators = validators;

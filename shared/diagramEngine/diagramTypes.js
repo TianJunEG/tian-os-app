@@ -19,6 +19,10 @@ export const DIAGRAM_TYPE_DEFINITIONS = [
   { code: 'DG016', type: 'comparison_model', name: 'Comparison Model' },
   { code: 'DG017', type: 'money_display', name: 'Money Display' },
   { code: 'DG018', type: 'pie_chart', name: 'Pie Chart' },
+  { code: 'DG019', type: 'angle_display', name: 'Angle Display' },
+  { code: 'DG020', type: 'line_pairs', name: 'Line Pairs' },
+  { code: 'DG021', type: 'solid_3d', name: '3D Solid' },
+  { code: 'DG022', type: 'compass_grid', name: 'Compass Grid' },
 ];
 
 export const LEGACY_DIAGRAM_TYPE_ALIASES = {
