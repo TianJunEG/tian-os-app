@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, ChevronRight, Lock, Star, Target } from 'lucide-react';
+import { Brain, ChevronRight, HelpCircle, Lock, Star, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
@@ -122,6 +122,23 @@ export default function PSLHome() {
           </div>
         </Card>
       )}
+
+      <Card className="p-4" interactive>
+        <button
+          type="button"
+          onClick={() => navigate('/student/psl/decision-guide')}
+          className="flex w-full items-center gap-3 text-left"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+            <HelpCircle className="h-4 w-4 text-purple-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-ink-700">Decision Guide</p>
+            <p className="text-xs text-ink-400">Not sure which heuristic to use? Answer a few yes/no questions to find out.</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-ink-300" />
+        </button>
+      </Card>
 
       <div className="flex flex-wrap gap-2">
         <button
