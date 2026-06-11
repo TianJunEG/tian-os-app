@@ -1,99 +1,172 @@
-import { generateQuestion, generateQuestionSet, generateDiagnosticSet, getAllSupportedSkillIds } from './p6Orchestrator.js';
-import { checkP6Answer, checkP6AnswerCompat } from './p6AnswerChecker.js';
+import { generateQuestionSet, generateDiagnosticSet, getAllSupportedSkillIds, getDomainForSkill } from './p6Orchestrator.js';
+import { checkP6Answer } from './p6AnswerChecker.js';
 
-const P6_PREFIXES = ['P6-ALG', 'P6-FR', 'P6-PCT', 'P6-RAT', 'P6-SPD', 'P6-CIR', 'P6-GEO', 'P6-AV', 'P6-DA'];
+const P6_PREFIXES = ['P6-ALG', 'P6-AV'];
 
 export function isP6SkillId(skillId) {
   if (!skillId) return false;
-  return P6_PREFIXES.some((p) => skillId.startsWith(p));
+  return P6_PREFIXES.some((p) => String(skillId).startsWith(p));
 }
 
-function buildSessionId() {
-  return `p6-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+export function isP6Domain(domainId) {
+  if (!domainId) return false;
+  return String(domainId).toLowerCase().startsWith('p6-');
 }
 
-export function startP6PracticeFlow(skillId, options = {}) {
-  const { sessionType = 'practice', questionCount = 10, existingSessionId } = options;
+function makeId(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
 
-  if (!isP6SkillId(skillId)) {
-    return { success: false, error: `Not a P6 skill ID: ${skillId}` };
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function normalizeSessionType(value) {
+  const key = String(value || 'practice').toLowerCase();
+  const valid = ['practice', 'diagnostic', 'warmup', 'remediation', 'mastery_check'];
+  return valid.includes(key) ? key : 'practice';
+}
+
+function resolveSessionCount(sessionType, requested) {
+  if (requested && requested > 0) return requested;
+  if (sessionType === 'warmup') return 3;
+  if (sessionType === 'diagnostic' || sessionType === 'mastery_check') return 10;
+  if (sessionType === 'remediation') return 5;
+  return 6;
+}
+
+const P6_FLOW_STORE = new Map();
+
+export function startP6PracticeFlow(options = {}) {
+  const { studentId, sessionType = 'practice', requestedSkillId = null, requestedQuestionFamilyId = null, sessionLength = 6, weakSkillIds = [], recentMistakeTypes = [] } = options;
+  if (!studentId) throw new Error('studentId is required.');
+
+  const resolvedSessionType = normalizeSessionType(sessionType);
+  const effectiveSessionLength = resolveSessionCount(resolvedSessionType, sessionLength);
+
+  let targetSkillId = requestedSkillId || ((resolvedSessionType === 'warmup' || resolvedSessionType === 'remediation') ? (weakSkillIds[0] || null) : null);
+  if (!targetSkillId) {
+    const allSkills = getAllSupportedSkillIds();
+    targetSkillId = allSkills[0] || 'P6-ALG-01';
   }
 
-  const sessionId = existingSessionId || buildSessionId();
+  const resolvedDomainId = getDomainForSkill(targetSkillId) || 'p6-algebra';
 
   let questions;
-  if (sessionType === 'diagnostic') {
+  if (resolvedSessionType === 'diagnostic') {
     const allSkillIds = getAllSupportedSkillIds();
     questions = generateDiagnosticSet(allSkillIds, 3);
   } else {
-    questions = generateQuestionSet(skillId, questionCount);
+    questions = generateQuestionSet(targetSkillId, effectiveSessionLength, { questionFamilyId: requestedQuestionFamilyId || undefined });
   }
 
-  if (!questions.length) {
-    return { success: false, error: `No questions generated for ${skillId}` };
-  }
+  const practiceSessionId = makeId('p6_practice');
+  const workingExpected = questions.some((q) => q.workingRequired);
+  const workingSessionId = makeId('p6_working');
+
+  const flowSession = {
+    practiceSessionId,
+    studentId,
+    domainId: resolvedDomainId,
+    targetSkillId,
+    targetQuestionFamilyIds: questions.map((q) => q.questionFamilyId).filter(Boolean),
+    sessionType: resolvedSessionType,
+    recentMistakeTypes: Array.isArray(recentMistakeTypes) ? recentMistakeTypes : [],
+    questions,
+    workingExpected,
+    workingSessionId,
+    startedAt: nowIso(),
+  };
+
+  P6_FLOW_STORE.set(practiceSessionId, flowSession);
 
   return {
-    success: true,
-    session: {
-      sessionId,
-      skillId,
-      sessionType,
-      questions,
-      currentIndex: 0,
-      attempts: [],
-      startedAt: new Date().toISOString(),
-    },
+    practiceSessionId,
+    targetSkillId,
+    domainId: resolvedDomainId,
+    targetQuestionFamilyIds: flowSession.targetQuestionFamilyIds,
+    sessionType: resolvedSessionType,
+    sessionLabel: resolvedSessionType === 'diagnostic' ? 'Diagnostic' : resolvedSessionType === 'remediation' ? 'Remediation' : 'Practice',
+    questions,
+    workingExpected,
+    workingSessionId,
+    startedAt: flowSession.startedAt,
   };
 }
 
-export function submitP6PracticeAttempt(session, questionIndex, studentAnswer, timeTaken) {
-  if (questionIndex < 0 || questionIndex >= session.questions.length) {
-    return { success: false, error: 'Invalid question index.' };
-  }
+function computeFluencyFlag(correct, timeTaken, estimatedSeconds) {
+  if (!correct) return 'incorrect';
+  const target = estimatedSeconds || 30;
+  if (timeTaken <= target * 0.5) return 'automatic';
+  if (timeTaken <= target) return 'accurateAndFluent';
+  return 'accurateButSlow';
+}
 
-  const question = session.questions[questionIndex];
-  const result = checkP6Answer(question, studentAnswer);
+export function submitP6PracticeAttempt(options = {}) {
+  const { practiceSessionId, studentId, sessionType = null, responses = [] } = options;
+  if (!practiceSessionId || !studentId) throw new Error('practiceSessionId and studentId are required.');
 
-  const attempt = {
-    questionIndex,
-    questionId: question.questionId,
-    skillId: question.skillId,
-    studentAnswer,
-    correct: result.correct,
-    expected: result.expected,
-    timeTaken,
-    timestamp: new Date().toISOString(),
-  };
+  const session = P6_FLOW_STORE.get(practiceSessionId);
+  const questionById = new Map((session?.questions || []).map((q) => [q.questionId, q]));
 
-  session.attempts.push(attempt);
-  session.currentIndex = questionIndex + 1;
+  const results = responses.map((response) => {
+    const question = questionById.get(response.questionId) || {};
+    const skipped = Boolean(response.skipped || response._skipped || !String(response.studentAnswer || '').trim());
+    const answerCheck = skipped
+      ? { correct: false, expected: question.answer }
+      : checkP6Answer(question, response.studentAnswer);
+    const timeTaken = Number(response.timeTaken || 0);
+    const fluencyFlag = computeFluencyFlag(answerCheck.correct, timeTaken, question.fluencyTargetSeconds);
+    return {
+      attemptId: response.attemptId || '',
+      questionId: question.questionId || response.questionId,
+      skillId: question.skillId || response.skillId || '',
+      questionFamilyId: question.questionFamilyId || '',
+      studentAnswer: response.studentAnswer,
+      correctAnswer: question.answer,
+      correct: answerCheck.correct,
+      answerCorrect: answerCheck.correct,
+      timeTaken,
+      confidence: response.confidence ?? null,
+      reflection: response.reflection || response.confidence || '',
+      skipped,
+      answeredAt: response.timestamp || nowIso(),
+      fluencyFlag,
+      solutionSteps: question.solutionSteps || [],
+      solutionText: question.solutionText || '',
+      feedback: answerCheck.correct ? 'Correct!' : "Let's review this skill.",
+      workingSubmitted: Boolean(response.workingSubmitted),
+      fullscreenWorkingSubmitted: Boolean(response.fullscreenWorkingSubmitted),
+      workingUploaded: Boolean(response.workingUploaded || response.workingSubmitted || response.fullscreenWorkingSubmitted),
+      workingNotNeeded: Boolean(response.workingNotNeeded),
+    };
+  });
 
-  const totalAttempted = session.attempts.length;
-  const totalCorrect = session.attempts.filter((a) => a.correct).length;
+  const totalAttempted = results.filter((r) => !r.skipped).length;
+  const totalCorrect = results.filter((r) => r.correct).length;
 
   return {
-    success: true,
-    result: {
-      ...result,
-      solutionText: question.solutionText,
-      instructionHint: question.instructionHint,
-    },
-    progress: {
+    practiceSessionId,
+    sessionType: normalizeSessionType(sessionType || session?.sessionType || 'practice'),
+    results,
+    summary: {
+      totalQuestions: results.length,
       totalAttempted,
       totalCorrect,
-      totalQuestions: session.questions.length,
       accuracy: totalAttempted > 0 ? totalCorrect / totalAttempted : 0,
-      isComplete: session.currentIndex >= session.questions.length,
     },
   };
 }
 
-export function checkP6AnswerForSession(session, questionIndex, studentAnswer) {
-  if (questionIndex < 0 || questionIndex >= session.questions.length) {
-    return { correct: false, error: 'Invalid question index.' };
+export function checkP6AnswerForSession({ studentAnswer, correctAnswer, question }) {
+  if (question?.answerType) {
+    return checkP6Answer(question, studentAnswer);
   }
-  return checkP6Answer(session.questions[questionIndex], studentAnswer);
+  const rawValue = typeof correctAnswer === 'object' && correctAnswer !== null
+    ? (correctAnswer.value ?? correctAnswer.display)
+    : correctAnswer;
+  const rawType = typeof rawValue === 'number' ? 'number' : 'text';
+  return checkP6Answer({ answer: rawValue, answerType: rawType }, studentAnswer);
 }
 
-export default { isP6SkillId, startP6PracticeFlow, submitP6PracticeAttempt, checkP6AnswerForSession };
+export default { isP6SkillId, isP6Domain, startP6PracticeFlow, submitP6PracticeAttempt, checkP6AnswerForSession };

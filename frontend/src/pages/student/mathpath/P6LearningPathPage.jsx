@@ -1,22 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowRight, CheckCircle2, Variable, Divide, Percent,
-  Scale, Timer, Circle, Compass, Box, PieChart,
-  Trophy, AlertCircle, BookOpen,
-} from 'lucide-react';
+import { ArrowRight, CheckCircle2, Variable, Box, Trophy, AlertCircle } from 'lucide-react';
 import { Badge, Button, Card, PageHeader } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import p6AlgebraSkillGraph from '../../../mathpath/primary/p6AlgebraSkillGraph';
-import p6FractionsSkillGraph from '../../../mathpath/primary/p6FractionsSkillGraph';
-import p6PercentageSkillGraph from '../../../mathpath/primary/p6PercentageSkillGraph';
-import p6RatioSkillGraph from '../../../mathpath/primary/p6RatioSkillGraph';
-import p6SpeedSkillGraph from '../../../mathpath/primary/p6SpeedSkillGraph';
-import p6CirclesSkillGraph from '../../../mathpath/primary/p6CirclesSkillGraph';
-import p6GeometrySkillGraph from '../../../mathpath/primary/p6GeometrySkillGraph';
 import p6AreaVolSkillGraph from '../../../mathpath/primary/p6AreaVolSkillGraph';
-import p6DataAnalysisSkillGraph from '../../../mathpath/primary/p6DataAnalysisSkillGraph';
 
 const DOMAIN_GROUPS = [
   {
@@ -28,68 +17,12 @@ const DOMAIN_GROUPS = [
     graph: p6AlgebraSkillGraph,
   },
   {
-    key: 'fractions',
-    label: 'Fractions',
-    description: 'Complex mixed number operations, fraction word problems, and fraction-of-remainder chains.',
-    icon: Divide,
-    color: 'navy',
-    graph: p6FractionsSkillGraph,
-  },
-  {
-    key: 'percentage',
-    label: 'Percentage',
-    description: 'Percentage increase/decrease, discount & GST, and reverse percentage.',
-    icon: Percent,
-    color: 'gold',
-    graph: p6PercentageSkillGraph,
-  },
-  {
-    key: 'ratio',
-    label: 'Ratio',
-    description: 'Simplify and equivalent ratios, sharing in a ratio, and changing ratios.',
-    icon: Scale,
-    color: 'mint',
-    graph: p6RatioSkillGraph,
-  },
-  {
-    key: 'speed',
-    label: 'Speed',
-    description: 'Speed-distance-time, average speed, and catching up / meeting problems.',
-    icon: Timer,
-    color: 'sky',
-    graph: p6SpeedSkillGraph,
-  },
-  {
-    key: 'circles',
-    label: 'Circles',
-    description: 'Circumference, area, and semicircle/quadrant composite figures.',
-    icon: Circle,
-    color: 'violet',
-    graph: p6CirclesSkillGraph,
-  },
-  {
-    key: 'geometry',
-    label: 'Geometry',
-    description: 'Angles in parallel lines, quadrilateral properties, and multi-step unknown angles.',
-    icon: Compass,
-    color: 'navy',
-    graph: p6GeometrySkillGraph,
-  },
-  {
     key: 'areavol',
     label: 'Area & Volume',
-    description: 'Composite area, cube/cuboid volume, and water displacement.',
+    description: 'Composite figures, cuboid volumes, and water displacement problems.',
     icon: Box,
-    color: 'gold',
+    color: 'navy',
     graph: p6AreaVolSkillGraph,
-  },
-  {
-    key: 'dataanalysis',
-    label: 'Data Analysis',
-    description: 'Pie charts and average / data interpretation.',
-    icon: PieChart,
-    color: 'mint',
-    graph: p6DataAnalysisSkillGraph,
   },
 ];
 
@@ -268,8 +201,8 @@ export default function P6LearningPathPage() {
       <PageHeader
         title="Primary 6 Mathematics"
         subtitle={totalMastered > 0
-          ? `${totalMastered}/${totalSkills} skills mastered — ${totalSkills} skills across 9 domains.`
-          : `${totalSkills} skills across 9 domains — Singapore MOE P6 / PSLE syllabus.`}
+          ? `${totalMastered}/${totalSkills} skills mastered — ${totalSkills} skills across 2 domains.`
+          : `${totalSkills} skills across 2 domains — Singapore MOE P6 syllabus.`}
       />
 
       <Card className="p-5">
