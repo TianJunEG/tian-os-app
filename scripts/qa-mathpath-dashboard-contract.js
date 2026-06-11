@@ -3,7 +3,7 @@ import path from 'path';
 import { runMathPathDomainPipeline } from '../frontend/src/mathpath/orchestration/mathPathDomainOrchestrator.js';
 import { validateStudentDashboardPayload } from '../frontend/src/mathpath/orchestration/pipelineContract.js';
 
-const BASE = process.env.QA_BASE || 'http://localhost:5050/api';
+const BASE = process.env.QA_BASE || 'http://localhost:5001/api';
 const PASSWORD = 'Passw0rd!';
 const STUDENTS = [
   ...(process.env.QA_DASHBOARD_STUDENTS ? process.env.QA_DASHBOARD_STUDENTS.split(',').map((email) => email.trim()).filter(Boolean) : []),
