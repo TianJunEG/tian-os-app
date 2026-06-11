@@ -1,16 +1,31 @@
 <svg width="360" height="240" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240">
+<!-- Three equal circles touching, with line AB through centres.
+     Radius=50, centres at (80,120), (180,120), (280,120) — spacing=100=2r.
+     Each circle has a tilted (45°) inscribed square (diagonal=100, side≈70.7).
+     Left: upper half shaded, square unshaded.
+     Middle: square shaded. Right: fully shaded. -->
 
-        <defs>
-            <style>
-                .grid-line { stroke: #cccccc; stroke-width: 0.5; }
-                .main-line { stroke: black; stroke-width: 2; fill: none; }
-                .thin-line { stroke: black; stroke-width: 1; fill: none; }
-                .label { font-family: Arial, sans-serif; font-size: 14px; }
-                .label-small { font-family: Arial, sans-serif; font-size: 12px; }
-                .shading { fill: #cccccc; }
-                .angle-label { font-family: Arial, sans-serif; font-size: 11px; }
-            </style>
-        </defs>
-        
-<line x1="40" y1="120" x2="320" y2="120" stroke="black" stroke-width="1" stroke-linecap="round"/><text x="35" y="135" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">A</text><text x="325" y="135" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="black">B</text><circle cx="90" cy="120" r="50" fill="none" stroke="black" stroke-width="2"/><path d="M 40 120 A 50 50 0 0 1 140 120" fill="#cccccc" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polygon points="65.25126265847084,120 90,95.25126265847084 114.74873734152916,120 90,144.74873734152916" fill="white" stroke="black" stroke-width="1"/><text x="129.74873734152916" y="125" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="black">16 cm</text><circle cx="180" cy="120" r="50" fill="none" stroke="black" stroke-width="2"/><polygon points="155.25126265847084,120 180,95.25126265847084 204.74873734152916,120 180,144.74873734152916" fill="#cccccc" stroke="black" stroke-width="1"/><circle cx="270" cy="120" r="50" fill="none" stroke="black" stroke-width="2"/><circle cx="270" cy="120" r="50" fill="#cccccc" stroke="black" stroke-width="2"/><text x="180" y="210" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="black">Figure 2</text>
+<!-- Horizontal line AB through all centres -->
+<line x1="30" y1="120" x2="330" y2="120" stroke="black" stroke-width="1"/>
+<text x="22" y="125" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="black">A</text>
+<text x="338" y="125" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="black">B</text>
+
+<!-- LEFT CIRCLE: upper semicircle shaded, square white -->
+<path d="M 30 120 A 50 50 0 0 1 130 120 Z" fill="#cccccc" stroke="none"/>
+<polygon points="80,70 130,120 80,170 30,120" fill="white" stroke="black" stroke-width="1"/>
+<circle cx="80" cy="120" r="50" fill="none" stroke="black" stroke-width="2"/>
+
+<!-- MIDDLE CIRCLE: square shaded -->
+<circle cx="180" cy="120" r="50" fill="none" stroke="black" stroke-width="2"/>
+<polygon points="180,70 230,120 180,170 130,120" fill="#cccccc" stroke="black" stroke-width="1"/>
+
+<!-- RIGHT CIRCLE: fully shaded, square outline visible -->
+<circle cx="280" cy="120" r="50" fill="#cccccc" stroke="black" stroke-width="2"/>
+<polygon points="280,70 330,120 280,170 230,120" fill="none" stroke="black" stroke-width="1"/>
+
+<!-- 16 cm label on one square side -->
+<text x="138" y="100" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" fill="black" transform="rotate(-45,138,100)">16 cm</text>
+
+<!-- Caption -->
+<text x="180" y="218" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="black">Figure 2</text>
 </svg>

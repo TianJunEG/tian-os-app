@@ -1,16 +1,70 @@
-<svg width="420" height="380" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 380">
+<svg width="420" height="340" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 340">
+<!-- Isometric solid: 8 unit cubes in a step/L shape.
+     Base layer (y=0): 2×3 = 6 cubes. Top layer at back (y=1): 2 cubes.
+     Side view is an L/step silhouette. -->
+<!-- Isometric unit vectors (edge=28): x=(24,14), y=(0,-28), z=(-24,14) -->
+<!-- Origin at (155, 220) = front-bottom-left corner of the solid -->
 
-        <defs>
-            <style>
-                .grid-line { stroke: #cccccc; stroke-width: 0.5; }
-                .main-line { stroke: black; stroke-width: 2; fill: none; }
-                .thin-line { stroke: black; stroke-width: 1; fill: none; }
-                .label { font-family: Arial, sans-serif; font-size: 14px; }
-                .label-small { font-family: Arial, sans-serif; font-size: 12px; }
-                .shading { fill: #cccccc; }
-                .angle-label { font-family: Arial, sans-serif; font-size: 11px; }
-            </style>
-        </defs>
-        
-<polygon points="287.8460969082653,-19.99999999999998 322.48711305964287,-59.99999999999998 357.1281292110204,-79.99999999999997 322.48711305964287,-59.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="287.8460969082653,-19.99999999999998 322.48711305964287,-39.99999999999998 357.1281292110204,-59.99999999999998 322.48711305964287,-39.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="322.48711305964287,-39.99999999999998 322.48711305964287,-59.99999999999998 357.1281292110204,-79.99999999999997 357.1281292110204,-59.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="287.8460969082653,-39.99999999999998 322.48711305964287,-79.99999999999997 357.1281292110204,-99.99999999999997 322.48711305964287,-79.99999999999997" fill="none" stroke="black" stroke-width="1.5"/><polygon points="287.8460969082653,-39.99999999999998 322.48711305964287,-59.99999999999998 357.1281292110204,-79.99999999999997 322.48711305964287,-59.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="322.48711305964287,-59.99999999999998 322.48711305964287,-79.99999999999997 357.1281292110204,-99.99999999999997 357.1281292110204,-79.99999999999997" fill="none" stroke="black" stroke-width="1.5"/><polygon points="253.20508075688775,1.7763568394002505e-14 287.8460969082653,-39.999999999999986 322.48711305964287,-59.99999999999998 287.8460969082653,-39.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="253.20508075688775,1.7763568394002505e-14 287.8460969082653,-19.999999999999982 322.48711305964287,-39.99999999999998 287.8460969082653,-19.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="287.8460969082653,-19.999999999999982 287.8460969082653,-39.999999999999986 322.48711305964287,-59.99999999999998 322.48711305964287,-39.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="253.20508075688775,1.4210854715202004e-14 287.8460969082653,-39.99999999999998 322.48711305964287,-59.99999999999998 287.8460969082653,-39.999999999999986" fill="none" stroke="black" stroke-width="1.5"/><polygon points="253.20508075688775,1.4210854715202004e-14 287.8460969082653,-19.99999999999998 322.48711305964287,-39.99999999999998 287.8460969082653,-19.999999999999986" fill="none" stroke="black" stroke-width="1.5"/><polygon points="287.8460969082653,-19.99999999999998 287.8460969082653,-39.99999999999998 322.48711305964287,-59.99999999999998 322.48711305964287,-39.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="218.5640646055102,20.00000000000001 253.20508075688775,-19.999999999999982 287.8460969082653,-39.99999999999998 253.20508075688775,-19.999999999999986" fill="none" stroke="black" stroke-width="1.5"/><polygon points="218.5640646055102,20.00000000000001 253.20508075688775,1.7763568394002505e-14 287.8460969082653,-19.99999999999998 253.20508075688775,1.4210854715202004e-14" fill="none" stroke="black" stroke-width="1.5"/><polygon points="253.20508075688775,1.7763568394002505e-14 253.20508075688775,-19.999999999999982 287.8460969082653,-39.99999999999998 287.8460969082653,-19.99999999999998" fill="none" stroke="black" stroke-width="1.5"/><polygon points="218.56406460551023,20.000000000000014 253.20508075688775,-19.999999999999986 287.8460969082653,-39.999999999999986 253.20508075688775,-19.999999999999986" fill="none" stroke="black" stroke-width="1.5"/><polygon points="218.56406460551023,20.000000000000014 253.20508075688775,1.4210854715202004e-14 287.8460969082653,-19.999999999999986 253.20508075688775,1.4210854715202004e-14" fill="none" stroke="black" stroke-width="1.5"/><polygon points="253.20508075688775,1.4210854715202004e-14 253.20508075688775,-19.999999999999986 287.8460969082653,-39.999999999999986 287.8460969082653,-19.999999999999986" fill="none" stroke="black" stroke-width="1.5"/><polygon points="183.92304845413267,40.000000000000014 218.5640646055102,1.0658141036401503e-14 253.20508075688775,-19.999999999999986 218.56406460551023,1.4210854715202004e-14" fill="none" stroke="black" stroke-width="1.5"/><polygon points="183.92304845413267,40.000000000000014 218.5640646055102,20.00000000000001 253.20508075688775,1.4210854715202004e-14 218.56406460551023,20.000000000000014" fill="none" stroke="black" stroke-width="1.5"/><polygon points="218.5640646055102,20.00000000000001 218.5640646055102,1.0658141036401503e-14 253.20508075688775,-19.999999999999986 253.20508075688775,1.4210854715202004e-14" fill="none" stroke="black" stroke-width="1.5"/><polygon points="114.64101615137756,80.0 149.2820323027551,40.00000000000001 183.92304845413267,20.00000000000001 149.2820323027551,40.0" fill="none" stroke="black" stroke-width="1.5"/><polygon points="114.64101615137756,80.0 149.2820323027551,60.00000000000001 183.92304845413267,40.000000000000014 149.2820323027551,60.0" fill="none" stroke="black" stroke-width="1.5"/><polygon points="149.2820323027551,60.00000000000001 149.2820323027551,40.00000000000001 183.92304845413267,20.00000000000001 183.92304845413267,40.000000000000014" fill="none" stroke="black" stroke-width="1.5"/><text x="80" y="50" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="black">Front view</text><text x="250" y="50" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="black">Side view</text><polygon points="280,100 315,100 315,65 350,65 350,30 280,30" fill="none" stroke="black" stroke-width="1.5"/>
+<!-- Back faces (drawn first, hidden by front faces) -->
+<!-- Top face of base row z=2 (partially hidden by top cubes) -->
+<polygon points="155,220 131,206 107,220 131,234" fill="#eee" stroke="black" stroke-width="1.2"/>
+<polygon points="179,234 155,220 131,234 155,248" fill="#eee" stroke="black" stroke-width="1.2"/>
+<!-- Top face base z=1 -->
+<polygon points="179,206 155,192 131,206 155,220" fill="#eee" stroke="black" stroke-width="1.2"/>
+<polygon points="203,220 179,206 155,220 179,234" fill="#eee" stroke="black" stroke-width="1.2"/>
+<!-- Top face base z=0 -->
+<polygon points="203,192 179,178 155,192 179,206" fill="#eee" stroke="black" stroke-width="1.2"/>
+<polygon points="227,206 203,192 179,206 203,220" fill="#eee" stroke="black" stroke-width="1.2"/>
+
+<!-- Right side faces of base (x=1 column) -->
+<polygon points="227,206 203,192 203,220 227,234" fill="#ddd" stroke="black" stroke-width="1.2"/>
+<polygon points="203,220 179,206 179,234 203,248" fill="#ddd" stroke="black" stroke-width="1.2"/>
+<polygon points="179,234 155,220 155,248 179,262" fill="#ddd" stroke="black" stroke-width="1.2"/>
+
+<!-- Front faces of base (z=0 row) -->
+<polygon points="179,178 155,192 155,220 179,206" fill="white" stroke="black" stroke-width="1.2"/>
+<polygon points="203,192 179,206 179,234 203,220" fill="white" stroke="black" stroke-width="1.2"/>
+
+<!-- Top 2 cubes at z=2, y=1 -->
+<!-- Top faces -->
+<polygon points="155,192 131,178 107,192 131,206" fill="#eee" stroke="black" stroke-width="1.2"/>
+<polygon points="179,206 155,192 131,206 155,220" fill="#eee" stroke="black" stroke-width="1.2"/>
+<!-- Right side faces -->
+<polygon points="179,206 155,192 155,220 179,234" fill="#ddd" stroke="black" stroke-width="1.2"/>
+<!-- Front faces -->
+<polygon points="131,178 107,192 107,220 131,206" fill="white" stroke="black" stroke-width="1.2"/>
+<polygon points="155,192 131,206 131,234 155,220" fill="white" stroke="black" stroke-width="1.2"/>
+<!-- Left side of top cubes -->
+<polygon points="131,178 107,192 107,220 131,206" fill="white" stroke="black" stroke-width="1.2"/>
+
+<!-- Bottom edge of solid -->
+<line x1="179" y1="178" x2="227" y2="206" stroke="black" stroke-width="1.5"/>
+<line x1="227" y1="206" x2="227" y2="234" stroke="black" stroke-width="1.5"/>
+<line x1="227" y1="234" x2="179" y2="262" stroke="black" stroke-width="1.5"/>
+<line x1="179" y1="262" x2="131" y2="234" stroke="black" stroke-width="1.5"/>
+<line x1="131" y1="234" x2="131" y2="206" stroke="black" stroke-width="1.5"/>
+
+<!-- Dashed hidden edges -->
+<line x1="131" y1="206" x2="155" y2="220" stroke="black" stroke-width="0.8" stroke-dasharray="4 3"/>
+<line x1="155" y1="248" x2="155" y2="220" stroke="black" stroke-width="0.8" stroke-dasharray="4 3"/>
+
+<!-- "Front view" arrow pointing to front-left -->
+<line x1="100" y1="280" x2="140" y2="250" stroke="black" stroke-width="1.2"/>
+<polygon points="140,250 128,254 133,262" fill="black"/>
+<text x="60" y="295" font-family="Arial, sans-serif" font-size="11" fill="black">Front view</text>
+
+<!-- "Side view" arrow pointing to front-right -->
+<line x1="260" y1="270" x2="225" y2="245" stroke="black" stroke-width="1.2"/>
+<polygon points="225,245 230,257 237,250" fill="black"/>
+<text x="255" y="285" font-family="Arial, sans-serif" font-size="11" fill="black">Side view</text>
+
+<!-- Side view on dot grid (L/step silhouette) -->
+<!-- Dot grid 4×3 -->
+<circle cx="310" cy="60" r="1.5" fill="#999"/><circle cx="330" cy="60" r="1.5" fill="#999"/><circle cx="350" cy="60" r="1.5" fill="#999"/><circle cx="370" cy="60" r="1.5" fill="#999"/>
+<circle cx="310" cy="80" r="1.5" fill="#999"/><circle cx="330" cy="80" r="1.5" fill="#999"/><circle cx="350" cy="80" r="1.5" fill="#999"/><circle cx="370" cy="80" r="1.5" fill="#999"/>
+<circle cx="310" cy="100" r="1.5" fill="#999"/><circle cx="330" cy="100" r="1.5" fill="#999"/><circle cx="350" cy="100" r="1.5" fill="#999"/><circle cx="370" cy="100" r="1.5" fill="#999"/>
+<circle cx="310" cy="120" r="1.5" fill="#999"/><circle cx="330" cy="120" r="1.5" fill="#999"/><circle cx="350" cy="120" r="1.5" fill="#999"/><circle cx="370" cy="120" r="1.5" fill="#999"/>
+<!-- L-shaped side view outline -->
+<polygon points="330,60 350,60 350,80 370,80 370,120 330,120" fill="none" stroke="black" stroke-width="1.8"/>
+<text x="340" y="145" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="black">Side view</text>
 </svg>
