@@ -97,6 +97,31 @@ export const diagramExamples = {
     ex('DG017_EX2', 'money_display', { items: [{ label: '$5', count: 1 }, { label: '$1', count: 3 }] }, '$8 in Notes'),
     ex('DG017_EX3', 'money_display', { items: [{ label: '20c', count: 3 }, { label: '10c', count: 1 }] }, '70 Cents in Coins'),
   ],
+  pie_chart: [
+    ex('DG018_EX1', 'pie_chart', { segments: [{ label: 'Football', value: 12 }, { label: 'Basketball', value: 8 }, { label: 'Swimming', value: 5 }, { label: 'Badminton', value: 5 }], title: 'Favourite Sport' }, 'Favourite Sport Pie Chart'),
+    ex('DG018_EX2', 'pie_chart', { segments: [{ label: 'Bus', value: 15 }, { label: 'Car', value: 10 }, { label: 'Walk', value: 7 }, { label: 'MRT', value: 8 }] }, 'Transport Modes'),
+    ex('DG018_EX3', 'pie_chart', { segments: [{ label: 'Apple', value: 20 }, { label: 'Mango', value: 14 }, { label: 'Grape', value: 6 }], title: 'Favourite Fruit' }, 'Favourite Fruit Pie Chart'),
+  ],
+  angle_display: [
+    ex('DG019_EX1', 'angle_display', { angle: 45 }, 'Acute Angle 45°'),
+    ex('DG019_EX2', 'angle_display', { angle: 90, label: 'A' }, 'Right Angle'),
+    ex('DG019_EX3', 'angle_display', { angle: 135 }, 'Obtuse Angle 135°'),
+  ],
+  line_pairs: [
+    ex('DG020_EX1', 'line_pairs', { lines: [{ x1: 80, y1: 100, x2: 400, y2: 100, label: 'A' }, { x1: 80, y1: 200, x2: 400, y2: 200, label: 'B' }], showGrid: true }, 'Parallel Lines'),
+    ex('DG020_EX2', 'line_pairs', { lines: [{ x1: 200, y1: 50, x2: 200, y2: 300, label: 'P' }, { x1: 50, y1: 180, x2: 450, y2: 180, label: 'Q' }] }, 'Perpendicular Lines'),
+    ex('DG020_EX3', 'line_pairs', { lines: [{ x1: 50, y1: 280, x2: 300, y2: 60, label: 'C' }, { x1: 100, y1: 50, x2: 450, y2: 300, label: 'D' }] }, 'Intersecting Lines'),
+  ],
+  solid_3d: [
+    ex('DG021_EX1', 'solid_3d', { solid: 'cube', label: 'Cube' }, 'Cube'),
+    ex('DG021_EX2', 'solid_3d', { solid: 'cylinder', label: 'Cylinder' }, 'Cylinder'),
+    ex('DG021_EX3', 'solid_3d', { solid: 'square_pyramid', label: 'Square Pyramid' }, 'Square Pyramid'),
+  ],
+  compass_grid: [
+    ex('DG022_EX1', 'compass_grid', { gridSize: 4, objects: [{ label: 'School', row: 1, col: 1 }, { label: 'Park', row: 1, col: 3 }, { label: 'Shop', row: 3, col: 2 }] }, 'Neighbourhood Map'),
+    ex('DG022_EX2', 'compass_grid', { gridSize: 5, objects: [{ label: 'A', row: 0, col: 0 }, { label: 'B', row: 0, col: 4 }, { label: 'C', row: 4, col: 2 }] }, 'Three Points'),
+    ex('DG022_EX3', 'compass_grid', { gridSize: 3, objects: [{ label: 'Tree', row: 0, col: 1 }, { label: 'Pond', row: 2, col: 0 }, { label: 'Bench', row: 2, col: 2 }] }, 'Park Map'),
+  ],
 };
 
 export const allDiagramExamples = Object.values(diagramExamples).flat();

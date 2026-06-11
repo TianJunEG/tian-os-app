@@ -903,6 +903,262 @@ function buildOne(skillName, difficulty) {
       a * b - c * d, `Area = ${a}×${b} − ${c}×${d} = ${a * b} − ${c * d} = ${a * b - c * d} cm².`, 'geo/composite-area', difficulty);
   }
 
+  // ---- Diagram-backed skills (visual stimulus generated via diagramSpec) --------
+  if (name.includes('identifying 2d shape')) {
+    const all = ['square', 'rectangle', 'triangle', 'circle', 'oval', 'semi-circle', 'rhombus', 'trapezium'];
+    const pool = difficulty === 'easy' ? all.slice(0, 4) : difficulty === 'medium' ? all.slice(0, 6) : all;
+    const display = shuffle(pool).slice(0, Math.min(pool.length, 5));
+    const askIdx = rnd(0, display.length - 1);
+    const answer = display[askIdx].replace(/-/g, ' ');
+    const distractors = shuffle(all.filter((s) => s !== display[askIdx])).slice(0, 3).map((s) => s.replace(/-/g, ' '));
+    const q = mcq(`Look at the shapes. What is the name of Shape ${askIdx + 1}?`, answer, distractors,
+      `Shape ${askIdx + 1} is a ${answer}.`, 'geo/shape-identify', difficulty);
+    q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: display.map((type, i) => ({ type, label: `Shape ${i + 1}` })) } };
+    return q;
+  }
+  if (name.includes('properties of 2d shape')) {
+    const shapes = [
+      { type: 'triangle', sides: 3, vertices: 3 },
+      { type: 'square', sides: 4, vertices: 4 },
+      { type: 'rectangle', sides: 4, vertices: 4 },
+      { type: 'circle', sides: 0, vertices: 0 },
+    ];
+    if (difficulty !== 'easy') shapes.push({ type: 'rhombus', sides: 4, vertices: 4 }, { type: 'trapezium', sides: 4, vertices: 4 });
+    const pick = shapes[rnd(0, shapes.length - 1)];
+    const label = pick.type.replace(/-/g, ' ');
+    const askSides = Math.random() < 0.5;
+    const ans = askSides ? pick.sides : pick.vertices;
+    const prop = askSides ? 'sides' : 'vertices (corners)';
+    const q = mcq(`The shape shown is a ${label}. How many ${prop} does it have?`, ans, [ans + 1, Math.max(0, ans - 1), ans + 2],
+      `A ${label} has ${pick.sides} side${pick.sides !== 1 ? 's' : ''} and ${pick.vertices} ${pick.vertices !== 1 ? 'vertices' : 'vertex'}.`, 'geo/shape-properties', difficulty);
+    q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: [{ type: pick.type, label }] } };
+    return q;
+  }
+  if (name.includes('types of quadrilateral')) {
+    const quads = [
+      { type: 'square', label: 'square', desc: '4 equal sides and 4 right angles' },
+      { type: 'rectangle', label: 'rectangle', desc: '2 pairs of equal sides and 4 right angles' },
+      { type: 'rhombus', label: 'rhombus', desc: '4 equal sides but not all right angles' },
+      { type: 'trapezium', label: 'trapezium', desc: 'exactly 1 pair of parallel sides' },
+    ];
+    const display = shuffle(quads);
+    const askIdx = rnd(0, display.length - 1);
+    const target = display[askIdx];
+    const others = quads.filter((qd) => qd.label !== target.label).map((qd) => qd.label);
+    const q = mcq(`Look at the shapes. What type of quadrilateral is Shape ${askIdx + 1}?`, target.label, others,
+      `Shape ${askIdx + 1} is a ${target.label} — it has ${target.desc}.`, 'geo/quad-identify', difficulty);
+    q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: display.map((s, i) => ({ type: s.type, label: `Shape ${i + 1}` })) } };
+    return q;
+  }
+  if (name.includes('picture graph')) {
+    const items = ['Apples', 'Oranges', 'Bananas', 'Grapes', 'Mangoes', 'Pears'];
+    const cats = shuffle(items).slice(0, 4);
+    const sv = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 5;
+    const counts = shuffle([1, 2, 3, 4, 5, 6]).slice(0, 4).map((v) => v * sv);
+    const askIdx = rnd(0, cats.length - 1);
+    const maxIdx = counts.indexOf(Math.max(...counts));
+    let q;
+    if (Math.random() < 0.6) {
+      q = short(`The picture graph shows fruits sold. How many ${cats[askIdx].toLowerCase()} were sold?` + (sv > 1 ? ` (Each symbol = ${sv})` : ''),
+        counts[askIdx], sv === 1 ? `Count the symbols for ${cats[askIdx]}: ${counts[askIdx]}.` : `${cats[askIdx]} has ${counts[askIdx] / sv} symbols × ${sv} = ${counts[askIdx]}.`,
+        'data/picture-graph-read', difficulty);
+    } else {
+      const others = cats.filter((_, i) => i !== maxIdx);
+      q = mcq(`The picture graph shows fruits sold. Which fruit was sold the most?` + (sv > 1 ? ` (Each symbol = ${sv})` : ''),
+        cats[maxIdx], others, `${cats[maxIdx]} has the most symbols (${counts[maxIdx] / sv}), representing ${counts[maxIdx]}.`,
+        'data/picture-graph-compare', difficulty);
+    }
+    q.diagramSpec = { type: 'picture_graph', width: 640, height: 280, data: { categories: cats.map((label, i) => ({ label, count: counts[i] })), symbol: '●', symbolValue: sv } };
+    return q;
+  }
+  if (name.includes('line graph')) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const topics = [
+      { title: 'Temperature (°C)', unit: '°C', items: days },
+      { title: 'Books read', unit: '', items: days },
+      { title: 'Visitors', unit: '', items: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'] },
+    ];
+    const topic = topics[rnd(0, topics.length - 1)];
+    const vals = shuffle([rnd(5, 12), rnd(13, 20), rnd(21, 28), rnd(8, 15), rnd(16, 25)]);
+    const askIdx = rnd(0, topic.items.length - 1);
+    const maxIdx = vals.indexOf(Math.max(...vals));
+    let q;
+    if (Math.random() < 0.5) {
+      q = short(`The line graph shows ${topic.title.toLowerCase()} over 5 ${topic.items === days ? 'days' : 'weeks'}. What was the value on ${topic.items[askIdx]}?`,
+        vals[askIdx], `Read the graph at ${topic.items[askIdx]}: the value is ${vals[askIdx]}${topic.unit ? ' ' + topic.unit : ''}.`,
+        'data/line-graph-read', difficulty);
+    } else {
+      q = mcq(`The line graph shows ${topic.title.toLowerCase()} over 5 ${topic.items === days ? 'days' : 'weeks'}. On which ${topic.items === days ? 'day' : 'week'} was the value highest?`,
+        topic.items[maxIdx], topic.items.filter((_, i) => i !== maxIdx).slice(0, 3),
+        `${topic.items[maxIdx]} has the highest point on the graph (${vals[maxIdx]}).`,
+        'data/line-graph-compare', difficulty);
+    }
+    q.diagramSpec = { type: 'line_graph', width: 640, height: 320, data: { points: topic.items.map((label, i) => ({ label, value: vals[i] })), title: topic.title } };
+    return q;
+  }
+  if (name.includes('pie chart')) {
+    const sets = [
+      { title: 'Favourite sport', cats: ['Football', 'Swimming', 'Running', 'Tennis'] },
+      { title: 'Transport to school', cats: ['Walk', 'Bus', 'Car', 'Bicycle'] },
+      { title: 'Favourite fruit', cats: ['Apple', 'Orange', 'Banana', 'Grape'] },
+    ];
+    const set = sets[rnd(0, sets.length - 1)];
+    const raw = shuffle([rnd(5, 15), rnd(10, 25), rnd(3, 12), rnd(8, 20)]);
+    const total = raw.reduce((s, v) => s + v, 0);
+    const askIdx = rnd(0, set.cats.length - 1);
+    const maxIdx = raw.indexOf(Math.max(...raw));
+    let q;
+    if (Math.random() < 0.5) {
+      q = short(`The pie chart shows ${total} students' ${set.title.toLowerCase()}. How many chose ${set.cats[askIdx]}?`,
+        raw[askIdx], `From the pie chart, ${set.cats[askIdx]} is ${raw[askIdx]} out of ${total} students.`,
+        'data/pie-chart-read', difficulty);
+    } else {
+      q = mcq(`The pie chart shows students' ${set.title.toLowerCase()}. Which category had the most students?`,
+        set.cats[maxIdx], set.cats.filter((_, i) => i !== maxIdx),
+        `${set.cats[maxIdx]} has the largest slice (${raw[maxIdx]} students).`,
+        'data/pie-chart-compare', difficulty);
+    }
+    q.diagramSpec = { type: 'pie_chart', width: 640, height: 320, data: { segments: set.cats.map((label, i) => ({ label, value: raw[i] })), title: set.title } };
+    return q;
+  }
+  if (name.includes('line symmetry')) {
+    const shapes = [
+      { type: 'square', label: 'square', lines: 4 },
+      { type: 'rectangle', label: 'rectangle', lines: 2 },
+      { type: 'triangle', label: 'isosceles triangle', lines: 1 },
+      { type: 'rhombus', label: 'rhombus', lines: 2 },
+      { type: 'trapezium', label: 'isosceles trapezium', lines: 1 },
+    ];
+    const pool = difficulty === 'easy' ? shapes.slice(0, 2) : difficulty === 'medium' ? shapes.slice(0, 4) : shapes;
+    const pick = pool[rnd(0, pool.length - 1)];
+    const q = mcq(`How many lines of symmetry does a ${pick.label} have?`, pick.lines, [pick.lines + 1, Math.max(0, pick.lines - 1), pick.lines + 2],
+      `A ${pick.label} has ${pick.lines} line${pick.lines !== 1 ? 's' : ''} of symmetry.`, 'geo/symmetry-count', difficulty);
+    q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: [{ type: pick.type, label: pick.label }] } };
+    return q;
+  }
+  if (name.includes('parallel and perpendicular')) {
+    const makeParallel = () => {
+      const y1 = rnd(60, 120);
+      const y2 = y1 + rnd(60, 120);
+      return {
+        type: 'parallel',
+        lines: [
+          { x1: 80, y1, x2: 450, y2: y1, label: 'A' },
+          { x1: 80, y1: y2, x2: 450, y2: y2, label: 'B' },
+        ],
+      };
+    };
+    const makePerp = () => {
+      const cx = rnd(180, 320);
+      const cy = rnd(100, 220);
+      const half = rnd(60, 110);
+      return {
+        type: 'perpendicular',
+        lines: [
+          { x1: cx - half, y1: cy, x2: cx + half, y2: cy, label: 'P' },
+          { x1: cx, y1: cy - half, x2: cx, y2: cy + half, label: 'Q' },
+        ],
+      };
+    };
+    const makeNeither = () => {
+      return {
+        type: 'neither',
+        lines: [
+          { x1: 60, y1: 250, x2: 350, y2: 80, label: 'C' },
+          { x1: 100, y1: 60, x2: 450, y2: 280, label: 'D' },
+        ],
+      };
+    };
+    const pool = difficulty === 'easy' ? [makeParallel, makePerp] : [makeParallel, makePerp, makeNeither];
+    const pick = pool[rnd(0, pool.length - 1)]();
+    const opts = ['parallel', 'perpendicular', 'neither parallel nor perpendicular'].filter((v) => v !== pick.type);
+    const q = mcq(`Look at lines ${pick.lines[0].label} and ${pick.lines[1].label}. These lines are:`,
+      pick.type, [...opts, 'intersecting'],
+      pick.type === 'parallel' ? 'Parallel lines never meet and are always the same distance apart.'
+        : pick.type === 'perpendicular' ? 'Perpendicular lines meet at a right angle (90°).'
+          : 'These lines intersect but not at 90°, so they are neither parallel nor perpendicular.',
+      'geo/parallel-perp', difficulty);
+    q.diagramSpec = { type: 'line_pairs', width: 540, height: 320, data: { lines: pick.lines, showGrid: true } };
+    return q;
+  }
+  if (name.includes('angle types')) {
+    const types = [
+      { name: 'acute', min: 10, max: 80 },
+      { name: 'right', min: 90, max: 90 },
+      { name: 'obtuse', min: 100, max: 170 },
+    ];
+    const pool = difficulty === 'easy' ? types.slice(0, 2) : types;
+    const pick = pool[rnd(0, pool.length - 1)];
+    const angleDeg = rnd(pick.min, pick.max);
+    const q = mcq(`What type of angle is shown?`, pick.name,
+      [...types.map((t) => t.name).filter((n) => n !== pick.name), 'reflex'],
+      `This angle is ${angleDeg}°. ${pick.name === 'right' ? 'A right angle is exactly 90°.' : pick.name === 'acute' ? 'An acute angle is less than 90°.' : 'An obtuse angle is between 90° and 180°.'}`,
+      'geo/angle-type', difficulty);
+    q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
+    return q;
+  }
+  if (name.includes('3d solid') || name.includes('3d solids')) {
+    const solids = [
+      { solid: 'cube', faces: 6, edges: 12, vertices: 8 },
+      { solid: 'cuboid', faces: 6, edges: 12, vertices: 8 },
+      { solid: 'cylinder', faces: 3, edges: 2, vertices: 0 },
+      { solid: 'cone', faces: 2, edges: 1, vertices: 1 },
+      { solid: 'sphere', faces: 1, edges: 0, vertices: 0 },
+      { solid: 'triangular_prism', faces: 5, edges: 9, vertices: 6 },
+      { solid: 'square_pyramid', faces: 5, edges: 8, vertices: 5 },
+    ];
+    const pool = difficulty === 'easy' ? solids.slice(0, 3) : difficulty === 'medium' ? solids.slice(0, 5) : solids;
+    const pick = pool[rnd(0, pool.length - 1)];
+    const prettyName = pick.solid.replace(/_/g, ' ');
+    const props = ['faces', 'edges', 'vertices'];
+    const prop = props[rnd(0, props.length - 1)];
+    const ans = pick[prop];
+    const q = mcq(`How many ${prop} does a ${prettyName} have?`, ans,
+      [ans + 1, Math.max(0, ans - 1), ans + 2],
+      `A ${prettyName} has ${pick.faces} face${pick.faces !== 1 ? 's' : ''}, ${pick.edges} edge${pick.edges !== 1 ? 's' : ''}, and ${pick.vertices} ${pick.vertices !== 1 ? 'vertices' : 'vertex'}.`,
+      'geo/3d-properties', difficulty);
+    q.diagramSpec = { type: 'solid_3d', width: 400, height: 320, data: { solid: pick.solid, label: prettyName } };
+    return q;
+  }
+  if (name.includes('compass direction') || name.includes('position and compass')) {
+    const places = shuffle(['School', 'Park', 'Shop', 'Library', 'Clinic', 'Mosque', 'Church', 'Temple', 'Market', 'Pool']);
+    const gridSize = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5;
+    const coords = shuffle(Array.from({ length: gridSize * gridSize }, (_, i) => [Math.floor(i / gridSize), i % gridSize]));
+    const count = rnd(3, Math.min(5, places.length));
+    const objs = places.slice(0, count).map((label, i) => ({ label, row: coords[i][0], col: coords[i][1] }));
+    const from = objs[rnd(0, objs.length - 1)];
+    const to = objs.filter((o) => o !== from)[rnd(0, objs.length - 2)];
+    const dr = to.row - from.row;
+    const dc = to.col - from.col;
+    let dir;
+    if (dr < 0 && dc === 0) dir = 'North';
+    else if (dr > 0 && dc === 0) dir = 'South';
+    else if (dr === 0 && dc > 0) dir = 'East';
+    else if (dr === 0 && dc < 0) dir = 'West';
+    else if (dr < 0 && dc > 0) dir = 'North-East';
+    else if (dr < 0 && dc < 0) dir = 'North-West';
+    else if (dr > 0 && dc > 0) dir = 'South-East';
+    else dir = 'South-West';
+    const allDirs = difficulty === 'easy'
+      ? ['North', 'South', 'East', 'West']
+      : ['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'];
+    const q = mcq(`${to.label} is in which direction from ${from.label}?`, dir,
+      shuffle(allDirs.filter((d) => d !== dir)).slice(0, 3),
+      `From ${from.label} (row ${from.row}, col ${from.col}) to ${to.label} (row ${to.row}, col ${to.col}): move ${dr < 0 ? 'up' : dr > 0 ? 'down' : ''} ${dc > 0 ? 'right' : dc < 0 ? 'left' : ''} → ${dir}.`,
+      'geo/compass-direction', difficulty);
+    q.diagramSpec = { type: 'compass_grid', width: 640, height: 360, data: { gridSize, objects: objs } };
+    return q;
+  }
+  if (name.includes('reading measuring scale')) {
+    const scaleEnd = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
+    const objLen = rnd(2, Math.floor(scaleEnd * 0.6));
+    const objStart = rnd(0, scaleEnd - objLen);
+    const q = short(`A pencil is placed on the ruler. It starts at the ${objStart} cm mark. How long is the pencil (cm)?`, objLen,
+      `The pencil goes from ${objStart} cm to ${objStart + objLen} cm. Length = ${objStart + objLen} − ${objStart} = ${objLen} cm.`, 'measure/read-scale', difficulty);
+    q.diagramSpec = { type: 'length_measurement', width: 640, height: 180, data: { start: 0, end: scaleEnd, unit: 'cm', objects: [{ start: objStart, end: objStart + objLen, label: '?' }] } };
+    return q;
+  }
+
   // No rule-based template fits this skill — return null so the seed skips it
   // (the skill relies on authored/exam-sourced items instead of a wrong stub).
   return null;
