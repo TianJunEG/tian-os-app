@@ -290,7 +290,12 @@ export const lifelabAPI = {
   competencies: () => api.get('/lifelab/competencies'),             // canonical E21CC list
   me: () => api.get('/lifelab/me'),
   child: (studentId) => api.get(`/lifelab/student/${studentId}`),   // parent/guardian view
-  submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data)
+  submit: (id, data) => api.post(`/lifelab/submissions/${id}/submit`, data),
+  uploadEvidence: (id, file) => {
+    const fd = new FormData();
+    fd.append('evidence', file);
+    return api.post(`/lifelab/submissions/${id}/evidence`, fd);
+  }
 };
 
 // Problem Solving Lab (PSL) — guided heuristic word-problem reasoning.

@@ -33,7 +33,6 @@ import TutorOnboarding from './components/TutorOnboarding';
 import ParentProfile from './components/ParentProfile';
 import PwaManager from './components/PwaManager';
 import ErrorBoundary from './components/ErrorBoundary';
-import LifeLabLayout from './components/LifeLab/LifeLabLayout';
 
 // Tian OS unified shell (Phase 1 foundation)
 import { WorkspaceProvider } from './context/WorkspaceContext';
@@ -549,9 +548,6 @@ function App() {
           <Route path="/spelling/progress" element={<ProtectedRoute><FeatureGuard feature="spelling"><SpellingProgressPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/spelling/achievements" element={<ProtectedRoute><FeatureGuard feature="spelling"><SpellingAchievementsPage /></FeatureGuard></ProtectedRoute>} />
           <Route path="/spelling/lists/:id/print" element={<ProtectedRoute><FeatureGuard feature="spelling"><SpellingPrintPage /></FeatureGuard></ProtectedRoute>} />
-
-          {/* LifeLab */}
-          <Route path="/lifelab" element={<ProtectedRoute><FeatureGuard feature="lifelab"><LifeLabLayout /></FeatureGuard></ProtectedRoute>} />
 
           {/* ─── Tian OS unified shell (Phase 1 foundation) ─── */}
           <Route element={<ShellLayout />}>

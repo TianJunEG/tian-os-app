@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Sprout, CheckCircle2, MessageSquare } from 'lucide-react';
-import { lifelabAPI } from '../../services/api';
+import { lifelabAPI, teacherAPI, SERVER_ORIGIN } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
 import { Card, Button, Input, Select, StatusBadge, Spinner, EmptyState, ErrorState, Alert } from '../../components/ui';
 import E21ccTags from '../../components/LifeLab/E21ccTags';
 import CompetencyGrowth from '../../components/LifeLab/CompetencyGrowth';
 
-// Teacher LifeLab: assign a library activity to the class + review submissions.
 export default function LifeLab() {
   const { id } = useParams();
   const meta = useClass(id);
@@ -28,8 +27,12 @@ export default function LifeLab() {
   const [assigning, setAssigning] = useState(false);
   const [savingFeedback, setSavingFeedback] = useState(false);
 
-  // Re-fetch the assignable library, optionally filtered by competency, and keep
-  // a valid activity selected.
+  // Assignment targeting
+  const [targetType, setTargetType] = useState('class');
+  const [groups, setGroups] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [targetId, setTargetId] = useState('');
+
   const loadActivities = (comp) => {
     setActivityError(false);
     setActivities(null);
@@ -50,6 +53,8 @@ export default function LifeLab() {
     loadActivities(competency);
     loadSubs();
     lifelabAPI.competencies().then((r) => setCompetencyList(r.data.competencies || [])).catch(() => {});
+    teacherAPI.groups(id).then((r) => setGroups(r.data.groups || r.data || [])).catch(() => {});
+    teacherAPI.classStudents(id).then((r) => setStudents(r.data.students || r.data || [])).catch(() => {});
   }, [id]); // eslint-disable-line
 
   const selected = activities?.find((a) => a._id === activityId);
@@ -58,8 +63,16 @@ export default function LifeLab() {
     if (!activityId) return;
     setAssignError('');
     setAssigning(true);
+    const target = targetType === 'class'
+      ? { type: 'class' }
+      : { type: targetType, id: targetId };
+    if (targetType !== 'class' && !targetId) {
+      setAssignError('Please select a ' + targetType + ' to assign to.');
+      setAssigning(false);
+      return;
+    }
     try {
-      await lifelabAPI.assign({ classId: id, target: { type: 'class' }, activityId });
+      await lifelabAPI.assign({ classId: id, target, activityId });
       setAssigned(true);
       loadSubs();
       setTimeout(() => setAssigned(false), 2500);
@@ -69,6 +82,7 @@ export default function LifeLab() {
       setAssigning(false);
     }
   };
+
   const saveFeedback = async (sid) => {
     setFeedbackError('');
     setSavingFeedback(true);
@@ -109,15 +123,46 @@ export default function LifeLab() {
                   {activities.length ? activities.map((a) => <option key={a._id} value={a._id}>{a.subject} · {a.title}</option>) : <option value="">No activities match</option>}
                 </Select>
               </div>
-              <Button onClick={assign} disabled={!activityId || assigning}>{assigning ? 'Assigning…' : 'Assign to class'}</Button>
             </div>
+
+            {/* Target picker */}
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="sm:w-40">
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Assign to</label>
+                <Select value={targetType} onChange={(e) => { setTargetType(e.target.value); setTargetId(''); }}>
+                  <option value="class">Whole class</option>
+                  <option value="group">Group</option>
+                  <option value="student">Individual student</option>
+                </Select>
+              </div>
+              {targetType === 'group' && (
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">Group</label>
+                  <Select value={targetId} onChange={(e) => setTargetId(e.target.value)}>
+                    <option value="">Select a group…</option>
+                    {groups.map((g) => <option key={g._id} value={g._id}>{g.name || g.label || 'Group'}</option>)}
+                  </Select>
+                </div>
+              )}
+              {targetType === 'student' && (
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">Student</label>
+                  <Select value={targetId} onChange={(e) => setTargetId(e.target.value)}>
+                    <option value="">Select a student…</option>
+                    {students.map((s) => <option key={s._id || s.studentId} value={s._id || s.studentId}>{s.name}</option>)}
+                  </Select>
+                </div>
+              )}
+              <Button onClick={assign} disabled={!activityId || assigning}>{assigning ? 'Assigning…' : 'Assign'}</Button>
+            </div>
+
             {assignError && <Alert tone="error" className="mt-3">{assignError}</Alert>}
             {selected && <>
               <E21ccTags primary={selected.primaryE21cc} secondary={selected.secondaryE21cc} className="mt-3" />
               {selected.realLifeContext && <p className="mt-3 text-sm text-ink-500 italic">{selected.realLifeContext}</p>}
               {selected.materials?.length > 0 && <p className="mt-2 text-xs text-ink-400">Materials: {selected.materials.join(', ')}</p>}
             </>}
-            {assigned && <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-success-700"><CheckCircle2 className="h-4 w-4" /> Assigned to the class.</p>}
+            {assigned && <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-success-700"><CheckCircle2 className="h-4 w-4" /> Assigned!</p>}
           </>
         )}
       </Card>
@@ -145,6 +190,11 @@ export default function LifeLab() {
                 <>
                   {s.dataRecorded && <p className="text-sm text-ink-700"><span className="text-ink-400">Data:</span> {s.dataRecorded}</p>}
                   {s.reflectionResponse && <p className="text-sm text-ink-500"><span className="text-ink-400">Reflection:</span> {s.reflectionResponse}</p>}
+                  {s.evidenceUrl && (
+                    <p className="mt-1 text-sm">
+                      <a href={SERVER_ORIGIN + s.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">View evidence</a>
+                    </p>
+                  )}
                   {s.teacherFeedback && <p className="mt-1 text-sm text-success-700">Feedback: {s.teacherFeedback}</p>}
                   {feedbackFor === s.id ? (
                     <div className="mt-3 flex gap-2">

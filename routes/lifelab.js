@@ -8,8 +8,27 @@ import Class from '../models/Class.js';
 import ClassStudent from '../models/ClassStudent.js';
 import StudentGroup from '../models/StudentGroup.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import multer from 'multer';
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads'),
+  filename: (req, file, cb) => {
+    const ext = file.originalname.split('.').pop();
+    cb(null, 'lifelab-' + req.params.id + '-' + Date.now() + '.' + ext);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /jpeg|jpg|png|gif|webp|pdf|mp4|webm|mov/;
+    const ok = allowed.test(file.mimetype.split('/').pop()) || allowed.test(file.originalname.split('.').pop().toLowerCase());
+    cb(ok ? null : new Error('File type not allowed'), ok);
+  },
+});
+
 
 const buildCompetencyStats = (subs) => {
   const rows = {};
@@ -84,6 +103,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
       activity: s.activityId,
       dataRecorded: s.dataRecorded,
       reflectionResponse: s.reflectionResponse,
+      evidenceUrl: s.evidenceUrl,
     })),
     competencies: buildCompetencyStats(subs),
   });
@@ -156,6 +176,7 @@ router.get('/me', protect, async (req, res) => {
       activity: s.activityId,
       dataRecorded: s.dataRecorded,
       reflectionResponse: s.reflectionResponse,
+      evidenceUrl: s.evidenceUrl,
     })),
     competencies: buildCompetencyStats(subs),
   });
@@ -173,6 +194,19 @@ router.post('/submissions/:id/submit', protect, async (req, res) => {
   sub.updatedAt = new Date();
   await sub.save();
   res.json({ submission: { id: sub._id, status: sub.status } });
+});
+
+
+// -- Student: upload evidence file for a submission -----------------------
+router.post('/submissions/:id/evidence', protect, upload.single('evidence'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+  const sub = await LifeLabSubmission.findById(req.params.id);
+  if (!sub) return res.status(404).json({ error: 'Submission not found.' });
+  await resolveStudent(req, sub.studentId, { write: true });
+  sub.evidenceUrl = '/uploads/' + req.file.filename;
+  sub.updatedAt = new Date();
+  await sub.save();
+  res.json({ evidenceUrl: sub.evidenceUrl });
 });
 
 export default router;
