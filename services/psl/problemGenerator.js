@@ -27,6 +27,16 @@ function generateNumbers(constraints, structure) {
           }
         }
       }
+      if (constraints._computeStr) {
+        for (const [key, expr] of Object.entries(constraints._computeStr)) {
+          const fn = new Function('n', 'with(n){return(' + expr + ')}');
+          nums[key] = fn(nums);
+        }
+      }
+      if (constraints._integerKeys) {
+        const allInt = constraints._integerKeys.every((k) => Number.isInteger(nums[k]));
+        if (!allInt) continue;
+      }
       if (constraints.answer?.min && (nums.answer || 0) < constraints.answer.min) continue;
       if (constraints.answer?.max && (nums.answer || 0) > constraints.answer.max) continue;
       return nums;
@@ -376,15 +386,19 @@ export async function generateProblem(skillId, options = {}) {
   const available = templates.filter((t) => !usedTemplateIds.includes(t.templateId));
   const template = pick(available.length ? available : templates);
 
-  const context = pick(template.contexts);
+  const context = pick(template.contexts) || {};
   const nameA = pick(NAMES);
   let nameB = pick(NAMES.filter((n) => n !== nameA));
   if (!nameB) nameB = 'Ali';
+  let nameC = pick(NAMES.filter((n) => n !== nameA && n !== nameB));
+  if (!nameC) nameC = 'Lina';
+  let nameD = pick(NAMES.filter((n) => n !== nameA && n !== nameB && n !== nameC));
+  if (!nameD) nameD = 'Kai';
 
   const nums = generateNumbers(template.constraints, template.structure);
   if (!nums) throw new Error(`Number generation failed for template: ${template.templateId}`);
 
-  const vars = { ...context, ...nums, nameA, nameB, entityA2: context.entityA?.replace(/s$/, '') || context.entityA };
+  const vars = { ...context, ...nums, nameA, nameB, nameC, nameD, name1: nameA, name2: nameB, name3: nameC, name4: nameD, entityA2: context.entityA?.replace(/s$/, '') || context.entityA };
   if (vars.verb) vars.verbBase = toBaseVerb(vars.verb);
 
   // For compare-then-total and two-step templates, compute intermediate values
