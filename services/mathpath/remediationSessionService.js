@@ -6,6 +6,9 @@ import RetentionReview from '../../models/RetentionReview.js';
 import { createAssignmentFromLessonPrep } from './mathPathAssignmentService.js';
 import { getPrerequisites, getSkill } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
 import { buildRetentionReviews } from '../../utils/fluencyEngine.js';
+import Skill from '../../models/Skill.js';
+
+const SKILL_CODE = /^[A-Z0-9][-A-Z0-9]*$/i;
 
 const WEAK_STATUSES = new Set(['notStarted', 'needsReview', 'weak', 'forgotten']);
 const WEAK_ACCURACY_THRESHOLD = 70;
@@ -228,6 +231,7 @@ export async function handleMasteryCheckResult({ remediationSessionId, passed })
   }
 
   if (passed) {
+    markStep(session, 'reteach', 'completed');
     markStep(session, 'check_understanding', 'completed');
     markStep(session, 'original_complexity', 'completed');
     session.currentStep = 'schedule_review';
@@ -256,7 +260,19 @@ export async function handleMasteryCheckResult({ remediationSessionId, passed })
   if (newWeakPrereqs.length > 0) {
     if (currentAttempt) currentAttempt.prerequisiteRouted = true;
     for (const prereq of newWeakPrereqs) {
-      session.prerequisites.push({ skillId: prereq.skillId, skillName: prereq.skillName, status: 'pending', reason: prereq.reason });
+      const entry = { skillId: prereq.skillId, skillName: prereq.skillName, status: 'in_progress', reason: prereq.reason, assignmentId: '' };
+      const assignment = await createAssignmentFromLessonPrep({
+        studentId: session.studentId,
+        skillIds: [prereq.skillId],
+        assignedByUserId: session.studentId,
+        assignedByRole: 'system',
+        sourceType: 'remediation',
+        sourceId: String(session._id),
+        title: `Prerequisite: ${prereq.skillName}`,
+        description: 'Practice a prerequisite skill before the main remediation.',
+      });
+      entry.assignmentId = String(assignment.id || assignment._id);
+      session.prerequisites.push(entry);
     }
     session.currentStep = 'simplify';
     markStep(session, 'simplify', 'in_progress');
@@ -324,6 +340,21 @@ export async function advanceRemediationStep({ remediationSessionId }) {
 // Retention scheduling
 // ---------------------------------------------------------------------------
 
+async function resolveSkillDoc(code) {
+  const value = String(code || '').trim().toUpperCase();
+  if (!value) return null;
+  if (SKILL_CODE.test(value)) {
+    return Skill.findOne({
+      $or: [
+        { 'metadata.mathPathSkillId': value },
+        { 'metadata.frameworkCode': value },
+        { slug: value },
+      ],
+    });
+  }
+  return Skill.findById(value);
+}
+
 export async function scheduleRemediationRetention({ remediationSessionId }) {
   const session = await RemediationSession.findById(remediationSessionId);
   if (!session) {
@@ -335,24 +366,27 @@ export async function scheduleRemediationRetention({ remediationSessionId }) {
   const now = new Date();
   const entries = [];
 
-  for (const skillId of session.targetSkillIds) {
-    const skill = getSkill(skillId);
+  for (const skillCode of session.targetSkillIds) {
+    const graphSkill = getSkill(skillCode);
+    const skillDoc = await resolveSkillDoc(skillCode);
+    if (!skillDoc) continue;
+
     const reviews = buildRetentionReviews({
       studentId: session.studentId,
-      skillCode: skillId,
-      skillId: null,
+      skillCode,
+      skillId: skillDoc._id,
       fluentAt: now,
     });
 
     for (const review of reviews) {
-      const result = await RetentionReview.updateOne(
-        { studentId: session.studentId, skillCode: skillId, intervalDays: review.intervalDays },
-        { $setOnInsert: { ...review, skillName: skill?.name || skillId } },
+      await RetentionReview.updateOne(
+        { studentId: session.studentId, skillId: skillDoc._id, intervalDays: review.intervalDays },
+        { $setOnInsert: { ...review, skillName: graphSkill?.name || skillDoc.name || skillCode } },
         { upsert: true },
       );
-      const doc = await RetentionReview.findOne({ studentId: session.studentId, skillCode: skillId, intervalDays: review.intervalDays }).lean();
+      const doc = await RetentionReview.findOne({ studentId: session.studentId, skillId: skillDoc._id, intervalDays: review.intervalDays }).lean();
       if (doc) {
-        entries.push({ skillId, retentionReviewId: String(doc._id), intervalDays: review.intervalDays, scheduledDate: review.reviewDate });
+        entries.push({ skillId: skillCode, retentionReviewId: String(doc._id), intervalDays: review.intervalDays, scheduledDate: review.reviewDate });
       }
     }
   }
@@ -399,9 +433,13 @@ export async function notifyRemediationOfAssignmentCompletion({ assignmentId }) 
       if (prereqEntry) {
         const entry = prereqEntry.prerequisites.find((p) => p.assignmentId === String(assignmentId));
         if (entry) {
-          entry.status = 'mastered';
+          const prereqAssignment = await MathPathAssignment.findById(assignmentId).lean();
+          const prereqPassed = prereqAssignment?.masteryCheckProgress?.passed === true;
+          entry.status = prereqPassed ? 'mastered' : 'in_progress';
           await prereqEntry.save();
-          await advanceRemediationStep({ remediationSessionId: String(prereqEntry._id) });
+          if (prereqPassed) {
+            await advanceRemediationStep({ remediationSessionId: String(prereqEntry._id) });
+          }
         }
       }
       return;
