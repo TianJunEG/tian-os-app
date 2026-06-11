@@ -9,6 +9,7 @@ export default defineConfig({
       'utils/**/*.test.js',
       'routes/**/*.test.js',
       'middleware/**/*.test.js',
+      'services/**/*.test.js',
       'shared/diagramEngine/tests/**/*.test.js',
     ],
   },
