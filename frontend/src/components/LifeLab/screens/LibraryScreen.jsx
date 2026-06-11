@@ -85,19 +85,8 @@ export default function LibraryScreen({ onSelectTemplate, onAssign, onNavigate }
   };
 
   return (
-    <div className="lifelab-phone">
-      <div className="status-bar">
-        <span>9:41</span>
-        <div className="status-bar-right">
-          <Icon name="signal" size={14} />
-          <Icon name="wifi" size={14} />
-          <span style={{ width: 24, height: 11, border: '1px solid #0B1F3F', borderRadius: 3, position: 'relative', display: 'inline-block' }}>
-            <span style={{ position: 'absolute', inset: 1.5, background: '#0B1F3F', borderRadius: 1.5, width: '70%' }} />
-          </span>
-        </div>
-      </div>
-
-      <div className="lifelab-content">
+    <>
+      <div className="ll-content">
         <div className="ll-header">
           <div className="ll-header-top">
             <div className="ll-header-branding">
@@ -227,6 +216,6 @@ export default function LibraryScreen({ onSelectTemplate, onAssign, onNavigate }
           </button>
         ))}
       </div>
-    </div>
+    </>
   );
 }
