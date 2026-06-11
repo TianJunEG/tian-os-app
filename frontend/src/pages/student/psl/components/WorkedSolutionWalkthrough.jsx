@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen, ChevronRight, RotateCcw } from 'lucide-react';
+import SolutionVisual from './SolutionVisual';
 
 function parseSteps(text) {
   if (!text) return [];
@@ -20,7 +21,7 @@ function parseSteps(text) {
   return steps;
 }
 
-export default function WorkedSolutionWalkthrough({ solutionText }) {
+export default function WorkedSolutionWalkthrough({ solutionText, visualSpec }) {
   const steps = parseSteps(solutionText);
   const [revealed, setRevealed] = useState(0);
 
@@ -34,6 +35,12 @@ export default function WorkedSolutionWalkthrough({ solutionText }) {
         <BookOpen className="h-4 w-4 text-sky-600" />
         <span className="text-xs font-semibold text-sky-700">Worked Solution</span>
       </div>
+
+      {revealed > 0 && visualSpec && (
+        <div className="transition-all duration-300 ease-out opacity-100 translate-y-0 mb-3">
+          <SolutionVisual visualSpec={visualSpec} />
+        </div>
+      )}
 
       <div className="space-y-2">
         {steps.map((step, i) => {

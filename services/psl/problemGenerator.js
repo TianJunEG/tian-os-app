@@ -542,6 +542,90 @@ function computeAnswer(scaffold, vars) {
   return vars.answer || 0;
 }
 
+
+function buildVisualSpec(template, nums, vars) {
+  const h = template.heuristic || '';
+
+  if (['partWhole', 'comparison', 'twoStep'].includes(template.structure)) {
+    return {
+      type: 'barModel',
+      modelType: template.structure === 'twoStep' ? 'partWhole' : template.structure,
+      unknownPosition: template.unknownPosition,
+      values: nums,
+    };
+  }
+
+  if (h === 'before-after' || template.structure === 'beforeAfter') {
+    const op = (template.operations || [])[0];
+    return {
+      type: 'beforeAfter',
+      start: nums.start,
+      change: nums.change,
+      answer: nums.answer,
+      operation: op === 'subtraction' ? 'subtraction' : 'addition',
+    };
+  }
+
+  if (h === 'ratio') {
+    return {
+      type: 'ratioBar',
+      ratioA: nums.ratioA,
+      ratioB: nums.ratioB,
+      valuePerPart: nums.valuePerPart,
+      valueA: nums.valueA,
+      valueB: nums.valueB,
+      labelA: vars.entityA || 'A',
+      labelB: vars.entityB || 'B',
+    };
+  }
+
+  if (h === 'work-backwards') {
+    const steps = [{ label: 'Start', value: '?', op: null }];
+    if (nums.step2 !== undefined) {
+      steps.push({ label: 'Step 1', value: '...', op: String(nums.step1) });
+      steps.push({ label: 'Step 2', value: '...', op: String(nums.step2) });
+    } else if (nums.step1 !== undefined) {
+      steps.push({ label: 'Step 1', value: '...', op: String(nums.step1) });
+    }
+    steps.push({ label: 'End', value: nums.end, op: null });
+    return { type: 'workBackwards', steps };
+  }
+
+  if (h === 'guess-check') {
+    if (nums.total !== undefined && nums.diff !== undefined) {
+      const larger = nums.larger;
+      const smaller = nums.smaller;
+      const wrongGuess = larger + 2;
+      const wrongOther = nums.total - wrongGuess;
+      return {
+        type: 'guessCheck',
+        labelA: vars.nameA || 'Person A',
+        labelB: vars.nameB || 'Person B',
+        rows: [
+          { a: wrongGuess, b: wrongOther, check: `diff = ${Math.abs(wrongGuess - wrongOther)}`, correct: false },
+          { a: larger, b: smaller, check: `diff = ${nums.diff}`, correct: true },
+        ],
+      };
+    }
+    return null;
+  }
+
+  if (h === 'excess-shortage') {
+    if (nums.giveA !== undefined && nums.giveB !== undefined) {
+      return {
+        type: 'excessShortage',
+        giveA: nums.giveA,
+        giveB: nums.giveB,
+        excess: nums.excess ?? nums.excessA ?? 0,
+        shortage: nums.shortage ?? nums.excessB ?? 0,
+      };
+    }
+    return null;
+  }
+
+  return null;
+}
+
 export async function generateProblem(skillId, options = {}) {
   const templates = await PSLProblemTemplate.find({ skillId }).lean();
   if (!templates.length) throw Object.assign(new Error(`No templates for skill: ${skillId}`), { status: 404 });
@@ -632,6 +716,7 @@ export async function generateProblem(skillId, options = {}) {
     solutionText,
     givenNumbers,
     correctAnswer,
+    visualSpec: buildVisualSpec(template, nums, vars),
     scaffoldSteps,
     status: 'pending',
   };

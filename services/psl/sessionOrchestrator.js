@@ -26,6 +26,9 @@ function sanitizeProblemForClient(problem) {
   if (problem.status === 'completed' && problem.solutionText) {
     sanitized.solutionText = problem.solutionText;
   }
+  if (problem.status === 'completed' && problem.visualSpec) {
+    sanitized.visualSpec = problem.visualSpec;
+  }
   return sanitized;
 }
 
