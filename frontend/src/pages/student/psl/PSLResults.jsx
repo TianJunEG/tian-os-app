@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Award, ChevronDown, ChevronRight, Clock, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
-import BarModelViewer from './components/BarModelViewer';
 import { getMisconception } from './utils/misconceptions';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 
@@ -36,13 +35,7 @@ function ProblemCard({ attempt, problem, index }) {
       {open && (
         <div className="border-t border-ink-100 bg-ink-50/30 p-4 space-y-3">
           <p className="text-sm text-ink-600">{problem?.storyText}</p>
-          {problem?.barModelSpec && (
-            <BarModelViewer
-              modelType={problem.barModelSpec.modelType}
-              unknownPosition={problem.barModelSpec.unknownPosition}
-              values={problem.barModelSpec.values}
-            />
-          )}
+
           <div className="space-y-1.5">
             {(attempt.steps || []).map((step) => {
               const m = step.misconceptionTag ? getMisconception(step.misconceptionTag) : null;
@@ -60,7 +53,7 @@ function ProblemCard({ attempt, problem, index }) {
             })}
           </div>
           {problem?.solutionText && (
-            <WorkedSolutionWalkthrough solutionText={problem.solutionText} />
+            <WorkedSolutionWalkthrough solutionText={problem.solutionText} visualSpec={problem.visualSpec} />
           )}
         </div>
       )}
