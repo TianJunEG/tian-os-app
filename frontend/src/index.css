@@ -1,51 +1,64 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* =====================================================================
-   Tian OS design tokens — single source of truth for the unified shell.
-   Mirrors the design bundle's colors_and_type.css. Use these CSS vars (or the
-   matching Tailwind colours) everywhere; do not introduce ad-hoc colours.
+   Tian OS design tokens — emerald green system for ages 7–12.
+   Single source of truth. Use these CSS vars (or the matching Tailwind
+   colours) everywhere; do not introduce ad-hoc colours.
    ===================================================================== */
 :root {
-  /* Brand */
-  --navy-900:#0E1A36; --navy-700:#1A2A4F; --navy-500:#2E4477;
-  --navy-300:#6B7FA8; --navy-100:#DDE3F0; --navy-50:#F1F4FA;
-  --gold-700:#B88F1E; --gold-500:#D4A935; --gold-300:#FFD166; --gold-100:#FFEFCC;
-  /* Teal */
-  --teal-900:#052D3A; --teal-800:#073B4C; --teal-700:#0A3542; --teal-600:#0D4150;
-  --teal-500:#0F4C5C; --teal-400:#3FBAC8; --teal-300:#6DCAD4; --teal-200:#9DD9E0;
-  --teal-100:#C5E8EC; --teal-50:#E8F5F7;
-  /* Sky */
-  --sky-500:#75BEE0; --sky-400:#8ECBE8; --sky-300:#A7D8F0; --sky-200:#BDDFF5; --sky-100:#D6ECFA;
-  /* Lavender */
-  --lavender-500:#A388D2; --lavender-400:#B69FDB; --lavender-300:#C9B6E4;
-  --lavender-200:#DBCCEb; --lavender-100:#EDE5F5;
-  /* Coral */
-  --coral-600:#E06B56; --coral-500:#F28C7A; --coral-400:#F0A090;
-  --coral-300:#F5B8AE; --coral-200:#F9D4CE; --coral-100:#FDEDEA;
-  /* Neutrals (ink/paper/lines) */
-  --ink-900:#0E1320; --ink-700:#1F2330; --ink-500:#5B5F6E; --ink-300:#9A9DA9; --ink-100:#C9CBD3;
-  --paper:#FFFFFF; --ivory:#FFF8EA; --bone:#F3EED8; --hairline:#EDE8D4;
-  --lavender:#F1ECFF; --mint:#EAF9F1; --sky:#EAF4FF;
-  --peach:#FFF1E8; --soft-yellow:#FFF8E1; --rose:#FFEFF3;
-  /* Semantic */
-  --success-500:#2F8F6F; --success-100:#DEF0E8;
-  --warn-500:#D4A935;    --warn-100:#FFF8E5;
-  --error-500:#B4453C;   --error-100:#F4DAD6;
-  /* Mastery heatmap scale (teal gradient) */
-  --mastery-0:#E8F5F7; --mastery-1:#C5E8EC; --mastery-2:#9DD9E0;
-  --mastery-3:#6DCAD4; --mastery-4:#3FBAC8; --mastery-5:#0F4C5C;
-  /* Type */
-  --font-display:'Fraunces',Georgia,serif;
-  --font-text:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  /* ── Emerald primary ─────────────────────────────────────────────── */
+  --emerald-900:#064E3B; --emerald-800:#065F46; --emerald-700:#047857;
+  --emerald-600:#059669; --emerald-500:#10B981; --emerald-400:#34D399;
+  --emerald-300:#6EE7B7; --emerald-200:#A7F3D0; --emerald-100:#D1FAE5;
+  --emerald-50:#ECFDF5;
+  /* ── Sunshine (warm accent) ──────────────────────────────────────── */
+  --sunshine-700:#B45309; --sunshine-600:#D97706; --sunshine-500:#F59E0B;
+  --sunshine-400:#FBBF24; --sunshine-300:#FCD34D; --sunshine-200:#FDE68A;
+  --sunshine-100:#FEF3C7; --sunshine-50:#FFFBEB;
+  /* ── Violet (cool accent) ────────────────────────────────────────── */
+  --violet-700:#6D28D9; --violet-600:#7C3AED; --violet-500:#8B5CF6;
+  --violet-400:#A78BFA; --violet-300:#C4B5FD; --violet-200:#DDD6FE;
+  --violet-100:#EDE9FE; --violet-50:#F5F3FF;
+  /* ── Sky (info / trust) ──────────────────────────────────────────── */
+  --sky-700:#0369A1; --sky-600:#0284C7; --sky-500:#0EA5E9;
+  --sky-400:#38BDF8; --sky-300:#7DD3FC; --sky-200:#BAE6FD;
+  --sky-100:#E0F2FE; --sky-50:#F0F9FF;
+  /* ── Rose (error / attention) ────────────────────────────────────── */
+  --rose-700:#BE123C; --rose-600:#E11D48; --rose-500:#F43F5E;
+  --rose-400:#FB7185; --rose-300:#FDA4AF; --rose-200:#FECDD3;
+  --rose-100:#FFE4E6; --rose-50:#FFF1F2;
+  /* ── Slate (neutral text / borders) ──────────────────────────────── */
+  --slate-900:#0F172A; --slate-800:#1E293B; --slate-700:#334155;
+  --slate-600:#475569; --slate-500:#64748B; --slate-400:#94A3B8;
+  --slate-300:#CBD5E1; --slate-200:#E2E8F0; --slate-100:#F1F5F9;
+  --slate-50:#F8FAFC;
+  /* ── Surfaces ────────────────────────────────────────────────────── */
+  --paper:#FFFFFF; --canvas:#F8FAFC; --subtle:#F1F5F9; --border:#E2E8F0;
+  /* ── Tinted surfaces (card tones) ────────────────────────────────── */
+  --tint-emerald:#ECFDF5; --tint-sunshine:#FFFBEB; --tint-violet:#F5F3FF;
+  --tint-sky:#F0F9FF; --tint-rose:#FFF1F2; --tint-slate:#F8FAFC;
+  /* ── Semantic ────────────────────────────────────────────────────── */
+  --success-600:#059669; --success-500:#10B981; --success-100:#D1FAE5;
+  --warn-500:#F59E0B;    --warn-100:#FEF3C7;
+  --error-600:#E11D48;   --error-500:#F43F5E;   --error-100:#FFE4E6;
+  /* ── Mastery heatmap (emerald gradient) ──────────────────────────── */
+  --mastery-0:#ECFDF5; --mastery-1:#D1FAE5; --mastery-2:#A7F3D0;
+  --mastery-3:#6EE7B7; --mastery-4:#34D399; --mastery-5:#064E3B;
+  /* ── Type ─────────────────────────────────────────────────────────── */
+  --font-display:'Nunito',system-ui,sans-serif;
+  --font-text:'Nunito',system-ui,sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
-  /* Elevation / motion / layout */
-  --shadow-resting:0 6px 24px rgba(0,0,0,.04);
-  --shadow-active:0 10px 32px rgba(0,0,0,.07);
+  /* ── Elevation / motion / layout ─────────────────────────────────── */
+  --shadow-resting:0 2px 8px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-active:0 8px 24px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04);
+  --shadow-glow:0 0 0 3px rgba(16,185,129,.25);
+  --ease-bounce:cubic-bezier(0.34,1.56,0.64,1);
   --ease-calm:cubic-bezier(0.2,0.8,0.2,1);
+  --radius-card:20px; --radius-btn:14px; --radius-pill:9999px;
   --nav-h:64px; --bottomnav-h:68px;
 }
 
@@ -55,100 +68,98 @@
   box-sizing: border-box;
 }
 
-/* Accessibility: skip-to-content link, visible only on keyboard focus */
+/* Accessibility: skip-to-content link */
 .skip-link {
   position: absolute;
   left: -9999px;
   top: 0;
   z-index: 100;
   padding: 10px 16px;
-  background: #142b4d;
+  background: var(--emerald-800);
   color: #fff;
   border-radius: 0 0 6px 0;
   font-weight: 600;
 }
-
-.skip-link:focus {
-  left: 0;
-}
+.skip-link:focus { left: 0; }
 
 body {
-  background: var(--ivory);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-    'Helvetica Neue', sans-serif;
+  background: var(--canvas);
+  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--slate-800);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--font-mono);
 }
 
 /* Reusable, design-system component classes for the public site */
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-teal-500 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-teal-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-[14px] bg-emerald-600 px-5 py-3 font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 disabled:opacity-60;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 rounded-[14px] border-2 border-emerald-200 bg-white px-5 py-3 font-bold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2;
   }
   .field {
-    @apply w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 placeholder-slate-400 transition focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/30;
+    @apply w-full rounded-xl border border-slate-300 px-4 py-2.5 text-slate-900 placeholder-slate-400 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30;
   }
   .field-label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
+    @apply block text-sm font-semibold text-slate-700 mb-1.5;
   }
   .card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply rounded-[20px] border border-slate-200 bg-white shadow-sm;
   }
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full bg-gold-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gold-600;
+    @apply inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700;
   }
-  .brand-teal { color: #0F4C5C; }
+  .brand-emerald { color: var(--emerald-600); }
 
   /* ── Admin data table ─────────────────────────────────────────────── */
   .ds-table          { @apply w-full border-collapse text-sm; }
-  .ds-table thead    { @apply bg-navy-50; }
-  .ds-table th       { @apply px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-ink-500 border-b-2 border-hairline; }
-  .ds-table td       { @apply px-3 py-3 text-ink-700 border-b border-hairline; }
+  .ds-table thead    { @apply bg-emerald-50; }
+  .ds-table th       { @apply px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500 border-b-2 border-slate-200; }
+  .ds-table td       { @apply px-3 py-3 text-slate-700 border-b border-slate-200; }
   .ds-table tbody tr:last-child td { @apply border-b-0; }
-  .ds-table tbody tr:hover { @apply bg-navy-50/50; }
+  .ds-table tbody tr:hover { @apply bg-emerald-50/50; }
 
   /* ── Form wizard (onboarding / profile flows) ─────────────────────── */
-  .ds-wizard-shell   { @apply min-h-screen bg-ivory flex items-center justify-center p-5 sm:p-10; }
-  .ds-wizard-card    { @apply w-full max-w-[600px] overflow-hidden rounded-[24px] border border-hairline bg-paper shadow-active; }
+  .ds-wizard-shell   { @apply min-h-screen bg-canvas flex items-center justify-center p-5 sm:p-10; }
+  .ds-wizard-card    { @apply w-full max-w-[600px] overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-active; }
   .ds-wizard-step    { @apply p-6 sm:p-10; animation: ds-fadeInUp 0.3s ease; }
-  .ds-wizard-footer  { @apply flex gap-3 justify-between border-t border-hairline bg-navy-50/30 p-4 sm:px-10; }
+  .ds-wizard-footer  { @apply flex gap-3 justify-between border-t border-slate-200 bg-emerald-50/30 p-4 sm:px-10; }
 
   /* ── Wizard form groups ───────────────────────────────────────────── */
   .ds-form-group     { @apply mb-6 last:mb-0; }
-  .ds-form-label     { @apply block text-sm font-semibold text-ink-700 mb-2; }
+  .ds-form-label     { @apply block text-sm font-bold text-slate-700 mb-2; }
   .ds-checkbox-grid  { @apply grid gap-3 mb-4; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-  .ds-checkbox-item  { @apply flex items-center gap-2.5 cursor-pointer p-2.5 rounded-xl border border-hairline transition hover:border-navy-300 hover:bg-navy-50/40 select-none; }
+  .ds-checkbox-item  { @apply flex items-center gap-2.5 cursor-pointer p-2.5 rounded-xl border border-slate-200 transition hover:border-emerald-300 hover:bg-emerald-50/40 select-none; }
   .ds-availability-grid { @apply grid gap-4 mb-4; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-  .ds-availability-day  { @apply border border-hairline rounded-xl p-4 bg-navy-50/30; }
+  .ds-availability-day  { @apply border border-slate-200 rounded-xl p-4 bg-emerald-50/30; }
 
   /* ── Admin metric card ────────────────────────────────────────────── */
-  .ds-metric-card       { @apply rounded-[24px] border border-hairline bg-paper p-5 shadow-resting; }
-  .ds-metric-card h3    { @apply text-sm font-semibold text-ink-700 mb-3 pb-2.5 border-b-2 border-navy-500; }
-  .ds-metric-row        { @apply flex justify-between py-2 border-b border-hairline text-sm; }
+  .ds-metric-card       { @apply rounded-[20px] border border-slate-200 bg-white p-5 shadow-resting; }
+  .ds-metric-card h3    { @apply text-sm font-bold text-slate-700 mb-3 pb-2.5 border-b-2 border-emerald-500; }
+  .ds-metric-row        { @apply flex justify-between py-2 border-b border-slate-200 text-sm; }
   .ds-metric-row:last-child { @apply border-b-0; }
-  .ds-metric-row span   { @apply text-ink-500; }
-  .ds-metric-row strong { @apply font-semibold text-ink-700; }
+  .ds-metric-row span   { @apply text-slate-500; }
+  .ds-metric-row strong { @apply font-bold text-slate-700; }
 
   /* ── Pagination ───────────────────────────────────────────────────── */
-  .ds-pagination        { @apply flex justify-center items-center gap-4 mt-5 pt-5 border-t border-hairline; }
-  .ds-pagination button { @apply h-9 px-3.5 text-sm font-semibold rounded-[14px] border border-hairline bg-paper text-navy-700 transition hover:bg-navy-700 hover:text-white hover:border-navy-700 disabled:opacity-50 disabled:cursor-not-allowed; }
-  .ds-pagination span   { @apply text-sm text-ink-500; }
+  .ds-pagination        { @apply flex justify-center items-center gap-4 mt-5 pt-5 border-t border-slate-200; }
+  .ds-pagination button { @apply h-9 px-3.5 text-sm font-bold rounded-[14px] border border-slate-200 bg-white text-emerald-700 transition hover:bg-emerald-600 hover:text-white hover:border-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .ds-pagination span   { @apply text-sm text-slate-500; }
 
   /* ── Resource form ────────────────────────────────────────────────── */
-  .ds-resource-form     { @apply rounded-[24px] border border-hairline bg-paper p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5; }
+  .ds-resource-form     { @apply rounded-[20px] border border-slate-200 bg-white p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5; }
   .ds-resource-form .full-width { @apply sm:col-span-2; }
-  .ds-resource-form label { @apply block text-xs font-semibold text-ink-700 mb-1; }
+  .ds-resource-form label { @apply block text-xs font-bold text-slate-700 mb-1; }
   .ds-resource-form input[type='text'],
   .ds-resource-form textarea,
-  .ds-resource-form select { @apply w-full rounded-xl border border-hairline bg-paper px-3 py-2 text-sm text-ink-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400; }
+  .ds-resource-form select { @apply w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 focus-visible:border-emerald-400; }
 }
 
 @keyframes ds-fadeInUp {

@@ -94,8 +94,8 @@ export function MistakeInsightCard({ insight, onModelDrawing }) {
   if (!insight) {
     return (
       <Card className="p-4">
-        <p className="text-sm font-semibold text-ink-800">Nice work</p>
-        <p className="mt-2 text-sm text-ink-600">Great job on this one — there's nothing to fix here. Keep going!</p>
+        <p className="text-sm font-semibold text-slate-800">Nice one!</p>
+        <p className="mt-2 text-sm text-slate-600">You crushed this one — nothing to fix here. Onwards!</p>
       </Card>
     );
   }

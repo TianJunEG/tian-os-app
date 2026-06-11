@@ -19,6 +19,7 @@ export default function ClassNav({ classId, name, level }) {
     ['Intervention', `${base}/interventions`],
     ['Worksheets', `${base}/worksheets`],
     FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`],
+    FEATURE_FLAGS.psl && ['Problem Solving', `${base}/psl`],
     ['Reports', `${base}/reports`],
   ].filter(Boolean);
   return (

@@ -32,7 +32,7 @@ export function useAnimationFrame(running, speed = 1) {
 }
 
 // ─── SvgLabel — rounded tag + text inside an SVG ────────────────────────
-export function SvgLabel({ x, y, text, color = '#142b4d', bg = '#fff', anchor = 'middle', padding = 6 }) {
+export function SvgLabel({ x, y, text, color = '#064E3B', bg = '#fff', anchor = 'middle', padding = 6 }) {
   const w = text.length * 7.2 + padding * 2;
   const h = 22;
   const tx = anchor === 'start' ? x + padding : anchor === 'end' ? x - w + padding : x;
@@ -67,7 +67,7 @@ export function SimCanvas({ width, height, children, svgRef, ariaLabel, large = 
       >
         <defs>
           <pattern id={gid} width="24" height="24" patternUnits="userSpaceOnUse">
-            <path d="M24 0 H0 V24" fill="none" stroke="#142b4d" strokeWidth="0.5" opacity="0.07" />
+            <path d="M24 0 H0 V24" fill="none" stroke="#064E3B" strokeWidth="0.5" opacity="0.07" />
           </pattern>
         </defs>
         <rect x="0" y="0" width={width} height={height} fill={`url(#${gid})`} />

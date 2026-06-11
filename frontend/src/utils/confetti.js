@@ -15,7 +15,7 @@ export function confettiBurst({ count = 120, duration = 1800, origin } = {}) {
 
   const ox = origin?.x ?? canvas.width / 2;
   const oy = origin?.y ?? canvas.height / 3;
-  const colors = ['#a855f7', '#3b82f6', '#22c55e', '#f59e0b', '#ec4899', '#ef4444', '#14b8a6'];
+  const colors = ['#10B981', '#34D399', '#F59E0B', '#FBBF24', '#8B5CF6', '#0EA5E9', '#F43F5E'];
 
   const parts = Array.from({ length: count }, () => ({
     x: ox + (Math.random() - 0.5) * 240,

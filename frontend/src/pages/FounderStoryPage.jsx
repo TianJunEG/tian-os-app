@@ -70,7 +70,7 @@ export default function FounderStoryPage() {
       <TianOSKeyframes />
 
       {/* Nav */}
-      <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,248,234,0.85)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(248,250,252,0.85)', borderBottom: '1px solid rgba(30,41,59,0.08)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link to="/" style={{ textDecoration: 'none' }}><Wordmark /></Link>
           <nav style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
@@ -135,7 +135,7 @@ export default function FounderStoryPage() {
             <Eyebrow style={{ color: CORAL }}>The moment that changed everything</Eyebrow>
           </Reveal>
           <Reveal delay={0.1}>
-            <p style={{ marginTop: 28, fontSize: 20, lineHeight: 1.7, color: 'rgba(255,248,234,0.85)', maxWidth: 640, margin: '28px auto 0' }}>
+            <p style={{ marginTop: 28, fontSize: 20, lineHeight: 1.7, color: 'rgba(248,250,252,0.85)', maxWidth: 640, margin: '28px auto 0' }}>
               A Primary 5 girl walked into our founder's classroom scoring 9 out of 100.
               Under her guidance, the girl scored around 65 for PSLE. Years later, our founder
               taught her again — from Secondary 3 to Secondary 5 — and she achieved an A at O-Levels.
@@ -204,7 +204,7 @@ export default function FounderStoryPage() {
               <div style={{
                 display: 'grid', gridTemplateColumns: '72px 1fr', gap: 16,
                 padding: '20px 0',
-                borderBottom: i < MILESTONES.length - 1 ? '1px solid rgba(15,76,92,0.10)' : 'none',
+                borderBottom: i < MILESTONES.length - 1 ? '1px solid rgba(30,41,59,0.10)' : 'none',
               }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: TEAL, letterSpacing: '0.04em', paddingTop: 3 }}>{m.year}</span>
                 <div>

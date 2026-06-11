@@ -287,26 +287,26 @@ const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 
 const LandingPage = () => (
   <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
     <TianOSKeyframes />
-    <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,248,234,0.85)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.9)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/"><Wordmark /></Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
           <Link to="/founder" style={navLink}>Our story</Link>
           <Link to="/methodology" style={navLink}>Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
-          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: CORAL, color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${CORAL_GLOW}` }}>Request Demo</Link>
+          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request Demo</Link>
         </nav>
       </div>
     </header>
 
       <main>
-        <section style={{ position: 'relative', overflow: 'hidden', background: `linear-gradient(to bottom, ${TEAL_DARK}, ${TEAL}, ${BG})` }}>
+        <section style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(165deg, #011A14 0%, #022C22 50%, #064E3B 100%)' }}>
         <div style={{ position: 'absolute', right: '-6%', top: '-10%', width: 620, height: 620, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,216,240,0.25) 0%, transparent 60%)', filter: 'blur(40px)', pointerEvents: 'none', opacity: 0.5 }} />
         <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
           <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
             <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY }}>
-              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
+              AI-Native Learning.<br /><span style={{ color: '#34D399' }}>Built for Schools.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
@@ -315,7 +315,7 @@ const LandingPage = () => (
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: '#fff', color: '#064E3B', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 20px 40px -12px rgba(0,0,0,0.3)' }}>Request a Demo <ArrowRight size={18} /></Link>
             <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
