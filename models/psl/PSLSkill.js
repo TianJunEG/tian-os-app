@@ -5,15 +5,15 @@ const pslSkillSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, default: '' },
   level: { type: String, required: true },
-heuristic: {
+  heuristic: {
     type: String,
-    enum: ['bar-model', 'find-pattern', 'substitution', 'make-list', 'guess-check', 'work-backwards'],
+    enum: ['bar-model', 'find-pattern', 'substitution', 'make-list', 'guess-check', 'work-backwards', 'before-after', 'multi-step', 'ratio', 'data-interpretation', 'excess-shortage'],
     required: true,
   },
-  structure: { type: String, enum: ['partWhole', 'comparison', 'twoStep', 'beforeAfter', 'workBackwards', 'multiStep', 'guessCheck', 'ratio', 'dataInterpretation', 'excessShortage', 'comparisonMultiples', 'substitution', 'simultaneousChange', 'simultaneous', 'patternRecognition'], default: null },
+  structure: { type: String, enum: ['partWhole', 'comparison', 'twoStep', 'beforeAfter', 'workBackwards', 'multiStep', 'guessCheck', 'ratio', 'dataInterpretation', 'excessShortage', 'comparisonMultiples', 'substitution', 'simultaneousChange'], default: null },
   planType: {
     type: String,
-    enum: ['model', 'table_setup', 'equation_setup', 'list_candidates', 'guess_setup', 'reverse_steps'],
+    enum: ['model', 'table_setup', 'equation_setup', 'list_candidates', 'guess_setup', 'reverse_steps', 'strategySelect'],
     default: 'model',
   },
   solveType: {

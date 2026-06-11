@@ -5,6 +5,7 @@ import PlanTableSetup from './PlanTableSetup';
 import PlanGuessSetup from './PlanGuessSetup';
 import PlanListCandidates from './PlanListCandidates';
 import PlanEquationSetup from './PlanEquationSetup';
+import PlanStrategySelect from './PlanStrategySelect';
 
 function PlaceholderPlan({ type, response, onChange }) {
   return (
@@ -49,6 +50,10 @@ export default function PlanDispatcher({ type, response, onChange, scaffoldStep 
 
   if (planType === 'equation_setup') {
     return <PlanEquationSetup scaffoldStep={scaffoldStep} response={response} onChange={onChange} />;
+  }
+
+  if (planType === 'strategySelect') {
+    return <PlanStrategySelect scaffoldStep={scaffoldStep} response={response} onChange={onChange} />;
   }
 
   return <PlaceholderPlan type={planType} response={response} onChange={onChange} />;

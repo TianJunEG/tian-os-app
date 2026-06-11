@@ -28,8 +28,13 @@ const HEURISTIC_COLORS = {
   'make-list': 'bg-amber-100 text-amber-700',
   'guess-check': 'bg-rose-100 text-rose-700',
   'work-backwards': 'bg-emerald-100 text-emerald-700',
-  'simultaneous': 'bg-indigo-100 text-indigo-700',
-  'pattern-recognition': 'bg-teal-100 text-teal-700',
+  'before-after': 'bg-orange-100 text-orange-700',
+  'multi-step': 'bg-indigo-100 text-indigo-700',
+  'ratio': 'bg-teal-100 text-teal-700',
+  'data-interpretation': 'bg-sky-100 text-sky-700',
+  'excess-shortage': 'bg-fuchsia-100 text-fuchsia-700',
+  'simultaneous': 'bg-violet-100 text-violet-700',
+  'pattern-recognition': 'bg-lime-100 text-lime-700',
 };
 const LEVEL_LABELS = { P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6' };
 const LEVEL_ORDER = ['P3', 'P4', 'P5', 'P6'];

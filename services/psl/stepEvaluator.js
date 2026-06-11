@@ -1,5 +1,3 @@
-import { getFeedback as catalogFeedback } from './misconceptionCatalog.js';
-
 export const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
 function safeEval(expr) {
@@ -113,6 +111,11 @@ function evaluatePlanGuess(response, expected) {
   return { correct: false, partial: false, score: 0, misconceptionTag: 'psl/wrong-constraints' };
 }
 
+function evaluatePlanStrategy(response, expected) {
+  const correct = Number(response?.selectedIndex) === expected?.correctIndex;
+  return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-strategy' };
+}
+
 const PLAN_EVALUATORS = {
   model: evaluatePlanModel,
   reverse_steps: evaluatePlanReverseSteps,
@@ -120,6 +123,7 @@ const PLAN_EVALUATORS = {
   equation_setup: evaluatePlanEquation,
   list_candidates: evaluatePlanList,
   guess_setup: evaluatePlanGuess,
+  strategySelect: evaluatePlanStrategy,
 };
 
 function evaluatePlan(response, expected) {
