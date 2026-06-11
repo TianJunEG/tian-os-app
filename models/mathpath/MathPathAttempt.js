@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const SESSION_TYPES = ['diagnostic', 'practice', 'fluency', 'retention', 'assessment'];
+const SESSION_TYPES = ['diagnostic', 'practice', 'fluency', 'retention', 'assessment', 'story'];
 
 const mathPathAttemptSchema = new mongoose.Schema(
   {
