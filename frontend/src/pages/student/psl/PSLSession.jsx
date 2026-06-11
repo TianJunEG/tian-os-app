@@ -11,10 +11,9 @@ import SolveDispatcher from './components/SolveDispatcher';
 import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
 import ReasoningInput from './components/ReasoningInput';
+import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
-
-
 
 const DEFAULT_UNDERSTAND_CHOICES = [
   'It\'s about finding a total or combining groups',
@@ -250,11 +249,21 @@ export default function PSLSession() {
         )}
 
         {currentStepId === 'solve' && (
-          <SolveDispatcher
-            scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
-            response={stepResponses.solve || {}}
-            onChange={(val) => updateResponse('solve', val)}
-          />
+          <>
+            <SolveDispatcher
+              scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
+              response={stepResponses.solve || {}}
+              onChange={(val) => updateResponse('solve', val)}
+            />
+            <WorkingCanvas
+              questionId={`${session?.sessionId}-${problemIndex}-solve`}
+              label="Scratchpad"
+              required={false}
+              allowNoWorking={false}
+              compact
+              showMathStamps={false}
+            />
+          </>
         )}
 
         {currentStepId === 'check' && (

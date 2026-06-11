@@ -62,14 +62,14 @@ api.interceptors.request.use((config) => {
 export function describeApiError(error) {
   const status = error?.response?.status;
   const serverMessage = error?.response?.data?.error || error?.response?.data?.message;
-  if (status === 400) return serverMessage || 'That didn’t go through. Please check and try again.';
+  if (status === 400) return serverMessage || 'That didn't go through. Please check and try again.';
   if (status === 401) return 'Your session has expired. Please sign in again.';
-  if (status === 403) return serverMessage || 'You don’t have access to that.';
-  if (status === 404) return serverMessage || 'We couldn’t find what you were looking for.';
+  if (status === 403) return serverMessage || 'You don't have access to that.';
+  if (status === 404) return serverMessage || 'We couldn't find what you were looking for.';
   if (status === 408 || error?.code === 'ECONNABORTED') return 'That took too long. Please check your connection and try again.';
-  if (status === 429) return 'You’re going a bit fast — please wait a moment and try again.';
+  if (status === 429) return 'You're going a bit fast — please wait a moment and try again.';
   if (typeof status === 'number' && status >= 500) return 'Something went wrong on our end. Please try again in a moment.';
-  if (!error?.response) return 'We couldn’t reach the server. Please check your connection and try again.';
+  if (!error?.response) return 'We couldn't reach the server. Please check your connection and try again.';
   return serverMessage || 'Something went wrong. Please try again.';
 }
 
