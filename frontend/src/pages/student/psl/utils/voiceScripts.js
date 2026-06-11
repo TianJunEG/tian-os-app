@@ -104,6 +104,33 @@ const SCRIPTS = {
     ],
     answer: "Check — does the rule work for all the terms we know?",
   },
+  'assumption': {
+    steps: [
+      "Let's use the assumption method! First, let's assume all items are the same type.",
+      "Now calculate the total under our assumption.",
+      "Compare with the actual total — what's the difference?",
+      "Each swap changes the total by a fixed amount. Divide the difference by the per-swap change!",
+    ],
+    answer: "The assumption method gives us a neat answer without any guessing!",
+  },
+  'assumption:animals': {
+    steps: [
+      "Let's assume all animals are the type with fewer legs.",
+      "Calculate the total legs under our assumption.",
+      "Now find the difference between assumed and actual legs.",
+      "Each swap adds extra legs. Divide the difference by the extra legs per swap!",
+    ],
+    answer: "We found how many of each animal there are — no guessing needed!",
+  },
+  'assumption:scoring': {
+    steps: [
+      "Let's assume all answers are correct first.",
+      "Calculate the maximum possible score.",
+      "The gap between the maximum and actual score tells us something important.",
+      "Each wrong answer costs you the gain PLUS the penalty. Divide the gap by this amount!",
+    ],
+    answer: "That's how many wrong answers there were!",
+  },
 };
 
 export function getVoiceScripts(heuristic, structure, unknownPosition) {

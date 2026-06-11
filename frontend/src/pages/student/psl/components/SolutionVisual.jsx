@@ -207,6 +207,51 @@ function ExcessShortageVisual({ spec, step }) {
   );
 }
 
+function AssumptionVisual({ spec, step }) {
+  const showDiff = step >= 2;
+  const showAnswer = step >= 3;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <div className="w-20 text-right text-[10px] text-ink-500">Assume all</div>
+        <div className="flex-1 rounded-lg bg-sky-100 px-3 py-1.5 text-center">
+          <span className="text-xs font-semibold text-sky-700">{spec.totalItems} × {spec.unitA} = {spec.assumedTotal}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-20 text-right text-[10px] text-ink-500">Actual</div>
+        <div className="flex-1 rounded-lg bg-gold-100 px-3 py-1.5 text-center">
+          <span className="text-xs font-semibold text-gold-700">{spec.totalValue}</span>
+        </div>
+      </div>
+      {showDiff && (
+        <div className="flex items-center gap-2 transition-all duration-300">
+          <div className="w-20 text-right text-[10px] text-ink-500">Difference</div>
+          <div className="flex-1 rounded-lg bg-amber-100 px-3 py-1.5 text-center">
+            <span className="text-xs font-semibold text-amber-700">{Math.abs(spec.totalValue - spec.assumedTotal)}</span>
+          </div>
+        </div>
+      )}
+      {showDiff && (
+        <div className="flex items-center gap-2 transition-all duration-300">
+          <div className="w-20 text-right text-[10px] text-ink-500">Per swap</div>
+          <div className="flex-1 rounded-lg bg-ink-100 px-3 py-1.5 text-center">
+            <span className="text-xs font-semibold text-ink-600">±{spec.swapDiff}</span>
+          </div>
+        </div>
+      )}
+      {showAnswer && (
+        <div className="flex items-center gap-2 transition-all duration-300">
+          <div className="w-20 text-right text-[10px] text-ink-500">Answer</div>
+          <div className="flex-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-center">
+            <span className="text-xs font-semibold text-emerald-700">{Math.abs(spec.totalValue - spec.assumedTotal)} ÷ {spec.swapDiff} = {spec.answer}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SolutionVisual({ visualSpec, revealedSteps }) {
   if (!visualSpec) return null;
   const step = revealedSteps || 0;
@@ -218,6 +263,7 @@ export default function SolutionVisual({ visualSpec, revealedSteps }) {
     workBackwards: WorkBackwardsVisual,
     guessCheck: GuessCheckVisual,
     excessShortage: ExcessShortageVisual,
+    assumption: AssumptionVisual,
   };
 
   const Renderer = RENDERERS[visualSpec.type];

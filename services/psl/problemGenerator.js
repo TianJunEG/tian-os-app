@@ -324,6 +324,22 @@ function buildVisualSpec(template, nums, vars) {
     return null;
   }
 
+
+  if (h === 'assumption') {
+    if (nums.totalItems !== undefined && nums.totalValue !== undefined) {
+      return {
+        type: 'assumption',
+        totalItems: nums.totalItems,
+        totalValue: nums.totalValue,
+        assumedTotal: nums.assumedTotal,
+        unitA: vars.unitA || nums.unitA || 0,
+        swapDiff: nums.swapDiff,
+        answer: nums.answer,
+      };
+    }
+    return null;
+  }
+
   return null;
 }
 
