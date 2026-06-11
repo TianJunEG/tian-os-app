@@ -7,6 +7,7 @@ export const MATHPATH_ASSIGNMENT_SOURCES = [
   'teacher',
   'parent',
   'system',
+  'remediation',
 ];
 
 export const MATHPATH_ASSIGNMENT_STATUS = [

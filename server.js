@@ -65,6 +65,7 @@ import recordingRoutes from './routes/recordings.js';
 import adminLicenceRoutes from './routes/adminLicences.js';
 import agencyRoutes from './routes/agency.js';
 import studentLinkRoutes from './routes/studentLinks.js';
+import remediationSessionRoutes from './routes/remediationSessions.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -187,6 +188,7 @@ app.use('/api/mathpath-working', mathpathWorkingRoutes);
 app.use('/api/mathpath/paper-analysis', mathpathPaperAnalysisRoutes);
 app.use('/api/mathpath/assignments', mathpathAssignmentRoutes);
 app.use('/api/mathpath/success-centre', mathpathSuccessCentreRoutes);
+app.use('/api/remediation-sessions', remediationSessionRoutes);
 app.use('/api/interventions', interventionRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/skills', skillRoutes);
