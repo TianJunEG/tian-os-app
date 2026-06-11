@@ -48,7 +48,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-pw-whole-01',
-    skillId: 'psl-p3-bar-pw-find-whole', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-find-whole', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 1,
     contexts: [
       { setting: 'market', entityA: 'red apples', entityB: 'green apples', itemPlural: 'apples', verb: 'bought' },
@@ -65,7 +65,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-whole-02',
-    skillId: 'psl-p3-bar-pw-find-whole', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-find-whole', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 1,
     contexts: [
       { setting: 'bakery', entityA: 'chocolate cakes', entityB: 'vanilla cakes', itemPlural: 'cakes', verb: 'baked' },
@@ -81,7 +81,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-whole-03',
-    skillId: 'psl-p3-bar-pw-find-whole', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-find-whole', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 1,
     contexts: [
       { setting: 'canteen', entityA: 'chicken rice sets', entityB: 'noodle sets', itemPlural: 'meals', verb: 'sold' },
@@ -98,7 +98,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-whole-04',
-    skillId: 'psl-p3-bar-pw-find-whole', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-find-whole', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 1,
     contexts: [
       { setting: 'classroom', entityA: 'coloured pencils', entityB: 'markers', itemPlural: 'drawing tools', verb: 'had' },
@@ -118,7 +118,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-pw-part-01',
-    skillId: 'psl-p3-bar-pw-find-part', structure: 'partWhole', unknownPosition: 'part',
+    skillId: 'psl-p3-bar-pw-find-part', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'part',
     operations: ['subtraction'], difficulty: 1,
     contexts: [
       { setting: 'school', entityA: 'students', entityB: 'boys', entityC: 'girls', verb: 'are' },
@@ -134,7 +134,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-part-02',
-    skillId: 'psl-p3-bar-pw-find-part', structure: 'partWhole', unknownPosition: 'part',
+    skillId: 'psl-p3-bar-pw-find-part', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'part',
     operations: ['subtraction'], difficulty: 1,
     contexts: [
       { setting: 'shop', entityA: 'stickers', verb: 'had', verbPast: 'gave away' },
@@ -150,7 +150,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-part-03',
-    skillId: 'psl-p3-bar-pw-find-part', structure: 'partWhole', unknownPosition: 'part',
+    skillId: 'psl-p3-bar-pw-find-part', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'part',
     operations: ['subtraction'], difficulty: 1,
     contexts: [
       { setting: 'party', entityA: 'balloons', verb: 'had', verbPast: 'burst' },
@@ -166,7 +166,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-part-04',
-    skillId: 'psl-p3-bar-pw-find-part', structure: 'partWhole', unknownPosition: 'part',
+    skillId: 'psl-p3-bar-pw-find-part', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'part',
     operations: ['subtraction'], difficulty: 2,
     contexts: [
       { setting: 'supermarket', entityA: 'items', entityB: 'fruits', entityC: 'vegetables', verb: 'bought' },
@@ -186,7 +186,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-pw-3parts-01',
-    skillId: 'psl-p3-bar-pw-3parts', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-3parts', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 2,
     contexts: [
       { setting: 'canteen', entityA: 'chicken rice', entityB: 'noodles', entityC: 'fried rice', itemPlural: 'meals', verb: 'sold' },
@@ -210,7 +210,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-3parts-02',
-    skillId: 'psl-p3-bar-pw-3parts', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-3parts', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 2,
     contexts: [
       { setting: 'birthday party', entityA: 'P3 students', entityB: 'P4 students', entityC: 'P5 students', itemPlural: 'students', verb: 'invited' },
@@ -234,7 +234,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-3parts-03',
-    skillId: 'psl-p3-bar-pw-3parts', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-3parts', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 2,
     contexts: [
       { setting: 'hawker centre', entityA: 'laksa', entityB: 'satay', entityC: 'roti prata', itemPlural: 'dishes', verb: 'ordered' },
@@ -262,7 +262,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-pw-mul-01',
-    skillId: 'psl-p3-bar-pw-mul', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-mul', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['multiplication'], difficulty: 2,
     contexts: [
       { setting: 'party', entityA: 'bags', entityA2: 'bag', entityB: 'sweets', verb: 'packed' },
@@ -286,7 +286,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-mul-02',
-    skillId: 'psl-p3-bar-pw-mul', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-mul', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['multiplication'], difficulty: 2,
     contexts: [
       { setting: 'bookshop', entityA: 'shelves', entityA2: 'shelf', entityB: 'books', verb: 'placed' },
@@ -310,7 +310,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-pw-mul-03',
-    skillId: 'psl-p3-bar-pw-mul', structure: 'partWhole', unknownPosition: 'whole',
+    skillId: 'psl-p3-bar-pw-mul', heuristic: 'bar-model', structure: 'partWhole', unknownPosition: 'whole',
     operations: ['multiplication'], difficulty: 2,
     contexts: [
       { setting: 'kitchen', entityA: 'trays', entityA2: 'tray', entityB: 'cookies', verb: 'baked' },
@@ -338,7 +338,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-comp-diff-01',
-    skillId: 'psl-p3-bar-comp-find-diff', structure: 'comparison', unknownPosition: 'difference',
+    skillId: 'psl-p3-bar-comp-find-diff', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'difference',
     operations: ['subtraction'], difficulty: 1,
     contexts: [
       { setting: 'market', entityA: 'mangoes', entityB: 'oranges', verb: 'sold' },
@@ -354,7 +354,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-diff-02',
-    skillId: 'psl-p3-bar-comp-find-diff', structure: 'comparison', unknownPosition: 'difference',
+    skillId: 'psl-p3-bar-comp-find-diff', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'difference',
     operations: ['subtraction'], difficulty: 1,
     contexts: [
       { setting: 'swimming', entityA: 'laps', verb: 'swam' },
@@ -370,7 +370,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-diff-03',
-    skillId: 'psl-p3-bar-comp-find-diff', structure: 'comparison', unknownPosition: 'difference',
+    skillId: 'psl-p3-bar-comp-find-diff', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'difference',
     operations: ['subtraction'], difficulty: 1,
     contexts: [
       { setting: 'savings', entityA: 'dollars', verb: 'saved' },
@@ -386,7 +386,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-diff-04',
-    skillId: 'psl-p3-bar-comp-find-diff', structure: 'comparison', unknownPosition: 'difference',
+    skillId: 'psl-p3-bar-comp-find-diff', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'difference',
     operations: ['subtraction'], difficulty: 2,
     contexts: [
       { setting: 'weight', entityA: 'kg', verb: 'weighs' },
@@ -406,7 +406,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-comp-larger-01',
-    skillId: 'psl-p3-bar-comp-find-larger', structure: 'comparison', unknownPosition: 'larger',
+    skillId: 'psl-p3-bar-comp-find-larger', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'larger',
     operations: ['addition'], difficulty: 2,
     contexts: [
       { setting: 'savings', entityA: 'dollars', verb: 'saved', comparison: 'more than' },
@@ -430,7 +430,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-larger-02',
-    skillId: 'psl-p3-bar-comp-find-larger', structure: 'comparison', unknownPosition: 'larger',
+    skillId: 'psl-p3-bar-comp-find-larger', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'larger',
     operations: ['addition'], difficulty: 2,
     contexts: [
       { setting: 'baking', entityA: 'muffins', verb: 'baked', comparison: 'more than' },
@@ -454,7 +454,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-larger-03',
-    skillId: 'psl-p3-bar-comp-find-larger', structure: 'comparison', unknownPosition: 'larger',
+    skillId: 'psl-p3-bar-comp-find-larger', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'larger',
     operations: ['addition'], difficulty: 2,
     contexts: [
       { setting: 'race', entityA: 'points', verb: 'scored', comparison: 'more than' },
@@ -482,7 +482,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-comp-smaller-01',
-    skillId: 'psl-p3-bar-comp-find-smaller', structure: 'comparison', unknownPosition: 'smaller',
+    skillId: 'psl-p3-bar-comp-find-smaller', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'smaller',
     operations: ['subtraction'], difficulty: 2,
     contexts: [
       { setting: 'height', entityA: 'cm', verb: 'is', comparison: 'shorter than' },
@@ -506,7 +506,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-smaller-02',
-    skillId: 'psl-p3-bar-comp-find-smaller', structure: 'comparison', unknownPosition: 'smaller',
+    skillId: 'psl-p3-bar-comp-find-smaller', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'smaller',
     operations: ['subtraction'], difficulty: 2,
     contexts: [
       { setting: 'pocket money', entityA: 'dollars', verb: 'has', comparison: 'fewer than' },
@@ -530,7 +530,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-smaller-03',
-    skillId: 'psl-p3-bar-comp-find-smaller', structure: 'comparison', unknownPosition: 'smaller',
+    skillId: 'psl-p3-bar-comp-find-smaller', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'smaller',
     operations: ['subtraction'], difficulty: 2,
     contexts: [
       { setting: 'running', entityA: 'metres', verb: 'ran', comparison: 'less than' },
@@ -558,7 +558,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-comp-total-01',
-    skillId: 'psl-p3-bar-comp-total', structure: 'comparison', unknownPosition: 'larger',
+    skillId: 'psl-p3-bar-comp-total', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'larger',
     operations: ['addition'], difficulty: 3,
     contexts: [
       { setting: 'fruit stall', entityA: 'apples', entityB: 'oranges', verb: 'sold', comparison: 'more' },
@@ -585,7 +585,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-total-02',
-    skillId: 'psl-p3-bar-comp-total', structure: 'comparison', unknownPosition: 'larger',
+    skillId: 'psl-p3-bar-comp-total', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'larger',
     operations: ['addition'], difficulty: 3,
     contexts: [
       { setting: 'fundraiser', entityA: 'tickets', entityB: 'tickets', verb: 'sold', comparison: 'more' },
@@ -612,7 +612,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-comp-total-03',
-    skillId: 'psl-p3-bar-comp-total', structure: 'comparison', unknownPosition: 'larger',
+    skillId: 'psl-p3-bar-comp-total', heuristic: 'bar-model', structure: 'comparison', unknownPosition: 'larger',
     operations: ['addition'], difficulty: 3,
     contexts: [
       { setting: 'PE lesson', entityA: 'sit-ups', entityB: 'sit-ups', verb: 'did', comparison: 'more' },
@@ -643,7 +643,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-twostep-pw-comp-01',
-    skillId: 'psl-p3-twostep-pw-comp', structure: 'twoStep', unknownPosition: 'difference',
+    skillId: 'psl-p3-twostep-pw-comp', heuristic: 'bar-model', structure: 'twoStep', unknownPosition: 'difference',
     operations: ['subtraction'], difficulty: 3,
     contexts: [
       { setting: 'sports day', entityA: 'Red team', entityB: 'Blue team', itemPlural: 'points', verb: 'scored' },
@@ -669,7 +669,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-twostep-pw-comp-02',
-    skillId: 'psl-p3-twostep-pw-comp', structure: 'twoStep', unknownPosition: 'difference',
+    skillId: 'psl-p3-twostep-pw-comp', heuristic: 'bar-model', structure: 'twoStep', unknownPosition: 'difference',
     operations: ['subtraction'], difficulty: 3,
     contexts: [
       { setting: 'bake sale', entityA: 'Class 3A', entityB: 'Class 3B', itemPlural: 'cookies', verb: 'sold' },
@@ -695,7 +695,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-twostep-pw-comp-03',
-    skillId: 'psl-p3-twostep-pw-comp', structure: 'twoStep', unknownPosition: 'difference',
+    skillId: 'psl-p3-twostep-pw-comp', heuristic: 'bar-model', structure: 'twoStep', unknownPosition: 'difference',
     operations: ['subtraction'], difficulty: 3,
     contexts: [
       { setting: 'reading challenge', entityA: '{nameA}', entityB: '{nameB}', itemPlural: 'pages', verb: 'read' },
@@ -725,7 +725,7 @@ const TEMPLATES = [
   // ══════════════════════════════════════════════════════════════════════
   {
     templateId: 'psl-tpl-twostep-comp-pw-01',
-    skillId: 'psl-p3-twostep-comp-pw', structure: 'twoStep', unknownPosition: 'whole',
+    skillId: 'psl-p3-twostep-comp-pw', heuristic: 'bar-model', structure: 'twoStep', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 3,
     contexts: [
       { setting: 'bookshop', entityA: 'English books', entityB: 'Chinese books', verb: 'bought', comparison: 'more' },
@@ -751,7 +751,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-twostep-comp-pw-02',
-    skillId: 'psl-p3-twostep-comp-pw', structure: 'twoStep', unknownPosition: 'whole',
+    skillId: 'psl-p3-twostep-comp-pw', heuristic: 'bar-model', structure: 'twoStep', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 3,
     contexts: [
       { setting: 'fruit shop', entityA: 'mangoes', entityB: 'durians', verb: 'bought', comparison: 'more' },
@@ -777,7 +777,7 @@ const TEMPLATES = [
   },
   {
     templateId: 'psl-tpl-twostep-comp-pw-03',
-    skillId: 'psl-p3-twostep-comp-pw', structure: 'twoStep', unknownPosition: 'whole',
+    skillId: 'psl-p3-twostep-comp-pw', heuristic: 'bar-model', structure: 'twoStep', unknownPosition: 'whole',
     operations: ['addition'], difficulty: 3,
     contexts: [
       { setting: 'donation drive', entityA: 'shirts', entityB: 'pants', verb: 'collected', comparison: 'more' },

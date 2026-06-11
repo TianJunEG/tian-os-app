@@ -10,16 +10,121 @@ function generateNumbers(constraints, structure) {
   const MAX_TRIES = 50;
   for (let i = 0; i < MAX_TRIES; i++) {
     const nums = {};
-    if (constraints.partA && constraints.partB) {
-      nums.partA = randInt(constraints.partA.min, constraints.partA.max);
-      nums.partB = randInt(constraints.partB.min, constraints.partB.max);
-      nums.answer = nums.partA + nums.partB;
+
+    // Generic constraint solver: generate each named variable from its {min,max} range
+    // then compute derived values via constraints.compute entries
+    if (constraints._generic) {
+      for (const [key, range] of Object.entries(constraints._generic)) {
+        nums[key] = randInt(range.min, range.max);
+      }
+      if (constraints._compute) {
+        for (const [key, expr] of Object.entries(constraints._compute)) {
+          nums[key] = expr(nums);
+        }
+      }
+      if (constraints.answer?.min && (nums.answer || 0) < constraints.answer.min) continue;
+      if (constraints.answer?.max && (nums.answer || 0) > constraints.answer.max) continue;
+      return nums;
+    }
+
+    // Before-after: start + change = end (or start - change = end)
+    if (constraints.start && constraints.change) {
+      nums.start = randInt(constraints.start.min, constraints.start.max);
+      nums.change = randInt(constraints.change.min, constraints.change.max);
+      if (constraints.operation === 'subtraction') {
+        if (nums.change >= nums.start) continue;
+        nums.end = nums.start - nums.change;
+        nums.answer = nums.end;
+      } else {
+        nums.end = nums.start + nums.change;
+        nums.answer = nums.end;
+      }
       if (constraints.answer?.max && nums.answer > constraints.answer.max) continue;
-    } else if (constraints.partA && constraints.partB && constraints.partC) {
+      if (constraints.answer?.min && nums.answer < constraints.answer.min) continue;
+      return nums;
+    }
+
+    // Work-backwards: end + reversed ops = start
+    if (constraints.end && constraints.step1 && constraints.step2) {
+      nums.end = randInt(constraints.end.min, constraints.end.max);
+      nums.step1 = randInt(constraints.step1.min, constraints.step1.max);
+      nums.step2 = randInt(constraints.step2.min, constraints.step2.max);
+      nums.answer = nums.end + nums.step1 + nums.step2;
+      if (constraints.answer?.max && nums.answer > constraints.answer.max) continue;
+      return nums;
+    }
+    if (constraints.end && constraints.step1) {
+      nums.end = randInt(constraints.end.min, constraints.end.max);
+      nums.step1 = randInt(constraints.step1.min, constraints.step1.max);
+      nums.answer = nums.end + nums.step1;
+      if (constraints.answer?.max && nums.answer > constraints.answer.max) continue;
+      return nums;
+    }
+
+    // Multi-step: chain of operations
+    if (constraints.valA && constraints.valB && constraints.valC) {
+      nums.valA = randInt(constraints.valA.min, constraints.valA.max);
+      nums.valB = randInt(constraints.valB.min, constraints.valB.max);
+      nums.valC = randInt(constraints.valC.min, constraints.valC.max);
+      if (constraints.answerFn) {
+        nums.answer = constraints.answerFn(nums);
+      } else {
+        nums.answer = nums.valA + nums.valB + nums.valC;
+      }
+      if (constraints.answer?.max && nums.answer > constraints.answer.max) continue;
+      if (constraints.answer?.min && nums.answer < constraints.answer.min) continue;
+      return nums;
+    }
+    if (constraints.valA && constraints.valB) {
+      nums.valA = randInt(constraints.valA.min, constraints.valA.max);
+      nums.valB = randInt(constraints.valB.min, constraints.valB.max);
+      if (constraints.answerFn) {
+        nums.answer = constraints.answerFn(nums);
+      } else {
+        nums.answer = nums.valA + nums.valB;
+      }
+      if (constraints.answer?.max && nums.answer > constraints.answer.max) continue;
+      if (constraints.answer?.min && nums.answer < constraints.answer.min) continue;
+      return nums;
+    }
+
+    // Guess-and-check: total and difference give two unknowns
+    if (constraints.total && constraints.diff) {
+      nums.total = randInt(constraints.total.min, constraints.total.max);
+      nums.diff = randInt(constraints.diff.min, constraints.diff.max);
+      if ((nums.total + nums.diff) % 2 !== 0) continue;
+      nums.larger = (nums.total + nums.diff) / 2;
+      nums.smaller = (nums.total - nums.diff) / 2;
+      if (nums.smaller < 1) continue;
+      nums.answer = nums.larger;
+      return nums;
+    }
+
+    // Ratio: parts and value-per-part
+    if (constraints.ratioA && constraints.ratioB && constraints.totalValue) {
+      nums.ratioA = randInt(constraints.ratioA.min, constraints.ratioA.max);
+      nums.ratioB = randInt(constraints.ratioB.min, constraints.ratioB.max);
+      nums.totalValue = randInt(constraints.totalValue.min, constraints.totalValue.max);
+      const totalParts = nums.ratioA + nums.ratioB;
+      if (nums.totalValue % totalParts !== 0) continue;
+      nums.valuePerPart = nums.totalValue / totalParts;
+      nums.valueA = nums.ratioA * nums.valuePerPart;
+      nums.valueB = nums.ratioB * nums.valuePerPart;
+      nums.answer = nums.valueA;
+      return nums;
+    }
+
+    // Existing bar model patterns below
+    if (constraints.partA && constraints.partC) {
       nums.partA = randInt(constraints.partA.min, constraints.partA.max);
       nums.partB = randInt(constraints.partB.min, constraints.partB.max);
       nums.partC = randInt(constraints.partC.min, constraints.partC.max);
       nums.answer = nums.partA + nums.partB + nums.partC;
+      if (constraints.answer?.max && nums.answer > constraints.answer.max) continue;
+    } else if (constraints.partA && constraints.partB) {
+      nums.partA = randInt(constraints.partA.min, constraints.partA.max);
+      nums.partB = randInt(constraints.partB.min, constraints.partB.max);
+      nums.answer = nums.partA + nums.partB;
       if (constraints.answer?.max && nums.answer > constraints.answer.max) continue;
     } else if (constraints.whole && constraints.partA) {
       nums.whole = randInt(constraints.whole.min, constraints.whole.max);
@@ -77,6 +182,10 @@ function buildScaffoldSteps(scaffold, vars) {
     } else if (raw.type === 'model') {
       step.prompt = 'Which bar model fits this problem?';
       step.expectedResponse = { modelType: raw.modelType, unknownPosition: raw.unknownPosition };
+    } else if (raw.type === 'strategySelect') {
+      step.prompt = substituteTokens(raw.prompt || 'What strategy should we use?', vars);
+      step.expectedResponse = { correctIndex: raw.correctIndex };
+      if (raw.choices) step.choices = raw.choices.map((c) => substituteTokens(c, vars));
     } else if (raw.type === 'expression') {
       step.prompt = 'Write the number sentence and find the answer.';
       step.expectedResponse = {
@@ -152,17 +261,20 @@ export async function generateProblem(skillId, options = {}) {
 
   const scaffoldSteps = buildScaffoldSteps(template.scaffold, vars);
 
+  const isBarModel = ['partWhole', 'comparison', 'twoStep'].includes(template.structure);
   return {
     problemId: crypto.randomUUID(),
     templateId: template.templateId,
+    heuristic: template.heuristic || (isBarModel ? 'bar-model' : template.structure),
+    structure: template.structure,
     storyText,
     givenNumbers,
     correctAnswer,
-    barModelSpec: {
+    barModelSpec: isBarModel ? {
       modelType: template.structure === 'twoStep' ? 'partWhole' : template.structure,
       unknownPosition: template.unknownPosition,
       values: nums,
-    },
+    } : null,
     scaffoldSteps,
     status: 'pending',
   };

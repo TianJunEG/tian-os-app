@@ -9,8 +9,16 @@ import ModelSelector from './components/ModelSelector';
 import SolvePanel from './components/SolvePanel';
 import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
+import ReasoningInput from './components/ReasoningInput';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
+
+function getPlanStepType(currentProblem) {
+  const planStep = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'plan');
+  if (!planStep) return 'model';
+  if (planStep.type === 'strategySelect') return 'strategySelect';
+  return 'model';
+}
 
 const DEFAULT_UNDERSTAND_CHOICES = [
   'It\'s about finding a total or combining groups',
@@ -51,22 +59,26 @@ export default function PSLSession() {
     const resp = stepResponses[currentStepId];
     switch (currentStepId) {
       case 'understand':
-        return { selectedIndex: resp?.selectedIndex };
+        return { selectedIndex: resp?.selectedIndex, reasoning: resp?.reasoning || '' };
       case 'identify_info':
-        return { numbers: resp?.numbers || [] };
+        return { numbers: resp?.numbers || [], reasoning: resp?.reasoning || '' };
       case 'identify_question':
-        return { selectedIndex: resp?.selectedIndex };
+        return { selectedIndex: resp?.selectedIndex, reasoning: resp?.reasoning || '' };
       case 'plan':
-        return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition };
+        if (getPlanStepType(currentProblem) === 'strategySelect') {
+          return { selectedIndex: resp?.selectedIndex, reasoning: resp?.reasoning || '' };
+        }
+        return { modelType: resp?.modelType, unknownPosition: resp?.unknownPosition, reasoning: resp?.reasoning || '' };
       case 'solve':
         return {
           answer: Number(resp?.answer),
           operation: resp?.expression?.match(/[+\-×÷*/]/)?.[0] || '',
           expression: resp?.expression || '',
           intermediates: resp?.step1Answer ? [Number(resp.step1Answer)] : [],
+          reasoning: resp?.reasoning || '',
         };
       case 'check':
-        return { reasonable: resp?.reasonable };
+        return { reasonable: resp?.reasonable, reasoning: resp?.reasoning || '' };
       default:
         return resp || {};
     }
@@ -139,7 +151,7 @@ export default function PSLSession() {
       case 'understand': return resp?.selectedIndex !== undefined;
       case 'identify_info': return (resp?.numbers || []).length > 0;
       case 'identify_question': return resp?.selectedIndex !== undefined;
-      case 'plan': return resp?.modelType && resp?.unknownPosition;
+      case 'plan': return getPlanStepType(currentProblem) === 'strategySelect' ? resp?.selectedIndex !== undefined : (resp?.modelType && resp?.unknownPosition);
       case 'solve': return resp?.answer !== undefined && resp?.answer !== '';
       case 'check': return resp?.reasonable !== undefined;
       default: return false;
@@ -194,12 +206,20 @@ export default function PSLSession() {
           />
         )}
 
-        {currentStepId === 'plan' && (
+        {currentStepId === 'plan' && getPlanStepType(currentProblem) === 'model' && (
           <ModelSelector
             modelType={stepResponses.plan?.modelType}
             unknownPosition={stepResponses.plan?.unknownPosition}
             onSelectModel={(mt) => updateResponse('plan', { modelType: mt, unknownPosition: undefined })}
             onSelectPosition={(pos) => updateResponse('plan', { unknownPosition: pos })}
+          />
+        )}
+
+        {currentStepId === 'plan' && getPlanStepType(currentProblem) === 'strategySelect' && (
+          <QuestionIdentifier
+            choices={getStepChoices('plan').length ? getStepChoices('plan') : ['Draw a bar model', 'Work backwards', 'Make a list / table', 'Guess and check']}
+            selectedIndex={stepResponses.plan?.selectedIndex}
+            onSelect={(idx) => updateResponse('plan', { selectedIndex: idx })}
           />
         )}
 
@@ -218,6 +238,11 @@ export default function PSLSession() {
             onSelect={(val) => updateResponse('check', { reasonable: val })}
           />
         )}
+
+        <ReasoningInput
+          value={stepResponses[currentStepId]?.reasoning || ''}
+          onChange={(val) => updateResponse(currentStepId, { reasoning: val })}
+        />
       </div>
 
       {feedback && (

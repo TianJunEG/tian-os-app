@@ -43,6 +43,10 @@ function evaluateIdentifyQuestion(response, expected) {
 }
 
 function evaluatePlan(response, expected) {
+  if (expected?.correctIndex !== undefined) {
+    const correct = Number(response?.selectedIndex) === expected.correctIndex;
+    return { correct, partial: false, score: correct ? 1 : 0, misconceptionTag: correct ? '' : 'psl/wrong-strategy' };
+  }
   const modelMatch = normalizeText(response?.modelType) === normalizeText(expected?.modelType);
   const posMatch = normalizeText(response?.unknownPosition) === normalizeText(expected?.unknownPosition);
   if (modelMatch && posMatch) return { correct: true, partial: false, score: 1, misconceptionTag: '' };
