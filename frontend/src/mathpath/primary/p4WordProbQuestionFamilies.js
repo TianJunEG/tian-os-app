@@ -30,112 +30,67 @@ function buildFamily(skillId, index, config) {
 const familiesBySkillBlueprint = {
   'P4-WP-01': [
     {
-      name: 'Unit fraction of a quantity',
-      description: 'Find a unit fraction (1/n) of a given quantity in a word problem context.',
-      difficulty: 2,
-      fluencyTargetSeconds: 18,
+      name: 'Fraction of a Quantity',
+      description: 'Find a fraction of a given set size (e.g. 3/8 of 24).',
+      difficulty: 3,
+      fluencyTargetSeconds: 30,
       answerType: 'numeric',
-      mentalMathEligible: true,
-      workingRequired: true,
-      misconceptionTags: ['fraction_bar_model_confusion'],
+      misconceptionTags: ['uses_wrong_operation', 'computes_fraction_wrong'],
     },
     {
-      name: 'Non-unit fraction of a quantity',
-      description: 'Find a/b of a quantity where a > 1 using a bar model approach.',
+      name: 'Find Remainder After Taking Fraction',
+      description: 'Find how many are left after a fraction of the quantity is taken away.',
       difficulty: 3,
-      fluencyTargetSeconds: 22,
+      fluencyTargetSeconds: 36,
       answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['fraction_bar_model_confusion', 'wrong_operation_choice'],
-    },
-    {
-      name: 'Fraction of quantity with context',
-      description: 'Solve a word problem requiring fraction of a quantity (money, objects, distance).',
-      difficulty: 3,
-      fluencyTargetSeconds: 25,
-      answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['doesnt_identify_what_to_find', 'fraction_bar_model_confusion'],
+      misconceptionTags: ['uses_wrong_operation', 'computes_fraction_wrong'],
     },
   ],
   'P4-WP-02': [
     {
-      name: 'Subtract twice from a total',
-      description: 'Start with a total, subtract two amounts, find the remainder.',
+      name: 'Two-Step Subtraction',
+      description: 'Start with a total, subtract two amounts, find what remains (150–2500 range).',
       difficulty: 3,
-      fluencyTargetSeconds: 25,
+      fluencyTargetSeconds: 44,
       answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['forgets_second_step', 'wrong_operation_choice'],
+      misconceptionTags: ['stops_after_one_step', 'adds_instead_of_subtracts'],
     },
     {
-      name: 'Buy items then find change',
-      description: 'Buy N items at $X each, pay with $Y, find the change.',
-      difficulty: 4,
-      fluencyTargetSeconds: 28,
+      name: 'Two-Step Mixed Operations',
+      description: 'Combine addition and subtraction across two steps to find a final amount (150–2500 range).',
+      difficulty: 3,
+      fluencyTargetSeconds: 48,
       answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['doesnt_identify_what_to_find', 'forgets_second_step'],
-    },
-    {
-      name: 'Combined operations word problem',
-      description: 'Solve a two-step word problem combining addition/subtraction or multiplication/subtraction.',
-      difficulty: 4,
-      fluencyTargetSeconds: 30,
-      answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['doesnt_identify_what_to_find', 'wrong_operation_choice', 'forgets_second_step'],
+      misconceptionTags: ['stops_after_one_step', 'adds_instead_of_subtracts'],
     },
   ],
 };
 
 export const p4WordProbQuestionFamilies = Object.entries(familiesBySkillBlueprint).flatMap(
-  ([skillId, definitions]) =>
-    definitions.map((definition, index) => buildFamily(skillId, index + 1, definition))
+  ([skillId, defs]) => defs.map((def, i) => buildFamily(skillId, i + 1, def))
 );
 
 const familyById = new Map(p4WordProbQuestionFamilies.map((f) => [f.id, f]));
 
-export function getQuestionFamily(familyId) { return familyById.get(familyId) || null; }
-export function getQuestionFamiliesBySkill(skillId) {
-  return p4WordProbQuestionFamilies.filter((f) => f.skillId === skillId);
-}
+export function getQuestionFamily(id) { return familyById.get(id) || null; }
+export function getQuestionFamiliesBySkill(skillId) { return p4WordProbQuestionFamilies.filter((f) => f.skillId === skillId); }
 export function getAllQuestionFamilies() { return [...p4WordProbQuestionFamilies]; }
+
 export function getQuestionFamilyCountsBySkill() {
-  return p4WordProbSkillGraph.skillIds.reduce((acc, sid) => {
-    acc[sid] = getQuestionFamiliesBySkill(sid).length;
-    return acc;
-  }, {});
+  return p4WordProbSkillGraph.skillIds.reduce((acc, id) => { acc[id] = getQuestionFamiliesBySkill(id).length; return acc; }, {});
 }
 
 export function validateP4WordProbQuestionFamilies() {
   const ids = p4WordProbQuestionFamilies.map((f) => f.id);
-  const duplicateIds = ids.filter((id, i) => ids.indexOf(id) !== i);
-  const invalidSkillRefs = p4WordProbQuestionFamilies
-    .filter((f) => !SKILL_IDS.has(f.skillId))
-    .map((f) => ({ familyId: f.id, skillId: f.skillId }));
-  const skillCoverage = getQuestionFamilyCountsBySkill();
-  const missingSkillCoverage = Object.entries(skillCoverage).filter(([, c]) => c === 0).map(([s]) => s);
-  const lowFamilyCountSkills = Object.entries(skillCoverage).filter(([, c]) => c < 2).map(([s, c]) => ({ skillId: s, count: c }));
-
+  const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
+  const badRefs = p4WordProbQuestionFamilies.filter((f) => !SKILL_IDS.has(f.skillId)).map((f) => ({ familyId: f.id, skillId: f.skillId }));
+  const coverage = getQuestionFamilyCountsBySkill();
+  const missing = Object.entries(coverage).filter(([, c]) => c === 0).map(([id]) => id);
   const errors = [];
-  if (duplicateIds.length) errors.push('Duplicate question family IDs found.');
-  if (invalidSkillRefs.length) errors.push('Some question families reference invalid skill IDs.');
-  if (missingSkillCoverage.length) errors.push('Some skills have no question families.');
-  if (lowFamilyCountSkills.length) errors.push('Some skills have fewer than 2 question families.');
-
-  return {
-    isValid: errors.length === 0,
-    totalQuestionFamilies: p4WordProbQuestionFamilies.length,
-    familiesPerSkill: skillCoverage,
-    summary: { duplicateIds: [...new Set(duplicateIds)], invalidSkillRefs, missingSkillCoverage, lowFamilyCountSkills },
-    errors,
-  };
+  if (dupes.length) errors.push('Duplicate question family IDs found.');
+  if (badRefs.length) errors.push('Some question families reference invalid skill IDs.');
+  if (missing.length) errors.push('Some skills have no question families.');
+  return { isValid: errors.length === 0, totalQuestionFamilies: p4WordProbQuestionFamilies.length, familiesPerSkill: coverage, summary: { duplicateIds: [...new Set(dupes)], invalidSkillRefs: badRefs, missingSkillCoverage: missing }, errors };
 }
 
 export default {

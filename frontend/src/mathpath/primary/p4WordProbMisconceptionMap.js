@@ -1,53 +1,52 @@
 const misconceptions = [
   {
-    tag: 'doesnt_identify_what_to_find',
-    label: 'Does not identify what the question asks for',
-    description: 'Performs calculations but answers the wrong part of the problem. E.g. finds the total instead of the remainder.',
-    remediationExplanation: 'Before calculating, underline the question sentence. Ask: "What does the question want me to find?" Write it down first.',
-    visualScaffold: 'highlight_question_sentence',
-    recheckPattern: 'Read the problem, then tell me: what are you asked to find?',
-    parentNote: 'Have your child circle or underline the question before they start any working. This builds a habit of reading carefully.',
-    relatedSkills: ['P4-WP-01', 'P4-WP-02'],
+    tag: 'uses_wrong_operation',
+    label: 'Uses the wrong operation for a fraction word problem',
+    description: 'Adds or subtracts the numerator and denominator instead of dividing the total by the denominator and multiplying by the numerator.',
+    remediationExplanation: 'To find a fraction of a number, divide the number by the denominator first, then multiply by the numerator. For example, 3/8 of 24: divide 24 by 8 to get 3, then multiply 3 by 3 to get 9.',
+    visualScaffold: 'fraction_of_quantity_bar_model',
+    recheckPattern: 'Find 2/5 of 30 and explain each step.',
+    parentNote: 'Ask your child: "What does the bottom number (denominator) tell us? How many equal parts?" Then: "What does the top number (numerator) tell us? How many parts do we take?"',
+    relatedSkills: ['P4-WP-01'],
   },
   {
-    tag: 'wrong_operation_choice',
-    label: 'Chooses the wrong operation',
-    description: 'Adds when they should subtract, or multiplies when they should divide. E.g. adds two amounts instead of subtracting from a total.',
-    remediationExplanation: 'Identify the action in the problem. "Left over", "remaining", "how much more" → subtract. "Each group gets", "shared equally" → divide. "Altogether", "in total" → add.',
-    visualScaffold: 'operation_keyword_chart',
-    recheckPattern: 'Read the problem and tell me which operation you will use, and why.',
-    parentNote: 'Make a keyword poster: "left over = subtract", "altogether = add", "each = divide or multiply". Practise with the poster visible.',
-    relatedSkills: ['P4-WP-01', 'P4-WP-02'],
+    tag: 'computes_fraction_wrong',
+    label: 'Computes the fraction incorrectly',
+    description: 'Divides by the numerator instead of the denominator, or multiplies by the denominator instead of the numerator.',
+    remediationExplanation: 'Remember: divide by the bottom number (denominator) first to find one part, then multiply by the top number (numerator) to find how many parts you need.',
+    visualScaffold: 'fraction_computation_steps',
+    recheckPattern: 'Find 3/4 of 20 step by step.',
+    parentNote: 'Use a simple example first: "What is 1/2 of 10?" (5). Then build up: "What is 3/4 of 8?" Show that 8 ÷ 4 = 2 (one part), then 2 × 3 = 6 (three parts).',
+    relatedSkills: ['P4-WP-01'],
   },
   {
-    tag: 'forgets_second_step',
-    label: 'Forgets the second step',
-    description: 'Completes only the first step and gives that as the final answer. E.g. finds the cost of items but forgets to subtract from the amount paid.',
-    remediationExplanation: 'Two-step problems need two calculations. After your first answer, re-read the question: have you answered what it asked? If not, there is another step.',
-    visualScaffold: 'two_step_flowchart',
-    recheckPattern: 'Solve: Mia has $500. She buys a bag for $185 and shoes for $230. How much does she have left?',
-    parentNote: 'After your child writes their first answer, ask "Is that what the question asked?" to prompt the second step.',
+    tag: 'stops_after_one_step',
+    label: 'Stops after completing only the first step',
+    description: 'In a two-step problem, solves the first step correctly but stops there, giving an intermediate answer as the final answer.',
+    remediationExplanation: 'Two-step problems need two calculations. After the first step, check: "Have I answered the question?" If not, use your first answer to do the second step.',
+    visualScaffold: 'two_step_bar_model',
+    recheckPattern: 'Solve a two-step problem and show both steps.',
+    parentNote: 'After your child writes an answer, ask: "Does this answer the question?" If the question asks for the amount left after two purchases, one subtraction is not enough.',
     relatedSkills: ['P4-WP-02'],
   },
   {
-    tag: 'fraction_bar_model_confusion',
-    label: 'Confuses parts of the bar model',
-    description: 'Divides by the numerator instead of denominator, or forgets to multiply by the numerator. E.g. for 3/8 of 40, divides 40 by 3 instead of 8.',
-    remediationExplanation: 'The denominator tells you how many equal parts to split into. The numerator tells you how many parts to take. For 3/8 of 40: split 40 into 8 parts (40÷8=5), then take 3 parts (5×3=15).',
-    visualScaffold: 'bar_model_fraction',
-    recheckPattern: 'Find 2/5 of 30 using a bar model.',
-    parentNote: 'Draw a bar, split it into "denominator" parts, shade "numerator" parts. This makes the two steps visual and concrete.',
-    relatedSkills: ['P4-WP-01'],
+    tag: 'adds_instead_of_subtracts',
+    label: 'Adds when the problem requires subtraction',
+    description: 'Adds two amounts together instead of subtracting, especially when the word problem uses "spent", "gave away", or "left".',
+    remediationExplanation: 'Look for clue words: "spent", "gave away", "left", and "remaining" usually mean subtraction. "Earned", "received", and "altogether" usually mean addition. Draw a bar model to see whether the quantity is getting bigger or smaller.',
+    visualScaffold: 'operation_clue_words_chart',
+    recheckPattern: 'Read a word problem and identify whether to add or subtract before solving.',
+    parentNote: 'Ask your child: "Is the amount getting bigger or smaller in this story?" If someone spends money, the amount gets smaller — that means subtract.',
+    relatedSkills: ['P4-WP-02'],
   },
 ];
 
 const misconceptionByTag = new Map(misconceptions.map((m) => [m.tag, m]));
 
 export function getMisconception(tag) { return misconceptionByTag.get(tag) || null; }
-export function getMisconceptionsForSkill(skillId) {
-  return misconceptions.filter((m) => m.relatedSkills.includes(skillId));
-}
+export function getMisconceptionsForSkill(skillId) { return misconceptions.filter((m) => m.relatedSkills.includes(skillId)); }
 export function getAllMisconceptions() { return [...misconceptions]; }
+
 export function getRemediationForTag(tag) {
   const m = misconceptionByTag.get(tag);
   if (!m) return null;
