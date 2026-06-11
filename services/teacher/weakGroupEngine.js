@@ -4,7 +4,7 @@ import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticS
 import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.js';
 import MathPathAssignment from '../../models/mathpath/MathPathAssignment.js';
 import PaperAnalysis from '../../models/mathpath/PaperAnalysis.js';
-import fractionSkillGraph from '../../frontend/src/mathpath/fractions/fractionSkillGraph.js';
+import fractionSkillGraph from '../../shared/mathpath/fractions/fractionSkillGraph.js';
 
 const DEFAULT_SUBJECT = 'math';
 const DEFAULT_DOMAIN = 'fractions';

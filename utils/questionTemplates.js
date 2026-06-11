@@ -1149,6 +1149,42 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'compass_grid', width: 640, height: 360, data: { gridSize, objects: objs } };
     return q;
   }
+  if (name.includes('nets and views') || name.includes('nets of solid')) {
+    const solids = [
+      { solid: 'cube', name: 'cube', faces: '6 square faces' },
+      { solid: 'cuboid', name: 'cuboid', faces: '6 rectangular faces' },
+      { solid: 'cylinder', name: 'cylinder', faces: '2 circles and 1 curved surface' },
+      { solid: 'cone', name: 'cone', faces: '1 circle and 1 curved surface (sector)' },
+      { solid: 'triangular_prism', name: 'triangular prism', faces: '2 triangles and 3 rectangles' },
+      { solid: 'square_pyramid', name: 'square pyramid', faces: '1 square base and 4 triangles' },
+    ];
+    const pool = difficulty === 'easy' ? solids.slice(0, 3) : difficulty === 'medium' ? solids.slice(0, 4) : solids;
+    const pick = pool[rnd(0, pool.length - 1)];
+    if (Math.random() < 0.6) {
+      const q = mcq(`This is the net of a 3D solid. Which solid does it fold into?`, pick.name,
+        shuffle(solids.filter((s) => s.solid !== pick.solid)).slice(0, 3).map((s) => s.name),
+        `When you fold this net, it forms a ${pick.name}. A ${pick.name} has ${pick.faces}.`,
+        'geo/net-folding', difficulty);
+      q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
+      return q;
+    }
+    const faceQ = Math.random() < 0.5;
+    if (faceQ) {
+      const faceCount = { cube: 6, cuboid: 6, cylinder: 3, cone: 2, triangular_prism: 5, square_pyramid: 5 };
+      const ans = faceCount[pick.solid];
+      const q = mcq(`Look at the net of this ${pick.name}. How many faces does it have?`, ans,
+        [ans + 1, Math.max(1, ans - 1), ans + 2],
+        `A ${pick.name} has ${pick.faces}, so ${ans} faces in total.`, 'geo/net-folding', difficulty);
+      q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
+      return q;
+    }
+    const q = mcq(`Which net folds into a ${pick.name}?`, `Net of a ${pick.name}`,
+      shuffle(solids.filter((s) => s.solid !== pick.solid)).slice(0, 3).map((s) => `Net of a ${s.name}`),
+      `A ${pick.name} has ${pick.faces}. Only its net has the matching set of faces.`,
+      'geo/net-folding', difficulty);
+    q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
+    return q;
+  }
   if (name.includes('reading measuring scale')) {
     const scaleEnd = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
     const objLen = rnd(2, Math.floor(scaleEnd * 0.6));

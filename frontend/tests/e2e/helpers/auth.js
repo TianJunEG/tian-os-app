@@ -19,7 +19,7 @@ export const accounts = {
   },
 };
 
-const apiBase = process.env.PLAYWRIGHT_API_BASE_URL || 'http://127.0.0.1:5001/api';
+const apiBase = process.env.PLAYWRIGHT_API_BASE_URL || 'http://localhost:5001/api';
 
 export async function loginAs(page, account, landingPath = '/student') {
   const response = await page.request.post(`${apiBase}/auth/login`, {

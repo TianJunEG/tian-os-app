@@ -17,8 +17,10 @@ const HEURISTIC_LABELS = {
   'ratio': 'Proportional & Ratio Reasoning',
   'data-interpretation': 'Data Interpretation',
   'excess-shortage': 'Excess & Shortage',
+  'simultaneous': 'Simultaneous / Elimination',
+  'pattern-recognition': 'Pattern Recognition',
 };
-const HEURISTIC_ORDER = ['bar-model', 'find-pattern', 'substitution', 'make-list', 'guess-check', 'work-backwards', 'before-after', 'multi-step', 'ratio', 'data-interpretation', 'excess-shortage'];
+const HEURISTIC_ORDER = ['bar-model', 'find-pattern', 'substitution', 'make-list', 'guess-check', 'work-backwards', 'before-after', 'multi-step', 'ratio', 'data-interpretation', 'excess-shortage', 'simultaneous', 'pattern-recognition'];
 const HEURISTIC_COLORS = {
   'bar-model': 'bg-blue-100 text-blue-700',
   'find-pattern': 'bg-cyan-100 text-cyan-700',
@@ -31,6 +33,8 @@ const HEURISTIC_COLORS = {
   'ratio': 'bg-teal-100 text-teal-700',
   'data-interpretation': 'bg-sky-100 text-sky-700',
   'excess-shortage': 'bg-fuchsia-100 text-fuchsia-700',
+  'simultaneous': 'bg-violet-100 text-violet-700',
+  'pattern-recognition': 'bg-lime-100 text-lime-700',
 };
 const LEVEL_LABELS = { P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6' };
 const LEVEL_ORDER = ['P3', 'P4', 'P5', 'P6'];

@@ -111,14 +111,34 @@ export default function PracticeResult() {
         </Card>
       )}
 
+      {mistakes.length > 0 && (
+        <Card className="mb-5 border-l-4 border-l-amber-400 p-4">
+          <p className="text-sm font-medium text-amber-800">
+            You have {mistakes.length} mistake{mistakes.length === 1 ? '' : 's'} to learn from before continuing.
+          </p>
+          <p className="mt-1 text-xs text-ink-500">
+            Review each mistake, reflect on what went wrong, and correct it.
+          </p>
+        </Card>
+      )}
+
       <div className="flex flex-col gap-2 sm:flex-row">
         {mistakes.length > 0 && (
-          <Button variant="secondary" icon={Wrench} onClick={() => navigate(mistakesBase)} className="flex-1">Review mistakes</Button>
+          <Button icon={Wrench} onClick={() => navigate(mistakesBase)} className="flex-1">Review mistakes</Button>
         )}
         {!isScience && !isWorksheet && (
           <Button variant="secondary" onClick={() => navigate('/student/progress')} className="flex-1">View progress</Button>
         )}
-        <Button icon={ArrowRight} onClick={() => navigate(homeBase)} className="flex-1">{homeLabel}</Button>
+        <Button
+          variant={mistakes.length > 0 ? 'ghost' : 'primary'}
+          icon={ArrowRight}
+          disabled={mistakes.length > 0}
+          onClick={() => navigate(homeBase)}
+          className="flex-1"
+          title={mistakes.length > 0 ? 'Review your mistakes first' : undefined}
+        >
+          {homeLabel}
+        </Button>
       </div>
     </div>
   );

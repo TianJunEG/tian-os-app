@@ -724,6 +724,115 @@ function renderCompassGrid(spec) {
   return svgShell(spec, body, spec.title || 'Compass grid');
 }
 
+function renderNets3D(spec) {
+  const d = specData(spec);
+  const solid = d.solid || 'cube';
+  const w = Number(spec.width) || 640;
+  const h = Number(spec.height) || 400;
+  const stroke = '#111111';
+  const fills = ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#e0e7ff', '#c7d2fe'];
+  let body = '';
+
+  if (solid === 'cube' || solid === 'cuboid') {
+    const faceW = solid === 'cuboid' ? Math.min(w / 6, h / 5) * 1.3 : Math.min(w / 6, h / 5);
+    const faceH = Math.min(w / 6, h / 5);
+    const cx = w / 2;
+    const topY = (h - faceH * 4) / 2;
+    const faces = [
+      { x: cx - faceW / 2, y: topY, w: faceW, h: faceH, label: 'Top' },
+      { x: cx - faceW / 2, y: topY + faceH, w: faceW, h: faceH, label: 'Front' },
+      { x: cx - faceW / 2, y: topY + faceH * 2, w: faceW, h: faceH, label: 'Bottom' },
+      { x: cx - faceW / 2, y: topY + faceH * 3, w: faceW, h: faceH, label: 'Back' },
+      { x: cx - faceW / 2 - faceW, y: topY + faceH, w: faceW, h: faceH, label: 'Left' },
+      { x: cx + faceW / 2, y: topY + faceH, w: faceW, h: faceH, label: 'Right' },
+    ];
+    faces.forEach((f, i) => {
+      body += `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" fill="${fills[i % fills.length]}" stroke="${stroke}" stroke-width="1.5"/>`;
+      if (d.showLabels !== false) {
+        body += `<text x="${f.x + f.w / 2}" y="${f.y + f.h / 2 + 4}" text-anchor="middle" font-size="11" fill="#1e3a5f">${esc(f.label)}</text>`;
+      }
+    });
+  } else if (solid === 'cylinder') {
+    const r = Math.min(w / 6, h / 6);
+    const rectW = Math.PI * r;
+    const rectH = r * 1.6;
+    const cx = w / 2;
+    const rectY = (h - rectH) / 2;
+    body += `<rect x="${cx - rectW / 2}" y="${rectY}" width="${rectW}" height="${rectH}" fill="${fills[0]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<ellipse cx="${cx - rectW / 2}" cy="${rectY + rectH / 2}" rx="${r * 0.35}" ry="${rectH / 2}" fill="${fills[1]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    body += `<ellipse cx="${cx + rectW / 2}" cy="${rectY + rectH / 2}" rx="${r * 0.35}" ry="${rectH / 2}" fill="${fills[2]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    if (d.showLabels !== false) {
+      body += `<text x="${cx}" y="${rectY + rectH / 2 + 4}" text-anchor="middle" font-size="11" fill="#1e3a5f">Curved surface</text>`;
+      body += `<text x="${cx - rectW / 2}" y="${rectY - 8}" text-anchor="middle" font-size="11" fill="#1e3a5f">Circle</text>`;
+      body += `<text x="${cx + rectW / 2}" y="${rectY - 8}" text-anchor="middle" font-size="11" fill="#1e3a5f">Circle</text>`;
+    }
+  } else if (solid === 'triangular_prism') {
+    const s = Math.min(w / 7, h / 5);
+    const cx = w / 2;
+    const triH = s * Math.sqrt(3) / 2;
+    const topY = (h - triH - s * 1.8) / 2;
+    const triPts = `${cx},${topY} ${cx - s / 2},${topY + triH} ${cx + s / 2},${topY + triH}`;
+    body += `<polygon points="${triPts}" fill="${fills[0]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    const rectTop = topY + triH;
+    const rects = [
+      { x: cx - s * 1.5, y: rectTop, w: s, h: s * 1.8 },
+      { x: cx - s / 2, y: rectTop, w: s, h: s * 1.8 },
+      { x: cx + s / 2, y: rectTop, w: s, h: s * 1.8 },
+    ];
+    rects.forEach((r, i) => {
+      body += `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${fills[i + 1]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    });
+    const botTriY = rectTop + s * 1.8;
+    const botTriPts = `${cx},${botTriY + triH} ${cx - s / 2},${botTriY} ${cx + s / 2},${botTriY}`;
+    body += `<polygon points="${botTriPts}" fill="${fills[4]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    if (d.showLabels !== false) {
+      body += `<text x="${cx}" y="${topY + triH / 2 + 4}" text-anchor="middle" font-size="10" fill="#1e3a5f">Triangle</text>`;
+      body += `<text x="${cx}" y="${botTriY + triH / 2 + 4}" text-anchor="middle" font-size="10" fill="#1e3a5f">Triangle</text>`;
+    }
+  } else if (solid === 'square_pyramid') {
+    const s = Math.min(w / 5, h / 5);
+    const cx = w / 2;
+    const baseTop = (h - s) / 2;
+    body += `<rect x="${cx - s / 2}" y="${baseTop}" width="${s}" height="${s}" fill="${fills[0]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    const triH = s * 0.8;
+    const tris = [
+      { pts: `${cx - s / 2},${baseTop} ${cx + s / 2},${baseTop} ${cx},${baseTop - triH}` },
+      { pts: `${cx + s / 2},${baseTop} ${cx + s / 2},${baseTop + s} ${cx + s / 2 + triH},${baseTop + s / 2}` },
+      { pts: `${cx - s / 2},${baseTop + s} ${cx + s / 2},${baseTop + s} ${cx},${baseTop + s + triH}` },
+      { pts: `${cx - s / 2},${baseTop} ${cx - s / 2},${baseTop + s} ${cx - s / 2 - triH},${baseTop + s / 2}` },
+    ];
+    tris.forEach((t, i) => {
+      body += `<polygon points="${t.pts}" fill="${fills[i + 1]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    });
+    if (d.showLabels !== false) {
+      body += `<text x="${cx}" y="${baseTop + s / 2 + 4}" text-anchor="middle" font-size="11" fill="#1e3a5f">Base</text>`;
+    }
+  } else if (solid === 'cone') {
+    const r = Math.min(w / 5, h / 5);
+    const cx = w / 2;
+    const cy = h / 2;
+    body += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fills[0]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    const sectorR = r * 1.5;
+    const angle = (2 * Math.PI * r) / sectorR;
+    const halfAngle = angle / 2;
+    const sectorCx = cx;
+    const sectorCy = cy - r - r * 0.3;
+    const x1 = sectorCx + sectorR * Math.sin(halfAngle);
+    const y1 = sectorCy + sectorR * (1 - Math.cos(halfAngle));
+    const x2 = sectorCx - sectorR * Math.sin(halfAngle);
+    const y2 = y1;
+    const largeArc = angle > Math.PI ? 1 : 0;
+    body += `<path d="M ${sectorCx} ${sectorCy} L ${x1} ${y1} A ${sectorR} ${sectorR} 0 ${largeArc} 0 ${x2} ${y2} Z" fill="${fills[1]}" stroke="${stroke}" stroke-width="1.5"/>`;
+    if (d.showLabels !== false) {
+      body += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="11" fill="#1e3a5f">Circle</text>`;
+      body += `<text x="${sectorCx}" y="${sectorCy + sectorR * 0.4}" text-anchor="middle" font-size="11" fill="#1e3a5f">Sector</text>`;
+    }
+  }
+
+  if (d.label) body += `<text x="${w / 2}" y="${h - 10}" text-anchor="middle" font-size="14" font-weight="600" fill="#111111">${esc(d.label)}</text>`;
+  return svgShell(spec, body, spec.title || `Net of a ${solid.replace(/_/g, ' ')}`);
+}
+
 export const diagramSvgRenderers = {
   number_line: renderNumberLine,
   fraction_model: renderFractionModel,
@@ -748,4 +857,5 @@ export const diagramSvgRenderers = {
   line_pairs: renderLinePairs,
   solid_3d: renderSolid3D,
   compass_grid: renderCompassGrid,
+  nets_3d: renderNets3D,
 };

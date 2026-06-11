@@ -24,8 +24,8 @@ import { getLearningPathQualityReport } from '../services/mathpath/learningPathS
 import { auditMasteryInflationRisk } from '../services/mathpath/mistakeCorrectionFlow.js';
 import { getLegacyMistakeEvidenceAudit } from '../services/mathpath/legacyMistakeEvidenceAuditService.js';
 import { buildFractionsSkillIntegrityReport } from '../services/mathpath/questionSkillIntegrityService.js';
-import { listCanonicalFractionSkills } from '../frontend/src/mathpath/curriculum/fractionCanonicalSkillMap.js';
-import { fractionQuestionFamilies } from '../frontend/src/mathpath/fractions/fractionQuestionFamilies.js';
+import { listCanonicalFractionSkills } from '../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
+import { fractionQuestionFamilies } from '../shared/mathpath/fractions/fractionQuestionFamilies.js';
 
 const router = express.Router();
 

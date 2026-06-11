@@ -3,21 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, Brain } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
+import MISCONCEPTIONS, { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
 
-const TAG_LABELS = {
-  'psl/missed-number': { label: 'Missed a number', category: 'Reading', tip: 'Re-read the story and underline every number.' },
-  'psl/included-irrelevant': { label: 'Used wrong number', category: 'Reading', tip: 'Not every number in the story is needed. Identify which numbers answer the question.' },
-  'psl/confused-question': { label: 'Confused the question', category: 'Understanding', tip: 'Focus on the last sentence — it usually tells you what to find.' },
-  'psl/misread-unknown': { label: 'Misread what\'s unknown', category: 'Understanding', tip: 'Identify which quantity is missing before choosing a model.' },
-  'psl/wrong-model-type': { label: 'Wrong model type', category: 'Planning', tip: 'Ask: are parts combining into a whole, or are we comparing two things?' },
-  'psl/wrong-unknown-position': { label: 'Wrong unknown position', category: 'Planning', tip: 'Draw the model first, then place the "?" where the unknown goes.' },
-  'psl/wrong-operation': { label: 'Wrong operation', category: 'Solving', tip: 'The bar model tells you which operation to use: finding a whole = add, finding a part = subtract.' },
-  'psl/used-wrong-numbers': { label: 'Used wrong numbers', category: 'Solving', tip: 'Check the numbers in your model match the numbers in the story.' },
-  'psl/arithmetic-error': { label: 'Arithmetic error', category: 'Solving', tip: 'Your method was right! Practice the calculation in MathPath.' },
-  'psl/skipped-check': { label: 'Skipped checking', category: 'Checking', tip: 'Always ask: does my answer make sense in the story?' },
-};
-
-const CATEGORY_ORDER = ['Reading', 'Understanding', 'Planning', 'Solving', 'Checking'];
 
 export default function PSLMistakeReview() {
   const navigate = useNavigate();
@@ -41,7 +28,7 @@ export default function PSLMistakeReview() {
 
   const grouped = {};
   for (const [tag, count] of Object.entries(tagCounts)) {
-    const info = TAG_LABELS[tag] || { label: tag.replace('psl/', '').replace(/-/g, ' '), category: 'Other', tip: '' };
+    const info = getMisconception(tag);
     if (!grouped[info.category]) grouped[info.category] = [];
     grouped[info.category].push({ tag, count, ...info });
   }

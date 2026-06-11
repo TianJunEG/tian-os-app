@@ -82,21 +82,14 @@ export default function SubmissionScreen({ assignment, onBack }) {
 
   if (!assignment) {
     return (
-      <div className="lifelab-phone">
-        <div className="status-bar">
-          <span>9:41</span>
-          <div className="status-bar-right">
-            <Icon name="signal" size={14} />
-            <Icon name="wifi" size={14} />
-          </div>
-        </div>
+      <>
         <div className="ll-nav-bar">
           <button className="ll-nav-btn" onClick={onBack}>
             <Icon name="arrow_left" size={20} />
           </button>
           <div className="ll-nav-bar-title"><h1>My Submissions</h1></div>
         </div>
-        <div className="lifelab-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
+        <div className="ll-content" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center', padding: '40px 24px' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#EEF2FA', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Icon name="sparkle" size={32} color="#13315C" />
           </div>
@@ -108,22 +101,14 @@ export default function SubmissionScreen({ assignment, onBack }) {
             Browse Library
           </button>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!template) return <div className="ll-loading">Loading...</div>;
 
   return (
-    <div className="lifelab-phone">
-      <div className="status-bar">
-        <span>9:41</span>
-        <div className="status-bar-right">
-          <Icon name="signal" size={14} />
-          <Icon name="wifi" size={14} />
-        </div>
-      </div>
-
+    <>
       <div className="ll-nav-bar">
         <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
@@ -134,7 +119,7 @@ export default function SubmissionScreen({ assignment, onBack }) {
         </div>
       </div>
 
-      <div className="lifelab-content">
+      <div className="ll-content">
         <form className="ll-content-scroll" style={{ padding: '16px 20px' }} onSubmit={handleSubmit}>
           {/* Data collection section */}
           {template.data_fields?.length > 0 && (
@@ -227,6 +212,6 @@ export default function SubmissionScreen({ assignment, onBack }) {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

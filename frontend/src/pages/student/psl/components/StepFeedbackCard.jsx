@@ -1,4 +1,5 @@
 import React from 'react';
+import { getMisconception } from '../utils/misconceptions';
 import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 
 export default function StepFeedbackCard({ correct, partial, feedback, misconceptionTag, onContinue }) {
@@ -14,18 +15,7 @@ export default function StepFeedbackCard({ correct, partial, feedback, misconcep
     bgColor = 'bg-red-50'; borderColor = 'border-red-200'; textColor = 'text-red-700';
   }
 
-  const MISCONCEPTION_TIPS = {
-    'psl/missed-number': 'Read the story again carefully — look for all the numbers mentioned.',
-    'psl/included-irrelevant': 'One of the numbers you picked isn\'t needed for this problem.',
-    'psl/confused-question': 'Re-read the last sentence — it tells you what to find.',
-    'psl/misread-unknown': 'Check which quantity is unknown in this problem.',
-    'psl/wrong-model-type': 'Think about whether the parts make up a whole, or we\'re comparing two things.',
-    'psl/wrong-unknown-position': 'The question mark should go where the unknown quantity is.',
-    'psl/wrong-operation': 'Think again: should you add, subtract, multiply, or divide?',
-    'psl/used-wrong-numbers': 'Check you\'re using the right numbers from the story.',
-    'psl/arithmetic-error': 'Your method is right, but check your calculation.',
-    'psl/skipped-check': 'Always check if your answer makes sense in the story.',
-  };
+  const misconception = misconceptionTag ? getMisconception(misconceptionTag) : null;
 
   return (
     <div className={`rounded-xl border ${borderColor} ${bgColor} p-4`}>
@@ -33,8 +23,8 @@ export default function StepFeedbackCard({ correct, partial, feedback, misconcep
         {icon}
         <div className="flex-1">
           <p className={`text-sm font-medium ${textColor}`}>{feedback}</p>
-          {misconceptionTag && MISCONCEPTION_TIPS[misconceptionTag] && (
-            <p className="mt-1 text-xs text-ink-500">{MISCONCEPTION_TIPS[misconceptionTag]}</p>
+          {misconception && misconception.tip && (
+            <p className="mt-1 text-xs text-ink-500">{misconception.tip}</p>
           )}
         </div>
       </div>

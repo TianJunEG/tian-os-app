@@ -234,6 +234,10 @@ router.get('/:id', protect, async (req, res) => {
     const m = await Mistake.findById(req.params.id).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
     await resolveStudent(req, m.studentId); // access check
+    console.info('[mistakes] detail_viewed', {
+      mistakeId: String(m._id), studentId: String(m.studentId),
+      learningStatus: m.learningStatus || 'new', role: req.user.role,
+    });
     res.json({
       id: m._id, questionId: m.questionId, sessionId: m.sessionId || '', attemptId: m.attemptId || '',
       skillId: m.skillId?._id || null, skillCode: m.skillCode || '',
@@ -301,7 +305,7 @@ router.patch('/:id/explanation-feedback', protect, async (req, res) => {
 });
 
 // @route POST /api/mistakes/:id/review
-// @desc  Acknowledge a mistake only. This does not mean understood or mastered.
+// @desc  Deprecated for students — adult roles can still acknowledge directly.
 // @access Private
 router.post('/:id/review', protect, async (req, res) => {
   try {
@@ -309,13 +313,26 @@ router.post('/:id/review', protect, async (req, res) => {
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
     await resolveStudent(req, m.studentId, { write: true }); // access check
 
+    const isAdult = ['parent', 'tutor', 'teacher', 'admin'].includes(req.user.role);
+    if (!isAdult) {
+      return res.status(400).json({
+        error: 'Use PATCH /api/mistakes/:id/learning to progress through the correction flow.',
+        code: 'USE_LEARNING_ENDPOINT',
+      });
+    }
+
     applyMistakeLearningAction(m, {
       action: 'acknowledge',
       userId: req.user.id,
-      source: req.body.source || 'student',
+      source: req.body.source || req.user.role,
     });
     if (req.body.mistakeType) m.mistakeType = req.body.mistakeType;
     await m.save();
+    console.info('[mistakes] learning_action', {
+      mistakeId: String(m._id), studentId: String(m.studentId),
+      action: 'acknowledge', learningStatus: m.learningStatus,
+      source: req.body.source || req.user.role, role: req.user.role,
+    });
     res.json({
       id: m._id,
       status: m.status,
@@ -348,6 +365,14 @@ router.patch('/:id/learning', protect, async (req, res) => {
     });
     if (req.body?.mistakeType) m.mistakeType = req.body.mistakeType;
     await m.save();
+    console.info('[mistakes] learning_action', {
+      mistakeId: String(m._id), studentId: String(m.studentId),
+      action: req.body?.action, learningStatus: m.learningStatus,
+      correctionCorrect: result.correctionCorrect,
+      understandingPassed: result.understandingPassed,
+      mastered: result.mastered,
+      source: req.body?.source || 'student', role: req.user.role,
+    });
     res.json({
       id: m._id,
       status: m.status,
