@@ -339,6 +339,9 @@ function generateH4Numbers(constraints) {
 function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
 
 function generateH5Numbers(constraints) {
+  if (constraints._generic || constraints.total || constraints.totalAge || constraints.totalCoins || constraints.totalFurniture || constraints.perPersonA) {
+    return generateNumbers(constraints, 'guess-check');
+  }
   const MAX_TRIES = 50;
   for (let i = 0; i < MAX_TRIES; i++) {
     const nums = {};
@@ -387,6 +390,9 @@ function generateH5Numbers(constraints) {
 }
 
 function generateH6Numbers(constraints) {
+  if (!constraints.original) {
+    return generateNumbers(constraints, 'workBackwards');
+  }
   const MAX_TRIES = 50;
   for (let i = 0; i < MAX_TRIES; i++) {
     const nums = {};
