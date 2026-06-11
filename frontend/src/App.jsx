@@ -287,7 +287,7 @@ const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 
 const LandingPage = () => (
   <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
     <TianOSKeyframes />
-    <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,248,234,0.85)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
+    <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(248,250,252,0.85)', borderBottom: '1px solid rgba(30,41,59,0.08)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/"><Wordmark /></Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
@@ -316,7 +316,7 @@ const LandingPage = () => (
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
             <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
-            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
+            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(248,250,252,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
             <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: IVORY, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
@@ -359,7 +359,7 @@ const LandingPage = () => (
       </section>
     </main>
 
-    <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(15,76,92,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,248,234,0.7)' }}>
+    <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(30,41,59,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(248,250,252,0.7)' }}>
       <span style={{ color: IVORY, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning Infrastructure for Schools · © Tian Jun Education Group
     </footer>
   </div>

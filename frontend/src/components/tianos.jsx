@@ -1,24 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-export const GOLD = '#D4A935';
-export const GOLD_SOFT = 'rgba(212,169,53,0.25)';
-export const CORAL = '#F28C7A';
-export const CORAL_GLOW = 'rgba(242,140,122,0.35)';
-export const TEAL = '#0F4C5C';
-export const TEAL_DARK = '#073B4C';
-export const IVORY = '#FFF8EA';
-export const SKY = '#A7D8F0';
-export const LAVENDER = '#C9B6E4';
-export const INK = '#0F4C5C';
-export const INK_SOFT = 'rgba(15,76,92,0.62)';
-export const BLUE = '#7aa6e8';
-export const BG = '#FFF8EA';
-export const SERIF = "'Fraunces', Georgia, serif";
-export const SANS = "'Manrope', system-ui, sans-serif";
+export const GOLD = '#F59E0B';
+export const GOLD_SOFT = 'rgba(245,158,11,0.25)';
+export const CORAL = '#10B981';
+export const CORAL_GLOW = 'rgba(16,185,129,0.35)';
+export const TEAL = '#065F46';
+export const TEAL_DARK = '#064E3B';
+export const IVORY = '#F8FAFC';
+export const SKY = '#6EE7B7';
+export const LAVENDER = '#C4B5FD';
+export const INK = '#1E293B';
+export const INK_SOFT = 'rgba(30,41,59,0.62)';
+export const BLUE = '#38BDF8';
+export const BG = '#F8FAFC';
+export const SERIF = "'Nunito', system-ui, sans-serif";
+export const SANS = "'Nunito', system-ui, sans-serif";
 
 export const glassPanel = (accent = false) => ({
   background: '#FFFFFF',
-  border: `1px solid ${accent ? 'rgba(212,169,53,0.3)' : 'rgba(15,76,92,0.10)'}`,
+  border: `1px solid ${accent ? 'rgba(16,185,129,0.3)' : 'rgba(30,41,59,0.10)'}`,
   borderRadius: 18,
   boxShadow: '0 4px 24px rgba(0,0,0,0.05)',
 });
@@ -61,7 +61,7 @@ export const GlassCard = ({ children, glow = false, className = '', style }) => 
 export function Wordmark({ size = 30, onDark = false }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ width: size, height: size, borderRadius: size * 0.3, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 800, color: '#fff', fontSize: size * 0.56, background: TEAL, boxShadow: '0 0 16px rgba(15,76,92,0.18)' }}>E</span>
+      <span style={{ width: size, height: size, borderRadius: size * 0.3, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 800, color: '#fff', fontSize: size * 0.56, background: TEAL, boxShadow: '0 0 16px rgba(5,150,105,0.18)' }}>E</span>
       <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: size * 0.62, color: onDark ? IVORY : TEAL, letterSpacing: '-0.01em' }}>Tian<span style={{ color: CORAL }}>OS</span></span>
     </span>
   );
@@ -70,7 +70,7 @@ export function Wordmark({ size = 30, onDark = false }) {
 export function Avatar({ label, size = 96, onDark = false }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-      <div style={{ width: size, height: size, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, ${SKY}, ${TEAL})`, border: '3px solid rgba(15,76,92,0.2)', boxShadow: '0 12px 32px rgba(0,0,0,0.10)', display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, color: IVORY, fontSize: size * 0.34 }}>{label[0]}</div>
+      <div style={{ width: size, height: size, borderRadius: '50%', background: `radial-gradient(circle at 35% 30%, ${SKY}, ${TEAL})`, border: '3px solid rgba(30,41,59,0.2)', boxShadow: '0 12px 32px rgba(0,0,0,0.10)', display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, color: IVORY, fontSize: size * 0.34 }}>{label[0]}</div>
       <div style={{ fontFamily: SANS, fontSize: 13, color: onDark ? IVORY : INK, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>{label}</div>
     </div>
   );
@@ -94,7 +94,7 @@ export function TrustRing({ nodes, onDark = false }) {
           <line key={i} x1="50" y1="50" x2={n.x} y2={n.y} stroke="url(#tianos-conn)" strokeWidth="0.5" strokeDasharray="1.6 2" vectorEffect="non-scaling-stroke" />
         ))}
       </svg>
-      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '30%', aspectRatio: '1/1', borderRadius: '50%', background: `radial-gradient(circle at 30% 30%, ${SKY} 0%, ${TEAL} 70%)`, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, fontSize: 'clamp(13px,2.4vw,22px)', color: IVORY, letterSpacing: '0.06em', boxShadow: '0 0 50px rgba(15,76,92,0.3), 0 20px 50px rgba(0,0,0,0.15)', animation: 'tianosPulse 4s ease-in-out infinite' }}>TIAN·OS</div>
+      <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', width: '30%', aspectRatio: '1/1', borderRadius: '50%', background: `radial-gradient(circle at 30% 30%, ${SKY} 0%, ${TEAL} 70%)`, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 700, fontSize: 'clamp(13px,2.4vw,22px)', color: IVORY, letterSpacing: '0.06em', boxShadow: '0 0 50px rgba(5,150,105,0.3), 0 20px 50px rgba(0,0,0,0.15)', animation: 'tianosPulse 4s ease-in-out infinite' }}>TIAN·OS</div>
       {ring.map((n) => (
         <div key={n.lbl} style={{ position: 'absolute', left: `${n.x}%`, top: `${n.y}%`, transform: 'translate(-50%,-50%)' }}>
           <Avatar label={n.lbl} size={104} onDark={onDark} />
