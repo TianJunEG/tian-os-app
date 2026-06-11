@@ -1,21 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, ChevronRight, Lock, Star, Target } from 'lucide-react';
+import { Brain, ChevronRight, Compass, Lock, Star, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
 
 const HEURISTIC_LABELS = {
-  'bar-model': 'Bar Model (Units & Parts)',
+  'bar-model': 'H1: Bar Model (Units & Parts)',
+  'find-pattern': 'H2: Find a Pattern',
+  'substitution': 'H3: Substitution',
+  'make-list': 'H4: Make a List',
+  'guess-check': 'H5: Guess & Check',
+  'work-backwards': 'H6: Working Backwards',
   'before-after': 'Before-After',
-  'work-backwards': 'Work Backwards',
   'multi-step': 'Multi-Step Arithmetic',
-  'guess-check': 'Guess & Check / Supposition',
   'ratio': 'Proportional & Ratio Reasoning',
   'data-interpretation': 'Data Interpretation',
   'excess-shortage': 'Excess & Shortage',
 };
-const HEURISTIC_ORDER = ['bar-model', 'before-after', 'work-backwards', 'multi-step', 'guess-check', 'ratio', 'data-interpretation', 'excess-shortage'];
+const HEURISTIC_ORDER = ['bar-model', 'find-pattern', 'substitution', 'make-list', 'guess-check', 'work-backwards', 'before-after', 'multi-step', 'ratio', 'data-interpretation', 'excess-shortage'];
+const HEURISTIC_COLORS = {
+  'bar-model': 'bg-blue-100 text-blue-700',
+  'find-pattern': 'bg-cyan-100 text-cyan-700',
+  'substitution': 'bg-purple-100 text-purple-700',
+  'make-list': 'bg-amber-100 text-amber-700',
+  'guess-check': 'bg-rose-100 text-rose-700',
+  'work-backwards': 'bg-emerald-100 text-emerald-700',
+};
 const LEVEL_LABELS = { P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6' };
 const LEVEL_ORDER = ['P3', 'P4', 'P5', 'P6'];
 
@@ -79,7 +90,8 @@ export default function PSLHome() {
   const grouped = HEURISTIC_ORDER.map((h) => ({
     heuristic: h,
     label: HEURISTIC_LABELS[h] || h,
-    skills: filtered.filter((sk) => sk.heuristic === h),
+    colorClass: HEURISTIC_COLORS[h] || 'bg-ink-100 text-ink-700',
+    skills: filtered.filter((sk) => (sk.heuristic || 'bar-model') === h),
   })).filter((g) => g.skills.length > 0);
   const levelCounts = LEVEL_ORDER.reduce((acc, lvl) => {
     acc[lvl] = skills.filter((sk) => sk.level === lvl).length;
@@ -140,6 +152,23 @@ export default function PSLHome() {
           </button>
         ))}
       </div>
+
+      <Card className="p-4" interactive>
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 text-left"
+          onClick={() => navigate('/student/psl/decision-guide')}
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+            <Compass className="h-4 w-4 text-purple-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-ink-700">Decision Guide</p>
+            <p className="text-xs text-ink-400">Not sure which heuristic to use? Answer a few questions to find out.</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-ink-300" />
+        </button>
+      </Card>
 
       {grouped.map((group) => (
         <div key={group.heuristic}>

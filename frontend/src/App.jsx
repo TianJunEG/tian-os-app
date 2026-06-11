@@ -120,6 +120,7 @@ const PSLHome = lazy(() => import('./pages/student/psl/PSLHome'));
 const PSLSession = lazy(() => import('./pages/student/psl/PSLSession'));
 const PSLResults = lazy(() => import('./pages/student/psl/PSLResults'));
 const PSLMistakeReview = lazy(() => import('./pages/student/psl/PSLMistakeReview'));
+const PSLDecisionGuide = lazy(() => import('./pages/student/psl/DecisionGuide'));
 // Science Adaptive Revision (secondary module) — reuses shared practice/result screens
 const ScienceHome = lazy(() => import('./pages/student/science/ScienceHome'));
 const ScienceTopics = lazy(() => import('./pages/student/science/ScienceTopics'));
@@ -627,6 +628,7 @@ function App() {
             <Route path="/student/psl/session/:sessionId" element={<FeatureGuard feature="psl"><PSLSession /></FeatureGuard>} />
             <Route path="/student/psl/results/:sessionId" element={<FeatureGuard feature="psl"><PSLResults /></FeatureGuard>} />
             <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
+            <Route path="/student/psl/decision-guide" element={<FeatureGuard feature="psl"><PSLDecisionGuide /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
             <Route path="/student/progress" element={<SkillGraph />} />
 

@@ -34,7 +34,7 @@ export const FEATURE_FLAGS = {
   science: flagEnabled('SCIENCE'),
   mechanisms: flagEnabled('MECHANISMS'),
   spelling: flagEnabled('SPELLING'),
-  psl: flagEnabled('PSL'),
+  psl: flagEnabled('PSL', true),
   tutor: flagEnabled('TUTOR', true),
   teacher: flagEnabled('TEACHER', true),
   admin: flagEnabled('ADMIN'),
