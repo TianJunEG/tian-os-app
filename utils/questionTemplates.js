@@ -1003,7 +1003,8 @@ function buildOne(skillName, difficulty) {
       { title: 'Favourite fruit', cats: ['Apple', 'Orange', 'Banana', 'Grape'] },
     ];
     const set = sets[rnd(0, sets.length - 1)];
-    const raw = shuffle([rnd(5, 15), rnd(10, 25), rnd(3, 12), rnd(8, 20)]);
+    const raw = shuffle([1, 2, 3, 4].map(() => rnd(3, 25)));
+    while (new Set(raw).size < raw.length) { for (let i = 1; i < raw.length; i++) { if (raw.slice(0, i).includes(raw[i])) raw[i] = rnd(3, 25); } }
     const total = raw.reduce((s, v) => s + v, 0);
     const askIdx = rnd(0, set.cats.length - 1);
     const maxIdx = raw.indexOf(Math.max(...raw));
@@ -1061,11 +1062,13 @@ function buildOne(skillName, difficulty) {
       };
     };
     const makeNeither = () => {
+      const a1 = rnd(20, 60);
+      const a2 = rnd(200, 280);
       return {
-        type: 'neither',
+        type: 'neither parallel nor perpendicular',
         lines: [
-          { x1: 60, y1: 250, x2: 350, y2: 80, label: 'C' },
-          { x1: 100, y1: 60, x2: 450, y2: 280, label: 'D' },
+          { x1: 60, y1: a1 + 180, x2: 350, y2: a1, label: 'C' },
+          { x1: 100, y1: a2 - 180, x2: 450, y2: a2, label: 'D' },
         ],
       };
     };
@@ -1126,8 +1129,11 @@ function buildOne(skillName, difficulty) {
     const coords = shuffle(Array.from({ length: gridSize * gridSize }, (_, i) => [Math.floor(i / gridSize), i % gridSize]));
     const count = rnd(3, Math.min(5, places.length));
     const objs = places.slice(0, count).map((label, i) => ({ label, row: coords[i][0], col: coords[i][1] }));
-    const from = objs[rnd(0, objs.length - 1)];
-    const to = objs.filter((o) => o !== from)[rnd(0, objs.length - 2)];
+    let from = objs[rnd(0, objs.length - 1)];
+    let candidates = objs.filter((o) => o !== from);
+    if (difficulty === 'easy') candidates = candidates.filter((o) => o.row === from.row || o.col === from.col);
+    if (candidates.length === 0) candidates = objs.filter((o) => o !== from);
+    const to = candidates[rnd(0, candidates.length - 1)];
     const dr = to.row - from.row;
     const dc = to.col - from.col;
     let dir;

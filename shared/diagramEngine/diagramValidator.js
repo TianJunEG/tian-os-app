@@ -213,7 +213,16 @@ const validators = {
     const d = spec.data;
     const gs = asNumber(d.gridSize, NaN);
     if (!Number.isFinite(gs) || gs < 2 || gs > 10) errors.push('compass_grid: gridSize must be 2-10.');
-    if (!Array.isArray(d.objects) || d.objects.length === 0) errors.push('compass_grid: objects must be a non-empty array.');
+    if (!Array.isArray(d.objects) || d.objects.length === 0) {
+      errors.push('compass_grid: objects must be a non-empty array.');
+      return;
+    }
+    d.objects.forEach((obj, idx) => {
+      const r = asNumber(obj?.row, NaN);
+      const c = asNumber(obj?.col, NaN);
+      if (!Number.isFinite(r) || r < 0 || (Number.isFinite(gs) && r >= gs)) errors.push(`compass_grid: objects[${idx}].row out of bounds.`);
+      if (!Number.isFinite(c) || c < 0 || (Number.isFinite(gs) && c >= gs)) errors.push(`compass_grid: objects[${idx}].col out of bounds.`);
+    });
   },
 };
 

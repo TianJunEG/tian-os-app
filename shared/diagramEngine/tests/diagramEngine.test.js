@@ -6,7 +6,7 @@ import { renderDiagramSpec } from '../diagramRenderer.js';
 import { validateDiagramSpec } from '../diagramValidator.js';
 
 describe('Diagram Engine v1', () => {
-  it('registers all DG001-DG016 diagram types', () => {
+  it('registers all diagram types', () => {
     const listed = listDiagramTypes();
     expect(listed).toHaveLength(22);
     DIAGRAM_TYPE_DEFINITIONS.forEach((typeDef) => {
