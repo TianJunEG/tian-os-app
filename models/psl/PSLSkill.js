@@ -6,7 +6,7 @@ const pslSkillSchema = new mongoose.Schema({
   description: { type: String, default: '' },
   level: { type: String, required: true },
   heuristic: { type: String, required: true },
-  structure: { type: String, enum: ['partWhole', 'comparison', 'twoStep', 'beforeAfter', 'workBackwards', 'multiStep', 'guessCheck', 'ratio', 'dataInterpretation', 'excessShortage'], required: true },
+  structure: { type: String, enum: ['partWhole', 'comparison', 'twoStep', 'beforeAfter', 'workBackwards', 'multiStep', 'guessCheck', 'ratio', 'dataInterpretation', 'excessShortage', 'simultaneous', 'patternRecognition'], required: true },
   unknownPosition: { type: String, default: '' },
   difficulty: { type: Number, default: 1, min: 1, max: 3 },
   mathPathPrerequisites: { type: [String], default: [] },

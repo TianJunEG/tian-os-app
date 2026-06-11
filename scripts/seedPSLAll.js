@@ -21,6 +21,8 @@ const SEEDS = [
   'seedPSLRatioSkills.js',
   'seedPSLDataInterpSkills.js',
   'seedPSLExcessShortageSkills.js',
+  'seedPSLSimultaneousSkills.js',
+  'seedPSLPatternSkills.js',
   // Then templates
   'seedPSLTemplates.js',
   'seedPSLP4Templates.js',
@@ -33,6 +35,8 @@ const SEEDS = [
   'seedPSLRatioTemplates.js',
   'seedPSLDataInterpTemplates.js',
   'seedPSLExcessShortageTemplates.js',
+  'seedPSLSimultaneousTemplates.js',
+  'seedPSLPatternTemplates.js',
 ];
 
 console.log('=== PSL Full Seed ===\n');

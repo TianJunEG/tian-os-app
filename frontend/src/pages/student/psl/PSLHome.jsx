@@ -14,8 +14,10 @@ const HEURISTIC_LABELS = {
   'ratio': 'Proportional & Ratio Reasoning',
   'data-interpretation': 'Data Interpretation',
   'excess-shortage': 'Excess & Shortage',
+  'simultaneous': 'Simultaneous / Elimination',
+  'pattern-recognition': 'Pattern Recognition',
 };
-const HEURISTIC_ORDER = ['bar-model', 'before-after', 'work-backwards', 'multi-step', 'guess-check', 'ratio', 'data-interpretation', 'excess-shortage'];
+const HEURISTIC_ORDER = ['bar-model', 'before-after', 'work-backwards', 'multi-step', 'guess-check', 'ratio', 'data-interpretation', 'excess-shortage', 'simultaneous', 'pattern-recognition'];
 const LEVEL_LABELS = { P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6' };
 const LEVEL_ORDER = ['P3', 'P4', 'P5', 'P6'];
 
