@@ -253,6 +253,7 @@ export async function generateProblem(skillId, options = {}) {
   }
 
   const storyText = substituteTokens(template.storyTemplate, vars);
+  const solutionText = substituteTokens(template.solutionTemplate || '', vars);
   const correctAnswer = computeAnswer(template.scaffold, vars);
   const givenNumbers = Object.entries(nums)
     .filter(([k]) => k !== 'answer')
@@ -268,6 +269,7 @@ export async function generateProblem(skillId, options = {}) {
     heuristic: template.heuristic || (isBarModel ? 'bar-model' : template.structure),
     structure: template.structure,
     storyText,
+    solutionText,
     givenNumbers,
     correctAnswer,
     barModelSpec: isBarModel ? {
