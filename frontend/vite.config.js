@@ -4,9 +4,17 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    dedupe: ['react', 'react-dom', 'react-router-dom'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-dom/client', 'react-router-dom', 'react/jsx-dev-runtime', 'react/jsx-runtime'],
+    force: true,
+  },
   server: {
     port: 3000,
     strictPort: false,
+    headers: { 'Cache-Control': 'no-store' },
     proxy: {
       '/api': 'http://localhost:5001',
     },
