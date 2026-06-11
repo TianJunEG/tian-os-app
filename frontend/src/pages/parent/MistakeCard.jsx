@@ -9,9 +9,19 @@ const StrokeReplayPlayer = lazy(() => import('../../components/learning/StrokeRe
 const LEARNING_STATUS_LABEL = {
   new: 'New mistake',
   acknowledged: 'Student reviewed this mistake',
+  correction_attempted: 'Student tried to correct — not yet right',
   corrected: 'Student successfully corrected this mistake',
   understood: 'Student showed understanding',
   mastered: 'Student demonstrated mastery',
+};
+
+const LEARNING_STATUS_TONE = {
+  new: 'gold',
+  acknowledged: 'navy',
+  correction_attempted: 'gold',
+  corrected: 'navy',
+  understood: 'navy',
+  mastered: 'success',
 };
 
 const QUALITY_BAND_TONE = {
@@ -54,11 +64,19 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
         <span className="text-sm font-semibold text-ink-700">{m.skillName}</span>
         <div className="flex flex-wrap justify-end gap-2">
           {m.topicName && <Badge tone="neutral">{m.topicName}</Badge>}
-          <Badge tone={learningStatus === 'mastered' ? 'success' : learningStatus === 'new' ? 'gold' : 'navy'}>
-            {LEARNING_STATUS_LABEL[learningStatus] || 'Mistake learning'}
+          <Badge tone={LEARNING_STATUS_TONE[learningStatus] || 'neutral'}>
+            {LEARNING_STATUS_LABEL[learningStatus] || learningStatus}
           </Badge>
         </div>
       </div>
+      {m.reviewedAt && (
+        <p className="mt-1 text-[11px] text-ink-400">
+          Last action: {new Date(m.reviewedAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+        </p>
+      )}
+      {learningStatus === 'new' && m.occurredAt && (Date.now() - new Date(m.occurredAt).getTime()) > 86400000 && (
+        <p className="mt-1 text-[11px] font-semibold text-amber-600">Needs attention — open for over 24 hours</p>
+      )}
       <div className="text-ink-900"><Stem text={m.questionStem} /></div>
       <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
         <div className="rounded-xl bg-error-100 p-3">
