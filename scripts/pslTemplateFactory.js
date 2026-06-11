@@ -53,7 +53,7 @@ export function makeTemplate(id, skillId, structure, opts) {
     difficulty: opts.difficulty || 1,
     contexts: opts.contexts,
     constraints: opts.constraints,
-    storyTemplate: opts.storyTemplate,
+    storyTemplate: opts.storyTemplate || opts.story,
     solutionTemplate: opts.solutionTemplate || '',
     scaffold: opts.scaffold,
     misconceptions: opts.misconceptions || {},

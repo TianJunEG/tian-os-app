@@ -133,6 +133,148 @@ describe('evaluateStep — plan', () => {
   });
 });
 
+describe('evaluateStep — plan (MC mode)', () => {
+  const expected = { correctIndex: 2 };
+
+  it('correct MC selection', () => {
+    const r = evaluateStep('plan', { selectedIndex: 2 }, expected);
+    expect(r.correct).toBe(true);
+    expect(r.score).toBe(1);
+  });
+
+  it('wrong MC selection', () => {
+    const r = evaluateStep('plan', { selectedIndex: 0 }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.misconceptionTag).toBe('psl/wrong-strategy');
+  });
+});
+
+describe('evaluateStep — plan (reverse_steps)', () => {
+  const expected = { type: 'reverse_steps', operations: ['subtract 5', 'divide 2'] };
+
+  it('correct operations in order', () => {
+    const r = evaluateStep('plan', { operations: ['subtract 5', 'divide 2'] }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('partial — right operations wrong order', () => {
+    const r = evaluateStep('plan', { operations: ['divide 2', 'subtract 5'] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.partial).toBe(true);
+    expect(r.score).toBe(0.5);
+  });
+
+  it('wrong operations', () => {
+    const r = evaluateStep('plan', { operations: ['add 10'] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.score).toBe(0);
+  });
+
+  it('empty expected — always correct', () => {
+    const r = evaluateStep('plan', { operations: ['anything'] }, { type: 'reverse_steps', operations: [] });
+    expect(r.correct).toBe(true);
+  });
+});
+
+describe('evaluateStep — plan (table_setup)', () => {
+  const expected = { type: 'table_setup', columns: ['Position', 'Value', 'Difference'], requiredCount: 2 };
+
+  it('correct columns meeting required count', () => {
+    const r = evaluateStep('plan', { columns: ['Position', 'Value'] }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('all columns selected', () => {
+    const r = evaluateStep('plan', { columns: ['Position', 'Value', 'Difference'] }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('partial — some columns but not enough', () => {
+    const r = evaluateStep('plan', { columns: ['Position'] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.partial).toBe(true);
+  });
+
+  it('wrong — invalid column selected', () => {
+    const r = evaluateStep('plan', { columns: ['Position', 'Wrong'] }, expected);
+    expect(r.correct).toBe(false);
+  });
+
+  it('empty — no columns selected', () => {
+    const r = evaluateStep('plan', { columns: [] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.score).toBe(0);
+  });
+});
+
+describe('evaluateStep — plan (equation_setup)', () => {
+  const expected = { type: 'equation_setup', variables: ['apples', 'oranges'] };
+
+  it('valid variable chosen', () => {
+    const r = evaluateStep('plan', { eliminateVar: 'apples' }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('case insensitive', () => {
+    const r = evaluateStep('plan', { eliminateVar: 'ORANGES' }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('wrong variable', () => {
+    const r = evaluateStep('plan', { eliminateVar: 'bananas' }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.partial).toBe(true);
+  });
+
+  it('empty variable', () => {
+    const r = evaluateStep('plan', { eliminateVar: '' }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.score).toBe(0);
+  });
+});
+
+describe('evaluateStep — plan (list_candidates)', () => {
+  const expected = { type: 'list_candidates', conditions: [0, 1, 2] };
+
+  it('all conditions selected', () => {
+    const r = evaluateStep('plan', { conditions: [0, 1, 2] }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('partial — some conditions', () => {
+    const r = evaluateStep('plan', { conditions: [0] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.partial).toBe(true);
+  });
+
+  it('empty', () => {
+    const r = evaluateStep('plan', { conditions: [] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.score).toBe(0);
+  });
+});
+
+describe('evaluateStep — plan (guess_setup)', () => {
+  const expected = { type: 'guess_setup', constraints: [0, 1] };
+
+  it('all constraints selected', () => {
+    const r = evaluateStep('plan', { constraints: [0, 1] }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('partial — some constraints', () => {
+    const r = evaluateStep('plan', { constraints: [0] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.partial).toBe(true);
+  });
+
+  it('empty', () => {
+    const r = evaluateStep('plan', { constraints: [] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.score).toBe(0);
+  });
+});
+
 describe('evaluateStep — solve', () => {
   const expected = { operation: 'addition', answer: 68 };
 
@@ -188,6 +330,85 @@ describe('evaluateStep — solve', () => {
       expect(r.score).toBe(0);
       expect(r.misconceptionTag).toBe('psl/used-wrong-numbers');
     });
+  });
+});
+
+describe('evaluateStep — solve (reverse_chain)', () => {
+  const expected = { type: 'reverse_chain', answer: 10, steps: [30, 15, 10] };
+
+  it('correct answer', () => {
+    const r = evaluateStep('solve', { answer: 10 }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('wrong answer with correct intermediate step', () => {
+    const r = evaluateStep('solve', { answer: 99, steps: [30, 15, 8] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.partial).toBe(true);
+    expect(r.misconceptionTag).toBe('psl/arithmetic-error');
+  });
+
+  it('wrong answer with no correct steps', () => {
+    const r = evaluateStep('solve', { answer: 99, steps: [50, 25, 12] }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.score).toBe(0);
+  });
+});
+
+describe('evaluateStep — solve (guess_table)', () => {
+  const expected = { type: 'guess_table', answer: 7 };
+
+  it('correct guess', () => {
+    const r = evaluateStep('solve', { answer: 7 }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('wrong guess', () => {
+    const r = evaluateStep('solve', { answer: 5 }, expected);
+    expect(r.correct).toBe(false);
+    expect(r.misconceptionTag).toBe('psl/wrong-guess');
+  });
+});
+
+describe('evaluateStep — solve (find_rule)', () => {
+  const expected = { type: 'find_rule', answer: 42 };
+
+  it('correct', () => {
+    const r = evaluateStep('solve', { answer: 42 }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('wrong', () => {
+    const r = evaluateStep('solve', { answer: 40 }, expected);
+    expect(r.correct).toBe(false);
+  });
+});
+
+describe('evaluateStep — solve (eliminate)', () => {
+  const expected = { type: 'eliminate', answer: 3 };
+
+  it('correct', () => {
+    const r = evaluateStep('solve', { answer: 3 }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('wrong', () => {
+    const r = evaluateStep('solve', { answer: 5 }, expected);
+    expect(r.correct).toBe(false);
+  });
+});
+
+describe('evaluateStep — solve (list_check)', () => {
+  const expected = { type: 'list_check', answer: 12 };
+
+  it('correct', () => {
+    const r = evaluateStep('solve', { answer: 12 }, expected);
+    expect(r.correct).toBe(true);
+  });
+
+  it('wrong', () => {
+    const r = evaluateStep('solve', { answer: 11 }, expected);
+    expect(r.correct).toBe(false);
   });
 });
 

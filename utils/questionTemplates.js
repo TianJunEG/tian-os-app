@@ -1036,6 +1036,36 @@ function buildOne(skillName, difficulty) {
     q.diagramSpec = { type: 'shape_library', width: 640, height: 200, data: { shapes: [{ type: pick.type, label: pick.label }] } };
     return q;
   }
+  if (name.includes('completing symmetric')) {
+    const cols = difficulty === 'easy' ? 7 : difficulty === 'medium' ? 9 : 11;
+    const rows = difficulty === 'easy' ? 7 : difficulty === 'medium' ? 7 : 9;
+    const midCol = Math.floor(cols / 2);
+    const numPoints = difficulty === 'easy' ? 3 : difficulty === 'medium' ? 4 : 5;
+    const leftPoints = [];
+    const used = new Set();
+    while (leftPoints.length < numPoints) {
+      const c = rnd(0, midCol - 1);
+      const r = rnd(0, rows - 1);
+      const k = `${c},${r}`;
+      if (!used.has(k)) { used.add(k); leftPoints.push({ x: c, y: r }); }
+    }
+    const reflectCol = (c) => cols - 1 - c;
+    const rightPoints = leftPoints.map((p) => ({ x: reflectCol(p.x), y: p.y }));
+    const askIdx = rnd(0, numPoints - 1);
+    const askPt = leftPoints[askIdx];
+    const ansPt = rightPoints[askIdx];
+    const shown = [...leftPoints, ...rightPoints.filter((_, i) => i !== askIdx)];
+    const dist = midCol - askPt.x;
+    const ansCol = ansPt.x + 1;
+    const q = mcq(
+      `A figure is drawn on a dot grid with a vertical line of symmetry at column ${midCol + 1}. A vertex is at column ${askPt.x + 1}, row ${askPt.y + 1}. At which column should its reflection appear?`,
+      ansCol,
+      [ansCol + 1, Math.max(1, ansCol - 1), midCol + 1],
+      `Column ${askPt.x + 1} is ${dist} square${dist !== 1 ? 's' : ''} to the left of the line of symmetry (column ${midCol + 1}). Its reflection is the same distance to the right: column ${midCol + 1} + ${dist} = ${ansCol}.`,
+      'geo/symmetry-reflect', difficulty);
+    q.diagramSpec = { type: 'dot_grid', width: 640, height: 400, data: { rows, columns: cols, symmetryLine: 'vertical', pointsHighlighted: shown } };
+    return q;
+  }
   if (name.includes('parallel and perpendicular')) {
     const makeParallel = () => {
       const y1 = rnd(60, 120);
@@ -1094,6 +1124,23 @@ function buildOne(skillName, difficulty) {
       [...types.map((t) => t.name).filter((n) => n !== pick.name), 'reflex'],
       `This angle is ${angleDeg}°. ${pick.name === 'right' ? 'A right angle is exactly 90°.' : pick.name === 'acute' ? 'An acute angle is less than 90°.' : 'An obtuse angle is between 90° and 180°.'}`,
       'geo/angle-type', difficulty);
+    q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
+    return q;
+  }
+  if (name.includes('measuring') && name.includes('angle')) {
+    let angleDeg;
+    if (difficulty === 'easy') {
+      angleDeg = rnd(3, 8) * 10;
+    } else if (difficulty === 'medium') {
+      angleDeg = rnd(4, 33) * 5;
+    } else {
+      angleDeg = rnd(15, 170);
+    }
+    const supplement = 180 - angleDeg;
+    const q = mcq(`What is the measure of the angle shown?`, angleDeg,
+      [angleDeg + rnd(5, 20), Math.max(1, angleDeg - rnd(5, 20)), Math.max(1, Math.abs(supplement))],
+      `The angle measures ${angleDeg}°.${angleDeg === 90 ? ' It is a right angle.' : angleDeg < 90 ? ' It is an acute angle (less than 90°).' : ' It is an obtuse angle (between 90° and 180°).'}`,
+      'geo/angle-measure', difficulty);
     q.diagramSpec = { type: 'angle_display', width: 500, height: 300, data: { angle: angleDeg } };
     return q;
   }

@@ -171,6 +171,7 @@ const TeacherHome = lazy(() => import('./pages/teacher/TeacherHome'));
 const Classes = lazy(() => import('./pages/teacher/Classes'));
 const ClassOverview = lazy(() => import('./pages/teacher/ClassOverview'));
 const TeacherMathPathDashboardPage = lazy(() => import('./pages/teacher/TeacherMathPathDashboardPage'));
+const TeacherPSLDashboardPage = lazy(() => import('./pages/teacher/TeacherPSLDashboardPage'));
 const SchoolAdminConsole = lazy(() => import('./pages/admin/school/SchoolAdminConsole'));
 const TutorInviteConnectPage = lazy(() => import('./pages/TutorInviteConnectPage'));
 const ParentInviteConnectPage = lazy(() => import('./pages/ParentInviteConnectPage'));
@@ -694,6 +695,7 @@ function App() {
             <Route path="/teacher/classes" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Classes /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><ClassOverview /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mathpath" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherMathPathDashboardPage /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/psl" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherPSLDashboardPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/mathpath/classes/:classId/students/:studentId/analyse-paper" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><PaperAnalysisPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mathpath/test-spec" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TestSpecificationPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/mathpath/assessment-upload" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><AssessmentUploadPage /></FeatureGuard></RoleGuard>} />

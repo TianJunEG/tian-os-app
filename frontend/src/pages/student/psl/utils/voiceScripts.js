@@ -96,6 +96,73 @@ const SCRIPTS = {
     ],
     answer: "Substitute back to double-check!",
   },
+  'assumption': {
+    steps: [
+      "Let's use the assumption method! First, let's assume all items are the same type.",
+      "Now calculate the total under our assumption.",
+      "Compare with the actual total — what's the difference?",
+      "Each swap changes the total by a fixed amount. Divide the difference by the per-swap change!",
+    ],
+    answer: "The assumption method gives us a neat answer without any guessing!",
+  },
+  'assumption:animals': {
+    steps: [
+      "Let's assume all animals are the type with fewer legs.",
+      "Calculate the total legs under our assumption.",
+      "Now find the difference between assumed and actual legs.",
+      "Each swap adds extra legs. Divide the difference by the extra legs per swap!",
+    ],
+    answer: "We found how many of each animal there are — no guessing needed!",
+  },
+  'assumption:scoring': {
+    steps: [
+      "Let's assume all answers are correct first.",
+      "Calculate the maximum possible score.",
+      "The gap between the maximum and actual score tells us something important.",
+      "Each wrong answer costs you the gain PLUS the penalty. Divide the gap by this amount!",
+    ],
+    answer: "That's how many wrong answers there were!",
+  },
+  'data-interpretation': {
+    steps: [
+      "Let's look at the data — what does the chart or table show us?",
+      "Read the values carefully. What numbers are given?",
+      "Now use those values to answer the question — add, subtract, or compare.",
+    ],
+    answer: "Always double-check you read the right values from the data!",
+  },
+  'data-interpretation:dataTable': {
+    steps: [
+      "This is a table with rows and columns. Let's read the values we need.",
+      "Find the right row or column for the question.",
+      "Now do the calculation with the values you found.",
+    ],
+    answer: "Tables make it easy to find exact values — nice work!",
+  },
+  'data-interpretation:barChart': {
+    steps: [
+      "Look at the bar chart. Each bar represents a value — check the height!",
+      "Read the scale on the left to find the exact numbers.",
+      "Now calculate using the values from the bars.",
+    ],
+    answer: "Bar charts help us compare — the taller the bar, the bigger the value!",
+  },
+  'data-interpretation:lineGraph': {
+    steps: [
+      "A line graph shows how values change over time. Look at each point.",
+      "Read the y-axis to find the exact value at each point.",
+      "Now use those values to answer the question.",
+    ],
+    answer: "Line graphs show trends — going up means increasing, going down means decreasing!",
+  },
+  'data-interpretation:pieChart': {
+    steps: [
+      "This pie chart shows parts of a whole. Each slice is a percentage.",
+      "Find the percentage for the category you need.",
+      "Multiply the percentage by the total to get the actual number.",
+    ],
+    answer: "Remember — all the slices must add up to 100%!",
+  },
   'pattern-recognition': {
     steps: [
       "Let's look at the numbers in the sequence carefully.",
