@@ -3,6 +3,7 @@ import GeneratedQuestion from '../../models/mathpath/GeneratedQuestion.js';
 import { getVisualModelMetadata, isSupportedVisualType } from './visualModelRegistry.js';
 import { getSkillDisplayName } from './skillDisplayNameService.js';
 import { evaluateRecheckRecommendation } from './mathPathAssignmentService.js';
+import { notifyRemediationOfAssignmentCompletion } from './remediationSessionService.js';
 
 const TEACHING_STAGES = [
   'what_learning',
@@ -354,6 +355,7 @@ export async function updateRecoveryPackTeachingProgress({
   await assignment.save();
   if (assignment.status === 'completed') {
     await evaluateRecheckRecommendation({ assignmentId: assignment._id });
+    await notifyRemediationOfAssignmentCompletion({ assignmentId: String(assignment._id) }).catch(() => {});
   }
   return getRecoveryPackTeachingFlow({ assignmentId: assignment._id });
 }

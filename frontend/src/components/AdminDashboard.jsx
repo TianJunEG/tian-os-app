@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI, partnersAPI } from '../services/api';
 import ResourcesAdmin from './ResourcesAdmin';
-import './AdminDashboard.css';
+import { Badge } from './ui/index.jsx';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -132,136 +132,151 @@ const AdminDashboard = () => {
     }
   };
 
+  const ROLE_TONE = { parent: 'sky', tutor: 'lavender', admin: 'peach' };
+  const navCls = (id) => `px-4 py-2.5 rounded-[14px] text-sm font-semibold transition ${activeTab === id ? 'bg-navy-700 text-white' : 'border border-hairline bg-paper text-ink-500 hover:border-navy-300 hover:text-navy-700'}`;
+  const filterCls = 'h-10 rounded-xl border border-hairline bg-paper px-3 text-sm text-ink-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const btnSmall = 'px-3 py-1.5 text-xs font-semibold rounded-lg border border-hairline bg-paper text-ink-700 transition hover:bg-navy-50';
+  const btnSuccess = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-500 text-white transition hover:bg-success-700';
+  const btnDanger = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-500 text-white transition hover:bg-error-700';
+
+  const BOOKING_STATUS_TONE = {
+    pending: 'gold',
+    confirmed: 'sky',
+    in_progress: 'lavender',
+    completed: 'success',
+    cancelled: 'error'
+  };
+
   return (
-    <div className="admin-dashboard">
-      <header className="admin-header">
-        <h1>🔧 Admin Dashboard</h1>
-        <div className="admin-nav">
+    <div className="min-h-screen bg-ivory p-5 md:p-8">
+      <header className="rounded-[24px] border border-hairline bg-paper p-5 mb-6 shadow-resting">
+        <h1 className="text-2xl font-bold text-ink-700 mb-5">Admin Dashboard</h1>
+        <div className="flex flex-wrap gap-2">
           <button
-            className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
+            className={navCls('dashboard')}
             onClick={() => setActiveTab('dashboard')}
           >
-            📊 Overview
+            Overview
           </button>
           <button
-            className={`nav-btn ${activeTab === 'users' ? 'active' : ''}`}
+            className={navCls('users')}
             onClick={() => setActiveTab('users')}
           >
-            👥 Users
+            Users
           </button>
           <button
-            className={`nav-btn ${activeTab === 'verification' ? 'active' : ''}`}
+            className={navCls('verification')}
             onClick={() => setActiveTab('verification')}
           >
-            ✅ Verification ({data.verificationQueue?.pagination?.total || 0})
+            Verification ({data.verificationQueue?.pagination?.total || 0})
           </button>
           <button
-            className={`nav-btn ${activeTab === 'bookings' ? 'active' : ''}`}
+            className={navCls('bookings')}
             onClick={() => setActiveTab('bookings')}
           >
-            📅 Bookings
+            Bookings
           </button>
           <button
-            className={`nav-btn ${activeTab === 'disputes' ? 'active' : ''}`}
+            className={navCls('disputes')}
             onClick={() => setActiveTab('disputes')}
           >
-            ⚠️ Disputes ({data.disputes?.pagination?.total || 0})
+            Disputes ({data.disputes?.pagination?.total || 0})
           </button>
           <button
-            className={`nav-btn ${activeTab === 'partners' ? 'active' : ''}`}
+            className={navCls('partners')}
             onClick={() => setActiveTab('partners')}
           >
-            🤝 Partnerships ({data.partners?.pagination?.total || 0})
+            Partnerships ({data.partners?.pagination?.total || 0})
           </button>
           <button
-            className={`nav-btn ${activeTab === 'resources' ? 'active' : ''}`}
+            className={navCls('resources')}
             onClick={() => setActiveTab('resources')}
           >
-            📚 Resources
+            Resources
           </button>
           <button
-            className={`nav-btn ${activeTab === 'mathpath-pilot' ? 'active' : ''}`}
+            className={navCls('mathpath-pilot')}
             onClick={() => setActiveTab('mathpath-pilot')}
           >
-            🧭 MathPath Pilot
+            MathPath Pilot
           </button>
         </div>
       </header>
 
       {/* DASHBOARD TAB */}
       {activeTab === 'dashboard' && data.dashboard && (
-        <div className="dashboard-grid">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mt-5">
           {/* Users Card */}
-          <div className="metric-card">
-            <h3>👥 Users</h3>
-            <div className="metric-row">
+          <div className="ds-metric-card">
+            <h3>Users</h3>
+            <div className="ds-metric-row">
               <span>Parents:</span>
               <strong>{data.dashboard.users.parents}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Tutors:</span>
               <strong>{data.dashboard.users.tutors}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Verified:</span>
               <strong>{data.dashboard.users.verified}/{data.dashboard.users.tutors}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Pending Verification:</span>
               <strong>{data.dashboard.users.pendingVerification}</strong>
             </div>
           </div>
 
           {/* Bookings Card */}
-          <div className="metric-card">
-            <h3>📅 Bookings</h3>
-            <div className="metric-row">
+          <div className="ds-metric-card">
+            <h3>Bookings</h3>
+            <div className="ds-metric-row">
               <span>Total:</span>
               <strong>{data.dashboard.bookings.total}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Completed:</span>
               <strong>{data.dashboard.bookings.completed}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Active:</span>
               <strong>{data.dashboard.bookings.active}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Completion Rate:</span>
               <strong>{data.dashboard.bookings.completionRate}%</strong>
             </div>
           </div>
 
           {/* Revenue Card */}
-          <div className="metric-card">
-            <h3>💰 Revenue</h3>
-            <div className="metric-row">
+          <div className="ds-metric-card">
+            <h3>Revenue</h3>
+            <div className="ds-metric-row">
               <span>Total:</span>
               <strong>${data.dashboard.revenue.total.toFixed(2)}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Platform Fee (12%):</span>
               <strong>${data.dashboard.revenue.platformFee.toFixed(2)}</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Tutor Payouts (88%):</span>
               <strong>${data.dashboard.revenue.tutorPayouts.toFixed(2)}</strong>
             </div>
           </div>
 
           {/* Quality Card */}
-          <div className="metric-card">
-            <h3>⭐ Quality</h3>
-            <div className="metric-row">
+          <div className="ds-metric-card">
+            <h3>Quality</h3>
+            <div className="ds-metric-row">
               <span>Avg Tutor Rating:</span>
               <strong>{data.dashboard.quality.avgTutorRating}/5.0</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Avg Match Success:</span>
               <strong>{data.dashboard.quality.avgMatchSuccess}%</strong>
             </div>
-            <div className="metric-row">
+            <div className="ds-metric-row">
               <span>Verification Rate:</span>
               <strong>{data.dashboard.quality.verificationRate}%</strong>
             </div>
@@ -271,39 +286,39 @@ const AdminDashboard = () => {
 
       {/* MATHPATH PILOT TAB */}
       {activeTab === 'mathpath-pilot' && data.mathpathPilot && (
-        <div className="admin-section">
-          <h2>MathPath Fractions Pilot Monitor</h2>
-          <p className="admin-muted">
+        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+          <h2 className="text-xl font-bold text-ink-700 mb-1">MathPath Fractions Pilot Monitor</h2>
+          <p className="text-sm text-ink-500 mb-5">
             Read-only internal view for supervised pilot/test accounts. Generated {new Date(data.mathpathPilot.generatedAt).toLocaleString()}.
           </p>
 
-          <div className="dashboard-grid">
-            <div className="metric-card">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="ds-metric-card">
               <h3>Pilot Students</h3>
-              <div className="metric-value">{data.mathpathPilot.summary.totalStudents}</div>
-              <div className="metric-row"><span>Diagnostics completed</span><strong>{data.mathpathPilot.summary.diagnosticsCompleted}</strong></div>
+              <div className="text-3xl font-bold text-ink-700 mb-3">{data.mathpathPilot.summary.totalStudents}</div>
+              <div className="ds-metric-row"><span>Diagnostics completed</span><strong>{data.mathpathPilot.summary.diagnosticsCompleted}</strong></div>
             </div>
-            <div className="metric-card">
+            <div className="ds-metric-card">
               <h3>Practice</h3>
-              <div className="metric-value">{data.mathpathPilot.summary.practiceCompleted}</div>
-              <div className="metric-row"><span>Total attempts</span><strong>{data.mathpathPilot.summary.attempts}</strong></div>
+              <div className="text-3xl font-bold text-ink-700 mb-3">{data.mathpathPilot.summary.practiceCompleted}</div>
+              <div className="ds-metric-row"><span>Total attempts</span><strong>{data.mathpathPilot.summary.attempts}</strong></div>
             </div>
-            <div className="metric-card">
+            <div className="ds-metric-card">
               <h3>Support Signals</h3>
-              <div className="metric-row"><span>Mistakes</span><strong>{data.mathpathPilot.summary.mistakesCaptured}</strong></div>
-              <div className="metric-row"><span>Help requests</span><strong>{data.mathpathPilot.summary.helpRequests}</strong></div>
-              <div className="metric-row"><span>Workings submitted</span><strong>{data.mathpathPilot.summary.workingSubmitted}</strong></div>
+              <div className="ds-metric-row"><span>Mistakes</span><strong>{data.mathpathPilot.summary.mistakesCaptured}</strong></div>
+              <div className="ds-metric-row"><span>Help requests</span><strong>{data.mathpathPilot.summary.helpRequests}</strong></div>
+              <div className="ds-metric-row"><span>Workings submitted</span><strong>{data.mathpathPilot.summary.workingSubmitted}</strong></div>
             </div>
-            <div className="metric-card">
+            <div className="ds-metric-card">
               <h3>Risk</h3>
-              <div className="metric-row"><span>OK</span><strong>{data.mathpathPilot.summary.riskCounts?.OK || 0}</strong></div>
-              <div className="metric-row"><span>Watch</span><strong>{data.mathpathPilot.summary.riskCounts?.Watch || 0}</strong></div>
-              <div className="metric-row"><span>Needs follow-up</span><strong>{data.mathpathPilot.summary.riskCounts?.['Needs follow-up'] || 0}</strong></div>
+              <div className="ds-metric-row"><span>OK</span><strong>{data.mathpathPilot.summary.riskCounts?.OK || 0}</strong></div>
+              <div className="ds-metric-row"><span>Watch</span><strong>{data.mathpathPilot.summary.riskCounts?.Watch || 0}</strong></div>
+              <div className="ds-metric-row"><span>Needs follow-up</span><strong>{data.mathpathPilot.summary.riskCounts?.['Needs follow-up'] || 0}</strong></div>
             </div>
           </div>
 
-          <div className="table-wrapper">
-            <table className="admin-table">
+          <div className="overflow-x-auto">
+            <table className="ds-table">
               <thead>
                 <tr>
                   <th>Student</th>
@@ -323,7 +338,7 @@ const AdminDashboard = () => {
                   <tr key={student.studentId}>
                     <td>
                       <strong>{student.name}</strong>
-                      <div className="admin-subtext">{student.email}</div>
+                      <div className="text-xs text-ink-300 mt-0.5">{student.email}</div>
                     </td>
                     <td>{student.lastActivityAt ? new Date(student.lastActivityAt).toLocaleString() : 'No activity'}</td>
                     <td>{student.diagnosticStatus}</td>
@@ -334,9 +349,9 @@ const AdminDashboard = () => {
                     <td>{student.workingSubmitted} submitted · {student.workingPending} pending</td>
                     <td>{student.helpRequests}</td>
                     <td>
-                      <span className={`status ${student.risk === 'OK' ? 'active' : student.risk === 'Watch' ? 'pending' : 'inactive'}`}>
+                      <Badge tone={student.risk === 'OK' ? 'success' : student.risk === 'Watch' ? 'gold' : 'error'}>
                         {student.risk}
-                      </span>
+                      </Badge>
                     </td>
                   </tr>
                 ))}
@@ -345,21 +360,21 @@ const AdminDashboard = () => {
           </div>
 
           {data.mathpathPilot.students.length === 0 && (
-            <p className="empty-state">No pilot or test student accounts found.</p>
+            <p className="text-center py-10 text-ink-300">No pilot or test student accounts found.</p>
           )}
         </div>
       )}
 
       {/* USERS TAB */}
       {activeTab === 'users' && data.users && (
-        <div className="admin-section">
-          <div className="filters">
+        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+          <div className="flex flex-wrap gap-2.5 mb-5">
             <select
               value={filters.userRole}
               onChange={(e) =>
                 setFilters(prev => ({ ...prev, userRole: e.target.value, page: 1 }))
               }
-              className="filter-select"
+              className={filterCls}
             >
               <option value="">All Roles</option>
               <option value="parent">Parents</option>
@@ -367,8 +382,8 @@ const AdminDashboard = () => {
             </select>
           </div>
 
-          <div className="table-wrapper">
-          <table className="admin-table">
+          <div className="overflow-x-auto">
+          <table className="ds-table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -386,19 +401,19 @@ const AdminDashboard = () => {
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>
-                    <span className={`badge badge-${user.role}`}>
+                    <Badge tone={ROLE_TONE[user.role] || 'neutral'}>
                       {user.role}
-                    </span>
+                    </Badge>
                   </td>
                   <td>{user.phone || 'N/A'}</td>
                   <td>
-                    <span className={`status ${user.isActive ? 'active' : 'inactive'}`}>
-                      {user.isActive ? '✓ Active' : '✗ Inactive'}
-                    </span>
+                    <Badge tone={user.isActive ? 'success' : 'error'}>
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
                   </td>
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td>
-                    <button className="btn-small">View</button>
+                    <button className={btnSmall}>View</button>
                   </td>
                 </tr>
               ))}
@@ -407,19 +422,19 @@ const AdminDashboard = () => {
           </div>
 
           {/* Pagination */}
-          <div className="pagination">
+          <div className="ds-pagination">
             <button
               disabled={filters.page === 1}
               onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
             >
-              ← Prev
+              Prev
             </button>
             <span>Page {data.users.pagination.page} of {data.users.pagination.pages}</span>
             <button
               disabled={filters.page >= data.users.pagination.pages}
               onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
             >
-              Next →
+              Next
             </button>
           </div>
         </div>
@@ -427,11 +442,11 @@ const AdminDashboard = () => {
 
       {/* VERIFICATION QUEUE TAB */}
       {activeTab === 'verification' && data.verificationQueue && (
-        <div className="admin-section">
-          <h2>Pending Tutor Verifications ({data.verificationQueue.pagination.total})</h2>
+        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+          <h2 className="text-xl font-bold text-ink-700 mb-5">Pending Tutor Verifications ({data.verificationQueue.pagination.total})</h2>
 
-          <div className="table-wrapper">
-          <table className="admin-table">
+          <div className="overflow-x-auto">
+          <table className="ds-table">
             <thead>
               <tr>
                 <th>Tutor Name</th>
@@ -454,20 +469,20 @@ const AdminDashboard = () => {
                   <td>${tutor.hourlyRate}/hr</td>
                   <td>{tutor.totalHoursTaught}h</td>
                   <td>
-                    <span className="badge badge-warning">Pending</span>
+                    <Badge tone="gold">Pending</Badge>
                   </td>
                   <td>
                     <button
-                      className="btn-success"
+                      className={btnSuccess}
                       onClick={() => handleVerifyTutor(tutor._id, 'approve')}
                     >
-                      ✓ Approve
+                      Approve
                     </button>
                     <button
-                      className="btn-danger"
+                      className={btnDanger}
                       onClick={() => handleVerifyTutor(tutor._id, 'reject')}
                     >
-                      ✗ Reject
+                      Reject
                     </button>
                   </td>
                 </tr>
@@ -477,21 +492,21 @@ const AdminDashboard = () => {
           </div>
 
           {data.verificationQueue.tutors.length === 0 && (
-            <p className="empty-state">✓ No pending verifications</p>
+            <p className="text-center py-10 text-ink-300">No pending verifications</p>
           )}
         </div>
       )}
 
       {/* BOOKINGS TAB */}
       {activeTab === 'bookings' && data.bookings && (
-        <div className="admin-section">
-          <div className="filters">
+        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+          <div className="flex flex-wrap gap-2.5 mb-5">
             <select
               value={filters.bookingStatus}
               onChange={(e) =>
                 setFilters(prev => ({ ...prev, bookingStatus: e.target.value, page: 1 }))
               }
-              className="filter-select"
+              className={filterCls}
             >
               <option value="">All Statuses</option>
               <option value="pending">Pending</option>
@@ -502,8 +517,8 @@ const AdminDashboard = () => {
             </select>
           </div>
 
-          <div className="table-wrapper">
-          <table className="admin-table">
+          <div className="overflow-x-auto">
+          <table className="ds-table">
             <thead>
               <tr>
                 <th>Parent</th>
@@ -526,12 +541,12 @@ const AdminDashboard = () => {
                   <td>{booking.duration}h</td>
                   <td>${booking.totalCost}</td>
                   <td>
-                    <span className={`status ${booking.status}`}>
+                    <Badge tone={BOOKING_STATUS_TONE[booking.status] || 'neutral'}>
                       {booking.status}
-                    </span>
+                    </Badge>
                   </td>
                   <td>
-                    <span className={booking.sessionNotes === 'Submitted' ? 'text-success' : 'text-warning'}>
+                    <span className={booking.sessionNotes === 'Submitted' ? 'text-success-500 font-semibold' : 'text-gold-700 font-semibold'}>
                       {booking.sessionNotes}
                     </span>
                   </td>
@@ -545,11 +560,11 @@ const AdminDashboard = () => {
 
       {/* DISPUTES TAB */}
       {activeTab === 'disputes' && data.disputes && (
-        <div className="admin-section">
-          <h2>Disputes ({data.disputes.pagination.total})</h2>
+        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+          <h2 className="text-xl font-bold text-ink-700 mb-5">Disputes ({data.disputes.pagination.total})</h2>
 
-          <div className="table-wrapper">
-          <table className="admin-table">
+          <div className="overflow-x-auto">
+          <table className="ds-table">
             <thead>
               <tr>
                 <th>Parent</th>
@@ -567,12 +582,12 @@ const AdminDashboard = () => {
                   <td>{dispute.parent}</td>
                   <td>{dispute.tutor}</td>
                   <td>{dispute.reason}</td>
-                  <td className="truncate">{dispute.description}</td>
+                  <td className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{dispute.description}</td>
                   <td>{new Date(dispute.flaggedAt).toLocaleDateString()}</td>
                   <td>{dispute.hoursOpen}h</td>
                   <td>
                     <button
-                      className="btn-success"
+                      className={btnSuccess}
                       onClick={() => handleResolvDispute(dispute._id)}
                     >
                       Resolve
@@ -585,18 +600,18 @@ const AdminDashboard = () => {
           </div>
 
           {data.disputes.disputes.length === 0 && (
-            <p className="empty-state">✓ No open disputes</p>
+            <p className="text-center py-10 text-ink-300">No open disputes</p>
           )}
         </div>
       )}
 
       {/* PARTNERSHIPS TAB */}
       {activeTab === 'partners' && data.partners && (
-        <div className="admin-section">
-          <h2>Partnership Inquiries ({data.partners.pagination.total})</h2>
+        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+          <h2 className="text-xl font-bold text-ink-700 mb-5">Partnership Inquiries ({data.partners.pagination.total})</h2>
 
-          <div className="table-wrapper">
-          <table className="admin-table">
+          <div className="overflow-x-auto">
+          <table className="ds-table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -613,10 +628,10 @@ const AdminDashboard = () => {
                   <td>{inquiry.name}</td>
                   <td>{inquiry.organization || 'N/A'}</td>
                   <td>{inquiry.email}</td>
-                  <td className="truncate">{inquiry.message}</td>
+                  <td className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{inquiry.message}</td>
                   <td>
                     <select
-                      className="filter-select"
+                      className={filterCls}
                       value={inquiry.status}
                       onChange={(e) => handleInquiryStatus(inquiry._id, e.target.value)}
                     >
@@ -633,22 +648,22 @@ const AdminDashboard = () => {
           </div>
 
           {data.partners.inquiries.length === 0 && (
-            <p className="empty-state">No partnership inquiries yet</p>
+            <p className="text-center py-10 text-ink-300">No partnership inquiries yet</p>
           )}
 
-          <div className="pagination">
+          <div className="ds-pagination">
             <button
               disabled={filters.page === 1}
               onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
             >
-              ← Prev
+              Prev
             </button>
             <span>Page {data.partners.pagination.page} of {data.partners.pagination.pages}</span>
             <button
               disabled={filters.page >= data.partners.pagination.pages}
               onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
             >
-              Next →
+              Next
             </button>
           </div>
         </div>

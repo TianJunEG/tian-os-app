@@ -53,6 +53,7 @@ const PracticeResult = lazy(() => import('./pages/student/mathpath/PracticeResul
 const QuestionReviewPage = lazy(() => import('./pages/student/mathpath/QuestionReviewPage'));
 const MathPathAssignments = lazy(() => import('./pages/student/mathpath/MathPathAssignments'));
 const RecoveryPackTeachingFlow = lazy(() => import('./pages/student/mathpath/RecoveryPackTeachingFlow'));
+const RemediationJourney = lazy(() => import('./pages/student/mathpath/RemediationJourney'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
 const P1LearningPathPage = lazy(() => import('./pages/student/mathpath/P1LearningPathPage'));
 const P2LearningPathPage = lazy(() => import('./pages/student/mathpath/P2LearningPathPage'));
@@ -562,6 +563,7 @@ function App() {
             <Route path="/student/mathpath/review" element={<QuestionReviewPage />} />
             <Route path="/student/mathpath/assignments" element={<MathPathAssignments />} />
             <Route path="/student/mathpath/recovery-pack/:assignmentId" element={<RecoveryPackTeachingFlow />} />
+            <Route path="/student/mathpath/remediation/:id" element={<RemediationJourney />} />
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />

@@ -65,6 +65,8 @@ export default function DiagnosticResultScreen() {
   const [assigningRecovery, setAssigningRecovery] = useState(false);
   const [assignmentMessage, setAssignmentMessage] = useState('');
   const [assignmentError, setAssignmentError] = useState('');
+  const [startingRemediation, setStartingRemediation] = useState(false);
+  const [remediationError, setRemediationError] = useState('');
 
   useEffect(() => {
     let mounted = true;
@@ -274,6 +276,24 @@ export default function DiagnosticResultScreen() {
       );
     }
   }
+  const startRemediationJourney = async () => {
+    setRemediationError('');
+    setStartingRemediation(true);
+    try {
+      const { data } = await mathpathAPI.startRemediationSession({ diagnosticSessionId });
+      const sessionId = data?.session?._id || data?.session?.id || data?._id || data?.id;
+      if (sessionId) {
+        navigate(`/student/mathpath/remediation/${sessionId}`);
+      } else {
+        setRemediationError('Session created but no ID returned.');
+      }
+    } catch (err) {
+      setRemediationError(err?.response?.data?.error || 'Could not start a remediation journey from this diagnostic.');
+    } finally {
+      setStartingRemediation(false);
+    }
+  };
+
   const assignRecoveryPack = async () => {
     setAssignmentMessage('');
     setAssignmentError('');
@@ -537,6 +557,16 @@ export default function DiagnosticResultScreen() {
             <Button
               size="l"
               variant="secondary"
+              onClick={startRemediationJourney}
+              disabled={startingRemediation}
+            >
+              {startingRemediation ? 'Starting...' : 'Start Remediation Journey'}
+            </Button>
+          )}
+          {weakSkillIds.length > 0 && (
+            <Button
+              size="l"
+              variant="ghost"
               onClick={assignRecoveryPack}
               disabled={assigningRecovery}
             >
@@ -552,6 +582,7 @@ export default function DiagnosticResultScreen() {
         </div>
         {assignmentMessage && <p className="text-sm font-semibold text-success-700">{assignmentMessage}</p>}
         {assignmentError && <p className="text-sm font-semibold text-error-700">{assignmentError}</p>}
+        {remediationError && <p className="text-sm font-semibold text-error-700">{remediationError}</p>}
       </div>
     </div>
   );

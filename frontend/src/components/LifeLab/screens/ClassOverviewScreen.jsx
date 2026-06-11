@@ -31,28 +31,28 @@ export default function ClassOverviewScreen({ onBack }) {
         </div>
       </div>
 
-      <div className="nav-bar">
-        <button className="nav-bar-btn" onClick={onBack}>
+      <div className="ll-nav-bar">
+        <button className="ll-nav-btn" onClick={onBack}>
           <Icon name="arrow_left" size={20} />
         </button>
-        <div className="nav-bar-title">
+        <div className="ll-nav-bar-title">
           <h1>Class Overview</h1>
           <p>Activity progress</p>
         </div>
       </div>
 
       <div className="lifelab-content">
-        <div className="content-scroll" style={{ padding: '16px 20px' }}>
+        <div className="ll-content-scroll" style={{ padding: '16px 20px' }}>
           {loading ? (
-            <div className="loading">Loading...</div>
+            <div className="ll-loading">Loading...</div>
           ) : overview.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">📚</div>
-              <div className="empty-state-text">No activities assigned yet</div>
+            <div className="ll-empty-state">
+              <div className="ll-empty-state-icon">📚</div>
+              <div className="ll-empty-state-text">No activities assigned yet</div>
             </div>
           ) : (
             overview.map((item, idx) => (
-              <div key={idx} className="card">
+              <div key={idx} className="ll-card">
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: '#0B1F3F' }}>
                     {item.assignment?.template_id?.title}
