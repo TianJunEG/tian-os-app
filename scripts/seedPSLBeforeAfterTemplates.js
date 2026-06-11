@@ -53,6 +53,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 20, max: 200 }, change: { min: 10, max: 80 } },
     storyTemplate: '{nameA} {verb} {start} {item} in the {setting}. {nameA} {gainVerb} {change} more {item}. How many {item} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {start} {item}.\nStep 2: Change — {nameA} {gainVerb} {change} more {item}.\nStep 3: After: {start} + {change} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baAddScaffold(
       ['Someone gaining more items', 'Someone giving items away', 'Comparing two collections', 'Sharing items equally'],
       ['The total number of {item} now', 'How many {item} were given away', 'The difference between before and after', 'How many {item} each person gets'],
@@ -70,6 +71,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 20, max: 200 }, change: { min: 10, max: 80 } },
     storyTemplate: 'A {setting} {verb} {start} {item} in the morning. In the afternoon, they {gainVerb} {change} more {item}. How many {item} were {verb} in total?',
+    solutionTemplate: 'Step 1: Before — the {setting} {verb} {start} {item} in the morning.\nStep 2: Change — they {gainVerb} {change} more in the afternoon.\nStep 3: After: {start} + {change} = {answer}.\nAnswer: {answer} {item} in total.',
     scaffold: baAddScaffold(
       ['Combining morning and afternoon amounts', 'Finding the difference between two time periods', 'Sharing items between two groups', 'Removing items from a collection'],
       ['The total {item}', 'How many fewer in the afternoon', 'How many were left unsold', 'How many each person bought'],
@@ -87,6 +89,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 20, max: 200 }, change: { min: 10, max: 80 } },
     storyTemplate: 'The {setting} {verb} {start} {item}. {nameA} {gainVerb} {change} more {item} to the {setting}. How many {item} are there now?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {start} {item}.\nStep 2: Change — {nameA} {gainVerb} {change} more {item}.\nStep 3: After: {start} + {change} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baAddScaffold(
       ['A collection growing after adding items', 'Splitting a collection into groups', 'Comparing two collections', 'Taking items away from a group'],
       ['The new total of {item}', 'How many {item} were removed', 'The number of {item} each person gets', 'How many more are needed'],
@@ -108,6 +111,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 50, max: 300 }, change: { min: 10, max: 100 }, operation: 'subtraction' },
     storyTemplate: '{nameA} {verb} {start} {item}. {nameA} {loseVerb} {change} {item}. How many {item} does {nameA} have left?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {start} {item}.\nStep 2: Change — {nameA} {loseVerb} {change} {item}.\nStep 3: After: {start} - {change} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baSubScaffold(
       ['Someone losing or giving away items', 'Someone gaining more items', 'Comparing two amounts', 'Sharing items among friends'],
       ['How many {item} are left', 'The total number of {item}', 'How many more {item} were bought', 'How many friends shared the {item}'],
@@ -125,6 +129,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 50, max: 300 }, change: { min: 10, max: 100 }, operation: 'subtraction' },
     storyTemplate: '{nameA} {verb} {start} {item} from the {setting}. {nameA} {loseVerb} {change} of them. How many {item} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Before — {nameA} {verb} {start} {item} from the {setting}.\nStep 2: Change — {nameA} {loseVerb} {change} of them.\nStep 3: After: {start} - {change} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baSubScaffold(
       ['Having items and losing some', 'Adding two groups together', 'Dividing items into equal parts', 'Comparing amounts from two places'],
       ['How many {item} remain', 'The total {item} collected', 'How many groups can be formed', 'The difference between two farms'],
@@ -142,6 +147,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 50, max: 300 }, change: { min: 10, max: 100 }, operation: 'subtraction' },
     storyTemplate: 'The {setting} {verb} {start} {item}. After one week, {change} {item} were {loseVerb}. How many {item} are left in the {setting}?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {start} {item}.\nStep 2: Change — {change} {item} were {loseVerb} after one week.\nStep 3: After: {start} - {change} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baSubScaffold(
       ['A quantity decreasing over time', 'A quantity increasing over time', 'Finding the total of two groups', 'Sharing items equally among people'],
       ['How many {item} are left', 'How many more {item} arrived', 'The total number of {item}', 'How many people shared the {item}'],
@@ -163,6 +169,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 300 }, valB: { min: 10, max: 50 }, valC: { min: 10, max: 50 } },
     storyTemplate: '{nameA} had {valA} {item} on the {setting}. {nameA} {gainVerb} {valB} more {item} and then {loseVerb} {valC} {item}. How many {item} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {valA} {item}.\nStep 2: First change — {nameA} {gainVerb} {valB} more: {valA} + {valB} = {mid}.\nStep 3: Second change — {nameA} {loseVerb} {valC}: {mid} - {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['A quantity changing twice — first increasing, then decreasing', 'Comparing two different collections', 'Sharing items among three people', 'Finding a missing part of a total'],
       ['The final number of {item}', 'How many {item} were bought', 'The difference between the gain and loss', 'How many people received {item}'],
@@ -184,6 +191,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 300 }, valB: { min: 10, max: 50 }, valC: { min: 10, max: 50 } },
     storyTemplate: '{nameA} had {valA} {item} in the {setting}. {nameA} {gainVerb} {valB} more {item} from a competition and {loseVerb} {valC} {item}. How many {item} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {valA} {item}.\nStep 2: First change — {nameA} {gainVerb} {valB} more: {valA} + {valB} = {mid}.\nStep 3: Second change — {nameA} {loseVerb} {valC}: {mid} - {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['Two changes happening to a starting amount', 'Finding the total of three groups', 'Comparing amounts before and after', 'Distributing items evenly'],
       ['The final number of {item}', 'The total {item} earned', 'How many more were earned than spent', 'How many each person has'],
@@ -205,6 +213,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 300 }, valB: { min: 10, max: 50 }, valC: { min: 10, max: 50 } },
     storyTemplate: '{nameA} had {valA} {item} in a {setting}. {nameA} {loseVerb} {valB} {item} but later {gainVerb} {valC} {item}. How many {item} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {valA} {item}.\nStep 2: First change — {nameA} {loseVerb} {valB}: {valA} - {valB} = {mid}.\nStep 3: Second change — {nameA} {gainVerb} {valC}: {mid} + {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['A quantity decreasing then increasing', 'Adding three groups together', 'Dividing items into equal parts', 'Comparing two different collections'],
       ['The final number of {item}', 'How many {item} were given away in total', 'The total {item} received', 'How many groups were formed'],
@@ -230,6 +239,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 100, max: 500 }, change: { min: 20, max: 150 } },
     storyTemplate: 'The {setting} {verb} {start} {item} at first. After some were removed, there were {start} - {change} {item} left. How many {item} were removed?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {start} {item}.\nStep 2: After — there were {end} {item} left.\nStep 3: Change = Before - After: {start} - {end} = {answer}.\nAnswer: {answer} {item} were removed.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['Finding how many items were removed', 'Adding items to a collection', 'Comparing two groups', 'Sharing items equally'] },
       identify_info: { type: 'highlight', expected: ['{start}', '{start} - {change}'] },
@@ -250,6 +260,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 100, max: 500 }, change: { min: 20, max: 150 } },
     storyTemplate: '{nameA} had {start} {item} in a {setting}. After some were {action}, there were {start} - {change} {item} left. How many {item} were {action}?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {start} {item}.\nStep 2: After — there were {end} {item} left.\nStep 3: Change = Before - After: {start} - {end} = {answer}.\nAnswer: {answer} {item} were {action}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['Finding the amount that changed', 'Combining two groups', 'Sharing items among people', 'Finding the larger amount'] },
       identify_info: { type: 'highlight', expected: ['{start}', '{start} - {change}'] },
@@ -270,6 +281,7 @@ const TEMPLATES = [
     ],
     constraints: { start: { min: 100, max: 500 }, change: { min: 20, max: 150 } },
     storyTemplate: 'A {setting} {verb} {start} {item}. After some were used, there were {start} - {change} {item} remaining. How many {item} were used?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {start} {item}.\nStep 2: After — there were {end} {item} remaining.\nStep 3: Change = Before - After: {start} - {end} = {answer}.\nAnswer: {answer} {item} were used.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['Figuring out how much was used up', 'Adding more to a container', 'Comparing two containers', 'Dividing contents into portions'] },
       identify_info: { type: 'highlight', expected: ['{start}', '{start} - {change}'] },
@@ -294,6 +306,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 15, max: 40 } },
     storyTemplate: '{nameA} baked {groups} trays of {item} with {perGroup} {item} per tray for the {setting}. {nameA} ate {fractionWord} of one tray. How many {item} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Total baked — {groups} trays × {perGroup} per tray = {total} {item}.\nStep 2: Fraction eaten — {fractionWord} of one tray = {perGroup} ÷ {fractionNum} = {eaten}.\nStep 3: After: {total} - {eaten} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['Finding the total after eating a fraction', 'Sharing cupcakes equally among friends', 'Comparing two bake sales', 'Adding items from two different sources'] },
       identify_info: { type: 'highlight', expected: ['{groups}', '{perGroup}'] },
@@ -317,6 +330,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 15, max: 40 } },
     storyTemplate: '{nameA} had {groups} packets of {item} with {perGroup} {item} in each packet. {nameA} used {fractionWord} of one packet for a project. How many {item} does {nameA} have left?',
+    solutionTemplate: 'Step 1: Total items — {groups} packets × {perGroup} per packet = {total} {item}.\nStep 2: Fraction used — {fractionWord} of one packet = {perGroup} ÷ {fractionNum} = {used}.\nStep 3: After: {total} - {used} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['Using a fraction of items from a collection', 'Sharing items among groups equally', 'Buying more items to add', 'Comparing two collections'] },
       identify_info: { type: 'highlight', expected: ['{groups}', '{perGroup}'] },
@@ -340,6 +354,7 @@ const TEMPLATES = [
     ],
     constraints: { groups: { min: 2, max: 4 }, perGroup: { min: 15, max: 40 } },
     storyTemplate: 'For the {setting}, {nameA} prepared {groups} boxes of {item} with {perGroup} {item} per box. {fractionWord} of one box was given out. How many {item} does {nameA} still have?',
+    solutionTemplate: 'Step 1: Total prepared — {groups} boxes × {perGroup} per box = {total} {item}.\nStep 2: Fraction given out — {fractionWord} of one box = {perGroup} ÷ {fractionNum} = {givenOut}.\nStep 3: After: {total} - {givenOut} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['Items decreasing by a fraction of one group', 'Sharing all items equally', 'Adding items from multiple sources', 'Comparing the before and after prices'] },
       identify_info: { type: 'highlight', expected: ['{groups}', '{perGroup}'] },
@@ -367,6 +382,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 200 }, valB: { min: 10, max: 40 }, valC: { min: 15, max: 50 } },
     storyTemplate: 'The {setting} had {valA} {item}. First, {valB} {item} were {event1}. Then, {valC} {item} were {event2}. How many {item} does the {setting} have now?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {valA} {item}.\nStep 2: After first event — {valB} {item} were {event1}: {valA} + {valB} = {mid}.\nStep 3: After second event — {valC} {item} were {event2}: {mid} - {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['Two sequential events changing a quantity', 'Comparing amounts at two locations', 'Sharing items among groups', 'Finding a fraction of a total'],
       ['The final number of {item}', 'How many {item} were borrowed', 'The total {item} moved', 'How many groups were formed'],
@@ -388,6 +404,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 200 }, valB: { min: 10, max: 40 }, valC: { min: 15, max: 50 } },
     storyTemplate: '{nameA}\'s {setting} had {valA} {item}. {valB} {item} were {event1}. Later, {valC} new {item} {event2}. How many {item} are there now?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {valA} {item}.\nStep 2: After first event — {valB} {item} were {event1}: {valA} - {valB} = {mid}.\nStep 3: After second event — {valC} new {item} {event2}: {mid} + {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['A decrease followed by an increase', 'Adding three separate amounts', 'Comparing two different farms', 'Dividing animals into pens'],
       ['The current number of {item}', 'How many {item} were sold', 'The total {item} hatched', 'How many pens are needed'],
@@ -409,6 +426,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 200 }, valB: { min: 10, max: 40 }, valC: { min: 15, max: 50 } },
     storyTemplate: 'A {setting} had {valA} {item}. {valB} {item} were {event1} and {valC} {item} were {event2}. How many {item} are left in the {setting}?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {valA} {item}.\nStep 2: After first delivery — {valB} {item} were {event1}: {valA} - {valB} = {mid}.\nStep 3: After second delivery — {valC} {item} were {event2}: {mid} - {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['Two decreases from a starting amount', 'Adding deliveries together', 'Finding the difference between two shops', 'Sharing items among two shops'],
       ['How many {item} remain', 'The total {item} delivered', 'Which shop got more', 'How many shops there are'],
@@ -434,6 +452,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 100, max: 500 }, valB: { min: 10, max: 30 } },
     storyTemplate: 'A {setting} had {valA} {item}. The number of {item} {direction} by {valB}%. How many {item} are there now?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {valA} {item}.\nStep 2: Find the increase — {valB}% of {valA} = {increase}.\nStep 3: After: {valA} + {increase} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['A percentage increase in a quantity', 'Sharing items by percentage', 'Comparing percentages of two groups', 'Finding the original amount'] },
       identify_info: { type: 'highlight', expected: ['{valA}', '{valB}%'] },
@@ -457,6 +476,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 100, max: 500 }, valB: { min: 10, max: 30 } },
     storyTemplate: 'A {setting} had {valA} {item}. Due to a sale, the {item} {direction} by {valB}%. How many {item} are left?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {valA} {item}.\nStep 2: Find the decrease — {valB}% of {valA} = {decrease}.\nStep 3: After: {valA} - {decrease} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['A percentage decrease in a quantity', 'A percentage increase in a quantity', 'Finding the percentage of a whole', 'Splitting items into percentage groups'] },
       identify_info: { type: 'highlight', expected: ['{valA}', '{valB}%'] },
@@ -480,6 +500,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 100, max: 500 }, valB: { min: 10, max: 30 } },
     storyTemplate: 'Last year, a {setting} had {valA} {item}. This year, the number {direction} by {valB}%. How many {item} are there this year?',
+    solutionTemplate: 'Step 1: Last year — the {setting} had {valA} {item}.\nStep 2: Find the growth — {valB}% of {valA} = {growth}.\nStep 3: This year: {valA} + {growth} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: {
       understand: { type: 'mc', prompt: 'What is this story about?', correctIndex: 0, choices: ['Year-on-year percentage growth', 'Comparing two different centres', 'Splitting students into classes', 'Reducing the number of students'] },
       identify_info: { type: 'highlight', expected: ['{valA}', '{valB}%'] },
@@ -507,6 +528,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 200 }, valB: { min: 10, max: 40 }, valC: { min: 20, max: 60 } },
     storyTemplate: '{nameA} had {valA} {item}. {nameA} received {valB} {item} from {nameB} and gave {valC} {item} to {nameC} for the {setting}. How many {item} does {nameA} have now?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {valA} {item}.\nStep 2: Received from {nameB}: {valA} + {valB} = {mid}.\nStep 3: Gave to {nameC}: {mid} - {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['Items moving between multiple people', 'Comparing collections of three people', 'Sharing items equally among three people', 'Finding the total across three people'],
       ['How many {item} {nameA} has now', 'How many {item} {nameB} has', 'The total {item} among all three', 'How many more {item} {nameA} gave than received'],
@@ -528,6 +550,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 200 }, valB: { min: 10, max: 40 }, valC: { min: 20, max: 60 } },
     storyTemplate: '{nameA} started the {setting} with {valA} {item}. {nameA} gave {valB} {item} to {nameB} and {valC} {item} to {nameC}. How many {item} does {nameA} have left?',
+    solutionTemplate: 'Step 1: Before — {nameA} had {valA} {item}.\nStep 2: Gave to {nameB}: {valA} - {valB} = {mid}.\nStep 3: Gave to {nameC}: {mid} - {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['Giving items to two different people', 'Receiving items from two people', 'Comparing three collections', 'Finding the total items made'],
       ['How many {item} {nameA} has left', 'How many {item} were given in total', 'Who has the most {item}', 'The total {item} among all people'],
@@ -549,6 +572,7 @@ const TEMPLATES = [
     ],
     constraints: { valA: { min: 50, max: 200 }, valB: { min: 10, max: 40 }, valC: { min: 20, max: 60 } },
     storyTemplate: 'The {setting} had {valA} {item}. {nameA} contributed {valB} {item} and {nameB} contributed {valC} {item}. How many {item} does the {setting} have now?',
+    solutionTemplate: 'Step 1: Before — the {setting} had {valA} {item}.\nStep 2: {nameA} contributed {valB}: {valA} + {valB} = {mid}.\nStep 3: {nameB} contributed {valC}: {mid} + {valC} = {answer}.\nAnswer: {answer} {item}.',
     scaffold: baTwoStepScaffold(
       ['Multiple people contributing to a collection', 'Taking items from a shared collection', 'Comparing contributions from two people', 'Dividing items among people'],
       ['The new total of {item}', 'Who contributed more', 'How many {item} each person has left', 'The difference between the contributions'],
