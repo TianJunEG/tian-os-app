@@ -117,6 +117,11 @@ export const diagramExamples = {
     ex('DG021_EX2', 'solid_3d', { solid: 'cylinder', label: 'Cylinder' }, 'Cylinder'),
     ex('DG021_EX3', 'solid_3d', { solid: 'square_pyramid', label: 'Square Pyramid' }, 'Square Pyramid'),
   ],
+  nets_3d: [
+    ex('DG024_EX1', 'nets_3d', { solid: 'cube' }, 'Net of a Cube'),
+    ex('DG024_EX2', 'nets_3d', { solid: 'triangular_prism' }, 'Net of a Triangular Prism'),
+    ex('DG024_EX3', 'nets_3d', { solid: 'square_pyramid' }, 'Net of a Square Pyramid'),
+  ],
   compass_grid: [
     ex('DG022_EX1', 'compass_grid', { gridSize: 4, objects: [{ label: 'School', row: 1, col: 1 }, { label: 'Park', row: 1, col: 3 }, { label: 'Shop', row: 3, col: 2 }] }, 'Neighbourhood Map'),
     ex('DG022_EX2', 'compass_grid', { gridSize: 5, objects: [{ label: 'A', row: 0, col: 0 }, { label: 'B', row: 0, col: 4 }, { label: 'C', row: 4, col: 2 }] }, 'Three Points'),

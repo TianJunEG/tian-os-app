@@ -1003,8 +1003,7 @@ function buildOne(skillName, difficulty) {
       { title: 'Favourite fruit', cats: ['Apple', 'Orange', 'Banana', 'Grape'] },
     ];
     const set = sets[rnd(0, sets.length - 1)];
-    const raw = shuffle([1, 2, 3, 4].map(() => rnd(3, 25)));
-    while (new Set(raw).size < raw.length) { for (let i = 1; i < raw.length; i++) { if (raw.slice(0, i).includes(raw[i])) raw[i] = rnd(3, 25); } }
+    const raw = shuffle([rnd(5, 15), rnd(10, 25), rnd(3, 12), rnd(8, 20)]);
     const total = raw.reduce((s, v) => s + v, 0);
     const askIdx = rnd(0, set.cats.length - 1);
     const maxIdx = raw.indexOf(Math.max(...raw));
@@ -1062,13 +1061,11 @@ function buildOne(skillName, difficulty) {
       };
     };
     const makeNeither = () => {
-      const a1 = rnd(20, 60);
-      const a2 = rnd(200, 280);
       return {
-        type: 'neither parallel nor perpendicular',
+        type: 'neither',
         lines: [
-          { x1: 60, y1: a1 + 180, x2: 350, y2: a1, label: 'C' },
-          { x1: 100, y1: a2 - 180, x2: 450, y2: a2, label: 'D' },
+          { x1: 60, y1: 250, x2: 350, y2: 80, label: 'C' },
+          { x1: 100, y1: 60, x2: 450, y2: 280, label: 'D' },
         ],
       };
     };
@@ -1129,11 +1126,8 @@ function buildOne(skillName, difficulty) {
     const coords = shuffle(Array.from({ length: gridSize * gridSize }, (_, i) => [Math.floor(i / gridSize), i % gridSize]));
     const count = rnd(3, Math.min(5, places.length));
     const objs = places.slice(0, count).map((label, i) => ({ label, row: coords[i][0], col: coords[i][1] }));
-    let from = objs[rnd(0, objs.length - 1)];
-    let candidates = objs.filter((o) => o !== from);
-    if (difficulty === 'easy') candidates = candidates.filter((o) => o.row === from.row || o.col === from.col);
-    if (candidates.length === 0) candidates = objs.filter((o) => o !== from);
-    const to = candidates[rnd(0, candidates.length - 1)];
+    const from = objs[rnd(0, objs.length - 1)];
+    const to = objs.filter((o) => o !== from)[rnd(0, objs.length - 2)];
     const dr = to.row - from.row;
     const dc = to.col - from.col;
     let dir;
@@ -1153,6 +1147,42 @@ function buildOne(skillName, difficulty) {
       `From ${from.label} (row ${from.row}, col ${from.col}) to ${to.label} (row ${to.row}, col ${to.col}): move ${dr < 0 ? 'up' : dr > 0 ? 'down' : ''} ${dc > 0 ? 'right' : dc < 0 ? 'left' : ''} → ${dir}.`,
       'geo/compass-direction', difficulty);
     q.diagramSpec = { type: 'compass_grid', width: 640, height: 360, data: { gridSize, objects: objs } };
+    return q;
+  }
+  if (name.includes('nets and views') || name.includes('nets of solid')) {
+    const solids = [
+      { solid: 'cube', name: 'cube', faces: '6 square faces' },
+      { solid: 'cuboid', name: 'cuboid', faces: '6 rectangular faces' },
+      { solid: 'cylinder', name: 'cylinder', faces: '2 circles and 1 curved surface' },
+      { solid: 'cone', name: 'cone', faces: '1 circle and 1 curved surface (sector)' },
+      { solid: 'triangular_prism', name: 'triangular prism', faces: '2 triangles and 3 rectangles' },
+      { solid: 'square_pyramid', name: 'square pyramid', faces: '1 square base and 4 triangles' },
+    ];
+    const pool = difficulty === 'easy' ? solids.slice(0, 3) : difficulty === 'medium' ? solids.slice(0, 4) : solids;
+    const pick = pool[rnd(0, pool.length - 1)];
+    if (Math.random() < 0.6) {
+      const q = mcq(`This is the net of a 3D solid. Which solid does it fold into?`, pick.name,
+        shuffle(solids.filter((s) => s.solid !== pick.solid)).slice(0, 3).map((s) => s.name),
+        `When you fold this net, it forms a ${pick.name}. A ${pick.name} has ${pick.faces}.`,
+        'geo/net-folding', difficulty);
+      q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
+      return q;
+    }
+    const faceQ = Math.random() < 0.5;
+    if (faceQ) {
+      const faceCount = { cube: 6, cuboid: 6, cylinder: 3, cone: 2, triangular_prism: 5, square_pyramid: 5 };
+      const ans = faceCount[pick.solid];
+      const q = mcq(`Look at the net of this ${pick.name}. How many faces does it have?`, ans,
+        [ans + 1, Math.max(1, ans - 1), ans + 2],
+        `A ${pick.name} has ${pick.faces}, so ${ans} faces in total.`, 'geo/net-folding', difficulty);
+      q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
+      return q;
+    }
+    const q = mcq(`Which net folds into a ${pick.name}?`, `Net of a ${pick.name}`,
+      shuffle(solids.filter((s) => s.solid !== pick.solid)).slice(0, 3).map((s) => `Net of a ${s.name}`),
+      `A ${pick.name} has ${pick.faces}. Only its net has the matching set of faces.`,
+      'geo/net-folding', difficulty);
+    q.diagramSpec = { type: 'nets_3d', width: 640, height: 400, data: { solid: pick.solid } };
     return q;
   }
   if (name.includes('reading measuring scale')) {

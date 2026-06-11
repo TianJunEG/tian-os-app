@@ -23,6 +23,7 @@ export const DIAGRAM_TYPE_DEFINITIONS = [
   { code: 'DG020', type: 'line_pairs', name: 'Line Pairs' },
   { code: 'DG021', type: 'solid_3d', name: '3D Solid' },
   { code: 'DG022', type: 'compass_grid', name: 'Compass Grid' },
+  { code: 'DG024', type: 'nets_3d', name: 'Nets of Solids' },
 ];
 
 export const LEGACY_DIAGRAM_TYPE_ALIASES = {
