@@ -301,14 +301,14 @@ const LandingPage = () => (
     </header>
 
       <main>
-        <section style={{ position: 'relative', overflow: 'hidden', background: `linear-gradient(165deg, ${TEAL_DARK} 0%, #047857 50%, #059669 100%)` }}>
+        <section style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(165deg, #011A14 0%, #022C22 50%, #064E3B 100%)' }}>
         <div style={{ position: 'absolute', right: '-8%', top: '-15%', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 55%)', filter: 'blur(50px)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', left: '-10%', bottom: '-20%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 55%)', filter: 'blur(50px)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '110px 24px 120px', textAlign: 'center' }}>
           <Reveal><Eyebrow style={{ color: 'rgba(167,243,208,0.9)' }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
             <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: '#fff' }}>
-              AI-Native Learning.<br /><span style={{ color: '#34D399' }}>Built for Schools.</span>
+              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
@@ -317,7 +317,7 @@ const LandingPage = () => (
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: '#fff', color: '#064E3B', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 20px 40px -12px rgba(0,0,0,0.3)' }}>Request a Demo <ArrowRight size={18} /></Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
             <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontWeight: 600, fontSize: 16, textDecoration: 'none', backdropFilter: 'blur(8px)' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
