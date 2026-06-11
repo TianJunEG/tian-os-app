@@ -15,7 +15,7 @@ describe('p4StatSkillGraph', () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  it('contains 2 skills', () => {
+  it('contains all 2 P4-ST skills', () => {
     expect(p4StatSkillGraph.skills).toHaveLength(2);
   });
 });
@@ -30,104 +30,136 @@ describe('p4StatQuestionFamilies', () => {
 });
 
 describe('p4StatQuestionGenerator', () => {
-  it('supports 2 skill IDs', () => {
+  it('supports all 2 skill IDs', () => {
     const ids = getSupportedSkillIds();
     expect(ids).toHaveLength(2);
-    expect(ids).toContain('P4-STAT-01');
-    expect(ids).toContain('P4-STAT-02');
+    expect(ids).toContain('P4-ST-01');
+    expect(ids).toContain('P4-ST-02');
   });
 
-  describe('P4-STAT-01: Reading a Line Graph', () => {
+  // -------------------------------------------------------------------------
+  // P4-ST-01: Reading a Line Graph
+  // -------------------------------------------------------------------------
+
+  describe('P4-ST-01: Reading a Line Graph', () => {
     it('generates read-value questions (_001)', () => {
       for (let i = 0; i < 10; i++) {
-        const q = generateQuestion('P4-STAT-01', { questionFamilyId: 'QF_P4-STAT-01_001' });
+        const q = generateQuestion('P4-ST-01', { questionFamilyId: 'QF_P4-ST-01_001' });
         expect(q).not.toBeNull();
-        expect(q.skillId).toBe('P4-STAT-01');
+        expect(q.skillId).toBe('P4-ST-01');
+        expect(q.answerType).toBe('number');
         expect(q.answer).toBeGreaterThan(0);
-        expect(q.prompt).toContain('line graph');
+        expect(q.diagramData).toBeDefined();
+        expect(q.diagramData.type).toBe('line_graph');
+        expect(q.diagramData.labels.length).toBe(5);
       }
     });
 
-    it('generates increase/decrease questions (_002)', () => {
+    it('generates find-change questions (_002)', () => {
       for (let i = 0; i < 10; i++) {
-        const q = generateQuestion('P4-STAT-01', { questionFamilyId: 'QF_P4-STAT-01_002' });
+        const q = generateQuestion('P4-ST-01', { questionFamilyId: 'QF_P4-ST-01_002' });
         expect(q).not.toBeNull();
+        expect(q.prompt).toMatch(/increase|decrease|change/);
         expect(q.answer).toBeGreaterThanOrEqual(0);
-        expect(q.prompt).toMatch(/increase|decrease/);
       }
     });
 
-    it('generates greatest-change questions (_003)', () => {
+    it('generates find-total questions (_003)', () => {
       for (let i = 0; i < 10; i++) {
-        const q = generateQuestion('P4-STAT-01', { questionFamilyId: 'QF_P4-STAT-01_003' });
+        const q = generateQuestion('P4-ST-01', { questionFamilyId: 'QF_P4-ST-01_003' });
         expect(q).not.toBeNull();
-        expect(q.answer).toBeGreaterThanOrEqual(0);
-        expect(q.prompt).toContain('greatest change');
+        expect(q.prompt).toContain('total');
+        expect(q.answer).toBeGreaterThan(0);
+        // Total should equal sum of all diagramData values
+        const expectedTotal = q.diagramData.values.reduce((s, v) => s + v, 0);
+        expect(q.answer).toBe(expectedTotal);
       }
     });
 
-    it('uses multiples of 5, 10, or 20 as values', () => {
-      for (let i = 0; i < 20; i++) {
-        const q = generateQuestion('P4-STAT-01', { questionFamilyId: 'QF_P4-STAT-01_001' });
-        expect(q.answer % 5).toBe(0);
-      }
+    it('presents data as text description', () => {
+      const q = generateQuestion('P4-ST-01', { questionFamilyId: 'QF_P4-ST-01_001' });
+      // Prompt should contain the dash-separated label-value pairs
+      expect(q.prompt).toMatch(/\w+ — \d+/);
     });
   });
 
-  describe('P4-STAT-02: Reading a Pie Chart', () => {
+  // -------------------------------------------------------------------------
+  // P4-ST-02: Reading a Pie Chart
+  // -------------------------------------------------------------------------
+
+  describe('P4-ST-02: Reading a Pie Chart', () => {
     it('generates read-sector questions (_001)', () => {
       for (let i = 0; i < 10; i++) {
-        const q = generateQuestion('P4-STAT-02', { questionFamilyId: 'QF_P4-STAT-02_001' });
+        const q = generateQuestion('P4-ST-02', { questionFamilyId: 'QF_P4-ST-02_001' });
         expect(q).not.toBeNull();
-        expect(q.skillId).toBe('P4-STAT-02');
+        expect(q.skillId).toBe('P4-ST-02');
+        expect(q.answerType).toBe('number');
         expect(q.answer).toBeGreaterThan(0);
-        expect(q.prompt).toContain('pie chart');
+        expect(q.diagramData).toBeDefined();
+        expect(q.diagramData.type).toBe('pie_chart');
+        expect(q.diagramData.categories.length).toBeGreaterThanOrEqual(3);
       }
     });
 
-    it('generates missing-sector questions (_002)', () => {
+    it('generates find-total questions (_002)', () => {
       for (let i = 0; i < 10; i++) {
-        const q = generateQuestion('P4-STAT-02', { questionFamilyId: 'QF_P4-STAT-02_002' });
+        const q = generateQuestion('P4-ST-02', { questionFamilyId: 'QF_P4-ST-02_002' });
         expect(q).not.toBeNull();
+        expect(q.prompt).toContain('altogether');
         expect(q.answer).toBeGreaterThan(0);
-        expect(q.answer).toBeLessThanOrEqual(100);
-        expect(q.prompt).toContain('percentage');
+        // Total should equal sum of all sector values
+        const expectedTotal = q.diagramData.values.reduce((s, v) => s + v, 0);
+        expect(q.answer).toBe(expectedTotal);
       }
     });
 
-    it('generates compare-sector questions (_003)', () => {
+    it('generates find-difference questions (_003)', () => {
       for (let i = 0; i < 10; i++) {
-        const q = generateQuestion('P4-STAT-02', { questionFamilyId: 'QF_P4-STAT-02_003' });
+        const q = generateQuestion('P4-ST-02', { questionFamilyId: 'QF_P4-ST-02_003' });
         expect(q).not.toBeNull();
-        expect(q.answer).toBeGreaterThanOrEqual(0);
         expect(q.prompt).toContain('more');
+        expect(q.answer).toBeGreaterThanOrEqual(0);
       }
     });
 
-    it('produces whole-number answers for sector values', () => {
-      for (let i = 0; i < 20; i++) {
-        const q = generateQuestion('P4-STAT-02', { questionFamilyId: 'QF_P4-STAT-02_001' });
-        expect(Number.isInteger(q.answer)).toBe(true);
+    it('sector values sum to a round total', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P4-ST-02');
+        const total = q.diagramData.values.reduce((s, v) => s + v, 0);
+        expect(total).toBe(q.diagramData.total);
+        expect([40, 50, 60, 80, 100, 120]).toContain(total);
       }
+    });
+
+    it('presents data as text description', () => {
+      const q = generateQuestion('P4-ST-02', { questionFamilyId: 'QF_P4-ST-02_001' });
+      expect(q.prompt).toContain('pie chart');
+      expect(q.prompt).toMatch(/\w+ — \d+/);
     });
   });
 
+  // -------------------------------------------------------------------------
+  // Utility functions
+  // -------------------------------------------------------------------------
+
   describe('generateQuestionSet', () => {
-    it('returns the requested number of questions', () => {
-      const set = generateQuestionSet('P4-STAT-01', 5);
+    it('returns the requested number', () => {
+      const set = generateQuestionSet('P4-ST-01', 5);
       expect(set).toHaveLength(5);
-      set.forEach((q) => expect(q.skillId).toBe('P4-STAT-01'));
     });
   });
 
   describe('generateDiagnosticSet', () => {
-    it('generates questions across all skills', () => {
-      const set = generateDiagnosticSet(['P4-STAT-01', 'P4-STAT-02'], 2);
+    it('covers all skills', () => {
+      const set = generateDiagnosticSet(['P4-ST-01', 'P4-ST-02'], 2);
       expect(set).toHaveLength(4);
-      const skillIds = new Set(set.map((q) => q.skillId));
-      expect(skillIds.size).toBe(2);
+      expect(new Set(set.map((q) => q.skillId)).size).toBe(2);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Cross-cutting
+  // -------------------------------------------------------------------------
 
   it('returns null for unknown skill', () => {
     expect(generateQuestion('FAKE')).toBeNull();
@@ -135,31 +167,31 @@ describe('p4StatQuestionGenerator', () => {
 
   it('every question has a unique questionId', () => {
     const ids = new Set();
-    for (const skillId of getSupportedSkillIds()) {
+    for (const sid of getSupportedSkillIds()) {
       for (let i = 0; i < 5; i++) {
-        const q = generateQuestion(skillId);
+        const q = generateQuestion(sid);
         expect(ids.has(q.questionId)).toBe(false);
         ids.add(q.questionId);
       }
     }
   });
 
-  it('every question has misconceptionTraps', () => {
-    for (const skillId of getSupportedSkillIds()) {
+  it('every question has misconceptionTraps and solutionText', () => {
+    for (const sid of getSupportedSkillIds()) {
       for (let i = 0; i < 3; i++) {
-        const q = generateQuestion(skillId);
-        expect(q.misconceptionTraps).toBeDefined();
+        const q = generateQuestion(sid);
         expect(q.misconceptionTraps.length).toBeGreaterThan(0);
+        expect(q.solutionText.length).toBeGreaterThan(0);
       }
     }
   });
 
-  it('every question has solutionText', () => {
-    for (const skillId of getSupportedSkillIds()) {
+  it('every question includes diagramData', () => {
+    for (const sid of getSupportedSkillIds()) {
       for (let i = 0; i < 3; i++) {
-        const q = generateQuestion(skillId);
-        expect(q.solutionText).toBeDefined();
-        expect(q.solutionText.length).toBeGreaterThan(0);
+        const q = generateQuestion(sid);
+        expect(q.diagramData).toBeDefined();
+        expect(q.diagramData.type).toBeDefined();
       }
     }
   });

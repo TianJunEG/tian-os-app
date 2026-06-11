@@ -1,9 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ArrowRight, CheckCircle2, Hash, Divide, Calculator,
-  Shapes, CircleDot, BarChart3, BookOpen, Trophy, AlertCircle,
-} from 'lucide-react';
+import { ArrowRight, CheckCircle2, Lock, Hash, Plus, X, Divide, Percent, Shapes, BarChart3, BookOpen, Trophy, AlertCircle } from 'lucide-react';
 import { Badge, Button, Card, PageHeader } from '../../../components/ui';
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -16,13 +13,13 @@ import p4WordProbSkillGraph from '../../../mathpath/primary/p4WordProbSkillGraph
 import p4StatSkillGraph from '../../../mathpath/primary/p4StatSkillGraph';
 
 // ---------------------------------------------------------------------------
-// Domain configuration — order follows Singapore MOE P4 progression
+// Domain configuration — order matters (progression sequence)
 // ---------------------------------------------------------------------------
 const DOMAIN_GROUPS = [
   {
     key: 'wholenumbers',
     label: 'Whole Numbers',
-    description: 'Place value to 100 000, comparing, ordering, and rounding.',
+    description: 'Numbers up to 100 000: place value, comparing, ordering, rounding, and number patterns.',
     icon: Hash,
     color: 'violet',
     graph: p4WholeNumbersSkillGraph,
@@ -30,39 +27,39 @@ const DOMAIN_GROUPS = [
   {
     key: 'factorsmultiples',
     label: 'Factors & Multiples',
-    description: 'Factors, common factors, multiples, and common multiples.',
-    icon: Calculator,
+    description: 'Common factors (HCF) and common multiples (LCM) of whole numbers.',
+    icon: Shapes,
     color: 'navy',
     graph: p4FactorsMultiplesSkillGraph,
   },
   {
     key: 'fourops',
     label: 'Four Operations',
-    description: 'Multiplication up to 4 digits, division with remainder, and order of operations.',
-    icon: Divide,
+    description: 'Multiplication of up to 4-digit by 1-digit and 3-digit by 2-digit; division with remainder.',
+    icon: X,
     color: 'sky',
     graph: p4FourOpsSkillGraph,
   },
   {
     key: 'fractions',
     label: 'Fractions',
-    description: 'Comparing fractions, fraction of a set, and adding/subtracting unlike fractions.',
-    icon: Shapes,
+    description: 'Mixed numbers, improper fractions, and fraction of a set.',
+    icon: Divide,
     color: 'mint',
     graph: p4FractionsSkillGraph,
   },
   {
     key: 'decimals',
     label: 'Decimals',
-    description: 'Decimal place value, comparing, rounding, four operations, and word problems.',
-    icon: CircleDot,
+    description: 'Decimal place value, comparing, rounding, and the four operations with decimals.',
+    icon: Percent,
     color: 'gold',
     graph: p4DecimalsSkillGraph,
   },
   {
     key: 'wordprob',
     label: 'Word Problems',
-    description: 'Fraction-of-quantity and multi-step word problems with model drawing.',
+    description: 'Fraction-of-a-quantity and two-step word problems with bar models.',
     icon: BookOpen,
     color: 'violet',
     graph: p4WordProbSkillGraph,
@@ -70,7 +67,7 @@ const DOMAIN_GROUPS = [
   {
     key: 'stat',
     label: 'Statistics',
-    description: 'Reading and interpreting tables and line graphs.',
+    description: 'Reading and interpreting line graphs and pie charts.',
     icon: BarChart3,
     color: 'navy',
     graph: p4StatSkillGraph,
@@ -78,14 +75,15 @@ const DOMAIN_GROUPS = [
 ];
 
 // ---------------------------------------------------------------------------
-// Colour mappings
+// Domain colour mappings for badges / accents
 // ---------------------------------------------------------------------------
 const COLOR_MAP = {
   violet: { badge: 'navy', border: 'border-violet-200', bg: 'bg-gradient-to-br from-violet-50 via-white to-violet-50', icon: 'bg-violet-100 text-violet-700' },
-  navy: { badge: 'navy', border: 'border-navy-200', bg: 'bg-gradient-to-br from-navy-50 via-white to-sky-50', icon: 'bg-navy-100 text-navy-700' },
+  navy: { badge: 'navy', border: 'border-navy-200', bg: 'bg-gradient-to-br from-navy-50 via-white to-emerald-50', icon: 'bg-navy-100 text-navy-700' },
+  sky: { badge: 'navy', border: 'border-sky-200', bg: 'bg-gradient-to-br from-sky-50 via-white to-navy-50', icon: 'bg-sky-100 text-navy-700' },
   gold: { badge: 'gold', border: 'border-gold-200', bg: 'bg-gradient-to-br from-gold-50 via-white to-yellow-50', icon: 'bg-gold-100 text-gold-700' },
-  mint: { badge: 'success', border: 'border-mint-200', bg: 'bg-gradient-to-br from-mint-50 via-white to-sky-50', icon: 'bg-mint-100 text-success-700' },
-  sky: { badge: 'navy', border: 'border-sky-200', bg: 'bg-gradient-to-br from-sky-50 via-white to-violet-50', icon: 'bg-sky-100 text-navy-700' },
+  mint: { badge: 'success', border: 'border-mint-200', bg: 'bg-gradient-to-br from-mint-50 via-white to-emerald-50', icon: 'bg-mint-100 text-success-700' },
+  emerald: { badge: 'navy', border: 'border-emerald-200', bg: 'bg-gradient-to-br from-emerald-50 via-white to-violet-50', icon: 'bg-emerald-100 text-navy-700' },
 };
 
 function difficultyLabel(difficulty) {
@@ -274,7 +272,7 @@ export default function P4LearningPathPage() {
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-teal-700">P4 Maths</p>
+            <p className="text-sm font-semibold uppercase text-emerald-700">P4 Maths</p>
             <h2 className="font-display text-3xl font-semibold text-ink-900">P4 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 4 skills and start practising any topic.

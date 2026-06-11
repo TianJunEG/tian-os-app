@@ -1,17 +1,67 @@
 const misconceptions = [
-  { tag: 'carry_error_multiplication', label: 'Forgets to carry or carries wrong amount', description: 'In 247\u00d76, gets ones correct (42, write 2 carry 4) but then adds the carry incorrectly or forgets it.', remediationExplanation: 'Write the carry digit above the next column. After multiplying the next digit, ADD the carry to the product before writing the result.', visualScaffold: 'column_multiplication_carry', recheckPattern: 'Multiply a 3-digit number by a 1-digit number, showing all carries.', parentNote: 'Have your child write carries ABOVE the next column in a different colour. Check each step.', relatedSkills: ['P4-FO-01', 'P4-FO-02'] },
-  { tag: 'times_table_slip', label: 'Makes a times-table error', description: 'Knows the method but gets a basic fact wrong, e.g. 7\u00d78=54 instead of 56.', remediationExplanation: 'Practise times tables for speed and accuracy. Use the MathPath fluency drills.', visualScaffold: 'times_table_grid', recheckPattern: 'Answer 10 random times-table facts in 30 seconds.', parentNote: 'Daily 2-minute times-table drill. Focus on the tricky ones (6\u00d77, 7\u00d78, 8\u00d79).', relatedSkills: ['P4-FO-01'] },
-  { tag: 'multiplies_only_ones', label: 'Only multiplies by the ones digit', description: 'For 2345\u00d76, only computes 5\u00d76=30 and writes 30 as the answer.', remediationExplanation: 'You must multiply EVERY digit by the multiplier, from right to left. 2345\u00d76: 5\u00d76=30, 4\u00d76+3=27, 3\u00d76+2=20, 2\u00d76+2=14. Answer: 14070.', visualScaffold: 'column_multiplication_step_by_step', recheckPattern: 'Multiply 1234 \u00d7 5, showing every step.', parentNote: 'Watch your child do each step. They should multiply every digit, not just the last one.', relatedSkills: ['P4-FO-01'] },
-  { tag: 'forgets_tens_row_shift', label: 'Forgets to shift the tens row left', description: 'In 24\u00d713, multiplies by 3 and by 1 but writes both rows starting in the ones column, getting the wrong total.', remediationExplanation: 'The tens row represents tens, so put a 0 placeholder in the ones column (or start writing one column to the left). Then add the two rows.', visualScaffold: 'partial_products_alignment', recheckPattern: 'Multiply 35 \u00d7 24 showing both partial products aligned correctly.', parentNote: 'Ensure your child puts a 0 in the ones place for the tens row. Use grid paper to keep columns aligned.', relatedSkills: ['P4-FO-02'] },
-  { tag: 'partial_product_addition_error', label: 'Adds partial products incorrectly', description: 'Computes both partial products correctly but makes an error when adding them together.', remediationExplanation: 'After finding both partial products, add them carefully column by column, just like a normal addition. Check by estimating.', visualScaffold: 'column_addition_check', recheckPattern: 'Add 1728 + 5760 using column addition.', parentNote: 'Have your child check the final addition step separately. Estimation helps catch large errors.', relatedSkills: ['P4-FO-02'] },
-  { tag: 'division_remainder_confusion', label: 'Confuses remainder with quotient', description: 'For 847\u00f73, writes the remainder as the answer instead of the quotient, or includes the remainder in the quotient.', remediationExplanation: 'The quotient is how many whole groups. The remainder is what\u2019s left over. 847\u00f73 = 282 remainder 1. The answer (quotient) is 282.', visualScaffold: 'long_division_layout', recheckPattern: 'Divide 953 by 4 and state both the quotient and remainder.', parentNote: 'Use physical objects: share 847 sweets among 3 friends. How many each? How many left over?', relatedSkills: ['P4-FO-03'] },
-  { tag: 'skips_zero_in_quotient', label: 'Skips a zero in the quotient', description: 'For 4020\u00f76, writes 67 instead of 670 because the 0 in the middle is skipped.', remediationExplanation: 'When the current dividend digit is smaller than the divisor, write 0 in the quotient and bring down the next digit. Don\u2019t skip!', visualScaffold: 'long_division_zero_step', recheckPattern: 'Divide 3024 by 4, showing every step including zeros.', parentNote: 'Watch for the step where the digit is too small to divide \u2014 your child must write 0 and continue.', relatedSkills: ['P4-FO-03'] },
-  { tag: 'division_direction_error', label: 'Divides in the wrong direction', description: 'Starts dividing from the ones instead of the leftmost digit, getting a completely wrong answer.', remediationExplanation: 'Long division always starts from the LEFT (the biggest place value). Divide, multiply, subtract, bring down \u2014 repeat.', visualScaffold: 'long_division_direction_arrows', recheckPattern: 'Divide 648 by 3, starting from the hundreds digit.', parentNote: 'Remember: division goes left to right (opposite of multiplication). Practise the sequence: Divide, Multiply, Subtract, Bring Down.', relatedSkills: ['P4-FO-03'] },
+  {
+    tag: 'carries_wrong_column',
+    label: 'Carries to the wrong column',
+    description: 'Places the carry digit in the wrong column during long multiplication, e.g. carries the tens digit to the hundreds column instead of the tens column.',
+    remediationExplanation: 'When multiplying, work from right to left one column at a time. If 7 x 8 = 56, write the 6 in the current column and carry the 5 to the NEXT column to the left. Check that each carry goes exactly one column left.',
+    visualScaffold: 'column_multiplication_carry_highlight',
+    recheckPattern: 'Long multiplication with multiple carries. Show working and circle each carry.',
+    parentNote: 'Use grid paper so each digit sits in its own box. Write carried digits small at the top of the correct column. This helps your child keep columns aligned.',
+    relatedSkills: ['P4-FO-01', 'P4-FO-02'],
+  },
+  {
+    tag: 'forgets_carry',
+    label: 'Forgets to add the carry',
+    description: 'Multiplies digits correctly but forgets to add the carry from the previous column, e.g. 2456 x 3: computes 6x3=18 (carry 1), then 5x3=15 but writes 15 instead of 16.',
+    remediationExplanation: 'After each column multiply, CHECK: is there a carry from the last column? If yes, add it to your product before writing the answer. Multiply, then add carry, then write.',
+    visualScaffold: 'long_multiplication_carry_arrows',
+    recheckPattern: 'Long multiplication problem. After each step, say "Is there a carry?" before moving on.',
+    parentNote: 'Encourage your child to write the carry digit clearly and cross it out after adding it. This makes it harder to forget.',
+    relatedSkills: ['P4-FO-01', 'P4-FO-02'],
+  },
+  {
+    tag: 'wrong_partial_product',
+    label: 'Computes partial products incorrectly',
+    description: 'In multi-digit multiplication, fails to shift the second partial product left (i.e. forgets the placeholder zero), e.g. 245 x 13: computes 245x3=735 and 245x1=245 instead of 2450.',
+    remediationExplanation: 'When multiplying by the tens digit, your partial product must be shifted one place left (or add a 0 at the end). 245 x 13: first partial product is 245 x 3 = 735. Second partial product is 245 x 10 = 2450. Then add: 735 + 2450 = 3185.',
+    visualScaffold: 'partial_products_alignment',
+    recheckPattern: 'Multiply a 3-digit number by a 2-digit number. Show both partial products with correct alignment.',
+    parentNote: 'When your child writes the second partial product, have them write a 0 first in the ones place before multiplying. This ensures the shift is not forgotten.',
+    relatedSkills: ['P4-FO-02'],
+  },
+  {
+    tag: 'wrong_remainder',
+    label: 'Computes the remainder incorrectly',
+    description: 'Finds the quotient correctly but calculates the remainder wrong, often by subtracting from the wrong number or making an arithmetic error in the final subtraction.',
+    remediationExplanation: 'The remainder = dividend - (quotient x divisor). Always check: quotient x divisor + remainder should equal the original dividend. If it does not, recheck your subtraction.',
+    visualScaffold: 'long_division_remainder_check',
+    recheckPattern: 'Division with remainder. Verify: quotient x divisor + remainder = dividend.',
+    parentNote: 'After finding the answer, have your child do the reverse check: multiply the quotient by the divisor and add the remainder. If it does not match the original number, something went wrong.',
+    relatedSkills: ['P4-FO-03'],
+  },
+  {
+    tag: 'confuses_quotient_and_remainder',
+    label: 'Confuses the quotient and remainder',
+    description: 'When asked for the remainder, gives the quotient instead, or vice versa. E.g. 1537 / 4 = 384 R 1, but writes the remainder as 384.',
+    remediationExplanation: 'The quotient is how many whole groups you can make. The remainder is what is LEFT OVER after making those groups. 1537 / 4: you can make 384 groups of 4 (quotient = 384), and 1 is left over (remainder = 1).',
+    visualScaffold: 'division_model_groups',
+    recheckPattern: 'Division problem. State both the quotient and the remainder clearly.',
+    parentNote: 'Ask your child: "How many groups?" (that is the quotient) and "How many left over?" (that is the remainder). Practise labelling both parts every time.',
+    relatedSkills: ['P4-FO-03'],
+  },
 ];
 
-const byTag = new Map(misconceptions.map((m) => [m.tag, m]));
-export function getMisconception(tag) { return byTag.get(tag) || null; }
-export function getMisconceptionsForSkill(sid) { return misconceptions.filter((m) => m.relatedSkills.includes(sid)); }
+const misconceptionByTag = new Map(misconceptions.map((m) => [m.tag, m]));
+
+export function getMisconception(tag) { return misconceptionByTag.get(tag) || null; }
+export function getMisconceptionsForSkill(skillId) {
+  return misconceptions.filter((m) => m.relatedSkills.includes(skillId));
+}
 export function getAllMisconceptions() { return [...misconceptions]; }
-export function getRemediationForTag(tag) { const m = byTag.get(tag); if (!m) return null; return { tag: m.tag, explanation: m.remediationExplanation, visualScaffold: m.visualScaffold, recheckPattern: m.recheckPattern, parentNote: m.parentNote }; }
+export function getRemediationForTag(tag) {
+  const m = misconceptionByTag.get(tag);
+  if (!m) return null;
+  return { tag: m.tag, explanation: m.remediationExplanation, visualScaffold: m.visualScaffold, recheckPattern: m.recheckPattern, parentNote: m.parentNote };
+}
+
 export default { getMisconception, getMisconceptionsForSkill, getAllMisconceptions, getRemediationForTag };

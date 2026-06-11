@@ -30,69 +30,51 @@ function buildFamily(skillId, index, config) {
 const familiesBySkillBlueprint = {
   'P4-DEC-01': [
     {
-      name: 'Decompose Decimal into Place Values',
-      description: 'Given a decimal, state how many tenths, hundredths, or thousandths.',
+      name: 'Words to Decimal',
+      description: 'Convert a decimal expressed in words to its numeric form (up to 3dp).',
       difficulty: 1,
-      fluencyTargetSeconds: 12,
-      answerType: 'numeric',
+      fluencyTargetSeconds: 14,
+      answerType: 'text',
       mentalMathEligible: true,
-      misconceptionTags: ['confuses_decimal_columns'],
+      misconceptionTags: ['misplaces_decimal_point'],
     },
     {
-      name: 'Compose Decimal from Place Values',
-      description: 'Given ones, tenths, hundredths, and thousandths, write the decimal.',
+      name: 'Value of a Digit',
+      description: 'Identify the place value of a specific digit in a decimal number.',
       difficulty: 1,
       fluencyTargetSeconds: 12,
-      answerType: 'numeric',
+      answerType: 'number',
       mentalMathEligible: true,
-      misconceptionTags: ['confuses_decimal_columns', 'ignores_decimal_point'],
-    },
-    {
-      name: 'Value of a Decimal Digit',
-      description: 'State the value of an underlined digit in a decimal number (e.g. the 4 in 3.472 is worth 0.4).',
-      difficulty: 2,
-      fluencyTargetSeconds: 10,
-      answerType: 'numeric',
-      mentalMathEligible: true,
-      misconceptionTags: ['confuses_decimal_columns'],
+      misconceptionTags: ['misplaces_decimal_point'],
     },
   ],
   'P4-DEC-02': [
     {
-      name: 'Compare Two Decimals',
-      description: 'Use >, < or = to compare two decimals.',
-      difficulty: 2,
-      fluencyTargetSeconds: 10,
-      answerType: 'mcq',
-      mentalMathEligible: true,
-      misconceptionTags: ['more_digits_means_larger', 'ignores_decimal_point'],
-    },
-    {
-      name: 'Order Three Decimals',
-      description: 'Arrange three decimals in ascending or descending order.',
-      difficulty: 2,
-      fluencyTargetSeconds: 14,
-      answerType: 'ordering',
-      mentalMathEligible: true,
-      misconceptionTags: ['more_digits_means_larger'],
-    },
-    {
-      name: 'Decimals on a Number Line',
-      description: 'Identify or place a decimal on a number line between two whole numbers.',
+      name: 'Which Is Greater',
+      description: 'Given two decimals, identify the greater number.',
       difficulty: 2,
       fluencyTargetSeconds: 12,
-      answerType: 'numeric',
+      answerType: 'text',
       mentalMathEligible: true,
-      misconceptionTags: ['confuses_decimal_columns', 'ignores_decimal_point'],
+      misconceptionTags: ['longer_decimal_is_larger'],
+    },
+    {
+      name: 'Order Ascending',
+      description: 'Arrange three or four decimals in ascending order.',
+      difficulty: 2,
+      fluencyTargetSeconds: 18,
+      answerType: 'text',
+      mentalMathEligible: false,
+      misconceptionTags: ['longer_decimal_is_larger'],
     },
   ],
   'P4-DEC-03': [
     {
-      name: 'Round to Nearest Whole Number',
+      name: 'Round to Whole Number',
       description: 'Round a decimal to the nearest whole number.',
       difficulty: 2,
-      fluencyTargetSeconds: 10,
-      answerType: 'numeric',
+      fluencyTargetSeconds: 12,
+      answerType: 'number',
       mentalMathEligible: true,
       misconceptionTags: ['rounds_wrong_direction'],
     },
@@ -100,113 +82,88 @@ const familiesBySkillBlueprint = {
       name: 'Round to 1 Decimal Place',
       description: 'Round a decimal to 1 decimal place.',
       difficulty: 2,
-      fluencyTargetSeconds: 12,
-      answerType: 'numeric',
+      fluencyTargetSeconds: 14,
+      answerType: 'number',
       mentalMathEligible: true,
-      misconceptionTags: ['rounds_wrong_direction', 'confuses_decimal_columns'],
+      misconceptionTags: ['rounds_wrong_direction'],
     },
     {
       name: 'Round to 2 Decimal Places',
       description: 'Round a decimal to 2 decimal places.',
-      difficulty: 3,
+      difficulty: 2,
       fluencyTargetSeconds: 14,
-      answerType: 'numeric',
+      answerType: 'number',
       mentalMathEligible: true,
-      misconceptionTags: ['rounds_wrong_direction', 'confuses_decimal_columns'],
+      misconceptionTags: ['rounds_wrong_direction'],
     },
   ],
   'P4-DEC-04': [
     {
-      name: 'Add Two Decimals (up to 2 dp)',
-      description: 'Add two decimals, each with up to 2 decimal places.',
+      name: 'Add Decimals',
+      description: 'Add two decimals (up to 2dp).',
       difficulty: 2,
-      fluencyTargetSeconds: 16,
-      answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['misaligns_decimal_points'],
-    },
-    {
-      name: 'Subtract Two Decimals (up to 2 dp)',
-      description: 'Subtract two decimals, each with up to 2 decimal places.',
-      difficulty: 2,
-      fluencyTargetSeconds: 16,
-      answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['misaligns_decimal_points'],
-    },
-    {
-      name: 'Add/Subtract with Different Decimal Places',
-      description: 'Add or subtract decimals where one has 1 dp and the other has 2 dp.',
-      difficulty: 3,
       fluencyTargetSeconds: 18,
-      answerType: 'numeric',
-      mentalMathEligible: false,
+      answerType: 'number',
       workingRequired: true,
-      misconceptionTags: ['misaligns_decimal_points', 'ignores_decimal_point'],
+      misconceptionTags: ['aligns_rightmost_not_decimal_point', 'misplaces_decimal_point'],
+    },
+    {
+      name: 'Subtract Decimals',
+      description: 'Subtract one decimal from another (up to 2dp).',
+      difficulty: 2,
+      fluencyTargetSeconds: 18,
+      answerType: 'number',
+      workingRequired: true,
+      misconceptionTags: ['aligns_rightmost_not_decimal_point', 'misplaces_decimal_point'],
+    },
+    {
+      name: 'Word Context (Add/Subtract)',
+      description: 'Solve a word problem involving adding or subtracting decimals.',
+      difficulty: 2,
+      fluencyTargetSeconds: 25,
+      answerType: 'number',
+      workingRequired: true,
+      misconceptionTags: ['aligns_rightmost_not_decimal_point'],
     },
   ],
   'P4-DEC-05': [
     {
-      name: 'Multiply Decimal by 1-digit Number',
-      description: 'Multiply a decimal (up to 2 dp) by a single-digit whole number.',
-      difficulty: 3,
-      fluencyTargetSeconds: 18,
-      answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['decimal_point_wrong_after_multiply'],
-    },
-    {
-      name: 'Divide Decimal by 1-digit Number',
-      description: 'Divide a decimal (up to 2 dp) by a single-digit whole number with an exact answer.',
+      name: 'Multiply Decimal by 1-digit',
+      description: 'Multiply a decimal (up to 2dp) by a single-digit whole number.',
       difficulty: 3,
       fluencyTargetSeconds: 20,
-      answerType: 'numeric',
-      mentalMathEligible: false,
+      answerType: 'number',
       workingRequired: true,
-      misconceptionTags: ['decimal_point_wrong_after_multiply', 'ignores_decimal_point'],
+      misconceptionTags: ['forgets_to_place_decimal_back', 'misplaces_decimal_point'],
     },
     {
-      name: 'Multiply/Divide Decimal — Mixed',
-      description: 'Mixed practice multiplying or dividing a decimal by a 1-digit whole number.',
+      name: 'Divide Decimal by 1-digit',
+      description: 'Divide a decimal (up to 2dp) by a single-digit whole number.',
       difficulty: 3,
-      fluencyTargetSeconds: 20,
-      answerType: 'numeric',
-      mentalMathEligible: false,
+      fluencyTargetSeconds: 22,
+      answerType: 'number',
       workingRequired: true,
-      misconceptionTags: ['decimal_point_wrong_after_multiply'],
+      misconceptionTags: ['forgets_to_place_decimal_back', 'misplaces_decimal_point'],
     },
   ],
   'P4-DEC-06': [
     {
-      name: 'Fraction to Decimal (denominator 10)',
-      description: 'Convert a fraction with denominator 10 to a decimal.',
+      name: 'Convert Fraction to Decimal',
+      description: 'Express a fraction as a decimal when the denominator is a factor of 10 or 100.',
       difficulty: 2,
-      fluencyTargetSeconds: 10,
-      answerType: 'numeric',
+      fluencyTargetSeconds: 14,
+      answerType: 'number',
       mentalMathEligible: true,
-      misconceptionTags: ['fraction_denominator_conversion_error'],
+      misconceptionTags: ['misplaces_decimal_point'],
     },
     {
-      name: 'Fraction to Decimal (denominator 100)',
-      description: 'Convert a fraction with denominator 100 to a decimal.',
+      name: 'Match Fraction to Decimal',
+      description: 'Select the correct decimal equivalent from a set of choices for a given fraction.',
       difficulty: 2,
       fluencyTargetSeconds: 12,
-      answerType: 'numeric',
+      answerType: 'text',
       mentalMathEligible: true,
-      misconceptionTags: ['fraction_denominator_conversion_error', 'confuses_decimal_columns'],
-    },
-    {
-      name: 'Fraction to Decimal (equivalent denominator)',
-      description: 'Convert a fraction whose denominator is a factor of 10 or 100 (e.g. 2, 4, 5, 20, 25, 50) to a decimal.',
-      difficulty: 3,
-      fluencyTargetSeconds: 16,
-      answerType: 'numeric',
-      mentalMathEligible: false,
-      workingRequired: true,
-      misconceptionTags: ['fraction_denominator_conversion_error', 'confuses_decimal_columns'],
+      misconceptionTags: ['misplaces_decimal_point'],
     },
   ],
 };
@@ -216,44 +173,29 @@ export const p4DecimalsQuestionFamilies = Object.entries(familiesBySkillBlueprin
     definitions.map((definition, index) => buildFamily(skillId, index + 1, definition))
 );
 
-const familyById = new Map(
-  p4DecimalsQuestionFamilies.map((family) => [family.id, family])
-);
+const familyById = new Map(p4DecimalsQuestionFamilies.map((f) => [f.id, f]));
 
-export function getQuestionFamily(familyId) {
-  return familyById.get(familyId) || null;
-}
-
+export function getQuestionFamily(familyId) { return familyById.get(familyId) || null; }
 export function getQuestionFamiliesBySkill(skillId) {
-  return p4DecimalsQuestionFamilies.filter((family) => family.skillId === skillId);
+  return p4DecimalsQuestionFamilies.filter((f) => f.skillId === skillId);
 }
-
-export function getAllQuestionFamilies() {
-  return [...p4DecimalsQuestionFamilies];
-}
-
+export function getAllQuestionFamilies() { return [...p4DecimalsQuestionFamilies]; }
 export function getQuestionFamilyCountsBySkill() {
-  return p4DecimalsSkillGraph.skillIds.reduce((acc, skillId) => {
-    acc[skillId] = getQuestionFamiliesBySkill(skillId).length;
+  return p4DecimalsSkillGraph.skillIds.reduce((acc, sid) => {
+    acc[sid] = getQuestionFamiliesBySkill(sid).length;
     return acc;
   }, {});
 }
 
 export function validateP4DecimalsQuestionFamilies() {
-  const ids = p4DecimalsQuestionFamilies.map((family) => family.id);
-  const duplicateIds = ids.filter((id, index) => ids.indexOf(id) !== index);
+  const ids = p4DecimalsQuestionFamilies.map((f) => f.id);
+  const duplicateIds = ids.filter((id, i) => ids.indexOf(id) !== i);
   const invalidSkillRefs = p4DecimalsQuestionFamilies
-    .filter((family) => !SKILL_IDS.has(family.skillId))
-    .map((family) => ({ familyId: family.id, skillId: family.skillId }));
-
+    .filter((f) => !SKILL_IDS.has(f.skillId))
+    .map((f) => ({ familyId: f.id, skillId: f.skillId }));
   const skillCoverage = getQuestionFamilyCountsBySkill();
-  const missingSkillCoverage = Object.entries(skillCoverage)
-    .filter(([, count]) => count === 0)
-    .map(([skillId]) => skillId);
-
-  const lowFamilyCountSkills = Object.entries(skillCoverage)
-    .filter(([, count]) => count < 2)
-    .map(([skillId, count]) => ({ skillId, count }));
+  const missingSkillCoverage = Object.entries(skillCoverage).filter(([, c]) => c === 0).map(([s]) => s);
+  const lowFamilyCountSkills = Object.entries(skillCoverage).filter(([, c]) => c < 2).map(([s, c]) => ({ skillId: s, count: c }));
 
   const errors = [];
   if (duplicateIds.length) errors.push('Duplicate question family IDs found.');
@@ -265,12 +207,7 @@ export function validateP4DecimalsQuestionFamilies() {
     isValid: errors.length === 0,
     totalQuestionFamilies: p4DecimalsQuestionFamilies.length,
     familiesPerSkill: skillCoverage,
-    summary: {
-      duplicateIds: [...new Set(duplicateIds)],
-      invalidSkillRefs,
-      missingSkillCoverage,
-      lowFamilyCountSkills,
-    },
+    summary: { duplicateIds: [...new Set(duplicateIds)], invalidSkillRefs, missingSkillCoverage, lowFamilyCountSkills },
     errors,
   };
 }

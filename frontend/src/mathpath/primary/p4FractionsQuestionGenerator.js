@@ -3,159 +3,232 @@ import { getQuestionFamiliesBySkill } from './p4FractionsQuestionFamilies.js';
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
-function lcmOf(a, b) { return (a * b) / gcd(a, b); }
+function gcd(a, b) { while (b) { const t = b; b = a % b; a = t; } return a; }
+function lcmFn(a, b) { return (a * b) / gcd(a, b); }
 
-function generateMixedImproper(familyId) {
-  const denom = pick([2, 3, 4, 5, 6, 8, 10, 12]);
+const NAMES = ['Ali', 'Ben', 'Mei', 'Siti', 'Raj', 'Tom', 'Lily', 'Sarah', 'John', 'Mary'];
+
+/* ---------- P4-FR-01: Mixed Number → Improper Fraction ---------- */
+
+function generateMixedToImproper(familyId) {
+  const denom = randInt(2, 12);
   const whole = randInt(1, 5);
   const numer = randInt(1, denom - 1);
-  const improperNumer = whole * denom + numer;
+  const answer = whole * denom + numer;
 
   if (familyId.endsWith('_001')) {
     return {
       skillId: 'P4-FR-01', questionFamilyId: familyId,
-      prompt: `Convert ${whole} ${numer}/${denom} to an improper fraction. What is the numerator?`,
-      answer: improperNumer, answerType: 'number',
-      instructionHint: 'Multiply whole by denominator, then add numerator.',
-      solutionText: `${whole} × ${denom} + ${numer} = ${improperNumer}. So ${whole} ${numer}/${denom} = ${improperNumer}/${denom}.`,
-      misconceptionTraps: ['mixed_to_improper_add_error'],
+      prompt: `Convert ${whole} ${numer}/${denom} to an improper fraction. What is the numerator? (denominator is ${denom})`,
+      answer, answerType: 'number',
+      instructionHint: 'Multiply the whole number by the denominator, then add the numerator.',
+      solutionText: `${whole} × ${denom} = ${whole * denom}. Then ${whole * denom} + ${numer} = ${answer}. So ${whole} ${numer}/${denom} = ${answer}/${denom}.`,
+      misconceptionTraps: ['multiplies_whole_but_forgets_numerator'],
     };
   }
-  if (familyId.endsWith('_002')) {
-    return {
-      skillId: 'P4-FR-01', questionFamilyId: familyId,
-      prompt: `Convert ${improperNumer}/${denom} to a mixed number. What is the whole number part?`,
-      answer: whole, answerType: 'number',
-      instructionHint: 'Divide numerator by denominator.',
-      solutionText: `${improperNumer} ÷ ${denom} = ${whole} remainder ${numer}. So ${improperNumer}/${denom} = ${whole} ${numer}/${denom}.`,
-      misconceptionTraps: ['improper_to_mixed_remainder_error'],
-    };
-  }
-  const matchCorrect = pick([true, false]);
-  const showNumer = matchCorrect ? improperNumer : improperNumer + randInt(1, 3);
+  // _002 word-context
+  const name = pick(NAMES);
+  const items = pick(['pizzas', 'cakes', 'pies', 'loaves of bread', 'bars of chocolate']);
   return {
     skillId: 'P4-FR-01', questionFamilyId: familyId,
-    prompt: `Does ${whole} ${numer}/${denom} equal ${showNumer}/${denom}?`,
-    answer: matchCorrect ? 'Yes' : 'No', answerType: 'choice', options: ['Yes', 'No'],
-    instructionHint: 'Convert mixed to improper and compare.',
-    solutionText: `${whole} ${numer}/${denom} = ${improperNumer}/${denom}. ${matchCorrect ? 'Same' : 'Different'}. Answer: ${matchCorrect ? 'Yes' : 'No'}.`,
-    misconceptionTraps: ['mixed_to_improper_add_error'],
+    prompt: `${name} has ${whole} ${numer}/${denom} ${items}. Express this as an improper fraction. What is the numerator? (denominator is ${denom})`,
+    answer, answerType: 'number',
+    instructionHint: 'Multiply the whole number by the denominator, then add the numerator.',
+    solutionText: `${whole} × ${denom} = ${whole * denom}. Then ${whole * denom} + ${numer} = ${answer}. So ${whole} ${numer}/${denom} = ${answer}/${denom}.`,
+    misconceptionTraps: ['multiplies_whole_but_forgets_numerator'],
   };
 }
 
-const FRAC_CONFIGS = [
-  { n: 1, d: 2 }, { n: 1, d: 3 }, { n: 1, d: 4 }, { n: 1, d: 5 },
-  { n: 2, d: 3 }, { n: 2, d: 5 }, { n: 3, d: 4 }, { n: 3, d: 5 },
-  { n: 3, d: 8 }, { n: 5, d: 6 }, { n: 4, d: 5 },
-];
+/* ---------- P4-FR-02: Fraction of a Set ---------- */
 
 function generateFractionOfSet(familyId) {
+  const denom = randInt(2, 8);
+  const numer = randInt(1, denom - 1);
+  const multiplier = randInt(2, 12);
+  const setSize = denom * multiplier;
+  const answer = numer * multiplier; // (numer/denom) * setSize
+
   if (familyId.endsWith('_001')) {
-    const denom = pick([2, 3, 4, 5, 6, 8]);
-    const mult = randInt(2, 8);
-    const total = denom * mult;
     return {
       skillId: 'P4-FR-02', questionFamilyId: familyId,
-      prompt: `What is 1/${denom} of ${total}?`,
-      answer: mult, answerType: 'number',
-      instructionHint: `Divide ${total} by ${denom}.`,
-      solutionText: `1/${denom} of ${total} = ${total} ÷ ${denom} = ${mult}.`,
-      misconceptionTraps: ['fraction_of_set_forgets_multiply'],
-    };
-  }
-  if (familyId.endsWith('_002')) {
-    const c = pick(FRAC_CONFIGS.filter((x) => x.n > 1));
-    const mult = randInt(2, 6);
-    const total = c.d * mult;
-    const answer = c.n * mult;
-    return {
-      skillId: 'P4-FR-02', questionFamilyId: familyId,
-      prompt: `What is ${c.n}/${c.d} of ${total}?`,
+      prompt: `What is ${numer}/${denom} of ${setSize}?`,
       answer, answerType: 'number',
-      instructionHint: `Divide by ${c.d}, then multiply by ${c.n}.`,
-      solutionText: `${total} ÷ ${c.d} = ${mult}. ${mult} × ${c.n} = ${answer}.`,
-      misconceptionTraps: ['fraction_of_set_divides_by_numerator', 'fraction_of_set_forgets_multiply'],
+      instructionHint: `Divide ${setSize} by ${denom}, then multiply by ${numer}.`,
+      solutionText: `${setSize} ÷ ${denom} = ${multiplier}. ${multiplier} × ${numer} = ${answer}. So ${numer}/${denom} of ${setSize} = ${answer}.`,
+      misconceptionTraps: ['divides_set_by_numerator_not_denominator'],
     };
   }
-  const c = pick(FRAC_CONFIGS);
-  const mult = randInt(2, 8);
-  const total = c.d * mult;
-  const answer = c.n * mult;
-  const items = pick(['marbles', 'stickers', 'sweets', 'beads', 'books']);
+  // _002 word-context
+  const name = pick(NAMES);
+  const objects = pick(['marbles', 'stickers', 'sweets', 'beads', 'buttons', 'pencils', 'cards']);
   return {
     skillId: 'P4-FR-02', questionFamilyId: familyId,
-    prompt: `Ali has ${total} ${items}. He gives ${c.n}/${c.d} of them away. How many does he give away?`,
+    prompt: `${name} has ${setSize} ${objects}. ${name} gives away ${numer}/${denom} of them. How many ${objects} does ${name} give away?`,
     answer, answerType: 'number',
-    instructionHint: `Find ${c.n}/${c.d} of ${total}.`,
-    solutionText: `${total} ÷ ${c.d} = ${mult}. ${mult} × ${c.n} = ${answer}.`,
-    misconceptionTraps: ['fraction_of_set_divides_by_numerator'],
+    instructionHint: `Divide ${setSize} by ${denom}, then multiply by ${numer}.`,
+    solutionText: `${setSize} ÷ ${denom} = ${multiplier}. ${multiplier} × ${numer} = ${answer}. So ${numer}/${denom} of ${setSize} = ${answer}.`,
+    misconceptionTraps: ['divides_set_by_numerator_not_denominator'],
   };
 }
 
-const UNLIKE = [[2,3],[2,5],[3,4],[3,5],[4,5],[3,8],[5,6],[3,10],[6,8]];
+/* ---------- P4-FR-03: Add & Subtract Unlike Fractions ---------- */
+
+// Pre-computed denominator pairs where lcm ≤ 24
+const UNLIKE_PAIRS = [];
+for (let a = 2; a <= 12; a++) {
+  for (let b = a + 1; b <= 12; b++) {
+    if (lcmFn(a, b) <= 24) UNLIKE_PAIRS.push([a, b]);
+  }
+}
 
 function generateUnlikeFractions(familyId) {
-  const [dA, dB] = pick(UNLIKE);
-  const lcd = lcmOf(dA, dB);
+  const isAdd = familyId.endsWith('_001') || (familyId.endsWith('_003') && Math.random() < 0.5);
+  const isSub = familyId.endsWith('_002') || (familyId.endsWith('_003') && !isAdd);
+  const op = isAdd ? '+' : '−';
+  const opWord = isAdd ? 'add' : 'subtract';
 
-  if (familyId.endsWith('_001')) {
-    const nA = randInt(1, dA - 1), nB = randInt(1, dB - 1);
-    const cA = nA * (lcd / dA), cB = nB * (lcd / dB);
-    const ans = cA + cB;
-    return {
-      skillId: 'P4-FR-03', questionFamilyId: familyId,
-      prompt: `${nA}/${dA} + ${nB}/${dB} = ?/${lcd}. What is the numerator?`,
-      answer: ans, answerType: 'number',
-      instructionHint: `Rewrite over ${lcd}, then add.`,
-      solutionText: `${nA}/${dA} = ${cA}/${lcd}, ${nB}/${dB} = ${cB}/${lcd}. ${cA}+${cB}=${ans}.`,
-      misconceptionTraps: ['adds_denominators', 'wrong_common_denominator'],
-    };
+  const [denom1, denom2] = pick(UNLIKE_PAIRS);
+  const lcd = lcmFn(denom1, denom2);
+  const scale1 = lcd / denom1;
+  const scale2 = lcd / denom2;
+
+  const numer1 = randInt(1, denom1 - 1);
+  let numer2;
+  if (isAdd) {
+    // Ensure result numerator fits within lcd (no improper result needed, but allow up to lcd)
+    const maxN2 = Math.min(denom2 - 1, Math.floor((lcd - numer1 * scale1) / scale2));
+    numer2 = maxN2 >= 1 ? randInt(1, maxN2) : 1;
+  } else {
+    // Subtraction: result must be positive
+    const maxN2 = Math.min(denom2 - 1, Math.floor((numer1 * scale1 - 1) / scale2));
+    if (maxN2 < 1) {
+      // Swap to guarantee positive result
+      const tempN1 = randInt(1, denom2 - 1);
+      const tempMaxN2 = Math.min(denom1 - 1, Math.floor((tempN1 * scale2 - 1) / scale1));
+      numer2 = tempMaxN2 >= 1 ? randInt(1, tempMaxN2) : 1;
+      const renamed1 = tempN1 * scale2;
+      const renamed2 = numer2 * scale1;
+      const answer = renamed1 - renamed2;
+      if (answer <= 0) {
+        // Fallback: simple known-good case
+        return generateUnlikeFractionsFallback(familyId, isAdd);
+      }
+      if (familyId.endsWith('_003')) {
+        return generateUnlikeFractionsWordContext(tempN1, denom2, numer2, denom1, lcd, scale2, scale1, answer, isAdd, familyId);
+      }
+      return {
+        skillId: 'P4-FR-03', questionFamilyId: familyId,
+        prompt: `${tempN1}/${denom2} ${op} ${numer2}/${denom1} = ? / ${lcd}. What is the numerator?`,
+        answer, answerType: 'number',
+        instructionHint: `Find the LCD (${lcd}). Rename both fractions, then ${opWord} the numerators.`,
+        solutionText: `${tempN1}/${denom2} = ${renamed1}/${lcd}, ${numer2}/${denom1} = ${renamed2}/${lcd}. ${renamed1} ${op} ${renamed2} = ${answer}. Answer: ${answer}/${lcd}.`,
+        misconceptionTraps: ['adds_unlike_numerators_directly', 'wrong_lcd', 'forgets_to_rename_both_fractions'],
+      };
+    }
+    numer2 = randInt(1, maxN2);
   }
-  if (familyId.endsWith('_002')) {
-    const nA = randInt(1, dA - 1), nB = randInt(1, dB - 1);
-    const cA = nA * (lcd / dA), cB = nB * (lcd / dB);
-    const big = Math.max(cA, cB), small = Math.min(cA, cB);
-    const ans = big - small;
-    const bigF = cA >= cB ? `${nA}/${dA}` : `${nB}/${dB}`;
-    const smallF = cA >= cB ? `${nB}/${dB}` : `${nA}/${dA}`;
-    return {
-      skillId: 'P4-FR-03', questionFamilyId: familyId,
-      prompt: `${bigF} − ${smallF} = ?/${lcd}. What is the numerator?`,
-      answer: ans, answerType: 'number',
-      instructionHint: `Rewrite over ${lcd}, then subtract.`,
-      solutionText: `${big}/${lcd} − ${small}/${lcd} = ${ans}/${lcd}.`,
-      misconceptionTraps: ['adds_denominators'],
-    };
+
+  const renamed1 = numer1 * scale1;
+  const renamed2 = numer2 * scale2;
+  const answer = isAdd ? renamed1 + renamed2 : renamed1 - renamed2;
+
+  if (answer <= 0 || answer > lcd) {
+    return generateUnlikeFractionsFallback(familyId, isAdd);
   }
-  const isAdd = pick([true, false]);
-  const nA = randInt(1, dA - 1), nB = randInt(1, dB - 1);
-  const cA = nA * (lcd / dA), cB = nB * (lcd / dB);
-  let resN;
-  if (isAdd) { resN = cA + cB; } else { resN = Math.abs(cA - cB); }
-  const g = gcd(resN, lcd);
-  const sN = resN / g, sD = lcd / g;
+
+  if (familyId.endsWith('_003')) {
+    return generateUnlikeFractionsWordContext(numer1, denom1, numer2, denom2, lcd, scale1, scale2, answer, isAdd, familyId);
+  }
+
   return {
     skillId: 'P4-FR-03', questionFamilyId: familyId,
-    prompt: `Simplify the answer: ${nA}/${dA} ${isAdd ? '+' : '−'} ${nB}/${dB}. What is the simplified numerator? (denominator = ${sD})`,
-    answer: sN, answerType: 'number',
-    instructionHint: `Compute over ${lcd}, then simplify.`,
-    solutionText: `Result: ${resN}/${lcd}. GCD=${g}. Simplified: ${sN}/${sD}.`,
-    misconceptionTraps: ['forgets_to_simplify'],
+    prompt: `${numer1}/${denom1} ${op} ${numer2}/${denom2} = ? / ${lcd}. What is the numerator?`,
+    answer, answerType: 'number',
+    instructionHint: `Find the LCD (${lcd}). Rename both fractions, then ${opWord} the numerators.`,
+    solutionText: `${numer1}/${denom1} = ${renamed1}/${lcd}, ${numer2}/${denom2} = ${renamed2}/${lcd}. ${renamed1} ${op} ${renamed2} = ${answer}. Answer: ${answer}/${lcd}.`,
+    misconceptionTraps: ['adds_unlike_numerators_directly', 'wrong_lcd', 'forgets_to_rename_both_fractions'],
   };
 }
 
-const generatorsBySkill = { 'P4-FR-01': generateMixedImproper, 'P4-FR-02': generateFractionOfSet, 'P4-FR-03': generateUnlikeFractions };
+function generateUnlikeFractionsFallback(familyId, isAdd) {
+  // Known-good fallback: 1/2 + 1/3 = 5/6, or 2/3 − 1/4 = 5/12
+  if (isAdd) {
+    const lcd = 6;
+    if (familyId.endsWith('_003')) {
+      return generateUnlikeFractionsWordContext(1, 2, 1, 3, 6, 3, 2, 5, true, familyId);
+    }
+    return {
+      skillId: 'P4-FR-03', questionFamilyId: familyId,
+      prompt: `1/2 + 1/3 = ? / 6. What is the numerator?`,
+      answer: 5, answerType: 'number',
+      instructionHint: 'Find the LCD (6). Rename both fractions, then add the numerators.',
+      solutionText: '1/2 = 3/6, 1/3 = 2/6. 3 + 2 = 5. Answer: 5/6.',
+      misconceptionTraps: ['adds_unlike_numerators_directly', 'wrong_lcd', 'forgets_to_rename_both_fractions'],
+    };
+  }
+  if (familyId.endsWith('_003')) {
+    return generateUnlikeFractionsWordContext(2, 3, 1, 4, 12, 4, 3, 5, false, familyId);
+  }
+  return {
+    skillId: 'P4-FR-03', questionFamilyId: familyId,
+    prompt: `2/3 − 1/4 = ? / 12. What is the numerator?`,
+    answer: 5, answerType: 'number',
+    instructionHint: 'Find the LCD (12). Rename both fractions, then subtract the numerators.',
+    solutionText: '2/3 = 8/12, 1/4 = 3/12. 8 − 3 = 5. Answer: 5/12.',
+    misconceptionTraps: ['adds_unlike_numerators_directly', 'wrong_lcd', 'forgets_to_rename_both_fractions'],
+  };
+}
+
+function generateUnlikeFractionsWordContext(n1, d1, n2, d2, lcd, s1, s2, answer, isAdd, familyId) {
+  const name = pick(NAMES);
+  const op = isAdd ? '+' : '−';
+  const opWord = isAdd ? 'add' : 'subtract';
+  const r1 = n1 * s1;
+  const r2 = n2 * s2;
+  let prompt;
+  if (isAdd) {
+    const item = pick(['of a cake', 'of a pie', 'of a pizza', 'of a chocolate bar']);
+    prompt = `${name} ate ${n1}/${d1} ${item} in the morning and ${n2}/${d2} ${item} in the afternoon. What fraction did ${name} eat altogether? Give the numerator. (denominator is ${lcd})`;
+  } else {
+    const item = pick(['of a ribbon', 'of a rope', 'of a strip of paper', 'of a metre of cloth']);
+    prompt = `${name} had ${n1}/${d1} ${item}. ${name} used ${n2}/${d2} ${item}. What fraction is left? Give the numerator. (denominator is ${lcd})`;
+  }
+  return {
+    skillId: 'P4-FR-03', questionFamilyId: familyId,
+    prompt, answer, answerType: 'number',
+    instructionHint: `Find the LCD (${lcd}). Rename both fractions, then ${opWord} the numerators.`,
+    solutionText: `${n1}/${d1} = ${r1}/${lcd}, ${n2}/${d2} = ${r2}/${lcd}. ${r1} ${op} ${r2} = ${answer}. Answer: ${answer}/${lcd}.`,
+    misconceptionTraps: ['adds_unlike_numerators_directly', 'wrong_lcd'],
+  };
+}
+
+const generatorsBySkill = {
+  'P4-FR-01': generateMixedToImproper,
+  'P4-FR-02': generateFractionOfSet,
+  'P4-FR-03': generateUnlikeFractions,
+};
 
 export function generateQuestion(skillId, options = {}) {
-  const skill = getSkill(skillId); if (!skill) return null;
-  const families = getQuestionFamiliesBySkill(skillId); if (!families.length) return null;
+  const skill = getSkill(skillId);
+  if (!skill) return null;
+  const families = getQuestionFamiliesBySkill(skillId);
+  if (!families.length) return null;
   const family = options.questionFamilyId ? families.find((f) => f.id === options.questionFamilyId) || pick(families) : pick(families);
-  const gen = generatorsBySkill[skillId]; if (!gen) return null;
-  const q = gen(family.id);
-  return { ...q, questionId: `${family.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, difficulty: family.difficulty, fluencyTargetSeconds: family.fluencyTargetSeconds, visualRequirement: skill.visual };
+  const generator = generatorsBySkill[skillId];
+  if (!generator) return null;
+  const question = generator(family.id);
+  return { ...question, questionId: `${family.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, difficulty: family.difficulty, fluencyTargetSeconds: family.fluencyTargetSeconds, visualRequirement: family.visualRequirement || skill.visual };
 }
-export function generateQuestionSet(skillId, count = 5, opts = {}) { const q = []; for (let i = 0; i < count; i++) { const r = generateQuestion(skillId, opts); if (r) q.push(r); } return q; }
-export function generateDiagnosticSet(sids, per = 3) { const q = []; for (const s of sids) q.push(...generateQuestionSet(s, per)); return q; }
+
+export function generateQuestionSet(skillId, count = 5, options = {}) {
+  const questions = [];
+  for (let i = 0; i < count; i++) { const q = generateQuestion(skillId, options); if (q) questions.push(q); }
+  return questions;
+}
+export function generateDiagnosticSet(skillIds, questionsPerSkill = 3) {
+  const questions = [];
+  for (const skillId of skillIds) { questions.push(...generateQuestionSet(skillId, questionsPerSkill)); }
+  return questions;
+}
 export function getSupportedSkillIds() { return Object.keys(generatorsBySkill); }
 export default { generateQuestion, generateQuestionSet, generateDiagnosticSet, getSupportedSkillIds };
