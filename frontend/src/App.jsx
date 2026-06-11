@@ -189,6 +189,7 @@ const Reports = lazy(() => import('./pages/teacher/Reports'));
 const TeacherStudentDetail = lazy(() => import('./pages/teacher/TeacherStudentDetail'));
 const TeacherLifeLab = lazy(() => import('./pages/teacher/LifeLab'));
 const TeacherLifeLabHome = lazy(() => import('./pages/teacher/LifeLabHome'));
+const TeacherPSLDashboardPage = lazy(() => import('./pages/teacher/TeacherPSLDashboardPage'));
 // Parent worksheet generator (Phase 4)
 // Secondary → Mechanisms Playground (D&T lower secondary)
 const MechanismsHome = lazy(() => import('./pages/secondary/mechanisms/MechanismsHome'));
@@ -294,32 +295,33 @@ const LandingPage = () => (
           <Link to="/founder" style={navLink}>Our story</Link>
           <Link to="/methodology" style={navLink}>Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
-          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: CORAL, color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${CORAL_GLOW}` }}>Request Demo</Link>
+          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: TEAL, color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(5,150,105,0.3)' }}>Request Demo</Link>
         </nav>
       </div>
     </header>
 
       <main>
-        <section style={{ position: 'relative', overflow: 'hidden', background: `linear-gradient(to bottom, ${TEAL_DARK}, ${TEAL}, ${BG})` }}>
-        <div style={{ position: 'absolute', right: '-6%', top: '-10%', width: 620, height: 620, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,216,240,0.25) 0%, transparent 60%)', filter: 'blur(40px)', pointerEvents: 'none', opacity: 0.5 }} />
-        <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
-          <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
+        <section style={{ position: 'relative', overflow: 'hidden', background: `linear-gradient(165deg, ${TEAL_DARK} 0%, #047857 50%, #059669 100%)` }}>
+        <div style={{ position: 'absolute', right: '-8%', top: '-15%', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 55%)', filter: 'blur(50px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', left: '-10%', bottom: '-20%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 55%)', filter: 'blur(50px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '110px 24px 120px', textAlign: 'center' }}>
+          <Reveal><Eyebrow style={{ color: 'rgba(167,243,208,0.9)' }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
-            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY }}>
+            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: '#fff' }}>
               AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
-            <p style={{ marginTop: 24, fontSize: 'clamp(17px, 2.2vw, 21px)', color: 'rgba(255,248,234,0.8)', maxWidth: 620, margin: '24px auto 0', lineHeight: 1.6 }}>
+            <p style={{ marginTop: 24, fontSize: 'clamp(17px, 2.2vw, 21px)', color: 'rgba(236,253,245,0.85)', maxWidth: 620, margin: '24px auto 0', lineHeight: 1.6 }}>
               Evidence-based intervention tools that close learning gaps across your school — powered by AI, guided by teachers.
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
             <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
-            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(248,250,252,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
+            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', fontWeight: 600, fontSize: 16, textDecoration: 'none', backdropFilter: 'blur(8px)' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
-            <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: IVORY, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
+            <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: 'rgba(236,253,245,0.9)', fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
           </Reveal>
         </div>
       </section>
@@ -347,7 +349,7 @@ const LandingPage = () => (
           {LANDING_FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={i * 0.1}>
               <GlassCard style={{ padding: 30, height: '100%' }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(167,216,240,0.25)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(16,185,129,0.12)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
                   <f.icon size={24} color={TEAL} />
                 </div>
                 <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 24, color: INK, margin: 0 }}>{f.title}</h3>
@@ -359,8 +361,8 @@ const LandingPage = () => (
       </section>
     </main>
 
-    <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(30,41,59,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(248,250,252,0.7)' }}>
-      <span style={{ color: IVORY, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning Infrastructure for Schools · © Tian Jun Education Group
+    <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(5,150,105,0.15)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(167,243,208,0.7)' }}>
+      <span style={{ color: '#fff', fontWeight: 700 }}>Tian OS</span> · AI-Native Learning Infrastructure for Schools · © Tian Jun Education Group
     </footer>
   </div>
 );
@@ -705,6 +707,7 @@ function App() {
             <Route path="/teacher/classes/:id/interventions" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Intervention /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/worksheets" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherWorksheets /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLab /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/psl" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherPSLDashboardPage /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/reports" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Reports /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/students/:id" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherStudentDetail /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLabHome /></FeatureGuard></RoleGuard>} />

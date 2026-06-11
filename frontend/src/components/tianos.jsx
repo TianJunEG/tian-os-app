@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 
 export const GOLD = '#F59E0B';
 export const GOLD_SOFT = 'rgba(245,158,11,0.25)';
-export const CORAL = '#10B981';
-export const CORAL_GLOW = 'rgba(16,185,129,0.35)';
+export const CORAL = '#F59E0B';
+export const CORAL_GLOW = 'rgba(245,158,11,0.35)';
+export const EMERALD = '#10B981';
+export const EMERALD_LIGHT = '#34D399';
 export const TEAL = '#065F46';
 export const TEAL_DARK = '#064E3B';
 export const IVORY = '#F8FAFC';
@@ -62,7 +64,7 @@ export function Wordmark({ size = 30, onDark = false }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
       <span style={{ width: size, height: size, borderRadius: size * 0.3, display: 'grid', placeItems: 'center', fontFamily: SANS, fontWeight: 800, color: '#fff', fontSize: size * 0.56, background: TEAL, boxShadow: '0 0 16px rgba(5,150,105,0.18)' }}>E</span>
-      <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: size * 0.62, color: onDark ? IVORY : TEAL, letterSpacing: '-0.01em' }}>Tian<span style={{ color: CORAL }}>OS</span></span>
+      <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: size * 0.62, color: onDark ? IVORY : TEAL, letterSpacing: '-0.01em' }}>Tian<span style={{ color: EMERALD }}>OS</span></span>
     </span>
   );
 }
