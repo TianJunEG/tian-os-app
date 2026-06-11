@@ -1,17 +1,24 @@
 import { p4FourOpsSkillGraph } from './p4FourOpsSkillGraph.js';
+
 const SKILL_IDS = new Set(p4FourOpsSkillGraph.skillIds);
 
 function buildFamily(skillId, index, config) {
   return {
-    id: `QF_${skillId}_${String(index).padStart(3, '0')}`, skillId,
-    name: config.name, description: config.description, difficulty: config.difficulty,
-    recommendedQuestionCount: 20, fluencyTargetSeconds: config.fluencyTargetSeconds,
-    masteryTargetAccuracy: 90, masteryQuestionCount: 20,
+    id: `QF_${skillId}_${String(index).padStart(3, '0')}`,
+    skillId,
+    name: config.name,
+    description: config.description,
+    difficulty: config.difficulty,
+    recommendedQuestionCount: config.recommendedQuestionCount ?? 20,
+    fluencyTargetSeconds: config.fluencyTargetSeconds,
+    masteryTargetAccuracy: config.masteryTargetAccuracy ?? 90,
+    masteryQuestionCount: config.masteryQuestionCount ?? 20,
     misconceptionTags: config.misconceptionTags ?? [],
-    assessmentRelevant: true, mentalMathEligible: false,
-    workingRequired: config.workingRequired ?? true,
-    answerType: 'numeric',
-    fluencyBenchmarks: {
+    assessmentRelevant: config.assessmentRelevant ?? true,
+    mentalMathEligible: config.mentalMathEligible ?? false,
+    workingRequired: config.workingRequired ?? false,
+    answerType: config.answerType ?? 'numeric',
+    fluencyBenchmarks: config.fluencyBenchmarks ?? {
       bronze: Math.round(config.fluencyTargetSeconds * 1.8),
       silver: Math.round(config.fluencyTargetSeconds * 1.4),
       gold: config.fluencyTargetSeconds,
@@ -20,47 +27,126 @@ function buildFamily(skillId, index, config) {
   };
 }
 
-const blueprint = {
+const familiesBySkillBlueprint = {
   'P4-FO-01': [
-    { name: '3-digit \u00d7 1-digit', description: 'Multiply a 3-digit number by a 1-digit number.', difficulty: 3, fluencyTargetSeconds: 22, misconceptionTags: ['carry_error_multiplication', 'times_table_slip'] },
-    { name: '4-digit \u00d7 1-digit (no carry)', description: 'Multiply a 4-digit number by a 1-digit number with no carrying.', difficulty: 2, fluencyTargetSeconds: 20, misconceptionTags: ['times_table_slip'] },
-    { name: '4-digit \u00d7 1-digit (with carry)', description: 'Multiply a 4-digit number by a 1-digit number with carrying.', difficulty: 3, fluencyTargetSeconds: 26, misconceptionTags: ['carry_error_multiplication', 'multiplies_only_ones'] },
+    {
+      name: 'Standard Multiplication (4-digit by 1-digit)',
+      description: 'Multiply a 4-digit number by a 1-digit number using the column method.',
+      difficulty: 2,
+      fluencyTargetSeconds: 26,
+      answerType: 'numeric',
+      workingRequired: true,
+      misconceptionTags: ['carries_wrong_column', 'forgets_carry'],
+    },
+    {
+      name: 'Word Context (4-digit by 1-digit)',
+      description: 'Solve a word problem that requires multiplying a 4-digit number by a 1-digit number.',
+      difficulty: 2,
+      fluencyTargetSeconds: 30,
+      answerType: 'numeric',
+      workingRequired: true,
+      misconceptionTags: ['carries_wrong_column', 'forgets_carry'],
+    },
   ],
   'P4-FO-02': [
-    { name: '2-digit \u00d7 2-digit', description: 'Multiply a 2-digit number by a 2-digit number.', difficulty: 3, fluencyTargetSeconds: 26, misconceptionTags: ['forgets_tens_row_shift', 'partial_product_addition_error'] },
-    { name: '3-digit \u00d7 2-digit (small)', description: 'Multiply a 3-digit number by a 2-digit number (smaller values).', difficulty: 3, fluencyTargetSeconds: 28, misconceptionTags: ['carry_error_multiplication', 'forgets_tens_row_shift'] },
-    { name: '3-digit \u00d7 2-digit (large)', description: 'Multiply a 3-digit number by a 2-digit number (larger values).', difficulty: 4, fluencyTargetSeconds: 30, misconceptionTags: ['carry_error_multiplication', 'partial_product_addition_error'] },
+    {
+      name: 'Standard Multiplication (3-digit by 2-digit)',
+      description: 'Multiply a 3-digit number by a 2-digit number using partial products.',
+      difficulty: 3,
+      fluencyTargetSeconds: 35,
+      answerType: 'numeric',
+      workingRequired: true,
+      misconceptionTags: ['wrong_partial_product', 'forgets_carry', 'carries_wrong_column'],
+    },
+    {
+      name: 'Word Context (3-digit by 2-digit)',
+      description: 'Solve a word problem that requires multiplying a 3-digit number by a 2-digit number.',
+      difficulty: 3,
+      fluencyTargetSeconds: 40,
+      answerType: 'numeric',
+      workingRequired: true,
+      misconceptionTags: ['wrong_partial_product', 'forgets_carry'],
+    },
   ],
   'P4-FO-03': [
-    { name: '3-digit \u00f7 1-digit (exact)', description: 'Divide a 3-digit number by a 1-digit number with no remainder.', difficulty: 3, fluencyTargetSeconds: 24, misconceptionTags: ['division_direction_error'] },
-    { name: '4-digit \u00f7 1-digit (exact)', description: 'Divide a 4-digit number by a 1-digit number with no remainder.', difficulty: 3, fluencyTargetSeconds: 30, misconceptionTags: ['skips_zero_in_quotient'] },
-    { name: '4-digit \u00f7 1-digit (with remainder)', description: 'Divide a 4-digit number by a 1-digit number and state the remainder.', difficulty: 4, fluencyTargetSeconds: 30, misconceptionTags: ['division_remainder_confusion', 'skips_zero_in_quotient'] },
+    {
+      name: 'Exact Division (4-digit by 1-digit)',
+      description: 'Divide a number up to 4 digits exactly by a 1-digit number.',
+      difficulty: 2,
+      fluencyTargetSeconds: 26,
+      answerType: 'numeric',
+      workingRequired: true,
+      misconceptionTags: ['wrong_remainder'],
+    },
+    {
+      name: 'Division with Remainder (4-digit by 1-digit)',
+      description: 'Divide a number up to 4 digits by a 1-digit number and find the remainder.',
+      difficulty: 2,
+      fluencyTargetSeconds: 28,
+      answerType: 'numeric',
+      workingRequired: true,
+      misconceptionTags: ['wrong_remainder', 'confuses_quotient_and_remainder'],
+    },
+    {
+      name: 'Word Context (Division)',
+      description: 'Solve a word problem that requires dividing a large number by a 1-digit number.',
+      difficulty: 3,
+      fluencyTargetSeconds: 32,
+      answerType: 'numeric',
+      workingRequired: true,
+      misconceptionTags: ['wrong_remainder', 'confuses_quotient_and_remainder'],
+    },
   ],
 };
 
-export const p4FourOpsQuestionFamilies = Object.entries(blueprint).flatMap(
-  ([skillId, defs]) => defs.map((def, i) => buildFamily(skillId, i + 1, def))
+export const p4FourOpsQuestionFamilies = Object.entries(familiesBySkillBlueprint).flatMap(
+  ([skillId, definitions]) =>
+    definitions.map((definition, index) => buildFamily(skillId, index + 1, definition))
 );
+
 const familyById = new Map(p4FourOpsQuestionFamilies.map((f) => [f.id, f]));
 
-export function getQuestionFamily(id) { return familyById.get(id) || null; }
-export function getQuestionFamiliesBySkill(sid) { return p4FourOpsQuestionFamilies.filter((f) => f.skillId === sid); }
+export function getQuestionFamily(familyId) { return familyById.get(familyId) || null; }
+export function getQuestionFamiliesBySkill(skillId) {
+  return p4FourOpsQuestionFamilies.filter((f) => f.skillId === skillId);
+}
 export function getAllQuestionFamilies() { return [...p4FourOpsQuestionFamilies]; }
-export function getQuestionFamilyCountsBySkill() { return p4FourOpsSkillGraph.skillIds.reduce((a, s) => { a[s] = getQuestionFamiliesBySkill(s).length; return a; }, {}); }
+export function getQuestionFamilyCountsBySkill() {
+  return p4FourOpsSkillGraph.skillIds.reduce((acc, sid) => {
+    acc[sid] = getQuestionFamiliesBySkill(sid).length;
+    return acc;
+  }, {});
+}
 
 export function validateP4FourOpsQuestionFamilies() {
   const ids = p4FourOpsQuestionFamilies.map((f) => f.id);
-  const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
-  const badRefs = p4FourOpsQuestionFamilies.filter((f) => !SKILL_IDS.has(f.skillId));
-  const coverage = getQuestionFamilyCountsBySkill();
-  const noFam = Object.entries(coverage).filter(([, c]) => c === 0).map(([s]) => s);
-  const lowFam = Object.entries(coverage).filter(([, c]) => c < 2).map(([s, c]) => ({ skillId: s, count: c }));
+  const duplicateIds = ids.filter((id, i) => ids.indexOf(id) !== i);
+  const invalidSkillRefs = p4FourOpsQuestionFamilies
+    .filter((f) => !SKILL_IDS.has(f.skillId))
+    .map((f) => ({ familyId: f.id, skillId: f.skillId }));
+  const skillCoverage = getQuestionFamilyCountsBySkill();
+  const missingSkillCoverage = Object.entries(skillCoverage).filter(([, c]) => c === 0).map(([s]) => s);
+  const lowFamilyCountSkills = Object.entries(skillCoverage).filter(([, c]) => c < 2).map(([s, c]) => ({ skillId: s, count: c }));
+
   const errors = [];
-  if (dupes.length) errors.push('Duplicate IDs.');
-  if (badRefs.length) errors.push('Bad skill refs.');
-  if (noFam.length) errors.push('Skills with no families.');
-  if (lowFam.length) errors.push('Skills with < 2 families.');
-  return { isValid: errors.length === 0, totalQuestionFamilies: p4FourOpsQuestionFamilies.length, familiesPerSkill: coverage, errors };
+  if (duplicateIds.length) errors.push('Duplicate question family IDs found.');
+  if (invalidSkillRefs.length) errors.push('Some question families reference invalid skill IDs.');
+  if (missingSkillCoverage.length) errors.push('Some skills have no question families.');
+  if (lowFamilyCountSkills.length) errors.push('Some skills have fewer than 2 question families.');
+
+  return {
+    isValid: errors.length === 0,
+    totalQuestionFamilies: p4FourOpsQuestionFamilies.length,
+    familiesPerSkill: skillCoverage,
+    summary: { duplicateIds: [...new Set(duplicateIds)], invalidSkillRefs, missingSkillCoverage, lowFamilyCountSkills },
+    errors,
+  };
 }
 
-export default { domainId: 'p4-four-operations', version: '1.0.0', totalSkills: p4FourOpsSkillGraph.skillIds.length, totalQuestionFamilies: p4FourOpsQuestionFamilies.length, families: p4FourOpsQuestionFamilies };
+export default {
+  domainId: 'p4-four-ops',
+  version: '1.0.0',
+  totalSkills: p4FourOpsSkillGraph.skillIds.length,
+  totalQuestionFamilies: p4FourOpsQuestionFamilies.length,
+  families: p4FourOpsQuestionFamilies,
+};

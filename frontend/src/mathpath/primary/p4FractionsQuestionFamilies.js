@@ -5,13 +5,16 @@ function buildFamily(skillId, index, config) {
   return {
     id: `QF_${skillId}_${String(index).padStart(3, '0')}`, skillId,
     name: config.name, description: config.description, difficulty: config.difficulty,
-    recommendedQuestionCount: 20, fluencyTargetSeconds: config.fluencyTargetSeconds,
-    masteryTargetAccuracy: 90, masteryQuestionCount: 20,
+    recommendedQuestionCount: config.recommendedQuestionCount ?? 20,
+    fluencyTargetSeconds: config.fluencyTargetSeconds,
+    masteryTargetAccuracy: config.masteryTargetAccuracy ?? 90,
+    masteryQuestionCount: config.masteryQuestionCount ?? 20,
     misconceptionTags: config.misconceptionTags ?? [],
-    assessmentRelevant: true, mentalMathEligible: config.mentalMathEligible ?? false,
-    workingRequired: config.workingRequired ?? true,
+    assessmentRelevant: config.assessmentRelevant ?? true,
+    mentalMathEligible: config.mentalMathEligible ?? false,
+    workingRequired: config.workingRequired ?? false,
     answerType: config.answerType ?? 'numeric',
-    fluencyBenchmarks: {
+    fluencyBenchmarks: config.fluencyBenchmarks ?? {
       bronze: Math.round(config.fluencyTargetSeconds * 1.8),
       silver: Math.round(config.fluencyTargetSeconds * 1.4),
       gold: config.fluencyTargetSeconds,
@@ -20,44 +23,47 @@ function buildFamily(skillId, index, config) {
   };
 }
 
-const blueprint = {
+const familiesBySkillBlueprint = {
   'P4-FR-01': [
-    { name: 'Mixed \u2192 improper', description: 'Convert a mixed number to an improper fraction.', difficulty: 3, fluencyTargetSeconds: 14, mentalMathEligible: true, misconceptionTags: ['mixed_to_improper_add_error'] },
-    { name: 'Improper \u2192 mixed', description: 'Convert an improper fraction to a mixed number.', difficulty: 3, fluencyTargetSeconds: 14, mentalMathEligible: true, misconceptionTags: ['improper_to_mixed_remainder_error'] },
-    { name: 'Compare forms', description: 'Determine if a mixed number equals a given improper fraction.', difficulty: 3, fluencyTargetSeconds: 16, answerType: 'mcq', misconceptionTags: ['mixed_to_improper_add_error'] },
+    { name: 'Convert to Improper Fraction', description: 'Convert a mixed number to an improper fraction (numeric answer).', difficulty: 2, fluencyTargetSeconds: 14, mentalMathEligible: true, misconceptionTags: ['multiplies_whole_but_forgets_numerator'] },
+    { name: 'Convert to Improper (Word Context)', description: 'Convert a mixed number to an improper fraction in a word-problem context.', difficulty: 2, fluencyTargetSeconds: 18, misconceptionTags: ['multiplies_whole_but_forgets_numerator'] },
   ],
   'P4-FR-02': [
-    { name: 'Unit fraction of set', description: 'Find 1/n of a set.', difficulty: 2, fluencyTargetSeconds: 12, mentalMathEligible: true, misconceptionTags: ['fraction_of_set_forgets_multiply'] },
-    { name: 'Non-unit fraction of set', description: 'Find a/b of a set where a > 1.', difficulty: 3, fluencyTargetSeconds: 16, misconceptionTags: ['fraction_of_set_divides_by_numerator'] },
-    { name: 'Word problem context', description: 'Solve fraction-of-set word problem.', difficulty: 3, fluencyTargetSeconds: 18, misconceptionTags: ['fraction_of_set_divides_by_numerator'] },
+    { name: 'Compute Fraction of a Set', description: 'Find the value of a fraction of a given number of objects.', difficulty: 2, fluencyTargetSeconds: 16, misconceptionTags: ['divides_set_by_numerator_not_denominator'] },
+    { name: 'Fraction of a Set (Word Context)', description: 'Fraction-of-a-set presented in a word-problem scenario.', difficulty: 2, fluencyTargetSeconds: 20, misconceptionTags: ['divides_set_by_numerator_not_denominator'] },
   ],
   'P4-FR-03': [
-    { name: 'Add unlike fractions', description: 'Add two fractions with different denominators.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['adds_denominators', 'wrong_common_denominator'] },
-    { name: 'Subtract unlike fractions', description: 'Subtract two fractions with different denominators.', difficulty: 3, fluencyTargetSeconds: 20, misconceptionTags: ['adds_denominators'] },
-    { name: 'Add/sub with simplify', description: 'Add or subtract and simplify result.', difficulty: 4, fluencyTargetSeconds: 22, misconceptionTags: ['forgets_to_simplify'] },
+    { name: 'Add Unlike Fractions', description: 'Add two fractions with different denominators and give the numerator over the LCD.', difficulty: 3, fluencyTargetSeconds: 20, workingRequired: true, misconceptionTags: ['adds_unlike_numerators_directly', 'wrong_lcd', 'forgets_to_rename_both_fractions'] },
+    { name: 'Subtract Unlike Fractions', description: 'Subtract two fractions with different denominators and give the numerator over the LCD.', difficulty: 3, fluencyTargetSeconds: 20, workingRequired: true, misconceptionTags: ['adds_unlike_numerators_directly', 'wrong_lcd', 'forgets_to_rename_both_fractions'] },
+    { name: 'Unlike Fractions (Word Context)', description: 'Add or subtract unlike fractions in a word-problem context.', difficulty: 3, fluencyTargetSeconds: 24, workingRequired: true, misconceptionTags: ['adds_unlike_numerators_directly', 'wrong_lcd'] },
   ],
 };
 
-export const p4FractionsQuestionFamilies = Object.entries(blueprint).flatMap(
+export const p4FractionsQuestionFamilies = Object.entries(familiesBySkillBlueprint).flatMap(
   ([skillId, defs]) => defs.map((def, i) => buildFamily(skillId, i + 1, def))
 );
 const familyById = new Map(p4FractionsQuestionFamilies.map((f) => [f.id, f]));
+
 export function getQuestionFamily(id) { return familyById.get(id) || null; }
-export function getQuestionFamiliesBySkill(sid) { return p4FractionsQuestionFamilies.filter((f) => f.skillId === sid); }
+export function getQuestionFamiliesBySkill(skillId) { return p4FractionsQuestionFamilies.filter((f) => f.skillId === skillId); }
 export function getAllQuestionFamilies() { return [...p4FractionsQuestionFamilies]; }
-export function getQuestionFamilyCountsBySkill() { return p4FractionsSkillGraph.skillIds.reduce((a, s) => { a[s] = getQuestionFamiliesBySkill(s).length; return a; }, {}); }
+export function getQuestionFamilyCountsBySkill() {
+  return p4FractionsSkillGraph.skillIds.reduce((a, s) => { a[s] = getQuestionFamiliesBySkill(s).length; return a; }, {});
+}
 
 export function validateP4FractionsQuestionFamilies() {
   const ids = p4FractionsQuestionFamilies.map((f) => f.id);
   const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
-  const badRefs = p4FractionsQuestionFamilies.filter((f) => !SKILL_IDS.has(f.skillId));
+  const badRefs = p4FractionsQuestionFamilies.filter((f) => !SKILL_IDS.has(f.skillId)).map((f) => ({ familyId: f.id, skillId: f.skillId }));
   const coverage = getQuestionFamilyCountsBySkill();
+  const noFamilies = Object.entries(coverage).filter(([, c]) => c === 0).map(([s]) => s);
+  const lowFamilies = Object.entries(coverage).filter(([, c]) => c < 2).map(([s, c]) => ({ skillId: s, count: c }));
   const errors = [];
-  if (dupes.length) errors.push('Duplicate IDs.');
-  if (badRefs.length) errors.push('Bad skill refs.');
-  if (Object.values(coverage).some((c) => c === 0)) errors.push('Skills with no families.');
-  if (Object.values(coverage).some((c) => c < 2)) errors.push('Skills with < 2 families.');
-  return { isValid: errors.length === 0, totalQuestionFamilies: p4FractionsQuestionFamilies.length, familiesPerSkill: coverage, errors };
+  if (dupes.length) errors.push('Duplicate question family IDs found.');
+  if (badRefs.length) errors.push('Invalid skill references.');
+  if (noFamilies.length) errors.push('Skills with no families.');
+  if (lowFamilies.length) errors.push('Skills with < 2 families.');
+  return { isValid: errors.length === 0, totalQuestionFamilies: p4FractionsQuestionFamilies.length, familiesPerSkill: coverage, summary: { dupes, badRefs, noFamilies, lowFamilies }, errors };
 }
 
 export default { domainId: 'p4-fractions', version: '1.0.0', totalSkills: p4FractionsSkillGraph.skillIds.length, totalQuestionFamilies: p4FractionsQuestionFamilies.length, families: p4FractionsQuestionFamilies };

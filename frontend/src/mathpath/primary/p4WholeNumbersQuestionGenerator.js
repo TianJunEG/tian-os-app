@@ -5,13 +5,8 @@ import {
   placeValueBlocksDiagram,
 } from './p1DiagramHelpers.js';
 
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function randInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
 function shuffle(arr) {
   const copy = [...arr];
@@ -30,109 +25,120 @@ function distinctRandInt(min, max, exclude) {
   return exclude === min ? min + 1 : min;
 }
 
+const NAMES = ['Ali', 'Ben', 'Mei', 'Siti', 'Raj', 'Tom', 'Lily', 'Sarah', 'John', 'Mary'];
+
+function rand5Digit() {
+  const tth = randInt(1, 9);
+  const th = randInt(0, 9);
+  const h = randInt(0, 9);
+  const t = randInt(0, 9);
+  const o = randInt(0, 9);
+  return { tth, th, h, t, o, n: tth * 10000 + th * 1000 + h * 100 + t * 10 + o };
+}
+
 // ---------------------------------------------------------------------------
 // P4-WN-01: Place Value (ten thousands to ones)
 // ---------------------------------------------------------------------------
 
 function generatePlaceValue5Digit(familyId) {
+  // _001: Expanded form -> number
   if (familyId.endsWith('_001')) {
-    const tth = randInt(1, 9);
-    const th = randInt(0, 9);
-    const h = randInt(0, 9);
-    const t = randInt(0, 9);
-    const o = randInt(0, 9);
-    const n = tth * 10000 + th * 1000 + h * 100 + t * 10 + o;
-    const places = [
-      { label: 'ten thousands', value: tth },
-      { label: 'thousands', value: th },
-      { label: 'hundreds', value: h },
-      { label: 'tens', value: t },
-      { label: 'ones', value: o },
-    ];
-    const asked = pick(places);
+    const { tth, th, h, t, o, n } = rand5Digit();
+    const parts = [];
+    if (tth) parts.push(`${tth * 10000}`);
+    if (th) parts.push(`${th * 1000}`);
+    if (h) parts.push(`${h * 100}`);
+    if (t) parts.push(`${t * 10}`);
+    if (o) parts.push(`${o}`);
+    const expanded = parts.join(' + ') || '0';
 
     return {
       skillId: 'P4-WN-01',
       questionFamilyId: familyId,
-      prompt: `In ${n.toLocaleString()}, how many ${asked.label} are there?`,
-      answer: asked.value,
-      answerType: 'number',
-      instructionHint: `Write the number of ${asked.label}.`,
-      solutionText: `${n.toLocaleString()} = ${tth} ten thousands, ${th} thousands, ${h} hundreds, ${t} tens, ${o} ones. There are ${asked.value} ${asked.label}.`,
-      diagramSpec: placeValueBlocksDiagram(t, o, { hundreds: h, title: `${n.toLocaleString()} in place values` }),
-      misconceptionTraps: ['confuses_place_columns_5digit'],
-    };
-  }
-
-  if (familyId.endsWith('_002')) {
-    const tth = randInt(1, 9);
-    const th = randInt(0, 9);
-    const h = randInt(0, 9);
-    const t = randInt(0, 9);
-    const o = randInt(0, 9);
-    const n = tth * 10000 + th * 1000 + h * 100 + t * 10 + o;
-
-    return {
-      skillId: 'P4-WN-01',
-      questionFamilyId: familyId,
-      prompt: `What number is ${tth} ten thousands, ${th} thousands, ${h} hundreds, ${t} tens, and ${o} ones?`,
+      prompt: `What number is ${expanded}?`,
       answer: n,
       answerType: 'number',
-      instructionHint: 'Write the number.',
-      solutionText: `${tth} \u00d7 10 000 + ${th} \u00d7 1000 + ${h} \u00d7 100 + ${t} \u00d7 10 + ${o} = ${n.toLocaleString()}.`,
-      diagramSpec: placeValueBlocksDiagram(t, o, { hundreds: h, title: `${tth} TTh, ${th} Th, ${h} H, ${t} T, ${o} O` }),
+      instructionHint: 'Add the values together to form the number.',
+      solutionText: `${expanded} = ${n.toLocaleString()}.`,
+      diagramSpec: placeValueBlocksDiagram(t, o, { hundreds: h, title: `${n} in place values` }),
       misconceptionTraps: ['confuses_place_columns_5digit', 'zero_placeholder_error_5digit'],
     };
   }
 
-  if (familyId.endsWith('_003')) {
-    const tth = randInt(1, 9);
-    const th = randInt(0, 9);
-    const h = randInt(0, 9);
-    const t = randInt(0, 9);
-    const o = randInt(0, 9);
-    const n = tth * 10000 + th * 1000 + h * 100 + t * 10 + o;
-    const positions = [
-      { digit: tth, place: 'ten thousands', value: tth * 10000 },
-      { digit: th, place: 'thousands', value: th * 1000 },
-      { digit: h, place: 'hundreds', value: h * 100 },
-      { digit: t, place: 'tens', value: t * 10 },
-      { digit: o, place: 'ones', value: o },
-    ];
-    const asked = pick(positions);
+  // _002: Number -> expanded form (MCQ)
+  if (familyId.endsWith('_002')) {
+    const { tth, th, h, t, o, n } = rand5Digit();
+    const parts = [];
+    if (tth) parts.push(`${tth * 10000}`);
+    if (th) parts.push(`${th * 1000}`);
+    if (h) parts.push(`${h * 100}`);
+    if (t) parts.push(`${t * 10}`);
+    if (o) parts.push(`${o}`);
+    const correct = parts.join(' + ') || '0';
+
+    // Build distractors by swapping place values
+    const wrongA = [];
+    if (tth) wrongA.push(`${tth * 1000}`);
+    if (th) wrongA.push(`${th * 10000}`);
+    if (h) wrongA.push(`${h * 100}`);
+    if (t) wrongA.push(`${t * 10}`);
+    if (o) wrongA.push(`${o}`);
+    const distractor1 = wrongA.join(' + ') || '0';
+
+    const wrongB = [];
+    if (tth) wrongB.push(`${tth * 10000}`);
+    if (th) wrongB.push(`${th * 1000}`);
+    if (h) wrongB.push(`${h * 10}`);
+    if (t) wrongB.push(`${t * 100}`);
+    if (o) wrongB.push(`${o}`);
+    const distractor2 = wrongB.join(' + ') || '0';
+
+    const options = [correct, distractor1, distractor2].filter((v, i, a) => a.indexOf(v) === i);
+    while (options.length < 3) {
+      const alt = rand5Digit();
+      const altParts = [];
+      if (alt.tth) altParts.push(`${alt.tth * 10000}`);
+      if (alt.th) altParts.push(`${alt.th * 1000}`);
+      if (alt.h) altParts.push(`${alt.h * 100}`);
+      if (alt.t) altParts.push(`${alt.t * 10}`);
+      if (alt.o) altParts.push(`${alt.o}`);
+      const altExpanded = altParts.join(' + ') || '0';
+      if (!options.includes(altExpanded)) options.push(altExpanded);
+    }
 
     return {
       skillId: 'P4-WN-01',
       questionFamilyId: familyId,
-      prompt: `What is the value of the digit ${asked.digit} in ${n.toLocaleString()}?`,
-      answer: asked.value,
-      answerType: 'number',
-      instructionHint: 'Write the value of the digit.',
-      solutionText: `The digit ${asked.digit} is in the ${asked.place} place, so its value is ${asked.value.toLocaleString()}.`,
+      prompt: `Which is the correct expanded form of ${n.toLocaleString()}?`,
+      answer: correct,
+      answerType: 'choice',
+      options: shuffle(options.slice(0, 3)),
+      instructionHint: 'Choose the expanded form that adds up to the number.',
+      solutionText: `${n.toLocaleString()} = ${correct}.`,
       misconceptionTraps: ['confuses_place_columns_5digit'],
     };
   }
 
-  // _004: Zero placeholder (5-digit)
-  const zeroPatterns = [
-    () => { const tth = randInt(1, 9); const o = randInt(1, 9); return { tth, th: 0, h: 0, t: 0, o }; },
-    () => { const tth = randInt(1, 9); const h = randInt(1, 9); return { tth, th: 0, h, t: 0, o: 0 }; },
-    () => { const tth = randInt(1, 9); const th = randInt(1, 9); const o = randInt(1, 9); return { tth, th, h: 0, t: 0, o }; },
-    () => { const tth = randInt(1, 9); const t = randInt(1, 9); return { tth, th: 0, h: 0, t, o: 0 }; },
+  // _003: Value of a digit
+  const { tth, th, h, t, o, n } = rand5Digit();
+  const positions = [
+    { digit: tth, place: 'ten thousands', value: tth * 10000 },
+    { digit: th, place: 'thousands', value: th * 1000 },
+    { digit: h, place: 'hundreds', value: h * 100 },
+    { digit: t, place: 'tens', value: t * 10 },
+    { digit: o, place: 'ones', value: o },
   ];
-  const { tth, th, h, t, o } = pick(zeroPatterns)();
-  const n = tth * 10000 + th * 1000 + h * 100 + t * 10 + o;
+  const asked = pick(positions);
 
   return {
     skillId: 'P4-WN-01',
     questionFamilyId: familyId,
-    prompt: `What number is ${tth} ten thousands, ${th} thousands, ${h} hundreds, ${t} tens, and ${o} ones?`,
-    answer: n,
+    prompt: `What is the value of the digit ${asked.digit} in ${n.toLocaleString()}?`,
+    answer: asked.value,
     answerType: 'number',
-    instructionHint: 'Write the number. Remember the zero placeholders!',
-    solutionText: `${tth} \u00d7 10 000 + ${th} \u00d7 1000 + ${h} \u00d7 100 + ${t} \u00d7 10 + ${o} = ${n.toLocaleString()}. The zeros hold the empty places.`,
-    diagramSpec: placeValueBlocksDiagram(t, o, { hundreds: h, title: `${n.toLocaleString()} \u2014 zero placeholders` }),
-    misconceptionTraps: ['zero_placeholder_error_5digit'],
+    instructionHint: 'Write the value of the digit, not the digit itself.',
+    solutionText: `The digit ${asked.digit} is in the ${asked.place} place, so its value is ${asked.value.toLocaleString()}.`,
+    misconceptionTraps: ['confuses_place_columns_5digit'],
   };
 }
 
@@ -141,9 +147,10 @@ function generatePlaceValue5Digit(familyId) {
 // ---------------------------------------------------------------------------
 
 function generateCompareOrder100000(familyId) {
+  // _001: Which is greater
   if (familyId.endsWith('_001')) {
-    const a = randInt(10000, 99999);
-    const b = distinctRandInt(10000, 99999, a);
+    const a = randInt(1001, 99999);
+    const b = distinctRandInt(1001, 99999, a);
     const symbol = a > b ? '>' : '<';
     const options = ['>', '<', '='];
 
@@ -155,91 +162,99 @@ function generateCompareOrder100000(familyId) {
       answerType: 'choice',
       options,
       instructionHint: 'Choose >, < or =.',
-      solutionText: `${a.toLocaleString()} ${symbol} ${b.toLocaleString()}. Compare from the ten-thousands place: ${Math.floor(a / 10000)} vs ${Math.floor(b / 10000)}.`,
+      solutionText: `${a.toLocaleString()} ${symbol} ${b.toLocaleString()}. Compare from the ten thousands place first.`,
       diagramSpec: numberLineDiagram({
-        start: 0,
-        end: 100000,
-        step: 10000,
-        points: [{ value: a, label: a.toLocaleString() }, { value: b, label: b.toLocaleString() }],
+        start: 0, end: 100000, step: 10000,
+        points: [{ value: a, label: String(a) }, { value: b, label: String(b) }],
         title: `Compare ${a.toLocaleString()} and ${b.toLocaleString()}`,
       }),
-      misconceptionTraps: ['compares_digit_by_digit_wrong_order_5digit', 'confuses_more_less_symbols'],
+      misconceptionTraps: ['compares_digit_by_digit_wrong_order_5digit', 'confuses_more_less_symbols_5digit'],
     };
   }
 
+  // _002: Order ascending
   if (familyId.endsWith('_002')) {
     const nums = [];
     while (nums.length < 3) {
-      const n = randInt(10000, 99999);
+      const n = randInt(1001, 99999);
       if (!nums.includes(n)) nums.push(n);
     }
-    const ascending = pick([true, false]);
-    const sorted = [...nums].sort((x, y) => (ascending ? x - y : y - x));
-    const direction = ascending ? 'smallest to largest' : 'largest to smallest';
+    const sorted = [...nums].sort((x, y) => x - y);
 
     return {
       skillId: 'P4-WN-02',
       questionFamilyId: familyId,
-      prompt: `Put these numbers in order from ${direction}: ${nums.map((n) => n.toLocaleString()).join(', ')}`,
-      answer: sorted.map((n) => n.toLocaleString()).join(', '),
+      prompt: `Arrange from smallest to largest: ${nums.map((n) => n.toLocaleString()).join(', ')}`,
+      answer: sorted.join(', '),
       answerType: 'choice',
       options: shuffle([
-        sorted.map((n) => n.toLocaleString()).join(', '),
-        [...sorted].reverse().map((n) => n.toLocaleString()).join(', '),
-        shuffle([...nums]).map((n) => n.toLocaleString()).join(', '),
+        sorted.join(', '),
+        [...sorted].reverse().join(', '),
+        shuffle([...nums]).join(', '),
       ].filter((v, i, a) => a.indexOf(v) === i)).slice(0, 3),
-      instructionHint: `Order from ${direction}.`,
-      solutionText: `In order from ${direction}: ${sorted.map((n) => n.toLocaleString()).join(', ')}.`,
+      instructionHint: 'Order from smallest to largest.',
+      solutionText: `From smallest to largest: ${sorted.map((n) => n.toLocaleString()).join(', ')}.`,
       diagramSpec: numberLineDiagram({
-        start: 0,
-        end: 100000,
-        step: 10000,
-        points: nums.map((n) => ({ value: n, label: n.toLocaleString() })),
-        title: `Order ${nums.map((n) => n.toLocaleString()).join(', ')}`,
+        start: 0, end: 100000, step: 10000,
+        points: nums.map((n) => ({ value: n, label: String(n) })),
+        title: `Order: ${nums.map((n) => n.toLocaleString()).join(', ')}`,
       }),
       misconceptionTraps: ['compares_digit_by_digit_wrong_order_5digit'],
     };
   }
 
-  // _003: Greatest / smallest from 5 digits
-  const digits = [];
-  while (digits.length < 5) {
-    const d = randInt(0, 9);
-    if (!digits.includes(d)) digits.push(d);
+  // _003: Order descending
+  const nums = [];
+  while (nums.length < 3) {
+    const n = randInt(1001, 99999);
+    if (!nums.includes(n)) nums.push(n);
   }
-  const wantGreatest = pick([true, false]);
-  const sortedDigits = [...digits].sort((a, b) => (wantGreatest ? b - a : a - b));
-  if (sortedDigits[0] === 0) {
-    const firstNonZero = sortedDigits.findIndex((d) => d > 0);
-    [sortedDigits[0], sortedDigits[firstNonZero]] = [sortedDigits[firstNonZero], sortedDigits[0]];
-  }
-  const answer = Number(sortedDigits.join(''));
-  const label = wantGreatest ? 'greatest' : 'smallest';
+  const sorted = [...nums].sort((x, y) => y - x);
 
   return {
     skillId: 'P4-WN-02',
     questionFamilyId: familyId,
-    prompt: `Using the digits ${digits.join(', ')}, form the ${label} 5-digit number. (Use each digit once.)`,
-    answer,
-    answerType: 'number',
-    instructionHint: `Write the ${label} 5-digit number.`,
-    solutionText: `To make the ${label} number, arrange digits from ${wantGreatest ? 'largest to smallest' : 'smallest to largest'} (put the ${wantGreatest ? 'biggest' : 'smallest non-zero'} digit in the ten-thousands place): ${answer.toLocaleString()}.`,
-    misconceptionTraps: ['confuses_place_columns_5digit', 'zero_placeholder_error_5digit'],
+    prompt: `Arrange from largest to smallest: ${nums.map((n) => n.toLocaleString()).join(', ')}`,
+    answer: sorted.join(', '),
+    answerType: 'choice',
+    options: shuffle([
+      sorted.join(', '),
+      [...sorted].reverse().join(', '),
+      shuffle([...nums]).join(', '),
+    ].filter((v, i, a) => a.indexOf(v) === i)).slice(0, 3),
+    instructionHint: 'Order from largest to smallest.',
+    solutionText: `From largest to smallest: ${sorted.map((n) => n.toLocaleString()).join(', ')}.`,
+    diagramSpec: numberLineDiagram({
+      start: 0, end: 100000, step: 10000,
+      points: nums.map((n) => ({ value: n, label: String(n) })),
+      title: `Order: ${nums.map((n) => n.toLocaleString()).join(', ')}`,
+    }),
+    misconceptionTraps: ['compares_digit_by_digit_wrong_order_5digit'],
   };
 }
 
 // ---------------------------------------------------------------------------
-// P4-WN-03: Number Patterns (larger steps)
+// P4-WN-03: Number Patterns (hundreds/thousands steps to 100 000)
 // ---------------------------------------------------------------------------
 
-function generateNumberPatternsLarge(familyId) {
-  const STEPS = [250, 500, 750, 1000, 1250, 1500, 2000, 2500];
+function generateNumberPatterns(familyId) {
+  const STEPS = [100, 200, 250, 500, 1000, 1500, 2000, 2500, 5000];
 
+  // _001: Find next in sequence
   if (familyId.endsWith('_001')) {
     const step = pick(STEPS);
-    const start = randInt(2000, 80000 - step * 5);
-    const seq = Array.from({ length: 5 }, (_, i) => start + i * step);
-    const next = start + 5 * step;
+    const increasing = pick([true, false]);
+    let start;
+    if (increasing) {
+      start = randInt(1001, 90000 - step * 5);
+    } else {
+      start = randInt(step * 5 + 1001, 99999);
+    }
+    const seq = Array.from({ length: 5 }, (_, i) =>
+      increasing ? start + i * step : start - i * step
+    );
+    const next = increasing ? start + 5 * step : start - 5 * step;
+    const direction = increasing ? 'increases' : 'decreases';
 
     return {
       skillId: 'P4-WN-03',
@@ -247,50 +262,58 @@ function generateNumberPatternsLarge(familyId) {
       prompt: `What comes next? ${seq.map((n) => n.toLocaleString()).join(', ')}, ?`,
       answer: next,
       answerType: 'number',
-      instructionHint: 'Write the next number in the pattern.',
-      solutionText: `The pattern increases by ${step.toLocaleString()} each time. ${seq[4].toLocaleString()} + ${step.toLocaleString()} = ${next.toLocaleString()}.`,
+      instructionHint: 'Find the pattern and write the next number.',
+      solutionText: `The pattern ${direction} by ${step.toLocaleString()} each time. The next number is ${next.toLocaleString()}.`,
       diagramSpec: numberLineDiagram({
-        start: seq[0],
-        end: next,
-        step,
-        points: [...seq, next].map((n) => ({ value: n, label: n.toLocaleString() })),
-        title: `Pattern: +${step.toLocaleString()}`,
+        start: Math.min(...seq, next), end: Math.max(...seq, next), step,
+        points: [...seq, next].map((n) => ({ value: n, label: String(n) })),
+        title: `Pattern: ${increasing ? '+' : '-'}${step.toLocaleString()}`,
       }),
-      misconceptionTraps: ['pattern_step_error_large'],
+      misconceptionTraps: increasing ? ['pattern_step_error_large'] : ['pattern_step_error_large', 'pattern_direction_error_large'],
     };
   }
 
+  // _002: Find the rule
   if (familyId.endsWith('_002')) {
     const step = pick(STEPS);
-    const start = randInt(step * 5 + 2000, 95000);
-    const seq = Array.from({ length: 5 }, (_, i) => start - i * step);
-    const next = start - 5 * step;
+    const increasing = pick([true, false]);
+    let start;
+    if (increasing) {
+      start = randInt(1001, 90000 - step * 4);
+    } else {
+      start = randInt(step * 4 + 1001, 99999);
+    }
+    const seq = Array.from({ length: 5 }, (_, i) =>
+      increasing ? start + i * step : start - i * step
+    );
+    const ruleAnswer = increasing ? step : -step;
 
     return {
       skillId: 'P4-WN-03',
       questionFamilyId: familyId,
-      prompt: `What comes next? ${seq.map((n) => n.toLocaleString()).join(', ')}, ?`,
-      answer: next,
+      prompt: `What is the rule? ${seq.map((n) => n.toLocaleString()).join(', ')}. Each number is found by adding ___ to the previous number.`,
+      answer: ruleAnswer,
       answerType: 'number',
-      instructionHint: 'Write the next number in the pattern.',
-      solutionText: `The pattern decreases by ${step.toLocaleString()} each time. ${seq[4].toLocaleString()} \u2212 ${step.toLocaleString()} = ${next.toLocaleString()}.`,
+      instructionHint: 'Subtract consecutive terms to find the step. Use a negative number if decreasing.',
+      solutionText: `${seq[1].toLocaleString()} - ${seq[0].toLocaleString()} = ${ruleAnswer > 0 ? '+' : ''}${ruleAnswer.toLocaleString()}. The rule is add ${ruleAnswer > 0 ? '+' : ''}${ruleAnswer.toLocaleString()}.`,
       diagramSpec: numberLineDiagram({
-        start: next,
-        end: seq[0],
-        step,
-        points: [...seq, next].map((n) => ({ value: n, label: n.toLocaleString() })),
-        title: `Pattern: \u2212${step.toLocaleString()}`,
+        start: Math.min(...seq), end: Math.max(...seq), step,
+        points: seq.map((n) => ({ value: n, label: String(n) })),
+        title: `Rule: ${ruleAnswer > 0 ? '+' : ''}${ruleAnswer.toLocaleString()}`,
       }),
-      misconceptionTraps: ['pattern_step_error_large', 'pattern_direction_error'],
+      misconceptionTraps: ['pattern_step_error_large', 'pattern_direction_error_large'],
     };
   }
 
-  // _003: Find missing term in the middle
+  // _003: Find missing middle term
   const step = pick(STEPS);
   const increasing = pick([true, false]);
-  const start = increasing
-    ? randInt(2000, 80000 - step * 5)
-    : randInt(step * 5 + 2000, 95000);
+  let start;
+  if (increasing) {
+    start = randInt(1001, 90000 - step * 4);
+  } else {
+    start = randInt(step * 4 + 1001, 99999);
+  }
   const seq = Array.from({ length: 5 }, (_, i) =>
     increasing ? start + i * step : start - i * step
   );
@@ -304,28 +327,32 @@ function generateNumberPatternsLarge(familyId) {
     prompt: `What is the missing number? ${display}`,
     answer: missing,
     answerType: 'number',
-    instructionHint: 'Write the missing number.',
+    instructionHint: 'Find the step between known numbers, then fill in the blank.',
     solutionText: `The pattern ${increasing ? 'increases' : 'decreases'} by ${step.toLocaleString()}. The missing number is ${missing.toLocaleString()}.`,
     diagramSpec: numberLineDiagram({
-      start: Math.min(...seq),
-      end: Math.max(...seq),
-      step,
-      points: seq.map((n) => ({ value: n, label: n.toLocaleString() })),
-      title: `Pattern: ${increasing ? '+' : '\u2212'}${step.toLocaleString()}`,
+      start: Math.min(...seq), end: Math.max(...seq), step,
+      points: seq.map((n) => ({ value: n, label: String(n) })),
+      title: `Pattern: ${increasing ? '+' : '-'}${step.toLocaleString()}`,
     }),
     misconceptionTraps: ['pattern_step_error_large'],
   };
 }
 
 // ---------------------------------------------------------------------------
-// P4-WN-04: Rounding to Nearest 10, 100, or 1000
+// P4-WN-04: Rounding to 10, 100, 1000
 // ---------------------------------------------------------------------------
 
+function roundTo(n, place) {
+  return Math.round(n / place) * place;
+}
+
 function generateRounding(familyId) {
+  // _001: Round to nearest 10
   if (familyId.endsWith('_001')) {
-    const n = randInt(101, 9999);
-    const rounded = Math.round(n / 10) * 10;
+    const n = randInt(1001, 99999);
+    const rounded = roundTo(n, 10);
     const onesDigit = n % 10;
+    const direction = onesDigit >= 5 ? 'up' : 'down';
 
     return {
       skillId: 'P4-WN-04',
@@ -333,23 +360,18 @@ function generateRounding(familyId) {
       prompt: `Round ${n.toLocaleString()} to the nearest 10.`,
       answer: rounded,
       answerType: 'number',
-      instructionHint: 'Write the rounded number.',
-      solutionText: `The ones digit is ${onesDigit}. ${onesDigit >= 5 ? `${onesDigit} \u2265 5, so round up.` : `${onesDigit} < 5, so round down.`} ${n.toLocaleString()} \u2192 ${rounded.toLocaleString()}.`,
-      diagramSpec: numberLineDiagram({
-        start: Math.floor(n / 10) * 10,
-        end: Math.ceil(n / 10) * 10 || Math.floor(n / 10) * 10 + 10,
-        step: 1,
-        points: [{ value: n, label: String(n) }],
-        title: `Round ${n} to the nearest 10`,
-      }),
-      misconceptionTraps: ['rounding_direction_error', 'rounding_five_goes_down'],
+      instructionHint: 'Look at the ones digit. If it is 5 or more, round up. Otherwise, round down.',
+      solutionText: `The ones digit is ${onesDigit}. Since ${onesDigit} is ${onesDigit >= 5 ? '5 or more' : 'less than 5'}, we round ${direction} to ${rounded.toLocaleString()}.`,
+      misconceptionTraps: ['rounds_wrong_direction', 'truncates_instead_of_rounding'],
     };
   }
 
+  // _002: Round to nearest 100
   if (familyId.endsWith('_002')) {
-    const n = randInt(101, 9999);
-    const rounded = Math.round(n / 100) * 100;
-    const tensDigit = Math.floor((n % 100) / 10);
+    const n = randInt(1001, 99999);
+    const rounded = roundTo(n, 100);
+    const tensDigit = Math.floor(n / 10) % 10;
+    const direction = tensDigit >= 5 ? 'up' : 'down';
 
     return {
       skillId: 'P4-WN-04',
@@ -357,40 +379,27 @@ function generateRounding(familyId) {
       prompt: `Round ${n.toLocaleString()} to the nearest 100.`,
       answer: rounded,
       answerType: 'number',
-      instructionHint: 'Write the rounded number.',
-      solutionText: `Look at the tens digit: ${tensDigit}. ${tensDigit >= 5 ? `${tensDigit} \u2265 5, so round up.` : `${tensDigit} < 5, so round down.`} ${n.toLocaleString()} \u2192 ${rounded.toLocaleString()}.`,
-      diagramSpec: numberLineDiagram({
-        start: Math.floor(n / 100) * 100,
-        end: Math.ceil(n / 100) * 100 || Math.floor(n / 100) * 100 + 100,
-        step: 10,
-        points: [{ value: n, label: String(n) }],
-        title: `Round ${n} to the nearest 100`,
-      }),
-      misconceptionTraps: ['rounding_direction_error', 'rounding_wrong_place'],
+      instructionHint: 'Look at the tens digit. If it is 5 or more, round up. Otherwise, round down.',
+      solutionText: `The tens digit is ${tensDigit}. Since ${tensDigit} is ${tensDigit >= 5 ? '5 or more' : 'less than 5'}, we round ${direction} to ${rounded.toLocaleString()}.`,
+      misconceptionTraps: ['rounds_wrong_direction', 'rounds_wrong_place'],
     };
   }
 
   // _003: Round to nearest 1000
-  const n = randInt(1001, 9999);
-  const rounded = Math.round(n / 1000) * 1000;
-  const hundredsDigit = Math.floor((n % 1000) / 100);
+  const n = randInt(1001, 99999);
+  const rounded = roundTo(n, 1000);
+  const hundredsDigit = Math.floor(n / 100) % 10;
+  const direction = hundredsDigit >= 5 ? 'up' : 'down';
 
   return {
     skillId: 'P4-WN-04',
     questionFamilyId: familyId,
-    prompt: `Round ${n.toLocaleString()} to the nearest 1000.`,
+    prompt: `Round ${n.toLocaleString()} to the nearest 1,000.`,
     answer: rounded,
     answerType: 'number',
-    instructionHint: 'Write the rounded number.',
-    solutionText: `Look at the hundreds digit: ${hundredsDigit}. ${hundredsDigit >= 5 ? `${hundredsDigit} \u2265 5, so round up.` : `${hundredsDigit} < 5, so round down.`} ${n.toLocaleString()} \u2192 ${rounded.toLocaleString()}.`,
-    diagramSpec: numberLineDiagram({
-      start: Math.floor(n / 1000) * 1000,
-      end: Math.ceil(n / 1000) * 1000 || Math.floor(n / 1000) * 1000 + 1000,
-      step: 100,
-      points: [{ value: n, label: String(n) }],
-      title: `Round ${n} to the nearest 1000`,
-    }),
-    misconceptionTraps: ['rounding_direction_error', 'rounding_wrong_place', 'rounding_five_goes_down'],
+    instructionHint: 'Look at the hundreds digit. If it is 5 or more, round up. Otherwise, round down.',
+    solutionText: `The hundreds digit is ${hundredsDigit}. Since ${hundredsDigit} is ${hundredsDigit >= 5 ? '5 or more' : 'less than 5'}, we round ${direction} to ${rounded.toLocaleString()}.`,
+    misconceptionTraps: ['rounds_wrong_direction', 'rounds_wrong_place'],
   };
 }
 
@@ -401,7 +410,7 @@ function generateRounding(familyId) {
 const generatorsBySkill = {
   'P4-WN-01': generatePlaceValue5Digit,
   'P4-WN-02': generateCompareOrder100000,
-  'P4-WN-03': generateNumberPatternsLarge,
+  'P4-WN-03': generateNumberPatterns,
   'P4-WN-04': generateRounding,
 };
 
@@ -412,17 +421,13 @@ const generatorsBySkill = {
 export function generateQuestion(skillId, options = {}) {
   const skill = getSkill(skillId);
   if (!skill) return null;
-
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return null;
-
   const family = options.questionFamilyId
     ? families.find((f) => f.id === options.questionFamilyId) || pick(families)
     : pick(families);
-
   const generator = generatorsBySkill[skillId];
   if (!generator) return null;
-
   const question = generator(family.id);
   return {
     ...question,
@@ -435,24 +440,16 @@ export function generateQuestion(skillId, options = {}) {
 
 export function generateQuestionSet(skillId, count = 5, options = {}) {
   const questions = [];
-  for (let i = 0; i < count; i++) {
-    const q = generateQuestion(skillId, options);
-    if (q) questions.push(q);
-  }
+  for (let i = 0; i < count; i++) { const q = generateQuestion(skillId, options); if (q) questions.push(q); }
   return questions;
 }
 
 export function generateDiagnosticSet(skillIds, questionsPerSkill = 3) {
   const questions = [];
-  for (const skillId of skillIds) {
-    const set = generateQuestionSet(skillId, questionsPerSkill);
-    questions.push(...set);
-  }
+  for (const skillId of skillIds) { questions.push(...generateQuestionSet(skillId, questionsPerSkill)); }
   return questions;
 }
 
-export function getSupportedSkillIds() {
-  return Object.keys(generatorsBySkill);
-}
+export function getSupportedSkillIds() { return Object.keys(generatorsBySkill); }
 
 export default { generateQuestion, generateQuestionSet, generateDiagnosticSet, getSupportedSkillIds };
