@@ -1852,7 +1852,7 @@ export default function PracticeSession() {
               const exitTo = location.state?.homeBase || location.state?.backTo || '/student/mathpath';
               const hasProgress = responses.length > 0 || Boolean(answer);
               if (hasProgress && typeof window !== 'undefined'
-                && !window.confirm('Exit practice? This session won't be saved and won't count yet. You can start again any time.')) {
+                && !window.confirm("Exit practice? This session won't be saved and won't count yet. You can start again any time.")) {
                 return;
               }
               navigate(exitTo, { replace: true });
