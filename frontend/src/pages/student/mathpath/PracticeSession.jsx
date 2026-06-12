@@ -410,7 +410,7 @@ function speakText(text) {
   if (!clean) return;
   const utterance = new SpeechSynthesisUtterance(clean);
   utterance.rate = 0.9;
-  utterance.pitch = 1.1;
+  utterance.pitch = 1.35;
   window.speechSynthesis.speak(utterance);
 }
 
@@ -1852,7 +1852,7 @@ export default function PracticeSession() {
               const exitTo = location.state?.homeBase || location.state?.backTo || '/student/mathpath';
               const hasProgress = responses.length > 0 || Boolean(answer);
               if (hasProgress && typeof window !== 'undefined'
-                && !window.confirm('Exit practice? This session won’t be saved and won’t count yet. You can start again any time.')) {
+                && !window.confirm("Exit practice? This session won't be saved and won't count yet. You can start again any time.")) {
                 return;
               }
               navigate(exitTo, { replace: true });

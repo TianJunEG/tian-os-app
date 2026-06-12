@@ -1061,11 +1061,12 @@ function templateForSkill(skillId, variant, ctx) {
         const w = seq(s, 1, 4);
         const n = seq(s + 3, 1, 5);
         const d = seq(s + 5, n + 1, 8);
+        const improperN = w * d + n;
         return {
-          prompt: `What is the whole-number part and what is the fractional part of ${w} ${n}/${d}?`,
-          answer: answerPayloadMixed(w, n, d),
-          acceptedAnswers: [mixedStr({ whole: w, numerator: n, denominator: d })],
-          solutionSteps: [`The whole-number part is ${w}.`, `The fractional part is ${n}/${d}.`, `Together: ${w} ${n}/${d}.`],
+          prompt: `Convert ${w} ${n}/${d} to an improper fraction.`,
+          answer: answerPayloadFraction(improperN, d),
+          acceptedAnswers: [`${improperN}/${d}`],
+          solutionSteps: [`Multiply the whole number by the denominator: ${w} × ${d} = ${w * d}.`, `Add the numerator: ${w * d} + ${n} = ${improperN}.`, `Keep the same denominator: ${improperN}/${d}.`],
         };
       }
       if (familyId.endsWith('_002')) {

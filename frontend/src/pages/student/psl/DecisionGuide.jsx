@@ -150,7 +150,7 @@ export default function DecisionGuide() {
           <p className="mb-4 text-sm opacity-90">{HEURISTIC_DESCRIPTIONS[result.heuristic]}</p>
           <div className="flex gap-3">
             <button
-              onClick={() => navigate('/student/psl')}
+              onClick={() => navigate(`/student/psl?heuristic=${result.heuristic}`)}
               className="rounded-xl bg-white/20 px-4 py-2.5 text-sm font-bold backdrop-blur-sm transition-colors hover:bg-white/30"
             >
               Practice this heuristic &rarr;

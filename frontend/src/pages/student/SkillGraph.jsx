@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowRight, BookOpenCheck, CheckCircle2, Clock3, Lock, RotateCcw, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BookOpenCheck, CheckCircle2, Clock3, Info, Lock, RotateCcw, Sparkles, X } from 'lucide-react';
 import { mathpathAPI } from '../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, Spinner } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
@@ -82,28 +82,32 @@ function groupSkills(skills = []) {
   return groups;
 }
 
-function SummaryCard({ icon: Icon, label, value, helper, tone = 'navy', visualStyles }) {
-  const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
-    gold: 'bg-gold-100 text-gold-700',
-    success: 'bg-success-100 text-success-700',
-    error: 'bg-error-100 text-error-700',
-    neutral: 'bg-slate-50 text-ink-600',
-  }[tone] || 'bg-navy-50 text-navy-700';
+function ProgressRing({ value, total, color, size = 80, strokeWidth = 10 }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const pct = total > 0 ? value / total : 0;
+  const offset = circumference * (1 - pct);
 
   return (
-    <Card className={`p-4 ${visualStyles?.accentCard || 'border-white/80 bg-white/90'}`}>
-      <div className="flex items-center gap-3">
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${toneClass}`}>
-          <Icon className="h-5 w-5" />
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-ink-500">{label}</p>
-          <p className="mt-0.5 text-2xl font-semibold text-ink-900">{value}</p>
-          {helper && <p className="mt-1 text-xs text-ink-500">{helper}</p>}
-        </div>
-      </div>
-    </Card>
+    <svg width={size} height={size} className="shrink-0 -rotate-90">
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-ink-100" />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth}
+        strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+        className="transition-all duration-700 ease-out" />
+      <text x={size / 2} y={size / 2} textAnchor="middle" dominantBaseline="central"
+        className="rotate-90 origin-center fill-ink-800 text-lg font-bold" style={{ fontSize: 18 }}>
+        {value}
+      </text>
+    </svg>
+  );
+}
+
+function SummaryRing({ label, value, total, color, visualStyles }) {
+  return (
+    <div className={`flex flex-col items-center gap-2 rounded-2xl p-4 ${visualStyles?.accentCard || 'bg-white/90'}`}>
+      <ProgressRing value={value} total={total} color={color} />
+      <p className="text-xs font-semibold text-ink-500">{label}</p>
+    </div>
   );
 }
 
@@ -154,59 +158,71 @@ function SkillRow({ skill, onStart, starting, visualStyles }) {
   const action = recommendedAction(skill);
 
   return (
-    <Card className={`p-4 ${visualStyles.accentCard} ${skill.locked ? 'opacity-80' : ''}`}>
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone={statusTone(label)}>{label}</Badge>
-            {skill.locked && <Lock className="h-4 w-4 text-ink-300" />}
-          </div>
-          <h3 className="mt-2 text-base font-semibold leading-snug text-ink-900">{skill.name}</h3>
-          <p className="mt-1 text-sm text-ink-500">{skill.topicName}</p>
-        </div>
-
-        <div className="grid gap-3 text-sm md:w-[30rem] md:grid-cols-[1fr_1.1fr_auto] md:items-center">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Last practised</p>
-            <p className="mt-1 font-semibold text-ink-800">{formatLastPractised(skill.lastPracticedAt)}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">Recommended next</p>
-            <p className="mt-1 font-semibold text-ink-800">{action.label}</p>
-          </div>
-          <Button
-            size="s"
-            variant={label === 'Needs Review' ? 'primary' : 'secondary'}
-            disabled={starting || action.disabled}
-            onClick={() => onStart(skill)}
-            className="w-full md:w-auto"
-          >
-            {action.cta}
-          </Button>
-        </div>
-      </div>
-    </Card>
+    <button
+      type="button"
+      disabled={starting || action.disabled}
+      onClick={() => onStart(skill)}
+      className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
+        skill.locked
+          ? 'border-ink-100 bg-ink-50/50 opacity-60'
+          : 'border-ink-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30'
+      }`}
+    >
+      {skill.locked ? (
+        <Lock className="h-4 w-4 shrink-0 text-ink-300" />
+      ) : (
+        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+          label === 'Mastered' ? 'bg-emerald-400' :
+          label === 'Needs Review' ? 'bg-red-400' :
+          label === 'Working On' ? 'bg-blue-400' : 'bg-ink-200'
+        }`} />
+      )}
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-800">{skill.name}</span>
+      <span className="hidden shrink-0 text-xs text-ink-300 sm:block">{formatLastPractised(skill.lastPracticedAt)}</span>
+      <span className="shrink-0 text-xs text-ink-400">{skill.topicName}</span>
+      {!skill.locked && (
+        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+          label === 'Needs Review' ? 'bg-red-100 text-red-600' :
+          label === 'Working On' ? 'bg-blue-100 text-blue-600' :
+          label === 'Mastered' ? 'bg-emerald-100 text-emerald-600' :
+          'bg-ink-100 text-ink-500'
+        }`}>
+          {action.cta}
+        </span>
+      )}
+    </button>
   );
 }
 
 function SkillSection({ title, question, skills, emptyText, icon: Icon, tone, onStart, starting, visualStyles }) {
+  const [showInfo, setShowInfo] = useState(false);
+
   return (
     <section>
-      <div className="mb-3 flex items-end justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-50 text-navy-700">
-              <Icon className="h-4 w-4" />
-            </span>
-            <h2 className="font-display text-2xl font-semibold text-ink-900">{title}</h2>
-          </div>
-          <p className="mt-1 text-sm text-ink-500">{question}</p>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-50 text-navy-700">
+            <Icon className="h-4 w-4" />
+          </span>
+          <h2 className="font-display text-lg font-semibold text-ink-900">{title}</h2>
+          <Badge tone={tone}>{skills.length}</Badge>
+          <button
+            type="button"
+            onClick={() => setShowInfo((v) => !v)}
+            className="grid h-6 w-6 place-items-center rounded-full text-ink-300 hover:bg-ink-100 hover:text-ink-500"
+            aria-label={`About ${title}`}
+          >
+            {showInfo ? <X className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5" />}
+          </button>
         </div>
-        <Badge tone={tone}>{skills.length}</Badge>
       </div>
 
+      {showInfo && (
+        <p className="mb-3 rounded-lg bg-ink-50 px-3 py-2 text-xs text-ink-500">{question}</p>
+      )}
+
       {skills.length ? (
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {skills.map((skill) => (
             <SkillRow
               key={String(skill.skillId)}
@@ -289,11 +305,11 @@ export default function SkillGraph() {
 
       <NextStepHero skill={nextSkill} onStart={startPractice} starting={starting} visualStyles={visualStyles} />
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard icon={CheckCircle2} label="Mastered Skills" value={groups.mastered.length} helper="Secure skills" tone="success" visualStyles={visualStyles} />
-        <SummaryCard icon={Sparkles} label="Working On" value={groups.workingOn.length} helper="Active learning" tone="navy" visualStyles={visualStyles} />
-        <SummaryCard icon={RotateCcw} label="Needs Review" value={groups.needsReview.length} helper="Fix these next" tone="error" visualStyles={visualStyles} />
-        <SummaryCard icon={Clock3} label="Not Started" value={groups.notStarted.length} helper="Still ahead" tone="neutral" visualStyles={visualStyles} />
+      <section className="grid grid-cols-4 gap-3">
+        <SummaryRing label="Mastered" value={groups.mastered.length} total={skills.length} color="#34d399" visualStyles={visualStyles} />
+        <SummaryRing label="Working On" value={groups.workingOn.length} total={skills.length} color="#60a5fa" visualStyles={visualStyles} />
+        <SummaryRing label="Needs Review" value={groups.needsReview.length} total={skills.length} color="#f87171" visualStyles={visualStyles} />
+        <SummaryRing label="Not Started" value={groups.notStarted.length} total={skills.length} color="#cbd5e1" visualStyles={visualStyles} />
       </section>
 
       <SkillSection

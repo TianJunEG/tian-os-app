@@ -16,10 +16,10 @@ export default function ClassNav({ classId, name, level }) {
     ['Groups', `${base}/groups`],
     ['Weak groups', `${base}/weak-groups`],
     ['Assign', `${base}/assign`],
+    ['Assessments', `${base}/assessments`],
     ['Intervention', `${base}/interventions`],
     ['Worksheets', `${base}/worksheets`],
     FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`],
-    FEATURE_FLAGS.psl && ['Problem Solving', `${base}/psl`],
     ['Reports', `${base}/reports`],
   ].filter(Boolean);
   return (

@@ -67,6 +67,7 @@ const SimilarQuestionPractice = lazy(() => import('./pages/student/mathpath/Simi
 const UploadPaperPage = lazy(() => import('./pages/student/mathpath/UploadPaperPage'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
+const InformalAssessment = lazy(() => import('./pages/student/InformalAssessment'));
 // Spelling Practice (Phase 6) — shared-core wiring
 const SpellingHome = lazy(() => import('./pages/student/spelling/SpellingHome'));
 const SpellingWordLists = lazy(() => import('./pages/student/spelling/WordLists'));
@@ -184,6 +185,9 @@ const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
+const TeacherAssessments = lazy(() => import('./pages/teacher/Assessments'));
+const TeacherCreateAssessment = lazy(() => import('./pages/teacher/CreateAssessment'));
+const TeacherAssessmentResults = lazy(() => import('./pages/teacher/AssessmentResults'));
 const Intervention = lazy(() => import('./pages/teacher/Intervention'));
 const TeacherWorksheets = lazy(() => import('./pages/teacher/TeacherWorksheets'));
 const Reports = lazy(() => import('./pages/teacher/Reports'));
@@ -279,9 +283,9 @@ const LegacyDashboardRedirect = () => {
 
 // Landing Page — cinematic Tian OS look (matches the launch video / founder story).
 const LANDING_FEATURES = [
-  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.', bg: '#F0FDF9', accent: 'rgba(6,95,70,0.12)' },
-  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.', bg: '#F0FDF9', accent: 'rgba(6,95,70,0.12)' },
-  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.', bg: '#F0FDF9', accent: 'rgba(6,95,70,0.12)' },
+  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.' },
+  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.' },
+  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.' },
 ];
 const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
 
@@ -307,8 +311,8 @@ const LandingPage = () => (
         <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
           <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
-            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY, fontFamily: "'Plus Jakarta Sans', 'Nunito', system-ui, sans-serif", fontWeight: 800, letterSpacing: '-0.02em' }}>
-              AI-Native Learning.<br /><span style={{ color: '#34D399' }}>Built for Schools.</span>
+            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY }}>
+              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
             </Headline>
           </Reveal>
           <Reveal delay={0.2}>
@@ -317,7 +321,7 @@ const LandingPage = () => (
             </p>
           </Reveal>
           <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: '#fff', color: '#064E3B', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 20px 40px -12px rgba(0,0,0,0.3)' }}>Request a Demo <ArrowRight size={18} /></Link>
+            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
             <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
           </Reveal>
           <Reveal delay={0.4}>
@@ -326,7 +330,6 @@ const LandingPage = () => (
         </div>
       </section>
 
-      <div className="cloud-bg">
       <section id="methodology" style={{ maxWidth: 1000, margin: '0 auto', padding: '90px 24px 10px' }}>
         <Reveal>
           <Eyebrow>Evidence-based approach</Eyebrow>
@@ -349,8 +352,8 @@ const LandingPage = () => (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22 }}>
           {LANDING_FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={i * 0.1}>
-              <GlassCard style={{ padding: 30, height: '100%', background: f.bg || '#FFFFFF' }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: f.accent || 'rgba(167,216,240,0.25)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
+              <GlassCard style={{ padding: 30, height: '100%' }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(167,216,240,0.25)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
                   <f.icon size={24} color={TEAL} />
                 </div>
                 <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 24, color: INK, margin: 0 }}>{f.title}</h3>
@@ -360,7 +363,6 @@ const LandingPage = () => (
           ))}
         </div>
       </section>
-      </div>
     </main>
 
     <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(15,76,92,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,248,234,0.7)' }}>
@@ -631,6 +633,7 @@ function App() {
             <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
             <Route path="/student/psl/decision-guide" element={<FeatureGuard feature="psl"><PSLDecisionGuide /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
+            <Route path="/student/assessment/:sessionId" element={<InformalAssessment />} />
             <Route path="/student/progress" element={<SkillGraph />} />
 
             {/* Parent (Phase 3) */}
@@ -705,6 +708,9 @@ function App() {
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/weak-groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><WeakGroups /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/assessments" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssessments /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/assessments/new" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherCreateAssessment /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/assessments/:assessmentId/results" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssessmentResults /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/interventions" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Intervention /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/worksheets" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherWorksheets /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLab /></FeatureGuard></RoleGuard>} />

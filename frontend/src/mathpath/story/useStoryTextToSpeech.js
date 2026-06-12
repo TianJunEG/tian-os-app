@@ -135,7 +135,7 @@ export default function useStoryTextToSpeech({ onSentenceChange } = {}) {
 
     const utterance = new window.SpeechSynthesisUtterance(sentences[safeIndex]);
     utterance.rate = rate;
-    utterance.pitch = 1;
+    utterance.pitch = 1.35;
     utterance.volume = 1;
     utterance.voice = options.forceDefaultVoice ? null : pickBrowserVoice();
     utteranceRef.current = utterance;
