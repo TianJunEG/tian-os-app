@@ -428,6 +428,15 @@ export const teacherAPI = {
   assignWeakGroupRecheck: (id, skillId, data = {}) => api.post(`/teacher/classes/${id}/weak-groups/${skillId}/assign-recheck`, data),
   report: (id, params) => api.get(`/teacher/classes/${id}/reports`, { params }),
   pslDashboard: (id) => api.get(`/teacher/classes/${id}/psl/dashboard`),
+  // Informal assessments
+  assessments: (classId) => api.get('/teacher/assessments', { params: { classId } }),
+  assessment: (id) => api.get(`/teacher/assessments/${id}`),
+  previewAssessment: (data) => api.post('/teacher/assessments/preview', data),
+  createAssessment: (data) => api.post('/teacher/assessments', data),
+  assignAssessment: (id, data) => api.post(`/teacher/assessments/${id}/assign`, data),
+  assessmentResults: (id) => api.get(`/teacher/assessments/${id}/results`),
+  closeAssessment: (id) => api.post(`/teacher/assessments/${id}/close`),
+  deleteAssessment: (id) => api.delete(`/teacher/assessments/${id}`),
 };
 
 // School-aligned Test Mode specifications (Table of Specification).
@@ -625,6 +634,12 @@ export const assignmentsAPI = {
   list: (params) => api.get('/assignments', { params }),     // { studentId?, status? }
   get: (id) => api.get(`/assignments/${id}`),
   updateStatus: (id, data) => api.patch(`/assignments/${id}/status`, data)
+};
+
+export const informalAssessmentAPI = {
+  get: (sessionId) => api.get(`/assessments/student/${sessionId}`),
+  start: (sessionId) => api.post(`/assessments/student/${sessionId}/start`),
+  submit: (sessionId, answers) => api.post(`/assessments/student/${sessionId}/submit`, { answers }),
 };
 
 // Structured Mastery Worksheet Generator (digital first; PDF placeholder).

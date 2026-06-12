@@ -31,6 +31,10 @@ export default function StudentAssignments() {
     setStartError('');
     setStarting(true);
     try {
+      if (a.interventionType === 'informal_assessment' && a.assessmentSessionId) {
+        navigate(`/student/assessment/${a.assessmentSessionId}`);
+        return;
+      }
       if (a.module === 'Spelling Practice') {
         const { data } = await spellingPracticeAPI.startSession({ assignmentId: a.id });
         navigate(`/student/spelling/practice/${data.session_id}`, { state: { items: data.items, listTitle: data.listTitle } });

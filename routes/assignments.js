@@ -2,6 +2,7 @@ import express from 'express';
 import { protect } from '../middleware/auth.js';
 import Assignment from '../models/Assignment.js';
 import Skill from '../models/Skill.js';
+import InformalAssessmentSession from '../models/InformalAssessmentSession.js';
 import { resolveStudent } from '../utils/studentContext.js';
 
 const router = express.Router();
@@ -58,6 +59,14 @@ router.get('/', protect, async (req, res) => {
     const list = await Assignment.find(filter)
       .populate({ path: 'skillIds', model: Skill })
       .sort({ createdAt: -1 });
+    // For informal assessments, attach the session ID so the frontend can navigate directly.
+    const informalIds = list.filter((a) => a.interventionType === 'informal_assessment').map((a) => a._id);
+    const sessionMap = {};
+    if (informalIds.length) {
+      const sessions = await InformalAssessmentSession.find({ assignmentId: { $in: informalIds } }).select('_id assignmentId').lean();
+      for (const s of sessions) sessionMap[String(s.assignmentId)] = String(s._id);
+    }
+
     res.json({ assignments: list.map((a) => ({
       id: a._id, module: a.module, subject: a.subject, status: a.status,
       skillIds: a.skillIds.map((s) => s._id), skillNames: a.skillIds.map((s) => s.name),
@@ -69,6 +78,7 @@ router.get('/', protect, async (req, res) => {
       templateId: a.templateId, playbookId: a.playbookId, nextAction: a.nextAction,
       schedule: a.schedule, timestamps: a.timestamps, reassessmentOutcome: a.reassessmentOutcome,
       effectivenessSnapshot: a.effectivenessSnapshot,
+      assessmentSessionId: sessionMap[String(a._id)] || null,
     })) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load assignments.' });

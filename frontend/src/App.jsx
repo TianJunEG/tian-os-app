@@ -67,6 +67,7 @@ const SimilarQuestionPractice = lazy(() => import('./pages/student/mathpath/Simi
 const UploadPaperPage = lazy(() => import('./pages/student/mathpath/UploadPaperPage'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
+const InformalAssessment = lazy(() => import('./pages/student/InformalAssessment'));
 // Spelling Practice (Phase 6) — shared-core wiring
 const SpellingHome = lazy(() => import('./pages/student/spelling/SpellingHome'));
 const SpellingWordLists = lazy(() => import('./pages/student/spelling/WordLists'));
@@ -184,6 +185,9 @@ const ClassStudents = lazy(() => import('./pages/teacher/ClassStudents'));
 const Grouping = lazy(() => import('./pages/teacher/Grouping'));
 const WeakGroups = lazy(() => import('./pages/teacher/WeakGroups'));
 const TeacherAssignPractice = lazy(() => import('./pages/teacher/AssignPractice'));
+const TeacherAssessments = lazy(() => import('./pages/teacher/Assessments'));
+const TeacherCreateAssessment = lazy(() => import('./pages/teacher/CreateAssessment'));
+const TeacherAssessmentResults = lazy(() => import('./pages/teacher/AssessmentResults'));
 const Intervention = lazy(() => import('./pages/teacher/Intervention'));
 const TeacherWorksheets = lazy(() => import('./pages/teacher/TeacherWorksheets'));
 const Reports = lazy(() => import('./pages/teacher/Reports'));
@@ -629,6 +633,7 @@ function App() {
             <Route path="/student/psl/mistakes" element={<FeatureGuard feature="psl"><PSLMistakeReview /></FeatureGuard>} />
             <Route path="/student/psl/decision-guide" element={<FeatureGuard feature="psl"><PSLDecisionGuide /></FeatureGuard>} />
             <Route path="/student/assignments" element={<StudentAssignments />} />
+            <Route path="/student/assessment/:sessionId" element={<InformalAssessment />} />
             <Route path="/student/progress" element={<SkillGraph />} />
 
             {/* Parent (Phase 3) */}
@@ -703,6 +708,9 @@ function App() {
             <Route path="/teacher/classes/:id/groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Grouping /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/weak-groups" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><WeakGroups /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/assign" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssignPractice /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/assessments" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssessments /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/assessments/new" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherCreateAssessment /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/classes/:id/assessments/:assessmentId/results" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherAssessmentResults /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/interventions" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Intervention /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/worksheets" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherWorksheets /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLab /></FeatureGuard></RoleGuard>} />
