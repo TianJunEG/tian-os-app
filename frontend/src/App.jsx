@@ -307,7 +307,7 @@ const LandingPage = () => (
         <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
           <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
-            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY, fontFamily: "'DM Serif Display', serif", fontWeight: 400, letterSpacing: '-0.01em' }}>
+            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY, fontFamily: "'Plus Jakarta Sans', 'Nunito', system-ui, sans-serif", fontWeight: 800, letterSpacing: '-0.02em' }}>
               AI-Native Learning.<br /><span style={{ color: '#34D399' }}>Built for Schools.</span>
             </Headline>
           </Reveal>
