@@ -13,10 +13,10 @@ export const FLAGS = {
   parent: process.env.FEAT_PARENT !== '0',
   tutor: process.env.FEAT_TUTOR !== '0',
   teacher: process.env.FEAT_TEACHER !== '0',
-  lifelab: process.env.FEAT_LIFELAB === '1',
+  lifelab: process.env.FEAT_LIFELAB !== '0',
   science: process.env.FEAT_SCIENCE === '1',
   mechanisms: process.env.FEAT_MECHANISMS === '1',
-  spelling: process.env.FEAT_SPELLING === '1',
+  spelling: process.env.FEAT_SPELLING !== '0',
   psl: process.env.FEAT_PSL !== '0',
   admin: true,
 };

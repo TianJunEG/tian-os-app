@@ -30,10 +30,10 @@ export const FEATURE_FLAGS = {
   parentComingSoon: false,
 
   // Disabled for v0.1 (hidden)
-  lifelab: flagEnabled('LIFELAB'),
+  lifelab: flagEnabled('LIFELAB', true),
   science: flagEnabled('SCIENCE'),
   mechanisms: flagEnabled('MECHANISMS'),
-  spelling: flagEnabled('SPELLING'),
+  spelling: flagEnabled('SPELLING', true),
   psl: flagEnabled('PSL', true),
   tutor: flagEnabled('TUTOR', true),
   teacher: flagEnabled('TEACHER', true),

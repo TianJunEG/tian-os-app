@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2 } from 'lucide-react';
-import { teacherAPI, mathpathAPI, skillsAPI } from '../../services/api';
+import { teacherAPI, mathpathAPI, skillsAPI, spellingPracticeAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
 import { Card, Button, Spinner, ErrorState, Select, Input, Alert } from '../../components/ui';
@@ -10,9 +10,9 @@ import { shapeScienceAsTopics } from '../../utils/scienceCatalog';
 const MODULES = [
   { key: 'MathPath', label: 'MathPath', subject: 'Math' },
   { key: 'Science Adaptive Revision', label: 'Science', subject: 'Science' },
+  { key: 'Spelling Practice', label: 'Spelling', subject: 'English' },
 ];
 
-// Assign targeted practice to the whole class or a saved group. Math or Science.
 export default function AssignPractice() {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -35,6 +35,10 @@ export default function AssignPractice() {
   const [done, setDone] = useState(null);
   const [error, setError] = useState(null);
 
+  // Spelling-specific state
+  const [spellingLists, setSpellingLists] = useState(null);
+  const [spellingListId, setSpellingListId] = useState('');
+
   const loadGroups = useCallback(() => {
     setGroups(null); setGroupsError(false);
     teacherAPI.groups(id).then((r) => setGroups(r.data.saved || [])).catch(() => { setGroups([]); setGroupsError(true); setTarget({ type: 'class' }); });
@@ -42,12 +46,22 @@ export default function AssignPractice() {
 
   useEffect(() => { loadGroups(); }, [loadGroups]);
 
-  // Reload the catalog whenever the class or module changes. Both Math and
-  // Science endpoints are seeded by picking the first student in the class;
-  // skills are the same across the class (they're a catalog, not per-student),
-  // so a single fetch via that student is fine.
+  const isSpelling = module === 'Spelling Practice';
+
   const loadCatalog = useCallback(() => {
     setTopics(null); setTopicId(''); setSkillId(''); setStudentsError(false); setTopicsError(false);
+    if (isSpelling) {
+      setSpellingLists(null); setSpellingListId('');
+      spellingPracticeAPI.lists()
+        .then((r) => {
+          const lists = r.data.lists || [];
+          setSpellingLists(lists);
+          if (lists[0]) setSpellingListId(lists[0].listId);
+          setTopics([]);
+        })
+        .catch(() => setTopicsError(true));
+      return;
+    }
     teacherAPI.classStudents(id).then((r) => {
       const first = r.data.students?.[0]?.studentId;
       if (!first) { setTopics([]); return; }
@@ -56,18 +70,28 @@ export default function AssignPractice() {
         : mathpathAPI.map({ studentId: first }).then((m) => m.data.topics || []);
       fetch.then((ts) => { setTopics(ts); if (ts[0]) setTopicId(String(ts[0].topicId)); }).catch(() => setTopicsError(true));
     }).catch(() => setStudentsError(true));
-  }, [id, module]);
+  }, [id, module, isSpelling]);
 
   useEffect(() => { loadCatalog(); }, [loadCatalog]);
 
   const skills = useMemo(() => topics?.find((t) => String(t.topicId) === String(topicId))?.skills || [], [topics, topicId]);
 
   const submit = async () => {
-    if (!skillId) { setError('Choose a skill.'); return; }
+    if (isSpelling) {
+      if (!spellingListId) { setError('Choose a word list.'); return; }
+    } else {
+      if (!skillId) { setError('Choose a skill.'); return; }
+    }
     setSaving(true); setError(null);
     try {
       const subject = MODULES.find((m) => m.key === module)?.subject || 'Math';
-      const payload = { target, module, subject, topicId, skillIds: [skillId], questionCount: Number(questionCount), dueDate: dueDate || null };
+      const payload = {
+        target, module, subject,
+        skillIds: isSpelling ? [spellingListId] : [skillId],
+        questionCount: isSpelling ? undefined : Number(questionCount),
+        dueDate: dueDate || null,
+      };
+      if (!isSpelling) payload.topicId = topicId;
       if (module === 'MathPath') payload.difficulty = difficulty;
       const { data } = await teacherAPI.assign(id, payload);
       setDone(data.assigned);
@@ -90,10 +114,12 @@ export default function AssignPractice() {
     );
   }
 
+  const loading = isSpelling ? !spellingLists && !topicsError : !topics;
+
   return (
     <>
       <ClassNav classId={id} name={meta?.name || 'Class'} level={meta?.level} />
-      {studentsError ? <ErrorState message="Couldn't load class students." onRetry={loadCatalog} /> : topicsError ? <ErrorState message="Couldn't load skill catalogue." onRetry={loadCatalog} /> : !topics ? <Spinner /> : (
+      {studentsError ? <ErrorState message="Couldn't load class students." onRetry={loadCatalog} /> : topicsError ? <ErrorState message="Couldn't load catalogue." onRetry={loadCatalog} /> : loading ? <Spinner /> : (
         <Card className="space-y-5 p-5">
           {groupsError && (
             <Alert tone="warning" className="text-left">
@@ -125,39 +151,66 @@ export default function AssignPractice() {
               ))}
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+
+          {isSpelling ? (
+            /* Spelling: word list picker */
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
-              <Select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }}>
-                {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
+              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Word list</label>
+              <Select value={spellingListId} onChange={(e) => setSpellingListId(e.target.value)}>
+                {spellingLists && spellingLists.length ? spellingLists.map((l) => (
+                  <option key={l.listId} value={l.listId}>{l.level} · {l.title} ({l.wordCount} words)</option>
+                )) : <option value="">No shared lists available</option>}
               </Select>
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Skill</label>
-              <Select value={skillId} onChange={(e) => setSkillId(e.target.value)}>
-                <option value="">Choose a skill…</option>
-                {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
-              </Select>
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {module === 'MathPath' && (
+          ) : (
+            /* Math / Science: topic + skill pickers */
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
-                <Select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                  <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
+                <Select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }}>
+                  {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
                 </Select>
               </div>
-            )}
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
-              <Input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="font-mono" />
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Skill</label>
+                <Select value={skillId} onChange={(e) => setSkillId(e.target.value)}>
+                  <option value="">Choose a skill…</option>
+                  {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
+                </Select>
+              </div>
             </div>
-            <div>
-              <label className="mb-1.5 block text-sm font-semibold text-ink-700">Due date</label>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          )}
+
+          {!isSpelling && (
+            <div className="grid gap-4 sm:grid-cols-3">
+              {module === 'MathPath' && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
+                  <Select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                    <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
+                  </Select>
+                </div>
+              )}
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
+                <Input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="font-mono" />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Due date</label>
+                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              </div>
             </div>
-          </div>
+          )}
+
+          {isSpelling && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-sm font-semibold text-ink-700">Due date</label>
+                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              </div>
+            </div>
+          )}
+
           {error && <p className="text-sm text-error-700">{error}</p>}
           <Button size="l" disabled={saving} onClick={submit} className="w-full">{saving ? 'Assigning…' : 'Assign practice'}</Button>
         </Card>
