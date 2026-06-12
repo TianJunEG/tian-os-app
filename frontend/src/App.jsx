@@ -279,9 +279,9 @@ const LegacyDashboardRedirect = () => {
 
 // Landing Page — cinematic Tian OS look (matches the launch video / founder story).
 const LANDING_FEATURES = [
-  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.', bg: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDFA 100%)', accent: 'rgba(16,185,129,0.2)' },
-  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.', bg: 'linear-gradient(135deg, #F0F9FF 0%, #ECFEFF 100%)', accent: 'rgba(56,189,248,0.2)' },
-  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.', bg: 'linear-gradient(135deg, #FFF7ED 0%, #FFFBEB 100%)', accent: 'rgba(251,191,36,0.2)' },
+  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.', bg: '#F0FDF9', accent: 'rgba(6,95,70,0.12)' },
+  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.', bg: '#F0FDF9', accent: 'rgba(6,95,70,0.12)' },
+  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.', bg: '#F0FDF9', accent: 'rgba(6,95,70,0.12)' },
 ];
 const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
 
