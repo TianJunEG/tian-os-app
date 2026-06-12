@@ -326,6 +326,7 @@ const LandingPage = () => (
         </div>
       </section>
 
+      <div className="cloud-bg">
       <section id="methodology" style={{ maxWidth: 1000, margin: '0 auto', padding: '90px 24px 10px' }}>
         <Reveal>
           <Eyebrow>Evidence-based approach</Eyebrow>
@@ -359,6 +360,7 @@ const LandingPage = () => (
           ))}
         </div>
       </section>
+      </div>
     </main>
 
     <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(15,76,92,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,248,234,0.7)' }}>
