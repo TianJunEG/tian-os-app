@@ -279,9 +279,9 @@ const LegacyDashboardRedirect = () => {
 
 // Landing Page — cinematic Tian OS look (matches the launch video / founder story).
 const LANDING_FEATURES = [
-  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.' },
-  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.' },
-  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.' },
+  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.', bg: 'linear-gradient(135deg, #ECFDF5 0%, #F0FDFA 100%)', accent: 'rgba(16,185,129,0.2)' },
+  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.', bg: 'linear-gradient(135deg, #F0F9FF 0%, #ECFEFF 100%)', accent: 'rgba(56,189,248,0.2)' },
+  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.', bg: 'linear-gradient(135deg, #FFF7ED 0%, #FFFBEB 100%)', accent: 'rgba(251,191,36,0.2)' },
 ];
 const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
 
@@ -349,8 +349,8 @@ const LandingPage = () => (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22 }}>
           {LANDING_FEATURES.map((f, i) => (
             <Reveal key={f.title} delay={i * 0.1}>
-              <GlassCard style={{ padding: 30, height: '100%' }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(167,216,240,0.25)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
+              <GlassCard style={{ padding: 30, height: '100%', background: f.bg || '#FFFFFF' }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: f.accent || 'rgba(167,216,240,0.25)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
                   <f.icon size={24} color={TEAL} />
                 </div>
                 <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 24, color: INK, margin: 0 }}>{f.title}</h3>

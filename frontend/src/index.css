@@ -104,11 +104,16 @@ code {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
   background-image: url('/bg-clouds.jpg');
   background-size: cover;
   background-position: center top;
-  opacity: 0.15;
+  opacity: 0.25;
   pointer-events: none;
+}
+.cloud-bg > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Reusable, design-system component classes for the public site */
