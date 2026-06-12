@@ -1,7 +1,9 @@
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import { generateProblem, checkAnswer } from '../../mathpath/src/generator.js';
-import { getSkill, CURRICULA } from '../../mathpath/src/curriculum.js';
+import { CURRICULA } from '../../mathpath/src/curriculum.js';
 import { generateProblem as generatePSLProblem } from '../psl/problemGenerator.js';
+import Question from '../../models/Question.js';
 import InformalAssessment from '../../models/InformalAssessment.js';
 import InformalAssessmentSession from '../../models/InformalAssessmentSession.js';
 import Assignment from '../../models/Assignment.js';
@@ -17,10 +19,52 @@ function findSkillAcrossCurricula(skillId) {
   return null;
 }
 
+function looksLikeObjectId(id) {
+  return /^[a-f0-9]{24}$/.test(id);
+}
+
+async function generateFromQuestionPool(skillIds, difficulty, questionCount) {
+  const objectIds = skillIds.map((id) => new mongoose.Types.ObjectId(id));
+  const filter = { skillId: { $in: objectIds } };
+  if (difficulty && difficulty !== 'mixed') filter.difficulty = difficulty;
+
+  const pool = await Question.aggregate([
+    { $match: filter },
+    { $sample: { size: questionCount * 2 } },
+  ]);
+  if (!pool.length) throw Object.assign(new Error('No questions found for these skills'), { status: 400 });
+
+  const seen = new Set();
+  const questions = [];
+  for (const q of pool) {
+    if (questions.length >= questionCount) break;
+    if (seen.has(q.stem)) continue;
+    seen.add(q.stem);
+    questions.push({
+      questionId: crypto.randomUUID(),
+      skillId: String(q.skillId),
+      display: q.stem,
+      answer: q.type === 'mcq' ? q.answer : Number(q.answer) || q.answer,
+      kind: q.type === 'mcq' ? 'mcq' : '',
+      choices: q.choices || [],
+      choice: q.type === 'mcq',
+      decimal: false,
+    });
+  }
+  if (!questions.length) throw Object.assign(new Error('No questions found for these skills'), { status: 400 });
+  return questions;
+}
+
 export async function generateAssessmentQuestions({ module, skillIds, difficulty, questionCount }) {
   const questions = [];
 
   if (module === 'MathPath') {
+    const usePool = skillIds.some(looksLikeObjectId);
+
+    if (usePool) {
+      return generateFromQuestionPool(skillIds, difficulty, questionCount);
+    }
+
     const skills = skillIds.map((id) => findSkillAcrossCurricula(id)).filter(Boolean);
     if (!skills.length) throw Object.assign(new Error('No valid MathPath skills found'), { status: 400 });
 
@@ -79,7 +123,13 @@ export function gradeSubmission(assessment, answers) {
 
     if (studentAnswer !== null && studentAnswer !== '') {
       if (assessment.module === 'MathPath') {
-        correct = checkAnswer(studentAnswer, q);
+        if (q.choice) {
+          correct = String(studentAnswer).trim() === String(q.answer).trim();
+        } else {
+          const n = Number(String(studentAnswer).trim());
+          const a = Number(q.answer);
+          correct = Number.isFinite(n) && Number.isFinite(a) && n === a;
+        }
       } else {
         correct = Number(studentAnswer) === q.correctAnswer;
       }
