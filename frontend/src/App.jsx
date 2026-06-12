@@ -301,8 +301,9 @@ const LandingPage = () => (
     </header>
 
       <main>
-        <section style={{ position: 'relative', overflow: 'hidden', background: 'linear-gradient(165deg, #011A14 0%, #022C22 50%, #064E3B 100%)' }}>
-        <div style={{ position: 'absolute', right: '-6%', top: '-10%', width: 620, height: 620, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,216,240,0.25) 0%, transparent 60%)', filter: 'blur(40px)', pointerEvents: 'none', opacity: 0.5 }} />
+        <section style={{ position: 'relative', overflow: 'hidden', background: '#011A14' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/hero-ocean.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(165deg, rgba(1,26,20,0.6) 0%, rgba(2,44,34,0.4) 50%, rgba(6,78,59,0.3) 100%)' }} />
         <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
           <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
           <Reveal delay={0.1}>
