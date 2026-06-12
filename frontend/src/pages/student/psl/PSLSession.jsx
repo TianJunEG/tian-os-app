@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -11,10 +11,9 @@ import SolveDispatcher from './components/SolveDispatcher';
 import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
 import ReasoningInput from './components/ReasoningInput';
+import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
-
-
 
 const DEFAULT_UNDERSTAND_CHOICES = [
   'It\'s about finding a total or combining groups',
@@ -38,6 +37,7 @@ export default function PSLSession() {
   const [submitting, setSubmitting] = useState(false);
   const [stepResponses, setStepResponses] = useState({});
   const [retryCount, setRetryCount] = useState({});
+  const [showScratchpad, setShowScratchpad] = useState(false);
   const stepStartRef = useRef(Date.now());
 
   useEffect(() => { stepStartRef.current = Date.now(); }, [currentStepIdx]);
@@ -144,6 +144,7 @@ export default function PSLSession() {
           setCompletedSteps({});
           setStepResponses({});
           setRetryCount({});
+          setShowScratchpad(false);
         } else {
           await pslAPI.completeSession(sessionId);
           navigate(`/student/psl/results/${sessionId}`);
@@ -250,11 +251,34 @@ export default function PSLSession() {
         )}
 
         {currentStepId === 'solve' && (
-          <SolveDispatcher
-            scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
-            response={stepResponses.solve || {}}
-            onChange={(val) => updateResponse('solve', val)}
-          />
+          <>
+            <SolveDispatcher
+              scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
+              response={stepResponses.solve || {}}
+              onChange={(val) => updateResponse('solve', val)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowScratchpad((v) => !v)}
+              className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              <span className="flex-1 text-left">Scratchpad</span>
+              {showScratchpad ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+            {showScratchpad && (
+              <div className="mt-2">
+                <WorkingCanvas
+                  questionId={`${session?.sessionId}-${problemIndex}-solve`}
+                  label="Scratchpad"
+                  required={false}
+                  allowNoWorking={false}
+                  compact
+                  showMathStamps={false}
+                />
+              </div>
+            )}
+          </>
         )}
 
         {currentStepId === 'check' && (
