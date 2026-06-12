@@ -157,6 +157,7 @@ const TutorHome = lazy(() => import('./pages/tutor/TutorHome'));
 const AssignedStudents = lazy(() => import('./pages/tutor/AssignedStudents'));
 const TutorStudentProfile = lazy(() => import('./pages/tutor/TutorStudentProfile'));
 const TutorMathPathDashboardPage = lazy(() => import('./pages/tutor/TutorMathPathDashboardPage'));
+const TutorPSLDashboardPage = lazy(() => import('./pages/tutor/TutorPSLDashboardPage'));
 const LessonPrep = lazy(() => import('./pages/tutor/LessonPrep'));
 const LessonNotes = lazy(() => import('./pages/tutor/LessonNotes'));
 const LessonRecorder = lazy(() => import('./pages/tutor/LessonRecorder'));
@@ -669,6 +670,7 @@ function App() {
             <Route path="/tutor/students" element={<FeatureGuard feature="tutor"><AssignedStudents /></FeatureGuard>} />
             <Route path="/tutor/students/:id" element={<FeatureGuard feature="tutor"><TutorStudentProfile /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath" element={<FeatureGuard feature="tutor"><TutorMathPathDashboardPage /></FeatureGuard>} />
+            <Route path="/tutor/students/:id/psl" element={<FeatureGuard feature="tutor"><TutorPSLDashboardPage /></FeatureGuard>} />
             <Route path="/tutor/mathpath/students/:studentId/analyse-paper" element={<FeatureGuard feature="tutor"><PaperAnalysisPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath/test-spec" element={<FeatureGuard feature="tutor"><TestSpecificationPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mathpath/assessment-upload" element={<FeatureGuard feature="tutor"><AssessmentUploadPage /></FeatureGuard>} />
