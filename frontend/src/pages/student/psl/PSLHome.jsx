@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Brain, ChevronDown, ChevronRight, Lock, Star, Target } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Brain, ChevronDown, ChevronRight, HelpCircle, Lock, Star, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
@@ -32,12 +32,14 @@ function MasteryBadge({ mastery }) {
 
 export default function PSLHome() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [readiness, setReadiness] = useState({});
   const [starting, setStarting] = useState(null);
   const [filterLevel, setFilterLevel] = useState(null);
+  const [filterHeuristic, setFilterHeuristic] = useState(searchParams.get('heuristic'));
   const [expanded, setExpanded] = useState({});
 
   useEffect(() => {
@@ -78,7 +80,9 @@ export default function PSLHome() {
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
 
   const skills = data?.skills || [];
-  const filtered = filterLevel ? skills.filter((sk) => sk.level === filterLevel) : skills;
+  const filtered = skills.filter((sk) =>
+    (!filterLevel || sk.level === filterLevel) && (!filterHeuristic || sk.heuristic === filterHeuristic)
+  );
   const grouped = HEURISTIC_ORDER.map((h) => ({
     heuristic: h,
     label: HEURISTIC_LABELS[h] || h,
@@ -124,6 +128,23 @@ export default function PSLHome() {
         </Card>
       )}
 
+      <Card className="p-4" interactive>
+        <button
+          type="button"
+          onClick={() => navigate('/student/psl/decision-guide')}
+          className="flex w-full items-center gap-3 text-left"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+            <HelpCircle className="h-4 w-4 text-purple-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-ink-700">Decision Guide</p>
+            <p className="text-xs text-ink-400">Not sure which heuristic to use? Answer a few yes/no questions to find out.</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-ink-300" />
+        </button>
+      </Card>
+
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -143,6 +164,21 @@ export default function PSLHome() {
           </button>
         ))}
       </div>
+
+      {filterHeuristic && (
+        <div className="flex items-center gap-2 rounded-lg bg-purple-50 px-3 py-2">
+          <span className="flex-1 text-xs font-semibold text-purple-700">
+            Showing: {HEURISTIC_LABELS[filterHeuristic] || filterHeuristic}
+          </span>
+          <button
+            type="button"
+            onClick={() => setFilterHeuristic(null)}
+            className="text-xs font-medium text-purple-500 hover:text-purple-700"
+          >
+            Show all
+          </button>
+        </div>
+      )}
 
       {grouped.map((group, gi) => {
         const isOpen = expanded[group.heuristic] ?? gi === 0;
