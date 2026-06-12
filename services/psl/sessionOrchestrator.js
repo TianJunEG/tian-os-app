@@ -161,15 +161,19 @@ export async function completeProblem({ sessionId, problemId }) {
 
   const attempt = await PSLAttempt.findOne({ sessionId, problemId }).lean();
   if (attempt) {
-    await recordAttempt({
-      studentId: session.studentId,
-      skillId: session.skillId,
-      workspaceId: session.workspaceId,
-      correct: attempt.overallCorrect,
-      timeMs: attempt.totalTimeMs,
-      module: 'PSL',
-      subject: 'Math',
-    });
+    try {
+      await recordAttempt({
+        studentId: session.studentId,
+        skillId: session.skillId,
+        workspaceId: session.workspaceId,
+        correct: attempt.overallCorrect,
+        timeMs: attempt.totalTimeMs,
+        module: 'PSL',
+        subject: 'Math',
+      });
+    } catch (err) {
+      console.error('[PSL] recordAttempt failed:', err.message);
+    }
 
     if (!attempt.overallCorrect) {
       const wrongSteps = attempt.steps.filter((s) => !s.correct);
@@ -187,7 +191,7 @@ export async function completeProblem({ sessionId, problemId }) {
           answerCorrect: false,
           misconceptionTag: step.misconceptionTag,
           mistakeCategory: 'procedure_error',
-          severity: step.score === 0 ? 'high' : 'medium',
+          severity: step.score === 0 ? 'major' : 'moderate',
         });
       }
     }
