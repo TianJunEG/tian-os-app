@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -49,7 +49,7 @@
   --mastery-0:#ECFDF5; --mastery-1:#D1FAE5; --mastery-2:#A7F3D0;
   --mastery-3:#6EE7B7; --mastery-4:#34D399; --mastery-5:#064E3B;
   /* ── Type ─────────────────────────────────────────────────────────── */
-  --font-display:'Plus Jakarta Sans','Nunito',system-ui,sans-serif;
+  --font-display:'DM Serif Display',serif;
   --font-text:'Nunito',system-ui,sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
   /* ── Elevation / motion / layout ─────────────────────────────────── */
