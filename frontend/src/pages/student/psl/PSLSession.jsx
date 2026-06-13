@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, VolumeX, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -15,7 +15,7 @@ import ReasoningInput from './components/ReasoningInput';
 import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
-import { playCorrect, playWin } from '../../../utils/sound';
+import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled } from '../../../utils/sound';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
@@ -55,6 +55,7 @@ export default function PSLSession() {
   const [hints, setHints] = useState([]);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintExhausted, setHintExhausted] = useState(false);
+  const [voice, setVoice] = useState(isVoiceEnabled);
   const stepStartRef = useRef(Date.now());
 
   useEffect(() => {
@@ -251,17 +252,27 @@ export default function PSLSession() {
           )}
         </div>
         <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
-        <button
-          type="button"
-          onClick={async () => {
-            try { await pslAPI.abandonSession(sessionId); } catch {}
-            navigate('/student/psl');
-          }}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
-          aria-label="Exit session"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => { const next = !voice; setVoice(next); setVoiceEnabled(next); }}
+            className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${voice ? 'text-orange-500 hover:bg-orange-50' : 'text-ink-300 hover:bg-ink-100'}`}
+            aria-label={voice ? 'Mute Lejo' : 'Let Lejo speak'}
+          >
+            {voice ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              try { await pslAPI.abandonSession(sessionId); } catch {}
+              navigate('/student/psl');
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
+            aria-label="Exit session"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <StoryPanel
