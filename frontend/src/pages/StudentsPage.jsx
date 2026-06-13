@@ -4,6 +4,20 @@ import { ChevronLeft, UserPlus, Trash2, AlertCircle, CheckCircle, Users } from '
 import { useAuth } from '../context/AuthContext';
 import { studentsAPI } from '../services/api';
 
+const STUDENT_LEVELS = [
+  { value: 'P1', label: 'Primary 1' },
+  { value: 'P2', label: 'Primary 2' },
+  { value: 'P3', label: 'Primary 3' },
+  { value: 'P4', label: 'Primary 4' },
+  { value: 'P5', label: 'Primary 5' },
+  { value: 'P6', label: 'Primary 6' },
+  { value: 'S1', label: 'Secondary 1' },
+  { value: 'S2', label: 'Secondary 2' },
+  { value: 'S3', label: 'Secondary 3' },
+  { value: 'S4', label: 'Secondary 4' },
+  { value: 'S5', label: 'Secondary 5' },
+];
+
 export default function StudentsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -12,6 +26,7 @@ export default function StudentsPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [level, setLevel] = useState('');
   const [error, setError] = useState(null);
   const [created, setCreated] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -39,11 +54,12 @@ export default function StudentsPage() {
     setCreated(null);
     setSaving(true);
     try {
-      const res = await studentsAPI.create({ name, email, password });
+      const res = await studentsAPI.create({ name, email, password, ...(level ? { level } : {}) });
       setCreated({ ...res.data.student, password });
       setName('');
       setEmail('');
       setPassword('');
+      setLevel('');
       loadStudents();
     } catch (err) {
       const data = err.response?.data;
@@ -89,7 +105,7 @@ export default function StudentsPage() {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <form onSubmit={handleCreate} className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Add a student login</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input
@@ -100,6 +116,17 @@ export default function StudentsPage() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+              <select
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+              >
+                <option value="">Select level</option>
+                {STUDENT_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Login email</label>

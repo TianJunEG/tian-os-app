@@ -7,6 +7,20 @@ import ProgressRing from '../components/ProgressRing';
 
 // Tian OS — Parent dashboard. Overview of every child, each with a headline readiness.
 // Tap a child for their full cross-app profile. Reads GET /api/learning/children.
+const STUDENT_LEVELS = [
+  { value: 'P1', label: 'Primary 1' },
+  { value: 'P2', label: 'Primary 2' },
+  { value: 'P3', label: 'Primary 3' },
+  { value: 'P4', label: 'Primary 4' },
+  { value: 'P5', label: 'Primary 5' },
+  { value: 'P6', label: 'Primary 6' },
+  { value: 'S1', label: 'Secondary 1' },
+  { value: 'S2', label: 'Secondary 2' },
+  { value: 'S3', label: 'Secondary 3' },
+  { value: 'S4', label: 'Secondary 4' },
+  { value: 'S5', label: 'Secondary 5' },
+];
+
 const bandStyles = {
   'on track': 'bg-green-100 text-green-800',
   building: 'bg-amber-100 text-amber-800',
@@ -74,8 +88,11 @@ export default function ParentDashboardPage() {
               <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="e.g. Ethan" autoFocus />
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Level (optional)</label>
-              <input value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="e.g. Primary 5" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
+              <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2">
+                <option value="">Select level</option>
+                {STUDENT_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+              </select>
             </div>
             <button type="submit" disabled={saving} className="px-5 py-2 bg-navy-700 text-white rounded-lg font-semibold hover:bg-navy-600 disabled:opacity-60 transition">{saving ? 'Saving…' : 'Save'}</button>
           </form>
