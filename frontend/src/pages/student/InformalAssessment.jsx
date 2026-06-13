@@ -43,6 +43,7 @@ export default function InformalAssessment() {
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     informalAssessmentAPI.get(sessionId)
@@ -55,21 +56,26 @@ export default function InformalAssessment() {
           setPhase('quiz');
         }
       })
-      .catch(() => {})
+      .catch(() => setError('Could not load this assessment.'))
       .finally(() => setLoading(false));
   }, [sessionId]);
 
   const handleStart = async () => {
-    await informalAssessmentAPI.start(sessionId);
-    setData((prev) => ({
-      ...prev,
-      session: { ...prev.session, status: 'in_progress', startedAt: new Date().toISOString() },
-    }));
-    setPhase('quiz');
+    try {
+      await informalAssessmentAPI.start(sessionId);
+      setData((prev) => ({
+        ...prev,
+        session: { ...prev.session, status: 'in_progress', startedAt: new Date().toISOString() },
+      }));
+      setPhase('quiz');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not start. Please try again.');
+    }
   };
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (bypassConfirm = false) => {
     if (submitting) return;
+    if (!bypassConfirm && !window.confirm("Are you sure you want to submit? You can't change your answers after submitting.")) return;
     setSubmitting(true);
     const payload = (data?.assessment?.questions || []).map((q) => ({
       questionId: q.questionId,
@@ -79,11 +85,14 @@ export default function InformalAssessment() {
       const { data: res } = await informalAssessmentAPI.submit(sessionId, payload);
       setResult(res);
       setPhase('results');
-    } catch { setSubmitting(false); }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Could not submit. Please try again.');
+      setSubmitting(false);
+    }
   }, [submitting, data, answers, sessionId]);
 
   if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
-  if (!data) return <div className="p-6 text-center text-red-600">Assessment not found.</div>;
+  if (!data) return <div className="p-6 text-center text-red-600">{error || 'Assessment not found.'}</div>;
 
   const { session, assessment } = data;
   const questions = assessment.questions || [];
@@ -103,6 +112,7 @@ export default function InformalAssessment() {
           <div className="mt-2 rounded-lg bg-amber-50 px-4 py-2 text-xs text-amber-700">
             No hints or retries — answer each question to the best of your ability.
           </div>
+          {error && <div className="mt-3 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">{error}</div>}
           <Button className="mt-6 w-full" onClick={handleStart}>Begin</Button>
         </Card>
       </div>
@@ -165,15 +175,20 @@ export default function InformalAssessment() {
   return (
     <div className="mx-auto max-w-lg space-y-4 px-4 pt-8 pb-24">
       {/* Header */}
+      <h1 className="text-base font-bold text-ink-800">{assessment.title}</h1>
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-ink-500">
           Question {current + 1} of {questions.length}
         </p>
         {assessment.timeLimitMinutes && session.startedAt && (
-          <Timer startedAt={session.startedAt} limitMinutes={assessment.timeLimitMinutes} onExpire={handleSubmit} />
+          <Timer startedAt={session.startedAt} limitMinutes={assessment.timeLimitMinutes} onExpire={() => handleSubmit(true)} />
         )}
       </div>
       <ProgressBar value={current + 1} max={questions.length} barClassName="bg-emerald-500" />
+
+      {error && (
+        <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">{error}</div>
+      )}
 
       {/* Question */}
       <Card className="p-5">
@@ -196,8 +211,8 @@ export default function InformalAssessment() {
             </div>
           ) : (
             <input
-              type="number"
-              inputMode="decimal"
+              type="text"
+              inputMode="numeric"
               placeholder="Your answer"
               value={answers[q?.questionId] ?? ''}
               onChange={(e) => setAnswers((prev) => ({ ...prev, [q.questionId]: e.target.value }))}
