@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Compass, Flame, Pencil, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -52,9 +52,16 @@ export default function PSLSession() {
   const [retryCount, setRetryCount] = useState({});
   const [showScratchpad, setShowScratchpad] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [hints, setHints] = useState([]);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintExhausted, setHintExhausted] = useState(false);
   const stepStartRef = useRef(Date.now());
 
-  useEffect(() => { stepStartRef.current = Date.now(); }, [currentStepIdx]);
+  useEffect(() => {
+    stepStartRef.current = Date.now();
+    setHints([]);
+    setHintExhausted(false);
+  }, [currentStepIdx]);
 
   useEffect(() => {
     pslAPI.getSession(sessionId)
@@ -174,6 +181,8 @@ export default function PSLSession() {
           setRetryCount({});
           setShowScratchpad(false);
           setStreak(0);
+          setHints([]);
+          setHintExhausted(false);
         } else {
           await pslAPI.completeSession(sessionId);
           navigate(`/student/psl/results/${sessionId}`);
@@ -182,6 +191,21 @@ export default function PSLSession() {
         navigate(`/student/psl/results/${sessionId}`);
       }
     }
+  };
+
+  const handleRequestHint = async () => {
+    if (hintLoading || hintExhausted || !currentProblem) return;
+    setHintLoading(true);
+    try {
+      const res = await pslAPI.getHint(sessionId, currentProblem.problemId, currentStepId);
+      if (res.data.hint) {
+        setHints((prev) => [...prev, res.data.hint]);
+      }
+      if (res.data.exhausted) {
+        setHintExhausted(true);
+      }
+    } catch {}
+    setHintLoading(false);
   };
 
   const updateResponse = (stepId, data) => {
@@ -358,6 +382,26 @@ export default function PSLSession() {
           defaultExpanded={currentStepId === 'understand' || currentStepId === 'plan'}
         />
       </div>
+
+      {hints.length > 0 && !feedback && (
+        <div className="space-y-2">
+          {hints.map((hint, i) => (
+            <MascotBubble key={i} text={hint} />
+          ))}
+        </div>
+      )}
+
+      {!feedback && !completedSteps[currentStepId] && (
+        <button
+          type="button"
+          onClick={handleRequestHint}
+          disabled={hintLoading || hintExhausted}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-gold-300 bg-gold-50/50 px-4 py-2.5 text-xs font-medium text-gold-700 transition-colors hover:bg-gold-50 disabled:opacity-40"
+        >
+          <HelpCircle className="h-3.5 w-3.5" />
+          {hintLoading ? 'Thinking...' : hintExhausted ? 'No more hints' : hints.length > 0 ? 'Another hint?' : 'Need a hint?'}
+        </button>
+      )}
 
       {feedback && (
         <StepFeedbackCard

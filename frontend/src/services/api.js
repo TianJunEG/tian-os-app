@@ -305,6 +305,7 @@ export const pslAPI = {
   startSession: (data) => api.post('/psl/sessions', data),
   getSession: (sessionId) => api.get(`/psl/sessions/${sessionId}`),
   submitStep: (sessionId, problemId, data) => api.post(`/psl/sessions/${sessionId}/problems/${problemId}/step`, data),
+  getHint: (sessionId, problemId, stepId) => api.post(`/psl/sessions/${sessionId}/problems/${problemId}/hint`, { stepId }),
   completeProblem: (sessionId, problemId) => api.post(`/psl/sessions/${sessionId}/problems/${problemId}/complete`),
   completeSession: (sessionId) => api.post(`/psl/sessions/${sessionId}/complete`),
   abandonSession: (sessionId) => api.patch(`/psl/sessions/${sessionId}/abandon`),

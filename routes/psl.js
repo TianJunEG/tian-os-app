@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
@@ -7,6 +8,7 @@ import PSLAttempt from '../models/psl/PSLAttempt.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Mistake from '../models/Mistake.js';
 import { checkPrerequisites } from '../services/psl/prerequisiteChecker.js';
+import { getHintsForStep } from '../services/psl/hintGenerator.js';
 import {
   startSession,
   getSession,
@@ -100,6 +102,47 @@ router.post('/sessions/:sid/problems/:pid/step', protect, async (req, res) => {
       response,
       timeSpentMs,
     });
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+router.post('/sessions/:sid/problems/:pid/hint', protect, async (req, res) => {
+  try {
+    const { stepId } = req.body;
+    const session = await PSLSession.findOne({ sessionId: req.params.sid });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+
+    const problem = session.problems.find((p) => p.problemId === req.params.pid);
+    if (!problem) return res.status(404).json({ error: 'Problem not found' });
+
+    let attempt = await PSLAttempt.findOne({ sessionId: req.params.sid, problemId: req.params.pid });
+    if (!attempt) {
+      attempt = new PSLAttempt({
+        attemptId: crypto.randomUUID(),
+        sessionId: req.params.sid,
+        studentId: session.studentId,
+        skillId: session.skillId,
+        problemId: req.params.pid,
+        steps: [],
+      });
+    }
+
+    let stepEntry = attempt.steps.find((s) => s.stepId === stepId);
+    if (!stepEntry) {
+      attempt.steps.push({ stepId, hintsUsed: 0, hintUsed: false });
+      stepEntry = attempt.steps[attempt.steps.length - 1];
+    }
+
+    const result = getHintsForStep(stepId, problem.heuristic, stepEntry.hintsUsed || 0);
+
+    if (result.hint) {
+      stepEntry.hintsUsed = (stepEntry.hintsUsed || 0) + 1;
+      stepEntry.hintUsed = true;
+      await attempt.save();
+    }
+
     res.json(result);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
