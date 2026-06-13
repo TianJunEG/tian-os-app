@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Compass, Pencil, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -10,10 +10,21 @@ import PlanDispatcher from './components/PlanDispatcher';
 import SolveDispatcher from './components/SolveDispatcher';
 import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
+import MascotBubble from './components/MascotBubble';
 import ReasoningInput from './components/ReasoningInput';
 import WorkingCanvas from '../../../components/learning/WorkingCanvas';
+import { getVoiceScripts } from './utils/voiceScripts';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
+
+const STEP_LABELS = {
+  understand: "What's the story about?",
+  identify_info: 'Find the clues',
+  identify_question: 'What are we looking for?',
+  plan: 'Make a plan',
+  solve: 'Work it out',
+  check: 'Does it make sense?',
+};
 
 const DEFAULT_UNDERSTAND_CHOICES = [
   'It\'s about finding a total or combining groups',
@@ -37,6 +48,7 @@ export default function PSLSession() {
   const [submitting, setSubmitting] = useState(false);
   const [stepResponses, setStepResponses] = useState({});
   const [retryCount, setRetryCount] = useState({});
+  const [showScratchpad, setShowScratchpad] = useState(false);
   const stepStartRef = useRef(Date.now());
 
   useEffect(() => { stepStartRef.current = Date.now(); }, [currentStepIdx]);
@@ -143,6 +155,7 @@ export default function PSLSession() {
           setCompletedSteps({});
           setStepResponses({});
           setRetryCount({});
+          setShowScratchpad(false);
         } else {
           await pslAPI.completeSession(sessionId);
           navigate(`/student/psl/results/${sessionId}`);
@@ -214,8 +227,19 @@ export default function PSLSession() {
 
       <div className="rounded-2xl border border-ink-200 bg-white p-4 sm:p-5">
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-400">
-          Step {currentStepIdx + 1}: {STEP_IDS[currentStepIdx]?.replaceAll('_', ' ')}
+          Step {currentStepIdx + 1}: {STEP_LABELS[currentStepId] || currentStepId}
         </h3>
+
+        {!completedSteps[currentStepId] && (() => {
+          const scripts = getVoiceScripts(
+            currentProblem.heuristic,
+            currentProblem.structure,
+            currentProblem.unknownPosition,
+          );
+          const stepIdx = STEP_IDS.indexOf(currentStepId);
+          const text = stepIdx >= 0 && stepIdx < 4 ? scripts.steps?.[stepIdx] : null;
+          return text ? <MascotBubble text={text} /> : null;
+        })()}
 
         {currentStepId === 'understand' && (
           <UnderstandStep
@@ -241,11 +265,22 @@ export default function PSLSession() {
         )}
 
         {currentStepId === 'plan' && (
-          <PlanDispatcher
-            scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
-            response={stepResponses.plan}
-            onChange={(val) => updateResponse('plan', val)}
-          />
+          <>
+            <PlanDispatcher
+              scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
+              response={stepResponses.plan}
+              onChange={(val) => updateResponse('plan', val)}
+            />
+            <a
+              href="/student/psl/guide"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gold-600 hover:text-gold-700"
+            >
+              <Compass className="h-3.5 w-3.5" />
+              Not sure which strategy? Open the Decision Guide
+            </a>
+          </>
         )}
 
         {currentStepId === 'solve' && (
@@ -255,14 +290,27 @@ export default function PSLSession() {
               response={stepResponses.solve || {}}
               onChange={(val) => updateResponse('solve', val)}
             />
-            <WorkingCanvas
-              questionId={`${session?.sessionId}-${problemIndex}-solve`}
-              label="Scratchpad"
-              required={false}
-              allowNoWorking={false}
-              compact
-              showMathStamps={false}
-            />
+            <button
+              type="button"
+              onClick={() => setShowScratchpad((v) => !v)}
+              className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              <span className="flex-1 text-left">Scratchpad</span>
+              {showScratchpad ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+            {showScratchpad && (
+              <div className="mt-2">
+                <WorkingCanvas
+                  questionId={`${session?.sessionId}-${problemIndex}-solve`}
+                  label="Scratchpad"
+                  required={false}
+                  allowNoWorking={false}
+                  compact
+                  showMathStamps={false}
+                />
+              </div>
+            )}
           </>
         )}
 
@@ -281,6 +329,7 @@ export default function PSLSession() {
         <ReasoningInput
           value={stepResponses[currentStepId]?.reasoning || ''}
           onChange={(val) => updateResponse(currentStepId, { reasoning: val })}
+          defaultExpanded={currentStepId === 'understand' || currentStepId === 'plan'}
         />
       </div>
 
