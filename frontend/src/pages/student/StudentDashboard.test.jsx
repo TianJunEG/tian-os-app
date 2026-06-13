@@ -143,11 +143,12 @@ describe('StudentDashboard analytics cards', () => {
 
     await waitFor(() => expect(screen.getByText('67%')).toBeInTheDocument());
     expect(screen.getByText('33%')).toBeInTheDocument();
-    expect(screen.getAllByText(/You were confident but answered incorrectly/i).length).toBeGreaterThan(0);
-    expect(screen.getByText('Learning Insight')).toBeInTheDocument();
-    expect(screen.getByText('Observation')).toBeInTheDocument();
-    expect(screen.getByText('What it means')).toBeInTheDocument();
-    expect(screen.getByText('Next step')).toBeInTheDocument();
+    expect(screen.getByText('Accuracy')).toBeInTheDocument();
+    expect(screen.getByText('Questions answered')).toBeInTheDocument();
+    expect(screen.getByText('Working submitted')).toBeInTheDocument();
+    expect(screen.getByText('Confidence insight')).toBeInTheDocument();
+    expect(screen.getByText('Learning insight')).toBeInTheDocument();
+    expect(screen.getByText(/confident but answered incorrectly/i)).toBeInTheDocument();
     expect(screen.queryByText('Fluency Challenge')).not.toBeInTheDocument();
     expect(screen.queryByText('Mastery Check')).not.toBeInTheDocument();
     expect(screen.queryByText("Good job! You're improving.")).not.toBeInTheDocument();
@@ -179,11 +180,10 @@ describe('StudentDashboard analytics cards', () => {
 
     renderDashboard();
 
-    expect(await screen.findByText('No practice completed this week.')).toBeInTheDocument();
-    expect(screen.getByText('No questions answered this week.')).toBeInTheDocument();
-    expect(screen.getByText('No working submitted yet.')).toBeInTheDocument();
-    expect(screen.getByText('No confidence insights yet.')).toBeInTheDocument();
-    expect(screen.getByText('Complete more questions to generate confidence insights.')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Accuracy')).toBeInTheDocument());
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByText('Confidence insight')).toBeInTheDocument();
+    expect(screen.getByText('Learning insight')).toBeInTheDocument();
     expect(screen.queryByText("Good job! You're improving.")).not.toBeInTheDocument();
   });
 
@@ -221,10 +221,11 @@ describe('StudentDashboard analytics cards', () => {
 
     renderDashboard();
 
-    expect(await screen.findByText('No recent activity yet. Start your diagnostic to begin.')).toBeInTheDocument();
-    expect(screen.getByText('0 / 26')).toBeInTheDocument();
-    expect(screen.getByText('Learning XP')).toBeInTheDocument();
-    expect(screen.getAllByText('0')[0]).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Accuracy')).toBeInTheDocument());
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByText('Questions answered')).toBeInTheDocument();
+    expect(screen.getByText('Working submitted')).toBeInTheDocument();
+    expect(screen.getByText('Learning insight')).toBeInTheDocument();
     expect(screen.queryByText('+120 XP today')).not.toBeInTheDocument();
     expect(screen.queryByText('Earned 120 XP')).not.toBeInTheDocument();
   });
