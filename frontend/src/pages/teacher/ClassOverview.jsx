@@ -21,8 +21,8 @@ export default function ClassOverview() {
   return (
     <>
       <ClassNav classId={id} name={meta?.name || data.class.name} level={meta?.level || data.class.level} />
-      <Card className="mb-5 p-5">
-        <div className="flex items-center gap-6">
+      <Card className="mb-4 p-4 sm:mb-5 sm:p-5">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6">
           <StatTile label="Overall mastery" value={data.overallMastery} suffix="%" />
           <StatTile label="Students" value={data.studentCount} />
           <StatTile label="Need support" value={data.studentsNeedingSupport.length} />
@@ -34,8 +34,8 @@ export default function ClassOverview() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card className="p-5">
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
+        <Card className="p-4 sm:p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Top weak topics</h3>
           {data.topWeakTopics.length === 0 ? <p className="text-sm text-ink-500">No data yet.</p> : (
             <ul className="space-y-2">
@@ -69,12 +69,12 @@ export default function ClassOverview() {
             <p className="text-sm text-ink-500">No students in this class have started Science Adaptive Revision yet.</p>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-6">
+              <div className="grid grid-cols-3 gap-3 sm:gap-6">
                 <StatTile label="Class mastery" value={data.science.overallMastery} suffix="%" />
                 <StatTile label="Students started" value={`${data.science.attemptedCount} / ${data.studentCount}`} />
                 <StatTile label="Need support" value={data.science.needsSupport.length} />
               </div>
-              <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:mt-5 sm:gap-5 md:grid-cols-2">
                 <div>
                   <h4 className="mb-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Top weak Science topics</h4>
                   {data.science.topWeakTopics.length === 0 ? <p className="text-sm text-ink-500">No data yet.</p> : (

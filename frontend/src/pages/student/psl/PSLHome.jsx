@@ -94,7 +94,7 @@ export default function PSLHome() {
   }, {});
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 pb-24 sm:p-6">
+    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-6 sm:space-y-6 sm:p-6">
       <div>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-100">

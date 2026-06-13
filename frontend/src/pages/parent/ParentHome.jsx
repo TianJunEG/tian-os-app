@@ -12,7 +12,7 @@ const PRIORITY_TONE = { high: 'error', medium: 'gold', low: 'success' };
 function SchoolChildrenSection({ rows = [] }) {
   if (!rows.length) return null;
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <h3 className="mb-3 flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">
         <Eye className="h-4 w-4" /> School progress (view-only)
       </h3>
@@ -159,9 +159,9 @@ export default function ParentHome() {
       <SchoolChildrenSection rows={schoolChildren} />
 
       {/* Overall status — kept as the cross-subject headline */}
-      <Card className="mb-4 p-5">
+      <Card className="mb-4 p-4 sm:p-5">
         <div className="mb-1 text-sm font-semibold text-ink-700">{child.name} <span className="font-normal text-ink-500">· {child.level}</span></div>
-        <div className="mt-3 flex items-center gap-6">
+        <div className="mt-3 grid grid-cols-3 gap-3 sm:gap-6">
           <StatTile label="Overall mastery" value={child.overallMastery} suffix="%" />
           <StatTile label="Mastered" value={child.masteredCount} />
           <StatTile label="Skills seen" value={child.skillsSeen} />

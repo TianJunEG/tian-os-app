@@ -150,7 +150,7 @@ export default function AppShell({ children }) {
           </div>
         </header>
 
-        <main className={`mx-auto px-4 pb-28 pt-6 sm:px-6 md:pb-10 ${activityShell ? 'max-w-[96rem]' : 'max-w-6xl'}`}>{children}</main>
+        <main className={`mx-auto px-4 pb-20 pt-5 sm:px-6 md:pb-10 ${activityShell ? 'max-w-[96rem]' : 'max-w-6xl'}`}>{children}</main>
       </div>
 
       {/* Bottom nav — mobile (hidden during immersive activities) */}

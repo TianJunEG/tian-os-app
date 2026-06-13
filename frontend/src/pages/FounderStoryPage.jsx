@@ -73,10 +73,7 @@ export default function FounderStoryPage() {
       <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(248,250,252,0.85)', borderBottom: '1px solid rgba(30,41,59,0.08)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link to="/" style={{ textDecoration: 'none' }}><Wordmark /></Link>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <Link to="/founder" style={{ fontSize: 14, fontWeight: 600, color: TEAL, textDecoration: 'none' }}>Our Story</Link>
-            <Link to="/edu-apps" style={{ fontSize: 14, fontWeight: 500, color: INK_SOFT, textDecoration: 'none' }}>Platform</Link>
-            <Link to="/methodology" style={{ fontSize: 14, fontWeight: 500, color: INK_SOFT, textDecoration: 'none' }}>Our Approach</Link>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 999, background: CORAL, color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none', boxShadow: `0 10px 24px -8px ${CORAL_GLOW}` }}>
               Book a demo
             </Link>
@@ -87,7 +84,7 @@ export default function FounderStoryPage() {
       {/* 1 — Hero */}
       <section style={{ position: 'relative', background: `linear-gradient(170deg, ${TEAL_DARK} 0%, ${TEAL} 60%, ${IVORY} 100%)`, overflow: 'hidden' }}>
         <div style={{ position: 'absolute', left: '10%', top: '10%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(167,216,240,0.18) 0%, transparent 60%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', maxWidth: 900, margin: '0 auto', padding: '130px 24px 140px', textAlign: 'center' }}>
+        <div style={{ position: 'relative', maxWidth: 900, margin: '0 auto', padding: 'clamp(60px, 10vw, 130px) 24px clamp(60px, 10vw, 140px)', textAlign: 'center' }}>
           <Reveal>
             <Eyebrow style={{ color: 'rgba(255,248,234,0.6)' }}>Our story</Eyebrow>
           </Reveal>
@@ -108,7 +105,7 @@ export default function FounderStoryPage() {
       </section>
 
       {/* 2 — Origin */}
-      <section style={{ maxWidth: 860, margin: '0 auto', padding: '100px 24px' }}>
+      <section style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(48px, 8vw, 100px) 24px' }}>
         <Reveal>
           <Eyebrow>The beginning</Eyebrow>
           <Headline style={{ marginTop: 18 }}>It started in a classroom,<br />not a boardroom.</Headline>
@@ -130,7 +127,7 @@ export default function FounderStoryPage() {
 
       {/* 3 — The Moment */}
       <section style={{ background: TEAL_DARK }}>
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: '100px 24px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(48px, 8vw, 100px) 24px', textAlign: 'center' }}>
           <Reveal>
             <Eyebrow style={{ color: CORAL }}>The moment that changed everything</Eyebrow>
           </Reveal>
@@ -156,7 +153,7 @@ export default function FounderStoryPage() {
       </section>
 
       {/* 4 — What We Believe */}
-      <section style={{ maxWidth: 1000, margin: '0 auto', padding: '100px 24px' }}>
+      <section style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(48px, 8vw, 100px) 24px' }}>
         <Reveal>
           <Eyebrow>What we believe</Eyebrow>
           <Headline style={{ marginTop: 18 }}>Three principles from<br />twenty years in the classroom.</Headline>
@@ -176,7 +173,7 @@ export default function FounderStoryPage() {
 
       {/* 5 — The People */}
       <section style={{ background: TEAL_DARK }}>
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: '100px 24px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 860, margin: '0 auto', padding: 'clamp(48px, 8vw, 100px) 24px', textAlign: 'center' }}>
           <Reveal>
             <Eyebrow style={{ color: 'rgba(255,248,234,0.6)' }}>The people</Eyebrow>
             <Headline style={{ marginTop: 18, color: IVORY }}>Built by educators<br />and engineers.</Headline>
@@ -193,7 +190,7 @@ export default function FounderStoryPage() {
       </section>
 
       {/* 6 — The Journey (Timeline) */}
-      <section style={{ maxWidth: 700, margin: '0 auto', padding: '100px 24px' }}>
+      <section style={{ maxWidth: 700, margin: '0 auto', padding: 'clamp(48px, 8vw, 100px) 24px' }}>
         <Reveal>
           <Eyebrow>The journey</Eyebrow>
           <Headline style={{ marginTop: 18 }}>20+ years of learning<br />how students learn.</Headline>
@@ -220,7 +217,7 @@ export default function FounderStoryPage() {
       {/* 7 — CTA */}
       <section style={{ position: 'relative', overflow: 'hidden', background: TEAL_DARK }}>
         <div style={{ position: 'absolute', left: '50%', top: '40%', transform: 'translate(-50%,-50%)', width: 900, height: 900, borderRadius: '50%', background: 'radial-gradient(circle, rgba(167,216,240,0.12) 0%, transparent 55%)', filter: 'blur(40px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', maxWidth: 800, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
+        <div style={{ position: 'relative', maxWidth: 800, margin: '0 auto', padding: 'clamp(60px, 10vw, 120px) 24px clamp(60px, 10vw, 130px)', textAlign: 'center' }}>
           <Reveal style={{ display: 'flex', justifyContent: 'center' }}><Wordmark size={56} onDark /></Reveal>
           <Reveal delay={0.15}>
             <Headline style={{ marginTop: 32, color: IVORY }}>Bring Tian OS<br />to your school.</Headline>

@@ -353,7 +353,7 @@ export default function MathPathHome() {
 
   return (
     <>
-      <div className={`${visualStyles.page} space-y-6`}>
+      <div className={`${visualStyles.page} space-y-4 sm:space-y-6`}>
       <div>
         <p className={`text-sm font-semibold ${visualStyles.accent}`}>{welcomeTitle}</p>
         <h1 className="font-display text-3xl font-semibold text-ink-900">MathPath</h1>
@@ -442,8 +442,8 @@ export default function MathPathHome() {
 
       {/* Quick actions — focused set */}
       <section>
-        <h2 className="mb-4 font-display text-2xl font-semibold text-ink-900">Quick Actions</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <h2 className="mb-3 font-display text-xl font-semibold text-ink-900 sm:mb-4 sm:text-2xl">Quick Actions</h2>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
           <Card className="flex h-full flex-col border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><Layers className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">{effectiveStudentLevel} Mathematics</h3>

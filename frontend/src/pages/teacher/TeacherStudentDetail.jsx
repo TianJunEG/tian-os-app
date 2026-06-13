@@ -30,7 +30,7 @@ function InviteParentCard({ studentId }) {
       <div className="mb-2 flex items-center gap-2"><Mail className="h-4 w-4 text-ink-400" /><h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Invite parent</h3></div>
       <p className="mb-3 text-sm text-ink-500">Send a guardian a free, view-only link to this student's progress.</p>
       <div className="flex flex-wrap items-center gap-2">
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@email.com" className="flex-1 min-w-[180px] rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-navy-300" />
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@email.com" className="min-w-0 flex-1 rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-navy-300" />
         <Button onClick={send} disabled={busy || !email.trim()} icon={Mail}>{busy ? 'Sending…' : 'Send invite'}</Button>
       </div>
       {error ? <p className="mt-2 text-sm text-error-700">{error}</p> : null}
@@ -67,15 +67,15 @@ export default function TeacherStudentDetail() {
       </button>
       <PageHeader title={student.name} subtitle={student.level} />
 
-      <Card className="mb-5 p-5">
-        <div className="flex items-center gap-6">
+      <Card className="mb-4 p-4 sm:mb-5 sm:p-5">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6">
           <StatTile label="Overall mastery" value={overallMastery} suffix="%" />
           <StatTile label="Weak topics" value={weakTopics.length} />
           <StatTile label="Open mistakes" value={mistakes.length} />
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
         <Card className="p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Weak topics</h3>
           {weakTopics.length === 0 ? <p className="text-sm text-ink-500">None.</p> : (

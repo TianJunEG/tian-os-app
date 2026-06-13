@@ -44,7 +44,7 @@ export default function Reports() {
             <div className="flex items-center gap-2"><FileText className="h-5 w-5 text-ink-300" /><h3 className="font-semibold text-ink-700">{TYPES.find(([k]) => k === type)?.[1]}</h3></div>
             <span className="text-xs text-ink-300">{new Date(report.generatedAt).toLocaleDateString()}</span>
           </div>
-          <div className="mb-4 flex items-center gap-6">
+          <div className="mb-4 grid grid-cols-3 gap-3 sm:gap-6">
             <StatTile label="Overall mastery" value={report.overallMastery} suffix="%" />
             <StatTile label="Students" value={report.studentCount} />
             <StatTile label="Completion" value={report.assignmentCompletion} suffix="%" />

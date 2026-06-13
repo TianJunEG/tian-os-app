@@ -24,8 +24,8 @@ export default function TeacherHome() {
   return (
     <>
       <PageHeader title="Good day" subtitle="Your classes and what needs attention." />
-      <Card className="mb-6 p-5">
-        <div className="flex items-center gap-6">
+      <Card className="mb-4 p-4 sm:mb-6 sm:p-5">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6">
           <StatTile label="Classes" value={data.classCount} />
           <StatTile label="Active interventions" value={data.activeInterventions} />
           <StatTile label="Need attention" value={data.attention.length} />

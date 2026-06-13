@@ -294,9 +294,9 @@ function PersonalBestsSection({ visual }) {
   const lp = isLowerPrimary(visual.mode);
 
   return (
-    <section className="mt-7">
-      <div className="mb-4">
-        <h2 className="font-display text-2xl font-semibold text-ink-900">
+    <section className="mt-5">
+      <div className="mb-3">
+        <h2 className="font-display text-xl font-semibold text-ink-900 sm:text-2xl">
           {lp ? '🏆 My Personal Bests' : 'Personal Bests'}
         </h2>
         <p className="mt-1 text-sm text-ink-500">
@@ -304,7 +304,7 @@ function PersonalBestsSection({ visual }) {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <PersonalBestTile
           visual={visual}
           icon={Crown}
@@ -484,7 +484,7 @@ export default function StudentProfile() {
   };
 
   return (
-    <main className={`mx-auto max-w-6xl pb-8 ${visual.styles.page}`}>
+    <main className={`mx-auto max-w-6xl pb-6 ${visual.styles.page}`}>
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card className={`relative overflow-hidden p-5 sm:p-6 ${visual.styles.card}`}>
           <DecorativeMotif enabled={visual.styles.decorative} />
@@ -548,8 +548,8 @@ export default function StudentProfile() {
         </Card>
       </section>
 
-      <h2 className="mt-6 font-display text-2xl font-semibold text-ink-900">{copy.snapshotTitle}</h2>
-      <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <h2 className="mt-5 font-display text-xl font-semibold text-ink-900 sm:text-2xl">{copy.snapshotTitle}</h2>
+      <section className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <SnapshotCard visual={visual} icon={Sparkles} label="Questions Solved" value={formatNumber(summary.questionsSolved)} />
         <SnapshotCard visual={visual} icon={BadgeCheck} label="Skills Mastered" value={formatNumber(summary.skillsMastered)} />
         <SnapshotCard visual={visual} icon={BookOpen} label="Practice Sessions" value={formatNumber(summary.practiceSessions)} />
@@ -558,7 +558,7 @@ export default function StudentProfile() {
 
       <PersonalBestsSection visual={visual} />
 
-      <section className="mt-5 grid gap-5 lg:grid-cols-[1fr_22rem]">
+      <section className="mt-4 grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card className={`p-5 sm:p-6 ${visual.styles.card}`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
@@ -587,10 +587,10 @@ export default function StudentProfile() {
         </Card>
       </section>
 
-      <section className="mt-7">
-        <div className="mb-4 flex items-end justify-between gap-3">
+      <section className="mt-5">
+        <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <h2 className="font-display text-2xl font-semibold text-ink-900">Achievements</h2>
+            <h2 className="font-display text-xl font-semibold text-ink-900 sm:text-2xl">Achievements</h2>
             <p className="mt-1 text-sm text-ink-500">{copy.achievementSubtitle}</p>
           </div>
         </div>
@@ -609,9 +609,9 @@ export default function StudentProfile() {
         </div>
       </section>
 
-      <section className="mt-7">
-        <h2 className="font-display text-2xl font-semibold text-ink-900">Learning Timeline</h2>
-        <Card className={`mt-4 p-5 sm:p-6 ${visual.styles.card}`}>
+      <section className="mt-5">
+        <h2 className="font-display text-xl font-semibold text-ink-900 sm:text-2xl">Learning Timeline</h2>
+        <Card className={`mt-3 p-4 sm:p-6 ${visual.styles.card}`}>
           {timeline.length ? (
             <ol className="space-y-4">
               {timeline.slice(0, 10).map((event) => (

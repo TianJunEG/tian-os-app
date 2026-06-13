@@ -295,9 +295,9 @@ const LandingPage = () => (
     <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.9)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/"><Wordmark /></Link>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <Link to="/founder" style={navLink}>Our story</Link>
-          <Link to="/methodology" style={navLink}>Our Methodology</Link>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Link to="/founder" style={navLink} className="hidden sm:inline">Our story</Link>
+          <Link to="/methodology" style={navLink} className="hidden sm:inline">Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
           <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request Demo</Link>
         </nav>

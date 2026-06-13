@@ -290,7 +290,7 @@ function CompactStatCard({ icon: Icon, label, value, tone = 'navy', visual }) {
 
 function UpperPrimaryMissionArt() {
   return (
-    <div className="relative min-h-[170px] overflow-hidden bg-gradient-to-br from-violet-100 via-indigo-50 to-white sm:min-h-[230px]">
+    <div className="relative min-h-[140px] overflow-hidden bg-gradient-to-br from-violet-100 via-indigo-50 to-white sm:min-h-[200px]">
       <div className="absolute inset-x-0 bottom-0 h-24 rounded-t-[60%] bg-white/75" />
       <div className="absolute bottom-7 left-10 h-20 w-32 rounded-[50%] bg-white/70" />
       <div className="absolute bottom-4 right-8 h-24 w-36 rounded-[50%] bg-white/80" />
@@ -328,7 +328,7 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement, asses
 
   return (
     <Card className="overflow-hidden rounded-[22px] border-hairline bg-paper p-0">
-      <div className="grid min-h-[260px] lg:grid-cols-[0.48fr_0.52fr]">
+      <div className="grid lg:grid-cols-[0.48fr_0.52fr]">
         <UpperPrimaryMissionArt />
         <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8">
           <div className="flex flex-wrap items-center gap-3">
@@ -424,16 +424,16 @@ function StudentMetricTile({ icon: Icon, title, value, body, tone = 'emerald', c
     rose: 'border-rose-100 bg-rose-50/70 text-rose-700',
   };
   return (
-    <Card className={`rounded-[18px] p-5 ${toneMap[tone] || toneMap.emerald}`}>
-      <div className="flex items-start justify-between gap-3">
-        <span className="grid h-12 w-12 place-items-center rounded-full bg-white/75 shadow-sm">
-          <Icon className="h-6 w-6" />
+    <Card className={`rounded-[18px] p-4 sm:p-5 ${toneMap[tone] || toneMap.emerald}`}>
+      <div className="flex items-start justify-between gap-2">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/75 shadow-sm sm:h-12 sm:w-12">
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
         </span>
-        <ChevronRight className="h-5 w-5 opacity-70" />
+        <ChevronRight className="h-4 w-4 opacity-70 sm:h-5 sm:w-5" />
       </div>
-      <p className="mt-2 text-sm font-semibold">{title}</p>
-      <p className={`${empty ? 'text-base leading-snug' : 'font-mono text-3xl leading-none'} font-semibold text-navy-700`}>{value}</p>
-      <p className="mt-2 min-h-[2.5rem] text-sm leading-5 text-ink-700">{body}</p>
+      <p className="mt-2 text-xs font-semibold sm:text-sm">{title}</p>
+      <p className={`${empty ? 'text-sm leading-snug sm:text-base' : 'font-mono text-2xl leading-none sm:text-3xl'} font-semibold text-navy-700`}>{value}</p>
+      <p className="mt-1.5 text-xs leading-5 text-ink-700 sm:mt-2 sm:min-h-[2.5rem] sm:text-sm">{body}</p>
       {chart === 'none' || empty ? null : <MiniTrend tone={tone === 'amber' ? 'amber' : tone === 'blue' ? 'blue' : 'emerald'} />}
     </Card>
   );
@@ -539,7 +539,7 @@ function buildUpperPrimaryMetricCards(analytics = {}) {
 function UpperPrimaryMetrics({ analytics }) {
   const metrics = buildUpperPrimaryMetricCards(analytics);
   return (
-    <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
       <StudentMetricTile icon={Target} title="Accuracy (This Week)" value={metrics.accuracy.value} body={metrics.accuracy.body} tone="emerald" empty={metrics.accuracy.empty} />
       <StudentMetricTile icon={ClipboardList} title="Questions Answered" value={metrics.questions.value} body={metrics.questions.body} tone="amber" empty={metrics.questions.empty} />
       <StudentMetricTile icon={PenLine} title="Working Submitted" value={metrics.working.value} body={metrics.working.body} tone="blue" empty={metrics.working.empty} />
@@ -717,12 +717,12 @@ function RecommendedNextSection({ currentSkill, nextAction, hasPlacement, visual
   ];
 
   return (
-    <section className="mt-7">
-      <div className="mb-4">
-        <h2 className="font-display text-2xl font-semibold text-ink-900">{isLowerPrimary(visual.mode) ? 'Pick One Mission' : 'Recommended Next'}</h2>
+    <section className="mt-5">
+      <div className="mb-3">
+        <h2 className="font-display text-xl font-semibold text-ink-900 sm:text-2xl">{isLowerPrimary(visual.mode) ? 'Pick One Mission' : 'Recommended Next'}</h2>
         {!isLowerPrimary(visual.mode) && <p className="mt-1 text-sm text-ink-500">Choose one focused action. You do not need to do everything today.</p>}
       </div>
-      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map(({ icon: Icon, title, body, to, state, cta, primary }) => (
           <Card key={title} className={`relative flex h-full flex-col overflow-hidden p-4 ${primary ? visual.styles.softCard : visual.styles.card}`}>
             <DecorativeMotifs enabled={visual.styles.decorative && primary} />
@@ -762,18 +762,18 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
   };
   const t = tones[tone] || tones.success;
   return (
-    <Card className={`relative overflow-hidden p-5 ${t.card}`}>
-      <div className="flex items-start gap-3">
+    <Card className={`relative overflow-hidden p-4 sm:p-5 ${t.card}`}>
+      <div className="flex items-start gap-2 sm:gap-3">
         {img ? (
-          <img src={img} alt="" aria-hidden="true" className="h-14 w-14 shrink-0 object-contain drop-shadow-sm" />
+          <img src={img} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 object-contain drop-shadow-sm sm:h-14 sm:w-14" />
         ) : (
-          <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ${t.icon} shadow-resting`}>
-            <Icon className="h-7 w-7" />
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl ${t.icon} shadow-resting`}>
+            <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className={`text-sm font-semibold ${t.label}`}>{label}</p>
-          <p className="mt-0.5 font-display text-3xl font-semibold text-ink-900">{value}</p>
+          <p className={`text-xs font-semibold sm:text-sm ${t.label}`}>{label}</p>
+          <p className="mt-0.5 font-display text-2xl font-semibold text-ink-900 sm:text-3xl">{value}</p>
         </div>
       </div>
       {(subtitle || caption) && (
@@ -1172,7 +1172,7 @@ export default function StudentDashboard() {
           assessmentReady={assessmentGate.ready}
         />
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           <LowerPrimaryStatCard img="/illustrations/icon-trophy.png" label="Skills Mastered" value={`${safeMasteredCount}/${totalSkills}`} subtitle="Amazing progress!" tone="success" />
           <LowerPrimaryStatCard img="/illustrations/icon-flame.png" label="Current Streak" value={streakLabel} subtitle={displayStreak > 0 ? "Keep it up! You're on fire! 🔥" : 'Start your streak today!'} tone="gold" />
           <LowerPrimaryStatCard img="/illustrations/icon-gem.png" label="Learning XP" value={displayXp} subtitle="Keep learning to earn more!" tone="sky" />

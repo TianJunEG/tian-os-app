@@ -130,7 +130,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-navy-700">What to know right now</h2>
       </div>
-      <section className="grid grid-cols-1 gap-3 lg:grid-cols-4" aria-label="Child Snapshot">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Child Snapshot">
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills Mastered</p>
           <p className="mt-2 font-display text-3xl font-semibold text-navy-700">{snapshot.mastered}/{snapshot.total}</p>
@@ -155,7 +155,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
         </Card>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]" aria-label="Parent action summary">
+      <section className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-[1.2fr_0.8fr]" aria-label="Parent action summary">
         <Card className="border-l-4 border-l-gold-500 p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
