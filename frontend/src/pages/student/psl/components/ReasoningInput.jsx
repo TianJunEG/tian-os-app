@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 export default function ReasoningInput({ value = '', onChange, placeholder = 'Explain your thinking (optional)', defaultExpanded = false }) {
   const [expanded, setExpanded] = useState(defaultExpanded || !!value);
 
-
-
   if (!expanded) {
     return (
       <button

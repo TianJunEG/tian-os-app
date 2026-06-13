@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, Outlet } from 'react-router-dom';
-import { Sparkles, Layers, GraduationCap, ArrowRight } from 'lucide-react';
+import { Sparkles, Layers, GraduationCap, ArrowRight, Brain, BarChart3, School } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CORAL, CORAL_GLOW, TEAL, TEAL_DARK, IVORY, SKY, INK, INK_SOFT, BG, SANS, SERIF, Reveal, Eyebrow, Headline, GlassCard, Wordmark, TianOSKeyframes } from './components/tianos';
 
@@ -281,92 +281,202 @@ const LegacyDashboardRedirect = () => {
   return <Navigate to={ROLE_HOME[user?.role] || '/student'} replace />;
 };
 
-// Landing Page — cinematic Tian OS look (matches the launch video / founder story).
+// Landing Page — B2B marketing design system (ocean green / paper).
+// Shares typography + layout with the Our Story page; hero is deep ocean green.
+const B2B_NAVY = '#062b22';
+const B2B_NAVY_DEEP = '#031a13';
+const B2B_PAPER = '#f4efe6';
+const B2B_INK = '#1d2230';
+const B2B_BODY = '#3a4150';
+const B2B_BODY_MUTED = '#5c6472';
+const B2B_PERIWINKLE = '#34d399';
+const B2B_PERIWINKLE_SOFT = '#6ee7b7';
+const B2B_GOLD = '#cf8a44';
+const B2B_TEXT_LIGHT = '#f4f0e8';
+const B2B_TEXT_CREAM = '#f6f2ea';
+const B2B_TEXT_MUTED_DARK = '#a4c4b5';
+const B2B_TEXT_DIM_DARK = '#7a9e8e';
+const B2B_TEXT_FOOTER = '#8a8270';
+const B2B_BORDER_WARM = '#e1d9ca';
+const B2B_NEWSREADER = "'Newsreader', serif";
+const B2B_SANS = "'Hanken Grotesk', system-ui, sans-serif";
+const B2B_MONO = "ui-monospace, 'SF Mono', Menlo, monospace";
+
+const LANDING_CSS = `
+  html { scroll-behavior: smooth; }
+  ::selection { background: #cf8a44; color: #011A14; }
+  @media (max-width: 768px) {
+    .landing-nav-links { display: none !important; }
+    .landing-features-grid { grid-template-columns: 1fr !important; }
+    .landing-page > section { padding-left: 20px !important; padding-right: 20px !important; }
+    .landing-page header { padding-left: 20px !important; padding-right: 20px !important; }
+    .landing-hero-ctas { flex-direction: column; align-items: center; }
+  }
+`;
+
 const LANDING_FEATURES = [
-  { icon: Sparkles, title: 'Adaptive & personalized', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualized learning path at scale.' },
-  { icon: Layers, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.' },
-  { icon: GraduationCap, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.' },
+  { icon: Brain, title: 'Adaptive & personalised', body: 'AI diagnoses skill gaps and generates targeted practice — every student gets an individualised learning path at scale.' },
+  { icon: BarChart3, title: 'Real-time visibility', body: 'Unified dashboards surface mastery data, misconceptions and progress across classes — no more spreadsheet tracking.' },
+  { icon: School, title: 'Teacher-designed', body: 'Built with experienced educators and aligned to curriculum standards. Your teachers stay in control; AI handles the differentiation.' },
 ];
-const navLink = { color: INK_SOFT, fontFamily: SANS, fontWeight: 600, fontSize: 15, textDecoration: 'none' };
+
+function LandingTianLogo({ light = false }) {
+  const size = 26;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+      <div style={{
+        width: size, height: size, borderRadius: size * 0.27,
+        background: `linear-gradient(135deg, ${B2B_PERIWINKLE}, ${B2B_PERIWINKLE_SOFT})`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: B2B_NEWSREADER, fontWeight: 600, color: B2B_NAVY_DEEP, fontSize: size * 0.65,
+      }}>T</div>
+      <span style={{ fontWeight: 600, fontSize: size * 0.65, letterSpacing: '-0.01em', color: light ? B2B_TEXT_LIGHT : B2B_INK, whiteSpace: 'nowrap' }}>Tian OS</span>
+    </div>
+  );
+}
+
+function LandingReveal({ children, delay = 0, style = {} }) {
+  const ref = React.useRef(null);
+  const [visible, setVisible] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.unobserve(el); } }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'none' : 'translateY(26px)',
+      transition: `opacity .9s cubic-bezier(.2,.65,.2,1) ${delay}s, transform .9s cubic-bezier(.2,.65,.2,1) ${delay}s`,
+      ...style,
+    }}>{children}</div>
+  );
+}
 
 const LandingPage = () => (
-  <div style={{ background: BG, color: INK, fontFamily: SANS, minHeight: '100vh', overflowX: 'hidden' }}>
-    <TianOSKeyframes />
-    <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.9)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link to="/"><Wordmark /></Link>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <Link to="/founder" style={navLink}>Our story</Link>
-          <Link to="/methodology" style={navLink}>Our Methodology</Link>
-          <Link to="/login" style={navLink}>Login</Link>
-          <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request Demo</Link>
+  <div className="landing-page" style={{ background: B2B_PAPER, color: B2B_INK, fontFamily: B2B_SANS, minHeight: '100vh', overflowX: 'hidden', WebkitFontSmoothing: 'antialiased', MozOsxFontSmoothing: 'grayscale', textRendering: 'optimizeLegibility' }}>
+    <style dangerouslySetInnerHTML={{ __html: LANDING_CSS }} />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" />
+
+    {/* ── HERO ── */}
+    <section style={{ position: 'relative', background: '#011A14', color: B2B_TEXT_LIGHT, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/hero-ocean.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.35 }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(165deg, rgba(1,26,20,0.7) 0%, rgba(2,44,34,0.4) 50%, rgba(6,78,59,0.3) 100%)' }} />
+
+      <header style={{ position: 'relative', maxWidth: 1180, margin: '0 auto', padding: '30px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Link to="/" style={{ textDecoration: 'none' }}><LandingTianLogo light /></Link>
+        <nav className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 30, fontSize: 14.5, color: B2B_TEXT_MUTED_DARK }}>
+          <Link to="/founder" style={{ color: 'inherit', textDecoration: 'none' }}>Our Story</Link>
+          <Link to="/edu-apps" style={{ color: 'inherit', textDecoration: 'none' }}>Platform</Link>
+          <span>For Schools</span>
+          <Link to="/register" style={{ border: '1px solid rgba(255,255,255,0.18)', padding: '9px 18px', borderRadius: 999, color: B2B_TEXT_LIGHT, whiteSpace: 'nowrap', textDecoration: 'none' }}>Book a demo</Link>
         </nav>
+      </header>
+
+      <div style={{ position: 'relative', maxWidth: 1180, margin: '0 auto', padding: '80px 40px 130px' }}>
+        <LandingReveal>
+          <div style={{ fontFamily: B2B_MONO, fontSize: 12.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: B2B_PERIWINKLE_SOFT, marginBottom: 28 }}>
+            AI-Native Learning Infrastructure
+          </div>
+        </LandingReveal>
+        <LandingReveal delay={0.1}>
+          <h1 style={{ fontFamily: B2B_NEWSREADER, fontWeight: 400, fontSize: 'clamp(42px, 6.2vw, 88px)', lineHeight: 1.02, letterSpacing: '-0.022em', margin: 0, maxWidth: '18ch', color: B2B_TEXT_CREAM }}>
+            Close learning gaps across your school — at{' '}
+            <em style={{ fontStyle: 'italic', color: B2B_PERIWINKLE_SOFT }}>scale</em>.
+          </h1>
+        </LandingReveal>
+        <LandingReveal delay={0.2}>
+          <p style={{ marginTop: 30, fontSize: 19.5, lineHeight: 1.7, color: B2B_TEXT_MUTED_DARK, maxWidth: 640 }}>
+            Evidence-based intervention tools powered by AI, guided by teachers. Diagnostic assessment, targeted practice, and real-time mastery data — deployed school-wide.
+          </p>
+        </LandingReveal>
+        <LandingReveal delay={0.3} style={{ marginTop: 44, display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center' }}>
+          <Link to="/register" className="landing-hero-ctas" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 32px', borderRadius: 999, background: B2B_PERIWINKLE, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 20px 40px -12px rgba(52,211,153,0.45)' }}>
+            Book a demo <ArrowRight size={18} />
+          </Link>
+          <Link to="/founder" style={{ padding: '15px 32px', borderRadius: 999, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.18)', color: B2B_TEXT_LIGHT, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>
+            Read our story
+          </Link>
+        </LandingReveal>
       </div>
-    </header>
+    </section>
 
-      <main>
-        <section style={{ position: 'relative', overflow: 'hidden', background: '#011A14' }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/hero-ocean.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(165deg, rgba(1,26,20,0.6) 0%, rgba(2,44,34,0.4) 50%, rgba(6,78,59,0.3) 100%)' }} />
-        <div style={{ position: 'relative', maxWidth: 980, margin: '0 auto', padding: '120px 24px 130px', textAlign: 'center' }}>
-          <Reveal><Eyebrow style={{ color: IVORY }}>Tian Jun Education Group</Eyebrow></Reveal>
-          <Reveal delay={0.1}>
-            <Headline style={{ marginTop: 22, fontSize: 'clamp(40px, 7vw, 78px)', color: IVORY }}>
-              AI-Native Learning.<br /><span style={{ color: CORAL }}>Built for Schools.</span>
-            </Headline>
-          </Reveal>
-          <Reveal delay={0.2}>
-            <p style={{ marginTop: 24, fontSize: 'clamp(17px, 2.2vw, 21px)', color: 'rgba(255,248,234,0.8)', maxWidth: 620, margin: '24px auto 0', lineHeight: 1.6 }}>
-              Evidence-based intervention tools that close learning gaps across your school — powered by AI, guided by teachers.
-            </p>
-          </Reveal>
-          <Reveal delay={0.3} style={{ marginTop: 40, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '15px 30px', borderRadius: 999, background: CORAL, color: '#fff', fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: `0 20px 40px -12px ${CORAL_GLOW}` }}>Request a Demo <ArrowRight size={18} /></Link>
-            <Link to="/methodology" style={{ padding: '15px 30px', borderRadius: 999, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,248,234,0.3)', color: IVORY, fontWeight: 600, fontSize: 16, textDecoration: 'none' }}>See the Platform</Link>
-          </Reveal>
-          <Reveal delay={0.4}>
-            <Link to="/founder" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginTop: 28, color: IVORY, fontWeight: 600, fontSize: 15, textDecoration: 'none' }}>Read our founder story <ArrowRight size={15} /></Link>
-          </Reveal>
+    {/* ── EVIDENCE-BASED ── */}
+    <section style={{ maxWidth: 1000, margin: '0 auto', padding: '100px 40px 20px' }}>
+      <LandingReveal>
+        <div style={{ fontFamily: B2B_MONO, fontSize: 12.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#2ba87a', marginBottom: 28 }}>
+          Evidence-based approach
         </div>
-      </section>
+      </LandingReveal>
+      <LandingReveal delay={0.1}>
+        <h2 style={{ fontFamily: B2B_NEWSREADER, fontWeight: 400, fontSize: 'clamp(32px, 4.4vw, 54px)', lineHeight: 1.08, letterSpacing: '-0.02em', margin: '0 0 30px', color: B2B_INK }}>
+          Intervention tools grounded in research
+        </h2>
+      </LandingReveal>
+      <LandingReveal delay={0.15}>
+        <p style={{ marginBottom: 16, color: B2B_BODY, fontSize: 18.5, lineHeight: 1.72, maxWidth: 860 }}>
+          Tian OS is built around established mathematics intervention practices: diagnostic assessment, targeted skill-gap practice, visual models, guided review, progress monitoring and data-informed remediation — deployed school-wide.
+        </p>
+      </LandingReveal>
+      <LandingReveal delay={0.2}>
+        <p style={{ marginBottom: 16, color: B2B_BODY, fontSize: 18.5, lineHeight: 1.72, maxWidth: 860 }}>
+          Instead of only marking answers right or wrong, the platform analyses confidence, timing, misconceptions and working evidence — giving educators the insight to intervene early and at scale.
+        </p>
+      </LandingReveal>
+      <LandingReveal delay={0.25}>
+        <p style={{ color: B2B_BODY_MUTED, fontSize: 15, lineHeight: 1.7, maxWidth: 860 }}>
+          Aligned with intervention principles from the Institute of Education Sciences' What Works Clearinghouse and the National Center on Intensive Intervention.
+        </p>
+      </LandingReveal>
+    </section>
 
-      <section id="methodology" style={{ maxWidth: 1000, margin: '0 auto', padding: '90px 24px 10px' }}>
-        <Reveal>
-          <Eyebrow>Evidence-based approach</Eyebrow>
-          <h2 style={{ marginTop: 18, marginBottom: 18, fontFamily: SERIF, fontWeight: 400, fontSize: 'clamp(32px, 5vw, 46px)', lineHeight: 1.15, color: INK }}>
-            Intervention tools grounded in research
-          </h2>
-          <p style={{ marginBottom: 16, color: INK_SOFT, fontSize: 18, lineHeight: 1.65, maxWidth: 860 }}>
-            Tian OS is built around established mathematics intervention practices: diagnostic assessment, targeted skill-gap practice, visual models, guided review, progress monitoring and data-informed remediation — deployed school-wide.
-          </p>
-          <p style={{ marginBottom: 16, color: INK_SOFT, fontSize: 18, lineHeight: 1.65, maxWidth: 860 }}>
-            Instead of only marking answers right or wrong, the platform analyses confidence, timing, misconceptions and working evidence — giving educators the insight to intervene early and at scale.
-          </p>
-          <p style={{ color: INK_SOFT, fontSize: 15, lineHeight: 1.7, maxWidth: 860 }}>
-            Aligned with intervention principles from the Institute of Education Sciences' What Works Clearinghouse and the National Center on Intensive Intervention.
-          </p>
-        </Reveal>
-      </section>
+    {/* ── FEATURES ── */}
+    <section style={{ maxWidth: 1180, margin: '0 auto', padding: '80px 40px 100px' }}>
+      <div className="landing-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        {LANDING_FEATURES.map((f, i) => (
+          <LandingReveal key={f.title} delay={i * 0.1}>
+            <div style={{ background: '#fff', border: `1px solid ${B2B_BORDER_WARM}`, borderRadius: 16, padding: 32, height: '100%' }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(52,211,153,0.12)', display: 'grid', placeItems: 'center', marginBottom: 20 }}>
+                <f.icon size={24} color={B2B_PERIWINKLE} />
+              </div>
+              <h3 style={{ fontFamily: B2B_NEWSREADER, fontWeight: 400, fontSize: 24, color: B2B_INK, margin: '0 0 10px' }}>{f.title}</h3>
+              <p style={{ fontSize: 15.5, color: B2B_BODY_MUTED, margin: 0, lineHeight: 1.65 }}>{f.body}</p>
+            </div>
+          </LandingReveal>
+        ))}
+      </div>
+    </section>
 
-      <section style={{ maxWidth: 1140, margin: '0 auto', padding: '90px 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 22 }}>
-          {LANDING_FEATURES.map((f, i) => (
-            <Reveal key={f.title} delay={i * 0.1}>
-              <GlassCard style={{ padding: 30, height: '100%' }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(167,216,240,0.25)', display: 'grid', placeItems: 'center', marginBottom: 18 }}>
-                  <f.icon size={24} color={TEAL} />
-                </div>
-                <h3 style={{ fontFamily: SERIF, fontWeight: 400, fontSize: 24, color: INK, margin: 0 }}>{f.title}</h3>
-                <p style={{ fontSize: 15, color: INK_SOFT, marginTop: 10, lineHeight: 1.6 }}>{f.body}</p>
-              </GlassCard>
-            </Reveal>
-          ))}
+    {/* ── CTA BAND ── */}
+    <section style={{ background: `linear-gradient(180deg, ${B2B_NAVY} 0%, ${B2B_NAVY_DEEP} 100%)`, padding: '80px 40px', textAlign: 'center' }}>
+      <LandingReveal>
+        <div style={{ fontFamily: B2B_MONO, fontSize: 12.5, letterSpacing: '0.22em', textTransform: 'uppercase', color: B2B_PERIWINKLE_SOFT, marginBottom: 24 }}>
+          Get started
         </div>
-      </section>
-    </main>
+      </LandingReveal>
+      <LandingReveal delay={0.1}>
+        <h2 style={{ fontFamily: B2B_NEWSREADER, fontWeight: 400, fontSize: 'clamp(30px, 4vw, 52px)', lineHeight: 1.08, letterSpacing: '-0.02em', margin: '0 auto 20px', maxWidth: 700, color: B2B_TEXT_CREAM }}>
+          See how Tian OS works for your school
+        </h2>
+      </LandingReveal>
+      <LandingReveal delay={0.15}>
+        <p style={{ fontSize: 18, lineHeight: 1.7, color: B2B_TEXT_MUTED_DARK, maxWidth: 540, margin: '0 auto 40px' }}>
+          Book a 20-minute walkthrough with our team. We'll show you the platform, answer questions, and help you plan a pilot.
+        </p>
+      </LandingReveal>
+      <LandingReveal delay={0.2}>
+        <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '16px 36px', borderRadius: 999, background: B2B_PERIWINKLE, color: '#fff', fontWeight: 700, fontSize: 16.5, textDecoration: 'none', boxShadow: '0 20px 40px -12px rgba(52,211,153,0.45)' }}>
+          Book a demo <ArrowRight size={18} />
+        </Link>
+      </LandingReveal>
+    </section>
 
-    <footer style={{ background: TEAL_DARK, borderTop: '1px solid rgba(15,76,92,0.2)', padding: '28px 24px', textAlign: 'center', fontSize: 13, color: 'rgba(255,248,234,0.7)' }}>
-      <span style={{ color: IVORY, fontWeight: 700 }}>Tian OS</span> · AI-Native Learning Infrastructure for Schools · © Tian Jun Education Group
+    {/* ── FOOTER ── */}
+    <footer style={{ borderTop: `1px solid ${B2B_BORDER_WARM}`, padding: '28px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, color: B2B_TEXT_FOOTER, flexWrap: 'wrap', gap: 12 }}>
+      <LandingTianLogo />
+      <span>© Tian Jun Education Group · AI-Native Learning Infrastructure for Schools</span>
     </footer>
   </div>
 );

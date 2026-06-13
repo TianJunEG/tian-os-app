@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Compass, Pencil, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Compass, Pencil, Volume2, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -18,12 +18,21 @@ import { getVoiceScripts } from './utils/voiceScripts';
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
 const STEP_LABELS = {
-  understand: "What's the story about?",
+  understand: 'Read the story',
   identify_info: 'Find the clues',
   identify_question: 'What are we looking for?',
   plan: 'Make a plan',
   solve: 'Work it out',
   check: 'Does it make sense?',
+};
+
+const CTA_LABELS = {
+  understand: "I've read it",
+  identify_info: 'Next',
+  identify_question: 'Next',
+  plan: 'Next',
+  solve: 'Check answer',
+  check: 'Finish',
 };
 
 const DEFAULT_UNDERSTAND_CHOICES = [
@@ -33,8 +42,60 @@ const DEFAULT_UNDERSTAND_CHOICES = [
   'It\'s about sharing equally or grouping',
 ];
 
+const shellStyle = {
+  background: '#f5f6f8',
+  border: '1px solid #dde1e8',
+  borderRadius: 16,
+  boxShadow: '0 20px 44px -30px rgba(30,42,66,0.4)',
+  padding: '22px 26px 26px',
+};
+
+const actionPanelStyle = {
+  background: '#fff',
+  border: '1px solid #e7eaef',
+  borderRadius: 14,
+  padding: 20,
+};
+
+const goldCTAStyle = {
+  height: 50,
+  borderRadius: 12,
+  background: '#d9892e',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+  color: '#fff',
+  fontWeight: 700,
+  fontSize: '15.5px',
+  marginTop: 16,
+  boxShadow: '0 2px 8px rgba(217,137,46,0.35)',
+  cursor: 'pointer',
+  border: 'none',
+  width: '100%',
+  fontFamily: 'inherit',
+};
+
+const pageStyle = {
+  fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
+  color: '#232c39',
+  minHeight: '100vh',
+  background: '#e7eaef',
+  backgroundImage: 'radial-gradient(#d3d8e0 1px, transparent 1.4px)',
+  backgroundSize: '26px 26px',
+  padding: '24px 24px 96px',
+};
+
 function UnderstandStep({ choices, onSelect, selectedIndex }) {
   return <QuestionIdentifier choices={choices?.length ? choices : DEFAULT_UNDERSTAND_CHOICES} selectedIndex={selectedIndex} onSelect={onSelect} />;
+}
+
+function ChevronRight() {
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 6 15 12 9 18" />
+    </svg>
+  );
 }
 
 export default function PSLSession() {
@@ -112,7 +173,7 @@ export default function PSLSession() {
       default:
         return resp || {};
     }
-  }, [currentStepId, stepResponses]);
+  }, [currentStepId, stepResponses, currentProblem]);
 
   const handleSubmitStep = async () => {
     if (submitting || !currentProblem) return;
@@ -173,8 +234,8 @@ export default function PSLSession() {
   const getStepChoices = (stepId) =>
     currentProblem?.scaffoldSteps?.find((s) => s.stepId === stepId)?.choices || [];
 
-  if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
-  if (!currentProblem) return <div className="p-6 text-center text-ink-500">No problem available.</div>;
+  if (loading) return <div style={{ display: 'flex', minHeight: '40vh', alignItems: 'center', justifyContent: 'center' }}><Spinner /></div>;
+  if (!currentProblem) return <div style={{ padding: 24, textAlign: 'center', color: '#6b7585' }}>No problem available.</div>;
 
   const canSubmit = (() => {
     const resp = stepResponses[currentStepId];
@@ -194,68 +255,109 @@ export default function PSLSession() {
     }
   })();
 
-  return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-24 sm:p-6">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-ink-400">
-          Problem {problemIndex + 1} of {totalProblems}
-        </span>
-        <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
-        <button
-          type="button"
-          onClick={async () => {
-            try { await pslAPI.abandonSession(sessionId); } catch {}
-            navigate('/student/psl');
+  const renderNotebookContent = () => {
+    if (currentStepId === 'understand' || currentStepId === 'identify_info') {
+      return (
+        <StoryPanel
+          storyText={currentProblem.storyText}
+          highlightMode={currentStepId === 'identify_info'}
+          highlightedNumbers={stepResponses.identify_info?.numbers || []}
+          onToggleNumber={(num) => {
+            const current = stepResponses.identify_info?.numbers || [];
+            const next = current.includes(num) ? current.filter((n) => n !== num) : [...current, num];
+            updateResponse('identify_info', { numbers: next });
           }}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
-          aria-label="Exit session"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
+        />
+      );
+    }
 
-      <StoryPanel
-        storyText={currentProblem.storyText}
-        highlightMode={currentStepId === 'identify_info'}
-        highlightedNumbers={stepResponses.identify_info?.numbers || []}
-        onToggleNumber={(num) => {
-          const current = stepResponses.identify_info?.numbers || [];
-          const next = current.includes(num) ? current.filter((n) => n !== num) : [...current, num];
-          updateResponse('identify_info', { numbers: next });
-        }}
-      />
+    if (currentStepId === 'identify_question') {
+      return (
+        <StoryPanel storyText="">
+          <div style={{ fontSize: 23, fontWeight: 600, color: '#232c39', lineHeight: 1.3, position: 'relative' }}>
+            What are we trying to find?
+          </div>
+          <div style={{ fontSize: 15, color: '#6b7585', marginTop: 12, position: 'relative' }}>
+            Pick the question the problem is really asking.
+          </div>
+        </StoryPanel>
+      );
+    }
 
-      <div className="rounded-2xl border border-ink-200 bg-white p-4 sm:p-5">
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-400">
-          Step {currentStepIdx + 1}: {STEP_LABELS[currentStepId] || currentStepId}
-        </h3>
+    if (currentStepId === 'plan') {
+      const scripts = getVoiceScripts(currentProblem.heuristic, currentProblem.structure, currentProblem.unknownPosition);
+      const stepScript = scripts.steps?.[3];
+      return (
+        <StoryPanel storyText="">
+          <div style={{ fontSize: 23, fontWeight: 600, color: '#232c39', lineHeight: 1.3, position: 'relative' }}>
+            {stepScript || STEP_LABELS.plan}
+          </div>
+        </StoryPanel>
+      );
+    }
 
-        {!completedSteps[currentStepId] && (() => {
-          const scripts = getVoiceScripts(
-            currentProblem.heuristic,
-            currentProblem.structure,
-            currentProblem.unknownPosition,
-          );
-          // Voice scripts have 3 entries covering the first 3 scaffold steps
-          const SCRIPT_INDEX = { understand: 0, identify_info: 1, identify_question: 2 };
-          const scriptIdx = SCRIPT_INDEX[currentStepId];
-          const text = scriptIdx !== undefined ? scripts.steps?.[scriptIdx] : null;
-          return text ? <MascotBubble text={text} /> : null;
-        })()}
+    if (currentStepId === 'solve') {
+      return (
+        <StoryPanel storyText="">
+          <div style={{ fontSize: 23, fontWeight: 600, color: '#232c39', lineHeight: 1.3, position: 'relative' }}>
+            Work it out
+          </div>
+        </StoryPanel>
+      );
+    }
 
+    if (currentStepId === 'check') {
+      return (
+        <StoryPanel storyText="">
+          <div style={{ fontSize: 23, fontWeight: 600, color: '#232c39', lineHeight: 1.3, position: 'relative' }}>
+            Does your answer make sense?
+          </div>
+        </StoryPanel>
+      );
+    }
+
+    return <StoryPanel storyText={currentProblem.storyText} />;
+  };
+
+  const renderActionPanel = () => {
+    const scripts = getVoiceScripts(currentProblem.heuristic, currentProblem.structure, currentProblem.unknownPosition);
+    const stepIdx = STEP_IDS.indexOf(currentStepId);
+    const mascotText = stepIdx >= 0 && stepIdx < 4 ? scripts.steps?.[stepIdx] : null;
+
+    return (
+      <div style={actionPanelStyle}>
         {currentStepId === 'understand' && (
-          <UnderstandStep
-            choices={getStepChoices('understand')}
-            selectedIndex={stepResponses.understand?.selectedIndex}
-            onSelect={(idx) => updateResponse('understand', { selectedIndex: idx })}
-          />
+          <>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#232c39' }}>Ready?</div>
+            <div style={{ fontSize: 14, color: '#6b7585', lineHeight: 1.55, marginTop: 8 }}>
+              Take your time reading. We'll break it down together, one step at a time.
+            </div>
+          </>
         )}
 
         {currentStepId === 'identify_info' && (
-          <p className="text-sm text-ink-600">
-            Tap the numbers in the story above that you need to solve this problem.
-            You have selected <strong>{(stepResponses.identify_info?.numbers || []).length}</strong> number(s).
-          </p>
+          <>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#232c39', marginBottom: 14 }}>Clues found</div>
+            {(stepResponses.identify_info?.numbers || []).length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {(stepResponses.identify_info?.numbers || []).map((n) => (
+                  <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid #e7f0ea', background: '#f3faf6', borderRadius: 11, padding: '11px 13px' }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#e7f3ec', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '0 0 auto' }}>
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#1f8a5b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    </span>
+                    <span style={{ fontSize: 14, color: '#46505f' }}><b>{n}</b></span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ fontSize: 14, color: '#6b7585', lineHeight: 1.55 }}>
+                Tap the numbers in the story that you need to solve this problem.
+              </div>
+            )}
+            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: '#1f8a52', marginTop: 12 }}>
+              {(stepResponses.identify_info?.numbers || []).length} clue(s) found
+            </div>
+          </>
         )}
 
         {currentStepId === 'identify_question' && (
@@ -268,18 +370,19 @@ export default function PSLSession() {
 
         {currentStepId === 'plan' && (
           <>
+            {!completedSteps[currentStepId] && mascotText && <MascotBubble text={mascotText} />}
             <PlanDispatcher
               scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
               response={stepResponses.plan}
               onChange={(val) => updateResponse('plan', val)}
             />
             <a
-              href="/student/psl/decision-guide"
+              href="/student/psl/guide"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gold-600 hover:text-gold-700"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#d9892e', marginTop: 12, textDecoration: 'none' }}
             >
-              <Compass className="h-3.5 w-3.5" />
+              <Compass style={{ width: 14, height: 14 }} />
               Not sure which strategy? Open the Decision Guide
             </a>
           </>
@@ -295,22 +398,24 @@ export default function PSLSession() {
             <button
               type="button"
               onClick={() => setShowScratchpad((v) => !v)}
-              className="mt-3 flex w-full items-center gap-2 rounded-lg border border-dashed border-ink-200 px-3 py-2 text-xs font-medium text-ink-500 transition-colors hover:border-ink-300 hover:bg-ink-50 hover:text-ink-600"
+              style={{ display: 'flex', width: '100%', alignItems: 'center', gap: 8, borderRadius: 8, border: '1px dashed #d3d8e0', padding: '8px 12px', fontSize: 12, fontWeight: 600, color: '#6b7585', cursor: 'pointer', background: 'none', marginTop: 12, fontFamily: 'inherit' }}
             >
-              <Pencil className="h-3.5 w-3.5" />
-              <span className="flex-1 text-left">Scratchpad</span>
-              {showScratchpad ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              <Pencil style={{ width: 14, height: 14 }} />
+              <span style={{ flex: 1, textAlign: 'left' }}>Scratchpad</span>
+              {showScratchpad ? <ChevronUp style={{ width: 14, height: 14 }} /> : <ChevronDown style={{ width: 14, height: 14 }} />}
             </button>
-            <div className={showScratchpad ? 'mt-2' : 'hidden'}>
-              <WorkingCanvas
-                questionId={`${session?.sessionId}-${problemIndex}-solve`}
-                label="Scratchpad"
-                required={false}
-                allowNoWorking={false}
-                compact
-                showMathStamps={false}
-              />
-            </div>
+            {showScratchpad && (
+              <div style={{ marginTop: 8 }}>
+                <WorkingCanvas
+                  questionId={`${session?.sessionId}-${problemIndex}-solve`}
+                  label="Scratchpad"
+                  required={false}
+                  allowNoWorking={false}
+                  compact
+                  showMathStamps={false}
+                />
+              </div>
+            )}
           </>
         )}
 
@@ -326,34 +431,112 @@ export default function PSLSession() {
           />
         )}
 
+        {currentStepId === 'understand' && !completedSteps[currentStepId] && (
+          <UnderstandStep
+            choices={getStepChoices('understand')}
+            selectedIndex={stepResponses.understand?.selectedIndex}
+            onSelect={(idx) => updateResponse('understand', { selectedIndex: idx })}
+          />
+        )}
+
         <ReasoningInput
-          key={currentStepId}
           value={stepResponses[currentStepId]?.reasoning || ''}
           onChange={(val) => updateResponse(currentStepId, { reasoning: val })}
           defaultExpanded={currentStepId === 'understand' || currentStepId === 'plan'}
         />
+
+        {feedback && (
+          <StepFeedbackCard
+            correct={feedback.correct}
+            partial={feedback.partial}
+            feedback={feedback.feedback}
+            misconceptionTag={feedback.misconceptionTag}
+            onContinue={handleContinue}
+          />
+        )}
+
+        {!feedback && (
+          <button
+            type="button"
+            onClick={handleSubmitStep}
+            disabled={!canSubmit || submitting}
+            style={{
+              ...goldCTAStyle,
+              opacity: (!canSubmit || submitting) ? 0.4 : 1,
+              pointerEvents: (!canSubmit || submitting) ? 'none' : 'auto',
+            }}
+          >
+            {submitting ? 'Checking...' : CTA_LABELS[currentStepId] || 'Next'}
+            {!submitting && <ChevronRight />}
+          </button>
+        )}
       </div>
+    );
+  };
 
-      {feedback && (
-        <StepFeedbackCard
-          correct={feedback.correct}
-          partial={feedback.partial}
-          feedback={feedback.feedback}
-          misconceptionTag={feedback.misconceptionTag}
-          onContinue={handleContinue}
-        />
-      )}
+  return (
+    <div style={pageStyle}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        {/* Exit button */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button
+            type="button"
+            onClick={async () => {
+              try { await pslAPI.abandonSession(sessionId); } catch {}
+              navigate('/student/psl');
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 36, height: 36, borderRadius: '50%', border: 'none',
+              background: '#fff', color: '#6b7585', cursor: 'pointer',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+            }}
+            aria-label="Exit session"
+          >
+            <X style={{ width: 18, height: 18 }} />
+          </button>
+        </div>
 
-      {!feedback && (
-        <button
-          type="button"
-          onClick={handleSubmitStep}
-          disabled={!canSubmit || submitting}
-          className="w-full rounded-xl bg-gold-400 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-500 disabled:opacity-40"
-        >
-          {submitting ? 'Checking...' : 'Check'}
-        </button>
-      )}
+        {/* Step shell */}
+        <div style={shellStyle}>
+          {/* Meta row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12.5px', color: '#6b7585' }}>
+              Problem {problemIndex + 1} of {totalProblems}
+            </span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '12.5px', color: currentStepIdx === STEP_IDS.length - 1 ? '#1f8a52' : '#a8743a' }}>
+              Step {currentStepIdx + 1} of {STEP_IDS.length}
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div style={{ marginBottom: 20 }}>
+            <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
+          </div>
+
+          {/* Two-column layout */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.62fr 1fr', gap: 20, alignItems: 'start' }}>
+            {/* Left: notebook */}
+            <div>
+              {renderNotebookContent()}
+              {currentStepId === 'understand' && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8, background: '#fff',
+                  border: '1px solid #cfe3f7', borderRadius: 10, padding: '8px 13px',
+                  color: '#2f80d8', fontWeight: 600, fontSize: '13.5px', width: 'max-content',
+                  marginTop: 12, cursor: 'pointer',
+                }}>
+                  <Volume2 style={{ width: 18, height: 18 }} />
+                  Read aloud
+                </div>
+              )}
+            </div>
+
+            {/* Right: action panel */}
+            {renderActionPanel()}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
