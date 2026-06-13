@@ -236,8 +236,10 @@ export default function PSLSession() {
             currentProblem.structure,
             currentProblem.unknownPosition,
           );
-          const stepIdx = STEP_IDS.indexOf(currentStepId);
-          const text = stepIdx >= 0 && stepIdx < 4 ? scripts.steps?.[stepIdx] : null;
+          // Voice scripts have 3 entries covering the first 3 scaffold steps
+          const SCRIPT_INDEX = { understand: 0, identify_info: 1, identify_question: 2 };
+          const scriptIdx = SCRIPT_INDEX[currentStepId];
+          const text = scriptIdx !== undefined ? scripts.steps?.[scriptIdx] : null;
           return text ? <MascotBubble text={text} /> : null;
         })()}
 
@@ -272,7 +274,7 @@ export default function PSLSession() {
               onChange={(val) => updateResponse('plan', val)}
             />
             <a
-              href="/student/psl/guide"
+              href="/student/psl/decision-guide"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gold-600 hover:text-gold-700"
@@ -299,18 +301,16 @@ export default function PSLSession() {
               <span className="flex-1 text-left">Scratchpad</span>
               {showScratchpad ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
-            {showScratchpad && (
-              <div className="mt-2">
-                <WorkingCanvas
-                  questionId={`${session?.sessionId}-${problemIndex}-solve`}
-                  label="Scratchpad"
-                  required={false}
-                  allowNoWorking={false}
-                  compact
-                  showMathStamps={false}
-                />
-              </div>
-            )}
+            <div className={showScratchpad ? 'mt-2' : 'hidden'}>
+              <WorkingCanvas
+                questionId={`${session?.sessionId}-${problemIndex}-solve`}
+                label="Scratchpad"
+                required={false}
+                allowNoWorking={false}
+                compact
+                showMathStamps={false}
+              />
+            </div>
           </>
         )}
 
