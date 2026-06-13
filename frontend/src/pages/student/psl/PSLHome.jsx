@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Brain, ChevronRight, HelpCircle, Lock, Star, Target } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Brain, ChevronDown, ChevronRight, HelpCircle, Lock, Star, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
@@ -32,12 +32,15 @@ function MasteryBadge({ mastery }) {
 
 export default function PSLHome() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [readiness, setReadiness] = useState({});
   const [starting, setStarting] = useState(null);
   const [filterLevel, setFilterLevel] = useState(null);
+  const [filterHeuristic, setFilterHeuristic] = useState(searchParams.get('heuristic'));
+  const [expanded, setExpanded] = useState({});
 
   useEffect(() => {
     pslAPI.home()
@@ -77,7 +80,9 @@ export default function PSLHome() {
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
 
   const skills = data?.skills || [];
-  const filtered = filterLevel ? skills.filter((sk) => sk.level === filterLevel) : skills;
+  const filtered = skills.filter((sk) =>
+    (!filterLevel || sk.level === filterLevel) && (!filterHeuristic || sk.heuristic === filterHeuristic)
+  );
   const grouped = HEURISTIC_ORDER.map((h) => ({
     heuristic: h,
     label: HEURISTIC_LABELS[h] || h,
@@ -160,49 +165,83 @@ export default function PSLHome() {
         ))}
       </div>
 
-      {grouped.map((group) => (
-        <div key={group.heuristic}>
-          <h2 className="mb-2 text-sm font-semibold text-ink-500">{group.label}</h2>
-          <div className="space-y-2">
-            {group.skills.map((skill) => {
-              const blocked = readiness[skill.skillId] && !readiness[skill.skillId].allReady;
-              return (
-                <div key={skill.skillId}>
-                  <Card className="p-4" interactive>
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-3 text-left"
-                      onClick={() => handleStart(skill.skillId)}
-                      disabled={starting === skill.skillId}
-                    >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-100">
-                        {skill.mastery?.status === 'mastered' ? (
-                          <Star className="h-4 w-4 text-gold-500" />
-                        ) : (
-                          <span className="text-xs font-bold text-ink-400">
-                            {skill.difficulty}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-ink-700 truncate">{skill.name}</p>
-                        <p className="text-xs text-ink-400 line-clamp-2">{skill.description}</p>
-                      </div>
-                      <MasteryBadge mastery={skill.mastery} />
-                      <ChevronRight className="h-4 w-4 text-ink-300" />
-                    </button>
-                  </Card>
-                  {blocked && (
-                    <div className="mt-2 ml-4">
-                      <PrerequisiteGate blockers={readiness[skill.skillId].blockers} />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      {filterHeuristic && (
+        <div className="flex items-center gap-2 rounded-lg bg-purple-50 px-3 py-2">
+          <span className="flex-1 text-xs font-semibold text-purple-700">
+            Showing: {HEURISTIC_LABELS[filterHeuristic] || filterHeuristic}
+          </span>
+          <button
+            type="button"
+            onClick={() => setFilterHeuristic(null)}
+            className="text-xs font-medium text-purple-500 hover:text-purple-700"
+          >
+            Show all
+          </button>
         </div>
-      ))}
+      )}
+
+      {grouped.map((group, gi) => {
+        const isOpen = expanded[group.heuristic] ?? gi === 0;
+        const masteredCount = group.skills.filter((s) => s.mastery?.status === 'mastered').length;
+        return (
+          <div key={group.heuristic}>
+            <button
+              type="button"
+              onClick={() => setExpanded((prev) => ({ ...prev, [group.heuristic]: !isOpen }))}
+              className="flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-ink-50"
+            >
+              {isOpen
+                ? <ChevronDown className="h-4 w-4 text-ink-400" />
+                : <ChevronRight className="h-4 w-4 text-ink-400" />}
+              <h2 className="flex-1 text-sm font-semibold text-ink-500">{group.label}</h2>
+              <span className="text-xs text-ink-400">
+                {masteredCount > 0 && <span className="text-emerald-600">{masteredCount}/</span>}
+                {group.skills.length} skills
+              </span>
+            </button>
+            {isOpen && (
+              <div className="mt-1 space-y-2">
+                {group.skills.map((skill) => {
+                  const blocked = readiness[skill.skillId] && !readiness[skill.skillId].allReady;
+                  return (
+                    <div key={skill.skillId}>
+                      <Card className="p-4" interactive>
+                        <button
+                          type="button"
+                          className="flex w-full items-center gap-3 text-left"
+                          onClick={() => handleStart(skill.skillId)}
+                          disabled={starting === skill.skillId}
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-100">
+                            {skill.mastery?.status === 'mastered' ? (
+                              <Star className="h-4 w-4 text-gold-500" />
+                            ) : (
+                              <span className="text-xs font-bold text-ink-400">
+                                {skill.difficulty}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-ink-700 truncate">{skill.name}</p>
+                            <p className="text-xs text-ink-400 line-clamp-2">{skill.description}</p>
+                          </div>
+                          <MasteryBadge mastery={skill.mastery} />
+                          <ChevronRight className="h-4 w-4 text-ink-300" />
+                        </button>
+                      </Card>
+                      {blocked && (
+                        <div className="mt-2 ml-4">
+                          <PrerequisiteGate blockers={readiness[skill.skillId].blockers} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

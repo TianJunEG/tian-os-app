@@ -34,7 +34,8 @@ const assignmentSchema = new mongoose.Schema({
       '', 'practice_pack', 'worksheet', 'fluency_drill', 'retention_review',
       'heuristics_pack', 'exam_technique_pack', 'lifelab_activity',
       'tutor_session_recommendation', 'teacher_small_group_recommendation',
-      'parent_home_support_activity', 'model_drawing_trainer', 'intervention_pack'
+      'parent_home_support_activity', 'model_drawing_trainer', 'intervention_pack',
+      'informal_assessment'
     ],
     default: ''
   },

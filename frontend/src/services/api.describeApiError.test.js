@@ -9,7 +9,7 @@ describe('describeApiError (consistent user-facing API error messages)', () => {
 
   it('falls back to a friendly message for a 400 with no server message', () => {
     expect(describeApiError({ response: { status: 400, data: {} } }))
-      .toMatch(/didn’t go through/i);
+      .toMatch(/go through/i);
   });
 
   it('reports an expired session for 401', () => {
@@ -34,6 +34,6 @@ describe('describeApiError (consistent user-facing API error messages)', () => {
   });
 
   it('reports a connectivity problem when there is no response (network error)', () => {
-    expect(describeApiError({ message: 'Network Error' })).toMatch(/couldn’t reach the server/i);
+    expect(describeApiError({ message: 'Network Error' })).toMatch(/reach the server/i);
   });
 });

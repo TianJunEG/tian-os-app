@@ -93,7 +93,7 @@ export function createSpeaker() {
 
       const u = new SpeechSynthesisUtterance(step.text);
       u.rate = step.rate ?? 0.9;
-      u.pitch = step.pitch ?? 1;
+      u.pitch = step.pitch ?? 1.35;
       u.lang = step.lang ?? 'en-GB';
       if (step.voice) u.voice = step.voice;
       u.onend = () => {
@@ -118,7 +118,7 @@ export function speakOnce(text, opts = {}) {
   synth.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.rate = opts.rate ?? 0.9;
-  u.pitch = opts.pitch ?? 1;
+  u.pitch = opts.pitch ?? 1.35;
   u.lang = opts.lang ?? 'en-GB';
   if (opts.voice) u.voice = opts.voice;
   synth.speak(u);

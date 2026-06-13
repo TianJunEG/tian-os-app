@@ -49,11 +49,11 @@ describe('fractionQuestionGenerator', () => {
     expect(checkFractionAnswer({ studentAnswer: '1/0', correctAnswer }).correct).toBe(false);
   });
 
-  it('asks F014_001 students to read mixed numbers', () => {
+  it('asks F014_001 students to convert mixed to improper', () => {
     const q = generateFractionQuestion({ skillId: 'F014', questionFamilyId: 'QF_F014_001', difficulty: 3, variant: 7, mode: 'practice' });
-    expect(q.prompt).toMatch(/whole-number part|fractional part/);
-    expect(q.answer?.type).toBe('mixed');
-    expect(q.answer.whole).toBeGreaterThanOrEqual(1);
+    expect(q.prompt).toMatch(/convert.*improper/i);
+    expect(q.answer?.type).toBe('fraction');
+    expect(q.answer.numerator).toBeGreaterThan(q.answer.denominator);
   });
 
   it('asks F014 students to convert mixed numbers to improper fractions (default)', () => {
