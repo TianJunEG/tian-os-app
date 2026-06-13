@@ -6,6 +6,15 @@ import { Card, Spinner } from '../../../components/ui';
 import { getMisconception } from './utils/misconceptions';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 
+const STEP_FRIENDLY_LABELS = {
+  understand: 'Understand',
+  identify_info: 'Find clues',
+  identify_question: 'Find goal',
+  plan: 'Plan',
+  solve: 'Solve',
+  check: 'Check',
+};
+
 function StepBadge({ step }) {
   if (step.correct) return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct</span>;
   if (step.partial) return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Partial</span>;
@@ -42,7 +51,7 @@ function ProblemCard({ attempt, problem, index }) {
               return (
                 <div key={step.stepId} className="rounded-lg bg-white px-3 py-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm capitalize text-ink-600">{step.stepId.replace('_', ' ')}</span>
+                    <span className="text-sm text-ink-600">{STEP_FRIENDLY_LABELS[step.stepId] || step.stepId.replace('_', ' ')}</span>
                     <StepBadge step={step} />
                   </div>
                   {m && !step.correct && (
@@ -82,7 +91,7 @@ export default function PSLResults() {
   const problems = data.problems || [];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 pb-24 sm:p-6">
+    <div className="mx-auto max-w-2xl space-y-6 p-4 pb-6 sm:p-6">
       <div className="text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gold-100">
           <Award className="h-8 w-8 text-gold-500" />
@@ -91,23 +100,23 @@ export default function PSLResults() {
         <p className="text-sm text-ink-500">{data.skillName || data.skillId}</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <Card className="p-4 text-center">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <Card className="p-3 sm:p-4 text-center">
           <Target className="mx-auto h-5 w-5 text-gold-500" />
-          <p className="mt-1 font-mono text-2xl font-bold text-ink-800">{scorePercent}%</p>
-          <p className="text-xs text-ink-400">Score</p>
+          <p className="mt-1 font-mono text-xl sm:text-2xl font-bold text-ink-800">{scorePercent}%</p>
+          <p className="text-[10px] sm:text-xs text-ink-400">Score</p>
         </Card>
-        <Card className="p-4 text-center">
+        <Card className="p-3 sm:p-4 text-center">
           <Award className="mx-auto h-5 w-5 text-emerald-500" />
-          <p className="mt-1 font-mono text-2xl font-bold text-ink-800">{summary.fullMarks || 0}/{summary.totalProblems || 0}</p>
-          <p className="text-xs text-ink-400">Full marks</p>
+          <p className="mt-1 font-mono text-xl sm:text-2xl font-bold text-ink-800">{summary.fullMarks || 0}/{summary.totalProblems || 0}</p>
+          <p className="text-[10px] sm:text-xs text-ink-400">Full marks</p>
         </Card>
-        <Card className="p-4 text-center">
+        <Card className="p-3 sm:p-4 text-center">
           <Clock className="mx-auto h-5 w-5 text-sky-500" />
-          <p className="mt-1 font-mono text-2xl font-bold text-ink-800">
+          <p className="mt-1 font-mono text-xl sm:text-2xl font-bold text-ink-800">
             {summary.averageTimeMs ? `${Math.round(summary.averageTimeMs / 1000)}s` : '-'}
           </p>
-          <p className="text-xs text-ink-400">Avg time</p>
+          <p className="text-[10px] sm:text-xs text-ink-400">Avg time</p>
         </Card>
       </div>
 
@@ -146,16 +155,16 @@ export default function PSLResults() {
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
         <button
           onClick={() => navigate('/student/psl')}
-          className="flex-1 rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-semibold text-ink-600 transition-colors hover:bg-ink-50"
+          className="min-h-[44px] rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-semibold text-ink-600 transition-colors hover:bg-ink-50"
         >
           Back to Skills
         </button>
         <button
           onClick={() => navigate('/student/psl/mistakes')}
-          className="flex-1 rounded-xl bg-gold-400 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-500"
+          className="min-h-[44px] rounded-xl bg-gold-400 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-500"
         >
           Review Mistakes
         </button>

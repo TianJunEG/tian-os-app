@@ -195,7 +195,7 @@ export default function PSLSession() {
   })();
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-24 sm:p-6">
+    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-6 sm:p-6">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-ink-400">
           Problem {problemIndex + 1} of {totalProblems}
@@ -272,7 +272,7 @@ export default function PSLSession() {
               onChange={(val) => updateResponse('plan', val)}
             />
             <a
-              href="/student/psl/guide"
+              href="/student/psl/decision-guide"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gold-600 hover:text-gold-700"

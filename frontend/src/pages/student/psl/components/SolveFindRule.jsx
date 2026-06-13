@@ -94,7 +94,7 @@ export default function SolveFindRule({ scaffoldStep, response, onChange }) {
         </div>
 
         {targetPosition !== undefined && (
-          <div className="flex items-center gap-3 rounded-xl border-2 border-teal-200 bg-teal-50 p-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-teal-200 bg-teal-50 p-3">
             <span className="text-sm font-semibold text-teal-700">
               Value at position {targetPosition} =
             </span>
@@ -103,7 +103,7 @@ export default function SolveFindRule({ scaffoldStep, response, onChange }) {
               inputMode="decimal"
               value={answer}
               onChange={(e) => handleAnswerChange(e.target.value)}
-              className="w-28 rounded-lg border border-teal-300 px-3 py-2 text-sm font-bold text-teal-800"
+              className="w-full sm:w-28 min-h-[44px] rounded-lg border border-teal-300 px-3 py-2 text-sm font-bold text-teal-800"
               placeholder="?"
             />
           </div>

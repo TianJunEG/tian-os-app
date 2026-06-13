@@ -145,11 +145,11 @@ export default function PSLHome() {
         </button>
       </Card>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
         <button
           type="button"
           onClick={() => setFilterLevel(null)}
-          className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${!filterLevel ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
+          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${!filterLevel ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
         >
           All ({skills.length})
         </button>
@@ -158,7 +158,7 @@ export default function PSLHome() {
             key={lvl}
             type="button"
             onClick={() => setFilterLevel(filterLevel === lvl ? null : lvl)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${filterLevel === lvl ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filterLevel === lvl ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
           >
             {LEVEL_LABELS[lvl]} ({levelCounts[lvl]})
           </button>

@@ -37,7 +37,7 @@ export default function PSLMistakeReview() {
   if (grouped['Other']) sortedCategories.push('Other');
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 pb-24 sm:p-6">
+    <div className="mx-auto max-w-2xl space-y-6 p-4 pb-6 sm:p-6">
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/student/psl')} className="rounded-lg p-1.5 hover:bg-ink-100">
           <ArrowLeft className="h-5 w-5 text-ink-500" />
