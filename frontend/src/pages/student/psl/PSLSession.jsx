@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Compass, Pencil, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Compass, Flame, Pencil, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -14,6 +14,8 @@ import MascotBubble from './components/MascotBubble';
 import ReasoningInput from './components/ReasoningInput';
 import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { getVoiceScripts } from './utils/voiceScripts';
+import { confettiBurst } from '../../../utils/confetti';
+import { playCorrect, playWin } from '../../../utils/sound';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
@@ -49,6 +51,7 @@ export default function PSLSession() {
   const [stepResponses, setStepResponses] = useState({});
   const [retryCount, setRetryCount] = useState({});
   const [showScratchpad, setShowScratchpad] = useState(false);
+  const [streak, setStreak] = useState(0);
   const stepStartRef = useRef(Date.now());
 
   useEffect(() => { stepStartRef.current = Date.now(); }, [currentStepIdx]);
@@ -128,6 +131,20 @@ export default function PSLSession() {
       setCompletedSteps((prev) => ({ ...prev, [currentStepId]: result }));
       setFeedback(result);
 
+      if (result.correct) {
+        const nextStreak = streak + 1;
+        setStreak(nextStreak);
+        playCorrect();
+        if (currentStepId === 'check') {
+          confettiBurst({ count: 80, duration: 1400 });
+          playWin();
+        } else if (nextStreak >= 3 && nextStreak % 3 === 0) {
+          confettiBurst({ count: 60, duration: 1200 });
+        }
+      } else {
+        setStreak(0);
+      }
+
       if (!result.correct && !result.partial && (retryCount[currentStepId] || 0) < 1) {
         setRetryCount((prev) => ({ ...prev, [currentStepId]: (prev[currentStepId] || 0) + 1 }));
       }
@@ -156,6 +173,7 @@ export default function PSLSession() {
           setStepResponses({});
           setRetryCount({});
           setShowScratchpad(false);
+          setStreak(0);
         } else {
           await pslAPI.completeSession(sessionId);
           navigate(`/student/psl/results/${sessionId}`);
@@ -197,9 +215,17 @@ export default function PSLSession() {
   return (
     <div className="mx-auto max-w-2xl space-y-4 p-4 pb-6 sm:p-6">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-ink-400">
-          Problem {problemIndex + 1} of {totalProblems}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-ink-400">
+            Problem {problemIndex + 1} of {totalProblems}
+          </span>
+          {streak >= 2 && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-600 animate-bounce" style={{ animationDuration: '1s', animationIterationCount: 1 }}>
+              <Flame className="h-3 w-3" />
+              {streak}
+            </span>
+          )}
+        </div>
         <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
         <button
           type="button"

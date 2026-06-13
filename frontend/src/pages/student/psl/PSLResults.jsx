@@ -5,6 +5,8 @@ import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import { getMisconception } from './utils/misconceptions';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
+import { confettiBurst } from '../../../utils/confetti';
+import { playWin } from '../../../utils/sound';
 
 const STEP_FRIENDLY_LABELS = {
   understand: 'Understand',
@@ -76,9 +78,20 @@ export default function PSLResults() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const celebratedRef = React.useRef(false);
   useEffect(() => {
     pslAPI.getSession(sessionId)
-      .then((res) => setData(res.data))
+      .then((res) => {
+        setData(res.data);
+        if (!celebratedRef.current) {
+          celebratedRef.current = true;
+          const score = res.data?.summary?.overallScore || 0;
+          setTimeout(() => {
+            confettiBurst({ count: score >= 0.8 ? 160 : 90, duration: score >= 0.8 ? 2200 : 1400 });
+            playWin();
+          }, 300);
+        }
+      })
       .catch(() => navigate('/student/psl'))
       .finally(() => setLoading(false));
   }, [sessionId, navigate]);
