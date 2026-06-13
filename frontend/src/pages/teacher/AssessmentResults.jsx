@@ -4,7 +4,7 @@ import { CheckCircle2, XCircle, Clock, Users } from 'lucide-react';
 import { teacherAPI } from '../../services/api';
 import { useClass } from './useClass';
 import ClassNav from './ClassNav';
-import { Card, Badge, ProgressBar, Spinner } from '../../components/ui';
+import { Card, Badge, Button, ProgressBar, Spinner } from '../../components/ui';
 
 function ScoreBadge({ score }) {
   if (score == null) return <span className="text-xs text-ink-400">-</span>;
@@ -18,6 +18,7 @@ export default function AssessmentResults() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     teacherAPI.assessmentResults(assessmentId)
@@ -48,7 +49,7 @@ export default function AssessmentResults() {
               <span className="inline-flex items-center gap-0.5"><Clock className="h-3 w-3" />{assessment.timeLimitMinutes}m</span>
             </>
           )}
-          <Badge tone={assessment.status === 'assigned' ? 'success' : 'neutral'}>{assessment.status}</Badge>
+          <Badge tone={assessment.status === 'assigned' ? 'success' : assessment.status === 'closed' ? 'danger' : 'neutral'}>{assessment.status}</Badge>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-4">
           <div>
@@ -69,6 +70,20 @@ export default function AssessmentResults() {
         {summary.averageScore != null && (
           <ProgressBar value={summary.averageScore} max={100}
             barClassName={summary.averageScore >= 80 ? 'bg-emerald-500' : summary.averageScore >= 50 ? 'bg-gold-400' : 'bg-red-400'} className="mt-3" />
+        )}
+        {assessment.status === 'assigned' && (
+          <Button variant="secondary" className="mt-4" disabled={closing}
+            onClick={async () => {
+              if (!window.confirm('Close this assessment? Students will no longer be able to submit.')) return;
+              setClosing(true);
+              try {
+                await teacherAPI.closeAssessment(assessmentId);
+                setData((prev) => ({ ...prev, assessment: { ...prev.assessment, status: 'closed' } }));
+              } catch { /* keep current state */ }
+              setClosing(false);
+            }}>
+            {closing ? 'Closing...' : 'Close Assessment'}
+          </Button>
         )}
       </Card>
 
