@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 export default function ReasoningInput({ value = '', onChange, placeholder = 'Explain your thinking (optional)', defaultExpanded = false }) {
   const [expanded, setExpanded] = useState(defaultExpanded || !!value);
 
-  useEffect(() => { setExpanded(defaultExpanded || !!value); }, [defaultExpanded]);
+
 
   if (!expanded) {
     return (

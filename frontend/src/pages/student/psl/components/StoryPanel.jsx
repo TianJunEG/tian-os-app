@@ -49,7 +49,7 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
                 className={`mx-0.5 inline-block min-h-[44px] min-w-[44px] rounded-lg px-2 py-1 font-mono font-bold transition-colors ${
                   selected
                     ? 'bg-gold-400 text-white shadow-sm'
-                    : 'bg-white/60 text-ink-700 ring-1 ring-gold-300 hover:bg-gold-100'
+                    : 'bg-white/60 text-ink-700 ring-1 ring-gold-300 hover:bg-gold-100 animate-pulse-subtle'
                 }`}
               >
                 {part.value}

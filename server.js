@@ -66,6 +66,8 @@ import adminLicenceRoutes from './routes/adminLicences.js';
 import agencyRoutes from './routes/agency.js';
 import studentLinkRoutes from './routes/studentLinks.js';
 import remediationSessionRoutes from './routes/remediationSessions.js';
+import informalAssessmentRoutes from './routes/informalAssessments.js';
+import informalAssessmentStudentRoutes from './routes/informalAssessmentStudent.js';
 import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
@@ -198,7 +200,10 @@ app.use('/api/tutor/invites', featureGate({ feature: 'tutor', minVersion: 'v0.1'
 // Mounted before /api/tutor so /recordings isn't shadowed by the workspace router.
 app.use('/api/tutor/recordings', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), recordingRoutes);
 app.use('/api/tutor', featureGate({ feature: 'tutor', minVersion: 'v0.4' }), tutorWorkspaceRoutes);
+// Mounted before /api/teacher so /assessments/* isn't shadowed by the teacher workspace router.
+app.use('/api/teacher/assessments', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), informalAssessmentRoutes);
 app.use('/api/teacher', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), teacherRoutes);
+app.use('/api/assessments/student', informalAssessmentStudentRoutes);
 app.use('/api/school-admin', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), schoolAdminRoutes);
 app.use('/api/parent-invites', featureGate({ feature: 'parent', minVersion: 'v0.1' }), parentInviteRoutes);
 app.use('/api/join', featureGate({ feature: 'teacher', minVersion: 'v0.5' }), joinRoutes);
