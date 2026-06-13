@@ -118,7 +118,7 @@ function NextStepHero({ skill, onStart, starting, visualStyles }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Badge tone="success">All caught up</Badge>
-            <h2 className="mt-3 font-display text-3xl font-semibold text-ink-900">No urgent skill today</h2>
+            <h2 className="mt-3 font-display text-2xl sm:text-3xl font-semibold text-ink-900">No urgent skill today</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-600">Review a mastered skill or start a fresh MathPath challenge when you are ready.</p>
           </div>
           <Button to="/student/mathpath" icon={ArrowRight} className={visualStyles.primaryCta}>Open MathPath</Button>
@@ -139,7 +139,7 @@ function NextStepHero({ skill, onStart, starting, visualStyles }) {
         </div>
         <div className="p-5 sm:p-6">
           <Badge tone="gold">What to do next</Badge>
-          <h2 className="mt-3 font-display text-3xl font-semibold text-ink-900">{skill.name}</h2>
+          <h2 className="mt-3 font-display text-2xl sm:text-3xl font-semibold text-ink-900">{skill.name}</h2>
           <p className="mt-2 text-sm text-ink-500">{skill.topicName}</p>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-600">{action.helper}</p>
           <div className="mt-5">

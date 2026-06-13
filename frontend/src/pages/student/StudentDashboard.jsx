@@ -1140,7 +1140,7 @@ export default function StudentDashboard() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="text-base font-semibold text-ink-500">Hi, {firstName}! <span aria-hidden>👋</span></p>
-            <h1 className="mt-1 font-display text-4xl font-semibold text-ink-900">
+            <h1 className="mt-1 font-display text-3xl sm:text-4xl font-semibold text-ink-900">
               <span className="relative inline-block">
                 Today's Plan
                 <span className="absolute -bottom-1 left-0 h-1.5 w-full rounded-full bg-gold-300/80" aria-hidden />

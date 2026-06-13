@@ -256,12 +256,12 @@ function WeeklyComparison({ thisWeek, lastWeek, visual }) {
           <div className="flex items-end gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">This week</p>
-              <p className="font-mono text-3xl font-bold text-ink-900 tabular-nums">{thisWeek}</p>
+              <p className="font-mono text-2xl sm:text-3xl font-bold text-ink-900 tabular-nums">{thisWeek}</p>
             </div>
             <p className="pb-1 text-lg text-ink-300">vs</p>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">Last week</p>
-              <p className="font-mono text-3xl font-bold text-ink-400 tabular-nums">{lastWeek}</p>
+              <p className="font-mono text-2xl sm:text-3xl font-bold text-ink-400 tabular-nums">{lastWeek}</p>
             </div>
           </div>
         </div>
@@ -541,7 +541,7 @@ export default function StudentProfile() {
           <p className="text-sm font-semibold text-ink-500">{visual.styles.streakLabel}</p>
           <div className="mt-3 flex items-end gap-3">
             <Flame className="h-8 w-8 text-gold-500" />
-            <p className="font-mono text-4xl font-semibold leading-none text-ink-900 tabular-nums">{summary.streak || 0}</p>
+            <p className="font-mono text-3xl sm:text-4xl font-semibold leading-none text-ink-900 tabular-nums">{summary.streak || 0}</p>
             <p className="pb-1 text-sm font-semibold text-ink-500">{summary.streak === 1 ? 'day' : 'days'}</p>
           </div>
           {!isSecondary(visual.mode) && <p className="mt-3 text-sm leading-5 text-ink-500">Keep building steady learning habits. XP rewards effort, practice, and working records.</p>}

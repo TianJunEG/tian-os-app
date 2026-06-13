@@ -133,7 +133,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Child Snapshot">
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills Mastered</p>
-          <p className="mt-2 font-display text-3xl font-semibold text-navy-700">{snapshot.mastered}/{snapshot.total}</p>
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-navy-700">{snapshot.mastered}/{snapshot.total}</p>
           <p className="mt-1 text-sm text-ink-500">{snapshot.masteryPercent}% of Fractions</p>
         </Card>
         <Card className="p-4">
@@ -146,7 +146,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
             <Flame className="h-4 w-4 text-gold-600" />
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Streak</p>
           </div>
-          <p className="mt-2 font-display text-3xl font-semibold text-navy-700">{snapshot.streak}</p>
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-navy-700">{snapshot.streak}</p>
           <p className="mt-1 text-sm text-ink-500">{snapshot.streak === 1 ? 'day' : 'days'}</p>
         </Card>
         <Card className="p-4">

@@ -114,10 +114,10 @@ export default function InformalAssessment() {
     const attempts = result?.attempts || [];
     const fullQuestions = result?.questions || assessment.questions || [];
     return (
-      <div className="mx-auto max-w-lg space-y-4 px-4 pt-8 pb-24">
+      <div className="mx-auto max-w-lg space-y-4 px-4 pt-8 pb-6">
         <Card className="p-6 text-center">
           <h2 className="text-lg font-bold text-ink-800">Assessment Complete</h2>
-          <p className="mt-2 text-3xl font-bold text-ink-800">{result?.score ?? session.score}%</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-bold text-ink-800">{result?.score ?? session.score}%</p>
           <p className="text-sm text-ink-500">{result?.correctCount ?? session.correctCount} / {result?.totalCount ?? session.totalCount} correct</p>
           <ProgressBar value={result?.score ?? session.score ?? 0} max={100}
             barClassName={(result?.score ?? 0) >= 80 ? 'bg-emerald-500' : (result?.score ?? 0) >= 50 ? 'bg-gold-400' : 'bg-red-400'} className="mt-3" />
@@ -163,7 +163,7 @@ export default function InformalAssessment() {
   const isMCQ = assessment.module === 'MathPath' && q?.choice && q?.choices?.length > 0;
 
   return (
-    <div className="mx-auto max-w-lg space-y-4 px-4 pt-8 pb-24">
+    <div className="mx-auto max-w-lg space-y-4 px-4 pt-8 pb-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-ink-500">

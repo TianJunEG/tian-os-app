@@ -222,7 +222,7 @@ export default function SciencePracticePage() {
             <Trophy
               className={`w-12 h-12 mx-auto mb-3 ${accuracy >= 80 ? 'text-gold-500' : 'text-gray-300'}`}
             />
-            <h1 className="text-3xl font-extrabold text-navy-900 mb-1">{accuracy}%</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 mb-1">{accuracy}%</h1>
             <p className="text-gray-600 mb-1">
               {correctCount} of {questions.length} correct{accuracy >= 80 ? ' — mastered!' : ''}
             </p>

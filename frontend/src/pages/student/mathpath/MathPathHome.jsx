@@ -356,7 +356,7 @@ export default function MathPathHome() {
       <div className={`${visualStyles.page} space-y-4 sm:space-y-6`}>
       <div>
         <p className={`text-sm font-semibold ${visualStyles.accent}`}>{welcomeTitle}</p>
-        <h1 className="font-display text-3xl font-semibold text-ink-900">MathPath</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">MathPath</h1>
       </div>
 
       {/* Hero — main CTA + progress */}
@@ -372,7 +372,7 @@ export default function MathPathHome() {
           </div>
           <div className="min-w-0">
             <p className={`text-sm font-semibold uppercase ${visualStyles.accent}`}>Math Mastery</p>
-            <h2 className="mt-1 font-display text-4xl font-semibold text-ink-900">Fractions</h2>
+            <h2 className="mt-1 font-display text-3xl sm:text-4xl font-semibold text-ink-900">Fractions</h2>
             <p className="mt-2 text-sm text-ink-500">
               {recommended
                 ? `Up next: ${canonicalSkillName(recommended.skillId, recommended.skillName)}`

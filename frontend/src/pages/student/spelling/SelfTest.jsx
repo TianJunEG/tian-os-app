@@ -62,7 +62,7 @@ export default function SelfTest() {
         {revealed && !result ? (
           <div className="m-auto text-center">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Remember this spelling</p>
-            <p className="my-3 font-display text-3xl font-semibold text-navy-700">{w.word}</p>
+            <p className="my-3 font-display text-2xl sm:text-3xl font-semibold text-navy-700">{w.word}</p>
             {w.sentence && <p className="mx-auto mb-5 max-w-sm text-sm text-ink-500">{w.sentence}</p>}
             <Button size="m" icon={EyeOff} onClick={() => setRevealed(false)}>Hide &amp; spell it</Button>
           </div>
