@@ -327,6 +327,7 @@ export default function PSLSession() {
         )}
 
         <ReasoningInput
+          key={currentStepId}
           value={stepResponses[currentStepId]?.reasoning || ''}
           onChange={(val) => updateResponse(currentStepId, { reasoning: val })}
           defaultExpanded={currentStepId === 'understand' || currentStepId === 'plan'}
