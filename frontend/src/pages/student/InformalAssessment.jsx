@@ -77,6 +77,7 @@ export default function InformalAssessment() {
     if (submitting) return;
     if (!bypassConfirm && !window.confirm("Are you sure you want to submit? You can't change your answers after submitting.")) return;
     setSubmitting(true);
+    setError(null);
     const payload = (data?.assessment?.questions || []).map((q) => ({
       questionId: q.questionId,
       answer: answers[q.questionId] ?? null,

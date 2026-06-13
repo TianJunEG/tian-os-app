@@ -118,6 +118,8 @@ router.post('/:id/assign', async (req, res) => {
 router.get('/:id/results', async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   try {
+    const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
+    if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
     const results = await buildClassResults(req.params.id);
     res.json(results);
   } catch (err) {
