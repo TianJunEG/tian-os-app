@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getMascot } from '../config/mascots';
 
 const SIZES = {
+  xs: 32,
+  sm: 40,
+  md: 56,
+  lg: 80,
+  xl: 112,
+};
+
+const SIZE_CLASSES = {
   xs: 'h-8 w-8',
   sm: 'h-10 w-10',
   md: 'h-14 w-14',
@@ -9,7 +17,7 @@ const SIZES = {
   xl: 'h-28 w-28',
 };
 
-const RING_SIZES = {
+const RING_CLASSES = {
   xs: 'ring-2',
   sm: 'ring-2',
   md: 'ring-[3px]',
@@ -17,13 +25,37 @@ const RING_SIZES = {
   xl: 'ring-4',
 };
 
+const FONT_SIZES = { xs: 14, sm: 16, md: 22, lg: 32, xl: 44 };
+
+function InitialFallback({ mascot, name, size }) {
+  const fontSize = FONT_SIZES[size] || FONT_SIZES.md;
+  return (
+    <div
+      className={`${SIZE_CLASSES[size] || SIZE_CLASSES.md} flex items-center justify-center rounded-full font-bold text-white select-none`}
+      style={{ backgroundColor: mascot.color, fontSize }}
+      aria-label={mascot.name}
+    >
+      {(name || mascot.name).charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
 export default function MascotAvatar({ name, size = 'md', className = '', showRing = true }) {
+  const [imgFailed, setImgFailed] = useState(false);
   const mascot = getMascot(name);
   if (!mascot) return null;
 
   const imgSrc = `/mascots/${name}.png`;
-  const sizeClass = SIZES[size] || SIZES.md;
-  const ringClass = showRing ? `${RING_SIZES[size] || RING_SIZES.md} ring-offset-2` : '';
+  const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
+  const ringClass = showRing ? `${RING_CLASSES[size] || RING_CLASSES.md} ring-offset-2` : '';
+
+  if (imgFailed) {
+    return (
+      <div className={`${ringClass} rounded-full ${className}`} style={showRing ? { '--tw-ring-color': mascot.color } : undefined}>
+        <InitialFallback mascot={mascot} name={name} size={size} />
+      </div>
+    );
+  }
 
   return (
     <img
@@ -31,9 +63,7 @@ export default function MascotAvatar({ name, size = 'md', className = '', showRi
       alt={mascot.name}
       className={`${sizeClass} rounded-full object-cover ${ringClass} ${className}`}
       style={showRing ? { '--tw-ring-color': mascot.color } : undefined}
-      onError={(e) => {
-        e.target.style.display = 'none';
-      }}
+      onError={() => setImgFailed(true)}
     />
   );
 }

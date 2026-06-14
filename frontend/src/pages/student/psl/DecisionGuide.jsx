@@ -57,7 +57,7 @@ export default function DecisionGuide() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-24 sm:p-6">
+    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-6 sm:p-6">
       <button
         onClick={() => navigate('/student/psl')}
         className="flex items-center gap-1.5 text-sm font-medium text-ink-400 hover:text-ink-600"
@@ -88,7 +88,7 @@ export default function DecisionGuide() {
           return (
             <div
               key={i}
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-all ${
+              className={`flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border px-3 py-2 text-xs transition-all ${
                 status === 'active'
                   ? 'border-gold-300 bg-gold-50 font-semibold text-ink-700'
                   : status === 'selected'
@@ -99,8 +99,8 @@ export default function DecisionGuide() {
               }`}
             >
               <span className="w-5 flex-none text-center font-bold">{i + 1}</span>
-              <span className="flex-1">{q.q}</span>
-              <span className="flex-none font-bold">&rarr; {q.label}</span>
+              <span className="flex-1 min-w-0">{q.q}</span>
+              <span className="flex-none font-bold text-[11px] sm:text-xs">&rarr; {q.label}</span>
             </div>
           );
         })}

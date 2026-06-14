@@ -666,6 +666,9 @@ router.get('/classes/:id/psl/dashboard', async (req, res) => {
       totalStudents: ids.length, studentsAttempted: studentsAttempted.size,
       studentsMastered: studentsMastered.size, totalSessions: completedSessions.length,
       averageAccuracy: avgAccuracy,
+      hintUsageRate: attempts.length
+        ? Math.round((attempts.filter((a) => (a.steps || []).some((s) => s.hintUsed)).length / attempts.length) * 100)
+        : 0,
     },
     skills: Object.values(skillMap),
     flaggedStudents,

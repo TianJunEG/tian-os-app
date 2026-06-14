@@ -65,3 +65,34 @@ export const playWin = () =>
     { freq: 1047, time: 0.36, dur: 0.32 }
   ]);
 export const playClick = () => playNotes([{ freq: 440, time: 0, dur: 0.05, gain: 0.04 }]);
+
+let voiceEnabled = false;
+try {
+  voiceEnabled = JSON.parse(localStorage.getItem('pslVoice') || 'false');
+} catch {
+  voiceEnabled = false;
+}
+
+export const isVoiceEnabled = () => voiceEnabled;
+
+export const setVoiceEnabled = (value) => {
+  voiceEnabled = !!value;
+  try {
+    localStorage.setItem('pslVoice', JSON.stringify(voiceEnabled));
+  } catch { /* ignore */ }
+};
+
+export const speak = (text) => {
+  if (!voiceEnabled || muted || typeof window === 'undefined') return;
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+  synth.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.9;
+  utterance.pitch = 1.1;
+  const voices = synth.getVoices();
+  const preferred = voices.find((v) => v.lang.startsWith('en') && v.name.includes('Female'))
+    || voices.find((v) => v.lang.startsWith('en'));
+  if (preferred) utterance.voice = preferred;
+  synth.speak(utterance);
+};

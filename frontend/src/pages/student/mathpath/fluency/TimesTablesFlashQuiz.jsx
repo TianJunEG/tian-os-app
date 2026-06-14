@@ -86,18 +86,18 @@ function ResultsScreen({ stats, onPlayAgain, onHome }) {
           <h2 className="text-2xl font-bold">Quiz Complete!</h2>
           <p className="mt-1 text-teal-100">{stats.fluencyLabel}</p>
         </div>
-        <div className="grid grid-cols-3 divide-x divide-hairline p-4">
+        <div className="grid grid-cols-3 divide-x divide-hairline p-3 sm:p-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-navy-800">{stats.correct}/{stats.total}</p>
-            <p className="text-xs text-ink-500">Correct</p>
+            <p className="text-xl sm:text-2xl font-bold text-navy-800">{stats.correct}/{stats.total}</p>
+            <p className="text-[10px] sm:text-xs text-ink-500">Correct</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-navy-800">{accuracyPct}%</p>
-            <p className="text-xs text-ink-500">Accuracy</p>
+            <p className="text-xl sm:text-2xl font-bold text-navy-800">{accuracyPct}%</p>
+            <p className="text-[10px] sm:text-xs text-ink-500">Accuracy</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-navy-800">{avgSec}s</p>
-            <p className="text-xs text-ink-500">Avg Time</p>
+            <p className="text-xl sm:text-2xl font-bold text-navy-800">{avgSec}s</p>
+            <p className="text-[10px] sm:text-xs text-ink-500">Avg Time</p>
           </div>
         </div>
       </Card>
@@ -217,7 +217,7 @@ export default function TimesTablesFlashQuiz() {
 
       {/* Question card */}
       <Card className="p-8 text-center">
-        <p className="text-4xl font-bold text-navy-800">
+        <p className="text-3xl sm:text-4xl font-bold text-navy-800">
           {currentQuestion.a} × {currentQuestion.b}
         </p>
 

@@ -115,7 +115,8 @@ router.post(
           email: user.email,
           role: user.role,
           is_test_account: Boolean(user.is_test_account),
-          avatar: user.avatar
+          avatar: user.avatar,
+          studentLevel: user.studentLevel || ''
         }
       });
     } catch (error) {

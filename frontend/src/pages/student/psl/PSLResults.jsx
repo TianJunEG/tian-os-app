@@ -1,64 +1,74 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { Award, ChevronDown, ChevronRight, Clock, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
-import { Spinner } from '../../../components/ui';
+import { Card, Spinner } from '../../../components/ui';
+import { getMisconception } from './utils/misconceptions';
+import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
+import { confettiBurst } from '../../../utils/confetti';
+import { playWin } from '../../../utils/sound';
 
-const pageStyle = {
-  fontFamily: "'Hanken Grotesk', system-ui, sans-serif",
-  color: '#232c39',
-  minHeight: '100vh',
-  background: '#e7eaef',
-  backgroundImage: 'radial-gradient(#d3d8e0 1px, transparent 1.4px)',
-  backgroundSize: '26px 26px',
-  padding: '24px 24px 96px',
+const STEP_FRIENDLY_LABELS = {
+  understand: 'Understand',
+  identify_info: 'Find clues',
+  identify_question: 'Find goal',
+  plan: 'Plan',
+  solve: 'Solve',
+  check: 'Check',
 };
 
-const panelStyle = {
-  background: 'linear-gradient(160deg, #13223e, #101d36)',
-  border: '1px solid #0c1730',
-  borderRadius: 16,
-  boxShadow: '0 24px 50px -30px rgba(13,23,48,0.6)',
-  padding: 34,
-  color: '#f4f0e8',
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: 34,
-  alignItems: 'start',
-  minHeight: '60vh',
-};
+function StepBadge({ step }) {
+  if (step.correct) return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Correct</span>;
+  if (step.partial) return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">Partial</span>;
+  return <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">Wrong</span>;
+}
 
-const tileStyle = {
-  flex: 1,
-  border: '1px solid #2a3a59',
-  borderRadius: 14,
-  padding: 15,
-  background: '#172a49',
-};
-
-const goldCTAStyle = {
-  height: 52,
-  borderRadius: 13,
-  background: '#d9892e',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-  color: '#fff',
-  fontWeight: 700,
-  fontSize: '15.5px',
-  boxShadow: '0 4px 14px -4px rgba(217,137,46,0.6)',
-  cursor: 'pointer',
-  border: 'none',
-  width: '100%',
-  fontFamily: 'inherit',
-};
-
-function ChevronRight() {
+function ProblemCard({ attempt, problem, index }) {
+  const [open, setOpen] = useState(false);
   return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 6 15 12 9 18" />
-    </svg>
+    <Card className="overflow-hidden">
+      <button
+        type="button"
+        className="flex w-full items-center gap-3 p-4 text-left"
+        onClick={() => setOpen(!open)}
+      >
+        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${
+          attempt.overallCorrect ? 'bg-emerald-400' : 'bg-red-400'
+        }`}>
+          {index + 1}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-ink-700">{problem?.storyText?.slice(0, 80)}...</p>
+          <p className="text-xs text-ink-400">Score: {Math.round(attempt.overallScore * 100)}%</p>
+        </div>
+        {open ? <ChevronDown className="h-4 w-4 text-ink-300" /> : <ChevronRight className="h-4 w-4 text-ink-300" />}
+      </button>
+      {open && (
+        <div className="border-t border-ink-100 bg-ink-50/30 p-4 space-y-3">
+          <p className="text-sm text-ink-600">{problem?.storyText}</p>
+
+          <div className="space-y-1.5">
+            {(attempt.steps || []).map((step) => {
+              const m = step.misconceptionTag ? getMisconception(step.misconceptionTag) : null;
+              return (
+                <div key={step.stepId} className="rounded-lg bg-white px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-ink-600">{STEP_FRIENDLY_LABELS[step.stepId] || step.stepId.replace('_', ' ')}</span>
+                    <StepBadge step={step} />
+                  </div>
+                  {m && !step.correct && (
+                    <p className="mt-1 text-xs text-amber-600">{m.tip}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {problem?.solutionText && (
+            <WorkedSolutionWalkthrough solutionText={problem.solutionText} visualSpec={problem.visualSpec} heuristic={problem.heuristic} structure={problem.structure} unknownPosition={problem.unknownPosition} />
+          )}
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -68,101 +78,109 @@ export default function PSLResults() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const celebratedRef = React.useRef(false);
   useEffect(() => {
     pslAPI.getSession(sessionId)
-      .then((res) => setData(res.data))
+      .then((res) => {
+        setData(res.data);
+        if (!celebratedRef.current) {
+          celebratedRef.current = true;
+          const score = res.data?.summary?.overallScore || 0;
+          setTimeout(() => {
+            confettiBurst({ count: score >= 0.8 ? 160 : 90, duration: score >= 0.8 ? 2200 : 1400 });
+            playWin();
+          }, 300);
+        }
+      })
       .catch(() => navigate('/student/psl'))
       .finally(() => setLoading(false));
   }, [sessionId, navigate]);
 
-  if (loading) return <div style={{ display: 'flex', minHeight: '40vh', alignItems: 'center', justifyContent: 'center' }}><Spinner /></div>;
+  if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
   if (!data) return null;
 
   const summary = data.summary || {};
-  const totalProblems = summary.totalProblems || data.problems?.length || 5;
-  const xpEarned = summary.xpEarned || Math.round((summary.overallScore || 0) * totalProblems * 12);
-  const streak = summary.streak || 0;
-  const xpToNext = summary.xpToNextBadge || 140;
-  const xpProgress = summary.xpProgress || 0.72;
-  const studentName = data.studentName || 'there';
-  const mistakeCount = Object.keys(summary.misconceptionCounts || {}).length;
+  const scorePercent = Math.round((summary.overallScore || 0) * 100);
+  const problems = data.problems || [];
 
   return (
-    <div style={pageStyle}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={panelStyle}>
-          {/* Left: celebration */}
-          <div>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
-              <span style={{ width: 7, height: 7, background: '#d9892e', borderRadius: 2, transform: 'rotate(20deg)' }} />
-              <span style={{ width: 6, height: 6, background: '#4f7bf0', borderRadius: 2, transform: 'rotate(-15deg)' }} />
-              <span style={{ width: 8, height: 8, background: '#1f9d57', borderRadius: 2, transform: 'rotate(35deg)' }} />
-              <span style={{ width: 6, height: 6, background: '#d9892e', borderRadius: 2 }} />
-            </div>
-
-            <div style={{
-              width: 74, height: 74, borderRadius: '50%', background: '#1d3157',
-              border: '2px solid #3f9d6a', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', marginBottom: 18,
-            }}>
-              <Check style={{ width: 38, height: 38, color: '#5fd095', strokeWidth: 2.4 }} />
-            </div>
-
-            <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-0.01em', color: '#f6f2ea' }}>
-              Nice work, {studentName}!
-            </div>
-            <div style={{ fontSize: 15, color: '#aebbd2', marginTop: 6 }}>
-              {totalProblems} of {totalProblems} problems done &middot; you worked through every step.
-            </div>
-          </div>
-
-          {/* Right: stats */}
-          <div>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-              <div style={tileStyle}>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 26, fontWeight: 600, color: '#e3a64f', lineHeight: 1 }}>
-                  +{xpEarned}
-                </div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8a98b2', marginTop: 6, letterSpacing: '0.08em' }}>
-                  XP EARNED
-                </div>
-              </div>
-              <div style={tileStyle}>
-                <div style={{ fontSize: 26, fontWeight: 700, color: '#f0ab63', lineHeight: 1 }}>
-                  {streak || 1}🔥
-                </div>
-                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '10.5px', color: '#8a98b2', marginTop: 6, letterSpacing: '0.08em' }}>
-                  DAY STREAK
-                </div>
-              </div>
-            </div>
-
-            <div style={{
-              height: 10, borderRadius: 6, background: '#172a49',
-              border: '1px solid #2a3a59', overflow: 'hidden', marginBottom: 8,
-            }}>
-              <div style={{ width: `${Math.round(xpProgress * 100)}%`, height: '100%', background: 'linear-gradient(90deg, #d9892e, #e3a64f)' }} />
-            </div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '11.5px', color: '#8a98b2', marginBottom: 18 }}>
-              {xpToNext} XP to your next badge
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (mistakeCount > 0) {
-                  navigate(`/student/psl/mistakes/${sessionId}`);
-                } else {
-                  navigate('/student/psl');
-                }
-              }}
-              style={goldCTAStyle}
-            >
-              {mistakeCount > 0 ? 'See what to review' : 'Back to skills'}
-              <ChevronRight />
-            </button>
-          </div>
+    <div className="mx-auto max-w-2xl space-y-6 p-4 pb-6 sm:p-6">
+      <div className="text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gold-100">
+          <Award className="h-8 w-8 text-gold-500" />
         </div>
+        <h1 className="mt-3 text-xl font-bold text-ink-800">Session Complete!</h1>
+        <p className="text-sm text-ink-500">{data.skillName || data.skillId}</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <Card className="p-3 sm:p-4 text-center">
+          <Target className="mx-auto h-5 w-5 text-gold-500" />
+          <p className="mt-1 font-mono text-xl sm:text-2xl font-bold text-ink-800">{scorePercent}%</p>
+          <p className="text-[10px] sm:text-xs text-ink-400">Score</p>
+        </Card>
+        <Card className="p-3 sm:p-4 text-center">
+          <Award className="mx-auto h-5 w-5 text-emerald-500" />
+          <p className="mt-1 font-mono text-xl sm:text-2xl font-bold text-ink-800">{summary.fullMarks || 0}/{summary.totalProblems || 0}</p>
+          <p className="text-[10px] sm:text-xs text-ink-400">Full marks</p>
+        </Card>
+        <Card className="p-3 sm:p-4 text-center">
+          <Clock className="mx-auto h-5 w-5 text-sky-500" />
+          <p className="mt-1 font-mono text-xl sm:text-2xl font-bold text-ink-800">
+            {summary.averageTimeMs ? `${Math.round(summary.averageTimeMs / 1000)}s` : '-'}
+          </p>
+          <p className="text-[10px] sm:text-xs text-ink-400">Avg time</p>
+        </Card>
+      </div>
+
+      {Object.keys(summary.misconceptionCounts || {}).length > 0 && (
+        <Card className="p-4">
+          <h3 className="mb-2 text-sm font-semibold text-ink-600">Areas to work on</h3>
+          <div className="space-y-1">
+            {Object.entries(summary.misconceptionCounts).map(([tag, count]) => (
+              <div key={tag} className="flex items-center justify-between text-sm">
+                <span className="text-ink-600">{tag.replace('psl/', '').replace(/-/g, ' ')}</span>
+                <span className="font-mono text-xs text-ink-400">{count}x</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      <div>
+        <h2 className="mb-3 text-sm font-semibold text-ink-500">Problems</h2>
+        <div className="space-y-2">
+          {problems.map((problem, i) => {
+            const attempt = data.attempts?.[problem.problemId];
+            return (
+              <ProblemCard
+                key={problem.problemId}
+                problem={problem}
+                attempt={attempt || {
+                  overallCorrect: problem.status === 'completed',
+                  overallScore: 0,
+                  steps: [],
+                }}
+                index={i}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+        <button
+          onClick={() => navigate('/student/psl')}
+          className="min-h-[44px] rounded-xl border border-ink-200 bg-white px-4 py-3 text-sm font-semibold text-ink-600 transition-colors hover:bg-ink-50"
+        >
+          Back to Skills
+        </button>
+        <button
+          onClick={() => navigate('/student/psl/mistakes')}
+          className="min-h-[44px] rounded-xl bg-gold-400 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-500"
+        >
+          Review Mistakes
+        </button>
       </div>
     </div>
   );

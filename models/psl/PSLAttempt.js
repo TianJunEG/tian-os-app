@@ -9,6 +9,7 @@ const stepResultSchema = new mongoose.Schema({
   misconceptionTag: { type: String, default: '' },
   feedback: { type: String, default: '' },
   hintUsed: { type: Boolean, default: false },
+  hintsUsed: { type: Number, default: 0 },
   retried: { type: Boolean, default: false },
   timeSpentMs: { type: Number, default: 0 },
   submittedAt: { type: Date, default: Date.now },

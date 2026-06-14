@@ -276,7 +276,7 @@ export default function P1LearningPathPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className={`text-sm font-semibold uppercase ${visualStyles.accent}`}>Skill Path</p>
-            <h2 className="font-display text-3xl font-semibold text-ink-900">P1 Maths</h2>
+            <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">P1 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 1 skills and start practising any topic.
             </p>

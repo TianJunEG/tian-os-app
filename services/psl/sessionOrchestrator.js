@@ -109,15 +109,21 @@ export async function submitStep({ sessionId, problemId, stepId, response, timeS
   }
 
   const existingIdx = attempt.steps.findIndex((s) => s.stepId === stepId);
+  const existingStep = existingIdx >= 0 ? attempt.steps[existingIdx] : null;
+  const hintsUsed = existingStep?.hintsUsed || 0;
+  const hintPenalty = Math.min(hintsUsed * 0.1, 0.3);
+  const penalisedScore = Math.max(0, result.score - (result.correct ? hintPenalty : 0));
+
   const stepResult = {
     stepId,
     response,
     correct: result.correct,
     partial: result.partial,
-    score: result.score,
+    score: penalisedScore,
     misconceptionTag: result.misconceptionTag,
     feedback: result.feedback,
-    hintUsed: false,
+    hintUsed: hintsUsed > 0,
+    hintsUsed,
     retried: existingIdx >= 0,
     timeSpentMs,
     submittedAt: new Date(),

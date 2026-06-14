@@ -15,37 +15,11 @@ function extractTappableNumbers(text) {
   return matches;
 }
 
-const notebookStyle = {
-  border: '1px solid #e7eaef',
-  borderRadius: 14,
-  padding: '22px 24px 26px',
-  position: 'relative',
-  minHeight: '40vh',
-  backgroundImage: 'repeating-linear-gradient(#ffffff 0, #ffffff 31px, #eef1f4 31px, #eef1f4 32px)',
-};
-
-const marginLineStyle = {
-  position: 'absolute', left: 48, top: 0, bottom: 0,
-  width: 1, background: '#f3cfd0',
-};
-
-export default function StoryPanel({ storyText = '', highlightMode = false, highlightedNumbers = [], onToggleNumber, children }) {
-  if (children) {
-    return (
-      <div style={notebookStyle}>
-        <div style={marginLineStyle} />
-        {children}
-      </div>
-    );
-  }
-
+export default function StoryPanel({ storyText = '', highlightMode = false, highlightedNumbers = [], onToggleNumber }) {
   if (!highlightMode) {
     return (
-      <div style={notebookStyle}>
-        <div style={marginLineStyle} />
-        <div style={{ fontSize: 22, fontWeight: 500, color: '#232c39', lineHeight: 1.5, position: 'relative' }}>
-          {storyText}
-        </div>
+      <div className="rounded-2xl border border-gold-200/60 bg-gold-50/40 p-4 sm:p-5">
+        <p className="text-base leading-relaxed text-ink-700">{storyText}</p>
       </div>
     );
   }
@@ -61,12 +35,9 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
   if (cursor < storyText.length) parts.push({ type: 'text', value: storyText.slice(cursor) });
 
   return (
-    <div style={notebookStyle}>
-      <div style={marginLineStyle} />
-      <div style={{ fontSize: 14, fontWeight: 600, color: '#a8743a', marginBottom: 14, position: 'relative' }}>
-        Tap the numbers that matter.
-      </div>
-      <div style={{ fontSize: 22, fontWeight: 500, color: '#232c39', lineHeight: 1.7, position: 'relative' }}>
+    <div className="rounded-2xl border border-gold-200/60 bg-gold-50/40 p-4 sm:p-5">
+      <p className="text-sm font-medium text-gold-600 mb-2">Tap the numbers you need:</p>
+      <p className="text-base leading-relaxed text-ink-700">
         {parts.map((part, i) => {
           if (part.type === 'number') {
             const selected = highlightedNumbers.includes(part.num);
@@ -75,14 +46,11 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
                 key={i}
                 type="button"
                 onClick={() => onToggleNumber?.(part.num)}
-                style={{
-                  display: 'inline-block', border: selected ? '2px solid #d9892e' : '1.5px dashed #c4ccd6',
-                  background: selected ? '#fbf1e1' : '#fff',
-                  borderRadius: 9, padding: '0 10px', fontWeight: 700,
-                  color: selected ? '#b06f1f' : '#232c39',
-                  cursor: 'pointer', fontSize: 'inherit', lineHeight: 'inherit',
-                  fontFamily: 'inherit', transition: 'all .15s ease',
-                }}
+                className={`mx-0.5 inline-block min-h-[44px] min-w-[44px] rounded-lg px-2 py-1 font-mono font-bold transition-colors ${
+                  selected
+                    ? 'bg-gold-400 text-white shadow-sm'
+                    : 'bg-white/60 text-ink-700 ring-1 ring-gold-300 hover:bg-gold-100 animate-pulse-subtle'
+                }`}
               >
                 {part.value}
               </button>
@@ -90,7 +58,7 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
           }
           return <span key={i}>{part.value}</span>;
         })}
-      </div>
+      </p>
     </div>
   );
 }

@@ -518,6 +518,9 @@ router.get('/students/:id/psl/dashboard', async (req, res) => {
       totalSessions: completedSessions.length, skillsAttempted: Object.keys(skillMap).length,
       skillsMastered: masteryRecs.filter((r) => r.status === 'mastered').length,
       averageAccuracy: avgAccuracy,
+      hintUsageRate: attempts.length
+        ? Math.round((attempts.filter((a) => (a.steps || []).some((s) => s.hintUsed)).length / attempts.length) * 100)
+        : 0,
     },
     skills: Object.values(skillMap),
     heuristics,

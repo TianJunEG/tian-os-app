@@ -64,7 +64,7 @@ export default function SpellingAchievementsPage() {
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <div className="text-sm opacity-80">Level</div>
-                  <div className="text-4xl font-extrabold leading-none">{data.level}</div>
+                  <div className="text-3xl sm:text-4xl font-extrabold leading-none">{data.level}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm opacity-80">XP</div>
@@ -88,18 +88,18 @@ export default function SpellingAchievementsPage() {
             </div>
 
             {/* Quick totals */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                <div className="text-2xl font-bold text-gray-900">{data.totals.correct}</div>
-                <div className="text-xs text-gray-500">words correct</div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
+              <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{data.totals.correct}</div>
+                <div className="text-[10px] sm:text-xs text-gray-500">words correct</div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                <div className="text-2xl font-bold text-gray-900">{data.totals.mastered}</div>
-                <div className="text-xs text-gray-500">mastered</div>
+              <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{data.totals.mastered}</div>
+                <div className="text-[10px] sm:text-xs text-gray-500">mastered</div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-                <div className="text-2xl font-bold text-gray-900">{data.totals.accuracy}%</div>
-                <div className="text-xs text-gray-500">accuracy</div>
+              <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 text-center">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{data.totals.accuracy}%</div>
+                <div className="text-[10px] sm:text-xs text-gray-500">accuracy</div>
               </div>
             </div>
 
