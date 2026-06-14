@@ -28,7 +28,6 @@ const RING_CLASSES = {
 const FONT_SIZES = { xs: 14, sm: 16, md: 22, lg: 32, xl: 44 };
 
 function InitialFallback({ mascot, name, size }) {
-  const px = SIZES[size] || SIZES.md;
   const fontSize = FONT_SIZES[size] || FONT_SIZES.md;
   return (
     <div
@@ -66,5 +65,26 @@ export default function MascotAvatar({ name, size = 'md', className = '', showRi
       style={showRing ? { '--tw-ring-color': mascot.color } : undefined}
       onError={() => setImgFailed(true)}
     />
+  );
+}
+
+export function MascotBubble({ name, message, size = 'md', className = '' }) {
+  const mascot = getMascot(name);
+  if (!mascot) return null;
+
+  return (
+    <div className={`flex items-start gap-3 ${className}`}>
+      <MascotAvatar name={name} size={size} />
+      <div
+        className="relative rounded-2xl px-4 py-2.5 text-sm font-medium text-ink-700"
+        style={{ backgroundColor: mascot.colorLight }}
+      >
+        <div
+          className="absolute -left-2 top-3 h-3 w-3 rotate-45"
+          style={{ backgroundColor: mascot.colorLight }}
+        />
+        <span className="relative">{message}</span>
+      </div>
+    </div>
   );
 }

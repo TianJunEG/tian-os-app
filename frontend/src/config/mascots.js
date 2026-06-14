@@ -1,9 +1,13 @@
+// The Tian 7 — mascot definitions for Tian OS.
+// Each mascot anchors a module and can guest-appear elsewhere.
+// Visual style: chibi robot-hybrid streetwear kids.
+
 const MASCOTS = {
   tiano: {
     name: 'Tiano',
     age: 18,
     gender: 'boy',
-    color: '#0284c7',
+    color: '#0284c7',       // sky blue
     colorLight: '#e0f2fe',
     module: 'home',
     role: 'Welcome guide',
@@ -13,7 +17,7 @@ const MASCOTS = {
     name: 'Lysa',
     age: 16,
     gender: 'girl',
-    color: '#7c3aed',
+    color: '#7c3aed',       // lavender
     colorLight: '#ede9fe',
     module: 'spelling',
     role: 'Spelling coach',
@@ -23,7 +27,7 @@ const MASCOTS = {
     name: 'Lejo',
     age: 14,
     gender: 'boy',
-    color: '#ea580c',
+    color: '#ea580c',       // bright orange
     colorLight: '#fff7ed',
     module: 'psl',
     role: 'Problem solver',
@@ -33,7 +37,7 @@ const MASCOTS = {
     name: 'Chelya',
     age: 12,
     gender: 'girl',
-    color: '#059669',
+    color: '#059669',       // sage green
     colorLight: '#ecfdf5',
     module: 'progress',
     role: 'Progress reporter',
@@ -43,7 +47,7 @@ const MASCOTS = {
     name: 'Talia',
     age: 10,
     gender: 'girl',
-    color: '#e11d48',
+    color: '#e11d48',       // coral pink
     colorLight: '#fff1f2',
     module: 'support',
     role: 'Encourager',
@@ -53,7 +57,7 @@ const MASCOTS = {
     name: 'Kaesy',
     age: 8,
     gender: 'girl',
-    color: '#2563eb',
+    color: '#2563eb',       // electric blue
     colorLight: '#eff6ff',
     module: 'achievements',
     role: 'Hype & rewards',
@@ -63,7 +67,7 @@ const MASCOTS = {
     name: 'Kylo',
     age: 6,
     gender: 'boy',
-    color: '#1e3a5f',
+    color: '#1e3a5f',       // deep navy
     colorLight: '#f0f4f8',
     module: 'mathpath',
     role: 'Math buddy',
@@ -71,6 +75,7 @@ const MASCOTS = {
   },
 };
 
+// Map module keys (from modules.js) to their mascot
 const MODULE_MASCOT_MAP = {
   mathpath: 'kylo',
   fluency: 'kylo',
