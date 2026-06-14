@@ -84,8 +84,10 @@ export async function getSession(sessionId, { studentId } = {}) {
   };
 }
 
-export async function submitStep({ sessionId, problemId, stepId, response, timeSpentMs = 0 }) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function submitStep({ sessionId, problemId, stepId, response, timeSpentMs = 0, studentId = null }) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
 
   const problem = session.problems.find((p) => p.problemId === problemId);
@@ -157,8 +159,10 @@ export async function submitStep({ sessionId, problemId, stepId, response, timeS
   };
 }
 
-export async function completeProblem({ sessionId, problemId }) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function completeProblem({ sessionId, problemId, studentId = null }) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
 
   const problem = session.problems.find((p) => p.problemId === problemId);
@@ -222,8 +226,10 @@ export async function completeProblem({ sessionId, problemId }) {
   };
 }
 
-export async function completeSession(sessionId) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function completeSession(sessionId, { studentId = null } = {}) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
 
   session.status = 'completed';
@@ -280,8 +286,10 @@ export async function completeSession(sessionId) {
   };
 }
 
-export async function abandonSession(sessionId) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function abandonSession(sessionId, { studentId = null } = {}) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
   session.status = 'abandoned';
   await session.save();
