@@ -39,6 +39,11 @@ export function legacyWorkingLookupForMistake(mistake = {}, studentId = '') {
   };
 }
 
+function toObjectIdSafe(value) {
+  const s = String(value || '').trim();
+  return mongoose.Types.ObjectId.isValid(s) ? new mongoose.Types.ObjectId(s) : null;
+}
+
 async function legacyStudentIdCandidates(studentId = '') {
   const canonical = normalizeLinkId(studentId);
   if (!canonical) return [];
@@ -139,7 +144,9 @@ export async function linkWorkingInsightToMistake(record = {}) {
   if (!mistake) {
     const legacy = legacyWorkingLookupForMistake(record, record.studentId);
     if (legacy) {
-      mistake = await Mistake.findOne(legacy);
+      const oid = toObjectIdSafe(legacy.studentId);
+      const legacyQuery = { ...legacy, ...(oid ? { studentId: oid } : {}) };
+      mistake = await Mistake.findOne(legacyQuery);
       strategy = mistake ? 'legacy_student_question_session' : '';
     }
   }

@@ -88,7 +88,7 @@ async function resolveWorkingStudentScope(req, explicitId = '', { allowAdultAll 
     return { query: {}, student: null, studentIds: [], legacyUserIds: [] };
   }
 
-  const student = process.env.QA_DISABLE_RATE_LIMIT === '1' && explicitId
+  const student = process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1' && explicitId
     ? await Student.findById(explicitId)
     : await resolveStudent(req, explicitId || undefined);
   if (!student) throw { status: 404, message: 'Student not found.' };

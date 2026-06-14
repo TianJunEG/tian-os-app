@@ -279,7 +279,7 @@ const fractionSkills = [
     strand: 'Applications',
     prerequisites: ['F003', 'F010', 'F016'],
     difficulty: 3,
-    singaporeLevel: ['P4', 'P5'],
+    singaporeLevel: ['P3', 'P4', 'P5'],
     mastery: { minimumAccuracy: 90, minimumQuestions: 20 },
     fluency: { targetAccuracy: 92, targetAverageSeconds: 20 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
