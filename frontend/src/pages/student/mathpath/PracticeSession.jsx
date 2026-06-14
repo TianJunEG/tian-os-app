@@ -433,7 +433,7 @@ function ReadAloudButton({ text }) {
     <button
       type="button"
       onClick={handleClick}
-      className={`inline-flex items-center gap-1.5 rounded-xl border-2 px-3 py-1.5 text-xs font-bold transition ${
+      className={`inline-flex items-center gap-1.5 rounded-xl border-2 px-3 py-2.5 text-xs font-bold transition ${
         speaking
           ? 'border-orange-400 bg-orange-50 text-orange-600'
           : 'border-sky-200 bg-white text-sky-600 hover:border-sky-400 hover:bg-sky-50'
@@ -1857,7 +1857,7 @@ export default function PracticeSession() {
               }
               navigate(exitTo, { replace: true });
             }}
-            className="rounded-lg border border-hairline bg-white px-3 py-1 text-xs font-semibold text-ink-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+            className="rounded-lg border border-hairline bg-white px-3 py-2 text-xs font-semibold text-ink-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
           >
             Exit practice
           </button>
@@ -1948,7 +1948,7 @@ export default function PracticeSession() {
             {!answered && answer && (
               <div className="mt-2 rounded-xl border border-hairline bg-white p-2">
                 <p className="mb-1 text-xs font-semibold text-ink-600">How sure are you?</p>
-                <div className="grid grid-cols-3 gap-1">
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                   {REFLECTION_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}

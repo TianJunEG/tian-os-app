@@ -21,7 +21,7 @@ export default function QuestionZoomControls({ value = 1, onChange }) {
         title="Zoom out"
         disabled={zoom <= MIN_ZOOM}
         onClick={() => setZoom(zoom - STEP)}
-        className="grid h-8 w-8 place-items-center rounded-md text-ink-600 transition hover:bg-slate-50 hover:text-navy-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="grid h-11 w-11 place-items-center rounded-md text-ink-600 transition hover:bg-slate-50 hover:text-navy-700 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ZoomOut className="h-4 w-4" />
       </button>
@@ -32,7 +32,7 @@ export default function QuestionZoomControls({ value = 1, onChange }) {
         title="Zoom in"
         disabled={zoom >= MAX_ZOOM}
         onClick={() => setZoom(zoom + STEP)}
-        className="grid h-8 w-8 place-items-center rounded-md text-ink-600 transition hover:bg-slate-50 hover:text-navy-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="grid h-11 w-11 place-items-center rounded-md text-ink-600 transition hover:bg-slate-50 hover:text-navy-700 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ZoomIn className="h-4 w-4" />
       </button>
@@ -42,7 +42,7 @@ export default function QuestionZoomControls({ value = 1, onChange }) {
         title="Reset zoom"
         disabled={zoom === 1}
         onClick={() => setZoom(1)}
-        className="grid h-8 w-8 place-items-center rounded-md text-ink-600 transition hover:bg-slate-50 hover:text-navy-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="grid h-11 w-11 place-items-center rounded-md text-ink-600 transition hover:bg-slate-50 hover:text-navy-700 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <RotateCcw className="h-4 w-4" />
       </button>

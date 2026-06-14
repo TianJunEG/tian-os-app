@@ -331,7 +331,7 @@ export default function FractionAnswerInput({
               else numeratorRef.current?.focus();
             });
           }}
-          className="min-h-10 min-w-[8rem] flex-1 rounded-xl border border-hairline bg-slate-50 px-3 py-1.5 text-center font-mono text-base text-ink-900 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-[9rem] sm:whitespace-nowrap"
+          className="min-h-10 min-w-[6rem] flex-1 rounded-xl border border-hairline bg-slate-50 px-3 py-1.5 text-center font-mono text-base text-ink-900 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[8rem] sm:max-w-[9rem] sm:whitespace-nowrap"
           aria-label="Math answer value"
         >
           {String(value || '').trim() || 'Tap to enter'}
