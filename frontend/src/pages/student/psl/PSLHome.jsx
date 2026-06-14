@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Brain, ChevronDown, ChevronRight, HelpCircle, Lock, Star, Target } from 'lucide-react';
+import { Brain, ChevronDown, ChevronRight, HelpCircle, Lock, Star, Target, Trophy, Clock, BarChart3 } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
@@ -41,12 +41,14 @@ export default function PSLHome() {
   const [filterLevel, setFilterLevel] = useState(null);
   const [filterHeuristic, setFilterHeuristic] = useState(searchParams.get('heuristic'));
   const [expanded, setExpanded] = useState({});
+  const [dashboard, setDashboard] = useState(null);
 
   useEffect(() => {
     pslAPI.home()
       .then((res) => setData(res.data))
       .catch((err) => setError(err.response?.data?.error || 'Failed to load'))
       .finally(() => setLoading(false));
+    pslAPI.dashboard().then((res) => setDashboard(res.data)).catch(() => {});
   }, []);
 
   const checkReadiness = async (skillId) => {
@@ -106,6 +108,31 @@ export default function PSLHome() {
           </div>
         </div>
       </div>
+
+      {dashboard?.overview?.totalSessions > 0 && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+            <Trophy className="mx-auto h-4 w-4" style={{ color: '#d9892e' }} />
+            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.skillsMastered}</p>
+            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Mastered</p>
+          </div>
+          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+            <BarChart3 className="mx-auto h-4 w-4" style={{ color: '#1f8a5b' }} />
+            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.averageAccuracy}%</p>
+            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Accuracy</p>
+          </div>
+          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+            <Target className="mx-auto h-4 w-4" style={{ color: '#2f80d8' }} />
+            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.skillsAttempted}</p>
+            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Attempted</p>
+          </div>
+          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+            <Clock className="mx-auto h-4 w-4" style={{ color: '#5a6675' }} />
+            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.totalSessions}</p>
+            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Sessions</p>
+          </div>
+        </div>
+      )}
 
       {data?.recommended && (
         <Card className="p-4" interactive>

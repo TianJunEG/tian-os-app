@@ -446,11 +446,11 @@ export default function PSLSession() {
 
   return (
     <div className="bg-dot-grid min-h-screen pb-8">
-      <div className="mx-auto max-w-[1180px] px-6 pt-6 sm:px-10">
+      <div className="mx-auto max-w-[1180px] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-10">
         {/* Step shell */}
-        <div className="step-shell">
+        <div className="step-shell !p-4 sm:!p-[22px_26px_26px]">
           {/* Header meta row */}
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-3">
               <span className="mono-label" style={{ color: '#8a93a3' }}>
                 Problem {problemIndex + 1} of {totalProblems}
@@ -462,8 +462,8 @@ export default function PSLSession() {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-3">
-              <span className="mono-label" style={{ color: '#d9892e' }}>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="mono-label hidden sm:inline" style={{ color: '#d9892e' }}>
                 Step {currentStepIdx + 1} of {STEP_IDS.length}
               </span>
               <button
@@ -486,15 +486,15 @@ export default function PSLSession() {
                 aria-label="Exit session"
               >
                 <X className="h-3.5 w-3.5" />
-                Exit
+                <span className="hidden sm:inline">Exit</span>
               </button>
             </div>
           </div>
 
           {/* Progress bar with labels */}
-          <div className="mb-5">
+          <div className="mb-4 sm:mb-5">
             <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
-            <div className="mt-1.5 flex" style={{ gap: 6 }}>
+            <div className="mt-1.5 hidden sm:flex" style={{ gap: 6 }}>
               {STEP_SHORT_LABELS.map((label, i) => (
                 <span
                   key={label}
@@ -516,7 +516,7 @@ export default function PSLSession() {
           {/* Two-column layout */}
           <div className="psl-session-grid">
             {/* Left column — notebook */}
-            <div className="ruled" style={{ padding: '22px 26px 26px', minHeight: '60vh' }}>
+            <div className="ruled px-4 py-4 sm:px-[26px] sm:py-[22px] sm:pb-[26px] sm:min-h-[60vh]">
               {/* Toolbar row */}
               <div className="mb-4 flex items-center justify-between" style={{ position: 'relative', zIndex: 2 }}>
                 <button type="button" className="chip-read-aloud">
@@ -545,7 +545,7 @@ export default function PSLSession() {
               </div>
 
               {/* Step title */}
-              <h2 className="mb-4" style={{ fontSize: '23px', fontWeight: 600, lineHeight: 1.3, color: '#232c39', position: 'relative', zIndex: 2 }}>
+              <h2 className="mb-3 text-lg sm:text-[23px] sm:mb-4" style={{ fontWeight: 600, lineHeight: 1.3, color: '#232c39', position: 'relative', zIndex: 2 }}>
                 {STEP_LABELS[currentStepId]}
               </h2>
 
@@ -557,8 +557,8 @@ export default function PSLSession() {
             </div>
 
             {/* Right column — action panel */}
-            <div className="flex flex-col gap-4" style={{ padding: '18px 0' }}>
-              <div className="flex-1 rounded-2xl border bg-white p-5" style={{ borderColor: '#e7eaef' }}>
+            <div className="flex flex-col gap-3 sm:gap-4 pt-2 sm:pt-[18px]">
+              <div className="flex-1 rounded-2xl border bg-white p-4 sm:p-5" style={{ borderColor: '#e7eaef' }}>
                 {renderActionPanel()}
 
                 {currentStepId !== 'check' && (
