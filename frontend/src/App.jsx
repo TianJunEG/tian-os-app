@@ -85,6 +85,7 @@ const FluencyHome = lazy(() => import('./pages/student/mathpath/fluency/FluencyH
 const FluencySkills = lazy(() => import('./pages/student/mathpath/fluency/FluencySkills'));
 const TimesTablesHome = lazy(() => import('./pages/student/mathpath/fluency/TimesTablesHome'));
 const TimesTablesFlashQuiz = lazy(() => import('./pages/student/mathpath/fluency/TimesTablesFlashQuiz'));
+const CheatSheet = lazy(() => import('./pages/student/mathpath/CheatSheet'));
 const MistakesHome = lazy(() => import('./pages/student/mathpath/MistakesHome'));
 const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'));
 const DiagnosticIntroScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticIntroScreen'));
@@ -421,6 +422,7 @@ function App() {
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
+          <Route path="/student/mathpath/cheatsheet/:sheetId" element={<CheatSheet />} />
           <Route path="/science" element={<ProtectedRoute><SciencePracticePage /></ProtectedRoute>} />
 
           {/* Auth Routes */}

@@ -1,0 +1,55 @@
+export default {
+  id: 'sg-p4-fr',
+  level: 'Primary 4',
+  issue: 1,
+  topic: 'Fractions',
+  subtitle: "Kylo's Ultimate Cheat Sheet",
+  mascot: 'kylo',
+  sections: [
+    {
+      title: 'Mixed → Improper',
+      code: 'Fr 1.1',
+      formula: 'Whole × Denominator + Numerator',
+      formulaNote: 'Keep the same denominator!',
+      explanation: 'Multiply the whole number by the bottom, then add the top!',
+      example: {
+        steps: ['2 ⅓ → (2 × 3) + 1 = 7'],
+        answer: '⁷⁄₃',
+      },
+      sfx: 'BAM!',
+      tip: null,
+    },
+    {
+      title: 'Fraction of a Set',
+      code: 'Fr 2.1',
+      formula: 'ᵃ⁄ᵦ of N = N ÷ b × a',
+      formulaNote: 'Divide first, then multiply!',
+      explanation: 'Divide the set by the bottom, multiply by the top!',
+      example: {
+        steps: ['¾ of 20', '20 ÷ 4 = 5 (one part)'],
+        answer: '5 × 3 = 15',
+      },
+      sfx: 'POW!',
+      tip: 'Draw a bar model — split into equal parts, shade the ones you need!',
+      barModel: { parts: 4, shaded: 3, value: 5 },
+    },
+    {
+      title: 'Add & Subtract Unlike Fractions',
+      code: 'Fr 3.1',
+      formula: 'Find LCD → Rewrite → Add/Subtract Tops',
+      formulaNote: 'Only add/subtract the numerators — denominators ≤ 12!',
+      explanation: 'Find the LCD, rewrite both fractions, then add the tops!',
+      example: {
+        steps: [
+          '⅓ + ¼',
+          'LCD of 3 & 4 = 12',
+          '⅓ = ⁴⁄₁₂ (×4)   ¼ = ³⁄₁₂ (×3)',
+        ],
+        answer: '⁴⁄₁₂ + ³⁄₁₂ = ⁷⁄₁₂',
+      },
+      sfx: 'KA-POW!',
+      tip: 'If one denominator divides the other, the bigger one IS the LCD! e.g. ⅓ + ⅙ → LCD = 6',
+      bossLevel: true,
+    },
+  ],
+};

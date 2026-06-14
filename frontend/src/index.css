@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -186,3 +186,138 @@ code {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* =====================================================================
+   Comic cheat-sheet styles (Marvel graphic-novel aesthetic)
+   ===================================================================== */
+.comic-masthead {
+  background: linear-gradient(135deg, #7f1d1d, #dc2626 40%, #ef4444);
+  overflow: hidden;
+}
+.comic-halftone-overlay {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 2px 2px, rgba(0,0,0,.18) 1px, transparent 1px);
+  background-size: 4px 4px;
+}
+.comic-title {
+  font-family: 'Bangers', cursive;
+  color: #fbbf24; letter-spacing: 5px;
+  text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+}
+.comic-subtitle {
+  font-family: 'Nunito', sans-serif;
+  font-size: 11px; color: #fef3c7; font-weight: 800;
+  letter-spacing: 3px; text-transform: uppercase;
+}
+.comic-issue-badge {
+  background: #fbbf24; color: #000;
+  font-family: 'Bangers', cursive; font-size: 12px;
+  padding: 4px 10px; border: 3px solid #000; border-radius: 4px;
+  transform: rotate(3deg); letter-spacing: 1px; line-height: 1.2;
+  text-align: center; box-shadow: 2px 2px 0 rgba(0,0,0,.3);
+  white-space: nowrap;
+}
+
+.comic-panel {
+  background: #fff; border: 3.5px solid #000;
+  position: relative; overflow: hidden;
+}
+.comic-panel--boss { border-color: #dc2626; border-width: 4px; }
+.comic-halftone-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 1.5px 1.5px, rgba(0,0,0,.025) 1px, transparent 1px);
+  background-size: 3px 3px; pointer-events: none; z-index: 1;
+}
+.comic-panel-num {
+  position: absolute; top: 0; left: 0; z-index: 5;
+  background: #000; color: #fbbf24;
+  font-family: 'Bangers', cursive; font-size: 14px;
+  padding: 2px 10px; letter-spacing: 1px;
+}
+.comic-boss-badge {
+  display: inline-block; background: #dc2626; color: #fff;
+  font-family: 'Bangers', cursive; font-size: 13px;
+  padding: 3px 12px; border: 2.5px solid #000; border-radius: 3px;
+  transform: rotate(-2deg); letter-spacing: 2px; box-shadow: 3px 3px 0 #000;
+}
+
+.comic-speech-bubble {
+  position: relative; background: #fff;
+  border: 2.5px solid #000; border-radius: 22px;
+  padding: 8px 12px; font-family: 'Nunito', sans-serif;
+  font-weight: 700; color: #1a1a1a; line-height: 1.4;
+}
+.comic-speech-bubble::after {
+  content: ''; position: absolute; bottom: -10px; left: 18px;
+  width: 0; height: 0; border: 10px solid transparent;
+  border-top: 12px solid #fff; border-bottom: none;
+}
+.comic-speech-bubble::before {
+  content: ''; position: absolute; bottom: -14px; left: 16px;
+  width: 0; height: 0; border: 12px solid transparent;
+  border-top: 14px solid #000; border-bottom: none;
+}
+.comic-em { color: #dc2626; font-style: normal; font-weight: 900; }
+
+.comic-formula-card {
+  background: #fef9c3; border: 3px solid #000; border-radius: 6px;
+  padding: 10px 14px; text-align: center;
+  box-shadow: 4px 4px 0 #000;
+}
+.comic-formula-text {
+  font-family: 'Nunito', sans-serif; font-size: 15px;
+  font-weight: 900; color: #78350f; line-height: 1.35;
+}
+@media (min-width: 640px) { .comic-formula-text { font-size: 17px; } }
+.comic-formula-note {
+  font-family: 'Nunito', sans-serif; font-size: 11px;
+  font-weight: 700; color: #92400e; margin-top: 3px;
+  font-style: italic;
+}
+
+.comic-example {
+  background: #f0fdf4; border: 2.5px solid #000; border-radius: 6px;
+  padding: 8px 12px; font-family: 'Nunito', sans-serif;
+  font-weight: 700; color: #14532d;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.12);
+}
+.comic-example-answer { color: #dc2626; font-size: 15px; font-weight: 900; margin-top: 4px; }
+.comic-sfx {
+  font-family: 'Bangers', cursive; color: #dc2626;
+  text-shadow: 2px 2px 0 #fbbf24, 3px 3px 0 #000;
+  letter-spacing: 3px; display: inline-block;
+}
+
+.comic-label {
+  font-family: 'Bangers', cursive; font-size: 12px;
+  color: #1e3a5f; letter-spacing: 1px;
+}
+.comic-bar-model {
+  display: flex; height: 28px; border: 2.5px solid #000;
+  border-radius: 4px; overflow: hidden; flex: 1;
+}
+.comic-bar-on, .comic-bar-off {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; border-right: 2px solid #000;
+}
+.comic-bar-on:last-child, .comic-bar-off:last-child { border-right: none; }
+.comic-bar-on { background: #2563eb; color: #fff; }
+.comic-bar-off { background: #94a3b8; color: #334155; }
+
+.comic-tip {
+  background: #fdf2f8; border: 2.5px solid #000; border-radius: 6px;
+  padding: 7px 10px; font-size: 11px; font-weight: 700; color: #9d174d;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.08);
+}
+.comic-tip-title {
+  font-family: 'Bangers', cursive; font-size: 14px;
+  color: #be185d; letter-spacing: 1px; display: block; margin-bottom: 2px;
+}
+
+.comic-footer {
+  background: #000; color: #fbbf24;
+  font-family: 'Bangers', cursive; font-size: 13px;
+  text-align: center; padding: 10px;
+  letter-spacing: 4px; border-top: 4px solid #dc2626;
+}
+@media (min-width: 640px) { .comic-footer { font-size: 14px; letter-spacing: 5px; } }

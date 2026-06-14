@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, AlertTriangle, BookOpen } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
+
+const CHEAT_SHEET_MAP = {
+  'sg-p4-wn': 'sg-p4-wn',
+  'sg-p4-fm': 'sg-p4-fm',
+  'sg-p4-fo': 'sg-p4-fo',
+  'sg-p4-fr': 'sg-p4-fr',
+  'sg-p4-dec': 'sg-p4-dec',
+  'sg-p4-wp': 'sg-p4-wp',
+  'sg-p4-stat': 'sg-p4-stat',
+};
 import { Card, Button, StatusBadge, ProgressBar, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 
 // One topic: its skills with mastery, and practice entry points.
@@ -57,7 +67,14 @@ export default function TopicDetail() {
       <PageHeader
         title={topic.name}
         subtitle={`${topic.moeLevel} · ${topic.masteredCount}/${topic.total} skills mastered`}
-        action={<Button size="m" icon={ArrowRight} disabled={starting} onClick={() => startPractice({ skillIds: topic.skills.map((s) => s.skillId) })}>{starting ? 'Starting…' : 'Practise topic'}</Button>}
+        action={
+          <div className="flex items-center gap-2">
+            {CHEAT_SHEET_MAP[topicId] && (
+              <Button variant="secondary" size="m" icon={BookOpen} onClick={() => navigate(`/student/mathpath/cheatsheet/${CHEAT_SHEET_MAP[topicId]}`)}>Cheat Sheet</Button>
+            )}
+            <Button size="m" icon={ArrowRight} disabled={starting} onClick={() => startPractice({ skillIds: topic.skills.map((s) => s.skillId) })}>{starting ? 'Starting…' : 'Practise topic'}</Button>
+          </div>
+        }
       />
 
       <div className="space-y-3">

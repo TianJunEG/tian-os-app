@@ -1,0 +1,50 @@
+export default {
+  id: 'sg-p4-fo',
+  level: 'Primary 4',
+  issue: 4,
+  topic: 'Four Operations',
+  subtitle: "Kylo's Ultimate Cheat Sheet",
+  mascot: 'kylo',
+  sections: [
+    {
+      title: 'Multiply up to 4-digit by 1-digit',
+      code: 'FO 3.1a',
+      formula: 'Multiply each digit from the RIGHT, carry as you go',
+      formulaNote: 'Standard multiplication algorithm!',
+      explanation: 'Start from the ones — multiply each digit, carry the extra to the next column!',
+      example: {
+        steps: ['3 247 × 6', '7×6=42 (write 2, carry 4)', '4×6=24+4=28 (write 8, carry 2)', '2×6=12+2=14 (write 4, carry 1)', '3×6=18+1=19'],
+        answer: '19 482',
+      },
+      sfx: 'BAM!',
+      tip: null,
+    },
+    {
+      title: 'Multiply up to 3-digit by 2-digit',
+      code: 'FO 3.1b',
+      formula: 'Multiply by ONES, then by TENS, then ADD',
+      formulaNote: 'Two partial products!',
+      explanation: 'Multiply by the ones digit first, then by the tens digit, then add the two results!',
+      example: {
+        steps: ['243 × 37', '243 × 7 = 1 701 (ones)', '243 × 30 = 7 290 (tens)'],
+        answer: '1 701 + 7 290 = 8 991',
+      },
+      sfx: 'POW!',
+      tip: 'Don\'t forget to add a 0 when multiplying by the tens digit!',
+    },
+    {
+      title: 'Divide up to 4-digit by 1-digit',
+      code: 'FO 3.2',
+      formula: 'Long division: Divide → Multiply → Subtract → Bring down',
+      formulaNote: 'Work from LEFT to RIGHT!',
+      explanation: 'Use long division — divide, multiply, subtract, bring down. Repeat!',
+      example: {
+        steps: ['4 872 ÷ 6', '48 ÷ 6 = 8', '07 ÷ 6 = 1 r1', '12 ÷ 6 = 2'],
+        answer: '812',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Does Mum Sell Burgers Daily? Divide, Multiply, Subtract, Bring Down!',
+      bossLevel: true,
+    },
+  ],
+};
