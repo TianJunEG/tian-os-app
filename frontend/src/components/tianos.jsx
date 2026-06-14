@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 
 export const GOLD = '#F59E0B';
 export const GOLD_SOFT = 'rgba(245,158,11,0.25)';
-export const CORAL = '#34D399';
-export const CORAL_GLOW = 'rgba(52,211,153,0.35)';
+export const CORAL = '#F59E0B';
+export const CORAL_GLOW = 'rgba(245,158,11,0.35)';
 export const EMERALD = '#10B981';
 export const EMERALD_LIGHT = '#34D399';
 export const TEAL = '#065F46';
