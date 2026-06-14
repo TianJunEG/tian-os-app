@@ -10,12 +10,15 @@ const practiceSessionSchema = new mongoose.Schema({
   feature: { type: String, default: null },
   mode: {
     type: String,
-    enum: ['independent', 'guided', 'fluency', 'diagnostic', 'warmup', 'practice', 'remediation', 'mastery_check', 'story'],
+    enum: ['independent', 'guided', 'fluency', 'diagnostic', 'warmup', 'practice', 'remediation', 'mastery_check', 'story', 'free_practice', 'exam_prep'],
     default: 'independent',
   },
   skillIds: { type: [mongoose.Schema.Types.ObjectId], ref: 'Skill', default: [] },
   // Set when this session was launched from an assignment.
   assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', default: null },
+  timeLimitMinutes: { type: Number, default: null },
+  taxonomyTopicIds: { type: [String], default: [] },
+  taxonomySkillIds: { type: [String], default: [] },
   status: { type: String, enum: ['active', 'completed', 'abandoned'], default: 'active' },
   startedAt: { type: Date, default: Date.now },
   endedAt: { type: Date, default: null },

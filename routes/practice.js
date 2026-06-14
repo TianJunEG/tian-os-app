@@ -12,11 +12,14 @@ import { recordAttempt } from '../utils/masteryEngine.js';
 import { isCorrectWithContext, checkKeyPoints } from '../utils/answerCheck.js';
 import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
+import { generateQuestionsForSkill } from '../utils/questionTemplates.js';
+import { getSkillById as getTaxonomySkill } from '../shared/mathpath/curriculum/primaryMathTaxonomy.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import { updateFluencyCompletionForSession } from '../services/fluency/fluencyCompletionService.js';
 
 const router = express.Router();
 const FRAMEWORK_SKILL_ID_PATTERN = /^F\d{3}$/i;
+const TAXONOMY_SKILL_ID_PATTERN = /^p[1-6]-/;
 
 function answerInputTypeFor(answer = '') {
   const raw = String(answer || '').trim();
@@ -55,7 +58,7 @@ async function resolveSkillRefToIds(refs = []) {
 const clientQuestion = (q) => ({
   questionId: q._id, stem: q.stem, type: q.type, choices: q.choices,
   difficulty: q.difficulty, skillId: q.skillId?._id || q.skillId,
-  skillName: q.skillId?.name, topicId: q.skillId?.topicId,
+  skillName: q.skillName || q.skillId?.name, topicId: q.skillId?.topicId,
   visual: q.visual || null,
   diagramSpec: q.diagramSpec || null,
   diagram: q.diagram || null,
@@ -79,7 +82,7 @@ router.post('/sessions', protect, async (req, res) => {
     const {
       mode = 'independent', feature = null, skillId, skillIds = [], topicId = null,
       questionCount = 10, assignmentId = null, excludeQuestionId = null,
-      questionIds = null,
+      questionIds = null, timeLimitMinutes = null, taxonomyTopicIds = [],
     } = req.body;
 
     let sessionFeature = feature;
@@ -125,6 +128,37 @@ router.post('/sessions', protect, async (req, res) => {
       const byId = new Map(docs.map((d) => [String(d._id), d]));
       questions = explicitIds.map((id) => byId.get(String(id))).filter(Boolean);
       targetSkillIds = [...new Set(questions.map((q) => String(q.skillId?._id || q.skillId)))];
+    } else if (targetSkillIds.some((id) => TAXONOMY_SKILL_ID_PATTERN.test(id))) {
+      // Taxonomy-based practice: generate questions procedurally from skill names.
+      const taxIds = targetSkillIds.filter((id) => TAXONOMY_SKILL_ID_PATTERN.test(id));
+      const perSkill = Math.max(2, Math.ceil(questionCount / taxIds.length));
+      let seq = 0;
+      for (const tid of taxIds) {
+        const taxSkill = getTaxonomySkill(tid);
+        if (!taxSkill) continue;
+        const generated = generateQuestionsForSkill(taxSkill.skillName, perSkill);
+        for (const q of generated) {
+          questions.push({
+            _id: `gen-${tid}-${seq++}`,
+            stem: q.stem,
+            type: q.type || 'short_answer',
+            choices: q.choices || [],
+            answer: q.answer,
+            difficulty: q.difficulty || 'medium',
+            workedSolution: q.workedSolution || '',
+            explanation: q.explanation || q.workedSolution || '',
+            skillId: tid,
+            skillName: taxSkill.skillName,
+            visual: q.visual || null,
+          });
+        }
+      }
+      // Shuffle and trim to requested count.
+      for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+      }
+      questions = questions.slice(0, questionCount);
     } else {
       targetSkillIds = await resolveSkillRefToIds(targetSkillIds);
       if (!targetSkillIds.length) return res.status(400).json({ error: 'No skill selected.' });
@@ -138,9 +172,15 @@ router.post('/sessions', protect, async (req, res) => {
     // Science is its own top-level module; all MathPath features stay 'MathPath'
     // so their mistakes share the MathPath review bucket.
     const sessionModule = /science/i.test(sessionFeature || '') ? 'Science Adaptive Revision' : 'MathPath';
+    const isTaxonomySession = targetSkillIds.some((id) => TAXONOMY_SKILL_ID_PATTERN.test(id));
     const session = await PracticeSession.create({
       studentId: student._id, workspaceId: student.workspaceId,
-      module: sessionModule, feature: sessionFeature, mode, skillIds: targetSkillIds, assignmentId,
+      module: sessionModule, feature: sessionFeature, mode,
+      skillIds: isTaxonomySession ? [] : targetSkillIds,
+      assignmentId,
+      timeLimitMinutes: timeLimitMinutes || null,
+      taxonomyTopicIds: taxonomyTopicIds || [],
+      taxonomySkillIds: isTaxonomySession ? targetSkillIds : [],
       status: 'active',
     });
     if (assignmentId) await Assignment.findByIdAndUpdate(assignmentId, { status: 'in_progress', sessionId: session._id });
@@ -172,7 +212,7 @@ router.post('/sessions', protect, async (req, res) => {
       })),
     ]);
 
-    res.json({ session_id: session._id, mode, feature: sessionFeature, items: questions.map(clientQuestion) });
+    res.json({ session_id: session._id, mode, feature: sessionFeature, timeLimitMinutes: session.timeLimitMinutes || null, items: questions.map(clientQuestion) });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start session.' });
   }

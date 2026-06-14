@@ -109,6 +109,14 @@ export const contextAPI = {
 };
 
 // MathPath (Phase 2): mastery, topic map, practice sessions, mistakes.
+export const taxonomyAPI = {
+  levels: () => api.get('/taxonomy/levels'),
+  topics: (params) => api.get('/taxonomy/topics', { params }),
+  skills: (params) => api.get('/taxonomy/skills', { params }),
+  examPrep: (params) => api.get('/taxonomy/exam-prep', { params }),
+  weaknessDrill: (params) => api.get('/taxonomy/weakness-drill', { params }),
+};
+
 export const diagnosticsAPI = {
   domains: () => api.get('/diagnostics/domains'),
   startDiagnostic: (data) => api.post('/diagnostics/start', data),

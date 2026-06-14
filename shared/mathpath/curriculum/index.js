@@ -22,6 +22,34 @@ export {
 } from './fractionCurriculumMappings.js';
 
 export {
+  TOPICS as PRIMARY_MATH_TOPICS,
+  SKILLS as PRIMARY_MATH_SKILLS,
+  STRANDS,
+  QUESTION_TYPES,
+  MISCONCEPTION_TAGS,
+  getTopicsByLevel,
+  getSkillsByTopic,
+  getSkillById,
+  getTopicById,
+  getSkillsByLevel,
+  getPrerequisites,
+  getPrerequisiteTree,
+  getExamPrepTopics,
+  getWeaknessDrillSkills,
+  getSkillByFractionsAlias,
+  getTopicsByStrand,
+  getAllLevels,
+  getTaxonomyStats,
+} from './primaryMathTaxonomy.js';
+
+export {
+  getGeneratorSkillIds,
+  getGeneratorFile,
+  hasCoverage,
+  getCoverageStats,
+} from './taxonomyGeneratorMap.js';
+
+export {
   normalizeCurriculum,
   getSkillCurriculumMapping,
   getSkillsByCountryCurriculumLevel,

@@ -65,6 +65,9 @@ const StoryModeDomainRoute = lazy(() => import('./pages/student/mathpath/StoryMo
 const FractionsModelTrainer = lazy(() => import('./pages/student/mathpath/FractionsModelTrainer'));
 const SimilarQuestionPractice = lazy(() => import('./pages/student/mathpath/SimilarQuestionPractice'));
 const UploadPaperPage = lazy(() => import('./pages/student/mathpath/UploadPaperPage'));
+const PracticeModeSelector = lazy(() => import('./pages/student/mathpath/PracticeModeSelector'));
+const FreePractice = lazy(() => import('./pages/student/mathpath/FreePractice'));
+const ExamPrepSetup = lazy(() => import('./pages/student/mathpath/ExamPrepSetup'));
 const MistakeReview = lazy(() => import('./pages/student/mathpath/MistakeReview'));
 const StudentAssignments = lazy(() => import('./pages/student/StudentAssignments'));
 const InformalAssessment = lazy(() => import('./pages/student/InformalAssessment'));
@@ -561,6 +564,9 @@ function App() {
             <Route path="/student" element={<StudentDashboard />} />
             <Route path="/student/profile" element={<StudentProfile />} />
             <Route path="/student/mathpath" element={<MathPathHome />} />
+            <Route path="/student/mathpath/practice-modes" element={<PracticeModeSelector />} />
+            <Route path="/student/mathpath/free-practice" element={<FreePractice />} />
+            <Route path="/student/mathpath/exam-prep" element={<ExamPrepSetup />} />
             <Route path="/student/mathpath/topics/:topicId" element={<TopicDetail />} />
             <Route path="/student/mathpath/practice/:sessionId" element={<PracticeSession />} />
             <Route path="/student/mathpath/results/:sessionId" element={<PracticeResult />} />

@@ -444,6 +444,14 @@ export default function MathPathHome() {
       <section>
         <h2 className="mb-4 font-display text-2xl font-semibold text-ink-900">Quick Actions</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Card className="flex h-full flex-col border-violet-100 bg-gradient-to-br from-violet-50 via-white to-amber-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-100 text-violet-700"><Zap className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Practice Modes</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">Free practice, exam prep, or diagnostic — pick your mode.</p>
+            <Button to="/student/mathpath/practice-modes" variant="secondary" className="mt-4 w-full border-violet-200 bg-white/80 text-violet-700 hover:bg-violet-50">
+              Choose Mode
+            </Button>
+          </Card>
           <Card className="flex h-full flex-col border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><Layers className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">{effectiveStudentLevel} Mathematics</h3>
