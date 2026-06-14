@@ -18,9 +18,7 @@ function extractTappableNumbers(text) {
 export default function StoryPanel({ storyText = '', highlightMode = false, highlightedNumbers = [], onToggleNumber }) {
   if (!highlightMode) {
     return (
-      <div className="rounded-2xl border border-gold-200/60 bg-gold-50/40 p-4 sm:p-5">
-        <p className="text-base leading-relaxed text-ink-700">{storyText}</p>
-      </div>
+      <p className="text-[15.5px] leading-[1.95] text-ink-700">{storyText}</p>
     );
   }
 
@@ -35,9 +33,9 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
   if (cursor < storyText.length) parts.push({ type: 'text', value: storyText.slice(cursor) });
 
   return (
-    <div className="rounded-2xl border border-gold-200/60 bg-gold-50/40 p-4 sm:p-5">
-      <p className="text-sm font-medium text-gold-600 mb-2">Tap the numbers you need:</p>
-      <p className="text-base leading-relaxed text-ink-700">
+    <div>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#d9892e' }}>Tap the numbers you need:</p>
+      <p className="text-[15.5px] leading-[1.95] text-ink-700">
         {parts.map((part, i) => {
           if (part.type === 'number') {
             const selected = highlightedNumbers.includes(part.num);
@@ -46,11 +44,11 @@ export default function StoryPanel({ storyText = '', highlightMode = false, high
                 key={i}
                 type="button"
                 onClick={() => onToggleNumber?.(part.num)}
-                className={`mx-0.5 inline-block min-h-[44px] min-w-[44px] rounded-lg px-2 py-1 font-mono font-bold transition-colors ${
-                  selected
-                    ? 'bg-gold-400 text-white shadow-sm'
-                    : 'bg-white/60 text-ink-700 ring-1 ring-gold-300 hover:bg-gold-100 animate-pulse-subtle'
-                }`}
+                className="mx-0.5 inline-block min-h-[44px] min-w-[44px] rounded-lg px-2 py-1 font-mono font-bold transition-colors"
+                style={selected
+                  ? { background: '#d9892e', color: '#fff', boxShadow: '0 2px 6px rgba(217,137,46,0.3)' }
+                  : { background: 'rgba(255,255,255,0.6)', color: '#232c39', boxShadow: 'inset 0 0 0 1.5px #f0dcb8' }
+                }
               >
                 {part.value}
               </button>
