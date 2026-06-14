@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
+import { getMascotForModule } from '../../config/mascots';
 
 // Tian OS shared UI primitives — emerald green design system for ages 7–12.
 // Nunito font, rounded shapes, warm celebrations. Built on Tailwind tokens
@@ -166,10 +167,19 @@ export function PageHeader({ title, subtitle, action }) {
 }
 
 // ─── EmptyState ─────────────────────────────────────────────────────
-export function EmptyState({ icon: Icon, message, children }) {
+export function EmptyState({ icon: Icon, message, children, mascot }) {
   return (
     <Card className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-      {Icon && <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600"><Icon className="h-6 w-6" /></span>}
+      {mascot ? (
+        <img
+          src={`/mascots/${mascot}.png`}
+          alt=""
+          className="h-16 w-16 rounded-full object-cover"
+          onError={(e) => { e.target.style.display = 'none'; }}
+        />
+      ) : Icon ? (
+        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600"><Icon className="h-6 w-6" /></span>
+      ) : null}
       <p className="max-w-sm text-base text-slate-500">{message}</p>
       {children}
     </Card>
@@ -206,13 +216,25 @@ export function Spinner({ label = 'Loading…' }) {
 
 // ─── ModuleCard — one module on the dashboard grid ──────────────────
 export function ModuleCard({ module, footer }) {
-  const { name, purpose, icon: Icon, path, status } = module;
+  const { name, purpose, icon: Icon, path, status, key } = module;
   const soon = status === 'soon';
+  const mascot = getMascotForModule(key);
   const inner = (
     <Card interactive={!soon} className={`flex h-full flex-col p-5 ${soon ? 'opacity-70' : ''}`}>
       <div className="mb-3 flex items-center justify-between">
         <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><Icon className="h-5 w-5" /></span>
-        {soon && <Badge tone="neutral">Coming soon</Badge>}
+        <div className="flex items-center gap-2">
+          {mascot && (
+            <img
+              src={`/mascots/${mascot.key}.png`}
+              alt={mascot.name}
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-offset-1"
+              style={{ '--tw-ring-color': mascot.color }}
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          )}
+          {soon && <Badge tone="neutral">Coming soon</Badge>}
+        </div>
       </div>
       <h3 className="font-bold text-slate-700">{name}</h3>
       <p className="mt-1 flex-1 text-sm text-slate-500">{purpose}</p>
