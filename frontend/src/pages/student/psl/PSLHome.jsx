@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Brain, ChevronDown, ChevronRight, HelpCircle, Lock, Star, Target, Trophy, Clock, BarChart3 } from 'lucide-react';
+import { Brain, ChevronDown, ChevronRight, HelpCircle, Star, Target, Trophy, Clock, BarChart3 } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
-import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
 
 const HEURISTIC_LABELS = {
@@ -22,12 +21,30 @@ const LEVEL_LABELS = { P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'P
 const LEVEL_ORDER = ['P3', 'P4', 'P5', 'P6'];
 
 function MasteryBadge({ mastery }) {
-  if (!mastery) return <span className="text-xs text-ink-400">Not started</span>;
+  if (!mastery) return <span className="text-xs" style={{ color: '#8a93a3' }}>Not started</span>;
   const { status, score } = mastery;
-  if (status === 'mastered') return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">Mastered</span>;
-  if (status === 'learning') return <span className="rounded-full bg-gold-100 px-2 py-0.5 text-xs font-semibold text-gold-700">{score}%</span>;
-  if (status === 'needs_review') return <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">{score}%</span>;
-  return <span className="text-xs text-ink-400">Not started</span>;
+  if (status === 'mastered')
+    return (
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+        style={{ color: '#1f9d57', background: '#f3faf6' }}>
+        Mastered
+      </span>
+    );
+  if (status === 'learning')
+    return (
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+        style={{ color: '#d9892e', background: '#fbf1e1' }}>
+        {score}%
+      </span>
+    );
+  if (status === 'needs_review')
+    return (
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+        style={{ color: '#d8694f', background: '#fbece9' }}>
+        {score}%
+      </span>
+    );
+  return <span className="text-xs" style={{ color: '#8a93a3' }}>Not started</span>;
 }
 
 export default function PSLHome() {
@@ -78,8 +95,27 @@ export default function PSLHome() {
     }
   };
 
-  if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
-  if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
+  if (loading) {
+    return (
+      <div className="bg-dot-grid min-h-screen">
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#dde1e8] border-t-[#d9892e]" />
+          <p className="text-sm font-medium" style={{ color: '#6b7585' }}>Loading skills…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-dot-grid min-h-screen">
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 p-6 text-center">
+          <p className="text-sm font-medium" style={{ color: '#d8694f' }}>{error}</p>
+          <button onClick={() => window.location.reload()} className="btn-gold-outline">Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   const skills = data?.skills || [];
   const filtered = skills.filter((sk) =>
@@ -96,179 +132,192 @@ export default function PSLHome() {
   }, {});
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-6 sm:space-y-6 sm:p-6">
-      <div>
+    <div className="bg-dot-grid min-h-screen pb-8">
+      <div className="mx-auto max-w-2xl space-y-4 px-3 pt-4 pb-6 sm:space-y-6 sm:px-6 sm:pt-6">
+
+        {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-100">
-            <Brain className="h-5 w-5 text-gold-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: '#fbf1e1' }}>
+            <Brain className="h-5 w-5" style={{ color: '#d9892e' }} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-ink-800">Problem Solving Lab</h1>
-            <p className="text-sm text-ink-500">Learn to solve word problems step by step</p>
+            <h1 className="text-lg font-bold sm:text-xl" style={{ color: '#232c39' }}>Problem Solving Lab</h1>
+            <p className="text-sm" style={{ color: '#6b7585' }}>Learn to solve word problems step by step</p>
           </div>
         </div>
-      </div>
 
-      {dashboard?.overview?.totalSessions > 0 && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
-            <Trophy className="mx-auto h-4 w-4" style={{ color: '#d9892e' }} />
-            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.skillsMastered}</p>
-            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Mastered</p>
-          </div>
-          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
-            <BarChart3 className="mx-auto h-4 w-4" style={{ color: '#1f8a5b' }} />
-            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.averageAccuracy}%</p>
-            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Accuracy</p>
-          </div>
-          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
-            <Target className="mx-auto h-4 w-4" style={{ color: '#2f80d8' }} />
-            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.skillsAttempted}</p>
-            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Attempted</p>
-          </div>
-          <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
-            <Clock className="mx-auto h-4 w-4" style={{ color: '#5a6675' }} />
-            <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.totalSessions}</p>
-            <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Sessions</p>
-          </div>
-        </div>
-      )}
-
-      {data?.recommended && (
-        <Card className="p-4" interactive>
-          <div className="flex items-center gap-3">
-            <Target className="h-5 w-5 text-gold-500" />
-            <div className="flex-1">
-              <p className="text-xs font-medium text-gold-600">Recommended</p>
-              <p className="text-sm font-semibold text-ink-700">
-                {skills.find((s) => s.skillId === data.recommended)?.name || data.recommended}
-              </p>
+        {/* Dashboard stats */}
+        {dashboard?.overview?.totalSessions > 0 && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+              <Trophy className="mx-auto h-4 w-4" style={{ color: '#d9892e' }} />
+              <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.skillsMastered}</p>
+              <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Mastered</p>
             </div>
-            <button
-              onClick={() => handleStart(data.recommended)}
-              disabled={starting === data.recommended}
-              className="rounded-xl bg-gold-400 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gold-500 disabled:opacity-50"
-            >
-              {starting === data.recommended ? 'Starting...' : 'Start'}
-            </button>
+            <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+              <BarChart3 className="mx-auto h-4 w-4" style={{ color: '#1f8a5b' }} />
+              <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.averageAccuracy}%</p>
+              <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Accuracy</p>
+            </div>
+            <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+              <Target className="mx-auto h-4 w-4" style={{ color: '#2f80d8' }} />
+              <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.skillsAttempted}</p>
+              <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Attempted</p>
+            </div>
+            <div className="rounded-xl border border-[#dde1e8] bg-[#f5f6f8] p-3 text-center">
+              <Clock className="mx-auto h-4 w-4" style={{ color: '#5a6675' }} />
+              <p className="mt-1 font-mono text-lg font-bold" style={{ color: '#232c39' }}>{dashboard.overview.totalSessions}</p>
+              <p className="text-[10px] font-medium" style={{ color: '#8a93a3' }}>Sessions</p>
+            </div>
           </div>
-        </Card>
-      )}
+        )}
 
-      <Card className="p-4" interactive>
+        {/* Recommended skill */}
+        {data?.recommended && (
+          <div className="step-shell !p-4">
+            <div className="flex items-center gap-3">
+              <Target className="h-5 w-5" style={{ color: '#d9892e' }} />
+              <div className="flex-1">
+                <p className="mono-label" style={{ color: '#d9892e' }}>Recommended</p>
+                <p className="text-sm font-semibold" style={{ color: '#232c39' }}>
+                  {skills.find((s) => s.skillId === data.recommended)?.name || data.recommended}
+                </p>
+              </div>
+              <button
+                onClick={() => handleStart(data.recommended)}
+                disabled={starting === data.recommended}
+                className="btn-gold !h-9 !px-4 !text-sm"
+              >
+                {starting === data.recommended ? 'Starting…' : 'Start'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Decision Guide link */}
         <button
           type="button"
           onClick={() => navigate('/student/psl/decision-guide')}
-          className="flex w-full items-center gap-3 text-left"
+          className="step-shell flex w-full items-center gap-3 !p-4 text-left transition-colors hover:bg-white/60"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
-            <HelpCircle className="h-4 w-4 text-purple-600" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: '#f0e8fb' }}>
+            <HelpCircle className="h-4 w-4" style={{ color: '#7c3aed' }} />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-ink-700">Decision Guide</p>
-            <p className="text-xs text-ink-400">Not sure which heuristic to use? Answer a few yes/no questions to find out.</p>
+            <p className="text-sm font-semibold" style={{ color: '#232c39' }}>Decision Guide</p>
+            <p className="text-xs" style={{ color: '#6b7585' }}>Not sure which heuristic to use? Answer a few yes/no questions to find out.</p>
           </div>
-          <ChevronRight className="h-4 w-4 text-ink-300" />
+          <ChevronRight className="h-4 w-4" style={{ color: '#8a93a3' }} />
         </button>
-      </Card>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
-        <button
-          type="button"
-          onClick={() => setFilterLevel(null)}
-          className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${!filterLevel ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
-        >
-          All ({skills.length})
-        </button>
-        {LEVEL_ORDER.map((lvl) => levelCounts[lvl] > 0 && (
-          <button
-            key={lvl}
-            type="button"
-            onClick={() => setFilterLevel(filterLevel === lvl ? null : lvl)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${filterLevel === lvl ? 'bg-gold-400 text-white' : 'bg-ink-100 text-ink-500 hover:bg-ink-200'}`}
-          >
-            {LEVEL_LABELS[lvl]} ({levelCounts[lvl]})
-          </button>
-        ))}
-      </div>
-
-      {filterHeuristic && (
-        <div className="flex items-center gap-2 rounded-lg bg-purple-50 px-3 py-2">
-          <span className="flex-1 text-xs font-semibold text-purple-700">
-            Showing: {HEURISTIC_LABELS[filterHeuristic] || filterHeuristic}
-          </span>
+        {/* Level filter pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible">
           <button
             type="button"
-            onClick={() => setFilterHeuristic(null)}
-            className="text-xs font-medium text-purple-500 hover:text-purple-700"
+            onClick={() => setFilterLevel(null)}
+            className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors"
+            style={!filterLevel
+              ? { background: '#d9892e', color: '#fff' }
+              : { background: '#eef0f4', color: '#5a6675' }}
           >
-            Show all
+            All ({skills.length})
           </button>
+          {LEVEL_ORDER.map((lvl) => levelCounts[lvl] > 0 && (
+            <button
+              key={lvl}
+              type="button"
+              onClick={() => setFilterLevel(filterLevel === lvl ? null : lvl)}
+              className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors"
+              style={filterLevel === lvl
+                ? { background: '#d9892e', color: '#fff' }
+                : { background: '#eef0f4', color: '#5a6675' }}
+            >
+              {LEVEL_LABELS[lvl]} ({levelCounts[lvl]})
+            </button>
+          ))}
         </div>
-      )}
 
-      {grouped.map((group, gi) => {
-        const isOpen = expanded[group.heuristic] ?? gi === 0;
-        const masteredCount = group.skills.filter((s) => s.mastery?.status === 'mastered').length;
-        return (
-          <div key={group.heuristic}>
+        {/* Heuristic filter banner */}
+        {filterHeuristic && (
+          <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: '#f0e8fb' }}>
+            <span className="flex-1 text-xs font-semibold" style={{ color: '#7c3aed' }}>
+              Showing: {HEURISTIC_LABELS[filterHeuristic] || filterHeuristic}
+            </span>
             <button
               type="button"
-              onClick={() => setExpanded((prev) => ({ ...prev, [group.heuristic]: !isOpen }))}
-              className="flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-ink-50"
+              onClick={() => setFilterHeuristic(null)}
+              className="text-xs font-medium" style={{ color: '#7c3aed' }}
             >
-              {isOpen
-                ? <ChevronDown className="h-4 w-4 text-ink-400" />
-                : <ChevronRight className="h-4 w-4 text-ink-400" />}
-              <h2 className="flex-1 text-sm font-semibold text-ink-500">{group.label}</h2>
-              <span className="text-xs text-ink-400">
-                {masteredCount > 0 && <span className="text-emerald-600">{masteredCount}/</span>}
-                {group.skills.length} skills
-              </span>
+              Show all
             </button>
-            {isOpen && (
-              <div className="mt-1 space-y-2">
-                {group.skills.map((skill) => {
-                  const blocked = readiness[skill.skillId] && !readiness[skill.skillId].allReady;
-                  return (
-                    <div key={skill.skillId}>
-                      <Card className="p-4" interactive>
+          </div>
+        )}
+
+        {/* Skill groups */}
+        {grouped.map((group, gi) => {
+          const isOpen = expanded[group.heuristic] ?? gi === 0;
+          const masteredCount = group.skills.filter((s) => s.mastery?.status === 'mastered').length;
+          return (
+            <div key={group.heuristic}>
+              <button
+                type="button"
+                onClick={() => setExpanded((prev) => ({ ...prev, [group.heuristic]: !isOpen }))}
+                className="mb-2 flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-white/50"
+              >
+                {isOpen
+                  ? <ChevronDown className="h-4 w-4" style={{ color: '#8a93a3' }} />
+                  : <ChevronRight className="h-4 w-4" style={{ color: '#8a93a3' }} />}
+                <h2 className="mono-label flex-1" style={{ color: '#5a6675' }}>{group.label}</h2>
+                <span className="text-xs" style={{ color: '#8a93a3' }}>
+                  {masteredCount > 0 && <span style={{ color: '#1f9d57' }}>{masteredCount}/</span>}
+                  {group.skills.length} skills
+                </span>
+              </button>
+              {isOpen && (
+                <div className="space-y-2">
+                  {group.skills.map((skill) => {
+                    const blocked = readiness[skill.skillId] && !readiness[skill.skillId].allReady;
+                    return (
+                      <div key={skill.skillId}>
                         <button
                           type="button"
-                          className="flex w-full items-center gap-3 text-left"
+                          className="step-shell flex w-full items-center gap-3 !p-4 text-left transition-colors hover:bg-white/60"
                           onClick={() => handleStart(skill.skillId)}
                           disabled={starting === skill.skillId}
                         >
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-100">
+                          <div
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                            style={{ background: '#eef0f4' }}
+                          >
                             {skill.mastery?.status === 'mastered' ? (
-                              <Star className="h-4 w-4 text-gold-500" />
+                              <Star className="h-4 w-4" style={{ color: '#d9892e' }} />
                             ) : (
-                              <span className="text-xs font-bold text-ink-400">
+                              <span className="text-xs font-bold" style={{ color: '#8a93a3' }}>
                                 {skill.difficulty}
                               </span>
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-ink-700 truncate">{skill.name}</p>
-                            <p className="text-xs text-ink-400 line-clamp-2">{skill.description}</p>
+                            <p className="text-sm font-semibold truncate" style={{ color: '#232c39' }}>{skill.name}</p>
+                            <p className="text-xs line-clamp-2" style={{ color: '#6b7585' }}>{skill.description}</p>
                           </div>
                           <MasteryBadge mastery={skill.mastery} />
-                          <ChevronRight className="h-4 w-4 text-ink-300" />
+                          <ChevronRight className="h-4 w-4 shrink-0" style={{ color: '#8a93a3' }} />
                         </button>
-                      </Card>
-                      {blocked && (
-                        <div className="mt-2 ml-4">
-                          <PrerequisiteGate blockers={readiness[skill.skillId].blockers} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
+                        {blocked && (
+                          <div className="mt-2 ml-4">
+                            <PrerequisiteGate blockers={readiness[skill.skillId].blockers} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
