@@ -310,6 +310,7 @@ export const pslAPI = {
   completeSession: (sessionId) => api.post(`/psl/sessions/${sessionId}/complete`),
   abandonSession: (sessionId) => api.patch(`/psl/sessions/${sessionId}/abandon`),
   mistakes: () => api.get('/psl/mistakes'),
+  getSolution: (sessionId, problemId) => api.get(`/psl/sessions/${sessionId}/problems/${problemId}/solution`),
 };
 
 // Mechanisms Playground (Secondary D&T). Completing a mechanism's concept check

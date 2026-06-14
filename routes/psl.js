@@ -179,6 +179,38 @@ router.patch('/sessions/:sid/abandon', protect, async (req, res) => {
   }
 });
 
+router.get('/sessions/:sid/problems/:pid/solution', protect, async (req, res) => {
+  try {
+    const session = await PSLSession.findOne({ sessionId: req.params.sid }).lean();
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+
+    const problem = session.problems.find((p) => p.problemId === req.params.pid);
+    if (!problem) return res.status(404).json({ error: 'Problem not found' });
+
+    const attempt = await PSLAttempt.findOne({
+      sessionId: req.params.sid,
+      problemId: req.params.pid,
+    }).lean();
+
+    const wrongSteps = (attempt?.steps || []).filter((s) => !s.correct && !s.partial).length;
+    const totalHints = (attempt?.steps || []).reduce((sum, s) => sum + (s.hintsUsed || 0), 0);
+
+    if (wrongSteps < 2 && totalHints < 2) {
+      return res.status(403).json({ error: 'Keep trying! You can do this.' });
+    }
+
+    res.json({
+      solutionText: problem.solutionText || '',
+      visualSpec: problem.visualSpec || null,
+      heuristic: problem.heuristic || '',
+      structure: problem.structure || '',
+      unknownPosition: problem.unknownPosition || '',
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
 router.get('/mistakes', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);

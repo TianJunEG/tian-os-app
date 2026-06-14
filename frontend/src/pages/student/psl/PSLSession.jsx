@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, VolumeX, X } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, VolumeX, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
@@ -12,6 +12,7 @@ import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
 import MascotBubble from './components/MascotBubble';
 import ReasoningInput from './components/ReasoningInput';
+import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
@@ -56,12 +57,15 @@ export default function PSLSession() {
   const [hintLoading, setHintLoading] = useState(false);
   const [hintExhausted, setHintExhausted] = useState(false);
   const [voice, setVoice] = useState(isVoiceEnabled);
+  const [solution, setSolution] = useState(null);
+  const [solutionLoading, setSolutionLoading] = useState(false);
   const stepStartRef = useRef(Date.now());
 
   useEffect(() => {
     stepStartRef.current = Date.now();
     setHints([]);
     setHintExhausted(false);
+    setSolution(null);
   }, [currentStepIdx]);
 
   useEffect(() => {
@@ -184,6 +188,7 @@ export default function PSLSession() {
           setStreak(0);
           setHints([]);
           setHintExhausted(false);
+          setSolution(null);
         } else {
           await pslAPI.completeSession(sessionId);
           navigate(`/student/psl/results/${sessionId}`);
@@ -212,6 +217,22 @@ export default function PSLSession() {
   const updateResponse = (stepId, data) => {
     setStepResponses((prev) => ({ ...prev, [stepId]: { ...prev[stepId], ...data } }));
   };
+
+  const handleShowSolution = async () => {
+    if (solutionLoading || solution || !currentProblem) return;
+    setSolutionLoading(true);
+    try {
+      const res = await pslAPI.getSolution(sessionId, currentProblem.problemId);
+      setSolution(res.data);
+    } catch {
+      setSolution(null);
+    } finally {
+      setSolutionLoading(false);
+    }
+  };
+
+  const wrongCount = Object.values(completedSteps).filter((s) => !s.correct && !s.partial).length;
+  const canShowSolution = wrongCount >= 2 && !solution;
 
   const getStepChoices = (stepId) =>
     currentProblem?.scaffoldSteps?.find((s) => s.stepId === stepId)?.choices || [];
@@ -422,6 +443,30 @@ export default function PSLSession() {
           misconceptionTag={feedback.misconceptionTag}
           onContinue={handleContinue}
         />
+      )}
+
+      {solution && (
+        <div className="mt-3">
+          <WorkedSolutionWalkthrough
+            solutionText={solution.solutionText}
+            visualSpec={solution.visualSpec}
+            heuristic={solution.heuristic}
+            structure={solution.structure}
+            unknownPosition={solution.unknownPosition}
+          />
+        </div>
+      )}
+
+      {canShowSolution && (
+        <button
+          type="button"
+          onClick={handleShowSolution}
+          disabled={solutionLoading}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50/60 px-4 py-2.5 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-100 disabled:opacity-40"
+        >
+          <BookOpen className="h-4 w-4" />
+          {solutionLoading ? 'Loading...' : 'Show me how'}
+        </button>
       )}
 
       {!feedback && (
