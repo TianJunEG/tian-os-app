@@ -3,7 +3,7 @@ import React from 'react';
 const STEPS = [
   { id: 'understand', label: 'Read' },
   { id: 'identify_info', label: 'Clues' },
-  { id: 'identify_question', label: 'Goal' },
+  { id: 'identify_question', label: 'Question' },
   { id: 'plan', label: 'Plan' },
   { id: 'solve', label: 'Solve' },
   { id: 'check', label: 'Check' },

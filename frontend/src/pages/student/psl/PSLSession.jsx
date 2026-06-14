@@ -258,115 +258,57 @@ export default function PSLSession() {
     }
   })();
 
-  return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-6 sm:p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-ink-400">
-            Problem {problemIndex + 1} of {totalProblems}
-          </span>
-          {streak >= 2 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-600 animate-bounce" style={{ animationDuration: '1s', animationIterationCount: 1 }}>
-              <Flame className="h-3 w-3" />
-              {streak}
-            </span>
-          )}
-        </div>
-        <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => { const next = !voice; setVoice(next); setVoiceEnabled(next); }}
-            className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${voice ? 'text-orange-500 hover:bg-orange-50' : 'text-ink-300 hover:bg-ink-100'}`}
-            aria-label={voice ? 'Mute Lejo' : 'Let Lejo speak'}
-          >
-            {voice ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              try { await pslAPI.abandonSession(sessionId); } catch {}
-              navigate('/student/psl');
+  const STEP_SHORT_LABELS = ['Read', 'Clues', 'Question', 'Plan', 'Solve', 'Check'];
+
+  const voiceScript = (() => {
+    if (completedSteps[currentStepId]) return null;
+    const scripts = getVoiceScripts(currentProblem.heuristic, currentProblem.structure, currentProblem.unknownPosition);
+    const stepIdx = STEP_IDS.indexOf(currentStepId);
+    return stepIdx >= 0 && stepIdx < 4 ? scripts.steps?.[stepIdx] : null;
+  })();
+
+  const renderNotebookContent = () => {
+    switch (currentStepId) {
+      case 'understand':
+      case 'identify_question':
+        return (
+          <StoryPanel
+            storyText={currentProblem.storyText}
+            highlightMode={false}
+          />
+        );
+      case 'identify_info':
+        return (
+          <StoryPanel
+            storyText={currentProblem.storyText}
+            highlightMode
+            highlightedNumbers={stepResponses.identify_info?.numbers || []}
+            onToggleNumber={(num) => {
+              const current = stepResponses.identify_info?.numbers || [];
+              const next = current.includes(num) ? current.filter((n) => n !== num) : [...current, num];
+              updateResponse('identify_info', { numbers: next });
             }}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-600"
-            aria-label="Exit session"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      <StoryPanel
-        storyText={currentProblem.storyText}
-        highlightMode={currentStepId === 'identify_info'}
-        highlightedNumbers={stepResponses.identify_info?.numbers || []}
-        onToggleNumber={(num) => {
-          const current = stepResponses.identify_info?.numbers || [];
-          const next = current.includes(num) ? current.filter((n) => n !== num) : [...current, num];
-          updateResponse('identify_info', { numbers: next });
-        }}
-      />
-
-      <div className="rounded-2xl border border-ink-200 bg-white p-4 sm:p-5">
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-400">
-          Step {currentStepIdx + 1}: {STEP_LABELS[currentStepId] || currentStepId}
-        </h3>
-
-        {!completedSteps[currentStepId] && (() => {
-          const scripts = getVoiceScripts(
-            currentProblem.heuristic,
-            currentProblem.structure,
-            currentProblem.unknownPosition,
-          );
-          const stepIdx = STEP_IDS.indexOf(currentStepId);
-          const text = stepIdx >= 0 && stepIdx < 4 ? scripts.steps?.[stepIdx] : null;
-          return text ? <MascotBubble text={text} /> : null;
-        })()}
-
-        {currentStepId === 'understand' && (
-          <UnderstandStep
-            choices={getStepChoices('understand')}
-            selectedIndex={stepResponses.understand?.selectedIndex}
-            onSelect={(idx) => updateResponse('understand', { selectedIndex: idx })}
           />
-        )}
-
-        {currentStepId === 'identify_info' && (
-          <p className="text-sm text-ink-600">
-            Tap the numbers in the story above that you need to solve this problem.
-            You have selected <strong>{(stepResponses.identify_info?.numbers || []).length}</strong> number(s).
-          </p>
-        )}
-
-        {currentStepId === 'identify_question' && (
-          <QuestionIdentifier
-            choices={getStepChoices('identify_question').length ? getStepChoices('identify_question') : undefined}
-            selectedIndex={stepResponses.identify_question?.selectedIndex}
-            onSelect={(idx) => updateResponse('identify_question', { selectedIndex: idx })}
-          />
-        )}
-
-        {currentStepId === 'plan' && (
+        );
+      case 'plan':
+        return (
           <>
-            <PlanDispatcher
-              scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
-              response={stepResponses.plan}
-              onChange={(val) => updateResponse('plan', val)}
-            />
-            <a
-              href="/student/psl/decision-guide"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 flex items-center gap-1.5 text-xs font-medium text-gold-600 hover:text-gold-700"
-            >
-              <Compass className="h-3.5 w-3.5" />
-              Not sure which strategy? Open the Decision Guide
-            </a>
+            <StoryPanel storyText={currentProblem.storyText} highlightMode={false} />
+            <div className="mt-4">
+              <PlanDispatcher
+                scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'plan')}
+                response={stepResponses.plan}
+                onChange={(val) => updateResponse('plan', val)}
+              />
+            </div>
           </>
-        )}
-
-        {currentStepId === 'solve' && (
+        );
+      case 'solve':
+        return (
           <>
+            <div className="mb-4 rounded-xl border border-[#edf0f4] bg-[#fafbfc] p-3">
+              <p className="text-sm leading-relaxed" style={{ color: '#5a6675' }}>{currentProblem.storyText}</p>
+            </div>
             <SolveDispatcher
               scaffoldStep={currentProblem.scaffoldSteps?.find((s) => s.stepId === 'solve')}
               response={stepResponses.solve || {}}
@@ -394,9 +336,99 @@ export default function PSLSession() {
               </div>
             )}
           </>
-        )}
+        );
+      case 'check':
+        return (
+          <div className="space-y-4">
+            <StoryPanel storyText={currentProblem.storyText} highlightMode={false} />
+            <ReasoningInput
+              value={stepResponses.check?.reasoning || ''}
+              onChange={(val) => updateResponse('check', { reasoning: val })}
+              defaultExpanded
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
-        {currentStepId === 'check' && (
+  const renderActionPanel = () => {
+    switch (currentStepId) {
+      case 'understand':
+        return (
+          <div className="flex flex-col gap-4">
+            <div>
+              <h4 className="text-lg font-bold" style={{ color: '#232c39' }}>Ready?</h4>
+              <p className="mt-1 text-sm" style={{ color: '#5a6675' }}>
+                Take your time reading. We'll break it down together, one step at a time.
+              </p>
+            </div>
+            <UnderstandStep
+              choices={getStepChoices('understand')}
+              selectedIndex={stepResponses.understand?.selectedIndex}
+              onSelect={(idx) => updateResponse('understand', { selectedIndex: idx })}
+            />
+          </div>
+        );
+      case 'identify_info': {
+        const nums = stepResponses.identify_info?.numbers || [];
+        const expected = currentProblem?.scaffoldSteps?.find((s) => s.stepId === 'identify_info')?.expectedNumbers?.length || 2;
+        return (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-medium" style={{ color: '#5a6675' }}>
+              Tap the numbers in the story that you need to solve this problem.
+            </p>
+            {nums.map((n, i) => (
+              <div key={i} className="flex items-center gap-2 rounded-xl border p-3" style={{ background: '#f3faf6', borderColor: '#d8ece1' }}>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full" style={{ background: '#1f8a5b', color: '#fff' }}>
+                  <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5" /></svg>
+                </span>
+                <span className="font-mono font-bold" style={{ color: '#232c39' }}>{n}</span>
+              </div>
+            ))}
+            <p className="mono-label" style={{ color: '#1f8a5b' }}>
+              {nums.length} of {expected} clues found
+            </p>
+          </div>
+        );
+      }
+      case 'identify_question':
+        return (
+          <QuestionIdentifier
+            choices={getStepChoices('identify_question').length ? getStepChoices('identify_question') : undefined}
+            selectedIndex={stepResponses.identify_question?.selectedIndex}
+            onSelect={(idx) => updateResponse('identify_question', { selectedIndex: idx })}
+          />
+        );
+      case 'plan':
+        return (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm" style={{ color: '#5a6675' }}>
+              Choose the right strategy and operation for this problem.
+            </p>
+            <a
+              href="/student/psl/decision-guide"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs font-medium text-gold-600 hover:text-gold-700"
+            >
+              <Compass className="h-3.5 w-3.5" />
+              Not sure? Open the Decision Guide
+            </a>
+          </div>
+        );
+      case 'solve':
+        return (
+          <div className="flex flex-col gap-3">
+            <h4 className="text-base font-bold" style={{ color: '#232c39' }}>Your answer</h4>
+            <p className="text-xs" style={{ color: '#8a93a3' }}>
+              Stuck? Tap the helper for a hint.
+            </p>
+          </div>
+        );
+      case 'check':
+        return (
           <CheckPanel
             answer={stepResponses.solve?.answer}
             selected={stepResponses.check?.reasonable}
@@ -406,79 +438,199 @@ export default function PSLSession() {
               setCurrentStepIdx(STEP_IDS.indexOf('solve'));
             }}
           />
-        )}
+        );
+      default:
+        return null;
+    }
+  };
 
-        <ReasoningInput
-          value={stepResponses[currentStepId]?.reasoning || ''}
-          onChange={(val) => updateResponse(currentStepId, { reasoning: val })}
-          defaultExpanded={currentStepId === 'understand' || currentStepId === 'plan'}
-        />
+  return (
+    <div className="bg-dot-grid min-h-screen pb-8">
+      <div className="mx-auto max-w-[1180px] px-6 pt-6 sm:px-10">
+        {/* Step shell */}
+        <div className="step-shell">
+          {/* Header meta row */}
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="mono-label" style={{ color: '#8a93a3' }}>
+                Problem {problemIndex + 1} of {totalProblems}
+              </span>
+              {streak >= 2 && (
+                <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold animate-bounce" style={{ background: '#fbf1e1', color: '#d9892e', animationDuration: '1s', animationIterationCount: 1 }}>
+                  <Flame className="h-3 w-3" />
+                  {streak}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="mono-label" style={{ color: '#d9892e' }}>
+                Step {currentStepIdx + 1} of {STEP_IDS.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => { const next = !voice; setVoice(next); setVoiceEnabled(next); }}
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors"
+                style={{ color: voice ? '#d9892e' : '#94A3B8' }}
+                aria-label={voice ? 'Mute Lejo' : 'Let Lejo speak'}
+              >
+                {voice ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try { await pslAPI.abandonSession(sessionId); } catch {}
+                  navigate('/student/psl');
+                }}
+                className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium transition-colors"
+                style={{ color: '#8a93a3' }}
+                aria-label="Exit session"
+              >
+                <X className="h-3.5 w-3.5" />
+                Exit
+              </button>
+            </div>
+          </div>
+
+          {/* Progress bar with labels */}
+          <div className="mb-5">
+            <StepProgressBar currentStepIdx={currentStepIdx} completedSteps={completedSteps} />
+            <div className="mt-1.5 flex" style={{ gap: 6 }}>
+              {STEP_SHORT_LABELS.map((label, i) => (
+                <span
+                  key={label}
+                  className="flex-1 text-center"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: '10.5px',
+                    fontWeight: i === currentStepIdx ? 600 : 500,
+                    color: i === currentStepIdx ? '#d9892e' : i < currentStepIdx ? '#8a93a3' : '#c0c5cf',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Two-column layout */}
+          <div className="psl-session-grid">
+            {/* Left column — notebook */}
+            <div className="ruled" style={{ padding: '22px 26px 26px', minHeight: '60vh' }}>
+              {/* Toolbar row */}
+              <div className="mb-4 flex items-center justify-between" style={{ position: 'relative', zIndex: 2 }}>
+                <button type="button" className="chip-read-aloud">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>
+                  Read aloud
+                </button>
+                {!feedback && !completedSteps[currentStepId] && (
+                  <button
+                    type="button"
+                    onClick={handleRequestHint}
+                    disabled={hintLoading || hintExhausted}
+                    className="flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-[13.5px] font-semibold transition-colors disabled:opacity-40"
+                    style={{ borderColor: '#fbf1e1', background: '#fff', color: '#d9892e' }}
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                    {hintLoading ? '...' : 'Hint'}
+                  </button>
+                )}
+              </div>
+
+              {/* Step label */}
+              <div className="mb-2" style={{ position: 'relative', zIndex: 2 }}>
+                <span className="mono-label" style={{ color: '#a8743a', fontSize: '11px', letterSpacing: '0.16em' }}>
+                  STEP {currentStepIdx + 1} &middot; {STEP_SHORT_LABELS[currentStepIdx]?.toUpperCase()}
+                </span>
+              </div>
+
+              {/* Step title */}
+              <h2 className="mb-4" style={{ fontSize: '23px', fontWeight: 600, lineHeight: 1.3, color: '#232c39', position: 'relative', zIndex: 2 }}>
+                {STEP_LABELS[currentStepId]}
+              </h2>
+
+              {/* Step-specific notebook content */}
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                {voiceScript && <MascotBubble text={voiceScript} />}
+                {renderNotebookContent()}
+              </div>
+            </div>
+
+            {/* Right column — action panel */}
+            <div className="flex flex-col gap-4" style={{ padding: '18px 0' }}>
+              <div className="flex-1 rounded-2xl border bg-white p-5" style={{ borderColor: '#e7eaef' }}>
+                {renderActionPanel()}
+
+                {currentStepId !== 'check' && (
+                  <ReasoningInput
+                    key={currentStepId}
+                    value={stepResponses[currentStepId]?.reasoning || ''}
+                    onChange={(val) => updateResponse(currentStepId, { reasoning: val })}
+                    defaultExpanded={currentStepId === 'understand' || currentStepId === 'plan'}
+                  />
+                )}
+              </div>
+
+              {/* Hints */}
+              {hints.length > 0 && !feedback && (
+                <div className="space-y-2">
+                  {hints.map((hint, i) => (
+                    <MascotBubble key={i} text={hint} />
+                  ))}
+                </div>
+              )}
+
+              {/* Feedback */}
+              {feedback && (
+                <StepFeedbackCard
+                  correct={feedback.correct}
+                  partial={feedback.partial}
+                  feedback={feedback.feedback}
+                  misconceptionTag={feedback.misconceptionTag}
+                  onContinue={handleContinue}
+                />
+              )}
+
+              {/* Worked solution */}
+              {solution && (
+                <WorkedSolutionWalkthrough
+                  solutionText={solution.solutionText}
+                  visualSpec={solution.visualSpec}
+                  heuristic={solution.heuristic}
+                  structure={solution.structure}
+                  unknownPosition={solution.unknownPosition}
+                />
+              )}
+
+              {canShowSolution && (
+                <button
+                  type="button"
+                  onClick={handleShowSolution}
+                  disabled={solutionLoading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-colors disabled:opacity-40"
+                  style={{ borderColor: '#cfe3f7', background: '#eaf3fc', color: '#2f80d8' }}
+                >
+                  <BookOpen className="h-4 w-4" />
+                  {solutionLoading ? 'Loading...' : 'Show me how'}
+                </button>
+              )}
+
+              {/* Primary CTA */}
+              {!feedback && (
+                <button
+                  type="button"
+                  onClick={handleSubmitStep}
+                  disabled={!canSubmit || submitting}
+                  className="btn-gold w-full disabled:opacity-40"
+                >
+                  {submitting ? 'Checking...' : currentStepId === 'understand' ? "I've read it" : 'Check'}
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-
-      {hints.length > 0 && !feedback && (
-        <div className="space-y-2">
-          {hints.map((hint, i) => (
-            <MascotBubble key={i} text={hint} />
-          ))}
-        </div>
-      )}
-
-      {!feedback && !completedSteps[currentStepId] && (
-        <button
-          type="button"
-          onClick={handleRequestHint}
-          disabled={hintLoading || hintExhausted}
-          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-gold-300 bg-gold-50/50 px-4 py-2.5 text-xs font-medium text-gold-700 transition-colors hover:bg-gold-50 disabled:opacity-40"
-        >
-          <HelpCircle className="h-3.5 w-3.5" />
-          {hintLoading ? 'Thinking...' : hintExhausted ? 'No more hints' : hints.length > 0 ? 'Another hint?' : 'Need a hint?'}
-        </button>
-      )}
-
-      {feedback && (
-        <StepFeedbackCard
-          correct={feedback.correct}
-          partial={feedback.partial}
-          feedback={feedback.feedback}
-          misconceptionTag={feedback.misconceptionTag}
-          onContinue={handleContinue}
-        />
-      )}
-
-      {solution && (
-        <div className="mt-3">
-          <WorkedSolutionWalkthrough
-            solutionText={solution.solutionText}
-            visualSpec={solution.visualSpec}
-            heuristic={solution.heuristic}
-            structure={solution.structure}
-            unknownPosition={solution.unknownPosition}
-          />
-        </div>
-      )}
-
-      {canShowSolution && (
-        <button
-          type="button"
-          onClick={handleShowSolution}
-          disabled={solutionLoading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50/60 px-4 py-2.5 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-100 disabled:opacity-40"
-        >
-          <BookOpen className="h-4 w-4" />
-          {solutionLoading ? 'Loading...' : 'Show me how'}
-        </button>
-      )}
-
-      {!feedback && (
-        <button
-          type="button"
-          onClick={handleSubmitStep}
-          disabled={!canSubmit || submitting}
-          className="w-full rounded-xl bg-gold-400 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-500 disabled:opacity-40"
-        >
-          {submitting ? 'Checking...' : 'Check'}
-        </button>
-      )}
     </div>
   );
 }
