@@ -42,10 +42,10 @@ function InitialFallback({ mascot, name, size }) {
 }
 
 export default function MascotAvatar({ name, size = 'md', className = '', showRing = true }) {
+  const [imgFailed, setImgFailed] = useState(false);
   const mascot = getMascot(name);
   if (!mascot) return null;
 
-  const [imgFailed, setImgFailed] = useState(false);
   const imgSrc = `/mascots/${name}.png`;
   const sizeClass = SIZE_CLASSES[size] || SIZE_CLASSES.md;
   const ringClass = showRing ? `${RING_CLASSES[size] || RING_CLASSES.md} ring-offset-2` : '';

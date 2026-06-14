@@ -110,8 +110,9 @@ router.post('/sessions/:sid/problems/:pid/step', protect, async (req, res) => {
 
 router.post('/sessions/:sid/problems/:pid/hint', protect, async (req, res) => {
   try {
+    const student = await resolveStudent(req);
     const { stepId } = req.body;
-    const session = await PSLSession.findOne({ sessionId: req.params.sid });
+    const session = await PSLSession.findOne({ sessionId: req.params.sid, studentId: student._id });
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const problem = session.problems.find((p) => p.problemId === req.params.pid);
@@ -181,7 +182,8 @@ router.patch('/sessions/:sid/abandon', protect, async (req, res) => {
 
 router.get('/sessions/:sid/problems/:pid/solution', protect, async (req, res) => {
   try {
-    const session = await PSLSession.findOne({ sessionId: req.params.sid }).lean();
+    const student = await resolveStudent(req);
+    const session = await PSLSession.findOne({ sessionId: req.params.sid, studentId: student._id }).lean();
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const problem = session.problems.find((p) => p.problemId === req.params.pid);
@@ -192,7 +194,7 @@ router.get('/sessions/:sid/problems/:pid/solution', protect, async (req, res) =>
       problemId: req.params.pid,
     }).lean();
 
-    const wrongSteps = (attempt?.steps || []).filter((s) => !s.correct && !s.partial).length;
+    const wrongSteps = (attempt?.steps || []).filter((s) => s.response !== undefined && !s.correct && !s.partial).length;
     const totalHints = (attempt?.steps || []).reduce((sum, s) => sum + (s.hintsUsed || 0), 0);
 
     if (wrongSteps < 2 && totalHints < 2) {
@@ -246,7 +248,7 @@ router.get('/dashboard', protect, async (req, res) => {
       const skSessions = sessions.filter((s) => s.skillId === sk.skillId);
       const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
       if (!skSessions.length && !skAttempts.length) continue;
-      const mastered = masteryRecs.find((r) => r.skillId?.toString() === sk.skillId && r.status === 'mastered');
+      const mastered = masteryRecs.find((r) => r.skillId?.toString() === sk._id?.toString() && r.status === 'mastered');
       const avgScore = skAttempts.length
         ? Math.round((skAttempts.reduce((a, at) => a + at.overallScore, 0) / skAttempts.length) * 100)
         : 0;
