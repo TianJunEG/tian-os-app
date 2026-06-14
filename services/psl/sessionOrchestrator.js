@@ -165,12 +165,15 @@ export async function completeProblem({ sessionId, problemId }) {
   if (!problem) throw Object.assign(new Error('Problem not found'), { status: 404 });
   problem.status = 'completed';
 
-  const attempt = await PSLAttempt.findOne({ sessionId, problemId }).lean();
-  if (attempt) {
+  const [attempt, pslSkill] = await Promise.all([
+    PSLAttempt.findOne({ sessionId, problemId }).lean(),
+    PSLSkill.findOne({ skillId: session.skillId }).lean(),
+  ]);
+  if (attempt && pslSkill) {
     try {
       await recordAttempt({
         studentId: session.studentId,
-        skillId: session.skillId,
+        skillId: pslSkill._id,
         workspaceId: session.workspaceId,
         correct: attempt.overallCorrect,
         timeMs: attempt.totalTimeMs,
