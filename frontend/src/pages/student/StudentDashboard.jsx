@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Flame,
   Gem,
+  Lightbulb,
   PenLine,
   Search,
   Sparkles,
@@ -887,6 +888,7 @@ export default function StudentDashboard() {
   const [profileSummary, setProfileSummary] = useState(null);
   const [learningTimeline, setLearningTimeline] = useState([]);
   const [resetting, setResetting] = useState(false);
+  const [expandedCards, setExpandedCards] = useState({ a: false, q: false, w: false, c: false, li: false });
 
   // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
   // see real pipeline output, not synthetic dashboard data.
@@ -1058,77 +1060,229 @@ export default function StudentDashboard() {
   };
 
   if (isUpperPrimaryDashboard) {
+    const metrics = buildUpperPrimaryMetricCards(dashboardAnalytics);
+    const dashShadow = '0 8px 26px -16px rgba(30,42,66,0.30), 0 1px 2px rgba(30,42,66,0.05)';
+    const monoFont = "'JetBrains Mono', ui-monospace, monospace";
+    const dateNow = new Date();
+    const dateLabel = `${['SUN','MON','TUE','WED','THU','FRI','SAT'][dateNow.getDay()]} ${dateNow.getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][dateNow.getMonth()]}`;
+    const toggleCard = (k) => setExpandedCards((s) => ({ ...s, [k]: !s[k] }));
+
+    const cBuckets = dashboardAnalytics.confidenceBuckets || {};
+    const cIncorrect = Number(cBuckets.confidentIncorrect || 0);
+    const cUnsureCorrect = Number(cBuckets.unsureCorrect || 0);
+    const dashInsight = buildStudentInsight({
+      correct: !cIncorrect,
+      confidence: cIncorrect ? 'high' : cUnsureCorrect ? 'low' : 'high',
+      occurrences: cIncorrect || cUnsureCorrect || Number(dashboardAnalytics.questionsAnswered || 0),
+      skillName: vm.currentSkill?.skillName || 'your current skill',
+      recommendedSkillName: vm.currentSkill?.skillName || 'your current skill',
+      nextStep: vm.nextAction?.explanation || 'Continue with the recommended activity.',
+      strongImprovement: Number(dashboardAnalytics.accuracyRate || 0) >= 80,
+    });
+    const insightSummary = cIncorrect > 0
+      ? 'confident but answered incorrectly'
+      : cUnsureCorrect > 0
+        ? 'unsure but answered correctly'
+        : 'confidence aligned with performance';
+    const confidenceSubtitle = cIncorrect > 0 ? 'sure-but-slipped moments' : cUnsureCorrect > 0 ? 'unsure-but-correct moments' : null;
+
+    const cardBase = {
+      cursor: 'pointer', background: '#fff', borderRadius: 22,
+      boxShadow: dashShadow, padding: '22px 24px',
+      display: 'flex', flexDirection: 'column', minHeight: 196,
+      transition: 'box-shadow .2s ease',
+    };
+
     return (
-      <main className="student-visual-upper space-y-5 bg-transparent">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-navy-700">Hi, {firstName}! <span aria-hidden>👋</span></p>
-            <h1 className="mt-1 flex items-center gap-2 font-display text-3xl font-semibold tracking-[-0.02em] text-navy-700">
-              Here's your plan for today <Sparkles className="h-6 w-6 text-blue-300" />
-            </h1>
-            <p className="mt-2 text-sm text-ink-600">Let's keep building your math skills!</p>
+      <main style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", color: '#232c39', background: '#eef1f5', minHeight: '100vh', padding: '40px 36px 56px' }}>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+
+          {/* Header */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between" style={{ marginBottom: 24 }}>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', color: '#1c2433' }}>
+                Hi {firstName} {'—'} here's your week
+              </div>
+              <div style={{ fontFamily: monoFont, fontSize: 12.5, color: '#8a93a3', marginTop: 4, letterSpacing: '0.02em' }}>
+                Tap any card to see what it means
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {canResetStudentState && (
+                <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
+                  {resetting ? 'Resetting...' : 'Reset'}
+                </Button>
+              )}
+              <Button to="/student/profile" size="s" variant="secondary" icon={UserCircle}>Profile</Button>
+              <span style={{ fontFamily: monoFont, fontSize: 11.5, color: '#aab2bf', letterSpacing: '0.06em' }}>{dateLabel}</span>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {canResetStudentState && (
-              <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
-                {resetting ? 'Resetting...' : 'Reset Demo Student'}
-              </Button>
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+
+            {/* Accuracy */}
+            <div onClick={() => toggleCard('a')} style={cardBase}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#e7f3ec', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1f8a5b' }}>
+                  <Target size={23} />
+                </div>
+                <div style={{ color: '#1f8a5b', transition: 'transform .25s ease', transform: expandedCards.a ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                  <ChevronRight size={20} />
+                </div>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#1f8a5b' }}>
+                Accuracy <span style={{ fontWeight: 500, color: '#5aa982' }}>(this week)</span>
+              </div>
+              <div style={{ fontSize: 46, fontWeight: 800, color: '#1c2433', lineHeight: 1.05, marginTop: 4 }}>{metrics.accuracy.value}</div>
+              {expandedCards.a && (
+                <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>{metrics.accuracy.body}</div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 46, marginTop: 'auto', paddingTop: 16 }}>
+                {[24, 38, 30, 24, 42, 32, 46].map((h, i) => (
+                  <span key={i} style={{ flex: 1, height: h, background: i % 2 === 0 ? '#bfe3cf' : '#57b389', borderRadius: '6px 6px 2px 2px' }} />
+                ))}
+              </div>
+            </div>
+
+            {/* Questions answered */}
+            <div onClick={() => toggleCard('q')} style={cardBase}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#fbf1e1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d2812c' }}>
+                  <ClipboardList size={22} />
+                </div>
+                <div style={{ color: '#d2812c', transition: 'transform .25s ease', transform: expandedCards.q ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                  <ChevronRight size={20} />
+                </div>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#a8743a' }}>Questions answered</div>
+              <div style={{ fontSize: 46, fontWeight: 800, color: '#1c2433', lineHeight: 1.05, marginTop: 4 }}>{metrics.questions.value}</div>
+              {expandedCards.q && (
+                <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>Across MathPath &amp; Word Problems this week.</div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 46, marginTop: 'auto', paddingTop: 16 }}>
+                {[16, 28, 22, 24, 36, 30, 34, 44, 30, 52].map((h, i) => (
+                  <span key={i} style={{ flex: 1, height: h, background: i % 2 === 0 ? '#f1d6a3' : '#e3a64f', borderRadius: '5px 5px 2px 2px' }} />
+                ))}
+              </div>
+            </div>
+
+            {/* Working submitted */}
+            <div onClick={() => toggleCard('w')} style={cardBase}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#eaf3fc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2f80d8' }}>
+                  <PenLine size={22} />
+                </div>
+                <div style={{ color: '#2f80d8', transition: 'transform .25s ease', transform: expandedCards.w ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                  <ChevronRight size={20} />
+                </div>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#2f80d8' }}>Working submitted</div>
+              <div style={{ fontSize: 46, fontWeight: 800, color: '#1c2433', lineHeight: 1.05, marginTop: 4 }}>{metrics.working.value}</div>
+              {expandedCards.w && (
+                <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>Keep showing your thinking {'—'} it helps your tutor help you.</div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 46, marginTop: 'auto', paddingTop: 16 }}>
+                {[26, 40, 32, 28, 44, 34, 30, 50].map((h, i) => (
+                  <span key={i} style={{ flex: 1, height: h, background: i % 2 === 0 ? '#bcd6f5' : '#5a93e0', borderRadius: '6px 6px 2px 2px' }} />
+                ))}
+              </div>
+            </div>
+
+            {/* Confidence insight */}
+            <div onClick={() => toggleCard('c')} style={{ ...cardBase, background: 'linear-gradient(160deg, #fdeef0, #fff6f7)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c0405a', boxShadow: '0 1px 3px rgba(192,64,90,0.18)' }}>
+                  <Lightbulb size={22} />
+                </div>
+                <div style={{ color: '#c0405a', transition: 'transform .25s ease', transform: expandedCards.c ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                  <ChevronRight size={20} />
+                </div>
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#b23b54' }}>Confidence insight</div>
+              <div style={{ fontSize: metrics.confidence.empty ? 18 : 46, fontWeight: 800, color: '#1c2433', lineHeight: 1.05, marginTop: 4 }}>
+                {metrics.confidence.empty ? '—' : metrics.confidence.value}
+              </div>
+              {expandedCards.c && (
+                <div style={{ fontSize: 14.5, color: '#7a4450', lineHeight: 1.5, marginTop: 8 }}>{metrics.confidence.body}</div>
+              )}
+              {!expandedCards.c && confidenceSubtitle && (
+                <div style={{ marginTop: 'auto', paddingTop: 16, fontSize: 13, color: '#c98a96', fontWeight: 500 }}>{confidenceSubtitle}</div>
+              )}
+            </div>
+
+          </div>
+
+          {/* Learning Insight */}
+          <div onClick={() => toggleCard('li')} style={{ cursor: 'pointer', background: '#fff', borderRadius: 22, boxShadow: dashShadow, padding: '24px 28px', marginTop: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontFamily: monoFont, fontSize: 12, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#2f80d8' }}>Learning insight</span>
+                {!expandedCards.li && (
+                  <span style={{ fontSize: 14, color: '#8a93a3' }}>{'·'} {insightSummary}</span>
+                )}
+              </div>
+              <div style={{ color: '#2f80d8', transition: 'transform .25s ease', transform: expandedCards.li ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                <ChevronRight size={20} />
+              </div>
+            </div>
+            {expandedCards.li && (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3" style={{ marginTop: 22 }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#1c2433', marginBottom: 7 }}>Observation</div>
+                  <div style={{ fontSize: 15, color: '#5a6675', lineHeight: 1.6 }}>{dashInsight.observation}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#1c2433', marginBottom: 7 }}>What it means</div>
+                  <div style={{ fontSize: 15, color: '#5a6675', lineHeight: 1.6 }}>{dashInsight.interpretation}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#1c2433', marginBottom: 7 }}>Next step</div>
+                  <div style={{ fontSize: 15, color: '#5a6675', lineHeight: 1.6 }}>{dashInsight.nextStep}</div>
+                </div>
+              </div>
             )}
-            <Button to="/student/profile" size="m" variant="secondary" icon={UserCircle}>
-              Profile
-            </Button>
           </div>
+
+          {/* Recommended Next */}
+          <div style={{ marginTop: 24 }}>
+            <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} masteredSkillCount={safeMasteredCount} />
+          </div>
+
+          {FEATURE_FLAGS.psl && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
+                  <Brain className="h-5 w-5 text-gold-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>
+                  <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
+                </div>
+                <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
+              </Card>
+            </div>
+          )}
+
+          {showDiagnosticPrompt && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
+                <Button to="/student/mathpath/diagnostic" size="s" icon={ArrowRight}>Start Diagnostic</Button>
+              </Card>
+            </div>
+          )}
+          {hasOtherWarnings && !showDiagnosticPrompt && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="p-4">
+                <p className="text-sm text-ink-500">
+                  Some advanced metrics are based on limited history and will fill in as you complete more practice, fluency, and assessments.
+                </p>
+              </Card>
+            </div>
+          )}
         </div>
-
-        <section className="grid gap-5 xl:grid-cols-[2fr_1fr]">
-          <UpperPrimaryMissionCard currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} assessmentReady={assessmentGate.ready} />
-          <TodayHighlights
-            streak={displayStreak}
-            xp={displayXp}
-            mastered={safeMasteredCount}
-            totalSkills={totalSkills}
-            progress={displayProgress}
-          />
-        </section>
-
-        <UpperPrimaryMetrics analytics={dashboardAnalytics} />
-        <StudentLearningInsightCard analytics={dashboardAnalytics} currentSkill={vm.currentSkill} nextAction={vm.nextAction} />
-
-        <section className="grid gap-5 xl:grid-cols-[2fr_0.95fr]">
-          <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} masteredSkillCount={safeMasteredCount} />
-          <RecentActivityCard activities={learningTimeline} />
-        </section>
-
-        <EncouragementBanner />
-
-        {FEATURE_FLAGS.psl && (
-          <Card className="flex items-center gap-4 p-4" interactive>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
-              <Brain className="h-5 w-5 text-gold-600" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>
-              <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
-            </div>
-            <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
-          </Card>
-        )}
-
-        {showDiagnosticPrompt && (
-          <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
-            <Button to="/student/mathpath/diagnostic" size="s" icon={ArrowRight}>
-              Start Diagnostic
-            </Button>
-          </Card>
-        )}
-        {hasOtherWarnings && !showDiagnosticPrompt && (
-          <Card className="p-4">
-            <p className="text-sm text-ink-500">
-              Some advanced metrics are based on limited history and will fill in as you complete more practice, fluency, and assessments.
-            </p>
-          </Card>
-        )}
       </main>
     );
   }

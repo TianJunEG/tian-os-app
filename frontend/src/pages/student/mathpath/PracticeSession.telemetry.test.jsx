@@ -94,7 +94,7 @@ describe('PracticeSession answer feedback', () => {
     expect(feedback).toMatchObject({
       correct: true,
       title: 'Correct',
-      message: 'Correct — accurate and quick!',
+      message: 'Lightning fast and correct!',
       streakMessage: '',
       showConfetti: false,
     });
@@ -109,7 +109,7 @@ describe('PracticeSession answer feedback', () => {
       questionId: 'F001-q2',
     });
 
-    expect(feedback.message).toBe("Correct — good thinking. Let's build speed next.");
+    expect(feedback.message).toBe("Correct! Take your time — accuracy wins.");
   });
 
   it('adds streak microcopy after two correct answers', () => {
@@ -121,7 +121,7 @@ describe('PracticeSession answer feedback', () => {
       questionId: 'F001-q3',
     });
 
-    expect(feedback.streakMessage).toBe('2 in a row — keep going!');
+    expect(feedback.streakMessage).toBe('2 in a row — unstoppable!');
     expect(feedback.showConfetti).toBe(false);
   });
 
@@ -134,7 +134,7 @@ describe('PracticeSession answer feedback', () => {
       questionId: 'F001-q4',
     });
 
-    expect(feedback.streakMessage).toBe("3 in a row! You're on a roll.");
+    expect(feedback.streakMessage).toBe("3 in a row! You're on fire!");
     expect(feedback.showConfetti).toBe(true);
   });
 
