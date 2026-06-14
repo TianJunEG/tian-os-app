@@ -29,6 +29,8 @@ import { studentProfileAPI } from '../../services/api';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
+import { useAuth } from '../../context/AuthContext';
+import { MascotAvatar, AvatarPicker } from '../../components/MascotAvatar';
 
 const iconMap = {
   badge: Award,
@@ -378,7 +380,9 @@ export default function StudentProfile() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [nameSaving, setNameSaving] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const nameInputRef = useRef(null);
+  const { user } = useAuth();
 
   const startEditName = () => {
     setNameValue(state.data?.summary?.student?.name || '');
@@ -490,13 +494,18 @@ export default function StudentProfile() {
           <DecorativeMotif enabled={visual.styles.decorative} />
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              {student.avatarUrl ? (
-                <img src={student.avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" />
-              ) : (
-                <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl font-display text-xl font-semibold ${visual.styles.primaryIcon}`}>
-                  {avatarText}
+              <button onClick={() => setShowAvatarPicker(true)} className="group relative shrink-0" title="Change avatar">
+                {user?.avatar ? (
+                  <MascotAvatar mascotKey={user.avatar} size={64} />
+                ) : (
+                  <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl font-display text-xl font-semibold ${visual.styles.primaryIcon}`}>
+                    {avatarText}
+                  </span>
+                )}
+                <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-teal-500 text-white opacity-0 shadow transition-opacity group-hover:opacity-100">
+                  <Pencil className="h-3 w-3" />
                 </span>
-              )}
+              </button>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink-500">{copy.profileTitle}</p>
                 {editingName ? (
@@ -625,6 +634,14 @@ export default function StudentProfile() {
           )}
         </Card>
       </section>
+
+      {showAvatarPicker && (
+        <AvatarPicker
+          currentAvatar={user?.avatar}
+          onSelect={() => {}}
+          onClose={() => setShowAvatarPicker(false)}
+        />
+      )}
     </main>
   );
 }
