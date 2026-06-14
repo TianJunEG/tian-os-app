@@ -94,6 +94,7 @@ router.get('/sessions/:sessionId', protect, async (req, res) => {
 
 router.post('/sessions/:sid/problems/:pid/step', protect, async (req, res) => {
   try {
+    const student = await resolveStudent(req);
     const { stepId, response, timeSpentMs } = req.body;
     const result = await submitStep({
       sessionId: req.params.sid,
@@ -101,6 +102,7 @@ router.post('/sessions/:sid/problems/:pid/step', protect, async (req, res) => {
       stepId,
       response,
       timeSpentMs,
+      studentId: student._id,
     });
     res.json(result);
   } catch (err) {
@@ -152,9 +154,11 @@ router.post('/sessions/:sid/problems/:pid/hint', protect, async (req, res) => {
 
 router.post('/sessions/:sid/problems/:pid/complete', protect, async (req, res) => {
   try {
+    const student = await resolveStudent(req);
     const result = await completeProblem({
       sessionId: req.params.sid,
       problemId: req.params.pid,
+      studentId: student._id,
     });
     res.json(result);
   } catch (err) {
@@ -164,7 +168,8 @@ router.post('/sessions/:sid/problems/:pid/complete', protect, async (req, res) =
 
 router.post('/sessions/:sid/complete', protect, async (req, res) => {
   try {
-    const result = await completeSession(req.params.sid);
+    const student = await resolveStudent(req);
+    const result = await completeSession(req.params.sid, { studentId: student._id });
     res.json(result);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
@@ -173,7 +178,8 @@ router.post('/sessions/:sid/complete', protect, async (req, res) => {
 
 router.patch('/sessions/:sid/abandon', protect, async (req, res) => {
   try {
-    const result = await abandonSession(req.params.sid);
+    const student = await resolveStudent(req);
+    const result = await abandonSession(req.params.sid, { studentId: student._id });
     res.json(result);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
