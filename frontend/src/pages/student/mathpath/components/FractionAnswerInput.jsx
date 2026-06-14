@@ -340,11 +340,21 @@ export default function FractionAnswerInput({
         <MathToolbar
           compact
           disabled={disabled}
+          activeMode={answerMode}
           tools={allowedFractionTools(question)}
           onTool={handleTool}
           label="Fraction answer tools"
         />
         </div>
+        {answerSupportsMixedNumber(question) && answerMode === 'fraction' && !disabled && (
+          <button
+            type="button"
+            onClick={() => handleTool('mixed')}
+            className="w-full rounded-lg bg-sunshine-50 px-2 py-1 text-xs font-medium text-sunshine-700 transition hover:bg-sunshine-100"
+          >
+            Need a mixed number? Tap <span className="font-bold">Mixed</span>
+          </button>
+        )}
         {popupOpen && popupPos && typeof document !== 'undefined' && createPortal(
           <MathInputPopup
             mode={answerMode}

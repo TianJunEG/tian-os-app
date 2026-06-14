@@ -47,29 +47,39 @@ export default function MathToolbar({
   tools = DEFAULT_TOOLS,
   disabled = false,
   compact = false,
+  activeMode = '',
   onTool,
   label = 'Math input tools',
 }) {
   const resolvedTools = tools.map(toolDefinition).filter((tool) => tool.id);
+  const MODE_IDS = new Set(['fraction', 'mixed', 'whole']);
 
   return (
     <div
       className={`flex flex-wrap items-center justify-center gap-1.5 ${compact ? 'mt-0' : 'mt-2'}`}
       aria-label={label}
     >
-      {resolvedTools.map((tool) => (
-        <button
-          key={tool.id}
-          type="button"
-          disabled={disabled}
-          onClick={() => onTool?.(tool.id)}
-          className={`${compact ? 'h-8 min-w-8 px-2 text-xs' : 'h-10 min-w-11 px-3 text-lg'} grid place-items-center rounded-lg border border-hairline bg-white font-semibold text-navy-700 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45`}
-          title={tool.title}
-          aria-label={tool.title}
-        >
-          <span className={tool.id === 'clear' ? 'font-sans' : 'font-serif'}>{tool.label}</span>
-        </button>
-      ))}
+      {resolvedTools.map((tool) => {
+        const isActive = MODE_IDS.has(tool.id) && activeMode === tool.id;
+        return (
+          <button
+            key={tool.id}
+            type="button"
+            disabled={disabled}
+            onClick={() => onTool?.(tool.id)}
+            className={`${compact ? 'h-8 min-w-8 px-2 text-xs' : 'h-10 min-w-11 px-3 text-lg'} grid place-items-center rounded-lg border font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-45 ${
+              isActive
+                ? 'border-emerald-400 bg-emerald-50 text-emerald-700 ring-1 ring-emerald-400/30'
+                : 'border-hairline bg-white text-navy-700 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600'
+            }`}
+            title={tool.title}
+            aria-label={tool.title}
+            aria-pressed={MODE_IDS.has(tool.id) ? isActive : undefined}
+          >
+            <span className={tool.id === 'clear' ? 'font-sans' : 'font-serif'}>{tool.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }

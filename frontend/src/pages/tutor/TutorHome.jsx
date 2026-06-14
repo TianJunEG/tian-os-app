@@ -4,60 +4,6 @@ import { AlertCircle, Check, ChevronRight, FileText, GraduationCap, Search } fro
 import { tutorAPI } from '../../services/api';
 import { Spinner } from '../../components/ui';
 
-const FONT = "'Hanken Grotesk', system-ui, sans-serif";
-const MONO = "'JetBrains Mono', monospace";
-
-const pageStyle = {
-  fontFamily: FONT,
-  color: '#232c39',
-  minHeight: '100vh',
-  background: '#e7eaef',
-  backgroundImage: 'radial-gradient(#d3d8e0 1px, transparent 1.4px)',
-  backgroundSize: '26px 26px',
-  padding: '0 0 96px',
-};
-
-const shellStyle = {
-  background: '#f5f6f8',
-  border: '1px solid #dde1e8',
-  borderRadius: 16,
-  overflow: 'hidden',
-  boxShadow: '0 36px 70px -34px rgba(30,42,66,0.45)',
-};
-
-const navStyle = {
-  background: '#fff',
-  borderBottom: '1px solid #eaedf2',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  padding: '0 22px',
-  height: 54,
-};
-
-const cardStyle = {
-  background: '#fff',
-  border: '1px solid #e7eaef',
-  borderRadius: 14,
-  boxShadow: '0 1px 3px rgba(30,42,66,0.05)',
-  padding: '16px 17px',
-};
-
-const emeraldCTAStyle = {
-  flex: 1,
-  textAlign: 'center',
-  background: '#1f8a5b',
-  color: '#fff',
-  borderRadius: 11,
-  padding: 12,
-  fontWeight: 700,
-  fontSize: 14,
-  boxShadow: '0 2px 8px rgba(31,138,91,0.35)',
-  border: 'none',
-  cursor: 'pointer',
-  fontFamily: FONT,
-};
-
 const CERT_LABEL = {
   not_started: 'Not started',
   in_training: 'In training',
@@ -72,46 +18,49 @@ function NavTab({ label, active, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      style={{
-        padding: '7px 13px',
-        borderRadius: 8,
-        background: active ? '#e7f3ec' : 'transparent',
-        color: active ? '#1c5b3e' : '#6b7585',
-        fontSize: 13.5,
-        fontWeight: active ? 600 : 500,
-        border: 'none',
-        cursor: 'pointer',
-        fontFamily: FONT,
-      }}
+      className={`px-3.5 py-1.5 rounded-lg text-sm font-medium border-none cursor-pointer font-sans ${
+        active
+          ? 'bg-emerald-50 text-emerald-800 font-semibold'
+          : 'bg-transparent text-slate-500'
+      }`}
     >
       {label}
     </button>
   );
 }
 
-function StudentCard({ name, initials, level, schedule, statusBg, statusFg, statusIcon, statusText, onClick }) {
+function StudentCard({ name, initials, level, schedule, statusBg, statusFg, statusText, statusIcon, onClick }) {
+  const avatarClasses = {
+    '#e7f3ec': 'bg-emerald-50 text-emerald-600',
+    '#fdeeea': 'bg-rose-100 text-rose-600',
+    '#eaf3fc': 'bg-sky-100 text-sky-600',
+    '#f5f6f8': 'bg-slate-100 text-slate-500',
+  };
+  const pillClasses = {
+    '#fdeeea': 'bg-rose-50 text-rose-600',
+    '#eaf3fc': 'bg-sky-50 text-sky-600',
+    '#e7f3ec': 'bg-emerald-50 text-emerald-700',
+  };
+  const avatarCls = avatarClasses[statusBg] || 'bg-emerald-50 text-emerald-600';
+  const pillCls = pillClasses[statusBg] || 'bg-slate-100 text-slate-500';
+
   return (
-    <div style={cardStyle} onClick={onClick} role="button" tabIndex={0}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <div style={{
-          width: 38, height: 38, borderRadius: '50%',
-          background: statusBg || '#e7f3ec', color: statusFg || '#1f8a5b',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 700,
-        }}>{initials}</div>
+    <div
+      className="rounded-[14px] border border-slate-200 bg-white p-4 shadow-resting cursor-pointer"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+    >
+      <div className="mb-3 flex items-center gap-2.5">
+        <div className={`flex h-[38px] w-[38px] items-center justify-center rounded-full text-xs font-bold ${avatarCls}`}>
+          {initials}
+        </div>
         <div>
-          <div style={{ fontSize: 14.5, fontWeight: 700 }}>{name}</div>
-          <div style={{ fontFamily: MONO, fontSize: 11, color: '#8a93a3' }}>{level}{schedule ? ` · ${schedule}` : ''}</div>
+          <div className="text-sm font-bold text-ink-900">{name}</div>
+          <div className="font-mono text-[11px] text-slate-400">{level}{schedule ? ` · ${schedule}` : ''}</div>
         </div>
       </div>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        background: statusBg === '#fdeeea' ? '#fef3ed' : statusBg === '#eaf3fc' ? '#eaf3fc' : statusBg === '#e7f3ec' ? '#e7f3ec' : '#f5f6f8',
-        borderRadius: 8, padding: '7px 10px',
-        fontSize: 12.5,
-        color: statusFg || '#6b7585',
-        fontWeight: 600,
-      }}>
+      <div className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold ${pillCls}`}>
         {statusIcon}
         {statusText}
       </div>
@@ -124,30 +73,26 @@ function SessionPrepPanel({ student, onStartSession, onOpenNotes }) {
   const initials = student.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e7eaef', borderRadius: 16, boxShadow: '0 1px 3px rgba(30,42,66,0.05)', padding: '22px 24px' }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1f8a5b', marginBottom: 6 }}>
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-resting">
+      <div className="mb-1.5 font-mono text-[11px] uppercase tracking-widest text-emerald-600">
         Next session{student.nextTime ? ` · ${student.nextTime}` : ''}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-        <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#e7f3ec', color: '#1f8a5b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700 }}>{initials}</div>
+      <div className="mb-4 flex items-center gap-3">
+        <div className="flex h-[46px] w-[46px] items-center justify-center rounded-full bg-emerald-50 text-base font-bold text-emerald-600">{initials}</div>
         <div>
-          <div style={{ fontSize: 19, fontWeight: 800 }}>{student.name}</div>
-          <div style={{ fontSize: 13, color: '#8a93a3' }}>{student.level}{student.sessionCount ? ` · ${student.sessionCount} session` : ''}</div>
+          <div className="text-lg font-extrabold text-ink-900">{student.name}</div>
+          <div className="text-sm text-slate-400">{student.level}{student.sessionCount ? ` · ${student.sessionCount} session` : ''}</div>
         </div>
       </div>
 
       {student.focus && (
         <>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#46505f', marginBottom: 9 }}>Focus on</div>
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: 10,
-            background: '#fef8f2', border: '1px solid #f5e3d0', borderRadius: 11,
-            padding: '13px 15px', marginBottom: 18,
-          }}>
-            <AlertCircle style={{ width: 17, height: 17, color: '#b06f1f', marginTop: 1, flex: '0 0 auto' }} />
+          <div className="mb-2 text-sm font-bold text-ink-600">Focus on</div>
+          <div className="mb-4 flex items-start gap-2.5 rounded-[11px] border border-sunshine-200 bg-sunshine-50 px-4 py-3">
+            <AlertCircle className="mt-0.5 h-[17px] w-[17px] flex-shrink-0 text-sunshine-700" />
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#232c39' }}>{student.focus.skill}</div>
-              <div style={{ fontSize: 13, color: '#8a6a4a', lineHeight: 1.5, marginTop: 3 }}>{student.focus.note}</div>
+              <div className="text-sm font-bold text-ink-900">{student.focus.skill}</div>
+              <div className="mt-0.5 text-sm leading-relaxed text-sunshine-700">{student.focus.note}</div>
             </div>
           </div>
         </>
@@ -155,11 +100,11 @@ function SessionPrepPanel({ student, onStartSession, onOpenNotes }) {
 
       {student.recentMistakes?.length > 0 && (
         <>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#46505f', marginBottom: 9 }}>Recent mistakes to coach</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
+          <div className="mb-2 text-sm font-bold text-ink-600">Recent mistakes to coach</div>
+          <div className="mb-4 flex flex-col gap-2">
             {student.recentMistakes.map((m, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: '#46505f' }}>
-                <span style={{ fontFamily: MONO, fontSize: 11, color: '#c8472f', background: '#fdeeea', padding: '2px 7px', borderRadius: 5 }}>{m.count}×</span>
+              <div key={i} className="flex items-center gap-2 text-sm text-ink-600">
+                <span className="rounded bg-rose-100 px-1.5 py-0.5 font-mono text-[11px] text-rose-600">{m.count}×</span>
                 {m.text}
               </div>
             ))}
@@ -169,19 +114,25 @@ function SessionPrepPanel({ student, onStartSession, onOpenNotes }) {
 
       {student.lastNote && (
         <>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#46505f', marginBottom: 9 }}>Your last note</div>
-          <div style={{ fontSize: 13, color: '#5a6675', lineHeight: 1.55, fontStyle: 'italic', borderLeft: '3px solid #e7eaef', paddingLeft: 12, marginBottom: 20 }}>
-            "{student.lastNote}"
+          <div className="mb-2 text-sm font-bold text-ink-600">Your last note</div>
+          <div className="mb-5 border-l-[3px] border-slate-200 pl-3 text-sm italic leading-relaxed text-slate-500">
+            &ldquo;{student.lastNote}&rdquo;
           </div>
         </>
       )}
 
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button type="button" onClick={onStartSession} style={emeraldCTAStyle}>Start session</button>
+      <div className="flex gap-2.5">
+        <button
+          type="button"
+          onClick={onStartSession}
+          className="flex-1 rounded-[11px] border-none bg-emerald-600 px-3 py-3 text-center text-sm font-bold text-white shadow-md cursor-pointer"
+        >
+          Start session
+        </button>
         <button
           type="button"
           onClick={onOpenNotes}
-          style={{ textAlign: 'center', background: '#f0f2f5', color: '#46505f', borderRadius: 11, padding: '12px 16px', fontWeight: 600, fontSize: 14, border: 'none', cursor: 'pointer', fontFamily: FONT }}
+          className="rounded-[11px] border-none bg-slate-100 px-4 py-3 text-center text-sm font-semibold text-ink-600 cursor-pointer"
         >
           Notes
         </button>
@@ -204,14 +155,20 @@ export default function TutorHome() {
   useEffect(() => { load(); }, []);
 
   if (error) return (
-    <div style={{ ...pageStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: '#d8694f', marginBottom: 8 }}>{error}</div>
-        <button type="button" onClick={load} style={emeraldCTAStyle}>Retry</button>
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 font-sans text-ink-900">
+      <div className="text-center">
+        <div className="mb-2 text-base font-bold text-rose-500">{error}</div>
+        <button
+          type="button"
+          onClick={load}
+          className="rounded-[11px] border-none bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md cursor-pointer"
+        >
+          Retry
+        </button>
       </div>
     </div>
   );
-  if (!data) return <div style={{ display: 'flex', minHeight: '40vh', alignItems: 'center', justifyContent: 'center' }}><Spinner /></div>;
+  if (!data) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
 
   const initials = (name) => name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
   const students = data.students || data.attention || [];
@@ -226,79 +183,71 @@ export default function TutorHome() {
   } : null);
 
   const getStudentStatus = (s) => {
-    if (s.status === 'on_track' || s.trend === 'up') return { bg: '#e7f3ec', fg: '#1f8a5b', text: `On track${s.trend ? ` · +${s.trend}` : ''}`, icon: <Check style={{ width: 13, height: 13 }} /> };
-    if (s.status === 'needs_review' || s.flagged) return { bg: '#fdeeea', fg: '#c8472f', text: s.reason || `${s.weakestSkill} · needs review`, icon: <AlertCircle style={{ width: 13, height: 13 }} /> };
-    if (s.status === 'missed') return { bg: '#fef3ed', fg: '#b06f1f', text: 'Missed last session', icon: <AlertCircle style={{ width: 13, height: 13 }} /> };
+    if (s.status === 'on_track' || s.trend === 'up') return { bg: '#e7f3ec', fg: '#1f8a5b', text: `On track${s.trend ? ` · +${s.trend}` : ''}`, icon: <Check className="h-3.5 w-3.5" /> };
+    if (s.status === 'needs_review' || s.flagged) return { bg: '#fdeeea', fg: '#c8472f', text: s.reason || `${s.weakestSkill} · needs review`, icon: <AlertCircle className="h-3.5 w-3.5" /> };
+    if (s.status === 'missed') return { bg: '#fef3ed', fg: '#b06f1f', text: 'Missed last session', icon: <AlertCircle className="h-3.5 w-3.5" /> };
     return { bg: '#f5f6f8', fg: '#6b7585', text: s.weakestSkill || 'Building up', icon: null };
   };
 
   return (
-    <div style={pageStyle}>
-      <div style={{ maxWidth: 1360, margin: '0 auto', padding: '0 44px' }}>
-        <div style={shellStyle}>
+    <div className="min-h-screen bg-slate-100 pb-24 font-sans text-ink-900" style={{ backgroundImage: 'radial-gradient(#d3d8e0 1px, transparent 1.4px)', backgroundSize: '26px 26px' }}>
+      <div className="mx-auto max-w-[1360px] px-11">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-active">
           {/* Nav */}
-          <div style={navStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(150deg, #39b07e, #1f8a5b)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 17, boxShadow: '0 2px 6px rgba(31,138,91,0.4)' }}>T</div>
-                <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }}>TianOS</span>
-                <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', color: '#1f8a5b', background: '#e7f3ec', border: '1px solid #c7e6d4', padding: '3px 7px', borderRadius: 6 }}>TUTOR</span>
+          <div className="flex h-[54px] items-center justify-between border-b border-slate-200 bg-white px-5">
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-gradient-to-br from-emerald-400 to-emerald-600 text-[17px] font-extrabold text-white shadow-md">T</div>
+                <span className="text-lg font-extrabold tracking-tight">TianOS</span>
+                <span className="rounded-md border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-emerald-600">TUTOR</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+              <div className="flex items-center gap-1">
                 {['Today', 'Students', 'Sessions', 'Notes'].map((tab) => (
                   <NavTab key={tab} label={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} />
                 ))}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#1f8a5b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
+            <div className="flex items-center gap-2">
+              <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
                 {initials(data.tutorName || 'Tutor')}
               </div>
-              <span style={{ fontSize: 13.5, fontWeight: 600 }}>{data.tutorName || 'Tutor'}</span>
+              <span className="text-sm font-semibold">{data.tutorName || 'Tutor'}</span>
             </div>
           </div>
 
-          <div style={{ padding: '24px 30px 30px', display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: 20, alignItems: 'start' }}>
+          <div className="grid grid-cols-1 items-start gap-5 p-7 lg:grid-cols-[1.35fr_1fr]">
             {/* Caseload */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em' }}>My students</div>
-                  <div style={{ fontFamily: MONO, fontSize: 13, color: '#8a93a3', marginTop: 2 }}>
+                  <div className="text-xl font-extrabold tracking-tight">My students</div>
+                  <div className="mt-0.5 font-mono text-sm text-slate-400">
                     {studentCount} active · {sessionsToday} session{sessionsToday !== 1 ? 's' : ''} today
                   </div>
                 </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#fff', border: '1px solid #e2e6ec', borderRadius: 11,
-                  padding: '9px 13px', fontSize: 13.5, fontWeight: 600, color: '#46505f',
-                  cursor: 'pointer',
-                }}>
-                  <Search style={{ width: 15, height: 15, color: '#8a93a3' }} />
+                <div className="flex cursor-pointer items-center gap-2 rounded-[11px] border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-ink-600">
+                  <Search className="h-4 w-4 text-slate-400" />
                   Search
                 </div>
               </div>
 
               {/* Certification banner */}
               {data.certificationStatus && data.certificationStatus !== 'approved' && (
-                <Link to="/tutor/training" style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: 14 }}>
-                  <div style={{
-                    ...cardStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-                    borderLeft: '4px solid #d9892e',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <GraduationCap style={{ width: 18, height: 18, color: '#b06f1f' }} />
+                <Link to="/tutor/training" className="mb-3.5 block text-inherit no-underline">
+                  <div className="flex items-center justify-between gap-3 rounded-[14px] border border-slate-200 border-l-4 border-l-sunshine-500 bg-white p-4 shadow-resting">
+                    <div className="flex items-center gap-2.5">
+                      <GraduationCap className="h-[18px] w-[18px] text-sunshine-700" />
                       <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700 }}>Certification: {CERT_LABEL[data.certificationStatus]}</div>
-                        <div style={{ fontSize: 12.5, color: '#8a93a3', marginTop: 1 }}>Continue training to unlock more levels.</div>
+                        <div className="text-sm font-bold">Certification: {CERT_LABEL[data.certificationStatus]}</div>
+                        <div className="mt-0.5 text-xs text-slate-400">Continue training to unlock more levels.</div>
                       </div>
                     </div>
-                    <ChevronRight style={{ width: 16, height: 16, color: '#c2c8d0' }} />
+                    <ChevronRight className="h-4 w-4 text-slate-300" />
                   </div>
                 </Link>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {students.map((s, i) => {
                   const st = getStudentStatus(s);
                   return (
@@ -336,16 +285,16 @@ export default function TutorHome() {
 
         {/* Recent notes */}
         {data.recentNotes?.length > 0 && (
-          <div style={{ marginTop: 24 }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8a93a3', marginBottom: 10, paddingLeft: 4 }}>Recent lesson notes</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="mt-6">
+            <div className="mb-2.5 pl-1 font-mono text-[11px] uppercase tracking-wider text-slate-400">Recent lesson notes</div>
+            <div className="flex flex-col gap-2">
               {data.recentNotes.map((n) => (
-                <div key={n.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <FileText style={{ width: 16, height: 16, color: '#c2c8d0', flex: '0 0 auto' }} />
-                  <span style={{ flex: 1, fontSize: 14, color: '#46505f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div key={n.id} className="flex items-center gap-3 rounded-[14px] border border-slate-200 bg-white p-4 shadow-resting">
+                  <FileText className="h-4 w-4 flex-shrink-0 text-slate-300" />
+                  <span className="flex-1 truncate text-sm text-ink-600">
                     {n.covered || 'Lesson note'}
                   </span>
-                  <span style={{ fontFamily: MONO, fontSize: 12, color: '#aab2bf' }}>
+                  <span className="font-mono text-xs text-slate-400">
                     {new Date(n.createdAt).toLocaleDateString()}
                   </span>
                 </div>
