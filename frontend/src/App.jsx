@@ -143,6 +143,7 @@ const ParentSuccessCentre = lazy(() => import('./pages/parent/ParentSuccessCentr
 const ParentMathPathDashboardPage = lazy(() => import('./pages/parent/ParentMathPathDashboardPage'));
 const ChildScience = lazy(() => import('./pages/parent/ChildScience'));
 const ChildLifeLab = lazy(() => import('./pages/parent/ChildLifeLab'));
+const ChildPSLDashboard = lazy(() => import('./pages/parent/ChildPSLDashboard'));
 const WeakTopics = lazy(() => import('./pages/parent/WeakTopics'));
 const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'));
 const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
@@ -649,6 +650,7 @@ function App() {
             <Route path="/parent/children/:studentId/mathpath/analyse-paper" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><PaperAnalysisPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/test-spec" element={<FeatureGuard feature="parent"><TestSpecificationPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/assessment-upload" element={<FeatureGuard feature="parent"><AssessmentUploadPage /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/psl" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildPSLDashboard /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/science" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildScience /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/lifelab" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildLifeLab /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/weak-topics" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WeakTopics /></FeatureGuard>} />

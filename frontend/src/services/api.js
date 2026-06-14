@@ -311,6 +311,7 @@ export const pslAPI = {
   abandonSession: (sessionId) => api.patch(`/psl/sessions/${sessionId}/abandon`),
   mistakes: () => api.get('/psl/mistakes'),
   getSolution: (sessionId, problemId) => api.get(`/psl/sessions/${sessionId}/problems/${problemId}/solution`),
+  dashboard: (studentId) => api.get('/psl/dashboard', { params: { studentId } }),
 };
 
 // Mechanisms Playground (Secondary D&T). Completing a mechanism's concept check

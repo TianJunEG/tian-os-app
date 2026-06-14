@@ -224,4 +224,98 @@ router.get('/mistakes', protect, async (req, res) => {
   }
 });
 
+router.get('/dashboard', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = student._id;
+
+    const [sessions, attempts, skills, masteryRecs] = await Promise.all([
+      PSLSession.find({ studentId }).lean(),
+      PSLAttempt.find({ studentId }).lean(),
+      PSLSkill.find({ isActive: true }).lean(),
+      MasteryRecord.find({ studentId, module: 'PSL' }).lean(),
+    ]);
+
+    const completedSessions = sessions.filter((s) => s.status === 'completed');
+    const avgAccuracy = attempts.length
+      ? Math.round((attempts.reduce((a, at) => a + at.overallScore, 0) / attempts.length) * 100)
+      : 0;
+
+    const skillRows = [];
+    for (const sk of skills) {
+      const skSessions = sessions.filter((s) => s.skillId === sk.skillId);
+      const skAttempts = attempts.filter((a) => a.skillId === sk.skillId);
+      if (!skSessions.length && !skAttempts.length) continue;
+      const mastered = masteryRecs.find((r) => r.skillId?.toString() === sk.skillId && r.status === 'mastered');
+      const avgScore = skAttempts.length
+        ? Math.round((skAttempts.reduce((a, at) => a + at.overallScore, 0) / skAttempts.length) * 100)
+        : 0;
+      skillRows.push({
+        skillId: sk.skillId, name: sk.name, heuristic: sk.heuristic, level: sk.level,
+        sessions: skSessions.length, mastered: Boolean(mastered), averageScore: avgScore,
+      });
+    }
+
+    const STEP_IDS_LIST = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
+    const STEP_LABELS_MAP = { understand: 'Understand', identify_info: 'Find Clues', identify_question: 'Find Question', plan: 'Plan', solve: 'Solve', check: 'Check' };
+    const stepAgg = {};
+    for (const sid of STEP_IDS_LIST) stepAgg[sid] = { total: 0, correct: 0 };
+    for (const at of attempts) {
+      for (const step of at.steps || []) {
+        const agg = stepAgg[step.stepId];
+        if (!agg) continue;
+        agg.total++;
+        if (step.correct) agg.correct++;
+      }
+    }
+    const stepPerformance = STEP_IDS_LIST.map((sid) => {
+      const a = stepAgg[sid];
+      return {
+        stepId: sid, label: STEP_LABELS_MAP[sid],
+        accuracy: a.total ? Math.round((a.correct / a.total) * 100) : 0,
+      };
+    });
+
+    const miscCounts = {};
+    for (const at of attempts) {
+      for (const step of at.steps || []) {
+        if (step.misconceptionTag) miscCounts[step.misconceptionTag] = (miscCounts[step.misconceptionTag] || 0) + 1;
+      }
+    }
+    const topMisconceptions = Object.entries(miscCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([tag, count]) => ({ tag, count }));
+
+    const recentSessions = completedSessions
+      .sort((a, b) => new Date(b.completedAt || b.updatedAt) - new Date(a.completedAt || a.updatedAt))
+      .slice(0, 10)
+      .map((s) => {
+        const sk = skills.find((sk) => sk.skillId === s.skillId);
+        const sessionAttempts = attempts.filter((a) => a.sessionId === s.sessionId);
+        const avgScore = sessionAttempts.length
+          ? Math.round((sessionAttempts.reduce((a, at) => a + at.overallScore, 0) / sessionAttempts.length) * 100)
+          : 0;
+        return {
+          sessionId: s.sessionId, skillName: sk?.name || s.skillId,
+          heuristic: sk?.heuristic, date: s.completedAt || s.updatedAt, score: avgScore,
+          problems: s.summary?.totalProblems || 0,
+        };
+      });
+
+    res.json({
+      student: { id: studentId, name: student.name, level: student.level },
+      overview: {
+        totalSessions: completedSessions.length,
+        skillsAttempted: skillRows.length,
+        skillsMastered: masteryRecs.filter((r) => r.status === 'mastered').length,
+        averageAccuracy: avgAccuracy,
+      },
+      skills: skillRows,
+      stepPerformance,
+      topMisconceptions,
+      recentSessions,
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
 export default router;
