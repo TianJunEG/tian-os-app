@@ -155,7 +155,7 @@ export default function PSLHome() {
 
   return (
     <div className="bg-dot-grid min-h-screen pb-8">
-      <div className="mx-auto max-w-2xl px-3 pt-0 pb-6 sm:px-6">
+      <div className="mx-auto max-w-2xl px-3 pt-0 pb-6 sm:px-6 lg:max-w-4xl">
 
         {/* ── Hero banner ──────────────────────────────────── */}
         <div className="results-dark mx-[-12px] px-5 py-6 sm:mx-0 sm:mt-4 sm:px-8 sm:py-8">
@@ -281,7 +281,7 @@ export default function PSLHome() {
                   </span>
                 </button>
                 {isOpen && (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
                     {group.skills.map((skill) => {
                       const blocked = readiness[skill.skillId] && !readiness[skill.skillId].allReady;
                       const isMastered = skill.mastery?.status === 'mastered';
