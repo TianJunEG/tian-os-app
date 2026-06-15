@@ -10,14 +10,10 @@ dotenv.config();
 import { Worker } from 'bullmq';
 import connectDB from '../config/db.js';
 import { getBullConnection, QUEUE_NAMES, closeQueues } from '../config/queue.js';
-import logger from '../config/logger.js';
 import { processPaperAnalysis } from './paperAnalysisWorker.js';
-import { processWorksheetGenerate } from './worksheetGenerateWorker.js';
-import { processMarkAnswers } from './markAnswersWorker.js';
-import { processReinforce } from './reinforceWorksheetWorker.js';
 
 if (!process.env.REDIS_URL) {
-  logger.fatal('REDIS_URL is required to run the background worker.');
+  console.error('[worker] REDIS_URL is required to run the background worker.');
   process.exit(1);
 }
 
@@ -30,45 +26,28 @@ const concurrency = Number(process.env.WORKER_CONCURRENCY) > 0 ? Number(process.
 // (worksheet-generate, mark-answers).
 const HANDLERS = [
   { name: QUEUE_NAMES.paperAnalysis, processor: processPaperAnalysis },
-  { name: QUEUE_NAMES.worksheetGenerate, processor: processWorksheetGenerate },
-  { name: QUEUE_NAMES.markAnswers, processor: processMarkAnswers },
-  { name: QUEUE_NAMES.reinforce, processor: processReinforce },
 ];
 
 const workers = HANDLERS.map(({ name, processor }) => {
   const worker = new Worker(name, processor, { connection, concurrency });
-  const workerLog = logger.child({ worker: name });
-  worker.on('completed', (job) => {
-    workerLog.info({ jobId: job.id, event: 'completed' });
-  });
-  worker.on('failed', (job, err) => {
-    const attempts = job?.attemptsMade ?? '?';
-    const maxAttempts = job?.opts?.attempts ?? '?';
-    const exhausted = job?.attemptsMade >= (job?.opts?.attempts ?? Infinity);
-    workerLog.error({
-      jobId: job?.id,
-      event: exhausted ? 'failed:exhausted' : 'failed:retrying',
-      attempt: `${attempts}/${maxAttempts}`,
-      err: err?.message,
-      ref: job?.data ? { analysisId: job.data.analysisId, worksheetId: job.data.worksheetId } : undefined,
-    });
-  });
+  worker.on('completed', (job) => console.log(`[worker:${name}] job ${job.id} completed`));
+  worker.on('failed', (job, err) => console.error(`[worker:${name}] job ${job?.id} failed:`, err?.message));
   return worker;
 });
 
-logger.info({ concurrency, queues: HANDLERS.map((h) => h.name) }, 'worker started');
+console.log(`[worker] started (concurrency=${concurrency}) for queues: ${HANDLERS.map((h) => h.name).join(', ')}`);
 
 // Graceful shutdown: let in-flight jobs finish, then close connections (WS5).
 let shuttingDown = false;
 async function shutdown(signal) {
   if (shuttingDown) return;
   shuttingDown = true;
-  logger.info({ signal }, 'draining jobs…');
+  console.log(`[worker] ${signal} received, draining jobs…`);
   try {
     await Promise.all(workers.map((w) => w.close()));
     await closeQueues();
   } catch (err) {
-    logger.error({ err: err?.message }, 'error during shutdown');
+    console.error('[worker] error during shutdown:', err?.message);
   } finally {
     process.exit(0);
   }

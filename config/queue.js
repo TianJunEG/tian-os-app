@@ -12,9 +12,6 @@ import { Queue } from 'bullmq';
 
 export const QUEUE_NAMES = {
   paperAnalysis: 'paper-analysis',
-  worksheetGenerate: 'worksheet-generate',
-  markAnswers: 'mark-answers',
-  reinforce: 'worksheet-reinforce',
 };
 
 // Whether routes should enqueue instead of running inline. Requires the flag AND a
@@ -59,42 +56,6 @@ export function getQueue(name) {
     queues[name] = new Queue(name, { connection, defaultJobOptions: DEFAULT_JOB_OPTIONS });
   }
   return queues[name];
-}
-
-// Return up to `limit` failed jobs for a queue (most-recently-failed first).
-export async function getFailedJobs(queueName, { start = 0, limit = 50 } = {}) {
-  const q = getQueue(queueName);
-  if (!q) return [];
-  const jobs = await q.getFailed(start, start + limit - 1);
-  return jobs.map((j) => ({
-    id: j.id,
-    queue: queueName,
-    name: j.name,
-    data: j.data,
-    failedReason: j.failedReason,
-    attemptsMade: j.attemptsMade,
-    timestamp: j.timestamp,
-    processedOn: j.processedOn,
-    finishedOn: j.finishedOn,
-  }));
-}
-
-// Move a failed job back to waiting so the worker picks it up again.
-export async function retryFailedJob(queueName, jobId) {
-  const q = getQueue(queueName);
-  if (!q) throw new Error('Queue not available');
-  const job = await q.getJob(jobId);
-  if (!job) throw new Error(`Job ${jobId} not found in ${queueName}`);
-  await job.retry();
-}
-
-// Permanently remove a failed job from the failed set.
-export async function discardFailedJob(queueName, jobId) {
-  const q = getQueue(queueName);
-  if (!q) throw new Error('Queue not available');
-  const job = await q.getJob(jobId);
-  if (!job) throw new Error(`Job ${jobId} not found in ${queueName}`);
-  await job.remove();
 }
 
 // Close queues + the shared connection during graceful shutdown (WS5).
