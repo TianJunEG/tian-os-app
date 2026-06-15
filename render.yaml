@@ -46,3 +46,71 @@ services:
         sync: false
       - key: PARTNERSHIPS_NOTIFICATION_EMAIL
         sync: false
+      # Phase 1 scaling: REDIS_URL powers the distributed rate limiter and the
+      # background job queue. Wired from the managed Redis below.
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: tian-os-redis
+          property: connectionString
+      # Safe to set to "1" once R2 is configured (Phase 2): paper-analysis uploads
+      # then live in R2, which the worker can read. Leave unset to run inline.
+      - key: JOB_QUEUE_ENABLED
+        sync: false
+      # Cloudflare R2 (object storage for audio + paper-analysis uploads).
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
+
+  # ---- Background worker (paper-analysis OCR/AI off the request path) ----
+  #
+  # The worker reads paper-analysis uploads from R2 (Phase 2), so it does NOT need
+  # the web service's `uploads` disk. To enable the queue in production: configure
+  # the R2_* vars on BOTH services, then set JOB_QUEUE_ENABLED=1.
+  # (Other upload categories — worksheets/resources/credentials — still live on the
+  # web disk; they aren't run by the worker, but they keep the *web* tier at one
+  # replica until they're migrated too.)
+  - type: worker
+    name: tian-os-worker
+    runtime: node
+    rootDir: .
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm run worker
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: tian-os-redis
+          property: connectionString
+      - key: WORKER_CONCURRENCY
+        value: "2"
+      # Cloudflare R2 — the worker reads uploaded papers from here.
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
+
+  # ---- Managed Redis (rate-limiter counters + BullMQ queue) ----
+  - type: redis
+    name: tian-os-redis
+    plan: starter
+    maxmemoryPolicy: noeviction # BullMQ requires jobs are never evicted
+    ipAllowList: [] # internal-only; reachable from the services above

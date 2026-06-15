@@ -157,34 +157,48 @@ export function registerDefaultDomains() {
       notes: 'Skill graph is supplied by MathPath/Fractions diagnostic domain metadata.',
     },
   });
-}
 
-registerDefaultDomains();
-
-// Decimals domain — decimal place value, operations, conversion (P4–P6).
-if (!hasDomain({ subjectId: 'math', domainId: 'decimals' })) {
-  const decimalsDiagnostic = diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' });
+  // MathPath Decimals — second math domain (P4→P6). Content, progression, and a
+  // persisted practice loop are live; the adaptive diagnostic domain is
+  // registered and engine-validated (`engine_ready`) with its DB session runtime
+  // + UI still pending; the remaining platform adapters are `planned`.
   registerDomain({
     subjectId: 'math',
     domainId: 'decimals',
     displayName: 'MathPath Decimals',
-    domainVersion: decimalsDiagnostic.domainVersion || 'decimals-v1',
+    domainVersion: 'decimals-v0.1',
     diagnosticAdapter: {
       enabled: true,
-      status: 'available',
-      notes: 'Generator-backed adaptive diagnostic domain (DB-free).',
-      provider: decimalsDiagnostic,
+      status: 'engine_ready',
+      notes: 'DB-free diagnostic domain registered + adaptive-engine validated; session runtime + UI wiring pending.',
+      provider: diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' }),
     },
-    assignmentAdapter: null,
-    worksheetAdapter: null,
-    paperAnalysisAdapter: null,
-    interventionAdapter: null,
+    assignmentAdapter: { enabled: false, status: 'planned', notes: 'Will reuse the MathPath assignment service once diagnostics land.' },
+    worksheetAdapter: { enabled: false, status: 'planned' },
+    paperAnalysisAdapter: { enabled: false, status: 'planned' },
+    interventionAdapter: { enabled: false, status: 'planned' },
+    // Custom capability beyond the five platform adapters: the runnable content
+    // + progression layer shipped in increments 1–2.
+    practiceAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Rule-based question generator + prerequisite-gated practice/progression engine.',
+      serviceModule: 'shared/mathpath/decimals/decimalsPracticeEngine.js',
+    },
+    fluencyAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Timed fluency drills scored into bronze→platinum bands; persists fluencyLevel.',
+      serviceModule: 'services/mathpath/decimalsFluencyService.js',
+    },
     skillGraphAdapter: {
       status: 'available',
-      notes: 'Shared 14-skill decimals graph (D001–D014).',
+      notes: '14-skill Decimals graph (D001–D014) in shared/mathpath/decimals/decimalsSkillGraph.js.',
     },
   });
 }
+
+registerDefaultDomains();
 
 // Problem Solving Lab — guided heuristic word-problem reasoning (bar models).
 // PSL uses the shared mastery engine (module: 'PSL') and Mistake model; it does

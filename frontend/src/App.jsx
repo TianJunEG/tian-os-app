@@ -55,6 +55,10 @@ const MathPathAssignments = lazy(() => import('./pages/student/mathpath/MathPath
 const RecoveryPackTeachingFlow = lazy(() => import('./pages/student/mathpath/RecoveryPackTeachingFlow'));
 const RemediationJourney = lazy(() => import('./pages/student/mathpath/RemediationJourney'));
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
+const DecimalsLearningPathPage = lazy(() => import('./pages/student/mathpath/DecimalsLearningPathPage'));
+const DecimalsPracticeSession = lazy(() => import('./pages/student/mathpath/DecimalsPracticeSession'));
+const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
+const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
 const P1LearningPathPage = lazy(() => import('./pages/student/mathpath/P1LearningPathPage'));
 const P2LearningPathPage = lazy(() => import('./pages/student/mathpath/P2LearningPathPage'));
 const P3LearningPathPage = lazy(() => import('./pages/student/mathpath/P3LearningPathPage'));
@@ -92,10 +96,6 @@ const MistakeDetail = lazy(() => import('./pages/student/mathpath/MistakeDetail'
 const DiagnosticIntroScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticIntroScreen'));
 const DiagnosticQuestionScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticQuestionScreen'));
 const DiagnosticResultScreen = lazy(() => import('./pages/student/mathpath/diagnostic/DiagnosticResultScreen'));
-const DecimalsLearningPathPage = lazy(() => import('./pages/student/mathpath/DecimalsLearningPathPage'));
-const DecimalsPracticeSession = lazy(() => import('./pages/student/mathpath/DecimalsPracticeSession'));
-const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
-const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
 const AssessmentIntroScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentIntroScreen'));
 const AssessmentQuestionScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentQuestionScreen'));
 const AssessmentReviewScreen = lazy(() => import('./pages/student/mathpath/assessment/AssessmentReviewScreen'));
@@ -578,16 +578,16 @@ function App() {
             <Route path="/student/mathpath/recovery-pack/:assignmentId" element={<RecoveryPackTeachingFlow />} />
             <Route path="/student/mathpath/remediation/:id" element={<RemediationJourney />} />
             <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
+            <Route path="/student/mathpath/decimals" element={<DecimalsLearningPathPage />} />
+            <Route path="/student/mathpath/decimals/practice" element={<DecimalsPracticeSession />} />
+            <Route path="/student/mathpath/decimals/diagnostic" element={<DecimalsDiagnosticSession />} />
+            <Route path="/student/mathpath/decimals/fluency" element={<DecimalsFluencySession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
             <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />
             <Route path="/student/mathpath/p4" element={<P4LearningPathPage />} />
             <Route path="/student/mathpath/p5" element={<P5LearningPathPage />} />
             <Route path="/student/mathpath/p6" element={<P6LearningPathPage />} />
-            <Route path="/student/mathpath/decimals" element={<DecimalsLearningPathPage />} />
-            <Route path="/student/mathpath/decimals/practice" element={<DecimalsPracticeSession />} />
-            <Route path="/student/mathpath/decimals/diagnostic" element={<DecimalsDiagnosticSession />} />
-            <Route path="/student/mathpath/decimals/fluency" element={<DecimalsFluencySession />} />
             <Route path="/student/mathpath/fractions/story" element={<FeatureGuard feature="fractionsStoryMode"><FractionsStoryModeSession /></FeatureGuard>} />
             <Route path="/student/mathpath/fractions/story/:skillId" element={<FeatureGuard feature="fractionsStoryMode"><FractionsStoryModeSession /></FeatureGuard>} />
             <Route path="/student/mathpath/:domain/story" element={<FeatureGuard feature="fractionsStoryMode"><StoryModeDomainRoute /></FeatureGuard>} />

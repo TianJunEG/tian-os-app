@@ -29,9 +29,27 @@ describe('platform domain registry', () => {
     expect(domain.interventionAdapter.enabled).toBe(true);
   });
 
+  it('registers MathPath Decimals with live content and planned platform adapters', () => {
+    resetRegistry();
+    expect(hasDomain({ subjectId: 'math', domainId: 'decimals' })).toBe(true);
+    const domain = getDomain({ subjectId: 'math', domainId: 'decimals' });
+    expect(domain.displayName).toBe('MathPath Decimals');
+    // content + progression + fluency are live
+    expect(domain.practiceAdapter.enabled).toBe(true);
+    expect(domain.fluencyAdapter.enabled).toBe(true);
+    expect(domain.skillGraphAdapter.status).toBe('available');
+    // diagnostic domain is registered + engine-validated (runtime/UI pending)
+    expect(domain.diagnosticAdapter.enabled).toBe(true);
+    expect(domain.diagnosticAdapter.status).toBe('engine_ready');
+    expect(domain.diagnosticAdapter.provider).toBeTruthy();
+    // remaining platform adapters are not yet built
+    expect(domain.worksheetAdapter.enabled).toBe(false);
+  });
+
   it('keeps the existing diagnostic registry compatible', () => {
     resetRegistry();
     expect(diagnosticsRegistry.hasDiagnosticDomain({ subjectId: 'math', domainId: 'fractions' })).toBe(true);
+    expect(diagnosticsRegistry.hasDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' })).toBe(true);
     expect(hasDomain({ subjectId: 'math', domainId: 'fractions' })).toBe(true);
   });
 

@@ -32,14 +32,40 @@ function bucket() {
   return process.env.R2_BUCKET;
 }
 
-// Upload a finalised audio blob. Returns the opaque storage key.
-export async function putAudioObject(key, body, contentType = 'audio/webm') {
+// True when all R2 env vars are present (the signal to use object storage rather
+// than the local-disk fallback).
+export function isConfigured() {
+  return Boolean(
+    process.env.R2_ACCOUNT_ID
+    && process.env.R2_ACCESS_KEY_ID
+    && process.env.R2_SECRET_ACCESS_KEY
+    && process.env.R2_BUCKET
+    && process.env.R2_ENDPOINT
+  );
+}
+
+// Upload any object (audio, papers, images, …). Returns the opaque storage key.
+export async function putObject(key, body, contentType = 'application/octet-stream') {
   const { PutObjectCommand } = await import('@aws-sdk/client-s3');
   const client = await getClient();
   await client.send(new PutObjectCommand({
     Bucket: bucket(), Key: key, Body: body, ContentType: contentType,
   }));
   return key;
+}
+
+// Read an object back as a Buffer (used by the paper-analysis pipeline/worker).
+export async function getObjectBuffer(key) {
+  const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+  const client = await getClient();
+  const res = await client.send(new GetObjectCommand({ Bucket: bucket(), Key: key }));
+  const bytes = await res.Body.transformToByteArray();
+  return Buffer.from(bytes);
+}
+
+// Back-compat alias for the original audio-only helper.
+export async function putAudioObject(key, body, contentType = 'audio/webm') {
+  return putObject(key, body, contentType);
 }
 
 // Mint a short-lived signed GET url for an audio object.
@@ -58,4 +84,4 @@ export async function deleteObject(key) {
 
 // Default object export so routes can call r2.getSignedDownloadUrl(...) and
 // tests can mock the methods on a single import.
-export default { putAudioObject, getSignedDownloadUrl, deleteObject };
+export default { isConfigured, putObject, getObjectBuffer, putAudioObject, getSignedDownloadUrl, deleteObject };

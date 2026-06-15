@@ -300,6 +300,11 @@ router.post('/sessions/:id/attempts', protect, asyncHandler(async (req, res) => 
       const mistakeType = q.misconceptionTag === 'frac/add-without-common' || q.misconceptionTag === 'frac/add-denominators'
         ? 'method_error'
         : 'unknown';
+      const originMistake = await Mistake.findOne(
+        { studentId: student._id, skillId: q.skillId, status: { $ne: 'resolved' } },
+        { _id: 1 },
+        { sort: { createdAt: -1 } },
+      );
       await Mistake.create({
         studentId: student._id, workspaceId: student.workspaceId, questionId: q._id, skillId: q.skillId,
         sessionId: String(session._id),
@@ -311,6 +316,7 @@ router.post('/sessions/:id/attempts', protect, asyncHandler(async (req, res) => 
         timestamp: new Date(),
         mistakeType, misconceptionTag: q.misconceptionTag || '', status: 'open',
         source: 'practice-incorrect',
+        originMistakeId: originMistake?._id || null,
       });
       console.info('[mistakes] created', {
         studentId: String(student._id),

@@ -2,12 +2,25 @@ import express from 'express';
 import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
+import Student from '../models/Student.js';
 import { protect, getSignedToken } from '../middleware/auth.js';
 import { authRateLimit } from '../middleware/rateLimiter.js';
 import { sendPasswordResetEmail } from '../utils/emailService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
+
+// For a logged-in student, the canonical learner profile lives on the Student
+// record (set by the parent/teacher who created the account), not on the User.
+// The dashboard derives its visual skin from the student's level, so surface the
+// Student record's level here. We prefer it over the denormalised
+// User.studentLevel, which can drift (e.g. demo.student: User="P1" but the
+// learner record says "Primary 4").
+async function resolveStudentLevel(user) {
+  if (user?.role !== 'student') return user?.studentLevel || '';
+  const student = await Student.findOne({ userId: user._id }).select('level').lean();
+  return student?.level || user?.studentLevel || '';
+}
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -117,7 +130,7 @@ router.post(
           role: user.role,
           is_test_account: Boolean(user.is_test_account),
           avatar: user.avatar,
-          studentLevel: user.studentLevel || ''
+          studentLevel: await resolveStudentLevel(user)
         }
       });
     } catch (error) {
@@ -133,7 +146,9 @@ router.post(
 router.get('/me', protect, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    res.json({ success: true, user });
+    const userObj = user.toObject();
+    userObj.studentLevel = await resolveStudentLevel(user);
+    res.json({ success: true, user: userObj });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

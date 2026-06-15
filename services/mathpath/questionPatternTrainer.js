@@ -1,11 +1,55 @@
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import TrainedQuestionPattern from '../../models/mathpath/TrainedQuestionPattern.js';
 import SimilarQuestionPracticeSet from '../../models/mathpath/SimilarQuestionPracticeSet.js';
+import SimilarQuestionPracticeSession from '../../models/mathpath/SimilarQuestionPracticeSession.js';
 
 const DEFAULT_SESSION_TYPES = ['diagnostic', 'practice', 'remediation', 'mastery_check'];
 const DEFAULT_TARGET = { easy: 10, medium: 10, hard: 10, wordProblem: 5, misconception: 5 };
 const PRACTICE_SET_STORE = new Map();
+// Write-through cache in front of the SimilarQuestionPracticeSession collection.
+// The Map keeps single-instance reads fast (and lets validation run without a DB),
+// but every active session is also persisted so a different instance can serve the
+// matching submit. Reads fall back to Mongo on a cache miss.
 const PRACTICE_SESSION_STORE = new Map();
+
+// Only touch Mongo when a live connection exists; otherwise Mongoose buffers the
+// op until a (possibly never-arriving) connection, hanging the request. When
+// disconnected the write-through Map is the source of truth, matching the prior
+// in-memory-only behaviour (and keeping DB-less unit tests fast).
+const dbConnected = () => mongoose.connection?.readyState === 1;
+
+async function persistPracticeSession(session) {
+  PRACTICE_SESSION_STORE.set(session.sessionId, session);
+  if (!dbConnected()) return session;
+  try {
+    // A session reloaded from Mongo (.lean()) carries _id/__v/timestamps; those
+    // must not appear in $set (e.g. _id is immutable), so drop the Mongo internals.
+    const { _id, __v, createdAt, updatedAt, ...doc } = session;
+    await SimilarQuestionPracticeSession.findOneAndUpdate(
+      { sessionId: session.sessionId },
+      { $set: doc },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  } catch {
+    // Persistence is best-effort: on a DB hiccup the in-memory copy still serves
+    // a same-instance submit, matching the pre-persistence behaviour.
+  }
+  return session;
+}
+
+async function loadPracticeSession(sessionId) {
+  if (PRACTICE_SESSION_STORE.has(sessionId)) return PRACTICE_SESSION_STORE.get(sessionId);
+  if (!dbConnected()) return null;
+  let stored = null;
+  try {
+    stored = await SimilarQuestionPracticeSession.findOne({ sessionId }).lean();
+  } catch {
+    stored = null;
+  }
+  if (stored) PRACTICE_SESSION_STORE.set(sessionId, stored);
+  return stored;
+}
 const FRACTION_DENOMINATORS = [2, 3, 4, 5, 6, 8, 10, 12];
 const FRACTION_SKILL_HINTS = [
   { skillId: 'F005', topic: 'Fractions', subtopic: 'Number line fractions', patterns: [/number line/i, /mark after 0/i] },
@@ -639,7 +683,7 @@ export async function startSimilarQuestionPractice({ practiceSetId, studentId, l
     responses: [],
     summary: null,
   };
-  PRACTICE_SESSION_STORE.set(session.sessionId, { ...session, questions });
+  await persistPracticeSession({ ...session, questions });
   return {
     session,
     practiceSet: {
@@ -661,7 +705,7 @@ export async function startSimilarQuestionPractice({ practiceSetId, studentId, l
 }
 
 export async function submitSimilarQuestionPractice({ sessionId, studentId, responses = [] } = {}) {
-  const session = PRACTICE_SESSION_STORE.get(sessionId);
+  const session = await loadPracticeSession(sessionId);
   if (!session) throw new Error('Practice session not found.');
   if (String(session.studentId) !== String(studentId)) throw new Error('studentId does not match practice session.');
   const byId = new Map((session.questions || []).map((q) => [q.variantId, q]));
@@ -712,7 +756,7 @@ export async function submitSimilarQuestionPractice({ sessionId, studentId, resp
     masteryStatus: total && correctCount / total >= 0.85 ? 'mastery_ready' : 'needs_practice',
   };
   const nextSession = { ...session, status: 'completed', responses: results, summary, completedAt: nowIso() };
-  PRACTICE_SESSION_STORE.set(sessionId, nextSession);
+  await persistPracticeSession(nextSession);
   return { sessionId, summary, results };
 }
 

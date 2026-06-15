@@ -5,7 +5,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 import connectDB from './config/db.js';
+import { closeRedis } from './config/redis.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
@@ -38,6 +40,7 @@ import studentCareRoutes from './routes/studentCare.js';
 import pilotAnalyticsRoutes from './routes/pilotAnalytics.js';
 import telemetryRoutes from './routes/telemetry.js';
 import mathpathWorkingRoutes from './routes/mathpathWorking.js';
+import mathpathDecimalsRoutes from './routes/mathpathDecimals.js';
 import mathpathPaperAnalysisRoutes from './routes/mathpathPaperAnalysis.js';
 import mathpathAssignmentRoutes from './routes/mathpathAssignments.js';
 import mathpathSuccessCentreRoutes from './routes/mathpathSuccessCentre.js';
@@ -57,7 +60,6 @@ import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
 import pslRoutes from './routes/psl.js';
-import mathpathDecimalsRoutes from './routes/mathpathDecimals.js';
 import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
 import assessmentUploadRoutes from './routes/assessmentUploads.js';
@@ -71,7 +73,7 @@ import informalAssessmentRoutes from './routes/informalAssessments.js';
 import informalAssessmentStudentRoutes from './routes/informalAssessmentStudent.js';
 import { featureGate } from './middleware/featureGate.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const REQUIRED_ENV = ['MONGODB_URI', 'JWT_SECRET'];
 for (const key of REQUIRED_ENV) {
@@ -196,6 +198,7 @@ app.use('/api/admin', pilotAnalyticsRoutes);
 app.use('/api/telemetry', telemetryRoutes);
 app.use('/api/mastery', masteryRoutes);
 app.use('/api/mathpath-working', mathpathWorkingRoutes);
+app.use('/api/mathpath/decimals', mathpathDecimalsRoutes);
 app.use('/api/mathpath/paper-analysis', mathpathPaperAnalysisRoutes);
 app.use('/api/mathpath/assignments', mathpathAssignmentRoutes);
 app.use('/api/mathpath/success-centre', mathpathSuccessCentreRoutes);
@@ -221,7 +224,6 @@ app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }),
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 app.use('/api/psl', featureGate({ feature: 'psl', minVersion: 'v0.7' }), pslRoutes);
-app.use('/api/mathpath/decimals', mathpathDecimalsRoutes);
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
 app.use('/api/assessment-uploads', assessmentUploadRoutes);
@@ -251,6 +253,38 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Graceful shutdown (Phase 1 WS5): on a platform stop/redeploy, stop accepting
+// new connections, let in-flight requests finish, then close Mongo + Redis so
+// rolling deploys and scale-down don't drop work or leak connections.
+let shuttingDown = false;
+async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`${signal} received, shutting down gracefully…`);
+
+  // Force-exit backstop if a connection refuses to drain in time.
+  const forceExit = setTimeout(() => {
+    console.error('Shutdown timed out, forcing exit.');
+    process.exit(1);
+  }, 15000);
+  forceExit.unref();
+
+  server.close(async () => {
+    try {
+      await mongoose.connection.close();
+      await closeRedis();
+    } catch (err) {
+      console.error('Error during shutdown cleanup:', err?.message);
+    } finally {
+      clearTimeout(forceExit);
+      process.exit(0);
+    }
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

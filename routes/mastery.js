@@ -2091,6 +2091,23 @@ router.post('/diagnostic/:sessionId/submit', protect, asyncHandler(async (req, r
     if (!savedAttempts.length) return res.status(400).json({ error: 'Submitted responses do not match valid diagnostic questions.' });
     await MathPathAttempt.insertMany(savedAttempts);
     if (mistakesFromDiagnostic.length) {
+      // Link to the most recent unresolved mistake per skill (e.g. re-diagnostic).
+      const diagSkillIds = [...new Set(mistakesFromDiagnostic.map((d) => d.skillId).filter(Boolean))];
+      if (diagSkillIds.length) {
+        const priorMistakes = await Mistake.find(
+          { studentId: student._id, skillId: { $in: diagSkillIds }, status: { $ne: 'resolved' } },
+          { _id: 1, skillId: 1 },
+          { sort: { createdAt: -1 } },
+        );
+        const originBySkill = new Map();
+        for (const m of priorMistakes) {
+          const key = String(m.skillId);
+          if (!originBySkill.has(key)) originBySkill.set(key, m._id);
+        }
+        for (const doc of mistakesFromDiagnostic) {
+          doc.originMistakeId = (doc.skillId && originBySkill.get(String(doc.skillId))) || null;
+        }
+      }
       await Mistake.insertMany(mistakesFromDiagnostic);
       await Promise.all(mistakesFromDiagnostic.map((mistake) => MathPathMistakeRecord.findOneAndUpdate(
         {
