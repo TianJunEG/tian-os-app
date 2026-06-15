@@ -1,5 +1,4 @@
 import express from 'express';
-import fs from 'fs/promises';
 import Worksheet from '../models/Worksheet.js';
 import User from '../models/User.js';
 import Assignment from '../models/Assignment.js';
@@ -12,6 +11,7 @@ import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
 import { applyMarks } from '../utils/marking.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
 import { logDiagnosedMisconceptions } from '../utils/misconceptionLog.js';
+import { persistUploadFile } from '../services/storage/objectStore.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 import { commonMistakes } from '../utils/commonMistakes.js';
 import { resolveStudent } from '../utils/studentContext.js';
@@ -72,8 +72,8 @@ router.post(
         }
       }
 
-      const buffer = await fs.readFile(req.file.path);
-      const imageBase64 = buffer.toString('base64');
+      const imageBase64 = req.file.buffer.toString('base64');
+      const { fileUrl: sourceImageUrl } = await persistUploadFile(req.file, 'worksheets');
 
       const result = await analyzeAndGenerateWorksheet({
         imageBase64,
@@ -92,7 +92,7 @@ router.post(
         subject: 'Math',
         topic: result.topic,
         gradeLevel,
-        sourceImageUrl: `/uploads/worksheets/${req.file.filename}`,
+        sourceImageUrl,
         overallSummary: result.overallSummary,
         misconceptions: Array.isArray(result.misconceptions) ? result.misconceptions : [],
         skillsToReinforce: Array.isArray(result.skillsToReinforce) ? result.skillsToReinforce : [],
