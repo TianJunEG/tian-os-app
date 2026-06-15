@@ -54,13 +54,13 @@ export default function SpellingListDetailPage() {
     spellingAPI
       .getStats()
       .then((r) => setMasteredSet(new Set((r.data.masteredWords || []).map((w) => w.toLowerCase()))))
-      .catch(() => {});
+      .catch((e) => console.warn("SpellingListDetailPage: fetch failed", e));
   }, [active]);
 
   const words = useMemo(() => list?.words || [], [list]);
 
   const recordAttempt = (mode) => (word, correct) => {
-    spellingAPI.recordAttempts({ word, correct, mode, list: id }).catch(() => {});
+    spellingAPI.recordAttempts({ word, correct, mode, list: id }).catch((e) => console.warn("SpellingListDetailPage: fetch failed", e));
   };
 
   const toggleShare = async () => {

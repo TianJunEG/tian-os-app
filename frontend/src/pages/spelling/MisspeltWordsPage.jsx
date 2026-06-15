@@ -37,7 +37,7 @@ export default function MisspeltWordsPage() {
   );
 
   const record = (word, correct) =>
-    spellingAPI.recordAttempts({ word, correct, mode: 'misspelt' }).catch(() => {});
+    spellingAPI.recordAttempts({ word, correct, mode: 'misspelt' }).catch((e) => console.warn("MisspeltWordsPage: fetch failed", e));
 
   const ActiveComp = ACTIVITIES.find(([k]) => k === activity)?.[2];
 

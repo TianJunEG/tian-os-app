@@ -31,7 +31,7 @@ export default function MechanismSimulator() {
     let alive = true;
     mechanismsAPI.progress()
       .then((r) => { if (alive) setMastery(r.data.progress?.[mechanism] || null); })
-      .catch(() => {});
+      .catch((e) => console.warn("MechanismSimulator: fetch failed", e));
     return () => { alive = false; };
   }, [mechanism]);
 

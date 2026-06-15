@@ -41,10 +41,10 @@ export default function SpellingHomePage() {
   const [dueCount, setDueCount] = useState(null);
 
   useEffect(() => {
-    spellingAPI.getStats().then((r) => setStats(r.data)).catch(() => {});
-    spellingAPI.getLists().then((r) => setListCount(r.data.count)).catch(() => {});
-    spellingAPI.getGamification().then((r) => setGame(r.data)).catch(() => {});
-    spellingAPI.getDue({ count: 1 }).then((r) => setDueCount(r.data.dueCount)).catch(() => {});
+    spellingAPI.getStats().then((r) => setStats(r.data)).catch((e) => console.warn("SpellingHomePage: fetch failed", e));
+    spellingAPI.getLists().then((r) => setListCount(r.data.count)).catch((e) => console.warn("SpellingHomePage: fetch failed", e));
+    spellingAPI.getGamification().then((r) => setGame(r.data)).catch((e) => console.warn("SpellingHomePage: fetch failed", e));
+    spellingAPI.getDue({ count: 1 }).then((r) => setDueCount(r.data.dueCount)).catch((e) => console.warn("SpellingHomePage: fetch failed", e));
   }, []);
 
   return (

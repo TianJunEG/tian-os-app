@@ -68,7 +68,7 @@ function Tutors() {
   const { data, error, load } = useLoader(agencyAPI.tutors);
   const [plans, setPlans] = useState([]);
   const [busy, setBusy] = useState(null);
-  useEffect(() => { agencyAPI.tutorPlans().then((r) => setPlans(r.data.plans || [])).catch(() => {}); }, []);
+  useEffect(() => { agencyAPI.tutorPlans().then((r) => setPlans(r.data.plans || [])).catch((e) => console.warn("AgencyDashboard: fetch failed", e)); }, []);
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!data) return <Spinner />;
   const grant = async (tutorUserId, planId) => {

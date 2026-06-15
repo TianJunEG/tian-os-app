@@ -63,7 +63,7 @@ export default function ParentHome() {
     let alive = true;
     parentInvitesAPI.myChildren()
       .then((r) => { if (alive) setSchoolChildren(r.data?.children || []); })
-      .catch(() => {});
+      .catch((e) => console.warn("ParentHome: fetch failed", e));
     return () => { alive = false; };
   }, []);
 

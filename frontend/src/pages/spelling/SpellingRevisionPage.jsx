@@ -43,7 +43,7 @@ export default function SpellingRevisionPage() {
 
   // Revisiting a word feeds back into mastery; record under the revision mode.
   const record = (word, correct) =>
-    spellingAPI.recordAttempts({ word, correct, mode: 'revision' }).catch(() => {});
+    spellingAPI.recordAttempts({ word, correct, mode: 'revision' }).catch((e) => console.warn("SpellingRevisionPage: fetch failed", e));
 
   const { langs, lang, setLang, filtered } = useLanguageScope(words);
   const ActiveComp = useMemo(() => ACTIVITIES.find((a) => a.key === activity)?.Comp, [activity]);

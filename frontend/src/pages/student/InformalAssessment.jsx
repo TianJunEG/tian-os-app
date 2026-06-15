@@ -55,7 +55,7 @@ export default function InformalAssessment() {
           setPhase('quiz');
         }
       })
-      .catch(() => {})
+      .catch((e) => console.warn("InformalAssessment: fetch failed", e))
       .finally(() => setLoading(false));
   }, [sessionId]);
 

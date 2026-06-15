@@ -39,7 +39,7 @@ export default function CreateAssessment() {
   const [pslSkills, setPslSkills] = useState(null);
 
   useEffect(() => {
-    teacherAPI.groups(id).then((r) => setGroups(r.data.saved || [])).catch(() => {});
+    teacherAPI.groups(id).then((r) => setGroups(r.data.saved || [])).catch((e) => console.warn("CreateAssessment: fetch failed", e));
   }, [id]);
 
   const loadCatalog = useCallback(() => {

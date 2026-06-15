@@ -24,7 +24,7 @@ export default function WeakTopics() {
       const map = {};
       (r.data.weakSkills || []).forEach((w) => { map[String(w.skillId)] = w.count; });
       setMistakeCounts(map);
-    }).catch(() => {});
+    }).catch((e) => console.warn("WeakTopics: fetch failed", e));
   }, [studentId]);
   useEffect(() => { load(); }, [load]);
 

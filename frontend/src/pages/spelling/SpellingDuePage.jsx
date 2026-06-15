@@ -57,7 +57,7 @@ export default function SpellingDuePage() {
 
   // Reviewing a due word feeds back into mastery and reschedules it.
   const record = (word, correct) =>
-    spellingAPI.recordAttempts({ word, correct, mode: 'due' }).catch(() => {});
+    spellingAPI.recordAttempts({ word, correct, mode: 'due' }).catch((e) => console.warn("SpellingDuePage: fetch failed", e));
 
   const { langs, lang, setLang, filtered } = useLanguageScope(words);
   const ActiveComp = useMemo(() => ACTIVITIES.find((a) => a.key === activity)?.Comp, [activity]);
