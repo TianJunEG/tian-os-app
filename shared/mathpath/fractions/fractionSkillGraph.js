@@ -158,7 +158,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 92, targetAverageSeconds: 20 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F010'],
-    questionFamilies: ['QF_F011_001', 'QF_F011_002', 'QF_F011_003', 'QF_F011_004', 'QF_F011_005', 'QF_F011_006'],
+    questionFamilies: ['QF_F011_001', 'QF_F011_002', 'QF_F011_003', 'QF_F011_004', 'QF_F011_006'],
   },
   {
     id: 'F012',
@@ -172,7 +172,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 92, targetAverageSeconds: 18 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F010', 'F011'],
-    questionFamilies: ['QF_F012_001', 'QF_F012_002', 'QF_F012_003', 'QF_F012_004', 'QF_F012_005', 'QF_F012_006'],
+    questionFamilies: ['QF_F012_001', 'QF_F012_002', 'QF_F012_003', 'QF_F012_005', 'QF_F012_006'],
   },
   {
     id: 'F013',
@@ -186,7 +186,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 92, targetAverageSeconds: 18 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F003', 'F010'],
-    questionFamilies: ['QF_F013_001', 'QF_F013_002', 'QF_F013_003', 'QF_F013_004', 'QF_F013_005'],
+    questionFamilies: ['QF_F013_001', 'QF_F013_002', 'QF_F013_003', 'QF_F013_004'],
   },
   {
     id: 'F014',
@@ -200,7 +200,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 92, targetAverageSeconds: 18 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F013'],
-    questionFamilies: ['QF_F014_001', 'QF_F014_002', 'QF_F014_003', 'QF_F014_004', 'QF_F014_005'],
+    questionFamilies: ['QF_F014_001', 'QF_F014_002', 'QF_F014_003', 'QF_F014_004'],
   },
   {
     id: 'F015',
@@ -242,7 +242,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 94, targetAverageSeconds: 14 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F007', 'F016'],
-    questionFamilies: ['QF_F017_001', 'QF_F017_002', 'QF_F017_003', 'QF_F017_004'],
+    questionFamilies: ['QF_F017_001', 'QF_F017_002', 'QF_F017_003'],
   },
   {
     id: 'F018',
@@ -256,7 +256,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 93, targetAverageSeconds: 22 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F011', 'F012', 'F016'],
-    questionFamilies: ['QF_F018_001', 'QF_F018_002', 'QF_F018_003', 'QF_F018_004', 'QF_F018_005', 'QF_F018_006'],
+    questionFamilies: ['QF_F018_001', 'QF_F018_002', 'QF_F018_003', 'QF_F018_004'],
   },
   {
     id: 'F019',
@@ -298,7 +298,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 93, targetAverageSeconds: 20 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F012', 'F015'],
-    questionFamilies: ['QF_F021_001', 'QF_F021_002', 'QF_F021_003', 'QF_F021_004', 'QF_F021_005'],
+    questionFamilies: ['QF_F021_001', 'QF_F021_002', 'QF_F021_003', 'QF_F021_004'],
   },
   {
     id: 'F022',
@@ -312,7 +312,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 93, targetAverageSeconds: 24 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F021'],
-    questionFamilies: ['QF_F022_001', 'QF_F022_002', 'QF_F022_003', 'QF_F022_004', 'QF_F022_005'],
+    questionFamilies: ['QF_F022_001', 'QF_F022_002', 'QF_F022_003', 'QF_F022_004'],
   },
   {
     id: 'F023',
@@ -326,7 +326,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 92, targetAverageSeconds: 35 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F018', 'F019', 'F020'],
-    questionFamilies: ['QF_F023_001', 'QF_F023_002', 'QF_F023_003', 'QF_F023_004', 'QF_F023_005', 'QF_F023_006', 'QF_F023_007'],
+    questionFamilies: ['QF_F023_001', 'QF_F023_002', 'QF_F023_003', 'QF_F023_004', 'QF_F023_006', 'QF_F023_007'],
   },
   {
     id: 'F024',
@@ -354,7 +354,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 92, targetAverageSeconds: 50 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F024', 'F022'],
-    questionFamilies: ['QF_F025_001', 'QF_F025_002', 'QF_F025_003', 'QF_F025_004', 'QF_F025_005'],
+    questionFamilies: ['QF_F025_001', 'QF_F025_002', 'QF_F025_003', 'QF_F025_004'],
   },
   {
     id: 'F026',
@@ -368,7 +368,7 @@ const fractionSkills = [
     fluency: { targetAccuracy: 93, targetAverageSeconds: 55 },
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['F018', 'F019', 'F022', 'F024'],
-    questionFamilies: ['QF_F026_001', 'QF_F026_002', 'QF_F026_003', 'QF_F026_004', 'QF_F026_005'],
+    questionFamilies: ['QF_F026_001', 'QF_F026_002', 'QF_F026_003', 'QF_F026_004'],
   },
 ];
 
