@@ -52,7 +52,7 @@ export const errorHandler = (err, req, res, next) => {
 
   // Multer file upload errors
   if (err.name === 'MulterError') {
-    if (err.code === 'FILE_TOO_LARGE') {
+    if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         error: 'File is too large (max 10MB)'
       });
