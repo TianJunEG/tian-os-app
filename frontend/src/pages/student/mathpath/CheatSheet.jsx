@@ -8,6 +8,15 @@ import { getMascot } from '../../../config/mascots';
 import sgP1Numbers from '../../../config/cheatsheets/sg-p1-numbers';
 import sgP1AddSub from '../../../config/cheatsheets/sg-p1-add-sub';
 import sgP1Shapes from '../../../config/cheatsheets/sg-p1-shapes';
+import sgP2Numbers from '../../../config/cheatsheets/sg-p2-numbers';
+import sgP2AddSub from '../../../config/cheatsheets/sg-p2-add-sub';
+import sgP2Fractions from '../../../config/cheatsheets/sg-p2-fractions';
+import sgP2Measurement from '../../../config/cheatsheets/sg-p2-measurement';
+import sgP3Numbers from '../../../config/cheatsheets/sg-p3-numbers';
+import sgP3Operations from '../../../config/cheatsheets/sg-p3-operations';
+import sgP3Fractions from '../../../config/cheatsheets/sg-p3-fractions';
+import sgP3Geometry from '../../../config/cheatsheets/sg-p3-geometry';
+import sgP3Data from '../../../config/cheatsheets/sg-p3-data';
 import sgP4Fractions from '../../../config/cheatsheets/sg-p4-fractions';
 import sgP4WholeNumbers from '../../../config/cheatsheets/sg-p4-whole-numbers';
 import sgP4FactorsMultiples from '../../../config/cheatsheets/sg-p4-factors-multiples';
@@ -15,6 +24,13 @@ import sgP4FourOperations from '../../../config/cheatsheets/sg-p4-four-operation
 import sgP4Decimals from '../../../config/cheatsheets/sg-p4-decimals';
 import sgP4WordProblems from '../../../config/cheatsheets/sg-p4-word-problems';
 import sgP4Statistics from '../../../config/cheatsheets/sg-p4-statistics';
+import sgP5Fractions from '../../../config/cheatsheets/sg-p5-fractions';
+import sgP5Decimals from '../../../config/cheatsheets/sg-p5-decimals';
+import sgP5Percentage from '../../../config/cheatsheets/sg-p5-percentage';
+import sgP5Ratio from '../../../config/cheatsheets/sg-p5-ratio';
+import sgP5Geometry from '../../../config/cheatsheets/sg-p5-geometry';
+import sgP5Measurement from '../../../config/cheatsheets/sg-p5-measurement';
+import sgP5Operations from '../../../config/cheatsheets/sg-p5-operations';
 import sgP6Algebra from '../../../config/cheatsheets/sg-p6-algebra';
 import sgP6Fractions from '../../../config/cheatsheets/sg-p6-fractions';
 import sgP6Percentage from '../../../config/cheatsheets/sg-p6-percentage';
@@ -27,6 +43,15 @@ const SHEETS = {
   'sg-p1-num': sgP1Numbers,
   'sg-p1-as': sgP1AddSub,
   'sg-p1-sh': sgP1Shapes,
+  'sg-p2-num': sgP2Numbers,
+  'sg-p2-as': sgP2AddSub,
+  'sg-p2-fr': sgP2Fractions,
+  'sg-p2-mea': sgP2Measurement,
+  'sg-p3-num': sgP3Numbers,
+  'sg-p3-ops': sgP3Operations,
+  'sg-p3-fr': sgP3Fractions,
+  'sg-p3-geo': sgP3Geometry,
+  'sg-p3-data': sgP3Data,
   'sg-p4-fr': sgP4Fractions,
   'sg-p4-wn': sgP4WholeNumbers,
   'sg-p4-fm': sgP4FactorsMultiples,
@@ -34,6 +59,13 @@ const SHEETS = {
   'sg-p4-dec': sgP4Decimals,
   'sg-p4-wp': sgP4WordProblems,
   'sg-p4-stat': sgP4Statistics,
+  'sg-p5-fr': sgP5Fractions,
+  'sg-p5-dec': sgP5Decimals,
+  'sg-p5-pct': sgP5Percentage,
+  'sg-p5-rr': sgP5Ratio,
+  'sg-p5-geo': sgP5Geometry,
+  'sg-p5-mea': sgP5Measurement,
+  'sg-p5-ops': sgP5Operations,
   'sg-p6-alg': sgP6Algebra,
   'sg-p6-fr': sgP6Fractions,
   'sg-p6-pct': sgP6Percentage,

@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p3-num',
+  level: 'Primary 3',
+  issue: 1,
+  topic: 'Numbers to 100,000',
+  subtitle: "Lejo's Ultimate Cheat Sheet",
+  mascot: 'lejo',
+  sections: [
+    {
+      title: 'Place Value',
+      code: 'Num 3.1',
+      formula: 'TTh + Th + H + T + O',
+      formulaNote: 'Every digit has a home — know where it lives!',
+      explanation: 'Numbers up to 5 digits — each position is worth 10 times more than the one to its right!',
+      example: {
+        steps: ['45 308 → 4 ten thousands, 5 thousands, 3 hundreds, 0 tens, 8 ones'],
+        answer: '40 000 + 5 000 + 300 + 0 + 8 = 45 308',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'placeValue', headers: ['TTh', 'Th', 'H', 'T', 'O'], digits: [4, 5, 3, 0, 8] },
+    },
+    {
+      title: 'Rounding',
+      code: 'Num 3.2',
+      formula: 'Look at the digit to the RIGHT → 5 or more round up, less than 5 round down',
+      formulaNote: 'The digit to the right is the decision-maker!',
+      explanation: 'Round to the nearest 10 or 100 — check the digit to the right of the one you\'re rounding!',
+      example: {
+        steps: ['Round 368 to nearest 100', 'Look at 6 (tens digit) → 6 ≥ 5 → round up'],
+        answer: '400',
+      },
+      sfx: 'POW!',
+      tip: 'Circle the rounding digit, underline the one to its right!',
+      diagram: { type: 'numberLine', start: 300, end: 400, points: [368], labels: ['368 → 400'] },
+    },
+    {
+      title: 'Estimating Sums & Differences',
+      code: 'Num 3.3',
+      formula: 'Round each number → add or subtract the rounded numbers',
+      formulaNote: 'Close enough is good enough for estimation!',
+      explanation: 'Round first, then calculate — it\'s a super-fast way to check your answer!',
+      example: {
+        steps: ['487 + 215', '487 → 500 (nearest 100)', '215 → 200 (nearest 100)'],
+        answer: '500 + 200 ≈ 700',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Estimation is a quick check — it won\'t be exact, but it catches big mistakes!',
+      bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['487 → 500', '215 → 200', '500 + 200', '≈ 700'] },
+    },
+  ],
+};

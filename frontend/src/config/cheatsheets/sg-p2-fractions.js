@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p2-fr',
+  level: 'Primary 2',
+  issue: 3,
+  topic: 'Fractions',
+  subtitle: "Lysa's Ultimate Cheat Sheet",
+  mascot: 'lysa',
+  sections: [
+    {
+      title: 'Equal Parts',
+      code: 'Fr 2.1',
+      formula: 'A fraction = equal parts of a whole',
+      formulaNote: 'All the parts must be the same size!',
+      explanation: 'A fraction means equal parts of a whole — every piece must be the same size!',
+      example: {
+        steps: ['A pizza cut into 4 equal slices'],
+        answer: 'Each slice is {{1/4}}',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'pieChart', slices: [{ num: 1, den: 4 }, { num: 1, den: 4 }, { num: 1, den: 4 }, { num: 1, den: 4 }], labels: ['¼', '¼', '¼', '¼'] },
+    },
+    {
+      title: 'Numerator and Denominator',
+      code: 'Fr 2.2',
+      formula: 'Top (numerator) = parts you have\nBottom (denominator) = total equal parts',
+      formulaNote: 'Top = how many, Bottom = how many in all!',
+      explanation: 'Top number = how many parts you have, bottom number = total equal parts!',
+      example: {
+        steps: ['3 out of 4 slices eaten'],
+        answer: '{{3/4}}',
+      },
+      sfx: 'POW!',
+      tip: 'Denominator = Down (bottom) — both start with D!',
+      diagram: { type: 'pieChart', slices: [{ num: 3, den: 4 }], labels: ['¾ eaten'] },
+    },
+    {
+      title: 'Fractions of a Whole',
+      code: 'Fr 2.3',
+      formula: 'All parts together = 1 whole',
+      formulaNote: 'When the top equals the bottom, that\'s 1 whole!',
+      explanation: 'When you put all the equal parts together, you get 1 whole!',
+      example: {
+        steps: ['{{1/3}} + {{1/3}} + {{1/3}}'],
+        answer: '{{3/3}} = 1 whole',
+      },
+      sfx: 'KA-POW!',
+      tip: 'When the top equals the bottom, that\'s 1 whole!',
+      bossLevel: true,
+      diagram: { type: 'fractionStrip', parts: 3, groups: [{ count: 1, label: '1/3', color: 'accent' }, { count: 1, label: '1/3', color: 'shadow' }, { count: 1, label: '1/3', color: 'accent' }] },
+    },
+  ],
+};

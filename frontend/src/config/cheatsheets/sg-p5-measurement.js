@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p5-mea',
+  level: 'Primary 5',
+  issue: 6,
+  topic: 'Measurement',
+  subtitle: "Kaesy's Ultimate Cheat Sheet",
+  mascot: 'kaesy',
+  sections: [
+    {
+      title: 'Perimeter & Area',
+      code: 'Mea 5.1',
+      formula: 'Perimeter = add all sides\nArea of rectangle = length × width',
+      formulaNote: null,
+      explanation: 'Around vs inside.',
+      example: {
+        steps: ['Rectangle 8 cm × 5 cm', 'P = 8+5+8+5 = 26 cm', 'A = 8 × 5 = 40 cm²'],
+        answer: 'P = 26 cm, A = 40 cm²',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'arrowFlow', steps: ['8 cm × 5 cm', 'P = 2(8+5)', '= 26 cm', 'A = 8 × 5', '= 40 cm²'] },
+    },
+    {
+      title: 'Volume of Cuboid',
+      code: 'Mea 5.2',
+      formula: 'Volume = Length × Width × Height',
+      formulaNote: 'cm × cm × cm = cm³',
+      explanation: '3D space.',
+      example: {
+        steps: ['L = 6, W = 4, H = 3', '6 × 4 × 3'],
+        answer: '72 cm³',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'arrowFlow', steps: ['L=6', 'W=4', 'H=3', '6 × 4 × 3', '= 72 cm³'] },
+    },
+    {
+      title: 'Time',
+      code: 'Mea 5.3',
+      formula: '1 h = 60 min, 1 min = 60 s\n24-hour: add 12 for PM',
+      formulaNote: null,
+      explanation: '24-hour clock and duration.',
+      example: {
+        steps: ['3:45 PM → 15:45', 'Duration from 09:30 to 11:15'],
+        answer: '1 h 45 min',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Count hours first, then adjust minutes!',
+      bossLevel: true,
+      diagram: { type: 'numberLine', start: 9, end: 12, points: [9.5, 11.25], labels: ['09:30', '11:15'], jumps: [{ from: 9.5, to: 11.25, label: '1h 45min' }] },
+    },
+  ],
+};

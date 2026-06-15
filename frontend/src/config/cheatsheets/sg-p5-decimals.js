@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p5-dec',
+  level: 'Primary 5',
+  issue: 2,
+  topic: 'Decimals',
+  subtitle: "Kaesy's Ultimate Cheat Sheet",
+  mascot: 'kaesy',
+  sections: [
+    {
+      title: 'Multiply/Divide by 10, 100, 1000',
+      code: 'Dec 5.1',
+      formula: '× 10 → move point 1 place RIGHT\n÷ 10 → move point 1 place LEFT',
+      formulaNote: null,
+      explanation: 'The decimal point moves!',
+      example: {
+        steps: ['3.45 × 100 = 345', '72.6 ÷ 10 = 7.26'],
+        answer: '345 and 7.26',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'arrowFlow', steps: ['3.45', '× 10 →', '34.5', '× 10 →', '345'] },
+    },
+    {
+      title: 'Multiply/Divide Decimals by Whole Numbers',
+      code: 'Dec 5.2',
+      formula: 'Multiply as if whole numbers → put decimal point back',
+      formulaNote: null,
+      explanation: 'Same as whole numbers — just line up the decimal point.',
+      example: {
+        steps: ['2.4 × 3 → 24 × 3 = 72', '1 decimal place'],
+        answer: '7.2',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'columnMethod', operation: 'mult', rows: [[2, '.', 4], [3]], carries: [1], answer: [7, '.', 2] },
+    },
+    {
+      title: 'Fraction ↔ Decimal',
+      code: 'Dec 5.3',
+      formula: 'Fraction → Decimal: divide top by bottom\nDecimal → Fraction: read the place value',
+      formulaNote: '0.75 = 75 hundredths = {{75/100}} = {{3/4}}',
+      explanation: 'Convert between them.',
+      example: {
+        steps: ['{{3/8}} → 3 ÷ 8'],
+        answer: '0.375',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Memorise the common ones: ½=0.5, ¼=0.25, ¾=0.75, ⅕=0.2',
+      bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['{{3/4}}', '3 ÷ 4', '= 0.75'] },
+    },
+  ],
+};

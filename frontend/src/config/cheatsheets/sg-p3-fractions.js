@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p3-fr',
+  level: 'Primary 3',
+  issue: 3,
+  topic: 'Fractions',
+  subtitle: "Lejo's Ultimate Cheat Sheet",
+  mascot: 'lejo',
+  sections: [
+    {
+      title: 'Equivalent Fractions',
+      code: 'Fr 3.1',
+      formula: 'Multiply (or divide) top AND bottom by the same number',
+      formulaNote: 'What you do to the top, you MUST do to the bottom!',
+      explanation: 'Same value, different numbers — multiply or divide both parts equally!',
+      example: {
+        steps: ['{{1/2}} = {{2/4}} = {{3/6}}', 'Multiply top and bottom by 2 → {{2/4}}', 'Multiply top and bottom by 3 → {{3/6}}'],
+        answer: '{{1/2}} = {{2/4}} = {{3/6}}',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'fractionStrip', parts: 6, groups: [{ count: 3, label: '3/6 = 1/2', color: 'accent' }] },
+    },
+    {
+      title: 'Comparing Fractions',
+      code: 'Fr 3.2',
+      formula: 'Same bottom? Bigger top wins!\nUnit fractions? Smaller bottom wins!',
+      formulaNote: 'Two simple rules cover every P3 comparison!',
+      explanation: 'Same denominator → compare the tops. Unit fractions → bigger bottom means smaller slice!',
+      example: {
+        steps: ['{{3/5}} vs {{1/5}} → 3 > 1 → {{3/5}} is bigger', '{{1/3}} vs {{1/6}} → 3 < 6 → {{1/3}} is bigger'],
+        answer: '{{3/5}} > {{1/5}} and {{1/3}} > {{1/6}}',
+      },
+      sfx: 'POW!',
+      tip: 'Think of pizza: cut into fewer slices → each slice is bigger!',
+      diagram: { type: 'fractionStrip', parts: 6, groups: [{ count: 3, label: '3/6', color: 'accent' }, { count: 1, label: '1/6', color: 'shadow' }] },
+    },
+    {
+      title: 'Add & Subtract Like Fractions',
+      code: 'Fr 3.3',
+      formula: 'Same bottom → add (or subtract) the tops → keep the bottom',
+      formulaNote: 'Only the numerators move — the denominator stays put!',
+      explanation: 'When the bottoms match, just add or subtract the tops — easy!',
+      example: {
+        steps: ['{{2/5}} + {{1/5}}', 'Same denominator (5) → add tops: 2 + 1 = 3'],
+        answer: '{{3/5}}',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Never add the bottoms! The denominator stays the same.',
+      bossLevel: true,
+      diagram: { type: 'fractionStrip', parts: 5, groups: [{ count: 2, label: '2/5', color: 'accent' }, { count: 1, label: '+1/5', color: 'shadow' }] },
+    },
+  ],
+};
