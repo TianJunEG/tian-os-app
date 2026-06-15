@@ -15,7 +15,8 @@ export default defineConfig({
   },
   datasource: {
     url: env('DATABASE_URL'),
-    // Direct (non-pooled) connection for migrations, if DATABASE_URL is pooled.
-    directUrl: env('DATABASE_DIRECT_URL'),
+    // Direct (non-pooled) connection for migrations when DATABASE_URL is pooled.
+    // Optional — omit if not set (e.g. in CI where generate needs no real DB).
+    ...(process.env.DATABASE_DIRECT_URL ? { directUrl: process.env.DATABASE_DIRECT_URL } : {}),
   },
 });

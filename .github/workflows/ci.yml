@@ -23,6 +23,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Generate the Prisma v7 client and esbuild-bundle the TS output to ESM JS.
+      # prisma generate needs no real DB — DATABASE_URL is required by the config
+      # schema but no connection is made during code generation.
+      - name: Generate Prisma client
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost/ci
+        run: npm run postgres:prisma:generate
+
       # Syntax-check every backend file (no execution, so the server never
       # boots and CI can't hang on app.listen / DB connect). Catches errors in
       # files the test suite doesn't import.
