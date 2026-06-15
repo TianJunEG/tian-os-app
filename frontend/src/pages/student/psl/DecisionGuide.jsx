@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Lightbulb, RotateCcw } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
 const QUESTIONS = [
   {
@@ -110,6 +112,8 @@ function ProgressDots({ currentIndex, answers, result }) {
 
 export default function DecisionGuide() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [result, setResult] = useState(null);
   const [answers, setAnswers] = useState([]);
@@ -143,7 +147,7 @@ export default function DecisionGuide() {
   const current = QUESTIONS[currentIndex];
 
   return (
-    <div className="bg-dot-grid min-h-screen pb-8">
+    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
       <div className="mx-auto max-w-lg space-y-4 px-3 pt-4 pb-6 sm:px-6 sm:pt-6">
 
         {/* Header */}

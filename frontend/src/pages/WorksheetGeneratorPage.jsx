@@ -182,6 +182,36 @@ export default function WorksheetGeneratorPage() {
     setActiveSession(next ? next.sessionNumber : 1);
   };
 
+  // When the server offloads generation to the background worker it returns a
+  // 202 with a 'pending' worksheet; poll GET /:id until it's ready or failed.
+  const pollWorksheetReady = async (id, { tries = 40, intervalMs = 2000 } = {}) => {
+    for (let i = 0; i < tries; i += 1) {
+      await new Promise((r) => setTimeout(r, intervalMs));
+      const res = await worksheetsAPI.get(id);
+      const w = res.data.worksheet;
+      if (w?.generationStatus === 'ready') return w;
+      if (w?.generationStatus === 'failed') {
+        throw new Error(w.generationError || 'Worksheet generation failed.');
+      }
+    }
+    throw new Error('Worksheet is taking longer than expected. Check your history shortly.');
+  };
+
+  // Async marking returns 202; poll GET /:id until the session is marked/failed.
+  const pollSessionMarked = async (id, sessionNumber, { tries = 40, intervalMs = 2000 } = {}) => {
+    for (let i = 0; i < tries; i += 1) {
+      await new Promise((r) => setTimeout(r, intervalMs));
+      const res = await worksheetsAPI.get(id);
+      const w = res.data.worksheet;
+      const session = (w?.practiceSessions || []).find((s) => s.sessionNumber === sessionNumber);
+      if (session?.markingStatus === 'marked') return w;
+      if (session?.markingStatus === 'failed') {
+        throw new Error(session.markingError || 'Marking failed.');
+      }
+    }
+    throw new Error('Marking is taking longer than expected. Check back shortly.');
+  };
+
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
@@ -213,7 +243,11 @@ export default function WorksheetGeneratorPage() {
       formData.append('questionsPerSession', questionsPerSession);
 
       const res = await worksheetsAPI.generate(formData);
-      adoptWorksheet(res.data.worksheet);
+      // 202 + queued → the worker is generating; poll until it's ready.
+      const worksheetReady = res.data.queued
+        ? await pollWorksheetReady(res.data.worksheet._id)
+        : res.data.worksheet;
+      adoptWorksheet(worksheetReady);
       setEscalatedNote(res.data.escalated ? `Handwriting was unclear — read with ${res.data.modelUsed}.` : null);
       loadHistory();
       loadMistakes();
@@ -347,7 +381,11 @@ export default function WorksheetGeneratorPage() {
     setError(null);
     try {
       const res = await worksheetsAPI.markSession(worksheet._id, activeSessionObj.sessionNumber, { answers });
-      setWorksheet(res.data.worksheet);
+      // 202 + queued → the worker is marking; poll until the session is done.
+      const marked = res.data.queued
+        ? await pollSessionMarked(res.data.worksheetId, res.data.sessionNumber)
+        : res.data.worksheet;
+      setWorksheet(marked);
       setEscalatedNote(res.data.escalated ? `Handwriting was unclear — re-read with ${res.data.modelUsed}.` : null);
       loadHistory();
       loadMistakes();
@@ -363,7 +401,11 @@ export default function WorksheetGeneratorPage() {
     setError(null);
     try {
       const res = await worksheetsAPI.reinforce(worksheet._id, { misconceptionTitles: missedTitles });
-      adoptWorksheet(res.data.worksheet);
+      // 202 + queued → the worker is generating; poll until ready.
+      const ready = res.data.queued
+        ? await pollWorksheetReady(res.data.worksheet._id)
+        : res.data.worksheet;
+      adoptWorksheet(ready);
       setEscalatedNote(null);
       loadHistory();
       window.scrollTo({ top: 0, behavior: 'smooth' });

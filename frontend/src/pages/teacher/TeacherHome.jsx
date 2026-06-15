@@ -45,7 +45,7 @@ export default function TeacherHome() {
           {data.attention.map((c) => (
             <Link key={c.classId} to={`/teacher/classes/${c.classId}/weak-groups`} className="block">
               <Card interactive className="flex items-center justify-between gap-3 p-4">
-                <div><p className="font-medium text-ink-700">{c.name}</p><p className="text-sm text-ink-500">{c.flagged} student{c.flagged > 1 ? 's' : ''} need support</p></div>
+                <div><p className="font-medium text-ink-700">{c.name}</p><p className="text-sm text-ink-500">{c.flagged} student{c.flagged === 1 ? '' : 's'} {c.flagged === 1 ? 'needs' : 'need'} support</p></div>
                 <Badge tone="error">Review</Badge>
               </Card>
             </Link>

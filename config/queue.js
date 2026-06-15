@@ -12,6 +12,9 @@ import { Queue } from 'bullmq';
 
 export const QUEUE_NAMES = {
   paperAnalysis: 'paper-analysis',
+  worksheetGenerate: 'worksheet-generate',
+  markAnswers: 'mark-answers',
+  reinforce: 'worksheet-reinforce',
 };
 
 // Whether routes should enqueue instead of running inline. Requires the flag AND a

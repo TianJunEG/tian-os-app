@@ -50,6 +50,12 @@ const profilePayload = {
   ],
 };
 
+// StudentProfile reads the signed-in user via useAuth (for the avatar); mock it
+// so the component can render without an AuthProvider wrapper.
+vi.mock('../../context/AuthContext', () => ({
+  useAuth: () => ({ user: { name: 'Jas Tan', avatar: null } }),
+}));
+
 vi.mock('../../services/api', () => ({
   studentProfileAPI: {
     overview: vi.fn(() => Promise.resolve({

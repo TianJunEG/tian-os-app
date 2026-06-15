@@ -154,7 +154,7 @@ describe('generateProblem', () => {
 describe('generateProblemsForSession', () => {
   it('generates the requested number of problems', async () => {
     mockTemplates = [TEMPLATE_PW_WHOLE];
-    const problems = await generateProblemsForSession('psl-p3-bar-pw-find-whole', 3);
+    const { problems } = await generateProblemsForSession('psl-p3-bar-pw-find-whole', 3);
 
     expect(problems).toHaveLength(3);
     for (const p of problems) {
@@ -165,7 +165,7 @@ describe('generateProblemsForSession', () => {
 
   it('each problem has a unique ID', async () => {
     mockTemplates = [TEMPLATE_PW_WHOLE];
-    const problems = await generateProblemsForSession('psl-p3-bar-pw-find-whole', 5);
+    const { problems } = await generateProblemsForSession('psl-p3-bar-pw-find-whole', 5);
 
     const ids = problems.map((p) => p.problemId);
     expect(new Set(ids).size).toBe(5);
@@ -173,7 +173,19 @@ describe('generateProblemsForSession', () => {
 
   it('defaults to 5 problems', async () => {
     mockTemplates = [TEMPLATE_PW_WHOLE];
-    const problems = await generateProblemsForSession('psl-p3-bar-pw-find-whole');
+    const { problems } = await generateProblemsForSession('psl-p3-bar-pw-find-whole');
     expect(problems).toHaveLength(5);
+  });
+
+  it('returns targetDifficulty based on mastery score', async () => {
+    mockTemplates = [TEMPLATE_PW_WHOLE];
+    const { targetDifficulty } = await generateProblemsForSession('psl-p3-bar-pw-find-whole', 3, { masteryScore: 80 });
+    expect(targetDifficulty).toBe(3);
+  });
+
+  it('returns targetDifficulty 1 when no mastery score', async () => {
+    mockTemplates = [TEMPLATE_PW_WHOLE];
+    const { targetDifficulty } = await generateProblemsForSession('psl-p3-bar-pw-find-whole', 3);
+    expect(targetDifficulty).toBe(1);
   });
 });

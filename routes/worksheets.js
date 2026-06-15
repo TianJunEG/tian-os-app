@@ -6,11 +6,12 @@ import Mistake from '../models/Mistake.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
-import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/practiceSchedule.js';
+import { SESSION_OFFSETS, recomputeSchedule } from '../utils/practiceSchedule.js';
 import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
-import { applyMarks } from '../utils/marking.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
-import { logDiagnosedMisconceptions } from '../utils/misconceptionLog.js';
+import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
+import { photoWorksheetFields, logPhotoMisconceptions } from '../services/worksheets/photoWorksheet.js';
+import { buildMarkItems, missedMisconceptions, applyMarkResults } from '../services/worksheets/markSession.js';
 import { persistUploadFile } from '../services/storage/objectStore.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 import { commonMistakes } from '../utils/commonMistakes.js';
@@ -74,7 +75,45 @@ router.post(
 
       const imageBase64 = req.file.buffer.toString('base64');
       const { fileUrl: sourceImageUrl } = await persistUploadFile(req.file, 'worksheets');
+      const studentUserId = assignedStudent ? assignedStudent._id : null;
+      const resolvedStudentName = studentName ? String(studentName).slice(0, 100) : assignedStudent?.name;
+      const base = {
+        userId: req.user.id,
+        studentId: studentUserId,
+        studentName: resolvedStudentName,
+        subject: 'Math',
+        gradeLevel,
+        sourceImageUrl,
+      };
 
+      // Async path: create a pending worksheet, hand the photo to the worker, and
+      // return 202 so the request doesn't block on the 5-30s AI call. The client
+      // polls GET /:id until generationStatus becomes 'ready'/'failed'.
+      const queue = isQueueEnabled() ? getQueue(QUEUE_NAMES.worksheetGenerate) : null;
+      if (queue) {
+        let pending = null;
+        try {
+          pending = await Worksheet.create({ ...base, generationStatus: 'pending', practiceSessions: [] });
+          await queue.add('run', {
+            worksheetId: String(pending._id),
+            imageBase64,
+            mimeType: req.file.mimetype,
+            gradeLevel,
+            topicHint,
+            totalQuestions,
+            ownerUserId: String(req.user.id),
+            studentUserId: studentUserId ? String(studentUserId) : null,
+            studentName: resolvedStudentName,
+          });
+          return res.status(202).json({ success: true, worksheet: pending, queued: true });
+        } catch (queueErr) {
+          // Enqueue failed — drop the orphan pending doc and run inline instead.
+          console.error('Worksheet enqueue failed, running inline:', queueErr.message);
+          if (pending) await Worksheet.findByIdAndDelete(pending._id).catch(() => {});
+        }
+      }
+
+      // Synchronous path (queue disabled or enqueue failed) — unchanged behaviour.
       const result = await analyzeAndGenerateWorksheet({
         imageBase64,
         mimeType: req.file.mimetype,
@@ -82,38 +121,16 @@ router.post(
         topicHint,
         numQuestions: totalQuestions
       });
-
-      const practiceSessions = buildSessions(result.questions);
-
-      const worksheet = new Worksheet({
-        userId: req.user.id,
-        studentId: assignedStudent ? assignedStudent._id : null,
-        studentName: studentName ? String(studentName).slice(0, 100) : assignedStudent?.name,
-        subject: 'Math',
-        topic: result.topic,
-        gradeLevel,
-        sourceImageUrl,
-        overallSummary: result.overallSummary,
-        misconceptions: Array.isArray(result.misconceptions) ? result.misconceptions : [],
-        skillsToReinforce: Array.isArray(result.skillsToReinforce) ? result.skillsToReinforce : [],
-        practiceSessions
-      });
+      const worksheet = new Worksheet({ ...base, ...photoWorksheetFields(result) });
       recomputeSchedule(worksheet);
       await worksheet.save();
-
-      // Log the diagnosed misconceptions against this student (best-effort —
-      // never fail the worksheet if this write has a problem).
-      try {
-        await logDiagnosedMisconceptions({
-          result,
-          ownerUserId: req.user.id,
-          studentUserId: assignedStudent ? assignedStudent._id : null,
-          studentName: worksheet.studentName || '',
-          worksheetId: worksheet._id,
-        });
-      } catch (logErr) {
-        console.error('Diagnosed-misconception logging failed (non-fatal):', logErr.message);
-      }
+      await logPhotoMisconceptions({
+        result,
+        ownerUserId: req.user.id,
+        studentUserId,
+        studentName: worksheet.studentName || '',
+        worksheetId: worksheet._id,
+      });
 
       return res.status(201).json({
         success: true,
@@ -608,46 +625,41 @@ router.post('/:id/sessions/:n/mark', protect, asyncHandler(async (req, res) => {
     }
 
     const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
-    const items = [];
-
-    for (const a of answers) {
-      const i = parseInt(a.questionIndex, 10);
-      const q = session.questions[i];
-      if (!q) continue;
-
-      if (a.type === 'image' && typeof a.imageDataUrl === 'string') {
-        const match = a.imageDataUrl.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
-        if (!match) continue;
-        items.push({ index: i, prompt: q.prompt, correctAnswer: q.answer, type: 'image', mimeType: match[1], imageBase64: match[2] });
-        q.studentResponseType = 'image';
-      } else {
-        const text = typeof a.text === 'string' ? a.text.trim() : '';
-        if (!text) continue;
-        items.push({ index: i, prompt: q.prompt, correctAnswer: q.answer, type: 'text', text });
-        q.studentResponseType = 'text';
-        q.studentResponse = text;
-      }
-    }
+    const items = buildMarkItems(session, answers);
 
     if (items.length === 0) {
       return res.status(400).json({ error: 'No answers were submitted to mark.' });
     }
 
+    // Async path: hand the 3-15s AI marking to the worker, return 202; the client
+    // polls GET /:id for the session's markingStatus / score.
+    const queue = isQueueEnabled() ? getQueue(QUEUE_NAMES.markAnswers) : null;
+    if (queue) {
+      try {
+        session.markingStatus = 'marking';
+        await worksheet.save();
+        await queue.add('run', { worksheetId: String(worksheet._id), sessionNumber, answers });
+        return res.status(202).json({ success: true, queued: true, worksheetId: String(worksheet._id), sessionNumber });
+      } catch (queueErr) {
+        console.error('Mark enqueue failed, running inline:', queueErr.message);
+        session.markingStatus = 'idle';
+        await worksheet.save().catch(() => {});
+      }
+    }
+
+    // Synchronous path (queue disabled or enqueue failed) — unchanged behaviour.
     const { results, modelUsed, escalated } = await markAnswers({ items });
-    applyMarks(session, results);
-    recomputeSchedule(worksheet);
-    worksheet.updatedAt = new Date();
+    applyMarkResults(worksheet, session, results);
     await worksheet.save();
 
-    const missedMisconceptions = [
-      ...new Set(
-        session.questions
-          .filter((q) => q.correct === false && q.targetsMisconception)
-          .map((q) => q.targetsMisconception)
-      )
-    ];
-
-    return res.json({ success: true, worksheet: redactWorksheetForViewer(worksheet, req.user.id), score: session.score, missedMisconceptions, modelUsed, escalated });
+    return res.json({
+      success: true,
+      worksheet: redactWorksheetForViewer(worksheet, req.user.id),
+      score: session.score,
+      missedMisconceptions: missedMisconceptions(session),
+      modelUsed,
+      escalated,
+    });
   } catch (err) {
     return sendAiError(res, err);
   }
@@ -674,6 +686,31 @@ router.post('/:id/reinforce', protect, asyncHandler(async (req, res) => {
     const perSession = Math.min(Math.max(parseInt(req.body.questionsPerSession, 10) || 5, 2), 6);
     const totalQuestions = perSession * SESSION_OFFSETS.length;
 
+    // Async path: create a pending reinforcement worksheet (source-derived fields,
+    // no questions yet), enqueue, and return 202; the client polls generationStatus.
+    const queue = isQueueEnabled() ? getQueue(QUEUE_NAMES.reinforce) : null;
+    if (queue) {
+      let pending = null;
+      try {
+        pending = await Worksheet.create({
+          ...buildReinforcementWorksheet({ source, userId: req.user.id, misconceptions, questions: [] }),
+          generationStatus: 'pending',
+        });
+        await queue.add('run', {
+          worksheetId: String(pending._id),
+          topic: source.topic,
+          misconceptions,
+          gradeLevel: source.gradeLevel,
+          totalQuestions,
+        });
+        return res.status(202).json({ success: true, worksheet: pending, queued: true });
+      } catch (queueErr) {
+        console.error('Reinforcement enqueue failed, running inline:', queueErr.message);
+        if (pending) await Worksheet.findByIdAndDelete(pending._id).catch(() => {});
+      }
+    }
+
+    // Synchronous path (queue disabled or enqueue failed) — unchanged behaviour.
     const questions = await generateReinforcement({
       topic: source.topic,
       misconceptions,

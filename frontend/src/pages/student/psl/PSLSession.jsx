@@ -17,6 +17,8 @@ import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
 import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled } from '../../../utils/sound';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
@@ -43,6 +45,8 @@ function UnderstandStep({ choices, onSelect, selectedIndex }) {
 export default function PSLSession() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
@@ -460,7 +464,7 @@ export default function PSLSession() {
   };
 
   return (
-    <div className="bg-dot-grid min-h-screen pb-8">
+    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
       <div className="mx-auto max-w-[1180px] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-10">
         {/* Step shell */}
         <div className="step-shell !p-4 sm:!p-[22px_26px_26px]">
@@ -534,10 +538,6 @@ export default function PSLSession() {
             <div className="ruled px-4 py-4 sm:px-[26px] sm:py-[22px] sm:pb-[26px] sm:min-h-[60vh]">
               {/* Toolbar row */}
               <div className="mb-4 flex items-center justify-between" style={{ position: 'relative', zIndex: 2 }}>
-                <button type="button" className="chip-read-aloud">
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></svg>
-                  Read aloud
-                </button>
                 {!feedback && !completedSteps[currentStepId] && (
                   <button
                     type="button"
