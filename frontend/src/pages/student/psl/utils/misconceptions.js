@@ -55,12 +55,6 @@ const MISCONCEPTIONS = {
   'psl/forgot-halving': { label: 'Forgot to halve', category: 'Solving', tip: 'This problem needs you to divide by 2 at the end.', feedback: 'Almost! You need to divide your answer by 2 for the final step.' },
   'psl/forgot-remainder-step': { label: 'Forgot the remainder step', category: 'Solving', tip: 'After the main calculation, there\'s one more step.', feedback: 'You\'re not done yet — there\'s one more step using what\'s left over.' },
   'psl/forgot-subtract': { label: 'Forgot to subtract', category: 'Solving', tip: 'You found a partial answer. Subtract for the final answer.', feedback: 'You found a partial answer. Remember to subtract to get the final answer.' },
-  'psl/wrong-equation': { label: 'Wrong equation set up', category: 'Planning', tip: 'Translate the story into two equations \u2014 one per sentence with numbers.', feedback: 'Check your equations. Each condition in the story becomes one equation.' },
-  'psl/elimination-error': { label: 'Elimination error', category: 'Solving', tip: 'To eliminate a variable, make its coefficients equal first, then subtract.', feedback: 'Make the coefficients match before subtracting the equations.' },
-  'psl/substitution-error': { label: 'Substitution error', category: 'Solving', tip: 'After finding one variable, substitute it back into the original equation.', feedback: 'Substitute the value you found back into the other equation carefully.' },
-  'psl/wrong-pattern-rule': { label: 'Wrong pattern rule', category: 'Planning', tip: 'Check the differences between consecutive terms \u2014 is the gap constant or changing?', feedback: 'Look at the differences between each pair of consecutive terms to find the rule.' },
-  'psl/pattern-arithmetic-error': { label: 'Pattern calculation error', category: 'Solving', tip: 'Apply the rule carefully to each step.', feedback: 'You found the right rule but made a calculation error applying it.' },
-  'psl/wrong-nth-term': { label: 'Wrong nth term', category: 'Solving', tip: 'Check: does your formula give the right answer for the terms you already know?', feedback: 'Verify your formula by checking it against the given terms.' },
   'psl/skipped-check': { label: 'Skipped the check', category: 'Checking', tip: 'Always ask: does my answer make sense in the story?', feedback: 'Always check: does your answer make sense in the context of the story?' },
 };
 
