@@ -25,6 +25,9 @@ npm-debug.log*
 dist/
 build/
 
+# Prisma 7 generated client (produced by `prisma generate` into the repo)
+generated/
+
 # IDE
 .vscode/
 .idea/
