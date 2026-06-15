@@ -36,8 +36,6 @@ import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionS
 import { diagnosticsAPI, learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
-import { MascotBubble } from '../../components/MascotAvatar';
-import { getDashboardMascot } from '../../config/mascots';
 import {
   clearMathPathDomainProgressState,
 } from '../../mathpath/state/mathPathDomainProgressState';
