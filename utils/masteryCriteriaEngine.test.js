@@ -26,12 +26,43 @@ describe('masteryCriteriaEngine', () => {
         status: 'completed',
         targetQuestionCount: 10,
         completion: { questionsAttempted: 10, accuracy: 80 },
+        misconceptionResolved: true,
       },
     });
 
     expect(progress.completedStages).toContain('guided_practice');
     expect(progress.completedStages).toContain('independent_practice');
     expect(progress.completedStages).not.toContain('mastery_check');
+    expect(progress.currentStage).toBe('mastery_check');
+  });
+
+  it('blocks independent_practice inference when misconception is unresolved', () => {
+    const progress = inferCompletedStagesFromProgress({
+      assignment: {
+        status: 'completed',
+        targetQuestionCount: 10,
+        completion: { questionsAttempted: 10, accuracy: 80 },
+        misconceptionResolved: false,
+      },
+    });
+
+    expect(progress.completedStages).toContain('guided_practice');
+    expect(progress.completedStages).not.toContain('independent_practice');
+    expect(progress.currentStage).toBe('independent_practice');
+  });
+
+  it('allows independent_practice when path opts out of misconception requirement', () => {
+    const progress = inferCompletedStagesFromProgress({
+      assignment: {
+        status: 'completed',
+        targetQuestionCount: 10,
+        completion: { questionsAttempted: 10, accuracy: 80 },
+        misconceptionResolved: false,
+      },
+      learningPath: { masteryCriteria: { requiresMisconceptionResolved: false } },
+    });
+
+    expect(progress.completedStages).toContain('independent_practice');
     expect(progress.currentStage).toBe('mastery_check');
   });
 

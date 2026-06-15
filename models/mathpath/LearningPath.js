@@ -29,7 +29,7 @@ const masteryCriteriaSchema = new mongoose.Schema(
   {
     minAccuracy: { type: Number, default: 75, min: 0, max: 100 },
     minStageCompletion: { type: Number, default: 1, min: 0, max: 1 },
-    requiresMisconceptionResolved: { type: Boolean, default: false },
+    requiresMisconceptionResolved: { type: Boolean, default: true },
     requiresConfidenceImproved: { type: Boolean, default: false },
     requiresMasteryCheck: { type: Boolean, default: true },
   },

@@ -125,17 +125,18 @@ export function markStageCompleted({ assignment = {}, stageId = '', learningPath
 
 export function inferCompletedStagesFromProgress({ assignment = {}, learningPath = null } = {}) {
   const stages = normaliseStages(learningPath?.stages);
+  const criteria = { ...DEFAULT_MASTERY_CRITERIA, ...(learningPath?.masteryCriteria || {}) };
   const completion = assignment.completion || {};
   const attempted = num(completion.questionsAttempted);
   const target = num(assignment.targetQuestionCount || completion.questionsAssigned);
-  const accuracy = num(completion.accuracy);
   const existing = arr(assignment.completedStages);
   const inferred = [...existing];
 
   if (attempted > 0) inferred.push('concept_introduction', 'visual_understanding');
   if (target > 0 && attempted >= Math.ceil(target * 0.25)) inferred.push('worked_example');
   if (target > 0 && attempted >= Math.ceil(target * 0.5)) inferred.push('guided_practice');
-  if (target > 0 && attempted >= Math.ceil(target * 0.8)) inferred.push('independent_practice');
+  const misconceptionGate = criteria.requiresMisconceptionResolved && !Boolean(assignment.misconceptionResolved);
+  if (target > 0 && attempted >= Math.ceil(target * 0.8) && !misconceptionGate) inferred.push('independent_practice');
 
   const validStageIds = new Set(stages.map((stage) => stage.stageId));
   const completedStages = unique(inferred).filter((stageId) => validStageIds.has(stageId));
