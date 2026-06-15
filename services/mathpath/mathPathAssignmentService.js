@@ -143,7 +143,7 @@ export async function createAssignmentFromDiagnostic({
     sourceId: String(diagnostic.diagnosticSessionId),
     subjectId: diagnostic.subjectId || 'math',
     domainId: diagnostic.domainId || 'fractions',
-    title: 'Fractions Recovery Pack',
+    title: `${(diagnostic.domainId || 'fractions').replace(/^\w/, (c) => c.toUpperCase())} Recovery Pack`,
     description: 'Targeted practice based on the latest diagnostic weak skills.',
     skillIds,
     ...assetMetadata,
