@@ -47,6 +47,7 @@ describe('platform domain registry', () => {
     expect(domain.assignmentAdapter.enabled).toBe(true);
     expect(domain.worksheetAdapter.enabled).toBe(true);
     expect(domain.paperAnalysisAdapter.enabled).toBe(true);
+    expect(domain.interventionAdapter.enabled).toBe(true);
   });
 
   it('keeps the existing diagnostic registry compatible', () => {
