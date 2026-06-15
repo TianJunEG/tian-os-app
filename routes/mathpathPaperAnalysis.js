@@ -23,9 +23,26 @@ import {
   createRecheckForAssignment,
   getStudentAssignments,
 } from '../services/mathpath/mathPathAssignmentService.js';
+import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
 
 const router = express.Router();
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-paper-analysis');
+
+// Enqueue the analysis pipeline for the background worker. Returns true when the
+// job was queued; false when the queue is disabled/unavailable so the caller falls
+// back to running the pipeline synchronously. The worker reads the uploaded file
+// from the saved storageKey, so the job payload carries only references.
+async function enqueuePaperAnalysis(analysis, file) {
+  if (!isQueueEnabled()) return false;
+  const queue = getQueue(QUEUE_NAMES.paperAnalysis);
+  if (!queue) return false;
+  await queue.add('run', {
+    analysisId: String(analysis._id),
+    mimeType: file.mimetype,
+    filename: file.originalname,
+  });
+  return true;
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -163,6 +180,15 @@ router.post('/upload', protect, upload.single('paper'), async (req, res) => {
     if (req.body?.runAnalysis === 'false' || detectedQuestions.length) {
       return res.status(201).json({ analysis });
     }
+    // Prefer the background worker: enqueue and return 202 so the request does not
+    // block on OCR/AI. The client polls GET /:id for the status transition.
+    try {
+      if (await enqueuePaperAnalysis(analysis, req.file)) {
+        return res.status(202).json({ analysis, queued: true });
+      }
+    } catch {
+      // Enqueue failed (e.g. Redis down) — fall back to running it inline below.
+    }
     try {
       const analysed = await runPaperAnalysisPipeline({
         analysisId: analysis._id,
@@ -203,7 +229,14 @@ router.post('/student-upload', protect, upload.single('paper'), async (req, res)
       detectedQuestions: [],
       ...saved,
     });
-    // Run the AI analysis pipeline in the background
+    // Prefer the background worker; fall back to running the pipeline inline.
+    try {
+      if (await enqueuePaperAnalysis(analysis, req.file)) {
+        return res.status(202).json({ analysis, queued: true });
+      }
+    } catch {
+      // Enqueue failed — fall back to running it inline below.
+    }
     try {
       const analysed = await runPaperAnalysisPipeline({
         analysisId: analysis._id,

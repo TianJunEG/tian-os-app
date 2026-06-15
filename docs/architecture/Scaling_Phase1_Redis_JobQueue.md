@@ -1,6 +1,6 @@
 # Scaling Phase 1 — Redis + Background Job Queue
 
-**Status:** Scoped, not started
+**Status:** In progress — WS1 (Redis client), WS2 (distributed rate limiter), and WS3 (queue + worker, `paper-analysis` job type) landed. Remaining: WS3 for `worksheet-generate`/`mark-answers`, WS5 (web graceful shutdown), WS6 (deploy blueprints + managed Redis).
 **Author:** generated with Claude Code
 **Date:** 2026-06-15
 **Depends on:** Phase 0 (PR #176 — practice-session persistence + AI retry/backoff)
