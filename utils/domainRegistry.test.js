@@ -37,15 +37,18 @@ describe('platform domain registry', () => {
     // content + progression are live
     expect(domain.practiceAdapter.enabled).toBe(true);
     expect(domain.skillGraphAdapter.status).toBe('available');
-    // platform adapters are not yet built
-    expect(domain.diagnosticAdapter.enabled).toBe(false);
-    expect(domain.diagnosticAdapter.status).toBe('planned');
+    // diagnostic domain is registered + engine-validated (runtime/UI pending)
+    expect(domain.diagnosticAdapter.enabled).toBe(true);
+    expect(domain.diagnosticAdapter.status).toBe('engine_ready');
+    expect(domain.diagnosticAdapter.provider).toBeTruthy();
+    // remaining platform adapters are not yet built
     expect(domain.worksheetAdapter.enabled).toBe(false);
   });
 
   it('keeps the existing diagnostic registry compatible', () => {
     resetRegistry();
     expect(diagnosticsRegistry.hasDiagnosticDomain({ subjectId: 'math', domainId: 'fractions' })).toBe(true);
+    expect(diagnosticsRegistry.hasDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' })).toBe(true);
     expect(hasDomain({ subjectId: 'math', domainId: 'fractions' })).toBe(true);
   });
 

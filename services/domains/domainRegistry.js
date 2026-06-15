@@ -158,16 +158,21 @@ export function registerDefaultDomains() {
     },
   });
 
-  // MathPath Decimals — second math domain (P4→P6). Content + progression are
-  // live (rule-based generator and prerequisite-gated practice engine); the
-  // diagnostic/assignment/worksheet/paper-analysis/intervention adapters are
-  // planned for later increments, so they register as `planned` (not enabled).
+  // MathPath Decimals — second math domain (P4→P6). Content, progression, and a
+  // persisted practice loop are live; the adaptive diagnostic domain is
+  // registered and engine-validated (`engine_ready`) with its DB session runtime
+  // + UI still pending; the remaining platform adapters are `planned`.
   registerDomain({
     subjectId: 'math',
     domainId: 'decimals',
     displayName: 'MathPath Decimals',
     domainVersion: 'decimals-v0.1',
-    diagnosticAdapter: { enabled: false, status: 'planned', notes: 'Adaptive diagnostic engine planned in a later increment.' },
+    diagnosticAdapter: {
+      enabled: true,
+      status: 'engine_ready',
+      notes: 'DB-free diagnostic domain registered + adaptive-engine validated; session runtime + UI wiring pending.',
+      provider: diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' }),
+    },
     assignmentAdapter: { enabled: false, status: 'planned', notes: 'Will reuse the MathPath assignment service once diagnostics land.' },
     worksheetAdapter: { enabled: false, status: 'planned' },
     paperAnalysisAdapter: { enabled: false, status: 'planned' },
