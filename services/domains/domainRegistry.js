@@ -157,6 +157,34 @@ export function registerDefaultDomains() {
       notes: 'Skill graph is supplied by MathPath/Fractions diagnostic domain metadata.',
     },
   });
+
+  // MathPath Decimals — second math domain (P4→P6). Content + progression are
+  // live (rule-based generator and prerequisite-gated practice engine); the
+  // diagnostic/assignment/worksheet/paper-analysis/intervention adapters are
+  // planned for later increments, so they register as `planned` (not enabled).
+  registerDomain({
+    subjectId: 'math',
+    domainId: 'decimals',
+    displayName: 'MathPath Decimals',
+    domainVersion: 'decimals-v0.1',
+    diagnosticAdapter: { enabled: false, status: 'planned', notes: 'Adaptive diagnostic engine planned in a later increment.' },
+    assignmentAdapter: { enabled: false, status: 'planned', notes: 'Will reuse the MathPath assignment service once diagnostics land.' },
+    worksheetAdapter: { enabled: false, status: 'planned' },
+    paperAnalysisAdapter: { enabled: false, status: 'planned' },
+    interventionAdapter: { enabled: false, status: 'planned' },
+    // Custom capability beyond the five platform adapters: the runnable content
+    // + progression layer shipped in increments 1–2.
+    practiceAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Rule-based question generator + prerequisite-gated practice/progression engine.',
+      serviceModule: 'shared/mathpath/decimals/decimalsPracticeEngine.js',
+    },
+    skillGraphAdapter: {
+      status: 'available',
+      notes: '14-skill Decimals graph (D001–D014) in shared/mathpath/decimals/decimalsSkillGraph.js.',
+    },
+  });
 }
 
 registerDefaultDomains();
