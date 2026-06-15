@@ -191,6 +191,12 @@ export function registerDefaultDomains() {
       notes: 'Timed fluency drills scored into bronze→platinum bands; persists fluencyLevel.',
       serviceModule: 'services/mathpath/decimalsFluencyService.js',
     },
+    assessmentAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Mastery-gated summative assessment with a transparent knowledge/fluency/retention readiness score.',
+      serviceModule: 'services/mathpath/decimalsAssessmentService.js',
+    },
     skillGraphAdapter: {
       status: 'available',
       notes: '14-skill Decimals graph (D001–D014) in shared/mathpath/decimals/decimalsSkillGraph.js.',
