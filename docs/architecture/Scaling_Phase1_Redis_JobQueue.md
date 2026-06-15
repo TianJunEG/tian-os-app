@@ -1,6 +1,6 @@
 # Scaling Phase 1 — Redis + Background Job Queue
 
-**Status:** In progress — WS1 (Redis client), WS2 (distributed rate limiter), WS3 (queue + worker, `paper-analysis` job type), WS5 (web graceful shutdown), and WS6 (managed Redis + worker wiring in `render.yaml`) landed. WS3 `worksheet-generate`, `mark-answers`, and `worksheet-reinforce` job types also landed (202 + poll; the frontend polls `generationStatus` / per-session `markingStatus`). **Every heavy AI/OCR endpoint is now offloaded — Phase 1 WS1–WS6 are complete.** Remaining scaling work is Phase 2: migrating the other upload categories to R2 for multi-replica web. **Render note:** the worker's disk blocker for paper-analysis is now RESOLVED — Phase 2 moved those uploads to R2, so the worker can be enabled in production once R2 is configured (see [Scaling_Phase2_ObjectStorage.md](Scaling_Phase2_ObjectStorage.md)). The WS4 caveat below is superseded for paper-analysis.
+**Status:** Scoped, not started
 **Author:** generated with Claude Code
 **Date:** 2026-06-15
 **Depends on:** Phase 0 (PR #176 — practice-session persistence + AI retry/backoff)
@@ -118,13 +118,11 @@ For each offloaded endpoint, gate on `JOB_QUEUE_ENABLED`:
 - **`worksheet-generate`** — [`routes/worksheets.js:51`](../../routes/worksheets.js): create the worksheet doc in a `pending` state, enqueue, return `202 { worksheetId }`. Worker fills it in and flips status to `ready`/`failed`. **Add a polling endpoint** `GET /api/worksheets/:id/status` (+ frontend polling).
 - **`mark-answers`** — same pattern: `202` + status flip + poll.
 - When the flag is **off**, the existing synchronous code path runs unchanged.
-- **Payload note:** enqueue job data by **reference, not value** where possible — store the uploaded file via the existing `saveUpload`/disk path and pass the `storageKey`, not the raw buffer/base64, to keep Redis payloads small. (This is also why Phase 2 object storage matters: a separate worker service must read uploads from shared storage. On Render that means Phase 2 must land before the worker can be enabled — see the corrected caveat below.)
+- **Payload note:** enqueue job data by **reference, not value** where possible — store the uploaded file via the existing `saveUpload`/disk path and pass the `storageKey`, not the raw buffer/base64, to keep Redis payloads small. (This is also why Phase 2 object storage matters: once the worker is a separate instance, it must read uploads from shared storage — until then, worker and web must co-locate the disk, OR Phase 2 lands first for the worker to scale out.)
 
-> ⚠️ **Cross-instance file access caveat (corrected).** The worker reads uploaded files from their on-disk `storageKey`. **Render persistent disks attach to exactly one service**, so a separate `tian-os-worker` service *cannot* mount the web service's `uploads` disk — there is no "co-locate two services on one disk" option on Render. Consequences:
-> - **Locally** (`npm start` + `npm run worker` + local Redis on one machine) the queue path works end-to-end because both processes share the filesystem. This is how WS3 is tested.
-> - **On Render**, the worker has no access to uploads, so `JOB_QUEUE_ENABLED` must stay **off** there (web runs the pipeline inline) **until Phase 2 moves uploads to object storage (S3/R2)**. After Phase 2 the worker reads from object storage and the flag can be switched on.
+> ⚠️ **Cross-instance file access caveat.** The worker reads uploaded files. With local-disk uploads, the worker can only see them if it shares the disk with the web process. On Render, a persistent disk is single-instance, so **Phase 1 worker + web must run on the same instance/disk, or Phase 2 (object storage) must land first** for a truly separate worker service. Recommended sequencing: do **Phase 1 with worker co-located** (still frees the event loop via separate process? No — see below), then Phase 2 to split them out.
 >
-> The worker service + managed Redis are defined in `render.yaml` now so the wiring is ready; only the flag flip waits on Phase 2. The distributed rate limiter (WS2) needs no disk and is deployable immediately.
+> **Clarification:** a separate *worker process* on the *same host* still removes OCR/AI CPU from the web *event loop* (different process, different core), which is the primary stability win. A separate *worker service on another host* additionally needs shared storage (Phase 2). Phase 1 targets the former.
 
 ### WS5 — Graceful shutdown · S
 - [`server.js`](../../server.js) has no signal handler. Add `process.on('SIGTERM'|'SIGINT')` → `server.close()` to drain in-flight HTTP requests, then close Mongo/Redis.
@@ -134,8 +132,7 @@ For each offloaded endpoint, gate on `JOB_QUEUE_ENABLED`:
 
 ### WS6 — Deployment · S
 - Add a **managed Redis** instance (Render Key Value / Railway Redis plugin).
-- **Render** ([`render.yaml`](../../render.yaml)): added a managed `redis` service, wired `REDIS_URL` into both web and worker, and added a `worker` service (`startCommand: npm run worker`, no disk, no ingress). `JOB_QUEUE_ENABLED` is dashboard-set and stays off on Render until Phase 2 (per the WS4 caveat).
-- **Railway** ([`railway.json`](../../railway.json)): `railway.json` describes a single service and supports no comments, so it is left as the web service. Add the Redis plugin and a second service with `startCommand: npm run worker` via the Railway dashboard (same `JOB_QUEUE_ENABLED`/object-storage caveat applies).
+- Add a **worker service** to [`render.yaml`](../../render.yaml) / [`railway.json`](../../railway.json): `startCommand: npm run worker`, no HTTP health port, no public ingress. (Per WS4 caveat: co-locate with web's disk until Phase 2.)
 - New env vars (below) added to both blueprints; `JOB_QUEUE_ENABLED` defaults to `false` so deploying the infra does not change behavior until explicitly switched on per environment.
 
 ---
