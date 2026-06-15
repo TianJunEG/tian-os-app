@@ -110,7 +110,7 @@ export default function DecimalsAssessmentSession() {
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <PageHeader title="Assessment complete" subtitle={`${result.correct}/${result.total} correct (${result.accuracy}%).`} />
         <Card className="p-6 text-center">
-          <GraduationCap className="mx-auto h-8 w-8 text-navy-600" />
+          <GraduationCap className="mx-auto h-8 w-8 text-emerald" />
           <p className="mt-2 text-2xl font-display font-semibold text-ink-900">{result.bandLabel}</p>
           <div className="mt-2"><Badge tone={bandTone(result.band)}>{result.accuracy}% accurate</Badge></div>
           {result.weakSkillIds.length > 0 && (
@@ -144,7 +144,7 @@ export default function DecimalsAssessmentSession() {
                 key={choice}
                 type="button"
                 onClick={() => setDraft(choice)}
-                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-navy-50 font-semibold text-navy-800' : 'border-ink-200 hover:border-navy-300'}`}
+                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
               >
                 {choice}
               </button>

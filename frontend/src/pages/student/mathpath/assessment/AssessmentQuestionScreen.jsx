@@ -144,7 +144,7 @@ export default function AssessmentQuestionScreen() {
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
             {choices.map((c, i) => (
-              <button key={`${i}-${c}`} onClick={() => setAnswers((p) => ({ ...p, [q.questionId]: c }))} className={`rounded-xl border px-3 py-2 text-left ${answers[q.questionId] === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+              <button key={`${i}-${c}`} onClick={() => setAnswers((p) => ({ ...p, [q.questionId]: c }))} className={`rounded-xl border px-3 py-2 text-left ${answers[q.questionId] === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
                 <MathText text={c} />
               </button>
             ))}

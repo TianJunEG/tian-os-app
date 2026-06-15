@@ -10,15 +10,15 @@ function VisualTable({ visual }) {
   const rows = Array.isArray(visual?.payload?.rows) ? visual.payload.rows : [];
   if (!headers.length || !rows.length) return <p className="text-sm text-ink-500">Visual unavailable.</p>;
   return (
-    <div className="mt-2 overflow-x-auto rounded-xl border border-hairline">
+    <div className="mt-2 overflow-x-auto rounded-xl border border-line-soft">
       <table className="min-w-full border-collapse text-left text-sm text-ink-700">
-        <thead className="bg-navy-50">
-          <tr>{headers.map((h, i) => <th key={i} className="border-b border-hairline px-3 py-2 font-semibold">{h}</th>)}</tr>
+        <thead className="bg-emerald-tint">
+          <tr>{headers.map((h, i) => <th key={i} className="border-b border-line-soft px-3 py-2 font-semibold">{h}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((row, rIdx) => (
-            <tr key={rIdx} className="odd:bg-paper even:bg-slate-50">
-              {Array.isArray(row) ? row.map((cell, cIdx) => <td key={cIdx} className="border-b border-hairline px-3 py-2">{cell}</td>) : null}
+            <tr key={rIdx} className="odd:bg-surface-white even:bg-surface-raised">
+              {Array.isArray(row) ? row.map((cell, cIdx) => <td key={cIdx} className="border-b border-line-soft px-3 py-2">{cell}</td>) : null}
             </tr>
           ))}
         </tbody>
@@ -89,7 +89,7 @@ export default function WorksheetPreview() {
         <p><span className="font-semibold">Skills:</span> {skillLabel || '—'}</p>
         <p><span className="font-semibold">Topics:</span> {topicLabel || '—'}</p>
         {personalization?.sourceSummary && (
-          <p className="mt-3 rounded-xl bg-navy-50 p-3 text-navy-800">
+          <p className="mt-3 rounded-xl bg-emerald-tint p-3 text-emerald-deep">
             <span className="font-semibold">{personalization.sourceLabel || 'Personalised worksheet'}:</span> {personalization.sourceSummary}
           </p>
         )}
@@ -102,8 +102,8 @@ export default function WorksheetPreview() {
       )}
 
       <div className="mb-4 flex gap-2">
-        <button onClick={() => setView('worksheet')} className={`h-11 flex-1 rounded-xl border text-sm font-semibold ${view === 'worksheet' ? 'border-navy-700 bg-navy-700 text-paper' : 'border-hairline bg-paper text-navy-700'}`}>Worksheet</button>
-        <button onClick={() => setView('answers')} className={`h-11 flex-1 rounded-xl border text-sm font-semibold ${view === 'answers' ? 'border-navy-700 bg-navy-700 text-paper' : 'border-hairline bg-paper text-navy-700'}`}>Answer Key</button>
+        <button onClick={() => setView('worksheet')} className={`h-11 flex-1 rounded-xl border text-sm font-semibold ${view === 'worksheet' ? 'border-emerald-deep bg-emerald-deep text-paper' : 'border-line-soft bg-surface-white text-emerald-deep'}`}>Worksheet</button>
+        <button onClick={() => setView('answers')} className={`h-11 flex-1 rounded-xl border text-sm font-semibold ${view === 'answers' ? 'border-emerald-deep bg-emerald-deep text-paper' : 'border-line-soft bg-surface-white text-emerald-deep'}`}>Answer Key</button>
       </div>
 
       <Card className="p-5">
@@ -111,21 +111,21 @@ export default function WorksheetPreview() {
           <ol className="space-y-4">
             {questions.map((q) => (
               <li key={q.n} className="flex gap-3">
-                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-navy-700 text-xs text-paper">{q.n}</span>
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-deep text-xs text-paper">{q.n}</span>
                 <div className="flex-1">
                   <div className="text-lg text-ink-900"><MathText text={q.stem} /></div>
                   {q.visual?.type === 'table' && <VisualTable visual={q.visual} />}
                   {q.visual?.type && q.visual.type !== 'table' && <p className="mt-2 text-sm text-ink-500">Visual unavailable.</p>}
                   {q.type === 'mcq' && (
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {(q.choices || []).map((ch, i) => <span key={i} className="rounded-lg border border-hairline px-3 py-1 text-sm"><MathText text={String(ch)} /></span>)}
+                      {(q.choices || []).map((ch, i) => <span key={i} className="rounded-lg border border-line-soft px-3 py-1 text-sm"><MathText text={String(ch)} /></span>)}
                     </div>
                   )}
-                  <div className="mt-2 h-8 border-b border-dashed border-hairline" />
+                  <div className="mt-2 h-8 border-b border-dashed border-line-soft" />
                   <input
                     value={answers[q.n] || ''}
                     onChange={(event) => setAnswers((prev) => ({ ...prev, [q.n]: event.target.value }))}
-                    className="mt-3 h-11 w-full rounded-xl border border-hairline px-3 text-sm outline-none focus:border-navy-500"
+                    className="mt-3 h-11 w-full rounded-xl border border-line-soft px-3 text-sm outline-none focus:border-emerald"
                     placeholder="Type your answer"
                   />
                 </div>
@@ -137,7 +137,7 @@ export default function WorksheetPreview() {
             <ol className="space-y-2">
               {questions.map((q) => (
                 <li key={q.n} className="text-sm text-ink-700">
-                  <span className="font-semibold text-navy-700">{q.n}.</span>{' '}
+                  <span className="font-semibold text-emerald-deep">{q.n}.</span>{' '}
                   <MathText text={String(q.answer)} className="font-semibold" />
                   {q.workedSolution ? <span className="text-ink-500"> — <MathText text={q.workedSolution} /></span> : null}
                 </li>
@@ -168,7 +168,7 @@ export default function WorksheetPreview() {
 
       <div className="mt-4 flex gap-2">
         <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print</Button>
-        <label className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-hairline bg-paper px-4 py-3 text-sm font-semibold text-navy-700">
+        <label className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line-soft bg-surface-white px-4 py-3 text-sm font-semibold text-emerald-deep">
           <input type="checkbox" checked={workingSubmitted} onChange={(event) => setWorkingSubmitted(event.target.checked)} />
           Working submitted
         </label>

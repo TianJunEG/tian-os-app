@@ -37,8 +37,8 @@ export default function StrokeReplayDemo() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Stroke Replay Demo</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-bold text-ink">Stroke Replay Demo</h1>
+        <p className="mt-1 text-sm text-body-muted">
           Draw on the canvas below, then submit to see the replay player reproduce your strokes
           with exact timing.
         </p>
@@ -46,7 +46,7 @@ export default function StrokeReplayDemo() {
 
       {/* ── Drawing Canvas ── */}
       <div className="mb-6">
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-body-muted">
           1. Draw something
         </h2>
         <WorkingCanvas
@@ -61,36 +61,36 @@ export default function StrokeReplayDemo() {
 
       {/* ── Capture Stats ── */}
       {capturedStrokes.length > 0 && (
-        <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <div className="mb-6 rounded-xl border border-line bg-surface-raised p-4">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-body-muted">
             Captured Data
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg bg-white p-3 shadow-sm">
-              <p className="text-2xl font-bold text-slate-900">{capturedStrokes.length}</p>
-              <p className="text-xs text-slate-500">Strokes</p>
+              <p className="text-2xl font-bold text-ink">{capturedStrokes.length}</p>
+              <p className="text-xs text-body-muted">Strokes</p>
             </div>
             <div className="rounded-lg bg-white p-3 shadow-sm">
-              <p className="text-2xl font-bold text-slate-900">{totalPoints.toLocaleString()}</p>
-              <p className="text-xs text-slate-500">Points</p>
+              <p className="text-2xl font-bold text-ink">{totalPoints.toLocaleString()}</p>
+              <p className="text-xs text-body-muted">Points</p>
             </div>
             <div className="rounded-lg bg-white p-3 shadow-sm">
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-ink">
                 {hasTimestamps ? <span className="text-green-600">Yes</span> : <span className="text-red-500">No</span>}
               </p>
-              <p className="text-xs text-slate-500">Timestamps</p>
+              <p className="text-xs text-body-muted">Timestamps</p>
             </div>
             <div className="rounded-lg bg-white p-3 shadow-sm">
-              <p className="text-2xl font-bold text-slate-900">
-                {hasPressure ? <span className="text-violet-600">Yes</span> : <span className="text-slate-400">No</span>}
+              <p className="text-2xl font-bold text-ink">
+                {hasPressure ? <span className="text-purple">Yes</span> : <span className="text-body-faint">No</span>}
               </p>
-              <p className="text-xs text-slate-500">Pressure</p>
+              <p className="text-xs text-body-muted">Pressure</p>
             </div>
           </div>
 
           {pointerTypes.length > 0 && (
             <div className="mt-3 flex items-center gap-2">
-              <span className="text-xs text-slate-500">Input types:</span>
+              <span className="text-xs text-body-muted">Input types:</span>
               {pointerTypes.map((type) => (
                 <span
                   key={type}
@@ -104,7 +104,7 @@ export default function StrokeReplayDemo() {
 
           {/* Raw data preview */}
           <details className="mt-3">
-            <summary className="cursor-pointer text-xs font-medium text-slate-500 hover:text-slate-700">
+            <summary className="cursor-pointer text-xs font-medium text-body-muted hover:text-body">
               View raw stroke data
             </summary>
             <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-green-400">
@@ -122,13 +122,13 @@ export default function StrokeReplayDemo() {
       {submitted && capturedStrokes.length > 0 && (
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-body-muted">
               2. Watch the replay
             </h2>
             <button
               type="button"
               onClick={reset}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-line bg-white px-3 py-1 text-xs font-medium text-body-soft hover:bg-surface-raised"
             >
               Reset demo
             </button>

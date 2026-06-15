@@ -17,7 +17,7 @@ export default function PathwayListMobile({ nodes = [], onNodeOpen }) {
                     ? 'border-success-500 bg-success-500'
                     : node.status === 'current'
                       ? 'border-gold-500 bg-gold-100'
-                      : 'border-ink-100 bg-paper'
+                      : 'border-ink-100 bg-surface-white'
                 }`}
               />
               <PathwayNode node={node} compact onOpen={onNodeOpen} />

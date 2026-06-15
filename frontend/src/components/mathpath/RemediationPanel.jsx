@@ -11,7 +11,7 @@ const STEP_ICON = {
 };
 const STEP_TONE = {
   reassure: 'bg-tianSky', hint: 'bg-tianLavender', 'reinforce-prerequisite': 'bg-tianMint',
-  'worked-example': 'bg-paper', 'guided-replication': 'bg-tianYellow', retry: 'bg-tianPeach',
+  'worked-example': 'bg-surface-white', 'guided-replication': 'bg-tianYellow', retry: 'bg-tianPeach',
 };
 
 export default function RemediationPanel({ skillId, skillSlug, recentAttempts = [], onPractise }) {
@@ -38,7 +38,7 @@ export default function RemediationPanel({ skillId, skillSlug, recentAttempts = 
   const total = plan.steps.length;
   const s = plan.steps[page];
   const Icon = STEP_ICON[s.type] || Lightbulb;
-  const tone = STEP_TONE[s.type] || 'bg-paper';
+  const tone = STEP_TONE[s.type] || 'bg-surface-white';
   const isLast = page === total - 1;
   const canGoNext = page < revealed - 1 || page < total - 1;
 
@@ -51,13 +51,13 @@ export default function RemediationPanel({ skillId, skillSlug, recentAttempts = 
 
   return (
     <div className="mt-4">
-      <ProgressBar value={page + 1} max={total} className="mb-4 h-2" barClassName="bg-navy-600" />
-      <div className={`rounded-3xl border border-white/70 shadow-resting ${tone} px-6 py-8 sm:px-8 sm:py-10 transition-colors duration-300`}>
+      <ProgressBar value={page + 1} max={total} className="mb-4 h-2" barClassName="bg-emerald" />
+      <div className={`rounded-3xl border border-white/70 shadow-rest ${tone} px-6 py-8 sm:px-8 sm:py-10 transition-colors duration-300`}>
         <div className="mb-5 flex items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white/60">
-            <Icon className="h-5 w-5 text-navy-600" />
+            <Icon className="h-5 w-5 text-emerald" />
           </span>
-          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-navy-500">
+          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-emerald">
             Step {page + 1} of {total}
           </span>
         </div>

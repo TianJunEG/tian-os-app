@@ -19,13 +19,13 @@ import { speakOnce } from '../../utils/tts';
 const LEVEL_LABELS = { P1: 'Primary 1', P2: 'Primary 2', P3: 'Primary 3', P4: 'Primary 4', P5: 'Primary 5', P6: 'Primary 6', other: 'Other' };
 
 const ACTIVITIES = [
-  { key: 'mock', label: 'Mock test', desc: 'Listen & spell', icon: Volume2, color: 'bg-navy-600', Comp: MockTest, mode: 'mock' },
-  { key: 'dictation', label: 'Dictation', desc: 'Write the passage', icon: Mic, color: 'bg-rose-500', Comp: Dictation, mode: 'dictation' },
+  { key: 'mock', label: 'Mock test', desc: 'Listen & spell', icon: Volume2, color: 'bg-emerald', Comp: MockTest, mode: 'mock' },
+  { key: 'dictation', label: 'Dictation', desc: 'Write the passage', icon: Mic, color: 'bg-danger', Comp: Dictation, mode: 'dictation' },
   { key: 'scramble', label: 'Scramble', desc: 'Rearrange letters', icon: Shuffle, color: 'bg-blue-500', Comp: ScrambleGame, mode: 'scramble' },
   { key: 'missing', label: 'Missing letters', desc: 'Fill the gaps', icon: Eraser, color: 'bg-green-600', Comp: MissingLetters, mode: 'missing' },
   { key: 'lookcover', label: 'Look · Cover · Check', desc: 'Memory method', icon: Eye, color: 'bg-amber-500', Comp: LookCoverCheck, mode: 'lookcover' },
-  { key: 'wordsearch', label: 'Word search', desc: 'Find the words', icon: Grid, color: 'bg-navy-500', Comp: WordSearch, mode: 'wordsearch' },
-  { key: 'crossword', label: 'Crossword', desc: 'Solve from clues', icon: LayoutGrid, color: 'bg-teal-600', Comp: Crossword, mode: 'crossword' }
+  { key: 'wordsearch', label: 'Word search', desc: 'Find the words', icon: Grid, color: 'bg-emerald', Comp: WordSearch, mode: 'wordsearch' },
+  { key: 'crossword', label: 'Crossword', desc: 'Solve from clues', icon: LayoutGrid, color: 'bg-emerald', Comp: Crossword, mode: 'crossword' }
 ];
 
 export default function SpellingListDetailPage() {
@@ -154,7 +154,7 @@ export default function SpellingListDetailPage() {
 
         {active && (
           <div className="bg-white rounded-xl shadow-sm p-5 sm:p-7">
-            <button onClick={() => setActive(null)} className="text-sm text-gray-500 hover:text-navy-600 inline-flex items-center gap-1 mb-5">
+            <button onClick={() => setActive(null)} className="text-sm text-gray-500 hover:text-emerald inline-flex items-center gap-1 mb-5">
               <ArrowLeft className="w-4 h-4" /> All activities
             </button>
 
@@ -175,7 +175,7 @@ export default function SpellingListDetailPage() {
                         {w.sentence && <p className="text-sm text-gray-600">{w.sentence}</p>}
                         {w.definition && <p className="text-sm text-gray-400">{w.definition}</p>}
                       </div>
-                      <button onClick={() => speakOnce(w.word)} className="p-1.5 text-navy-500 hover:bg-navy-50 rounded">
+                      <button onClick={() => speakOnce(w.word)} className="p-1.5 text-emerald hover:bg-emerald-tint rounded">
                         <Volume2 className="w-4 h-4" />
                       </button>
                     </li>

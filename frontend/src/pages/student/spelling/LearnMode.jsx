@@ -26,7 +26,7 @@ export default function LearnMode() {
   if (!list) return <Spinner />;
   return (
     <>
-      <button onClick={() => navigate('/student/spelling/lists')} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
+      <button onClick={() => navigate('/student/spelling/lists')} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep">
         <ArrowLeft className="h-4 w-4" /> Word lists
       </button>
       <PageHeader title={list.title} subtitle="Look, cover, and remember each word — then self-test." />
@@ -35,7 +35,7 @@ export default function LearnMode() {
         {list.words.map((w) => (
           <Card key={w.wordId} className="p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="font-display text-xl font-semibold text-navy-700">{w.word}</span>
+              <span className="font-display text-xl font-semibold text-emerald-deep">{w.word}</span>
             </div>
             {w.sentence && <p className="mt-1 text-sm text-ink-500">{w.sentence}</p>}
             {w.definition && <p className="mt-0.5 text-xs text-ink-400">{w.definition}</p>}

@@ -16,7 +16,7 @@ export default function PlanStrategySelect({ scaffoldStep, response, onChange })
             onClick={() => onChange({ selectedIndex: i })}
             className={`w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition-all ${
               selected === i
-                ? 'border-teal-400 bg-teal-50 text-teal-800'
+                ? 'border-teal-400 bg-emerald-tint text-teal-800'
                 : 'border-ink-200 bg-white text-ink-600 hover:border-ink-300'
             }`}
           >

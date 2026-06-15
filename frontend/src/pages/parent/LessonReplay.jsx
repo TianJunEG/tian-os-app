@@ -88,7 +88,7 @@ export default function LessonReplay() {
             style={{ aspectRatio: `${W} / ${H}` }}
             aria-label="Lesson replay canvas"
           />
-          <div className="border-t border-hairline p-3">
+          <div className="border-t border-line-soft p-3">
             {/* Native controls give play / pause / scrub; ink follows the clock. */}
             <audio ref={audioRef} src={data.audioUrl} controls className="w-full" />
           </div>

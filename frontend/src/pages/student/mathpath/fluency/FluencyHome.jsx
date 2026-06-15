@@ -125,7 +125,7 @@ export default function FluencyHome() {
             <Card key={key} className={`p-4 ${visualStyles.accentCard}`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-navy-600" />
+                  <Icon className="h-4 w-4 text-emerald" />
                   <h3 className="text-sm font-semibold text-ink-800">{meta.title}</h3>
                 </div>
                 <Badge tone={meta.tone}>{rows.length}</Badge>
@@ -137,7 +137,7 @@ export default function FluencyHome() {
                       key={row.skillId}
                       type="button"
                       onClick={() => start(row.skillId)}
-                      className="w-full rounded-lg border border-hairline bg-white/80 px-3 py-2 text-left"
+                      className="w-full rounded-lg border border-line-soft bg-white/80 px-3 py-2 text-left"
                     >
                       <div className="text-sm font-semibold text-ink-800">{row.skillName}</div>
                       <div className="mt-0.5 text-xs text-ink-500">
@@ -197,7 +197,7 @@ export default function FluencyHome() {
               <CollapsibleSection key={topic} title={topic} summary={`${rows.length} skill${rows.length === 1 ? '' : 's'}`} surface={false}>
                 <div className="space-y-2">
                   {rows.map((s) => (
-                    <button key={s.skillId} type="button" onClick={() => start(s.skillId)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-hairline px-3 py-2 text-left">
+                    <button key={s.skillId} type="button" onClick={() => start(s.skillId)} className="flex w-full items-center justify-between gap-3 rounded-lg border border-line-soft px-3 py-2 text-left">
                       <span className="min-w-0 truncate text-sm font-semibold text-ink-700">{s.name}</span>
                       <Badge tone={TONE[s.status] || 'neutral'}>{s.statusLabel}</Badge>
                     </button>
@@ -212,7 +212,7 @@ export default function FluencyHome() {
       <Button variant="secondary" icon={ListChecks} to="/student/mathpath/fluency/skills" className="w-full bg-white/80">View all fluency skills</Button>
       {mastery?.recentMistakeCount > 0 && (
         <p className="mt-4 text-center text-xs text-ink-500">
-          {mastery.recentMistakeCount} mistakes waiting · <a className="font-semibold text-navy-700" href="/student/mathpath/mistakes">review them</a>
+          {mastery.recentMistakeCount} mistakes waiting · <a className="font-semibold text-emerald-deep" href="/student/mathpath/mistakes">review them</a>
         </p>
       )}
     </div>

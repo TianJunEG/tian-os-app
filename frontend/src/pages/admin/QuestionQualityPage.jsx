@@ -10,11 +10,11 @@ function number(value) {
 
 function MetricCard({ icon: Icon, label, value, tone = 'navy' }) {
   const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     green: 'bg-emerald-50 text-emerald-700',
     amber: 'bg-amber-50 text-amber-700',
-    rose: 'bg-rose-50 text-rose-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+    rose: 'bg-danger-tint text-danger-deep',
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
 
   return (
     <Card className="p-4">
@@ -59,7 +59,7 @@ function QualityTable({ rows = [] }) {
         </thead>
         <tbody>
           {rows.slice(0, 12).map((row) => (
-            <tr key={row.questionId} className="border-t border-hairline">
+            <tr key={row.questionId} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-semibold text-ink-800">{row.skillId || 'Unmapped'}</td>
               <td className="py-3 pr-4"><Badge tone={row.qualityScore < 60 ? 'error' : 'yellow'}>{row.qualityScore}</Badge></td>
               <td className="py-3 pr-4 text-ink-600">{(row.flags || []).slice(0, 2).join(', ') || 'Review recommended'}</td>
@@ -77,7 +77,7 @@ function MissingDiagramTable({ rows = [] }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 10).map((row) => (
-        <div key={row.questionId} className="rounded-2xl border border-hairline p-3">
+        <div key={row.questionId} className="rounded-2xl border border-line-soft p-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="yellow">{row.skillId}</Badge>
             {(row.missingVisuals || []).map((type) => <Badge key={type} tone="navy">{type}</Badge>)}
@@ -94,7 +94,7 @@ function SimpleRows({ rows = [], labelKey, valueKey = 'count', empty = 'No issue
   return (
     <div className="space-y-3">
       {rows.slice(0, 10).map((row) => (
-        <div key={`${row[labelKey]}-${row[valueKey]}`} className="flex items-center justify-between gap-3 border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+        <div key={`${row[labelKey]}-${row[valueKey]}`} className="flex items-center justify-between gap-3 border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
           <span className="text-sm font-semibold text-ink-800">{row[labelKey]}</span>
           <Badge tone="navy">{number(row[valueKey])}</Badge>
         </div>
@@ -108,7 +108,7 @@ function MisconceptionGaps({ rows = [] }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 10).map((row) => (
-        <div key={row.skillId} className="border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+        <div key={row.skillId} className="border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
           <div className="flex items-center justify-between gap-3">
             <span className="font-semibold text-ink-800">{row.skillId} · {row.skillName}</span>
             <Badge tone="yellow">{row.missing.length} gaps</Badge>

@@ -15,7 +15,7 @@ export default function WorkingUploadArea({ files = [], onFilesAdded }) {
 
   return (
     <Card
-      className={`p-4 transition ${dragging ? 'border-navy-500 bg-navy-50' : ''}`}
+      className={`p-4 transition ${dragging ? 'border-emerald bg-emerald-tint' : ''}`}
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={(e) => {
@@ -25,7 +25,7 @@ export default function WorkingUploadArea({ files = [], onFilesAdded }) {
       }}
     >
       <div className="text-center">
-        <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-xl bg-navy-50 text-navy-700">
+        <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-xl bg-emerald-tint text-emerald-deep">
           <Upload className="h-5 w-5" />
         </div>
         <p className="text-sm font-semibold text-ink-700">Drag and drop pages here</p>

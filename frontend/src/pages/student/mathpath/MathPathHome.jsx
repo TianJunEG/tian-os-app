@@ -365,7 +365,7 @@ export default function MathPathHome() {
           <div className={`relative h-44 overflow-hidden rounded-2xl ${visualStyles.heroPanel}`}>
             <div className="absolute -right-8 -top-10 h-36 w-36 rounded-full bg-white/45" />
             <div className="absolute -bottom-12 left-10 h-36 w-36 rounded-full bg-white/35" />
-            <span className="absolute left-6 top-6 grid h-16 w-16 place-items-center rounded-2xl bg-paper/85 shadow-resting">
+            <span className="absolute left-6 top-6 grid h-16 w-16 place-items-center rounded-2xl bg-surface-white/85 shadow-rest">
               <GraduationCap className="h-8 w-8" />
             </span>
             <span className="absolute bottom-4 right-6 font-mono text-7xl font-semibold opacity-25">=</span>
@@ -398,8 +398,8 @@ export default function MathPathHome() {
           </div>
         </div>
         {showWarmup && (
-          <div className="mt-4 rounded-xl border border-navy-200 bg-navy-50 p-4">
-            <p className="text-sm font-semibold text-navy-800">Quick warm-up recommended</p>
+          <div className="mt-4 rounded-xl border border-emerald-border bg-emerald-tint p-4">
+            <p className="text-sm font-semibold text-emerald-deep">Quick warm-up recommended</p>
             <p className="mt-1 text-sm text-ink-600">Try 2–3 retrieval questions before your main practice.</p>
             <Button
               className="mt-3"
@@ -474,10 +474,10 @@ export default function MathPathHome() {
           </Card>
           {FEATURE_FLAGS.fluency && (
             <Card className="flex h-full flex-col border-teal-100 bg-gradient-to-br from-teal-50 via-white to-sky-50 p-4">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-teal-100 text-teal-700"><Zap className="h-6 w-6" /></span>
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-tint text-emerald-deep"><Zap className="h-6 w-6" /></span>
               <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Speed &amp; Accuracy</h3>
               <p className="mt-1 flex-1 text-sm text-ink-500">Build times-table fluency with flash quizzes.</p>
-              <Button to="/student/mathpath/fluency/times-tables" variant="secondary" className="mt-4 w-full border-teal-200 bg-white/80 text-teal-700 hover:bg-teal-50">
+              <Button to="/student/mathpath/fluency/times-tables" variant="secondary" className="mt-4 w-full border-teal-200 bg-white/80 text-emerald-deep hover:bg-emerald-tint">
                 Practise Now
               </Button>
             </Card>
@@ -500,7 +500,7 @@ export default function MathPathHome() {
           <button
             type="button"
             onClick={() => setShowTopicMapSection((prev) => !prev)}
-            className="inline-flex items-center gap-1 rounded-full border border-hairline px-2.5 py-1 text-xs font-semibold text-ink-500 transition hover:bg-navy-50"
+            className="inline-flex items-center gap-1 rounded-full border border-line-soft px-2.5 py-1 text-xs font-semibold text-ink-500 transition hover:bg-emerald-tint"
           >
             <span>{showTopicMapSection ? 'Hide details' : `Show all (${visibleTopics.length})`}</span>
             {showTopicMapSection ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -538,7 +538,7 @@ export default function MathPathHome() {
             <button
               type="button"
               onClick={() => setShowLevelsSkillsSection((prev) => !prev)}
-              className="inline-flex items-center gap-1 rounded-full border border-hairline px-2.5 py-1 text-xs font-semibold text-ink-500 transition hover:bg-navy-50"
+              className="inline-flex items-center gap-1 rounded-full border border-line-soft px-2.5 py-1 text-xs font-semibold text-ink-500 transition hover:bg-emerald-tint"
             >
               <span>{showLevelsSkillsSection ? 'Hide details' : `Show all (${previewLevels.length} levels · ${previewSkillCount} skills)`}</span>
               {showLevelsSkillsSection ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -576,7 +576,7 @@ export default function MathPathHome() {
                   <p className="text-sm font-semibold text-ink-700">{level}</p>
                   <div className="mt-3 space-y-3">
                     {levelTopics.map((t) => (
-                      <div key={t.topicId} className="rounded-lg border border-hairline p-3">
+                      <div key={t.topicId} className="rounded-lg border border-line-soft p-3">
                         <p className="text-sm font-medium text-ink-700">{t.name}</p>
                         {t.levelSkills?.length ? (
                           <div className="mt-2 flex flex-wrap gap-2">
@@ -585,7 +585,7 @@ export default function MathPathHome() {
                                 key={s.skillId}
                                 type="button"
                                 onClick={() => openSkillPreview(s, t.name)}
-                                className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-left text-xs hover:bg-navy-50 ${selectedSkillId === s.skillId ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-600'}`}
+                                className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-left text-xs hover:bg-emerald-tint ${selectedSkillId === s.skillId ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-600'}`}
                               >
                                 <span>{s.name}</span>
                                 <ChevronRight className="h-3 w-3" />

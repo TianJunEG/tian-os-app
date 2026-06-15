@@ -124,8 +124,8 @@ export function AvatarPicker({ currentAvatar, onSelect, onClose }) {
           </div>
         )}
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg border border-hairline px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-bone">Cancel</button>
-          <button onClick={handleSave} disabled={saving || !selected} className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600 disabled:opacity-50">
+          <button onClick={onClose} className="rounded-lg border border-line-soft px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-bone">Cancel</button>
+          <button onClick={handleSave} disabled={saving || !selected} className="rounded-lg bg-emerald px-4 py-2 text-sm font-semibold text-white hover:bg-emerald disabled:opacity-50">
             {saving ? 'Saving…' : 'Save Avatar'}
           </button>
         </div>

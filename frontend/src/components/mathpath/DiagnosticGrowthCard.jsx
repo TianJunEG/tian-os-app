@@ -43,7 +43,7 @@ export default function DiagnosticGrowthCard({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{title}</p>
-          <h3 className="mt-1 font-display text-lg font-semibold text-navy-700">
+          <h3 className="mt-1 font-display text-lg font-semibold text-emerald-deep">
             {latest ? `Improvement ${Number(growth?.overallImprovement || 0) >= 0 ? '+' : ''}${Math.round(Number(growth?.overallImprovement || 0))}` : 'No recheck yet'}
           </h3>
           <p className="mt-1 text-sm text-ink-600">
@@ -51,15 +51,15 @@ export default function DiagnosticGrowthCard({
           </p>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center text-sm sm:min-w-[300px]">
-          <div className="rounded-xl bg-paper px-3 py-2">
+          <div className="rounded-xl bg-surface-white px-3 py-2">
             <p className="text-xs text-ink-500">Baseline</p>
             <p className="font-semibold text-ink-800">{score(baseline?.readinessScore)}</p>
           </div>
-          <div className="rounded-xl bg-paper px-3 py-2">
+          <div className="rounded-xl bg-surface-white px-3 py-2">
             <p className="text-xs text-ink-500">Current</p>
             <p className="font-semibold text-ink-800">{score(latest?.readinessScore)}</p>
           </div>
-          <div className="rounded-xl bg-paper px-3 py-2">
+          <div className="rounded-xl bg-surface-white px-3 py-2">
             <p className="text-xs text-ink-500">Change</p>
             <p className="font-semibold text-ink-800">{growth?.overallImprovement === null || growth?.overallImprovement === undefined ? '-' : `${Number(growth.overallImprovement) >= 0 ? '+' : ''}${Math.round(Number(growth.overallImprovement))}`}</p>
           </div>

@@ -12,7 +12,7 @@ export default function WorkingPreviewCard({
   const hasWorking = Boolean(workingSubmitted || workingImage);
 
   return (
-    <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4">
+    <div className="rounded-xl border border-line-soft bg-white p-3 sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-ink-800">{hasWorking ? 'Working saved' : 'Working'}</p>
@@ -31,10 +31,10 @@ export default function WorkingPreviewCard({
             <img
               src={workingImage}
               alt="Saved working preview"
-              className="max-h-[120px] w-full rounded-lg border border-hairline bg-white object-contain sm:w-40"
+              className="max-h-[120px] w-full rounded-lg border border-line-soft bg-white object-contain sm:w-40"
             />
           ) : (
-            <div className="flex h-24 w-full items-center justify-center rounded-lg border border-hairline bg-slate-50 text-xs font-semibold text-ink-400 sm:w-40">
+            <div className="flex h-24 w-full items-center justify-center rounded-lg border border-line-soft bg-surface-raised text-xs font-semibold text-ink-400 sm:w-40">
               Working saved
             </div>
           )}

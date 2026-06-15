@@ -276,7 +276,7 @@ export default function SolutionVisual({ visualSpec, revealedSteps }) {
   if (!Renderer) return null;
 
   return (
-    <div className="rounded-lg border border-ink-200 bg-paper p-3">
+    <div className="rounded-lg border border-ink-200 bg-surface-white p-3">
       <Renderer spec={visualSpec} step={step} />
     </div>
   );

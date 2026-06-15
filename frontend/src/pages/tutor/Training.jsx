@@ -23,7 +23,7 @@ export default function Training() {
 
       <Card className="mb-5 p-5">
         <div className="flex items-center gap-3">
-          <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700"><GraduationCap className="h-5 w-5" /></span>
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-tint text-emerald-deep"><GraduationCap className="h-5 w-5" /></span>
           <div>
             <p className="text-sm text-ink-500">Certification status</p>
             <p className="font-semibold text-ink-700">{STATUS_LABEL[cert.status]}</p>

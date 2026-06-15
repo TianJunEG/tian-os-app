@@ -16,7 +16,7 @@ function dateText(value) {
 
 function JourneyStep({ title, detail, muted = false }) {
   return (
-    <div className={`rounded-2xl px-4 py-3 ${muted ? 'bg-paper text-ink-500' : 'bg-white text-ink-800'}`}>
+    <div className={`rounded-2xl px-4 py-3 ${muted ? 'bg-surface-white text-ink-500' : 'bg-white text-ink-800'}`}>
       <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{title}</p>
       <p className="mt-1 text-sm font-semibold">{detail}</p>
     </div>
@@ -43,7 +43,7 @@ export default function SuccessCentreDashboard({ data, onAction }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Status</p>
-            <h2 className="mt-1 font-display text-2xl font-semibold text-navy-700">
+            <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">
               {centre.student.name} is at {score(status.currentReadiness)} readiness
             </h2>
             <p className="mt-1 text-sm text-ink-600">
@@ -53,11 +53,11 @@ export default function SuccessCentreDashboard({ data, onAction }) {
           <div className="grid min-w-[220px] grid-cols-2 gap-2 text-sm">
             <div className="rounded-2xl bg-white px-3 py-2">
               <p className="text-xs text-ink-500">Weak skills</p>
-              <p className="font-mono text-xl font-semibold text-navy-700">{status.remainingWeakSkillCount || 0}</p>
+              <p className="font-mono text-xl font-semibold text-emerald-deep">{status.remainingWeakSkillCount || 0}</p>
             </div>
             <div className="rounded-2xl bg-white px-3 py-2">
               <p className="text-xs text-ink-500">Recovery packs</p>
-              <p className="font-mono text-xl font-semibold text-navy-700">{status.activeRecoveryPackCount || 0}</p>
+              <p className="font-mono text-xl font-semibold text-emerald-deep">{status.activeRecoveryPackCount || 0}</p>
             </div>
           </div>
         </div>

@@ -231,7 +231,7 @@ export default function TutorExplanationRecorder() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-100">
           <CheckCircle className="h-8 w-8 text-success-600" />
         </div>
-        <h1 className="font-display text-2xl font-semibold text-navy-700">Explanation saved</h1>
+        <h1 className="font-display text-2xl font-semibold text-emerald-deep">Explanation saved</h1>
         <p className="mt-2 text-sm text-ink-500">
           The parent will see your recorded explanation{chunksRef.current.length > 0 ? ' with voice narration' : ''} on their mistake review screen.
         </p>
@@ -252,13 +252,13 @@ export default function TutorExplanationRecorder() {
       {/* ── Header ── */}
       <button
         onClick={() => navigate(`/tutor/students/${studentId}`)}
-        className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700"
+        className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep"
       >
         <ArrowLeft className="h-4 w-4" /> Back to student
       </button>
 
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-semibold tracking-[-0.02em] text-navy-700">
+        <h1 className="font-display text-2xl font-semibold tracking-[-0.02em] text-emerald-deep">
           Record explanation
         </h1>
         <p className="mt-1 text-sm text-ink-500">
@@ -332,7 +332,7 @@ export default function TutorExplanationRecorder() {
                 <img
                   src={mistake.workingImage}
                   alt="Student working"
-                  className="w-full rounded-lg border border-hairline"
+                  className="w-full rounded-lg border border-line-soft"
                 />
               </div>
             )}
@@ -377,8 +377,8 @@ export default function TutorExplanationRecorder() {
                 audioSrc={previewAudioUrl || undefined}
               />
               {previewAudioUrl && (
-                <div className="mt-2 flex items-center gap-2 rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-700">
-                  <Mic className="h-4 w-4 text-navy-500" />
+                <div className="mt-2 flex items-center gap-2 rounded-lg bg-emerald-tint px-3 py-2 text-sm text-emerald-deep">
+                  <Mic className="h-4 w-4 text-emerald" />
                   Voice narration attached — plays in sync with drawing.
                 </div>
               )}
@@ -431,7 +431,7 @@ export default function TutorExplanationRecorder() {
                       </span>
                       <button
                         onClick={toggleMic}
-                        className="mt-0.5 text-[11px] font-semibold text-navy-600 hover:underline"
+                        className="mt-0.5 text-[11px] font-semibold text-emerald hover:underline"
                       >
                         Retry
                       </button>

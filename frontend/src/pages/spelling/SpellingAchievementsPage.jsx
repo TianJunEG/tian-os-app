@@ -131,7 +131,7 @@ export default function SpellingAchievementsPage() {
                       <div className="text-xs text-gray-500 mb-2">{b.description}</div>
                       {!b.earned && (
                         <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                          <div className="h-full bg-navy-400" style={{ width: `${pct}%` }} />
+                          <div className="h-full bg-emerald-bright" style={{ width: `${pct}%` }} />
                         </div>
                       )}
                     </div>

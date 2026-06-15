@@ -82,7 +82,7 @@ export default function WorksheetSetup() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} showAssign={false} />
-      <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">New worksheet</h2>
+      <h2 className="mb-1 font-display text-xl font-semibold text-emerald-deep">New worksheet</h2>
       <p className="mb-5 text-sm text-ink-500">{subject === 'science' ? 'Science' : 'Math'} · personalised from learning data.</p>
       {skillsLoadError && (
         <ErrorState message="Couldn’t load topics and skills." onRetry={loadSkills} />
@@ -104,7 +104,7 @@ export default function WorksheetSetup() {
               <button
                 type="button"
                 onClick={suggestWeakest}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-deep hover:text-emerald-deep"
               >
                 <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
               </button>
@@ -150,13 +150,13 @@ const Field = ({ label, children }) => (
 const Segmented = ({ value, onChange, options }) => (
   <div className="flex flex-wrap gap-2">
     {options.map((o) => (
-      <button key={o.v} onClick={() => onChange(o.v)} className={`h-11 min-w-[9rem] flex-1 rounded-xl border text-sm font-semibold transition ${value === o.v ? 'border-navy-700 bg-navy-700 text-paper' : 'border-hairline bg-paper text-navy-700'}`}>{o.l}</button>
+      <button key={o.v} onClick={() => onChange(o.v)} className={`h-11 min-w-[9rem] flex-1 rounded-xl border text-sm font-semibold transition ${value === o.v ? 'border-emerald-deep bg-emerald-deep text-paper' : 'border-line-soft bg-surface-white text-emerald-deep'}`}>{o.l}</button>
     ))}
   </div>
 );
 const Toggle = ({ label, checked, onChange }) => (
-  <button onClick={() => onChange(!checked)} className="flex w-full items-center justify-between rounded-xl border border-hairline bg-paper px-4 py-3">
+  <button onClick={() => onChange(!checked)} className="flex w-full items-center justify-between rounded-xl border border-line-soft bg-surface-white px-4 py-3">
     <span className="text-sm text-ink-800">{label}</span>
-    <span className={`h-6 w-11 rounded-full p-0.5 transition ${checked ? 'bg-navy-700' : 'bg-ink-100'}`}><span className={`block h-5 w-5 rounded-full bg-paper transition ${checked ? 'translate-x-5' : ''}`} /></span>
+    <span className={`h-6 w-11 rounded-full p-0.5 transition ${checked ? 'bg-emerald-deep' : 'bg-ink-100'}`}><span className={`block h-5 w-5 rounded-full bg-surface-white transition ${checked ? 'translate-x-5' : ''}`} /></span>
   </button>
 );

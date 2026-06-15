@@ -10,11 +10,11 @@ function number(value, suffix = '') {
 
 function MetricCard({ icon: Icon, label, value, suffix = '', tone = 'navy' }) {
   const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     green: 'bg-emerald-50 text-emerald-700',
     amber: 'bg-amber-50 text-amber-700',
-    rose: 'bg-rose-50 text-rose-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+    rose: 'bg-danger-tint text-danger-deep',
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
@@ -44,7 +44,7 @@ function RowList({ rows = [], labelKey, valueKey = 'count', empty = 'No data yet
   return (
     <div className="space-y-3">
       {rows.slice(0, 8).map((row) => (
-        <div key={`${row[labelKey]}-${row[valueKey]}`} className="flex items-center justify-between gap-3 border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+        <div key={`${row[labelKey]}-${row[valueKey]}`} className="flex items-center justify-between gap-3 border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
           <span className="truncate text-sm font-semibold text-ink-800">{row[labelKey]}</span>
           <Badge tone="navy">{number(row[valueKey])}</Badge>
         </div>
@@ -91,7 +91,7 @@ function AttentionTable({ rows = [] }) {
         </thead>
         <tbody>
           {rows.slice(0, 12).map((row) => (
-            <tr key={`${row.studentId}-${row.linkedObjectId}-${row.reason}`} className="border-t border-hairline">
+            <tr key={`${row.studentId}-${row.linkedObjectId}-${row.reason}`} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-semibold text-ink-800">{row.studentName || row.studentId}</td>
               <td className="py-3 pr-4"><Badge tone={row.priority === 'high' ? 'error' : 'yellow'}>{row.priority}</Badge></td>
               <td className="py-3 pr-4 text-ink-600">{row.reason}</td>
@@ -121,7 +121,7 @@ function MistakeLearningAuditTable({ audit = {} }) {
         </thead>
         <tbody>
           {rows.slice(0, 12).map((row) => (
-            <tr key={`${row.mistakeId}-${row.riskType}`} className="border-t border-hairline">
+            <tr key={`${row.mistakeId}-${row.riskType}`} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-mono text-xs text-ink-700">{row.mistakeId}</td>
               <td className="py-3 pr-4 font-mono text-xs text-ink-600">{row.studentId}</td>
               <td className="py-3 pr-4 text-ink-700">{row.skillCode || '—'}</td>
@@ -139,7 +139,7 @@ function AuditStat({ label, value, tone = 'ink' }) {
   const toneClass = {
     ink: 'bg-ink-50 text-ink-800',
     amber: 'bg-amber-50 text-amber-900',
-    rose: 'bg-rose-50 text-rose-900',
+    rose: 'bg-danger-tint text-rose-900',
   }[tone] || 'bg-ink-50 text-ink-800';
   return (
     <div className={`rounded-2xl px-4 py-3 ${toneClass}`}>

@@ -64,7 +64,7 @@ export default function StudentWorksheets() {
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Link to="/student/worksheets/new?mode=weak_skills" className="focus-visible:outline-none">
           <Card interactive className="flex items-start gap-3 p-4">
-            <TrendingDown className="mt-1 h-4 w-4 text-navy-700" />
+            <TrendingDown className="mt-1 h-4 w-4 text-emerald-deep" />
             <div>
               <p className="font-semibold text-ink-800">Use Weak Skill</p>
               <p className="text-xs text-ink-500">{weakSkill?.skillName || 'Generate from your current recommended skill.'}</p>
@@ -73,7 +73,7 @@ export default function StudentWorksheets() {
         </Link>
         <Link to="/student/worksheets/new?mode=selected_topic" className="focus-visible:outline-none">
           <Card interactive className="flex items-start gap-3 p-4">
-            <BookOpen className="mt-1 h-4 w-4 text-navy-700" />
+            <BookOpen className="mt-1 h-4 w-4 text-emerald-deep" />
             <div>
               <p className="font-semibold text-ink-800">Choose Skill</p>
               <p className="text-xs text-ink-500">Pick a specific MathPath skill.</p>
@@ -82,7 +82,7 @@ export default function StudentWorksheets() {
         </Link>
         <Link to="/student/worksheets/new?mode=diagnostic_results" className="focus-visible:outline-none">
           <Card interactive className="flex items-start gap-3 p-4">
-            <ClipboardCheck className="mt-1 h-4 w-4 text-navy-700" />
+            <ClipboardCheck className="mt-1 h-4 w-4 text-emerald-deep" />
             <div>
               <p className="font-semibold text-ink-800">Use Diagnostic</p>
               <p className="text-xs text-ink-500">Practise gaps from your latest diagnostic.</p>
@@ -91,7 +91,7 @@ export default function StudentWorksheets() {
         </Link>
         <Link to="/student/worksheets/new?mode=recent_mistakes" className="focus-visible:outline-none">
           <Card interactive className="flex items-start gap-3 p-4">
-            <AlertTriangle className="mt-1 h-4 w-4 text-navy-700" />
+            <AlertTriangle className="mt-1 h-4 w-4 text-emerald-deep" />
             <div>
               <p className="font-semibold text-ink-800">Use Mistake Type</p>
               <p className="text-xs text-ink-500">Target recent misconception patterns.</p>

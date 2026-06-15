@@ -176,7 +176,7 @@ export default function DecimalsPracticeSession() {
                 key={choice}
                 type="button"
                 onClick={() => setDraft(choice)}
-                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-navy-50 font-semibold text-navy-800' : 'border-ink-200 hover:border-navy-300'}`}
+                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
               >
                 {choice}
               </button>

@@ -235,8 +235,8 @@ export default function QuestionAnnotationOverlay({
 
   return (
     <div className="relative">
-      <div className="mb-2 rounded-xl border border-hairline bg-slate-50 px-3 py-2 text-xs text-ink-600">
-        <p className={`font-semibold ${active ? 'text-navy-700' : 'text-ink-700'}`}>
+      <div className="mb-2 rounded-xl border border-line-soft bg-surface-raised px-3 py-2 text-xs text-ink-600">
+        <p className={`font-semibold ${active ? 'text-emerald-deep' : 'text-ink-700'}`}>
           {active ? 'Doodle mode active' : 'Doodle mode off'}
         </p>
         <p className="mt-1 text-ink-500">{active
@@ -259,7 +259,7 @@ export default function QuestionAnnotationOverlay({
       </div>
 
       {isEnabled && (
-        <div className="relative z-20 mt-2 rounded-xl border border-hairline bg-white p-2">
+        <div className="relative z-20 mt-2 rounded-xl border border-line-soft bg-white p-2">
           <div className="mb-2 flex flex-wrap gap-2">
             <Button size="s" className="min-h-[44px]" icon={PenLine} variant={tool === 'pen' ? 'primary' : 'secondary'} onClick={() => setTool('pen')}>Pen</Button>
             <Button size="s" className="min-h-[44px]" icon={Eraser} variant={tool === 'eraser' ? 'primary' : 'secondary'} onClick={() => setTool('eraser')}>Eraser</Button>
@@ -278,7 +278,7 @@ export default function QuestionAnnotationOverlay({
                     type="button"
                     aria-label={item.label}
                     onClick={() => setColour(item.value)}
-                    className={`min-h-[44px] min-w-[44px] rounded-xl border px-2 text-xs font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/30' : 'border-hairline'}`}
+                    className={`min-h-[44px] min-w-[44px] rounded-xl border px-2 text-xs font-semibold ${colour === item.value ? 'border-emerald ring-2 ring-emerald/30' : 'border-line-soft'}`}
                     style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
                   >
                     {item.label[0]}

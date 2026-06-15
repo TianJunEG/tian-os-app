@@ -32,11 +32,11 @@ function stageDone(pack, stageId) {
 function VisualModelCard({ visual }) {
   const label = visual?.visualModel?.label || String(visual?.visualModelType || 'visual model').replace(/_/g, ' ');
   return (
-    <div className="mt-3 rounded-2xl border border-hairline bg-white p-4">
+    <div className="mt-3 rounded-2xl border border-line-soft bg-white p-4">
       <p className="text-sm font-semibold text-ink-800">{label}</p>
       {visual?.renderable ? (
         <div className="mt-3 grid gap-2">
-          <div className="h-8 overflow-hidden rounded-full border border-navy-200 bg-navy-50">
+          <div className="h-8 overflow-hidden rounded-full border border-emerald-border bg-emerald-tint">
             <div className="h-full w-2/3 bg-gold-300" />
           </div>
           <div className="flex justify-between text-xs font-semibold text-ink-500">
@@ -66,23 +66,23 @@ function QuestionCard({ question, stageId, onSubmit, disabled = false }) {
   };
 
   return (
-    <div className="rounded-2xl border border-hairline bg-white p-4">
+    <div className="rounded-2xl border border-line-soft bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <p className="font-semibold text-ink-800">{question.prompt}</p>
         {answered && <Badge tone={question.progress?.correct ? 'success' : 'gold'}>{question.progress?.correct ? 'Done' : 'Tried'}</Badge>}
       </div>
-      {question.scaffold && <p className="mt-2 rounded-xl bg-navy-50 px-3 py-2 text-sm text-navy-800">{question.scaffold}</p>}
+      {question.scaffold && <p className="mt-2 rounded-xl bg-emerald-tint px-3 py-2 text-sm text-emerald-deep">{question.scaffold}</p>}
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input
           value={answer}
           onChange={(event) => setAnswer(event.target.value)}
           disabled={disabled}
           placeholder="Type your answer or first step"
-          className="min-h-[48px] flex-1 rounded-xl border border-hairline bg-paper px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+          className="min-h-[48px] flex-1 rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
         />
         <Button onClick={submit} disabled={disabled || !answer.trim()}>Check</Button>
       </div>
-      {feedback && <p className="mt-2 text-sm font-semibold text-navy-700">{feedback}</p>}
+      {feedback && <p className="mt-2 text-sm font-semibold text-emerald-deep">{feedback}</p>}
     </div>
   );
 }
@@ -177,12 +177,12 @@ export default function RecoveryPackTeachingFlow() {
             <p className="text-sm font-semibold text-ink-800">Teaching flow progress</p>
             <p className="text-sm text-ink-500">{progress.done}/{progress.total} stages completed</p>
           </div>
-          <span className="font-mono text-lg font-semibold text-navy-700">{progress.percent}%</span>
+          <span className="font-mono text-lg font-semibold text-emerald-deep">{progress.percent}%</span>
         </div>
         <ProgressBar value={progress.percent} className="mt-3" />
       </Card>
 
-      {message && <Card className="mb-4 p-3 text-sm font-semibold text-navy-700">{message}</Card>}
+      {message && <Card className="mb-4 p-3 text-sm font-semibold text-emerald-deep">{message}</Card>}
 
       {pack.warnings?.length ? (
         <Card className="mb-4 p-4" tone="yellow">
@@ -196,10 +196,10 @@ export default function RecoveryPackTeachingFlow() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.what_learning}</p>
-              <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">Let’s learn why this happens.</h2>
+              <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">Let’s learn why this happens.</h2>
               <p className="mt-2 text-sm text-ink-700">{pack.whatLearning?.explanation}</p>
               {pack.whatLearning?.skillLabels?.length ? (
-                <p className="mt-2 text-sm font-semibold text-navy-700">{pack.whatLearning.skillLabels.join(', ')}</p>
+                <p className="mt-2 text-sm font-semibold text-emerald-deep">{pack.whatLearning.skillLabels.join(', ')}</p>
               ) : null}
             </div>
             {stageDone(pack, 'what_learning') && <CheckCircle className="h-5 w-5 text-success-700" />}
@@ -213,12 +213,12 @@ export default function RecoveryPackTeachingFlow() {
 
         <Card className="p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.worked_example}</p>
-          <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">{pack.workedExample?.title || 'Worked Example'}</h2>
+          <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">{pack.workedExample?.title || 'Worked Example'}</h2>
           <div className="mt-4 grid gap-3">
             <p className="rounded-xl bg-tianRose px-3 py-2 text-sm text-ink-700"><span className="font-semibold">Common wrong method:</span> {pack.workedExample?.content?.incorrectMethod || 'A common shortcut gives the wrong relationship.'}</p>
             <p className="rounded-xl bg-gold-100 px-3 py-2 text-sm text-gold-800"><span className="font-semibold">Why it does not work:</span> {pack.workedExample?.content?.whyIncorrect || 'The method does not match the fraction meaning.'}</p>
             <p className="rounded-xl bg-success-100 px-3 py-2 text-sm text-success-700"><span className="font-semibold">Correct method:</span> {pack.workedExample?.content?.correctMethod || 'Work step by step and keep the parts labelled.'}</p>
-            <p className="rounded-xl bg-paper px-3 py-2 text-sm text-ink-700"><span className="font-semibold">Key takeaway:</span> {pack.workedExample?.content?.keyTakeaway || 'Use the model first, then calculate.'}</p>
+            <p className="rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700"><span className="font-semibold">Key takeaway:</span> {pack.workedExample?.content?.keyTakeaway || 'Use the model first, then calculate.'}</p>
           </div>
           {!stageDone(pack, 'worked_example') && (
             <Button className="mt-4" onClick={() => markProgress({ stageId: 'worked_example' })} disabled={busy.startsWith('worked_example')}>
@@ -229,7 +229,7 @@ export default function RecoveryPackTeachingFlow() {
 
         <Card className="p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.visual_explanation}</p>
-          <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">See the idea before calculating.</h2>
+          <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">See the idea before calculating.</h2>
           <VisualModelCard visual={pack.visualExplanation} />
           {!stageDone(pack, 'visual_explanation') && (
             <Button className="mt-4" onClick={() => markProgress({ stageId: 'visual_explanation' })} disabled={busy.startsWith('visual_explanation')}>
@@ -240,7 +240,7 @@ export default function RecoveryPackTeachingFlow() {
 
         <Card className="p-5" tone="sky">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.guided_practice}</p>
-          <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">Try this with help.</h2>
+          <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">Try this with help.</h2>
           <div className="mt-4 space-y-3">
             {(pack.guidedPractice?.questions || []).map((question) => (
               <QuestionCard
@@ -256,7 +256,7 @@ export default function RecoveryPackTeachingFlow() {
 
         <Card className="p-5" tone="mint">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.independent_practice}</p>
-          <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">Now try on your own.</h2>
+          <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">Now try on your own.</h2>
           <div className="mt-4 space-y-3">
             {(pack.independentPractice?.questions || []).map((question) => (
               <QuestionCard
@@ -272,7 +272,7 @@ export default function RecoveryPackTeachingFlow() {
 
         <Card className="p-5" tone="yellow">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.mastery_check}</p>
-          <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">Show that the skill is getting stronger.</h2>
+          <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">Show that the skill is getting stronger.</h2>
           <div className="mt-4 space-y-3">
             {(pack.masteryCheck?.questions || []).map((question) => (
               <QuestionCard
@@ -288,7 +288,7 @@ export default function RecoveryPackTeachingFlow() {
 
         <Card className="p-5" tone={pack.recheckReady ? 'mint' : 'paper'}>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.recheck_ready}</p>
-          <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">
+          <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">
             {pack.recheckReady ? "Great, you're ready to check again." : 'Finish the teaching flow to unlock recheck.'}
           </h2>
           <p className="mt-2 text-sm text-ink-600">

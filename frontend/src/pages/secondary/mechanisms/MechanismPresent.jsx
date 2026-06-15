@@ -31,7 +31,7 @@ export default function MechanismPresent() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Badge tone="navy">Presenting</Badge>
-          <h1 className="font-display text-2xl font-semibold text-navy-700">{m.name}</h1>
+          <h1 className="font-display text-2xl font-semibold text-emerald-deep">{m.name}</h1>
         </div>
         <Button size="s" variant="ghost" as={Link} to={`/secondary/mechanisms/${active}?mode=teacher`} icon={X}>Exit presentation</Button>
       </div>

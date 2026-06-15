@@ -64,7 +64,7 @@ export default function TutorStudentProfile() {
                   <div className="mt-1.5 flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => navigate(`/tutor/students/${id}/mistakes/${m.id}/explain`)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-hairline bg-white px-2.5 py-1 text-xs font-semibold text-navy-700 transition hover:bg-navy-50"
+                      className="inline-flex items-center gap-1 rounded-lg border border-line-soft bg-white px-2.5 py-1 text-xs font-semibold text-emerald-deep transition hover:bg-emerald-tint"
                     >
                       {m.hasTutorExplanation ? (
                         <><CheckCircle2 className="h-3.5 w-3.5 text-success-600" /> Edit explanation</>

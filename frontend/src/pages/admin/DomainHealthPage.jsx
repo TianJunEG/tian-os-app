@@ -12,7 +12,7 @@ const capabilityLabels = {
 
 function statusIcon(capability) {
   if (capability?.enabled) return <CheckCircle2 className="h-5 w-5 text-emerald-600" aria-hidden="true" />;
-  if (capability?.status === 'not_registered') return <CircleDashed className="h-5 w-5 text-slate-400" aria-hidden="true" />;
+  if (capability?.status === 'not_registered') return <CircleDashed className="h-5 w-5 text-body-faint" aria-hidden="true" />;
   return <AlertTriangle className="h-5 w-5 text-amber-600" aria-hidden="true" />;
 }
 
@@ -37,13 +37,13 @@ export default function DomainHealthPage() {
   }, []);
 
   if (loading) {
-    return <div className="p-6 text-slate-600">Loading domain health...</div>;
+    return <div className="p-6 text-body-soft">Loading domain health...</div>;
   }
 
   if (error) {
     return (
       <main className="p-6">
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-800">{error}</div>
+        <div className="rounded-lg border border-danger-border bg-danger-tint p-4 text-rose-800">{error}</div>
       </main>
     );
   }
@@ -51,14 +51,14 @@ export default function DomainHealthPage() {
   const domains = report?.registeredDomains || [];
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-surface-raised px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
-        <header className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <header className="rounded-lg border border-line bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">Admin</p>
               <h1 className="mt-1 text-2xl font-bold text-slate-950">Domain Health</h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-600">
+              <p className="mt-2 max-w-3xl text-sm text-body-soft">
                 Registered subject domains and the platform contracts they currently support.
               </p>
             </div>
@@ -71,11 +71,11 @@ export default function DomainHealthPage() {
 
         <section className="grid gap-4">
           {domains.map((domain) => (
-            <article key={`${domain.subjectId}:${domain.domainId}`} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <article key={`${domain.subjectId}:${domain.domainId}`} className="rounded-lg border border-line bg-white p-5 shadow-sm">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-950">{domain.displayName}</h2>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-body-muted">
                     {domain.subjectId} / {domain.domainId}
                     {domain.domainVersion ? ` · ${domain.domainVersion}` : ''}
                   </p>
@@ -87,13 +87,13 @@ export default function DomainHealthPage() {
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 {Object.entries(domain.capabilities || {}).map(([key, capability]) => (
-                  <div key={key} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                  <div key={key} className="rounded-lg border border-line bg-surface-raised p-3">
                     <div className="flex items-center gap-2">
                       {statusIcon(capability)}
-                      <span className="text-sm font-semibold text-slate-900">{capabilityLabels[key] || key}</span>
+                      <span className="text-sm font-semibold text-ink">{capabilityLabels[key] || key}</span>
                     </div>
-                    <p className="mt-2 text-xs capitalize text-slate-500">{capability?.status || 'unknown'}</p>
-                    {capability?.notes ? <p className="mt-2 text-xs text-slate-600">{capability.notes}</p> : null}
+                    <p className="mt-2 text-xs capitalize text-body-muted">{capability?.status || 'unknown'}</p>
+                    {capability?.notes ? <p className="mt-2 text-xs text-body-soft">{capability.notes}</p> : null}
                   </div>
                 ))}
               </div>
@@ -101,13 +101,13 @@ export default function DomainHealthPage() {
           ))}
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-lg border border-line bg-white p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-950">Adapter Contracts</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {Object.entries(report?.platformContracts || {}).map(([name, contract]) => (
-              <div key={name} className="rounded-lg bg-slate-50 p-4">
-                <h3 className="text-sm font-semibold text-slate-900">{name}</h3>
-                <p className="mt-2 text-xs text-slate-600">{(contract.required || []).join(', ')}</p>
+              <div key={name} className="rounded-lg bg-surface-raised p-4">
+                <h3 className="text-sm font-semibold text-ink">{name}</h3>
+                <p className="mt-2 text-xs text-body-soft">{(contract.required || []).join(', ')}</p>
               </div>
             ))}
           </div>

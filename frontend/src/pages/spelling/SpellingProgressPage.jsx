@@ -41,17 +41,17 @@ export default function SpellingProgressPage() {
           <div className="text-center py-16 bg-white rounded-xl shadow-sm">
             <BarChart3 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-4">No practice yet. Take a test or play a game to start tracking progress.</p>
-            <button onClick={() => navigate('/spelling/lists')} className="px-5 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium">
+            <button onClick={() => navigate('/spelling/lists')} className="px-5 py-2.5 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium">
               Go to my lists
             </button>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-              <StatCard icon={TrendingUp} label="Accuracy" value={`${stats.accuracy}%`} color="bg-navy-600" />
+              <StatCard icon={TrendingUp} label="Accuracy" value={`${stats.accuracy}%`} color="bg-emerald" />
               <StatCard icon={BarChart3} label="Words tried" value={stats.total} color="bg-blue-500" />
               <StatCard icon={Star} label="Mastered" value={mastery.mastered} color="bg-green-600" />
-              <StatCard icon={Target} label="To revise" value={mastery.weak} color="bg-rose-500" />
+              <StatCard icon={Target} label="To revise" value={mastery.weak} color="bg-danger" />
             </div>
 
             {/* Mastery bar */}
@@ -64,12 +64,12 @@ export default function SpellingProgressPage() {
                 <div className="h-3 rounded-full overflow-hidden bg-gray-100 flex">
                   <div className="bg-green-500" style={{ width: `${(mastery.mastered / stats.uniqueWords) * 100}%` }} title="Mastered" />
                   <div className="bg-amber-400" style={{ width: `${(mastery.learning / stats.uniqueWords) * 100}%` }} title="Learning" />
-                  <div className="bg-rose-400" style={{ width: `${(mastery.weak / stats.uniqueWords) * 100}%` }} title="To revise" />
+                  <div className="bg-danger" style={{ width: `${(mastery.weak / stats.uniqueWords) * 100}%` }} title="To revise" />
                 </div>
                 <div className="flex gap-4 mt-2 text-xs text-gray-500">
                   <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Mastered {mastery.mastered}</span>
                   <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> Learning {mastery.learning}</span>
-                  <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-rose-400" /> To revise {mastery.weak}</span>
+                  <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-danger" /> To revise {mastery.weak}</span>
                 </div>
               </div>
             )}
@@ -81,13 +81,13 @@ export default function SpellingProgressPage() {
                   <h2 className="font-semibold text-gray-900 inline-flex items-center gap-2">
                     <Target className="w-5 h-5 text-rose-500" /> Words to revise
                   </h2>
-                  <button onClick={() => navigate('/spelling/revision')} className="text-sm text-navy-600 hover:underline inline-flex items-center gap-1">
+                  <button onClick={() => navigate('/spelling/revision')} className="text-sm text-emerald hover:underline inline-flex items-center gap-1">
                     Revise now <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {stats.weakWords.map((w) => (
-                    <span key={w.word} className="px-3 py-1 bg-rose-50 text-rose-700 rounded-full text-sm">
+                    <span key={w.word} className="px-3 py-1 bg-danger-tint text-danger-deep rounded-full text-sm">
                       {w.word} <span className="text-rose-400">·{w.misses}</span>
                     </span>
                   ))}

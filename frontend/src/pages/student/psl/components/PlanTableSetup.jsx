@@ -29,7 +29,7 @@ export default function PlanTableSetup({ scaffoldStep, response, onChange }) {
               onClick={() => toggleColumn(col)}
               className={`rounded-lg border-2 px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium transition-all ${
                 active
-                  ? 'border-teal-400 bg-teal-50 text-teal-700'
+                  ? 'border-teal-400 bg-emerald-tint text-emerald-deep'
                   : 'border-ink-200 bg-white text-ink-500 hover:border-ink-300'
               }`}
             >

@@ -40,7 +40,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ivory p-4 font-ui">
+    <div className="flex min-h-screen items-center justify-center bg-surface-raised p-4 font-ui">
       <Card className="w-full max-w-md p-8">
         <Link to="/" className="mb-4 flex items-center gap-1.5 text-sm font-medium text-ink-400 hover:text-ink-600">
           <ArrowLeft className="h-4 w-4" />
@@ -57,7 +57,7 @@ export default function LoginPage() {
             />
           ))}
         </div>
-        <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-navy-700">Welcome back</h1>
+        <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-emerald-deep">Welcome back</h1>
         <p className="mb-8 mt-1 text-center text-sm text-ink-500">Sign in to your Tian OS account</p>
 
         {error && <Alert tone="error" icon={AlertCircle} className="mb-4">{error}</Alert>}
@@ -74,7 +74,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-body-faint hover:text-body-soft"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
@@ -86,10 +86,10 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="mt-6 border-t border-hairline pt-6">
+        <div className="mt-6 border-t border-line-soft pt-6">
           <p className="text-center text-sm text-ink-500">
             Don't have an account?{' '}
-            <Link to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} className="font-semibold text-navy-700 hover:text-navy-800">Sign up</Link>
+            <Link to={nextPath ? `/register?next=${encodeURIComponent(nextPath)}` : '/register'} className="font-semibold text-emerald-deep hover:text-emerald-deep">Sign up</Link>
           </p>
         </div>
       </Card>

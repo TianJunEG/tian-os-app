@@ -42,7 +42,7 @@ export function LanguageScopeTabs({ langs, lang, setLang, className = '' }) {
           onClick={() => setLang(l)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium border transition ${
             l === lang
-              ? 'bg-navy-600 text-white border-navy-600'
+              ? 'bg-emerald text-white border-navy-600'
               : 'bg-white text-gray-600 border-gray-300 hover:border-navy-400'
           }`}
         >

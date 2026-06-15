@@ -187,7 +187,7 @@ const ResourcesAdmin = () => {
             {saving ? 'Saving...' : editingId ? 'Update Resource' : 'Create Resource'}
           </button>
           {editingId && (
-            <button type="button" className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-hairline bg-paper text-ink-700 transition hover:bg-navy-50" onClick={resetForm}>
+            <button type="button" className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-line-soft bg-surface-white text-ink-700 transition hover:bg-emerald-tint" onClick={resetForm}>
               Cancel
             </button>
           )}
@@ -222,7 +222,7 @@ const ResourcesAdmin = () => {
                   {r.published ? <Badge tone="success">Published</Badge> : <Badge tone="gold">Draft</Badge>}
                 </td>
                 <td>
-                  <button className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-hairline bg-paper text-ink-700 transition hover:bg-navy-50" onClick={() => startEdit(r)}>
+                  <button className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-line-soft bg-surface-white text-ink-700 transition hover:bg-emerald-tint" onClick={() => startEdit(r)}>
                     Edit
                   </button>
                   <button className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-500 text-white transition hover:bg-error-700" onClick={() => handleDelete(r._id)}>

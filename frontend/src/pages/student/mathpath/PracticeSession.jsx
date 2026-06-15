@@ -106,7 +106,7 @@ function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'ky
     }).catch(() => { /* non-blocking */ });
   };
   return (
-    <div className="mt-3 rounded-xl border border-violet-200 bg-violet-50 p-3">
+    <div className="mt-3 rounded-xl border border-purple-tint bg-purple-tint p-3">
       <MascotBubble
         name={mascotKey}
         size="sm"
@@ -119,7 +119,7 @@ function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'ky
               key={o.value}
               type="button"
               onClick={() => choose(o.value)}
-              className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100"
+              className="rounded-full border border-purple-tint bg-white px-3 py-1.5 text-xs font-semibold text-purple hover:bg-purple-tint"
             >
               {o.label}
             </button>
@@ -357,15 +357,15 @@ function VisualTable({ payload }) {
   const rows = Array.isArray(payload?.rows) ? payload.rows : [];
   if (!headers.length || !rows.length) return null;
   return (
-    <div className="mb-5 overflow-x-auto rounded-xl border border-hairline">
+    <div className="mb-5 overflow-x-auto rounded-xl border border-line-soft">
       <table className="min-w-full border-collapse text-left text-sm text-ink-800">
-        <thead className="bg-navy-50">
-          <tr>{headers.map((h, i) => <th key={i} className="border-b border-hairline px-3 py-2 font-semibold">{h}</th>)}</tr>
+        <thead className="bg-emerald-tint">
+          <tr>{headers.map((h, i) => <th key={i} className="border-b border-line-soft px-3 py-2 font-semibold">{h}</th>)}</tr>
         </thead>
         <tbody>
           {rows.map((row, rIdx) => (
-            <tr key={rIdx} className="odd:bg-white even:bg-slate-50">
-              {Array.isArray(row) ? row.map((cell, cIdx) => <td key={`${rIdx}-${cIdx}`} className="border-b border-hairline px-3 py-2">{cell}</td>) : null}
+            <tr key={rIdx} className="odd:bg-white even:bg-surface-raised">
+              {Array.isArray(row) ? row.map((cell, cIdx) => <td key={`${rIdx}-${cIdx}`} className="border-b border-line-soft px-3 py-2">{cell}</td>) : null}
             </tr>
           ))}
         </tbody>
@@ -377,7 +377,7 @@ function VisualTable({ payload }) {
 function VisualBlock({ visual }) {
   if (!visual || !visual.type) return null;
   if (visual.type === 'table') return <VisualTable payload={visual.payload} />;
-  return <div className="mb-5 rounded-xl border border-hairline bg-slate-50 px-4 py-3 text-sm text-ink-600">Visual unavailable</div>;
+  return <div className="mb-5 rounded-xl border border-line-soft bg-surface-raised px-4 py-3 text-sm text-ink-600">Visual unavailable</div>;
 }
 
 const CORRECT_PRAISE_MESSAGES = [
@@ -549,13 +549,13 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain
         <>
           <span className="tian-sparkle-dot pointer-events-none absolute right-8 top-4 h-2 w-2 rounded-full bg-success-400" />
           <span className="tian-sparkle-dot pointer-events-none absolute right-14 top-8 h-1.5 w-1.5 rounded-full bg-gold-400 [animation-delay:120ms]" />
-          <span className="tian-sparkle-dot pointer-events-none absolute right-5 top-10 h-1 w-1 rounded-full bg-navy-300 [animation-delay:210ms]" />
+          <span className="tian-sparkle-dot pointer-events-none absolute right-5 top-10 h-1 w-1 rounded-full bg-emerald-border [animation-delay:210ms]" />
           {feedback.showConfetti && (
             <span aria-hidden="true" className="pointer-events-none absolute right-10 top-8">
               {[
                 ['-18px', '-18px', 'bg-success-400'],
                 ['14px', '-20px', 'bg-gold-400'],
-                ['24px', '4px', 'bg-navy-300'],
+                ['24px', '4px', 'bg-emerald-border'],
                 ['-10px', '18px', 'bg-success-300'],
                 ['8px', '20px', 'bg-gold-300'],
               ].map(([x, y, color], index) => (
@@ -617,9 +617,9 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain
       )}
 
       {showAnswer && correctAnswer && (
-        <div className="relative mt-2 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2">
+        <div className="relative mt-2 rounded-lg border border-teal-200 bg-emerald-tint px-3 py-2">
           <p className="text-sm text-ink-700">
-            <span className="font-semibold text-teal-700">Answer:</span>{' '}
+            <span className="font-semibold text-emerald-deep">Answer:</span>{' '}
             <MathText text={correctAnswer} className="font-mono font-semibold" />
           </p>
         </div>
@@ -630,7 +630,7 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain
           <button
             type="button"
             onClick={() => setShowAllSteps((v) => !v)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700 transition hover:bg-teal-100"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-emerald-tint px-3 py-1.5 text-xs font-semibold text-emerald-deep transition hover:bg-emerald-tint"
           >
             <Lightbulb className="h-3.5 w-3.5" />
             {showAllSteps ? 'Hide steps' : 'Show full solution'}
@@ -882,7 +882,7 @@ function LegacyPracticeSession() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <div className="mb-3 rounded-xl border border-hairline bg-white px-3 py-2 text-sm text-ink-700">
+      <div className="mb-3 rounded-xl border border-line-soft bg-white px-3 py-2 text-sm text-ink-700">
         <p className="font-semibold">{sessionMeta.label}</p>
         <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
       </div>
@@ -927,7 +927,7 @@ function LegacyPracticeSession() {
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
             {choices.map((c, i) => (
-              <button key={`${i}-${c}`} disabled={!!result} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+              <button key={`${i}-${c}`} disabled={!!result} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
                 <MathText text={c} />
               </button>
             ))}
@@ -1901,7 +1901,7 @@ export default function PracticeSession() {
 
   return (
     <div className={`mx-auto max-w-7xl ${visualStyles.page}`}>
-      <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 text-sm text-ink-700 shadow-resting">
+      <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 text-sm text-ink-700 shadow-rest">
         <MascotAvatar name="kylo" size="sm" showRing={false} />
         <div>
           <p className="font-semibold">{sessionMeta.label}</p>
@@ -1926,7 +1926,7 @@ export default function PracticeSession() {
               }
               navigate(exitTo, { replace: true });
             }}
-            className="rounded-lg border border-hairline bg-white px-3 py-1 text-xs font-semibold text-ink-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+            className="rounded-lg border border-line-soft bg-white px-3 py-1 text-xs font-semibold text-ink-600 shadow-sm transition hover:border-danger-border hover:bg-danger-tint hover:text-danger"
           >
             Exit practice
           </button>
@@ -1945,7 +1945,7 @@ export default function PracticeSession() {
         `}</style>
         {!currentQuestionValidation.ok ? (
           <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
-            <p className="font-semibold text-navy-700">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
+            <p className="font-semibold text-emerald-deep">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
             <p className="mt-1 text-ink-500">This visual question needs a diagram before it can be answered.</p>
             <Button className="mt-4" onClick={tryAnotherQuestion}>
               Try another question
@@ -1981,12 +1981,12 @@ export default function PracticeSession() {
           </section>
 
           <aside className={`min-w-0 min-h-0 rounded-2xl p-2 sm:p-3 xl:h-full xl:overflow-y-auto ${visualStyles.softCard}`}>
-            <div className="rounded-xl border border-hairline bg-white p-2 sm:p-3">
+            <div className="rounded-xl border border-line-soft bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
                 <div className="grid gap-2">
                   {choices.map((c, i) => (
-                    <button key={`${i}-${c}`} disabled={answered} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+                    <button key={`${i}-${c}`} disabled={answered} onClick={() => setAnswer(c)} className={`rounded-xl border px-4 py-3 text-left ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
                       <MathText text={c} />
                     </button>
                   ))}
@@ -2015,7 +2015,7 @@ export default function PracticeSession() {
             </div>
 
             {!answered && answer && (
-              <div className="mt-2 rounded-xl border border-hairline bg-white p-2">
+              <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
                 <p className="mb-1 text-xs font-semibold text-ink-600">How sure are you?</p>
                 <div className="grid grid-cols-3 gap-1">
                   {REFLECTION_OPTIONS.map((opt) => (
@@ -2024,7 +2024,7 @@ export default function PracticeSession() {
                       type="button"
                       disabled={busy}
                       onClick={() => setReflection(opt.value)}
-                      className={`rounded-lg border px-2 py-1.5 text-xs ${reflection === opt.value ? 'border-navy-500 bg-navy-50 font-semibold text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                      className={`rounded-lg border px-2 py-1.5 text-xs ${reflection === opt.value ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-600 hover:bg-surface-raised'}`}
                     >
                       {opt.label}
                     </button>

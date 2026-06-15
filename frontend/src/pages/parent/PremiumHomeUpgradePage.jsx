@@ -5,7 +5,7 @@ import { Alert, Button, Card, PageHeader, Spinner } from '../../components/ui';
 
 function Row({ label, value, mono }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-hairline py-2 first:border-t-0">
+    <div className="flex items-center justify-between gap-3 border-t border-line-soft py-2 first:border-t-0">
       <span className="text-sm text-ink-500">{label}</span>
       <span className={`text-sm font-medium text-ink-700 ${mono ? 'font-mono' : ''}`}>{value}</span>
     </div>
@@ -73,7 +73,7 @@ export default function PremiumHomeUpgradePage() {
           <div className="flex items-baseline justify-between">
             <div>
               <p className="text-sm text-ink-500">Annual access</p>
-              <p className="font-display text-3xl font-semibold text-navy-700">{pricing.currency} {amountSgd}<span className="text-base font-normal text-ink-400">/year</span></p>
+              <p className="font-display text-3xl font-semibold text-emerald-deep">{pricing.currency} {amountSgd}<span className="text-base font-normal text-ink-400">/year</span></p>
             </div>
             <QrCode className="h-8 w-8 text-ink-300" />
           </div>

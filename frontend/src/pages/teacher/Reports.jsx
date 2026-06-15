@@ -34,7 +34,7 @@ export default function Reports() {
       <div className="mb-4 flex flex-wrap gap-2">
         {TYPES.map(([k, label]) => (
           <button key={k} onClick={() => { setType(k); generate(k); }}
-            className={`rounded-full border px-3 py-1.5 text-sm ${type === k ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>{label}</button>
+            className={`rounded-full border px-3 py-1.5 text-sm ${type === k ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-700'}`}>{label}</button>
         ))}
       </div>
 

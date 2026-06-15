@@ -161,7 +161,7 @@ export default function UploadPaperPage() {
                 </div>
               )}
               {!preview && file && (
-                <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-3">
+                <div className="flex items-center gap-3 rounded-lg border bg-surface-raised p-3">
                   <FileUp className="h-6 w-6 text-sky-500" />
                   <span className="flex-1 truncate text-sm font-medium">{file.name}</span>
                   <button type="button" onClick={clearFile} className="text-red-400 hover:text-red-600">

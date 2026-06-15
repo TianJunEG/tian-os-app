@@ -64,7 +64,7 @@ export default function MorePage() {
             <Link key={`${role}-${item.to}-${item.label}`} to={item.to} className="block focus-visible:outline-none">
               <Card interactive className="h-full p-5">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700">
+                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-tint text-emerald-deep">
                     <item.icon className="h-5 w-5" />
                   </span>
                 </div>

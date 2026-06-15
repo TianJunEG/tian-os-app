@@ -169,7 +169,7 @@ export default function SimilarQuestionPractice() {
         <PageHeader title="Practice Complete" subtitle={practiceSet?.title || 'Similar question practice'} />
         <Card className="p-5">
           <div className="grid gap-3 sm:grid-cols-3">
-            <div><p className="text-sm text-ink-500">Score</p><p className="text-2xl font-semibold text-navy-700">{submitted.summary.scorePct}%</p></div>
+            <div><p className="text-sm text-ink-500">Score</p><p className="text-2xl font-semibold text-emerald-deep">{submitted.summary.scorePct}%</p></div>
             <div><p className="text-sm text-ink-500">Correct</p><p className="text-2xl font-semibold text-success-700">{submitted.summary.correct}/{submitted.summary.total}</p></div>
             <div><p className="text-sm text-ink-500">Status</p><p className="text-base font-semibold text-ink-800">{submitted.summary.masteryStatus}</p></div>
           </div>
@@ -177,7 +177,7 @@ export default function SimilarQuestionPractice() {
             <div className="mt-5 space-y-3">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-500">Mistakes to retry</h2>
               {wrong.map((row) => (
-                <div key={row.variantId} className="rounded-xl border border-hairline p-3 text-sm">
+                <div key={row.variantId} className="rounded-xl border border-line-soft p-3 text-sm">
                   <div className="font-semibold text-ink-900"><MathText text={row.prompt} /></div>
                   <p className="mt-2 text-error-700">Your answer: <MathText text={row.studentAnswer || '-'} /></p>
                   <p className="text-success-700">Correct answer: <MathText text={row.correctAnswer || '-'} /></p>

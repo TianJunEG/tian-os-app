@@ -27,7 +27,7 @@ function OverviewCards({ data }) {
             <it.icon className="h-4 w-4" />
             <span className="text-xs font-medium">{it.label}</span>
           </div>
-          <p className="mt-1 font-mono text-xl sm:text-2xl text-navy-700">{it.value}</p>
+          <p className="mt-1 font-mono text-xl sm:text-2xl text-emerald-deep">{it.value}</p>
         </Card>
       ))}
     </div>
@@ -68,7 +68,7 @@ function SkillsCard({ rows }) {
       ) : (
         <div className="mt-3 space-y-2">
           {rows.map((sk) => (
-            <div key={sk.skillId} className="flex items-center justify-between rounded-lg border border-hairline p-3">
+            <div key={sk.skillId} className="flex items-center justify-between rounded-lg border border-line-soft p-3">
               <div>
                 <p className="text-sm font-medium text-ink-700">{sk.name}</p>
                 <p className="text-xs text-ink-500 capitalize">{sk.heuristic.replace(/-/g, ' ')} &middot; {sk.sessions} session{sk.sessions !== 1 ? 's' : ''}</p>
@@ -96,7 +96,7 @@ function MisconceptionsCard({ rows }) {
       <p className="text-xs text-ink-500 mb-3">Common thinking patterns that need attention</p>
       <div className="space-y-1.5">
         {rows.map((m) => (
-          <div key={m.tag} className="flex items-center justify-between rounded-lg border border-hairline px-3 py-2">
+          <div key={m.tag} className="flex items-center justify-between rounded-lg border border-line-soft px-3 py-2">
             <p className="text-sm text-ink-700">{m.tag}</p>
             <Badge tone="neutral">{m.count}x</Badge>
           </div>
@@ -116,7 +116,7 @@ function RecentSessionsCard({ rows }) {
       </div>
       <div className="space-y-2">
         {rows.map((s) => (
-          <div key={s.sessionId} className="flex items-center justify-between rounded-lg border border-hairline p-3">
+          <div key={s.sessionId} className="flex items-center justify-between rounded-lg border border-line-soft p-3">
             <div>
               <p className="text-sm font-medium text-ink-700">{s.skillName}</p>
               <p className="text-xs text-ink-500">

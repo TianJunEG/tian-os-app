@@ -30,7 +30,7 @@ export default function TutorHomework() {
             <Card key={a.id} className="flex items-center justify-between gap-3 p-4">
               <div className="min-w-0">
                 <p className="truncate font-medium text-ink-700">
-                  <Link to={`/tutor/students/${a.studentId}`} className="hover:text-navy-700">{a.studentName}</Link>
+                  <Link to={`/tutor/students/${a.studentId}`} className="hover:text-emerald-deep">{a.studentName}</Link>
                   <span className="text-ink-400"> · {a.skillNames?.join(', ') || a.module}</span>
                 </p>
                 <p className="mt-0.5 text-sm text-ink-500">{a.module} · due {fmt(a.dueDate)}{a.score != null ? ` · ${a.score}%` : ''}</p>

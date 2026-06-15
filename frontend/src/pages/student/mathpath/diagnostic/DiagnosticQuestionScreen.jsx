@@ -254,7 +254,7 @@ export default function DiagnosticQuestionScreen() {
       <Card className={`overflow-hidden p-3 sm:p-4 xl:h-[calc(100vh-18rem)] xl:min-h-[30rem] ${visualStyles.accentCard}`}>
         {!currentQuestionValidation.ok ? (
           <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
-            <p className="font-semibold text-navy-700">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
+            <p className="font-semibold text-emerald-deep">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
             <p className="mt-1 text-ink-500">This visual diagnostic question needs a diagram before it can be answered.</p>
             <Button className="mt-4" onClick={() => nextQuestion(true)} disabled={busy}>
               Try another question
@@ -267,7 +267,7 @@ export default function DiagnosticQuestionScreen() {
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
               <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
             </div>
-            <p className="mb-3 rounded-lg bg-navy-50 px-3 py-1.5 text-xs text-navy-700">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
+            <p className="mb-3 rounded-lg bg-emerald-tint px-3 py-1.5 text-xs text-emerald-deep">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
             <div className="origin-top-left" style={{ zoom: questionZoom }}>
             <div className="mb-3 text-lg leading-relaxed text-ink-900">
               {expressionQuestion ? (
@@ -286,13 +286,13 @@ export default function DiagnosticQuestionScreen() {
             </div>
           </section>
 
-          <aside className="min-w-0 min-h-0 rounded-xl bg-slate-50 p-2 xl:h-full xl:overflow-y-auto">
+          <aside className="min-w-0 min-h-0 rounded-xl bg-surface-raised p-2 xl:h-full xl:overflow-y-auto">
             <div className="rounded-xl bg-white p-2 sm:p-3">
               <label className="mb-2 block text-sm font-semibold text-ink-700">Your answer</label>
               {q.type === 'mcq' ? (
                 <div className="grid gap-2">
                   {choices.map((c, i) => (
-                    <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-navy-500 bg-navy-50' : 'border-hairline hover:bg-navy-50'}`}>
+                    <button key={`${i}-${c}`} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
                       <MathText text={c} />
                     </button>
                   ))}
@@ -314,7 +314,7 @@ export default function DiagnosticQuestionScreen() {
               )}
             </div>
 
-            <div className="mt-2 rounded-xl border border-hairline bg-white p-2">
+            <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
               <WorkingPreviewCard
                 workingImage={currentWorking.workingImage || ''}
                 workingSubmitted={Boolean(currentWorking.workingSubmitted)}

@@ -62,7 +62,7 @@ export default function NoteWidget({ heading, topicName, initialText = '', onCha
           rows={3}
           maxLength={4000}
           placeholder="Jot down anything you want to remember about this concept…"
-          className="block w-full resize-y rounded-md border border-ink-100 bg-paper p-2 text-sm text-ink-700 focus:border-[#2F6B7E] focus:outline-none"
+          className="block w-full resize-y rounded-md border border-ink-100 bg-surface-white p-2 text-sm text-ink-700 focus:border-[#2F6B7E] focus:outline-none"
         />
       ) : (
         <button

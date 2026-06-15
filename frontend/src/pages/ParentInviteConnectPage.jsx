@@ -63,7 +63,7 @@ export default function ParentInviteConnectPage() {
   return (
     <div className="mx-auto max-w-xl p-4 sm:p-6">
       <Card className="p-6">
-        <div className="mb-4 flex items-center gap-2 text-navy-700">
+        <div className="mb-4 flex items-center gap-2 text-emerald-deep">
           <GraduationCap size={18} />
           <h1 className="text-xl font-semibold">Follow your child's progress</h1>
         </div>
@@ -72,7 +72,7 @@ export default function ParentInviteConnectPage() {
         {success && <Alert tone="success" icon={CheckCircle2} className="mb-4">{success}</Alert>}
 
         {preview && (
-          <div className="mb-5 rounded-lg border border-hairline bg-ivory p-4 text-sm">
+          <div className="mb-5 rounded-lg border border-line-soft bg-surface-raised p-4 text-sm">
             <p><span className="font-medium">Student:</span> {preview.studentName}</p>
             {preview.schoolName ? <p><span className="font-medium">School:</span> {preview.schoolName}</p> : null}
             <p><span className="font-medium">Invite for:</span> {preview.email}</p>
@@ -98,15 +98,15 @@ export default function ParentInviteConnectPage() {
           <div className="space-y-4">
             <p className="text-sm text-ink-600">Create a free parent account to view {preview?.studentName || 'your child'}'s progress. Your email is set from the invitation.</p>
             <Field label="Your name">
-              <input className="w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Mrs Tan" />
+              <input className="w-full rounded-md border border-line-soft bg-white px-3 py-2 text-sm" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Mrs Tan" />
             </Field>
             <Field label="Choose a password">
-              <input type="password" className="w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" />
+              <input type="password" className="w-full rounded-md border border-line-soft bg-white px-3 py-2 text-sm" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" />
             </Field>
             <Button disabled={submitting || !name.trim() || password.length < 6} onClick={() => accept({ name: name.trim(), password })}>
               {submitting ? 'Creating account…' : 'Create account & connect'}
             </Button>
-            <p className="text-xs text-ink-500">Already have an account? <a className="font-semibold text-navy-700" href={`/login?next=${nextParam}`}>Log in</a>, then open this link again.</p>
+            <p className="text-xs text-ink-500">Already have an account? <a className="font-semibold text-emerald-deep" href={`/login?next=${nextParam}`}>Log in</a>, then open this link again.</p>
           </div>
         )}
       </Card>

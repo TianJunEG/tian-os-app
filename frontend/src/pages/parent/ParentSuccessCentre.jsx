@@ -96,7 +96,7 @@ export default function ParentSuccessCentre() {
           <select
             value={child?.studentId || ''}
             onChange={(event) => setParams({ child: event.target.value })}
-            className="rounded-xl border border-hairline bg-paper px-3 py-2 text-sm font-semibold text-navy-700"
+            className="rounded-xl border border-line-soft bg-surface-white px-3 py-2 text-sm font-semibold text-emerald-deep"
           >
             {children.map((item) => (
               <option key={item.studentId} value={item.studentId}>{item.name}</option>

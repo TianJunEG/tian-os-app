@@ -29,13 +29,13 @@ export default function PlanListCandidates({ scaffoldStep, response, onChange })
               onClick={() => toggleCondition(idx)}
               className={`flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
                 active
-                  ? 'border-violet-400 bg-violet-50 text-violet-700'
+                  ? 'border-violet-400 bg-purple-tint text-purple'
                   : 'border-ink-200 bg-white text-ink-600 hover:border-ink-300'
               }`}
             >
               <span
                 className={`flex h-6 w-6 flex-none items-center justify-center rounded-full text-xs font-bold ${
-                  active ? 'bg-violet-200 text-violet-700' : 'bg-ink-100 text-ink-400'
+                  active ? 'bg-violet-200 text-purple' : 'bg-ink-100 text-ink-400'
                 }`}
               >
                 {idx + 1}

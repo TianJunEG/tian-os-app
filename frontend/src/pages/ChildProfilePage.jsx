@@ -34,7 +34,7 @@ export default function ChildProfilePage() {
           </button>
           <div>
             <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Learning profile</div>
-            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">{data?.child?.name || 'Child'}</h1>
+            <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">{data?.child?.name || 'Child'}</h1>
             <p className="text-gray-500 text-sm">{data?.child?.level || 'Progress across every learning app'}</p>
           </div>
         </div>
@@ -45,10 +45,10 @@ export default function ChildProfilePage() {
         {!loading && error && <div className="bg-red-50 text-red-700 rounded-xl p-4 text-sm">{error}</div>}
         {!loading && !error && subjects.length === 0 && (
           <div className="bg-white rounded-2xl shadow p-10 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-navy-100 text-navy-700 grid place-items-center mx-auto mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-tint text-emerald-deep grid place-items-center mx-auto mb-3">
               <Sparkles className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-semibold text-navy-900">No progress yet</h3>
+            <h3 className="text-lg font-semibold text-emerald-deep">No progress yet</h3>
             <p className="text-gray-600 text-sm mt-1 max-w-sm mx-auto">Once {data?.child?.name || 'your child'} practises in the learning apps, their mastery and weak topics show here.</p>
           </div>
         )}

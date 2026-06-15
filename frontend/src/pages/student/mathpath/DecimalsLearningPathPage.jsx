@@ -25,7 +25,7 @@ function SkillCard({ skill, selected, onSelect }) {
   const levelTag = (skill.singaporeLevel || []).join('/');
   return (
     <Card
-      className={`p-4 cursor-pointer transition ${skill.current ? 'ring-2 ring-gold-400/60' : ''} ${skill.locked ? 'bg-paper/80 opacity-75' : ''} ${selected ? 'ring-2 ring-navy-400/60' : ''}`}
+      className={`p-4 cursor-pointer transition ${skill.current ? 'ring-2 ring-gold-400/60' : ''} ${skill.locked ? 'bg-surface-white/80 opacity-75' : ''} ${selected ? 'ring-2 ring-navy-400/60' : ''}`}
       onClick={() => onSelect(skill.id)}
     >
       <div className="flex min-h-[3.25rem] items-start justify-between gap-3">
@@ -116,7 +116,7 @@ export default function DecimalsLearningPathPage() {
           <button
             type="button"
             onClick={() => navigate('/student/mathpath/decimals/diagnostic')}
-            className="text-sm font-semibold text-navy-700 hover:text-navy-900"
+            className="text-sm font-semibold text-emerald-deep hover:text-emerald-deep"
           >
             Not sure where to start? Take a quick check-in →
           </button>

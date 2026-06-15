@@ -77,7 +77,7 @@ export default function WordSearch({ words, onAttempt }) {
         <p className="text-sm text-gray-500">
           Found {foundWords.size} of {targetWords.length}. Tap the first and last letter of a word.
         </p>
-        <button onClick={regenerate} className="text-sm text-navy-600 hover:underline inline-flex items-center gap-1">
+        <button onClick={regenerate} className="text-sm text-emerald hover:underline inline-flex items-center gap-1">
           <RotateCcw className="w-4 h-4" /> New puzzle
         </button>
       </div>
@@ -106,8 +106,8 @@ export default function WordSearch({ words, onAttempt }) {
                     found
                       ? 'bg-green-500 text-white'
                       : isStart
-                      ? 'bg-navy-600 text-white ring-2 ring-navy-300'
-                      : 'bg-gray-100 text-gray-700 hover:bg-navy-100'
+                      ? 'bg-emerald text-white ring-2 ring-navy-300'
+                      : 'bg-gray-100 text-gray-700 hover:bg-emerald-tint'
                   }`}
                 >
                   {letter}

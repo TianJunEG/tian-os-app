@@ -173,7 +173,7 @@ function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, o
                 event.stopPropagation();
                 onEdit?.();
               }}
-              className="absolute -right-12 -top-3 grid h-8 w-8 place-items-center rounded-full bg-navy-700 text-xs font-bold text-white shadow-active"
+              className="absolute -right-12 -top-3 grid h-8 w-8 place-items-center rounded-full bg-emerald-deep text-xs font-bold text-white shadow-card"
             >
               Edit
             </button>
@@ -185,7 +185,7 @@ function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, o
                 event.stopPropagation();
                 onDelete?.();
               }}
-              className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-active"
+              className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-card"
             >
               ×
             </button>
@@ -262,7 +262,7 @@ function MathObjectView({ object, selected, onPointerDown, onSelect, onDelete, o
             event.stopPropagation();
             onDelete?.();
           }}
-          className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-active"
+          className="absolute -right-3 -top-3 grid h-8 w-8 place-items-center rounded-full bg-orange-500 text-base font-bold text-white shadow-card"
         >
           ×
         </button>
@@ -331,7 +331,7 @@ function MathDraftInput({ value, placeholder, onChange, onEnter, compact = false
       value={value || ''}
       onChange={(event) => onChange?.(event.target.value)}
       onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
-      className={`${compact ? 'h-12 w-14 text-xl' : 'h-14 w-20 text-2xl'} rounded-xl border-2 border-transparent bg-slate-100 px-2 text-center font-serif italic text-ink-700 placeholder:text-ink-300 focus:border-orange-500 focus:bg-slate-50 focus:outline-none`}
+      className={`${compact ? 'h-12 w-14 text-xl' : 'h-14 w-20 text-2xl'} rounded-xl border-2 border-transparent bg-surface-raised px-2 text-center font-serif italic text-ink-700 placeholder:text-ink-300 focus:border-orange-500 focus:bg-surface-raised focus:outline-none`}
       placeholder={placeholder}
     />
   );
@@ -773,7 +773,7 @@ export default function FullScreenWorkingMode({
             <div key={stamp.id} className="relative">
               {mathDraft?.template === stamp.id && (
                 <div
-                  className={`absolute left-1/2 top-full z-30 mt-3 -translate-x-1/2 rounded-3xl border border-hairline bg-white p-4 shadow-active ${
+                  className={`absolute left-1/2 top-full z-30 mt-3 -translate-x-1/2 rounded-3xl border border-line-soft bg-white p-4 shadow-card ${
                     stamp.id === 'fraction' ? 'w-36' : stamp.id === 'root' ? 'w-56' : 'w-52'
                   }`}
                   aria-label={`${stamp.label} builder`}
@@ -841,7 +841,7 @@ export default function FullScreenWorkingMode({
                 className={`grid h-11 min-w-12 place-items-center rounded-lg border px-3 font-serif text-xl font-semibold transition ${
                   mathDraft?.template === stamp.id
                     ? 'border-orange-500 bg-orange-500 text-white'
-                    : 'border-hairline bg-orange-50 text-orange-600 hover:border-orange-300 hover:bg-orange-100'
+                    : 'border-line-soft bg-orange-50 text-orange-600 hover:border-orange-300 hover:bg-orange-100'
                 }`}
                 title={`Insert ${stamp.label}`}
               >
@@ -850,9 +850,9 @@ export default function FullScreenWorkingMode({
             </div>
           ))}
         </div>}
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-hairline bg-slate-100 p-3">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-line-soft bg-surface-raised p-3">
           <div
-            className="relative rounded-xl bg-white shadow-resting"
+            className="relative rounded-xl bg-white shadow-rest"
             style={{
               width: `${CANVAS_WIDTH}px`,
               height: `${CANVAS_HEIGHT}px`,
@@ -867,7 +867,7 @@ export default function FullScreenWorkingMode({
             onClick={() => setSelectedObjectId(null)}
           >
             <div
-              className="absolute rounded-2xl border border-slate-300 bg-slate-50 p-7"
+              className="absolute rounded-2xl border border-line-strong bg-surface-raised p-7"
               style={{
                 left: `${QUESTION_PANEL.x}px`,
                 top: `${QUESTION_PANEL.y}px`,
@@ -876,7 +876,7 @@ export default function FullScreenWorkingMode({
               }}
               data-testid="worksheet-question-panel"
             >
-              <p className="text-lg font-semibold text-slate-600">Question</p>
+              <p className="text-lg font-semibold text-body-soft">Question</p>
               <div className="mt-3 whitespace-pre-wrap text-2xl leading-snug text-ink-900">
                 {questionContent || questionText}
               </div>
@@ -921,7 +921,7 @@ export default function FullScreenWorkingMode({
                     if (event.currentTarget.dataset.committed === 'true') return;
                     saveTextDraft();
                   }}
-                  className="pointer-events-auto absolute z-30 min-h-[44px] min-w-[180px] rounded-lg border-2 border-orange-500 bg-white px-3 py-2 text-2xl font-semibold text-ink-900 shadow-active focus:outline-none"
+                  className="pointer-events-auto absolute z-30 min-h-[44px] min-w-[180px] rounded-lg border-2 border-orange-500 bg-white px-3 py-2 text-2xl font-semibold text-ink-900 shadow-card focus:outline-none"
                   style={{ left: `${textDraft.x}px`, top: `${textDraft.y}px`, color: colour }}
                   placeholder="Type label"
                   aria-label="Text label input"

@@ -72,19 +72,19 @@ export default function LessonPrep() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Baseline</p>
-            <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{prep.baselineReadiness ?? '—'}</p>
+            <p className="mt-1 font-mono text-xl font-semibold text-emerald-deep">{prep.baselineReadiness ?? '—'}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current</p>
-            <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{prep.currentReadiness ?? '—'}</p>
+            <p className="mt-1 font-mono text-xl font-semibold text-emerald-deep">{prep.currentReadiness ?? '—'}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Improvement</p>
-            <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{prep.improvement ?? '—'}</p>
+            <p className="mt-1 font-mono text-xl font-semibold text-emerald-deep">{prep.improvement ?? '—'}</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Recheck</p>
-            <p className="mt-1 text-sm font-semibold text-navy-700">{prep.recheckReadiness?.ready ? 'Ready' : 'Not ready yet'}</p>
+            <p className="mt-1 text-sm font-semibold text-emerald-deep">{prep.recheckReadiness?.ready ? 'Ready' : 'Not ready yet'}</p>
           </div>
         </div>
       </Card>
@@ -93,10 +93,10 @@ export default function LessonPrep() {
         <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">
           <Lightbulb className="h-3.5 w-3.5" /> Suggested focus
         </div>
-        <h2 className="font-display text-xl font-semibold text-navy-700">{prep.recommendedLessonFocus?.[0]?.title || prep.focus?.skillName || 'Pick a skill'}</h2>
+        <h2 className="font-display text-xl font-semibold text-emerald-deep">{prep.recommendedLessonFocus?.[0]?.title || prep.focus?.skillName || 'Pick a skill'}</h2>
         <p className="mt-1 text-sm text-ink-500">{prep.reason}</p>
         {(prep.recommendedLessonFocus || []).slice(0, 3).map((focus) => (
-          <div key={focus.skillId || focus.title} className="mt-3 rounded-xl bg-paper px-3 py-2 text-sm">
+          <div key={focus.skillId || focus.title} className="mt-3 rounded-xl bg-surface-white px-3 py-2 text-sm">
             <p className="font-semibold text-ink-800">{focus.title}</p>
             {(focus.why || []).map((why, i) => <p key={i} className="mt-1 text-ink-500">{why}</p>)}
           </div>
@@ -134,7 +134,7 @@ export default function LessonPrep() {
         <Card className="p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent paper findings</h3>
           {(prep.recentPaperFindings || []).length ? prep.recentPaperFindings.map((paper) => (
-            <div key={paper.paperAnalysisId} className="mb-2 rounded-xl bg-paper px-3 py-2 text-sm">
+            <div key={paper.paperAnalysisId} className="mb-2 rounded-xl bg-surface-white px-3 py-2 text-sm">
               <p className="font-semibold text-ink-800">{paper.title}</p>
               <p className="text-ink-500">Weak skills: {(paper.weakSkillIds || []).join(', ') || 'None confirmed'}</p>
             </div>
@@ -143,7 +143,7 @@ export default function LessonPrep() {
         <Card className="p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Active recovery packs</h3>
           {(prep.activeAssignments || []).length ? prep.activeAssignments.map((assignment) => (
-            <div key={assignment.assignmentId} className="mb-2 rounded-xl bg-paper px-3 py-2 text-sm">
+            <div key={assignment.assignmentId} className="mb-2 rounded-xl bg-surface-white px-3 py-2 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-800">{assignment.title}</p>
                 <Badge tone={assignment.recheck?.recommended ? 'success' : 'navy'}>{assignment.recheck?.recommended ? 'Recheck ready' : assignment.status}</Badge>
@@ -155,7 +155,7 @@ export default function LessonPrep() {
         <Card className="p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Working evidence</h3>
           {(prep.workingEvidence || []).length ? prep.workingEvidence.map((working) => (
-            <div key={working.workingId} className="mb-2 rounded-xl bg-paper px-3 py-2 text-sm">
+            <div key={working.workingId} className="mb-2 rounded-xl bg-surface-white px-3 py-2 text-sm">
               <p className="font-semibold text-ink-800">{working.skillId || 'Working'}</p>
               <p className="text-ink-500">{working.detectedIssue || working.detectedMethod || 'Working saved for review.'}</p>
             </div>
@@ -168,7 +168,7 @@ export default function LessonPrep() {
         <ol className="space-y-2">
           {(prep.teachingSequence || []).map((step, i) => (
             <li key={i} className="flex gap-3 text-sm text-ink-700">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-navy-50 font-mono text-xs text-navy-700">{i + 1}</span>
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-tint font-mono text-xs text-emerald-deep">{i + 1}</span>
               {step}
             </li>
           ))}

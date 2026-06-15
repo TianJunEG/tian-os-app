@@ -88,7 +88,7 @@ export default function TutorInviteConnectPage() {
   return (
     <div className="mx-auto max-w-xl p-4 sm:p-6">
       <Card className="p-6">
-        <div className="mb-4 flex items-center gap-2 text-navy-700">
+        <div className="mb-4 flex items-center gap-2 text-emerald-deep">
           <Link2 size={18} />
           <h1 className="text-xl font-semibold">Connect to Tutor</h1>
         </div>
@@ -97,7 +97,7 @@ export default function TutorInviteConnectPage() {
         {success && <Alert tone="success" icon={CheckCircle2} className="mb-4">{success}</Alert>}
 
         {preview && (
-          <div className="mb-5 rounded-lg border border-hairline bg-ivory p-4 text-sm">
+          <div className="mb-5 rounded-lg border border-line-soft bg-surface-raised p-4 text-sm">
             <p><span className="font-medium">Tutor:</span> {preview.tutorName}</p>
             <p><span className="font-medium">Focus:</span> {preview.focusArea || 'MathPath'}</p>
             <p><span className="font-medium">Status:</span> {preview.status}</p>
@@ -118,7 +118,7 @@ export default function TutorInviteConnectPage() {
           <div className="space-y-4">
             <Field label="Select child to connect">
               <select
-                className="w-full rounded-md border border-hairline bg-white px-3 py-2 text-sm"
+                className="w-full rounded-md border border-line-soft bg-white px-3 py-2 text-sm"
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
               >

@@ -17,10 +17,10 @@ function OverviewCard({ data }) {
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Overview</h3>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div><p className="text-xs text-ink-500">Sessions</p><p className="font-mono text-xl text-navy-700">{data.totalSessions}</p></div>
-        <div><p className="text-xs text-ink-500">Skills Attempted</p><p className="font-mono text-xl text-navy-700">{data.skillsAttempted}</p></div>
+        <div><p className="text-xs text-ink-500">Sessions</p><p className="font-mono text-xl text-emerald-deep">{data.totalSessions}</p></div>
+        <div><p className="text-xs text-ink-500">Skills Attempted</p><p className="font-mono text-xl text-emerald-deep">{data.skillsAttempted}</p></div>
         <div><p className="text-xs text-ink-500">Skills Mastered</p><p className="font-mono text-xl text-emerald-600">{data.skillsMastered}</p></div>
-        <div><p className="text-xs text-ink-500">Avg Accuracy</p><p className="font-mono text-xl text-navy-700">{data.averageAccuracy}%</p></div>
+        <div><p className="text-xs text-ink-500">Avg Accuracy</p><p className="font-mono text-xl text-emerald-deep">{data.averageAccuracy}%</p></div>
       </div>
     </Card>
   );
@@ -33,7 +33,7 @@ function HeuristicCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((h) => (
-            <div key={h.heuristic} className="rounded-lg border border-hairline p-3">
+            <div key={h.heuristic} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between">
                 <p className="font-medium text-ink-700 capitalize">{h.heuristic.replace(/-/g, ' ')}</p>
                 <Badge tone={scoreTone(h.avgScore)}>{h.avgScore}%</Badge>
@@ -58,7 +58,7 @@ function StepAnalyticsCard({ rows = [] }) {
       ) : (
         <div className="mt-4 space-y-3">
           {rows.map((step) => (
-            <div key={step.stepId} className="rounded-lg border border-hairline p-3">
+            <div key={step.stepId} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-ink-700">{step.label}</p>
                 <Badge tone={step.errorRate >= 40 ? 'error' : step.errorRate >= 20 ? 'gold' : 'navy'}>
@@ -95,7 +95,7 @@ function TopMisconceptionsCard({ rows = [] }) {
       {rows.length ? (
         <div className="space-y-1.5">
           {rows.map((m) => (
-            <div key={m.tag} className="flex items-center justify-between rounded-lg border border-hairline px-3 py-2">
+            <div key={m.tag} className="flex items-center justify-between rounded-lg border border-line-soft px-3 py-2">
               <p className="text-sm text-ink-700">{m.tag}</p>
               <Badge tone="neutral">{m.count}</Badge>
             </div>
@@ -116,7 +116,7 @@ function RecentSessionsCard({ rows = [] }) {
       {rows.length ? (
         <div className="space-y-2">
           {rows.map((s) => (
-            <div key={s.sessionId} className="flex items-center justify-between rounded-lg border border-hairline p-3">
+            <div key={s.sessionId} className="flex items-center justify-between rounded-lg border border-line-soft p-3">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink-700">{s.skillName}</p>
                 <p className="text-xs text-ink-500 capitalize">{s.heuristic?.replace(/-/g, ' ')} &middot; {s.problems} problems &middot; {new Date(s.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
@@ -144,7 +144,7 @@ function SkillBreakdownCard({ rows = [] }) {
         <p className="mt-2 text-sm text-ink-500">No PSL skill data yet.</p>
       ) : (
         <>
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-hairline px-3 py-2">
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-line-soft px-3 py-2">
             <Search className="h-4 w-4 text-ink-400" />
             <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter skills…" className="w-full bg-transparent text-sm text-ink-700 outline-none placeholder:text-ink-400" />
           </div>
@@ -162,7 +162,7 @@ function SkillBreakdownCard({ rows = [] }) {
               </thead>
               <tbody>
                 {filtered.map((sk) => (
-                  <tr key={sk.skillId} className="border-t border-hairline">
+                  <tr key={sk.skillId} className="border-t border-line-soft">
                     <td className="px-2 py-2 text-ink-700">{sk.name}</td>
                     <td className="px-2 py-2 capitalize">{sk.heuristic.replace(/-/g, ' ')}</td>
                     <td className="px-2 py-2">{sk.level}</td>

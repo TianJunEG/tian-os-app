@@ -175,7 +175,7 @@ export default function LeversSim({ reveal, showDiscussion, presentation }) {
         <p className="mt-2 text-xs text-ink-500">e.g. {info.example}</p>
       </ControlPanel>
       <ControlPanel>
-        <p className="text-sm text-ink-500">Drag the <strong className="text-navy-700">load</strong>, <strong className="text-navy-700">effort</strong>{classType === 1 && <> and <strong className="text-navy-700">fulcrum</strong></>} on the bar, then run it to watch the lever rock.</p>
+        <p className="text-sm text-ink-500">Drag the <strong className="text-emerald-deep">load</strong>, <strong className="text-emerald-deep">effort</strong>{classType === 1 && <> and <strong className="text-emerald-deep">fulcrum</strong></>} on the bar, then run it to watch the lever rock.</p>
       </ControlPanel>
     </>
   );

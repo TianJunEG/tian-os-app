@@ -60,7 +60,7 @@ export default function PartnerDetailPage() {
 
   return (
     <main className="mx-auto max-w-7xl pb-8">
-      <Link to="/admin/partners" className="mb-3 inline-block text-sm font-semibold text-navy-700">Back to partners</Link>
+      <Link to="/admin/partners" className="mb-3 inline-block text-sm font-semibold text-emerald-deep">Back to partners</Link>
       <PageHeader title={partner?.name || 'Partner'} subtitle={`${label(partner?.type)} · ${label(partner?.status)}`} />
       {message && <Card className="mb-4 border-l-4 border-navy-400 p-4 text-sm text-ink-700">{message}</Card>}
 
@@ -68,11 +68,11 @@ export default function PartnerDetailPage() {
         <Card className="p-5">
           <h2 className="font-semibold text-ink-900">Partner Profile</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <input className="rounded-xl border border-hairline px-3 py-2 text-sm" value={edit.name} onChange={(event) => setEdit((prev) => ({ ...prev, name: event.target.value }))} />
-            <select className="rounded-xl border border-hairline px-3 py-2 text-sm" value={edit.status} onChange={(event) => setEdit((prev) => ({ ...prev, status: event.target.value }))}>
+            <input className="rounded-xl border border-line-soft px-3 py-2 text-sm" value={edit.name} onChange={(event) => setEdit((prev) => ({ ...prev, name: event.target.value }))} />
+            <select className="rounded-xl border border-line-soft px-3 py-2 text-sm" value={edit.status} onChange={(event) => setEdit((prev) => ({ ...prev, status: event.target.value }))}>
               {['prospect', 'pilot', 'active', 'paused', 'archived'].map((status) => <option key={status} value={status}>{label(status)}</option>)}
             </select>
-            <textarea className="min-h-[100px] rounded-xl border border-hairline px-3 py-2 text-sm md:col-span-2" value={edit.notes} onChange={(event) => setEdit((prev) => ({ ...prev, notes: event.target.value }))} placeholder="Notes" />
+            <textarea className="min-h-[100px] rounded-xl border border-line-soft px-3 py-2 text-sm md:col-span-2" value={edit.notes} onChange={(event) => setEdit((prev) => ({ ...prev, notes: event.target.value }))} placeholder="Notes" />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button size="s" onClick={() => run(() => adminAPI.updatePartner(partnerId, edit), 'Partner updated.')}>Save Profile</Button>
@@ -117,15 +117,15 @@ export default function PartnerDetailPage() {
             event.preventDefault();
             run(() => adminAPI.addPartnerStaff(partnerId, staffForm), 'Staff link saved.');
           }}>
-            <input className="min-w-0 flex-1 rounded-xl border border-hairline px-3 py-2 text-sm" placeholder="User ID" value={staffForm.userId} onChange={(event) => setStaffForm((prev) => ({ ...prev, userId: event.target.value }))} required />
-            <select className="rounded-xl border border-hairline px-3 py-2 text-sm" value={staffForm.role} onChange={(event) => setStaffForm((prev) => ({ ...prev, role: event.target.value }))}>
+            <input className="min-w-0 flex-1 rounded-xl border border-line-soft px-3 py-2 text-sm" placeholder="User ID" value={staffForm.userId} onChange={(event) => setStaffForm((prev) => ({ ...prev, userId: event.target.value }))} required />
+            <select className="rounded-xl border border-line-soft px-3 py-2 text-sm" value={staffForm.role} onChange={(event) => setStaffForm((prev) => ({ ...prev, role: event.target.value }))}>
               {STAFF_ROLES.map((role) => <option key={role} value={role}>{label(role)}</option>)}
             </select>
             <Button size="s">Add</Button>
           </form>
           <div className="mt-4 space-y-2">
             {staff.length === 0 ? <p className="text-sm text-ink-500">No staff linked yet.</p> : staff.map((row) => (
-              <div key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-hairline p-3 text-sm">
+              <div key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-line-soft p-3 text-sm">
                 <div><p className="font-semibold text-ink-800">{row.name || row.userId}</p><p className="text-ink-500">{row.email} · {label(row.role)}</p></div>
                 <Button size="s" variant="secondary" onClick={() => run(() => adminAPI.removePartnerStaff(partnerId, row.id), 'Staff link removed.')}>Remove</Button>
               </div>
@@ -139,15 +139,15 @@ export default function PartnerDetailPage() {
             event.preventDefault();
             run(() => adminAPI.linkPartnerStudent(partnerId, studentForm), 'Student link saved.');
           }}>
-            <input className="min-w-0 flex-1 rounded-xl border border-hairline px-3 py-2 text-sm" placeholder="Student ID" value={studentForm.studentId} onChange={(event) => setStudentForm((prev) => ({ ...prev, studentId: event.target.value }))} required />
-            <select className="rounded-xl border border-hairline px-3 py-2 text-sm" value={studentForm.relationshipType} onChange={(event) => setStudentForm((prev) => ({ ...prev, relationshipType: event.target.value }))}>
+            <input className="min-w-0 flex-1 rounded-xl border border-line-soft px-3 py-2 text-sm" placeholder="Student ID" value={studentForm.studentId} onChange={(event) => setStudentForm((prev) => ({ ...prev, studentId: event.target.value }))} required />
+            <select className="rounded-xl border border-line-soft px-3 py-2 text-sm" value={studentForm.relationshipType} onChange={(event) => setStudentForm((prev) => ({ ...prev, relationshipType: event.target.value }))}>
               {RELATIONSHIPS.map((relationship) => <option key={relationship} value={relationship}>{label(relationship)}</option>)}
             </select>
             <Button size="s">Link</Button>
           </form>
           <div className="mt-4 space-y-2">
             {students.length === 0 ? <p className="text-sm text-ink-500">No students linked yet.</p> : students.map((row) => (
-              <div key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-hairline p-3 text-sm">
+              <div key={row.id} className="flex items-center justify-between gap-3 rounded-xl border border-line-soft p-3 text-sm">
                 <div><p className="font-semibold text-ink-800">{row.name || row.studentId}</p><p className="text-ink-500">{row.level} · {label(row.relationshipType)}</p></div>
                 <Button size="s" variant="secondary" onClick={() => run(() => adminAPI.removePartnerStudent(partnerId, row.id), 'Student link removed.')}>Remove</Button>
               </div>

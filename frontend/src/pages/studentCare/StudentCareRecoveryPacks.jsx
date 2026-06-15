@@ -45,11 +45,11 @@ export default function StudentCareRecoveryPacks() {
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
         <Card tone="lavender" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Assigned</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{data?.metrics?.recoveryPacksAssigned || 0}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{data?.metrics?.recoveryPacksAssigned || 0}</p>
         </Card>
         <Card tone="mint" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Completed</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{data?.metrics?.recoveryPacksCompleted || 0}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{data?.metrics?.recoveryPacksCompleted || 0}</p>
         </Card>
       </div>
 
@@ -60,13 +60,13 @@ export default function StudentCareRecoveryPacks() {
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-lg font-semibold text-navy-700">{pack.studentName}</h2>
+                    <h2 className="font-display text-lg font-semibold text-emerald-deep">{pack.studentName}</h2>
                     <Badge tone={tone(pack.status)}>{statusText(pack.status)}</Badge>
                   </div>
                   <p className="mt-1 font-semibold text-ink-800">{pack.assignmentTitle}</p>
                   <p className="mt-1 text-sm text-ink-500">Assignment ID: {pack.assignmentId}</p>
                 </div>
-                <div className="rounded-2xl bg-paper px-4 py-3 text-sm text-ink-700">
+                <div className="rounded-2xl bg-surface-white px-4 py-3 text-sm text-ink-700">
                   <p className="font-mono">{pack.progress?.attempted || 0}/{pack.progress?.target || '-'} questions</p>
                   <p className="font-mono">{Number(pack.accuracy || 0)}% accuracy</p>
                 </div>

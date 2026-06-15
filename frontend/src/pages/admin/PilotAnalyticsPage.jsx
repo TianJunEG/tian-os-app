@@ -11,7 +11,7 @@ function MetricCard({ icon: Icon, label, value, suffix = '' }) {
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-navy-50 text-navy-700">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-tint text-emerald-deep">
           <Icon className="h-5 w-5" />
         </span>
         <div className="min-w-0">
@@ -30,7 +30,7 @@ function SkillList({ title, rows = [], valueKey = 'missed', empty = 'No data yet
       {rows.length ? (
         <div className="mt-4 space-y-3">
           {rows.slice(0, 8).map((row) => (
-            <div key={`${title}-${row.skillCode}`} className="flex items-center justify-between gap-3 border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+            <div key={`${title}-${row.skillCode}`} className="flex items-center justify-between gap-3 border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
               <div className="min-w-0">
                 <p className="font-semibold text-ink-800">{row.skillCode}</p>
                 <p className="text-xs text-ink-500">{number(row.answered)} answered</p>
@@ -141,7 +141,7 @@ export default function PilotAnalyticsPage() {
           {mostActiveStudents.length ? (
             <div className="mt-4 space-y-3">
               {mostActiveStudents.slice(0, 8).map((student) => (
-                <div key={student.studentId} className="flex items-center justify-between gap-3 border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+                <div key={student.studentId} className="flex items-center justify-between gap-3 border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-ink-800">{student.studentId}</p>
                     <p className="text-xs text-ink-500">{number(student.questionsAnswered)} questions · {number(student.sessionsCompleted)} completed sessions</p>
@@ -159,7 +159,7 @@ export default function PilotAnalyticsPage() {
           <h2 className="font-semibold text-ink-900">Telemetry Coverage</h2>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {(telemetryCoverage.requiredPilotEvents || []).map((row) => (
-              <div key={row.eventType} className="flex items-center justify-between gap-2 rounded-lg border border-hairline px-3 py-2 text-sm">
+              <div key={row.eventType} className="flex items-center justify-between gap-2 rounded-lg border border-line-soft px-3 py-2 text-sm">
                 <span className="min-w-0 truncate text-ink-700">{row.eventType}</span>
                 <Badge tone={row.present ? 'success' : 'error'}>{number(row.count)}</Badge>
               </div>

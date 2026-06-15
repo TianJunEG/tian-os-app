@@ -94,8 +94,8 @@ export default function SolveFindRule({ scaffoldStep, response, onChange }) {
         </div>
 
         {targetPosition !== undefined && (
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-teal-200 bg-teal-50 p-3">
-            <span className="text-sm font-semibold text-teal-700">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-teal-200 bg-emerald-tint p-3">
+            <span className="text-sm font-semibold text-emerald-deep">
               Value at position {targetPosition} =
             </span>
             <input

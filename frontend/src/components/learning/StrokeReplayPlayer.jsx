@@ -24,8 +24,8 @@ function controlButton(active = false, disabled = false) {
   return [
     'inline-flex h-8 w-8 items-center justify-center rounded-lg border text-xs transition',
     active
-      ? 'border-navy-700 bg-navy-700 text-white'
-      : 'border-hairline bg-white text-navy-700 hover:bg-navy-50',
+      ? 'border-emerald-deep bg-emerald-deep text-white'
+      : 'border-line-soft bg-white text-emerald-deep hover:bg-emerald-tint',
     disabled ? 'cursor-not-allowed opacity-40 hover:bg-white' : '',
   ].join(' ');
 }
@@ -364,7 +364,7 @@ export default function StrokeReplayPlayer({
 
   if (isEmpty) {
     return (
-      <div className={`rounded-xl border border-hairline bg-white p-4 ${className}`}>
+      <div className={`rounded-xl border border-line-soft bg-white p-4 ${className}`}>
         <p className="text-center text-sm text-ink-400">No stroke data to replay.</p>
       </div>
     );
@@ -375,7 +375,7 @@ export default function StrokeReplayPlayer({
       ref={containerRef}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      className={`rounded-xl border border-hairline bg-white outline-none focus-within:ring-2 focus-within:ring-navy-300/30 ${className}`}
+      className={`rounded-xl border border-line-soft bg-white outline-none focus-within:ring-2 focus-within:ring-navy-300/30 ${className}`}
       data-testid="stroke-replay-player"
     >
       {/* Hidden audio element for synced voice narration */}
@@ -390,7 +390,7 @@ export default function StrokeReplayPlayer({
       )}
 
       {/* ── Canvas ── */}
-      <div className={`overflow-auto rounded-t-xl border-b border-hairline ${backgroundCSS}`}>
+      <div className={`overflow-auto rounded-t-xl border-b border-line-soft ${backgroundCSS}`}>
         <canvas
           ref={canvasRef}
           width={canvasWidth}
@@ -406,7 +406,7 @@ export default function StrokeReplayPlayer({
         {/* Timeline scrub bar with stroke activity markers */}
         <div className="relative mb-2 h-6">
           {/* Stroke activity visualization */}
-          <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 overflow-hidden rounded-full bg-slate-100" aria-hidden="true">
+          <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 overflow-hidden rounded-full bg-surface-raised" aria-hidden="true">
             {strokeMeta.map((meta, i) => {
               if (totalDuration <= 0) return null;
               const left = (meta.startMs / totalDuration) * 100;
@@ -414,14 +414,14 @@ export default function StrokeReplayPlayer({
               return (
                 <div
                   key={i}
-                  className="absolute top-0 h-full rounded-full bg-navy-200/60"
+                  className="absolute top-0 h-full rounded-full bg-emerald-border/60"
                   style={{ left: `${left}%`, width: `${width}%` }}
                 />
               );
             })}
             {/* Progress fill */}
             <div
-              className="absolute left-0 top-0 h-full rounded-full bg-navy-500 transition-[width] duration-75"
+              className="absolute left-0 top-0 h-full rounded-full bg-emerald transition-[width] duration-75"
               style={{ width: `${progress * 100}%` }}
             />
           </div>
@@ -481,7 +481,7 @@ export default function StrokeReplayPlayer({
           </button>
 
           {/* Divider */}
-          <span className="mx-0.5 h-5 w-px bg-hairline" aria-hidden="true" />
+          <span className="mx-0.5 h-5 w-px bg-line-soft" aria-hidden="true" />
 
           {/* Time display */}
           <span className="min-w-[72px] font-mono text-xs tabular-nums text-ink-500">
@@ -491,7 +491,7 @@ export default function StrokeReplayPlayer({
           {/* Stroke counter */}
           {!compact && (
             <>
-              <span className="mx-0.5 h-5 w-px bg-hairline" aria-hidden="true" />
+              <span className="mx-0.5 h-5 w-px bg-line-soft" aria-hidden="true" />
               <span className="text-xs text-ink-400">
                 Stroke <span className="font-semibold text-ink-600">{Math.max(0, currentStrokeIndex + 1)}</span>
                 <span className="text-ink-300"> / </span>
@@ -516,8 +516,8 @@ export default function StrokeReplayPlayer({
                 className={[
                   'inline-flex h-7 min-w-[36px] items-center justify-center rounded-md border px-1.5 text-[11px] font-semibold tabular-nums transition',
                   speed === s
-                    ? 'border-navy-600 bg-navy-700 text-white'
-                    : 'border-hairline bg-white text-ink-500 hover:bg-navy-50 hover:text-navy-700',
+                    ? 'border-navy-600 bg-emerald-deep text-white'
+                    : 'border-line-soft bg-white text-ink-500 hover:bg-emerald-tint hover:text-emerald-deep',
                 ].join(' ')}
               >
                 {s}×
@@ -562,7 +562,7 @@ export default function StrokeReplayPlayer({
               Stylus input
             </span>
             {strokes.some((s) => s.points?.some((p) => p.p != null)) && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+              <span className="inline-flex items-center gap-1 rounded-full bg-purple-tint px-2 py-0.5 text-[10px] font-semibold text-purple">
                 Pressure data
               </span>
             )}

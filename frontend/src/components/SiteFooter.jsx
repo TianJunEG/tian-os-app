@@ -10,12 +10,12 @@ export default function SiteFooter() {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 max-w-sm">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-600 text-white">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald text-white">
                 <GraduationCap className="h-5 w-5" />
               </span>
               <span className="font-display text-lg font-semibold text-white">{GROUP_NAME}</span>
             </div>
-            <p className="mt-4 text-sm leading-relaxed text-slate-400">
+            <p className="mt-4 text-sm leading-relaxed text-body-faint">
               AI-native learning infrastructure for schools — diagnostic assessment,
               adaptive practice and real-time mastery analytics.
             </p>
@@ -40,7 +40,7 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-slate-800 pt-6 text-sm text-slate-500">
+        <div className="mt-12 border-t border-slate-800 pt-6 text-sm text-body-muted">
           © {new Date().getFullYear()} {GROUP_NAME}. All rights reserved.
         </div>
       </div>

@@ -52,15 +52,15 @@ export default function WeakGroups() {
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Weak groups</p>
-          <p className="mt-1 text-2xl font-semibold text-navy-700">{data.summary?.groupCount || 0}</p>
+          <p className="mt-1 text-2xl font-semibold text-emerald-deep">{data.summary?.groupCount || 0}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">High priority</p>
-          <p className="mt-1 text-2xl font-semibold text-navy-700">{data.summary?.highPriorityCount || 0}</p>
+          <p className="mt-1 text-2xl font-semibold text-emerald-deep">{data.summary?.highPriorityCount || 0}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Students affected</p>
-          <p className="mt-1 text-2xl font-semibold text-navy-700">{data.summary?.affectedStudentCount || 0}</p>
+          <p className="mt-1 text-2xl font-semibold text-emerald-deep">{data.summary?.affectedStudentCount || 0}</p>
         </Card>
       </div>
 
@@ -75,7 +75,7 @@ export default function WeakGroups() {
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-lg font-semibold text-navy-700">{group.skillName}</h2>
+                    <h2 className="font-display text-lg font-semibold text-emerald-deep">{group.skillName}</h2>
                     <StatusBadge status={priorityStatus(group.priority)} />
                   </div>
                   <p className="mt-1 text-sm text-ink-500">{group.evidenceSummary}</p>
@@ -105,7 +105,7 @@ export default function WeakGroups() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Students</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {(group.students || []).map((student) => (
-                      <span key={student.studentId} className="rounded-full bg-navy-50 px-3 py-1 text-sm font-semibold text-navy-700">{student.name}</span>
+                      <span key={student.studentId} className="rounded-full bg-emerald-tint px-3 py-1 text-sm font-semibold text-emerald-deep">{student.name}</span>
                     ))}
                   </div>
                 </div>

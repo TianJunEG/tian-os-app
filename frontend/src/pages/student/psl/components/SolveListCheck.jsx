@@ -30,11 +30,11 @@ export default function SolveListCheck({ scaffoldStep, response, onChange }) {
       </p>
 
       {conditions.length > 0 && (
-        <div className="rounded-lg bg-violet-50 p-3">
+        <div className="rounded-lg bg-purple-tint p-3">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-violet-500">
             Conditions to check
           </p>
-          <ul className="list-inside list-disc text-sm text-violet-700">
+          <ul className="list-inside list-disc text-sm text-purple">
             {conditions.map((c, i) => (
               <li key={i}>{c}</li>
             ))}
@@ -76,14 +76,14 @@ export default function SolveListCheck({ scaffoldStep, response, onChange }) {
         + Add candidate
       </button>
 
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-violet-200 bg-violet-50 p-3">
-        <span className="text-sm font-semibold text-violet-700">Answer =</span>
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-purple-tint bg-purple-tint p-3">
+        <span className="text-sm font-semibold text-purple">Answer =</span>
         <input
           type="number"
           inputMode="decimal"
           value={answer}
           onChange={(e) => onChange({ candidates, answer: e.target.value })}
-          className="w-full sm:w-28 min-h-[44px] rounded-lg border border-violet-300 px-3 py-2 text-sm font-bold text-violet-800"
+          className="w-full sm:w-28 min-h-[44px] rounded-lg border border-purple-tint px-3 py-2 text-sm font-bold text-violet-800"
           placeholder="?"
         />
       </div>

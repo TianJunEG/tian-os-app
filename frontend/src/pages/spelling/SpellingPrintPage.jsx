@@ -79,7 +79,7 @@ function WordSearchSheet({ result, showAnswers }) {
   const Cell = ({ ch, highlighted }) => (
     <span
       className={`ws-cell inline-flex items-center justify-center border border-gray-300 font-mono uppercase ${
-        highlighted ? 'font-bold text-navy-700 print:text-black' : 'text-gray-800'
+        highlighted ? 'font-bold text-emerald-deep print:text-black' : 'text-gray-800'
       }`}
       style={{ width: '1.7rem', height: '1.7rem', fontSize: '0.95rem' }}
     >
@@ -182,7 +182,7 @@ export default function SpellingPrintPage() {
       {/* Controls — hidden when printing */}
       <div className="print:hidden bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
-          <button onClick={() => navigate(`/spelling/lists/${id}`)} className="text-sm text-gray-500 hover:text-navy-600 inline-flex items-center gap-1">
+          <button onClick={() => navigate(`/spelling/lists/${id}`)} className="text-sm text-gray-500 hover:text-emerald inline-flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
 
@@ -192,7 +192,7 @@ export default function SpellingPrintPage() {
                 key={t.key}
                 onClick={() => setType(t.key)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center gap-1.5 ${
-                  type === t.key ? 'bg-white text-navy-700 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  type === t.key ? 'bg-white text-emerald-deep shadow-sm' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <t.icon className="w-4 h-4" /> {t.label}
@@ -211,7 +211,7 @@ export default function SpellingPrintPage() {
                 <label className="inline-flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={showAnswers} onChange={(e) => setShowAnswers(e.target.checked)} /> Answer key
                 </label>
-                <button onClick={() => setRegen((n) => n + 1)} className="text-navy-600 hover:underline">
+                <button onClick={() => setRegen((n) => n + 1)} className="text-emerald hover:underline">
                   Shuffle
                 </button>
               </>
@@ -220,7 +220,7 @@ export default function SpellingPrintPage() {
 
           <button
             onClick={() => window.print()}
-            className="ml-auto px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center gap-2"
+            className="ml-auto px-4 py-2 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium inline-flex items-center gap-2"
           >
             <Printer className="w-4 h-4" /> Print
           </button>

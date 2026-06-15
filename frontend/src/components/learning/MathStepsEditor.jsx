@@ -84,7 +84,7 @@ export default function MathStepsEditor({ steps = [], onChange, readOnly = false
         {steps.map((step, index) => (
           <div key={step.id} className="group relative">
             <div className="flex items-start gap-2">
-              <span className="mt-2.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-navy-100 text-xs font-bold text-navy-600">
+              <span className="mt-2.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-tint text-xs font-bold text-emerald">
                 {index + 1}
               </span>
               <textarea
@@ -94,7 +94,7 @@ export default function MathStepsEditor({ steps = [], onChange, readOnly = false
                 readOnly={readOnly}
                 placeholder="Type your working here..."
                 rows={2}
-                className="min-h-[56px] w-full resize-y rounded-xl border-2 border-slate-200 bg-white px-3 py-2 font-mono text-base text-ink-900 placeholder:text-ink-300 focus:border-orange-400 focus:outline-none"
+                className="min-h-[56px] w-full resize-y rounded-xl border-2 border-line bg-white px-3 py-2 font-mono text-base text-ink-900 placeholder:text-ink-300 focus:border-orange-400 focus:outline-none"
               />
               {!readOnly && steps.length > 1 && (
                 <button
@@ -115,7 +115,7 @@ export default function MathStepsEditor({ steps = [], onChange, readOnly = false
         <button
           type="button"
           onClick={addStep}
-          className="flex items-center gap-2 self-start rounded-xl border-2 border-dashed border-slate-300 px-4 py-2 text-sm font-semibold text-ink-500 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
+          className="flex items-center gap-2 self-start rounded-xl border-2 border-dashed border-line-strong px-4 py-2 text-sm font-semibold text-ink-500 transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600"
         >
           <Plus className="h-4 w-4" />
           Add Step

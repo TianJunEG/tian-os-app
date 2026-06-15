@@ -60,15 +60,15 @@ function Hero() {
     <section className="relative overflow-hidden bg-gradient-to-b from-navy-50 via-white to-white">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-navy-200/40 blur-3xl"
+        className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-emerald-border/40 blur-3xl"
       />
       <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <span className="eyebrow">A social enterprise in education</span>
-          <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+          <h1 className="mt-6 font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl lg:text-6xl">
             Empowering learners across every stage
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-slate-600">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-body-soft">
             {GROUP_NAME} brings together a family of education services — expert tutor matching, free
             learning resources, and more to come — all built to create opportunity through learning.
           </p>
@@ -87,9 +87,9 @@ function Hero() {
           {trustPoints.map(({ icon: Icon, label }) => (
             <div key={label} className="flex flex-col items-center gap-2 text-center">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-                <Icon className="h-5 w-5 text-navy-600" />
+                <Icon className="h-5 w-5 text-emerald" />
               </span>
-              <span className="text-sm font-medium text-slate-600">{label}</span>
+              <span className="text-sm font-medium text-body-soft">{label}</span>
             </div>
           ))}
         </div>
@@ -103,10 +103,10 @@ function ServicesSection() {
     <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
         <span className="eyebrow">Our services</span>
-        <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
           One group, many ways to learn
         </h2>
-        <p className="mt-4 text-lg text-slate-600">
+        <p className="mt-4 text-lg text-body-soft">
           Choose a service to get started — with more joining the family over time.
         </p>
       </div>
@@ -121,7 +121,7 @@ function ServicesSection() {
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-tint text-emerald">
                   <Icon className="h-6 w-6" />
                 </span>
                 {!service.available && (
@@ -130,10 +130,10 @@ function ServicesSection() {
                   </span>
                 )}
               </div>
-              <h3 className="mt-5 font-display text-xl font-semibold text-slate-900">{service.name}</h3>
-              <p className="mt-2 flex-1 text-slate-600">{service.tagline}</p>
+              <h3 className="mt-5 font-display text-xl font-semibold text-ink">{service.name}</h3>
+              <p className="mt-2 flex-1 text-body-soft">{service.tagline}</p>
               {service.available && (
-                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-navy-600">
+                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-emerald">
                   Explore <ArrowRight className="h-4 w-4" />
                 </span>
               )}
@@ -154,16 +154,16 @@ function ServicesSection() {
 
 function MissionSection() {
   return (
-    <section className="bg-slate-50 py-20">
+    <section className="bg-surface-raised py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <span className="eyebrow">
             <HeartHandshake className="h-3.5 w-3.5" /> A social enterprise
           </span>
-          <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl">
             Education that gives back
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-slate-600">
+          <p className="mt-4 text-lg leading-relaxed text-body-soft">
             {GROUP_NAME} is being established as a social enterprise — a business built to create
             opportunity, not just returns. Every service we run is designed to lift the people who
             need it most and to keep great teaching in the hands of those who do it best.
@@ -173,16 +173,16 @@ function MissionSection() {
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
           {missionPillars.map(({ icon: Icon, title, body }) => (
             <div key={title} className="card p-8">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-600">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-tint text-emerald">
                 <Icon className="h-6 w-6" />
               </span>
-              <h3 className="mt-5 font-display text-lg font-semibold text-slate-900">{title}</h3>
-              <p className="mt-2 text-slate-600">{body}</p>
+              <h3 className="mt-5 font-display text-lg font-semibold text-ink">{title}</h3>
+              <p className="mt-2 text-body-soft">{body}</p>
             </div>
           ))}
         </div>
 
-        <p className="mx-auto mt-10 max-w-3xl text-center text-slate-600">
+        <p className="mx-auto mt-10 max-w-3xl text-center text-body-soft">
           The result is a cycle that compounds: experienced teachers raise up young learners, those
           learners become tutors, and an inclusive team powers it all — so the impact grows with
           every student we reach and every person we employ.
@@ -220,12 +220,12 @@ function PartnershipSection() {
     <section id="partner" className="mx-auto max-w-5xl px-4 py-20 sm:px-6 lg:px-8">
       <div className="card overflow-hidden">
         <div className="grid md:grid-cols-5">
-          <div className="bg-navy-600 p-8 text-white md:col-span-2">
+          <div className="bg-emerald p-8 text-white md:col-span-2">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
               <HeartHandshake className="h-3.5 w-3.5" /> Partnerships
             </span>
             <h2 className="mt-5 font-display text-2xl font-bold">Partner with us</h2>
-            <p className="mt-3 text-sm leading-relaxed text-navy-100">
+            <p className="mt-3 text-sm leading-relaxed text-emerald-tint">
               {GROUP_NAME} is building a connected family of education services, and the best ones
               are built together. We're not formally opening partnerships yet — but if this sounds
               like you, introduce yourself and we'll reach out as opportunities open up.
@@ -234,7 +234,7 @@ function PartnershipSection() {
               {partnerTypes.map((p) => (
                 <li key={p.title}>
                   <p className="text-sm font-semibold text-white">{p.title}</p>
-                  <p className="text-sm text-navy-100">{p.body}</p>
+                  <p className="text-sm text-emerald-tint">{p.body}</p>
                 </li>
               ))}
             </ul>
@@ -265,7 +265,7 @@ function PartnershipSection() {
                   </div>
                   <div>
                     <label htmlFor="partner-org" className="field-label">
-                      Organization <span className="text-slate-400">(optional)</span>
+                      Organization <span className="text-body-faint">(optional)</span>
                     </label>
                     <input id="partner-org" type="text" name="organization" value={form.organization} onChange={handleChange} maxLength={150} className="field" />
                   </div>

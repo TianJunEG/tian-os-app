@@ -30,12 +30,12 @@ function InviteParentCard({ studentId }) {
       <div className="mb-2 flex items-center gap-2"><Mail className="h-4 w-4 text-ink-400" /><h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Invite parent</h3></div>
       <p className="mb-3 text-sm text-ink-500">Send a guardian a free, view-only link to this student's progress.</p>
       <div className="flex flex-wrap items-center gap-2">
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@email.com" className="min-w-0 flex-1 rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-navy-300" />
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="parent@email.com" className="min-w-0 flex-1 rounded-lg border border-line-soft px-3 py-2 text-sm outline-none focus:border-navy-300" />
         <Button onClick={send} disabled={busy || !email.trim()} icon={Mail}>{busy ? 'Sending…' : 'Send invite'}</Button>
       </div>
       {error ? <p className="mt-2 text-sm text-error-700">{error}</p> : null}
       {result ? (
-        <div className="mt-3 rounded-lg border border-hairline bg-ivory p-3 text-sm">
+        <div className="mt-3 rounded-lg border border-line-soft bg-surface-raised p-3 text-sm">
           <p className="text-ink-600">Invite sent to <span className="font-medium text-ink-700">{result.email}</span>.</p>
           <div className="mt-2 flex items-center gap-2">
             <code className="min-w-0 flex-1 truncate text-xs text-ink-500">{result.inviteUrl}</code>
@@ -62,7 +62,7 @@ export default function TeacherStudentDetail() {
 
   return (
     <>
-      <button onClick={() => navigate(-1)} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
+      <button onClick={() => navigate(-1)} className="mb-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep">
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
       <PageHeader title={student.name} subtitle={student.level} />
@@ -77,7 +77,7 @@ export default function TeacherStudentDetail() {
 
       <button
         onClick={() => navigate(`/teacher/students/${id}/psl`)}
-        className="mb-4 inline-flex items-center gap-2 rounded-xl border border-hairline px-4 py-2.5 text-sm font-semibold text-navy-700 transition hover:border-navy-300 hover:bg-navy-50/40"
+        className="mb-4 inline-flex items-center gap-2 rounded-xl border border-line-soft px-4 py-2.5 text-sm font-semibold text-emerald-deep transition hover:border-navy-300 hover:bg-emerald-tint/40"
       >
         <Brain className="h-4 w-4" /> View Problem Solving Lab Sessions
       </button>

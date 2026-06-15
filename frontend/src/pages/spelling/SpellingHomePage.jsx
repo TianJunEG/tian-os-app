@@ -54,14 +54,14 @@ export default function SpellingHomePage() {
         {stats && stats.total > 0 && (
           <button
             onClick={() => navigate('/spelling/progress')}
-            className="w-full mb-6 p-4 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition flex flex-wrap items-center gap-6 text-left"
+            className="w-full mb-6 p-4 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition flex flex-wrap items-center gap-6 text-left"
           >
             <div className="flex items-center gap-2 text-gray-700">
-              <TrendingUp className="w-5 h-5 text-navy-600" />
+              <TrendingUp className="w-5 h-5 text-emerald" />
               <span className="font-semibold">{stats.accuracy}%</span> accuracy
             </div>
             {game && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-navy-100 text-navy-700 rounded-full text-xs font-semibold">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-tint text-emerald-deep rounded-full text-xs font-semibold">
                 Level {game.level}
               </span>
             )}
@@ -77,7 +77,7 @@ export default function SpellingHomePage() {
                 <span className="text-rose-500 font-medium">{stats.mastery.weak}</span> to revise
               </div>
             )}
-            <span className="ml-auto text-sm text-navy-600 inline-flex items-center gap-1">
+            <span className="ml-auto text-sm text-emerald inline-flex items-center gap-1">
               View progress <ChevronRight className="w-4 h-4" />
             </span>
           </button>
@@ -114,14 +114,14 @@ export default function SpellingHomePage() {
                 ? `${dueCount} word(s) due for review`
                 : "You're all caught up"
             }
-            color="bg-navy-600"
+            color="bg-emerald"
             onClick={() => navigate('/spelling/due')}
           />
           <Tile
             icon={ListChecks}
             title="My lists"
             desc={listCount != null ? `${listCount} list(s) — practise & test` : 'Your spelling lists'}
-            color="bg-navy-600"
+            color="bg-emerald"
             onClick={() => navigate('/spelling/lists')}
           />
           <Tile
@@ -156,14 +156,14 @@ export default function SpellingHomePage() {
             icon={Target}
             title="Revise tricky words"
             desc={stats?.mastery?.weak ? `${stats.mastery.weak} word(s) to revise` : 'Practise words you missed'}
-            color="bg-rose-500"
+            color="bg-danger"
             onClick={() => navigate('/spelling/revision')}
           />
           <Tile
             icon={BarChart3}
             title="My progress"
             desc={stats?.mastery ? `${stats.mastery.mastered} mastered` : 'Accuracy & mastery'}
-            color="bg-teal-600"
+            color="bg-emerald"
             onClick={() => navigate('/spelling/progress')}
           />
           <Tile
@@ -177,7 +177,7 @@ export default function SpellingHomePage() {
             icon={Upload}
             title="Upload a list"
             desc="PDF, Word, photo or text"
-            color="bg-navy-600"
+            color="bg-emerald"
             onClick={() => navigate('/spelling/lists/new?upload=1')}
           />
         </div>

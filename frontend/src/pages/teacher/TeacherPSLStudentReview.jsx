@@ -23,11 +23,11 @@ function SessionRow({ session, onExpand, expanded }) {
   const score = Math.round((session.overallScore || 0) * 100);
   const miscKeys = Object.keys(session.misconceptionCounts || {});
   return (
-    <div className="border-b border-hairline last:border-b-0">
+    <div className="border-b border-line-soft last:border-b-0">
       <button
         type="button"
         onClick={onExpand}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-navy-50/40"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-emerald-tint/40"
       >
         {expanded ? <ChevronDown className="h-4 w-4 text-ink-400" /> : <ChevronRight className="h-4 w-4 text-ink-400" />}
         <div className="flex-1">
@@ -79,7 +79,7 @@ function StepRow({ step }) {
 
 function ProblemTranscript({ problem, index }) {
   return (
-    <div className="rounded-xl border border-hairline p-4">
+    <div className="rounded-xl border border-line-soft p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-ink-800">Problem {index + 1}</p>
         <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export default function TeacherPSLStudentReview() {
         <EmptyState message="This student hasn't completed any PSL sessions yet." />
       ) : (
         <div className="space-y-4">
-          <Card className="divide-y divide-hairline overflow-hidden">
+          <Card className="divide-y divide-line-soft overflow-hidden">
             {sessions.map((s) => (
               <div key={s.sessionId}>
                 <SessionRow

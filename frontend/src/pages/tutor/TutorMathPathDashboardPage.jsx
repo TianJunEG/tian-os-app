@@ -130,7 +130,7 @@ function TutorOverviewCard({ studentName, dashboard, currentSkill }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Tutor Overview</p>
-          <p className="text-lg font-semibold text-navy-700">{studentName}</p>
+          <p className="text-lg font-semibold text-emerald-deep">{studentName}</p>
           <p className="mt-1 text-sm text-ink-600">Domain: Fractions</p>
           <p className="text-sm text-ink-600">Current skill: {skillLabel(currentSkill)}</p>
           <p className="mt-1 text-sm text-ink-700">Overall readiness: {dashboard.tutorNotes?.readinessBand || 'developing'} ({dashboard.tutorNotes?.readinessScore ?? '—'})</p>
@@ -151,7 +151,7 @@ function RootCauseAnalysisCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 space-y-3">
           {rows.slice(0, 3).map((row) => (
-            <div key={row.weakSkillId} className="rounded-lg border border-hairline p-3 text-sm">
+            <div key={row.weakSkillId} className="rounded-lg border border-line-soft p-3 text-sm">
               <p><span className="font-semibold text-ink-700">Weak skill:</span> {skillLabel(row.weakSkillId)}</p>
               <p><span className="font-semibold text-ink-700">Root cause:</span> {skillLabel(row.suspectedRootCauseSkillIds?.[0] || row.weakSkillId)}</p>
               <p><span className="font-semibold text-ink-700">Chain:</span> {(row.prerequisiteChain || []).map(skillLabel).join(' → ') || '—'}</p>
@@ -175,7 +175,7 @@ function MistakeClusterCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 space-y-2 text-sm">
           {rows.slice(0, 4).map((row) => (
-            <div key={row.mistakeCode} className="rounded-lg border border-hairline p-3">
+            <div key={row.mistakeCode} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{row.mistakeCode} {row.mistakeName}</p>
                 <Badge tone={severityTone(row.severity)}>{row.severity}</Badge>
@@ -198,7 +198,7 @@ function FluencyBottleneckCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 space-y-2 text-sm">
           {rows.slice(0, 5).map((row) => (
-            <div key={`${row.skillId}-${row.questionFamilyId}`} className="rounded-lg border border-hairline p-3">
+            <div key={`${row.skillId}-${row.questionFamilyId}`} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{skillLabel(row.skillId)}</p>
                 <Badge tone={issueTone(row.issueType)}>{row.issueType}</Badge>
@@ -228,7 +228,7 @@ function TutorFluencyInsightCard({ fluency = {}, retention = {} }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fluency Intelligence</p>
-          <h3 className="mt-1 text-lg font-semibold text-navy-700">{focus?.skillName || 'No fluency record yet'}</h3>
+          <h3 className="mt-1 text-lg font-semibold text-emerald-deep">{focus?.skillName || 'No fluency record yet'}</h3>
         </div>
         <Badge tone={tone}>{statusLabel}</Badge>
       </div>
@@ -253,7 +253,7 @@ function RetentionRiskCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 space-y-2 text-sm">
           {rows.slice(0, 5).map((row) => (
-            <div key={row.skillId} className="rounded-lg border border-hairline p-3">
+            <div key={row.skillId} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{skillLabel(row.skillId)}</p>
                 <Badge tone={severityTone(row.riskLevel)}>{row.riskLevel}</Badge>
@@ -315,7 +315,7 @@ function SuggestedAssignmentsCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 space-y-2 text-sm">
           {rows.slice(0, 6).map((row, i) => (
-            <div key={`${row.assignmentType}-${row.skillId || i}`} className="rounded-lg border border-hairline p-3">
+            <div key={`${row.assignmentType}-${row.skillId || i}`} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{row.assignmentType}</p>
                 <Badge tone={row.workingRequired ? 'gold' : 'neutral'}>{row.workingRequired ? 'Working required' : 'No working required'}</Badge>
@@ -392,7 +392,7 @@ function InterventionQueueCard({ priorities = [], snapshot }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Intervention Queue</p>
-          <h2 className="mt-1 font-display text-2xl font-semibold text-navy-700">{snapshot.studentName}</h2>
+          <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">{snapshot.studentName}</h2>
         </div>
         <Badge tone={severityTone(rows[0]?.severity)}>{rows.length} priorit{rows.length === 1 ? 'y' : 'ies'}</Badge>
       </div>
@@ -402,7 +402,7 @@ function InterventionQueueCard({ priorities = [], snapshot }) {
           const label = skillLabel(row.skillId || snapshot.topSkillId).replace(/^F\d{3}\s+/, '') || snapshot.topSkillName;
           const highConfidenceWrong = snapshot.highConfidenceWrong || (row.severity === 'high' ? 4 : 0);
           return (
-            <div key={`${row.priorityRank}-${row.skillId || label}-${row.issueType}`} className="rounded-xl border border-hairline bg-white p-4">
+            <div key={`${row.priorityRank}-${row.skillId || label}-${row.issueType}`} className="rounded-xl border border-line-soft bg-white p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-ink-800">{label}</p>
@@ -433,17 +433,17 @@ function TutorIntelligenceCard({ insight = {} }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Tutor Intelligence Engine</p>
-          <h2 className="mt-1 font-display text-2xl font-semibold text-navy-700">Root cause, evidence, next intervention</h2>
+          <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">Root cause, evidence, next intervention</h2>
         </div>
         <Badge tone={severityTone(insight.severity)}>{insight.confidence || 'Building data'} confidence</Badge>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="rounded-xl border border-hairline bg-slate-50 p-4">
+        <div className="rounded-xl border border-line-soft bg-surface-raised p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Root Cause</p>
           <p className="mt-2 text-lg font-semibold text-ink-900">{insight.rootCause || 'No root cause detected yet.'}</p>
         </div>
-        <div className="rounded-xl border border-hairline p-4">
+        <div className="rounded-xl border border-line-soft p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Evidence</p>
           {evidence.length ? (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-700">
@@ -457,7 +457,7 @@ function TutorIntelligenceCard({ insight = {} }) {
 
       <div className="mt-4 rounded-xl border border-gold-200 bg-gold-50 p-4">
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-800">Recommended Intervention</p>
-        <p className="mt-1 text-lg font-semibold text-navy-700">{intervention.title || 'Continue monitoring'}</p>
+        <p className="mt-1 text-lg font-semibold text-emerald-deep">{intervention.title || 'Continue monitoring'}</p>
         <p className="mt-1 text-sm text-ink-700">{insight.nextTutorAction || 'Review the next practice session before assigning remediation.'}</p>
         {!!intervention.steps?.length && (
           <ol className="mt-3 space-y-1 text-sm text-ink-700">
@@ -479,14 +479,14 @@ function SessionRecommendationsMvp({ plan = {}, snapshot }) {
   return (
     <Card className="p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Session Recommendations</p>
-      <h3 className="mt-1 font-display text-xl font-semibold text-navy-700">Next Session Plan — {plan.estimatedDurationMinutes || 45} minutes</h3>
+      <h3 className="mt-1 font-display text-xl font-semibold text-emerald-deep">Next Session Plan — {plan.estimatedDurationMinutes || 45} minutes</h3>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-hairline p-4">
+        <div className="rounded-xl border border-line-soft p-4">
           <p className="font-mono text-sm font-semibold text-gold-700">20 min</p>
           <p className="mt-1 font-semibold text-ink-800">{focus}</p>
           <p className="mt-1 text-sm text-ink-600">{plan.mainIntervention || `Reteach ${focus} using shaded diagrams and number lines.`}</p>
         </div>
-        <div className="rounded-xl border border-hairline p-4">
+        <div className="rounded-xl border border-line-soft p-4">
           <p className="font-mono text-sm font-semibold text-gold-700">10 min</p>
           <p className="mt-1 font-semibold text-ink-800">{secondaryLabel}</p>
           <p className="mt-1 text-sm text-ink-600">Do guided practice together before independent work.</p>
@@ -512,7 +512,7 @@ function MistakeInsightsMvp({ dashboard = {}, snapshot }) {
   return (
     <Card className="p-5">
       <div className="flex items-center gap-2">
-        <Brain className="h-4 w-4 text-navy-600" />
+        <Brain className="h-4 w-4 text-emerald" />
         <h3 className="text-sm font-semibold text-ink-700">Mistake Insights</h3>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -533,7 +533,7 @@ function MistakeInsightsMvp({ dashboard = {}, snapshot }) {
           <p className="mt-1 font-mono text-xl font-semibold text-ink-900">{skipped}</p>
         </div>
       </div>
-      <p className="mt-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-ink-700">
+      <p className="mt-4 rounded-xl bg-surface-raised px-4 py-3 text-sm text-ink-700">
         Your student was confident but incorrect on several {snapshot.topSkillName.toLowerCase()} questions. This may indicate a misconception rather than a simple careless mistake.
       </p>
     </Card>
@@ -589,27 +589,27 @@ function WorkingEvidenceMvp({ workingReview = {} }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Working Review</p>
-          <h3 className="mt-1 font-display text-xl font-semibold text-navy-700">Evidence to check before teaching</h3>
+          <h3 className="mt-1 font-display text-xl font-semibold text-emerald-deep">Evidence to check before teaching</h3>
         </div>
         <Badge tone={submittedCount ? 'gold' : 'neutral'}>{submittedCount} submitted</Badge>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <div><p className="text-xs text-ink-500">Working submitted</p><p className="font-mono text-xl text-navy-700">{submittedCount}</p></div>
-        <div><p className="text-xs text-ink-500">No-working declarations</p><p className="font-mono text-xl text-navy-700">{noWorkingCount}</p></div>
-        <div><p className="text-xs text-ink-500">Accuracy with working</p><p className="font-mono text-xl text-navy-700">{summary.accuracyWithWorking ?? '—'}%</p></div>
-        <div><p className="text-xs text-ink-500">Accuracy without working</p><p className="font-mono text-xl text-navy-700">{summary.accuracyWithoutWorking ?? '—'}%</p></div>
+        <div><p className="text-xs text-ink-500">Working submitted</p><p className="font-mono text-xl text-emerald-deep">{submittedCount}</p></div>
+        <div><p className="text-xs text-ink-500">No-working declarations</p><p className="font-mono text-xl text-emerald-deep">{noWorkingCount}</p></div>
+        <div><p className="text-xs text-ink-500">Accuracy with working</p><p className="font-mono text-xl text-emerald-deep">{summary.accuracyWithWorking ?? '—'}%</p></div>
+        <div><p className="text-xs text-ink-500">Accuracy without working</p><p className="font-mono text-xl text-emerald-deep">{summary.accuracyWithoutWorking ?? '—'}%</p></div>
         <div><p className="text-xs text-ink-500">High-risk no working</p><p className="font-mono text-xl text-error-700">{summary.highRiskNoWorkingCount || 0}</p></div>
       </div>
       {rows.length ? (
         <div className="mt-4 space-y-3">
           {rows.map((row) => (
-            <div key={row.id} className="rounded-xl border border-hairline p-4">
+            <div key={row.id} className="rounded-xl border border-line-soft p-4">
               <div className="flex flex-col gap-3 lg:flex-row">
                 <div className="lg:w-48">
                   {row.image ? (
-                    <img src={row.image} alt="Submitted working" className="max-h-36 w-full rounded-lg border border-hairline object-contain" />
+                    <img src={row.image} alt="Submitted working" className="max-h-36 w-full rounded-lg border border-line-soft object-contain" />
                   ) : (
-                    <div className="grid h-28 place-items-center rounded-lg border border-dashed border-hairline bg-slate-50 text-sm text-ink-500">submitted working</div>
+                    <div className="grid h-28 place-items-center rounded-lg border border-dashed border-line-soft bg-surface-raised text-sm text-ink-500">submitted working</div>
                   )}
                 </div>
                 <div className="min-w-0 flex-1 text-sm text-ink-700">
@@ -630,7 +630,7 @@ function WorkingEvidenceMvp({ workingReview = {} }) {
           ))}
         </div>
       ) : (
-        <p className="mt-4 rounded-xl border border-hairline bg-slate-50 px-4 py-3 text-sm text-ink-500">
+        <p className="mt-4 rounded-xl border border-line-soft bg-surface-raised px-4 py-3 text-sm text-ink-500">
           No working records yet. Once the student submits working, they will appear here for review.
         </p>
       )}
@@ -660,7 +660,7 @@ function TutorActionsMvp({ id, navigate }) {
               type="button"
               disabled={action.disabled}
               onClick={() => !action.disabled && navigate(action.to)}
-              className="flex items-center justify-center gap-2 rounded-xl border border-hairline bg-white px-4 py-3 text-sm font-semibold text-navy-700 transition hover:border-navy-300 hover:bg-navy-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-ink-300"
+              className="flex items-center justify-center gap-2 rounded-xl border border-line-soft bg-white px-4 py-3 text-sm font-semibold text-emerald-deep transition hover:border-navy-300 hover:bg-emerald-tint disabled:cursor-not-allowed disabled:bg-surface-raised disabled:text-ink-300"
             >
               <Icon className="h-4 w-4" /> {action.label}{action.disabled ? ' (Coming soon)' : ''}
             </button>
@@ -685,7 +685,7 @@ function RecentActivityMvp({ dashboard = {}, workingReview = {} }) {
       {activities.length ? (
         <div className="mt-3 space-y-2">
           {activities.map((activity, index) => (
-            <div key={`${activity.when}-${index}`} className="flex gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+            <div key={`${activity.when}-${index}`} className="flex gap-3 rounded-lg bg-surface-raised px-3 py-2 text-sm">
               <p className="w-20 shrink-0 font-semibold text-ink-700">{activity.when}</p>
               <p className="text-ink-600">{activity.text}</p>
             </div>
@@ -835,22 +835,22 @@ export default function TutorMathPathDashboardPage() {
         <section className="grid grid-cols-1 gap-3 lg:grid-cols-4" aria-label="Student learning snapshot">
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Domain</p>
-            <p className="mt-2 text-lg font-semibold text-navy-700">{snapshot.currentDomain}</p>
+            <p className="mt-2 text-lg font-semibold text-emerald-deep">{snapshot.currentDomain}</p>
             <p className="mt-1 text-sm text-ink-500">Working on {snapshot.currentSkill}</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Progress</p>
-            <p className="mt-2 font-mono text-2xl font-semibold text-navy-700">{snapshot.masteredCount}/{snapshot.totalSkills}</p>
+            <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{snapshot.masteredCount}/{snapshot.totalSkills}</p>
             <p className="mt-1 text-sm text-ink-500">skills mastered</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Accuracy This Week</p>
-            <p className="mt-2 font-mono text-2xl font-semibold text-navy-700">{snapshot.accuracy}%</p>
+            <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{snapshot.accuracy}%</p>
             <p className="mt-1 text-sm text-ink-500">{snapshot.questionsThisWeek} questions answered</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Working Submission Rate</p>
-            <p className="mt-2 font-mono text-2xl font-semibold text-navy-700">{snapshot.workingRate}%</p>
+            <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{snapshot.workingRate}%</p>
             <p className="mt-1 text-sm text-ink-500">{snapshot.highConfidenceWrong} confidence risk{snapshot.highConfidenceWrong === 1 ? '' : 's'}</p>
           </Card>
         </section>

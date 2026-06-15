@@ -37,7 +37,7 @@ export default function WorkingAttachmentPreview({
         <img
           src={evidence.workingImage}
           alt="Saved working preview"
-          className="h-28 w-full rounded-lg border border-hairline bg-white object-contain sm:w-40"
+          className="h-28 w-full rounded-lg border border-line-soft bg-white object-contain sm:w-40"
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">

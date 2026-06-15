@@ -52,7 +52,7 @@ export default function ClassOverview() {
           {data.studentsNeedingSupport.length === 0 ? <p className="text-sm text-ink-500">None right now.</p> : (
             <ul className="space-y-2">
               {data.studentsNeedingSupport.map((s) => (
-                <li key={s.studentId}><Link to={`/teacher/students/${s.studentId}`} className="text-sm font-medium text-navy-700 hover:underline">{s.name}</Link></li>
+                <li key={s.studentId}><Link to={`/teacher/students/${s.studentId}`} className="text-sm font-medium text-emerald-deep hover:underline">{s.name}</Link></li>
               ))}
             </ul>
           )}
@@ -93,7 +93,7 @@ export default function ClassOverview() {
                   {data.science.needsSupport.length === 0 ? <p className="text-sm text-ink-500">None right now.</p> : (
                     <ul className="space-y-2">
                       {data.science.needsSupport.map((s) => (
-                        <li key={s.studentId}><Link to={`/teacher/students/${s.studentId}`} className="text-sm font-medium text-navy-700 hover:underline">{s.name}</Link></li>
+                        <li key={s.studentId}><Link to={`/teacher/students/${s.studentId}`} className="text-sm font-medium text-emerald-deep hover:underline">{s.name}</Link></li>
                       ))}
                     </ul>
                   )}

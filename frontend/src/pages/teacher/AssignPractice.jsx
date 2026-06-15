@@ -129,9 +129,9 @@ export default function AssignPractice() {
           <div>
             <label className="mb-2 block text-sm font-semibold text-ink-700">Assign to</label>
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setTarget({ type: 'class' })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'class' ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>Whole class</button>
+              <button onClick={() => setTarget({ type: 'class' })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'class' ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-700'}`}>Whole class</button>
               {groups && groups.map((g) => (
-                <button key={g._id} onClick={() => setTarget({ type: 'group', id: g._id })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'group' && target.id === g._id ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>{g.name}</button>
+                <button key={g._id} onClick={() => setTarget({ type: 'group', id: g._id })} className={`rounded-full border px-3 py-1.5 text-sm ${target.type === 'group' && target.id === g._id ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-700'}`}>{g.name}</button>
               ))}
               {groups && groups.length === 0 && !groupsError && <span className="text-sm text-ink-400">No saved groups yet — create some in Groups.</span>}
             </div>
@@ -144,7 +144,7 @@ export default function AssignPractice() {
                   key={m.key}
                   type="button"
                   onClick={() => setModule(m.key)}
-                  className={`rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}
+                  className={`rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-700'}`}
                 >
                   {m.label}
                 </button>

@@ -50,7 +50,7 @@ export default function ClassMasteryMap() {
             key={s.key}
             type="button"
             onClick={() => setSubject(s.key)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${subject === s.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700 hover:border-ink-300'}`}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${subject === s.key ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-700 hover:border-ink-300'}`}
             aria-pressed={subject === s.key}
           >
             {s.label}
@@ -90,7 +90,7 @@ export default function ClassMasteryMap() {
                 </div>
               </button>
               {open === t.topicId && (
-                <div className="mt-3 border-t border-hairline pt-3">
+                <div className="mt-3 border-t border-line-soft pt-3">
                   {t.affected.length === 0 ? <p className="text-sm text-ink-500">No students need support on this topic.</p> : (
                     <>
                       <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-500">Needs support</p>

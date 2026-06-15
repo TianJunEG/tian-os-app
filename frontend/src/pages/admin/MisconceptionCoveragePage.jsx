@@ -22,18 +22,18 @@ export default function MisconceptionCoveragePage() {
     return () => { mounted = false; };
   }, []);
 
-  if (loading) return <main className="p-6 text-slate-600">Loading misconception coverage...</main>;
-  if (error) return <main className="p-6"><div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-800">{error}</div></main>;
+  if (loading) return <main className="p-6 text-body-soft">Loading misconception coverage...</main>;
+  if (error) return <main className="p-6"><div className="rounded-lg border border-danger-border bg-danger-tint p-4 text-rose-800">{error}</div></main>;
 
   const rows = report?.rows || [];
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-surface-raised px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <header className="rounded-lg border border-line bg-white p-6 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">MathPath</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-950">Misconception Coverage</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-600">
+          <p className="mt-2 max-w-3xl text-sm text-body-soft">
             Coverage by skill for diagnostic evidence, misconception tagging, remediation, and recheck readiness.
           </p>
           <div className="mt-5 grid gap-3 sm:grid-cols-4">
@@ -44,10 +44,10 @@ export default function MisconceptionCoveragePage() {
           </div>
         </header>
 
-        <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-lg border border-line bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <thead className="bg-surface-raised text-left text-xs font-semibold uppercase tracking-wide text-body-soft">
                 <tr>
                   <th className="px-4 py-3">Skill</th>
                   <th className="px-4 py-3">Coverage</th>
@@ -62,7 +62,7 @@ export default function MisconceptionCoveragePage() {
                   <tr key={row.skillId} className="align-top">
                     <td className="px-4 py-4 font-semibold text-slate-950">
                       {row.skillId}
-                      <div className="mt-1 font-normal text-slate-600">{row.skillName}</div>
+                      <div className="mt-1 font-normal text-body-soft">{row.skillName}</div>
                     </td>
                     <td className="px-4 py-4">
                       <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${row.coverageScore >= 85 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
@@ -70,10 +70,10 @@ export default function MisconceptionCoveragePage() {
                         {row.coverageScore}%
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-slate-700">{row.misconceptionsCurrentlyCovered.join(', ')}</td>
-                    <td className="px-4 py-4 text-slate-700">{row.diagnosticCoverage.join(', ') || 'Missing'}</td>
-                    <td className="px-4 py-4 text-slate-700">{row.remediationCoverage.join(', ') || 'Missing'}</td>
-                    <td className="px-4 py-4 text-slate-700">{row.misconceptionsMissing.join(', ') || 'None'}</td>
+                    <td className="px-4 py-4 text-body">{row.misconceptionsCurrentlyCovered.join(', ')}</td>
+                    <td className="px-4 py-4 text-body">{row.diagnosticCoverage.join(', ') || 'Missing'}</td>
+                    <td className="px-4 py-4 text-body">{row.remediationCoverage.join(', ') || 'Missing'}</td>
+                    <td className="px-4 py-4 text-body">{row.misconceptionsMissing.join(', ') || 'None'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -87,8 +87,8 @@ export default function MisconceptionCoveragePage() {
 
 function Summary({ label, value }) {
   return (
-    <div className="rounded-lg bg-slate-50 p-4">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</div>
+    <div className="rounded-lg bg-surface-raised p-4">
+      <div className="text-xs font-semibold uppercase tracking-wide text-body-muted">{label}</div>
       <div className="mt-1 text-2xl font-bold text-slate-950">{value}</div>
     </div>
   );

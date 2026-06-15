@@ -57,10 +57,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ivory p-4 font-ui">
+    <div className="flex min-h-screen items-center justify-center bg-surface-raised p-4 font-ui">
       <Card className="w-full max-w-md p-8">
         <div className="mb-6 flex justify-center"><Wordmark onDark={false} size={34} /></div>
-        <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-navy-700">Get started</h1>
+        <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-emerald-deep">Get started</h1>
         <p className="mb-8 mt-1 text-center text-sm text-ink-500">Join Tian OS today</p>
 
         {error && <Alert tone="error" icon={AlertCircle} className="mb-4">{error}</Alert>}
@@ -93,10 +93,10 @@ export default function RegisterPage() {
           </Button>
         </form>
 
-        <div className="mt-6 border-t border-hairline pt-6">
+        <div className="mt-6 border-t border-line-soft pt-6">
           <p className="text-center text-sm text-ink-500">
             Already have an account?{' '}
-            <Link to={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'} className="font-semibold text-navy-700 hover:text-navy-800">Sign in</Link>
+            <Link to={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'} className="font-semibold text-emerald-deep hover:text-emerald-deep">Sign in</Link>
           </p>
         </div>
       </Card>

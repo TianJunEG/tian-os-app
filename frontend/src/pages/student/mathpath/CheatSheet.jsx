@@ -120,7 +120,7 @@ export default function CheatSheet() {
   return (
     <div className="mx-auto max-w-3xl pb-12">
       <div className="mb-4 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep">
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
         <button

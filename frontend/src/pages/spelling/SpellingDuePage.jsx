@@ -79,7 +79,7 @@ export default function SpellingDuePage() {
                 : message || 'Practise some words and they will be scheduled for review here.'}
             </p>
             <div className="flex gap-3 justify-center flex-wrap">
-              <button onClick={() => navigate('/spelling/lists')} className="px-5 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium">
+              <button onClick={() => navigate('/spelling/lists')} className="px-5 py-2.5 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium">
                 Practise a list
               </button>
               <button onClick={() => navigate('/spelling/surprise')} className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">
@@ -89,7 +89,7 @@ export default function SpellingDuePage() {
           </div>
         ) : activity && ActiveComp ? (
           <div className="bg-white rounded-xl shadow-sm p-5 sm:p-7">
-            <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-navy-600 inline-flex items-center gap-1 mb-5">
+            <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-emerald inline-flex items-center gap-1 mb-5">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
             <ActiveComp key={lang} words={filtered} onAttempt={record} lang={lang} />
@@ -98,11 +98,11 @@ export default function SpellingDuePage() {
           <>
             <div className="bg-white rounded-xl shadow-sm p-5 mb-6 flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2 text-gray-700">
-                <CalendarClock className="w-5 h-5 text-navy-600" />
+                <CalendarClock className="w-5 h-5 text-emerald" />
                 <span className="font-semibold">{dueCount}</span> word{dueCount === 1 ? '' : 's'} due today
                 {dueCount > filtered.length && <span className="text-sm text-gray-400">(showing {filtered.length})</span>}
               </div>
-              <button onClick={load} className="ml-auto px-3 py-1.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 text-sm inline-flex items-center gap-1">
+              <button onClick={load} className="ml-auto px-3 py-1.5 bg-emerald text-white rounded-lg hover:bg-emerald-deep text-sm inline-flex items-center gap-1">
                 <RefreshCw className="w-4 h-4" /> Refresh
               </button>
             </div>
@@ -115,7 +115,7 @@ export default function SpellingDuePage() {
             <LanguageScopeTabs langs={langs} lang={lang} setLang={setLang} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               {activitiesForLanguage(ACTIVITIES, lang).map((a) => (
-                <button key={a.key} onClick={() => setActivity(a.key)} className="py-3 px-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 text-sm font-medium">
+                <button key={a.key} onClick={() => setActivity(a.key)} className="py-3 px-2 bg-emerald text-white rounded-lg hover:bg-emerald-deep text-sm font-medium">
                   {activityCopy(a, lang).label}
                 </button>
               ))}
@@ -131,7 +131,7 @@ export default function SpellingDuePage() {
                     {w.mastered ? (
                       <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded text-xs font-medium">mastered</span>
                     ) : w.misses > 0 ? (
-                      <span className="px-2 py-0.5 bg-rose-50 text-rose-600 rounded text-xs font-medium">missed {w.misses}×</span>
+                      <span className="px-2 py-0.5 bg-danger-tint text-danger rounded text-xs font-medium">missed {w.misses}×</span>
                     ) : (
                       <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-xs font-medium">learning</span>
                     )}
