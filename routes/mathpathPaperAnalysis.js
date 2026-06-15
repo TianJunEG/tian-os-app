@@ -1,5 +1,4 @@
 import express from 'express';
-import fs from 'fs/promises';
 import multer from 'multer';
 import path from 'path';
 import { protect } from '../middleware/auth.js';
@@ -24,9 +23,9 @@ import {
   getStudentAssignments,
 } from '../services/mathpath/mathPathAssignmentService.js';
 import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
+import { putUpload } from '../services/storage/objectStore.js';
 
 const router = express.Router();
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-paper-analysis');
 
 // Enqueue the analysis pipeline for the background worker. Returns true when the
 // job was queued; false when the queue is disabled/unavailable so the caller falls
@@ -100,16 +99,16 @@ async function resolvePaperAnalysisStudent(req, explicitId) {
 }
 
 async function saveUpload(file) {
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
   const ext = path.extname(file.originalname || '') || '.bin';
   const filename = `paper_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`;
-  const diskPath = path.join(UPLOAD_DIR, filename);
-  await fs.writeFile(diskPath, file.buffer);
-  return {
-    originalFilename: file.originalname || filename,
-    storageKey: diskPath,
-    fileUrl: `/uploads/mathpath-paper-analysis/${filename}`,
-  };
+  // Writes to R2 when configured (so the worker can read it), else local disk.
+  const saved = await putUpload({
+    namespace: 'mathpath-paper-analysis',
+    filename,
+    buffer: file.buffer,
+    contentType: file.mimetype,
+  });
+  return { originalFilename: file.originalname || filename, ...saved };
 }
 
 function normalizeDetectedQuestions(rawQuestions = []) {

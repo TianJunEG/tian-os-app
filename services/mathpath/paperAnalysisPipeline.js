@@ -1,5 +1,5 @@
-import fs from 'fs/promises';
 import PaperAnalysis from '../../models/mathpath/PaperAnalysis.js';
+import { getUploadBuffer } from '../storage/objectStore.js';
 import { extractTextFromPaper } from './ocrService.js';
 import { segmentQuestionsFromOcrPages } from './questionSegmentationService.js';
 import { mapPaperQuestionToSkillsWithAi } from './paperAnalysisSkillMapper.js';
@@ -79,11 +79,9 @@ function analysisWarnings({ ocrPages = [], detectedQuestions = [] } = {}) {
 
 async function readBufferFromAnalysis(analysis) {
   if (!analysis?.storageKey) return null;
-  try {
-    return await fs.readFile(analysis.storageKey);
-  } catch {
-    return null;
-  }
+  // Reads from R2 or disk per the stored provider, so a separate worker can read
+  // an upload it never received (R2) while local/legacy disk rows still work.
+  return getUploadBuffer({ storageKey: analysis.storageKey, storageProvider: analysis.storageProvider });
 }
 
 export async function runPaperAnalysisPipeline({
