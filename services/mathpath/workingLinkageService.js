@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import logger from '../../config/logger.js';
 import Mistake from '../../models/Mistake.js';
 import Student from '../../models/Student.js';
 import MathPathWorkingIntelligence from '../../models/mathpath/MathPathWorkingIntelligence.js';
@@ -55,11 +56,10 @@ export async function findWorkingInsightForMistake(mistake = {}, studentId = '')
   if (direct.query) {
     const record = await MathPathWorkingIntelligence.findOne(direct.query).sort({ updatedAt: -1 }).lean();
     if (record) {
-      console.info('[working-linkage] working_link_created', {
-        strategy: direct.strategy,
+      logger.info({
+        event: 'working_link_created', strategy: direct.strategy,
         mistakeId: normalizeLinkId(mistake._id || mistake.id || mistake.mistakeId),
-        workingId: record.workingId,
-        attemptId: record.attemptId || '',
+        workingId: record.workingId, attemptId: record.attemptId || '',
       });
       return record;
     }
@@ -67,8 +67,8 @@ export async function findWorkingInsightForMistake(mistake = {}, studentId = '')
 
   const legacy = legacyWorkingLookupForMistake(mistake, studentId);
   if (!legacy) {
-    console.warn('[working-linkage] working_link_missing', {
-      reason: 'no_direct_or_legacy_keys',
+    logger.warn({
+      event: 'working_link_missing', reason: 'no_direct_or_legacy_keys',
       mistakeId: normalizeLinkId(mistake._id || mistake.id || mistake.mistakeId),
     });
     return null;
@@ -81,20 +81,18 @@ export async function findWorkingInsightForMistake(mistake = {}, studentId = '')
     studentId: { $in: studentIds.length ? studentIds : [legacy.studentId] },
   }).sort({ updatedAt: -1 }).lean();
   if (!record) {
-    console.warn('[working-linkage] working_link_missing', {
-      reason: 'legacy_lookup_empty',
+    logger.warn({
+      event: 'working_link_missing', reason: 'legacy_lookup_empty',
       mistakeId: normalizeLinkId(mistake._id || mistake.id || mistake.mistakeId),
-      questionId: legacy.questionId,
-      sessionId: legacy.sessionId || '',
+      questionId: legacy.questionId, sessionId: legacy.sessionId || '',
     });
     return null;
   }
 
-  console.warn('[working-linkage] working_link_created', {
-    strategy: 'legacy_student_question_session',
+  logger.info({
+    event: 'working_link_created', strategy: 'legacy_student_question_session',
     mistakeId: normalizeLinkId(mistake._id || mistake.id || mistake.mistakeId),
-    workingId: record.workingId,
-    attemptId: record.attemptId || '',
+    workingId: record.workingId, attemptId: record.attemptId || '',
   });
   return record;
 }
@@ -145,9 +143,8 @@ export async function linkWorkingInsightToMistake(record = {}) {
   }
 
   if (!mistake) {
-    console.warn('[working-linkage] mistake_link_missing', {
-      workingId,
-      attemptId,
+    logger.warn({
+      event: 'mistake_link_missing', workingId, attemptId,
       questionId: normalizeLinkId(record.questionId),
       sessionId: normalizeLinkId(record.sessionId || record.practiceSessionId || record.assessmentSessionId || record.workingSessionId),
     });
@@ -178,11 +175,9 @@ export async function linkWorkingInsightToMistake(record = {}) {
     );
   }
 
-  console.info('[working-linkage] mistake_link_created', {
-    strategy,
-    mistakeId: String(mistake._id),
-    workingId,
-    attemptId: attemptId || mistake.attemptId || '',
+  logger.info({
+    event: 'mistake_link_created', strategy,
+    mistakeId: String(mistake._id), workingId, attemptId: attemptId || mistake.attemptId || '',
   });
 
   return mistake;

@@ -82,7 +82,9 @@
     "openai": "^6.39.0",
     "pdf-parse": "^2.4.5",
     "pg": "^8.16.3",
-    "stripe": "^11.11.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "stripe": "^22.2.1",
     "tesseract.js": "^7.0.0",
     "validator": "^13.9.0"
   },

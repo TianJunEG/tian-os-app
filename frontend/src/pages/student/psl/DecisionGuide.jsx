@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Lightbulb, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
+import MascotAvatar from '../../../components/MascotAvatar';
 
 const QUESTIONS = [
   {
@@ -190,6 +191,7 @@ export default function DecisionGuide() {
           >
             <ArrowLeft className="h-4 w-4" style={{ color: '#5a6675' }} />
           </button>
+          <MascotAvatar name="lejo" size="sm" showRing={false} />
           <div>
             <h1 className="text-lg font-bold sm:text-xl" style={{ color: '#232c39' }}>Which heuristic fits?</h1>
             <p className="text-sm" style={{ color: '#6b7585' }}>Answer yes or no to find out</p>

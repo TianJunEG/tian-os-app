@@ -13,6 +13,7 @@ import {
 import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   applyAdultReviewOverrides,
+  resumeFromOcrConfirmation,
   runPaperAnalysisPipeline,
 } from '../services/mathpath/paperAnalysisPipeline.js';
 import {
@@ -264,6 +265,64 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
     return res.json({ analysis });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load paper analysis.' });
+  }
+}));
+
+// POST /:id/confirm-ocr
+// Parent/tutor submits corrections for uncertain OCR fields. Applies them to
+// detectedQuestions, sets status to questions_confirmed, then resumes the pipeline
+// (via queue or inline) to run skill mapping on the corrected data.
+router.post('/:id/confirm-ocr', protect, asyncHandler(async (req, res) => {
+  try {
+    assertAdultUploader(req);
+    const analysis = await PaperAnalysis.findById(req.params.id);
+    if (!analysis) return res.status(404).json({ error: 'Paper analysis not found.' });
+    if (analysis.status !== 'needs_ocr_confirmation') {
+      return res.status(409).json({ error: `Analysis is not awaiting OCR confirmation (status: ${analysis.status}).` });
+    }
+    await resolvePaperAnalysisStudent(req, analysis.studentId);
+
+    // Apply corrections — only provided fields are overwritten.
+    const corrections = Array.isArray(req.body?.corrections) ? req.body.corrections : [];
+    if (corrections.length) {
+      analysis.detectedQuestions = analysis.detectedQuestions.map((q) => {
+        const c = corrections.find((x) => x.questionNumber === q.questionNumber);
+        if (!c) return q;
+        const updated = q.toObject ? q.toObject() : { ...q };
+        if (c.questionText !== undefined) updated.questionText = String(c.questionText);
+        if (c.studentAnswer !== undefined) updated.studentAnswer = String(c.studentAnswer);
+        if (c.teacherMarkedCorrect !== undefined) updated.teacherMarkedCorrect = Boolean(c.teacherMarkedCorrect);
+        if (c.teacherMark !== undefined) updated.teacherMark = String(c.teacherMark);
+        updated.humanCorrected = true;
+        updated.needsAdultReview = true; // still needs the normal adult review after skill mapping
+        return updated;
+      });
+    }
+
+    analysis.status = 'questions_confirmed';
+    analysis.pipelineLog.push({
+      stage: 'questions_confirmed',
+      message: 'OCR corrections applied by adult.',
+      metadata: { correctionCount: corrections.length },
+      at: new Date(),
+    });
+    await analysis.save();
+
+    // Resume skill mapping via queue (async) or inline (sync fallback).
+    if (isQueueEnabled()) {
+      const queue = getQueue(QUEUE_NAMES.paperAnalysis);
+      if (queue) {
+        await queue.add('resume', {
+          analysisId: String(analysis._id),
+          resumeFrom: 'questions_confirmed',
+        });
+        return res.status(202).json({ queued: true, analysis: { _id: analysis._id, status: analysis.status } });
+      }
+    }
+    const result = await resumeFromOcrConfirmation(String(analysis._id));
+    return res.json({ queued: false, analysis: result });
+  } catch (err) {
+    return res.status(err.status || 500).json({ error: err.message || 'Could not apply OCR corrections.' });
   }
 }));
 

@@ -71,6 +71,7 @@ import {
   resolveWorkingRequirementLevel,
 } from '../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from './components/SubmissionReviewModal';
+import MascotAvatar from '../../../components/MascotAvatar';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -1835,9 +1836,12 @@ export default function PracticeSession() {
 
   return (
     <div className={`mx-auto max-w-7xl ${visualStyles.page}`}>
-      <div className="mb-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 text-sm text-ink-700 shadow-resting">
-        <p className="font-semibold">{sessionMeta.label}</p>
-        <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
+      <div className="mb-3 flex items-center gap-3 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 text-sm text-ink-700 shadow-resting">
+        <MascotAvatar name="kylo" size="sm" showRing={false} />
+        <div>
+          <p className="font-semibold">{sessionMeta.label}</p>
+          <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
+        </div>
       </div>
       <div className="mb-2 flex items-center justify-between text-sm text-ink-500">
         <span className="font-mono tabular-nums">Question {idx + 1} of {questions.length}</span>

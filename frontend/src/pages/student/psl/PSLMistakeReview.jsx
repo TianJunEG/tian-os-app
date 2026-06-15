@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, Brain, ChevronDown, ChevronRight, RotateCcw } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, RotateCcw } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import MISCONCEPTIONS, { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
+import MascotAvatar from '../../../components/MascotAvatar';
 
 const TAG_TO_HEURISTIC = {
   'psl/missed-ratio': 'ratio', 'psl/missed-ratio-term': 'ratio',
@@ -95,9 +96,7 @@ export default function PSLMistakeReview() {
 
           {mistakes.length === 0 ? (
             <div className="flex flex-col items-center gap-4 py-16 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl" style={{ background: '#fbf1e1' }}>
-                <Brain className="h-8 w-8" style={{ color: '#d9892e' }} />
-              </div>
+              <MascotAvatar name="lejo" size="lg" showRing={false} />
               <div>
                 <p className="text-base font-semibold" style={{ color: '#232c39' }}>No mistakes yet!</p>
                 <p className="mt-1 text-sm" style={{ color: '#6b7585' }}>

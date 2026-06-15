@@ -84,6 +84,37 @@ async function readBufferFromAnalysis(analysis) {
   return getUploadBuffer({ storageKey: analysis.storageKey, storageProvider: analysis.storageProvider });
 }
 
+// Runs skill mapping + misconception detection on the questions already stored on
+// `analysis`, then advances status to skills_mapped → needs_review. Mutates the
+// analysis document and saves; does NOT re-throw (callers handle errors).
+async function runSkillMappingPhase(analysis) {
+  const enriched = await Promise.all(analysis.detectedQuestions.map(mergeQuestionAnalysis));
+  analysis.detectedQuestions = enriched;
+  if (enriched.length) {
+    analysis.status = 'skills_mapped';
+    analysis.pipelineLog.push(log('skills_mapped', 'Question skill mapping completed.', {
+      mappedQuestions: enriched.filter((q) => (q.detectedSkillIds || []).length).length,
+      lowConfidenceMappings: enriched.filter((q) => Number(q.skillMappingConfidence || 0) < 0.7).length,
+    }));
+    await analysis.save();
+  }
+  const recommendation = buildReviewRecommendations(analysis);
+  analysis.reportSummary = recommendation.report;
+  analysis.recommendedActions = recommendation.recommendedActions;
+  analysis.weakSkillIds = recommendation.report.weakSkills || [];
+  analysis.extractionSummary = {
+    ocrPageCount: analysis.ocrPages.length,
+    detectedQuestionCount: enriched.length,
+    lowConfidencePageCount: analysis.ocrPages.filter((p) => p.needsReview).length,
+    lowConfidenceQuestionCount: enriched.filter((q) => q.needsAdultReview).length,
+    adultReviewRequired: true,
+  };
+  analysis.dataQualityWarnings = analysisWarnings({ ocrPages: analysis.ocrPages, detectedQuestions: enriched });
+  analysis.status = 'needs_review';
+  analysis.pipelineLog.push(log('needs_review', 'Analysis prepared for adult review.', analysis.extractionSummary));
+  await analysis.save();
+}
+
 export async function runPaperAnalysisPipeline({
   analysisId,
   fileBuffer = null,
@@ -124,38 +155,30 @@ export async function runPaperAnalysisPipeline({
     await analysis.save();
 
     const segmented = segmentQuestionsFromOcrPages(analysis.ocrPages);
-    const detectedQuestions = await Promise.all(segmented.map(mergeQuestionAnalysis));
-    analysis.detectedQuestions = detectedQuestions;
-    analysis.status = detectedQuestions.length ? 'questions_detected' : 'needs_review';
+
+    // Store raw segmented questions before skill mapping so the confirmation UI
+    // can show them if OCR quality is uncertain.
+    analysis.detectedQuestions = segmented;
+    analysis.status = 'questions_detected';
     analysis.pipelineLog.push(log('questions_detected', 'Question segmentation completed.', {
-      detectedQuestions: detectedQuestions.length,
+      detectedQuestions: segmented.length,
     }));
     await analysis.save();
 
-    if (detectedQuestions.length) {
-      analysis.status = 'skills_mapped';
-      analysis.pipelineLog.push(log('skills_mapped', 'Question skill mapping completed.', {
-        mappedQuestions: detectedQuestions.filter((question) => (question.detectedSkillIds || []).length).length,
-        lowConfidenceMappings: detectedQuestions.filter((question) => Number(question.skillMappingConfidence || 0) < 0.7).length,
+    // Pause for parent/tutor OCR confirmation when the OCR output is uncertain.
+    const lowConfidencePage = analysis.ocrPages.some((p) => p.needsReview);
+    const uncertainQuestion = segmented.some((q) => q.needsAdultReview || !q.studentAnswer || !q.questionText);
+    if (segmented.length > 0 && (lowConfidencePage || uncertainQuestion)) {
+      analysis.status = 'needs_ocr_confirmation';
+      analysis.pipelineLog.push(log('needs_ocr_confirmation', 'OCR review required before skill analysis.', {
+        lowConfidencePages: analysis.ocrPages.filter((p) => p.needsReview).length,
+        questionsNeedingReview: segmented.filter((q) => q.needsAdultReview || !q.studentAnswer || !q.questionText).length,
       }));
       await analysis.save();
+      return analysis; // pipeline pauses here — resumes via confirm-ocr endpoint
     }
 
-    const recommendation = buildReviewRecommendations(analysis);
-    analysis.reportSummary = recommendation.report;
-    analysis.recommendedActions = recommendation.recommendedActions;
-    analysis.weakSkillIds = recommendation.report.weakSkills || [];
-    analysis.extractionSummary = {
-      ocrPageCount: analysis.ocrPages.length,
-      detectedQuestionCount: detectedQuestions.length,
-      lowConfidencePageCount: analysis.ocrPages.filter((page) => page.needsReview).length,
-      lowConfidenceQuestionCount: detectedQuestions.filter((question) => question.needsAdultReview).length,
-      adultReviewRequired: true,
-    };
-    analysis.dataQualityWarnings = analysisWarnings({ ocrPages: analysis.ocrPages, detectedQuestions });
-    analysis.status = 'needs_review';
-    analysis.pipelineLog.push(log('needs_review', 'Analysis prepared for adult review.', analysis.extractionSummary));
-    await analysis.save();
+    await runSkillMappingPhase(analysis);
     return analysis;
   } catch (err) {
     analysis.status = 'failed';
@@ -164,6 +187,31 @@ export async function runPaperAnalysisPipeline({
       ...(analysis.extractionSummary || {}),
       error: err.message || 'Paper analysis pipeline failed.',
     };
+    await analysis.save();
+    throw err;
+  }
+}
+
+// Resume point after parent/tutor OCR confirmation. Loads the analysis, validates
+// its status, then runs skill mapping → needs_review.
+export async function resumeFromOcrConfirmation(analysisId) {
+  const analysis = await PaperAnalysis.findById(analysisId);
+  if (!analysis) {
+    const err = new Error('Paper analysis not found.');
+    err.status = 404;
+    throw err;
+  }
+  if (analysis.status !== 'questions_confirmed') {
+    const err = new Error(`Cannot resume: expected questions_confirmed, got ${analysis.status}.`);
+    err.status = 409;
+    throw err;
+  }
+  try {
+    await runSkillMappingPhase(analysis);
+    return analysis;
+  } catch (err) {
+    analysis.status = 'failed';
+    analysis.pipelineLog.push(log('failed', err.message || 'Skill mapping failed after OCR confirmation.'));
     await analysis.save();
     throw err;
   }
@@ -182,6 +230,7 @@ export function buildReportForAnalysis(analysis = {}) {
 
 export default {
   runPaperAnalysisPipeline,
+  resumeFromOcrConfirmation,
   applyAdultReviewOverrides,
   buildReportForAnalysis,
 };

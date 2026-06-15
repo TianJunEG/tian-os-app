@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const findByIdMock = vi.fn();
 const extractTextMock = vi.fn();
+const segmentMock = vi.fn();
 
 vi.mock('../models/mathpath/PaperAnalysis.js', () => ({
   default: { findById: (...args) => findByIdMock(...args) },
@@ -9,6 +10,10 @@ vi.mock('../models/mathpath/PaperAnalysis.js', () => ({
 
 vi.mock('../services/mathpath/ocrService.js', () => ({
   extractTextFromPaper: (...args) => extractTextMock(...args),
+}));
+
+vi.mock('../services/mathpath/questionSegmentationService.js', () => ({
+  segmentQuestionsFromOcrPages: (...args) => segmentMock(...args),
 }));
 
 const { runPaperAnalysisPipeline } = await import('../services/mathpath/paperAnalysisPipeline.js');
@@ -43,6 +48,20 @@ describe('paperAnalysisPipeline', () => {
         needsReview: false,
       }],
     });
+    // Return a well-formed question so the pipeline doesn't pause for OCR confirmation.
+    // needsAdultReview is set to true later by mergeQuestionAnalysis (teacherMarkedCorrect !== null).
+    segmentMock.mockReturnValueOnce([{
+      questionNumber: '1',
+      questionText: 'Add 1/2 and 1/3 [2 marks]',
+      studentAnswer: '2/5',
+      teacherMarkedCorrect: false,
+      teacherMark: 'wrong',
+      teacherMarkConfidence: 0.7,
+      needsAdultReview: false,
+      confidence: 0.82,
+      marks: 2,
+      dataQualityWarnings: [],
+    }]);
 
     const result = await runPaperAnalysisPipeline({
       analysisId: 'analysis_1',

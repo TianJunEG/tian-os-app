@@ -1,4 +1,5 @@
 import LearningTelemetryEvent, { LEARNING_EVENT_TYPES } from '../../models/LearningTelemetryEvent.js';
+import logger from '../../config/logger.js';
 
 export const CONFIDENCE = Object.freeze({
   I_KNOW_THIS: 'I_KNOW_THIS',
@@ -57,7 +58,7 @@ export async function recordLearningEvent(event = {}) {
       metadata: cleanMetadata(event.metadata || {}),
     });
   } catch (err) {
-    console.warn('[learning-telemetry] event write failed:', err.message);
+    logger.warn({ err: err.message }, 'learning-telemetry event write failed');
     return null;
   }
 }
@@ -80,7 +81,7 @@ export async function recordLearningEvents(events = []) {
   try {
     return await LearningTelemetryEvent.insertMany(docs, { ordered: false });
   } catch (err) {
-    console.warn('[learning-telemetry] event batch write failed:', err.message);
+    logger.warn({ err: err.message }, 'learning-telemetry event batch write failed');
     return [];
   }
 }

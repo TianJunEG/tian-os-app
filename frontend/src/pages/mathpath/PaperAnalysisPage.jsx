@@ -178,6 +178,50 @@ export default function PaperAnalysisPage() {
     });
   };
 
+  const pollUntilReady = async (id) => {
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      const res = await mathpathAPI.paperAnalysis(id);
+      const a = res.data.analysis;
+      if (a?.status === 'needs_review' || a?.status === 'reviewed' || a?.status === 'failed') {
+        setAnalysis(a);
+        return;
+      }
+    }
+    setMessage('Still processing — refresh the page in a moment.');
+  };
+
+  const confirmOcr = async () => {
+    if (!analysis?._id) return;
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const corrections = (analysis.detectedQuestions || [])
+        .filter((q) => q.needsAdultReview || !q.studentAnswer || !q.questionText)
+        .map((q) => ({
+          questionNumber: q.questionNumber,
+          questionText: q.questionText,
+          studentAnswer: q.studentAnswer,
+          teacherMarkedCorrect: q.teacherMarkedCorrect,
+          teacherMark: q.teacherMark,
+        }));
+      const { data } = await mathpathAPI.confirmOcrAnalysis(analysis._id, { corrections });
+      if (data.queued) {
+        setAnalysis(data.analysis);
+        setMessage('Corrections saved — running skill analysis…');
+        await pollUntilReady(analysis._id);
+      } else {
+        setAnalysis(data.analysis);
+        setMessage('Analysis complete.');
+      }
+    } catch (e) {
+      setError(e?.response?.data?.error || e.message || 'Could not submit corrections.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
@@ -282,7 +326,75 @@ export default function PaperAnalysisPage() {
                 OCR pages: {analysis.ocrPages.length}. Low-confidence pages require review: {analysis.ocrPages.filter((page) => page.needsReview).length}.
               </div>
             )}
-            {!!analysis.detectedQuestions?.length && (
+
+            {/* ── OCR Confirmation Panel ───────────────────────────────────── */}
+            {analysis.status === 'needs_ocr_confirmation' && (
+              <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
+                <p className="text-sm font-semibold text-amber-800">
+                  Some parts of the paper weren't fully clear — please check these questions before we continue the analysis.
+                </p>
+                <p className="mt-1 text-xs text-amber-700">
+                  Only questions marked below need your attention. You can leave fields blank if you can't read them.
+                </p>
+                <div className="mt-4 space-y-4">
+                  {(analysis.detectedQuestions || [])
+                    .map((q, index) => ({ q, index }))
+                    .filter(({ q }) => q.needsAdultReview || !q.studentAnswer || !q.questionText)
+                    .map(({ q, index }) => (
+                      <div key={`ocr-${q.questionNumber}-${index}`} className="rounded-xl border border-amber-200 bg-white p-3">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-amber-700">
+                          Question {q.questionNumber || index + 1}
+                          {q.humanCorrected && <span className="ml-2 text-emerald-600">✓ corrected</span>}
+                        </p>
+                        <label className="block text-xs text-ink-600">
+                          Question text
+                          <input
+                            className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                            value={q.questionText || ''}
+                            onChange={(e) => updateQuestion(index, { questionText: e.target.value })}
+                            placeholder="What does the question say?"
+                          />
+                        </label>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                          <label className="block text-xs text-ink-600">
+                            Student&apos;s answer
+                            <input
+                              className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                              value={q.studentAnswer || ''}
+                              onChange={(e) => updateQuestion(index, { studentAnswer: e.target.value })}
+                              placeholder="What did the student write?"
+                            />
+                          </label>
+                          <label className="block text-xs text-ink-600">
+                            Teacher&apos;s mark
+                            <select
+                              className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                              value={q.teacherMarkedCorrect === true ? 'correct' : q.teacherMarkedCorrect === false ? 'wrong' : ''}
+                              onChange={(e) => updateQuestion(index, {
+                                teacherMarkedCorrect: e.target.value === 'correct' ? true : e.target.value === 'wrong' ? false : null,
+                                teacherMark: e.target.value === 'correct' ? '✓' : e.target.value === 'wrong' ? '✗' : '',
+                              })}
+                            >
+                              <option value="">Unknown / not marked</option>
+                              <option value="correct">✓ Correct</option>
+                              <option value="wrong">✗ Wrong</option>
+                            </select>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+                <Button
+                  className="mt-4 bg-amber-500 text-white hover:bg-amber-600"
+                  onClick={confirmOcr}
+                  disabled={loading}
+                >
+                  {loading ? 'Saving…' : 'Confirm and continue analysis'}
+                </Button>
+              </div>
+            )}
+
+            {analysis.status !== 'needs_ocr_confirmation' && !!analysis.detectedQuestions?.length && (
               <div className="mt-4 space-y-3">
                 <p className="text-sm font-semibold text-ink-700">Detected questions for adult review</p>
                 {analysis.detectedQuestions.map((question, index) => (

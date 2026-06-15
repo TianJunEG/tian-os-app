@@ -5,6 +5,8 @@
 //
 // Required env to enable: WHATSAPP_API_URL, WHATSAPP_API_TOKEN.
 
+import logger from '../../config/logger.js';
+
 export function isWhatsAppConfigured() {
   return Boolean(process.env.WHATSAPP_API_URL && process.env.WHATSAPP_API_TOKEN);
 }
@@ -37,7 +39,7 @@ export async function sendWhatsApp({ to, title, body }) {
     });
     return res.ok;
   } catch (err) {
-    console.warn('WhatsApp send failed:', err.message);
+    logger.warn({ err: err.message }, 'WhatsApp send failed');
     return false;
   }
 }
