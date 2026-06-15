@@ -458,6 +458,12 @@ export default function MathPathHome() {
             <p className="mt-1 flex-1 text-sm text-ink-500">See your readiness across all fractions skills.</p>
             <Button to="/student/mathpath/path" variant="secondary" className="mt-4 w-full border-mint-200 bg-white/80 text-success-700 hover:bg-mint-50">Explore</Button>
           </Card>
+          <Card className="flex h-full flex-col border-mint-100 bg-gradient-to-br from-mint-50 via-white to-sky-50 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-mint-100 text-success-700"><Layers className="h-6 w-6" /></span>
+            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Decimals</h3>
+            <p className="mt-1 flex-1 text-sm text-ink-500">Explore the decimals skill map (P4–P6).</p>
+            <Button to="/student/mathpath/decimals" variant="secondary" className="mt-4 w-full border-mint-200 bg-white/80 text-success-700 hover:bg-mint-50">Explore Decimals</Button>
+          </Card>
           <Card className="flex h-full flex-col border-pink-100 bg-gradient-to-br from-pink-50 via-white to-orange-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-pink-100 text-pink-700"><Camera className="h-6 w-6" /></span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Upload Test Paper</h3>

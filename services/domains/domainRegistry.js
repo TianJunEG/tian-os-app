@@ -157,6 +157,45 @@ export function registerDefaultDomains() {
       notes: 'Skill graph is supplied by MathPath/Fractions diagnostic domain metadata.',
     },
   });
+
+  // MathPath Decimals — second math domain (P4→P6). Content, progression, and a
+  // persisted practice loop are live; the adaptive diagnostic domain is
+  // registered and engine-validated (`engine_ready`) with its DB session runtime
+  // + UI still pending; the remaining platform adapters are `planned`.
+  registerDomain({
+    subjectId: 'math',
+    domainId: 'decimals',
+    displayName: 'MathPath Decimals',
+    domainVersion: 'decimals-v0.1',
+    diagnosticAdapter: {
+      enabled: true,
+      status: 'engine_ready',
+      notes: 'DB-free diagnostic domain registered + adaptive-engine validated; session runtime + UI wiring pending.',
+      provider: diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' }),
+    },
+    assignmentAdapter: { enabled: false, status: 'planned', notes: 'Will reuse the MathPath assignment service once diagnostics land.' },
+    worksheetAdapter: { enabled: false, status: 'planned' },
+    paperAnalysisAdapter: { enabled: false, status: 'planned' },
+    interventionAdapter: { enabled: false, status: 'planned' },
+    // Custom capability beyond the five platform adapters: the runnable content
+    // + progression layer shipped in increments 1–2.
+    practiceAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Rule-based question generator + prerequisite-gated practice/progression engine.',
+      serviceModule: 'shared/mathpath/decimals/decimalsPracticeEngine.js',
+    },
+    fluencyAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Timed fluency drills scored into bronze→platinum bands; persists fluencyLevel.',
+      serviceModule: 'services/mathpath/decimalsFluencyService.js',
+    },
+    skillGraphAdapter: {
+      status: 'available',
+      notes: '14-skill Decimals graph (D001–D014) in shared/mathpath/decimals/decimalsSkillGraph.js.',
+    },
+  });
 }
 
 registerDefaultDomains();
