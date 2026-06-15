@@ -53,7 +53,7 @@ import {
   getMathPathDomainProgressState,
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
-import { isFractionsStoryModeEnabled } from '../../../config/featureFlags';
+import { isFractionsStoryModeEnabled, FEATURE_FLAGS } from '../../../config/featureFlags';
 import FractionsStoryModeSession from './FractionsStoryModeSession';
 import { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
 import QuestionDiagram, {
@@ -71,7 +71,7 @@ import {
   resolveWorkingRequirementLevel,
 } from '../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from './components/SubmissionReviewModal';
-import MascotAvatar from '../../../components/MascotAvatar';
+import MascotAvatar, { MascotBubble } from '../../../components/MascotAvatar';
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this' },
@@ -79,6 +79,63 @@ const REFLECTION_OPTIONS = [
   { value: 'dont_know', label: "I don't know" },
   { value: 'i_need_help', label: 'I need help' },
 ];
+
+// Self-explanation prompt (metacognition): after a correct answer the mascot
+// asks "why did that work?" and the student taps a strategy. Explaining your
+// reasoning is one of the strongest learning effects. Generic chips so it works
+// across skills; the choice is logged as telemetry for later analysis.
+const SELF_EXPLANATION_OPTIONS = [
+  { value: 'step_by_step', label: 'I worked it out step by step' },
+  { value: 'used_model', label: 'I used a picture or model' },
+  { value: 'spotted_pattern', label: 'I spotted a pattern' },
+  { value: 'checked_answer', label: 'I checked my answer' },
+  { value: 'just_knew', label: 'I just knew it' },
+];
+
+function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'kylo' }) {
+  const [chosen, setChosen] = useState(null);
+  const choose = (value) => {
+    setChosen(value);
+    if (value === 'skipped') return;
+    learningTelemetryAPI.recordEvent({
+      eventType: 'self_explanation',
+      skillId: skillId || '',
+      questionId: questionId || '',
+      sessionId: sessionId || '',
+      reason: value,
+    }).catch(() => { /* non-blocking */ });
+  };
+  return (
+    <div className="mt-3 rounded-xl border border-violet-200 bg-violet-50 p-3">
+      <MascotBubble
+        name={mascotKey}
+        size="sm"
+        message={chosen && chosen !== 'skipped' ? 'Thanks — explaining it helps it stick! 🧠' : 'Nice! Why did that work?'}
+      />
+      {!chosen && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {SELF_EXPLANATION_OPTIONS.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => choose(o.value)}
+              className="rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-100"
+            >
+              {o.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => choose('skipped')}
+            className="rounded-full px-3 py-1.5 text-xs font-medium text-ink-400 hover:text-ink-600"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function calibrationFromReflection(correct, reflection) {
   if (correct && reflection === 'i_know_this') return 'mastery_signal';
@@ -906,6 +963,14 @@ function LegacyPracticeSession() {
           <div className="mt-3">
             <AnswerFeedbackCard feedback={result} correctAnswer={result.correctAnswer || q.answer?.display || null} />
           </div>
+        )}
+        {FEATURE_FLAGS.selfExplanation && result?.correct && (
+          <SelfExplanationPrompt
+            key={q.questionId}
+            skillId={q.skillId}
+            questionId={q.questionId}
+            sessionId={sessionId}
+          />
         )}
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
         <div className="mt-auto pt-4">{!result ? <Button size="l" disabled={busy || !answer} onClick={openReviewModal} className="w-full">Submit answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>

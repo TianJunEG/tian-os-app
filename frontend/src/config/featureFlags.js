@@ -19,6 +19,10 @@ export const FEATURE_FLAGS = {
   fluency: FLUENCY_ENABLED,
   mistakes: true,
   progress: true,
+  // Metacognition: prompt students to explain why a correct answer worked
+  // (self-explanation effect). Prototype — default off; enable with
+  // VITE_ENABLE_SELF_EXPLANATION=true.
+  selfExplanation: flagEnabled('SELF_EXPLANATION', false),
   assessments: ASSESSMENTS_ENABLED,
   modelTrainer: MODEL_TRAINER_ENABLED,
   workingMathInserts: WORKING_MATH_INSERTS_ENABLED,
