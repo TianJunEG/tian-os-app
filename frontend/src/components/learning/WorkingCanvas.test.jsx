@@ -35,7 +35,7 @@ describe('WorkingCanvas', () => {
     expect(screen.getByRole('button', { name: 'Eraser' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
-    expect(screen.getByText('Submit workings')).toBeInTheDocument();
+    expect(screen.getByText('Save working')).toBeInTheDocument();
   });
 
   it('submits stroke data and an image', () => {
@@ -46,7 +46,7 @@ describe('WorkingCanvas', () => {
     fireEvent.pointerDown(canvas, { clientX: 10, clientY: 10 });
     fireEvent.pointerMove(canvas, { clientX: 80, clientY: 80 });
     fireEvent.pointerUp(canvas);
-    fireEvent.click(screen.getByText('Submit workings'));
+    fireEvent.click(screen.getByText('Save working'));
 
     expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
       workingImage: expect.stringContaining('data:image/png'),
@@ -98,7 +98,7 @@ describe('WorkingCanvas', () => {
 
     expect(canvasContext.clearRect).toHaveBeenCalled();
     expect(screen.getByText('Optional')).toBeInTheDocument();
-    expect(screen.getByText('Submit workings')).toBeDisabled();
+    expect(screen.getByText('Save working')).toBeDisabled();
   });
 
   it('loads the saved strokes for the current question when returning to it', () => {
