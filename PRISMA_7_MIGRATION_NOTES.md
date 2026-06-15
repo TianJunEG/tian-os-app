@@ -1,75 +1,69 @@
-# Prisma 7 migration — DRAFT / NOT MERGEABLE YET
+# Prisma 7 migration — implemented (option 1: esbuild bundle)
 
-This branch drafts the Prisma 5/6 → **7** migration. The Prisma-layer changes
-are done and `prisma generate` succeeds, but there is **one open architectural
-decision that blocks completion** (see "Blocker" below). Do not merge until that
-is resolved and the runtime is validated against a real Postgres.
+The Prisma 5/6 → **7** migration is implemented end-to-end at the code/build
+level. The earlier blocker (the v7 generator emits TypeScript-only client source,
+and this backend runs raw ESM JS with no build step) is resolved by **option 1**:
+bundle the generated client to JS with esbuild.
 
-## What's done (unambiguous v7 changes)
+**Still required before production use:** validate real queries against a
+**staging Postgres** (there is no Prisma test coverage and no local DB, so only
+generate/bundle/import/construct are verified here — not live queries).
+
+## What changed
 
 - **`prisma` + `@prisma/client` → 7.8.0**, added **`@prisma/adapter-pg` 7.8.0**
-  (`pg` was already a dependency).
+  and **`esbuild`** (devDep). `pg` was already present.
 - **`prisma/schema.prisma`**
   - Generator: `prisma-client-js` → **`prisma-client`** with required
-    `output = "../generated/prisma"`, plus `runtime = "nodejs"` /
-    `moduleFormat = "esm"`.
-  - Datasource: `url` / `directUrl` removed — only `provider` is allowed in v7.
+    `output = "../generated/prisma"`, `runtime = "nodejs"`, `moduleFormat = "esm"`.
+  - Datasource reduced to **`provider` only** (v7 disallows `url`/`directUrl`).
 - **`prisma.config.mjs`** (new) — holds the connection config the schema used to
   carry (`DATABASE_URL` / `DATABASE_DIRECT_URL`), loaded via `dotenv`. Used by the
-  CLI (generate / migrate / studio). `.mjs` so it works in this plain-ESM project.
-- **`.gitignore`** — ignores `generated/` (the client is produced by
-  `prisma generate`, not committed).
-- `prisma generate` → **succeeds**, emitting the client to `generated/prisma`.
+  CLI (generate / migrate / studio).
+- **`package.json` → `postgres:prisma:generate`** now runs
+  `prisma generate` **then** bundles the TS client to `generated/prisma/client.js`
+  with esbuild (`--packages=external` keeps `@prisma/client/runtime` external).
+- **`services/db/prismaClient.js`** — imports the bundled client and connects
+  through the **`PrismaPg`** driver adapter (`DATABASE_URL`).
+- **`.gitignore`** — ignores `generated/` (built by `prisma generate`, not committed).
 
-## Blocker — the generated client is TypeScript; this backend has no build step
+## How the build works
 
-The v7 `prisma-client` generator emits **TypeScript source only** (`client.ts`,
-`enums.ts`, … — no `.js`), even with `runtime="nodejs"` / `moduleFormat="esm"`.
-This backend runs raw `.js` via Node ESM (`node server.js`) with **no transpile
-step**, so it cannot `import` the generated `.ts` client:
+`@prisma/client/runtime` stays external (resolved from `node_modules`); the
+relative generated `.ts` files are bundled into a single
+`generated/prisma/client.js` (~51 kb) that plain Node ESM imports directly. No
+TypeScript toolchain is added to the rest of the backend — only Prisma's
+generated vendor code is transpiled.
+
+## Deploy / CI requirement
+
+`generated/` is gitignored, so the build step **must** run before the server
+starts (it already had to, for `prisma generate`):
 
 ```
-import('./generated/prisma/client.ts') → ERR_UNKNOWN_FILE_EXTENSION
+npm run postgres:prisma:generate   # prisma generate + esbuild bundle
 ```
 
-`node --experimental-strip-types` isn't a reliable option: it lands in Node
-22.6+, but `package.json` engines pin `>=22.3.0` (and it's experimental).
+`esbuild` and `prisma` are devDependencies (consistent with the pre-existing
+reliance on the `prisma` CLI at build time) — ensure the deploy installs dev
+deps before building, then prunes if desired.
 
-**So adopting Prisma 7 requires introducing a build/loader step for the backend.**
-This is an infrastructure decision, deliberately left to the maintainers rather
-than bolted on as part of a dependency bump. Options:
+## Validation done here
 
-1. **Transpile the generated client** as part of `prisma generate`
-   (e.g. an `esbuild`/`tsc` pass over `generated/prisma/**/*.ts` → `.js`), then
-   import the compiled output. Smallest blast radius; the rest of the backend
-   stays plain JS.
-2. **Runtime TS loader** — run the backend under `tsx` (or Node
-   `--experimental-strip-types` once on Node ≥22.6). Simplest to wire, adds a
-   runtime dependency / Node-version floor.
-3. **Adopt a bundler/TS build** for the backend (largest change).
+- `npm run postgres:prisma:generate` → generate + bundle succeed (`client.js` 51 kb)
+- `services/db/prismaClient.js` imports, constructs with the adapter, exposes
+  models, attempts a real `$queryRaw` (fails only because there's no local
+  Postgres), and `checkPrismaHealth()` degrades gracefully
+- `npx vitest run` → **964 passed (158 files)**
 
-## Remaining work once a build approach is chosen
+## Not validated here (needs a staging Postgres)
 
-- Rewire `services/db/prismaClient.js` to the v7 shape:
-
-  ```js
-  import { PrismaClient } from '../generated/prisma/client.js'; // compiled output
-  import { PrismaPg } from '@prisma/adapter-pg';
-
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-  export const prisma = globalForPrisma.__tianOsPrisma
-    || new PrismaClient({ adapter, log: [...] });
-  ```
-
-- Ensure `prisma generate` (+ the transpile step) runs in CI/deploy before the
-  server starts, since `generated/` is gitignored.
-- If `DATABASE_URL` is a pooled connection, confirm migrations use
-  `DATABASE_DIRECT_URL` via `prisma.config.mjs`.
-- **Validate against a real Postgres**: there is no Prisma test coverage and no
-  local DB, so actual queries through the adapter are unverified here.
+- Real queries through the adapter (the MathPath reference-data reads/writes in
+  `scripts/postgres/*` and any runtime Postgres paths)
+- Migrations via `prisma.config.mjs` (incl. `directUrl` for pooled connections)
 
 ## Recommendation
 
-Merge the safe **Prisma 5→6** PR (#209) now to clear the maintenance gap, and
-schedule this v7 migration as a deliberate piece of work once the backend
-build-step decision is made and a staging Postgres is available to validate it.
+Merge the safe **Prisma 5→6** PR (#209) if you want to de-risk incrementally, or
+review/validate this v7 PR against a staging DB and merge it directly. If both
+are open, pick one — they're alternative paths to the same upgrade.
