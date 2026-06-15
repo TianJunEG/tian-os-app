@@ -4,6 +4,7 @@ import Resource, { RESOURCE_CATEGORIES } from '../models/Resource.js';
 import ResourceLead from '../models/ResourceLead.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadResource from '../middleware/uploadResource.js';
+import { persistUploadFile } from '../services/storage/objectStore.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -155,6 +156,7 @@ router.post('/', adminOnly, uploadResource.single('file'), validators, asyncHand
   try {
     const { title, category, level, subject, summary, body: content, published, gated } = req.body;
     const slug = await uniqueSlug(title);
+    const fileUrl = req.file ? (await persistUploadFile(req.file, 'resources')).fileUrl : undefined;
     const resource = await Resource.create({
       title,
       slug,
@@ -165,7 +167,7 @@ router.post('/', adminOnly, uploadResource.single('file'), validators, asyncHand
       body: content,
       published: published === undefined ? true : published === 'true' || published === true,
       gated: gated === 'true' || gated === true,
-      fileUrl: req.file ? `/uploads/resources/${req.file.filename}` : undefined
+      fileUrl
     });
     res.status(201).json({ resource });
   } catch (error) {
@@ -200,7 +202,7 @@ router.put('/:id', adminOnly, uploadResource.single('file'), validators, asyncHa
     if (content !== undefined) resource.body = content;
     if (published !== undefined) resource.published = published === 'true' || published === true;
     if (gated !== undefined) resource.gated = gated === 'true' || gated === true;
-    if (req.file) resource.fileUrl = `/uploads/resources/${req.file.filename}`;
+    if (req.file) resource.fileUrl = (await persistUploadFile(req.file, 'resources')).fileUrl;
 
     await resource.save();
     res.json({ resource });

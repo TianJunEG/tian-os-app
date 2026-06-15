@@ -200,6 +200,7 @@ const Intervention = lazy(() => import('./pages/teacher/Intervention'));
 const TeacherWorksheets = lazy(() => import('./pages/teacher/TeacherWorksheets'));
 const Reports = lazy(() => import('./pages/teacher/Reports'));
 const TeacherStudentDetail = lazy(() => import('./pages/teacher/TeacherStudentDetail'));
+const TeacherPSLStudentReview = lazy(() => import('./pages/teacher/TeacherPSLStudentReview'));
 const TeacherLifeLab = lazy(() => import('./pages/teacher/LifeLab'));
 const TeacherLifeLabHome = lazy(() => import('./pages/teacher/LifeLabHome'));
 // Parent worksheet generator (Phase 4)
@@ -732,6 +733,7 @@ function App() {
             <Route path="/teacher/classes/:id/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLab /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/classes/:id/reports" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><Reports /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/students/:id" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherStudentDetail /></FeatureGuard></RoleGuard>} />
+            <Route path="/teacher/students/:id/psl" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherPSLStudentReview /></FeatureGuard></RoleGuard>} />
             <Route path="/teacher/lifelab" element={<RoleGuard role="teacher"><FeatureGuard feature="teacher"><TeacherLifeLabHome /></FeatureGuard></RoleGuard>} />
 
             {/* ─── Secondary → Mechanisms Playground (D&T) ─── */}

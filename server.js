@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import connectDB from './config/db.js';
 import { closeRedis } from './config/redis.js';
+import { isObjectStorageConfigured, signedUrlForUploadPath } from './services/storage/objectStore.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
@@ -21,6 +22,7 @@ import messageRoutes from './routes/messages.js';
 import reviewRoutes from './routes/reviews.js';
 import adminRoutes from './routes/admin.js';
 import adminPartnerRoutes from './routes/adminPartners.js';
+import adminJobsRoutes from './routes/adminJobs.js';
 import worksheetRoutes from './routes/worksheets.js';
 import studentRoutes from './routes/students.js';
 import partnerRoutes from './routes/partners.js';
@@ -143,7 +145,19 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(sanitizeInputs);
 app.use(apiRateLimit);
 
-// Serve uploaded files statically
+// Serve uploaded files. When object storage is configured, 302-redirect to a
+// short-lived signed R2 URL (so files live in shared storage and the web tier can
+// scale horizontally); otherwise fall through to local-disk static serving. The
+// public '/uploads/<namespace>/<file>' URL shape is identical either way.
+app.get('/uploads/*', async (req, res, next) => {
+  if (!isObjectStorageConfigured()) return next();
+  try {
+    const url = await signedUrlForUploadPath(req.path);
+    return url ? res.redirect(302, url) : res.status(404).end();
+  } catch {
+    return res.status(404).end();
+  }
+});
 app.use('/uploads', express.static('uploads'));
 
 // Health check
@@ -171,6 +185,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/jobs', adminJobsRoutes);
 app.use('/api/admin/partners', adminPartnerRoutes);
 app.use('/api/admin/partners/:pid/licence', adminLicenceRoutes);
 app.use('/api/agency', agencyRoutes);
@@ -234,7 +249,10 @@ app.use('/api/notifications', notificationRoutes);
 // (express.static is mounted earlier — before CORS — so asset requests
 // are already handled by the time we reach here.)
 if (fs.existsSync(path.join(clientDist, 'index.html'))) {
-  app.get('*', (req, res, next) => {
+  // Express 5 requires a named wildcard — bare '*' is no longer a valid path
+  // pattern under path-to-regexp v8. '/{*splat}' is the optional-wildcard form
+  // that matches every path including root '/' (plain '/*splat' misses root).
+  app.get('/{*splat}', (req, res, next) => {
     if (
       req.path.startsWith('/api') ||
       req.path.startsWith('/uploads') ||
