@@ -185,6 +185,12 @@ export function registerDefaultDomains() {
       notes: 'Rule-based question generator + prerequisite-gated practice/progression engine.',
       serviceModule: 'shared/mathpath/decimals/decimalsPracticeEngine.js',
     },
+    fluencyAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Timed fluency drills scored into bronze→platinum bands; persists fluencyLevel.',
+      serviceModule: 'services/mathpath/decimalsFluencyService.js',
+    },
     skillGraphAdapter: {
       status: 'available',
       notes: '14-skill Decimals graph (D001–D014) in shared/mathpath/decimals/decimalsSkillGraph.js.',

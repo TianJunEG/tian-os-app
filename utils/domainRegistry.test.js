@@ -34,8 +34,9 @@ describe('platform domain registry', () => {
     expect(hasDomain({ subjectId: 'math', domainId: 'decimals' })).toBe(true);
     const domain = getDomain({ subjectId: 'math', domainId: 'decimals' });
     expect(domain.displayName).toBe('MathPath Decimals');
-    // content + progression are live
+    // content + progression + fluency are live
     expect(domain.practiceAdapter.enabled).toBe(true);
+    expect(domain.fluencyAdapter.enabled).toBe(true);
     expect(domain.skillGraphAdapter.status).toBe('available');
     // diagnostic domain is registered + engine-validated (runtime/UI pending)
     expect(domain.diagnosticAdapter.enabled).toBe(true);

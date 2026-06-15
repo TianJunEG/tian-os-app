@@ -137,6 +137,8 @@ export const mathpathAPI = {
   decimalsSkillStates: () => api.get('/mathpath/decimals/skill-states'),
   startDecimalsPractice: (data = {}) => api.post('/mathpath/decimals/practice/start', data),
   submitDecimalsPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/decimals/practice/${practiceSessionId}/submit`, data),
+  startDecimalsFluency: (data = {}) => api.post('/mathpath/decimals/fluency/start', data),
+  submitDecimalsFluency: (practiceSessionId, data = {}) => api.post(`/mathpath/decimals/fluency/${practiceSessionId}/submit`, data),
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),

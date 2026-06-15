@@ -58,6 +58,7 @@ const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/Fr
 const DecimalsLearningPathPage = lazy(() => import('./pages/student/mathpath/DecimalsLearningPathPage'));
 const DecimalsPracticeSession = lazy(() => import('./pages/student/mathpath/DecimalsPracticeSession'));
 const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
+const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
 const P1LearningPathPage = lazy(() => import('./pages/student/mathpath/P1LearningPathPage'));
 const P2LearningPathPage = lazy(() => import('./pages/student/mathpath/P2LearningPathPage'));
 const P3LearningPathPage = lazy(() => import('./pages/student/mathpath/P3LearningPathPage'));
@@ -578,6 +579,7 @@ function App() {
             <Route path="/student/mathpath/decimals" element={<DecimalsLearningPathPage />} />
             <Route path="/student/mathpath/decimals/practice" element={<DecimalsPracticeSession />} />
             <Route path="/student/mathpath/decimals/diagnostic" element={<DecimalsDiagnosticSession />} />
+            <Route path="/student/mathpath/decimals/fluency" element={<DecimalsFluencySession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
             <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />

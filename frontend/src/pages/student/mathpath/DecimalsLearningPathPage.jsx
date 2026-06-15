@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Lock, Target } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Lock, Target, Zap } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
@@ -54,6 +54,7 @@ export default function DecimalsLearningPathPage() {
   const [selectedId, setSelectedId] = useState(null);
 
   const startPractice = (skillId) => navigate(`/student/mathpath/decimals/practice?skill=${skillId}`);
+  const startFluency = (skillId) => navigate(`/student/mathpath/decimals/fluency?skill=${skillId}`);
 
   useEffect(() => {
     let active = true;
@@ -127,10 +128,13 @@ export default function DecimalsLearningPathPage() {
               Complete {selected.missingPrerequisiteNames.join(', ')} to unlock this skill.
             </p>
           )}
-          <div className="mt-3">
+          <div className="mt-3 flex gap-2">
             <Button size="s" disabled={selected.locked} onClick={() => !selected.locked && startPractice(selected.id)}>
               {selected.locked ? 'Locked' : 'Practise This Skill'}
             </Button>
+            {!selected.locked && (
+              <Button size="s" variant="secondary" icon={Zap} onClick={() => startFluency(selected.id)}>Speed Drill</Button>
+            )}
           </div>
         </Card>
       )}
