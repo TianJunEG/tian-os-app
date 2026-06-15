@@ -1,10 +1,11 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { recordLearningEvent } from '../services/telemetry/learningTelemetryService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
-router.post('/events', protect, async (req, res) => {
+router.post('/events', protect, asyncHandler(async (req, res) => {
   try {
     const event = await recordLearningEvent({
       studentId: req.body?.studentId || req.user?.id,
@@ -22,6 +23,6 @@ router.post('/events', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to record telemetry event.' });
   }
-});
+}));
 
 export default router;

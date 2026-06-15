@@ -12,6 +12,7 @@ import {
   shapeMistakeLearningFields,
 } from '../services/mathpath/mistakeCorrectionFlow.js';
 import r2 from '../services/storage/r2.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -98,7 +99,7 @@ async function resolveSkillForMistake(skillCode) {
 // @route GET /api/mistakes?studentId=&status=&skillId=&source=
 // @desc  Recent mistakes for a student (grouped by skill), for Mistake-to-Mastery.
 // @access Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const filter = { studentId: student._id };
@@ -169,12 +170,12 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistakes.' });
   }
-});
+}));
 
 // @route POST /api/mistakes/bulk
 // @desc  Capture generated MathPath mistakes that do not have Mongo question ids.
 // @access Private
-router.post('/bulk', protect, async (req, res) => {
+router.post('/bulk', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, undefined, { write: true });
     const rows = Array.isArray(req.body?.mistakes) ? req.body.mistakes : [];
@@ -224,12 +225,12 @@ router.post('/bulk', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to save mistakes.' });
   }
-});
+}));
 
 // @route GET /api/mistakes/:id
 // @desc  One mistake (detail page).
 // @access Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const m = await Mistake.findById(req.params.id).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
@@ -276,12 +277,12 @@ router.get('/:id', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake.' });
   }
-});
+}));
 
 // @route PATCH /api/mistakes/:id/explanation-feedback
 // @desc  Parent submits thumbs-up / thumbs-down on a tutor explanation.
 // @access Private (parent)
-router.patch('/:id/explanation-feedback', protect, async (req, res) => {
+router.patch('/:id/explanation-feedback', protect, asyncHandler(async (req, res) => {
   try {
     const { feedback } = req.body;
     if (!['helpful', 'not_helpful'].includes(feedback)) {
@@ -302,12 +303,12 @@ router.patch('/:id/explanation-feedback', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to save feedback.' });
   }
-});
+}));
 
 // @route POST /api/mistakes/:id/review
 // @desc  Deprecated for students — adult roles can still acknowledge directly.
 // @access Private
-router.post('/:id/review', protect, async (req, res) => {
+router.post('/:id/review', protect, asyncHandler(async (req, res) => {
   try {
     const m = await Mistake.findById(req.params.id);
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
@@ -343,12 +344,12 @@ router.post('/:id/review', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to mark reviewed.' });
   }
-});
+}));
 
 // @route PATCH /api/mistakes/:id/learning
 // @desc  Progress mistake learning evidence: acknowledge -> correct -> understand -> master.
 // @access Private
-router.patch('/:id/learning', protect, async (req, res) => {
+router.patch('/:id/learning', protect, asyncHandler(async (req, res) => {
   try {
     const m = await Mistake.findById(req.params.id);
     if (!m) return res.status(404).json({ error: 'Mistake not found.' });
@@ -390,6 +391,6 @@ router.patch('/:id/learning', protect, async (req, res) => {
       code: err.code,
     });
   }
-});
+}));
 
 export default router;

@@ -10,6 +10,7 @@ import {
   getStudentRemediationSessions,
 } from '../services/mathpath/remediationSessionService.js';
 import RemediationSession from '../models/mathpath/RemediationSession.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -32,7 +33,7 @@ async function loadSession(req, sessionId, { write = false } = {}) {
   return session;
 }
 
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.body?.studentId, { write: true });
     const session = await startRemediationSession({
@@ -45,9 +46,9 @@ router.post('/', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not start remediation session.' });
   }
-});
+}));
 
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.query?.studentId);
     const sessions = await getStudentRemediationSessions({
@@ -58,9 +59,9 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load remediation sessions.' });
   }
-});
+}));
 
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     await loadSession(req, req.params.id);
     const result = await getRemediationSessionStatus({ remediationSessionId: req.params.id });
@@ -68,9 +69,9 @@ router.get('/:id', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load remediation session.' });
   }
-});
+}));
 
-router.post('/:id/advance', protect, async (req, res) => {
+router.post('/:id/advance', protect, asyncHandler(async (req, res) => {
   try {
     await loadSession(req, req.params.id, { write: true });
     const session = await advanceRemediationStep({ remediationSessionId: req.params.id });
@@ -78,9 +79,9 @@ router.post('/:id/advance', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not advance remediation step.' });
   }
-});
+}));
 
-router.post('/:id/handle-mastery', protect, async (req, res) => {
+router.post('/:id/handle-mastery', protect, asyncHandler(async (req, res) => {
   try {
     await loadSession(req, req.params.id, { write: true });
     const result = await handleMasteryCheckResult({
@@ -91,9 +92,9 @@ router.post('/:id/handle-mastery', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not process mastery result.' });
   }
-});
+}));
 
-router.post('/:id/skip-prerequisite', protect, async (req, res) => {
+router.post('/:id/skip-prerequisite', protect, asyncHandler(async (req, res) => {
   try {
     await loadSession(req, req.params.id, { write: true });
     const roles = roleSet(req.user);
@@ -108,6 +109,6 @@ router.post('/:id/skip-prerequisite', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not skip prerequisite.' });
   }
-});
+}));
 
 export default router;

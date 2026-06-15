@@ -4,6 +4,7 @@ import Resource, { RESOURCE_CATEGORIES } from '../models/Resource.js';
 import ResourceLead from '../models/ResourceLead.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadResource from '../middleware/uploadResource.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const adminOnly = [protect, authorize('admin')];
@@ -41,7 +42,7 @@ const validators = [
 // @route   GET /api/resources
 // @desc    List published resources (public), filterable
 // @access  Public
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   try {
     const { category, level, subject, q, page = 1, limit = 12 } = req.query;
     const perPage = Math.min(parseInt(limit) || 12, 100);
@@ -80,12 +81,12 @@ router.get('/', async (req, res) => {
     console.error('List resources error:', error);
     res.status(500).json({ message: 'Error fetching resources' });
   }
-});
+}));
 
 // @route   GET /api/resources/admin
 // @desc    List all resources including drafts
 // @access  Private (admin only)
-router.get('/admin', adminOnly, async (req, res) => {
+router.get('/admin', adminOnly, asyncHandler(async (req, res) => {
   try {
     const resources = await Resource.find().select('-body').sort({ createdAt: -1 });
     res.json({ resources });
@@ -93,12 +94,12 @@ router.get('/admin', adminOnly, async (req, res) => {
     console.error('Admin list resources error:', error);
     res.status(500).json({ message: 'Error fetching resources' });
   }
-});
+}));
 
 // @route   GET /api/resources/leads
 // @desc    List captured leads from gated resources
 // @access  Private (admin only)
-router.get('/leads', adminOnly, async (req, res) => {
+router.get('/leads', adminOnly, asyncHandler(async (req, res) => {
   try {
     const leads = await ResourceLead.find().sort({ createdAt: -1 }).limit(500);
     res.json({ leads });
@@ -106,7 +107,7 @@ router.get('/leads', adminOnly, async (req, res) => {
     console.error('List resource leads error:', error);
     res.status(500).json({ message: 'Error fetching leads' });
   }
-});
+}));
 
 // @route   POST /api/resources/:slug/unlock
 // @desc    Capture an email and return the gated resource's content
@@ -117,7 +118,7 @@ router.post(
     body('email').trim().isEmail().withMessage('A valid email is required').normalizeEmail(),
     body('name').optional().trim().isLength({ max: 100 })
   ],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ message: errors.array()[0].msg });
@@ -141,12 +142,12 @@ router.post(
       res.status(500).json({ message: 'Could not unlock this resource.' });
     }
   }
-);
+));
 
 // @route   POST /api/resources
 // @desc    Create a resource
 // @access  Private (admin only)
-router.post('/', adminOnly, uploadResource.single('file'), validators, async (req, res) => {
+router.post('/', adminOnly, uploadResource.single('file'), validators, asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ message: errors.array()[0].msg });
@@ -171,12 +172,12 @@ router.post('/', adminOnly, uploadResource.single('file'), validators, async (re
     console.error('Create resource error:', error);
     res.status(500).json({ message: 'Error creating resource' });
   }
-});
+}));
 
 // @route   PUT /api/resources/:id
 // @desc    Update a resource
 // @access  Private (admin only)
-router.put('/:id', adminOnly, uploadResource.single('file'), validators, async (req, res) => {
+router.put('/:id', adminOnly, uploadResource.single('file'), validators, asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ message: errors.array()[0].msg });
@@ -207,12 +208,12 @@ router.put('/:id', adminOnly, uploadResource.single('file'), validators, async (
     console.error('Update resource error:', error);
     res.status(500).json({ message: 'Error updating resource' });
   }
-});
+}));
 
 // @route   DELETE /api/resources/:id
 // @desc    Delete a resource
 // @access  Private (admin only)
-router.delete('/:id', adminOnly, async (req, res) => {
+router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
   try {
     const resource = await Resource.findByIdAndDelete(req.params.id);
     if (!resource) {
@@ -223,12 +224,12 @@ router.delete('/:id', adminOnly, async (req, res) => {
     console.error('Delete resource error:', error);
     res.status(500).json({ message: 'Error deleting resource' });
   }
-});
+}));
 
 // @route   GET /api/resources/:slug
 // @desc    Get a single published resource by slug
 // @access  Public
-router.get('/:slug', async (req, res) => {
+router.get('/:slug', asyncHandler(async (req, res) => {
   try {
     const resource = await Resource.findOne({ slug: req.params.slug, published: true });
     if (!resource) {
@@ -245,6 +246,6 @@ router.get('/:slug', async (req, res) => {
     console.error('Get resource error:', error);
     res.status(500).json({ message: 'Error fetching resource' });
   }
-});
+}));
 
 export default router;

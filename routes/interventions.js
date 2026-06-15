@@ -6,6 +6,7 @@ import {
   getInterventionEffectiveness,
   getInterventionIntelligence,
 } from '../services/intervention/interventionIntelligenceEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -21,16 +22,16 @@ function assertAdultFeedAccess(req) {
   throw err;
 }
 
-router.get('/audit', protect, async (req, res) => {
+router.get('/audit', protect, asyncHandler(async (req, res) => {
   try {
     assertAdultFeedAccess(req);
     return res.json({ audit: auditDecisionLogic() });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load intervention audit.' });
   }
-});
+}));
 
-router.get('/feed', protect, async (req, res) => {
+router.get('/feed', protect, asyncHandler(async (req, res) => {
   try {
     assertAdultFeedAccess(req);
     const {
@@ -50,9 +51,9 @@ router.get('/feed', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load intervention recommendations.' });
   }
-});
+}));
 
-router.get('/effectiveness', protect, async (req, res) => {
+router.get('/effectiveness', protect, asyncHandler(async (req, res) => {
   try {
     assertAdultFeedAccess(req);
     const subjectId = req.query?.subjectId || 'math';
@@ -62,6 +63,6 @@ router.get('/effectiveness', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load intervention effectiveness.' });
   }
-});
+}));
 
 export default router;

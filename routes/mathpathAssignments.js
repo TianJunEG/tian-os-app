@@ -12,6 +12,7 @@ import {
   resolveAssignedByRole,
   updateAssignmentProgress,
 } from '../services/mathpath/mathPathAssignmentService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   getRecoveryPackTeachingFlow,
   updateRecoveryPackTeachingProgress,
@@ -47,7 +48,7 @@ async function loadAccessibleAssignment(req, id, { write = false } = {}) {
   return assignment;
 }
 
-router.post('/from-diagnostic', protect, async (req, res) => {
+router.post('/from-diagnostic', protect, asyncHandler(async (req, res) => {
   try {
     assertCanAssign(req, { allowStudentDiagnosticSelfAssign: true });
     const student = await resolveStudent(req, req.body?.studentId, { write: true });
@@ -61,9 +62,9 @@ router.post('/from-diagnostic', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not create diagnostic assignment.' });
   }
-});
+}));
 
-router.post('/from-paper-analysis', protect, async (req, res) => {
+router.post('/from-paper-analysis', protect, asyncHandler(async (req, res) => {
   try {
     assertCanAssign(req);
     const analysis = await PaperAnalysis.findById(req.body?.paperAnalysisId).lean();
@@ -78,9 +79,9 @@ router.post('/from-paper-analysis', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not create paper-analysis assignment.' });
   }
-});
+}));
 
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.query?.studentId);
     const assignments = await getStudentAssignments({
@@ -91,18 +92,18 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load MathPath assignments.' });
   }
-});
+}));
 
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const assignment = await loadAccessibleAssignment(req, req.params.id);
     return res.json({ assignment });
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load MathPath assignment.' });
   }
-});
+}));
 
-router.get('/:id/teaching-flow', protect, async (req, res) => {
+router.get('/:id/teaching-flow', protect, asyncHandler(async (req, res) => {
   try {
     await loadAccessibleAssignment(req, req.params.id);
     const recoveryPack = await getRecoveryPackTeachingFlow({ assignmentId: req.params.id });
@@ -110,9 +111,9 @@ router.get('/:id/teaching-flow', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load Recovery Pack teaching flow.' });
   }
-});
+}));
 
-router.patch('/:id/teaching-progress', protect, async (req, res) => {
+router.patch('/:id/teaching-progress', protect, asyncHandler(async (req, res) => {
   try {
     await loadAccessibleAssignment(req, req.params.id, { write: true });
     const recoveryPack = await updateRecoveryPackTeachingProgress({
@@ -125,9 +126,9 @@ router.patch('/:id/teaching-progress', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not update Recovery Pack progress.' });
   }
-});
+}));
 
-router.patch('/:id/progress', protect, async (req, res) => {
+router.patch('/:id/progress', protect, asyncHandler(async (req, res) => {
   try {
     await loadAccessibleAssignment(req, req.params.id, { write: true });
     const assignment = await updateAssignmentProgress({
@@ -138,9 +139,9 @@ router.patch('/:id/progress', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not update assignment progress.' });
   }
-});
+}));
 
-router.post('/:id/recheck-recommendation', protect, async (req, res) => {
+router.post('/:id/recheck-recommendation', protect, asyncHandler(async (req, res) => {
   try {
     await loadAccessibleAssignment(req, req.params.id);
     const recommendation = await evaluateRecheckRecommendation({ assignmentId: req.params.id });
@@ -148,9 +149,9 @@ router.post('/:id/recheck-recommendation', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not evaluate recheck readiness.' });
   }
-});
+}));
 
-router.post('/:id/create-recheck', protect, async (req, res) => {
+router.post('/:id/create-recheck', protect, asyncHandler(async (req, res) => {
   try {
     await loadAccessibleAssignment(req, req.params.id, { write: true });
     const result = await createRecheckForAssignment({
@@ -164,6 +165,6 @@ router.post('/:id/create-recheck', protect, async (req, res) => {
       ...(err.payload || {}),
     });
   }
-});
+}));
 
 export default router;

@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import { protect, getSignedToken } from '../middleware/auth.js';
 import { authRateLimit } from '../middleware/rateLimiter.js';
 import { sendPasswordResetEmail } from '../utils/emailService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -129,19 +130,19 @@ router.post(
 // @route   GET /api/auth/me
 // @desc    Get current user
 // @access  Private
-router.get('/me', protect, async (req, res) => {
+router.get('/me', protect, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     res.json({ success: true, user });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/auth/update-profile
 // @desc    Update user profile
 // @access  Private
-router.put('/update-profile', protect, async (req, res) => {
+router.put('/update-profile', protect, asyncHandler(async (req, res) => {
   try {
     const { name, bio, phone, location, avatar } = req.body;
 
@@ -155,9 +156,9 @@ router.put('/update-profile', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
-router.post('/forgot-password', authRateLimit, async (req, res) => {
+router.post('/forgot-password', authRateLimit, asyncHandler(async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
@@ -183,9 +184,9 @@ router.post('/forgot-password', authRateLimit, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Could not send reset email. Try again later.' });
   }
-});
+}));
 
-router.post('/reset-password/:token', async (req, res) => {
+router.post('/reset-password/:token', asyncHandler(async (req, res) => {
   try {
     const { password } = req.body;
     if (!password || password.length < 6) {
@@ -212,6 +213,6 @@ router.post('/reset-password/:token', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 export default router;

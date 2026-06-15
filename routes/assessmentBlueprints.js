@@ -18,6 +18,7 @@ import {
   upsertSchoolAssessmentProfileFromBlueprint,
   validateAssessmentBlueprint,
 } from '../services/mathpath/assessmentBlueprintEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -37,7 +38,7 @@ function canManageBlueprint(req, blueprint) {
 
 router.use(protect);
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   try {
     const rows = await listAssessmentBlueprints({
       level: req.query.level,
@@ -53,13 +54,13 @@ router.get('/', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to list blueprints.' });
   }
-});
+}));
 
-router.get('/library/examples', async (req, res) => {
+router.get('/library/examples', asyncHandler(async (req, res) => {
   return res.json({ examples: SAMPLE_ASSESSMENT_BLUEPRINTS });
-});
+}));
 
-router.get('/school-profiles', async (req, res) => {
+router.get('/school-profiles', asyncHandler(async (req, res) => {
   try {
     const query = {};
     if (req.query.school) query.school = String(req.query.school);
@@ -71,9 +72,9 @@ router.get('/school-profiles', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to list school profiles.' });
   }
-});
+}));
 
-router.post('/library/seed', async (req, res) => {
+router.post('/library/seed', asyncHandler(async (req, res) => {
   try {
     const created = await seedSampleAssessmentBlueprints({
       actorUserId: req.user.id,
@@ -83,18 +84,18 @@ router.post('/library/seed', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to seed blueprint examples.' });
   }
-});
+}));
 
-router.post('/validate', async (req, res) => {
+router.post('/validate', asyncHandler(async (req, res) => {
   const validation = validateAssessmentBlueprint(req.body || {});
   return res.json({
     valid: validation.valid,
     errors: validation.errors,
     normalized: validation.normalized,
   });
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   try {
     const doc = await createAssessmentBlueprint(req.body || {}, {
       actorUserId: req.user.id,
@@ -105,9 +106,9 @@ router.post('/', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to create blueprint.' });
   }
-});
+}));
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncHandler(async (req, res) => {
   try {
     const withVersions = String(req.query.includeVersions || '').toLowerCase() === 'true';
     const found = await getAssessmentBlueprintById(req.params.id, { includeVersions: withVersions });
@@ -121,9 +122,9 @@ router.get('/:id', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to load blueprint.' });
   }
-});
+}));
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', asyncHandler(async (req, res) => {
   try {
     const existing = await AssessmentBlueprint.findById(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Assessment blueprint not found.' });
@@ -135,9 +136,9 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to update blueprint.' });
   }
-});
+}));
 
-router.post('/:id/archive', async (req, res) => {
+router.post('/:id/archive', asyncHandler(async (req, res) => {
   try {
     const existing = await AssessmentBlueprint.findById(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Assessment blueprint not found.' });
@@ -148,9 +149,9 @@ router.post('/:id/archive', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to archive blueprint.' });
   }
-});
+}));
 
-router.post('/:id/duplicate', async (req, res) => {
+router.post('/:id/duplicate', asyncHandler(async (req, res) => {
   try {
     const existing = await AssessmentBlueprint.findById(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Assessment blueprint not found.' });
@@ -166,9 +167,9 @@ router.post('/:id/duplicate', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to duplicate blueprint.' });
   }
-});
+}));
 
-router.get('/:id/versions', async (req, res) => {
+router.get('/:id/versions', asyncHandler(async (req, res) => {
   try {
     const existing = await AssessmentBlueprint.findById(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Assessment blueprint not found.' });
@@ -178,9 +179,9 @@ router.get('/:id/versions', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to load blueprint versions.' });
   }
-});
+}));
 
-router.get('/:id/test-blueprint', async (req, res) => {
+router.get('/:id/test-blueprint', asyncHandler(async (req, res) => {
   try {
     const existing = await AssessmentBlueprint.findById(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Assessment blueprint not found.' });
@@ -190,9 +191,9 @@ router.get('/:id/test-blueprint', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to generate test blueprint.' });
   }
-});
+}));
 
-router.post('/upload-analyze', upload.single('paper'), async (req, res) => {
+router.post('/upload-analyze', upload.single('paper'), asyncHandler(async (req, res) => {
   try {
     const consent = String(req.body?.consent || '').toLowerCase() === 'true';
     if (!consent) {
@@ -233,6 +234,6 @@ router.post('/upload-analyze', upload.single('paper'), async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to analyze uploaded paper.' });
   }
-});
+}));
 
 export default router;

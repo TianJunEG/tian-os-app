@@ -18,6 +18,7 @@ import {
   normalizeUploadConsent,
   writeTemporaryUploadFile,
 } from '../services/mathpath/assessmentAnalysisService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -209,7 +210,7 @@ function buildUploadSummary(uploadDoc) {
 
 router.use(protect);
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     const query = {};
@@ -224,9 +225,9 @@ router.get('/', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to list uploads.' });
   }
-});
+}));
 
-router.post('/', upload.single('paper'), async (req, res) => {
+router.post('/', upload.single('paper'), asyncHandler(async (req, res) => {
   const consentAccepted = normalizeUploadConsent(req.body?.consentAccepted ?? req.body?.consent);
   if (!consentAccepted) {
     return res.status(400).json({
@@ -360,9 +361,9 @@ router.post('/', upload.single('paper'), async (req, res) => {
     await appendLog(uploadDoc, 'analysis.failed', uploadDoc.errorMessage);
     return res.status(500).json({ error: uploadDoc.errorMessage });
   }
-});
+}));
 
-router.get('/:uploadId/status', async (req, res) => {
+router.get('/:uploadId/status', asyncHandler(async (req, res) => {
   try {
     const uploadDoc = await UploadedAssessment.findById(req.params.uploadId);
     if (!uploadDoc) return res.status(404).json({ error: 'Uploaded assessment not found.' });
@@ -375,9 +376,9 @@ router.get('/:uploadId/status', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to read upload status.' });
   }
-});
+}));
 
-router.get('/:uploadId/blueprint', async (req, res) => {
+router.get('/:uploadId/blueprint', asyncHandler(async (req, res) => {
   try {
     const uploadDoc = await UploadedAssessment.findById(req.params.uploadId);
     if (!uploadDoc) return res.status(404).json({ error: 'Uploaded assessment not found.' });
@@ -392,9 +393,9 @@ router.get('/:uploadId/blueprint', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to load generated blueprint.' });
   }
-});
+}));
 
-router.get('/:uploadId/metadata', async (req, res) => {
+router.get('/:uploadId/metadata', asyncHandler(async (req, res) => {
   try {
     const uploadDoc = await UploadedAssessment.findById(req.params.uploadId);
     if (!uploadDoc) return res.status(404).json({ error: 'Uploaded assessment not found.' });
@@ -410,9 +411,9 @@ router.get('/:uploadId/metadata', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to load extracted metadata.' });
   }
-});
+}));
 
-router.get('/:uploadId/deletion-logs', async (req, res) => {
+router.get('/:uploadId/deletion-logs', asyncHandler(async (req, res) => {
   try {
     const uploadDoc = await UploadedAssessment.findById(req.params.uploadId);
     if (!uploadDoc) return res.status(404).json({ error: 'Uploaded assessment not found.' });
@@ -426,6 +427,6 @@ router.get('/:uploadId/deletion-logs', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to load deletion logs.' });
   }
-});
+}));
 
 export default router;

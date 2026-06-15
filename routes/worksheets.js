@@ -18,6 +18,7 @@ import { resolveStudent } from '../utils/studentContext.js';
 import { generateWorksheet } from '../utils/worksheetGen.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -203,7 +204,7 @@ function structuredEmptyMessage(sourceMode) {
 // @route   GET /api/worksheets
 // @desc    List the current user's worksheets with due-status fields
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const filter = req.user.role === 'student'
       ? { studentId: req.user.id }
@@ -221,13 +222,13 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 // @route   GET /api/worksheets/mistakes
 // @desc    Aggregate every incorrectly-answered question (a student's own, or
 //          all of a parent/tutor's — optionally filtered by ?studentId).
 // @access  Private
-router.get('/mistakes', protect, async (req, res) => {
+router.get('/mistakes', protect, asyncHandler(async (req, res) => {
   try {
     const filter = req.user.role === 'student'
       ? { studentId: req.user.id }
@@ -265,13 +266,13 @@ router.get('/mistakes', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 // @route   GET /api/worksheets/misconceptions
 // @desc    The AI-diagnosed misconceptions logged from photo analysis — a
 //          student's own, or all of a parent/tutor's (optionally ?studentId).
 // @access  Private
-router.get('/misconceptions', protect, async (req, res) => {
+router.get('/misconceptions', protect, asyncHandler(async (req, res) => {
   try {
     const filter = req.user.role === 'student'
       ? { studentUserId: req.user.id }
@@ -286,13 +287,13 @@ router.get('/misconceptions', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 // @route   GET /api/worksheets/common-mistakes
 // @desc    The misconceptions that recur most across a parent/tutor/teacher's
 //          students (optionally one student via ?studentId, or one ?topic).
 // @access  Private (not students)
-router.get('/common-mistakes', protect, async (req, res) => {
+router.get('/common-mistakes', protect, asyncHandler(async (req, res) => {
   try {
     if (req.user.role === 'student') {
       return res.status(403).json({ error: 'The common-mistakes view is for parents, tutors and teachers.' });
@@ -307,12 +308,12 @@ router.get('/common-mistakes', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 // @route   GET /api/worksheets/:id/answers
 // @desc    Answer key for a generated worksheet
 // @access  Private (owner/adult only)
-router.get('/:id/answers', protect, async (req, res) => {
+router.get('/:id/answers', protect, asyncHandler(async (req, res) => {
   try {
     const worksheet = await Worksheet.findById(req.params.id);
     if (!worksheet || !worksheet.sourceMode) return res.status(404).json({ error: 'Worksheet not found' });
@@ -321,12 +322,12 @@ router.get('/:id/answers', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load answer key.' });
   }
-});
+}));
 
 // @route   GET /api/worksheets/:id/pdf
 // @desc    Lightweight printable PDF export for generated worksheets
 // @access  Private
-router.get('/:id/pdf', protect, async (req, res) => {
+router.get('/:id/pdf', protect, asyncHandler(async (req, res) => {
   try {
     const worksheet = await Worksheet.findById(req.params.id);
     if (!worksheet || !worksheet.sourceMode) return res.status(404).json({ error: 'Worksheet not found' });
@@ -339,12 +340,12 @@ router.get('/:id/pdf', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to export worksheet PDF.' });
   }
-});
+}));
 
 // @route   POST /api/worksheets/:id/submit
 // @desc    Submit answers for a generated worksheet and update mastery
 // @access  Private
-router.post('/:id/submit', protect, async (req, res) => {
+router.post('/:id/submit', protect, asyncHandler(async (req, res) => {
   try {
     const worksheet = await Worksheet.findById(req.params.id);
     if (!worksheet || !worksheet.sourceMode) return res.status(404).json({ error: 'Worksheet not found' });
@@ -441,12 +442,12 @@ router.post('/:id/submit', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to submit worksheet.' });
   }
-});
+}));
 
 // @route   GET /api/worksheets/:id
 // @desc    Get a single worksheet with all practice sessions
 // @access  Private (owner or assigned student)
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const worksheet = await Worksheet.findById(req.params.id);
     if (worksheet?.sourceMode) {
@@ -460,7 +461,7 @@ router.get('/:id', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 function shapeStructuredWorksheet(w) {
   return {
@@ -553,7 +554,7 @@ export function createWorksheetPdf(worksheet, { includeAnswers = false } = {}) {
 // @route   PATCH /api/worksheets/:id/sessions/:n
 // @desc    Reschedule a practice session and/or mark it complete
 // @access  Private (owner only)
-router.patch('/:id/sessions/:n', protect, async (req, res) => {
+router.patch('/:id/sessions/:n', protect, asyncHandler(async (req, res) => {
   try {
     const worksheet = await Worksheet.findOne({ _id: req.params.id, userId: req.user.id });
     if (!worksheet) {
@@ -587,13 +588,13 @@ router.patch('/:id/sessions/:n', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 // @route   POST /api/worksheets/:id/sessions/:n/mark
 // @desc    Mark a student's typed/handwritten answers for a session, then
 //          auto-complete it. Returns the marked worksheet + missed misconceptions.
 // @access  Private (owner only)
-router.post('/:id/sessions/:n/mark', protect, async (req, res) => {
+router.post('/:id/sessions/:n/mark', protect, asyncHandler(async (req, res) => {
   try {
     const worksheet = await Worksheet.findById(req.params.id);
     if (!worksheet || !canViewWorksheet(worksheet, req.user.id)) {
@@ -650,13 +651,13 @@ router.post('/:id/sessions/:n/mark', protect, async (req, res) => {
   } catch (err) {
     return sendAiError(res, err);
   }
-});
+}));
 
 // @route   POST /api/worksheets/:id/reinforce
 // @desc    Generate a new spaced practice plan targeting the same (or missed)
 //          misconceptions — no new photo needed.
 // @access  Private (owner only)
-router.post('/:id/reinforce', protect, async (req, res) => {
+router.post('/:id/reinforce', protect, asyncHandler(async (req, res) => {
   try {
     const source = await Worksheet.findOne({ _id: req.params.id, userId: req.user.id });
     if (!source) {
@@ -690,12 +691,12 @@ router.post('/:id/reinforce', protect, async (req, res) => {
   } catch (err) {
     return sendAiError(res, err);
   }
-});
+}));
 
 // @route   DELETE /api/worksheets/:id
 // @desc    Delete a worksheet
 // @access  Private (owner only)
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const worksheet = await Worksheet.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     if (!worksheet) {
@@ -705,6 +706,6 @@ router.delete('/:id', protect, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 export default router;

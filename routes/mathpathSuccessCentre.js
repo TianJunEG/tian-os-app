@@ -15,6 +15,7 @@ import {
 import { buildTutorLessonPrepPreview } from '../services/mathpath/tutorLessonPrepEngine.js';
 import { generateParentProgressReport } from '../services/mathpath/progressReportGenerator.js';
 import { getPilotDashboardMetrics } from '../services/mathpath/pilotDashboardMetricsService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -41,7 +42,7 @@ async function loadMathPathEvidence(studentId, { subjectId = 'math', domainId = 
   return { history, growth, assignments, papers, mistakes };
 }
 
-router.get('/parent', protect, async (req, res) => {
+router.get('/parent', protect, asyncHandler(async (req, res) => {
   try {
     requireAnyRole(req, ['parent', 'admin']);
     const student = await resolveStudent(req, req.query?.studentId);
@@ -64,9 +65,9 @@ router.get('/parent', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load Success Centre.' });
   }
-});
+}));
 
-router.get('/parent/report', protect, async (req, res) => {
+router.get('/parent/report', protect, asyncHandler(async (req, res) => {
   try {
     requireAnyRole(req, ['parent', 'admin']);
     const student = await resolveStudent(req, req.query?.studentId);
@@ -83,9 +84,9 @@ router.get('/parent/report', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not generate progress report.' });
   }
-});
+}));
 
-router.get('/tutor/lesson-prep', protect, async (req, res) => {
+router.get('/tutor/lesson-prep', protect, asyncHandler(async (req, res) => {
   try {
     requireAnyRole(req, ['tutor', 'teacher', 'admin']);
     const student = await resolveStudent(req, req.query?.studentId);
@@ -97,9 +98,9 @@ router.get('/tutor/lesson-prep', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load lesson prep preview.' });
   }
-});
+}));
 
-router.get('/pilot-metrics', protect, async (req, res) => {
+router.get('/pilot-metrics', protect, asyncHandler(async (req, res) => {
   try {
     requireAnyRole(req, ['admin']);
     const metrics = await getPilotDashboardMetrics({
@@ -110,6 +111,6 @@ router.get('/pilot-metrics', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load pilot metrics.' });
   }
-});
+}));
 
 export default router;

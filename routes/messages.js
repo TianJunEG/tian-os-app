@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { Message, Conversation } from '../models/Message.js';
 import { protect } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -48,7 +49,7 @@ router.post(
 // @route   GET /api/messages/conversations
 // @desc    Get all conversations for user
 // @access  Private
-router.get('/conversations', protect, async (req, res) => {
+router.get('/conversations', protect, asyncHandler(async (req, res) => {
   try {
     const conversations = await Conversation.find({
       participantIds: req.user.id
@@ -61,12 +62,12 @@ router.get('/conversations', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/messages/:conversationId
 // @desc    Get messages in a conversation
 // @access  Private
-router.get('/:conversationId', protect, async (req, res) => {
+router.get('/:conversationId', protect, asyncHandler(async (req, res) => {
   try {
     const { conversationId } = req.params;
     const { limit = 50, offset = 0 } = req.query;
@@ -105,7 +106,7 @@ router.get('/:conversationId', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/messages
 // @desc    Send a message
@@ -204,7 +205,7 @@ router.put(
 // @route   DELETE /api/messages/:messageId
 // @desc    Delete a message
 // @access  Private
-router.delete('/:messageId', protect, async (req, res) => {
+router.delete('/:messageId', protect, asyncHandler(async (req, res) => {
   try {
     const message = await Message.findById(req.params.messageId);
 
@@ -222,6 +223,6 @@ router.delete('/:messageId', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 export default router;

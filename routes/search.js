@@ -1,6 +1,7 @@
 import express from 'express';
 import TutorProfile from '../models/TutorProfile.js';
 import { protect } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -316,7 +317,7 @@ const generateMatchExplanation = (scores, tutor) => {
 // @route   POST /api/search/tutors
 // @desc    Search and match tutors (9-criteria algorithm)
 // @access  Private
-router.post('/tutors', protect, async (req, res) => {
+router.post('/tutors', protect, asyncHandler(async (req, res) => {
   try {
     const {
       specialty,
@@ -439,12 +440,12 @@ router.post('/tutors', protect, async (req, res) => {
     console.error('Search error:', error);
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/search/recommendations
 // @desc    Get recommended tutors for parent
 // @access  Private
-router.get('/recommendations', protect, async (req, res) => {
+router.get('/recommendations', protect, asyncHandler(async (req, res) => {
   try {
     // Get featured tutors (highest rated and most experienced)
     const tutors = await TutorProfile.find({ isActive: true })
@@ -460,12 +461,12 @@ router.get('/recommendations', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/search/match
 // @desc    Get top 5 matched tutors for parent (main matching flow)
 // @access  Private
-router.post('/match', protect, async (req, res) => {
+router.post('/match', protect, asyncHandler(async (req, res) => {
   try {
     // Matching not launched yet → top-rated tutors as a directory, no scoring.
     if (!MATCHING_ENABLED) {
@@ -584,12 +585,12 @@ router.post('/match', protect, async (req, res) => {
       error: error.message
     });
   }
-});
+}));
 
 // @route   GET /api/search/categories
 // @desc    Get popular categories/specialties
 // @access  Public
-router.get('/categories', async (req, res) => {
+router.get('/categories', asyncHandler(async (req, res) => {
   try {
     const categories = [
       { name: 'Math', emoji: '📐', count: 125 },
@@ -606,6 +607,6 @@ router.get('/categories', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 export default router;

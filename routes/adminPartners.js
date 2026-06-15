@@ -7,6 +7,7 @@ import Student from '../models/Student.js';
 import User from '../models/User.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { getPartnerImpactReport, getPartnerMetrics } from '../services/partners/partnerMetricsService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const adminOnly = [protect, authorize('admin')];
@@ -39,7 +40,7 @@ function shapePartner(partner, metrics = {}) {
   };
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', asyncHandler(async (_req, res) => {
   try {
     const partners = await PartnerOrganisation.find({}).sort({ updatedAt: -1, createdAt: -1 }).lean();
     const rows = await Promise.all(partners.map(async (partner) => shapePartner(partner, await getPartnerMetrics(partner._id))));
@@ -47,7 +48,7 @@ router.get('/', async (_req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load partners.' });
   }
-});
+}));
 
 router.post(
   '/',
@@ -76,7 +77,7 @@ router.post(
   }
 );
 
-router.get('/:partnerId', async (req, res) => {
+router.get('/:partnerId', asyncHandler(async (req, res) => {
   try {
     const partner = await PartnerOrganisation.findById(req.params.partnerId).lean();
     if (!partner) return res.status(404).json({ error: 'Partner not found.' });
@@ -109,9 +110,9 @@ router.get('/:partnerId', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load partner.' });
   }
-});
+}));
 
-router.patch('/:partnerId', async (req, res) => {
+router.patch('/:partnerId', asyncHandler(async (req, res) => {
   try {
     const allowed = ['name', 'type', 'status', 'contactName', 'contactEmail', 'contactPhone', 'address', 'notes'];
     const update = {};
@@ -124,9 +125,9 @@ router.patch('/:partnerId', async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message || 'Failed to update partner.' });
   }
-});
+}));
 
-router.post('/:partnerId/archive', async (req, res) => {
+router.post('/:partnerId/archive', asyncHandler(async (req, res) => {
   try {
     const partner = await PartnerOrganisation.findByIdAndUpdate(req.params.partnerId, { status: 'archived' }, { new: true });
     if (!partner) return res.status(404).json({ error: 'Partner not found.' });
@@ -134,7 +135,7 @@ router.post('/:partnerId/archive', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to archive partner.' });
   }
-});
+}));
 
 router.post(
   '/:partnerId/staff',
@@ -163,7 +164,7 @@ router.post(
   }
 );
 
-router.delete('/:partnerId/staff/:membershipId', async (req, res) => {
+router.delete('/:partnerId/staff/:membershipId', asyncHandler(async (req, res) => {
   try {
     const membership = await PartnerMembership.findOneAndUpdate(
       { _id: req.params.membershipId, organisationId: req.params.partnerId },
@@ -175,7 +176,7 @@ router.delete('/:partnerId/staff/:membershipId', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to remove staff.' });
   }
-});
+}));
 
 router.post(
   '/:partnerId/students',
@@ -209,7 +210,7 @@ router.post(
   }
 );
 
-router.delete('/:partnerId/students/:partnerStudentId', async (req, res) => {
+router.delete('/:partnerId/students/:partnerStudentId', asyncHandler(async (req, res) => {
   try {
     const link = await PartnerStudent.findOneAndUpdate(
       { _id: req.params.partnerStudentId, organisationId: req.params.partnerId },
@@ -221,15 +222,15 @@ router.delete('/:partnerId/students/:partnerStudentId', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to remove student link.' });
   }
-});
+}));
 
-router.get('/:partnerId/impact-report', async (req, res) => {
+router.get('/:partnerId/impact-report', asyncHandler(async (req, res) => {
   try {
     const report = await getPartnerImpactReport(req.params.partnerId);
     res.json(report);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load partner impact report.' });
   }
-});
+}));
 
 export default router;

@@ -58,7 +58,7 @@ const buildCompetencyStats = (subs) => {
 };
 
 // ── Activity library (any signed-in user, for pickers) ────────────
-router.get('/activities', protect, async (req, res) => {
+router.get('/activities', protect, asyncHandler(async (req, res) => {
   const filter = { isLibrary: true };
   if (req.query.competency) {
     filter.$or = [
@@ -71,9 +71,9 @@ router.get('/activities', protect, async (req, res) => {
   }
   const acts = await LifeLabActivity.find(filter).sort({ subject: 1, title: 1 });
   res.json({ activities: acts });
-});
+}));
 
-router.get('/competencies', protect, async (req, res) => {
+router.get('/competencies', protect, asyncHandler(async (req, res) => {
   const docs = await LifeLabActivity.find({
     $or: [
       { primaryE21cc: { $exists: true, $ne: [] } },
@@ -90,9 +90,9 @@ router.get('/competencies', protect, async (req, res) => {
   });
 
   res.json({ competencies: Array.from(competencies).sort() });
-});
+}));
 
-router.get('/student/:studentId', protect, async (req, res) => {
+router.get('/student/:studentId', protect, asyncHandler(async (req, res) => {
   const student = await resolveStudent(req, req.params.studentId);
   const subs = await LifeLabSubmission.find({ studentId: student._id }).populate({ path: 'activityId', model: LifeLabActivity }).sort({ createdAt: -1 });
   res.json({
@@ -107,10 +107,10 @@ router.get('/student/:studentId', protect, async (req, res) => {
     })),
     competencies: buildCompetencyStats(subs),
   });
-});
+}));
 
 // ── Teacher: assign an activity to a class / group / student ──────
-router.post('/assign', protect, requireWorkspace, async (req, res) => {
+router.post('/assign', protect, requireWorkspace, asyncHandler(async (req, res) => {
   if (req.workspaceRole !== 'teacher') return res.status(403).json({ error: 'Not a teacher workspace.' });
   const { classId, target = { type: 'class' }, activityId } = req.body;
   const klass = await Class.findOne({ _id: classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
@@ -130,10 +130,10 @@ router.post('/assign', protect, requireWorkspace, async (req, res) => {
   }));
   const created = await LifeLabSubmission.insertMany(docs);
   res.status(201).json({ assigned: created.length });
-});
+}));
 
 // ── Teacher: submissions for a class (review) ─────────────────────
-router.get('/submissions', protect, requireWorkspace, async (req, res) => {
+router.get('/submissions', protect, requireWorkspace, asyncHandler(async (req, res) => {
   if (req.workspaceRole !== 'teacher') return res.status(403).json({ error: 'Not a teacher workspace.' });
   const { classId } = req.query;
   const klass = await Class.findOne({ _id: classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
@@ -149,10 +149,10 @@ router.get('/submissions', protect, requireWorkspace, async (req, res) => {
     })),
     competencies: buildCompetencyStats(subs),
   });
-});
+}));
 
 // ── Teacher: give feedback ────────────────────────────────────────
-router.post('/submissions/:id/feedback', protect, requireWorkspace, async (req, res) => {
+router.post('/submissions/:id/feedback', protect, requireWorkspace, asyncHandler(async (req, res) => {
   if (req.workspaceRole !== 'teacher') return res.status(403).json({ error: 'Not a teacher workspace.' });
   const sub = await LifeLabSubmission.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
   if (!sub) return res.status(404).json({ error: 'Submission not found.' });
@@ -161,10 +161,10 @@ router.post('/submissions/:id/feedback', protect, requireWorkspace, async (req, 
   sub.updatedAt = new Date();
   await sub.save();
   res.json({ submission: { id: sub._id, status: sub.status, teacherFeedback: sub.teacherFeedback } });
-});
+}));
 
 // ── Student: my assigned LifeLab activities ───────────────────────
-router.get('/me', protect, async (req, res) => {
+router.get('/me', protect, asyncHandler(async (req, res) => {
   const student = await resolveStudent(req).catch(() => null);
   if (!student) return res.json({ submissions: [] });
   const subs = await LifeLabSubmission.find({ studentId: student._id }).populate({ path: 'activityId', model: LifeLabActivity }).sort({ createdAt: -1 });
@@ -180,10 +180,10 @@ router.get('/me', protect, async (req, res) => {
     })),
     competencies: buildCompetencyStats(subs),
   });
-});
+}));
 
 // ── Student: submit a response ────────────────────────────────────
-router.post('/submissions/:id/submit', protect, async (req, res) => {
+router.post('/submissions/:id/submit', protect, asyncHandler(async (req, res) => {
   const sub = await LifeLabSubmission.findById(req.params.id);
   if (!sub) return res.status(404).json({ error: 'Submission not found.' });
   await resolveStudent(req, sub.studentId, { write: true }); // access check; view-only guardians may not submit
@@ -194,11 +194,11 @@ router.post('/submissions/:id/submit', protect, async (req, res) => {
   sub.updatedAt = new Date();
   await sub.save();
   res.json({ submission: { id: sub._id, status: sub.status } });
-});
+}));
 
 
 // -- Student: upload evidence file for a submission -----------------------
-router.post('/submissions/:id/evidence', protect, upload.single('evidence'), async (req, res) => {
+router.post('/submissions/:id/evidence', protect, upload.single('evidence'), asyncHandler(async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
   const sub = await LifeLabSubmission.findById(req.params.id);
   if (!sub) return res.status(404).json({ error: 'Submission not found.' });
@@ -207,6 +207,6 @@ router.post('/submissions/:id/evidence', protect, upload.single('evidence'), asy
   sub.updatedAt = new Date();
   await sub.save();
   res.json({ evidenceUrl: sub.evidenceUrl });
-});
+}));
 
 export default router;

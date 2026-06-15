@@ -4,6 +4,7 @@ import Assignment from '../models/Assignment.js';
 import Skill from '../models/Skill.js';
 import InformalAssessmentSession from '../models/InformalAssessmentSession.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const router = express.Router();
 //        { studentId, module, feature?, subject?, topicId?, skillIds[], questionCount?,
 //          difficulty?, dueDate?, intervention metadata }
 // @access Private
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.body.studentId, { write: true });
     const assignedByRole = req.body.assignedByRole || req.user.role || 'parent';
@@ -46,12 +47,12 @@ router.post('/', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to create assignment.' });
   }
-});
+}));
 
 // @route GET /api/assignments?studentId=&status=
 // @desc  List a student's assignments (student dashboard + parent list).
 // @access Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const filter = { studentId: student._id };
@@ -83,11 +84,11 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load assignments.' });
   }
-});
+}));
 
 // @route GET /api/assignments/:id
 // @access Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const a = await Assignment.findById(req.params.id).populate({ path: 'skillIds', model: Skill });
     if (!a) return res.status(404).json({ error: 'Assignment not found.' });
@@ -106,12 +107,12 @@ router.get('/:id', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load assignment.' });
   }
-});
+}));
 
 // @route PATCH /api/assignments/:id/status
 // @desc  Update assignment completion state with timestamps.
 // @access Private
-router.patch('/:id/status', protect, async (req, res) => {
+router.patch('/:id/status', protect, asyncHandler(async (req, res) => {
   try {
     const a = await Assignment.findById(req.params.id);
     if (!a) return res.status(404).json({ error: 'Assignment not found.' });
@@ -139,6 +140,6 @@ router.patch('/:id/status', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to update assignment.' });
   }
-});
+}));
 
 export default router;

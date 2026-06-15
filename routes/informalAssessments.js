@@ -8,6 +8,7 @@ import {
   assignAssessment,
   buildClassResults,
 } from '../services/teacher/informalAssessmentService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -24,7 +25,7 @@ async function getOwnedClass(req) {
 }
 
 // Preview: generate questions without saving
-router.post('/preview', async (req, res) => {
+router.post('/preview', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   try {
     const { module, skillIds, difficulty, questionCount } = req.body;
@@ -35,10 +36,10 @@ router.post('/preview', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
 // Create assessment in draft status
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   try {
     const { classId, title, module, skillIds, difficulty, questionCount, timeLimitMinutes, dueDate } = req.body;
@@ -67,10 +68,10 @@ router.post('/', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
 // List assessments for a class
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   const { classId } = req.query;
   if (!classId) return res.status(400).json({ error: 'classId query param required.' });
@@ -82,18 +83,18 @@ router.get('/', async (req, res) => {
     .sort({ createdAt: -1 })
     .lean();
   res.json({ assessments });
-});
+}));
 
 // Get single assessment with questions (teacher view, includes answers)
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId }).lean();
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
   res.json({ assessment });
-});
+}));
 
 // Assign to class/group/student
-router.post('/:id/assign', async (req, res) => {
+router.post('/:id/assign', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   try {
     const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
@@ -112,10 +113,10 @@ router.post('/:id/assign', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
 // Class results
-router.get('/:id/results', async (req, res) => {
+router.get('/:id/results', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   try {
     const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
@@ -125,10 +126,10 @@ router.get('/:id/results', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
 // Close assessment
-router.post('/:id/close', async (req, res) => {
+router.post('/:id/close', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
@@ -136,16 +137,16 @@ router.post('/:id/close', async (req, res) => {
   assessment.closedAt = new Date();
   await assessment.save();
   res.json({ status: 'closed' });
-});
+}));
 
 // Delete draft
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', asyncHandler(async (req, res) => {
   if (!ensureTeacher(req, res)) return;
   const assessment = await InformalAssessment.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
   if (!assessment) return res.status(404).json({ error: 'Assessment not found.' });
   if (assessment.status !== 'draft') return res.status(409).json({ error: 'Only draft assessments can be deleted.' });
   await assessment.deleteOne();
   res.json({ deleted: true });
-});
+}));
 
 export default router;

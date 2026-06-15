@@ -26,7 +26,7 @@ async function requireAgencyAdmin(req, res) {
 // ── Agency admin ─────────────────────────────────────────────────────────
 
 // GET /api/agency/overview — seats + connect status + tutor count.
-router.get('/overview', async (req, res) => {
+router.get('/overview', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   const seats = await seatSummary(org._id);
   res.json({
@@ -34,10 +34,10 @@ router.get('/overview', async (req, res) => {
     seats,
     connect: { status: org.connectStatus, accountId: org.stripeConnectAccountId ? 'set' : '' },
   });
-});
+}));
 
 // GET /api/agency/tutors — roster with plan + subscription status.
-router.get('/tutors', async (req, res) => {
+router.get('/tutors', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   const members = await PartnerMembership.find({ organisationId: org._id, role: 'tutor', status: 'active' }).lean();
   const tutors = await Promise.all(members.map(async (m) => {
@@ -55,15 +55,15 @@ router.get('/tutors', async (req, res) => {
     };
   }));
   res.json({ tutors });
-});
+}));
 
 // GET/POST /api/agency/tutor-plans — what the agency charges its tutors.
-router.get('/tutor-plans', async (req, res) => {
+router.get('/tutor-plans', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   const plans = await AgencyTutorPlan.find({ organisationId: org._id }).sort({ createdAt: -1 });
   res.json({ plans });
-});
-router.post('/tutor-plans', async (req, res) => {
+}));
+router.post('/tutor-plans', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   const b = req.body || {};
   if (!b.name || b.priceToTutor == null) return res.status(400).json({ error: 'name and priceToTutor are required.' });
@@ -76,10 +76,10 @@ router.post('/tutor-plans', async (req, res) => {
     trialDays: b.trialDays != null ? b.trialDays : 14,
   });
   res.status(201).json({ plan });
-});
+}));
 
 // POST /api/agency/tutors/:tutorUserId/grant-trial — seat-checked.
-router.post('/tutors/:tutorUserId/grant-trial', async (req, res) => {
+router.post('/tutors/:tutorUserId/grant-trial', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   const plan = await AgencyTutorPlan.findOne({ _id: req.body?.planId, organisationId: org._id });
   if (!plan) return res.status(404).json({ error: 'Plan not found.' });
@@ -89,10 +89,10 @@ router.post('/tutors/:tutorUserId/grant-trial', async (req, res) => {
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message });
   }
-});
+}));
 
 // Stripe Connect onboarding for the agency.
-router.post('/connect/onboard', async (req, res) => {
+router.post('/connect/onboard', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   try {
     if (!org.stripeConnectAccountId) {
@@ -112,9 +112,9 @@ router.post('/connect/onboard', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
+}));
 
-router.get('/connect/status', async (req, res) => {
+router.get('/connect/status', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   if (!org.stripeConnectAccountId) return res.json({ status: org.connectStatus });
   try {
@@ -126,19 +126,19 @@ router.get('/connect/status', async (req, res) => {
   } catch (e) {
     res.json({ status: org.connectStatus, error: e.message });
   }
-});
+}));
 
 // GET /api/agency/charges — money the agency collects from its tutors.
-router.get('/charges', async (req, res) => {
+router.get('/charges', asyncHandler(async (req, res) => {
   const org = await requireAgencyAdmin(req, res); if (!org) return;
   const charges = await AgencyTutorCharge.find({ organisationId: org._id }).sort({ createdAt: -1 }).limit(100);
   res.json({ charges });
-});
+}));
 
 // ── Tutor self-service ─────────────────────────────────────────────────────
 
 // GET /api/agency/membership — the tutor's own agency/plan/trial status.
-router.get('/membership', async (req, res) => {
+router.get('/membership', asyncHandler(async (req, res) => {
   const sub = await Subscription.findOne({ ownerType: 'user', ownerId: String(req.user.id) }).lean();
   if (!sub?.originOrganisationId) return res.json({ membership: null });
   const [org, plan] = await Promise.all([
@@ -147,10 +147,10 @@ router.get('/membership', async (req, res) => {
   ]);
   const daysLeft = sub.trialEnd ? Math.max(0, Math.ceil((new Date(sub.trialEnd).getTime() - Date.now()) / 86400000)) : null;
   res.json({ membership: { organisation: org?.name || '', status: sub.status, trialEnd: sub.trialEnd, daysLeft, price: plan?.priceToTutor ?? null, currency: plan?.currency || 'SGD', period: plan?.period || 'monthly' } });
-});
+}));
 
 // POST /api/agency/membership/pay — tutor self-pays to convert trial → active.
-router.post('/membership/pay', async (req, res) => {
+router.post('/membership/pay', asyncHandler(async (req, res) => {
   const sub = await Subscription.findOne({ ownerType: 'user', ownerId: String(req.user.id) }).lean();
   if (!sub?.originOrganisationId) return res.status(404).json({ error: 'No agency subscription to pay.' });
   try {
@@ -159,6 +159,6 @@ router.post('/membership/pay', async (req, res) => {
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message });
   }
-});
+}));
 
 export default router;

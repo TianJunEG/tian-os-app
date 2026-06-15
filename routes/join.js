@@ -31,16 +31,16 @@ async function resolveUsableCode(codeStr, res) {
 }
 
 // GET /api/join/:code — preview what a code joins (logged-in students/parents).
-router.get('/:code', protect, async (req, res) => {
+router.get('/:code', protect, asyncHandler(async (req, res) => {
   const resolved = await resolveUsableCode(normaliseCode(req.params.code), res);
   if (!resolved) return;
   const { klass } = resolved;
   const workspace = await Workspace.findById(klass.workspaceId).select('name');
   res.json({ className: klass.name, level: klass.level, schoolName: workspace?.name || '' });
-});
+}));
 
 // POST /api/join/:code — redeem: enrol the current user as a student in the class.
-router.post('/:code', protect, async (req, res) => {
+router.post('/:code', protect, asyncHandler(async (req, res) => {
   const resolved = await resolveUsableCode(normaliseCode(req.params.code), res);
   if (!resolved) return;
   const { code, klass } = resolved;
@@ -70,6 +70,6 @@ router.post('/:code', protect, async (req, res) => {
   await code.save();
 
   res.status(201).json({ joined: true, className: klass.name });
-});
+}));
 
 export default router;

@@ -45,7 +45,7 @@ async function ownedRecording(req) {
 }
 
 // POST /api/tutor/recordings — start a recording for a linked student.
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const b = req.body || {};
   if (!b.studentId) return res.status(400).json({ error: 'studentId is required.' });
@@ -66,10 +66,10 @@ router.post('/', async (req, res) => {
     status: 'recording',
   });
   res.status(201).json({ recording: rec });
-});
+}));
 
 // POST /api/tutor/recordings/:rid/ink — append a batch of timed strokes.
-router.post('/:rid/ink', async (req, res) => {
+router.post('/:rid/ink', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
@@ -85,10 +85,10 @@ router.post('/:rid/ink', async (req, res) => {
   }));
   await LessonInkEvent.insertMany(docs);
   res.json({ appended: docs.length });
-});
+}));
 
 // POST /api/tutor/recordings/:rid/audio — upload the finalised audio blob to R2.
-router.post('/:rid/audio', upload.single('audio'), async (req, res) => {
+router.post('/:rid/audio', upload.single('audio'), asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
@@ -99,10 +99,10 @@ router.post('/:rid/audio', upload.single('audio'), async (req, res) => {
   if (req.file.mimetype) rec.audioMimeType = req.file.mimetype;
   await rec.save();
   res.json({ stored: true });
-});
+}));
 
 // POST /api/tutor/recordings/:rid/finalise — mark ready + set expiry.
-router.post('/:rid/finalise', async (req, res) => {
+router.post('/:rid/finalise', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
@@ -112,11 +112,11 @@ router.post('/:rid/finalise', async (req, res) => {
   rec.expiresAt = new Date(Date.now() + RETENTION_MS);
   await rec.save();
   res.json({ recording: rec });
-});
+}));
 
 // PATCH /api/tutor/recordings/:rid — share/unshare with parent. Sharing (the
 // transition into shared_parent) notifies the student's guardians once.
-router.patch('/:rid', async (req, res) => {
+router.patch('/:rid', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
@@ -141,10 +141,10 @@ router.patch('/:rid', async (req, res) => {
     }
   }
   res.json({ recording: rec, notified });
-});
+}));
 
 // DELETE /api/tutor/recordings/:rid — remove the recording, its ink + R2 audio.
-router.delete('/:rid', async (req, res) => {
+router.delete('/:rid', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
@@ -152,10 +152,10 @@ router.delete('/:rid', async (req, res) => {
   await LessonInkEvent.deleteMany({ recordingId: rec._id });
   await LessonRecording.deleteOne({ _id: rec._id });
   res.json({ deleted: true });
-});
+}));
 
 // GET /api/tutor/recordings/:rid — manifest: meta + signed audio URL + ink.
-router.get('/:rid', async (req, res) => {
+router.get('/:rid', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
@@ -163,6 +163,6 @@ router.get('/:rid', async (req, res) => {
   let audioUrl = null;
   if (rec.audioStorageKey) audioUrl = await r2.getSignedDownloadUrl(rec.audioStorageKey, 300);
   res.json({ recording: rec, audioUrl, ink });
-});
+}));
 
 export default router;

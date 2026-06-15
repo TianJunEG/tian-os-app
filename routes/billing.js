@@ -48,12 +48,12 @@ async function entitlementsFor(req) {
 }
 
 // GET /api/billing/me — the caller's current entitlements (incl. trial info).
-router.get('/me', protect, async (req, res) => {
+router.get('/me', protect, asyncHandler(async (req, res) => {
   res.json({ entitlements: await entitlementsFor(req) });
-});
+}));
 
 // POST /api/billing/start-trial — begin a 14-day Premium Home trial.
-router.post('/start-trial', protect, async (req, res) => {
+router.post('/start-trial', protect, asyncHandler(async (req, res) => {
   try {
     const current = await entitlementsFor(req);
     if (current.tier === 'premium_home' && current.status === 'active') {
@@ -64,10 +64,10 @@ router.post('/start-trial', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Could not start trial.' });
   }
-});
+}));
 
 // POST /api/billing/checkout/premium-home — create a Stripe Checkout session.
-router.post('/checkout/premium-home', protect, async (req, res) => {
+router.post('/checkout/premium-home', protect, asyncHandler(async (req, res) => {
   if (!stripe) {
     return res.status(503).json({ error: 'Billing is not configured on this server.', billingConfigured: false });
   }
@@ -96,11 +96,11 @@ router.post('/checkout/premium-home', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Could not start checkout.' });
   }
-});
+}));
 
 // POST /api/billing/checkout/confirm — verify a completed session and activate.
 // Used by the success page so activation works without a webhook in dev.
-router.post('/checkout/confirm', protect, async (req, res) => {
+router.post('/checkout/confirm', protect, asyncHandler(async (req, res) => {
   if (!stripe) return res.status(503).json({ error: 'Billing is not configured on this server.' });
   const { sessionId } = req.body || {};
   if (!sessionId) return res.status(400).json({ error: 'sessionId is required.' });
@@ -117,21 +117,21 @@ router.post('/checkout/confirm', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Could not confirm checkout.' });
   }
-});
+}));
 
 // POST /api/billing/dev/activate-premium-home — DEV ONLY shortcut so the upgrade
 // flow is demoable without Stripe keys. Disabled in production.
-router.post('/dev/activate-premium-home', protect, async (req, res) => {
+router.post('/dev/activate-premium-home', protect, asyncHandler(async (req, res) => {
   if (process.env.NODE_ENV === 'production') return res.status(404).json({ error: 'Not found.' });
   await upsertSubscription({ ownerType: 'user', ownerId: req.user.id, planType: PREMIUM_HOME_PLAN, status: 'active' });
   res.json({ entitlements: await entitlementsFor(req) });
-});
+}));
 
 // ── Annual PayNow flow (primary parent path: prepaid yearly fee, no recurring) ──
 
 // GET /api/billing/premium-home/offer — price + PayNow details + early-renewal
 // eligibility for the current caller.
-router.get('/premium-home/offer', protect, async (req, res) => {
+router.get('/premium-home/offer', protect, asyncHandler(async (req, res) => {
   const pricing = getPremiumHomePricing();
   const entitlements = await entitlementsFor(req);
   const early = earlyRenewalEligible(entitlements, pricing.earlyRenewalWindowDays);
@@ -143,12 +143,12 @@ router.get('/premium-home/offer', protect, async (req, res) => {
     renewal: entitlements.renewal || null,
     tier: entitlements.tier,
   });
-});
+}));
 
 // POST /api/billing/premium-home/request — parent records that they will PayNow.
 // Creates a pending request with a reference to quote; an admin activates it
 // the next business day after confirming the payment landed.
-router.post('/premium-home/request', protect, async (req, res) => {
+router.post('/premium-home/request', protect, asyncHandler(async (req, res) => {
   try {
     const pricing = getPremiumHomePricing();
     const entitlements = await entitlementsFor(req);
@@ -181,18 +181,18 @@ router.post('/premium-home/request', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Could not create the upgrade request.' });
   }
-});
+}));
 
 // GET /api/billing/premium-home/pending — admin queue of payments to verify.
-router.get('/premium-home/pending', protect, async (req, res) => {
+router.get('/premium-home/pending', protect, asyncHandler(async (req, res) => {
   if (!isBillingAdmin(req)) return res.status(403).json({ error: 'Admin access required.' });
   const pending = await UpgradeRequest.find({ status: 'pending' }).sort({ createdAt: 1 }).lean();
   res.json({ requests: pending });
-});
+}));
 
 // POST /api/billing/premium-home/requests/:id/activate — admin confirms payment.
 // Grants a 12-month period; an early renewal extends from the current end date.
-router.post('/premium-home/requests/:id/activate', protect, async (req, res) => {
+router.post('/premium-home/requests/:id/activate', protect, asyncHandler(async (req, res) => {
   if (!isBillingAdmin(req)) return res.status(403).json({ error: 'Admin access required.' });
   const request = await UpgradeRequest.findById(req.params.id);
   if (!request) return res.status(404).json({ error: 'Request not found.' });
@@ -218,10 +218,10 @@ router.post('/premium-home/requests/:id/activate', protect, async (req, res) => 
   await request.save();
 
   res.json({ activated: true, userId: request.userId, periodEnd });
-});
+}));
 
 // POST /api/billing/premium-home/requests/:id/reject — admin dismisses a request.
-router.post('/premium-home/requests/:id/reject', protect, async (req, res) => {
+router.post('/premium-home/requests/:id/reject', protect, asyncHandler(async (req, res) => {
   if (!isBillingAdmin(req)) return res.status(403).json({ error: 'Admin access required.' });
   const request = await UpgradeRequest.findById(req.params.id);
   if (!request) return res.status(404).json({ error: 'Request not found.' });
@@ -229,6 +229,6 @@ router.post('/premium-home/requests/:id/reject', protect, async (req, res) => {
   request.note = String(req.body?.note || '');
   await request.save();
   res.json({ rejected: true });
-});
+}));
 
 export default router;

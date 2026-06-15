@@ -12,6 +12,7 @@ import Skill from '../models/Skill.js';
 import Question from '../models/Question.js';
 import Subject from '../models/Subject.js';
 import { buildGeneratedPaperBlueprintFromSpecification } from '../services/mathpath/assessmentBlueprintEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -290,7 +291,7 @@ export async function generateTestFromSpecification(specificationId, options = {
 
 router.use(protect);
 
-router.get('/mine', async (req, res) => {
+router.get('/mine', asyncHandler(async (req, res) => {
   try {
     const query = { createdByUserId: req.user.id };
     if (req.query.ownerType) query.ownerType = String(req.query.ownerType);
@@ -300,9 +301,9 @@ router.get('/mine', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to load specifications.' });
   }
-});
+}));
 
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   try {
     const payload = normalizeSpecPayload(req.body || {});
     const access = await validateSpecOwnership(req, payload);
@@ -317,9 +318,9 @@ router.post('/', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to create specification.' });
   }
-});
+}));
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', asyncHandler(async (req, res) => {
   try {
     const doc = await AssessmentSpecification.findById(req.params.id);
     const access = await assertSpecAccess(req, doc);
@@ -335,9 +336,9 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to update specification.' });
   }
-});
+}));
 
-router.post('/:id/generate', async (req, res) => {
+router.post('/:id/generate', asyncHandler(async (req, res) => {
   try {
     const doc = await AssessmentSpecification.findById(req.params.id);
     const access = await assertSpecAccess(req, doc);
@@ -347,9 +348,9 @@ router.post('/:id/generate', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to generate test from specification.' });
   }
-});
+}));
 
-router.get('/:id/generated-paper-blueprint', async (req, res) => {
+router.get('/:id/generated-paper-blueprint', asyncHandler(async (req, res) => {
   try {
     const doc = await AssessmentSpecification.findById(req.params.id);
     const access = await assertSpecAccess(req, doc);
@@ -371,9 +372,9 @@ router.get('/:id/generated-paper-blueprint', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to build generated paper blueprint.' });
   }
-});
+}));
 
-router.get('/:id/class-results', async (req, res) => {
+router.get('/:id/class-results', asyncHandler(async (req, res) => {
   try {
     const doc = await AssessmentSpecification.findById(req.params.id);
     const access = await assertSpecAccess(req, doc);
@@ -411,6 +412,6 @@ router.get('/:id/class-results', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Failed to load class-level TOS results.' });
   }
-});
+}));
 
 export default router;

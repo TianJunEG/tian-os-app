@@ -8,6 +8,7 @@ import MasteryRecord from '../models/MasteryRecord.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { deriveMastery, fluencyLabel } from '../utils/masteryEngine.js';
 import { getSkillAnalytics } from '../services/telemetry/learningTelemetryService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const FLUENCY_TOPIC_NAME = 'Number Fluency';
@@ -19,7 +20,7 @@ const labelFor = (status, fluency) => ({
 // @route GET /api/skills/analytics
 // @desc  Skill-level telemetry for pilot QA and intervention planning.
 // @access Private
-router.get('/analytics', protect, async (req, res) => {
+router.get('/analytics', protect, asyncHandler(async (req, res) => {
   try {
     const analytics = await getSkillAnalytics({
       domain: req.query.domain || '',
@@ -30,7 +31,7 @@ router.get('/analytics', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load skill analytics.' });
   }
-});
+}));
 
 // @route GET /api/skills?studentId=&subject=math|science&group=fluency
 // @desc  Skill catalog (for a subject) merged with the student's mastery status.
@@ -38,7 +39,7 @@ router.get('/analytics', protect, async (req, res) => {
 //        accuracy ("timed") skills across all domains (MathPath Fluency feature).
 //        Science reuses this for its topic list.
 // @access Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const fluency = req.query.group === 'fluency';
@@ -104,6 +105,6 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load skills.' });
   }
-});
+}));
 
 export default router;

@@ -7,6 +7,7 @@ import TutorStudentLink from '../models/TutorStudentLink.js';
 import Student from '../models/Student.js';
 import StudentGuardian from '../models/StudentGuardian.js';
 import User from '../models/User.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -36,7 +37,7 @@ function safeInvitePreview(invite) {
 
 // POST /api/tutor/invites
 // Tutor creates an invite link in their active tutor workspace.
-router.post('/', protect, requireWorkspace, async (req, res) => {
+router.post('/', protect, requireWorkspace, asyncHandler(async (req, res) => {
   try {
     if (req.workspaceRole !== 'tutor') {
       return res.status(403).json({ error: 'Not a tutor workspace.' });
@@ -72,11 +73,11 @@ router.post('/', protect, requireWorkspace, async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Failed to create tutor invite.' });
   }
-});
+}));
 
 // GET /api/tutor/invites/:token
 // Safe preview route; does not expose internal IDs.
-router.get('/:token', async (req, res) => {
+router.get('/:token', asyncHandler(async (req, res) => {
   try {
     const invite = await TutorInvite.findOne({ token: req.params.token });
     if (!invite) return res.status(404).json({ error: 'Invite not found.' });
@@ -85,11 +86,11 @@ router.get('/:token', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Failed to load invite.' });
   }
-});
+}));
 
 // POST /api/tutor/invites/:token/accept
 // Parent or student accepts invite and links an existing student profile.
-router.post('/:token/accept', protect, async (req, res) => {
+router.post('/:token/accept', protect, asyncHandler(async (req, res) => {
   try {
     const invite = await TutorInvite.findOne({ token: req.params.token });
     if (!invite) return res.status(404).json({ error: 'Invite not found.' });
@@ -180,7 +181,7 @@ router.post('/:token/accept', protect, async (req, res) => {
     }
     return res.status(500).json({ error: 'Failed to accept tutor invite.' });
   }
-});
+}));
 
 export default router;
 

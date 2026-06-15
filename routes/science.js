@@ -16,6 +16,7 @@ import Question from '../models/Question.js';
 import Subject from '../models/Subject.js';
 import StudentNote from '../models/StudentNote.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const loadJson = (rel) => JSON.parse(fs.readFileSync(path.join(__dirname, rel), 'utf8'));
@@ -68,7 +69,7 @@ async function resolveTopic({ topicId, topicName }) {
 
 // @route GET /api/science/notes?topicId=… (or ?topic=name)
 // @desc  Returns the topic mind map (Mermaid source) for the requested topic.
-router.get('/notes', async (req, res) => {
+router.get('/notes', asyncHandler(async (req, res) => {
   try {
     const topic = await resolveTopic({ topicId: req.query.topicId, topicName: req.query.topic });
     if (!topic) return res.status(404).json({ error: 'Topic not found.' });
@@ -78,13 +79,13 @@ router.get('/notes', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load notes.' });
   }
-});
+}));
 
 // @route GET /api/science/lessons?topicId=… (or ?topic=name)
 // @desc  Returns a paged lesson for the topic. Prefers the curated
 //        STRUCTURED_LESSONS entry; otherwise auto-builds pages from the
 //        shared question bank (one page per question, in stable order).
-router.get('/lessons', async (req, res) => {
+router.get('/lessons', asyncHandler(async (req, res) => {
   try {
     const topic = await resolveTopic({ topicId: req.query.topicId, topicName: req.query.topic });
     if (!topic) return res.status(404).json({ error: 'Topic not found.' });
@@ -121,7 +122,7 @@ router.get('/lessons', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load lesson.' });
   }
-});
+}));
 
 // @route GET /api/science/diagrams/:key
 // @desc  Returns one inline SVG diagram from the shared library.
@@ -136,7 +137,7 @@ router.get('/diagrams/:key', (req, res) => {
 // @route GET /api/science/student-notes
 // @desc  All Science notes for the resolved student, returned as a map keyed
 //        by heading so the client can hydrate every visible NoteWidget at once.
-router.get('/student-notes', async (req, res) => {
+router.get('/student-notes', asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const notes = await StudentNote.find({ studentId: student._id, subjectKey: 'science' })
@@ -148,13 +149,13 @@ router.get('/student-notes', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load notes.' });
   }
-});
+}));
 
 // @route PUT /api/science/student-notes
 // @desc  Upsert a single note. body: { heading, text, topicName? }.
 //        Empty/whitespace text deletes the note (so saving an empty textarea
 //        from the widget naturally clears it).
-router.put('/student-notes', async (req, res) => {
+router.put('/student-notes', asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, undefined, { write: true });
     const { heading, text = '', topicName = '' } = req.body || {};
@@ -173,6 +174,6 @@ router.put('/student-notes', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to save note.' });
   }
-});
+}));
 
 export default router;

@@ -72,7 +72,7 @@ async function tutorStudentIds(req) {
 }
 
 // @route GET /api/tutor/students — assigned students + quick status
-router.get('/students', async (req, res) => {
+router.get('/students', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const studentIds = await tutorStudentIds(req);
   const students = await Student.find({ _id: { $in: studentIds } });
@@ -85,10 +85,10 @@ router.get('/students', async (req, res) => {
       homeworkCompletion: assignments.length ? Math.round((done / assignments.length) * 100) : 0 };
   }));
   res.json({ students: out });
-});
+}));
 
 // @route GET /api/tutor/home — dashboard summary
-router.get('/home', async (req, res) => {
+router.get('/home', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const studentIds = await tutorStudentIds(req);
   const overdue = await Assignment.countDocuments({ studentId: { $in: studentIds }, status: 'overdue' });
@@ -105,10 +105,10 @@ router.get('/home', async (req, res) => {
     attention, recentNotes: recentNotes.map((n) => ({ id: n._id, studentId: n.studentId, covered: n.covered, createdAt: n.createdAt })),
     certificationStatus: cert?.status || 'not_started',
   });
-});
+}));
 
 // @route GET /api/tutor/students/:id — profile
-router.get('/students/:id', async (req, res) => {
+router.get('/students/:id', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   const sum = await masterySummary(student._id);
@@ -133,10 +133,10 @@ router.get('/students/:id', async (req, res) => {
     assignments: assignments.map((a) => ({ id: a._id, module: a.module, status: a.status, score: a.score, skillNames: a.skillIds.map((s) => s.name), dueDate: a.dueDate })),
     lessonNotes: notes.map((n) => ({ id: n._id, covered: n.covered, createdAt: n.createdAt, parentUpdateStatus: n.parentUpdateStatus })),
   });
-});
+}));
 
 // @route GET /api/tutor/students/:id/lesson-prep — rule-based suggestion
-router.get('/students/:id/lesson-prep', async (req, res) => {
+router.get('/students/:id/lesson-prep', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   const notes = await LessonNote.find({ studentId: student._id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5).lean();
@@ -148,9 +148,9 @@ router.get('/students/:id/lesson-prep', async (req, res) => {
     tutorNotes: notes,
   });
   res.json({ studentId: String(student._id), ...prep });
-});
+}));
 
-router.post('/students/:id/lesson-prep/assign-recovery-pack', async (req, res) => {
+router.post('/students/:id/lesson-prep/assign-recovery-pack', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   try {
@@ -168,16 +168,16 @@ router.post('/students/:id/lesson-prep/assign-recovery-pack', async (req, res) =
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Could not assign Recovery Pack.' });
   }
-});
+}));
 
 // @route GET/POST /api/tutor/students/:id/lesson-notes
-router.get('/students/:id/lesson-notes', async (req, res) => {
+router.get('/students/:id/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   const notes = await LessonNote.find({ studentId: student._id, workspaceId: req.workspaceId }).sort({ createdAt: -1 });
   res.json({ lessonNotes: notes });
-});
-router.post('/students/:id/lesson-notes', async (req, res) => {
+}));
+router.post('/students/:id/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   const b = req.body || {};
@@ -192,13 +192,13 @@ router.post('/students/:id/lesson-notes', async (req, res) => {
     parentUpdateStatus: 'draft',
   });
   res.status(201).json({ lessonNote: note });
-});
+}));
 
 // @route POST /api/tutor/students/:id/lesson-notes/:noteId/send
 // Delivers a lesson note's parent summary to the student's guardians as an
 // in-app notification and marks it sent. Idempotent: re-sending a 'sent' note
 // notifies no one again.
-router.post('/students/:id/lesson-notes/:noteId/send', async (req, res) => {
+router.post('/students/:id/lesson-notes/:noteId/send', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   const note = await LessonNote.findOne({
@@ -221,14 +221,14 @@ router.post('/students/:id/lesson-notes/:noteId/send', async (req, res) => {
   note.parentUpdateStatus = 'sent';
   await note.save();
   res.json({ lessonNote: note, notified: guardians.length });
-});
+}));
 
 // ── Tutor Explanation Recording ──────────────────────────────────────────
 // Tutors record a visual canvas explanation for how to solve a specific
 // mistake. Parents see the replay in MistakeCard.
 
 // @route GET /api/tutor/students/:id/mistakes/:mistakeId — full mistake detail
-router.get('/students/:id/mistakes/:mistakeId', async (req, res) => {
+router.get('/students/:id/mistakes/:mistakeId', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   try {
@@ -263,11 +263,11 @@ router.get('/students/:id/mistakes/:mistakeId', async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake.' });
   }
-});
+}));
 
 // @route POST /api/tutor/students/:id/mistakes/:mistakeId/explanation
 // Save a tutor's visual explanation for a mistake (canvas strokes + snapshot).
-router.post('/students/:id/mistakes/:mistakeId/explanation', async (req, res) => {
+router.post('/students/:id/mistakes/:mistakeId/explanation', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res); if (!student) return;
   try {
@@ -305,11 +305,11 @@ router.post('/students/:id/mistakes/:mistakeId/explanation', async (req, res) =>
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to save explanation.' });
   }
-});
+}));
 
 // @route POST /api/tutor/students/:id/mistakes/:mistakeId/explanation-audio
 // Upload voice narration for a tutor explanation. Stored in R2 alongside strokes.
-router.post('/students/:id/mistakes/:mistakeId/explanation-audio', audioUpload.single('audio'), async (req, res) => {
+router.post('/students/:id/mistakes/:mistakeId/explanation-audio', audioUpload.single('audio'), asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res);
   if (!student) return;
@@ -330,10 +330,10 @@ router.post('/students/:id/mistakes/:mistakeId/explanation-audio', audioUpload.s
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to upload explanation audio.' });
   }
-});
+}));
 
 // @route GET/POST /api/tutor/lesson-notes — MathPath lesson notes API
-router.get('/lesson-notes', async (req, res) => {
+router.get('/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent({ ...req, params: { id: req.query.studentId } }, res); if (!student) return;
   const notes = await LessonNote.find({
@@ -343,9 +343,9 @@ router.get('/lesson-notes', async (req, res) => {
     domainId: req.query.domainId || 'fractions',
   }).sort({ createdAt: -1 }).lean();
   res.json({ lessonNotes: notes });
-});
+}));
 
-router.post('/lesson-notes', async (req, res) => {
+router.post('/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent({ ...req, params: { id: req.body?.studentId } }, res); if (!student) return;
   const b = req.body || {};
@@ -369,10 +369,10 @@ router.post('/lesson-notes', async (req, res) => {
     parentUpdateStatus: 'draft',
   });
   res.status(201).json({ lessonNote: note });
-});
+}));
 
 // @route GET /api/tutor/homework — all assignments this tutor created
-router.get('/homework', async (req, res) => {
+router.get('/homework', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const list = await Assignment.find({ workspaceId: req.workspaceId, assignedByUserId: req.user.id })
     .populate({ path: 'skillIds', model: Skill }).sort({ createdAt: -1 });
@@ -380,15 +380,15 @@ router.get('/homework', async (req, res) => {
   const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
   res.json({ homework: list.map((a) => ({ id: a._id, studentId: a.studentId, studentName: nameById[String(a.studentId)] || '',
     module: a.module, status: a.status, score: a.score, dueDate: a.dueDate, skillNames: a.skillIds.map((s) => s.name) })) });
-});
+}));
 
 // @route GET/PUT /api/tutor/availability
-router.get('/availability', async (req, res) => {
+router.get('/availability', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const av = await TutorAvailability.findOne({ tutorUserId: req.user.id, workspaceId: req.workspaceId });
   res.json({ availability: av || { slots: [], unavailableDates: [] } });
-});
-router.put('/availability', async (req, res) => {
+}));
+router.put('/availability', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const av = await TutorAvailability.findOneAndUpdate(
     { tutorUserId: req.user.id, workspaceId: req.workspaceId },
@@ -396,18 +396,18 @@ router.put('/availability', async (req, res) => {
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
   res.json({ availability: av });
-});
+}));
 
 // @route GET /api/tutor/certification
-router.get('/certification', async (req, res) => {
+router.get('/certification', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   let cert = await TutorCertification.findOne({ tutorUserId: req.user.id });
   if (!cert) cert = await TutorCertification.create({ tutorUserId: req.user.id });
   res.json({ certification: cert });
-});
+}));
 
 // ── PSL student dashboard (tutor view) ────────────────────────────────
-router.get('/students/:id/psl/dashboard', async (req, res) => {
+router.get('/students/:id/psl/dashboard', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
   const student = await requireLinkedStudent(req, res);
   if (!student) return;
@@ -528,6 +528,6 @@ router.get('/students/:id/psl/dashboard', async (req, res) => {
     topMisconceptions,
     recentSessions,
   });
-});
+}));
 
 export default router;
