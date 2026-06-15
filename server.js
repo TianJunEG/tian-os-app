@@ -30,7 +30,7 @@ import contextRoutes from './routes/context.js';
 import practiceRoutes from './routes/practice.js';
 import fluencyRoutes from './routes/fluency.js';
 import mistakeRoutes from './routes/mistakes.js';
-import masteryRoutes from './routes/mastery.js';
+import masteryRoutes from './routes/mastery/index.js';
 import diagnosticRoutes from './routes/diagnostics.js';
 import studentProfileRoutes from './routes/studentProfile.js';
 import studentAnalyticsRoutes from './routes/studentAnalytics.js';

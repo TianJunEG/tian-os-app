@@ -5,7 +5,7 @@ import {
   buildPracticeLifecycleLog,
   practiceAttemptDoc,
   shouldCreatePracticeMistake,
-} from '../routes/mastery.js';
+} from '../routes/mastery/index.js';
 
 describe('MathPath practice persistence helpers', () => {
   it('logs practice persistence status with student and session identity', () => {

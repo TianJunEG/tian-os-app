@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildOfflineRecoveryPracticeSessionFields } from './mastery.js';
+import { buildOfflineRecoveryPracticeSessionFields } from './mastery/index.js';
 
 describe('buildOfflineRecoveryPracticeSessionFields (backend-down fallback persistence)', () => {
   it('builds a persistable session from a self-contained payload', () => {

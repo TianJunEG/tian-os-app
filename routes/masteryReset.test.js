@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildResetStudentStateDeletionPlan } from './mastery.js';
+import { buildResetStudentStateDeletionPlan } from './mastery/index.js';
 
 describe('reset demo student state deletion plan', () => {
   it('clears all pilot learning, telemetry, XP, working, and recent activity stores', () => {
