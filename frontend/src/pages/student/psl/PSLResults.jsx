@@ -11,6 +11,8 @@ import { confettiBurst } from '../../../utils/confetti';
 import { playWin } from '../../../utils/sound';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
+import { MascotBubble } from '../../../components/MascotAvatar';
+import { getMascotForModule } from '../../../config/mascots';
 
 /* ─── Step labels ─────────────────────────────────────────────── */
 const STEP_FRIENDLY_LABELS = {
@@ -202,6 +204,12 @@ export default function PSLResults() {
   const scorePercent = Math.round((summary.overallScore || 0) * 100);
   const problems = data.problems || [];
   const misconceptions = Object.entries(summary.misconceptionCounts || {});
+  const mascot = getMascotForModule('psl');
+  const mascotMessage = scorePercent >= 80
+    ? `${scorePercent}% — amazing problem solving!`
+    : scorePercent >= 50
+      ? `${scorePercent}% — good effort! Let's review the tricky parts.`
+      : `${scorePercent}% this round. Every problem teaches you something!`;
 
   return (
     <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
@@ -252,6 +260,11 @@ export default function PSLResults() {
             </div>
           </div>
         </div>
+
+        {/* ── Mascot feedback ────────────────────────────────── */}
+        {mascot && (
+          <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mt-6" />
+        )}
 
         {/* ── Misconceptions ─────────────────────────────────── */}
         {misconceptions.length > 0 && (

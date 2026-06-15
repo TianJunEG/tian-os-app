@@ -38,7 +38,9 @@ const PREMIUM_HOME_PLAN = 'parent_plus';
 const TRIAL_PLAN = 'parent_plus'; // trial gives a taste of Premium Home
 
 const stripeKey = process.env.STRIPE_SECRET_KEY || '';
-const stripe = stripeKey ? new Stripe(stripeKey) : null;
+// Pin the API version to Stripe SDK v11's default so the v22 SDK upgrade
+// doesn't change request/response or webhook payload shapes.
+const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: '2022-11-15' }) : null;
 
 function appBase() {
   return (process.env.APP_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/+$/, '');

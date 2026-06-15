@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, SpellCheck, ListChecks, Wrench } from 'lucide-react';
 import { spellingPracticeAPI } from '../../../services/api';
 import { Card, Button, PageHeader, Spinner, EmptyState } from '../../../components/ui';
+import { MascotBubble } from '../../../components/MascotAvatar';
 
 // Spelling Practice home — a secondary Tian OS module (calm, not louder than MathPath).
 export default function SpellingHome() {
@@ -26,6 +27,7 @@ export default function SpellingHome() {
   return (
     <>
       <PageHeader title="Spelling Practice" subtitle="English · Spelling" />
+      <MascotBubble name="lysa" message="Let's spell it out! Pick a word list to get started." size="sm" className="mb-5" />
 
       {home.recommended ? (
         <Card className="mb-6 p-5">

@@ -93,6 +93,11 @@ services:
           property: connectionString
       - key: WORKER_CONCURRENCY
         value: "2"
+      # Max concurrent AI API calls per worker process. With WORKER_CONCURRENCY=2
+      # each job may call the AI multiple times (one per question), so cap at 3 to
+      # avoid provider 429s without blocking throughput.
+      - key: WORKER_AI_CONCURRENCY
+        value: "3"
       # Worker runs lower concurrency than web, so fewer DB connections needed.
       - key: MONGO_MAX_POOL_SIZE
         value: "5"

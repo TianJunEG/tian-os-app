@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
+import { MascotBubble } from '../../../components/MascotAvatar';
 
 // Adaptive Decimals diagnostic ("check-in"). Drives the generic
 // /api/diagnostics/* runtime with domainId 'decimals': start returns the first
@@ -114,6 +115,15 @@ export default function DecimalsDiagnosticSession() {
     return (
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <PageHeader title="Check-in complete" subtitle={`You answered ${result.questionsCorrect}/${result.totalQuestions} correctly.`} />
+        <MascotBubble
+          name="kylo"
+          message={result.readinessBand === 'ready'
+            ? 'Great job — you really know your decimals!'
+            : result.readinessBand === 'progressing'
+              ? 'Good start! I know just where to begin.'
+              : "No worries — let's build up from here together!"}
+          size="sm"
+        />
         <Card className="p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={bandTone(result.readinessBand)}>{result.readinessBand}</Badge>
@@ -143,6 +153,9 @@ export default function DecimalsDiagnosticSession() {
   return (
     <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
       <PageHeader title="Decimals Check-in" subtitle="A short adaptive check to find your best starting point." />
+      {progress.answeredCount === 0 && (
+        <MascotBubble name="kylo" message="Just do your best — this helps me find the right starting point for you!" size="sm" className="mb-2" />
+      )}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-ink-500">Question {Math.min(progress.answeredCount + 1, estimated)} of ~{estimated}</span>
         <ProgressBar className="ml-4 flex-1" value={progress.answeredCount} max={estimated} />
