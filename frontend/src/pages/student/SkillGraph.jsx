@@ -5,6 +5,7 @@ import { mathpathAPI } from '../../services/api';
 import { Badge, Button, Card, EmptyState, PageHeader, Spinner } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
+import { MascotGreeting } from '../../components/MascotAvatar';
 
 function statusLabel(skill = {}) {
   if (skill.locked) return 'Locked';
@@ -302,6 +303,8 @@ export default function SkillGraph() {
   return (
     <div className={`mx-auto max-w-6xl space-y-4 sm:space-y-6 ${visualStyles.page}`}>
       <PageHeader title="Progress" subtitle="Mastery visibility for MathPath skills." />
+
+      <MascotGreeting mascotKey="chelya" studentName={(user?.name || 'there').split(' ')[0]} />
 
       <NextStepHero skill={nextSkill} onStart={startPractice} starting={starting} visualStyles={visualStyles} />
 

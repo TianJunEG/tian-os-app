@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
+import MascotAvatar from '../components/MascotAvatar';
 import { Card, Button, Field, Input, Radio, Alert } from '../components/ui';
 import { ROLE_HOME } from '../config/nav';
 
@@ -59,7 +60,8 @@ export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-ivory p-4 font-ui">
       <Card className="w-full max-w-md p-8">
-        <div className="mb-6 flex justify-center"><Wordmark onDark={false} size={34} /></div>
+        <div className="mb-4 flex justify-center"><Wordmark onDark={false} size={34} /></div>
+        <div className="mb-3 flex justify-center"><MascotAvatar name="tiano" size="xl" /></div>
         <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-navy-700">Get started</h1>
         <p className="mb-8 mt-1 text-center text-sm text-ink-500">Join Tian OS today</p>
 

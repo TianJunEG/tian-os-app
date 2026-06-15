@@ -1,11 +1,12 @@
-Place mascot PNG images here. One file per mascot:
+Mascot images for The Tian 7. Two variants per mascot:
 
-- tiano.png (sky blue, welcome guide)
-- lysa.png (lavender, spelling coach)
-- lejo.png (orange, problem solver)
-- chelya.png (green, progress reporter)
-- talia.png (pink, encourager)
-- kaesy.png (electric blue, hype & rewards)
-- kylo.png (navy, math buddy)
+- `<key>.png` — 256×256 head-and-shoulders crop. Used by `MascotAvatar` for the
+  circular avatars rendered throughout the app (dashboard, PSL, walkthroughs).
+- `<key>-full.png` — 512×512 full-body illustration, for hero/illustration use.
 
-Recommended: square, at least 256x256px, transparent background.
+Keys: tiano (sky blue, welcome guide), lysa (lavender, spelling coach),
+lejo (orange, problem solver), chelya (green, progress reporter),
+talia (pink, encourager), kaesy (electric blue, hype & rewards),
+kylo (navy, math buddy).
+
+Source art generated for Tian OS; crops are correctly assigned per mascot.

@@ -3,10 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, SpellCheck, ListChecks, Wrench } from 'lucide-react';
 import { spellingPracticeAPI } from '../../../services/api';
 import { Card, Button, PageHeader, Spinner, EmptyState } from '../../../components/ui';
+import { MascotGreeting } from '../../../components/MascotAvatar';
+import { useAuth } from '../../../context/AuthContext';
 
 // Spelling Practice home — a secondary Tian OS module (calm, not louder than MathPath).
 export default function SpellingHome() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [home, setHome] = useState(null);
   const [starting, setStarting] = useState(false);
 
@@ -26,6 +29,8 @@ export default function SpellingHome() {
   return (
     <>
       <PageHeader title="Spelling Practice" subtitle="English · Spelling" />
+
+      <MascotGreeting mascotKey="lysa" studentName={(user?.name || 'there').split(' ')[0]} className="mb-6" />
 
       {home.recommended ? (
         <Card className="mb-6 p-5">

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getMascot } from '../config/mascots';
+import { speak } from '../utils/sound';
 
 const SIZES = {
   xs: 32,
@@ -68,22 +69,75 @@ export default function MascotAvatar({ name, size = 'md', className = '', showRi
   );
 }
 
-export function MascotBubble({ name, message, size = 'md', className = '' }) {
-  const mascot = getMascot(name);
-  if (!mascot) return null;
+// MascotBubble — a mascot avatar beside a speech bubble.
+// Single canonical implementation used across the app (PSL chat, hints, etc.).
+// - `text`: the message; renders nothing when empty.
+// - `speak`: when true, the text is read aloud via TTS on change (opt-in).
+// - `showName`: prefixes the bubble with the mascot's name in its accent color.
+export function MascotBubble({
+  mascotKey = 'lejo',
+  text,
+  size = 'xs',
+  showName = true,
+  speak: speakEnabled = false,
+  className = '',
+}) {
+  const mascot = getMascot(mascotKey);
+  const spokenRef = useRef('');
+
+  useEffect(() => {
+    if (speakEnabled && text && text !== spokenRef.current) {
+      spokenRef.current = text;
+      speak(text);
+    }
+  }, [text, speakEnabled]);
+
+  if (!text) return null;
+
+  const name = mascot?.name || 'Lejo';
+  const bg = mascot?.colorLight || '#fff7ed';
+  const border = mascot?.color || '#ea580c';
+  const accent = mascot?.color || '#ea580c';
 
   return (
-    <div className={`flex items-start gap-3 ${className}`}>
-      <MascotAvatar name={name} size={size} />
+    <div className={`flex items-start gap-2 ${className}`}>
+      <MascotAvatar name={mascotKey} size={size} showRing={false} />
       <div
-        className="relative rounded-2xl px-4 py-2.5 text-sm font-medium text-ink-700"
-        style={{ backgroundColor: mascot.colorLight }}
+        className="relative rounded-lg border px-3 py-1.5 text-xs leading-relaxed text-ink-800"
+        style={{ backgroundColor: bg, borderColor: border }}
       >
         <div
-          className="absolute -left-2 top-3 h-3 w-3 rotate-45"
-          style={{ backgroundColor: mascot.colorLight }}
+          className="absolute -left-1.5 top-2 h-3 w-3 rotate-45 border-l border-b"
+          style={{ backgroundColor: bg, borderColor: border }}
         />
-        <span className="relative">{message}</span>
+        <span className="relative">
+          {showName && <strong style={{ color: accent }}>{name}: </strong>}
+          {text}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// MascotGreeting — a calm header strip (avatar + name + greeting line) for the
+// top of a module page. No TTS; falls back to the mascot's default greeting.
+export function MascotGreeting({ mascotKey, text, studentName, size = 'lg', className = '' }) {
+  const mascot = getMascot(mascotKey);
+  if (!mascot) return null;
+
+  const message = text || mascot.greeting?.(studentName || 'there') || '';
+
+  return (
+    <div
+      className={`flex items-center gap-3 rounded-2xl px-4 py-3 ${className}`}
+      style={{ backgroundColor: mascot.colorLight }}
+    >
+      <MascotAvatar name={mascotKey} size={size} />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold" style={{ color: mascot.color }}>
+          {mascot.name}
+        </p>
+        {message && <p className="truncate text-sm text-ink-700">{message}</p>}
       </div>
     </div>
   );

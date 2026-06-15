@@ -14,6 +14,7 @@ import {
 import FEATURE_FLAGS from '../../../config/featureFlags';
 import { fractionSkillGraph } from '../../../mathpath/fractions/fractionSkillGraph';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
+import { MascotGreeting } from '../../../components/MascotAvatar';
 import {
   buildMathPathDomainProgressState,
   getMathPathDomainProgressState,
@@ -357,6 +358,7 @@ export default function MathPathHome() {
       <div>
         <p className={`text-sm font-semibold ${visualStyles.accent}`}>{welcomeTitle}</p>
         <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">MathPath</h1>
+        <MascotGreeting mascotKey="kylo" studentName={(user?.name || 'there').split(' ')[0]} className="mt-3" />
       </div>
 
       {/* Hero — main CTA + progress */}
