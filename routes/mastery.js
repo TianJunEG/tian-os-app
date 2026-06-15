@@ -67,6 +67,15 @@ import {
   getAssignmentById,
   updateAssignmentProgress,
 } from '../services/mathpath/mathPathAssignmentService.js';
+import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
+
+// Word-problem F-codes that map to PSL heuristics. Procedural skills (F001–F022) have no PSL content.
+const FCODE_TO_HEURISTIC = {
+  F023: 'bar-model',
+  F024: 'bar-model',
+  F025: 'bar-model',
+  F026: 'bar-model',
+};
 
 const router = express.Router();
 
@@ -669,7 +678,19 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
       completionReason: 'target_reached',
     });
 
-    const summary = { ...submitted, persisted: true, lifecycleLog };
+    // Find the weakest word-problem F-code skill and suggest PSL if content exists.
+    const weakestWordProblem = Object.entries(bySkill)
+      .filter(([fcode, s]) => FCODE_TO_HEURISTIC[fcode] && s.total > 0 && s.accuracy < 80)
+      .sort(([, a], [, b]) => a.accuracy - b.accuracy)[0];
+    let pslSuggestion = null;
+    if (weakestWordProblem) {
+      const heuristic = FCODE_TO_HEURISTIC[weakestWordProblem[0]];
+      if (skillHasPSLContent(heuristic)) {
+        pslSuggestion = { skillSlug: 'fr.word-problems', heuristic };
+      }
+    }
+
+    const summary = { ...submitted, persisted: true, lifecycleLog, ...(pslSuggestion && { pslSuggestion }) };
     existing.status = 'completed';
     existing.completedAt = new Date();
     existing.responses = req.body?.responses || [];
