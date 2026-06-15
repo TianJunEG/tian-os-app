@@ -2,6 +2,12 @@ import { describe, it, expect } from 'vitest';
 import decimalsDiagnosticDomain, {
   buildSkillGraph,
   getQuestionBank,
+  getQuestionById,
+  toGenericQuestion,
+  loadSkills,
+  selectTargetSkills,
+  selectInitialQuestions,
+  resolveDiagnosticCount,
   scoreAnswer,
   detectErrorTags,
   buildResult,
@@ -99,6 +105,63 @@ describe('Decimals diagnostic domain — adaptive loop (generic engine)', () => 
     });
     expect(next).toBeTruthy();
     expect(next.skillId).toBe('D003');
+  });
+});
+
+describe('Decimals diagnostic domain — runtime methods (DB-free)', () => {
+  it('loadSkills returns all skills plus a framework-id index', () => {
+    const { skills, byFrameworkId } = loadSkills();
+    expect(skills).toHaveLength(14);
+    expect(byFrameworkId.get('D006').name).toBe('Adding and Subtracting Decimals');
+  });
+
+  it('selectTargetSkills orders by difficulty and honours a start skill', () => {
+    const { skills } = loadSkills();
+    const ordered = selectTargetSkills({ skills });
+    expect(ordered[0].difficulty).toBeLessThanOrEqual(ordered[ordered.length - 1].difficulty);
+    const withStart = selectTargetSkills({ skills, startSkillId: 'D011' });
+    expect(withStart[0].skillId).toBe('D011');
+  });
+
+  it('selectInitialQuestions returns one question per evenly-sampled skill', () => {
+    const { skills } = loadSkills();
+    const targetSkills = selectTargetSkills({ skills });
+    const questions = selectInitialQuestions({ targetSkills, count: 8 });
+    expect(questions).toHaveLength(8);
+    expect(new Set(questions.map((q) => q.questionId)).size).toBe(8);
+    expect(new Set(questions.map((q) => q.skillId)).size).toBe(8); // distinct skills
+    expect(questions.every((q) => q.answer && q.prompt)).toBe(true);
+  });
+
+  it('resolveDiagnosticCount returns fewer questions for a quick run', () => {
+    expect(resolveDiagnosticCount('core')).toBe(8);
+    expect(resolveDiagnosticCount('quick')).toBe(5);
+  });
+
+  it('getQuestionById regenerates the EXACT question (deterministic round-trip)', () => {
+    const { bank } = getQuestionBank({ targetSkillIds: ['D006', 'D009'], perSkill: 2 });
+    for (const q of bank) {
+      const regen = getQuestionById(q.questionId);
+      expect(regen).toBeTruthy();
+      expect(regen.questionId).toBe(q.questionId);
+      expect(regen.prompt).toBe(q.prompt);
+      expect(regen.answer.display).toBe(q.answer.display);
+      // the regenerated item grades the bank item's correct answer as correct
+      expect(scoreAnswer(toGenericQuestion(regen), { answer: q.answer.display })).toBe(true);
+    }
+    expect(getQuestionById('not-a-valid-id')).toBeNull();
+  });
+
+  it('supports a full DB-free start → answer data path', () => {
+    const { skills } = loadSkills();
+    const targetSkills = selectTargetSkills({ skills });
+    const initial = selectInitialQuestions({ targetSkills, count: resolveDiagnosticCount('core') });
+    const first = initial[0];
+    // runtime re-fetches the current question by id, then grades it
+    const refetched = getQuestionById(first.questionId);
+    expect(refetched.skillId).toBe(first.skillId);
+    expect(scoreAnswer(toGenericQuestion(refetched), { answer: refetched.answer.display })).toBe(true);
+    expect(scoreAnswer(toGenericQuestion(refetched), { answer: 'wrong' })).toBe(false);
   });
 });
 

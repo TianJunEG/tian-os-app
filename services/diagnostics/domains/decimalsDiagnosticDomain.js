@@ -1,7 +1,8 @@
 import { DIAGNOSTIC_DECISIONS } from '../../mathpath/diagnosticDecisionEngine.js';
 import { decimalsSkillGraph, getSkill } from '../../../shared/mathpath/decimals/decimalsSkillGraph.js';
+import { getQuestionFamiliesBySkill } from '../../../shared/mathpath/decimals/decimalsQuestionFamilies.js';
 import {
-  generateDecimalQuestionSet,
+  generateDecimalQuestion,
   checkDecimalAnswer,
 } from '../../../shared/mathpath/decimals/decimalsQuestionGenerator.js';
 
@@ -40,29 +41,47 @@ export function buildSkillGraph() {
 
 const skillsByFrameworkId = new Map(decimalsSkillGraph.skills.map((s) => [s.id, genericSkill(s)]));
 
-// ── Question bank (generator-backed) ────────────────────────────────────────
-function genericQuestion(q, index) {
+// ── Question bank (generator-backed, round-trippable ids) ───────────────────
+// A diagnostic question id encodes its (family, variant) so getQuestionById can
+// regenerate the EXACT item deterministically — the runtime fetches the current
+// question by id on each answer, and there is no DB to read it back from.
+const QID_RE = /^(.+)__v(\d+)$/;
+
+function rawQuestionFor(familyId, variant) {
+  const q = generateDecimalQuestion({ questionFamilyId: familyId, variant, mode: 'diagnostic' });
+  return { ...q, questionId: `${familyId}__v${variant}`, variant };
+}
+
+function genericQuestion(raw) {
   return {
-    questionId: `${q.questionFamilyId}_${index}`,
-    id: `${q.questionFamilyId}_${index}`,
-    skillId: q.skillId,
+    questionId: raw.questionId,
+    id: raw.questionId,
+    skillId: raw.skillId,
     domainId: DOMAIN_ID,
-    difficulty: Number(q.difficulty || 1),
-    questionType: q.type,
-    responseType: q.type === 'mcq' ? 'mcq' : 'short_answer',
+    difficulty: Number(raw.difficulty || 1),
+    questionType: raw.type,
+    responseType: raw.type === 'mcq' ? 'mcq' : 'short_answer',
     diagnosticPurpose: 'main_skill_probe',
     prerequisiteSkillIdsTested: [],
-    errorTagsSupported: [q.misconceptionTag].filter(Boolean),
+    errorTagsSupported: [raw.misconceptionTag].filter(Boolean),
     canRephrase: false,
     hasParallelItem: true,
-    requiresWorking: Boolean(q.workingRequired),
-    questionFamilyId: q.questionFamilyId,
-    stem: q.prompt,
-    prompt: q.prompt,
-    answer: q.answer,
-    choices: q.choices || [],
-    raw: q,
+    requiresWorking: Boolean(raw.workingRequired),
+    questionFamilyId: raw.questionFamilyId,
+    stem: raw.prompt,
+    prompt: raw.prompt,
+    answer: raw.answer,
+    choices: raw.choices || [],
+    raw,
   };
+}
+
+// Mirrors generateDecimalQuestionSet's family/variant cycling so the bank keeps
+// `perSkill` items per skill but with deterministic, round-trippable ids.
+function rawQuestionsForSkill(skillId, count) {
+  const families = getQuestionFamiliesBySkill(skillId).map((f) => f.id);
+  if (!families.length) return [];
+  return Array.from({ length: count }, (_, i) => rawQuestionFor(families[i % families.length], Math.floor(i / families.length)));
 }
 
 // Returns the runtime-compatible bank shape. `perSkill` controls how many probe
@@ -71,11 +90,65 @@ export function getQuestionBank({ targetSkillIds = [], perSkill = 3 } = {}) {
   const ids = (targetSkillIds.length ? targetSkillIds : decimalsSkillGraph.skillIds).filter((id) => getSkill(id));
   const bank = [];
   for (const skillId of ids) {
-    const generated = generateDecimalQuestionSet({ skillId, count: perSkill, mode: 'diagnostic' });
-    generated.forEach((q, i) => bank.push(genericQuestion(q, i)));
+    for (const raw of rawQuestionsForSkill(skillId, perSkill)) bank.push(genericQuestion(raw));
   }
   const skillByDbId = new Map(ids.map((id) => [id, skillsByFrameworkId.get(id)]));
   return { docs: bank, bank, skillByDbId, skillsByFrameworkId };
+}
+
+// Regenerate a question from its id (deterministic; no DB lookup).
+export function getQuestionById(questionId) {
+  const m = QID_RE.exec(String(questionId || ''));
+  if (!m) return null;
+  const [, familyId, variant] = m;
+  try {
+    return rawQuestionFor(familyId, Number(variant));
+  } catch {
+    return null;
+  }
+}
+
+export function toGenericQuestion(question = {}) {
+  // Accept a raw generator question or an already-generic one.
+  const raw = question.raw || question;
+  return genericQuestion(raw.questionId ? raw : { ...raw, questionId: question.questionId });
+}
+
+// ── Runtime methods (DB-free) ───────────────────────────────────────────────
+export function resolveDiagnosticCount(mode = 'core') {
+  return String(mode).toLowerCase() === 'quick' ? 5 : 8;
+}
+
+// The runtime calls loadSkills then buildSkillGraph(skills); both DB-free here.
+export function loadSkills() {
+  const skills = buildSkillGraph();
+  const byFrameworkId = new Map(skills.map((s) => [s.skillId, s]));
+  return { skills, byFrameworkId };
+}
+
+// Pick a breadth-spanning set of skills (sorted by difficulty) for the probe.
+export function selectTargetSkills({ skills = [], startSkillId = '' } = {}) {
+  const ordered = [...skills].sort((a, b) => (a.difficulty - b.difficulty) || a.skillId.localeCompare(b.skillId));
+  if (startSkillId) {
+    const start = ordered.find((s) => s.skillId === startSkillId);
+    if (start) return [start, ...ordered.filter((s) => s.skillId !== startSkillId)];
+  }
+  return ordered;
+}
+
+// One question per evenly-sampled target skill, up to `count`.
+export function selectInitialQuestions({ targetSkills = [], count = 8 } = {}) {
+  const pool = targetSkills.filter((s) => getQuestionFamiliesBySkill(s.skillId).length);
+  if (!pool.length) return [];
+  const n = Math.min(count, pool.length);
+  const step = pool.length / n;
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const skill = pool[Math.floor(i * step)];
+    const familyId = getQuestionFamiliesBySkill(skill.skillId)[0].id;
+    out.push(rawQuestionFor(familyId, 0));
+  }
+  return out;
 }
 
 export function normaliseQuestion(question = {}) {
@@ -158,9 +231,15 @@ const decimalsDiagnosticDomain = {
   defaultStartSkillIds: ['D001'],
   fallbackSkillId: 'D001',
   buildSkillGraph,
+  loadSkills,
+  selectTargetSkills,
+  selectInitialQuestions,
+  resolveDiagnosticCount,
   getQuestionBank,
+  getQuestionById,
   normaliseQuestion,
   normalizeQuestion: normaliseQuestion,
+  toGenericQuestion,
   scoreAnswer,
   detectErrorTags,
   buildResult,
