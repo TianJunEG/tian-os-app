@@ -5,6 +5,7 @@ export const FLAGS = {
   // core student features
   mathpath: true,
   decimals: process.env.FEAT_DECIMALS !== '0',
+  percentages: process.env.FEAT_PERCENTAGES !== '0',
   fluency: true,
   mistakes: true,
   progress: true,
