@@ -234,7 +234,10 @@ app.use('/api/notifications', notificationRoutes);
 // (express.static is mounted earlier — before CORS — so asset requests
 // are already handled by the time we reach here.)
 if (fs.existsSync(path.join(clientDist, 'index.html'))) {
-  app.get('*', (req, res, next) => {
+  // Express 5 requires a named wildcard — bare '*' is no longer a valid path
+  // pattern under path-to-regexp v8. '/{*splat}' is the optional-wildcard form
+  // that matches every path including root '/' (plain '/*splat' misses root).
+  app.get('/{*splat}', (req, res, next) => {
     if (
       req.path.startsWith('/api') ||
       req.path.startsWith('/uploads') ||
