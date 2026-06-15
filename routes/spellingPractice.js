@@ -6,6 +6,8 @@ import PracticeAttempt from '../models/PracticeAttempt.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Mistake from '../models/Mistake.js';
 import Assignment from '../models/Assignment.js';
+import LearningResult from '../models/LearningResult.js';
+import Student from '../models/Student.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
@@ -133,6 +135,19 @@ router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => 
   await session.save();
   if (session.assignmentId) {
     await Assignment.findByIdAndUpdate(session.assignmentId, { status: 'completed', completionDate: new Date(), score: scorePct });
+  }
+  const minutes = Math.max(1, Math.round((session.endedAt - session.createdAt) / 60000));
+  const studentDoc = await Student.findById(session.studentId).select('userId').lean();
+  if (studentDoc?.userId) {
+    await LearningResult.create({
+      user: studentDoc.userId,
+      source: 'spelling',
+      subject: 'english',
+      topic: session.listTitle || 'spelling',
+      accuracy: scorePct,
+      mastered: scorePct >= 85,
+      minutes,
+    }).catch(() => {});
   }
   res.json({ session_id: session._id, summary: session.summary });
 }));
