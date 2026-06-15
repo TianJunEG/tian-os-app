@@ -1,5 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import Seo from '../components/Seo';
+import MarketingHeader from '../components/MarketingHeader';
+import SiteFooter from '../components/SiteFooter';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 const BELIEFS = [
   {
@@ -28,22 +32,6 @@ const TIMELINE = [
   { label: 'Today — Tian OS', title: 'The platform built to lift the ceiling for good.', body: 'Everything those years taught her, turned into software — so the right approach can reach every student, not just the ones who find the right teacher.', highlight: true },
 ];
 
-function useScrollReveal() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const root = ref.current;
-    if (!root) return;
-    const els = root.querySelectorAll('.scroll-reveal');
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } }),
-      { threshold: 0.1 },
-    );
-    els.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
-  return ref;
-}
-
 function Eyebrow({ children, light }) {
   return (
     <div className="scroll-reveal mb-7 font-mono text-[12.5px] uppercase tracking-[0.22em]" style={{ color: light ? '#8fb1ff' : '#4f7bf0' }}>
@@ -60,40 +48,19 @@ function SectionHeading({ children, light, className = '' }) {
   );
 }
 
-function TianLogo({ size = 26, dark }) {
-  return (
-    <div className="flex items-center gap-[11px]">
-      <div
-        className="flex items-center justify-center font-marketing font-semibold"
-        style={{ width: size, height: size, borderRadius: size * 0.27, background: 'linear-gradient(135deg, #5d86f0, #8fb1ff)', color: '#0e1a31', fontSize: size * 0.65 }}
-      >
-        T
-      </div>
-      <span className="whitespace-nowrap font-semibold" style={{ fontSize: size * 0.65, color: dark ? '#1c2433' : '#f4f0e8' }}>Tian OS</span>
-    </div>
-  );
-}
-
 export default function OurStoryPage() {
-  const rootRef = useScrollReveal();
+  useScrollReveal();
 
   return (
-    <div ref={rootRef} className="marketing-page" style={{ color: '#1d2230', background: '#f4efe6', overflowX: 'hidden' }}>
+    <div className="marketing-page" style={{ color: '#1d2230', background: '#f4efe6', overflowX: 'hidden' }}>
+      <Seo title="Our Story" description="How Tian OS began — and why teaching is too important to do alone." path="/our-story" />
 
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #13223e 0%, #0e1a31 100%)', color: '#f4f0e8' }}>
         <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(143,177,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(143,177,255,0.05) 1px, transparent 1px)', backgroundSize: '64px 64px' }} />
         <div className="pointer-events-none absolute" style={{ top: -120, right: -80, width: 460, height: 460, borderRadius: '50%', background: 'radial-gradient(circle, rgba(79,123,240,0.22), transparent 65%)' }} />
 
-        <header className="relative mx-auto flex max-w-[1180px] items-center justify-between px-10 py-[30px]">
-          <TianLogo />
-          <nav className="flex items-center gap-[30px] text-[14.5px]" style={{ color: '#aebbd2' }}>
-            <span style={{ color: '#f4f0e8' }}>Our Story</span>
-            <span>Platform</span>
-            <span>For Schools</span>
-            <span className="whitespace-nowrap rounded-full border px-[18px] py-[9px]" style={{ borderColor: 'rgba(255,255,255,0.18)', color: '#f4f0e8' }}>Book a demo</span>
-          </nav>
-        </header>
+        <MarketingHeader />
 
         <div className="relative mx-auto max-w-[1180px] px-10 pb-[130px] pt-20">
           <div className="scroll-reveal">
@@ -275,14 +242,10 @@ export default function OurStoryPage() {
             </div>
           </div>
 
-          <footer className="mt-[clamp(50px,6vw,80px)] flex flex-wrap items-center justify-between gap-4 border-t pt-[30px]" style={{ borderColor: '#e1d9ca' }}>
-            <TianLogo size={24} dark />
-            <div className="font-mono text-[14px] tracking-[0.03em]" style={{ color: '#8a8270' }}>
-              An AI-native learning platform for schools.
-            </div>
-          </footer>
         </div>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }
