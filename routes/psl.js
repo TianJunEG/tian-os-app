@@ -9,6 +9,7 @@ import MasteryRecord from '../models/MasteryRecord.js';
 import Mistake from '../models/Mistake.js';
 import { checkPrerequisites } from '../services/psl/prerequisiteChecker.js';
 import { getHintsForStep } from '../services/psl/hintGenerator.js';
+import { getHeuristicForSkill, skillHasPSLContent } from '../services/mathpath/heuristicBridge.js';
 import {
   startSession,
   getSession,
@@ -78,6 +79,37 @@ router.post('/sessions', protect, asyncHandler(async (req, res) => {
       assignmentId: req.body.assignmentId || null,
     });
     res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
+}));
+
+// @route GET /api/psl/sessions/suggested
+// @desc  Start a PSL session for the heuristic that matches a given skill slug.
+//        Accepts ?skillSlug=fr.word-problems  OR  ?heuristic=bar-model[&level=Primary%205]
+router.get('/sessions/suggested', protect, asyncHandler(async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const { skillSlug, heuristic: heuristicParam, level } = req.query;
+    const heuristic = heuristicParam || getHeuristicForSkill(skillSlug);
+    if (!heuristic) {
+      return res.status(400).json({ error: 'No PSL heuristic for this skill. Pass ?heuristic= directly or a slug that maps to one.' });
+    }
+    if (!skillHasPSLContent(heuristic)) {
+      return res.status(404).json({ error: `No seeded PSL content for heuristic "${heuristic}".` });
+    }
+    const query = { heuristic, isActive: true };
+    if (level) query.level = level;
+    const skill = await PSLSkill.findOne(query).lean();
+    if (!skill) {
+      return res.status(404).json({ error: `No active PSL skill found for heuristic "${heuristic}"${level ? ` at level "${level}"` : ''}.` });
+    }
+    const result = await startSession({
+      studentId: student._id,
+      skillId: skill.skillId,
+      workspaceId: student.workspaceId,
+    });
+    res.json({ ...result, pslSkill: { skillId: skill.skillId, heuristic: skill.heuristic, name: skill.name, level: skill.level } });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
