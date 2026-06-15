@@ -670,8 +670,14 @@ function templateForSkill(skillId, variant, ctx) {
     case 'F001': {
       const d = seq(s, 2, 8);
       const shaded = variant === 0 ? 1 : seq(s, 1, d - 1);
+      const F001_PROMPTS = [
+        'What fraction of the shape is shaded?',
+        'Look at the bar model below. What fraction is shaded?',
+        'The bar is divided into equal parts. What fraction of the bar has been shaded?',
+        `The bar below has ${d} equal parts. Some parts are shaded. Write the fraction that is shaded.`,
+      ];
       return {
-        prompt: 'What fraction of the shape is shaded?',
+        prompt: F001_PROMPTS[Math.abs(s + variant) % F001_PROMPTS.length],
         answer: answerPayloadFraction(shaded, d),
         acceptedAnswers: [fracStr({ numerator: shaded, denominator: d })],
         diagramSpec: {
