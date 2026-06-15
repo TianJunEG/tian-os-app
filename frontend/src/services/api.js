@@ -262,6 +262,7 @@ export const studentProfileAPI = {
   timeline: () => api.get('/student-profile/timeline'),
   personalBests: () => api.get('/student-profile/personal-bests'),
   updateName: (name) => api.patch('/student-profile/name', { name }),
+  updateVisualMode: (mode) => api.patch('/student-profile/visual-mode', { mode }),
 };
 
 export const studentCareAPI = {
