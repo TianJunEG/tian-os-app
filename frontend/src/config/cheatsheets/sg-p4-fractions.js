@@ -1,0 +1,58 @@
+export default {
+  id: 'sg-p4-fr',
+  level: 'Primary 4',
+  issue: 1,
+  topic: 'Fractions',
+  subtitle: "Kylo's Ultimate Cheat Sheet",
+  mascot: 'kylo',
+  sections: [
+    {
+      title: 'Mixed → Improper',
+      code: 'Fr 1.1',
+      formula: 'Whole × Denominator + Numerator',
+      formulaNote: 'Keep the same denominator!',
+      explanation: 'Multiply the whole number by the bottom, then add the top!',
+      example: {
+        steps: ['2 {{1/3}} → (2 × 3) + 1 = 7'],
+        answer: '{{7/3}}',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'pieChart', slices: [{ num: 3, den: 3 }, { num: 3, den: 3 }, { num: 1, den: 3 }], labels: ['1', '1', '⅓'] },
+    },
+    {
+      title: 'Fraction of a Set',
+      code: 'Fr 2.1',
+      formula: 'Total ÷ Bottom × Top',
+      formulaNote: 'Divide by the denominator, then multiply by the numerator!',
+      explanation: 'Divide the set by the bottom, multiply by the top!',
+      example: {
+        steps: ['{{3/4}} of 20', '20 ÷ 4 = 5 (one part)'],
+        answer: '5 × 3 = 15',
+      },
+      sfx: 'POW!',
+      tip: 'Draw a bar model — split into equal parts, shade the ones you need!',
+      barModel: { parts: 4, shaded: 3, value: 5 },
+      diagram: { type: 'pieChart', slices: [{ num: 3, den: 4 }], labels: ['¾'] },
+    },
+    {
+      title: 'Add & Subtract Unlike Fractions',
+      code: 'Fr 3.1',
+      formula: 'Find LCD → Rewrite → Add/Subtract Tops',
+      formulaNote: 'Only add/subtract the numerators — denominators ≤ 12!',
+      explanation: 'Find the LCD, rewrite both fractions, then add the tops!',
+      example: {
+        steps: [
+          '{{1/3}} + {{1/4}}',
+          'LCD of 3 & 4 = 12',
+          '{{1/3}} = {{4/12}} (×4)   {{1/4}} = {{3/12}} (×3)',
+        ],
+        answer: '{{4/12}} + {{3/12}} = {{7/12}}',
+      },
+      sfx: 'KA-POW!',
+      tip: 'If one denominator divides the other, the bigger one IS the LCD! e.g. {{1/3}} + {{1/6}} → LCD = 6',
+      bossLevel: true,
+      diagram: { type: 'fractionStrip', parts: 12, groups: [{ count: 4, label: '4/12', color: 'accent' }, { count: 3, label: '3/12', color: 'shadow' }] },
+    },
+  ],
+};

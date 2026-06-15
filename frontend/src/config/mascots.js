@@ -102,4 +102,6 @@ export function getDashboardMascot() {
   return { key: 'tiano', ...MASCOTS.tiano };
 }
 
-export { MASCOTS, MODULE_MASCOT_MAP };
+const MASCOT_ORDER = ['tiano', 'lysa', 'lejo', 'chelya', 'talia', 'kaesy', 'kylo'];
+
+export { MASCOTS, MODULE_MASCOT_MAP, MASCOT_ORDER };

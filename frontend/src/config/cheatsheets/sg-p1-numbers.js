@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p1-num',
+  level: 'Primary 1',
+  issue: 1,
+  topic: 'Numbers to 100',
+  subtitle: "Tiano's Ultimate Cheat Sheet",
+  mascot: 'tiano',
+  sections: [
+    {
+      title: 'Counting to 20',
+      code: 'Num 1.1',
+      formula: 'Start at the number → count on one at a time',
+      formulaNote: 'Just say the next number!',
+      explanation: 'Count on from any number — say the next one out loud!',
+      example: {
+        steps: ['What comes after 15?'],
+        answer: '16',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'numberLine', start: 10, end: 20, points: [15, 16], labels: ['start', 'next!'] },
+    },
+    {
+      title: 'Place Value: Tens and Ones',
+      code: 'Num 1.2',
+      formula: 'Tens + Ones = Number',
+      formulaNote: 'Every number is made of tens and ones!',
+      explanation: 'Tens and ones make any number — split it up to understand it!',
+      example: {
+        steps: ['34 → 3 tens and 4 ones'],
+        answer: '30 + 4 = 34',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'placeValue', headers: ['Tens', 'Ones'], digits: [3, 4] },
+    },
+    {
+      title: 'Comparing Numbers',
+      code: 'Num 1.3',
+      formula: 'More → Greater (>)  Less → Smaller (<)',
+      formulaNote: 'The hungry crocodile eats the bigger number!',
+      explanation: 'Use > < = to compare two numbers — check the tens first!',
+      example: {
+        steps: ['47 vs 38', '4 tens > 3 tens'],
+        answer: '47 > 38',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Compare tens first — if tens are the same, compare ones!',
+      bossLevel: true,
+      diagram: { type: 'comparison', numA: '47', numB: '38', diffIdx: 0 },
+    },
+  ],
+};

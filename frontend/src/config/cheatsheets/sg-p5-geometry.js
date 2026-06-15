@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p5-geo',
+  level: 'Primary 5',
+  issue: 5,
+  topic: 'Geometry',
+  subtitle: "Kaesy's Ultimate Cheat Sheet",
+  mascot: 'kaesy',
+  sections: [
+    {
+      title: 'Types of Triangles',
+      code: 'Geo 5.1',
+      formula: 'Equilateral = 3 equal sides\nIsosceles = 2 equal sides\nScalene = no equal sides',
+      formulaNote: null,
+      explanation: 'By sides and angles.',
+      example: {
+        steps: ['A triangle with sides 5 cm, 5 cm, 8 cm'],
+        answer: 'Isosceles',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'arrowFlow', steps: ['Equilateral\n3 equal', 'Isosceles\n2 equal', 'Scalene\n0 equal'] },
+    },
+    {
+      title: 'Types of Quadrilaterals',
+      code: 'Geo 5.2',
+      formula: 'Parallelogram → opposite sides parallel & equal\nRhombus → all sides equal\nTrapezium → exactly 1 pair of parallel sides',
+      formulaNote: null,
+      explanation: '4-sided shapes.',
+      example: {
+        steps: ['All sides 6 cm, opposite angles equal'],
+        answer: 'Rhombus',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'arrowFlow', steps: ['Square', 'Rectangle', 'Rhombus', 'Parallelogram', 'Trapezium'] },
+    },
+    {
+      title: 'Area of a Triangle',
+      code: 'Geo 5.3',
+      formula: 'Area = {{1/2}} × base × height',
+      formulaNote: null,
+      explanation: 'Half of a rectangle.',
+      example: {
+        steps: ['Base = 10 cm, Height = 6 cm', '{{1/2}} × 10 × 6'],
+        answer: '30 cm²',
+      },
+      sfx: 'KA-POW!',
+      tip: 'The height must be perpendicular to the base — look for the right angle!',
+      bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['b = 10', 'h = 6', '½ × 10 × 6', '= 30 cm²'] },
+    },
+  ],
+};

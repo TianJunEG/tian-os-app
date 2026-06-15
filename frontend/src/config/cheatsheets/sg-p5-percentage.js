@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p5-pct',
+  level: 'Primary 5',
+  issue: 3,
+  topic: 'Percentage',
+  subtitle: "Kaesy's Ultimate Cheat Sheet",
+  mascot: 'kaesy',
+  sections: [
+    {
+      title: 'What is Percentage?',
+      code: 'Pct 5.1',
+      formula: 'Percentage = out of 100',
+      formulaNote: null,
+      explanation: 'Per cent = per hundred.',
+      example: {
+        steps: ['25% means 25 out of 100', '{{25/100}} = {{1/4}} = 0.25'],
+        answer: '25% = {{1/4}} = 0.25',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'pieChart', slices: [{ num: 1, den: 4 }], labels: ['25%'] },
+    },
+    {
+      title: 'Convert Fraction ↔ Decimal ↔ %',
+      code: 'Pct 5.2',
+      formula: 'Fraction → % : × 100%\n% → Fraction: ÷ 100\nDecimal → %: × 100%',
+      formulaNote: null,
+      explanation: 'The magic triangle.',
+      example: {
+        steps: ['{{3/5}} → 3 ÷ 5 = 0.6', '0.6 × 100%'],
+        answer: '60%',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'arrowFlow', steps: ['{{3/5}}', '÷', '0.6', '× 100%', '60%'] },
+    },
+    {
+      title: 'Percentage of a Quantity',
+      code: 'Pct 5.3',
+      formula: 'Find 1% first (÷ 100) → then multiply',
+      formulaNote: null,
+      explanation: 'Find the amount.',
+      example: {
+        steps: ['25% of 160 → 1% = 1.6', '1.6 × 25'],
+        answer: '40',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Or use the fraction shortcut: 25% = ¼ → 160 ÷ 4 = 40',
+      bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['25% of 160', '160 ÷ 100', '1% = 1.6', '× 25', '= 40'] },
+    },
+  ],
+};

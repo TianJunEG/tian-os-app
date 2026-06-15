@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p6-pct',
+  level: 'Primary 6',
+  issue: 3,
+  topic: 'Percentage',
+  subtitle: "Chelya's Ultimate Cheat Sheet",
+  mascot: 'chelya',
+  sections: [
+    {
+      title: 'Express as Percentage',
+      code: 'Pct 1.1',
+      formula: 'Fraction × 100% = Percentage',
+      formulaNote: null,
+      explanation: 'Fraction → Percentage — multiply by 100%.',
+      example: {
+        steps: ['{{3/4}} × 100%'],
+        answer: '75%',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'pieChart', slices: [{ num: 3, den: 4 }], labels: ['75%'] },
+    },
+    {
+      title: 'Discount & GST',
+      code: 'Pct 2.1',
+      formula: 'Discount: 100% − discount% → multiply by original\nGST: Price × 1.09',
+      formulaNote: 'Singapore GST is 9%',
+      explanation: 'Shopping math! Apply the discount first, then add GST.',
+      example: {
+        steps: ['20% off $80 → 80% of $80 = $64', 'With 9% GST: $64 × 1.09'],
+        answer: '$69.76',
+      },
+      sfx: 'POW!',
+      tip: 'Discount first, then add GST — that\'s the real-world order!',
+      diagram: { type: 'arrowFlow', steps: ['$80', '−20% off', '$64', '+9% GST', '$69.76'] },
+    },
+    {
+      title: 'Find the Whole (100%)',
+      code: 'Pct 3.1',
+      formula: 'Given amount ÷ its percentage × 100%',
+      formulaNote: null,
+      explanation: 'Working backwards — find 1% first, then scale up to 100%.',
+      example: {
+        steps: ['30% of ? = 45', '1% = 45 ÷ 30 = 1.5', '100% = 1.5 × 100'],
+        answer: '150',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Find 1% first, then multiply by 100!',
+      bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['30% = 45', '÷30', '1% = 1.5', '×100', '100% = 150'] },
+    },
+  ],
+};

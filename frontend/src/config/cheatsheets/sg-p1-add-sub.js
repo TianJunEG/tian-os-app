@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p1-as',
+  level: 'Primary 1',
+  issue: 2,
+  topic: 'Addition & Subtraction',
+  subtitle: "Tiano's Ultimate Cheat Sheet",
+  mascot: 'tiano',
+  sections: [
+    {
+      title: 'Number Bonds',
+      code: 'AS 1.1',
+      formula: 'Part + Part = Whole',
+      formulaNote: 'Two parts always make a whole!',
+      explanation: 'Two parts make a whole — learn your number bonds to 10!',
+      example: {
+        steps: ['7 + 3 = ?'],
+        answer: '10 (number bond to 10)',
+      },
+      sfx: 'BAM!',
+      tip: 'Memorise your bonds to 10 — they help you add fast!',
+      diagram: { type: 'pieChart', slices: [{ num: 7, den: 10 }, { num: 3, den: 10 }], labels: ['7', '3'] },
+    },
+    {
+      title: 'Adding within 20',
+      code: 'AS 1.2',
+      formula: 'Put the bigger number in your head → count on the smaller',
+      formulaNote: 'Start big, count on small!',
+      explanation: 'Count on or use number bonds to add numbers up to 20!',
+      example: {
+        steps: ['8 + 5', 'Start at 8, count on 5: 9, 10, 11, 12, 13'],
+        answer: '13',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'numberLine', start: 5, end: 15, points: [8, 13], jumps: [{ from: 8, to: 13, label: '+5' }] },
+    },
+    {
+      title: 'Subtracting within 20',
+      code: 'AS 1.3',
+      formula: 'Start at the bigger number → count back',
+      formulaNote: 'Count backwards to take away!',
+      explanation: 'Take away by counting back from the bigger number!',
+      example: {
+        steps: ['15 − 6', 'Start at 15, count back 6: 14, 13, 12, 11, 10, 9'],
+        answer: '9',
+      },
+      sfx: 'THWACK!',
+      tip: 'You can also use number bonds! 15 − 6 → think: 6 + ? = 15',
+      bossLevel: true,
+      diagram: { type: 'numberLine', start: 5, end: 18, points: [15, 9], jumps: [{ from: 15, to: 9, label: '−6' }] },
+    },
+  ],
+};

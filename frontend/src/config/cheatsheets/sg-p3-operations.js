@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p3-ops',
+  level: 'Primary 3',
+  issue: 2,
+  topic: 'Multiplication & Division',
+  subtitle: "Lejo's Ultimate Cheat Sheet",
+  mascot: 'lejo',
+  sections: [
+    {
+      title: 'Times Tables',
+      code: 'Op 3.1',
+      formula: 'Groups × Size of each group = Total',
+      formulaNote: 'Multiplication is just repeated addition — but way faster!',
+      explanation: 'Know your tables up to 10 × 10 — they\'re your secret weapon!',
+      example: {
+        steps: ['6 × 7 = ?', 'Think: 6 groups of 7'],
+        answer: '6 × 7 = 42',
+      },
+      sfx: 'BAM!',
+      tip: 'Stuck? Use skip counting: 7, 14, 21, 28, 35, 42!',
+      diagram: { type: 'numberLine', start: 0, end: 42, points: [7, 14, 21, 28, 35, 42], jumps: [{ from: 0, to: 7, label: '×1' }, { from: 7, to: 14, label: '×2' }, { from: 14, to: 21, label: '×3' }] },
+    },
+    {
+      title: 'Multiplying 2-digit by 1-digit',
+      code: 'Op 3.2',
+      formula: 'Multiply ones first, then tens → add together',
+      formulaNote: 'Break it apart, solve the pieces, then combine!',
+      explanation: 'Split the big number into tens and ones — multiply each part, then add!',
+      example: {
+        steps: ['34 × 6', '(30 × 6) + (4 × 6)', '180 + 24'],
+        answer: '204',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'columnMethod', operation: 'mult', rows: [[3, 4], [6]], carries: [2], answer: [2, 0, 4] },
+    },
+    {
+      title: 'Short Division',
+      code: 'Op 3.3',
+      formula: 'Divide → Multiply → Subtract → Bring down → Repeat',
+      formulaNote: 'Work from left to right, one digit at a time!',
+      explanation: 'Divide digit by digit from left to right — carry remainders to the next digit!',
+      example: {
+        steps: ['84 ÷ 3', '8 ÷ 3 = 2 remainder 2', 'Bring 2 to the 4 → 24 ÷ 3 = 8'],
+        answer: '28',
+      },
+      sfx: 'KA-POW!',
+      tip: 'If the first digit is smaller than the divisor, combine it with the next digit!',
+      bossLevel: true,
+      diagram: { type: 'longDivision', dividend: [8, 4], divisor: 3, quotient: [2, 8], steps: ['8÷3=2 r2', '24÷3=8'] },
+    },
+  ],
+};

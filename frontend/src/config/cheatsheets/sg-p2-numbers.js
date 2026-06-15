@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p2-num',
+  level: 'Primary 2',
+  issue: 1,
+  topic: 'Numbers to 1000',
+  subtitle: "Lysa's Ultimate Cheat Sheet",
+  mascot: 'lysa',
+  sections: [
+    {
+      title: 'Place Value: Hundreds, Tens, Ones',
+      code: 'Num 2.1',
+      formula: 'Hundreds + Tens + Ones = Number',
+      formulaNote: 'Every number up to 1000 has hundreds, tens, and ones!',
+      explanation: 'Every number up to 1000 has hundreds, tens, and ones — break it apart to see!',
+      example: {
+        steps: ['572 → 5 hundreds, 7 tens, 2 ones'],
+        answer: '500 + 70 + 2 = 572',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'placeValue', headers: ['H', 'T', 'O'], digits: [5, 7, 2] },
+    },
+    {
+      title: 'Skip Counting',
+      code: 'Num 2.2',
+      formula: 'Pick a step size → keep adding the same amount',
+      formulaNote: 'Count by 2s, 5s, 10s, or 100s!',
+      explanation: 'Count by 2s, 5s, 10s, or 100s — just keep adding the same step!',
+      example: {
+        steps: ['Count by 5s from 35'],
+        answer: '35, 40, 45, 50, 55',
+      },
+      sfx: 'POW!',
+      tip: null,
+      diagram: { type: 'numberLine', start: 30, end: 60, points: [35, 40, 45, 50, 55], jumps: [{ from: 35, to: 40, label: '+5' }, { from: 40, to: 45, label: '+5' }, { from: 45, to: 50, label: '+5' }] },
+    },
+    {
+      title: 'Comparing 3-Digit Numbers',
+      code: 'Num 2.3',
+      formula: 'Compare H → then T → then O',
+      formulaNote: 'Start from the left — hundreds are worth the most!',
+      explanation: 'Compare hundreds first, then tens, then ones — left to right!',
+      example: {
+        steps: ['486 vs 462', 'H same (4) → T: 8 > 6'],
+        answer: '486 > 462',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Start from the left! Hundreds are worth the most.',
+      bossLevel: true,
+      diagram: { type: 'comparison', numA: '486', numB: '462', diffIdx: 1 },
+    },
+  ],
+};

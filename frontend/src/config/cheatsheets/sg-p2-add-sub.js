@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p2-as',
+  level: 'Primary 2',
+  issue: 2,
+  topic: 'Addition & Subtraction',
+  subtitle: "Lysa's Ultimate Cheat Sheet",
+  mascot: 'lysa',
+  sections: [
+    {
+      title: 'Addition with Regrouping',
+      code: 'AS 2.1',
+      formula: '10 ones = 1 ten → carry the 1',
+      formulaNote: 'When ones or tens add up to 10 or more, carry!',
+      explanation: 'When ones or tens add up to 10 or more, carry to the next place!',
+      example: {
+        steps: ['47 + 35', 'Ones: 7 + 5 = 12 → write 2, carry 1', 'Tens: 4 + 3 + 1 = 8'],
+        answer: '82',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'columnMethod', operation: 'add', rows: [[4, 7], [3, 5]], carries: [1], answer: [8, 2] },
+    },
+    {
+      title: 'Subtraction with Regrouping',
+      code: 'AS 2.2',
+      formula: 'Not enough ones? Borrow 1 ten = 10 ones',
+      formulaNote: "When you can't take away, borrow from the next place!",
+      explanation: "When you can't take away, borrow from the next place!",
+      example: {
+        steps: ['63 − 28', "Ones: 3 − 8 can't! Borrow → 13 − 8 = 5", 'Tens: 5 − 2 = 3'],
+        answer: '35',
+      },
+      sfx: 'POW!',
+      tip: 'Cross out and rewrite when you borrow — it helps you keep track!',
+      diagram: { type: 'columnMethod', operation: 'sub', rows: [[6, 3], [2, 8]], carries: [-1], answer: [3, 5] },
+    },
+    {
+      title: 'Word Problems',
+      code: 'AS 2.3',
+      formula: 'Joining → Add   Taking away → Subtract',
+      formulaNote: 'Read, draw, solve!',
+      explanation: 'Read the story, figure out the action, pick add or subtract!',
+      example: {
+        steps: ['Amy has 45 stickers. Ben gives her 27 more.'],
+        answer: '45 + 27 = 72 stickers',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Underline the question, circle the numbers!',
+      bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['Amy: 45', 'Ben gives 27', '45 + 27', '= 72'] },
+    },
+  ],
+};
