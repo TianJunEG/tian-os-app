@@ -49,6 +49,18 @@ router.get('/personal-bests', protect, asyncHandler(async (req, res) => {
   await withStudent(req, res, (student) => getStudentPersonalBests(student));
 }));
 
+router.patch('/visual-mode', protect, asyncHandler(async (req, res) => {
+  const student = await resolveStudent(req);
+  const mode = String(req.body.mode || '').trim();
+  const allowed = ['lower_primary', 'upper_primary', 'secondary'];
+  if (!allowed.includes(mode)) {
+    return res.status(400).json({ error: `Invalid visual mode. Must be one of: ${allowed.join(', ')}` });
+  }
+  student.studentVisualMode = mode;
+  await student.save();
+  res.json({ success: true, studentVisualMode: mode });
+}));
+
 router.patch('/name', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
