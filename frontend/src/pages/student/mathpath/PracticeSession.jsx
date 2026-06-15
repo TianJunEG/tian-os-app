@@ -1768,9 +1768,23 @@ export default function PracticeSession() {
       summary.fluencySummary?.accurateButSlowCount > 0 ? 'Accurate but slow'
         : summary.fluencySummary?.fluentCount > 0 ? 'Fluent'
           : 'Review needed';
+    const accuracy = summary.accuracySummary?.accuracyPercentage ?? 0;
+    const isPerfect = accuracy === 100;
+    const isStrong = accuracy >= 80;
     return (
       <div className={`mx-auto max-w-xl ${visualStyles.page}`}>
         <Card className={`p-6 ${visualStyles.accentCard}`}>
+          {isStrong && (
+            <div className={`-mx-6 -mt-6 mb-5 rounded-t-card px-6 py-5 text-center ${isPerfect ? 'bg-gradient-to-br from-sunshine-100 to-emerald-50' : 'bg-emerald-50'}`}>
+              <div className="text-3xl">{isPerfect ? '🌟' : '🎉'}</div>
+              <p className={`mt-1 text-lg font-extrabold ${isPerfect ? 'text-sunshine-700' : 'text-emerald-700'}`}>
+                {isPerfect ? 'Perfect Score!' : 'Great Work!'}
+              </p>
+              <p className="mt-0.5 text-sm text-ink-500">
+                {isPerfect ? 'You got every question right!' : `${accuracy}% accuracy — keep it up!`}
+              </p>
+            </div>
+          )}
           <h2 className="text-xl font-semibold text-ink-900">{sessionMeta.label} Complete</h2>
           <div className="mt-4 space-y-2 text-sm text-ink-700">
             <p><span className="font-semibold">Accuracy:</span> {summary.accuracySummary?.accuracyPercentage ?? 0}%</p>
