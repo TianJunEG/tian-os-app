@@ -31,6 +31,10 @@ const practiceSessionSchema = new mongoose.Schema({
   completedAt: { type: Date, default: null },
   marked: { type: Boolean, default: false },
   score: { type: Number, default: null },
+  // Async marking status (Phase 1 WS3). 'idle' default so the synchronous path is
+  // unaffected; the worker sets 'marking' → 'marked'/'failed'.
+  markingStatus: { type: String, enum: ['idle', 'marking', 'marked', 'failed'], default: 'idle' },
+  markingError: { type: String, default: '' },
   questions: [questionSchema]
 }, { _id: false });
 
@@ -69,6 +73,16 @@ const worksheetSchema = new mongoose.Schema({
   misconceptions: [misconceptionSchema],
   skillsToReinforce: [String],
   practiceSessions: [practiceSessionSchema],
+
+  // Photo-flow async generation status (Phase 1 WS3). 'ready' is the default so
+  // every existing/structured worksheet and the synchronous path are unaffected;
+  // the background worker sets 'pending' → 'ready'/'failed'.
+  generationStatus: {
+    type: String,
+    enum: ['pending', 'ready', 'failed'],
+    default: 'ready',
+  },
+  generationError: { type: String, default: '' },
 
   // ── Structured generation (Phase 4 Worksheet Generator) ─────────────────
   // Additive: the legacy photo flow above is untouched. A generated worksheet
