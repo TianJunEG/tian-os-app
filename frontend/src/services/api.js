@@ -441,6 +441,8 @@ export const teacherAPI = {
   assignWeakGroupRecheck: (id, skillId, data = {}) => api.post(`/teacher/classes/${id}/weak-groups/${skillId}/assign-recheck`, data),
   report: (id, params) => api.get(`/teacher/classes/${id}/reports`, { params }),
   pslDashboard: (id) => api.get(`/teacher/classes/${id}/psl/dashboard`),
+  studentPslSessions: (studentId) => api.get(`/teacher/students/${studentId}/psl/sessions`),
+  studentPslSession: (studentId, sessionId) => api.get(`/teacher/students/${studentId}/psl/sessions/${sessionId}`),
   // Informal assessments
   assessments: (classId) => api.get('/teacher/assessments', { params: { classId } }),
   assessment: (id) => api.get(`/teacher/assessments/${id}`),
