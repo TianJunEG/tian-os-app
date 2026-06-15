@@ -80,6 +80,31 @@ export function registerApiErrorHandler(fn) {
   apiErrorHandler = typeof fn === 'function' ? fn : null;
 }
 
+// Recover from a stale/orphaned active workspace, shared across concurrent
+// requests: a single /context round-trip re-resolves a valid workspace, writes
+// it to localStorage, and notifies WorkspaceContext. Memoized so a burst of
+// workspace-scoped 4xx errors doesn't stampede /context with one recovery each.
+// Resolves to the new workspace id (caller should retry) or null if there was
+// nothing better to switch to (so a genuine permission error still surfaces).
+let workspaceRecovery = null;
+function recoverWorkspace() {
+  if (!workspaceRecovery) {
+    workspaceRecovery = (async () => {
+      const { data } = await contextAPI.get();
+      const list = data.workspaces || [];
+      const current = localStorage.getItem('tianos.workspaceId');
+      const stillValid = current && list.some((w) => String(w.id) === String(current));
+      const nextId = stillValid ? null : (data.defaultWorkspaceId || list[0]?.id || null);
+      if (!nextId || String(nextId) === String(current)) return null;
+      localStorage.setItem('tianos.workspaceId', nextId);
+      // Let WorkspaceContext re-sync its state + the workspace switcher label.
+      window.dispatchEvent(new CustomEvent('tianos:workspace-recovered', { detail: { workspaceId: nextId } }));
+      return nextId;
+    })().finally(() => { workspaceRecovery = null; });
+  }
+  return workspaceRecovery;
+}
+
 // Handle errors
 api.interceptors.response.use(
   (response) => response,
@@ -104,18 +129,9 @@ api.interceptors.response.use(
     if (isWorkspaceError && !config._wsRetried) {
       config._wsRetried = true;
       try {
-        const { data } = await contextAPI.get();
-        const list = data.workspaces || [];
-        const current = localStorage.getItem('tianos.workspaceId');
-        const stillValid = current && list.some((w) => String(w.id) === String(current));
-        const nextId = stillValid ? null : (data.defaultWorkspaceId || list[0]?.id || null);
-        if (nextId && String(nextId) !== String(current)) {
-          localStorage.setItem('tianos.workspaceId', nextId);
-          // Let WorkspaceContext re-sync its state + the workspace switcher label.
-          window.dispatchEvent(new CustomEvent('tianos:workspace-recovered', { detail: { workspaceId: nextId } }));
-          config.headers = { ...(config.headers || {}), 'X-Workspace-Id': nextId };
-          return api(config);
-        }
+        // The retried request re-runs the request interceptor, which re-reads the
+        // corrected workspace id from localStorage — no need to set the header here.
+        if (await recoverWorkspace()) return api(config);
       } catch (_) {
         // Could not re-resolve (e.g. /context failed); fall through to the
         // normal error handling below.
