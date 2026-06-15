@@ -5,6 +5,7 @@ import { Card, Badge, Button, PageHeader, Spinner, EmptyState } from '../../../c
 import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
+import { MascotBubble } from '../../../components/MascotAvatar';
 
 const STEP_CONFIG = {
   diagnose: { label: 'Diagnose', icon: Stethoscope, description: 'Identify weak skills and misconceptions.' },
@@ -74,6 +75,19 @@ export default function RemediationJourney() {
       <PageHeader
         title="Remediation Journey"
         subtitle={`${session.targetSkillIds.length} skill${session.targetSkillIds.length > 1 ? 's' : ''} targeted`}
+      />
+
+      <MascotBubble
+        name="talia"
+        message={
+          percentComplete >= 100
+            ? "You've completed the full journey — amazing dedication!"
+            : percentComplete >= 50
+              ? `${percentComplete}% done — you're making great progress! Keep it up.`
+              : "Every step forward counts. Let's work through this together!"
+        }
+        size="sm"
+        className="mb-4"
       />
 
       <Card className="p-5">
