@@ -7,10 +7,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'system-ui', 'sans-serif'],
-        display: ['Nunito', 'system-ui', 'sans-serif'],
+        sans: ['Hanken Grotesk', 'system-ui', 'sans-serif'],
+        display: ['Hanken Grotesk', 'system-ui', 'sans-serif'],
         ui: ['Inter', '-apple-system', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'Menlo', 'monospace'],
+        'lower-display': ['Fredoka', 'system-ui', 'sans-serif'],
+        'lower-body': ['Nunito', 'system-ui', 'sans-serif'],
+        'marketing': ['Newsreader', 'Georgia', 'serif'],
       },
       fontSize: {
         'xs': ['12px', { lineHeight: '1.5' }],
@@ -28,6 +31,13 @@ export default {
         resting: '0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
         active: '0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04)',
         glow: '0 0 0 3px rgba(16,185,129,0.25)',
+        'step-shell': '0 20px 44px -30px rgba(30,42,66,0.4)',
+        'dashboard-card': '0 8px 26px -16px rgba(30,42,66,0.30), 0 1px 2px rgba(30,42,66,0.06)',
+        'results-panel': '0 24px 50px -30px rgba(13,23,48,0.6)',
+        'gold-btn': '0 2px 8px rgba(217,137,46,0.35)',
+        'gold-btn-dark': '0 4px 14px -4px rgba(217,137,46,0.6)',
+        'hint-card': '0 18px 40px -22px rgba(30,42,66,0.3)',
+        'app-window': '0 36px 70px -34px rgba(30,42,66,0.45)',
       },
       keyframes: {
         'pulse-emerald': {
@@ -104,7 +114,11 @@ export default {
         success: { 100: '#D1FAE5', 500: '#10B981', 600: '#059669', 700: '#047857' },
         error: { 100: '#FFE4E6', 500: '#F43F5E', 600: '#E11D48', 700: '#BE123C' },
         // Backward-compat aliases
-        ink: { 900: '#0F172A', 700: '#334155', 600: '#475569', 500: '#64748B', 400: '#94A3B8', 300: '#CBD5E1', 100: '#F1F5F9' },
+        ink: { 900: '#0F172A', 800: '#232c39', 700: '#334155', 600: '#475569', 500: '#64748B', 400: '#94A3B8', 300: '#CBD5E1', 200: '#e7eaef', 100: '#F1F5F9' },
+        'ds-green': { 50: '#f3faf6', 100: '#eaf6ef', 200: '#e7f3ec', 300: '#d8ece1', 400: '#57b389', 500: '#1f9d57', 600: '#1f8a5b', 700: '#1f8a52' },
+        'ds-red': { 50: '#fbece9', 100: '#fdeeea', 200: '#ecc3ba', 500: '#d8694f' },
+        'ds-blue': { 50: '#eaf3fc', 100: '#cfe3f7', 500: '#2f80d8' },
+        'ds-dark': { 900: '#0c1730', 800: '#101d36', 700: '#13223e', 600: '#172a49', 500: '#1d3157', 400: '#2a3a59', 'text': '#f4f0e8', 'muted': '#8a98b2' },
         hairline: '#E2E8F0',
         bone: '#F1F5F9',
         ivory: '#F8FAFC',
@@ -115,8 +129,9 @@ export default {
           800: '#064E3B', 900: '#064E3B',
         },
         gold: {
-          50: '#FFFBEB', 100: '#FEF3C7', 200: '#FDE68A', 300: '#FCD34D',
-          400: '#FBBF24', 500: '#F59E0B', 600: '#D97706', 700: '#B45309',
+          50: '#fffbf0', 100: '#fdf6ea', 200: '#fbf1e1', 300: '#f0dcb8',
+          400: '#e3a64f', 500: '#d9892e', 600: '#b06f1f', 700: '#a8743a',
+          800: '#8a5e2a',
         },
         // Remaining legacy aliases
         teal: {

@@ -922,7 +922,7 @@ export default function FractionsModelTrainer() {
         action={<Button variant="secondary" icon={ArrowLeft} onClick={() => navigate('/student/mathpath/fractions/model-trainer')}>All models</Button>}
       />
 
-      <div className="mb-4 grid grid-cols-3 gap-2">
+      <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
         {Object.entries(MODE_META).map(([key, meta]) => {
           const status = getPhaseStatus(key, mode, completedPhases);
           const StatusIcon = status === 'completed' ? CheckCircle : status === 'locked' ? Lock : Circle;

@@ -22,13 +22,13 @@ export default function ModelSelector({ modelType, unknownPosition, onSelectMode
     <div className="space-y-4">
       <div>
         <p className="mb-2 text-sm font-medium text-ink-600">Which type of bar model fits this problem?</p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           {MODEL_TYPES.map((m) => (
             <button
               key={m.key}
               type="button"
               onClick={() => onSelectModel(m.key)}
-              className={`rounded-xl border p-4 text-left transition-colors ${
+              className={`min-h-[44px] rounded-xl border p-4 text-left transition-colors ${
                 modelType === m.key
                   ? 'border-gold-400 bg-gold-50 shadow-sm'
                   : 'border-ink-200 bg-white hover:border-gold-300'

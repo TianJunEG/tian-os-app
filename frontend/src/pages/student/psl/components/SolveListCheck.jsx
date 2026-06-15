@@ -76,14 +76,14 @@ export default function SolveListCheck({ scaffoldStep, response, onChange }) {
         + Add candidate
       </button>
 
-      <div className="flex items-center gap-3 rounded-xl border-2 border-violet-200 bg-violet-50 p-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-violet-200 bg-violet-50 p-3">
         <span className="text-sm font-semibold text-violet-700">Answer =</span>
         <input
           type="number"
           inputMode="decimal"
           value={answer}
           onChange={(e) => onChange({ candidates, answer: e.target.value })}
-          className="w-28 rounded-lg border border-violet-300 px-3 py-2 text-sm font-bold text-violet-800"
+          className="w-full sm:w-28 min-h-[44px] rounded-lg border border-violet-300 px-3 py-2 text-sm font-bold text-violet-800"
           placeholder="?"
         />
       </div>

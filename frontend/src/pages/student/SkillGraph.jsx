@@ -82,7 +82,7 @@ function groupSkills(skills = []) {
   return groups;
 }
 
-function ProgressRing({ value, total, color, size = 80, strokeWidth = 10 }) {
+function ProgressRing({ value, total, color, size = 72, strokeWidth = 8 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const pct = total > 0 ? value / total : 0;
@@ -104,7 +104,7 @@ function ProgressRing({ value, total, color, size = 80, strokeWidth = 10 }) {
 
 function SummaryRing({ label, value, total, color, visualStyles }) {
   return (
-    <div className={`flex flex-col items-center gap-2 rounded-2xl p-4 ${visualStyles?.accentCard || 'bg-white/90'}`}>
+    <div className={`flex flex-col items-center gap-1.5 rounded-2xl p-3 sm:gap-2 sm:p-4 ${visualStyles?.accentCard || 'bg-white/90'}`}>
       <ProgressRing value={value} total={total} color={color} />
       <p className="text-xs font-semibold text-ink-500">{label}</p>
     </div>
@@ -118,7 +118,7 @@ function NextStepHero({ skill, onStart, starting, visualStyles }) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <Badge tone="success">All caught up</Badge>
-            <h2 className="mt-3 font-display text-3xl font-semibold text-ink-900">No urgent skill today</h2>
+            <h2 className="mt-3 font-display text-2xl sm:text-3xl font-semibold text-ink-900">No urgent skill today</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-600">Review a mastered skill or start a fresh MathPath challenge when you are ready.</p>
           </div>
           <Button to="/student/mathpath" icon={ArrowRight} className={visualStyles.primaryCta}>Open MathPath</Button>
@@ -139,7 +139,7 @@ function NextStepHero({ skill, onStart, starting, visualStyles }) {
         </div>
         <div className="p-5 sm:p-6">
           <Badge tone="gold">What to do next</Badge>
-          <h2 className="mt-3 font-display text-3xl font-semibold text-ink-900">{skill.name}</h2>
+          <h2 className="mt-3 font-display text-2xl sm:text-3xl font-semibold text-ink-900">{skill.name}</h2>
           <p className="mt-2 text-sm text-ink-500">{skill.topicName}</p>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-600">{action.helper}</p>
           <div className="mt-5">
@@ -300,12 +300,12 @@ export default function SkillGraph() {
   }
 
   return (
-    <div className={`mx-auto max-w-6xl space-y-6 ${visualStyles.page}`}>
+    <div className={`mx-auto max-w-6xl space-y-4 sm:space-y-6 ${visualStyles.page}`}>
       <PageHeader title="Progress" subtitle="Mastery visibility for MathPath skills." />
 
       <NextStepHero skill={nextSkill} onStart={startPractice} starting={starting} visualStyles={visualStyles} />
 
-      <section className="grid grid-cols-4 gap-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <SummaryRing label="Mastered" value={groups.mastered.length} total={skills.length} color="#34d399" visualStyles={visualStyles} />
         <SummaryRing label="Working On" value={groups.workingOn.length} total={skills.length} color="#60a5fa" visualStyles={visualStyles} />
         <SummaryRing label="Needs Review" value={groups.needsReview.length} total={skills.length} color="#f87171" visualStyles={visualStyles} />

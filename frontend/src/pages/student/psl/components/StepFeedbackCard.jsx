@@ -1,6 +1,14 @@
 import React from 'react';
 import { getMisconception } from '../utils/misconceptions';
-import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, XCircle, Lightbulb } from 'lucide-react';
+
+const CATEGORY_ICONS = {
+  Reading: '📖',
+  Understanding: '🔍',
+  Planning: '🗺️',
+  Solving: '✏️',
+  Checking: '✅',
+};
 
 export default function StepFeedbackCard({ correct, partial, feedback, misconceptionTag, onContinue }) {
   let icon, bgColor, borderColor, textColor;
@@ -16,23 +24,38 @@ export default function StepFeedbackCard({ correct, partial, feedback, misconcep
   }
 
   const misconception = misconceptionTag ? getMisconception(misconceptionTag) : null;
+  const hasMisconception = misconception && misconception.category !== 'Other';
 
   return (
-    <div className={`rounded-xl border ${borderColor} ${bgColor} p-4`}>
+    <div className={`rounded-xl border ${borderColor} ${bgColor} p-4 space-y-3`}>
       <div className="flex items-start gap-3">
         {icon}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className={`text-sm font-medium ${textColor}`}>{feedback}</p>
-          {misconception && misconception.tip && (
-            <p className="mt-1 text-xs text-ink-500">{misconception.tip}</p>
-          )}
         </div>
       </div>
+
+      {hasMisconception && !correct && (
+        <div className="rounded-lg bg-white/60 border border-ink-100 p-3 space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span className="text-sm" aria-hidden="true">{CATEGORY_ICONS[misconception.category] || '💡'}</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-ink-400">{misconception.category}</span>
+            <span className="text-xs font-semibold text-ink-600">· {misconception.label}</span>
+          </div>
+          {misconception.tip && (
+            <div className="flex items-start gap-2">
+              <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0 text-gold-500" />
+              <p className="text-xs font-medium text-ink-600 leading-relaxed">{misconception.tip}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {onContinue && (
         <button
           type="button"
           onClick={onContinue}
-          className="mt-3 w-full rounded-xl bg-gold-400 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gold-500"
+          className="w-full rounded-xl bg-gold-400 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gold-500"
         >
           Continue
         </button>

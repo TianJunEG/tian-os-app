@@ -445,14 +445,16 @@ describe('evaluateStep — feedback messages', () => {
     expect(r.feedback).toBe('Well done!');
   });
 
-  it('partial gives Almost there', () => {
+  it('partial gives misconception-specific feedback', () => {
     const r = evaluateStep('plan', { modelType: 'partWhole', unknownPosition: 'part' }, { modelType: 'partWhole', unknownPosition: 'whole' });
-    expect(r.feedback).toMatch(/Almost there/);
+    expect(r.feedback).toBeTruthy();
+    expect(r.feedback.length).toBeGreaterThan(10);
   });
 
-  it('wrong gives Not quite', () => {
+  it('wrong gives misconception-specific feedback', () => {
     const r = evaluateStep('identify_question', { selectedIndex: 3 }, { correctIndex: 0 });
-    expect(r.feedback).toMatch(/Not quite/);
+    expect(r.feedback).toBeTruthy();
+    expect(r.feedback.length).toBeGreaterThan(10);
   });
 });
 

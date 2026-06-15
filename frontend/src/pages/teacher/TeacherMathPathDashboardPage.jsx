@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AlertTriangle, Clock3, FileText, Search, Users } from 'lucide-react';
 import { teacherAPI, mathpathAPI } from '../../services/api';
+import FEATURE_FLAGS from '../../config/featureFlags';
 import ClassNav from './ClassNav';
 import { useClass } from './useClass';
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
@@ -370,7 +371,7 @@ export default function TeacherMathPathDashboardPage() {
               title="Skill detail"
               summary="Per-skill mastery heatmap across the class."
               surface={false}
-              action={<Button size="s" variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath/test-spec`)}>School Test</Button>}
+              action={FEATURE_FLAGS.assessments ? <Button size="s" variant="secondary" onClick={() => navigate(`/teacher/classes/${id}/mathpath/test-spec`)}>School Test</Button> : null}
             >
               <SkillMasteryHeatmapCard rows={dashboard.skillHeatmap || []} onOpenStudent={openStudent} />
             </CollapsibleSection>

@@ -59,7 +59,7 @@ const mistakeSchema = new mongoose.Schema({
   },
   severity: {
     type: String,
-    enum: ['minor', 'moderate', 'major', 'critical', ''],
+    enum: ['minor', 'moderate', 'major', 'critical', 'low', 'medium', 'high', ''],
     default: '',
   },
   mistakeType: {

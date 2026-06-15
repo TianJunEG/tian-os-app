@@ -42,7 +42,7 @@ export default function AssessmentResultScreen() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Score</p>
-              <p className="font-mono text-3xl font-semibold text-navy-700">{scored.totalScore}/{scored.totalMarks}</p>
+              <p className="font-mono text-2xl sm:text-3xl font-semibold text-navy-700">{scored.totalScore}/{scored.totalMarks}</p>
               <p className="text-sm text-ink-600">{scored.percentage}%</p>
             </div>
             <Badge tone="navy">Readiness: {readiness.readinessBand || 'developing'}</Badge>

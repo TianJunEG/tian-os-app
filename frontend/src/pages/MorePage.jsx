@@ -40,17 +40,14 @@ export default function MorePage() {
       <PageHeader title={pageTitle} subtitle={pageSubtitle} />
 
       {role === 'student' ? (
-        <div className="space-y-8">
+        <div className="space-y-5 sm:space-y-8">
           {STUDENT_SECTIONS.map((section) => {
             const items = studentModules.filter((module) => section.keys.includes(module.key));
             if (items.length === 0) return null;
             return (
-              <section key={section.label} className="space-y-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ink-400">{section.label}</p>
-                    <p className="mt-1 text-sm text-ink-500">Open additional learning paths that sit alongside MathPath.</p>
-                  </div>
+              <section key={section.label} className="space-y-3 sm:space-y-4">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ink-400">{section.label}</p>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {items.map((module) => (

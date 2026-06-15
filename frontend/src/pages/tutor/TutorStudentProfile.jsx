@@ -37,8 +37,8 @@ export default function TutorStudentProfile() {
     <>
       <TutorStudentNav studentId={id} name={student.name} level={student.level} />
 
-      <Card className="mb-5 p-5">
-        <div className="flex items-center gap-6">
+      <Card className="mb-4 p-4 sm:mb-5 sm:p-5">
+        <div className="grid grid-cols-3 gap-3 sm:gap-6">
           <StatTile label="Overall mastery" value={mastery.overall} suffix="%" />
           <StatTile label="Mastered" value={mastery.masteredCount} />
           <StatTile label="Focus" value={student.focusArea} />
@@ -47,7 +47,7 @@ export default function TutorStudentProfile() {
         <div className="mt-2"><Button variant="secondary" onClick={() => navigate(`/tutor/students/${id}/mathpath`)}>Open MathPath dashboard</Button></div>
       </Card>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card className="p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent mistakes</h3>
           {mistakes.length === 0 ? <p className="text-sm text-ink-500">None recorded.</p> : (

@@ -16,12 +16,13 @@ function PSLOverviewCard({ data }) {
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Class Overview</h3>
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-navy-700">{data.totalStudents}</p></div>
         <div><p className="text-xs text-ink-500">Attempted</p><p className="font-mono text-xl text-navy-700">{data.studentsAttempted}</p></div>
         <div><p className="text-xs text-ink-500">Mastered 1+</p><p className="font-mono text-xl text-emerald-600">{data.studentsMastered}</p></div>
         <div><p className="text-xs text-ink-500">Sessions</p><p className="font-mono text-xl text-navy-700">{data.totalSessions}</p></div>
         <div><p className="text-xs text-ink-500">Avg Accuracy</p><p className="font-mono text-xl text-navy-700">{data.averageAccuracy}%</p></div>
+        <div><p className="text-xs text-ink-500">Hint Usage</p><p className="font-mono text-xl text-orange-600">{data.hintUsageRate ?? 0}%</p></div>
       </div>
     </Card>
   );

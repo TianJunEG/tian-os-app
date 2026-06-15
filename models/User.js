@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema({
     ref: 'Workspace',
     default: null
   },
+  // Singapore MOE level for student accounts (e.g. "P4", "S1").
+  studentLevel: {
+    type: String,
+    default: '',
+  },
   // For student accounts: the parent/tutor who provisioned and owns them.
   linkedTo: {
     type: mongoose.Schema.Types.ObjectId,

@@ -36,14 +36,14 @@ export default function SolveEliminate({ scaffoldStep, response, onChange }) {
 
       <div className="space-y-3">
         {variables.map((v) => (
-          <div key={v} className="flex items-center gap-3 rounded-xl border-2 border-amber-200 bg-amber-50 p-3">
+          <div key={v} className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-amber-200 bg-amber-50 p-3">
             <span className="text-sm font-semibold text-amber-700">{v} =</span>
             <input
               type="number"
               inputMode="decimal"
               value={answers[v] ?? ''}
               onChange={(e) => handleChange(v, e.target.value)}
-              className="w-28 rounded-lg border border-amber-300 px-3 py-2 text-sm font-bold text-amber-800"
+              className="w-full sm:w-28 min-h-[44px] rounded-lg border border-amber-300 px-3 py-2 text-sm font-bold text-amber-800"
               placeholder="?"
             />
           </div>

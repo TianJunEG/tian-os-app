@@ -23,6 +23,7 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
     ['Weak topics', `${base}/weak-topics`, true],
     ['Practice Tasks', `${base}/assignments`, true],
     ['Worksheets', `${base}/worksheets`, false],
+    FEATURE_FLAGS.psl && ['Problem Solving', `${base}/psl`, true],
     FEATURE_FLAGS.science && ['Science', `${base}/science`, true],
     FEATURE_FLAGS.lifelab && ['LifeLab', `${base}/lifelab`, true],
   ].filter(Boolean);

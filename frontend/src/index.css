@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Fredoka:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -50,8 +50,21 @@
   --mastery-3:#6EE7B7; --mastery-4:#34D399; --mastery-5:#064E3B;
   /* ── Type ─────────────────────────────────────────────────────────── */
   --font-display:'DM Serif Display',serif;
-  --font-text:'Nunito',system-ui,sans-serif;
+  --font-text:'Hanken Grotesk',system-ui,sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  /* ── PSL design tokens ──────────────────────────────────────────────── */
+  --psl-gold:#d9892e; --psl-gold-deep:#b06f1f; --psl-gold-label:#a8743a;
+  --psl-gold-tint:#fbf1e1; --psl-gold-tint2:#fdf6ea;
+  --psl-green:#1f8a5b; --psl-green-bright:#1f9d57;
+  --psl-green-tint:#f3faf6; --psl-green-border:#d8ece1;
+  --psl-blue:#2f80d8; --psl-blue-tint:#eaf3fc; --psl-blue-border:#cfe3f7;
+  --psl-red:#d8694f; --psl-red-tint:#fbece9;
+  --psl-ink:#232c39; --psl-ink-secondary:#5a6675; --psl-ink-muted:#6b7585;
+  --psl-ink-faint:#8a93a3;
+  --psl-bg:#e7eaef; --psl-bg-dashboard:#eef1f5;
+  --psl-card:#f5f6f8; --psl-border:#dde1e8; --psl-border-subtle:#eaedf2;
+  --psl-notebook-line:#eef1f4; --psl-margin-rule:#f3cfd0;
+  --psl-dot:#d3d8e0; --psl-keypad-bg:#f3f4f7;
   /* ── Elevation / motion / layout ─────────────────────────────────── */
   --shadow-resting:0 2px 8px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
   --shadow-active:0 8px 24px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04);
@@ -84,10 +97,11 @@
 
 body {
   background: var(--canvas);
-  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   color: var(--slate-800);
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -457,3 +471,214 @@ code {
 }
 .cs-frac-num { border-bottom: 2px solid currentColor; padding-bottom: 1px; }
 .cs-frac-den { padding-top: 1px; }
+
+/* =====================================================================
+   PSL / MathPath Design System — shared visual utilities
+   ===================================================================== */
+
+/* Dot-grid page background */
+.bg-dot-grid {
+  background-color: #e7eaef;
+  background-image: radial-gradient(#d3d8e0 1px, transparent 1.4px);
+  background-size: 26px 26px;
+}
+
+/* Dashboard page background */
+.bg-dashboard {
+  background-color: #eef1f5;
+}
+
+/* Notebook ruled surface */
+.ruled {
+  position: relative;
+  background-color: #fff;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #fff 0px,
+    #fff 31px,
+    #eef1f4 31px,
+    #eef1f4 32px
+  );
+  border: 1px solid #e7eaef;
+  border-radius: 14px;
+}
+.ruled::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 48px;
+  width: 1px;
+  background: #f3cfd0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Step shell card */
+.step-shell {
+  background: #f5f6f8;
+  border: 1px solid #dde1e8;
+  border-radius: 16px;
+  box-shadow: 0 20px 44px -30px rgba(30,42,66,0.4);
+  padding: 22px 26px 26px;
+}
+
+/* Mono eyebrow label */
+.mono-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  line-height: 1;
+}
+
+/* Gold primary button */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 24px;
+  border-radius: 12px;
+  background: #d9892e;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15.5px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(217,137,46,0.35);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.btn-gold:hover {
+  background: #c47a26;
+  box-shadow: 0 4px 12px rgba(217,137,46,0.45);
+}
+
+/* Gold secondary / outline button */
+.btn-gold-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  padding: 0 24px;
+  border-radius: 13px;
+  border: 1.5px solid #d9b98a;
+  background: #fff;
+  color: #b06f1f;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-gold-outline:hover {
+  background: #fdf6ea;
+  border-color: #d9892e;
+}
+
+/* Read-aloud chip */
+.chip-read-aloud {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  border-radius: 10px;
+  border: 1px solid #cfe3f7;
+  background: #fff;
+  color: #2f80d8;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.chip-read-aloud:hover {
+  background: #eaf3fc;
+}
+
+/* PSL two-column session grid */
+.psl-session-grid {
+  display: grid;
+  grid-template-columns: 1.62fr 1fr;
+  gap: 20px;
+  min-height: 60vh;
+}
+@media (max-width: 768px) {
+  .psl-session-grid {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+}
+
+/* PSL progress bar segments */
+.psl-progress-track {
+  display: flex;
+  gap: 6px;
+}
+.psl-progress-segment {
+  flex: 1;
+  height: 7px;
+  border-radius: 4px;
+  background: #e4e7ec;
+  transition: background 0.25s ease;
+}
+.psl-progress-segment.done { background: #d9892e; }
+.psl-progress-segment.active { background: #d9892e; }
+.psl-progress-segment.final-done { background: #1f9d57; }
+
+/* Dark results panel */
+.results-dark {
+  background: linear-gradient(160deg, #13223e, #101d36);
+  border: 1px solid #0c1730;
+  border-radius: 16px;
+  color: #f4f0e8;
+  box-shadow: 0 24px 50px -30px rgba(13,23,48,0.6);
+}
+.results-dark-card {
+  background: #172a49;
+  border: 1px solid #2a3a59;
+  border-radius: 14px;
+}
+
+/* Mistake review tan hint box */
+.mistake-hint-box {
+  background: #fdf6ea;
+  border: 1.5px dashed #f0dcb8;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+/* Lower-primary skin overrides */
+.skin-lower-primary {
+  font-family: 'Nunito', system-ui, sans-serif;
+}
+.skin-lower-primary h1,
+.skin-lower-primary h2,
+.skin-lower-primary h3 {
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+/* Our Story marketing page */
+.marketing-page {
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  background: #f4efe6;
+  color: #1d2230;
+}
+.marketing-page h1,
+.marketing-page h2 {
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 400;
+}
+
+/* Scroll reveal animation */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.9s cubic-bezier(0.2,0.65,0.2,1),
+              transform 0.9s cubic-bezier(0.2,0.65,0.2,1);
+}
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}

@@ -1,3 +1,5 @@
+import { getFeedback } from './misconceptionCatalog.js';
+
 export const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
 function safeEval(expr) {
@@ -223,9 +225,15 @@ export function evaluateStep(stepId, response, expectedResponse) {
   const result = evaluator(response, expectedResponse);
 
   let feedback = '';
-  if (result.correct) feedback = 'Well done!';
-  else if (result.partial) feedback = 'Almost there — check your answer carefully.';
-  else feedback = 'Not quite. Let’s look at this again.';
+  if (result.correct) {
+    feedback = 'Well done!';
+  } else if (result.misconceptionTag) {
+    feedback = getFeedback(result.misconceptionTag, result.partial);
+  } else if (result.partial) {
+    feedback = 'Almost there — check your answer carefully.';
+  } else {
+    feedback = "Not quite. Let's look at this again.";
+  }
 
   return { ...result, feedback };
 }

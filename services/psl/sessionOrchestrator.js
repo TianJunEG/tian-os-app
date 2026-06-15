@@ -84,8 +84,10 @@ export async function getSession(sessionId, { studentId } = {}) {
   };
 }
 
-export async function submitStep({ sessionId, problemId, stepId, response, timeSpentMs = 0 }) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function submitStep({ sessionId, problemId, stepId, response, timeSpentMs = 0, studentId = null }) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
 
   const problem = session.problems.find((p) => p.problemId === problemId);
@@ -109,15 +111,21 @@ export async function submitStep({ sessionId, problemId, stepId, response, timeS
   }
 
   const existingIdx = attempt.steps.findIndex((s) => s.stepId === stepId);
+  const existingStep = existingIdx >= 0 ? attempt.steps[existingIdx] : null;
+  const hintsUsed = existingStep?.hintsUsed || 0;
+  const hintPenalty = Math.min(hintsUsed * 0.1, 0.3);
+  const penalisedScore = Math.max(0, result.score - (result.correct ? hintPenalty : 0));
+
   const stepResult = {
     stepId,
     response,
     correct: result.correct,
     partial: result.partial,
-    score: result.score,
+    score: penalisedScore,
     misconceptionTag: result.misconceptionTag,
     feedback: result.feedback,
-    hintUsed: false,
+    hintUsed: hintsUsed > 0,
+    hintsUsed,
     retried: existingIdx >= 0,
     timeSpentMs,
     submittedAt: new Date(),
@@ -151,20 +159,25 @@ export async function submitStep({ sessionId, problemId, stepId, response, timeS
   };
 }
 
-export async function completeProblem({ sessionId, problemId }) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function completeProblem({ sessionId, problemId, studentId = null }) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
 
   const problem = session.problems.find((p) => p.problemId === problemId);
   if (!problem) throw Object.assign(new Error('Problem not found'), { status: 404 });
   problem.status = 'completed';
 
-  const attempt = await PSLAttempt.findOne({ sessionId, problemId }).lean();
+  const [attempt, pslSkill] = await Promise.all([
+    PSLAttempt.findOne({ sessionId, problemId }).lean(),
+    PSLSkill.findOne({ skillId: session.skillId }).lean(),
+  ]);
   if (attempt) {
     try {
       await recordAttempt({
         studentId: session.studentId,
-        skillId: session.skillId,
+        skillId: pslSkill?._id || session.skillId,
         workspaceId: session.workspaceId,
         correct: attempt.overallCorrect,
         timeMs: attempt.totalTimeMs,
@@ -213,8 +226,10 @@ export async function completeProblem({ sessionId, problemId }) {
   };
 }
 
-export async function completeSession(sessionId) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function completeSession(sessionId, { studentId = null } = {}) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
 
   session.status = 'completed';
@@ -271,8 +286,10 @@ export async function completeSession(sessionId) {
   };
 }
 
-export async function abandonSession(sessionId) {
-  const session = await PSLSession.findOne({ sessionId });
+export async function abandonSession(sessionId, { studentId = null } = {}) {
+  const query = { sessionId };
+  if (studentId) query.studentId = studentId;
+  const session = await PSLSession.findOne(query);
   if (!session) throw Object.assign(new Error('Session not found'), { status: 404 });
   session.status = 'abandoned';
   await session.save();

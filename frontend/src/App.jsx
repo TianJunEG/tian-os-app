@@ -9,6 +9,7 @@ const StrokeReplayDemo = lazy(() => import('./pages/StrokeReplayDemo'));
 const DiagramDemo = lazy(() => import('./pages/DiagramDemo'));
 
 // Pages
+const OurStoryPage = lazy(() => import('./pages/OurStoryPage'));
 const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
 const MethodologyPage = lazy(() => import('./pages/MethodologyPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -144,6 +145,7 @@ const ParentSuccessCentre = lazy(() => import('./pages/parent/ParentSuccessCentr
 const ParentMathPathDashboardPage = lazy(() => import('./pages/parent/ParentMathPathDashboardPage'));
 const ChildScience = lazy(() => import('./pages/parent/ChildScience'));
 const ChildLifeLab = lazy(() => import('./pages/parent/ChildLifeLab'));
+const ChildPSLDashboard = lazy(() => import('./pages/parent/ChildPSLDashboard'));
 const WeakTopics = lazy(() => import('./pages/parent/WeakTopics'));
 const RecommendedActions = lazy(() => import('./pages/parent/RecommendedActions'));
 const AssignPractice = lazy(() => import('./pages/parent/AssignPractice'));
@@ -296,9 +298,9 @@ const LandingPage = () => (
     <header style={{ position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)', background: 'rgba(255,255,255,0.9)', borderBottom: '1px solid rgba(15,76,92,0.08)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/"><Wordmark /></Link>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
-          <Link to="/founder" style={navLink}>Our story</Link>
-          <Link to="/methodology" style={navLink}>Our Methodology</Link>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <Link to="/founder" style={navLink} className="hidden sm:inline">Our story</Link>
+          <Link to="/methodology" style={navLink} className="hidden sm:inline">Our Methodology</Link>
           <Link to="/login" style={navLink}>Login</Link>
           <Link to="/register" style={{ padding: '10px 20px', borderRadius: 999, background: '#065F46', color: '#fff', fontFamily: SANS, fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 10px 24px -8px rgba(6,95,70,0.35)' }}>Request Demo</Link>
         </nav>
@@ -420,6 +422,7 @@ function App() {
           <Route path="/demo/diagrams" element={<DiagramDemo />} />
           <Route path="/founder" element={<FounderStoryPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
+          <Route path="/our-story" element={<OurStoryPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
           <Route path="/student/mathpath/cheatsheet/:sheetId" element={<CheatSheet />} />
@@ -651,6 +654,7 @@ function App() {
             <Route path="/parent/children/:studentId/mathpath/analyse-paper" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><PaperAnalysisPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/test-spec" element={<FeatureGuard feature="parent"><TestSpecificationPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/assessment-upload" element={<FeatureGuard feature="parent"><AssessmentUploadPage /></FeatureGuard>} />
+            <Route path="/parent/children/:studentId/psl" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildPSLDashboard /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/science" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildScience /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/lifelab" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildLifeLab /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/weak-topics" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><WeakTopics /></FeatureGuard>} />

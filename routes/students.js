@@ -29,7 +29,7 @@ router.post(
     }
 
     try {
-      const { name, email, password } = req.body;
+      const { name, email, password, level } = req.body;
       const existing = await User.findOne({ email: email.toLowerCase() });
       if (existing) {
         return res.status(400).json({ error: 'That email/login is already taken' });
@@ -40,7 +40,8 @@ router.post(
         email,
         password,
         role: 'student',
-        linkedTo: req.user.id
+        linkedTo: req.user.id,
+        ...(level ? { studentLevel: level } : {}),
       });
       await student.save();
 

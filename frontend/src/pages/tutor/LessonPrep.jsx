@@ -68,8 +68,8 @@ export default function LessonPrep() {
     <>
       <TutorStudentNav studentId={id} name={meta?.name || 'Student'} level={meta?.level} />
 
-      <Card className="mb-5 p-5">
-        <div className="grid gap-3 sm:grid-cols-4">
+      <Card className="mb-4 p-4 sm:mb-5 sm:p-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Baseline</p>
             <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{prep.baselineReadiness ?? '—'}</p>
@@ -89,7 +89,7 @@ export default function LessonPrep() {
         </div>
       </Card>
 
-      <Card className="mb-5 border-l-4 border-l-gold-400 p-5">
+      <Card className="mb-4 border-l-4 border-l-gold-400 p-4 sm:mb-5 sm:p-5">
         <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">
           <Lightbulb className="h-3.5 w-3.5" /> Suggested focus
         </div>
@@ -103,8 +103,8 @@ export default function LessonPrep() {
         ))}
       </Card>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card className="p-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card className="p-4 sm:p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Weak topics to address</h3>
           {prep.weakTopics.length === 0 ? <p className="text-sm text-ink-500">No weak topics.</p> : (
             <ul className="space-y-2">
@@ -118,7 +118,7 @@ export default function LessonPrep() {
           )}
         </Card>
 
-        <Card className="p-5">
+        <Card className="p-4 sm:p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent mistakes</h3>
           {(prep.recentMistakes || []).length === 0 ? <p className="text-sm text-ink-500">None.</p> : (
             <ul className="space-y-2 text-sm">
@@ -130,7 +130,7 @@ export default function LessonPrep() {
         </Card>
       </div>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="p-5">
           <h3 className="mb-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Recent paper findings</h3>
           {(prep.recentPaperFindings || []).length ? prep.recentPaperFindings.map((paper) => (

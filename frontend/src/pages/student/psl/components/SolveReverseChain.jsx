@@ -26,7 +26,7 @@ export default function SolveReverseChain({ scaffoldStep, response, onChange }) 
 
       <div className="space-y-3">
         {reverseSteps.map((_, idx) => (
-          <div key={idx} className="flex items-center gap-3">
+          <div key={idx} className="flex flex-wrap items-center gap-2 sm:gap-3">
             <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
               {idx + 1}
             </span>
@@ -36,21 +36,21 @@ export default function SolveReverseChain({ scaffoldStep, response, onChange }) 
               inputMode="decimal"
               value={values[idx] ?? ''}
               onChange={(e) => handleStepChange(idx, e.target.value)}
-              className="w-28 rounded-lg border border-ink-200 px-3 py-2 text-sm font-semibold"
+              className="w-full sm:w-28 min-h-[44px] rounded-lg border border-ink-200 px-3 py-2 text-sm font-semibold"
               placeholder="?"
             />
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-3 rounded-xl border-2 border-gold-200 bg-gold-50 p-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border-2 border-gold-200 bg-gold-50 p-3">
         <span className="text-sm font-semibold text-gold-700">Original number =</span>
         <input
           type="number"
           inputMode="decimal"
           value={answer}
           onChange={(e) => handleAnswerChange(e.target.value)}
-          className="w-28 rounded-lg border border-gold-300 px-3 py-2 text-sm font-bold text-gold-800"
+          className="w-full sm:w-28 min-h-[44px] rounded-lg border border-gold-300 px-3 py-2 text-sm font-bold text-gold-800"
           placeholder="?"
         />
       </div>

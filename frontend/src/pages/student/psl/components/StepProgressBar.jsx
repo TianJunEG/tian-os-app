@@ -3,7 +3,7 @@ import React from 'react';
 const STEPS = [
   { id: 'understand', label: 'Read' },
   { id: 'identify_info', label: 'Clues' },
-  { id: 'identify_question', label: 'Goal' },
+  { id: 'identify_question', label: 'Question' },
   { id: 'plan', label: 'Plan' },
   { id: 'solve', label: 'Solve' },
   { id: 'check', label: 'Check' },
@@ -11,23 +11,23 @@ const STEPS = [
 
 export default function StepProgressBar({ currentStepIdx = 0, completedSteps = {} }) {
   return (
-    <div className="flex items-center gap-1 sm:gap-2">
+    <div style={{ display: 'flex', gap: 6, width: '100%' }}>
       {STEPS.map((step, i) => {
-        const result = completedSteps[step.id];
-        const isCurrent = i === currentStepIdx;
-        let dotColor = 'bg-ink-200';
-        if (result?.correct) dotColor = 'bg-emerald-400';
-        else if (result?.partial) dotColor = 'bg-amber-400';
-        else if (result && !result.correct) dotColor = 'bg-red-400';
-        if (isCurrent && !result) dotColor = 'bg-gold-400 ring-2 ring-gold-200';
+        const done = i < currentStepIdx || completedSteps[step.id];
+        const isFinalDone = i === STEPS.length - 1 && done;
+        let bg = '#e4e7ec';
+        if (isFinalDone) bg = '#1f9d57';
+        else if (done) bg = '#d9892e';
+        else if (i === currentStepIdx) bg = '#d9892e';
 
         return (
-          <div key={step.id} className="flex flex-col items-center gap-1">
-            <div className={`h-3 w-3 rounded-full transition-colors ${dotColor}`} />
-            <span className={`text-[10px] leading-tight ${isCurrent ? 'font-semibold text-ink-700' : 'text-ink-400'}`}>
-              {step.label}
-            </span>
-          </div>
+          <span
+            key={step.id}
+            style={{
+              flex: 1, height: 7, borderRadius: 4,
+              background: bg, transition: 'background .25s ease',
+            }}
+          />
         );
       })}
     </div>

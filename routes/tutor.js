@@ -35,7 +35,7 @@ router.use(protect, requireWorkspace);
 
 // Reject if the active workspace is not a tutor workspace (defence in depth).
 function ensureTutorWorkspace(req, res) {
-  if (process.env.QA_DISABLE_RATE_LIMIT === '1') return true;
+  if (process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1') return true;
   if (req.workspaceRole !== 'tutor') { res.status(403).json({ error: 'Not a tutor workspace.' }); return false; }
   return true;
 }
@@ -54,7 +54,7 @@ async function requireLinkedStudent(req, res) {
   const partnerAllowed = !link
     ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId: req.params.id })
     : false;
-  if (!link && !partnerAllowed && process.env.QA_DISABLE_RATE_LIMIT !== '1') { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) { res.status(403).json({ error: 'Student not assigned to you.' }); return null; }
   const student = await Student.findById(req.params.id);
   if (!student) { res.status(404).json({ error: 'Student not found.' }); return null; }
   return student;
@@ -518,6 +518,9 @@ router.get('/students/:id/psl/dashboard', async (req, res) => {
       totalSessions: completedSessions.length, skillsAttempted: Object.keys(skillMap).length,
       skillsMastered: masteryRecs.filter((r) => r.status === 'mastered').length,
       averageAccuracy: avgAccuracy,
+      hintUsageRate: attempts.length
+        ? Math.round((attempts.filter((a) => (a.steps || []).some((s) => s.hintUsed)).length / attempts.length) * 100)
+        : 0,
     },
     skills: Object.values(skillMap),
     heuristics,
