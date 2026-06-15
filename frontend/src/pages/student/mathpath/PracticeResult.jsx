@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Wrench } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
+import { MascotBubble } from '../../../components/MascotAvatar';
 import { MathText } from '../../../components/ui/Fraction';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
 
@@ -36,6 +37,11 @@ export default function PracticeResult() {
   if (!data) return <EmptyState message="Could not load these results." />;
 
   const { stats, skills, mistakes } = data;
+  // Reward (Kaesy) on a solid session; encouragement (Talia) when it was a struggle.
+  const accuracy = Number(stats.accuracy) || 0;
+  const cheer = accuracy >= 70
+    ? { key: 'kaesy', text: accuracy >= 90 ? `Incredible — ${accuracy}%! You're on fire!` : `Nice work — ${accuracy}% correct!` }
+    : { key: 'talia', text: `Every rep counts. Let's review these and bounce back stronger.` };
   // Route follow-on actions by module/feature so a session returns where it began
   // (Science → Science, an assigned Mastery Worksheet → the worksheets list).
   const isScience = data.session?.module === 'Science Adaptive Revision';
@@ -60,6 +66,8 @@ export default function PracticeResult() {
         <p className="mt-1 text-sm text-ink-500">{stats.correct} of {stats.total} correct</p>
         <ProgressBar value={stats.correct} max={Math.max(stats.total, 1)} className="mt-4" />
       </Card>
+
+      <MascotBubble mascotKey={cheer.key} text={cheer.text} showName={false} className="mb-5 justify-center" />
 
       <Card className="mb-5 p-5">
         <div className="flex items-center gap-6">
