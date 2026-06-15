@@ -17,10 +17,11 @@ import {
   completeSession,
   abandonSession,
 } from '../services/psl/sessionOrchestrator.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
-router.get('/home', protect, async (req, res) => {
+router.get('/home', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = student._id;
@@ -53,9 +54,9 @@ router.get('/home', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.get('/skills/:skillId/readiness', protect, async (req, res) => {
+router.get('/skills/:skillId/readiness', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const result = await checkPrerequisites(req.params.skillId, student._id, student.workspaceId);
@@ -63,9 +64,9 @@ router.get('/skills/:skillId/readiness', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.post('/sessions', protect, async (req, res) => {
+router.post('/sessions', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const { skillId, problemCount = 5 } = req.body;
@@ -80,9 +81,9 @@ router.post('/sessions', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.get('/sessions/:sessionId', protect, async (req, res) => {
+router.get('/sessions/:sessionId', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const session = await getSession(req.params.sessionId, { studentId: student._id });
@@ -90,9 +91,9 @@ router.get('/sessions/:sessionId', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.post('/sessions/:sid/problems/:pid/step', protect, async (req, res) => {
+router.post('/sessions/:sid/problems/:pid/step', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const { stepId, response, timeSpentMs } = req.body;
@@ -108,9 +109,9 @@ router.post('/sessions/:sid/problems/:pid/step', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.post('/sessions/:sid/problems/:pid/hint', protect, async (req, res) => {
+router.post('/sessions/:sid/problems/:pid/hint', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const { stepId } = req.body;
@@ -150,9 +151,9 @@ router.post('/sessions/:sid/problems/:pid/hint', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.post('/sessions/:sid/problems/:pid/complete', protect, async (req, res) => {
+router.post('/sessions/:sid/problems/:pid/complete', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const result = await completeProblem({
@@ -164,9 +165,9 @@ router.post('/sessions/:sid/problems/:pid/complete', protect, async (req, res) =
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.post('/sessions/:sid/complete', protect, async (req, res) => {
+router.post('/sessions/:sid/complete', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const result = await completeSession(req.params.sid, { studentId: student._id });
@@ -174,9 +175,9 @@ router.post('/sessions/:sid/complete', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.patch('/sessions/:sid/abandon', protect, async (req, res) => {
+router.patch('/sessions/:sid/abandon', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const result = await abandonSession(req.params.sid, { studentId: student._id });
@@ -184,9 +185,9 @@ router.patch('/sessions/:sid/abandon', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.get('/sessions/:sid/problems/:pid/solution', protect, async (req, res) => {
+router.get('/sessions/:sid/problems/:pid/solution', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const session = await PSLSession.findOne({ sessionId: req.params.sid, studentId: student._id }).lean();
@@ -217,9 +218,9 @@ router.get('/sessions/:sid/problems/:pid/solution', protect, async (req, res) =>
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.get('/mistakes', protect, async (req, res) => {
+router.get('/mistakes', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const mistakes = await Mistake.find({
@@ -230,9 +231,9 @@ router.get('/mistakes', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
-router.get('/dashboard', protect, async (req, res) => {
+router.get('/dashboard', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = student._id;
@@ -324,6 +325,6 @@ router.get('/dashboard', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message });
   }
-});
+}));
 
 export default router;

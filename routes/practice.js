@@ -14,6 +14,7 @@ import { markOpenEnded } from '../utils/aiMarking.js';
 import { selectSimilarQuestions } from '../utils/worksheetGen.js';
 import { normalizeConfidence, recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import { updateFluencyCompletionForSession } from '../services/fluency/fluencyCompletionService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const FRAMEWORK_SKILL_ID_PATTERN = /^F\d{3}$/i;
@@ -73,7 +74,7 @@ const clientQuestion = (q) => ({
 // @desc  Start a practice session. body: { studentId?, mode, feature?, skillIds[]?,
 //        skillId?, questionCount?, assignmentId?, excludeQuestionId? }
 // @access Private
-router.post('/sessions', protect, async (req, res) => {
+router.post('/sessions', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, undefined, { write: true });
     const {
@@ -176,13 +177,13 @@ router.post('/sessions', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start session.' });
   }
-});
+}));
 
 // @route POST /api/practice/sessions/:id/attempts
 // @desc  Log one attempt. body: { questionId, answer, timeMs?, hintsUsed? }
 //        Saves PracticeAttempt, updates mastery, saves a Mistake if wrong.
 // @access Private
-router.post('/sessions/:id/attempts', protect, async (req, res) => {
+router.post('/sessions/:id/attempts', protect, asyncHandler(async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
@@ -334,12 +335,12 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to log attempt.' });
   }
-});
+}));
 
 // @route POST /api/practice/sessions/:id/complete
 // @desc  Finalize: compute summary, mark a linked assignment complete.
 // @access Private
-router.post('/sessions/:id/complete', protect, async (req, res) => {
+router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
@@ -431,12 +432,12 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to complete session.' });
   }
-});
+}));
 
 // @route GET /api/practice/sessions/:id
 // @desc  Session + attempts + mistakes saved this session (for the results page).
 // @access Private
-router.get('/sessions/:id', protect, async (req, res) => {
+router.get('/sessions/:id', protect, asyncHandler(async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
@@ -469,12 +470,12 @@ router.get('/sessions/:id', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to load session.' });
   }
-});
+}));
 
 // @route PATCH /api/practice/sessions/:id/abandon
 // @desc  Mark a practice session abandoned for pilot telemetry.
 // @access Private
-router.patch('/sessions/:id/abandon', protect, async (req, res) => {
+router.patch('/sessions/:id/abandon', protect, asyncHandler(async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
@@ -508,6 +509,6 @@ router.patch('/sessions/:id/abandon', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to abandon session.' });
   }
-});
+}));
 
 export default router;

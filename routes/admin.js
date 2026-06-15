@@ -26,6 +26,7 @@ import { getLegacyMistakeEvidenceAudit } from '../services/mathpath/legacyMistak
 import { buildFractionsSkillIntegrityReport } from '../services/mathpath/questionSkillIntegrityService.js';
 import { listCanonicalFractionSkills } from '../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
 import { fractionQuestionFamilies } from '../shared/mathpath/fractions/fractionQuestionFamilies.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -54,7 +55,7 @@ function riskForStudent({ diagnosticStatus, practiceCompleted, mistakes, working
 // BILLING READINESS
 // ============================================================================
 
-router.get('/billing', adminOnly, async (req, res) => {
+router.get('/billing', adminOnly, asyncHandler(async (req, res) => {
   try {
     const overview = await getAdminBillingOverview({
       ownerType: req.query.ownerType || '',
@@ -64,16 +65,16 @@ router.get('/billing', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load billing overview.' });
   }
-});
+}));
 
-router.get('/billing/partner/:partnerId', adminOnly, async (req, res) => {
+router.get('/billing/partner/:partnerId', adminOnly, asyncHandler(async (req, res) => {
   try {
     const billing = await getPartnerBillingSummary(req.params.partnerId);
     res.json({ billing });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load partner billing.' });
   }
-});
+}));
 
 router.post(
   '/billing/subscriptions',
@@ -110,23 +111,23 @@ router.post(
 // DOMAIN HEALTH
 // ============================================================================
 
-router.get('/domain-health', adminOnly, async (req, res) => {
+router.get('/domain-health', adminOnly, asyncHandler(async (req, res) => {
   try {
     res.json(getDomainHealthReport());
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load domain health.' });
   }
-});
+}));
 
-router.get('/misconception-coverage', adminOnly, async (req, res) => {
+router.get('/misconception-coverage', adminOnly, asyncHandler(async (req, res) => {
   try {
     res.json(buildMisconceptionCoverageMatrix());
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load misconception coverage.' });
   }
-});
+}));
 
-router.get('/fractions-misconception-integrity', adminOnly, async (req, res) => {
+router.get('/fractions-misconception-integrity', adminOnly, asyncHandler(async (req, res) => {
   try {
     const coverage = buildMisconceptionCoverageMatrix();
     const density = buildMisconceptionDensityReport();
@@ -156,9 +157,9 @@ router.get('/fractions-misconception-integrity', adminOnly, async (req, res) => 
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load misconception integrity report.' });
   }
-});
+}));
 
-router.get('/fractions-skill-integrity', adminOnly, async (req, res) => {
+router.get('/fractions-skill-integrity', adminOnly, asyncHandler(async (req, res) => {
   try {
     res.json(buildFractionsSkillIntegrityReport({
       canonicalSkills: listCanonicalFractionSkills(),
@@ -167,9 +168,9 @@ router.get('/fractions-skill-integrity', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load Fractions skill integrity report.' });
   }
-});
+}));
 
-router.get('/diagnostic-validation', adminOnly, async (req, res) => {
+router.get('/diagnostic-validation', adminOnly, asyncHandler(async (req, res) => {
   try {
     const report = await getDiagnosticValidationReport({
       studentId: req.query.studentId,
@@ -181,9 +182,9 @@ router.get('/diagnostic-validation', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load diagnostic validation.' });
   }
-});
+}));
 
-router.get('/learning-path-quality', adminOnly, async (req, res) => {
+router.get('/learning-path-quality', adminOnly, asyncHandler(async (req, res) => {
   try {
     const report = await getLearningPathQualityReport({
       domainId: req.query.domainId || 'fractions',
@@ -193,9 +194,9 @@ router.get('/learning-path-quality', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load learning path quality.' });
   }
-});
+}));
 
-router.get('/mistake-learning-audit', adminOnly, async (req, res) => {
+router.get('/mistake-learning-audit', adminOnly, asyncHandler(async (req, res) => {
   try {
     const limit = Math.min(Number(req.query.limit || 100), 500);
     const mistakes = await Mistake.find({ module: req.query.module || 'MathPath' })
@@ -234,9 +235,9 @@ router.get('/mistake-learning-audit', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mistake learning audit.' });
   }
-});
+}));
 
-router.get('/mathpath/legacy-mistake-evidence-audit', adminOnly, async (req, res) => {
+router.get('/mathpath/legacy-mistake-evidence-audit', adminOnly, asyncHandler(async (req, res) => {
   try {
     const report = await getLegacyMistakeEvidenceAudit({
       MistakeModel: Mistake,
@@ -249,7 +250,7 @@ router.get('/mathpath/legacy-mistake-evidence-audit', adminOnly, async (req, res
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load legacy mistake evidence audit.' });
   }
-});
+}));
 
 // ============================================================================
 // 1. USER MANAGEMENT
@@ -258,7 +259,7 @@ router.get('/mathpath/legacy-mistake-evidence-audit', adminOnly, async (req, res
 // @route   GET /api/admin/users
 // @desc    Get all users (paginated, filtered by role)
 // @access  Private (admin only)
-router.get('/users', adminOnly, async (req, res) => {
+router.get('/users', adminOnly, asyncHandler(async (req, res) => {
   try {
     const { role, status = 'active', page = 1, limit = 20, search } = req.query;
 
@@ -310,12 +311,12 @@ router.get('/users', adminOnly, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/admin/users/:id
 // @desc    Get detailed user profile
 // @access  Private (admin only)
-router.get('/users/:id', adminOnly, async (req, res) => {
+router.get('/users/:id', adminOnly, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
 
@@ -338,7 +339,7 @@ router.get('/users/:id', adminOnly, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/admin/users/:id/activate
 // @desc    Activate/deactivate user
@@ -378,7 +379,7 @@ router.put(
 // @route   GET /api/admin/verification-queue
 // @desc    Get pending tutor verification applications
 // @access  Private (admin only)
-router.get('/verification-queue', adminOnly, async (req, res) => {
+router.get('/verification-queue', adminOnly, asyncHandler(async (req, res) => {
   try {
     const { status = 'pending_verification', page = 1, limit = 20 } = req.query;
 
@@ -422,7 +423,7 @@ router.get('/verification-queue', adminOnly, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/admin/verification/:tutorId
 // @desc    Approve or reject tutor verification
@@ -498,7 +499,7 @@ router.put(
 // @route   GET /api/admin/bookings
 // @desc    Get all bookings with filters
 // @access  Private (admin only)
-router.get('/bookings', adminOnly, async (req, res) => {
+router.get('/bookings', adminOnly, asyncHandler(async (req, res) => {
   try {
     const { status, startDate, endDate, page = 1, limit = 20 } = req.query;
 
@@ -557,12 +558,12 @@ router.get('/bookings', adminOnly, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/admin/bookings/:id
 // @desc    Get booking details
 // @access  Private (admin only)
-router.get('/bookings/:id', adminOnly, async (req, res) => {
+router.get('/bookings/:id', adminOnly, asyncHandler(async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
       .populate('parentId', 'name email phone avatar')
@@ -583,7 +584,7 @@ router.get('/bookings/:id', adminOnly, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // ============================================================================
 // 4. PLATFORM METRICS & ANALYTICS
@@ -592,7 +593,7 @@ router.get('/bookings/:id', adminOnly, async (req, res) => {
 // @route   GET /api/admin/dashboard
 // @desc    Get platform overview metrics
 // @access  Private (admin only)
-router.get('/dashboard', adminOnly, async (req, res) => {
+router.get('/dashboard', adminOnly, asyncHandler(async (req, res) => {
   try {
     // Count users by role
     const parentCount = await User.countDocuments({ role: 'parent', isActive: true });
@@ -695,12 +696,12 @@ router.get('/dashboard', adminOnly, async (req, res) => {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/admin/mathpath-pilot
 // @desc    Lightweight internal MathPath Fractions pilot monitor
 // @access  Private (admin only)
-router.get('/mathpath-pilot', adminOnly, async (req, res) => {
+router.get('/mathpath-pilot', adminOnly, asyncHandler(async (req, res) => {
   try {
     const { limit = 20 } = req.query;
     const maxStudents = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
@@ -842,7 +843,7 @@ router.get('/mathpath-pilot', adminOnly, async (req, res) => {
     console.error('MathPath pilot monitor error:', error);
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // ============================================================================
 // 5. DISPUTE RESOLUTION
@@ -911,7 +912,7 @@ router.post(
 // @route   GET /api/admin/disputes
 // @desc    Get all open disputes
 // @access  Private (admin only)
-router.get('/disputes', adminOnly, async (req, res) => {
+router.get('/disputes', adminOnly, asyncHandler(async (req, res) => {
   try {
     const { status = 'open', page = 1, limit = 20 } = req.query;
 
@@ -948,7 +949,7 @@ router.get('/disputes', adminOnly, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/admin/disputes/:id/resolve
 // @desc    Resolve a dispute

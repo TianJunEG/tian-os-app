@@ -8,6 +8,7 @@ import {
   generateInterventionWorksheet,
   getInterventionWorksheetHistory,
 } from '../services/mathpath/worksheetGenerationEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 // Structured (non-photo) Mastery Worksheet Generator. Mounted at
 // /api/worksheets/gen so the legacy photo flow in routes/worksheets.js is
@@ -18,7 +19,7 @@ const router = express.Router();
 // @desc  body: { studentId, mode(recent_mistakes|weak_skills|diagnostic_results|selected_topic),
 //        skillIds[]?, topicId?, difficulty?, questionCount?, includesSolutions?, includesMistakeReview? }
 // @access Private
-router.post('/generate', protect, async (req, res) => {
+router.post('/generate', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.body.studentId, { write: true });
     const {
@@ -65,14 +66,14 @@ router.post('/generate', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to generate worksheet.' });
   }
-});
+}));
 
 // @route POST /api/worksheets/gen/intervention
 // @desc  Generate an intervention-driven worksheet from diagnostic, Recovery Pack,
 //        paper analysis, tutor lesson, student care intervention, parent support,
 //        or manual skill selection evidence.
 // @access Private
-router.post('/intervention', protect, async (req, res) => {
+router.post('/intervention', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.body?.studentId, { write: true });
     const result = await generateInterventionWorksheet({
@@ -94,11 +95,11 @@ router.post('/intervention', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to generate intervention worksheet.' });
   }
-});
+}));
 
 // @route GET /api/worksheets/gen/intervention/history?studentId=&sourceType=&sourceId=
 // @access Private
-router.get('/intervention/history', protect, async (req, res) => {
+router.get('/intervention/history', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.query?.studentId);
     const worksheets = await getInterventionWorksheetHistory({
@@ -110,12 +111,12 @@ router.get('/intervention/history', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load intervention worksheet history.' });
   }
-});
+}));
 
 // @route GET /api/worksheets/gen?studentId=
 // @desc  List generated (structured) worksheets for a student.
 // @access Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const list = await Worksheet.find({ studentId: student._id, sourceMode: { $ne: null } }).sort({ createdAt: -1 }).limit(50);
@@ -123,11 +124,11 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load worksheets.' });
   }
-});
+}));
 
 // @route GET /api/worksheets/gen/:id
 // @access Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const w = await Worksheet.findById(req.params.id);
     if (!w || !w.sourceMode) return res.status(404).json({ error: 'Worksheet not found.' });
@@ -136,12 +137,12 @@ router.get('/:id', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load worksheet.' });
   }
-});
+}));
 
 // @route POST /api/worksheets/gen/:id/assign
 // @desc  Assign a generated worksheet to the child (creates an Assignment).
 // @access Private
-router.post('/:id/assign', protect, async (req, res) => {
+router.post('/:id/assign', protect, asyncHandler(async (req, res) => {
   try {
     const w = await Worksheet.findById(req.params.id);
     if (!w || !w.sourceMode) return res.status(404).json({ error: 'Worksheet not found.' });
@@ -175,7 +176,7 @@ router.post('/:id/assign', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to assign worksheet.' });
   }
-});
+}));
 
 function shapeSummary(w) {
   return {

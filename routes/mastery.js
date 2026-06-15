@@ -35,6 +35,7 @@ import {
   answerAdaptiveDiagnostic,
   startAdaptiveDiagnostic,
 } from '../services/diagnostics/diagnosticRuntime.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   getDiagnosticGrowth,
   getDiagnosticHistory,
@@ -365,7 +366,7 @@ export function buildResetStudentStateDeletionPlan({ studentId, studentObjectId,
   ];
 }
 
-router.get('/fractions/model-trainer', protect, async (req, res) => {
+router.get('/fractions/model-trainer', protect, asyncHandler(async (req, res) => {
   try {
     res.json({
       templates: listFractionsModelTrainerTemplates({ skillId: req.query.skillId }),
@@ -373,9 +374,9 @@ router.get('/fractions/model-trainer', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load model trainer templates.' });
   }
-});
+}));
 
-router.get('/fractions/model-trainer/skill/:skillId', protect, async (req, res) => {
+router.get('/fractions/model-trainer/skill/:skillId', protect, asyncHandler(async (req, res) => {
   try {
     res.json({
       skillId: String(req.params.skillId || '').toUpperCase(),
@@ -384,9 +385,9 @@ router.get('/fractions/model-trainer/skill/:skillId', protect, async (req, res) 
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load model trainer templates.' });
   }
-});
+}));
 
-router.get('/fractions/model-trainer/:templateId', protect, async (req, res) => {
+router.get('/fractions/model-trainer/:templateId', protect, asyncHandler(async (req, res) => {
   try {
     const template = getFractionsModelTrainerTemplate(req.params.templateId);
     if (!template) return res.status(404).json({ error: 'Model trainer template not found.' });
@@ -394,9 +395,9 @@ router.get('/fractions/model-trainer/:templateId', protect, async (req, res) => 
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load model trainer template.' });
   }
-});
+}));
 
-router.post('/fractions/practice/start', protect, async (req, res) => {
+router.post('/fractions/practice/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -468,9 +469,9 @@ router.post('/fractions/practice/start', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start practice.' });
   }
-});
+}));
 
-router.get('/fractions/practice/:practiceSessionId', protect, async (req, res) => {
+router.get('/fractions/practice/:practiceSessionId', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const session = await MathPathPracticeSession.findOne({
@@ -499,9 +500,9 @@ router.get('/fractions/practice/:practiceSessionId', protect, async (req, res) =
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load practice session.' });
   }
-});
+}));
 
-router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req, res) => {
+router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -719,7 +720,7 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, async (req
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit practice.' });
   }
-});
+}));
 
 // =========================================================================
 // P1 Practice — persists client-generated P1 sessions using the same
@@ -789,7 +790,7 @@ function p1PracticeAttemptDoc({ studentId, result, sessionId, sessionType, domai
   };
 }
 
-router.post('/p1/practice/start', protect, async (req, res) => {
+router.post('/p1/practice/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -860,9 +861,9 @@ router.post('/p1/practice/start', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start P1 practice.' });
   }
-});
+}));
 
-router.get('/p1/practice/:practiceSessionId', protect, async (req, res) => {
+router.get('/p1/practice/:practiceSessionId', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const session = await MathPathPracticeSession.findOne({
@@ -888,9 +889,9 @@ router.get('/p1/practice/:practiceSessionId', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load P1 practice session.' });
   }
-});
+}));
 
-router.post('/p1/practice/:practiceSessionId/submit', protect, async (req, res) => {
+router.post('/p1/practice/:practiceSessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -1073,10 +1074,10 @@ router.post('/p1/practice/:practiceSessionId/submit', protect, async (req, res) 
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit P1 practice.' });
   }
-});
+}));
 
 // Get P1 skill states for a student (for mastery badges on skill cards)
-router.get('/p1/skill-states', protect, async (req, res) => {
+router.get('/p1/skill-states', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -1088,12 +1089,12 @@ router.get('/p1/skill-states', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load P1 skill states.' });
   }
-});
+}));
 
 // =========================================================================
 // P2 Practice — start route
 // =========================================================================
-router.post('/p2/practice/start', protect, async (req, res) => {
+router.post('/p2/practice/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -1113,12 +1114,12 @@ router.post('/p2/practice/start', protect, async (req, res) => {
     ]);
     res.json({ practiceSessionId, studentId, domainId: resolvedDomainId, persisted: true, lifecycleLog });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to start P2 practice.' }); }
-});
+}));
 
 // =========================================================================
 // P3 Practice — start route
 // =========================================================================
-router.post('/p3/practice/start', protect, async (req, res) => {
+router.post('/p3/practice/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -1138,7 +1139,7 @@ router.post('/p3/practice/start', protect, async (req, res) => {
     ]);
     res.json({ practiceSessionId, studentId, domainId: resolvedDomainId, persisted: true, lifecycleLog });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to start P3 practice.' }); }
-});
+}));
 
 // =========================================================================
 // P2 Practice — submit route
@@ -1147,7 +1148,7 @@ function isP2DomainId(domainId) {
   return String(domainId || '').startsWith('p2-');
 }
 
-router.post('/p2/practice/:practiceSessionId/submit', protect, async (req, res) => {
+router.post('/p2/practice/:practiceSessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -1201,19 +1202,19 @@ router.post('/p2/practice/:practiceSessionId/submit', protect, async (req, res) 
     ]);
     res.json(summary);
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to submit P2 practice.' }); }
-});
+}));
 
 // P2 skill states
-router.get('/p2/skill-states', protect, async (req, res) => {
+router.get('/p2/skill-states', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const states = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: { $regex: /^p2-/ } }).lean();
     res.json({ skillStates: states });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load P2 skill states.' }); }
-});
+}));
 
 // P3 submit route
-router.post('/p3/practice/:practiceSessionId/submit', protect, async (req, res) => {
+router.post('/p3/practice/:practiceSessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -1393,9 +1394,9 @@ router.post('/p3/practice/:practiceSessionId/submit', protect, async (req, res) 
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit P3 practice.' });
   }
-});
+}));
 
-router.get('/p3/skill-states', protect, async (req, res) => {
+router.get('/p3/skill-states', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -1407,9 +1408,9 @@ router.get('/p3/skill-states', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load P3 skill states.' });
   }
-});
+}));
 
-router.post('/fractions/question-patterns/analyze', protect, async (req, res) => {
+router.post('/fractions/question-patterns/analyze', protect, asyncHandler(async (req, res) => {
   try {
     if (!canTrainQuestionPatterns(req.user)) return res.status(403).json({ error: 'Only teachers, tutors, and admins can train question patterns.' });
     const pattern = extractQuestionPattern({
@@ -1429,9 +1430,9 @@ router.post('/fractions/question-patterns/analyze', protect, async (req, res) =>
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to analyze question pattern.' });
   }
-});
+}));
 
-router.post('/fractions/question-patterns/generate', protect, async (req, res) => {
+router.post('/fractions/question-patterns/generate', protect, asyncHandler(async (req, res) => {
   try {
     if (!canTrainQuestionPatterns(req.user)) return res.status(403).json({ error: 'Only teachers, tutors, and admins can generate question patterns.' });
     const pattern = req.body?.pattern || extractQuestionPattern(req.body || {});
@@ -1442,9 +1443,9 @@ router.post('/fractions/question-patterns/generate', protect, async (req, res) =
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to generate similar questions.' });
   }
-});
+}));
 
-router.post('/fractions/question-patterns/approve', protect, async (req, res) => {
+router.post('/fractions/question-patterns/approve', protect, asyncHandler(async (req, res) => {
   try {
     if (!canTrainQuestionPatterns(req.user)) return res.status(403).json({ error: 'Only teachers, tutors, and admins can approve generated practice sets.' });
     const pattern = req.body?.pattern || extractQuestionPattern(req.body || {});
@@ -1460,9 +1461,9 @@ router.post('/fractions/question-patterns/approve', protect, async (req, res) =>
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to approve practice set.' });
   }
-});
+}));
 
-router.get('/fractions/similar-practice-sets', protect, async (req, res) => {
+router.get('/fractions/similar-practice-sets', protect, asyncHandler(async (req, res) => {
   try {
     const sets = await listApprovedPracticeSets({
       domain: 'fractions',
@@ -1472,9 +1473,9 @@ router.get('/fractions/similar-practice-sets', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load practice sets.' });
   }
-});
+}));
 
-router.get('/fractions/similar-practice-sets/:practiceSetId', protect, async (req, res) => {
+router.get('/fractions/similar-practice-sets/:practiceSetId', protect, asyncHandler(async (req, res) => {
   try {
     const practiceSet = await getPracticeSet(req.params.practiceSetId, { allowDraft: canTrainQuestionPatterns(req.user) });
     if (!practiceSet) return res.status(404).json({ error: 'Practice set not found.' });
@@ -1482,9 +1483,9 @@ router.get('/fractions/similar-practice-sets/:practiceSetId', protect, async (re
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load practice set.' });
   }
-});
+}));
 
-router.post('/fractions/similar-practice-sets/:practiceSetId/start', protect, async (req, res) => {
+router.post('/fractions/similar-practice-sets/:practiceSetId/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const started = await startSimilarQuestionPractice({
@@ -1521,9 +1522,9 @@ router.post('/fractions/similar-practice-sets/:practiceSetId/start', protect, as
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start similar question practice.' });
   }
-});
+}));
 
-router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req, res) => {
+router.post('/fractions/similar-practice/:sessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const submitted = await submitSimilarQuestionPractice({
@@ -1688,7 +1689,7 @@ router.post('/fractions/similar-practice/:sessionId/submit', protect, async (req
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit similar question practice.' });
   }
-});
+}));
 
 function mapPlacementReadiness(profile = []) {
   if (!profile.length) return 'Beginner';
@@ -1749,7 +1750,7 @@ async function loadFractionsSkills() {
 // @desc  Mastery records + weak skills + a recommended next skill. Used by the
 //        MathPath progress, Fluency home, and Mistake-to-Mastery home.
 // @access Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
 
@@ -1796,14 +1797,14 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load mastery.' });
   }
-});
+}));
 
 // @route GET /api/mastery/map?studentId=
 // @desc  The Math topic→skill map merged with this student's mastery, for the
 //        MathPath home topic list and the Topic Detail page. Not-started skills
 //        are included (they have no MasteryRecord yet).
 // @access Private
-router.get('/map', protect, async (req, res) => {
+router.get('/map', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const math = await Subject.findOne({ key: 'math' });
@@ -1832,7 +1833,7 @@ router.get('/map', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load topic map.' });
   }
-});
+}));
 
 // @route POST /api/mastery/placement
 // @desc  Estimate placement from diagnostic attempts — analyses speed, hesitation,
@@ -1840,7 +1841,7 @@ router.get('/map', protect, async (req, res) => {
 //        profile + recommended start skills, remediation paths and fluency recs.
 //        body: { attempts: [{ slug, correct, responseMs, hesitationMs, retries, misconceptionTag }] }
 // @access Private
-router.post('/placement', protect, async (req, res) => {
+router.post('/placement', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const attempts = Array.isArray(req.body?.attempts) ? req.body.attempts : [];
@@ -1849,12 +1850,12 @@ router.post('/placement', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Placement failed.' });
   }
-});
+}));
 
 // @route POST /api/mastery/diagnostic/start
 // @desc  Backward-compatible MathPath Fractions diagnostic start.
 // @access Private
-router.post('/diagnostic/start', protect, async (req, res) => {
+router.post('/diagnostic/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const payload = await startAdaptiveDiagnostic({
@@ -1875,12 +1876,12 @@ router.post('/diagnostic/start', protect, async (req, res) => {
       ...(err.payload || {}),
     });
   }
-});
+}));
 
 // @route POST /api/mastery/diagnostic/:sessionId/answer
 // @desc  Backward-compatible adaptive diagnostic answer endpoint.
 // @access Private
-router.post('/diagnostic/:sessionId/answer', protect, async (req, res) => {
+router.post('/diagnostic/:sessionId/answer', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const payload = await answerAdaptiveDiagnostic({
@@ -1896,12 +1897,12 @@ router.post('/diagnostic/:sessionId/answer', protect, async (req, res) => {
       ...(err.payload || {}),
     });
   }
-});
+}));
 
 // @route POST /api/mastery/diagnostic/:sessionId/submit
 // @desc  Save diagnostic attempts, execute existing placement engine, persist result.
 // @access Private
-router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
+router.post('/diagnostic/:sessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const session = await MathPathDiagnosticSession.findOne({
@@ -2283,9 +2284,9 @@ router.post('/diagnostic/:sessionId/submit', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to complete diagnostic.' });
   }
-});
+}));
 
-router.get('/diagnostic/history', protect, async (req, res) => {
+router.get('/diagnostic/history', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const subjectId = req.query.subjectId || 'math';
@@ -2299,9 +2300,9 @@ router.get('/diagnostic/history', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load diagnostic history.' });
   }
-});
+}));
 
-router.get('/diagnostic/growth', protect, async (req, res) => {
+router.get('/diagnostic/growth', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const subjectId = req.query.subjectId || 'math';
@@ -2316,12 +2317,12 @@ router.get('/diagnostic/growth', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load diagnostic growth.' });
   }
-});
+}));
 
 // @route GET /api/mastery/diagnostic/latest?studentId=
 // @desc  Latest completed Fractions diagnostic/placement result for dashboard use.
 // @access Private (student self, parent guardian, tutor/teacher workspace member)
-router.get('/diagnostic/latest', protect, async (req, res) => {
+router.get('/diagnostic/latest', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const latest = await MathPathDiagnosticSession.findOne({
@@ -2352,12 +2353,12 @@ router.get('/diagnostic/latest', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load latest diagnostic.' });
   }
-});
+}));
 
 // @route POST /api/mastery/test/reset-state
 // @desc  Reset MathPath state for seeded QA/test student accounts.
 // @access Private (the test student themself or admin)
-router.post('/test/reset-state', protect, async (req, res) => {
+router.post('/test/reset-state', protect, asyncHandler(async (req, res) => {
   try {
     const requester = await User.findById(req.user.id);
     const requesterRoles = new Set([requester?.role, ...(Array.isArray(requester?.roles) ? requester.roles : [])].filter(Boolean));
@@ -2393,12 +2394,12 @@ router.post('/test/reset-state', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to reset student state.' });
   }
-});
+}));
 
 // @route GET /api/mastery/diagnostic/:sessionId
 // @desc  Read persisted diagnostic session result.
 // @access Private
-router.get('/diagnostic/:sessionId', protect, async (req, res) => {
+router.get('/diagnostic/:sessionId', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const session = await MathPathDiagnosticSession.findOne({
@@ -2451,7 +2452,7 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load diagnostic session.' });
   }
-});
+}));
 
 // @route POST /api/mastery/remediation
 // @desc  A calm, progressively-disclosed remediation plan for a skill the student
@@ -2459,7 +2460,7 @@ router.get('/diagnostic/:sessionId', protect, async (req, res) => {
 //        example → guided replication → retry.
 //        body: { skillSlug | skillId, recentAttempts?: [{ correct, misconceptionTag }] }
 // @access Private
-router.post('/remediation', protect, async (req, res) => {
+router.post('/remediation', protect, asyncHandler(async (req, res) => {
   try {
     const { skillSlug, skillId, recentAttempts = [] } = req.body || {};
     const skill = skillSlug ? await Skill.findOne({ slug: skillSlug }) : (skillId ? await Skill.findById(skillId) : null);
@@ -2485,14 +2486,14 @@ router.post('/remediation', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Remediation failed.' });
   }
-});
+}));
 
 // @route GET /api/mastery/analytics?studentId=&days=30
 // @desc  Lightweight, dashboard-ready MathPath analytics (response times,
 //        accuracy, consistency, mastery velocity, fluency trends, top
 //        misconceptions, remediation triggers) for parent/tutor views + AI.
 // @access Private
-router.get('/analytics', protect, async (req, res) => {
+router.get('/analytics', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const sinceDays = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
@@ -2504,7 +2505,7 @@ router.get('/analytics', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Analytics failed.' });
   }
-});
+}));
 
 // @route GET /api/mastery/graph?studentId=
 // @desc  The Math curriculum graph + this student's mastery, with prerequisite-
@@ -2515,7 +2516,7 @@ router.get('/analytics', protect, async (req, res) => {
 //        recommendNextSkill), and `locked` when it's not yet started and a
 //        prerequisite is still missing.
 // @access Private
-router.get('/graph', protect, async (req, res) => {
+router.get('/graph', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const skillStates = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: 'fractions' }).lean();
@@ -2525,7 +2526,7 @@ router.get('/graph', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load skill graph.' });
   }
-});
+}));
 
 
 // =========================================================================
@@ -2535,7 +2536,7 @@ function isP4DomainId(domainId) {
   return String(domainId || '').startsWith('p4-');
 }
 
-router.post('/p4/practice/start', protect, async (req, res) => {
+router.post('/p4/practice/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -2555,12 +2556,12 @@ router.post('/p4/practice/start', protect, async (req, res) => {
     ]);
     res.json({ practiceSessionId, studentId, domainId: resolvedDomainId, persisted: true, lifecycleLog });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to start P4 practice.' }); }
-});
+}));
 
 // =========================================================================
 // P4 Practice — submit route
 // =========================================================================
-router.post('/p4/practice/:practiceSessionId/submit', protect, async (req, res) => {
+router.post('/p4/practice/:practiceSessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -2614,16 +2615,16 @@ router.post('/p4/practice/:practiceSessionId/submit', protect, async (req, res) 
     ]);
     res.json(summary);
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to submit P4 practice.' }); }
-});
+}));
 
 // P4 skill states
-router.get('/p4/skill-states', protect, async (req, res) => {
+router.get('/p4/skill-states', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const states = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: { $regex: /^p4-/ } }).lean();
     res.json({ skillStates: states });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load P4 skill states.' }); }
-});
+}));
 
 // =========================================================================
 // P5 Practice — start route
@@ -2632,7 +2633,7 @@ function isP5DomainId(domainId) {
   return String(domainId || '').startsWith('p5-');
 }
 
-router.post('/p5/practice/start', protect, async (req, res) => {
+router.post('/p5/practice/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -2652,12 +2653,12 @@ router.post('/p5/practice/start', protect, async (req, res) => {
     ]);
     res.json({ practiceSessionId, studentId, domainId: resolvedDomainId, persisted: true, lifecycleLog });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to start P5 practice.' }); }
-});
+}));
 
 // =========================================================================
 // P5 Practice — submit route
 // =========================================================================
-router.post('/p5/practice/:practiceSessionId/submit', protect, async (req, res) => {
+router.post('/p5/practice/:practiceSessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -2711,16 +2712,16 @@ router.post('/p5/practice/:practiceSessionId/submit', protect, async (req, res) 
     ]);
     res.json(summary);
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to submit P5 practice.' }); }
-});
+}));
 
 // P5 skill states
-router.get('/p5/skill-states', protect, async (req, res) => {
+router.get('/p5/skill-states', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const states = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: { $regex: /^p5-/ } }).lean();
     res.json({ skillStates: states });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load P5 skill states.' }); }
-});
+}));
 
 
 // =========================================================================
@@ -2730,7 +2731,7 @@ function isP6DomainId(domainId) {
   return String(domainId || '').startsWith('p6-');
 }
 
-router.post('/p6/practice/start', protect, async (req, res) => {
+router.post('/p6/practice/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -2750,12 +2751,12 @@ router.post('/p6/practice/start', protect, async (req, res) => {
     ]);
     res.json({ practiceSessionId, studentId, domainId: resolvedDomainId, persisted: true, lifecycleLog });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to start P6 practice.' }); }
-});
+}));
 
 // =========================================================================
 // P6 Practice — submit route
 // =========================================================================
-router.post('/p6/practice/:practiceSessionId/submit', protect, async (req, res) => {
+router.post('/p6/practice/:practiceSessionId/submit', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
@@ -2809,16 +2810,16 @@ router.post('/p6/practice/:practiceSessionId/submit', protect, async (req, res) 
     ]);
     res.json(summary);
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to submit P6 practice.' }); }
-});
+}));
 
 // P6 skill states
-router.get('/p6/skill-states', protect, async (req, res) => {
+router.get('/p6/skill-states', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const states = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: { $regex: /^p6-/ } }).lean();
     res.json({ skillStates: states });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load P6 skill states.' }); }
-});
+}));
 
 export default router;
 

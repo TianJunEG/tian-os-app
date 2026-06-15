@@ -7,6 +7,7 @@ import RetentionReview from '../models/RetentionReview.js';
 import Worksheet from '../models/Worksheet.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { classifyFluencyBuckets } from '../utils/fluencyEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -58,7 +59,7 @@ router.post(
 // @route   GET /api/students
 // @desc    List the current parent/tutor's student logins
 // @access  Private (parent or tutor)
-router.get('/', protect, authorize('parent', 'tutor'), async (req, res) => {
+router.get('/', protect, authorize('parent', 'tutor'), asyncHandler(async (req, res) => {
   try {
     const students = await User.find({ linkedTo: req.user.id, role: 'student' })
       .select('name email createdAt')
@@ -67,12 +68,12 @@ router.get('/', protect, authorize('parent', 'tutor'), async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 // @route   GET /api/students/:studentId/fluency
 // @desc    Fluency status buckets for student/parent/tutor/teacher visibility
 // @access  Private
-router.get('/:studentId/fluency', protect, async (req, res) => {
+router.get('/:studentId/fluency', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.params.studentId);
     const records = await FluencyRecord.find({ studentId: student._id }).sort({ updatedAt: -1 }).lean();
@@ -85,12 +86,12 @@ router.get('/:studentId/fluency', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load fluency.' });
   }
-});
+}));
 
 // @route   GET /api/students/:studentId/retention
 // @desc    Retention review schedule and history
 // @access  Private
-router.get('/:studentId/retention', protect, async (req, res) => {
+router.get('/:studentId/retention', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.params.studentId);
     const now = new Date();
@@ -118,12 +119,12 @@ router.get('/:studentId/retention', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load retention.' });
   }
-});
+}));
 
 // @route   GET /api/students/:studentId/worksheets
 // @desc    Generated worksheets for a student
 // @access  Private
-router.get('/:studentId/worksheets', protect, async (req, res) => {
+router.get('/:studentId/worksheets', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.params.studentId);
     const worksheets = await Worksheet.find({ studentId: student._id, sourceMode: { $ne: null } }).sort({ createdAt: -1 }).limit(50);
@@ -149,12 +150,12 @@ router.get('/:studentId/worksheets', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Failed to load worksheets.' });
   }
-});
+}));
 
 // @route   DELETE /api/students/:id
 // @desc    Remove a student login owned by the current parent/tutor
 // @access  Private (parent or tutor)
-router.delete('/:id', protect, authorize('parent', 'tutor'), async (req, res) => {
+router.delete('/:id', protect, authorize('parent', 'tutor'), asyncHandler(async (req, res) => {
   try {
     const student = await User.findOneAndDelete({
       _id: req.params.id,
@@ -168,6 +169,6 @@ router.delete('/:id', protect, authorize('parent', 'tutor'), async (req, res) =>
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-});
+}));
 
 export default router;

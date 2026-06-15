@@ -11,6 +11,7 @@ import {
   buildPaperAnalysisRecommendations,
   mapPaperQuestionToSkills,
 } from '../services/mathpath/paperAnalysisSkillMapper.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   applyAdultReviewOverrides,
   runPaperAnalysisPipeline,
@@ -130,7 +131,7 @@ function normalizeDetectedQuestions(rawQuestions = []) {
   });
 }
 
-router.post('/upload', protect, upload.single('paper'), async (req, res) => {
+router.post('/upload', protect, upload.single('paper'), asyncHandler(async (req, res) => {
   try {
     assertAdultUploader(req);
     const student = await resolvePaperAnalysisStudent(req, req.body?.studentId);
@@ -180,11 +181,11 @@ router.post('/upload', protect, upload.single('paper'), async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not upload paper analysis.' });
   }
-});
+}));
 
 // Student self-upload: students can upload their own marked papers.
 // No assertAdultUploader — resolveStudent(req) returns their own record.
-router.post('/student-upload', protect, upload.single('paper'), async (req, res) => {
+router.post('/student-upload', protect, upload.single('paper'), asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     if (!req.file) return res.status(400).json({ error: 'Upload a PDF, JPG or PNG of your test paper.' });
@@ -221,9 +222,9 @@ router.post('/student-upload', protect, upload.single('paper'), async (req, res)
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not upload paper.' });
   }
-});
+}));
 
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const analysis = await PaperAnalysis.findById(req.params.id).lean();
     if (!analysis) return res.status(404).json({ error: 'Paper analysis not found.' });
@@ -232,9 +233,9 @@ router.get('/:id', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load paper analysis.' });
   }
-});
+}));
 
-router.patch('/:id/review', protect, async (req, res) => {
+router.patch('/:id/review', protect, asyncHandler(async (req, res) => {
   try {
     assertAdultUploader(req);
     const analysis = await PaperAnalysis.findById(req.params.id);
@@ -262,9 +263,9 @@ router.patch('/:id/review', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not review paper analysis.' });
   }
-});
+}));
 
-router.post('/:id/assign-practice', protect, async (req, res) => {
+router.post('/:id/assign-practice', protect, asyncHandler(async (req, res) => {
   try {
     assertAdultUploader(req);
     const analysis = await PaperAnalysis.findById(req.params.id);
@@ -295,9 +296,9 @@ router.post('/:id/assign-practice', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not assign paper-analysis practice.' });
   }
-});
+}));
 
-router.post('/:id/create-recheck', protect, async (req, res) => {
+router.post('/:id/create-recheck', protect, asyncHandler(async (req, res) => {
   try {
     assertAdultUploader(req);
     const analysis = await PaperAnalysis.findById(req.params.id).lean();
@@ -340,6 +341,6 @@ router.post('/:id/create-recheck', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not create paper-analysis recheck.' });
   }
-});
+}));
 
 export default router;

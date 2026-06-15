@@ -8,6 +8,7 @@ import Mistake from '../models/Mistake.js';
 import Assignment from '../models/Assignment.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 // Spelling Practice wired into the shared Tian OS core. It reuses
 // PracticeSession / PracticeAttempt / MasteryRecord / Mistake — tagged
@@ -26,7 +27,7 @@ function spellingCorrect(given, expected) {
 const listMastery = (rec) => (rec ? { score: rec.score, status: rec.status } : { score: 0, status: 'not_started' });
 
 // @route GET /api/spelling-practice/lists — library lists + this student's mastery
-router.get('/lists', protect, async (req, res) => {
+router.get('/lists', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req).catch(() => null);
     const lists = await SpellingList.find({ isShared: true }).sort({ level: 1, title: 1 });
@@ -40,10 +41,10 @@ router.get('/lists', protect, async (req, res) => {
       wordCount: l.words.length, ...listMastery(recByList[String(l._id)]),
     })) });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load lists.' }); }
-});
+}));
 
 // @route GET /api/spelling-practice/home — recommended list + recent accuracy + misspelt count
-router.get('/home', protect, async (req, res) => {
+router.get('/home', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req).catch(() => null);
     const lists = await SpellingList.find({ isShared: true }).sort({ level: 1, title: 1 });
@@ -59,18 +60,18 @@ router.get('/home', protect, async (req, res) => {
     const misspeltCount = await Mistake.countDocuments({ studentId: student._id, module: MODULE, status: { $ne: 'resolved' } });
     res.json({ recommended: rec ? { listId: rec._id, title: rec.title } : null, recentAccuracy, misspeltCount });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load spelling home.' }); }
-});
+}));
 
 // @route GET /api/spelling-practice/lists/:id — words for Learn mode
-router.get('/lists/:id', protect, async (req, res) => {
+router.get('/lists/:id', protect, asyncHandler(async (req, res) => {
   const list = await SpellingList.findById(req.params.id);
   if (!list || !list.isShared) return res.status(404).json({ error: 'List not found.' });
   res.json({ listId: list._id, title: list.title, level: list.level,
     words: list.words.map((w) => ({ wordId: w._id, word: w.word, sentence: w.sentence, definition: w.definition })) });
-});
+}));
 
 // @route POST /api/spelling-practice/sessions — start a self-test on a list
-router.post('/sessions', protect, async (req, res) => {
+router.post('/sessions', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, undefined, { write: true });
     // Launched from an assignment? Take its list (stored in skillIds[0]).
@@ -90,10 +91,10 @@ router.post('/sessions', protect, async (req, res) => {
     res.json({ session_id: session._id, listTitle: list.title,
       items: list.words.map((w) => ({ wordId: w._id, word: w.word, sentence: w.sentence, definition: w.definition })) });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to start session.' }); }
-});
+}));
 
 // @route POST /api/spelling-practice/sessions/:id/attempts — grade one word
-router.post('/sessions/:id/attempts', protect, async (req, res) => {
+router.post('/sessions/:id/attempts', protect, asyncHandler(async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.params.id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
@@ -118,10 +119,10 @@ router.post('/sessions/:id/attempts', protect, async (req, res) => {
     }
     res.json({ correct, correctAnswer: word.word, sentence: word.sentence });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to log attempt.' }); }
-});
+}));
 
 // @route POST /api/spelling-practice/sessions/:id/complete
-router.post('/sessions/:id/complete', protect, async (req, res) => {
+router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => {
   const session = await PracticeSession.findById(req.params.id);
   if (!session) return res.status(404).json({ error: 'Session not found.' });
   const attempts = await PracticeAttempt.find({ sessionId: session._id });
@@ -134,10 +135,10 @@ router.post('/sessions/:id/complete', protect, async (req, res) => {
     await Assignment.findByIdAndUpdate(session.assignmentId, { status: 'completed', completionDate: new Date(), score: scorePct });
   }
   res.json({ session_id: session._id, summary: session.summary });
-});
+}));
 
 // @route GET /api/spelling-practice/sessions/:id — results (missed words)
-router.get('/sessions/:id', protect, async (req, res) => {
+router.get('/sessions/:id', protect, asyncHandler(async (req, res) => {
   const session = await PracticeSession.findById(req.params.id);
   if (!session) return res.status(404).json({ error: 'Session not found.' });
   const attempts = await PracticeAttempt.find({ sessionId: session._id });
@@ -149,14 +150,14 @@ router.get('/sessions/:id', protect, async (req, res) => {
     stats: { total, correct, incorrect: total - correct, accuracy: total ? Math.round((correct / total) * 100) : 0 },
     missed: attempts.filter((a) => !a.correct).map((a) => ({ yourAnswer: a.answer, correct: wordById[String(a.questionId)] || '' })),
   });
-});
+}));
 
 // @route GET /api/spelling-practice/mistakes — misspelt words to review
-router.get('/mistakes', protect, async (req, res) => {
+router.get('/mistakes', protect, asyncHandler(async (req, res) => {
   const student = await resolveStudent(req).catch(() => null);
   if (!student) return res.json({ mistakes: [] });
   const mistakes = await Mistake.find({ studentId: student._id, module: MODULE, status: { $ne: 'resolved' } }).sort({ occurredAt: -1 }).limit(100);
   res.json({ mistakes: mistakes.map((m) => ({ id: m._id, correctSpelling: m.correctAnswer, studentSpelling: m.studentAnswer, sentence: m.questionStem, status: m.status })) });
-});
+}));
 
 export default router;

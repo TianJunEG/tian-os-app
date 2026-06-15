@@ -9,6 +9,7 @@ import User from '../models/User.js';
 import TutorProfile from '../models/TutorProfile.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { sendPaymentConfirmationEmail } from '../utils/emailService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -23,7 +24,7 @@ router.post(
   [
     body('bookingId', 'Booking ID is required').notEmpty()
   ],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -86,7 +87,7 @@ router.post(
       console.error(error);
       res.status(500).json({ error: error.message });
     }
-  }
+  })
 );
 
 // @route   POST /api/payments/confirm
@@ -99,7 +100,7 @@ router.post(
     body('paymentIntentId', 'Payment intent ID is required').notEmpty(),
     body('bookingId', 'Booking ID is required').notEmpty()
   ],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -155,13 +156,13 @@ router.post(
       console.error(error);
       res.status(500).json({ error: error.message });
     }
-  }
+  })
 );
 
 // @route   GET /api/payments/:bookingId
 // @desc    Get payment details
 // @access  Private
-router.get('/:bookingId', protect, async (req, res) => {
+router.get('/:bookingId', protect, asyncHandler(async (req, res) => {
   try {
     const payment = await Payment.findOne({ bookingId: req.params.bookingId });
 
@@ -181,7 +182,7 @@ router.get('/:bookingId', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/payments/refund
 // @desc    Refund a payment
@@ -193,7 +194,7 @@ router.post(
     body('paymentId', 'Payment ID is required').notEmpty(),
     body('reason', 'Refund reason is required').trim().notEmpty()
   ],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -245,13 +246,13 @@ router.post(
       console.error(error);
       res.status(500).json({ error: error.message });
     }
-  }
+  })
 );
 
 // @route   GET /api/payments/history
 // @desc    Get payment history for authenticated user
 // @access  Private
-router.get('/history/:role', protect, async (req, res) => {
+router.get('/history/:role', protect, asyncHandler(async (req, res) => {
   try {
     const { role } = req.params;
     const { page = 1, limit = 20 } = req.query;
@@ -297,12 +298,12 @@ router.get('/history/:role', protect, async (req, res) => {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/payments/webhook
 // @desc    Stripe webhook for payment events
 // @access  Public
-router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+router.post('/webhook', express.raw({ type: 'application/json' }), asyncHandler(async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
 
@@ -383,6 +384,6 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     console.error(error);
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 export default router;

@@ -15,6 +15,7 @@ import {
 } from '../services/studentCare/studentCareAttentionEngine.js';
 import { generateStudentCareParentSummary } from '../services/studentCare/studentCareParentSummaryGenerator.js';
 import { buildStudentCareMetrics } from '../services/studentCare/studentCareMetricsService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -120,7 +121,7 @@ async function buildDashboardPayload(req) {
   };
 }
 
-router.get('/dashboard', protect, async (req, res) => {
+router.get('/dashboard', protect, asyncHandler(async (req, res) => {
   try {
     requireStudentCare(req);
     const payload = await buildDashboardPayload(req);
@@ -128,9 +129,9 @@ router.get('/dashboard', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load Student Care dashboard.' });
   }
-});
+}));
 
-router.get('/homework', protect, async (req, res) => {
+router.get('/homework', protect, asyncHandler(async (req, res) => {
   try {
     requireStudentCare(req);
     const payload = await buildDashboardPayload(req);
@@ -146,9 +147,9 @@ router.get('/homework', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load homework support.' });
   }
-});
+}));
 
-router.get('/recovery-packs', protect, async (req, res) => {
+router.get('/recovery-packs', protect, asyncHandler(async (req, res) => {
   try {
     requireStudentCare(req);
     const payload = await buildDashboardPayload(req);
@@ -163,9 +164,9 @@ router.get('/recovery-packs', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load recovery pack monitor.' });
   }
-});
+}));
 
-router.get('/rechecks', protect, async (req, res) => {
+router.get('/rechecks', protect, asyncHandler(async (req, res) => {
   try {
     requireStudentCare(req);
     const payload = await buildDashboardPayload(req);
@@ -181,9 +182,9 @@ router.get('/rechecks', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load recheck centre.' });
   }
-});
+}));
 
-router.get('/reports', protect, async (req, res) => {
+router.get('/reports', protect, asyncHandler(async (req, res) => {
   try {
     requireStudentCare(req);
     const payload = await buildDashboardPayload(req);
@@ -196,9 +197,9 @@ router.get('/reports', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not load Student Care reports.' });
   }
-});
+}));
 
-router.get('/students/:studentId/parent-summary', protect, async (req, res) => {
+router.get('/students/:studentId/parent-summary', protect, asyncHandler(async (req, res) => {
   try {
     requireStudentCare(req);
     const student = await resolveStudent(req, req.params.studentId);
@@ -212,6 +213,6 @@ router.get('/students/:studentId/parent-summary', protect, async (req, res) => {
   } catch (err) {
     return res.status(err.status || 500).json({ error: err.message || 'Could not generate parent summary.' });
   }
-});
+}));
 
 export default router;

@@ -35,6 +35,7 @@ import {
 } from '../services/mathpath/workingInsightPipeline.js';
 import { linkWorkingInsightToMistake as linkWorkingInsightToMistakeRecord } from '../services/mathpath/workingLinkageService.js';
 import { recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const WORKING_UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-working');
@@ -473,7 +474,7 @@ export function hasWorkingSessionAnchor(body = {}) {
 
 router.use(protect);
 
-router.post('/sessions', async (req, res) => {
+router.post('/sessions', asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.body?.studentId, { write: true });
     const studentId = String(student._id);
@@ -546,9 +547,9 @@ router.post('/sessions', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to create working session.', details: err.message });
   }
-});
+}));
 
-router.post('/codes', async (req, res) => {
+router.post('/codes', asyncHandler(async (req, res) => {
   try {
     const code = generateWorkingCode({
       domainId: req.body?.domainId || 'fractions',
@@ -559,9 +560,9 @@ router.post('/codes', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to create working code.', details: err.message });
   }
-});
+}));
 
-router.get('/code/:workingCode', async (req, res) => {
+router.get('/code/:workingCode', asyncHandler(async (req, res) => {
   try {
     const workingCode = String(req.params.workingCode || '').trim().toUpperCase();
     const session = await MathPathWorkingSession.findOne({ 'questionWorkingMap.workingCode': workingCode }).lean();
@@ -572,9 +573,9 @@ router.get('/code/:workingCode', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to look up working code.', details: err.message });
   }
-});
+}));
 
-router.get('/pending', async (req, res) => {
+router.get('/pending', asyncHandler(async (req, res) => {
   try {
     const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
     const query = { ...scope.query };
@@ -586,9 +587,9 @@ router.get('/pending', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to list working sessions.', details: err.message });
   }
-});
+}));
 
-router.get('/review-summary', async (req, res) => {
+router.get('/review-summary', asyncHandler(async (req, res) => {
   try {
     const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
     const query = { ...scope.query };
@@ -629,9 +630,9 @@ router.get('/review-summary', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to load working review summary.', details: err.message });
   }
-});
+}));
 
-router.get('/intelligence/queue', async (req, res) => {
+router.get('/intelligence/queue', asyncHandler(async (req, res) => {
   try {
     const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
     const query = { ...scope.query };
@@ -646,9 +647,9 @@ router.get('/intelligence/queue', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to load working intelligence queue.', details: err.message });
   }
-});
+}));
 
-router.get('/intelligence/audit', async (req, res) => {
+router.get('/intelligence/audit', asyncHandler(async (req, res) => {
   try {
     const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
     const query = { ...scope.query };
@@ -657,9 +658,9 @@ router.get('/intelligence/audit', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to build OCR audit report.', details: err.message });
   }
-});
+}));
 
-router.get('/intelligence/procedure-audit', async (req, res) => {
+router.get('/intelligence/procedure-audit', asyncHandler(async (req, res) => {
   try {
     const query = { procedureHumanReviewOutcome: { $ne: null } };
     const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
@@ -677,9 +678,9 @@ router.get('/intelligence/procedure-audit', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to build procedure accuracy audit.', details: err.message });
   }
-});
+}));
 
-router.get('/intelligence/:workingId', async (req, res) => {
+router.get('/intelligence/:workingId', asyncHandler(async (req, res) => {
   try {
     const record = await MathPathWorkingIntelligence.findOne({ workingId: req.params.workingId }).lean();
     if (!record) return res.status(404).json({ error: 'Working intelligence record not found.' });
@@ -688,9 +689,9 @@ router.get('/intelligence/:workingId', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to load working intelligence record.', details: err.message });
   }
-});
+}));
 
-router.post('/intelligence/:workingId/review', async (req, res) => {
+router.post('/intelligence/:workingId/review', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
@@ -713,9 +714,9 @@ router.post('/intelligence/:workingId/review', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to save working review.', details: err.message });
   }
-});
+}));
 
-router.post('/intelligence/:workingId/procedure-analysis', async (req, res) => {
+router.post('/intelligence/:workingId/procedure-analysis', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
@@ -744,9 +745,9 @@ router.post('/intelligence/:workingId/procedure-analysis', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to run procedure analysis.', details: err.message });
   }
-});
+}));
 
-router.post('/intelligence/:workingId/procedure-review', async (req, res) => {
+router.post('/intelligence/:workingId/procedure-review', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
@@ -787,9 +788,9 @@ router.post('/intelligence/:workingId/procedure-review', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to save procedure review.', details: err.message });
   }
-});
+}));
 
-router.post('/intelligence/:workingId/reasoning-analysis', async (req, res) => {
+router.post('/intelligence/:workingId/reasoning-analysis', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
@@ -828,9 +829,9 @@ router.post('/intelligence/:workingId/reasoning-analysis', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to run reasoning analysis.', details: err.message });
   }
-});
+}));
 
-router.post('/intelligence/:workingId/reasoning-review', async (req, res) => {
+router.post('/intelligence/:workingId/reasoning-review', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
@@ -858,9 +859,9 @@ router.post('/intelligence/:workingId/reasoning-review', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to save reasoning review.', details: err.message });
   }
-});
+}));
 
-router.get('/help-requests', async (req, res) => {
+router.get('/help-requests', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     const studentId = req.query.studentId ? String(req.query.studentId) : '';
@@ -874,9 +875,9 @@ router.get('/help-requests', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to load help requests.', details: err.message });
   }
-});
+}));
 
-router.get('/:workingSessionId', async (req, res) => {
+router.get('/:workingSessionId', asyncHandler(async (req, res) => {
   try {
     const session = await MathPathWorkingSession.findOne({ workingSessionId: req.params.workingSessionId }).lean();
     if (!session) return res.status(404).json({ error: 'Working session not found.' });
@@ -885,9 +886,9 @@ router.get('/:workingSessionId', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to load working session.', details: err.message });
   }
-});
+}));
 
-router.post('/:workingSessionId/upload', upload.array('working', 10), async (req, res) => {
+router.post('/:workingSessionId/upload', upload.array('working', 10), asyncHandler(async (req, res) => {
   try {
     const session = await MathPathWorkingSession.findOne({ workingSessionId: req.params.workingSessionId });
     if (!session) return res.status(404).json({ error: 'Working session not found.' });
@@ -990,9 +991,9 @@ router.post('/:workingSessionId/upload', upload.array('working', 10), async (req
   } catch (err) {
     return res.status(500).json({ error: 'Unable to upload working.', details: err.message });
   }
-});
+}));
 
-router.post('/:workingSessionId/no-working', async (req, res) => {
+router.post('/:workingSessionId/no-working', asyncHandler(async (req, res) => {
   try {
     const session = await MathPathWorkingSession.findOne({ workingSessionId: req.params.workingSessionId });
     if (!session) return res.status(404).json({ error: 'Working session not found.' });
@@ -1028,9 +1029,9 @@ router.post('/:workingSessionId/no-working', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to mark no working needed.', details: err.message });
   }
-});
+}));
 
-router.post('/:workingSessionId/analysis', async (req, res) => {
+router.post('/:workingSessionId/analysis', asyncHandler(async (req, res) => {
   try {
     const roles = roleSet(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
@@ -1053,6 +1054,6 @@ router.post('/:workingSessionId/analysis', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Unable to update working analysis.', details: err.message });
   }
-});
+}));
 
 export default router;

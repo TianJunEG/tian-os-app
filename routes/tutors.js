@@ -4,6 +4,7 @@ import TutorProfile from '../models/TutorProfile.js';
 import User from '../models/User.js';
 import { protect, authorize } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -127,7 +128,7 @@ router.post(
 // @route   GET /api/tutors/:id
 // @desc    Get tutor profile by ID
 // @access  Public
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncHandler(async (req, res) => {
   try {
     const tutorProfile = await TutorProfile.findOne({ userId: req.params.id })
       .populate('userId', 'name email avatar bio location');
@@ -140,12 +141,12 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/tutors
 // @desc    Get all tutors with filters
 // @access  Public
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   try {
     const { specialty, grade, maxRate, minRating, location } = req.query;
     let filter = { isActive: true };
@@ -172,7 +173,7 @@ router.get('/', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/tutors/availability
 // @desc    Update tutor availability (by day)
@@ -303,7 +304,7 @@ router.post(
 // @route   GET /api/tutors/me/profile
 // @desc    Get current tutor's profile
 // @access  Private (tutor only)
-router.get('/me/profile', protect, authorize('tutor'), async (req, res) => {
+router.get('/me/profile', protect, authorize('tutor'), asyncHandler(async (req, res) => {
   try {
     const tutorProfile = await TutorProfile.findOne({ userId: req.user.id })
       .populate('userId', 'name email avatar bio location phone');
@@ -316,7 +317,7 @@ router.get('/me/profile', protect, authorize('tutor'), async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/tutors/onboarding
 // @desc    Complete tutor onboarding (5-step form)

@@ -13,6 +13,7 @@ import Mistake from '../models/Mistake.js';
 import Assignment from '../models/Assignment.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { buildRecommendations } from '../utils/parentRecommendations.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -73,7 +74,7 @@ async function masterySummary(studentId) {
 // @route GET /api/family/children
 // @desc  Students this parent is a guardian of (parent-workspace scope only).
 // @access Private
-router.get('/children', protect, async (req, res) => {
+router.get('/children', protect, asyncHandler(async (req, res) => {
   try {
     let links = await StudentGuardian.find({ guardianUserId: req.user.id });
 
@@ -122,12 +123,12 @@ router.get('/children', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load children.' });
   }
-});
+}));
 
 // @route GET /api/family/children/:studentId/recommendations
 // @desc  Rule-based parent actions for one child (deterministic).
 // @access Private (guardian of the child)
-router.get('/children/:studentId/recommendations', protect, async (req, res) => {
+router.get('/children/:studentId/recommendations', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.params.studentId);
 
@@ -176,7 +177,7 @@ router.get('/children/:studentId/recommendations', protect, async (req, res) => 
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load recommendations.' });
   }
-});
+}));
 
 // Confirm the caller is a guardian of the student. Returns true/false.
 async function isGuardianOf(req, studentId) {
@@ -186,7 +187,7 @@ async function isGuardianOf(req, studentId) {
 
 // GET /api/family/children/:studentId/recordings — lesson recordings a tutor
 // has shared with the parent for this child.
-router.get('/children/:studentId/recordings', protect, async (req, res) => {
+router.get('/children/:studentId/recordings', protect, asyncHandler(async (req, res) => {
   if (!(await isGuardianOf(req, req.params.studentId))) {
     return res.status(403).json({ error: 'No access to this student.' });
   }
@@ -194,12 +195,12 @@ router.get('/children/:studentId/recordings', protect, async (req, res) => {
     studentId: req.params.studentId, visibility: 'shared_parent', status: 'ready',
   }).sort({ createdAt: -1 });
   res.json({ recordings });
-});
+}));
 
 // GET /api/family/recordings/:rid — replay manifest for a shared recording.
 // Requires the caller be a guardian of the recording's student AND the
 // recording be shared with parents.
-router.get('/recordings/:rid', protect, async (req, res) => {
+router.get('/recordings/:rid', protect, asyncHandler(async (req, res) => {
   const rec = await LessonRecording.findById(req.params.rid);
   if (!rec || rec.visibility !== 'shared_parent') {
     return res.status(404).json({ error: 'Recording not found.' });
@@ -211,6 +212,6 @@ router.get('/recordings/:rid', protect, async (req, res) => {
   let audioUrl = null;
   if (rec.audioStorageKey) audioUrl = await r2.getSignedDownloadUrl(rec.audioStorageKey, 300);
   res.json({ recording: rec, audioUrl, ink });
-});
+}));
 
 export default router;

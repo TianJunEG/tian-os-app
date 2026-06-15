@@ -3,6 +3,7 @@ import { protect, authorize } from '../middleware/auth.js';
 import PartnerOrganisation from '../models/PartnerOrganisation.js';
 import PartnerLicence, { LICENCE_PERIODS } from '../models/PartnerLicence.js';
 import { seatSummary } from '../services/billing/agencyBillingService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 // Platform-admin only: manage agency wholesale licence blocks. Mounted at
 // /api/admin/partners/:pid/licence.
@@ -10,7 +11,7 @@ const router = express.Router({ mergeParams: true });
 router.use(protect, authorize('admin'));
 
 // POST — add a licence block (seats, lump sum, monthly/annual).
-router.post('/', async (req, res) => {
+router.post('/', asyncHandler(async (req, res) => {
   const org = await PartnerOrganisation.findById(req.params.pid);
   if (!org) return res.status(404).json({ error: 'Partner organisation not found.' });
   const b = req.body || {};
@@ -30,10 +31,10 @@ router.post('/', async (req, res) => {
     notes: b.notes || '',
   });
   res.status(201).json({ licence });
-});
+}));
 
 // GET — all blocks for the org + seat usage summary.
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const org = await PartnerOrganisation.findById(req.params.pid);
   if (!org) return res.status(404).json({ error: 'Partner organisation not found.' });
   const [blocks, seats] = await Promise.all([
@@ -41,10 +42,10 @@ router.get('/', async (req, res) => {
     seatSummary(org._id),
   ]);
   res.json({ licences: blocks, seats });
-});
+}));
 
 // PATCH a block (status, paymentStatus, effectiveTo).
-router.patch('/:licenceId', async (req, res) => {
+router.patch('/:licenceId', asyncHandler(async (req, res) => {
   const licence = await PartnerLicence.findOne({ _id: req.params.licenceId, organisationId: req.params.pid });
   if (!licence) return res.status(404).json({ error: 'Licence not found.' });
   const b = req.body || {};
@@ -53,6 +54,6 @@ router.patch('/:licenceId', async (req, res) => {
   if (b.effectiveTo !== undefined) licence.effectiveTo = b.effectiveTo;
   await licence.save();
   res.json({ licence });
-});
+}));
 
 export default router;

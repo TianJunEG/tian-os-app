@@ -14,6 +14,7 @@ import {
   getDiagnosticHistory,
 } from '../services/diagnostics/diagnosticGrowthService.js';
 import { getStudentRecheckSummary } from '../services/mathpath/studentRecheckSummaryService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -30,7 +31,7 @@ router.get('/domains', protect, (req, res) => {
   res.json({ domains: listDiagnosticDomains() });
 });
 
-router.get('/history', protect, async (req, res) => {
+router.get('/history', protect, asyncHandler(async (req, res) => {
   try {
     const {
       subjectId = 'math',
@@ -48,9 +49,9 @@ router.get('/history', protect, async (req, res) => {
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to load diagnostic history.');
   }
-});
+}));
 
-router.get('/growth', protect, async (req, res) => {
+router.get('/growth', protect, asyncHandler(async (req, res) => {
   try {
     const {
       subjectId = 'math',
@@ -69,9 +70,9 @@ router.get('/growth', protect, async (req, res) => {
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to load diagnostic growth.');
   }
-});
+}));
 
-router.get('/recheck-summary/:sessionId', protect, async (req, res) => {
+router.get('/recheck-summary/:sessionId', protect, asyncHandler(async (req, res) => {
   try {
     const {
       subjectId = 'math',
@@ -92,9 +93,9 @@ router.get('/recheck-summary/:sessionId', protect, async (req, res) => {
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to load recheck summary.');
   }
-});
+}));
 
-router.post('/start', protect, async (req, res) => {
+router.post('/start', protect, asyncHandler(async (req, res) => {
   try {
     const {
       subjectId = 'math',
@@ -121,9 +122,9 @@ router.post('/start', protect, async (req, res) => {
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to start diagnostic.');
   }
-});
+}));
 
-router.post('/:sessionId/answer', protect, async (req, res) => {
+router.post('/:sessionId/answer', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const payload = await answerAdaptiveDiagnostic({
@@ -135,6 +136,6 @@ router.post('/:sessionId/answer', protect, async (req, res) => {
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to process diagnostic answer.');
   }
-});
+}));
 
 export default router;

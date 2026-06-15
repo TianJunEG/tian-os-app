@@ -6,6 +6,7 @@ import {
   sendPartnerInquiryNotificationEmail,
   sendPartnerInquiryAcknowledgementEmail
 } from '../utils/emailService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const INQUIRY_STATUSES = ['new', 'contacted', 'archived'];
 
@@ -25,7 +26,7 @@ router.post(
       .withMessage('Message must be between 10 and 2000 characters'),
     body('organization').optional().trim().isLength({ max: 150 })
   ],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ message: errors.array()[0].msg });
@@ -57,13 +58,13 @@ router.post(
       console.error('Partner inquiry error:', error);
       res.status(500).json({ message: 'Could not submit inquiry. Please try again.' });
     }
-  }
+  })
 );
 
 // @route   GET /api/partners/inquiries
 // @desc    List partnership inquiries
 // @access  Private (admin only)
-router.get('/inquiries', protect, authorize('admin'), async (req, res) => {
+router.get('/inquiries', protect, authorize('admin'), asyncHandler(async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
     const filter = {};
@@ -88,12 +89,12 @@ router.get('/inquiries', protect, authorize('admin'), async (req, res) => {
     console.error('List partner inquiries error:', error);
     res.status(500).json({ message: 'Error fetching inquiries' });
   }
-});
+}));
 
 // @route   PATCH /api/partners/inquiries/:id
 // @desc    Update the status of an inquiry
 // @access  Private (admin only)
-router.patch('/inquiries/:id', protect, authorize('admin'), async (req, res) => {
+router.patch('/inquiries/:id', protect, authorize('admin'), asyncHandler(async (req, res) => {
   const { status } = req.body;
   if (!INQUIRY_STATUSES.includes(status)) {
     return res.status(400).json({ message: 'Invalid status' });
@@ -112,6 +113,6 @@ router.patch('/inquiries/:id', protect, authorize('admin'), async (req, res) => 
     console.error('Update inquiry status error:', error);
     res.status(500).json({ message: 'Error updating inquiry' });
   }
-});
+}));
 
 export default router;

@@ -10,6 +10,7 @@ import MasteryRecord from '../models/MasteryRecord.js';
 import Mistake from '../models/Mistake.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 // Mechanisms Playground (Secondary D&T) wired into the shared Tian OS core. The
 // interactive sims stay client-side; completing a mechanism's concept check
@@ -36,7 +37,7 @@ async function loadSkills() {
 
 // @route GET /api/mechanisms/progress — per-mechanism mastery for the student
 // Returns { progress: { gears: { status, score }, ... }, seeded: boolean }
-router.get('/progress', protect, async (req, res) => {
+router.get('/progress', protect, asyncHandler(async (req, res) => {
   try {
     const { skills } = await loadSkills();
     const seeded = skills.length > 0;
@@ -52,14 +53,14 @@ router.get('/progress', protect, async (req, res) => {
     }
     res.json({ seeded, progress });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load progress.' }); }
-});
+}));
 
 // @route POST /api/mechanisms/:key/complete — record a finished concept check
 // Body: { answers: [{ index, correct }] } in the same order the sim presents them.
 // Grades are taken from the client (low-stakes self-check); mastery + mistakes are
 // recorded against the mechanism's Skill. Maps `index` → seeded Question (by _id
 // order) so attempts/mistakes carry a real questionId.
-router.post('/:key/complete', protect, async (req, res) => {
+router.post('/:key/complete', protect, asyncHandler(async (req, res) => {
   try {
     const key = req.params.key;
     if (!SKILL_NAME[key]) return res.status(404).json({ error: 'Unknown mechanism.' });
@@ -110,6 +111,6 @@ router.post('/:key/complete', protect, async (req, res) => {
     const rec = await MasteryRecord.findOne({ studentId: student._id, skillId: skill._id });
     res.json({ summary: session.summary, mastery: { status: rec?.status || 'learning', score: rec?.score || 0 } });
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to record concept check.' }); }
-});
+}));
 
 export default router;

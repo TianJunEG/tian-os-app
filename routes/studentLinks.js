@@ -6,6 +6,7 @@ import TutorStudentLink from '../models/TutorStudentLink.js';
 import StudentAccountLink, { DEFAULT_SHARED_SCOPES } from '../models/StudentAccountLink.js';
 import SchoolClaimCode from '../models/SchoolClaimCode.js';
 import { notify } from '../services/notifications/notificationService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 // Gap C — consented tutor↔school-student linking. New, isolated router mounted at
 // /api/student-links so it coexists with the school/parent-invite work. All
@@ -21,7 +22,7 @@ async function isGuardianOf(req, studentId) {
 
 // ── Tutor: request a link to an existing student ───────────────────────────
 // POST /api/student-links/tutor/request { studentId }
-router.post('/tutor/request', async (req, res) => {
+router.post('/tutor/request', asyncHandler(async (req, res) => {
   const { studentId } = req.body || {};
   if (!studentId) return res.status(400).json({ error: 'studentId is required.' });
   const student = await Student.findById(studentId);
@@ -52,18 +53,18 @@ router.post('/tutor/request', async (req, res) => {
     })));
   }
   res.status(201).json({ link });
-});
+}));
 
 // ── Guardian: pending requests for their children ──────────────────────────
-router.get('/requests', async (req, res) => {
+router.get('/requests', asyncHandler(async (req, res) => {
   const links = await StudentGuardian.find({ guardianUserId: req.user.id }).select('studentId').lean();
   const studentIds = links.map((l) => l.studentId);
   const requests = await StudentAccountLink.find({ studentId: { $in: studentIds }, status: 'consent_pending' }).sort({ createdAt: -1 });
   res.json({ requests });
-});
+}));
 
 // POST /api/student-links/requests/:id/consent { scopes? }
-router.post('/requests/:id/consent', async (req, res) => {
+router.post('/requests/:id/consent', asyncHandler(async (req, res) => {
   const link = await StudentAccountLink.findById(req.params.id);
   if (!link || link.status !== 'consent_pending') return res.status(404).json({ error: 'Request not found.' });
   if (!(await isGuardianOf(req, link.studentId))) return res.status(403).json({ error: 'Not a guardian of this student.' });
@@ -81,26 +82,26 @@ router.post('/requests/:id/consent', async (req, res) => {
     { upsert: true, setDefaultsOnInsert: true },
   );
   res.json({ link });
-});
+}));
 
-router.post('/requests/:id/decline', async (req, res) => {
+router.post('/requests/:id/decline', asyncHandler(async (req, res) => {
   const link = await StudentAccountLink.findById(req.params.id);
   if (!link || link.status !== 'consent_pending') return res.status(404).json({ error: 'Request not found.' });
   if (!(await isGuardianOf(req, link.studentId))) return res.status(403).json({ error: 'Not a guardian of this student.' });
   link.status = 'revoked';
   await link.save();
   res.json({ link });
-});
+}));
 
 // ── Guardian: manage active links ──────────────────────────────────────────
-router.get('/mine', async (req, res) => {
+router.get('/mine', asyncHandler(async (req, res) => {
   const links = await StudentGuardian.find({ guardianUserId: req.user.id }).select('studentId').lean();
   const studentIds = links.map((l) => l.studentId);
   const active = await StudentAccountLink.find({ studentId: { $in: studentIds }, status: 'active' }).sort({ updatedAt: -1 });
   res.json({ links: active });
-});
+}));
 
-router.patch('/:id/scopes', async (req, res) => {
+router.patch('/:id/scopes', asyncHandler(async (req, res) => {
   const link = await StudentAccountLink.findById(req.params.id);
   if (!link) return res.status(404).json({ error: 'Link not found.' });
   if (!(await isGuardianOf(req, link.studentId))) return res.status(403).json({ error: 'Not a guardian of this student.' });
@@ -108,10 +109,10 @@ router.patch('/:id/scopes', async (req, res) => {
   link.sharedScopes = req.body.scopes;
   await link.save();
   res.json({ link });
-});
+}));
 
 // POST /api/student-links/:id/revoke — ends tutor access immediately.
-router.post('/:id/revoke', async (req, res) => {
+router.post('/:id/revoke', asyncHandler(async (req, res) => {
   const link = await StudentAccountLink.findById(req.params.id);
   if (!link) return res.status(404).json({ error: 'Link not found.' });
   if (!(await isGuardianOf(req, link.studentId))) return res.status(403).json({ error: 'Not a guardian of this student.' });
@@ -122,11 +123,11 @@ router.post('/:id/revoke', async (req, res) => {
     { $set: { status: 'ended' } },
   );
   res.json({ link });
-});
+}));
 
 // ── Two-email claim code ───────────────────────────────────────────────────
 // POST /api/student-links/claim-code/issue { studentId } — school side.
-router.post('/claim-code/issue', authorize('teacher', 'school_admin', 'admin'), async (req, res) => {
+router.post('/claim-code/issue', authorize('teacher', 'school_admin', 'admin'), asyncHandler(async (req, res) => {
   const { studentId } = req.body || {};
   const student = await Student.findById(studentId);
   if (!student) return res.status(404).json({ error: 'Student not found.' });
@@ -135,11 +136,11 @@ router.post('/claim-code/issue', authorize('teacher', 'school_admin', 'admin'), 
     expiresAt: new Date(Date.now() + CLAIM_TTL_MS),
   });
   res.status(201).json({ code: claim.code, expiresAt: claim.expiresAt });
-});
+}));
 
 // POST /api/student-links/claim-code/redeem { code } — guardian proves ownership,
 // establishing guardianship of the existing school student account.
-router.post('/claim-code/redeem', async (req, res) => {
+router.post('/claim-code/redeem', asyncHandler(async (req, res) => {
   const { code } = req.body || {};
   if (!code) return res.status(400).json({ error: 'code is required.' });
   const claim = await SchoolClaimCode.findOne({ code: String(code).toUpperCase().trim(), status: 'active' });
@@ -157,6 +158,6 @@ router.post('/claim-code/redeem', async (req, res) => {
   claim.redeemedAt = new Date();
   await claim.save();
   res.json({ studentId: student._id, linked: true });
-});
+}));
 
 export default router;

@@ -8,6 +8,7 @@ import { protect } from '../middleware/auth.js';
 import { extractWordsFromFile } from '../utils/spellingExtract.js';
 import { computeWordStats, byRevisionPriority, isDue, byDuePriority, nextReviewAt } from '../utils/spellingStats.js';
 import misspeltWords from '../data/misspeltWords.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ const sanitizeWords = (words) => {
 // @route   POST /api/spelling/extract
 // @desc    Extract candidate words from an uploaded PDF / DOCX / image / text file
 // @access  Private
-router.post('/extract', upload.single('file'), async (req, res) => {
+router.post('/extract', upload.single('file'), asyncHandler(async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -63,24 +64,24 @@ router.post('/extract', upload.single('file'), async (req, res) => {
     console.error('Extraction error:', error);
     res.status(500).json({ error: 'Failed to read the uploaded file' });
   }
-});
+}));
 
 // @route   GET /api/spelling/lists
 // @desc    Get the current user's spelling lists
 // @access  Private
-router.get('/lists', async (req, res) => {
+router.get('/lists', asyncHandler(async (req, res) => {
   try {
     const lists = await SpellingList.find({ owner: req.user.id }).sort({ updatedAt: -1 });
     res.json({ success: true, count: lists.length, lists });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/spelling/library
 // @desc    Browse spelling lists shared by all users
 // @access  Private
-router.get('/library', async (req, res) => {
+router.get('/library', asyncHandler(async (req, res) => {
   try {
     const { level, language, q, page = 1, limit = 24 } = req.query;
     const filter = { isShared: true };
@@ -107,7 +108,7 @@ router.get('/library', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/spelling/misspelt
 // @desc    Commonly misspelt words grouped by difficulty
@@ -124,7 +125,7 @@ router.get('/misspelt', (req, res) => {
 // @desc    Pull a random selection of words from the user's lists, weighted
 //          toward words they find tricky (more misses => more likely).
 // @access  Private
-router.get('/surprise', async (req, res) => {
+router.get('/surprise', asyncHandler(async (req, res) => {
   try {
     const count = Math.min(Math.max(parseInt(req.query.count, 10) || 10, 1), 50);
     const [lists, attempts] = await Promise.all([
@@ -176,13 +177,13 @@ router.get('/surprise', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/spelling/revision
 // @desc    Words the student should revise (attempted, missed, not yet
 //          mastered), joined with list data so they carry sentence/definition.
 // @access  Private
-router.get('/revision', async (req, res) => {
+router.get('/revision', asyncHandler(async (req, res) => {
   try {
     const count = Math.min(Math.max(parseInt(req.query.count, 10) || 15, 1), 50);
     const attempts = await SpellingAttempt.find({ user: req.user.id }).sort({ createdAt: -1 }).limit(2000);
@@ -222,13 +223,13 @@ router.get('/revision', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/spelling/due
 // @desc    Words due for spaced-repetition review today, scheduled from each
 //          word's correct streak and when it was last practised.
 // @access  Private
-router.get('/due', async (req, res) => {
+router.get('/due', asyncHandler(async (req, res) => {
   try {
     const count = Math.min(Math.max(parseInt(req.query.count, 10) || 20, 1), 50);
     const now = new Date();
@@ -281,12 +282,12 @@ router.get('/due', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/spelling/stats
 // @desc    Lightweight practice stats for the current user
 // @access  Private
-router.get('/stats', async (req, res) => {
+router.get('/stats', asyncHandler(async (req, res) => {
   try {
     const attempts = await SpellingAttempt.find({ user: req.user.id })
       .sort({ createdAt: -1 })
@@ -318,12 +319,12 @@ router.get('/stats', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/spelling/gamification
 // @desc    XP, level, daily practice streak and badges for the current user
 // @access  Private
-router.get('/gamification', async (req, res) => {
+router.get('/gamification', asyncHandler(async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user.id);
 
@@ -392,12 +393,12 @@ router.get('/gamification', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/spelling/attempts
 // @desc    Record one or more practice attempts
 // @access  Private
-router.post('/attempts', async (req, res) => {
+router.post('/attempts', asyncHandler(async (req, res) => {
   try {
     const incoming = Array.isArray(req.body.attempts) ? req.body.attempts : [req.body];
     const docs = incoming
@@ -420,12 +421,12 @@ router.post('/attempts', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/spelling/lists/:id
 // @desc    Get a single list (owner, or anyone if it is shared)
 // @access  Private
-router.get('/lists/:id', async (req, res) => {
+router.get('/lists/:id', asyncHandler(async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid list id' });
     const list = await SpellingList.findById(req.params.id).populate('owner', 'name');
@@ -440,7 +441,7 @@ router.get('/lists/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/spelling/lists
 // @desc    Create a new spelling list
@@ -448,7 +449,7 @@ router.get('/lists/:id', async (req, res) => {
 router.post(
   '/lists',
   [body('title', 'Please give the list a title').trim().notEmpty()],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -472,12 +473,12 @@ router.post(
       res.status(500).json({ error: error.message });
     }
   }
-);
+));
 
 // @route   PUT /api/spelling/lists/:id
 // @desc    Update a list (owner only)
 // @access  Private
-router.put('/lists/:id', async (req, res) => {
+router.put('/lists/:id', asyncHandler(async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid list id' });
     const list = await SpellingList.findById(req.params.id);
@@ -499,12 +500,12 @@ router.put('/lists/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/spelling/lists/:id/share
 // @desc    Toggle sharing and set the level for the library
 // @access  Private
-router.put('/lists/:id/share', async (req, res) => {
+router.put('/lists/:id/share', asyncHandler(async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid list id' });
     const list = await SpellingList.findById(req.params.id);
@@ -522,12 +523,12 @@ router.put('/lists/:id/share', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   POST /api/spelling/lists/:id/copy
 // @desc    Copy a shared list into the current user's own lists
 // @access  Private
-router.post('/lists/:id/copy', async (req, res) => {
+router.post('/lists/:id/copy', asyncHandler(async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid list id' });
     const source = await SpellingList.findById(req.params.id);
@@ -564,12 +565,12 @@ router.post('/lists/:id/copy', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   DELETE /api/spelling/lists/:id
 // @desc    Delete a list (owner only)
 // @access  Private
-router.delete('/lists/:id', async (req, res) => {
+router.delete('/lists/:id', asyncHandler(async (req, res) => {
   try {
     if (!isValidId(req.params.id)) return res.status(400).json({ error: 'Invalid list id' });
     const list = await SpellingList.findById(req.params.id);
@@ -583,6 +584,6 @@ router.delete('/lists/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 export default router;

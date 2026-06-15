@@ -12,6 +12,7 @@ import StudentGuardian from '../models/StudentGuardian.js';
 import { computeWordStats } from '../utils/spellingStats.js';
 import { spellingContribution, resultsToContributions, buildProfile } from '../utils/learningProfile.js';
 import { protect } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 router.use(protect);
@@ -49,7 +50,7 @@ async function buildLearnerProfile(userId, childId) {
 }
 
 // Any learning app posts a normalised result here (Math Heuristics, MathPath, Science…).
-router.post('/result', async (req, res) => {
+router.post('/result', asyncHandler(async (req, res) => {
   try {
     const { source, subject, topic = '', accuracy = 0, mastered = false, minutes = 0, child = null } = req.body || {};
     if (!source || !subject) return res.status(400).json({ error: 'source and subject are required' });
@@ -61,19 +62,19 @@ router.post('/result', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // The logged-in account's own profile.
-router.get('/profile', async (req, res) => {
+router.get('/profile', asyncHandler(async (req, res) => {
   try {
     res.json({ success: true, profile: await buildLearnerProfile(req.user.id, null) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // A parent's children, each with a headline readiness for the overview.
-router.get('/children', async (req, res) => {
+router.get('/children', asyncHandler(async (req, res) => {
   try {
     const links = await StudentGuardian.find({ guardianUserId: req.user.id });
     const students = links.length
@@ -103,10 +104,10 @@ router.get('/children', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // Add a child to the parent's account.
-router.post('/children', async (req, res) => {
+router.post('/children', asyncHandler(async (req, res) => {
   try {
     const { name, level = '' } = req.body || {};
     if (!name) return res.status(400).json({ error: 'name is required' });
@@ -117,10 +118,10 @@ router.post('/children', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // A specific child's unified profile (parent-only; owner-scoped).
-router.get('/children/:childId/profile', async (req, res) => {
+router.get('/children/:childId/profile', asyncHandler(async (req, res) => {
   try {
     const { childId } = req.params;
     if (childId === 'self') return res.json({ success: true, child: { id: 'self' }, profile: await buildLearnerProfile(req.user.id, null) });
@@ -136,6 +137,6 @@ router.get('/children/:childId/profile', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 export default router;

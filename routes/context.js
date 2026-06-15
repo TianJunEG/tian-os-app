@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Workspace from '../models/Workspace.js';
 import WorkspaceMember from '../models/WorkspaceMember.js';
 import { resolveEntitlements } from '../services/billing/entitlements.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const router = express.Router();
 //          workspace switchers. Role controls features; workspace controls
 //          visible students/records.
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('name email role roles defaultWorkspace');
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -39,13 +40,13 @@ router.get('/', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to load context' });
   }
-});
+}));
 
 // @route   POST /api/context/switch
 // @desc    Validate the user may enter a workspace; client persists the choice
 //          and sends it as X-Workspace-Id on subsequent requests.
 // @access  Private
-router.post('/switch', protect, async (req, res) => {
+router.post('/switch', protect, asyncHandler(async (req, res) => {
   const { workspaceId } = req.body;
   if (!workspaceId) return res.status(400).json({ error: 'workspaceId is required' });
   try {
@@ -59,13 +60,13 @@ router.post('/switch', protect, async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: 'Invalid workspace.' });
   }
-});
+}));
 
 // @route   GET /api/context/entitlements
 // @desc    The current account's product tier + capability set (School / Premium
 //          Home / Trial). One source of truth for client-side feature gating.
 // @access  Private
-router.get('/entitlements', protect, async (req, res) => {
+router.get('/entitlements', protect, asyncHandler(async (req, res) => {
   try {
     const entitlements = await resolveEntitlements({
       ownerType: 'user',
@@ -76,6 +77,6 @@ router.get('/entitlements', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to load entitlements' });
   }
-});
+}));
 
 export default router;

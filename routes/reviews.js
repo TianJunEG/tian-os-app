@@ -4,6 +4,7 @@ import Review from '../models/Review.js';
 import Booking from '../models/Booking.js';
 import TutorProfile from '../models/TutorProfile.js';
 import { protect } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -18,7 +19,7 @@ router.post(
     body('rating', 'Rating must be between 1 and 5').isInt({ min: 1, max: 5 }),
     body('comment', 'Comment is required').trim().notEmpty()
   ],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -91,12 +92,12 @@ router.post(
       res.status(500).json({ error: error.message });
     }
   }
-);
+));
 
 // @route   GET /api/reviews/user/:userId
 // @desc    Get reviews for a user
 // @access  Public
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', asyncHandler(async (req, res) => {
   try {
     const { limit = 10, offset = 0 } = req.query;
 
@@ -117,12 +118,12 @@ router.get('/user/:userId', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/reviews/:id
 // @desc    Get review by ID
 // @access  Public
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncHandler(async (req, res) => {
   try {
     const review = await Review.findById(req.params.id)
       .populate('authorId', 'name avatar')
@@ -137,7 +138,7 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/reviews/:id
 // @desc    Update a review
@@ -149,7 +150,7 @@ router.put(
     body('rating', 'Rating must be between 1 and 5').optional().isInt({ min: 1, max: 5 }),
     body('comment', 'Comment cannot be empty').optional().trim().notEmpty()
   ],
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -190,12 +191,12 @@ router.put(
       res.status(500).json({ error: error.message });
     }
   }
-);
+));
 
 // @route   POST /api/reviews/:id/helpful
 // @desc    Mark review as helpful
 // @access  Private
-router.post('/:id/helpful', protect, async (req, res) => {
+router.post('/:id/helpful', protect, asyncHandler(async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
 
@@ -216,12 +217,12 @@ router.post('/:id/helpful', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   DELETE /api/reviews/:id
 // @desc    Delete a review
 // @access  Private
-router.delete('/:id', protect, async (req, res) => {
+router.delete('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
 
@@ -254,6 +255,6 @@ router.delete('/:id', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 export default router;

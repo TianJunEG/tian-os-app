@@ -11,11 +11,12 @@ import { getDiagnosticValidationReport } from '../services/mathpath/diagnosticVa
 import { getRecoveryPackQualityReport } from '../services/mathpath/recoveryPackQualityService.js';
 import { getInterventionEffectivenessReport } from '../services/mathpath/interventionEffectivenessService.js';
 import { getRecoveryPackAssetReport } from '../services/mathpath/recoveryPackAssetService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 const adminOnly = [protect, authorize('admin')];
 
-router.get('/pilot-analytics', adminOnly, async (req, res) => {
+router.get('/pilot-analytics', adminOnly, asyncHandler(async (req, res) => {
   try {
     const analytics = await getPilotAnalytics({
       days: req.query.days || 30,
@@ -25,9 +26,9 @@ router.get('/pilot-analytics', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load pilot analytics.' });
   }
-});
+}));
 
-router.get('/pilot/intervention-metrics', adminOnly, async (req, res) => {
+router.get('/pilot/intervention-metrics', adminOnly, asyncHandler(async (req, res) => {
   try {
     const metrics = await getPilotInterventionMetrics({
       from: req.query.from,
@@ -40,9 +41,9 @@ router.get('/pilot/intervention-metrics', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load intervention metrics.' });
   }
-});
+}));
 
-router.get('/pilot/intervention-summary', adminOnly, async (req, res) => {
+router.get('/pilot/intervention-summary', adminOnly, asyncHandler(async (req, res) => {
   try {
     const summary = await getPilotInterventionSummary({
       from: req.query.from,
@@ -55,9 +56,9 @@ router.get('/pilot/intervention-summary', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load intervention summary.' });
   }
-});
+}));
 
-router.get('/question-quality', adminOnly, async (req, res) => {
+router.get('/question-quality', adminOnly, asyncHandler(async (req, res) => {
   try {
     const audit = await getQuestionQualityAudit({
       domainId: req.query.domainId || 'fractions',
@@ -67,9 +68,9 @@ router.get('/question-quality', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load question quality audit.' });
   }
-});
+}));
 
-router.get('/question-visual-quality', adminOnly, async (req, res) => {
+router.get('/question-visual-quality', adminOnly, asyncHandler(async (req, res) => {
   try {
     const audit = await getQuestionVisualQualityAudit({
       domainId: req.query.domainId || 'fractions',
@@ -79,9 +80,9 @@ router.get('/question-visual-quality', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load question visual quality audit.' });
   }
-});
+}));
 
-router.get('/diagnostic-validation', adminOnly, async (req, res) => {
+router.get('/diagnostic-validation', adminOnly, asyncHandler(async (req, res) => {
   try {
     const report = await getDiagnosticValidationReport({
       studentId: req.query.studentId,
@@ -93,9 +94,9 @@ router.get('/diagnostic-validation', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load diagnostic validation report.' });
   }
-});
+}));
 
-router.get('/remediation-quality', adminOnly, async (req, res) => {
+router.get('/remediation-quality', adminOnly, asyncHandler(async (req, res) => {
   try {
     const [quality, effectiveness] = await Promise.all([
       getRecoveryPackQualityReport({
@@ -113,9 +114,9 @@ router.get('/remediation-quality', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load remediation quality report.' });
   }
-});
+}));
 
-router.get('/recovery-pack-assets', adminOnly, async (req, res) => {
+router.get('/recovery-pack-assets', adminOnly, asyncHandler(async (req, res) => {
   try {
     const report = await getRecoveryPackAssetReport({
       domainId: req.query.domainId || 'fractions',
@@ -125,6 +126,6 @@ router.get('/recovery-pack-assets', adminOnly, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to load Recovery Pack asset report.' });
   }
-});
+}));
 
 export default router;

@@ -16,6 +16,7 @@ import {
   skillCodeFor,
   updateFluencyCompletionForSession,
 } from '../services/fluency/fluencyCompletionService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   classifyFluencyBuckets,
 } from '../utils/fluencyEngine.js';
@@ -74,7 +75,7 @@ async function publicRetentionSummary(studentId) {
   };
 }
 
-router.get('/me', protect, async (req, res) => {
+router.get('/me', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const summary = await publicFluencySummary(student._id);
@@ -86,18 +87,18 @@ router.get('/me', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load fluency.' });
   }
-});
+}));
 
-router.get('/me/retention', protect, async (req, res) => {
+router.get('/me/retention', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     res.json(await publicRetentionSummary(student._id));
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load retention reviews.' });
   }
-});
+}));
 
-router.post('/session/start', protect, async (req, res) => {
+router.post('/session/start', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const retentionReview = req.body?.retentionReviewId
@@ -191,9 +192,9 @@ router.post('/session/start', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start fluency session.' });
   }
-});
+}));
 
-router.post('/session/complete', protect, async (req, res) => {
+router.post('/session/complete', protect, asyncHandler(async (req, res) => {
   try {
     const session = await PracticeSession.findById(req.body?.sessionId || req.body?.session_id);
     if (!session) return res.status(404).json({ error: 'Session not found.' });
@@ -308,9 +309,9 @@ router.post('/session/complete', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to complete fluency session.' });
   }
-});
+}));
 
-router.get('/student/:studentId', protect, async (req, res) => {
+router.get('/student/:studentId', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.params.studentId);
     const summary = await publicFluencySummary(student._id);
@@ -322,15 +323,15 @@ router.get('/student/:studentId', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load fluency.' });
   }
-});
+}));
 
-router.get('/student/:studentId/retention', protect, async (req, res) => {
+router.get('/student/:studentId/retention', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req, req.params.studentId);
     res.json(await publicRetentionSummary(student._id));
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load retention reviews.' });
   }
-});
+}));
 
 export default router;

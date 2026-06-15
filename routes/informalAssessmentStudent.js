@@ -5,6 +5,7 @@ import InformalAssessment from '../models/InformalAssessment.js';
 import InformalAssessmentSession from '../models/InformalAssessmentSession.js';
 import Assignment from '../models/Assignment.js';
 import { gradeSubmission } from '../services/teacher/informalAssessmentService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -27,7 +28,7 @@ function stripAnswers(questions, module) {
 }
 
 // Load session with questions (answers stripped)
-router.get('/:sessionId', async (req, res) => {
+router.get('/:sessionId', asyncHandler(async (req, res) => {
   const session = await InformalAssessmentSession.findById(req.params.sessionId).lean();
   if (!session) return res.status(404).json({ error: 'Session not found.' });
 
@@ -56,10 +57,10 @@ router.get('/:sessionId', async (req, res) => {
         : stripAnswers(assessment.questions, assessment.module),
     },
   });
-});
+}));
 
 // Start session
-router.post('/:sessionId/start', async (req, res) => {
+router.post('/:sessionId/start', asyncHandler(async (req, res) => {
   const session = await InformalAssessmentSession.findById(req.params.sessionId);
   if (!session) return res.status(404).json({ error: 'Session not found.' });
   if (session.status === 'submitted') return res.status(409).json({ error: 'Already submitted.' });
@@ -80,10 +81,10 @@ router.post('/:sessionId/start', async (req, res) => {
   }
 
   res.json({ status: 'in_progress', startedAt: session.startedAt });
-});
+}));
 
 // Submit all answers
-router.post('/:sessionId/submit', async (req, res) => {
+router.post('/:sessionId/submit', asyncHandler(async (req, res) => {
   const session = await InformalAssessmentSession.findById(req.params.sessionId);
   if (!session) return res.status(404).json({ error: 'Session not found.' });
   if (session.status === 'submitted') return res.status(409).json({ error: 'Already submitted.' });
@@ -138,6 +139,6 @@ router.post('/:sessionId/submit', async (req, res) => {
     attempts,
     questions: assessment.questions,
   });
-});
+}));
 
 export default router;

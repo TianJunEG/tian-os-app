@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import Booking from '../models/Booking.js';
 import TutorProfile from '../models/TutorProfile.js';
 import { protect, authorize } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -86,7 +87,7 @@ router.post(
 // @route   GET /api/bookings
 // @desc    Get user's bookings
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   try {
     const { status, role = 'parent' } = req.query;
 
@@ -110,12 +111,12 @@ router.get('/', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   GET /api/bookings/:id
 // @desc    Get booking details
 // @access  Private
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, asyncHandler(async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
       .populate('parentId', 'name email avatar phone')
@@ -137,7 +138,7 @@ router.get('/:id', protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+}));
 
 // @route   PUT /api/bookings/:id/confirm
 // @desc    Confirm booking (tutor accepts)
@@ -354,7 +355,7 @@ router.post(
 router.get(
   '/:id/notes',
   protect,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     try {
       const booking = await Booking.findById(req.params.id)
         .populate('parentId', 'name email')
@@ -390,7 +391,7 @@ router.get(
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  }
+  })
 );
 
 // @route   GET /api/bookings/student/:studentId/progress
@@ -399,7 +400,7 @@ router.get(
 router.get(
   '/parent/:parentId/progress',
   protect,
-  async (req, res) => {
+  asyncHandler(async (req, res) => {
     try {
       const { parentId } = req.params;
 
@@ -469,7 +470,7 @@ router.get(
       console.error(error);
       res.status(500).json({ error: error.message });
     }
-  }
+  })
 );
 
 // @route   PUT /api/bookings/:id/complete
