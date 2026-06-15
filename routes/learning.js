@@ -92,13 +92,6 @@ router.get('/children', async (req, res) => {
         subjects: p.subjects.length,
       });
     }
-    // Compatibility only: this does not grant access to a child record. New
-    // parent-child access must be represented by StudentGuardian.
-    const u = !children.length ? await User.findById(req.user.id) : null;
-    if (!children.length && u?.parentProfile?.studentName) {
-      const p = await buildLearnerProfile(req.user.id, null);
-      children.push({ id: 'self', name: u.parentProfile.studentName, level: u.parentProfile.gradeLevel || '', overall: p.overall, band: p.band, subjects: p.subjects.length });
-    }
     res.json({ success: true, children });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -127,7 +127,7 @@ router.get('/:id', async (req, res) => {
     const review = await Review.findById(req.params.id)
       .populate('authorId', 'name avatar')
       .populate('subjectId', 'name avatar')
-      .populate('bookingId');
+      .populate('bookingId', 'subject scheduledDate status');
 
     if (!review) {
       return res.status(404).json({ error: 'Review not found' });

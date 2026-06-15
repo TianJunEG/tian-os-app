@@ -138,7 +138,7 @@ router.get('/submissions', protect, requireWorkspace, async (req, res) => {
   const { classId } = req.query;
   const klass = await Class.findOne({ _id: classId, workspaceId: req.workspaceId, teacherUserId: req.user.id });
   if (!klass) return res.status(404).json({ error: 'Class not found.' });
-  const subs = await LifeLabSubmission.find({ classId }).populate({ path: 'activityId', model: LifeLabActivity });
+  const subs = await LifeLabSubmission.find({ classId }).populate({ path: 'activityId', model: LifeLabActivity }).limit(500).sort({ createdAt: -1 });
   const students = await Student.find({ _id: { $in: subs.map((s) => s.studentId) } });
   const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
   res.json({

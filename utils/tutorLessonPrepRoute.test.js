@@ -101,7 +101,7 @@ async function request(path, { method = 'GET', body = {}, user } = {}) {
 
 describe('tutor lesson prep routes', () => {
   beforeAll(async () => {
-    const mod = await import('./tutor.js');
+    const mod = await import('../routes/tutor.js');
     router = mod.default;
   });
 
