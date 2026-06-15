@@ -1,0 +1,64 @@
+:root {
+  /* ── Gold ─────────────────────────────── */
+  --gold:          #d9892e;
+  --gold-deep:     #b06f1f;
+  --gold-label:    #a8743a;
+  --gold-tint:     #fbf1e1;
+  --gold-tint2:    #fdf6ea;
+  --gold-border:   #f0dcb8;
+
+  /* ── Emerald ──────────────────────────── */
+  --emerald:       #1f8a5b;
+  --emerald-deep:  #175f40;
+  --emerald-bright:#1f9d57;
+  --emerald-tint:  #e7f3ec;
+  --emerald-border:#d8ece1;
+
+  /* ── Blue ─────────────────────────────── */
+  --blue:          #2f80d8;
+  --blue-tint:     #eaf3fc;
+  --blue-border:   #cfe3f7;
+
+  /* ── Danger ───────────────────────────── */
+  --danger:        #d8694f;
+  --danger-deep:   #c8472f;
+  --danger-tint:   #fdeeea;
+  --danger-border: #f3cabf;
+
+  /* ── Purple ───────────────────────────── */
+  --purple:        #7c4dbd;
+  --purple-tint:   #f4ecfb;
+
+  /* ── Ink / Body ───────────────────────── */
+  --ink:           #232c39;
+  --body:          #46505f;
+  --body-soft:     #5a6675;
+  --body-muted:    #6b7585;
+  --body-faint:    #8a93a3;
+  --body-faint2:   #9aa1b0;
+  --dark-text:     #f4f0e8;
+
+  /* ── Surface ──────────────────────────── */
+  --surface-app:     #e7eaef;
+  --surface-dash:    #eef1f5;
+  --surface-raised:  #f5f6f8;
+  --surface-white:   #ffffff;
+  --surface-keypad:  #f3f4f7;
+
+  /* ── Lines ────────────────────────────── */
+  --line:          #e7eaef;
+  --line-soft:     #eaedf2;
+  --line-strong:   #dde1e8;
+  --line-note:     #eef1f4;
+  --dot:           #d3d8e0;
+
+  /* ── Dark ─────────────────────────────── */
+  --dark-1:        #13223e;
+  --dark-card:     #172a49;
+  --dark-border:   #2a3a59;
+  --dark-muted:    #aebbd2;
+
+  /* ── Nav heights ──────────────────────── */
+  --nav-h:         50px;
+  --nav-h-staff:   54px;
+}

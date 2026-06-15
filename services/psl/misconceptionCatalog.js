@@ -369,6 +369,12 @@ export const MISCONCEPTIONS = {
   },
 
   // ── Checking ──────────────────────────────────────────────────────────────
+  'psl/wrong-equation': { label: 'Wrong equation set up', category: 'Planning', tip: 'Translate the story into two equations \u2014 one per sentence with numbers.', feedback: 'Check your equations. Each condition in the story becomes one equation.' },
+  'psl/elimination-error': { label: 'Elimination error', category: 'Solving', tip: 'To eliminate a variable, make its coefficients equal first, then subtract.', feedback: 'Make the coefficients match before subtracting the equations.' },
+  'psl/substitution-error': { label: 'Substitution error', category: 'Solving', tip: 'After finding one variable, substitute it back into the original equation.', feedback: 'Substitute the value you found back into the other equation carefully.' },
+  'psl/wrong-pattern-rule': { label: 'Wrong pattern rule', category: 'Planning', tip: 'Check the differences between consecutive terms \u2014 is the gap constant or changing?', feedback: 'Look at the differences between each pair of consecutive terms to find the rule.' },
+  'psl/pattern-arithmetic-error': { label: 'Pattern calculation error', category: 'Solving', tip: 'Apply the rule carefully to each step.', feedback: 'You found the right rule but made a calculation error applying it.' },
+  'psl/wrong-nth-term': { label: 'Wrong nth term', category: 'Solving', tip: 'Check: does your formula give the right answer for the terms you already know?', feedback: 'Verify your formula by checking it against the given terms.' },
   'psl/skipped-check': {
     label: 'Skipped the check',
     category: 'Checking',
@@ -401,4 +407,74 @@ export function getFeedback(tag, isPartial) {
   const m = getMisconception(tag);
   if (isPartial) return `Almost! ${m.tip}`;
   return m.feedback;
+}
+
+const COUNTER_EXAMPLES = {
+  'psl/arithmetic-error': (vars) => {
+    if (vars.expression) return { title: 'Check your arithmetic', steps: [`The expression is: ${vars.expression}`, `Work it out step by step to get: ${vars.answer}`] };
+    return null;
+  },
+  'psl/wrong-operation': (vars) => {
+    const opWord = { '+': 'add', '-': 'subtract', '*': 'multiply', '/': 'divide' };
+    if (vars.operation) return { title: 'Which operation?', steps: [`The story tells us to ${opWord[vars.operation] || vars.operation}.`, 'Clue words like "altogether" mean add, "left" means subtract, "each" means divide, "times" means multiply.'] };
+    return null;
+  },
+  'psl/forgot-total-parts': (vars) => {
+    if (vars.givenNumbers?.length >= 2) {
+      const parts = vars.givenNumbers;
+      const total = parts.reduce((a, b) => a + b, 0);
+      return { title: 'Ratio parts', steps: [`Ratio parts: ${parts.join(' + ')} = ${total} total parts`, `Value of 1 part = total amount / ${total}`, 'Then multiply by the part you need.'] };
+    }
+    return null;
+  },
+  'psl/wrong-model-type': () => ({
+    title: 'Choosing a model',
+    steps: ['Part-whole: "altogether", "in total", "how many left"', 'Comparison: "more than", "fewer than", "difference"', 'Match the story words to the right model.'],
+  }),
+  'psl/wrong-unknown-position': (vars) => {
+    if (vars.unknownPosition) return { title: 'Where does the ? go?', steps: [`In this problem, the unknown is the ${vars.unknownPosition}.`, 'Draw the model with all known values, then put "?" in the empty spot.'] };
+    return null;
+  },
+  'psl/wrong-strategy': (vars) => {
+    if (vars.heuristic) {
+      const names = { 'bar-model': 'Bar Model', 'before-after': 'Before-After', 'work-backwards': 'Work Backwards', 'guess-check': 'Guess & Check', ratio: 'Ratio', assumption: 'Assumption', 'excess-shortage': 'Excess-Shortage', simultaneous: 'Simultaneous Equations', 'pattern-recognition': 'Pattern Recognition' };
+      return { title: 'Right strategy', steps: [`This problem uses: ${names[vars.heuristic] || vars.heuristic}`, 'Open the Decision Guide if you are not sure why.'] };
+    }
+    return null;
+  },
+  'psl/used-wrong-numbers': (vars) => {
+    if (vars.givenNumbers?.length) return { title: 'Correct numbers', steps: [`The numbers you need from the story are: ${vars.givenNumbers.join(', ')}`, 'Cross-check each number in your working against the story.'] };
+    return null;
+  },
+  'psl/confused-question': () => ({
+    title: 'Finding the question',
+    steps: ['Look for the sentence ending with "?"', 'The answer to that sentence is what you need to find.', 'Circle the question word: How many? How much? What?'],
+  }),
+  'psl/missed-number': (vars) => {
+    if (vars.givenNumbers?.length) return { title: 'All the clues', steps: [`This problem has ${vars.givenNumbers.length} important numbers.`, 'Re-read each sentence and underline every number you see.'] };
+    return null;
+  },
+  'psl/skipped-check': (vars) => {
+    if (vars.answer != null) return { title: 'Checking your answer', steps: [`Your answer is ${vars.answer}.`, 'Put it back into the story — does every sentence still make sense?', 'If something sounds wrong, go back and fix it.'] };
+    return { title: 'Always check', steps: ['Put your answer back into the story.', 'Read it aloud — does it make sense?'] };
+  },
+  'psl/division-direction-error': (vars) => {
+    if (vars.givenNumbers?.length >= 2) return { title: 'Division direction', steps: [`Divide the bigger number by the smaller: ${Math.max(...vars.givenNumbers)} / ${Math.min(...vars.givenNumbers)}`, 'Total / groups = group size, not the other way around.'] };
+    return null;
+  },
+};
+
+/**
+ * Return detailed feedback with optional worked counter-example and remediation.
+ */
+export function getDetailedFeedback(tag, isPartial, vars = {}) {
+  const feedback = getFeedback(tag, isPartial);
+  const generator = COUNTER_EXAMPLES[tag];
+  const workedExample = generator ? generator(vars) : null;
+  const m = getMisconception(tag);
+  const remediation = !isPartial && m.tip ? m.tip : null;
+  const result = { feedback };
+  if (workedExample) result.workedExample = workedExample;
+  if (remediation) result.remediation = remediation;
+  return result;
 }
