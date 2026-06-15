@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { getMascot } from '../config/mascots';
+import { Check } from 'lucide-react';
+import { getMascot, MASCOTS, MASCOT_ORDER } from '../config/mascots';
+import { useAuth } from '../context/AuthContext';
 import { speak } from '../utils/sound';
 
 const SIZES = {
@@ -138,6 +140,95 @@ export function MascotGreeting({ mascotKey, text, studentName, size = 'lg', clas
           {mascot.name}
         </p>
         {message && <p className="truncate text-sm text-ink-700">{message}</p>}
+      </div>
+    </div>
+  );
+}
+
+// AvatarPicker — modal letting a student choose a mascot as their avatar.
+// Persists the chosen mascot key to the user profile via AuthContext.
+export function AvatarPicker({ current, onClose, onSaved }) {
+  const { user, updateProfile } = useAuth();
+  const [selected, setSelected] = useState(current || user?.avatar || null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const save = async () => {
+    if (!selected) { onClose?.(); return; }
+    setSaving(true);
+    setError('');
+    const result = await updateProfile({ avatar: selected });
+    setSaving(false);
+    if (result.success) {
+      onSaved?.(selected);
+      onClose?.();
+    } else {
+      setError(result.error || 'Could not save your avatar.');
+    }
+  };
+
+  const picked = selected ? MASCOTS[selected] : null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-active" onClick={(e) => e.stopPropagation()}>
+        <h2 className="font-display text-xl font-semibold text-ink-900">Choose your avatar</h2>
+        <p className="mt-1 text-sm text-ink-500">Pick a mascot to represent you across Tian OS.</p>
+
+        <div className="mt-5 grid grid-cols-4 gap-3 sm:grid-cols-7">
+          {MASCOT_ORDER.map((key) => {
+            const m = MASCOTS[key];
+            const isSelected = selected === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSelected(key)}
+                className="flex flex-col items-center gap-1.5 focus:outline-none"
+                aria-pressed={isSelected}
+              >
+                <span
+                  className={`relative h-14 w-14 overflow-hidden rounded-full transition ${isSelected ? 'ring-2 ring-offset-2' : 'opacity-70 hover:opacity-100'}`}
+                  style={isSelected ? { '--tw-ring-color': m.color, border: `2px solid ${m.color}` } : { border: `2px solid ${m.color}` }}
+                >
+                  <img src={`/mascots/${key}.png`} alt={m.name} className="h-full w-full object-cover" />
+                  {isSelected && (
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Check className="h-5 w-5 text-white" strokeWidth={3} />
+                    </span>
+                  )}
+                </span>
+                <span className={`text-xs font-semibold ${isSelected ? 'text-ink-900' : 'text-ink-400'}`}>{m.name}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {picked && (
+          <div className="mt-5 flex items-center gap-3 rounded-xl p-3" style={{ backgroundColor: picked.colorLight }}>
+            <MascotAvatar name={selected} size="md" />
+            <div>
+              <p className="text-sm font-semibold text-ink-900">{picked.name}</p>
+              <p className="text-xs text-ink-500">{picked.role} · Age {picked.age}</p>
+            </div>
+          </div>
+        )}
+
+        {error && <p className="mt-3 text-sm text-error-700">{error}</p>}
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-lg border border-hairline px-4 py-2 text-sm font-semibold text-ink-600 hover:bg-bone">
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || !selected}
+            className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
+          >
+            {saving ? 'Saving…' : 'Save avatar'}
+          </button>
+        </div>
       </div>
     </div>
   );

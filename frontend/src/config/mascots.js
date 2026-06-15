@@ -75,6 +75,9 @@ const MASCOTS = {
   },
 };
 
+// Display order for pickers / line-ups (oldest → youngest).
+const MASCOT_ORDER = ['tiano', 'lysa', 'lejo', 'chelya', 'talia', 'kaesy', 'kylo'];
+
 // Map module keys (from modules.js) to their mascot
 const MODULE_MASCOT_MAP = {
   mathpath: 'kylo',
@@ -102,4 +105,4 @@ export function getDashboardMascot() {
   return { key: 'tiano', ...MASCOTS.tiano };
 }
 
-export { MASCOTS, MODULE_MASCOT_MAP };
+export { MASCOTS, MASCOT_ORDER, MODULE_MASCOT_MAP };

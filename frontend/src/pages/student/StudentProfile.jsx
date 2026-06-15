@@ -29,6 +29,9 @@ import { studentProfileAPI } from '../../services/api';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
+import { useAuth } from '../../context/AuthContext';
+import MascotAvatar, { AvatarPicker } from '../../components/MascotAvatar';
+import { getMascot } from '../../config/mascots';
 
 const iconMap = {
   badge: Award,
@@ -374,6 +377,9 @@ function PersonalBestsSection({ visual }) {
 }
 
 export default function StudentProfile() {
+  const { user } = useAuth();
+  const mascotKey = getMascot(user?.avatar) ? user.avatar : null;
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [state, setState] = useState({ loading: true, error: '', data: null });
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
@@ -485,18 +491,31 @@ export default function StudentProfile() {
 
   return (
     <main className={`mx-auto max-w-6xl pb-6 ${visual.styles.page}`}>
+      {pickerOpen && <AvatarPicker current={mascotKey} onClose={() => setPickerOpen(false)} />}
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card className={`relative overflow-hidden p-5 sm:p-6 ${visual.styles.card}`}>
           <DecorativeMotif enabled={visual.styles.decorative} />
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              {student.avatarUrl ? (
-                <img src={student.avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" />
-              ) : (
-                <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl font-display text-xl font-semibold ${visual.styles.primaryIcon}`}>
-                  {avatarText}
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="group relative shrink-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                aria-label="Change your avatar"
+              >
+                {mascotKey ? (
+                  <MascotAvatar name={mascotKey} size="lg" />
+                ) : student.avatarUrl ? (
+                  <img src={student.avatarUrl} alt="" className="h-16 w-16 rounded-2xl object-cover" />
+                ) : (
+                  <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl font-display text-xl font-semibold ${visual.styles.primaryIcon}`}>
+                    {avatarText}
+                  </span>
+                )}
+                <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-teal-500 text-white shadow ring-2 ring-white">
+                  <Pencil className="h-3 w-3" />
                 </span>
-              )}
+              </button>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink-500">{copy.profileTitle}</p>
                 {editingName ? (

@@ -27,6 +27,8 @@ import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionS
 import { learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
+import MascotAvatar from '../../components/MascotAvatar';
+import { getMascot } from '../../config/mascots';
 import {
   clearMathPathDomainProgressState,
 } from '../../mathpath/state/mathPathDomainProgressState';
@@ -879,6 +881,7 @@ function LowerPrimaryBanner() {
 export default function StudentDashboard() {
   const { user } = useAuth();
   const firstName = (user?.name || 'there').split(' ')[0];
+  const profileMascot = getMascot(user?.avatar) ? user.avatar : null;
   const visualMode = resolveStudentVisualMode(user || {});
   const visual = { mode: visualMode, styles: getVisualModeStyles(visualMode) };
   const [loading, setLoading] = useState(true);
@@ -1292,7 +1295,9 @@ export default function StudentDashboard() {
     return (
       <main className={`${visual.styles.page} space-y-5`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-3">
+            {profileMascot && <MascotAvatar name={profileMascot} size="lg" />}
+            <div className="min-w-0">
             <p className="text-base font-semibold text-ink-500">Hi, {firstName}! <span aria-hidden>👋</span></p>
             <h1 className="mt-1 font-display text-3xl sm:text-4xl font-semibold text-ink-900">
               <span className="relative inline-block">
@@ -1300,6 +1305,7 @@ export default function StudentDashboard() {
                 <span className="absolute -bottom-1 left-0 h-1.5 w-full rounded-full bg-gold-300/80" aria-hidden />
               </span>
             </h1>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative hidden items-center gap-2 rounded-full border border-sky-100 bg-white/90 py-2 pl-2 pr-4 shadow-resting sm:flex">
@@ -1358,9 +1364,12 @@ export default function StudentDashboard() {
   return (
     <main className={visual.styles.page}>
       <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-ink-500">{isLowerPrimary(visual.mode) ? `Hi ${firstName}, ready?` : `Hi, ${firstName}`}</p>
-          <h1 className={`font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{isSecondary(visual.mode) ? 'Dashboard' : 'Today'}</h1>
+        <div className="flex min-w-0 items-center gap-3">
+          {profileMascot && <MascotAvatar name={profileMascot} size="md" />}
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-ink-500">{isLowerPrimary(visual.mode) ? `Hi ${firstName}, ready?` : `Hi, ${firstName}`}</p>
+            <h1 className={`font-display ${isSecondary(visual.mode) ? 'text-2xl' : 'text-3xl'} font-semibold text-ink-900`}>{isSecondary(visual.mode) ? 'Dashboard' : 'Today'}</h1>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {canResetStudentState && (

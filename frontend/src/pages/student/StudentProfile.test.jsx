@@ -50,6 +50,10 @@ const profilePayload = {
   ],
 };
 
+vi.mock('../../context/AuthContext', () => ({
+  useAuth: () => ({ user: { name: 'Jas Tan', avatar: null }, updateProfile: vi.fn(() => Promise.resolve({ success: true })) }),
+}));
+
 vi.mock('../../services/api', () => ({
   studentProfileAPI: {
     overview: vi.fn(() => Promise.resolve({
