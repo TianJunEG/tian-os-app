@@ -16,6 +16,7 @@ const WORKING_MATH_INSERTS_ENABLED = flagEnabled('WORKING_MATH_INSERTS_PILOT', f
 export const FEATURE_FLAGS = {
   // Core student features (enabled)
   mathpath: true,
+  decimals: flagEnabled('DECIMALS', true),
   fluency: FLUENCY_ENABLED,
   mistakes: true,
   progress: true,

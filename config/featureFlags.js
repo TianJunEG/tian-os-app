@@ -4,6 +4,7 @@ export const TIANOS_VERSION = process.env.TIANOS_VERSION || 'v0.1';
 export const FLAGS = {
   // core student features
   mathpath: true,
+  decimals: process.env.FEAT_DECIMALS !== '0',
   fluency: true,
   mistakes: true,
   progress: true,

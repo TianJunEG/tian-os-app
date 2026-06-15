@@ -2,8 +2,14 @@ import PaperAnalysis from '../../models/mathpath/PaperAnalysis.js';
 import { getUploadBuffer } from '../storage/objectStore.js';
 import { extractTextFromPaper } from './ocrService.js';
 import { segmentQuestionsFromOcrPages } from './questionSegmentationService.js';
-import { mapPaperQuestionToSkillsWithAi } from './paperAnalysisSkillMapper.js';
+import { mapPaperQuestionToSkillsWithAi as mapFractionsWithAi } from './paperAnalysisSkillMapper.js';
+import { mapPaperQuestionToSkillsWithAi as mapDecimalsWithAi } from './decimalsPaperAnalysisMapper.js';
 import { detectMisconceptions } from './misconceptionDetectionService.js';
+
+function getSkillMapper(domainId = 'fractions') {
+  if (domainId === 'decimals') return mapDecimalsWithAi;
+  return mapFractionsWithAi;
+}
 import {
   buildPaperAnalysisRecommendations as buildReviewRecommendations,
   buildPaperAnalysisReport,
@@ -25,8 +31,8 @@ function log(stage, message, metadata = {}) {
   return { stage, message, metadata, at: new Date() };
 }
 
-async function mergeQuestionAnalysis(question = {}) {
-  const skillMapping = await mapPaperQuestionToSkillsWithAi(question);
+async function mergeQuestionAnalysis(question = {}, { mapWithAi = mapFractionsWithAi } = {}) {
+  const skillMapping = await mapWithAi(question);
   const misconception = detectMisconceptions(question);
   const confidence = Math.max(
     Number(question.confidence || 0),
@@ -88,7 +94,8 @@ async function readBufferFromAnalysis(analysis) {
 // `analysis`, then advances status to skills_mapped → needs_review. Mutates the
 // analysis document and saves; does NOT re-throw (callers handle errors).
 async function runSkillMappingPhase(analysis) {
-  const enriched = await Promise.all(analysis.detectedQuestions.map(mergeQuestionAnalysis));
+  const mapWithAi = getSkillMapper(analysis.domainId);
+  const enriched = await Promise.all(analysis.detectedQuestions.map((q) => mergeQuestionAnalysis(q, { mapWithAi })));
   analysis.detectedQuestions = enriched;
   if (enriched.length) {
     analysis.status = 'skills_mapped';

@@ -12,6 +12,8 @@ const DiagramDemo = lazy(() => import('./pages/DiagramDemo'));
 const OurStoryPage = lazy(() => import('./pages/OurStoryPage'));
 const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
 const MethodologyPage = lazy(() => import('./pages/MethodologyPage'));
+const TutoringLandingPage = lazy(() => import('./pages/TutoringLandingPage'));
+const EduAppsLandingPage = lazy(() => import('./pages/EduAppsLandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'));
