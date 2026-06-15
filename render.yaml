@@ -49,31 +49,21 @@ services:
           type: redis
           name: tian-os-redis
           property: connectionString
-      # Set to "1" once R2 is configured: all upload categories live in R2 (Phase 2
-      # complete), so the worker can read them. Leave unset to run AI inline.
+      # Job queue stays OFF until the worker can read uploads (see worker note).
+      # Set to "1" in the dashboard only after Phase 2 (object storage) lands.
       - key: JOB_QUEUE_ENABLED
-        sync: false
-      # Phase 3: pool size per web replica. With N replicas, total Atlas connections
-      # = N × MONGO_MAX_POOL_SIZE. Keep N × 10 within your Atlas tier's limit.
-      - key: MONGO_MAX_POOL_SIZE
-        value: "10"
-      # Cloudflare R2 (object storage — all upload categories: Phase 2 complete).
-      - key: R2_ACCOUNT_ID
-        sync: false
-      - key: R2_ACCESS_KEY_ID
-        sync: false
-      - key: R2_SECRET_ACCESS_KEY
-        sync: false
-      - key: R2_BUCKET
-        sync: false
-      - key: R2_ENDPOINT
         sync: false
 
   # ---- Background worker (paper-analysis OCR/AI off the request path) ----
   #
-  # All upload categories now live in R2 (Phase 2 complete). The worker reads
-  # uploads from R2 and does NOT need the web disk. To enable the queue:
-  # configure the R2_* vars on BOTH services, then set JOB_QUEUE_ENABLED=1.
+  # ⚠️ Render persistent disks attach to ONE service, so this worker CANNOT mount
+  # the web service's `uploads` disk. The paper-analysis pipeline reads uploaded
+  # files from their on-disk storageKey, so the queue path only works once
+  # uploads move to shared object storage (Phase 2). Until then:
+  #   - keep JOB_QUEUE_ENABLED unset/0 on Render (web runs the pipeline inline),
+  #   - the full enqueue→worker path is exercised locally, where `npm start` and
+  #     `npm run worker` share one filesystem + a local Redis.
+  # The service is defined here so the deploy wiring is ready for Phase 2.
   - type: worker
     name: tian-os-worker
     runtime: node
@@ -93,25 +83,6 @@ services:
           property: connectionString
       - key: WORKER_CONCURRENCY
         value: "2"
-      # Max concurrent AI API calls per worker process. With WORKER_CONCURRENCY=2
-      # each job may call the AI multiple times (one per question), so cap at 3 to
-      # avoid provider 429s without blocking throughput.
-      - key: WORKER_AI_CONCURRENCY
-        value: "3"
-      # Worker runs lower concurrency than web, so fewer DB connections needed.
-      - key: MONGO_MAX_POOL_SIZE
-        value: "5"
-      # Cloudflare R2 — the worker reads uploaded papers from here.
-      - key: R2_ACCOUNT_ID
-        sync: false
-      - key: R2_ACCESS_KEY_ID
-        sync: false
-      - key: R2_SECRET_ACCESS_KEY
-        sync: false
-      - key: R2_BUCKET
-        sync: false
-      - key: R2_ENDPOINT
-        sync: false
 
   # ---- Managed Redis (rate-limiter counters + BullMQ queue) ----
   - type: redis
