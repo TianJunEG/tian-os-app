@@ -58,7 +58,7 @@ export default function PwaManager() {
           });
         });
       })
-      .catch(() => {});
+      .catch((e) => console.warn('PwaManager: service worker registration failed', e));
 
     return () => navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
   }, []);
