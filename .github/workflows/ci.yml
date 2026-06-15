@@ -116,4 +116,3 @@ jobs:
           name: playwright-report
           path: frontend/playwright-report-pilot/
           retention-days: 7
-          retention-days: 7
