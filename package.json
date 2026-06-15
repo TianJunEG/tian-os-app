@@ -50,7 +50,7 @@
     "qa:pilot": "node scripts/qa-pilot-gate.js",
     "qa:fractions:closure": "node scripts/fractions-final-pilot-closure.js",
     "qa:fractions:questions": "node scripts/auditFractionsQuestionQuality.js",
-    "postgres:prisma:generate": "prisma generate",
+    "postgres:prisma:generate": "prisma generate && esbuild generated/prisma/client.ts --bundle --platform=node --format=esm --packages=external --outfile=generated/prisma/client.js",
     "postgres:health": "node scripts/postgres/checkPrismaHealth.js",
     "postgres:phase1:backfill": "node scripts/postgres/backfillMathPathReferenceData.js",
     "postgres:phase1:parity": "node scripts/postgres/checkMathPathReferenceParity.js"
@@ -88,6 +88,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
+    "esbuild": "^0.28.1",
     "mongodb-memory-server-core": "^11.1.0",
     "nodemon": "^3.1.14",
     "prisma": "^7.8.0",
