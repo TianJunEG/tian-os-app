@@ -9,10 +9,10 @@ import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
 import { SESSION_OFFSETS, recomputeSchedule } from '../utils/practiceSchedule.js';
 import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
-import { applyMarks } from '../utils/marking.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
 import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
 import { photoWorksheetFields, logPhotoMisconceptions } from '../services/worksheets/photoWorksheet.js';
+import { buildMarkItems, missedMisconceptions, applyMarkResults } from '../services/worksheets/markSession.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 import { commonMistakes } from '../utils/commonMistakes.js';
 import { resolveStudent } from '../utils/studentContext.js';
@@ -625,46 +625,41 @@ router.post('/:id/sessions/:n/mark', protect, asyncHandler(async (req, res) => {
     }
 
     const answers = Array.isArray(req.body.answers) ? req.body.answers : [];
-    const items = [];
-
-    for (const a of answers) {
-      const i = parseInt(a.questionIndex, 10);
-      const q = session.questions[i];
-      if (!q) continue;
-
-      if (a.type === 'image' && typeof a.imageDataUrl === 'string') {
-        const match = a.imageDataUrl.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
-        if (!match) continue;
-        items.push({ index: i, prompt: q.prompt, correctAnswer: q.answer, type: 'image', mimeType: match[1], imageBase64: match[2] });
-        q.studentResponseType = 'image';
-      } else {
-        const text = typeof a.text === 'string' ? a.text.trim() : '';
-        if (!text) continue;
-        items.push({ index: i, prompt: q.prompt, correctAnswer: q.answer, type: 'text', text });
-        q.studentResponseType = 'text';
-        q.studentResponse = text;
-      }
-    }
+    const items = buildMarkItems(session, answers);
 
     if (items.length === 0) {
       return res.status(400).json({ error: 'No answers were submitted to mark.' });
     }
 
+    // Async path: hand the 3-15s AI marking to the worker, return 202; the client
+    // polls GET /:id for the session's markingStatus / score.
+    const queue = isQueueEnabled() ? getQueue(QUEUE_NAMES.markAnswers) : null;
+    if (queue) {
+      try {
+        session.markingStatus = 'marking';
+        await worksheet.save();
+        await queue.add('run', { worksheetId: String(worksheet._id), sessionNumber, answers });
+        return res.status(202).json({ success: true, queued: true, worksheetId: String(worksheet._id), sessionNumber });
+      } catch (queueErr) {
+        console.error('Mark enqueue failed, running inline:', queueErr.message);
+        session.markingStatus = 'idle';
+        await worksheet.save().catch(() => {});
+      }
+    }
+
+    // Synchronous path (queue disabled or enqueue failed) — unchanged behaviour.
     const { results, modelUsed, escalated } = await markAnswers({ items });
-    applyMarks(session, results);
-    recomputeSchedule(worksheet);
-    worksheet.updatedAt = new Date();
+    applyMarkResults(worksheet, session, results);
     await worksheet.save();
 
-    const missedMisconceptions = [
-      ...new Set(
-        session.questions
-          .filter((q) => q.correct === false && q.targetsMisconception)
-          .map((q) => q.targetsMisconception)
-      )
-    ];
-
-    return res.json({ success: true, worksheet: redactWorksheetForViewer(worksheet, req.user.id), score: session.score, missedMisconceptions, modelUsed, escalated });
+    return res.json({
+      success: true,
+      worksheet: redactWorksheetForViewer(worksheet, req.user.id),
+      score: session.score,
+      missedMisconceptions: missedMisconceptions(session),
+      modelUsed,
+      escalated,
+    });
   } catch (err) {
     return sendAiError(res, err);
   }

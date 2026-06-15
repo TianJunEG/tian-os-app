@@ -31,6 +31,10 @@ const practiceSessionSchema = new mongoose.Schema({
   completedAt: { type: Date, default: null },
   marked: { type: Boolean, default: false },
   score: { type: Number, default: null },
+  // Async marking status (Phase 1 WS3). 'idle' default so the synchronous path is
+  // unaffected; the worker sets 'marking' → 'marked'/'failed'.
+  markingStatus: { type: String, enum: ['idle', 'marking', 'marked', 'failed'], default: 'idle' },
+  markingError: { type: String, default: '' },
   questions: [questionSchema]
 }, { _id: false });
 
