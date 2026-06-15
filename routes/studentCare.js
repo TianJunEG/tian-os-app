@@ -48,7 +48,7 @@ async function listAccessibleStudents(req) {
   if (partnerStudentIds.length && !roles.has('admin')) {
     return Student.find({ _id: { $in: partnerStudentIds } }).sort({ name: 1 }).lean();
   }
-  if (roles.has('admin') || process.env.QA_DISABLE_RATE_LIMIT === '1') {
+  if (roles.has('admin') || (process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
     return Student.find({}).sort({ name: 1 }).limit(100).lean();
   }
   return Student.find({ createdByUserId: req.user.id }).sort({ name: 1 }).lean();

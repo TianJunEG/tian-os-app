@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Activity, AlertTriangle, Brain, CheckCircle2, Clock3, Eye, FileText, Target, Upload } from 'lucide-react';
 import { Button, Card, ErrorState, PageHeader, Spinner, Badge, CollapsibleSection } from '../../components/ui';
+import FEATURE_FLAGS from '../../config/featureFlags';
 import TutorStudentNav from './TutorStudentNav';
 import { useTutorStudent } from './useTutorStudent';
 import { tutorAPI, mathpathAPI } from '../../services/api';
@@ -877,7 +878,7 @@ export default function TutorMathPathDashboardPage() {
           title="Intervention details"
           summary="Root causes, mistake clusters, fluency, retention, working quality, and next session plan."
           surface={false}
-          action={<Button size="s" variant="secondary" onClick={() => navigate(`/tutor/students/${id}/mathpath/test-spec`)}>School Test</Button>}
+          action={FEATURE_FLAGS.assessments ? <Button size="s" variant="secondary" onClick={() => navigate(`/tutor/students/${id}/mathpath/test-spec`)}>School Test</Button> : null}
         >
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             <RootCauseAnalysisCard rows={dashboard.rootCauseAnalysis || []} />

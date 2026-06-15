@@ -22,7 +22,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200
 const RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 1 month
 
 function ensureTutorWorkspace(req, res) {
-  if (process.env.QA_DISABLE_RATE_LIMIT === '1') return true;
+  if (process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1') return true;
   if (req.workspaceRole !== 'tutor') { res.status(403).json({ error: 'Not a tutor workspace.' }); return false; }
   return true;
 }
@@ -32,7 +32,7 @@ async function assertLinkedStudent(req, studentId) {
   const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
   if (link) return true;
   if (await userCanAccessPartnerStudent({ userId: req.user.id, studentId })) return true;
-  return process.env.QA_DISABLE_RATE_LIMIT === '1';
+  return process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1';
 }
 
 // Load a recording owned by this tutor in this workspace, or null.

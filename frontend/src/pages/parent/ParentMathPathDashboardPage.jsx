@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Clock3, FileText, Flame, Target, Upload, AlertTriangle } from 'lucide-react';
 import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
+import FEATURE_FLAGS from '../../config/featureFlags';
 import ChildNav from './ChildNav';
 import { useChild } from './useChild';
 import { mathpathAPI } from '../../services/api';
@@ -336,7 +337,7 @@ function AssessmentProgressCard({ assessment, onStartBaseline }) {
       ) : (
         <div className="mt-2 space-y-3">
           <p className="text-sm text-ink-600">Take a baseline assessment to measure your child’s current fraction readiness.</p>
-          <Button size="s" icon={FileText} onClick={onStartBaseline}>Start Baseline Assessment</Button>
+          {FEATURE_FLAGS.assessments && <Button size="s" icon={FileText} onClick={onStartBaseline}>Start Baseline Assessment</Button>}
         </div>
       )}
     </Card>
@@ -553,7 +554,7 @@ export default function ParentMathPathDashboardPage() {
           title="Progress details"
           summary="Mastery, weak areas, fluency, retention, assessment, and working quality."
           surface={false}
-          action={<Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mathpath/test-spec`)}>School Test</Button>}
+          action={FEATURE_FLAGS.assessments ? <Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mathpath/test-spec`)}>School Test</Button> : null}
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <MasteryProgressCard mastery={summary.masteryProgress || {}} />
