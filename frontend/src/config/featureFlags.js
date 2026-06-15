@@ -18,6 +18,7 @@ export const FEATURE_FLAGS = {
   mathpath: true,
   decimals: flagEnabled('DECIMALS', true),
   percentages: flagEnabled('PERCENTAGES', true),
+  ratioRate: flagEnabled('RATIO_RATE', true),
   fluency: FLUENCY_ENABLED,
   mistakes: true,
   progress: true,

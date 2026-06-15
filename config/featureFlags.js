@@ -6,6 +6,7 @@ export const FLAGS = {
   mathpath: true,
   decimals: process.env.FEAT_DECIMALS !== '0',
   percentages: process.env.FEAT_PERCENTAGES !== '0',
+  ratioRate: process.env.FEAT_RATIO_RATE !== '0',
   fluency: true,
   mistakes: true,
   progress: true,
