@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p6-geo',
+  level: 'Primary 6',
+  issue: 5,
+  topic: 'Geometry',
+  subtitle: "Chelya's Ultimate Cheat Sheet",
+  mascot: 'chelya',
+  sections: [
+    {
+      title: 'Angles in Triangles',
+      code: 'Geo 1.1',
+      formula: 'Angle sum of a triangle = 180°',
+      formulaNote: null,
+      explanation: '180° total — all three angles in any triangle always add up to 180°.',
+      example: {
+        steps: ['Two angles are 50° and 70°', 'Third = 180° − 50° − 70°'],
+        answer: '60°',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'arrowFlow', steps: ['50° + 70° + ?°', '= 180°', '? = 180 − 120', '= 60°'] },
+    },
+    {
+      title: 'Area & Circumference of Circle',
+      code: 'Geo 2.1',
+      formula: 'Circumference = π × d  (or 2 × π × r)\nArea = π × r × r',
+      formulaNote: 'Use π = 3.14 or ²²⁄₇',
+      explanation: 'Pi power! Two key circle formulas to master.',
+      example: {
+        steps: ['r = 7 cm', 'Area = ²²⁄₇ × 7 × 7'],
+        answer: '154 cm²',
+      },
+      sfx: 'POW!',
+      tip: 'Use ²²⁄₇ when r or d is a multiple of 7 — it cancels nicely!',
+      diagram: { type: 'pieChart', slices: [{ num: 1, den: 1 }], labels: ['r = 7'] },
+    },
+    {
+      title: 'Composite Figures',
+      code: 'Geo 3.1',
+      formula: 'Split → find each area → add (or subtract)',
+      formulaNote: null,
+      explanation: 'Break it into simple shapes — rectangles, triangles, circles.',
+      example: {
+        steps: ['L-shape = big rectangle − small rectangle', '8 × 6 = 48, 4 × 3 = 12'],
+        answer: '48 − 12 = 36 cm²',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Label ALL measurements before calculating — hunt for hidden lengths!',
+      bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['L-shape', 'Big rect 8×6', '− Small rect 4×3', '48 − 12', '= 36 cm²'] },
+    },
+  ],
+};

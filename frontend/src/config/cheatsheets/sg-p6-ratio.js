@@ -1,0 +1,53 @@
+export default {
+  id: 'sg-p6-rr',
+  level: 'Primary 6',
+  issue: 4,
+  topic: 'Ratio & Rate',
+  subtitle: "Chelya's Ultimate Cheat Sheet",
+  mascot: 'chelya',
+  sections: [
+    {
+      title: 'Ratio Basics',
+      code: 'RR 1.1',
+      formula: 'A : B — simplify by dividing both by HCF',
+      formulaNote: null,
+      explanation: 'Comparing quantities — simplify by dividing both sides by their highest common factor.',
+      example: {
+        steps: ['12 : 8', 'HCF = 4 → 12 ÷ 4 : 8 ÷ 4'],
+        answer: '3 : 2',
+      },
+      sfx: 'BAM!',
+      tip: null,
+      diagram: { type: 'stackedBar', total: 20, segments: [{ value: 12, label: 'A = 12' }, { value: 8, label: 'B = 8' }] },
+    },
+    {
+      title: 'Speed, Distance, Time',
+      code: 'RR 2.1',
+      formula: 'Speed = Distance ÷ Time\nDistance = Speed × Time\nTime = Distance ÷ Speed',
+      formulaNote: null,
+      explanation: 'The triangle trick! Cover what you want — what\'s left is the formula.',
+      example: {
+        steps: ['Drive 150 km in 3 h', 'Speed = 150 ÷ 3'],
+        answer: '50 km/h',
+      },
+      sfx: 'ZOOM!',
+      tip: 'Cover what you want in the triangle — what\'s left is the formula!',
+      diagram: { type: 'arrowFlow', steps: ['Distance', '÷ Time', '= Speed'] },
+    },
+    {
+      title: 'Before-and-After Ratio',
+      code: 'RR 3.1',
+      formula: 'Draw before & after models → make one side the same → solve',
+      formulaNote: null,
+      explanation: 'PSLE classic — make the unchanged quantity the same in both ratios.',
+      example: {
+        steps: ['A : B = 3 : 5 → A gives 4 to B → A : B = 1 : 7', 'Before: 3 + 5 = 8 units. After: 1 + 7 = 8 units.', 'Difference in A = 3 − 1 = 2 units = 4 → 1 unit = 2'],
+        answer: 'Original total = 8 × 2 = 16',
+      },
+      sfx: 'KA-POW!',
+      tip: 'Make the UNCHANGED quantity the same in both ratios!',
+      bossLevel: true,
+      barModel: { parts: 8, shaded: 3, value: '?' },
+    },
+  ],
+};

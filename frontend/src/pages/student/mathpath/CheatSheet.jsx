@@ -5,6 +5,9 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { getMascot } from '../../../config/mascots';
 
+import sgP1Numbers from '../../../config/cheatsheets/sg-p1-numbers';
+import sgP1AddSub from '../../../config/cheatsheets/sg-p1-add-sub';
+import sgP1Shapes from '../../../config/cheatsheets/sg-p1-shapes';
 import sgP4Fractions from '../../../config/cheatsheets/sg-p4-fractions';
 import sgP4WholeNumbers from '../../../config/cheatsheets/sg-p4-whole-numbers';
 import sgP4FactorsMultiples from '../../../config/cheatsheets/sg-p4-factors-multiples';
@@ -12,8 +15,18 @@ import sgP4FourOperations from '../../../config/cheatsheets/sg-p4-four-operation
 import sgP4Decimals from '../../../config/cheatsheets/sg-p4-decimals';
 import sgP4WordProblems from '../../../config/cheatsheets/sg-p4-word-problems';
 import sgP4Statistics from '../../../config/cheatsheets/sg-p4-statistics';
+import sgP6Algebra from '../../../config/cheatsheets/sg-p6-algebra';
+import sgP6Fractions from '../../../config/cheatsheets/sg-p6-fractions';
+import sgP6Percentage from '../../../config/cheatsheets/sg-p6-percentage';
+import sgP6Ratio from '../../../config/cheatsheets/sg-p6-ratio';
+import sgP6Geometry from '../../../config/cheatsheets/sg-p6-geometry';
+import sgP6Measurement from '../../../config/cheatsheets/sg-p6-measurement';
+import sgP6Statistics from '../../../config/cheatsheets/sg-p6-statistics';
 
 const SHEETS = {
+  'sg-p1-num': sgP1Numbers,
+  'sg-p1-as': sgP1AddSub,
+  'sg-p1-sh': sgP1Shapes,
   'sg-p4-fr': sgP4Fractions,
   'sg-p4-wn': sgP4WholeNumbers,
   'sg-p4-fm': sgP4FactorsMultiples,
@@ -21,6 +34,13 @@ const SHEETS = {
   'sg-p4-dec': sgP4Decimals,
   'sg-p4-wp': sgP4WordProblems,
   'sg-p4-stat': sgP4Statistics,
+  'sg-p6-alg': sgP6Algebra,
+  'sg-p6-fr': sgP6Fractions,
+  'sg-p6-pct': sgP6Percentage,
+  'sg-p6-rr': sgP6Ratio,
+  'sg-p6-geo': sgP6Geometry,
+  'sg-p6-mea': sgP6Measurement,
+  'sg-p6-stat': sgP6Statistics,
 };
 
 const PANEL_THEMES = [
