@@ -15,6 +15,12 @@ import {
   toClientFluencyQuestions,
   scoreDecimalsFluencyDrill,
 } from '../services/mathpath/decimalsFluencyService.js';
+import {
+  getDecimalsAssessmentReadiness,
+  buildDecimalsAssessment,
+  toClientAssessmentQuestions,
+  scoreDecimalsAssessment,
+} from '../services/mathpath/decimalsAssessmentService.js';
 
 const router = express.Router();
 const FLUENT_BANDS = new Set(['gold', 'platinum']);
@@ -235,6 +241,96 @@ router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
     res.json(summary);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit decimals fluency drill.' });
+  }
+});
+
+// @route GET /api/mathpath/decimals/assessment/readiness
+// @desc  Whether the summative assessment is unlocked + readiness dimensions.
+router.get('/assessment/readiness', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const { states } = await loadProgress(String(student._id));
+    res.json(getDecimalsAssessmentReadiness({ skillStates: states }));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load decimals assessment readiness.' });
+  }
+});
+
+// @route POST /api/mathpath/decimals/assessment/start
+// @desc  Build + persist an assessment paper (only when unlocked).
+router.post('/assessment/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const { states, masteredSkillIds } = await loadProgress(studentId);
+    const readiness = getDecimalsAssessmentReadiness({ skillStates: states });
+    if (!readiness.ready) return res.status(403).json({ error: readiness.message, readiness });
+
+    const paper = buildDecimalsAssessment({ masteredSkillIds, count: Number(req.body?.count) || 10 });
+    const practiceSessionId = `decassessment_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    await MathPathPracticeSession.create({
+      practiceSessionId,
+      studentId,
+      domainId: DOMAIN_ID,
+      targetSkillId: paper.skillIds[0] || '',
+      targetQuestionFamilyIds: [...new Set(paper.questions.map((q) => q.questionFamilyId))],
+      sessionGoal: 'Decimals assessment',
+      estimatedQuestionCount: paper.questions.length,
+      questions: paper.questions,
+      responses: [],
+      status: 'inProgress',
+      startedAt: new Date(),
+    });
+
+    res.json({
+      practiceSessionId,
+      domainId: DOMAIN_ID,
+      skillIds: paper.skillIds,
+      questions: toClientAssessmentQuestions(paper.questions),
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start decimals assessment.' });
+  }
+});
+
+// @route POST /api/mathpath/decimals/assessment/:practiceSessionId/submit
+// @desc  Grade the paper, log mistakes, complete the session.
+router.post('/assessment/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Decimals assessment not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a decimals session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const scored = scoreDecimalsAssessment({ questions: existing.questions || [], responses });
+
+    for (const mistake of scored.mistakes) {
+      const tag = mistake.misconceptionTag || 'decimal_error';
+      await MathPathMistakeRecord.findOneAndUpdate(
+        { studentId, domainId: DOMAIN_ID, mistakeCode: tag, skillId: mistake.skillId || '', questionFamilyId: '' },
+        {
+          $inc: { frequency: 1 },
+          $set: { mistakeName: tag, severity: 'medium', lastSeenAt: new Date() },
+          $push: { evidence: { source: 'decimals-assessment-incorrect', questionId: mistake.questionId, sessionId: req.params.practiceSessionId, answerCorrect: false, seenAt: new Date() } },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+      );
+    }
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'assessment', ...scored, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = responses;
+    existing.summary = summary;
+    await existing.save();
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit decimals assessment.' });
   }
 });
 

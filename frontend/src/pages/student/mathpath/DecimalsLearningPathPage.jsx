@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Lock, Target, Zap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, GraduationCap, Lock, Target, Zap } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
@@ -51,6 +51,7 @@ export default function DecimalsLearningPathPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState([]);
+  const [assessment, setAssessment] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
   const startPractice = (skillId) => navigate(`/student/mathpath/decimals/practice?skill=${skillId}`);
@@ -60,11 +61,17 @@ export default function DecimalsLearningPathPage() {
     let active = true;
     (async () => {
       try {
-        const res = await mathpathAPI.decimalsSkillStates();
-        const all = Array.isArray(res?.data?.records) ? res.data.records : [];
+        const [statesRes, readinessRes] = await Promise.all([
+          mathpathAPI.decimalsSkillStates(),
+          mathpathAPI.decimalsAssessmentReadiness().catch(() => null),
+        ]);
+        const all = Array.isArray(statesRes?.data?.records) ? statesRes.data.records : [];
         // Defensive: keep only D-coded records in case the endpoint widens later.
         const decimalRecords = all.filter((r) => /^D0\d\d$/.test(String(r.skillId || '')));
-        if (active) setRecords(decimalRecords);
+        if (active) {
+          setRecords(decimalRecords);
+          setAssessment(readinessRes?.data || null);
+        }
       } catch {
         if (active) setRecords([]);
       } finally {
@@ -105,7 +112,7 @@ export default function DecimalsLearningPathPage() {
           </div>
           <Button size="s" icon={ArrowRight} onClick={() => startPractice(view.recommendedNext.skillId)}>Practise</Button>
         </div>
-        <div className="mt-4 border-t border-ink-100 pt-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-ink-100 pt-3">
           <button
             type="button"
             onClick={() => navigate('/student/mathpath/decimals/diagnostic')}
@@ -113,6 +120,15 @@ export default function DecimalsLearningPathPage() {
           >
             Not sure where to start? Take a quick check-in →
           </button>
+          {assessment?.ready ? (
+            <Button size="s" variant="secondary" icon={GraduationCap} className="ml-auto" onClick={() => navigate('/student/mathpath/decimals/assessment')}>
+              Take Assessment
+            </Button>
+          ) : assessment ? (
+            <span className="ml-auto flex items-center gap-1 text-xs text-ink-400">
+              <Lock className="h-3.5 w-3.5" /> {assessment.message}
+            </span>
+          ) : null}
         </div>
       </Card>
 
