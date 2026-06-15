@@ -33,8 +33,8 @@ export default function WorkedSolutionWalkthrough({ solutionText, visualSpec, he
   const allRevealed = revealed >= steps.length;
 
   return (
-    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3 sm:p-4">
+      <div className="flex items-center gap-2 mb-2 sm:mb-3">
         <BookOpen className="h-4 w-4 text-sky-600" />
         <span className="text-xs font-semibold text-sky-700">Worked Solution</span>
       </div>
@@ -82,7 +82,7 @@ export default function WorkedSolutionWalkthrough({ solutionText, visualSpec, he
         }); })()}
       </div>
 
-      <div className="mt-3 flex gap-2">
+      <div className="mt-2 sm:mt-3 flex flex-wrap gap-2">
         {!allRevealed ? (
           <button
             type="button"

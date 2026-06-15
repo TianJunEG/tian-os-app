@@ -5,13 +5,13 @@ const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'
 export function DataTableVisual({ spec, step }) {
   const showValues = step >= 1;
   return (
-    <div className="overflow-hidden rounded-lg border border-ink-200 text-xs">
+    <div className="overflow-x-auto rounded-lg border border-ink-200 text-xs">
       {spec.title && <div className="bg-ink-50 px-2 py-1 text-center text-[10px] font-semibold text-ink-600">{spec.title}</div>}
-      <table className="w-full">
+      <table className="w-full min-w-[200px]">
         <thead>
           <tr className="bg-ink-50">
             {spec.labels.map((label, i) => (
-              <th key={i} className="px-2 py-1.5 text-center font-medium text-ink-500">{label}</th>
+              <th key={i} className="px-2 py-1.5 text-center font-medium text-ink-500 whitespace-nowrap">{label}</th>
             ))}
           </tr>
         </thead>
@@ -168,8 +168,8 @@ export function PieChartVisual({ spec, step }) {
   return (
     <div className="flex flex-col items-center">
       {spec.title && <div className="text-[10px] font-semibold text-ink-600 mb-1">{spec.title}</div>}
-      <div className="flex items-start gap-2">
-        <svg viewBox="0 0 140 120" className="w-[140px] h-[120px]">
+      <div className="flex flex-col items-center sm:flex-row sm:items-start gap-2">
+        <svg viewBox="0 0 140 120" className="w-[120px] h-[100px] sm:w-[140px] sm:h-[120px] shrink-0">
           {showSlices ? slices.map(s => (
             <g key={s.i}>
               <path d={s.d} fill={COLORS[s.i % COLORS.length]} opacity={0.85} stroke="white" strokeWidth="1" />
@@ -179,7 +179,7 @@ export function PieChartVisual({ spec, step }) {
             <circle cx={cx} cy={cy} r={r} fill="#e5e7eb" />
           )}
         </svg>
-        <div className="flex flex-col gap-0.5 pt-2">
+        <div className="flex flex-row flex-wrap sm:flex-col gap-x-3 gap-y-0.5 pt-1 sm:pt-2">
           {spec.labels.map((label, i) => (
             <div key={i} className="flex items-center gap-1">
               <div className="h-2 w-2 rounded-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
@@ -198,13 +198,13 @@ export function MultiTableVisual({ spec, step }) {
   return (
     <div className="space-y-2">
       {(spec.tables || []).map((table, ti) => (
-        <div key={ti} className="overflow-hidden rounded-lg border border-ink-200 text-xs">
+        <div key={ti} className="overflow-x-auto rounded-lg border border-ink-200 text-xs">
           {table.title && <div className="bg-ink-50 px-2 py-1 text-center text-[10px] font-semibold text-ink-600">{table.title}</div>}
-          <table className="w-full">
+          <table className="w-full min-w-[200px]">
             <thead>
               <tr className="bg-ink-50">
                 {table.labels.map((label, i) => (
-                  <th key={i} className="px-2 py-1.5 text-center font-medium text-ink-500">{label}</th>
+                  <th key={i} className="px-2 py-1.5 text-center font-medium text-ink-500 whitespace-nowrap">{label}</th>
                 ))}
               </tr>
             </thead>

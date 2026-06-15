@@ -49,7 +49,7 @@ export default function SolvePanel({ twoStep = false, value = {}, onChange }) {
               placeholder="="
               value={value.answer || ''}
               onChange={(e) => onChange({ ...value, answer: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-ink-200 bg-ink-50/30 px-3 py-2 font-mono text-lg font-bold text-ink-800 outline-none focus:border-gold-400"
+              className="mt-1 w-full rounded-lg border border-ink-200 bg-ink-50/30 px-3 py-2 font-mono text-base sm:text-lg font-bold text-ink-800 outline-none focus:border-gold-400"
             />
           </div>
         </div>
@@ -70,7 +70,7 @@ export default function SolvePanel({ twoStep = false, value = {}, onChange }) {
           className="mt-1 w-full resize-none rounded-lg border border-ink-200 bg-white px-3 py-2 font-mono text-sm text-ink-700 outline-none focus:border-gold-400"
         />
       </div>
-      <div className="rounded-xl border border-ink-200 bg-white p-4">
+      <div className="rounded-xl border border-ink-200 bg-white p-3 sm:p-4">
         <label className="text-xs text-ink-400">Number sentence</label>
         <input
           type="text"
@@ -85,7 +85,7 @@ export default function SolvePanel({ twoStep = false, value = {}, onChange }) {
           placeholder="="
           value={value.answer || ''}
           onChange={(e) => onChange({ ...value, answer: e.target.value })}
-          className="mt-1 w-full rounded-lg border border-ink-200 bg-ink-50/30 px-3 py-2 font-mono text-xl font-bold text-ink-800 outline-none focus:border-gold-400"
+          className="mt-1 w-full rounded-lg border border-ink-200 bg-ink-50/30 px-3 py-2 font-mono text-lg sm:text-xl font-bold text-ink-800 outline-none focus:border-gold-400"
         />
       </div>
     </div>
