@@ -97,13 +97,13 @@ export function getMascot(key) {
 // am_=Am. male). Used when the Kokoro neural engine is active; the gender/pitch
 // below drive the Web Speech fallback so mascots stay distinct either way.
 const KOKORO_VOICE = {
-  tiano: 'am_michael',
-  lysa: 'af_bella',
-  lejo: 'am_adam',
-  chelya: 'af_nicole',
-  talia: 'af_sky',
-  kaesy: 'af_sarah',
-  kylo: 'am_puck',
+  tiano: 'am_liam',
+  lysa: 'af_sky',
+  lejo: 'bm_fable',
+  chelya: 'af_sarah',
+  talia: 'af_heart',
+  kaesy: 'bf_alice',
+  kylo: 'am_eric',
 };
 
 // Voice profile for a mascot: gender (for voice selection) plus a pitch/rate
