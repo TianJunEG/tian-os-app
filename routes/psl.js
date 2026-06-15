@@ -138,7 +138,16 @@ router.post('/sessions/:sid/problems/:pid/hint', protect, async (req, res) => {
       stepEntry = attempt.steps[attempt.steps.length - 1];
     }
 
-    const result = getHintsForStep(stepId, problem.heuristic, stepEntry.hintsUsed || 0);
+    const misconceptionTag = stepEntry.misconceptionTag || '';
+    const problemVars = {};
+    if (problem.givenNumbers) {
+      problem.givenNumbers.forEach((n, i) => { problemVars[`num${i + 1}`] = n; });
+    }
+    if (problem.correctAnswer != null) problemVars.answer = problem.correctAnswer;
+    const result = getHintsForStep(stepId, problem.heuristic, stepEntry.hintsUsed || 0, {
+      misconceptionTag,
+      problemVars,
+    });
 
     if (result.hint) {
       stepEntry.hintsUsed = (stepEntry.hintsUsed || 0) + 1;

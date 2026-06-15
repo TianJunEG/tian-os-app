@@ -408,3 +408,73 @@ export function getFeedback(tag, isPartial) {
   if (isPartial) return `Almost! ${m.tip}`;
   return m.feedback;
 }
+
+const COUNTER_EXAMPLES = {
+  'psl/arithmetic-error': (vars) => {
+    if (vars.expression) return { title: 'Check your arithmetic', steps: [`The expression is: ${vars.expression}`, `Work it out step by step to get: ${vars.answer}`] };
+    return null;
+  },
+  'psl/wrong-operation': (vars) => {
+    const opWord = { '+': 'add', '-': 'subtract', '*': 'multiply', '/': 'divide' };
+    if (vars.operation) return { title: 'Which operation?', steps: [`The story tells us to ${opWord[vars.operation] || vars.operation}.`, 'Clue words like "altogether" mean add, "left" means subtract, "each" means divide, "times" means multiply.'] };
+    return null;
+  },
+  'psl/forgot-total-parts': (vars) => {
+    if (vars.givenNumbers?.length >= 2) {
+      const parts = vars.givenNumbers;
+      const total = parts.reduce((a, b) => a + b, 0);
+      return { title: 'Ratio parts', steps: [`Ratio parts: ${parts.join(' + ')} = ${total} total parts`, `Value of 1 part = total amount / ${total}`, 'Then multiply by the part you need.'] };
+    }
+    return null;
+  },
+  'psl/wrong-model-type': () => ({
+    title: 'Choosing a model',
+    steps: ['Part-whole: "altogether", "in total", "how many left"', 'Comparison: "more than", "fewer than", "difference"', 'Match the story words to the right model.'],
+  }),
+  'psl/wrong-unknown-position': (vars) => {
+    if (vars.unknownPosition) return { title: 'Where does the ? go?', steps: [`In this problem, the unknown is the ${vars.unknownPosition}.`, 'Draw the model with all known values, then put "?" in the empty spot.'] };
+    return null;
+  },
+  'psl/wrong-strategy': (vars) => {
+    if (vars.heuristic) {
+      const names = { 'bar-model': 'Bar Model', 'before-after': 'Before-After', 'work-backwards': 'Work Backwards', 'guess-check': 'Guess & Check', ratio: 'Ratio', assumption: 'Assumption', 'excess-shortage': 'Excess-Shortage', simultaneous: 'Simultaneous Equations', 'pattern-recognition': 'Pattern Recognition' };
+      return { title: 'Right strategy', steps: [`This problem uses: ${names[vars.heuristic] || vars.heuristic}`, 'Open the Decision Guide if you are not sure why.'] };
+    }
+    return null;
+  },
+  'psl/used-wrong-numbers': (vars) => {
+    if (vars.givenNumbers?.length) return { title: 'Correct numbers', steps: [`The numbers you need from the story are: ${vars.givenNumbers.join(', ')}`, 'Cross-check each number in your working against the story.'] };
+    return null;
+  },
+  'psl/confused-question': () => ({
+    title: 'Finding the question',
+    steps: ['Look for the sentence ending with "?"', 'The answer to that sentence is what you need to find.', 'Circle the question word: How many? How much? What?'],
+  }),
+  'psl/missed-number': (vars) => {
+    if (vars.givenNumbers?.length) return { title: 'All the clues', steps: [`This problem has ${vars.givenNumbers.length} important numbers.`, 'Re-read each sentence and underline every number you see.'] };
+    return null;
+  },
+  'psl/skipped-check': (vars) => {
+    if (vars.answer != null) return { title: 'Checking your answer', steps: [`Your answer is ${vars.answer}.`, 'Put it back into the story — does every sentence still make sense?', 'If something sounds wrong, go back and fix it.'] };
+    return { title: 'Always check', steps: ['Put your answer back into the story.', 'Read it aloud — does it make sense?'] };
+  },
+  'psl/division-direction-error': (vars) => {
+    if (vars.givenNumbers?.length >= 2) return { title: 'Division direction', steps: [`Divide the bigger number by the smaller: ${Math.max(...vars.givenNumbers)} / ${Math.min(...vars.givenNumbers)}`, 'Total / groups = group size, not the other way around.'] };
+    return null;
+  },
+};
+
+/**
+ * Return detailed feedback with optional worked counter-example and remediation.
+ */
+export function getDetailedFeedback(tag, isPartial, vars = {}) {
+  const feedback = getFeedback(tag, isPartial);
+  const generator = COUNTER_EXAMPLES[tag];
+  const workedExample = generator ? generator(vars) : null;
+  const m = getMisconception(tag);
+  const remediation = !isPartial && m.tip ? m.tip : null;
+  const result = { feedback };
+  if (workedExample) result.workedExample = workedExample;
+  if (remediation) result.remediation = remediation;
+  return result;
+}

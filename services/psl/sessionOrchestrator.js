@@ -96,7 +96,14 @@ export async function submitStep({ sessionId, problemId, stepId, response, timeS
   const scaffoldStep = problem.scaffoldSteps.find((s) => s.stepId === stepId);
   if (!scaffoldStep) throw Object.assign(new Error('Step not found'), { status: 404 });
 
-  const result = evaluateStep(stepId, response, scaffoldStep.expectedResponse);
+  const problemVars = {
+    givenNumbers: problem.givenNumbers,
+    answer: problem.correctAnswer,
+    structure: problem.structure,
+    unknownPosition: problem.unknownPosition,
+    heuristic: problem.heuristic,
+  };
+  const result = evaluateStep(stepId, response, scaffoldStep.expectedResponse, problemVars);
 
   let attempt = await PSLAttempt.findOne({ sessionId, problemId });
   if (!attempt) {
@@ -148,7 +155,7 @@ export async function submitStep({ sessionId, problemId, stepId, response, timeS
     await session.save();
   }
 
-  return {
+  const submitResult = {
     stepId,
     correct: result.correct,
     partial: result.partial,
@@ -157,6 +164,9 @@ export async function submitStep({ sessionId, problemId, stepId, response, timeS
     feedback: result.feedback,
     expectedResponse: scaffoldStep.expectedResponse,
   };
+  if (result.workedExample) submitResult.workedExample = result.workedExample;
+  if (result.remediation) submitResult.remediation = result.remediation;
+  return submitResult;
 }
 
 export async function completeProblem({ sessionId, problemId, studentId = null }) {
