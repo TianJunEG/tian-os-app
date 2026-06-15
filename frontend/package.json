@@ -10,7 +10,9 @@
     "icons": "node scripts/generate-icons.cjs",
     "test": "vitest run",
     "test:e2e": "playwright test -c playwright.pilot.config.js",
-    "test:pilot-gate": "playwright test -c playwright.pilot.config.js -g \"pilot gate\""
+    "test:pilot-gate": "playwright test -c playwright.pilot.config.js -g \"pilot gate\"",
+    "test:visual": "playwright test -c playwright.visual.config.js",
+    "test:visual-update": "playwright test -c playwright.visual.config.js --update-snapshots"
   },
   "dependencies": {
     "@sentry/react": "^10.57.0",

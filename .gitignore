@@ -33,3 +33,8 @@ build/
 # Kept out of this repo so it can't be committed as a broken embedded repo.
 Tuition/
 .vercel
+
+# Playwright — keep baselines (snapshots/), ignore diff outputs and reports
+frontend/test-results/
+frontend/playwright-report-visual/
+frontend/playwright-report-pilot/
