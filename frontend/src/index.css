@@ -658,6 +658,30 @@ code {
 .skin-lower-primary h3 {
   font-family: 'Fredoka', system-ui, sans-serif;
 }
+.skin-lower-primary button,
+.skin-lower-primary a[role="button"],
+.skin-lower-primary [role="button"] {
+  min-height: 44px;
+  padding-inline: 16px;
+}
+.skin-lower-primary .step-shell {
+  border-radius: 24px;
+}
+.skin-lower-primary .btn-gold,
+.skin-lower-primary .btn-gold-outline {
+  border-radius: 16px;
+  min-height: 48px;
+  font-size: 16px;
+}
+.skin-lower-primary .mistake-hint-box {
+  border-radius: 20px;
+}
+.skin-lower-primary .results-dark {
+  border-radius: 28px;
+}
+.skin-lower-primary .results-dark-card {
+  border-radius: 20px;
+}
 
 /* Our Story marketing page */
 .marketing-page {

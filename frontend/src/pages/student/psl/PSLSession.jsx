@@ -17,6 +17,8 @@ import WorkingCanvas from '../../../components/learning/WorkingCanvas';
 import { getVoiceScripts } from './utils/voiceScripts';
 import { confettiBurst } from '../../../utils/confetti';
 import { playCorrect, playWin, isVoiceEnabled, setVoiceEnabled } from '../../../utils/sound';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
 const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
@@ -43,6 +45,8 @@ function UnderstandStep({ choices, onSelect, selectedIndex }) {
 export default function PSLSession() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
@@ -460,7 +464,7 @@ export default function PSLSession() {
   };
 
   return (
-    <div className="bg-dot-grid min-h-screen pb-8">
+    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
       <div className="mx-auto max-w-[1180px] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-10">
         {/* Step shell */}
         <div className="step-shell !p-4 sm:!p-[22px_26px_26px]">

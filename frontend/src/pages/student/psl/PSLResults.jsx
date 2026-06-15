@@ -9,6 +9,8 @@ import { getMisconception } from './utils/misconceptions';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 import { confettiBurst } from '../../../utils/confetti';
 import { playWin } from '../../../utils/sound';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
 /* ─── Step labels ─────────────────────────────────────────────── */
 const STEP_FRIENDLY_LABELS = {
@@ -159,6 +161,8 @@ function ProblemCard({ attempt, problem, index }) {
 export default function PSLResults() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -200,7 +204,7 @@ export default function PSLResults() {
   const misconceptions = Object.entries(summary.misconceptionCounts || {});
 
   return (
-    <div className="bg-dot-grid min-h-screen pb-8">
+    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
       <div className="mx-auto max-w-[1180px] px-6 pt-6 sm:px-10">
 
         {/* ── Hero (dark panel) ──────────────────────────────── */}
