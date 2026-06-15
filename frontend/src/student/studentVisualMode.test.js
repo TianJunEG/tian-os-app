@@ -9,10 +9,10 @@ describe('student visual mode resolver', () => {
   it('defaults lower primary students to lower_primary', () => {
     expect(resolveStudentVisualMode({ level: 'Primary 1' })).toBe(STUDENT_VISUAL_MODES.LOWER_PRIMARY);
     expect(resolveStudentVisualMode({ level: 'P3' })).toBe(STUDENT_VISUAL_MODES.LOWER_PRIMARY);
-    expect(resolveStudentVisualMode({ level: 'Primary 4' })).toBe(STUDENT_VISUAL_MODES.LOWER_PRIMARY);
   });
 
   it('defaults upper primary students to upper_primary', () => {
+    expect(resolveStudentVisualMode({ level: 'Primary 4' })).toBe(STUDENT_VISUAL_MODES.UPPER_PRIMARY);
     expect(resolveStudentVisualMode({ level: 'P5' })).toBe(STUDENT_VISUAL_MODES.UPPER_PRIMARY);
     expect(resolveStudentVisualMode({ level: 'P6' })).toBe(STUDENT_VISUAL_MODES.UPPER_PRIMARY);
   });
