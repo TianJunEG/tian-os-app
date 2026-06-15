@@ -215,6 +215,26 @@ router.post('/bulk', protect, asyncHandler(async (req, res) => {
       });
     }
 
+    // Link each new mistake to the most recent unresolved mistake for the same skill.
+    if (docs.length) {
+      const skillIds = [...new Set(docs.map((d) => d.skillId).filter(Boolean))];
+      const existing = skillIds.length
+        ? await Mistake.find(
+            { studentId: student._id, skillId: { $in: skillIds }, status: { $ne: 'resolved' } },
+            { _id: 1, skillId: 1 },
+            { sort: { createdAt: -1 } },
+          )
+        : [];
+      const originBySkill = new Map();
+      for (const m of existing) {
+        const key = String(m.skillId);
+        if (!originBySkill.has(key)) originBySkill.set(key, m._id);
+      }
+      for (const doc of docs) {
+        doc.originMistakeId = (doc.skillId && originBySkill.get(String(doc.skillId))) || null;
+      }
+    }
+
     const created = docs.length ? await Mistake.insertMany(docs, { ordered: false }) : [];
     console.info('[mistakes] created', {
       studentId: String(student._id),
