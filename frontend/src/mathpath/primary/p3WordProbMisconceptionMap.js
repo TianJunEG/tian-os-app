@@ -7,7 +7,7 @@ const misconceptions = [
     visualScaffold: 'bar_model_operation_guide',
     recheckPattern: 'Solve a sharing word problem and explain which operation you used.',
     parentNote: 'Ask your child: "What do we know? What do we need to find?" before choosing +, −, ×, or ÷. Avoid teaching keyword-based strategies.',
-    relatedSkills: ['P3-WP-01', 'P3-WP-02'],
+    relatedSkills: ['P3-WP-01', 'P3-WP-02', 'P3-WP-03'],
   },
   {
     tag: 'misreads_question',
@@ -17,7 +17,17 @@ const misconceptions = [
     visualScaffold: 'highlight_question_sentence',
     recheckPattern: 'Solve a word problem and underline what the question asks for.',
     parentNote: 'Teach your child to circle or underline the question sentence. Ask: "What exactly does the problem want you to find?"',
-    relatedSkills: ['P3-WP-01', 'P3-WP-02'],
+    relatedSkills: ['P3-WP-01', 'P3-WP-02', 'P3-WP-03'],
+  },
+  {
+    tag: 'op/model-wrong-parts',
+    label: 'Confuses which bar represents part vs whole',
+    description: 'Reads the bar model correctly but picks the wrong segment — adds two parts when asked for a missing part, or uses the wrong bar in a comparison model.',
+    remediationExplanation: 'Trace your finger along the whole bar first. The full length is the total. If one part has a "?" it is the missing piece — subtract the known part from the total to find it.',
+    visualScaffold: 'bar_model_part_whole_annotated',
+    recheckPattern: 'Label the "whole" and each "part" on a bar model, then write the equation.',
+    parentNote: 'Ask your child: "Which bar shows the total?" and "Which part is missing?" before writing any calculation. Connecting the model structure to the equation is the key habit.',
+    relatedSkills: ['P3-WP-03'],
   },
   {
     tag: 'remainder_in_context',
