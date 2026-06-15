@@ -3,6 +3,8 @@
 // persisted in localStorage. The AudioContext is created lazily on first use
 // (which happens inside a click handler, satisfying autoplay policies).
 
+import { isKokoroSupported, loadKokoro, kokoroSpeak, stopKokoro } from './kokoroTTS';
+
 let ctx = null;
 let muted = false;
 try {
@@ -82,17 +84,65 @@ export const setVoiceEnabled = (value) => {
   } catch { /* ignore */ }
 };
 
-export const speak = (text) => {
-  if (!voiceEnabled || muted || typeof window === 'undefined') return;
+// Best-effort gender hints found in common system voice names (macOS, Windows,
+// Chrome/Android). Used to pick a fitting voice per mascot; we always fall back
+// to any English voice, and pitch still differentiates mascots if the OS only
+// exposes one voice.
+const MALE_VOICE_HINTS = ['male', 'daniel', 'alex', 'fred', 'rishi', 'aaron', 'oliver', 'arthur', 'gordon'];
+const FEMALE_VOICE_HINTS = ['female', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona', 'serena', 'zira', 'martha'];
+
+const pickVoice = (voices, gender) => {
+  const en = voices.filter((v) => v.lang && v.lang.startsWith('en'));
+  if (!en.length) return null;
+  const hints = gender === 'male' ? MALE_VOICE_HINTS : FEMALE_VOICE_HINTS;
+  const match = en.find((v) => hints.some((h) => v.name.toLowerCase().includes(h)));
+  return match || en[0];
+};
+
+// Web Speech API (browser built-in) path — instant, but voices vary per device.
+const webSpeechSpeak = (text, opts = {}) => {
   const synth = window.speechSynthesis;
   if (!synth) return;
   synth.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.9;
-  utterance.pitch = 1.1;
+  utterance.rate = opts.rate ?? 0.9;
+  utterance.pitch = opts.pitch ?? 1.1;
   const voices = synth.getVoices();
-  const preferred = voices.find((v) => v.lang.startsWith('en') && v.name.includes('Female'))
-    || voices.find((v) => v.lang.startsWith('en'));
+  const preferred = pickVoice(voices, opts.gender || 'female');
   if (preferred) utterance.voice = preferred;
   synth.speak(utterance);
+};
+
+// Kokoro (neural, consistent across devices) is preferred once its model has
+// finished loading; until then — and on any failure — we use Web Speech so the
+// first line is never silent. Opt out for testing via localStorage ttsEngine.
+let kokoroReady = false;
+let kokoroWarming = false;
+const kokoroAllowed = () => {
+  if (!isKokoroSupported()) return false;
+  try { return localStorage.getItem('ttsEngine') !== 'webspeech'; } catch { return true; }
+};
+const warmKokoro = () => {
+  if (kokoroReady || kokoroWarming) return;
+  kokoroWarming = true;
+  loadKokoro().then(() => { kokoroReady = true; }).catch(() => {}).finally(() => { kokoroWarming = false; });
+};
+
+// speak(text, opts?) — opts: { gender, pitch, rate, kokoro } (e.g. from
+// getMascotVoice). Backward compatible: speak(text) keeps the default voice.
+export const speak = (text, opts = {}) => {
+  if (!voiceEnabled || muted || typeof window === 'undefined') return;
+  // Interrupt whatever is currently speaking on either engine.
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  stopKokoro();
+
+  if (kokoroAllowed()) {
+    if (kokoroReady) {
+      kokoroSpeak(text, { voice: opts.kokoro || 'af_heart', speed: opts.rate ?? 1 })
+        .catch(() => webSpeechSpeak(text, opts));
+      return;
+    }
+    warmKokoro(); // load in the background; speak now via Web Speech
+  }
+  webSpeechSpeak(text, opts);
 };

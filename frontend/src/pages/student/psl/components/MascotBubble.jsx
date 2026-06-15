@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import MascotAvatar from '../../../../components/MascotAvatar';
-import { getMascot } from '../../../../config/mascots';
+import { getMascot, getMascotVoice } from '../../../../config/mascots';
 import { speak } from '../../../../utils/sound';
 
 export default function MascotBubble({ text, mascotKey = 'lejo' }) {
@@ -9,7 +9,7 @@ export default function MascotBubble({ text, mascotKey = 'lejo' }) {
   useEffect(() => {
     if (text && text !== spokenRef.current) {
       spokenRef.current = text;
-      speak(text);
+      speak(text, getMascotVoice(mascotKey));
     }
   }, [text]);
 
