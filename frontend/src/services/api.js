@@ -218,6 +218,7 @@ export const mathpathAPI = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   paperAnalysis: (id) => api.get(`/mathpath/paper-analysis/${id}`),
+  confirmOcrAnalysis: (id, data) => api.post(`/mathpath/paper-analysis/${id}/confirm-ocr`, data),
   reviewPaperAnalysis: (id, data) => api.patch(`/mathpath/paper-analysis/${id}/review`, data),
   assignPaperAnalysisPractice: (id, data = {}) => api.post(`/mathpath/paper-analysis/${id}/assign-practice`, data),
   createPaperAnalysisRecheck: (id, data = {}) => api.post(`/mathpath/paper-analysis/${id}/create-recheck`, data),

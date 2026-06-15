@@ -12,6 +12,8 @@ export const PAPER_ANALYSIS_STATUS = [
   'processing',
   'ocr_complete',
   'questions_detected',
+  'needs_ocr_confirmation', // pipeline paused — parent/tutor must correct uncertain fields
+  'questions_confirmed',    // corrections applied — skill mapping about to run
   'skills_mapped',
   'needs_review',
   'reviewed',
@@ -47,6 +49,7 @@ const detectedQuestionSchema = new mongoose.Schema(
     misconceptionEvidence: { type: [String], default: [] },
     confidence: { type: Number, default: 0, min: 0, max: 1 },
     needsAdultReview: { type: Boolean, default: true },
+    humanCorrected: { type: Boolean, default: false }, // true when parent/tutor edited this question
     dataQualityWarnings: { type: [String], default: [] },
   },
   { _id: false }
