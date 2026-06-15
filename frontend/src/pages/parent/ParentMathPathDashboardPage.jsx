@@ -7,6 +7,7 @@ import ChildNav from './ChildNav';
 import { useChild } from './useChild';
 import { mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
+import { FEATURE_FLAGS } from '../../config/featureFlags';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
@@ -336,7 +337,7 @@ function AssessmentProgressCard({ assessment, onStartBaseline }) {
         </div>
       ) : (
         <div className="mt-2 space-y-3">
-          <p className="text-sm text-ink-600">Take a baseline assessment to measure your child’s current fraction readiness.</p>
+          <p className="text-sm text-ink-600">{FEATURE_FLAGS.assessments ? "Take a baseline assessment to measure your child’s current fraction readiness." : ‘Baseline assessments are coming soon.’}</p>
           {FEATURE_FLAGS.assessments && <Button size="s" icon={FileText} onClick={onStartBaseline}>Start Baseline Assessment</Button>}
         </div>
       )}
@@ -564,7 +565,7 @@ export default function ParentMathPathDashboardPage() {
             <RetentionSummaryCard retention={summary.retentionSummary || {}} />
             <AssessmentProgressCard
               assessment={summary.assessmentSummary || {}}
-              onStartBaseline={() => navigate('/student/mathpath/assessment')}
+              onStartBaseline={FEATURE_FLAGS.assessments ? () => navigate('/student/mathpath/assessment') : null}
             />
             <WorkingQualityCard
               working={summary.workingSummary || {}}

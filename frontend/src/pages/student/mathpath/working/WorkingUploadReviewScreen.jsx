@@ -74,6 +74,12 @@ export default function WorkingUploadReviewScreen() {
     [questionRefs]
   );
 
+  const hasSessionAnchor = Boolean(state.workingSessionId || state.practiceSessionId || state.assessmentSessionId);
+
+  if (!hasSessionAnchor) {
+    return <ErrorState message="Couldn't find a working session. Start from practice or assessment summary." onRetry={() => navigate('/student/mathpath', { replace: true })} />;
+  }
+
   if (!displayFiles.length && !Object.values(noWorkingChecked).some(Boolean) && !hasExistingWorkingDecision) {
     return <ErrorState message="No working files to review yet." onRetry={() => navigate('/student/mathpath/working/upload', { replace: true, state })} />;
   }
