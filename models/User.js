@@ -134,6 +134,8 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpire: { type: Date, select: false },
 });
 
+userSchema.index({ linkedTo: 1 });
+
 // Hash password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
