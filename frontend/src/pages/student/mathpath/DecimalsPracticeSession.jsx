@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
+import { MascotBubble } from '../../../components/MascotAvatar';
 
 // Interactive Decimals practice session. Pulls a server-built question set
 // (answers stripped) from /api/mathpath/decimals/practice/start, collects
@@ -126,9 +127,15 @@ export default function DecimalsPracticeSession() {
   }
 
   if (result) {
+    const kyloMessage = result.accuracyPercentage >= 80
+      ? `${result.accuracyPercentage}% — outstanding work on decimals!`
+      : result.accuracyPercentage >= 50
+        ? `${result.accuracyPercentage}% — solid effort! Review the skills below to level up.`
+        : `${result.accuracyPercentage}% this round. Every practice makes you stronger!`;
     return (
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <PageHeader title="Practice complete" subtitle={`You scored ${result.correct}/${result.total} (${result.accuracyPercentage}%).`} />
+        <MascotBubble name="kylo" message={kyloMessage} size="sm" className="mb-2" />
         <Card className="p-5">
           <ProgressBar value={result.correct} max={result.total || 1} />
           <div className="mt-4 space-y-2">

@@ -252,7 +252,7 @@ async function upsertPilotStudent({ spec, adults, skills }) {
   user.name = spec.name;
   user.role = 'student';
   user.roles = ['student'];
-  user.is_test_account = true;
+  user.is_test_account = false;
   user.linkedTo = adults.parent._id;
   user.defaultWorkspace = adults.parentWorkspace._id;
   user.password = PASSWORD;
