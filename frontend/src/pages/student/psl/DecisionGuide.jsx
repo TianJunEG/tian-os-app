@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Lightbulb, RotateCcw } from 'lucide-react';
-import { Card } from '../../../components/ui';
 
 const QUESTIONS = [
   {
@@ -43,21 +42,21 @@ const QUESTIONS = [
 
 const FALLBACK = { heuristic: 'guess-check', label: 'H5: Guess and Check' };
 
-const HEURISTIC_COLORS = {
-  'bar-model': 'from-blue-500 to-blue-600',
-  'find-pattern': 'from-cyan-500 to-cyan-600',
-  'substitution': 'from-purple-500 to-purple-600',
-  'make-list': 'from-amber-500 to-amber-600',
-  'guess-check': 'from-rose-500 to-rose-600',
-  'work-backwards': 'from-emerald-500 to-emerald-600',
+const HEURISTIC_CHIP_STYLES = {
+  'find-pattern': { background: '#e0f7fa', color: '#00838f' },
+  'make-list': { background: '#fbf1e1', color: '#b06f1f' },
+  'substitution': { background: '#f0e8fb', color: '#7c3aed' },
+  'work-backwards': { background: '#f3faf6', color: '#1f9d57' },
+  'bar-model': { background: '#e8f0fb', color: '#2f80d8' },
 };
 
-const HEURISTIC_CHIP_COLORS = {
-  'find-pattern': 'bg-cyan-100 text-cyan-700',
-  'make-list': 'bg-amber-100 text-amber-700',
-  'substitution': 'bg-purple-100 text-purple-700',
-  'work-backwards': 'bg-emerald-100 text-emerald-700',
-  'bar-model': 'bg-blue-100 text-blue-700',
+const HEURISTIC_RESULT_BG = {
+  'bar-model': '#2f80d8',
+  'find-pattern': '#0097a7',
+  'substitution': '#7c3aed',
+  'make-list': '#d9892e',
+  'guess-check': '#d8694f',
+  'work-backwards': '#1f9d57',
 };
 
 const HEURISTIC_DESCRIPTIONS = {
@@ -77,24 +76,30 @@ function ProgressDots({ currentIndex, answers, result }) {
         const isActive = !result && i === currentIndex;
         const wasYes = result && i === answers.length - 1 && answers[i];
 
+        let bg = '#eef0f4';
+        let color = '#8a93a3';
+        let ring = '';
+        let scale = '';
+
+        if (wasYes) {
+          bg = '#1f9d57'; color = '#fff'; scale = 'scale-110';
+        } else if (isActive) {
+          bg = '#d9892e'; color = '#fff'; ring = 'ring-2 ring-[#fbf1e1]'; scale = 'scale-110';
+        } else if (answered) {
+          bg = '#dde1e8'; color = '#8a93a3';
+        }
+
         return (
           <div
             key={i}
-            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-200 ${
-              wasYes
-                ? 'scale-110 bg-emerald-500 text-white'
-                : isActive
-                  ? 'scale-110 bg-gold-400 text-white ring-2 ring-gold-200'
-                  : answered
-                    ? 'bg-ink-200 text-ink-400'
-                    : 'bg-ink-100 text-ink-300'
-            }`}
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all duration-200 ${ring} ${scale}`}
+            style={{ background: bg, color }}
           >
             {wasYes ? '✓' : answered && !isActive ? '✗' : i + 1}
           </div>
         );
       })}
-      <span className="ml-1 text-xs font-medium text-ink-400">
+      <span className="ml-1 text-xs font-medium" style={{ color: '#8a93a3' }}>
         {result
           ? result === FALLBACK ? 'None matched' : 'Found it!'
           : `Step ${currentIndex + 1} of ${QUESTIONS.length}`}
@@ -138,82 +143,107 @@ export default function DecisionGuide() {
   const current = QUESTIONS[currentIndex];
 
   return (
-    <div className="mx-auto max-w-lg space-y-4 p-4 pb-6 sm:p-6">
-      <button
-        onClick={() => navigate('/student/psl')}
-        className="flex items-center gap-1.5 text-sm font-medium text-ink-400 hover:text-ink-600"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Problem Solving Lab
-      </button>
+    <div className="bg-dot-grid min-h-screen pb-8">
+      <div className="mx-auto max-w-lg space-y-4 px-3 pt-4 pb-6 sm:px-6 sm:pt-6">
 
-      <h1 className="text-lg font-bold text-ink-800">Which heuristic fits?</h1>
-
-      <ProgressDots currentIndex={currentIndex} answers={answers} result={result} />
-
-      {/* Question or result */}
-      <div aria-live="polite">
-        {!result ? (
-          <Card className="space-y-4 p-5">
-            {/* Heuristic chip */}
-            <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${HEURISTIC_CHIP_COLORS[current.heuristic]}`}>
-              {current.label}
-            </span>
-
-            {/* Child-friendly question */}
-            <p className="text-base font-bold leading-snug text-ink-800 sm:text-lg">
-              {current.friendly}
-            </p>
-
-            {/* Hint */}
-            <div className="flex items-start gap-2 rounded-lg bg-ink-50 px-3 py-2.5">
-              <Lightbulb className="mt-0.5 h-4 w-4 flex-none text-gold-500" />
-              <p className="text-xs leading-relaxed text-ink-500">{current.hint}</p>
-            </div>
-
-            {/* Yes / No buttons */}
-            <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
-              <button
-                ref={yesRef}
-                onClick={() => handleAnswer(true)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-ink-200 bg-white px-4 py-3.5 text-sm font-bold transition-colors hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-              >
-                <CheckCircle2 className="h-5 w-5" />
-                Yes!
-              </button>
-              <button
-                onClick={() => handleAnswer(false)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-ink-200 bg-white px-4 py-3.5 text-sm font-bold transition-colors hover:border-rose-400 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
-              >
-                <XCircle className="h-5 w-5" />
-                Nope
-              </button>
-            </div>
-          </Card>
-        ) : (
-          <div className={`rounded-2xl bg-gradient-to-br ${HEURISTIC_COLORS[result.heuristic]} p-5 text-white`}>
-            <p className="mb-1 text-xs font-bold uppercase tracking-wider opacity-80">
-              {result === FALLBACK ? 'No worries — try this' : 'Use this heuristic'}
-            </p>
-            <h2 className="mb-2 text-xl font-bold">{result.label}</h2>
-            <p className="mb-4 text-sm opacity-90">{HEURISTIC_DESCRIPTIONS[result.heuristic]}</p>
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-              <button
-                onClick={() => navigate(`/student/psl?heuristic=${result.heuristic}`)}
-                className="rounded-xl bg-white/20 px-4 py-2.5 text-sm font-bold backdrop-blur-sm transition-colors hover:bg-white/30"
-              >
-                Practice this heuristic &rarr;
-              </button>
-              <button
-                onClick={reset}
-                className="flex items-center justify-center gap-1.5 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold transition-colors hover:bg-white/20"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Start over
-              </button>
-            </div>
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/student/psl')}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors"
+            style={{ border: '1px solid #dde1e8', background: '#fff' }}
+          >
+            <ArrowLeft className="h-4 w-4" style={{ color: '#5a6675' }} />
+          </button>
+          <div>
+            <h1 className="text-lg font-bold sm:text-xl" style={{ color: '#232c39' }}>Which heuristic fits?</h1>
+            <p className="text-sm" style={{ color: '#6b7585' }}>Answer yes or no to find out</p>
           </div>
-        )}
+        </div>
+
+        <ProgressDots currentIndex={currentIndex} answers={answers} result={result} />
+
+        {/* Question or result */}
+        <div aria-live="polite">
+          {!result ? (
+            <div className="step-shell space-y-4 !p-5">
+              {/* Heuristic chip */}
+              <span
+                className="inline-block rounded-full px-3 py-1 text-xs font-bold"
+                style={HEURISTIC_CHIP_STYLES[current.heuristic] || { background: '#eef0f4', color: '#5a6675' }}
+              >
+                {current.label}
+              </span>
+
+              {/* Child-friendly question */}
+              <p className="text-base font-bold leading-snug sm:text-lg" style={{ color: '#232c39' }}>
+                {current.friendly}
+              </p>
+
+              {/* Hint */}
+              <div className="mistake-hint-box flex items-start gap-2 !p-3">
+                <Lightbulb className="mt-0.5 h-4 w-4 flex-none" style={{ color: '#d9892e' }} />
+                <p className="text-xs leading-relaxed" style={{ color: '#5a6675' }}>{current.hint}</p>
+              </div>
+
+              {/* Yes / No buttons */}
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
+                <button
+                  ref={yesRef}
+                  onClick={() => handleAnswer(true)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f9d57]"
+                  style={{ border: '2px solid #dde1e8', background: '#fff', color: '#232c39' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#1f9d57'; e.currentTarget.style.background = '#f3faf6'; e.currentTarget.style.color = '#1f9d57'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#dde1e8'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#232c39'; }}
+                >
+                  <CheckCircle2 className="h-5 w-5" />
+                  Yes!
+                </button>
+                <button
+                  onClick={() => handleAnswer(false)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d8694f]"
+                  style={{ border: '2px solid #dde1e8', background: '#fff', color: '#232c39' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#d8694f'; e.currentTarget.style.background = '#fbece9'; e.currentTarget.style.color = '#d8694f'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#dde1e8'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#232c39'; }}
+                >
+                  <XCircle className="h-5 w-5" />
+                  Nope
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="rounded-2xl p-5 text-white"
+              style={{ background: HEURISTIC_RESULT_BG[result.heuristic] || '#5a6675' }}
+            >
+              <p className="mono-label mb-1" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                {result === FALLBACK ? 'No worries — try this' : 'Use this heuristic'}
+              </p>
+              <h2 className="mb-2 text-xl font-bold">{result.label}</h2>
+              <p className="mb-4 text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                {HEURISTIC_DESCRIPTIONS[result.heuristic]}
+              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                <button
+                  onClick={() => navigate(`/student/psl?heuristic=${result.heuristic}`)}
+                  className="btn-gold !text-sm"
+                >
+                  Practice this heuristic →
+                </button>
+                <button
+                  onClick={reset}
+                  className="flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-colors"
+                  style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.25)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Start over
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

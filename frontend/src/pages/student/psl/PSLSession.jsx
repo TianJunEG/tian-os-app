@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, ChevronDown, ChevronUp, Compass, Flame, HelpCircle, Pencil, Volume2, VolumeX, X } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
-import { Spinner } from '../../../components/ui';
 import StepProgressBar from './components/StepProgressBar';
 import StoryPanel from './components/StoryPanel';
 import QuestionIdentifier from './components/QuestionIdentifier';
@@ -237,7 +236,14 @@ export default function PSLSession() {
   const getStepChoices = (stepId) =>
     currentProblem?.scaffoldSteps?.find((s) => s.stepId === stepId)?.choices || [];
 
-  if (loading) return <div className="flex min-h-[40vh] items-center justify-center"><Spinner /></div>;
+  if (loading) return (
+    <div className="bg-dot-grid min-h-screen">
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#dde1e8] border-t-[#d9892e]" />
+        <p className="text-sm font-medium" style={{ color: '#6b7585' }}>Loading session…</p>
+      </div>
+    </div>
+  );
   if (!currentProblem) return <div className="p-6 text-center text-ink-500">No problem available.</div>;
 
   const canSubmit = (() => {
