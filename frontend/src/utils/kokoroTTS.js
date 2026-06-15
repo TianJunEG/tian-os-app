@@ -9,6 +9,7 @@ const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
 let ttsPromise = null;   // cached load promise (singleton)
 let currentAudio = null; // in-flight playback, so a new line can interrupt
+let currentUrl = null;   // object URL backing currentAudio, revoked on stop/end
 
 export function isKokoroSupported() {
   return typeof window !== 'undefined'
@@ -35,6 +36,10 @@ export function stopKokoro() {
     try { currentAudio.pause(); } catch { /* ignore */ }
     currentAudio = null;
   }
+  if (currentUrl) {
+    URL.revokeObjectURL(currentUrl); // free the blob even when interrupted (not just on 'ended')
+    currentUrl = null;
+  }
 }
 
 // Generate + play. Resolves once playback starts; rejects if the model isn't
@@ -43,11 +48,15 @@ export async function kokoroSpeak(text, { voice = 'af_heart', speed = 1 } = {}) 
   const tts = await loadKokoro();
   const audio = await tts.generate(text, { voice, speed });
   const blob = audio.toBlob();
+  stopKokoro(); // pause + revoke any previous clip before starting a new one
   const url = URL.createObjectURL(blob);
-  stopKokoro();
   const el = new Audio(url);
   currentAudio = el;
-  el.addEventListener('ended', () => URL.revokeObjectURL(url), { once: true });
+  currentUrl = url;
+  el.addEventListener('ended', () => {
+    URL.revokeObjectURL(url);
+    if (currentUrl === url) currentUrl = null;
+  }, { once: true });
   await el.play();
   return blob.size;
 }
