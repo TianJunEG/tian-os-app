@@ -13,11 +13,50 @@ const MEDIA_TYPES = {
   'image/webp': 'image/webp'
 };
 
+// Transient provider statuses worth retrying: 429 (rate limit), 529 (Anthropic
+// overloaded), and 500/502/503/504 (gateway/service blips). Anything else (auth,
+// bad request, refusal) is permanent and should surface immediately.
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504, 529]);
+const MAX_AI_RETRIES = Number(process.env.WORKSHEET_AI_MAX_RETRIES || 4);
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Honour a Retry-After header when the provider sends one (seconds or HTTP date);
+// otherwise fall back to exponential backoff with full jitter.
+function backoffDelayMs(err, attempt) {
+  const header = err?.headers?.['retry-after'] ?? err?.headers?.get?.('retry-after');
+  if (header != null) {
+    const seconds = Number(header);
+    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds * 1000, 30000);
+    const at = Date.parse(header);
+    if (!Number.isNaN(at)) return Math.max(0, Math.min(at - Date.now(), 30000));
+  }
+  const base = Math.min(1000 * 2 ** attempt, 16000);
+  return Math.round(base * (0.5 + Math.random() * 0.5));
+}
+
+// Call the provider, retrying transient rate-limit / overload errors with backoff.
+// Without this a burst of concurrent students hits provider 429s and fails hard;
+// the SDK's own retries are limited and not tuned for this load.
+async function completeWithRetry(provider, opts) {
+  let lastErr;
+  for (let attempt = 0; attempt <= MAX_AI_RETRIES; attempt += 1) {
+    try {
+      return await provider.complete(opts);
+    } catch (err) {
+      lastErr = err;
+      if (!RETRYABLE_STATUSES.has(err?.status) || attempt === MAX_AI_RETRIES) throw err;
+      await sleep(backoffDelayMs(err, attempt));
+    }
+  }
+  throw lastErr;
+}
+
 // Run one structured call through the active provider and turn its neutral
 // outcome into the worksheet flow's HTTP-status errors / parsed JSON.
 async function callStructured({ model, system, messages, schema, effort, maxTokens }) {
   const provider = getActiveProvider();
-  const { text, stop } = await provider.complete({ model, system, messages, schema, effort, maxTokens });
+  const { text, stop } = await completeWithRetry(provider, { model, system, messages, schema, effort, maxTokens });
 
   if (stop === 'refusal') {
     const err = new Error('The model declined this request.');
