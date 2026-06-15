@@ -1,5 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
@@ -16,9 +17,16 @@ const router = express.Router();
 // Student record's level here. We prefer it over the denormalised
 // User.studentLevel, which can drift (e.g. demo.student: User="P1" but the
 // learner record says "Primary 4").
-async function resolveStudentLevel(user) {
+//
+// A child can have a Student record in more than one workspace (school + tutor),
+// possibly at different levels, so scope to the active workspace when one is
+// supplied (the X-Workspace-Id header on /me). At login there is no active
+// workspace yet; sort by createdAt so the fallback record is at least stable.
+async function resolveStudentLevel(user, workspaceId) {
   if (user?.role !== 'student') return user?.studentLevel || '';
-  const student = await Student.findOne({ userId: user._id }).select('level').lean();
+  const query = { userId: user._id };
+  if (workspaceId && mongoose.isValidObjectId(workspaceId)) query.workspaceId = workspaceId;
+  const student = await Student.findOne(query).select('level').sort({ createdAt: 1 }).lean();
   return student?.level || user?.studentLevel || '';
 }
 
@@ -147,7 +155,7 @@ router.get('/me', protect, asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     const userObj = user.toObject();
-    userObj.studentLevel = await resolveStudentLevel(user);
+    userObj.studentLevel = await resolveStudentLevel(user, req.headers['x-workspace-id']);
     res.json({ success: true, user: userObj });
   } catch (error) {
     res.status(500).json({ error: error.message });

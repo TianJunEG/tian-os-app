@@ -80,19 +80,69 @@ export function registerApiErrorHandler(fn) {
   apiErrorHandler = typeof fn === 'function' ? fn : null;
 }
 
+// Recover from a stale/orphaned active workspace, shared across concurrent
+// requests: a single /context round-trip re-resolves a valid workspace, writes
+// it to localStorage, and notifies WorkspaceContext. Memoized so a burst of
+// workspace-scoped 4xx errors doesn't stampede /context with one recovery each.
+// Resolves to the new workspace id (caller should retry) or null if there was
+// nothing better to switch to (so a genuine permission error still surfaces).
+let workspaceRecovery = null;
+function recoverWorkspace() {
+  if (!workspaceRecovery) {
+    workspaceRecovery = (async () => {
+      const { data } = await contextAPI.get();
+      const list = data.workspaces || [];
+      const current = localStorage.getItem('tianos.workspaceId');
+      const stillValid = current && list.some((w) => String(w.id) === String(current));
+      const nextId = stillValid ? null : (data.defaultWorkspaceId || list[0]?.id || null);
+      if (!nextId || String(nextId) === String(current)) return null;
+      localStorage.setItem('tianos.workspaceId', nextId);
+      // Let WorkspaceContext re-sync its state + the workspace switcher label.
+      window.dispatchEvent(new CustomEvent('tianos:workspace-recovered', { detail: { workspaceId: nextId } }));
+      return nextId;
+    })().finally(() => { workspaceRecovery = null; });
+  }
+  return workspaceRecovery;
+}
+
 // Handle errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const status = error.response?.status;
+    const serverError = error.response?.data?.error || '';
+    const config = error.config || {};
     // Attach a consistent, user-facing message to every rejection so callers can
     // surface `error.userMessage` instead of inventing their own copy.
     error.userMessage = describeApiError(error);
+
+    // Recover from a stale/orphaned active workspace. Workspace-scoped pages send
+    // X-Workspace-Id from localStorage, which can point at a workspace that was
+    // deleted or that the user is no longer a member of — or it can briefly lose
+    // a race with WorkspaceContext on a hard navigation. Rather than dead-ending
+    // on "Couldn't load…", re-resolve a valid workspace once and retry. We only
+    // retry when we can pick a *different* valid workspace, so a genuine
+    // permission error (stored workspace is valid but lacks access) still surfaces.
+    const isWorkspaceError =
+      (status === 403 && /not a member of this workspace/i.test(serverError)) ||
+      (status === 400 && /no active workspace/i.test(serverError));
+    if (isWorkspaceError && !config._wsRetried) {
+      config._wsRetried = true;
+      try {
+        // The retried request re-runs the request interceptor, which re-reads the
+        // corrected workspace id from localStorage — no need to set the header here.
+        if (await recoverWorkspace()) return api(config);
+      } catch (_) {
+        // Could not re-resolve (e.g. /context failed); fall through to the
+        // normal error handling below.
+      }
+    }
+
     if (status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     } else if ((status === 429 || (typeof status === 'number' && status >= 500))
-      && !error.config?.skipErrorToast && apiErrorHandler) {
+      && !config.skipErrorToast && apiErrorHandler) {
       // Server/rate-limit errors otherwise fail silently (blank/stale screens).
       // Surface a single throttled toast; control-flow 4xx are left to callers.
       apiErrorHandler({ message: error.userMessage, status });

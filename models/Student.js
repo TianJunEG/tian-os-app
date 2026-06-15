@@ -24,5 +24,8 @@ const studentSchema = new mongoose.Schema({
 studentSchema.index({ workspaceId: 1 });
 studentSchema.index({ workspaceId: 1, name: 1 });
 studentSchema.index({ createdByUserId: 1 });
+// Resolving a student's learner record by their login (auth /me, login) and
+// scoping it to the active workspace.
+studentSchema.index({ userId: 1, workspaceId: 1 });
 
 export default mongoose.model('Student', studentSchema);

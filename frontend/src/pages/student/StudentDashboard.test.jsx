@@ -39,6 +39,9 @@ vi.mock('../../services/api', () => ({
     studentAnalytics: (...args) => studentAnalytics(...args),
     recordEvent: (...args) => recordEvent(...args),
   },
+  diagnosticsAPI: {
+    domains: vi.fn().mockResolvedValue({ data: { domains: [{ subjectId: 'math', domainId: 'fractions', displayName: 'Fractions' }] } }),
+  },
 }));
 
 vi.mock('../../mathpath/orchestration/mathPathDomainOrchestrator', () => ({

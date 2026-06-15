@@ -46,6 +46,15 @@ export function WorkspaceProvider({ children }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // The api interceptor recovers from an orphaned active workspace by writing a
+  // valid id to localStorage and emitting this event; re-load so our state and
+  // the workspace switcher label reflect the recovered workspace.
+  useEffect(() => {
+    const onRecovered = () => { load(); };
+    window.addEventListener('tianos:workspace-recovered', onRecovered);
+    return () => window.removeEventListener('tianos:workspace-recovered', onRecovered);
+  }, [load]);
+
   function resolveRoleForWorkspace(wsRole, candidateRoles) {
     if (wsRole && candidateRoles.includes(wsRole)) return wsRole;
     if (activeRole && candidateRoles.includes(activeRole)) return activeRole;
