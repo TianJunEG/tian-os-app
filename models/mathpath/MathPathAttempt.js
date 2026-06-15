@@ -82,6 +82,7 @@ const mathPathAttemptSchema = new mongoose.Schema(
 
 mathPathAttemptSchema.index({ attemptId: 1 }, { unique: true, sparse: true });
 mathPathAttemptSchema.index({ studentId: 1, domainId: 1 });
+mathPathAttemptSchema.index({ studentId: 1, domainId: 1, createdAt: -1 });
 mathPathAttemptSchema.index({ studentId: 1, skillId: 1 });
 mathPathAttemptSchema.index({ questionFamilyId: 1 });
 mathPathAttemptSchema.index({ sessionId: 1 });

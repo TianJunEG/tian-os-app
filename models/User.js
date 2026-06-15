@@ -150,4 +150,6 @@ userSchema.methods.comparePassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+userSchema.index({ linkedTo: 1, role: 1 });
+
 export default mongoose.model('User', userSchema);

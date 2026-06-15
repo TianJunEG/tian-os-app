@@ -194,5 +194,7 @@ const worksheetSchema = new mongoose.Schema({
 worksheetSchema.index({ userId: 1, createdAt: -1 });
 worksheetSchema.index({ userId: 1, nextDueAt: 1 });
 worksheetSchema.index({ studentId: 1, createdAt: -1 });
+worksheetSchema.index({ studentId: 1, sourceMode: 1, createdAt: -1 });
+worksheetSchema.index({ linkedAssignmentId: 1 });
 
 export default mongoose.model('Worksheet', worksheetSchema);
