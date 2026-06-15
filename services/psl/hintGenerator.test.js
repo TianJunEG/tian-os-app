@@ -4,45 +4,45 @@ import { getHintsForStep } from './hintGenerator.js';
 describe('getHintsForStep — generic step hints', () => {
   it('returns first hint for understand at index 0', () => {
     const r = getHintsForStep('understand', null, 0);
-    expect(r.hint).toBe('Read the story once more — what is happening? Who is involved?');
+    expect(r.hint).toEqual({ title: 'Read again', text: 'Read the story once more — what is happening? Who is involved?' });
     expect(r.hintIndex).toBe(0);
     expect(r.exhausted).toBe(false);
   });
 
   it('returns second hint for understand at index 1', () => {
     const r = getHintsForStep('understand', null, 1);
-    expect(r.hint).toBe('Think about what kind of action the story describes: combining, removing, comparing, or sharing?');
+    expect(r.hint).toEqual({ title: 'What kind of action?', text: 'Think about what kind of action the story describes: combining, removing, comparing, or sharing?' });
     expect(r.hintIndex).toBe(1);
     expect(r.exhausted).toBe(false);
   });
 
   it('returns hints for identify_info', () => {
     const r = getHintsForStep('identify_info', null, 0);
-    expect(r.hint).toContain('numbers');
+    expect(r.hint.text).toContain('numbers');
     expect(r.totalAvailable).toBe(2);
   });
 
   it('returns hints for identify_question', () => {
     const r = getHintsForStep('identify_question', null, 0);
-    expect(r.hint).toContain('last sentence');
+    expect(r.hint.text).toContain('last sentence');
     expect(r.totalAvailable).toBe(2);
   });
 
   it('returns hints for plan', () => {
     const r = getHintsForStep('plan', null, 0);
-    expect(r.hint).toContain('operation');
+    expect(r.hint.text).toContain('operation');
     expect(r.totalAvailable).toBe(2);
   });
 
   it('returns hints for solve', () => {
     const r = getHintsForStep('solve', null, 0);
-    expect(r.hint).toContain('number sentence');
+    expect(r.hint.text).toContain('number sentence');
     expect(r.totalAvailable).toBe(2);
   });
 
   it('returns hints for check', () => {
     const r = getHintsForStep('check', null, 0);
-    expect(r.hint).toContain('Read the story one more time');
+    expect(r.hint.text).toContain('Read the story one more time');
     expect(r.totalAvailable).toBe(2);
   });
 });
@@ -50,52 +50,52 @@ describe('getHintsForStep — generic step hints', () => {
 describe('getHintsForStep — heuristic-specific hints', () => {
   it('bar-model plan hints come before generic plan hints', () => {
     const r = getHintsForStep('plan', 'bar-model', 0);
-    expect(r.hint).toBe('Think about the bar model — are you looking for the whole bar, or a missing part?');
+    expect(r.hint.text).toBe('Think about the bar model — are you looking for the whole bar, or a missing part?');
     expect(r.totalAvailable).toBe(4); // 2 bar-model plan + 2 generic plan
   });
 
   it('bar-model solve prepends heuristic hints', () => {
     const r = getHintsForStep('solve', 'bar-model', 0);
-    expect(r.hint).toContain('part-whole model');
+    expect(r.hint.text).toContain('part-whole model');
     expect(r.totalAvailable).toBe(3); // 1 bar-model solve + 2 generic solve
   });
 
   it('work-backwards plan hints come first', () => {
     const r = getHintsForStep('plan', 'work-backwards', 0);
-    expect(r.hint).toContain('Start from the end result');
+    expect(r.hint.text).toContain('Start from the end result');
   });
 
   it('work-backwards solve hints come first', () => {
     const r = getHintsForStep('solve', 'work-backwards', 0);
-    expect(r.hint).toContain('undo');
+    expect(r.hint.text).toContain('undo');
   });
 
   it('ratio plan hints come first', () => {
     const r = getHintsForStep('plan', 'ratio', 0);
-    expect(r.hint).toContain('total number of parts');
+    expect(r.hint.text).toContain('total number of parts');
     expect(r.totalAvailable).toBe(4); // 2 ratio plan + 2 generic plan
   });
 
   it('guess-check plan hints come first', () => {
     const r = getHintsForStep('plan', 'guess-check', 0);
-    expect(r.hint).toContain('starting guess');
+    expect(r.hint.text).toContain('starting guess');
   });
 
   it('assumption plan hints come first', () => {
     const r = getHintsForStep('plan', 'assumption', 0);
-    expect(r.hint).toContain('assuming all items are the same type');
+    expect(r.hint.text).toContain('assuming all items are the same type');
   });
 
   it('data-interpretation identify_info hints come first', () => {
     const r = getHintsForStep('identify_info', 'data-interpretation', 0);
-    expect(r.hint).toContain('chart labels');
+    expect(r.hint.text).toContain('chart labels');
     expect(r.totalAvailable).toBe(3); // 1 data-interp + 2 generic
   });
 
   it('heuristic with no step-specific hints falls back to generic', () => {
     // bar-model has no identify_info hints
     const r = getHintsForStep('identify_info', 'bar-model', 0);
-    expect(r.hint).toContain('numbers');
+    expect(r.hint.text).toContain('numbers');
     expect(r.totalAvailable).toBe(2); // only generic
   });
 });
@@ -104,13 +104,13 @@ describe('getHintsForStep — heuristic key stripping', () => {
   it('strips colon-suffixed variant from heuristic key', () => {
     // "bar-model:comparison" should match "bar-model"
     const r = getHintsForStep('plan', 'bar-model:comparison', 0);
-    expect(r.hint).toBe('Think about the bar model — are you looking for the whole bar, or a missing part?');
+    expect(r.hint.text).toBe('Think about the bar model — are you looking for the whole bar, or a missing part?');
     expect(r.totalAvailable).toBe(4);
   });
 
   it('handles heuristic with colon but empty suffix', () => {
     const r = getHintsForStep('plan', 'ratio:', 0);
-    expect(r.hint).toContain('total number of parts');
+    expect(r.hint.text).toContain('total number of parts');
   });
 });
 
@@ -136,12 +136,12 @@ describe('getHintsForStep — 3-tier progression', () => {
       hints.push(r.hint);
     }
     // All hints are distinct
-    expect(new Set(hints).size).toBe(4);
+    expect(new Set(hints.map(h => h.text)).size).toBe(4);
     // Heuristic hints come first
-    expect(hints[0]).toContain('bar model');
-    expect(hints[1]).toContain('bars');
+    expect(hints[0].text).toContain('bar model');
+    expect(hints[1].text).toContain('bars');
     // Generic hints come after
-    expect(hints[2]).toContain('operation');
+    expect(hints[2].text).toContain('operation');
   });
 });
 
@@ -202,19 +202,21 @@ describe('getHintsForStep — edge cases', () => {
 
   it('unknown heuristic falls back to generic hints', () => {
     const r = getHintsForStep('plan', 'nonexistent-heuristic', 0);
-    expect(r.hint).toContain('operation');
+    expect(r.hint.text).toContain('operation');
     expect(r.totalAvailable).toBe(2); // generic only
   });
 
   it('null heuristic uses generic hints', () => {
     const r = getHintsForStep('solve', null, 0);
     expect(r.hint).toBeTruthy();
+    expect(r.hint.text).toBeTruthy();
     expect(r.totalAvailable).toBe(2);
   });
 
   it('undefined heuristic uses generic hints', () => {
     const r = getHintsForStep('solve', undefined, 0);
     expect(r.hint).toBeTruthy();
+    expect(r.hint.text).toBeTruthy();
     expect(r.totalAvailable).toBe(2);
   });
 
