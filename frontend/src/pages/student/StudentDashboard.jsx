@@ -1300,6 +1300,21 @@ export default function StudentDashboard() {
             </div>
           )}
 
+          {FEATURE_FLAGS.decimals && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-100">
+                  <Calculator className="h-5 w-5 text-navy-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Decimals</p>
+                  <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
+                </div>
+                <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+
           {showDiagnosticPrompt && (
             <DiagnosticPrompts domains={diagnosticDomains} containerStyle={{ marginTop: 20 }} />
           )}
@@ -1372,6 +1387,19 @@ export default function StudentDashboard() {
         />
 
         <LowerPrimaryBanner />
+
+        {FEATURE_FLAGS.decimals && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-100">
+              <Calculator className="h-5 w-5 text-navy-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Decimals</p>
+              <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
+            </div>
+            <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
 
         {showDiagnosticPrompt && (
           <DiagnosticPrompts domains={diagnosticDomains} />
@@ -1469,6 +1497,19 @@ export default function StudentDashboard() {
             <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
           </div>
           <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
+        </Card>
+      )}
+
+      {FEATURE_FLAGS.decimals && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-100">
+            <Calculator className="h-5 w-5 text-navy-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Decimals</p>
+            <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
+          </div>
+          <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
 
