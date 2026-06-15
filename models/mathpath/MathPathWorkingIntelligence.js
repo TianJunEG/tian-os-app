@@ -179,6 +179,7 @@ mathPathWorkingIntelligenceSchema.index({ mistakeId: 1 });
 mathPathWorkingIntelligenceSchema.index({ remediationId: 1 });
 mathPathWorkingIntelligenceSchema.index({ userId: 1 });
 mathPathWorkingIntelligenceSchema.index({ studentId: 1, skillId: 1 });
+mathPathWorkingIntelligenceSchema.index({ studentId: 1, updatedAt: -1 });
 mathPathWorkingIntelligenceSchema.index({ reviewStatus: 1, analysisStatus: 1 });
 mathPathWorkingIntelligenceSchema.index({ humanReviewStatus: 1 });
 

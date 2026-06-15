@@ -36,8 +36,24 @@ const HANDLERS = [
 
 const workers = HANDLERS.map(({ name, processor }) => {
   const worker = new Worker(name, processor, { connection, concurrency });
-  worker.on('completed', (job) => console.log(`[worker:${name}] job ${job.id} completed`));
-  worker.on('failed', (job, err) => console.error(`[worker:${name}] job ${job?.id} failed:`, err?.message));
+  worker.on('completed', (job) => {
+    console.log(JSON.stringify({ level: 'info', worker: name, jobId: job.id, event: 'completed' }));
+  });
+  worker.on('failed', (job, err) => {
+    const attempts = job?.attemptsMade ?? '?';
+    const maxAttempts = job?.opts?.attempts ?? '?';
+    const exhausted = job?.attemptsMade >= (job?.opts?.attempts ?? Infinity);
+    console.error(JSON.stringify({
+      level: 'error',
+      worker: name,
+      jobId: job?.id,
+      event: exhausted ? 'failed:exhausted' : 'failed:retrying',
+      attempt: `${attempts}/${maxAttempts}`,
+      error: err?.message,
+      // job.data may contain IDs useful for finding the record in MongoDB
+      ref: job?.data ? { analysisId: job.data.analysisId, worksheetId: job.data.worksheetId } : undefined,
+    }));
+  });
   return worker;
 });
 

@@ -108,6 +108,7 @@ const paperAnalysisSchema = new mongoose.Schema(
 );
 
 paperAnalysisSchema.index({ studentId: 1, createdAt: -1 });
+paperAnalysisSchema.index({ studentId: 1, subjectId: 1, domainId: 1, createdAt: -1 });
 paperAnalysisSchema.index({ uploadedByUserId: 1, createdAt: -1 });
 paperAnalysisSchema.index({ subjectId: 1, domainId: 1, status: 1 });
 

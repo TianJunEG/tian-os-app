@@ -9,19 +9,15 @@ import ClassStudent from '../models/ClassStudent.js';
 import StudentGroup from '../models/StudentGroup.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import multer from 'multer';
+import { persistUploadFile } from '../services/storage/objectStore.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads'),
-  filename: (req, file, cb) => {
-    const ext = file.originalname.split('.').pop();
-    cb(null, 'lifelab-' + req.params.id + '-' + Date.now() + '.' + ext);
-  },
-});
+// In-memory so the route can persist via the storage facade (R2 when configured,
+// else disk). Files are served back through the /uploads handler.
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|gif|webp|pdf|mp4|webm|mov/;
@@ -204,7 +200,7 @@ router.post('/submissions/:id/evidence', protect, upload.single('evidence'), asy
   const sub = await LifeLabSubmission.findById(req.params.id);
   if (!sub) return res.status(404).json({ error: 'Submission not found.' });
   await resolveStudent(req, sub.studentId, { write: true });
-  sub.evidenceUrl = '/uploads/' + req.file.filename;
+  sub.evidenceUrl = (await persistUploadFile(req.file, 'lifelab')).fileUrl;
   sub.updatedAt = new Date();
   await sub.save();
   res.json({ evidenceUrl: sub.evidenceUrl });

@@ -4,6 +4,7 @@ import TutorProfile from '../models/TutorProfile.js';
 import User from '../models/User.js';
 import { protect, authorize } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
+import { persistUploadFile } from '../services/storage/objectStore.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -22,8 +23,8 @@ router.post(
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      // Build file URL
-      const fileUrl = `/uploads/credentials/${req.file.filename}`;
+      // Persist to object storage (R2) or disk, and use the returned URL.
+      const { fileUrl } = await persistUploadFile(req.file, 'credentials');
 
       // Update tutor profile with credentials URL
       const tutorProfile = await TutorProfile.findOneAndUpdate(

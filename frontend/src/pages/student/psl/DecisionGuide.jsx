@@ -6,68 +6,99 @@ import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-o
 
 const QUESTIONS = [
   {
-    q: 'Is there a table, or a series of numbers or figures that grows?',
+    friendly: 'Does the problem need more than one step to solve — like adding, then multiplying?',
+    hint: 'Like "First find the total, then find the difference." Two or more operations in a row.',
+    heuristic: 'multi-step',
+    label: 'Multi-Step Arithmetic',
+  },
+  {
+    friendly: 'Does your problem say "for every X there are Y" or compare two groups using a ratio?',
+    hint: 'Like "For every 2 red balls there are 3 blue balls." Draw a ratio bar to share the total.',
+    heuristic: 'ratio',
+    label: 'Proportional & Ratio Reasoning',
+  },
+  {
+    friendly: 'Is there a table or chart with numbers you need to read and use?',
+    hint: 'Like a bar chart showing scores or a table listing prices. Read the data, then calculate.',
+    heuristic: 'data-interpretation',
+    label: 'Data Interpretation',
+  },
+  {
+    friendly: 'Does the problem have "too many" or "not enough" — like items left over or items short?',
+    hint: 'Like "If each box holds 6, there are 2 left over. If each box holds 7, we\'re 1 short."',
+    heuristic: 'excess-shortage',
+    label: 'Excess & Shortage',
+  },
+  {
     friendly: 'Do the numbers follow a pattern — like they go up by the same amount each time?',
-    hint: 'Like 2, 4, 6, 8… or a table where each row grows.',
+    hint: 'Like 2, 4, 6, 8… or a table where each row grows by the same rule.',
     heuristic: 'find-pattern',
-    label: 'H2: Find a Pattern',
+    label: 'Find a Pattern',
   },
   {
-    q: 'Is there a stated range, or multiples / factors to consider?',
     friendly: 'Does your problem talk about a range of numbers or things to choose from?',
-    hint: 'Like "numbers between 10 and 50" or "multiples of 3." You\'d list them!',
+    hint: 'Like "numbers between 10 and 50" or "multiples of 3." List them all and check!',
     heuristic: 'make-list',
-    label: 'H4: Make a List',
+    label: 'Make a List',
   },
   {
-    q: 'Are two or more quantities linked in more than one way?',
-    friendly: 'Does your problem give two clues about the same things?',
-    hint: 'Like "3 apples + 2 oranges = $5" AND "1 apple + 2 oranges = $3."',
-    heuristic: 'substitution',
-    label: 'H3: Substitution',
+    friendly: 'Does your problem give two clues that both involve the same two unknowns?',
+    hint: 'Like "3 pens + 2 books = $13" AND "1 pen + 2 books = $7." Match one quantity and eliminate.',
+    heuristic: 'simultaneous',
+    label: 'Simultaneous / Elimination',
   },
   {
-    q: 'Is there a final result, with steps that led up to it?',
-    friendly: 'Do you know the end answer and need to figure out what came before?',
-    hint: 'Like "She ended with $20 after spending $5 and earning $8." Start from $20!',
+    friendly: 'Do you know the end result and need to figure out what came before it?',
+    hint: 'Like "She ended with $20 after spending $5 and earning $8." Start from $20 and reverse!',
     heuristic: 'work-backwards',
-    label: 'H6: Working Backwards',
+    label: 'Working Backwards',
   },
   {
-    q: 'Can it be shown easily with a model or diagram (bars)?',
-    friendly: 'Can you draw bars or a picture to show the amounts?',
+    friendly: 'Can you draw bars or a picture to show how the amounts are related?',
     hint: 'Draw a long bar and a short bar to compare — like a bar chart for the problem.',
     heuristic: 'bar-model',
-    label: 'H1: Model / Diagram',
+    label: 'Model / Diagram',
   },
 ];
 
-const FALLBACK = { heuristic: 'guess-check', label: 'H5: Guess and Check' };
+const FALLBACK = { heuristic: 'guess-check', label: 'Guess and Check' };
 
 const HEURISTIC_CHIP_STYLES = {
-  'find-pattern': { background: '#e0f7fa', color: '#00838f' },
-  'make-list': { background: '#fbf1e1', color: '#b06f1f' },
-  'substitution': { background: '#f0e8fb', color: '#7c3aed' },
-  'work-backwards': { background: '#f3faf6', color: '#1f9d57' },
-  'bar-model': { background: '#e8f0fb', color: '#2f80d8' },
+  'multi-step':          { background: '#fde8d8', color: '#c05621' },
+  'ratio':               { background: '#e8f0fb', color: '#2f80d8' },
+  'data-interpretation': { background: '#e8f7f0', color: '#1a7a4a' },
+  'excess-shortage':     { background: '#fdf0e0', color: '#b06f1f' },
+  'find-pattern':        { background: '#e0f7fa', color: '#00838f' },
+  'make-list':           { background: '#fbf1e1', color: '#b06f1f' },
+  'simultaneous':        { background: '#f0e8fb', color: '#7c3aed' },
+  'work-backwards':      { background: '#f3faf6', color: '#1f9d57' },
+  'bar-model':           { background: '#e8f0fb', color: '#2f80d8' },
 };
 
 const HEURISTIC_RESULT_BG = {
-  'bar-model': '#2f80d8',
-  'find-pattern': '#0097a7',
-  'substitution': '#7c3aed',
-  'make-list': '#d9892e',
-  'guess-check': '#d8694f',
-  'work-backwards': '#1f9d57',
+  'multi-step':          '#c05621',
+  'ratio':               '#2f80d8',
+  'data-interpretation': '#1a7a4a',
+  'excess-shortage':     '#d9892e',
+  'find-pattern':        '#0097a7',
+  'make-list':           '#b06f1f',
+  'simultaneous':        '#7c3aed',
+  'work-backwards':      '#1f9d57',
+  'bar-model':           '#1e5fa8',
+  'guess-check':         '#d8694f',
 };
 
 const HEURISTIC_DESCRIPTIONS = {
-  'bar-model': 'Draw bars to show quantities. Part-whole or comparison — the model makes the maths visible.',
-  'find-pattern': 'Build a table, spot how it changes each step, find the rule, then extend it.',
-  'substitution': 'Make one quantity match across both equations, then subtract to eliminate it.',
-  'make-list': 'List the candidates systematically and find the one that fits all the clues.',
-  'guess-check': 'Make a sensible guess, check both totals, then adjust up or down.',
-  'work-backwards': 'Start from the end result and reverse every step — each operation becomes its opposite.',
+  'multi-step':          'Break the problem into stages. Do the first operation, use the result, then do the next — one step at a time.',
+  'ratio':               'Draw a ratio bar split into equal parts. Scale both sides to find the missing quantity.',
+  'data-interpretation': 'Read the table or chart carefully. Pick out the values you need and calculate.',
+  'excess-shortage':     'Try two different group sizes. The real answer sits between the leftover and the shortfall.',
+  'find-pattern':        'Build a table, spot how it changes each step, find the rule, then extend it.',
+  'make-list':           'List all candidates systematically and check each one against every clue.',
+  'simultaneous':        'Make one quantity match across both equations, then subtract to eliminate it.',
+  'work-backwards':      'Start from the end result and reverse every step — each operation becomes its opposite.',
+  'bar-model':           'Draw bars to show quantities. Part-whole or comparison — the model makes the maths visible.',
+  'guess-check':         'Make a sensible guess, check both totals, then adjust up or down until it works.',
 };
 
 function ProgressDots({ currentIndex, answers, result }) {

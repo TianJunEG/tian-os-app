@@ -73,7 +73,9 @@ const assignmentSchema = new mongoose.Schema({
 });
 
 assignmentSchema.index({ studentId: 1, status: 1 });
+assignmentSchema.index({ studentId: 1, createdAt: -1 });
 assignmentSchema.index({ workspaceId: 1 });
+assignmentSchema.index({ workspaceId: 1, assignedByUserId: 1, createdAt: -1 });
 assignmentSchema.index({ interventionId: 1 });
 assignmentSchema.index({ priority: 1, dueDate: 1 });
 
