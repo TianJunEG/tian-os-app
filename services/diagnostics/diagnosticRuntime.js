@@ -231,13 +231,14 @@ export function selectFallbackDiagnosticQuestion({
 }
 
 async function maybePersistAttempt({ student, session, question, skillId, response, correct }) {
-  if (!question?._id) return;
+  const qid = question?._id || question?.questionId;
+  if (!qid) return;
   await MathPathAttempt.create({
     studentId: String(student._id),
     domainId: session.domainId,
     skillId,
     questionFamilyId: response.questionFamilyId,
-    questionId: String(question._id),
+    questionId: String(qid),
     sessionId: session.diagnosticSessionId,
     sessionType: 'diagnostic',
     answer: response.answer,
@@ -280,7 +281,8 @@ async function maybePersistAttempt({ student, session, question, skillId, respon
 }
 
 async function maybePersistMistake({ student, session, question, skillId, response, correct, detectedErrorTags }) {
-  if (correct || !question?._id) return;
+  const qid = question?._id || question?.questionId;
+  if (correct || !qid) return;
   const mistakeCode = question.misconceptionTag || detectedErrorTags[0] || 'diagnostic_error';
   await MathPathMistakeRecord.findOneAndUpdate(
     {
@@ -300,7 +302,7 @@ async function maybePersistMistake({ student, session, question, skillId, respon
       $push: {
         evidence: {
           source: response.skipped ? 'diagnostic-skipped' : 'diagnostic-adaptive',
-          questionId: String(question._id),
+          questionId: String(qid),
           prompt: question.stem || question.prompt || '',
           studentAnswer: response.answer,
           correctAnswer: String(question.answer || ''),

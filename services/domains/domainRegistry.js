@@ -169,8 +169,8 @@ export function registerDefaultDomains() {
     domainVersion: 'decimals-v0.1',
     diagnosticAdapter: {
       enabled: true,
-      status: 'engine_ready',
-      notes: 'DB-free diagnostic domain registered + adaptive-engine validated; session runtime + UI wiring pending.',
+      status: 'available',
+      notes: 'DB-free adaptive diagnostic driven by the generic runtime; questions generated on-the-fly from the rule-based engine.',
       provider: diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' }),
     },
     assignmentAdapter: { enabled: false, status: 'planned', notes: 'Will reuse the MathPath assignment service once diagnostics land.' },
