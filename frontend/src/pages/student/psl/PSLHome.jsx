@@ -5,6 +5,7 @@ import { pslAPI } from '../../../services/api';
 import PrerequisiteGate from './components/PrerequisiteGate';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
+import MascotAvatar from '../../../components/MascotAvatar';
 
 const HEURISTIC_LABELS = {
   'bar-model': 'Bar Model (Units & Parts)',
@@ -167,12 +168,7 @@ export default function PSLHome() {
             {hasSessions ? (
               <ProgressRing percent={completionPct} />
             ) : (
-              <div
-                className="flex h-[80px] w-[80px] shrink-0 items-center justify-center rounded-2xl"
-                style={{ background: 'rgba(217,137,46,0.2)' }}
-              >
-                <Brain className="h-9 w-9" style={{ color: '#d9892e' }} />
-              </div>
+              <MascotAvatar name="lejo" size="xl" showRing={false} />
             )}
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold sm:text-2xl" style={{ color: '#f4f0e8' }}>
