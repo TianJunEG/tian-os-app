@@ -5,7 +5,7 @@ import { Badge, Button, Card, ErrorState, PageHeader, Spinner } from '../../../c
 
 function SeatUsageBar({ used, limit }) {
   const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-  const tone = pct >= 90 ? 'bg-error-500' : pct >= 70 ? 'bg-gold-400' : 'bg-navy-500';
+  const tone = pct >= 90 ? 'bg-error-500' : pct >= 70 ? 'bg-gold-400' : 'bg-emerald';
   return (
     <div>
       <div className="flex items-center justify-between text-sm text-ink-600">
@@ -36,11 +36,11 @@ function CreateClassForm({ onCreated }) {
     <form onSubmit={submit} className="flex flex-wrap items-end gap-2">
       <div className="flex-1 min-w-[160px]">
         <label className="text-xs text-ink-500">Class name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="P5 Diligence" className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-navy-300" />
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="P5 Diligence" className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm outline-none focus:border-navy-300" />
       </div>
       <div className="w-32">
         <label className="text-xs text-ink-500">Level</label>
-        <input value={level} onChange={(e) => setLevel(e.target.value)} placeholder="Primary 5" className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm outline-none focus:border-navy-300" />
+        <input value={level} onChange={(e) => setLevel(e.target.value)} placeholder="Primary 5" className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm outline-none focus:border-navy-300" />
       </div>
       <Button type="submit" disabled={busy} icon={Building2}>Add class</Button>
     </form>
@@ -77,8 +77,8 @@ function BulkImportCard({ classes, onImported }) {
     <Card className="p-5">
       <div className="flex items-center gap-2"><Upload className="h-4 w-4 text-ink-400" /><h3 className="text-sm font-semibold text-ink-700">Bulk import roster</h3></div>
       <p className="mt-1 text-xs text-ink-500">Upload or paste a CSV with a header row. Columns: <code>name</code> (required), <code>level</code>, <code>class</code>, <code>email</code>, <code>parent_email</code>.</p>
-      <input type="file" accept=".csv,text/csv" onChange={onFile} className="mt-3 block w-full text-sm text-ink-600 file:mr-3 file:rounded-lg file:border file:border-hairline file:bg-paper file:px-3 file:py-1.5 file:text-sm" />
-      <textarea value={csv} onChange={(e) => setCsv(e.target.value)} rows={5} placeholder={'name,level,class,email\nAisha Tan,Primary 5,P5 Diligence,aisha@school.edu'} className="mt-2 w-full rounded-lg border border-hairline p-2 font-mono text-xs outline-none focus:border-navy-300" />
+      <input type="file" accept=".csv,text/csv" onChange={onFile} className="mt-3 block w-full text-sm text-ink-600 file:mr-3 file:rounded-lg file:border file:border-line-soft file:bg-surface-white file:px-3 file:py-1.5 file:text-sm" />
+      <textarea value={csv} onChange={(e) => setCsv(e.target.value)} rows={5} placeholder={'name,level,class,email\nAisha Tan,Primary 5,P5 Diligence,aisha@school.edu'} className="mt-2 w-full rounded-lg border border-line-soft p-2 font-mono text-xs outline-none focus:border-navy-300" />
       <label className="mt-2 flex items-center gap-2 text-sm text-ink-600">
         <input type="checkbox" checked={createLogins} onChange={(e) => setCreateLogins(e.target.checked)} />
         Create student logins (requires an email column)
@@ -93,12 +93,12 @@ function BulkImportCard({ classes, onImported }) {
             <Badge tone="gold">{result.summary.skipped} skipped</Badge>
             <Badge tone={result.summary.failed ? 'error' : 'neutral'}>{result.summary.failed} failed</Badge>
           </div>
-          <div className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-hairline">
+          <div className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-line-soft">
             <table className="min-w-full text-left text-xs">
               <thead className="bg-bone text-ink-500"><tr><th className="px-2 py-1.5">#</th><th className="px-2 py-1.5">Name</th><th className="px-2 py-1.5">Status</th><th className="px-2 py-1.5">Note</th></tr></thead>
               <tbody>
                 {(result.results || []).map((r) => (
-                  <tr key={r.rowNum} className="border-t border-hairline">
+                  <tr key={r.rowNum} className="border-t border-line-soft">
                     <td className="px-2 py-1.5">{r.rowNum}</td>
                     <td className="px-2 py-1.5 text-ink-700">{r.name || '—'}</td>
                     <td className="px-2 py-1.5"><Badge tone={r.status === 'created' ? 'success' : r.status === 'skipped' ? 'gold' : 'error'}>{r.status}</Badge></td>
@@ -123,7 +123,7 @@ function ClassRow({ cls, onCode }) {
     finally { setBusy(false); }
   };
   return (
-    <div className="flex items-center justify-between gap-3 border-t border-hairline py-3">
+    <div className="flex items-center justify-between gap-3 border-t border-line-soft py-3">
       <div className="min-w-0">
         <p className="truncate font-medium text-ink-700">{cls.name}</p>
         <p className="text-xs text-ink-500">{cls.level || '—'} · {cls.studentCount} students</p>

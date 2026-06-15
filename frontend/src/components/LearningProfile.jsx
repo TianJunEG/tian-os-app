@@ -40,15 +40,15 @@ export default function LearningProfile({ profile }) {
       {/* Subjects */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {subjects.map((s) => (
-          <div key={s.subjectId} className="bg-white border border-navy-100 rounded-2xl shadow-sm p-5">
+          <div key={s.subjectId} className="bg-white border border-emerald-tint rounded-2xl shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="font-bold text-navy-900">{s.subject}</h3>
-                <div className="text-xs text-navy-400">{s.masteryPct}% mastered · {s.accuracy}% accuracy</div>
+                <h3 className="font-bold text-emerald-deep">{s.subject}</h3>
+                <div className="text-xs text-emerald-bright">{s.masteryPct}% mastered · {s.accuracy}% accuracy</div>
               </div>
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${bandStyles[s.band] || 'bg-gray-100 text-gray-700'}`}>{s.band}</span>
             </div>
-            <div className="h-2 bg-navy-100 rounded-full overflow-hidden mb-3">
+            <div className="h-2 bg-emerald-tint rounded-full overflow-hidden mb-3">
               <div className={`h-full ${barColor(s.band)}`} style={{ width: `${s.masteryPct}%` }} />
             </div>
             {s.weak?.length > 0 && (
@@ -64,17 +64,17 @@ export default function LearningProfile({ profile }) {
               </div>
             )}
             {APP_ROUTE[s.subjectId] ? (
-              <button onClick={() => navigate(APP_ROUTE[s.subjectId])} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-navy-700 text-white rounded-xl text-sm font-semibold hover:bg-navy-600 transition">
+              <button onClick={() => navigate(APP_ROUTE[s.subjectId])} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-deep text-white rounded-xl text-sm font-semibold hover:bg-emerald transition">
                 <Play className="w-4 h-4" /> Revise {s.subject}
               </button>
             ) : (
-              <div className="text-xs text-navy-300 text-center py-1.5">Practise app coming to the web app</div>
+              <div className="text-xs text-emerald-border text-center py-1.5">Practise app coming to the web app</div>
             )}
           </div>
         ))}
       </div>
 
-      <p className="text-center text-xs text-navy-300 mt-6">
+      <p className="text-center text-xs text-emerald-border mt-6">
         Fed by {profile.sources?.join(' · ') || 'your learning apps'}
         {profile.updatedAt ? ` · updated ${new Date(profile.updatedAt).toLocaleDateString()}` : ''}
       </p>

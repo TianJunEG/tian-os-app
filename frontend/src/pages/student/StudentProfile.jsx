@@ -83,7 +83,7 @@ function NextToUnlockBanner({ achievements = [] }) {
     <div className="flex items-center gap-3 rounded-2xl border border-gold-200 bg-gradient-to-r from-gold-50 to-ivory p-4">
       <Star className="h-6 w-6 text-gold-500" />
       <div>
-        <p className="text-sm font-bold text-navy-800">Next to unlock: {display.title}</p>
+        <p className="text-sm font-bold text-emerald-deep">Next to unlock: {display.title}</p>
         <p className="text-xs text-ink-500">{display.description}</p>
       </div>
     </div>
@@ -181,9 +181,9 @@ function SnapshotCard({ icon: Icon, label, value, visual }) {
 function AchievementBadge({ achievement, visual }) {
   const display = getAchievementDisplay(achievement);
   return (
-    <Card className={`p-4 ${achievement.unlocked ? 'border-gold-300 bg-gradient-to-br from-gold-100 to-gold-50' : 'border-hairline bg-bone opacity-75'}`}>
+    <Card className={`p-4 ${achievement.unlocked ? 'border-gold-300 bg-gradient-to-br from-gold-100 to-gold-50' : 'border-line-soft bg-bone opacity-75'}`}>
       <div className="flex items-start gap-3">
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl ${achievement.unlocked ? 'bg-gold-200' : 'bg-hairline text-ink-400'}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl ${achievement.unlocked ? 'bg-gold-200' : 'bg-line-soft text-ink-400'}`}>
           {achievement.unlocked ? display.emoji : <Lock className="h-5 w-5" />}
         </span>
         <div className="min-w-0">
@@ -201,8 +201,8 @@ function AchievementBadge({ achievement, visual }) {
 function TimelineItem({ event }) {
   return (
     <li className="flex gap-3">
-      <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-navy-700" />
-      <div className="min-w-0 flex-1 border-b border-hairline pb-4 last:border-b-0">
+      <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-deep" />
+      <div className="min-w-0 flex-1 border-b border-line-soft pb-4 last:border-b-0">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="font-semibold text-ink-900">{event.title}</p>
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{formatEventDate(event.occurredAt)}</span>
@@ -220,7 +220,7 @@ function PersonalBestTile({ icon: Icon, label, value, subtitle, tone = 'default'
     fire: 'border-orange-200 bg-gradient-to-br from-orange-50 to-red-50',
     sky: 'border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50',
     mint: 'border-mint-200 bg-gradient-to-br from-mint-50 to-emerald-50',
-    violet: 'border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50',
+    violet: 'border-purple-tint bg-gradient-to-br from-violet-50 to-purple-50',
     default: visual.styles.card,
   };
   const iconTones = {
@@ -228,7 +228,7 @@ function PersonalBestTile({ icon: Icon, label, value, subtitle, tone = 'default'
     fire: 'bg-orange-100 text-orange-600',
     sky: 'bg-sky-100 text-sky-700',
     mint: 'bg-mint-100 text-emerald-700',
-    violet: 'bg-violet-100 text-violet-700',
+    violet: 'bg-purple-tint text-purple',
     default: visual.styles.icon,
   };
   return (
@@ -252,7 +252,7 @@ function WeeklyComparison({ thisWeek, lastWeek, visual }) {
   const trending = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
   const TrendIcon = trending === 'up' ? ArrowUp : trending === 'down' ? ArrowDown : Minus;
   const trendColor = trending === 'up' ? 'text-emerald-600' : trending === 'down' ? 'text-red-500' : 'text-ink-400';
-  const trendBg = trending === 'up' ? 'bg-emerald-50' : trending === 'down' ? 'bg-red-50' : 'bg-slate-50';
+  const trendBg = trending === 'up' ? 'bg-emerald-50' : trending === 'down' ? 'bg-red-50' : 'bg-surface-raised';
   const trendLabel = trending === 'up' ? `+${diff} more than last week!` : trending === 'down' ? `${Math.abs(diff)} fewer than last week` : 'Same as last week';
   return (
     <Card className={`p-4 ${visual.styles.card}`}>
@@ -382,7 +382,7 @@ function PersonalBestsSection({ visual }) {
 const SKIN_OPTIONS = [
   { key: STUDENT_VISUAL_MODES.LOWER_PRIMARY, label: 'Playful', description: 'Bright colours and fun decorations', preview: 'bg-gradient-to-br from-sky-100 via-white to-pink-100' },
   { key: STUDENT_VISUAL_MODES.UPPER_PRIMARY, label: 'Cool', description: 'Clean purple and mint tones', preview: 'bg-gradient-to-br from-violet-100 via-white to-mint-100' },
-  { key: STUDENT_VISUAL_MODES.SECONDARY, label: 'Minimal', description: 'Simple and focused', preview: 'bg-slate-100' },
+  { key: STUDENT_VISUAL_MODES.SECONDARY, label: 'Minimal', description: 'Simple and focused', preview: 'bg-surface-raised' },
 ];
 
 export default function StudentProfile() {
@@ -541,7 +541,7 @@ export default function StudentProfile() {
                     {avatarText}
                   </span>
                 )}
-                <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-teal-500 text-white opacity-0 shadow transition-opacity group-hover:opacity-100">
+                <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-emerald text-white opacity-0 shadow transition-opacity group-hover:opacity-100">
                   <Pencil className="h-3 w-3" />
                 </span>
               </button>
@@ -555,12 +555,12 @@ export default function StudentProfile() {
                       value={nameValue}
                       onChange={(e) => setNameValue(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') cancelEditName(); }}
-                      className="rounded-lg border border-hairline bg-white px-3 py-1.5 text-lg font-bold text-navy-800 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                      className="rounded-lg border border-line-soft bg-white px-3 py-1.5 text-lg font-bold text-emerald-deep focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
                       maxLength={100}
                       disabled={nameSaving}
                     />
-                    <button onClick={saveName} disabled={nameSaving} className="rounded-lg bg-teal-500 p-1.5 text-white hover:bg-teal-600 disabled:opacity-50"><Check className="h-4 w-4" /></button>
-                    <button onClick={cancelEditName} className="rounded-lg bg-bone p-1.5 text-ink-500 hover:bg-hairline"><X className="h-4 w-4" /></button>
+                    <button onClick={saveName} disabled={nameSaving} className="rounded-lg bg-emerald p-1.5 text-white hover:bg-emerald disabled:opacity-50"><Check className="h-4 w-4" /></button>
+                    <button onClick={cancelEditName} className="rounded-lg bg-bone p-1.5 text-ink-500 hover:bg-line-soft"><X className="h-4 w-4" /></button>
                   </div>
                 ) : (
                   <div className="mt-1 flex items-center gap-2">
@@ -667,7 +667,7 @@ export default function StudentProfile() {
               ))}
             </ol>
           ) : (
-            <div className="rounded-xl border border-dashed border-hairline bg-slate-50 p-5 text-sm text-ink-500">
+            <div className="rounded-xl border border-dashed border-line-soft bg-surface-raised p-5 text-sm text-ink-500">
               Your recent learning activity will appear here after diagnostics, practice, working submissions, and checkpoints.
             </div>
           )}
@@ -693,14 +693,14 @@ export default function StudentProfile() {
                 className={`relative rounded-2xl border-2 p-4 text-left transition-all ${
                   active
                     ? 'border-teal-500 ring-2 ring-teal-200'
-                    : 'border-hairline hover:border-ink-200'
+                    : 'border-line-soft hover:border-ink-200'
                 } ${skinSaving ? 'opacity-60' : ''}`}
               >
                 <div className={`mb-3 h-10 rounded-xl ${skin.preview}`} />
                 <p className="text-sm font-bold text-ink-900">{skin.label}</p>
                 <p className="mt-0.5 text-xs text-ink-500">{skin.description}</p>
                 {active && (
-                  <span className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-teal-500 text-white">
+                  <span className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-emerald text-white">
                     <Check className="h-3.5 w-3.5" />
                   </span>
                 )}

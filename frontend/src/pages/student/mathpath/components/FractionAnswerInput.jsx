@@ -267,8 +267,8 @@ export default function FractionAnswerInput({
       ? 'Answer as a whole number.'
       : 'Answer as a fraction';
   const denominatorIsZero = String(parts.denominator || '').trim() === '0';
-  const compactInputClass = 'h-11 w-full rounded-none border-0 bg-white px-2 text-center font-mono text-xl text-ink-900 focus:outline-none focus:ring-0 disabled:bg-slate-50 disabled:text-ink-400';
-  const wholeInputClass = 'h-11 w-20 rounded-lg border border-hairline bg-white px-3 text-center font-mono text-xl text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20 disabled:bg-slate-50 disabled:text-ink-400';
+  const compactInputClass = 'h-11 w-full rounded-none border-0 bg-white px-2 text-center font-mono text-xl text-ink-900 focus:outline-none focus:ring-0 disabled:bg-surface-raised disabled:text-ink-400';
+  const wholeInputClass = 'h-11 w-20 rounded-lg border border-line-soft bg-white px-3 text-center font-mono text-xl text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20 disabled:bg-surface-raised disabled:text-ink-400';
 
   if (isInline) {
     return (
@@ -286,7 +286,7 @@ export default function FractionAnswerInput({
           />
         )}
 
-        {showFraction && <div className="w-28 overflow-hidden rounded-lg border border-hairline bg-white" role="group" aria-label="Fraction answer">
+        {showFraction && <div className="w-28 overflow-hidden rounded-lg border border-line-soft bg-white" role="group" aria-label="Fraction answer">
           <input
             ref={numeratorRef}
             value={parts.numerator}
@@ -295,7 +295,7 @@ export default function FractionAnswerInput({
             disabled={disabled}
             inputMode="numeric"
             aria-label="Numerator"
-            className="h-9 w-full rounded-none border-0 border-b border-hairline bg-white text-center font-mono text-lg text-ink-900 focus:outline-none focus:ring-0"
+            className="h-9 w-full rounded-none border-0 border-b border-line-soft bg-white text-center font-mono text-lg text-ink-900 focus:outline-none focus:ring-0"
             onKeyDown={(event) => onKeyDown(event, 'numerator')}
           />
           <div className="h-0.5 bg-ink-700" />
@@ -317,7 +317,7 @@ export default function FractionAnswerInput({
   }
 
   return (
-    <div ref={hostRef} className="relative rounded-xl border border-hairline bg-white px-3 py-2">
+    <div ref={hostRef} className="relative rounded-xl border border-line-soft bg-white px-3 py-2">
       <div className="flex flex-wrap items-center gap-2">
         <span className="min-w-[5rem] flex-1 text-sm font-semibold leading-tight text-ink-700 sm:flex-none">{helperText}</span>
         <button
@@ -331,7 +331,7 @@ export default function FractionAnswerInput({
               else numeratorRef.current?.focus();
             });
           }}
-          className="min-h-10 min-w-[8rem] flex-1 rounded-xl border border-hairline bg-slate-50 px-3 py-1.5 text-center font-mono text-base text-ink-900 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-[9rem] sm:whitespace-nowrap"
+          className="min-h-10 min-w-[8rem] flex-1 rounded-xl border border-line-soft bg-surface-raised px-3 py-1.5 text-center font-mono text-base text-ink-900 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50 sm:max-w-[9rem] sm:whitespace-nowrap"
           aria-label="Math answer value"
         >
           {String(value || '').trim() || 'Tap to enter'}

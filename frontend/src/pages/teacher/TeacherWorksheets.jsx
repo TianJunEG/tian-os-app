@@ -45,7 +45,7 @@ export default function TeacherWorksheets() {
     <>
       <ClassNav classId={id} name={meta?.name || 'Class'} level={meta?.level} />
       <Card className="mb-4 p-5">
-        <h1 className="font-display text-xl font-semibold text-navy-700">Class Worksheets</h1>
+        <h1 className="font-display text-xl font-semibold text-emerald-deep">Class Worksheets</h1>
         <p className="mt-1 text-sm text-ink-500">Generate focused worksheets from current MathPath weak-group evidence.</p>
       </Card>
       {message && <Card className="mb-4 border-l-4 border-navy-400 p-4 text-sm text-ink-700">{message}</Card>}
@@ -57,14 +57,14 @@ export default function TeacherWorksheets() {
             <Card key={group.skillId} className="flex h-full flex-col p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h2 className="font-semibold text-navy-700">{group.skillName}</h2>
+                  <h2 className="font-semibold text-emerald-deep">{group.skillName}</h2>
                   <p className="mt-1 text-sm text-ink-500">{group.evidenceSummary}</p>
                 </div>
                 <StatusBadge status={group.priority === 'high' ? 'needs_support' : 'learning'} />
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {(group.students || []).slice(0, 5).map((student) => (
-                  <span key={student.studentId} className="rounded-full bg-navy-50 px-2.5 py-1 text-xs font-semibold text-navy-700">{student.name}</span>
+                  <span key={student.studentId} className="rounded-full bg-emerald-tint px-2.5 py-1 text-xs font-semibold text-emerald-deep">{student.name}</span>
                 ))}
                 {(group.students || []).length > 5 && <span className="text-xs font-semibold text-ink-400">+{group.students.length - 5} more</span>}
               </div>

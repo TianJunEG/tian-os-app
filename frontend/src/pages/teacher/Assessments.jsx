@@ -30,7 +30,7 @@ export default function Assessments() {
     <div className="mx-auto max-w-3xl p-4 sm:p-6">
       <ClassNav classId={id} name={meta?.name} level={meta?.level} />
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-navy-700">Assessments</h2>
+        <h2 className="text-lg font-semibold text-emerald-deep">Assessments</h2>
         <Button size="s" onClick={() => navigate(`/teacher/classes/${id}/assessments/new`)}>
           <Plus className="mr-1 h-4 w-4" /> Create
         </Button>

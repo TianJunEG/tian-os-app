@@ -36,20 +36,20 @@ function WorkingReviewCard({ mistake }) {
   const steps = Array.isArray(insight?.detectedSteps) ? insight.detectedSteps.filter((step) => step?.text).slice(0, 3) : [];
   return (
     <section className="rounded-3xl bg-sky-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-navy-500">Working Review</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald">Working Review</p>
       {mistake.workingPreviewImage && (
         <img src={mistake.workingPreviewImage} alt="Submitted working" className="mt-3 max-h-44 w-full rounded-2xl object-contain bg-white" />
       )}
       {!insight && hasWorking && (
         <p className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">Working saved. Analysis is still being prepared.</p>
       )}
-      {insight?.detectedMethod && <p className="mt-3 text-sm font-semibold text-navy-800">Method spotted: {insight.detectedMethod}</p>}
+      {insight?.detectedMethod && <p className="mt-3 text-sm font-semibold text-emerald-deep">Method spotted: {insight.detectedMethod}</p>}
       {(insight?.detectedIssue || insight?.studentExplanation) && (
         <p className="mt-2 text-sm leading-6 text-ink-700">{insight.studentExplanation || insight.detectedIssue}</p>
       )}
       {(mistake.extractedWorkingText || insight?.extractedWorkingText) && (
         <div className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">
-          <p className="mb-1 font-semibold text-navy-700">Detected from your working</p>
+          <p className="mb-1 font-semibold text-emerald-deep">Detected from your working</p>
           <MathText text={mistake.extractedWorkingText || insight.extractedWorkingText} />
         </div>
       )}
@@ -142,20 +142,20 @@ export default function MistakeReview() {
             return (
               <>
                 {hasTableMistakes && (
-                  <Card className="border-2 border-teal-200 bg-teal-50 p-5 sm:p-6">
+                  <Card className="border-2 border-teal-200 bg-emerald-tint p-5 sm:p-6">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-500 text-white">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald text-white">
                         <Zap className="h-5 w-5" />
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-teal-800">Times Table Practice Needed</h3>
-                        <p className="text-sm text-teal-600">{tableMistakes.length} mistake{tableMistakes.length !== 1 ? 's' : ''} from times tables</p>
+                        <p className="text-sm text-emerald">{tableMistakes.length} mistake{tableMistakes.length !== 1 ? 's' : ''} from times tables</p>
                       </div>
                     </div>
                     {weakFacts.length > 0 && (
                       <div className="mb-3 flex flex-wrap gap-2">
                         {weakFacts.map((fact) => (
-                          <span key={fact} className="rounded-full bg-teal-100 px-3 py-1 text-sm font-medium text-teal-700">
+                          <span key={fact} className="rounded-full bg-emerald-tint px-3 py-1 text-sm font-medium text-emerald-deep">
                             {fact.replace('x', ' × ')}
                           </span>
                         ))}
@@ -171,7 +171,7 @@ export default function MistakeReview() {
               {!hasCompleteReviewData(m) ? (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-base font-semibold text-navy-700">{m.skillName || m.skillCode || 'MathPath'}</span>
+                    <span className="text-base font-semibold text-emerald-deep">{m.skillName || m.skillCode || 'MathPath'}</span>
                     <Badge tone="gold">Preparing review</Badge>
                   </div>
                   <p className="rounded-2xl bg-gold-100 p-3 text-sm text-gold-800">
@@ -184,7 +184,7 @@ export default function MistakeReview() {
               ) : (
               <>
               <div className="mb-4 flex items-center justify-between gap-2">
-                <span className="text-base font-semibold text-navy-700">{m.skillName}</span>
+                <span className="text-base font-semibold text-emerald-deep">{m.skillName}</span>
                 <div className="flex flex-wrap justify-end gap-2">
                   <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || 'To review'}</Badge>
                   <Badge tone={m.learningStatus === 'mastered' ? 'success' : m.learningStatus === 'new' ? 'gold' : 'navy'}>

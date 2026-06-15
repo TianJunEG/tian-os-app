@@ -129,12 +129,12 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
     <div className="space-y-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
-        <h2 className="mt-1 font-display text-2xl font-semibold text-navy-700">What to know right now</h2>
+        <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">What to know right now</h2>
       </div>
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Child Snapshot">
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills Mastered</p>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-navy-700">{snapshot.mastered}/{snapshot.total}</p>
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-emerald-deep">{snapshot.mastered}/{snapshot.total}</p>
           <p className="mt-1 text-sm text-ink-500">{snapshot.masteryPercent}% of Fractions</p>
         </Card>
         <Card className="p-4">
@@ -147,7 +147,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
             <Flame className="h-4 w-4 text-gold-600" />
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Streak</p>
           </div>
-          <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-navy-700">{snapshot.streak}</p>
+          <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-emerald-deep">{snapshot.streak}</p>
           <p className="mt-1 text-sm text-ink-500">{snapshot.streak === 1 ? 'day' : 'days'}</p>
         </Card>
         <Card className="p-4">
@@ -161,7 +161,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Needs Attention</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold text-navy-700">{snapshot.attentionSkill}</h2>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-emerald-deep">{snapshot.attentionSkill}</h2>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Accuracy</p>
@@ -209,7 +209,7 @@ function ParentOverviewCard({ summary, currentFocus }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Overall Status</p>
-          <p className="text-xl font-semibold text-navy-700">{toTitle(summary.overallStatus)}</p>
+          <p className="text-xl font-semibold text-emerald-deep">{toTitle(summary.overallStatus)}</p>
           <p className="mt-1 text-sm text-ink-600">Current domain: Fractions</p>
           <p className="mt-1 text-sm text-ink-700">Current focus: {currentFocus || 'Start with diagnostic'}</p>
         </div>
@@ -225,10 +225,10 @@ function MasteryProgressCard({ mastery }) {
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Mastery Progress</h3>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div><p className="text-xs text-ink-500">Mastered</p><p className="font-mono text-xl text-navy-700">{toCount(mastery.masteredSkills)}</p></div>
-        <div><p className="text-xs text-ink-500">Fluent</p><p className="font-mono text-xl text-navy-700">{toCount(mastery.fluentSkills)}</p></div>
-        <div><p className="text-xs text-ink-500">Retained</p><p className="font-mono text-xl text-navy-700">{toCount(mastery.retainedSkills)}</p></div>
-        <div><p className="text-xs text-ink-500">Total</p><p className="font-mono text-xl text-navy-700">{mastery.totalSkills || 26}</p></div>
+        <div><p className="text-xs text-ink-500">Mastered</p><p className="font-mono text-xl text-emerald-deep">{toCount(mastery.masteredSkills)}</p></div>
+        <div><p className="text-xs text-ink-500">Fluent</p><p className="font-mono text-xl text-emerald-deep">{toCount(mastery.fluentSkills)}</p></div>
+        <div><p className="text-xs text-ink-500">Retained</p><p className="font-mono text-xl text-emerald-deep">{toCount(mastery.retainedSkills)}</p></div>
+        <div><p className="text-xs text-ink-500">Total</p><p className="font-mono text-xl text-emerald-deep">{mastery.totalSkills || 26}</p></div>
       </div>
       <p className="mt-3 text-sm text-ink-600">
         {mastery.percentageMastered || 0}% mastered · {mastery.percentageFluent || 0}% fluent · {mastery.percentageRetained || 0}% retained
@@ -304,7 +304,7 @@ function FluencyStatusInsightCard({ fluency }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fluency Insight</p>
-          <h3 className="mt-1 text-lg font-semibold text-navy-700">{focus?.skillName || 'Fractions'}</h3>
+          <h3 className="mt-1 text-lg font-semibold text-emerald-deep">{focus?.skillName || 'Fractions'}</h3>
         </div>
         <Badge tone={tone}>{label}</Badge>
       </div>

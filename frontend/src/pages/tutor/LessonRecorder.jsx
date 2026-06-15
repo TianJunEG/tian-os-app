@@ -166,21 +166,21 @@ export default function LessonRecorder() {
             <>
               <Button variant="secondary" icon={Square} onClick={stop}>Stop & save</Button>
               <Badge tone="error" className="animate-pulse">● Recording</Badge>
-              <span className="mx-1 h-5 w-px bg-hairline" />
+              <span className="mx-1 h-5 w-px bg-line-soft" />
               <button aria-label="Pen" onClick={() => setTool('pen')}
-                className={`rounded-lg p-2 ${tool === 'pen' ? 'bg-navy-700 text-white' : 'text-ink-500 hover:bg-navy-50'}`}>
+                className={`rounded-lg p-2 ${tool === 'pen' ? 'bg-emerald-deep text-white' : 'text-ink-500 hover:bg-emerald-tint'}`}>
                 <Pen className="h-4 w-4" />
               </button>
               <button aria-label="Eraser" onClick={() => setTool('eraser')}
-                className={`rounded-lg p-2 ${tool === 'eraser' ? 'bg-navy-700 text-white' : 'text-ink-500 hover:bg-navy-50'}`}>
+                className={`rounded-lg p-2 ${tool === 'eraser' ? 'bg-emerald-deep text-white' : 'text-ink-500 hover:bg-emerald-tint'}`}>
                 <Eraser className="h-4 w-4" />
               </button>
               {COLOURS.map((c) => (
                 <button key={c} aria-label={`Colour ${c}`} onClick={() => { setColour(c); setTool('pen'); }}
-                  className={`h-6 w-6 rounded-full border-2 ${colour === c && tool === 'pen' ? 'border-navy-700' : 'border-transparent'}`}
+                  className={`h-6 w-6 rounded-full border-2 ${colour === c && tool === 'pen' ? 'border-emerald-deep' : 'border-transparent'}`}
                   style={{ background: c }} />
               ))}
-              <button aria-label="Undo" onClick={undo} className="rounded-lg p-2 text-ink-500 hover:bg-navy-50">
+              <button aria-label="Undo" onClick={undo} className="rounded-lg p-2 text-ink-500 hover:bg-emerald-tint">
                 <Undo2 className="h-4 w-4" />
               </button>
             </>

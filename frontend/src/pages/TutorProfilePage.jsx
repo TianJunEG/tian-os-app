@@ -65,13 +65,13 @@ export default function TutorProfilePage() {
           </button>
           <div>
             <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Tutor</div>
-            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">My Profile</h1>
+            <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">My Profile</h1>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl border border-navy-100 shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-emerald-tint shadow-sm p-6">
           {success && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
               <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
@@ -91,7 +91,7 @@ export default function TutorProfilePage() {
               <input type="text" name="headline" value={formData.headline}
                 onChange={e => setFormData(p => ({ ...p, headline: e.target.value }))}
                 placeholder="e.g. Expert Math Tutor with 10 Years Experience"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                 required />
             </div>
 
@@ -100,7 +100,7 @@ export default function TutorProfilePage() {
               <input type="number" name="hourlyRate" value={formData.hourlyRate}
                 onChange={e => setFormData(p => ({ ...p, hourlyRate: e.target.value }))}
                 placeholder="50" min="5" max="500"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                 required />
             </div>
 
@@ -137,7 +137,7 @@ export default function TutorProfilePage() {
               <textarea name="description" value={formData.description} rows={4}
                 onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
                 placeholder="Tell students about your teaching style and experience…"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent" />
             </div>
 
             <div>
@@ -145,7 +145,7 @@ export default function TutorProfilePage() {
               <textarea name="experience" value={formData.experience} rows={3}
                 onChange={e => setFormData(p => ({ ...p, experience: e.target.value }))}
                 placeholder="Describe your teaching experience…"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent" />
             </div>
 
             <div>
@@ -153,7 +153,7 @@ export default function TutorProfilePage() {
               <textarea name="qualifications" value={formData.qualifications} rows={3}
                 onChange={e => setFormData(p => ({ ...p, qualifications: e.target.value }))}
                 placeholder="List your degrees, certifications, and qualifications…"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent" />
             </div>
 
             <div>
@@ -162,11 +162,11 @@ export default function TutorProfilePage() {
                 value={formData.languages.join(', ')}
                 onChange={e => setFormData(p => ({ ...p, languages: e.target.value.split(',').map(l => l.trim()).filter(Boolean) }))}
                 placeholder="e.g. English, Spanish, French (comma-separated)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent" />
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent" />
             </div>
 
             <button type="submit" disabled={saving}
-              className="w-full bg-navy-800 hover:bg-navy-700 text-white font-semibold py-3 rounded-xl transition disabled:opacity-50">
+              className="w-full bg-emerald-deep hover:bg-emerald-deep text-white font-semibold py-3 rounded-xl transition disabled:opacity-50">
               {saving ? 'Saving…' : 'Save Profile'}
             </button>
           </form>

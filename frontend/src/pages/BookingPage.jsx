@@ -94,7 +94,7 @@ export default function BookingPage() {
           </button>
           <div>
             <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Marketplace</div>
-            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">Book a Session</h1>
+            <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">Book a Session</h1>
           </div>
         </div>
       </header>
@@ -103,13 +103,13 @@ export default function BookingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Tutor Info Card */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-2xl border border-navy-100 shadow-sm p-6 sticky top-24">
+            <div className="bg-white rounded-2xl border border-emerald-tint shadow-sm p-6 sticky top-24">
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-11 h-11 rounded-full bg-navy-700 text-white grid place-items-center font-bold text-base shrink-0">
+                <div className="w-11 h-11 rounded-full bg-emerald-deep text-white grid place-items-center font-bold text-base shrink-0">
                   {tutor.userId?.name?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>
-                  <h3 className="font-bold text-navy-900 leading-tight">{tutor.userId?.name}</h3>
+                  <h3 className="font-bold text-emerald-deep leading-tight">{tutor.userId?.name}</h3>
                   <p className="text-xs text-gray-500 line-clamp-1">{tutor.headline}</p>
                 </div>
               </div>
@@ -117,11 +117,11 @@ export default function BookingPage() {
               <div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Hourly Rate</p>
-                  <p className="text-2xl font-bold text-navy-800">${tutor.hourlyRate}<span className="text-sm font-normal text-gray-500">/hr</span></p>
+                  <p className="text-2xl font-bold text-emerald-deep">${tutor.hourlyRate}<span className="text-sm font-normal text-gray-500">/hr</span></p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Rating</p>
-                  <p className="font-semibold text-navy-900">⭐ {tutor.rating.average} <span className="text-xs text-gray-500">({tutor.rating.count} reviews)</span></p>
+                  <p className="font-semibold text-emerald-deep">⭐ {tutor.rating.average} <span className="text-xs text-gray-500">({tutor.rating.count} reviews)</span></p>
                 </div>
               </div>
 
@@ -133,7 +133,7 @@ export default function BookingPage() {
                 <div className="border-t border-gray-100 pt-3">
                   <div className="flex justify-between items-center mb-1.5">
                     <span className="text-sm text-gray-600">Session cost</span>
-                    <span className="font-bold text-navy-800">${totalCost}</span>
+                    <span className="font-bold text-emerald-deep">${totalCost}</span>
                   </div>
                   <div className="flex justify-between items-center text-xs text-gray-400 mb-3">
                     <span>Platform fee (10%)</span>
@@ -141,7 +141,7 @@ export default function BookingPage() {
                   </div>
                   <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                     <span className="font-semibold text-gray-900">Total</span>
-                    <span className="text-xl font-bold text-navy-800">${totalCost}</span>
+                    <span className="text-xl font-bold text-emerald-deep">${totalCost}</span>
                   </div>
                 </div>
               </div>
@@ -150,7 +150,7 @@ export default function BookingPage() {
 
           {/* Booking Form */}
           <div className="md:col-span-2">
-            <div className="bg-white rounded-2xl border border-navy-100 shadow-sm p-6">
+            <div className="bg-white rounded-2xl border border-emerald-tint shadow-sm p-6">
               {error && (
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -170,7 +170,7 @@ export default function BookingPage() {
                     value={formData.subject}
                     onChange={handleChange}
                     placeholder="e.g. Algebra homework, SAT prep"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                     required
                   />
                 </div>
@@ -184,7 +184,7 @@ export default function BookingPage() {
                     name="duration"
                     value={formData.duration}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   >
                     <option value={0.5}>0.5 hours ($25)</option>
                     <option value={1}>1 hour (${tutor.hourlyRate})</option>
@@ -207,7 +207,7 @@ export default function BookingPage() {
                     value={formData.scheduledDate}
                     onChange={handleChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                     required
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function BookingPage() {
                     name="startTime"
                     value={formData.startTime}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                     required
                   />
                 </div>
@@ -241,7 +241,7 @@ export default function BookingPage() {
                         value="online"
                         checked={formData.sessionType === 'online'}
                         onChange={handleChange}
-                        className="w-4 h-4 text-navy-600"
+                        className="w-4 h-4 text-emerald"
                       />
                       <span className="ml-3 text-gray-700">Online (via Zoom/Google Meet)</span>
                     </label>
@@ -252,7 +252,7 @@ export default function BookingPage() {
                         value="in-person"
                         checked={formData.sessionType === 'in-person'}
                         onChange={handleChange}
-                        className="w-4 h-4 text-navy-600"
+                        className="w-4 h-4 text-emerald"
                       />
                       <span className="ml-3 text-gray-700">In-person</span>
                     </label>
@@ -271,7 +271,7 @@ export default function BookingPage() {
                       value={formData.meetingLink}
                       onChange={handleChange}
                       placeholder="https://zoom.us/j/..."
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                     />
                   </div>
                 ) : (
@@ -285,7 +285,7 @@ export default function BookingPage() {
                       value={formData.location}
                       onChange={handleChange}
                       placeholder="123 Main St, City, State"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                     />
                   </div>
                 )}
@@ -301,14 +301,14 @@ export default function BookingPage() {
                     onChange={handleChange}
                     placeholder="Let the tutor know what you want to focus on..."
                     rows="4"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-navy-800 hover:bg-navy-700 text-white font-semibold py-3 rounded-xl transition disabled:opacity-50"
+                  className="w-full bg-emerald-deep hover:bg-emerald-deep text-white font-semibold py-3 rounded-xl transition disabled:opacity-50"
                 >
                   {loading ? 'Processing…' : 'Continue to Payment'}
                 </button>

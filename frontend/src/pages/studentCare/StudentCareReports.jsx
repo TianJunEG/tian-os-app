@@ -54,7 +54,7 @@ export default function StudentCareReports() {
         ].map(([label, value]) => (
           <Card key={label} className="p-3">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</p>
-            <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{value ?? 0}</p>
+            <p className="mt-1 font-mono text-xl font-semibold text-emerald-deep">{value ?? 0}</p>
           </Card>
         ))}
       </div>

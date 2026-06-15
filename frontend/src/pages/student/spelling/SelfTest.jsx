@@ -62,7 +62,7 @@ export default function SelfTest() {
         {revealed && !result ? (
           <div className="m-auto text-center">
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Remember this spelling</p>
-            <p className="my-3 font-display text-2xl sm:text-3xl font-semibold text-navy-700">{w.word}</p>
+            <p className="my-3 font-display text-2xl sm:text-3xl font-semibold text-emerald-deep">{w.word}</p>
             {w.sentence && <p className="mx-auto mb-5 max-w-sm text-sm text-ink-500">{w.sentence}</p>}
             <Button size="m" icon={EyeOff} onClick={() => setRevealed(false)}>Hide &amp; spell it</Button>
           </div>
@@ -74,7 +74,7 @@ export default function SelfTest() {
             <input
               value={answer} onChange={(e) => setAnswer(e.target.value)} disabled={!!result} autoFocus
               placeholder="Type the word" onKeyDown={(e) => { if (e.key === 'Enter' && !result) check(); }}
-              className="w-full rounded-xl border border-hairline px-4 py-3 text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+              className="w-full rounded-xl border border-line-soft px-4 py-3 text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
             />
 
             {/* Reserved slot keeps the button position stable between states. */}

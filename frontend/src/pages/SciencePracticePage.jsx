@@ -104,11 +104,11 @@ export default function SciencePracticePage() {
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <button
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-gray-600 hover:text-navy-900"
+            className="flex items-center gap-2 text-gray-600 hover:text-emerald-deep"
           >
             <ArrowLeft className="w-5 h-5" /> Dashboard
           </button>
-          <div className="flex items-center gap-2 font-extrabold text-navy-900">
+          <div className="flex items-center gap-2 font-extrabold text-emerald-deep">
             <FlaskConical className="w-5 h-5 text-gold-500" /> P6 Science
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function SciencePracticePage() {
 
         {phase === 'pick' && (
           <div className="bg-white rounded-xl shadow p-6">
-            <h1 className="text-2xl font-extrabold text-navy-900 mb-1">Science Revision</h1>
+            <h1 className="text-2xl font-extrabold text-emerald-deep mb-1">Science Revision</h1>
             <p className="text-gray-600 mb-6">
               Open-ended P6 questions, MOE-aligned. Check your answer against the model answer and
               mark yourself honestly — your score feeds your learning profile.
@@ -159,7 +159,7 @@ export default function SciencePracticePage() {
             <button
               onClick={start}
               disabled={loading}
-              className="w-full bg-navy-900 text-white font-medium py-2.5 rounded-lg hover:bg-navy-800 disabled:opacity-50"
+              className="w-full bg-emerald-deep text-white font-medium py-2.5 rounded-lg hover:bg-emerald-deep disabled:opacity-50"
             >
               {loading ? 'Loading…' : 'Start practice'}
             </button>
@@ -172,7 +172,7 @@ export default function SciencePracticePage() {
               <span>
                 Question {idx + 1} of {questions.length}
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-navy-50 text-navy-700">{q.topic}</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-tint text-emerald-deep">{q.topic}</span>
             </div>
             {q.heading && <h2 className="text-lg font-semibold text-gray-900 mb-2">{q.heading}</h2>}
             <p className="text-gray-800 mb-6">{q.question}</p>
@@ -180,7 +180,7 @@ export default function SciencePracticePage() {
             {!revealed ? (
               <button
                 onClick={() => setRevealed(true)}
-                className="w-full border-2 border-navy-900 text-navy-900 font-medium py-2.5 rounded-lg hover:bg-navy-50"
+                className="w-full border-2 border-emerald-deep text-emerald-deep font-medium py-2.5 rounded-lg hover:bg-emerald-tint"
               >
                 Show model answer
               </button>
@@ -222,7 +222,7 @@ export default function SciencePracticePage() {
             <Trophy
               className={`w-12 h-12 mx-auto mb-3 ${accuracy >= 80 ? 'text-gold-500' : 'text-gray-300'}`}
             />
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-navy-900 mb-1">{accuracy}%</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-emerald-deep mb-1">{accuracy}%</h1>
             <p className="text-gray-600 mb-1">
               {correctCount} of {questions.length} correct{accuracy >= 80 ? ' — mastered!' : ''}
             </p>
@@ -234,13 +234,13 @@ export default function SciencePracticePage() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={restart}
-                className="flex items-center gap-2 border border-navy-900 text-navy-900 font-medium px-4 py-2 rounded-lg hover:bg-navy-50"
+                className="flex items-center gap-2 border border-emerald-deep text-emerald-deep font-medium px-4 py-2 rounded-lg hover:bg-emerald-tint"
               >
                 <RotateCcw className="w-4 h-4" /> Practice again
               </button>
               <button
                 onClick={() => navigate('/learning')}
-                className="flex items-center gap-2 bg-navy-900 text-white font-medium px-4 py-2 rounded-lg hover:bg-navy-800"
+                className="flex items-center gap-2 bg-emerald-deep text-white font-medium px-4 py-2 rounded-lg hover:bg-emerald-deep"
               >
                 View my progress <ArrowRight className="w-4 h-4" />
               </button>

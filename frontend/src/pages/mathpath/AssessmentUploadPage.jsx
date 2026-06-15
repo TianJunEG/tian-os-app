@@ -134,7 +134,7 @@ export default function AssessmentUploadPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Test Title">
             <input
-              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               value={form.title}
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
               placeholder="Optional"
@@ -142,7 +142,7 @@ export default function AssessmentUploadPage() {
           </Field>
           <Field label="Level">
             <select
-              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               value={form.level}
               onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))}
             >
@@ -153,7 +153,7 @@ export default function AssessmentUploadPage() {
           </Field>
           <Field label="School">
             <input
-              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               value={form.school}
               onChange={(e) => setForm((p) => ({ ...p, school: e.target.value }))}
               placeholder="Optional"
@@ -161,7 +161,7 @@ export default function AssessmentUploadPage() {
           </Field>
           <Field label="Assessment Type">
             <input
-              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               value={form.assessmentType}
               onChange={(e) => setForm((p) => ({ ...p, assessmentType: e.target.value }))}
               placeholder="WA / Prelim / EOY"
@@ -171,7 +171,7 @@ export default function AssessmentUploadPage() {
             <input
               type="number"
               min="0"
-              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               value={form.durationMinutes}
               onChange={(e) => setForm((p) => ({ ...p, durationMinutes: e.target.value }))}
             />
@@ -180,7 +180,7 @@ export default function AssessmentUploadPage() {
             <input
               type="number"
               min="0"
-              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               value={form.totalMarks}
               onChange={(e) => setForm((p) => ({ ...p, totalMarks: e.target.value }))}
             />
@@ -200,7 +200,7 @@ export default function AssessmentUploadPage() {
           />
         </div>
 
-        <div className="mt-4 rounded-xl border border-dashed border-hairline p-4">
+        <div className="mt-4 rounded-xl border border-dashed border-line-soft p-4">
           <label className="mb-2 block text-sm font-medium text-ink-700">Assessment File (PDF or image)</label>
           <input
             type="file"
@@ -241,19 +241,19 @@ export default function AssessmentUploadPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-hairline p-3 text-sm">
+            <div className="rounded-lg border border-line-soft p-3 text-sm">
               <p className="text-ink-500">Assessment Type</p>
               <p className="font-semibold text-ink-700">{result?.analysisSummary?.assessmentType || '-'}</p>
             </div>
-            <div className="rounded-lg border border-hairline p-3 text-sm">
+            <div className="rounded-lg border border-line-soft p-3 text-sm">
               <p className="text-ink-500">Sections</p>
               <p className="font-semibold text-ink-700">{result?.analysisSummary?.sectionCount ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-hairline p-3 text-sm">
+            <div className="rounded-lg border border-line-soft p-3 text-sm">
               <p className="text-ink-500">Questions</p>
               <p className="font-semibold text-ink-700">{result?.analysisSummary?.questionCount ?? 0}</p>
             </div>
-            <div className="rounded-lg border border-hairline p-3 text-sm">
+            <div className="rounded-lg border border-line-soft p-3 text-sm">
               <p className="text-ink-500">Marks</p>
               <p className="font-semibold text-ink-700">{result?.analysisSummary?.totalMarks ?? 0}</p>
             </div>
@@ -264,7 +264,7 @@ export default function AssessmentUploadPage() {
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Topics Detected</h3>
               <div className="space-y-2">
                 {(result?.analysisSummary?.topicDistribution || []).map((topic, idx) => (
-                  <div key={`${topic.topic}-${idx}`} className="rounded-lg border border-hairline p-2 text-sm">
+                  <div key={`${topic.topic}-${idx}`} className="rounded-lg border border-line-soft p-2 text-sm">
                     <p className="font-semibold text-ink-700">{topic.topic}</p>
                     <p className="text-ink-500">{topic.marks} marks · {topic.weightage}%</p>
                   </div>
@@ -276,7 +276,7 @@ export default function AssessmentUploadPage() {
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">Diagram Types Detected</h3>
               <div className="space-y-2">
                 {(result?.analysisSummary?.diagramMetadata || []).map((diagram, idx) => (
-                  <div key={`${diagram.diagramType}-${idx}`} className="rounded-lg border border-hairline p-2 text-sm">
+                  <div key={`${diagram.diagramType}-${idx}`} className="rounded-lg border border-line-soft p-2 text-sm">
                     <p className="font-semibold text-ink-700">{diagram.diagramType}</p>
                     <p className="text-ink-500">Count: {diagram.count}</p>
                   </div>

@@ -63,7 +63,7 @@ export default function MistakeHistory() {
           </span>
           <button
             onClick={() => navigate(`/parent/children/${studentId}/mistakes`)}
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-navy-700 hover:bg-navy-50"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-emerald-deep hover:bg-emerald-tint"
           >
             <X className="h-3.5 w-3.5" /> Show all
           </button>

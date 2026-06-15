@@ -207,15 +207,15 @@ export default function DiagnosticResultScreen() {
           <div className="space-y-4">
             <Card className="p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Nice work</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold text-navy-800">{summary.encouragementMessage}</h2>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-emerald-deep">{summary.encouragementMessage}</h2>
               {summary.recoveryPackContext?.message && (
-                <p className="mt-3 rounded-xl bg-navy-50 px-3 py-2 text-sm font-semibold text-navy-800">
+                <p className="mt-3 rounded-xl bg-emerald-tint px-3 py-2 text-sm font-semibold text-emerald-deep">
                   {summary.recoveryPackContext.message}
                 </p>
               )}
               {summary.overallImprovement !== null && summary.overallImprovement !== undefined && (
                 <p className="mt-3 text-sm text-ink-600">
-                  Overall improvement: <span className="font-semibold text-navy-700">{summary.overallImprovement > 0 ? '+' : ''}{summary.overallImprovement}</span>
+                  Overall improvement: <span className="font-semibold text-emerald-deep">{summary.overallImprovement > 0 ? '+' : ''}{summary.overallImprovement}</span>
                 </p>
               )}
               <p className="mt-3 text-sm text-ink-700">{summary.coachingExplanation}</p>
@@ -260,7 +260,7 @@ export default function DiagnosticResultScreen() {
                 <p className="font-semibold text-ink-800">A tricky mistake you are improving</p>
                 <div className="mt-3 space-y-2">
                   {summary.resolvedMisconceptions.map((item) => (
-                    <p key={item.title} className="rounded-xl bg-paper px-3 py-2 text-sm text-ink-700">{item.explanation}</p>
+                    <p key={item.title} className="rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700">{item.explanation}</p>
                   ))}
                 </div>
               </Card>
@@ -268,7 +268,7 @@ export default function DiagnosticResultScreen() {
 
             <Card className="p-5">
               <p className="font-semibold text-ink-800">Try this next</p>
-              <p className="mt-2 text-lg font-semibold text-navy-800">{summary.nextRecommendedAction?.label || 'Continue Practice'}</p>
+              <p className="mt-2 text-lg font-semibold text-emerald-deep">{summary.nextRecommendedAction?.label || 'Continue Practice'}</p>
               <p className="mt-1 text-sm text-ink-600">{summary.nextRecommendedAction?.reason || 'This will help you keep building confidence.'}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button icon={ArrowRight} onClick={() => navigate('/student/mathpath/assignments')}>
@@ -324,25 +324,25 @@ export default function DiagnosticResultScreen() {
         <Card className="p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Diagnostic Summary</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl bg-navy-50 px-3 py-2">
+            <div className="rounded-xl bg-emerald-tint px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Questions Correct</p>
-              <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{correct}/{total || '-'}</p>
+              <p className="mt-1 font-mono text-xl font-semibold text-emerald-deep">{correct}/{total || '-'}</p>
             </div>
-            <div className="rounded-xl bg-navy-50 px-3 py-2">
+            <div className="rounded-xl bg-emerald-tint px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Readiness Score</p>
-              <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{score}/100</p>
+              <p className="mt-1 font-mono text-xl font-semibold text-emerald-deep">{score}/100</p>
             </div>
             <div className="rounded-xl bg-bone px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Confidence Calibration</p>
               <p className="mt-1 text-sm font-semibold text-ink-700">{Math.round((Number(shaped.confidenceScore || 0) || 0) * 100)}%</p>
             </div>
-            <div className="rounded-xl bg-paper px-3 py-2">
+            <div className="rounded-xl bg-surface-white px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Readiness Band</p>
               <p className="mt-1 text-sm font-semibold text-ink-700">{readinessBand(score)}</p>
             </div>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <p className="rounded-xl bg-paper px-3 py-2 text-sm text-ink-700 sm:col-span-2">{summaryText}</p>
+            <p className="rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700 sm:col-span-2">{summaryText}</p>
           </div>
         </Card>
 
@@ -360,9 +360,9 @@ export default function DiagnosticResultScreen() {
                 ['Retention', readinessComponents.retention == null ? 'Unknown' : readinessComponents.retention],
                 ['Working', readinessComponents.workingQuality],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-xl bg-paper px-3 py-2">
+                <div key={label} className="rounded-xl bg-surface-white px-3 py-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</p>
-                  <p className="mt-1 font-mono text-lg font-semibold text-navy-700">{value}{typeof value === 'number' ? '/100' : ''}</p>
+                  <p className="mt-1 font-mono text-lg font-semibold text-emerald-deep">{value}{typeof value === 'number' ? '/100' : ''}</p>
                 </div>
               ))}
             </div>
@@ -378,10 +378,10 @@ export default function DiagnosticResultScreen() {
           {rootCauses.length ? (
             <div className="space-y-3">
               {rootCauses.slice(0, 3).map((cause) => (
-                <div key={cause.rootCauseId} className="rounded-xl border border-hairline bg-white px-3 py-3 text-sm">
+                <div key={cause.rootCauseId} className="rounded-xl border border-line-soft bg-white px-3 py-3 text-sm">
                   <p className="font-semibold text-ink-900">{cause.title}</p>
                   <p className="mt-1 text-ink-600">{cause.why}</p>
-                  <p className="mt-2 text-navy-700"><span className="font-semibold">Next step:</span> {cause.suggestedIntervention}</p>
+                  <p className="mt-2 text-emerald-deep"><span className="font-semibold">Next step:</span> {cause.suggestedIntervention}</p>
                 </div>
               ))}
             </div>
@@ -403,7 +403,7 @@ export default function DiagnosticResultScreen() {
           >
             <div className="space-y-2">
               {skillEvidence.slice(0, 6).map((row) => (
-                <div key={row.skillId} className="rounded-xl border border-hairline bg-white px-3 py-3 text-sm">
+                <div key={row.skillId} className="rounded-xl border border-line-soft bg-white px-3 py-3 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold text-ink-900">{row.skillName}</p>
                     <Badge tone={row.masteryBand === 'Mastered' || row.masteryBand === 'Secure' ? 'success' : 'gold'}>{row.masteryBand}</Badge>
@@ -426,9 +426,9 @@ export default function DiagnosticResultScreen() {
             <Badge tone="navy">{shaped.timingAnalytics?.overall ? 'Available' : 'Processing'}</Badge>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl bg-navy-50 px-3 py-2">
+            <div className="rounded-xl bg-emerald-tint px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Question attempts</p>
-              <p className="mt-1 font-mono text-xl font-semibold text-navy-700">{timingOverall.question_attempts ?? 0}</p>
+              <p className="mt-1 font-mono text-xl font-semibold text-emerald-deep">{timingOverall.question_attempts ?? 0}</p>
             </div>
             <div className="rounded-xl bg-bone px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Avg response time</p>
@@ -450,7 +450,7 @@ export default function DiagnosticResultScreen() {
                 {timingBySkill.map((row) => {
                   const signal = fluencySignal(row);
                   return (
-                    <div key={row.skillId} className="grid gap-2 rounded-xl bg-white border border-hairline px-3 py-2 text-sm">
+                    <div key={row.skillId} className="grid gap-2 rounded-xl bg-white border border-line-soft px-3 py-2 text-sm">
                     <p className="font-semibold text-ink-900">{skillName(row.skillId)}</p>
                     <div className="grid gap-2 sm:grid-cols-4">
                       <span>Accuracy: <b>{formatPercent(row.accuracy)}</b></span>
@@ -477,11 +477,11 @@ export default function DiagnosticResultScreen() {
               </div>
             </div>
           )}
-          <div className="mt-4 grid gap-2 rounded-xl border border-hairline bg-white px-3 py-2">
+          <div className="mt-4 grid gap-2 rounded-xl border border-line-soft bg-white px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fluency signal key</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {FLUENCY_SIGNAL_LEGEND.map((item) => (
-                <div key={item.label} className="flex items-center justify-between rounded-lg bg-paper px-2 py-1.5 text-xs">
+                <div key={item.label} className="flex items-center justify-between rounded-lg bg-surface-white px-2 py-1.5 text-xs">
                   <span className="font-semibold text-ink-700">{item.label}</span>
                   <Tooltip label={item.meaning}>
                     <HelpCircle className="h-4 w-4 text-ink-400" />
@@ -494,12 +494,12 @@ export default function DiagnosticResultScreen() {
 
         <Card className="p-5">
           <p className="text-sm font-semibold text-ink-700">Recommended Starting Skill</p>
-          <p className="mt-1 text-lg font-semibold text-navy-700">{startingSkillName}</p>
+          <p className="mt-1 text-lg font-semibold text-emerald-deep">{startingSkillName}</p>
           <p className="mt-2 text-sm text-ink-600">
             {recommendations.student || shaped.parentPlacementSummary || 'We recommend starting from this skill before moving to harder fraction operations.'}
           </p>
           {recommendations.parent && (
-            <p className="mt-2 rounded-xl bg-paper px-3 py-2 text-sm text-ink-700">{recommendations.parent}</p>
+            <p className="mt-2 rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700">{recommendations.parent}</p>
           )}
         </Card>
 
@@ -528,7 +528,7 @@ export default function DiagnosticResultScreen() {
                 </div>
               </div>
             </div>
-            <div className="border-t border-hairline pt-4">
+            <div className="border-t border-line-soft pt-4">
               <p className="text-sm font-semibold text-ink-700">Placement Confidence</p>
               <p className="mt-2 text-sm text-ink-600">
                 Readiness score is based on correct answers, skipped questions, skill coverage, time spent, and confidence choices.

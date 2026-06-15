@@ -34,7 +34,7 @@ export default function SpellingHome() {
           <div className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700"><SpellCheck className="h-3.5 w-3.5" /> Recommended list</div>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="font-display text-xl font-semibold text-navy-700">{home.recommended.title}</h2>
+              <h2 className="font-display text-xl font-semibold text-emerald-deep">{home.recommended.title}</h2>
               <p className="mt-1 text-sm text-ink-500">
                 {home.recentAccuracy != null ? `Recent accuracy ${home.recentAccuracy}%` : 'No attempts yet'}
                 {home.misspeltCount ? ` · ${home.misspeltCount} to review` : ''}
@@ -52,7 +52,7 @@ export default function SpellingHome() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Link to="/student/spelling/lists" className="block focus-visible:outline-none">
           <Card interactive className="p-5">
-            <ListChecks className="mb-2 h-6 w-6 text-navy-700" />
+            <ListChecks className="mb-2 h-6 w-6 text-emerald-deep" />
             <h3 className="font-semibold text-ink-700">Word lists</h3>
             <p className="text-sm text-ink-500">Browse and practise any list.</p>
           </Card>

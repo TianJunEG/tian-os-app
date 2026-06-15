@@ -30,7 +30,7 @@ export const WORKING_TOOLS = [
 function compactButtonClass(active = false, disabled = false, dense = false) {
   return [
     `inline-flex ${dense ? 'h-7 px-1.5' : 'h-8 px-2'} items-center justify-center gap-1 rounded-lg border text-xs font-semibold transition`,
-    active ? 'border-navy-700 bg-navy-700 text-white' : 'border-hairline bg-white text-navy-700 hover:bg-navy-50',
+    active ? 'border-emerald-deep bg-emerald-deep text-white' : 'border-line-soft bg-white text-emerald-deep hover:bg-emerald-tint',
     disabled ? 'cursor-not-allowed opacity-45 hover:bg-white' : '',
   ].join(' ');
 }
@@ -56,7 +56,7 @@ export default function WorkingToolbar({
 }) {
   if (compact) {
     return (
-      <div className="rounded-lg border border-hairline bg-white p-1.5 shadow-resting" data-testid="working-toolbar">
+      <div className="rounded-lg border border-line-soft bg-white p-1.5 shadow-rest" data-testid="working-toolbar">
         <div className="flex flex-wrap items-center gap-1">
           {WORKING_TOOLS.map((item) => (
             <button
@@ -70,20 +70,20 @@ export default function WorkingToolbar({
               <item.icon className="h-4 w-4" />
             </button>
           ))}
-          <span className="mx-0.5 h-6 w-px bg-hairline" aria-hidden="true" />
+          <span className="mx-0.5 h-6 w-px bg-line-soft" aria-hidden="true" />
           {WORKING_COLOURS.map((item) => (
             <button
               key={item.value}
               type="button"
               aria-label={item.label}
               onClick={() => onColourChange?.(item.value)}
-              className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/20' : 'border-hairline'}`}
+              className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-emerald ring-2 ring-emerald/20' : 'border-line-soft'}`}
               style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
             >
               {item.label[0]}
             </button>
           ))}
-          <span className="mx-0.5 h-6 w-px bg-hairline" aria-hidden="true" />
+          <span className="mx-0.5 h-6 w-px bg-line-soft" aria-hidden="true" />
           {BRUSH_SIZES.map((item) => (
             <button
               key={item.value}
@@ -96,7 +96,7 @@ export default function WorkingToolbar({
               {item.label[0]}
             </button>
           ))}
-          <span className="mx-0.5 h-6 w-px bg-hairline" aria-hidden="true" />
+          <span className="mx-0.5 h-6 w-px bg-line-soft" aria-hidden="true" />
           <button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} className={compactButtonClass(false, !canUndo, true)} onClick={onUndo}><RotateCcw className="h-4 w-4" /></button>
           <button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} className={compactButtonClass(false, !canRedo, true)} onClick={onRedo}><RotateCw className="h-4 w-4" /></button>
           <button type="button" aria-label="Clear" title="Clear" disabled={!canUndo} className={compactButtonClass(false, !canUndo, true)} onClick={onClear}><Trash2 className="h-4 w-4" /></button>
@@ -109,7 +109,7 @@ export default function WorkingToolbar({
   }
 
   return (
-    <div className="rounded-lg border border-hairline bg-white p-2 shadow-resting" data-testid="working-toolbar">
+    <div className="rounded-lg border border-line-soft bg-white p-2 shadow-rest" data-testid="working-toolbar">
       <div className="mb-2 flex flex-wrap gap-1">
         {WORKING_TOOLS.map((item) => (
           <button
@@ -139,7 +139,7 @@ export default function WorkingToolbar({
                 type="button"
                 aria-label={item.label}
                 onClick={() => onColourChange?.(item.value)}
-                className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-navy-500 ring-2 ring-navy-500/20' : 'border-hairline'}`}
+                className={`h-7 w-7 rounded-md border text-[10px] font-semibold ${colour === item.value ? 'border-emerald ring-2 ring-emerald/20' : 'border-line-soft'}`}
                 style={{ backgroundColor: item.value, color: item.value === '#ca8a04' ? '#111827' : '#ffffff' }}
               >
                 {item.label[0]}

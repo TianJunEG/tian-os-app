@@ -133,9 +133,9 @@ const AdminDashboard = () => {
   };
 
   const ROLE_TONE = { parent: 'sky', tutor: 'lavender', admin: 'peach' };
-  const navCls = (id) => `px-4 py-2.5 rounded-[14px] text-sm font-semibold transition ${activeTab === id ? 'bg-navy-700 text-white' : 'border border-hairline bg-paper text-ink-500 hover:border-navy-300 hover:text-navy-700'}`;
-  const filterCls = 'h-10 rounded-xl border border-hairline bg-paper px-3 text-sm text-ink-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
-  const btnSmall = 'px-3 py-1.5 text-xs font-semibold rounded-lg border border-hairline bg-paper text-ink-700 transition hover:bg-navy-50';
+  const navCls = (id) => `px-4 py-2.5 rounded-btn text-sm font-semibold transition ${activeTab === id ? 'bg-emerald-deep text-white' : 'border border-line-soft bg-surface-white text-ink-500 hover:border-navy-300 hover:text-emerald-deep'}`;
+  const filterCls = 'h-10 rounded-xl border border-line-soft bg-surface-white px-3 text-sm text-ink-700 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const btnSmall = 'px-3 py-1.5 text-xs font-semibold rounded-lg border border-line-soft bg-surface-white text-ink-700 transition hover:bg-emerald-tint';
   const btnSuccess = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-success-500 text-white transition hover:bg-success-700';
   const btnDanger = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-500 text-white transition hover:bg-error-700';
 
@@ -148,8 +148,8 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ivory p-5 md:p-8">
-      <header className="rounded-[24px] border border-hairline bg-paper p-5 mb-6 shadow-resting">
+    <div className="min-h-screen bg-surface-raised p-5 md:p-8">
+      <header className="rounded-[24px] border border-line-soft bg-surface-white p-5 mb-6 shadow-rest">
         <h1 className="text-2xl font-bold text-ink-700 mb-5">Admin Dashboard</h1>
         <div className="flex flex-wrap gap-2">
           <button
@@ -286,7 +286,7 @@ const AdminDashboard = () => {
 
       {/* MATHPATH PILOT TAB */}
       {activeTab === 'mathpath-pilot' && data.mathpathPilot && (
-        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+        <div className="rounded-[24px] border border-line-soft bg-surface-white p-5 shadow-rest">
           <h2 className="text-xl font-bold text-ink-700 mb-1">MathPath Fractions Pilot Monitor</h2>
           <p className="text-sm text-ink-500 mb-5">
             Read-only internal view for supervised pilot/test accounts. Generated {new Date(data.mathpathPilot.generatedAt).toLocaleString()}.
@@ -367,7 +367,7 @@ const AdminDashboard = () => {
 
       {/* USERS TAB */}
       {activeTab === 'users' && data.users && (
-        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+        <div className="rounded-[24px] border border-line-soft bg-surface-white p-5 shadow-rest">
           <div className="flex flex-wrap gap-2.5 mb-5">
             <select
               value={filters.userRole}
@@ -442,7 +442,7 @@ const AdminDashboard = () => {
 
       {/* VERIFICATION QUEUE TAB */}
       {activeTab === 'verification' && data.verificationQueue && (
-        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+        <div className="rounded-[24px] border border-line-soft bg-surface-white p-5 shadow-rest">
           <h2 className="text-xl font-bold text-ink-700 mb-5">Pending Tutor Verifications ({data.verificationQueue.pagination.total})</h2>
 
           <div className="overflow-x-auto">
@@ -499,7 +499,7 @@ const AdminDashboard = () => {
 
       {/* BOOKINGS TAB */}
       {activeTab === 'bookings' && data.bookings && (
-        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+        <div className="rounded-[24px] border border-line-soft bg-surface-white p-5 shadow-rest">
           <div className="flex flex-wrap gap-2.5 mb-5">
             <select
               value={filters.bookingStatus}
@@ -560,7 +560,7 @@ const AdminDashboard = () => {
 
       {/* DISPUTES TAB */}
       {activeTab === 'disputes' && data.disputes && (
-        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+        <div className="rounded-[24px] border border-line-soft bg-surface-white p-5 shadow-rest">
           <h2 className="text-xl font-bold text-ink-700 mb-5">Disputes ({data.disputes.pagination.total})</h2>
 
           <div className="overflow-x-auto">
@@ -607,7 +607,7 @@ const AdminDashboard = () => {
 
       {/* PARTNERSHIPS TAB */}
       {activeTab === 'partners' && data.partners && (
-        <div className="rounded-[24px] border border-hairline bg-paper p-5 shadow-resting">
+        <div className="rounded-[24px] border border-line-soft bg-surface-white p-5 shadow-rest">
           <h2 className="text-xl font-bold text-ink-700 mb-5">Partnership Inquiries ({data.partners.pagination.total})</h2>
 
           <div className="overflow-x-auto">

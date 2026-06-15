@@ -239,9 +239,9 @@ const TutorOnboarding = () => {
     }
   };
 
-  const inputCls = 'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const inputCls = 'w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
   const selectCls = `${inputCls} appearance-none pr-10`;
-  const textareaCls = 'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y';
+  const textareaCls = 'w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y';
 
   // Step 1: Basic Info
   const renderStep1 = () => (
@@ -256,7 +256,7 @@ const TutorOnboarding = () => {
             <label key={subject} className="ds-checkbox-item">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-hairline accent-navy-700"
+                className="h-4 w-4 rounded border-line-soft accent-navy-700"
                 checked={formData.specialties.includes(subject)}
                 onChange={() => handleSubjectToggle(subject)}
               />
@@ -274,7 +274,7 @@ const TutorOnboarding = () => {
             <label key={grade} className="ds-checkbox-item">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-hairline accent-navy-700"
+                className="h-4 w-4 rounded border-line-soft accent-navy-700"
                 checked={formData.gradeLevel.includes(grade)}
                 onChange={() => handleGradeToggle(grade)}
               />
@@ -379,11 +379,11 @@ const TutorOnboarding = () => {
 
       <div className="ds-form-group">
         <label htmlFor="credentials" className="ds-form-label">Upload Credentials Document</label>
-        <div className="flex items-center gap-4 p-5 rounded-xl border-2 border-dashed border-hairline bg-navy-50/30 transition hover:border-navy-300 cursor-pointer">
+        <div className="flex items-center gap-4 p-5 rounded-xl border-2 border-dashed border-line-soft bg-emerald-tint/30 transition hover:border-navy-300 cursor-pointer">
           <input
             id="credentials"
             type="file"
-            className="text-sm text-ink-700 file:mr-3 file:rounded-lg file:border-0 file:bg-navy-700 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-navy-800"
+            className="text-sm text-ink-700 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-deep file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-emerald-deep"
             onChange={handleFileUpload}
             accept=".pdf,.doc,.docx"
           />
@@ -414,7 +414,7 @@ const TutorOnboarding = () => {
             <label className="flex items-center gap-2 mb-3 cursor-pointer font-semibold text-ink-700">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-hairline accent-navy-700"
+                className="h-4 w-4 rounded border-line-soft accent-navy-700"
                 checked={times.available}
                 onChange={(e) => handleAvailabilityChange(day, 'available', e.target.checked)}
               />
@@ -532,14 +532,14 @@ const TutorOnboarding = () => {
       <h2 className="text-2xl font-bold text-ink-700 mb-2">✓ Review Your Application</h2>
       <p className="text-sm text-ink-500 mb-6">Make sure everything looks correct</p>
 
-      <div className="bg-navy-50/40 p-4 rounded-xl mb-4 border-l-4 border-navy-500">
+      <div className="bg-emerald-tint/40 p-4 rounded-xl mb-4 border-l-4 border-emerald">
         <h3 className="text-sm font-semibold text-ink-700 mb-2">📚 Teaching Info</h3>
         <p className="text-sm text-ink-700 mb-1"><strong>Subjects:</strong> {formData.specialties.join(', ')}</p>
         <p className="text-sm text-ink-700 mb-1"><strong>Grades:</strong> {formData.gradeLevel.join(', ')}</p>
         <p className="text-sm text-ink-700"><strong>Rate:</strong> ${formData.hourlyRate}/hour</p>
       </div>
 
-      <div className="bg-navy-50/40 p-4 rounded-xl mb-4 border-l-4 border-navy-500">
+      <div className="bg-emerald-tint/40 p-4 rounded-xl mb-4 border-l-4 border-emerald">
         <h3 className="text-sm font-semibold text-ink-700 mb-2">🎓 Qualifications</h3>
         <p className="text-sm text-ink-700 mb-1"><strong>Education:</strong> {formData.education}</p>
         <p className="text-sm text-ink-700 mb-1"><strong>Experience:</strong> {formData.experience} years</p>
@@ -547,7 +547,7 @@ const TutorOnboarding = () => {
         <p className="text-sm text-ink-700"><strong>Credentials:</strong> {formData.credentials ? '✓ Uploaded' : 'Not uploaded'}</p>
       </div>
 
-      <div className="bg-navy-50/40 p-4 rounded-xl mb-4 border-l-4 border-navy-500">
+      <div className="bg-emerald-tint/40 p-4 rounded-xl mb-4 border-l-4 border-emerald">
         <h3 className="text-sm font-semibold text-ink-700 mb-2">🏦 Payout Details</h3>
         <p className="text-sm text-ink-700 mb-1"><strong>Account Holder:</strong> {formData.bankAccountName}</p>
         <p className="text-sm text-ink-700 mb-1"><strong>Account Type:</strong> {formData.accountType}</p>
@@ -557,7 +557,7 @@ const TutorOnboarding = () => {
       <label className="ds-checkbox-item mt-4">
         <input
           type="checkbox"
-          className="h-4 w-4 rounded border-hairline accent-navy-700"
+          className="h-4 w-4 rounded border-line-soft accent-navy-700"
           checked={formData.agreeToTerms}
           onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
         />
@@ -587,9 +587,9 @@ const TutorOnboarding = () => {
   return (
     <div className="ds-wizard-shell">
       <div className="ds-wizard-card">
-        <ProgressBar value={step} max={5} barClassName="bg-navy-700" className="rounded-none" />
+        <ProgressBar value={step} max={5} barClassName="bg-emerald-deep" className="rounded-none" />
 
-        <div className="text-center text-xs font-semibold text-ink-500 py-3 border-b border-hairline">
+        <div className="text-center text-xs font-semibold text-ink-500 py-3 border-b border-line-soft">
           Step {step} of 5
         </div>
 
@@ -602,7 +602,7 @@ const TutorOnboarding = () => {
         <div className="ds-wizard-footer">
           {step > 1 && (
             <button
-              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] border border-hairline bg-paper text-navy-700 transition hover:bg-navy-50 disabled:opacity-50"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-btn border border-line-soft bg-surface-white text-emerald-deep transition hover:bg-emerald-tint disabled:opacity-50"
               onClick={handlePrev}
               disabled={loading}
             >
@@ -612,7 +612,7 @@ const TutorOnboarding = () => {
 
           {step < 5 ? (
             <button
-              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-navy-700 text-white transition hover:bg-navy-800 disabled:opacity-50"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-btn bg-emerald-deep text-white transition hover:bg-emerald-deep disabled:opacity-50"
               onClick={handleNext}
               disabled={loading}
             >
@@ -620,7 +620,7 @@ const TutorOnboarding = () => {
             </button>
           ) : (
             <button
-              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-success-500 text-white transition hover:bg-success-700 disabled:opacity-50"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-btn bg-success-500 text-white transition hover:bg-success-700 disabled:opacity-50"
               onClick={handleSubmit}
               disabled={loading}
             >

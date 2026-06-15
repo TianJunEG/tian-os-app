@@ -12,11 +12,21 @@ import { sendPaymentConfirmationEmail } from '../utils/emailService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
-// Pin the API version to the one this code was written against (Stripe SDK
-// v11's default). Upgrading the SDK to v22 modernizes the library without
-// changing request/response or webhook payload shapes; adopting a newer API
-// version is a separate, deliberately-tested change.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' });
+
+// Stripe is initialized lazily so the server can boot without STRIPE_SECRET_KEY
+// in test/CI environments where payment routes are never exercised.
+let _stripe = null;
+function getStripe() {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) throw Object.assign(new Error('Stripe is not configured (STRIPE_SECRET_KEY missing).'), { status: 503 });
+    // Pin the API version to the one this code was written against (Stripe SDK
+    // v11's default). Upgrading the SDK to v22 modernizes the library without
+    // changing request/response or webhook payload shapes; adopting a newer API
+    // version is a separate, deliberately-tested change.
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' });
+  }
+  return _stripe;
+}
 
 // @route   POST /api/payments/create-intent
 // @desc    Create a Stripe payment intent for a booking
@@ -68,7 +78,7 @@ router.post(
       }
 
       // Create Stripe payment intent
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await getStripe().paymentIntents.create({
         amount: Math.round(booking.totalCost * 100), // Convert to cents
         currency: 'usd',
         metadata: {
@@ -114,7 +124,7 @@ router.post(
       const { paymentIntentId, bookingId } = req.body;
 
       // Verify payment with Stripe
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
 
       if (paymentIntent.status !== 'succeeded') {
         return res.status(400).json({ error: 'Payment was not successful' });
@@ -227,7 +237,7 @@ router.post(
 
       // Process refund with Stripe
       try {
-        await stripe.refunds.create({
+        await getStripe().refunds.create({
           charge: payment.stripeChargeId
         });
       } catch (stripeError) {
@@ -312,7 +322,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), asyncHandler(
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET

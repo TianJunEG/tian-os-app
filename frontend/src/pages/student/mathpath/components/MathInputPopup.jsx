@@ -1,7 +1,7 @@
 import React from 'react';
 
 function fieldClass(size = 'normal') {
-  return `${size === 'small' ? 'h-12 w-20' : 'h-14 w-28'} rounded-xl border border-hairline bg-slate-50 px-3 text-center font-mono text-2xl text-ink-900 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/30 disabled:bg-slate-100 disabled:text-ink-400`;
+  return `${size === 'small' ? 'h-12 w-20' : 'h-14 w-28'} rounded-xl border border-line-soft bg-surface-raised px-3 text-center font-mono text-2xl text-ink-900 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/30 disabled:bg-surface-raised disabled:text-ink-400`;
 }
 
 export default function MathInputPopup({
@@ -34,11 +34,11 @@ export default function MathInputPopup({
   return (
     <div
       style={floating ? style || undefined : undefined}
-      className={`${positionClass} rounded-3xl border border-hairline bg-white p-5 shadow-floating`}
+      className={`${positionClass} rounded-3xl border border-line-soft bg-white p-5 shadow-floating`}
     >
       <button
         type="button"
-        className="absolute right-3 top-3 rounded-full px-2 py-1 text-sm font-semibold text-ink-400 hover:bg-slate-50 hover:text-ink-700"
+        className="absolute right-3 top-3 rounded-full px-2 py-1 text-sm font-semibold text-ink-400 hover:bg-surface-raised hover:text-ink-700"
         onClick={onClose}
         aria-label="Close math input"
       >

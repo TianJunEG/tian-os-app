@@ -222,28 +222,28 @@ export default function TestSpecificationPage() {
       <Card className="p-5">
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm text-ink-600">Title
-            <input className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
+            <input className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
           </label>
           <label className="text-sm text-ink-600">Level
-            <select className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.level} onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))}>
+            <select className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.level} onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))}>
               {['P3', 'P4', 'P5', 'P6', 'Sec1', 'Sec2', 'Sec3', 'Sec4'].map((lvl) => <option key={lvl} value={lvl}>{lvl}</option>)}
             </select>
           </label>
           <label className="text-sm text-ink-600">Paper Type
-            <select className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.paperType} onChange={(e) => setForm((p) => ({ ...p, paperType: e.target.value }))}>
+            <select className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.paperType} onChange={(e) => setForm((p) => ({ ...p, paperType: e.target.value }))}>
               <option value="paper1">Practice Paper 1</option>
               <option value="paper2">Practice Paper 2</option>
             </select>
           </label>
           <label className="text-sm text-ink-600">Target Type
-            <select className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.targetType} onChange={(e) => setForm((p) => ({ ...p, targetType: e.target.value }))}>
+            <select className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.targetType} onChange={(e) => setForm((p) => ({ ...p, targetType: e.target.value }))}>
               <option value="student">student</option>
               {ownerType === 'teacher' && <option value="class">class</option>}
             </select>
           </label>
           {form.targetType === 'student' ? (
             <label className="text-sm text-ink-600">Target Student
-              <select className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.targetStudentId} onChange={(e) => setForm((p) => ({ ...p, targetStudentId: e.target.value }))}>
+              <select className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.targetStudentId} onChange={(e) => setForm((p) => ({ ...p, targetStudentId: e.target.value }))}>
                 <option value="">Select student</option>
                 {targets.students.map((s) => {
                   const sid = s._id || s.studentId;
@@ -254,17 +254,17 @@ export default function TestSpecificationPage() {
             </label>
           ) : (
             <label className="text-sm text-ink-600">Target Class
-              <select className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.targetClassId} onChange={(e) => setForm((p) => ({ ...p, targetClassId: e.target.value }))}>
+              <select className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.targetClassId} onChange={(e) => setForm((p) => ({ ...p, targetClassId: e.target.value }))}>
                 <option value="">Select class</option>
                 {targets.classes.map((c) => <option key={c._id} value={c._id}>{c.name || c.className || c._id}</option>)}
               </select>
             </label>
           )}
           <label className="text-sm text-ink-600">Total Marks
-            <input type="number" min="10" className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.totalMarks} onChange={(e) => setForm((p) => ({ ...p, totalMarks: Number(e.target.value || 0) }))} />
+            <input type="number" min="10" className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.totalMarks} onChange={(e) => setForm((p) => ({ ...p, totalMarks: Number(e.target.value || 0) }))} />
           </label>
           <label className="text-sm text-ink-600">Duration (minutes)
-            <input type="number" min="10" className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" value={form.durationMinutes} onChange={(e) => setForm((p) => ({ ...p, durationMinutes: Number(e.target.value || 0) }))} />
+            <input type="number" min="10" className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" value={form.durationMinutes} onChange={(e) => setForm((p) => ({ ...p, durationMinutes: Number(e.target.value || 0) }))} />
           </label>
           <label className="inline-flex items-center gap-2 text-sm text-ink-600">
             <input type="checkbox" checked={form.calculatorAllowed} onChange={(e) => setForm((p) => ({ ...p, calculatorAllowed: e.target.checked }))} />
@@ -284,12 +284,12 @@ export default function TestSpecificationPage() {
         </div>
         <div className="space-y-3">
           {form.topics.map((row, idx) => (
-            <div key={`${row.topicName}-${idx}`} className="rounded-lg border border-hairline p-3">
+            <div key={`${row.topicName}-${idx}`} className="rounded-lg border border-line-soft p-3">
               <div className="grid gap-2 sm:grid-cols-4">
-                <input className="rounded-lg border border-hairline px-3 py-2 text-sm" value={row.topicName} onChange={(e) => setTopic(idx, 'topicName', e.target.value)} placeholder="Topic name" />
-                <input className="rounded-lg border border-hairline px-3 py-2 text-sm" value={row.domainId} onChange={(e) => setTopic(idx, 'domainId', e.target.value)} placeholder="domainId" />
-                <input type="number" min="1" className="rounded-lg border border-hairline px-3 py-2 text-sm" value={row.marks} onChange={(e) => setTopic(idx, 'marks', Number(e.target.value || 0))} placeholder="marks" />
-                <select className="rounded-lg border border-hairline px-3 py-2 text-sm" value={row.difficulty} onChange={(e) => setTopic(idx, 'difficulty', e.target.value)}>
+                <input className="rounded-lg border border-line-soft px-3 py-2 text-sm" value={row.topicName} onChange={(e) => setTopic(idx, 'topicName', e.target.value)} placeholder="Topic name" />
+                <input className="rounded-lg border border-line-soft px-3 py-2 text-sm" value={row.domainId} onChange={(e) => setTopic(idx, 'domainId', e.target.value)} placeholder="domainId" />
+                <input type="number" min="1" className="rounded-lg border border-line-soft px-3 py-2 text-sm" value={row.marks} onChange={(e) => setTopic(idx, 'marks', Number(e.target.value || 0))} placeholder="marks" />
+                <select className="rounded-lg border border-line-soft px-3 py-2 text-sm" value={row.difficulty} onChange={(e) => setTopic(idx, 'difficulty', e.target.value)}>
                   <option value="easy">easy</option>
                   <option value="medium">medium</option>
                   <option value="hard">hard</option>
@@ -312,7 +312,7 @@ export default function TestSpecificationPage() {
       <Card className="p-5">
         <div className="grid gap-2 sm:grid-cols-3">
           <Button onClick={createSpec} disabled={saving}>{saving ? 'Saving…' : 'Create Specification'}</Button>
-          <select className="rounded-lg border border-hairline px-3 py-2 text-sm" value={selectedSpecId} onChange={(e) => setSelectedSpecId(e.target.value)}>
+          <select className="rounded-lg border border-line-soft px-3 py-2 text-sm" value={selectedSpecId} onChange={(e) => setSelectedSpecId(e.target.value)}>
             <option value="">Select existing specification</option>
             {specs.map((spec) => (
               <option key={spec._id} value={spec._id}>
@@ -335,7 +335,7 @@ export default function TestSpecificationPage() {
           <p className="mt-2 text-sm text-ink-600">{generated.questions?.length || 0} questions · {generated.calculatorAllowed ? 'Calculator allowed' : 'Calculator not allowed'} · {generated.timed ? 'Timed' : 'Untimed'}</p>
           <div className="mt-3 space-y-2 text-sm text-ink-600">
             {(generated.topicBlueprint || []).map((row, idx) => (
-              <div key={`${row.topicName}-${idx}`} className="rounded-lg border border-hairline p-3">
+              <div key={`${row.topicName}-${idx}`} className="rounded-lg border border-line-soft p-3">
                 <p className="font-semibold text-ink-700">{row.topicName}</p>
                 <p>Allocated marks: {row.allocatedMarks} · Questions: {row.questionCount} · Difficulty: {row.difficulty}</p>
               </div>

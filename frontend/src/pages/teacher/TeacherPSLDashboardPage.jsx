@@ -17,11 +17,11 @@ function PSLOverviewCard({ data }) {
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Class Overview</h3>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-navy-700">{data.totalStudents}</p></div>
-        <div><p className="text-xs text-ink-500">Attempted</p><p className="font-mono text-xl text-navy-700">{data.studentsAttempted}</p></div>
+        <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-emerald-deep">{data.totalStudents}</p></div>
+        <div><p className="text-xs text-ink-500">Attempted</p><p className="font-mono text-xl text-emerald-deep">{data.studentsAttempted}</p></div>
         <div><p className="text-xs text-ink-500">Mastered 1+</p><p className="font-mono text-xl text-emerald-600">{data.studentsMastered}</p></div>
-        <div><p className="text-xs text-ink-500">Sessions</p><p className="font-mono text-xl text-navy-700">{data.totalSessions}</p></div>
-        <div><p className="text-xs text-ink-500">Avg Accuracy</p><p className="font-mono text-xl text-navy-700">{data.averageAccuracy}%</p></div>
+        <div><p className="text-xs text-ink-500">Sessions</p><p className="font-mono text-xl text-emerald-deep">{data.totalSessions}</p></div>
+        <div><p className="text-xs text-ink-500">Avg Accuracy</p><p className="font-mono text-xl text-emerald-deep">{data.averageAccuracy}%</p></div>
         <div><p className="text-xs text-ink-500">Hint Usage</p><p className="font-mono text-xl text-orange-600">{data.hintUsageRate ?? 0}%</p></div>
       </div>
     </Card>
@@ -35,7 +35,7 @@ function HeuristicCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((h) => (
-            <div key={h.heuristic} className="rounded-lg border border-hairline p-3">
+            <div key={h.heuristic} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between">
                 <p className="font-medium text-ink-700 capitalize">{h.heuristic.replace(/-/g, ' ')}</p>
                 <Badge tone={scoreTone(h.avgScore)}>{h.avgScore}%</Badge>
@@ -64,7 +64,7 @@ function FlaggedStudentsCard({ rows = [], onOpenStudent }) {
               key={s.studentId}
               type="button"
               onClick={() => onOpenStudent?.(s.studentId)}
-              className="w-full rounded-lg border border-hairline p-3 text-left transition hover:border-navy-300 hover:bg-navy-50/40"
+              className="w-full rounded-lg border border-line-soft p-3 text-left transition hover:border-navy-300 hover:bg-emerald-tint/40"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{s.name}</p>
@@ -93,7 +93,7 @@ function TopMisconceptionsCard({ rows = [] }) {
       {rows.length ? (
         <div className="space-y-1.5">
           {rows.map((m, i) => (
-            <div key={m.tag} className="flex items-center justify-between rounded-lg border border-hairline px-3 py-2">
+            <div key={m.tag} className="flex items-center justify-between rounded-lg border border-line-soft px-3 py-2">
               <p className="text-sm text-ink-700">{m.tag}</p>
               <Badge tone="neutral">{m.count}</Badge>
             </div>
@@ -115,7 +115,7 @@ function StepAnalyticsCard({ rows = [] }) {
       ) : (
         <div className="mt-4 space-y-3">
           {rows.map((step) => (
-            <div key={step.stepId} className="rounded-lg border border-hairline p-3">
+            <div key={step.stepId} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-ink-700">{step.label}</p>
                 <Badge tone={step.errorRate >= 40 ? 'error' : step.errorRate >= 20 ? 'gold' : 'navy'}>
@@ -156,7 +156,7 @@ function SkillBreakdownCard({ rows = [] }) {
         <p className="mt-2 text-sm text-ink-500">No PSL skill data yet.</p>
       ) : (
         <>
-          <div className="mt-3 flex items-center gap-2 rounded-lg border border-hairline px-3 py-2">
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-line-soft px-3 py-2">
             <Search className="h-4 w-4 text-ink-400" />
             <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter skills…" className="w-full bg-transparent text-sm text-ink-700 outline-none placeholder:text-ink-400" />
           </div>
@@ -175,7 +175,7 @@ function SkillBreakdownCard({ rows = [] }) {
               </thead>
               <tbody>
                 {filtered.map((sk) => (
-                  <tr key={sk.skillId} className="border-t border-hairline">
+                  <tr key={sk.skillId} className="border-t border-line-soft">
                     <td className="px-2 py-2 text-ink-700">{sk.name}</td>
                     <td className="px-2 py-2 capitalize">{sk.heuristic.replace(/-/g, ' ')}</td>
                     <td className="px-2 py-2">{sk.level}</td>

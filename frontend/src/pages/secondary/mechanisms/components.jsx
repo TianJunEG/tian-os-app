@@ -56,7 +56,7 @@ export function SvgLabel({ x, y, text, color = '#064E3B', bg = '#fff', anchor = 
 export function SimCanvas({ width, height, children, svgRef, ariaLabel, large = false }) {
   const gid = React.useId();
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-hairline bg-navy-50 ${large ? '' : 'shadow-resting'}`}>
+    <div className={`relative overflow-hidden rounded-2xl border border-line-soft bg-emerald-tint ${large ? '' : 'shadow-rest'}`}>
       <svg
         ref={svgRef}
         viewBox={`0 0 ${width} ${height}`}
@@ -79,7 +79,7 @@ export function SimCanvas({ width, height, children, svgRef, ariaLabel, large = 
 
 // ─── Readout strip — monospace technical KPIs under the canvas ──────────
 export function Readout({ label, value, unit, tone = 'navy' }) {
-  const valueTone = tone === 'gold' ? 'text-gold-700' : tone === 'success' ? 'text-success-700' : 'text-navy-700';
+  const valueTone = tone === 'gold' ? 'text-gold-700' : tone === 'success' ? 'text-success-700' : 'text-emerald-deep';
   return (
     <div className="min-w-0">
       <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink-500">{label}</div>
@@ -104,7 +104,7 @@ export function Slider({ label, value, onChange, min, max, step = 1, unit, hint,
         <label htmlFor={inputId} className="text-sm font-medium text-ink-700">
           {label}{hint && <span className="ml-1.5 font-normal text-ink-500">{hint}</span>}
         </label>
-        <span className="font-mono text-sm font-semibold tabular-nums text-navy-700">{value}{unit}</span>
+        <span className="font-mono text-sm font-semibold tabular-nums text-emerald-deep">{value}{unit}</span>
       </div>
       <input
         id={inputId}
@@ -146,7 +146,7 @@ export function RunControls({ running, ran, onToggle, onReset, onTryAnother }) {
 // ─── Learning cards ─────────────────────────────────────────────────────
 // Section heading shared by the learning cards.
 function CardEyebrow({ icon: Icon, children, tone = 'navy' }) {
-  const toneCls = tone === 'gold' ? 'text-gold-700' : tone === 'error' ? 'text-error-700' : 'text-navy-700';
+  const toneCls = tone === 'gold' ? 'text-gold-700' : tone === 'error' ? 'text-error-700' : 'text-emerald-deep';
   return (
     <div className={`mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] ${toneCls}`}>
       {Icon && <Icon className="h-3.5 w-3.5" />}{children}
@@ -170,15 +170,15 @@ export function PredictionCard({ question, options, correctIndex, explainRight, 
   return (
     <Card className="p-5">
       <CardEyebrow icon={Lightbulb} tone="gold">Predict first</CardEyebrow>
-      <p className="mb-3 font-display text-lg font-semibold text-navy-700">{question}</p>
+      <p className="mb-3 font-display text-lg font-semibold text-emerald-deep">{question}</p>
       <div className="flex flex-col gap-2" role="group" aria-label="Prediction options">
         {options.map((opt, i) => {
           const isCorrect = i === correctIndex;
           const isPick = i === pick;
-          let cls = 'border-hairline bg-paper hover:bg-navy-50';
+          let cls = 'border-line-soft bg-surface-white hover:bg-emerald-tint';
           if (show && isCorrect) cls = 'border-success-500 bg-success-100 text-success-700';
           else if (show && isPick) cls = 'border-error-500 bg-error-100 text-error-700';
-          else if (isPick) cls = 'border-navy-500 bg-navy-50';
+          else if (isPick) cls = 'border-emerald bg-emerald-tint';
           return (
             <button
               key={i}
@@ -207,7 +207,7 @@ export function PredictionCard({ question, options, correctIndex, explainRight, 
       )}
       {submitted && !reveal && (
         <button type="button" onClick={() => { setPick(null); setSubmitted(false); }}
-          className="mt-2 text-sm font-semibold text-navy-700 hover:underline">Try again</button>
+          className="mt-2 text-sm font-semibold text-emerald-deep hover:underline">Try again</button>
       )}
     </Card>
   );
@@ -227,7 +227,7 @@ export function ObservationCard({ prompt }) {
         rows={3}
         placeholder="Type what you noticed when the mechanism ran…"
         aria-label="Your observation"
-        className="w-full resize-y rounded-xl border border-hairline bg-paper px-3.5 py-2.5 text-sm text-ink-700 placeholder:text-ink-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+        className="w-full resize-y rounded-xl border border-line-soft bg-surface-white px-3.5 py-2.5 text-sm text-ink-700 placeholder:text-ink-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
       />
       <div className="mt-2.5 flex items-center gap-3">
         <Button size="s" variant="secondary" onClick={() => setSaved(true)} disabled={!text.trim()}>Save note</Button>
@@ -303,7 +303,7 @@ export function ConceptCheck({ questions, mechanismKey }) {
     return (
       <Card className="p-5">
         <CardEyebrow icon={ClipboardCheck} tone="gold">Check complete</CardEyebrow>
-        <p className="mb-3 font-display text-lg font-semibold text-navy-700">You scored {score} / {questions.length}</p>
+        <p className="mb-3 font-display text-lg font-semibold text-emerald-deep">You scored {score} / {questions.length}</p>
         <ul className="space-y-1.5">
           {questions.map((qq, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-ink-500">
@@ -328,18 +328,18 @@ export function ConceptCheck({ questions, mechanismKey }) {
         <CardEyebrow icon={ClipboardCheck}>Check understanding</CardEyebrow>
         <span className="text-xs font-medium text-ink-500">{idx + 1} / {questions.length}</span>
       </div>
-      <p className="mb-3 font-medium text-ink-700"><span className="mr-1.5 font-mono font-bold text-navy-700">Q{idx + 1}.</span>{q.q}</p>
+      <p className="mb-3 font-medium text-ink-700"><span className="mr-1.5 font-mono font-bold text-emerald-deep">Q{idx + 1}.</span>{q.q}</p>
       <div className="flex flex-col gap-2">
         {q.opts.map((opt, i) => {
           const answered = pick !== undefined;
-          let cls = 'border-hairline bg-paper hover:bg-navy-50';
+          let cls = 'border-line-soft bg-surface-white hover:bg-emerald-tint';
           if (answered && i === q.correct) cls = 'border-success-500 bg-success-100 text-success-700';
           else if (answered && i === pick) cls = 'border-error-500 bg-error-100 text-error-700';
           return (
             <button key={i} type="button" disabled={answered}
               onClick={() => setPicks({ ...picks, [idx]: i })}
               className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 ${cls}`}>
-              <span className="font-mono font-bold text-navy-700">{String.fromCharCode(65 + i)}.</span>
+              <span className="font-mono font-bold text-emerald-deep">{String.fromCharCode(65 + i)}.</span>
               <span className="flex-1">{opt}</span>
               {answered && i === q.correct && <Check className="h-4 w-4 shrink-0" aria-hidden />}
               {answered && i === pick && i !== q.correct && <X className="h-4 w-4 shrink-0" aria-hidden />}
@@ -349,7 +349,7 @@ export function ConceptCheck({ questions, mechanismKey }) {
       </div>
       <div className="mt-4 flex items-center justify-between">
         <button type="button" disabled={idx === 0} onClick={() => setIdx(idx - 1)}
-          className="text-sm font-semibold text-navy-700 disabled:opacity-30">← Previous</button>
+          className="text-sm font-semibold text-emerald-deep disabled:opacity-30">← Previous</button>
         {idx < questions.length - 1
           ? <Button size="s" disabled={pick === undefined} onClick={() => setIdx(idx + 1)}>Next →</Button>
           : <Button size="s" variant="gold" disabled={!allAnswered} onClick={finish}>See results</Button>}
@@ -361,9 +361,9 @@ export function ConceptCheck({ questions, mechanismKey }) {
 // DiscussionCard — a teacher-led prompt for whole-class discussion.
 export function DiscussionCard({ prompt }) {
   return (
-    <Card className="border-l-4 border-l-navy-500 bg-navy-50 p-5">
+    <Card className="border-l-4 border-l-navy-500 bg-emerald-tint p-5">
       <CardEyebrow icon={MessagesSquare}>Discussion prompt</CardEyebrow>
-      <p className="font-display text-lg font-medium text-navy-700">{prompt}</p>
+      <p className="font-display text-lg font-medium text-emerald-deep">{prompt}</p>
     </Card>
   );
 }

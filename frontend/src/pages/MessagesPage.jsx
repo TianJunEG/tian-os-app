@@ -111,7 +111,7 @@ export default function MessagesPage() {
                     onClick={() => setSelectedConversation(conversation)}
                     className={`w-full p-4 border-b border-gray-200 text-left hover:bg-gray-50 transition ${
                       selectedConversation?._id === conversation._id
-                        ? 'bg-navy-50 border-l-4 border-l-navy-600'
+                        ? 'bg-emerald-tint border-l-4 border-l-navy-600'
                         : ''
                     }`}
                   >
@@ -160,7 +160,7 @@ export default function MessagesPage() {
                         <div
                           className={`max-w-xs px-4 py-2 rounded-lg ${
                             message.senderId._id === (localStorage.getItem('userId') || '')
-                              ? 'bg-navy-600 text-white'
+                              ? 'bg-emerald text-white'
                               : 'bg-gray-200 text-gray-900'
                           }`}
                         >
@@ -168,7 +168,7 @@ export default function MessagesPage() {
                           <p
                             className={`text-xs mt-1 ${
                               message.senderId._id === (localStorage.getItem('userId') || '')
-                                ? 'text-navy-100'
+                                ? 'text-emerald-tint'
                                 : 'text-gray-500'
                             }`}
                           >
@@ -189,11 +189,11 @@ export default function MessagesPage() {
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition"
+                      className="px-4 py-2 bg-emerald text-white rounded-lg hover:bg-emerald-deep transition"
                     >
                       <Send className="w-5 h-5" />
                     </button>

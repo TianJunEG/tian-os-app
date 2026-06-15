@@ -142,10 +142,10 @@ function shapeLatestDiagnostic(latest = {}) {
 }
 
 const COURSE_THEMES = {
-  mathpath: 'from-sky-100 via-navy-50 to-gold-100 text-navy-700',
+  mathpath: 'from-sky-100 via-navy-50 to-gold-100 text-emerald-deep',
   fluency: 'from-success-100 via-paper to-gold-100 text-success-700',
   mistakes: 'from-error-100 via-paper to-navy-50 text-error-700',
-  progress: 'from-navy-50 via-paper to-success-100 text-navy-700',
+  progress: 'from-navy-50 via-paper to-success-100 text-emerald-deep',
   worksheet: 'from-gold-100 via-paper to-navy-50 text-gold-700',
 };
 
@@ -154,7 +154,7 @@ function CourseArt({ icon: Icon, theme = COURSE_THEMES.mathpath, symbol = '+' })
     <div className={`relative h-32 overflow-hidden rounded-lg bg-gradient-to-br ${theme}`}>
       <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-white/45" />
       <div className="absolute -bottom-10 left-8 h-28 w-28 rounded-full bg-white/35" />
-      <span className="absolute left-5 top-5 grid h-14 w-14 place-items-center rounded-2xl bg-paper/80 shadow-resting">
+      <span className="absolute left-5 top-5 grid h-14 w-14 place-items-center rounded-2xl bg-surface-white/80 shadow-rest">
         <Icon className="h-7 w-7" />
       </span>
       <span className="absolute bottom-4 right-5 font-mono text-6xl font-semibold text-current opacity-25">{symbol}</span>
@@ -229,7 +229,7 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
             <img src="/illustrations/mission-fractions.png" alt="" aria-hidden="true" className="max-h-48 w-auto object-contain" />
           </div>
         ) : (
-          <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-100 text-navy-700" />
+          <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-100 text-emerald-deep" />
         )}
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
@@ -271,10 +271,10 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
 
 function CompactStatCard({ icon: Icon, label, value, tone = 'navy', visual }) {
   const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     gold: 'bg-gold-100 text-gold-700',
     success: 'bg-success-100 text-success-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
   return (
     <Card className={`relative overflow-hidden p-4 ${visual?.styles?.card || ''}`}>
       <DecorativeMotifs enabled={visual?.styles?.decorative && tone === 'gold'} />
@@ -297,7 +297,7 @@ function UpperPrimaryMissionArt() {
       <div className="absolute inset-x-0 bottom-0 h-24 rounded-t-[60%] bg-white/75" />
       <div className="absolute bottom-7 left-10 h-20 w-32 rounded-[50%] bg-white/70" />
       <div className="absolute bottom-4 right-8 h-24 w-36 rounded-[50%] bg-white/80" />
-      <div className="absolute left-1/2 top-1/2 grid h-24 w-24 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-indigo-200/80 shadow-resting sm:h-32 sm:w-32">
+      <div className="absolute left-1/2 top-1/2 grid h-24 w-24 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-indigo-200/80 shadow-rest sm:h-32 sm:w-32">
         <div className="grid h-20 w-20 place-items-center rounded-full border-[8px] border-indigo-500/60 bg-white sm:h-24 sm:w-24 sm:border-[10px]">
           <div className="grid h-10 w-10 place-items-center rounded-full border-[6px] border-indigo-400/80 bg-indigo-50 sm:h-12 sm:w-12 sm:border-[8px]">
             <div className="h-4 w-4 rounded-full bg-indigo-600" />
@@ -330,7 +330,7 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement, asses
   const reason = nextAction?.explanation || 'This will help strengthen your understanding of fractions.';
 
   return (
-    <Card className="overflow-hidden rounded-[22px] border-hairline bg-paper p-0">
+    <Card className="overflow-hidden rounded-[22px] border-line-soft bg-surface-white p-0">
       <div className="grid lg:grid-cols-[0.48fr_0.52fr]">
         <UpperPrimaryMissionArt />
         <div className="flex flex-col justify-center p-4 sm:p-6 lg:p-8">
@@ -340,28 +340,28 @@ function UpperPrimaryMissionCard({ currentSkill, nextAction, hasPlacement, asses
               <Timer className="h-4 w-4" /> {time}
             </span>
           </div>
-          <h2 className="mt-3 font-display text-2xl font-semibold tracking-[-0.02em] text-navy-700 sm:mt-4 sm:text-3xl">{skillName}</h2>
+          <h2 className="mt-3 font-display text-2xl font-semibold tracking-[-0.02em] text-emerald-deep sm:mt-4 sm:text-3xl">{skillName}</h2>
           <p className="mt-2 max-w-xl text-sm leading-6 text-ink-600 sm:mt-3">
             {reason}
           </p>
-          <Button to={action.disabled ? undefined : primaryTo} state={primaryState} icon={ArrowRight} className="mt-3 w-full bg-violet-600 hover:bg-violet-700 sm:hidden" disabled={action.disabled}>
+          <Button to={action.disabled ? undefined : primaryTo} state={primaryState} icon={ArrowRight} className="mt-3 w-full bg-purple hover:bg-violet-700 sm:hidden" disabled={action.disabled}>
             Start Practice
           </Button>
           <div className="mt-3 grid grid-cols-3 gap-2 rounded-[16px] border border-violet-100 bg-white/80 p-3 text-sm sm:mt-5 sm:gap-3 sm:p-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Current Skill</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-purple">Current Skill</p>
               <p className="mt-1 font-semibold text-ink-800">{skillName}</p>
             </div>
             <div className="border-l border-violet-100 pl-2 sm:pl-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Why This</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-purple">Why This</p>
               <p className="mt-1 font-semibold text-ink-800">{reason}</p>
             </div>
             <div className="border-l border-violet-100 pl-2 sm:pl-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-violet-600">Time</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-purple">Time</p>
               <p className="mt-1 font-semibold text-ink-800">{time}</p>
             </div>
           </div>
-          <Button to={action.disabled ? undefined : primaryTo} state={primaryState} icon={ArrowRight} className="mt-4 hidden w-full bg-violet-600 hover:bg-violet-700 sm:mt-5 sm:inline-flex sm:w-fit" disabled={action.disabled}>
+          <Button to={action.disabled ? undefined : primaryTo} state={primaryState} icon={ArrowRight} className="mt-4 hidden w-full bg-purple hover:bg-violet-700 sm:mt-5 sm:inline-flex sm:w-fit" disabled={action.disabled}>
             Start Practice
           </Button>
         </div>
@@ -374,23 +374,23 @@ function TodayHighlights({ streak, xp, mastered, totalSkills, progress }) {
   const xpDetail = Number(xp || 0) > 0 ? 'Learning progress' : 'Start learning to earn XP';
   const rows = [
     { icon: Flame, value: streak, label: 'day streak', detail: Number(streak || 0) > 0 ? 'Keep it up!' : 'Start today', tone: 'bg-orange-50 text-orange-600', suffix: streak === 1 ? '' : '' },
-    { icon: Gem, value: xp, label: 'Learning XP', detail: xpDetail, tone: 'bg-violet-50 text-violet-600' },
+    { icon: Gem, value: xp, label: 'Learning XP', detail: xpDetail, tone: 'bg-purple-tint text-purple' },
     { icon: CheckCircle2, value: `${mastered} / ${totalSkills}`, label: 'Skills Mastered', detail: `${progress}% complete`, tone: 'bg-emerald-50 text-emerald-600', progress },
   ];
   return (
-    <Card className="h-full rounded-[22px] border-hairline bg-paper p-5">
-      <h3 className="text-lg font-semibold text-navy-700">Today's Highlights</h3>
+    <Card className="h-full rounded-[22px] border-line-soft bg-surface-white p-5">
+      <h3 className="text-lg font-semibold text-emerald-deep">Today's Highlights</h3>
       <div className="mt-4 space-y-3">
         {rows.map(({ icon: Icon, value, label, detail, tone, progress: bar }) => (
-          <div key={label} className="rounded-[16px] border border-hairline bg-gradient-to-r from-white to-slate-50 px-4 py-3">
+          <div key={label} className="rounded-[16px] border border-line-soft bg-gradient-to-r from-white to-slate-50 px-4 py-3">
             <div className="flex items-center gap-4">
               <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-full ${tone}`}>
                 <Icon className="h-6 w-6" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-mono text-2xl font-semibold leading-none text-navy-700">{value}</p>
-                  <p className="text-xs font-semibold text-navy-700">{detail}</p>
+                  <p className="font-mono text-2xl font-semibold leading-none text-emerald-deep">{value}</p>
+                  <p className="text-xs font-semibold text-emerald-deep">{detail}</p>
                 </div>
                 <p className="mt-1 text-sm font-semibold text-ink-600">{label}</p>
                 {Number.isFinite(bar) && (
@@ -424,7 +424,7 @@ function StudentMetricTile({ icon: Icon, title, value, body, tone = 'emerald', c
     emerald: 'border-emerald-100 bg-emerald-50/60 text-emerald-700',
     amber: 'border-amber-100 bg-amber-50/70 text-amber-700',
     blue: 'border-blue-100 bg-blue-50/70 text-blue-700',
-    rose: 'border-rose-100 bg-rose-50/70 text-rose-700',
+    rose: 'border-rose-100 bg-danger-tint/70 text-danger-deep',
   };
   return (
     <Card className={`rounded-[18px] p-4 sm:p-5 ${toneMap[tone] || toneMap.emerald}`}>
@@ -435,7 +435,7 @@ function StudentMetricTile({ icon: Icon, title, value, body, tone = 'emerald', c
         <ChevronRight className="h-4 w-4 opacity-70 sm:h-5 sm:w-5" />
       </div>
       <p className="mt-2 text-xs font-semibold sm:text-sm">{title}</p>
-      <p className={`${empty ? 'text-sm leading-snug sm:text-base' : 'font-mono text-2xl leading-none sm:text-3xl'} font-semibold text-navy-700`}>{value}</p>
+      <p className={`${empty ? 'text-sm leading-snug sm:text-base' : 'font-mono text-2xl leading-none sm:text-3xl'} font-semibold text-emerald-deep`}>{value}</p>
       <p className="mt-1.5 text-xs leading-5 text-ink-700 sm:mt-2 sm:min-h-[2.5rem] sm:text-sm">{body}</p>
       {chart === 'none' || empty ? null : <MiniTrend tone={tone === 'amber' ? 'amber' : tone === 'blue' ? 'blue' : 'emerald'} />}
     </Card>
@@ -583,24 +583,24 @@ function UpperPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       title: 'Mastery Check',
       body: assessmentGate.ready ? "Check if you're ready to level up" : ASSESSMENT_LOCK_MESSAGE,
       to: assessmentGate.ready ? '/student/mathpath/assessment' : null,
-      tone: 'from-violet-50 to-white text-violet-700',
+      tone: 'from-violet-50 to-white text-purple',
       disabled: !assessmentGate.ready,
     }] : []),
   ];
 
   return (
-    <Card className="rounded-[18px] border-hairline bg-paper p-5">
+    <Card className="rounded-[18px] border-line-soft bg-surface-white p-5">
       <div className="mb-4">
-        <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-navy-700">Recommended Next <Sparkles className="h-5 w-5 text-blue-300" /></h2>
+        <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-emerald-deep">Recommended Next <Sparkles className="h-5 w-5 text-blue-300" /></h2>
         <p className="mt-1 text-sm text-ink-500">Choose one focused action. You don't need to do everything.</p>
       </div>
       <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(({ icon: Icon, title, body, to, state, tone, disabled }) => (
-          <Card key={title} className={`flex h-full flex-col rounded-[14px] bg-gradient-to-br p-4 shadow-sm ${tone}`}>
+          <Card key={title} className={`flex h-full flex-col rounded-btn bg-gradient-to-br p-4 shadow-sm ${tone}`}>
             <span className="grid h-14 w-14 place-items-center rounded-full bg-white/75 shadow-sm">
               <Icon className="h-7 w-7" />
             </span>
-            <h3 className="mt-4 font-semibold text-navy-700">{title}</h3>
+            <h3 className="mt-4 font-semibold text-emerald-deep">{title}</h3>
             <p className="mt-2 flex-1 text-sm leading-5 text-ink-700">{body}</p>
             <Button to={disabled ? undefined : to} state={state} size="s" icon={ArrowRight} className="mt-auto h-10 w-10 rounded-full px-0" aria-label={title} disabled={disabled} />
           </Card>
@@ -627,20 +627,20 @@ function formatRelativeActivityTime(value) {
 function activityIconMeta(eventType = '') {
   if (/working/i.test(eventType)) return { icon: PenLine, tone: 'bg-blue-50 text-blue-600' };
   if (/diagnostic/i.test(eventType)) return { icon: ClipboardList, tone: 'bg-amber-50 text-amber-600' };
-  if (/xp|achievement/i.test(eventType)) return { icon: Gem, tone: 'bg-violet-50 text-violet-600' };
+  if (/xp|achievement/i.test(eventType)) return { icon: Gem, tone: 'bg-purple-tint text-purple' };
   return { icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-600' };
 }
 
 function RecentActivityCard({ activities = [] }) {
   const rows = Array.isArray(activities) ? activities : [];
   return (
-    <Card className="rounded-[18px] border-hairline bg-paper p-5">
+    <Card className="rounded-[18px] border-line-soft bg-surface-white p-5">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-semibold text-navy-700">Recent Activity</h2>
+        <h2 className="font-display text-xl font-semibold text-emerald-deep">Recent Activity</h2>
         <Button to="/student/profile" size="s" variant="ghost">View all</Button>
       </div>
       {rows.length ? (
-        <div className="mt-4 divide-y divide-hairline">
+        <div className="mt-4 divide-y divide-line-soft">
           {rows.slice(0, 4).map((activity) => {
             const { icon: Icon, tone } = activityIconMeta(activity.eventType);
             const key = activity.id || `${activity.eventType}-${activity.occurredAt}-${activity.title}`;
@@ -658,7 +658,7 @@ function RecentActivityCard({ activities = [] }) {
           })}
         </div>
       ) : (
-        <div className="mt-4 rounded-[16px] border border-dashed border-hairline bg-white px-4 py-5">
+        <div className="mt-4 rounded-[16px] border border-dashed border-line-soft bg-white px-4 py-5">
           <p className="text-sm font-semibold text-ink-700">No recent activity yet. Start your diagnostic to begin.</p>
         </div>
       )}
@@ -671,10 +671,10 @@ function EncouragementBanner() {
     <div className="relative overflow-hidden rounded-[18px] border border-violet-100 bg-gradient-to-r from-violet-50 via-white to-emerald-50 px-6 py-4">
       <div className="absolute bottom-0 left-10 h-12 w-28 rounded-t-[50%] bg-violet-200/60" />
       <div className="absolute bottom-0 left-20 h-16 w-32 rounded-t-[50%] bg-violet-300/50" />
-      <div className="absolute bottom-8 left-28 h-8 w-1 rounded-full bg-rose-500" />
-      <div className="absolute bottom-14 left-29 h-5 w-8 rounded-r-full bg-rose-400" />
+      <div className="absolute bottom-8 left-28 h-8 w-1 rounded-full bg-danger" />
+      <div className="absolute bottom-14 left-29 h-5 w-8 rounded-r-full bg-danger" />
       <div className="relative ml-0 md:ml-64">
-        <p className="font-semibold text-navy-700">Small steps every day lead to big progress.</p>
+        <p className="font-semibold text-emerald-deep">Small steps every day lead to big progress.</p>
         <p className="mt-1 text-sm text-ink-600">You're doing great. Keep going!</p>
       </div>
     </div>
@@ -761,7 +761,7 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
     success: { card: 'border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/40', icon: 'bg-emerald-100 text-emerald-600', label: 'text-emerald-700', bar: 'bg-emerald-500' },
     gold: { card: 'border-orange-100 bg-gradient-to-br from-orange-50 via-white to-amber-50/50', icon: 'bg-orange-100 text-orange-500', label: 'text-orange-600', bar: 'bg-orange-400' },
     sky: { card: 'border-sky-100 bg-gradient-to-br from-sky-50 via-white to-blue-50/50', icon: 'bg-sky-100 text-sky-600', label: 'text-sky-700', bar: 'bg-sky-500' },
-    rose: { card: 'border-rose-100 bg-gradient-to-br from-rose-50 via-white to-pink-50/60', icon: 'bg-rose-100 text-rose-500', label: 'text-rose-600', bar: 'bg-rose-400' },
+    rose: { card: 'border-rose-100 bg-gradient-to-br from-rose-50 via-white to-pink-50/60', icon: 'bg-danger-tint text-rose-500', label: 'text-danger', bar: 'bg-danger' },
   };
   const t = tones[tone] || tones.success;
   return (
@@ -770,7 +770,7 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
         {img ? (
           <img src={img} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 object-contain drop-shadow-sm sm:h-14 sm:w-14" />
         ) : (
-          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl ${t.icon} shadow-resting`}>
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl ${t.icon} shadow-rest`}>
             <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
           </span>
         )}
@@ -828,7 +828,7 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       title: 'Mastery Check',
       body: assessmentGate.ready ? "See if you're ready to level up" : ASSESSMENT_LOCK_MESSAGE,
       to: assessmentGate.ready ? '/student/mathpath/assessment' : null,
-      tone: 'border-violet-100 from-violet-50 to-white text-violet-600',
+      tone: 'border-violet-100 from-violet-50 to-white text-purple',
       disabled: !assessmentGate.ready,
     }] : []),
     ...(FEATURE_FLAGS.psl ? [{
@@ -849,17 +849,17 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       </div>
       <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(({ icon: Icon, img, title, body, to, state, tone, disabled }) => (
-          <Card key={title} className={`flex h-full flex-col rounded-[20px] border bg-gradient-to-br p-5 shadow-resting ${tone}`}>
+          <Card key={title} className={`flex h-full flex-col rounded-card border bg-gradient-to-br p-5 shadow-rest ${tone}`}>
             {img ? (
               <img src={img} alt="" aria-hidden="true" className="h-16 w-16 object-contain drop-shadow-sm" />
             ) : (
-              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-white/80 shadow-resting">
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-white/80 shadow-rest">
                 <Icon className="h-8 w-8" />
               </span>
             )}
             <h3 className="mt-4 font-display text-lg font-semibold text-ink-900">{title}</h3>
             <p className="mt-1 flex-1 text-sm leading-5 text-ink-600">{body}</p>
-            <Button to={disabled ? undefined : to} state={state} size="m" variant="primary" icon={ArrowRight} className={`mt-4 w-full ${visual?.styles?.primaryCta || 'bg-violet-600 hover:bg-violet-700'}`} disabled={disabled} aria-label={title}>
+            <Button to={disabled ? undefined : to} state={state} size="m" variant="primary" icon={ArrowRight} className={`mt-4 w-full ${visual?.styles?.primaryCta || 'bg-purple hover:bg-violet-700'}`} disabled={disabled} aria-label={title}>
               Go
             </Button>
           </Card>
@@ -879,7 +879,7 @@ function LowerPrimaryBanner() {
         className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-1/2 object-cover object-left opacity-90 [mask-image:linear-gradient(to_right,transparent,black_35%)] sm:block"
       />
       <div className="relative px-6 py-5">
-        <p className="font-display text-lg font-semibold text-navy-700">Small steps every day lead to big progress.</p>
+        <p className="font-display text-lg font-semibold text-emerald-deep">Small steps every day lead to big progress.</p>
         <p className="mt-1 text-sm font-medium text-ink-600">You've got this! 💪</p>
       </div>
     </div>
@@ -1303,8 +1303,8 @@ export default function StudentDashboard() {
           {FEATURE_FLAGS.decimals && (
             <div style={{ marginTop: 20 }}>
               <Card className="flex items-center gap-4 p-4" interactive>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-100">
-                  <Calculator className="h-5 w-5 text-navy-600" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
+                  <Calculator className="h-5 w-5 text-emerald" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-ink-700">Decimals</p>
@@ -1347,10 +1347,10 @@ export default function StudentDashboard() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="relative hidden items-center gap-2 rounded-full border border-sky-100 bg-white/90 py-2 pl-2 pr-4 shadow-resting sm:flex">
+            <div className="relative hidden items-center gap-2 rounded-full border border-sky-100 bg-white/90 py-2 pl-2 pr-4 shadow-rest sm:flex">
               <img src="/illustrations/mascot-star.png" alt="" aria-hidden="true" className="h-12 w-12 shrink-0 object-contain drop-shadow-sm" />
-              <span className="text-sm font-semibold text-navy-700">Let's go! 💪</span>
-              <span className="absolute -bottom-3 -right-2 rotate-6 rounded-lg border border-gold-200 bg-tianYellow px-2 py-0.5 text-[11px] font-semibold text-gold-700 shadow-resting">You've got this!</span>
+              <span className="text-sm font-semibold text-emerald-deep">Let's go! 💪</span>
+              <span className="absolute -bottom-3 -right-2 rotate-6 rounded-lg border border-gold-200 bg-tianYellow px-2 py-0.5 text-[11px] font-semibold text-gold-700 shadow-rest">You've got this!</span>
             </div>
             {canResetStudentState && (
               <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
@@ -1390,8 +1390,8 @@ export default function StudentDashboard() {
 
         {FEATURE_FLAGS.decimals && (
           <Card className="flex items-center gap-4 p-4" interactive>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-100">
-              <Calculator className="h-5 w-5 text-navy-600" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
+              <Calculator className="h-5 w-5 text-emerald" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-ink-700">Decimals</p>
@@ -1424,7 +1424,7 @@ export default function StudentDashboard() {
           <Button to="/student/profile" size="s" variant="secondary" icon={UserCircle} className="hidden sm:inline-flex">
             Profile
           </Button>
-          <div className="inline-flex items-center gap-2 rounded-full border border-hairline bg-paper px-4 py-2 text-sm font-semibold text-ink-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-line-soft bg-surface-white px-4 py-2 text-sm font-semibold text-ink-700">
             <Flame className="h-4 w-4 text-gold-500" />
             {hasActivity ? 1 : 0}
           </div>
@@ -1502,8 +1502,8 @@ export default function StudentDashboard() {
 
       {FEATURE_FLAGS.decimals && (
         <Card className="mt-4 flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-100">
-            <Calculator className="h-5 w-5 text-navy-600" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
+            <Calculator className="h-5 w-5 text-emerald" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink-700">Decimals</p>

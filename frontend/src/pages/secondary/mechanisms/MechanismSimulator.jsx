@@ -87,7 +87,7 @@ export default function MechanismSimulator() {
         </Card>
       ) : (
         <Card className="mb-4 flex items-center gap-2.5 p-3 text-sm text-ink-500">
-          <BookOpen className="h-4 w-4 shrink-0 text-navy-700" />
+          <BookOpen className="h-4 w-4 shrink-0 text-emerald-deep" />
           <span>Predict what will happen, run the simulation, record your observation, then check your understanding.</span>
         </Card>
       )}

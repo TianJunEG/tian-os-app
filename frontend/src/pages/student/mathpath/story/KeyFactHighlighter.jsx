@@ -5,7 +5,7 @@ const FACT_TONES = {
   quantity_known: 'border-emerald-200 bg-emerald-50 text-emerald-900',
   remainder: 'border-gold-200 bg-gold-100 text-gold-900',
   whole: 'border-indigo-200 bg-indigo-50 text-indigo-900',
-  target_unknown: 'border-rose-200 bg-rose-50 text-rose-900',
+  target_unknown: 'border-danger-border bg-danger-tint text-rose-900',
   operation_hint: 'border-purple-200 bg-purple-50 text-purple-900',
 };
 
@@ -40,14 +40,14 @@ export default function KeyFactHighlighter({
     <>
       {parts.map((part, index) => {
         if (part.type === 'text') return <span key={`${part.text}-${index}`}>{part.text}</span>;
-        const tone = FACT_TONES[part.fact.type] || 'border-navy-200 bg-navy-50 text-navy-900';
+        const tone = FACT_TONES[part.fact.type] || 'border-emerald-border bg-emerald-tint text-emerald-deep';
         const active = activeFactId === part.fact.id;
         return (
           <button
             key={part.fact.id}
             type="button"
             onClick={() => onFactSelect?.(part.fact)}
-            className={`mx-0.5 inline min-h-[32px] rounded-md border px-1.5 py-0.5 align-baseline text-left font-semibold ${tone} ${active ? 'ring-2 ring-navy-500' : ''}`}
+            className={`mx-0.5 inline min-h-[32px] rounded-md border px-1.5 py-0.5 align-baseline text-left font-semibold ${tone} ${active ? 'ring-2 ring-emerald' : ''}`}
             aria-label={`${part.text}: ${String(part.fact.type || '').replace(/_/g, ' ')}`}
           >
             {part.text}

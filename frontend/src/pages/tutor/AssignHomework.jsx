@@ -85,7 +85,7 @@ export default function AssignHomework() {
             <div className="flex flex-wrap gap-2">
               {MODULES.map((m) => (
                 <button key={m.key} disabled={!m.enabled} onClick={() => m.enabled && setModule(m.key)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : m.enabled ? 'border-hairline text-ink-700' : 'border-hairline text-ink-300'}`}>
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : m.enabled ? 'border-line-soft text-ink-700' : 'border-line-soft text-ink-300'}`}>
                   {m.label}{!m.enabled && <Badge tone="neutral">soon</Badge>}
                 </button>
               ))}
@@ -96,20 +96,20 @@ export default function AssignHomework() {
             <div className="flex flex-wrap gap-2">
               {HW_TYPES.map((t) => (
                 <button key={t} onClick={() => setHwType(t)}
-                  className={`rounded-full border px-3 py-1.5 text-sm ${hwType === t ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>{t}</button>
+                  className={`rounded-full border px-3 py-1.5 text-sm ${hwType === t ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-700'}`}>{t}</button>
               ))}
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Topic</label>
-              <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+              <select value={topicId} onChange={(e) => { setTopicId(e.target.value); setSkillId(''); }} className="w-full rounded-xl border border-line-soft px-3 py-2.5">
                 {topics.map((t) => <option key={t.topicId} value={t.topicId}>{t.name}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Skill</label>
-              <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+              <select value={skillId} onChange={(e) => setSkillId(e.target.value)} className="w-full rounded-xl border border-line-soft px-3 py-2.5">
                 <option value="">Choose a skill…</option>
                 {skills.map((s) => <option key={s.skillId} value={s.skillId}>{s.name}</option>)}
               </select>
@@ -119,18 +119,18 @@ export default function AssignHomework() {
             {module === 'MathPath' && (
               <div>
                 <label className="mb-1.5 block text-sm font-semibold text-ink-700">Difficulty</label>
-                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5">
+                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="w-full rounded-xl border border-line-soft px-3 py-2.5">
                   <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
                 </select>
               </div>
             )}
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Questions</label>
-              <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5 font-mono" />
+              <input type="number" min="5" max="20" value={questionCount} onChange={(e) => setQuestionCount(e.target.value)} className="w-full rounded-xl border border-line-soft px-3 py-2.5 font-mono" />
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-ink-700">Due date</label>
-              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full rounded-xl border border-hairline px-3 py-2.5" />
+              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="w-full rounded-xl border border-line-soft px-3 py-2.5" />
             </div>
           </div>
           {error && <p className="text-sm text-error-700">{error}</p>}

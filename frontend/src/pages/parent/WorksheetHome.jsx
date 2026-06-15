@@ -38,7 +38,7 @@ export default function WorksheetHome() {
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
-      <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">Worksheet Generator</h2>
+      <h2 className="mb-1 font-display text-xl font-semibold text-emerald-deep">Worksheet Generator</h2>
       <p className="mb-5 text-sm text-ink-500">Create personalised practice from real learning evidence.</p>
 
       {error && (
@@ -61,7 +61,7 @@ export default function WorksheetHome() {
         {MODES.map(({ key, label, desc, Icon }) => (
           <Link key={key} to={`${base}/new?mode=${key}`} className="block focus-visible:outline-none">
             <Card interactive className="flex items-center gap-3 p-4">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700 shrink-0"><Icon className="h-5 w-5" /></span>
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-tint text-emerald-deep shrink-0"><Icon className="h-5 w-5" /></span>
             <span className="flex-1">
               <span className="block font-semibold text-ink-700">{label}</span>
               <span className="block text-xs text-ink-500">{desc}</span>
@@ -79,7 +79,7 @@ export default function WorksheetHome() {
           {worksheets.map((w) => (
             <Link key={w.id} to={`${base}/${w.id}`} className="block focus-visible:outline-none">
               <Card interactive className="flex items-center gap-3 p-4">
-              <FileText className="h-4 w-4 shrink-0 text-navy-500" />
+              <FileText className="h-4 w-4 shrink-0 text-emerald" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium text-ink-700">{w.title}</span>
                 <span className="block text-xs text-ink-500">{w.questionCount} questions · {w.difficulty}</span>

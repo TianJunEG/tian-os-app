@@ -68,7 +68,7 @@ export default function ScienceTopicLesson() {
             : null}
         <h2 className="mb-3 font-display text-xl font-semibold text-ink-700">{page.title}</h2>
         {page.diagram && (
-          <div className="my-4 rounded-lg border border-ink-100 bg-paper p-3" dangerouslySetInnerHTML={{ __html: page.diagram }} />
+          <div className="my-4 rounded-lg border border-ink-100 bg-surface-white p-3" dangerouslySetInnerHTML={{ __html: page.diagram }} />
         )}
         <p className="whitespace-pre-wrap leading-relaxed text-ink-600">{page.body}</p>
         {terms.length > 0 && (

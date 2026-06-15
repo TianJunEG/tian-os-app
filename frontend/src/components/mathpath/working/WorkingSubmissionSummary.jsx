@@ -33,23 +33,23 @@ export default function WorkingSubmissionSummary({
       </p>
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-ink-600 sm:grid-cols-4">
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <div className="rounded-lg bg-surface-raised px-3 py-2">
           <p className="font-semibold text-ink-500">Questions shown</p>
           <p className="font-mono text-base font-semibold text-ink-800">{questionsShown}</p>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <div className="rounded-lg bg-surface-raised px-3 py-2">
           <p className="font-semibold text-ink-500">Working submitted</p>
           <p className="font-mono text-base font-semibold text-ink-800">{workingSubmittedCount + Number(pagesUploaded || 0)}</p>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <div className="rounded-lg bg-surface-raised px-3 py-2">
           <p className="font-semibold text-ink-500">On paper</p>
           <p className="font-mono text-base font-semibold text-ink-800">{workingOnPaperCount}</p>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <div className="rounded-lg bg-surface-raised px-3 py-2">
           <p className="font-semibold text-ink-500">Working not needed</p>
           <p className="font-mono text-base font-semibold text-ink-800">{noWorkingCount}</p>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <div className="rounded-lg bg-surface-raised px-3 py-2">
           <p className="font-semibold text-ink-500">Missing working</p>
           <p className="font-mono text-base font-semibold text-ink-800">{missingWorkingCount}</p>
         </div>
@@ -67,7 +67,7 @@ export default function WorkingSubmissionSummary({
       <div className="mt-3 space-y-2">
         {questionRefs.map((q, idx) => {
           return (
-          <div key={q.questionId} className="rounded-lg border border-hairline px-3 py-2">
+          <div key={q.questionId} className="rounded-lg border border-line-soft px-3 py-2">
             <p className="truncate text-xs text-ink-600">Q{idx + 1}: {q.prompt}</p>
             <p className="mt-1 text-[11px] text-ink-500">
               Student choice required: upload working or mark no working needed.

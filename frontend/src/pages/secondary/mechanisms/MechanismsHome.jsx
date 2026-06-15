@@ -35,8 +35,8 @@ export default function MechanismsHome() {
           return (
             <Card key={key} interactive className="flex h-full flex-col p-5">
               <div className="mb-3 flex items-center gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700"><Icon className="h-5 w-5" /></span>
-                <h3 className="font-display text-lg font-semibold text-navy-700">{m.name}</h3>
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-tint text-emerald-deep"><Icon className="h-5 w-5" /></span>
+                <h3 className="font-display text-lg font-semibold text-emerald-deep">{m.name}</h3>
                 {progress[key] && progress[key].status !== 'not_started' && (
                   <span className="ml-auto"><StatusBadge status={progress[key].status} /></span>
                 )}

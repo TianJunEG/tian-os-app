@@ -77,7 +77,7 @@ function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
   };
 
   return (
-    <div className="rounded-xl border border-hairline bg-white p-4">
+    <div className="rounded-xl border border-line-soft bg-white p-4">
       <p className="mb-3 text-sm font-semibold text-ink-700">Enter the order from smallest to largest.</p>
       <div className="grid gap-2 sm:grid-cols-3">
         {Array.from({ length: Math.max(2, items.length || 3) }, (_, index) => (
@@ -88,7 +88,7 @@ function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
               onChange={(event) => setPart(index, event.target.value)}
               disabled={disabled}
               placeholder={items[index] ? 'Drag mentally, type here' : 'Fraction'}
-              className="h-12 w-full rounded-xl border border-hairline px-3 text-center font-mono text-base text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+              className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
               onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
             />
           </label>
@@ -136,7 +136,7 @@ export default function AnswerInputRenderer({
         disabled={disabled}
         inputMode={inputMode}
         placeholder={type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer'}
-        className="w-full rounded-xl border border-hairline px-4 py-3 font-mono text-lg text-ink-900 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20"
+        className="w-full rounded-xl border border-line-soft px-4 py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
       />
       <div className="mt-2 flex justify-end">
@@ -144,7 +144,7 @@ export default function AnswerInputRenderer({
           type="button"
           disabled={disabled || !String(value || '').trim()}
           onClick={() => onChange?.('')}
-          className="rounded-lg border border-hairline bg-white px-3 py-2 text-sm font-semibold text-navy-700 shadow-sm transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
+          className="rounded-lg border border-line-soft bg-white px-3 py-2 text-sm font-semibold text-emerald-deep shadow-sm transition hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
         >
           Clear
         </button>

@@ -23,7 +23,7 @@ function SchoolChildrenSection({ rows = [] }) {
               <p className="text-sm font-semibold text-ink-700">{c.name} <span className="font-normal text-ink-500">· {c.level}</span></p>
               <Badge tone="navy">View-only</Badge>
             </div>
-            <div className="mt-2 font-display text-xl font-semibold text-navy-700">{c.hasData ? `${c.overallMastery}%` : '—'}</div>
+            <div className="mt-2 font-display text-xl font-semibold text-emerald-deep">{c.hasData ? `${c.overallMastery}%` : '—'}</div>
             <ProgressBar value={c.overallMastery} className="mt-2" />
             {c.weakestSkill ? <p className="mt-2 text-sm text-ink-500">Needs work: {c.weakestSkill}</p> : null}
           </Card>
@@ -148,7 +148,7 @@ export default function ParentHome() {
         subtitle="A calm, clear picture of how learning is going."
         action={multiChild ? (
           <select value={child.studentId} onChange={(e) => setParams({ child: e.target.value })}
-            className="rounded-xl border border-hairline bg-paper px-3 py-2 text-sm font-semibold text-navy-700">
+            className="rounded-xl border border-line-soft bg-surface-white px-3 py-2 text-sm font-semibold text-emerald-deep">
             {children.map((c) => <option key={c.studentId} value={c.studentId}>{c.name}</option>)}
           </select>
         ) : null}
@@ -168,7 +168,7 @@ export default function ParentHome() {
         </div>
         <ProgressBar value={child.overallMastery} className="mt-4" />
         <div className="mt-3">
-          <Link to={`/parent/children/${child.studentId}/mathpath`} className="text-sm font-semibold text-navy-700">
+          <Link to={`/parent/children/${child.studentId}/mathpath`} className="text-sm font-semibold text-emerald-deep">
             Open Parent MathPath dashboard →
           </Link>
           <Link to={`/parent/success-centre?child=${child.studentId}`} className="ml-4 text-sm font-semibold text-gold-700">
@@ -191,7 +191,7 @@ export default function ParentHome() {
                   <p className="text-sm font-semibold text-ink-700">{s.subject}</p>
                   <span className="font-mono text-xs tabular-nums text-ink-500">{s.mastered}/{s.total}</span>
                 </div>
-                <div className="mt-1 font-display text-xl font-semibold text-navy-700">{s.overall}%</div>
+                <div className="mt-1 font-display text-xl font-semibold text-emerald-deep">{s.overall}%</div>
                 <ProgressBar value={s.overall} className="mt-2" />
               </Card>
             );
@@ -232,7 +232,7 @@ export default function ParentHome() {
                 <p className="text-sm font-semibold text-ink-700">Weak topic</p>
                 <p className="text-sm text-ink-500">{child.weakestSkill} in {child.weakestTopic}</p>
                 <div className="mt-2 flex flex-col gap-1">
-                  <Link to={`/parent/children/${child.studentId}/weak-topics`} className="text-sm font-semibold text-navy-700">View weak topics →</Link>
+                  <Link to={`/parent/children/${child.studentId}/weak-topics`} className="text-sm font-semibold text-emerald-deep">View weak topics →</Link>
                   <Link to={`/parent/children/${child.studentId}/worksheets/new?mode=weak_skills`} className="text-sm font-semibold text-gold-700">Generate worksheet for {child.weakestSkill} →</Link>
                 </div>
               </div>
@@ -246,7 +246,7 @@ export default function ParentHome() {
           <p className="text-sm font-semibold text-ink-700">Practice Tasks</p>
           <p className="mt-1 text-sm text-ink-500">{completed} of {assignments.length} completed</p>
           <div className="mt-1 flex flex-col gap-1">
-            <Link to={`/parent/children/${child.studentId}/assignments`} className="text-sm font-semibold text-navy-700">View practice tasks →</Link>
+            <Link to={`/parent/children/${child.studentId}/assignments`} className="text-sm font-semibold text-emerald-deep">View practice tasks →</Link>
             <Link to={`/parent/children/${child.studentId}/worksheets`} className="text-sm font-semibold text-gold-700">Mastery worksheet generator →</Link>
           </div>
         </Card>

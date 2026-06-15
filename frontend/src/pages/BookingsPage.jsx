@@ -108,7 +108,7 @@ export default function BookingsPage() {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-blue-100 text-blue-800',
-      in_progress: 'bg-navy-100 text-navy-800',
+      in_progress: 'bg-emerald-tint text-emerald-deep',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800'
     };
@@ -129,7 +129,7 @@ export default function BookingsPage() {
           </button>
           <div>
             <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Sessions</div>
-            <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight">My Bookings</h1>
+            <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">My Bookings</h1>
           </div>
         </div>
       </header>
@@ -143,8 +143,8 @@ export default function BookingsPage() {
               onClick={() => setFilter(status)}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition ${
                 filter === status
-                  ? 'bg-navy-700 text-white'
-                  : 'bg-white text-gray-600 border border-navy-100 hover:bg-navy-50'
+                  ? 'bg-emerald-deep text-white'
+                  : 'bg-white text-gray-600 border border-emerald-tint hover:bg-emerald-tint'
               }`}
             >
               {status === 'all' ? 'All' : formatStatus(status)}
@@ -161,24 +161,24 @@ export default function BookingsPage() {
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-navy-700" />
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-deep" />
             <p className="mt-4 text-gray-600">Loading bookings…</p>
           </div>
         ) : bookings.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-navy-100 shadow-sm p-12 text-center">
+          <div className="bg-white rounded-2xl border border-emerald-tint shadow-sm p-12 text-center">
             <p className="text-gray-500">No bookings found.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => (
-              <div key={booking._id} className="bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-lg transition overflow-hidden">
+              <div key={booking._id} className="bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-lg transition overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
                   {/* User Info */}
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
                       {user?.role === 'parent' ? 'Tutor' : 'Student'}
                     </p>
-                    <h3 className="font-bold text-navy-900">
+                    <h3 className="font-bold text-emerald-deep">
                       {user?.role === 'parent' ? booking.tutorId?.name : booking.parentId?.name}
                     </h3>
                   </div>
@@ -186,7 +186,7 @@ export default function BookingsPage() {
                   {/* Session Info */}
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">Subject</p>
-                    <p className="font-semibold text-navy-900">{booking.subject}</p>
+                    <p className="font-semibold text-emerald-deep">{booking.subject}</p>
                   </div>
 
                   {/* Date & Time */}
@@ -211,14 +211,14 @@ export default function BookingsPage() {
                     </span>
                     <div className="text-right">
                       <p className="text-xs text-gray-400">Total</p>
-                      <p className="text-xl font-bold text-navy-800">${booking.totalCost}</p>
+                      <p className="text-xl font-bold text-emerald-deep">${booking.totalCost}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
                 {['pending', 'confirmed', 'in_progress'].includes(booking.status) && (
-                  <div className="px-6 py-4 bg-navy-50 border-t border-navy-100 flex justify-end gap-2">
+                  <div className="px-6 py-4 bg-emerald-tint border-t border-emerald-tint flex justify-end gap-2">
                     {user?.role === 'tutor' && booking.status === 'pending' && (
                       <button
                         onClick={() => handleConfirm(booking._id)}
@@ -230,7 +230,7 @@ export default function BookingsPage() {
                     {user?.role === 'tutor' && booking.status === 'confirmed' && (
                       <button
                         onClick={() => handleCheckin(booking._id)}
-                        className="px-4 py-2 bg-navy-700 text-white rounded-lg hover:bg-navy-800 transition text-sm font-semibold"
+                        className="px-4 py-2 bg-emerald-deep text-white rounded-lg hover:bg-emerald-deep transition text-sm font-semibold"
                       >
                         Start Session
                       </button>
@@ -279,7 +279,7 @@ export default function BookingsPage() {
                   value={notesForm.topicsCovered}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, topicsCovered: e.target.value }))}
                   placeholder="e.g. Quadratic equations, Factoring"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   required
                 />
               </div>
@@ -291,7 +291,7 @@ export default function BookingsPage() {
                 <select
                   value={notesForm.studentUnderstanding}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, studentUnderstanding: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                 >
                   <option value="struggling">Struggling</option>
                   <option value="ok">OK</option>
@@ -308,7 +308,7 @@ export default function BookingsPage() {
                   value={notesForm.homeworkAssigned}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, homeworkAssigned: e.target.value }))}
                   placeholder="e.g. Practice set 3, problems 1-10"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   required
                 />
               </div>
@@ -321,7 +321,7 @@ export default function BookingsPage() {
                   value={notesForm.additionalNotes}
                   onChange={(e) => setNotesForm(prev => ({ ...prev, additionalNotes: e.target.value }))}
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                 />
               </div>
 

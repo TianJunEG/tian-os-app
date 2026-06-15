@@ -10,11 +10,11 @@ function number(value) {
 
 function MetricCard({ icon: Icon, label, value, tone = 'navy' }) {
   const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     green: 'bg-emerald-50 text-emerald-700',
     amber: 'bg-amber-50 text-amber-700',
-    rose: 'bg-rose-50 text-rose-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+    rose: 'bg-danger-tint text-danger-deep',
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
@@ -58,7 +58,7 @@ function ReadinessTable({ rows = [] }) {
         </thead>
         <tbody>
           {rows.slice(0, 26).map((row) => (
-            <tr key={row.skillId} className="border-t border-hairline">
+            <tr key={row.skillId} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-semibold text-ink-800">{row.skillId} · {row.skillName}</td>
               <td className="py-3 pr-4 text-ink-600">{row.learningPathId}</td>
               <td className="py-3 pr-4">{row.stageCount}</td>
@@ -80,7 +80,7 @@ function GapList({ rows = [], empty }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 12).map((row, index) => (
-        <div key={`${row.learningPathId || row.misconceptionId || row.stageId || row.skillId}-${index}`} className="rounded-2xl border border-hairline p-3">
+        <div key={`${row.learningPathId || row.misconceptionId || row.stageId || row.skillId}-${index}`} className="rounded-2xl border border-line-soft p-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="yellow">{row.skillId || row.stageId || row.learningPathId || 'Review'}</Badge>
             {row.misconceptionId ? <Badge tone="navy">{row.misconceptionId}</Badge> : null}

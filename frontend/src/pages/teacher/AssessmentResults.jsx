@@ -37,7 +37,7 @@ export default function AssessmentResults() {
 
       {/* Summary */}
       <Card className="p-5">
-        <h2 className="text-lg font-semibold text-navy-700">{assessment.title}</h2>
+        <h2 className="text-lg font-semibold text-emerald-deep">{assessment.title}</h2>
         <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink-500">
           <span>{assessment.module}</span>
           <span>·</span>
@@ -74,7 +74,7 @@ export default function AssessmentResults() {
 
       {/* Per-Student */}
       <Card className="p-5">
-        <h3 className="mb-3 text-sm font-semibold text-navy-700">Student Scores</h3>
+        <h3 className="mb-3 text-sm font-semibold text-emerald-deep">Student Scores</h3>
         <div className="divide-y divide-ink-100">
           {perStudent.map((s) => (
             <div key={s.studentId}>
@@ -110,7 +110,7 @@ export default function AssessmentResults() {
 
       {/* Per-Question */}
       <Card className="p-5">
-        <h3 className="mb-3 text-sm font-semibold text-navy-700">Question Analysis</h3>
+        <h3 className="mb-3 text-sm font-semibold text-emerald-deep">Question Analysis</h3>
         <div className="space-y-3">
           {perQuestion.map((q) => (
             <div key={q.questionId} className="rounded-lg border border-ink-100 p-3">

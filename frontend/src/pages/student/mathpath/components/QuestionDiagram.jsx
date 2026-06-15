@@ -147,7 +147,7 @@ export default function QuestionDiagram({ question }) {
   if (!spec) {
     if (!questionRequiresDiagram(question)) return null;
     return (
-      <div className="mb-5 rounded-xl border border-hairline bg-white px-3 py-4 text-center text-sm text-ink-500">
+      <div className="mb-5 rounded-xl border border-line-soft bg-white px-3 py-4 text-center text-sm text-ink-500">
         {DIAGRAM_LOAD_ERROR_MESSAGE}
       </div>
     );
@@ -156,7 +156,7 @@ export default function QuestionDiagram({ question }) {
   const renderer = renderers[spec.type];
   if (!spec.type || !renderer) {
     return (
-      <div className="mb-5 rounded-xl border border-hairline bg-paper px-3 py-4 text-sm">
+      <div className="mb-5 rounded-xl border border-line-soft bg-surface-white px-3 py-4 text-sm">
         <p className="font-semibold text-ink-700">Diagram not available</p>
         <p className="mt-1 text-ink-500">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
       </div>
@@ -168,7 +168,7 @@ export default function QuestionDiagram({ question }) {
     svg = renderer(spec);
   } catch (err) {
     return (
-      <div className="mb-5 rounded-xl border border-rose-300 bg-rose-50 px-3 py-4 text-sm text-rose-800">
+      <div className="mb-5 rounded-xl border border-danger-border bg-danger-tint px-3 py-4 text-sm text-rose-800">
         <p className="font-semibold">Diagram render error</p>
         <p className="mt-1">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
       </div>
@@ -177,7 +177,7 @@ export default function QuestionDiagram({ question }) {
 
   return (
     <div
-      className="mb-4 max-w-2xl overflow-hidden rounded-xl border border-hairline bg-white p-2 sm:p-3"
+      className="mb-4 max-w-2xl overflow-hidden rounded-xl border border-line-soft bg-white p-2 sm:p-3"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );

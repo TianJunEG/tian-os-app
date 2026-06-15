@@ -93,7 +93,7 @@ export default function StudentsPage() {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <Users className="w-6 h-6 text-navy-600" />
+                <Users className="w-6 h-6 text-emerald" />
                 Students
               </h1>
               <p className="text-gray-600 text-sm">Create logins so students can do practice and see their mistakes.</p>
@@ -114,7 +114,7 @@ export default function StudentsPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Alex"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
               />
             </div>
             <div>
@@ -122,7 +122,7 @@ export default function StudentsPage() {
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
               >
                 <option value="">Select level</option>
                 {STUDENT_LEVELS.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
@@ -136,7 +136,7 @@ export default function StudentsPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="alex@example.com"
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
               />
             </div>
             <div>
@@ -148,7 +148,7 @@ export default function StudentsPage() {
                 placeholder="min 6 characters"
                 required
                 minLength={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function StudentsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 transition font-medium"
+            className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-50 transition font-medium"
           >
             <UserPlus className="w-4 h-4" />
             {saving ? 'Creating…' : 'Create student login'}

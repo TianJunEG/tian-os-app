@@ -29,7 +29,7 @@ function SkillRow({ skill, busy, onStart }) {
       type="button"
       disabled={busy === skill.skillId}
       onClick={() => onStart(skill.skillId)}
-      className="flex w-full items-center justify-between gap-3 rounded-lg border border-hairline bg-paper px-3 py-3 text-left transition hover:bg-navy-50 disabled:opacity-60"
+      className="flex w-full items-center justify-between gap-3 rounded-lg border border-line-soft bg-surface-white px-3 py-3 text-left transition hover:bg-emerald-tint disabled:opacity-60"
     >
       <div className="min-w-0">
         <div className="truncate font-semibold text-ink-800">{skill.name}</div>
@@ -38,7 +38,7 @@ function SkillRow({ skill, busy, onStart }) {
           {skill.moeLevel && <Badge tone="gold">{skill.moeLevel}</Badge>}
         </div>
       </div>
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-navy-700 text-paper">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-deep text-paper">
         <Zap className="h-4 w-4" />
       </span>
     </button>
@@ -135,7 +135,7 @@ export default function FluencySkills() {
       <Card className="mb-4 p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-navy-50 text-navy-700">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-tint text-emerald-deep">
               <ListChecks className="h-5 w-5" />
             </span>
             <div>
@@ -143,7 +143,7 @@ export default function FluencySkills() {
               <p className="text-sm text-ink-500">{recommendedCount} ready to practise now</p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-1 rounded-xl border border-hairline bg-paper p-1">
+          <div className="grid grid-cols-3 gap-1 rounded-xl border border-line-soft bg-surface-white p-1">
             {[
               ['recommended', 'Recommended'],
               ['topic', 'Topic'],
@@ -153,7 +153,7 @@ export default function FluencySkills() {
                 key={key}
                 type="button"
                 onClick={() => setView(key)}
-                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${view === key ? 'bg-navy-700 text-white' : 'text-ink-500 hover:bg-navy-50'}`}
+                className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${view === key ? 'bg-emerald-deep text-white' : 'text-ink-500 hover:bg-emerald-tint'}`}
               >
                 {label}
               </button>

@@ -77,7 +77,7 @@ export default function ScienceTopics() {
         type="button"
         onClick={() => setActiveLevel(key)}
         className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-          selected ? 'border-[#2F6B7E] bg-[#2F6B7E] text-paper' : 'border-ink-100 bg-paper text-ink-600 hover:border-ink-300'
+          selected ? 'border-[#2F6B7E] bg-[#2F6B7E] text-paper' : 'border-ink-100 bg-surface-white text-ink-600 hover:border-ink-300'
         }`}
         aria-pressed={selected}
       >

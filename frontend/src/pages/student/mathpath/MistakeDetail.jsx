@@ -43,20 +43,20 @@ function WorkingReviewCard({ mistake }) {
   const steps = Array.isArray(insight?.detectedSteps) ? insight.detectedSteps.filter((step) => step?.text).slice(0, 3) : [];
   return (
     <section className="rounded-3xl bg-sky-50 p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-navy-500">Working Review</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald">Working Review</p>
       {mistake.workingPreviewImage && (
         <img src={mistake.workingPreviewImage} alt="Submitted working" className="mt-3 max-h-44 w-full rounded-2xl object-contain bg-white" />
       )}
       {!insight && hasWorking && (
         <p className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">Working saved. Analysis is still being prepared.</p>
       )}
-      {insight?.detectedMethod && <p className="mt-3 text-sm font-semibold text-navy-800">Method spotted: {insight.detectedMethod}</p>}
+      {insight?.detectedMethod && <p className="mt-3 text-sm font-semibold text-emerald-deep">Method spotted: {insight.detectedMethod}</p>}
       {(insight?.detectedIssue || insight?.studentExplanation) && (
         <p className="mt-2 text-sm leading-6 text-ink-700">{insight.studentExplanation || insight.detectedIssue}</p>
       )}
       {(mistake.extractedWorkingText || insight?.extractedWorkingText) && (
         <div className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">
-          <p className="mb-1 font-semibold text-navy-700">Detected from your working</p>
+          <p className="mb-1 font-semibold text-emerald-deep">Detected from your working</p>
           <MathText text={mistake.extractedWorkingText || insight.extractedWorkingText} />
         </div>
       )}
@@ -201,15 +201,15 @@ export default function MistakeDetail() {
 
           <section>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Why</p>
-            <div className="mt-2 text-base leading-7 text-navy-800">
+            <div className="mt-2 text-base leading-7 text-emerald-deep">
               {m.workedSolution ? <MathText text={m.workedSolution} /> : 'Review the method, then try a guided similar question.'}
             </div>
           </section>
           <WorkingReviewCard mistake={m} />
           {m.tutorExplanation?.strokes?.length > 0 && (
-            <section className="rounded-3xl bg-navy-50 p-4">
+            <section className="rounded-3xl bg-emerald-tint p-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-navy-500">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald">
                   Tutor explanation
                 </p>
                 {m.tutorExplanation.recordedAt && (
@@ -223,7 +223,7 @@ export default function MistakeDetail() {
                 Press play to watch{m.tutorExplanation.hasAudio ? ' and listen' : ''} step by step.
               </p>
               <div className="mt-3">
-                <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-navy-100" />}>
+                <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-emerald-tint" />}>
                   <StrokeReplayPlayer
                     strokes={m.tutorExplanation.strokes}
                     background="ruled"
@@ -236,9 +236,9 @@ export default function MistakeDetail() {
           )}
         </div>
 
-        <section className="mt-5 rounded-3xl border border-hairline bg-paper p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-navy-500">Mistake Learning</p>
-          <h2 className="mt-2 font-display text-xl font-semibold text-navy-800">Turn this mistake into evidence.</h2>
+        <section className="mt-5 rounded-3xl border border-line-soft bg-surface-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald">Mistake Learning</p>
+          <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">Turn this mistake into evidence.</h2>
           <p className="mt-1 text-sm text-ink-600">
             A review only means you looked at the mistake. To show learning, fix it and explain the step.
           </p>
@@ -256,7 +256,7 @@ export default function MistakeDetail() {
             <div className="rounded-2xl bg-white p-3">
               <p className="text-sm font-semibold text-ink-800">{correctionFlow.correctionPrompt || 'Write the corrected answer.'}</p>
               <input
-                className="mt-2 min-h-[48px] w-full rounded-xl border border-hairline bg-paper px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+                className="mt-2 min-h-[48px] w-full rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
                 value={correctionAttempt || m.correctionAttempt || ''}
                 onChange={(event) => setCorrectionAttempt(event.target.value)}
                 placeholder="Corrected answer"
@@ -322,7 +322,7 @@ export default function MistakeDetail() {
               )}
             </div>
           </div>
-          {learningMessage && <p className="mt-3 text-sm font-semibold text-navy-700">{learningMessage}</p>}
+          {learningMessage && <p className="mt-3 text-sm font-semibold text-emerald-deep">{learningMessage}</p>}
         </section>
 
         <div className="mt-5 flex flex-wrap gap-2">

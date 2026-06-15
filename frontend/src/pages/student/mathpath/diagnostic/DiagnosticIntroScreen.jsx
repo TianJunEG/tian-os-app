@@ -107,7 +107,7 @@ export default function DiagnosticIntroScreen() {
                   setStudentLevel(nextLevel);
                   setMode(modeForLevel(nextLevel));
                 }}
-                className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               >
                 {['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'Sec1', 'Sec2', 'Sec3', 'Sec4'].map((l) => <option key={l}>{l}</option>)}
               </select>
@@ -115,7 +115,7 @@ export default function DiagnosticIntroScreen() {
             {allowModeOverride ? (
               <label className="text-sm text-ink-600">
                 Diagnostic Mode
-                <select value={mode} onChange={(e) => setMode(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+                <select value={mode} onChange={(e) => setMode(e.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                   <option value="basic">{MODE_LABELS.basic}</option>
                   <option value="core">{MODE_LABELS.core}</option>
                   <option value="full">{MODE_LABELS.full}</option>
@@ -124,10 +124,10 @@ export default function DiagnosticIntroScreen() {
             ) : (
               <div className="text-sm text-ink-600">
                 Diagnostic Mode
-                <div className="mt-1 rounded-lg border border-hairline bg-slate-50 px-3 py-2 text-sm">{MODE_LABELS[mode] || mode}</div>
+                <div className="mt-1 rounded-lg border border-line-soft bg-surface-raised px-3 py-2 text-sm">{MODE_LABELS[mode] || mode}</div>
               </div>
             )}
-            <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-ink-600">
+            <div className="rounded-lg bg-surface-raised px-3 py-2 text-sm text-ink-600">
               <p className="text-xs uppercase tracking-[0.08em] text-ink-500">Estimate</p>
               <p>{estimate.questions} questions</p>
               <p>{estimate.durationMin} min</p>

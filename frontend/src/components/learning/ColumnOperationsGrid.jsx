@@ -68,7 +68,7 @@ function CellInput({ value, onChange, onKeyDown, inputRef, small = false, highli
       }}
       onKeyDown={onKeyDown}
       className={`${small ? 'h-8 w-8 text-sm' : 'h-10 w-10 text-lg'} rounded-lg border-2 text-center font-mono font-semibold transition focus:border-orange-400 focus:outline-none ${
-        highlight ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-slate-200 bg-white text-ink-900'
+        highlight ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-line bg-white text-ink-900'
       }`}
     />
   );
@@ -282,7 +282,7 @@ export default function ColumnOperationsGrid({ grid, onChange, readOnly = false 
         <select
           value={formatIndex}
           onChange={(e) => setFormat(Number(e.target.value))}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-ink-700"
+          className="rounded-lg border border-line-strong bg-white px-3 py-1.5 text-sm font-medium text-ink-700"
         >
           {formats.map((f, i) => (
             <option key={i} value={i}>{f.label}</option>
@@ -298,7 +298,7 @@ export default function ColumnOperationsGrid({ grid, onChange, readOnly = false 
         </button>
       </div>
 
-      <div className="overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div className="overflow-auto rounded-xl border border-line bg-surface-raised p-4">
         {operation === 'division' ? (
           <DivisionGrid grid={grid} onChange={onChange} cellRefs={cellRefs} />
         ) : (

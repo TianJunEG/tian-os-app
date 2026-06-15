@@ -105,7 +105,7 @@ export default function TopicDetail() {
 
   return (
     <>
-      <button onClick={() => navigate('/student/mathpath')} className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
+      <button onClick={() => navigate('/student/mathpath')} className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-emerald-deep">
         <ArrowLeft className="h-4 w-4" /> MathPath
       </button>
       <PageHeader

@@ -17,7 +17,7 @@ export default function SpellingResults() {
     <div className="mx-auto max-w-xl">
       <PageHeader title="Spelling complete" subtitle={data.listTitle} />
       <Card className="mb-5 p-6 text-center">
-        <div className="font-mono text-5xl font-semibold tabular-nums text-navy-700">{stats.accuracy}%</div>
+        <div className="font-mono text-5xl font-semibold tabular-nums text-emerald-deep">{stats.accuracy}%</div>
         <p className="mt-1 text-sm text-ink-500">{stats.correct} of {stats.total} correct</p>
         <ProgressBar value={stats.correct} max={Math.max(stats.total, 1)} className="mt-4" />
       </Card>

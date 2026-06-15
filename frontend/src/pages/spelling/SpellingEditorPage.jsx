@@ -218,13 +218,13 @@ export default function SpellingEditorPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Week 5 spelling"
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-navy-500 outline-none"
+              className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-emerald outline-none"
             />
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Language</label>
-              <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-navy-500 outline-none bg-white">
+              <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-emerald outline-none bg-white">
                 {LANGUAGES.map(([v, label]) => (
                   <option key={v} value={v}>{label}</option>
                 ))}
@@ -232,7 +232,7 @@ export default function SpellingEditorPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Level</label>
-              <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-navy-500 outline-none bg-white">
+              <select value={level} onChange={(e) => setLevel(e.target.value)} className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-emerald outline-none bg-white">
                 {LEVELS.map(([v, label]) => (
                   <option key={v} value={v}>{label}</option>
                 ))}
@@ -244,7 +244,7 @@ export default function SpellingEditorPage() {
           )}
           <div>
             <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-gray-700">
-              <input type="checkbox" checked={isShared} onChange={(e) => setIsShared(e.target.checked)} className="rounded text-navy-600 w-4 h-4" />
+              <input type="checkbox" checked={isShared} onChange={(e) => setIsShared(e.target.checked)} className="rounded text-emerald w-4 h-4" />
               Share to the library ({level === 'other' ? 'set a level for others to find it' : 'visible to everyone'})
             </label>
           </div>
@@ -254,7 +254,7 @@ export default function SpellingEditorPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="A short note about this list"
-              className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-navy-500 outline-none"
+              className="w-full p-2.5 border border-gray-300 rounded-lg focus:border-emerald outline-none"
             />
           </div>
         </div>
@@ -263,7 +263,7 @@ export default function SpellingEditorPage() {
         <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <FileText className="w-6 h-6 text-navy-600" />
+              <FileText className="w-6 h-6 text-emerald" />
               <div>
                 <p className="font-medium text-gray-800">Import from a file or photo</p>
                 <p className="text-sm text-gray-500">PDF, Word (.docx), image or text. Underlined words in Word docs become the tested word.</p>
@@ -272,7 +272,7 @@ export default function SpellingEditorPage() {
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 inline-flex items-center gap-2"
+              className="px-4 py-2 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-50 inline-flex items-center gap-2"
             >
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {uploading ? 'Reading…' : 'Choose file'}
@@ -296,12 +296,12 @@ export default function SpellingEditorPage() {
                   onClick={fillAll}
                   disabled={!words.some((w) => w.word.trim())}
                   title="Look up a meaning and example for every word that's missing one"
-                  className="text-sm text-navy-600 hover:underline inline-flex items-center gap-1 disabled:opacity-40"
+                  className="text-sm text-emerald hover:underline inline-flex items-center gap-1 disabled:opacity-40"
                 >
                   <Sparkles className="w-4 h-4" /> Fill all blanks
                 </button>
               ))}
-              <button onClick={addRow} className="text-sm text-navy-600 hover:underline inline-flex items-center gap-1">
+              <button onClick={addRow} className="text-sm text-emerald hover:underline inline-flex items-center gap-1">
                 <Plus className="w-4 h-4" /> Add word
               </button>
             </div>
@@ -315,7 +315,7 @@ export default function SpellingEditorPage() {
                     value={w.word}
                     onChange={(e) => updateRow(i, 'word', e.target.value)}
                     placeholder={wordPlaceholder(language)}
-                    className="flex-1 p-2 border border-gray-300 rounded-lg focus:border-navy-500 outline-none font-medium"
+                    className="flex-1 p-2 border border-gray-300 rounded-lg focus:border-emerald outline-none font-medium"
                   />
                   {supportsDictionary(language) && (
                     <button
@@ -323,7 +323,7 @@ export default function SpellingEditorPage() {
                       disabled={!w.word.trim() || lookupIdx === i}
                       aria-label="Look up definition"
                       title="Look up definition"
-                      className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-navy-600 hover:bg-navy-50 rounded-lg disabled:opacity-40"
+                      className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-emerald hover:bg-emerald-tint rounded-lg disabled:opacity-40"
                     >
                       {lookupIdx === i ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
                     </button>
@@ -352,7 +352,7 @@ export default function SpellingEditorPage() {
         <button
           onClick={save}
           disabled={saving}
-          className="w-full py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 font-medium inline-flex items-center justify-center gap-2"
+          className="w-full py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-50 font-medium inline-flex items-center justify-center gap-2"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
           {isEdit ? 'Save changes' : 'Create list'}

@@ -55,15 +55,15 @@ export default function WorksheetPreview() {
 
   return (
     <Frame>
-      <h2 className="mb-1 font-display text-xl font-semibold text-navy-700">Worksheet preview</h2>
+      <h2 className="mb-1 font-display text-xl font-semibold text-emerald-deep">Worksheet preview</h2>
       <p className="mb-5 text-sm text-ink-500">{(c.skillNames || []).join(', ')}</p>
 
       <Card className="p-6 print:border-0 print:shadow-none">
-        <div className="mb-4 border-b border-hairline pb-3">
-          <h2 className="font-display text-2xl font-semibold text-navy-700">{c.title}</h2>
+        <div className="mb-4 border-b border-line-soft pb-3">
+          <h2 className="font-display text-2xl font-semibold text-emerald-deep">{c.title}</h2>
           <div className="mt-1 text-sm text-ink-500">{c.studentName ? `${c.studentName} · ` : ''}{w.difficulty}</div>
           {personalization?.sourceSummary && (
-            <div className="mt-3 rounded-xl bg-navy-50 p-3 text-sm text-navy-800">
+            <div className="mt-3 rounded-xl bg-emerald-tint p-3 text-sm text-emerald-deep">
               <span className="font-semibold">{personalization.sourceLabel || 'Personalised worksheet'}:</span> {personalization.sourceSummary}
             </div>
           )}
@@ -75,7 +75,7 @@ export default function WorksheetPreview() {
             <div className="space-y-2">
               {c.reviewSection.map((r, i) => (
                 <div key={i} className="rounded-xl bg-gold-100 p-3 text-sm">
-                  <div className="text-navy-900"><MathText text={r.stem} /></div>
+                  <div className="text-emerald-deep"><MathText text={r.stem} /></div>
                   <div className="mt-1 text-ink-600">
                     You wrote <span className="font-semibold text-error-700"><MathText text={r.yourAnswer || '—'} /></span>
                     {' '}· correct is <MathText text={String(r.correctAnswer)} className="font-semibold text-success-700" />
@@ -89,26 +89,26 @@ export default function WorksheetPreview() {
         <ol className="space-y-4">
           {(c.questions || []).map((q) => (
             <li key={q.n} className="flex gap-3">
-              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-navy-700 text-xs text-paper">{q.n}</span>
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-emerald-deep text-xs text-paper">{q.n}</span>
               <div className="flex-1">
                 <div className="text-lg text-ink-900"><MathText text={q.stem} /></div>
                 {q.type === 'mcq' && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {q.choices.map((ch, k) => <span key={k} className="rounded-lg border border-hairline px-3 py-1 text-sm"><MathText text={String(ch)} /></span>)}
+                    {q.choices.map((ch, k) => <span key={k} className="rounded-lg border border-line-soft px-3 py-1 text-sm"><MathText text={String(ch)} /></span>)}
                   </div>
                 )}
-                <div className="mt-2 h-8 border-b border-dashed border-hairline" />
+                <div className="mt-2 h-8 border-b border-dashed border-line-soft" />
               </div>
             </li>
           ))}
         </ol>
 
         {w.includesSolutions && (
-          <div className="mt-6 border-t border-hairline pt-4">
+          <div className="mt-6 border-t border-line-soft pt-4">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-500">Answers &amp; worked solutions</div>
             <ol className="space-y-1.5 text-sm text-ink-700">
               {(c.questions || []).map((q) => (
-                <li key={q.n} className="flex gap-2"><span className="font-semibold text-navy-700">{q.n}.</span>
+                <li key={q.n} className="flex gap-2"><span className="font-semibold text-emerald-deep">{q.n}.</span>
                   <span><MathText text={String(q.answer)} className="font-semibold" />{q.workedSolution ? <span className="text-ink-500"> — <MathText text={q.workedSolution} /></span> : null}</span>
                 </li>
               ))}
@@ -119,7 +119,7 @@ export default function WorksheetPreview() {
 
       <div className="mt-4 flex flex-wrap gap-2 print:hidden">
         {assigned
-          ? <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-success-100 px-5 py-3 font-semibold text-success-700"><Check className="h-4 w-4" /> Worksheet assigned</span>
+          ? <span className="inline-flex flex-1 items-center justify-center gap-2 rounded-btn bg-success-100 px-5 py-3 font-semibold text-success-700"><Check className="h-4 w-4" /> Worksheet assigned</span>
           : <Button icon={Send} disabled={assigning} onClick={assign} className="flex-1">{assigning ? 'Assigning…' : 'Assign worksheet'}</Button>}
         <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print</Button>
         <Button variant="secondary" icon={Download} onClick={() => window.open(worksheetGenAPI.pdfUrl(worksheetId), '_blank')}>PDF</Button>

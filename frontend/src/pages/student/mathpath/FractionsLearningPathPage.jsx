@@ -86,7 +86,7 @@ function LearningPathHeader({ progress, currentSkillName, nextCta, onPrimary, on
     <Card className="p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase text-navy-700">Current Skill Path</p>
+          <p className="text-sm font-semibold uppercase text-emerald-deep">Current Skill Path</p>
           <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">Fractions</h2>
           <p className="mt-1 text-sm text-ink-500">{currentSkillName || 'Start your diagnostic'}</p>
         </div>
@@ -132,7 +132,7 @@ function SkillNodeCard({
   const levelTag = skill.levelBand?.length ? skill.levelBand.join('/') : (skill.moeLevel || '');
   const prerequisiteName = missingPrerequisiteNames[0] || '';
   return (
-    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold-400/60' : ''} ${isLocked ? 'bg-paper/80 opacity-75' : ''}`}>
+    <Card className={`p-4 ${isCurrent ? 'ring-2 ring-gold-400/60' : ''} ${isLocked ? 'bg-surface-white/80 opacity-75' : ''}`}>
       <div className="flex min-h-[3.25rem] items-start justify-between gap-3">
         <p className="text-base font-semibold leading-snug text-ink-800">{skill.displayName || skill.name}</p>
         <span className="shrink-0">

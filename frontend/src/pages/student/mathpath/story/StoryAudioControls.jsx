@@ -35,18 +35,18 @@ export default function StoryAudioControls({
 
   if (!tts.isAvailable) {
     return (
-      <div className="rounded-xl border border-hairline bg-slate-50 px-3 py-2 text-xs text-ink-500">
+      <div className="rounded-xl border border-line-soft bg-surface-raised px-3 py-2 text-xs text-ink-500">
         Audio is unavailable on this device. You can still use Story Mode normally.
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-hairline bg-white p-3">
-      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-navy-700">
+    <div className="rounded-xl border border-line-soft bg-white p-3">
+      <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-emerald-deep">
         <Volume2 className="h-4 w-4" />
         Listen
-        {statusBadge ? <span className="rounded-full bg-navy-50 px-2 py-0.5 text-xs text-navy-700">{statusBadge}</span> : null}
+        {statusBadge ? <span className="rounded-full bg-emerald-tint px-2 py-0.5 text-xs text-emerald-deep">{statusBadge}</span> : null}
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Button size="s" className="min-h-[44px]" variant="secondary" icon={Play} onClick={() => tts.play(storySentences)}>Play story</Button>

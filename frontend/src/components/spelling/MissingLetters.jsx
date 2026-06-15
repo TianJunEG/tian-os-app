@@ -102,7 +102,7 @@ export default function MissingLetters({ words, onAttempt, lang = 'en' }) {
       </div>
 
       <div className="flex items-center justify-center gap-3 mb-6">
-        <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="p-2 text-navy-600 hover:bg-navy-50 rounded-lg" aria-label="Hear word">
+        <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="p-2 text-emerald hover:bg-emerald-tint rounded-lg" aria-label="Hear word">
           <Volume2 className="w-5 h-5" />
         </button>
         {(current.definition || current.sentence) && (
@@ -132,7 +132,7 @@ export default function MissingLetters({ words, onAttempt, lang = 'en' }) {
                   ? 'border-green-500 bg-green-50'
                   : result === 'wrong'
                   ? 'border-red-500 bg-red-50'
-                  : 'border-navy-400 focus:border-navy-600 bg-navy-50'
+                  : 'border-navy-400 focus:border-navy-600 bg-emerald-tint'
               }`}
             />
           ) : c.char === ' ' ? (
@@ -161,12 +161,12 @@ export default function MissingLetters({ words, onAttempt, lang = 'en' }) {
           <button
             onClick={check}
             disabled={hiddenPositions.some((p) => !entries[p])}
-            className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-40 font-medium"
+            className="flex-1 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-40 font-medium"
           >
             Check
           </button>
         ) : (
-          <button onClick={next} className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
+          <button onClick={next} className="flex-1 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium inline-flex items-center justify-center gap-2">
             {index + 1 >= words.length ? 'See results' : 'Next word'} <ChevronRight className="w-5 h-5" />
           </button>
         )}

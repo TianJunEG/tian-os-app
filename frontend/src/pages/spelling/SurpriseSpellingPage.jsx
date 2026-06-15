@@ -59,13 +59,13 @@ export default function SurpriseSpellingPage() {
           <div className="text-center py-16 bg-white rounded-xl shadow-sm">
             <Sparkles className="w-12 h-12 text-pink-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-4">No words yet — create a spelling list first and they'll show up here.</p>
-            <button onClick={() => navigate('/spelling/lists/new')} className="px-5 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center gap-2">
+            <button onClick={() => navigate('/spelling/lists/new')} className="px-5 py-2.5 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium inline-flex items-center gap-2">
               <Plus className="w-5 h-5" /> Create a list
             </button>
           </div>
         ) : activity && ActiveComp ? (
           <div className="bg-white rounded-xl shadow-sm p-5 sm:p-7">
-            <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-navy-600 inline-flex items-center gap-1 mb-5">
+            <button onClick={() => setActivity(null)} className="text-sm text-gray-500 hover:text-emerald inline-flex items-center gap-1 mb-5">
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
             <ActiveComp key={lang} words={filtered} onAttempt={record} lang={lang} />
@@ -93,7 +93,7 @@ export default function SurpriseSpellingPage() {
             <LanguageScopeTabs langs={langs} lang={lang} setLang={setLang} />
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {activitiesForLanguage(ACTIVITIES, lang).map((a) => (
-                <button key={a.key} onClick={() => setActivity(a.key)} className="py-3 px-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 text-sm font-medium">
+                <button key={a.key} onClick={() => setActivity(a.key)} className="py-3 px-2 bg-emerald text-white rounded-lg hover:bg-emerald-deep text-sm font-medium">
                   {activityCopy(a, lang).label}
                 </button>
               ))}

@@ -43,7 +43,7 @@ export default function SubmissionReviewModal({
                   type="button"
                   disabled={busy}
                   onClick={() => onReflectionChange?.(option.value)}
-                  className={`rounded-lg border px-3 py-2 text-left text-sm ${reflection === option.value ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-600 hover:bg-slate-50'}`}
+                  className={`rounded-lg border px-3 py-2 text-left text-sm ${reflection === option.value ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-600 hover:bg-surface-raised'}`}
                 >
                   {option.label}
                 </button>

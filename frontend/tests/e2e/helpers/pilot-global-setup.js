@@ -20,13 +20,12 @@ async function globalSetup() {
   });
 
   if (!res.ok) {
-    console.log('[pilot-global-setup] Demo accounts not found — running seedDemo...');
+    console.log('[pilot-global-setup] Demo accounts not found — running seedFoundation + seedDemo...');
     const { execSync } = await import('child_process');
-    execSync('node scripts/seedDemo.js', {
-      cwd: `${process.cwd()}/..`,
-      stdio: 'inherit',
-      env: { ...process.env, QA_DISABLE_RATE_LIMIT: '1' },
-    });
+    const seedEnv = { ...process.env, QA_DISABLE_RATE_LIMIT: '1' };
+    const seedCwd = `${process.cwd()}/..`;
+    execSync('node scripts/seedFoundation.js', { cwd: seedCwd, stdio: 'inherit', env: seedEnv });
+    execSync('node scripts/seedDemo.js', { cwd: seedCwd, stdio: 'inherit', env: seedEnv });
   } else {
     console.log('[pilot-global-setup] Demo accounts ready.');
   }

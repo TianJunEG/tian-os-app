@@ -11,11 +11,11 @@ function toneForRisk(risk) {
 
 function Metric({ icon: Icon, label, value, tone = 'navy' }) {
   const classes = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     success: 'bg-emerald-50 text-emerald-700',
     yellow: 'bg-amber-50 text-amber-700',
-    error: 'bg-rose-50 text-rose-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+    error: 'bg-danger-tint text-danger-deep',
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
@@ -47,7 +47,7 @@ function IssueRows({ rows = [] }) {
         </thead>
         <tbody>
           {rows.slice(0, 30).map((row) => (
-            <tr key={`${row.sourceType}-${row.questionId}`} className="border-t border-hairline">
+            <tr key={`${row.sourceType}-${row.questionId}`} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-mono text-xs text-ink-600">{row.questionId}</td>
               <td className="py-3 pr-4 font-semibold text-ink-800">{row.skillId || 'Unmapped'}</td>
               <td className="py-3 pr-4"><Badge tone={toneForRisk(row.risk)}>{row.risk}</Badge></td>

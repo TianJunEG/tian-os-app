@@ -17,7 +17,7 @@ export default function TaskCard({
       {visual ? <div className="mt-4">{visual}</div> : null}
 
       {workingRequired ? (
-        <p className="mt-4 rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-700">
+        <p className="mt-4 rounded-lg bg-emerald-tint px-3 py-2 text-sm text-emerald-deep">
           Working is expected. Upload your working at the end of this session.
         </p>
       ) : null}

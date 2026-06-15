@@ -12,7 +12,7 @@ export default function PrimaryActionBar({
 }) {
   return (
     <div className="fixed inset-x-3 bottom-[82px] z-30 md:static md:inset-auto md:bottom-auto md:mt-4">
-      <div className="rounded-2xl border border-hairline bg-paper p-3 shadow-active md:rounded-xl md:shadow-resting" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+      <div className="rounded-2xl border border-line-soft bg-surface-white p-3 shadow-card md:rounded-xl md:shadow-rest" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
         {helperText ? <p className="mb-2 text-xs text-ink-500">{helperText}</p> : null}
         <div className={`grid gap-2 ${secondaryLabel ? 'grid-cols-2' : 'grid-cols-1'}`}>
           {secondaryLabel ? (

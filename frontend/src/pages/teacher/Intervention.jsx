@@ -43,23 +43,23 @@ export default function Intervention() {
         <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Need attention</p>
-            <p className="mt-1 text-2xl font-semibold text-navy-700">{overview.studentsNeedingAttention?.length || 0}</p>
+            <p className="mt-1 text-2xl font-semibold text-emerald-deep">{overview.studentsNeedingAttention?.length || 0}</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Weak groups</p>
-            <p className="mt-1 text-2xl font-semibold text-navy-700">{overview.weakSkillGroups?.length || 0}</p>
+            <p className="mt-1 text-2xl font-semibold text-emerald-deep">{overview.weakSkillGroups?.length || 0}</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Recovery packs</p>
-            <p className="mt-1 text-2xl font-semibold text-navy-700">{overview.recoveryPacksInProgress || 0}</p>
+            <p className="mt-1 text-2xl font-semibold text-emerald-deep">{overview.recoveryPacksInProgress || 0}</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Recheck ready</p>
-            <p className="mt-1 text-2xl font-semibold text-navy-700">{overview.recheckReady?.length || 0}</p>
+            <p className="mt-1 text-2xl font-semibold text-emerald-deep">{overview.recheckReady?.length || 0}</p>
           </Card>
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Worksheets</p>
-            <p className="mt-1 text-2xl font-semibold text-navy-700">{overview.worksheetsGenerated || 0}</p>
+            <p className="mt-1 text-2xl font-semibold text-emerald-deep">{overview.worksheetsGenerated || 0}</p>
           </Card>
         </div>
       )}
@@ -67,7 +67,7 @@ export default function Intervention() {
         <Card className="mb-5 p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold text-navy-700">Group to teach today</p>
+              <p className="text-sm font-semibold text-emerald-deep">Group to teach today</p>
               <p className="mt-1 text-sm text-ink-500">{overview.weakSkillGroups[0].skillName}: {overview.weakSkillGroups[0].evidenceSummary}</p>
             </div>
             <Button size="s" to={`/teacher/classes/${id}/weak-groups`}>Open Weak Groups</Button>
@@ -89,7 +89,7 @@ export default function Intervention() {
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {STATUSES.map((s) => (
                   <button key={s} onClick={() => update(i.id, s)}
-                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${i.status === s ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-500 hover:text-navy-700'}`}>
+                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition ${i.status === s ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-500 hover:text-emerald-deep'}`}>
                     {s.replace(/_/g, ' ')}
                   </button>
                 ))}

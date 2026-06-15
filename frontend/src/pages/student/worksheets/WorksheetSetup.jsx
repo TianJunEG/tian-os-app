@@ -153,7 +153,7 @@ function Segmented({ value, onChange, options }) {
         <button
           key={o.v}
           onClick={() => onChange(o.v)}
-          className={`h-11 rounded-xl border text-sm font-semibold transition ${value === o.v ? 'border-navy-700 bg-navy-700 text-paper' : 'border-hairline bg-paper text-navy-700'}`}
+          className={`h-11 rounded-xl border text-sm font-semibold transition ${value === o.v ? 'border-emerald-deep bg-emerald-deep text-paper' : 'border-line-soft bg-surface-white text-emerald-deep'}`}
         >
           {o.l}
         </button>

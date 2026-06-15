@@ -148,25 +148,25 @@ export default function MathPathAssignments() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{statusText(assignment.status)}</p>
-                    <h2 className="mt-1 font-display text-lg font-semibold text-navy-700">{assignment.title || 'Fractions Recovery Pack'}</h2>
+                    <h2 className="mt-1 font-display text-lg font-semibold text-emerald-deep">{assignment.title || 'Fractions Recovery Pack'}</h2>
                     <p className="mt-1 text-sm text-ink-600">{assignment.description || 'Targeted practice for weak skills.'}</p>
-                    <p className="mt-2 rounded-xl bg-navy-50 px-3 py-2 text-sm font-semibold text-navy-800">
+                    <p className="mt-2 rounded-xl bg-emerald-tint px-3 py-2 text-sm font-semibold text-emerald-deep">
                       Why this pack: {sourceReason(assignment)}
                     </p>
-                    <p className="mt-2 rounded-xl bg-paper px-3 py-2 text-sm text-ink-700">
+                    <p className="mt-2 rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700">
                       Learning path: {learningSequenceText(assignment)}
                     </p>
                     <p className="mt-2 text-sm text-ink-600">
                       Skills: {(assignment.skillIds || []).map(studentSkillLabel).join(', ') || 'Fractions'}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-paper px-3 py-2 text-sm text-ink-700 sm:min-w-[170px]">
+                  <div className="rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700 sm:min-w-[170px]">
                     <p className="font-semibold">{attempted}/{target || '-'} questions</p>
                     <p>{Number(completion.accuracy || 0)}% accuracy</p>
                     <ProgressBar value={percent} max={100} className="mt-2" />
                   </div>
                 </div>
-                <div className="mt-3 rounded-xl border border-hairline bg-white px-3 py-2 text-sm text-ink-700">
+                <div className="mt-3 rounded-xl border border-line-soft bg-white px-3 py-2 text-sm text-ink-700">
                   <span className="font-semibold">Next step:</span>{' '}
                   {nextStepText({ recheckReady, attempted, target, status: assignment.status })}
                   {!recheckReady && (

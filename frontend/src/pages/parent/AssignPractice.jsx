@@ -145,7 +145,7 @@ export default function AssignPractice() {
             <div className="flex flex-wrap gap-2">
               {MODULES.map((m) => (
                 <button key={m.key} type="button" onClick={() => setModule(m.key)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-navy-500 bg-navy-50 font-semibold text-navy-700' : 'border-hairline text-ink-700'}`}>
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${module === m.key ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-700'}`}>
                   {m.label}
                 </button>
               ))}
@@ -176,7 +176,7 @@ export default function AssignPractice() {
                   <button
                     type="button"
                     onClick={suggestWeakest}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-navy-700 hover:text-navy-900"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-deep hover:text-emerald-deep"
                   >
                     <Wand2 className="h-3.5 w-3.5" /> Suggest the weakest
                   </button>

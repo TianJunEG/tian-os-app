@@ -50,15 +50,15 @@ export default function StudentCareDashboard() {
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         <Card tone="lavender" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Students Supported</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{data?.metrics?.studentsSupported || 0}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{data?.metrics?.studentsSupported || 0}</p>
         </Card>
         <Card tone="mint" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Recovery Packs Completed</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{data?.metrics?.recoveryPacksCompleted || 0}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{data?.metrics?.recoveryPacksCompleted || 0}</p>
         </Card>
         <Card tone="sky" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Average Improvement</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{pct(data?.metrics?.averageReadinessImprovement)}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{pct(data?.metrics?.averageReadinessImprovement)}</p>
         </Card>
       </div>
 
@@ -74,7 +74,7 @@ export default function StudentCareDashboard() {
                     <Badge tone={tone(item.priority)}>{item.priority}</Badge>
                   </div>
                   <p className="mt-1 text-ink-500">{item.reason}</p>
-                  <p className="mt-1 font-semibold text-navy-700">{item.action}</p>
+                  <p className="mt-1 font-semibold text-emerald-deep">{item.action}</p>
                 </div>
               ))}
             </div>

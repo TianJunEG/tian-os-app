@@ -50,7 +50,7 @@ export default function JoinClassPage() {
         ) : (
           <div className="space-y-3">
             {error ? <Alert tone="error">{error}</Alert> : null}
-            <div className="flex items-center gap-2 rounded-lg border border-hairline px-3 py-2">
+            <div className="flex items-center gap-2 rounded-lg border border-line-soft px-3 py-2">
               <KeyRound className="h-4 w-4 text-ink-400" />
               <input
                 value={code}
@@ -62,7 +62,7 @@ export default function JoinClassPage() {
             </div>
 
             {preview ? (
-              <div className="rounded-lg border border-hairline bg-ivory p-3 text-sm">
+              <div className="rounded-lg border border-line-soft bg-surface-raised p-3 text-sm">
                 <p className="font-medium text-ink-700">{preview.className}</p>
                 <p className="text-ink-500">{preview.schoolName}{preview.level ? ` · ${preview.level}` : ''}</p>
                 <Button className="mt-3" onClick={join} disabled={busy}>{busy ? 'Joining…' : `Join ${preview.className}`}</Button>

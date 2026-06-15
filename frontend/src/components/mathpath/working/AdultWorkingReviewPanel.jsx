@@ -50,24 +50,24 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div>
           <p className="text-xs text-ink-500">Pending upload</p>
-          <p className="font-mono text-xl text-navy-700">{summary.pendingUploadCount || 0}</p>
+          <p className="font-mono text-xl text-emerald-deep">{summary.pendingUploadCount || 0}</p>
         </div>
         <div>
           <p className="text-xs text-ink-500">Pending analysis</p>
-          <p className="font-mono text-xl text-navy-700">{summary.pendingAnalysisCount || 0}</p>
+          <p className="font-mono text-xl text-emerald-deep">{summary.pendingAnalysisCount || 0}</p>
         </div>
         <div>
           <p className="text-xs text-ink-500">Needs review</p>
-          <p className="font-mono text-xl text-navy-700">{summary.needsReviewCount || 0}</p>
+          <p className="font-mono text-xl text-emerald-deep">{summary.needsReviewCount || 0}</p>
         </div>
         <div>
           <p className="text-xs text-ink-500">Analysed</p>
-          <p className="font-mono text-xl text-navy-700">{summary.analysedCount || 0}</p>
+          <p className="font-mono text-xl text-emerald-deep">{summary.analysedCount || 0}</p>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <div className="rounded-lg border border-hairline p-3">
+        <div className="rounded-lg border border-line-soft p-3">
           <div className="mb-2 flex items-center gap-2">
             <Upload className="h-4 w-4 text-ink-500" />
             <p className="text-sm font-semibold text-ink-700">Recent working submissions</p>
@@ -75,7 +75,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
           {recentSessions.length ? (
             <div className="space-y-2">
               {recentSessions.map((session) => (
-                <div key={session.workingSessionId} className="rounded-md bg-slate-50 px-3 py-2 text-sm text-ink-600">
+                <div key={session.workingSessionId} className="rounded-md bg-surface-raised px-3 py-2 text-sm text-ink-600">
                   <p className="font-mono text-xs text-ink-500">{session.workingSessionId}</p>
                   <p>{session.domainId || 'Fractions'} · {skillListLabel(session.skillIds || [])}</p>
                   <p>Status: {session.status} · Analysis: {session.analysisStatus}</p>
@@ -87,7 +87,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
           )}
         </div>
 
-        <div className="rounded-lg border border-hairline p-3">
+        <div className="rounded-lg border border-line-soft p-3">
           <div className="mb-2 flex items-center gap-2">
             <FileCheck2 className="h-4 w-4 text-ink-500" />
             <p className="text-sm font-semibold text-ink-700">Working insights</p>
@@ -97,7 +97,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
               {recentInsights.map((record) => {
                 const insight = record.workingInsight || {};
                 return (
-                  <div key={record.workingId} className="rounded-md bg-slate-50 px-3 py-2 text-sm text-ink-600">
+                  <div key={record.workingId} className="rounded-md bg-surface-raised px-3 py-2 text-sm text-ink-600">
                     <p className="font-semibold text-ink-700">{skillLabel(record.skillId) || record.questionId || 'Submitted working'}</p>
                     <p>Method: {insight.detectedMethod || 'Analysis is still being prepared'}</p>
                     <p>Issue: {insight.detectedIssue || insight.studentExplanation || 'Working saved. Insight pending.'}</p>
@@ -110,7 +110,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
           )}
         </div>
 
-        <div className="rounded-lg border border-hairline p-3">
+        <div className="rounded-lg border border-line-soft p-3">
           <div className="mb-2 flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-ink-500" />
             <p className="text-sm font-semibold text-ink-700">Student help requests</p>
@@ -118,7 +118,7 @@ export default function AdultWorkingReviewPanel({ review = {}, title = 'Working 
           {topHelp.length ? (
             <div className="space-y-2">
               {topHelp.map((row) => (
-                <div key={row.skillId} className="rounded-md bg-slate-50 px-3 py-2 text-sm text-ink-600">
+                <div key={row.skillId} className="rounded-md bg-surface-raised px-3 py-2 text-sm text-ink-600">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-ink-700">{skillLabel(row.skillId) || 'Fractions skill'}</p>
                     <Badge tone={toneForEscalation(row.escalation)}>{escalationLabel(row.escalation)}</Badge>

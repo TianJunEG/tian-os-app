@@ -133,7 +133,7 @@ function NextStepHero({ skill, onStart, starting, visualStyles }) {
       <div className="grid gap-0 lg:grid-cols-[14rem_1fr]">
         <div className={`relative min-h-[9rem] overflow-hidden ${visualStyles.heroPanel}`}>
           <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/45" />
-          <div className="absolute bottom-4 left-5 grid h-14 w-14 place-items-center rounded-2xl bg-paper/80 shadow-resting">
+          <div className="absolute bottom-4 left-5 grid h-14 w-14 place-items-center rounded-2xl bg-surface-white/80 shadow-rest">
             <Sparkles className="h-7 w-7" />
           </div>
         </div>
@@ -201,7 +201,7 @@ function SkillSection({ title, question, skills, emptyText, icon: Icon, tone, on
     <section>
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-50 text-navy-700">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-surface-raised text-emerald-deep">
             <Icon className="h-4 w-4" />
           </span>
           <h2 className="font-display text-lg font-semibold text-ink-900">{title}</h2>

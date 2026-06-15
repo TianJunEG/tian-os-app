@@ -237,13 +237,13 @@ export default function PaperAnalysisPage() {
               <input
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-hairline px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2"
                 placeholder="Student ID"
               />
             </label>
             <label className="text-sm text-ink-700">
               Upload type
-              <select value={uploadType} onChange={(e) => setUploadType(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2">
+              <select value={uploadType} onChange={(e) => setUploadType(e.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2">
                 {UPLOAD_TYPES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </label>
@@ -254,7 +254,7 @@ export default function PaperAnalysisPage() {
               type="file"
               accept="application/pdf,image/jpeg,image/jpg,image/png"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="mt-1 block w-full rounded-lg border border-hairline px-3 py-2"
+              className="mt-1 block w-full rounded-lg border border-line-soft px-3 py-2"
             />
           </label>
           <label className="mt-3 block text-sm text-ink-700">
@@ -263,7 +263,7 @@ export default function PaperAnalysisPage() {
               value={questionRows}
               onChange={(e) => setQuestionRows(e.target.value)}
               rows={6}
-              className="mt-1 w-full rounded-lg border border-hairline px-3 py-2"
+              className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2"
               placeholder={"One question per line:\n1 | Add 1/3 and 1/6 | F015 | wrong\n2 | Simplify 4/8 | F007 | correct"}
             />
           </label>
@@ -281,7 +281,7 @@ export default function PaperAnalysisPage() {
         {analysis && (
           <Card className="p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Paper Analysis</p>
-            <h2 className="mt-1 font-display text-lg font-semibold text-navy-700">{analysis.originalFilename || 'Uploaded paper'}</h2>
+            <h2 className="mt-1 font-display text-lg font-semibold text-emerald-deep">{analysis.originalFilename || 'Uploaded paper'}</h2>
             <p className="mt-1 text-sm text-ink-600">Status: {analysis.status}</p>
             {!!analysis.dataQualityWarnings?.length && (
               <div className="mt-3 rounded-xl bg-tianPeach px-3 py-2 text-sm text-error-700">
@@ -293,30 +293,30 @@ export default function PaperAnalysisPage() {
             )}
             {!!analysis.reportSummary && (
               <div className="mt-3 grid gap-2 sm:grid-cols-4">
-                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                <div className="rounded-xl bg-surface-white px-3 py-2 text-sm">
                   <p className="text-ink-500">Questions</p>
                   <p className="font-semibold text-ink-800">{analysis.reportSummary.totalQuestions || analysis.detectedQuestions?.length || 0}</p>
                 </div>
-                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                <div className="rounded-xl bg-surface-white px-3 py-2 text-sm">
                   <p className="text-ink-500">Correct</p>
                   <p className="font-semibold text-ink-800">{analysis.reportSummary.correct || 0}</p>
                 </div>
-                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                <div className="rounded-xl bg-surface-white px-3 py-2 text-sm">
                   <p className="text-ink-500">Incorrect</p>
                   <p className="font-semibold text-ink-800">{analysis.reportSummary.incorrect || 0}</p>
                 </div>
-                <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+                <div className="rounded-xl bg-surface-white px-3 py-2 text-sm">
                   <p className="text-ink-500">Confidence</p>
                   <p className="font-semibold text-ink-800">{confidenceText(analysis.reportSummary.confidence)}</p>
                 </div>
               </div>
             )}
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+              <div className="rounded-xl bg-surface-white px-3 py-2 text-sm">
                 <p className="font-semibold text-ink-700">Weak skills</p>
                 <p className="text-ink-600">{analysis.weakSkillIds?.join(', ') || 'None confirmed yet'}</p>
               </div>
-              <div className="rounded-xl bg-paper px-3 py-2 text-sm">
+              <div className="rounded-xl bg-surface-white px-3 py-2 text-sm">
                 <p className="font-semibold text-ink-700">Detected questions</p>
                 <p className="text-ink-600">{analysis.detectedQuestions?.length || 0}</p>
               </div>
@@ -349,7 +349,7 @@ export default function PaperAnalysisPage() {
                         <label className="block text-xs text-ink-600">
                           Question text
                           <input
-                            className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                            className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                             value={q.questionText || ''}
                             onChange={(e) => updateQuestion(index, { questionText: e.target.value })}
                             placeholder="What does the question say?"
@@ -359,7 +359,7 @@ export default function PaperAnalysisPage() {
                           <label className="block text-xs text-ink-600">
                             Student&apos;s answer
                             <input
-                              className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                              className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                               value={q.studentAnswer || ''}
                               onChange={(e) => updateQuestion(index, { studentAnswer: e.target.value })}
                               placeholder="What did the student write?"
@@ -368,7 +368,7 @@ export default function PaperAnalysisPage() {
                           <label className="block text-xs text-ink-600">
                             Teacher&apos;s mark
                             <select
-                              className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                              className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                               value={q.teacherMarkedCorrect === true ? 'correct' : q.teacherMarkedCorrect === false ? 'wrong' : ''}
                               onChange={(e) => updateQuestion(index, {
                                 teacherMarkedCorrect: e.target.value === 'correct' ? true : e.target.value === 'wrong' ? false : null,
@@ -398,7 +398,7 @@ export default function PaperAnalysisPage() {
               <div className="mt-4 space-y-3">
                 <p className="text-sm font-semibold text-ink-700">Detected questions for adult review</p>
                 {analysis.detectedQuestions.map((question, index) => (
-                  <div key={`${question.questionNumber}-${index}`} className="rounded-xl border border-hairline p-3">
+                  <div key={`${question.questionNumber}-${index}`} className="rounded-xl border border-line-soft p-3">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">
@@ -427,7 +427,7 @@ export default function PaperAnalysisPage() {
                           value={question.questionText || ''}
                           onChange={(e) => updateQuestion(index, { questionText: e.target.value, needsAdultReview: true })}
                           rows={3}
-                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                          className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                         />
                       </label>
                       <label className="text-xs text-ink-600">
@@ -438,7 +438,7 @@ export default function PaperAnalysisPage() {
                             detectedSkillIds: e.target.value.split(',').map((id) => id.trim().toUpperCase()).filter(Boolean),
                             needsAdultReview: false,
                           })}
-                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                          className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                         />
                       </label>
                       <label className="text-xs text-ink-600">
@@ -446,7 +446,7 @@ export default function PaperAnalysisPage() {
                         <input
                           value={question.studentAnswer || ''}
                           onChange={(e) => updateQuestion(index, { studentAnswer: e.target.value, needsAdultReview: true })}
-                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                          className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                         />
                       </label>
                       <label className="text-xs text-ink-600">
@@ -454,7 +454,7 @@ export default function PaperAnalysisPage() {
                         <input
                           value={question.teacherMark || ''}
                           onChange={(e) => updateQuestion(index, { teacherMark: e.target.value, needsAdultReview: true })}
-                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                          className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                         />
                       </label>
                       <label className="text-xs text-ink-600">
@@ -465,7 +465,7 @@ export default function PaperAnalysisPage() {
                             misconceptionTags: e.target.value.split(',').map((tag) => tag.trim()).filter(Boolean),
                             needsAdultReview: true,
                           })}
-                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                          className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                         />
                       </label>
                       <label className="text-xs text-ink-600">
@@ -473,7 +473,7 @@ export default function PaperAnalysisPage() {
                         <input
                           value={question.adultNotes || ''}
                           onChange={(e) => updateQuestion(index, { adultNotes: e.target.value })}
-                          className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+                          className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
                         />
                       </label>
                     </div>

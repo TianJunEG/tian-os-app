@@ -30,7 +30,7 @@ function TableStrengthBar({ table, factState }) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="w-8 text-right text-sm font-bold text-navy-700">{table}×</span>
+      <span className="w-8 text-right text-sm font-bold text-emerald-deep">{table}×</span>
       <div className="flex-1">
         <ProgressBar value={pct} max={100} size="sm" />
       </div>
@@ -97,7 +97,7 @@ export default function TimesTablesHome() {
 
       {/* Per-table strength bars */}
       <Card className="p-5">
-        <h3 className="mb-4 text-base font-bold text-navy-800">Table-by-Table Strength</h3>
+        <h3 className="mb-4 text-base font-bold text-emerald-deep">Table-by-Table Strength</h3>
         <div className="space-y-3">
           {TABLES.map((table) => (
             <TableStrengthBar key={table} table={table} factState={factState} />
@@ -107,7 +107,7 @@ export default function TimesTablesHome() {
 
       {/* Educational card */}
       <Card className="border border-sky-200 bg-sky-50 p-5">
-        <h3 className="text-base font-bold text-navy-800">Why times tables help fractions</h3>
+        <h3 className="text-base font-bold text-emerald-deep">Why times tables help fractions</h3>
         <p className="mt-2 text-sm leading-6 text-ink-700">
           Quick times-table recall makes finding common denominators, simplifying fractions, and
           multiplying fractions much easier. When you don't have to think hard about basic

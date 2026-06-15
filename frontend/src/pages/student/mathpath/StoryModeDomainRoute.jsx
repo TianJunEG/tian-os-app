@@ -15,7 +15,7 @@ export default function StoryModeDomainRoute() {
   return (
     <div className="mx-auto max-w-xl px-3 pt-3 sm:px-0">
       <Card className="p-6">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-tint text-emerald-deep">
           <BookOpen className="h-6 w-6" />
         </div>
         <h2 className="text-lg font-semibold text-ink-900">Story Mode for this topic is coming soon</h2>

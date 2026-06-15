@@ -10,11 +10,11 @@ function number(value) {
 
 function MetricCard({ icon: Icon, label, value, tone = 'navy', suffix = '' }) {
   const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     green: 'bg-emerald-50 text-emerald-700',
     amber: 'bg-amber-50 text-amber-700',
-    rose: 'bg-rose-50 text-rose-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+    rose: 'bg-danger-tint text-danger-deep',
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
 
   return (
     <Card className="p-4">
@@ -59,7 +59,7 @@ function SkillCoverageTable({ rows = [] }) {
         </thead>
         <tbody>
           {rows.slice(0, 26).map((row) => (
-            <tr key={row.skillId} className="border-t border-hairline">
+            <tr key={row.skillId} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-semibold text-ink-800">{row.skillId} · {row.skillName}</td>
               <td className="py-3 pr-4">
                 <div className="flex flex-wrap gap-1">
@@ -85,7 +85,7 @@ function MissingQuestionList({ rows = [] }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 12).map((row) => (
-        <div key={row.questionId} className="rounded-2xl border border-hairline p-3">
+        <div key={row.questionId} className="rounded-2xl border border-line-soft p-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="yellow">{row.skillId || 'Unmapped'}</Badge>
             {(row.missingVisualTypes || []).map((type) => <Badge key={type} tone="navy">{type}</Badge>)}
@@ -103,7 +103,7 @@ function SimpleRows({ rows = [], labelKey, valueKey, empty = 'No rows available.
   return (
     <div className="space-y-3">
       {rows.slice(0, 12).map((row) => (
-        <div key={`${row[labelKey]}-${row[valueKey]}`} className="flex items-center justify-between gap-3 border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+        <div key={`${row[labelKey]}-${row[valueKey]}`} className="flex items-center justify-between gap-3 border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
           <span className="text-sm font-semibold text-ink-800">{row[labelKey]}</span>
           <Badge tone="navy">{number(row[valueKey])}</Badge>
         </div>
@@ -117,7 +117,7 @@ function BarModelRows({ rows = [] }) {
   return (
     <div className="space-y-3">
       {rows.map((row) => (
-        <div key={row.skillId} className="border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+        <div key={row.skillId} className="border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-semibold text-ink-800">{row.skillId} · {row.skillName}</span>
             <Badge tone={row.currentStatus === 'implemented' ? 'green' : 'yellow'}>{row.currentStatus}</Badge>

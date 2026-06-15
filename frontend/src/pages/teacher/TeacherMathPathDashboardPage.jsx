@@ -38,7 +38,7 @@ function NeedsAttentionCard({ rows = [], onOpenStudent }) {
               key={s.studentId}
               type="button"
               onClick={() => onOpenStudent?.(s.studentId)}
-              className="w-full rounded-lg border border-hairline p-3 text-left transition hover:border-navy-300 hover:bg-navy-50/40"
+              className="w-full rounded-lg border border-line-soft p-3 text-left transition hover:border-navy-300 hover:bg-emerald-tint/40"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-semibold text-ink-700">{s.name}</p>
@@ -70,10 +70,10 @@ function ClassOverviewCard({ data }) {
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Class Readiness</h3>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-navy-700">{data.totalStudents}</p></div>
+        <div><p className="text-xs text-ink-500">Students</p><p className="font-mono text-xl text-emerald-deep">{data.totalStudents}</p></div>
         <div><p className="text-xs text-ink-500">On Track</p><p className="font-mono text-xl text-emerald-600">{data.studentsOnTrack}</p></div>
         <div><p className="text-xs text-ink-500">Need Support</p><p className="font-mono text-xl text-amber-600">{data.studentsNeedingSupport}</p></div>
-        <div><p className="text-xs text-ink-500">Extension</p><p className="font-mono text-xl text-navy-700">{data.studentsReadyForExtension}</p></div>
+        <div><p className="text-xs text-ink-500">Extension</p><p className="font-mono text-xl text-emerald-deep">{data.studentsReadyForExtension}</p></div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-ink-600 sm:grid-cols-3">
         <p>Avg mastery: {data.averageMastery}%</p>
@@ -92,7 +92,7 @@ function DomainGraspCard({ rows = [] }) {
       {rows.length ? (
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {rows.map((d) => (
-            <div key={d.domain} className="rounded-lg border border-hairline p-3">
+            <div key={d.domain} className="rounded-lg border border-line-soft p-3">
               <div className="flex items-center justify-between">
                 <p className="font-medium text-ink-700">{d.domain}</p>
                 <Badge tone={masteryTone(d.averageMastery)}>{d.averageMastery}%</Badge>
@@ -127,7 +127,7 @@ function SkillMasteryHeatmapCard({ rows = [], onOpenStudent }) {
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={String(row.skillId)} className="border-t border-hairline">
+                <tr key={String(row.skillId)} className="border-t border-line-soft">
                   <td className="px-2 py-2 text-ink-700">{row.skillName}</td>
                   <td className="px-2 py-2">{row.masteredCount}</td>
                   <td className="px-2 py-2">{row.fluentCount}</td>
@@ -182,7 +182,7 @@ function StudentRosterCard({ students = [], onOpenStudent }) {
   return (
     <Card className="p-5">
       <h3 className="text-sm font-semibold text-ink-700">Students</h3>
-      <div className="mt-3 flex items-center gap-2 rounded-lg border border-hairline px-3 py-2">
+      <div className="mt-3 flex items-center gap-2 rounded-lg border border-line-soft px-3 py-2">
         <Search className="h-4 w-4 text-ink-400" />
         <input
           type="text"
@@ -198,19 +198,19 @@ function StudentRosterCard({ students = [], onOpenStudent }) {
             key={key}
             type="button"
             onClick={() => setFilter(key)}
-            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${filter === key ? 'border-navy-700 bg-navy-50 text-navy-700' : 'border-hairline text-ink-500 hover:text-navy-700'}`}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${filter === key ? 'border-emerald-deep bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-500 hover:text-emerald-deep'}`}
           >
             {label} ({counts[key] || 0})
           </button>
         ))}
       </div>
-      <div className="mt-3 divide-y divide-hairline">
+      <div className="mt-3 divide-y divide-line-soft">
         {rows.length ? rows.map((s) => (
           <button
             key={s.studentId}
             type="button"
             onClick={() => onOpenStudent?.(s.studentId)}
-            className="flex w-full items-center justify-between gap-3 py-2.5 text-left transition hover:bg-navy-50/40"
+            className="flex w-full items-center justify-between gap-3 py-2.5 text-left transition hover:bg-emerald-tint/40"
           >
             <div className="min-w-0">
               <p className="truncate font-medium text-ink-700">{s.name}</p>
@@ -236,7 +236,7 @@ function ClassSwitcher({ classes = [], currentId, onChange }) {
       <select
         value={currentId}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-hairline bg-paper px-3 py-1.5 text-sm font-semibold text-ink-700 outline-none focus:border-navy-300"
+        className="rounded-lg border border-line-soft bg-surface-white px-3 py-1.5 text-sm font-semibold text-ink-700 outline-none focus:border-navy-300"
       >
         {classes.map((c) => (
           <option key={c.classId} value={c.classId}>

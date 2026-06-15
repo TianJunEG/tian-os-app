@@ -214,11 +214,11 @@ export default function AssessmentReviewScreen() {
       <PageHeader title="Review Assessment" subtitle="Check your answers before final submission." />
       <Card className="p-5">
         <div className="grid gap-3 sm:grid-cols-5 text-sm">
-          <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Answered</p><p className="font-mono text-lg">{answered}</p></div>
-          <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Unanswered</p><p className="font-mono text-lg">{unanswered}</p></div>
-          <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Confidence Missing</p><p className="font-mono text-lg">{missingConfidence}</p></div>
-          <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Flagged</p><p className="font-mono text-lg">{flaggedCount}</p></div>
-          <div className="rounded-lg bg-slate-50 px-3 py-2"><p className="text-xs text-ink-500">Time Used</p><p className="font-mono text-lg">{Math.floor(totalTimeSeconds / 60)}:{String(totalTimeSeconds % 60).padStart(2, '0')}</p></div>
+          <div className="rounded-lg bg-surface-raised px-3 py-2"><p className="text-xs text-ink-500">Answered</p><p className="font-mono text-lg">{answered}</p></div>
+          <div className="rounded-lg bg-surface-raised px-3 py-2"><p className="text-xs text-ink-500">Unanswered</p><p className="font-mono text-lg">{unanswered}</p></div>
+          <div className="rounded-lg bg-surface-raised px-3 py-2"><p className="text-xs text-ink-500">Confidence Missing</p><p className="font-mono text-lg">{missingConfidence}</p></div>
+          <div className="rounded-lg bg-surface-raised px-3 py-2"><p className="text-xs text-ink-500">Flagged</p><p className="font-mono text-lg">{flaggedCount}</p></div>
+          <div className="rounded-lg bg-surface-raised px-3 py-2"><p className="text-xs text-ink-500">Time Used</p><p className="font-mono text-lg">{Math.floor(totalTimeSeconds / 60)}:{String(totalTimeSeconds % 60).padStart(2, '0')}</p></div>
         </div>
         {(unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0) && (
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-gold-300 bg-gold-100 p-3 text-sm text-gold-900">
@@ -226,7 +226,7 @@ export default function AssessmentReviewScreen() {
             <p>Complete every answer, confidence choice, and working evidence declaration before submitting.</p>
           </div>
         )}
-        <div className="mt-4 max-h-56 space-y-2 overflow-auto rounded-lg border border-hairline p-3">
+        <div className="mt-4 max-h-56 space-y-2 overflow-auto rounded-lg border border-line-soft p-3">
           {questions.map((q, i) => (
             <div key={q.questionId} className="flex items-center justify-between gap-2 text-sm">
               <p className="truncate text-ink-700">Q{i + 1} · {getSkill(q.skillId)?.name || 'Skill'}</p>

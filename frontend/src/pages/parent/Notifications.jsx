@@ -55,7 +55,7 @@ export default function Notifications() {
               className="flex items-start gap-3 p-4"
             >
               <span
-                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.readAt ? 'bg-transparent' : 'bg-navy-700'}`}
+                className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.readAt ? 'bg-transparent' : 'bg-emerald-deep'}`}
                 aria-hidden
               />
               <div className="min-w-0 flex-1">

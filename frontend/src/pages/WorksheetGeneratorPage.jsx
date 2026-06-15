@@ -443,7 +443,7 @@ export default function WorksheetGeneratorPage() {
             </button>
             <div>
               <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">AI remediation</div>
-              <h1 className="text-3xl font-serif font-medium text-navy-900 leading-tight flex items-center gap-2">
+              <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight flex items-center gap-2">
                 <Sparkles className="w-6 h-6 text-gold-500" />
                 {isStudent ? 'My Practice' : 'Math Worksheet Generator'}
               </h1>
@@ -488,7 +488,7 @@ export default function WorksheetGeneratorPage() {
                     value={studentName}
                     onChange={(e) => setStudentName(e.target.value)}
                     placeholder="e.g. Alex"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -498,7 +498,7 @@ export default function WorksheetGeneratorPage() {
                     value={gradeLevel}
                     onChange={(e) => setGradeLevel(e.target.value)}
                     placeholder="e.g. Year 5, Grade 7, Algebra I"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -508,7 +508,7 @@ export default function WorksheetGeneratorPage() {
                     value={topicHint}
                     onChange={(e) => setTopicHint(e.target.value)}
                     placeholder="e.g. adding fractions"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -516,7 +516,7 @@ export default function WorksheetGeneratorPage() {
                   <select
                     value={questionsPerSession}
                     onChange={(e) => setQuestionsPerSession(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                   >
                     <option value="4">4</option>
                     <option value="5">5</option>
@@ -535,7 +535,7 @@ export default function WorksheetGeneratorPage() {
                 <select
                   value={assignStudentId}
                   onChange={(e) => setAssignStudentId(e.target.value)}
-                  className="w-full sm:w-80 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                  className="w-full sm:w-80 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                 >
                   <option value="">— Not assigned —</option>
                   {students.map((s) => (
@@ -547,7 +547,7 @@ export default function WorksheetGeneratorPage() {
               ) : (
                 <p className="text-sm text-gray-500">
                   No student logins yet.{' '}
-                  <button type="button" onClick={() => navigate('/students')} className="text-navy-600 hover:underline">
+                  <button type="button" onClick={() => navigate('/students')} className="text-emerald hover:underline">
                     Add one
                   </button>{' '}
                   so they can do this practice when they log in.
@@ -558,7 +558,7 @@ export default function WorksheetGeneratorPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+              className="mt-6 w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
             >
               {loading ? (
                 <>
@@ -577,7 +577,7 @@ export default function WorksheetGeneratorPage() {
 
         {loading && (
           <div className="bg-white rounded-lg shadow p-8 text-center no-print">
-            <Loader className="w-10 h-10 text-navy-600 animate-spin mx-auto mb-3" />
+            <Loader className="w-10 h-10 text-emerald animate-spin mx-auto mb-3" />
             <p className="text-gray-700 font-medium">Reading the work and building spaced practice…</p>
             <p className="text-gray-500 text-sm mt-1">This can take up to a minute.</p>
           </div>
@@ -604,7 +604,7 @@ export default function WorksheetGeneratorPage() {
                       type="checkbox"
                       checked={teacherView}
                       onChange={(e) => setTeacherView(e.target.checked)}
-                      className="rounded text-navy-600 focus:ring-navy-500"
+                      className="rounded text-emerald focus:ring-emerald"
                     />
                     Teacher view (show diagnosis &amp; answers)
                   </label>
@@ -696,7 +696,7 @@ export default function WorksheetGeneratorPage() {
                       onClick={() => setActiveSession(s.sessionNumber)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition ${
                         active
-                          ? 'bg-navy-600 text-white border-navy-600'
+                          ? 'bg-emerald text-white border-navy-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-navy-400'
                       }`}
                     >
@@ -706,7 +706,7 @@ export default function WorksheetGeneratorPage() {
                         <Calendar className={`w-4 h-4 ${active ? 'text-white' : 'text-gray-400'}`} />
                       )}
                       <span>Session {s.sessionNumber}</span>
-                      <span className={active ? 'text-navy-100' : 'text-gray-400'}>
+                      <span className={active ? 'text-emerald-tint' : 'text-gray-400'}>
                         · {s.completed ? (s.score != null ? `${s.score}%` : 'done') : relativeLabel(s.scheduledFor)}
                       </span>
                     </button>
@@ -725,7 +725,7 @@ export default function WorksheetGeneratorPage() {
                     type="date"
                     value={toDateInputValue(activeSessionObj.scheduledFor)}
                     onChange={(e) => updateSession(activeSessionObj.sessionNumber, { scheduledFor: e.target.value })}
-                    className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-navy-500"
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald"
                   />
                 </div>
                 <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -822,14 +822,14 @@ export default function WorksheetGeneratorPage() {
                                     <button
                                       type="button"
                                       onClick={() => setMode(i, 'type')}
-                                      className={`px-3 py-1 ${mode === 'type' ? 'bg-navy-600 text-white' : 'bg-white text-gray-600'}`}
+                                      className={`px-3 py-1 ${mode === 'type' ? 'bg-emerald text-white' : 'bg-white text-gray-600'}`}
                                     >
                                       Type
                                     </button>
                                     <button
                                       type="button"
                                       onClick={() => setMode(i, 'draw')}
-                                      className={`px-3 py-1 ${mode === 'draw' ? 'bg-navy-600 text-white' : 'bg-white text-gray-600'}`}
+                                      className={`px-3 py-1 ${mode === 'draw' ? 'bg-emerald text-white' : 'bg-white text-gray-600'}`}
                                     >
                                       Draw
                                     </button>
@@ -840,7 +840,7 @@ export default function WorksheetGeneratorPage() {
                                       value={typed[i] || ''}
                                       onChange={(e) => setTyped((p) => ({ ...p, [i]: e.target.value }))}
                                       placeholder="Your answer"
-                                      className="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-500 focus:border-transparent"
+                                      className="block w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald focus:border-transparent"
                                     />
                                   ) : (
                                     <div>
@@ -885,7 +885,7 @@ export default function WorksheetGeneratorPage() {
                       <button
                         onClick={submitForMarking}
                         disabled={marking}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 transition font-medium"
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-50 transition font-medium"
                       >
                         {marking ? (
                           <>
@@ -925,7 +925,7 @@ export default function WorksheetGeneratorPage() {
                       <button
                         onClick={handleReinforce}
                         disabled={reinforcing}
-                        className="flex items-center gap-2 px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 transition text-sm font-medium"
+                        className="flex items-center gap-2 px-4 py-2 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-50 transition text-sm font-medium"
                       >
                         <RefreshCw className={`w-4 h-4 ${reinforcing ? 'animate-spin' : ''}`} />
                         {reinforcing ? 'Generating…' : 'Generate targeted practice'}
@@ -963,7 +963,7 @@ export default function WorksheetGeneratorPage() {
                     className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <FileText className="w-5 h-5 text-navy-600 flex-shrink-0" />
+                      <FileText className="w-5 h-5 text-emerald flex-shrink-0" />
                       <div className="min-w-0">
                         <p className="font-medium text-gray-900 truncate">
                           {w.topic || 'Math worksheet'}

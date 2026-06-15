@@ -91,7 +91,7 @@ export default function ScrambleGame({ words, onAttempt, lang = 'en' }) {
 
       {/* Clues */}
       <div className="flex items-center justify-center gap-3 mb-4">
-        <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="p-2 text-navy-600 hover:bg-navy-50 rounded-lg" aria-label="Hear word">
+        <button onClick={() => speakOnce(current.word, speakOptionsFor(lang))} className="p-2 text-emerald hover:bg-emerald-tint rounded-lg" aria-label="Hear word">
           <Volume2 className="w-5 h-5" />
         </button>
         {(current.definition || current.sentence) && (
@@ -117,7 +117,7 @@ export default function ScrambleGame({ words, onAttempt, lang = 'en' }) {
           <button
             key={tile.id}
             onClick={() => removeTile(tile)}
-            className={`w-11 h-11 rounded-lg bg-navy-600 text-white text-xl font-bold ${tileCase} shadow hover:bg-navy-700`}
+            className={`w-11 h-11 rounded-lg bg-emerald text-white text-xl font-bold ${tileCase} shadow hover:bg-emerald-deep`}
           >
             {tile.letter}
           </button>
@@ -157,13 +157,13 @@ export default function ScrambleGame({ words, onAttempt, lang = 'en' }) {
             <button
               onClick={check}
               disabled={answer.length === 0}
-              className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-40 font-medium"
+              className="flex-1 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-40 font-medium"
             >
               Check
             </button>
           </>
         ) : (
-          <button onClick={next} className="flex-1 py-3 bg-navy-600 text-white rounded-lg hover:bg-navy-700 font-medium inline-flex items-center justify-center gap-2">
+          <button onClick={next} className="flex-1 py-3 bg-emerald text-white rounded-lg hover:bg-emerald-deep font-medium inline-flex items-center justify-center gap-2">
             {index + 1 >= words.length ? 'See results' : 'Next word'} <ChevronRight className="w-5 h-5" />
           </button>
         )}

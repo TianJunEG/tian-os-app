@@ -119,7 +119,7 @@ export default function ParentProgressPage() {
             <p className="text-gray-600 mb-4">No completed sessions yet. Progress appears here once your tutor submits session notes.</p>
             <button
               onClick={() => navigate('/search')}
-              className="text-navy-600 hover:text-navy-700 font-medium"
+              className="text-emerald hover:text-emerald-deep font-medium"
             >
               Find a tutor →
             </button>
@@ -132,7 +132,7 @@ export default function ParentProgressPage() {
                 icon={TrendingUp}
                 label="Average progress"
                 value={`${progress.averageProgress}%`}
-                accent="bg-navy-100 text-navy-600"
+                accent="bg-emerald-tint text-emerald"
               />
               <StatCard
                 icon={BookOpen}
@@ -175,7 +175,7 @@ export default function ParentProgressPage() {
                 </h2>
                 <div className="flex flex-wrap gap-2">
                   {progress.topicsCovered.map(topic => (
-                    <span key={topic} className="px-3 py-1 bg-navy-100 text-navy-700 rounded-full text-sm font-medium">
+                    <span key={topic} className="px-3 py-1 bg-emerald-tint text-emerald-deep rounded-full text-sm font-medium">
                       {topic}
                     </span>
                   ))}
@@ -235,7 +235,7 @@ export default function ParentProgressPage() {
                       <button
                         type="button"
                         onClick={() => setExpanded(prev => ({ ...prev, [session._id]: !prev[session._id] }))}
-                        className="mt-3 flex items-center gap-1 text-sm font-medium text-navy-600 hover:text-navy-700"
+                        className="mt-3 flex items-center gap-1 text-sm font-medium text-emerald hover:text-emerald-deep"
                       >
                         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         {isOpen ? 'Hide details' : 'View details'}

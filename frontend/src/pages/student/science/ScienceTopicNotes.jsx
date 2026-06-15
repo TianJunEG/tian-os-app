@@ -68,8 +68,8 @@ function TreeNode({ node }) {
   const depthClass = node.depth === 0
     ? 'bg-gradient-to-br from-[#2F6B7E] to-[#1d4452] text-paper'
     : node.depth === 1
-      ? 'bg-paper border border-ink-100 text-ink-700 font-semibold'
-      : 'bg-paper border border-ink-100/60 text-ink-600';
+      ? 'bg-surface-white border border-ink-100 text-ink-700 font-semibold'
+      : 'bg-surface-white border border-ink-100/60 text-ink-600';
   return (
     <li className="mb-2 last:mb-0">
       <div className={`inline-block rounded-lg px-3 py-1.5 text-sm ${depthClass}`}>{node.label}</div>

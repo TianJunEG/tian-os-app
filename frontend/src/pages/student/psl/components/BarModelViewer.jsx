@@ -9,7 +9,7 @@ export default function BarModelViewer({ modelType = 'partWhole', unknownPositio
     const smallerWidth = larger && smaller ? Math.round((Number(smaller) / Number(larger)) * 100) : 65;
 
     return (
-      <div className="space-y-2 rounded-xl border border-ink-200 bg-paper p-3 sm:p-4">
+      <div className="space-y-2 rounded-xl border border-ink-200 bg-surface-white p-3 sm:p-4">
         <p className="text-xs font-medium text-ink-400">Comparison Model</p>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
@@ -46,7 +46,7 @@ export default function BarModelViewer({ modelType = 'partWhole', unknownPositio
   const whole = values.whole ?? values.answer ?? (parts.length ? parts.reduce((a, b) => a + b, 0) : '?');
 
   return (
-    <div className="space-y-2 rounded-xl border border-ink-200 bg-paper p-3 sm:p-4">
+    <div className="space-y-2 rounded-xl border border-ink-200 bg-surface-white p-3 sm:p-4">
       <p className="text-xs font-medium text-ink-400">Part-Whole Model</p>
       <div className="space-y-1.5">
         <div className="flex items-center justify-center rounded-lg bg-gold-100 px-3 py-2 text-sm font-bold text-gold-700" style={{ minHeight: 36 }}>

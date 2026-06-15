@@ -112,7 +112,7 @@ export default function QuestionReviewPage() {
         <MissingReviewState />
       ) : (
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl border border-hairline bg-paper px-3 py-2">
+          <div className="flex items-center justify-between rounded-xl border border-line-soft bg-surface-white px-3 py-2">
             <Button size="s" variant="secondary" icon={ChevronLeft} disabled={safeIdx <= 0} onClick={() => setIdx((n) => Math.max(0, n - 1))}>Previous</Button>
             <p className="text-sm text-ink-600">Question {safeIdx + 1} of {visibleItems.length}</p>
             <Button size="s" variant="secondary" icon={ChevronRight} disabled={safeIdx >= visibleItems.length - 1} onClick={() => setIdx((n) => Math.min(visibleItems.length - 1, n + 1))}>Next</Button>

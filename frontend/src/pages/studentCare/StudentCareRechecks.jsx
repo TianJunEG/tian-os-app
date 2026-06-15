@@ -60,15 +60,15 @@ export default function StudentCareRechecks() {
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         <Card tone="sky" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Recheck Queue</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{rechecks.length}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{rechecks.length}</p>
         </Card>
         <Card tone="mint" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Completed</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{data?.metrics?.rechecksCompleted || 0}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{data?.metrics?.rechecksCompleted || 0}</p>
         </Card>
         <Card tone="lavender" className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Average Improvement</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-navy-700">{pct(data?.metrics?.averageReadinessImprovement)}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-emerald-deep">{pct(data?.metrics?.averageReadinessImprovement)}</p>
         </Card>
       </div>
 
@@ -79,7 +79,7 @@ export default function StudentCareRechecks() {
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-display text-lg font-semibold text-navy-700">{item.studentName}</h2>
+                    <h2 className="font-display text-lg font-semibold text-emerald-deep">{item.studentName}</h2>
                     <Badge tone={item.overdue ? 'gold' : 'success'}>{item.overdue ? 'Overdue' : statusText(item.status)}</Badge>
                   </div>
                   <p className="mt-1 font-semibold text-ink-800">{item.assignmentTitle}</p>

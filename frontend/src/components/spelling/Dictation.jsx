@@ -127,7 +127,7 @@ export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
         onChange={(e) => setPassage(e.target.value)}
         rows={3}
         placeholder="Paste or type a passage to be read aloud…"
-        className="w-full p-3 border border-gray-300 rounded-lg focus:border-navy-500 outline-none text-sm"
+        className="w-full p-3 border border-gray-300 rounded-lg focus:border-emerald outline-none text-sm"
       />
 
       <div className="flex flex-wrap items-center gap-3 my-4 text-sm">
@@ -135,7 +135,7 @@ export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
           <button
             onClick={start}
             disabled={!segments.length}
-            className="px-4 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-40 inline-flex items-center gap-2"
+            className="px-4 py-2 bg-emerald text-white rounded-lg hover:bg-emerald-deep disabled:opacity-40 inline-flex items-center gap-2"
           >
             <Play className="w-4 h-4" /> Start dictation
           </button>
@@ -148,11 +148,11 @@ export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
           </button>
         )}
         <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={slow} onChange={(e) => setSlow(e.target.checked)} className="rounded text-navy-600" />
+          <input type="checkbox" checked={slow} onChange={(e) => setSlow(e.target.checked)} className="rounded text-emerald" />
           Slower voice
         </label>
         {playing && activeSeg >= 0 && (
-          <span className="text-navy-600 font-medium">
+          <span className="text-emerald font-medium">
             Reading sentence {activeSeg + 1} of {segments.length}…
           </span>
         )}
@@ -165,7 +165,7 @@ export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
         onChange={(e) => setTyped(e.target.value)}
         rows={5}
         placeholder="Type here as you listen…"
-        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-navy-500 outline-none"
+        className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-emerald outline-none"
       />
 
       <div className="mt-4 flex gap-3">
@@ -192,7 +192,7 @@ export default function Dictation({ words = [], onAttempt, lang = 'en' }) {
       {report && (
         <div className="mt-6 p-4 bg-gray-50 rounded-xl">
           <div className="text-lg font-semibold text-gray-900 mb-2">
-            Accuracy: <span className="text-navy-600">{report.accuracy}%</span>{' '}
+            Accuracy: <span className="text-emerald">{report.accuracy}%</span>{' '}
             <span className="text-sm font-normal text-gray-500">
               ({report.correct}/{report.total} words)
             </span>

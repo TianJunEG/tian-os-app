@@ -50,7 +50,7 @@ export default function GuidedBarModelCard({ model = {}, sequence = [], activeIn
           {sequence.map((step, index) => (
             <div
               key={step.id}
-              className={`rounded-lg border px-3 py-2 text-sm ${index === safeIndex ? 'border-navy-300 bg-navy-50 text-navy-900' : 'border-hairline bg-white text-ink-600'}`}
+              className={`rounded-lg border px-3 py-2 text-sm ${index === safeIndex ? 'border-navy-300 bg-emerald-tint text-emerald-deep' : 'border-line-soft bg-white text-ink-600'}`}
             >
               <span className="font-semibold">{index + 1}. {step.title}</span>
             </div>

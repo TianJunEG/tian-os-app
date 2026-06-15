@@ -235,10 +235,10 @@ export default function AssessmentIntroScreen() {
         )}
         <Card className="p-4">
           <div className="grid gap-2 sm:grid-cols-2">
-            <button type="button" onClick={() => setEntryMode('free')} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${entryMode === 'free' ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-600'}`}>
+            <button type="button" onClick={() => setEntryMode('free')} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${entryMode === 'free' ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-600'}`}>
               Practice Test
             </button>
-            <button type="button" onClick={() => { setEntryMode('tos'); loadSpecifications(); }} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${entryMode === 'tos' ? 'border-navy-500 bg-navy-50 text-navy-700' : 'border-hairline text-ink-600'}`}>
+            <button type="button" onClick={() => { setEntryMode('tos'); loadSpecifications(); }} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${entryMode === 'tos' ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-600'}`}>
               School-Aligned Test
             </button>
           </div>
@@ -249,37 +249,37 @@ export default function AssessmentIntroScreen() {
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-sm text-ink-600">
               Test Type
-              <select value={assessmentType} onChange={(e) => setAssessmentType(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+              <select value={assessmentType} onChange={(e) => setAssessmentType(e.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                 {TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t] || t}</option>)}
               </select>
             </label>
             <label className="text-sm text-ink-600">
               Student Level
-              <select value={level} onChange={(e) => setLevel(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+              <select value={level} onChange={(e) => setLevel(e.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                 {['P3', 'P4', 'P5', 'P6', 'Sec1', 'Sec2', 'Sec3', 'Sec4'].map((l) => <option key={l}>{l}</option>)}
               </select>
             </label>
             <label className="text-sm text-ink-600">
               Paper Type
-              <select value={paperType} onChange={(e) => setPaperType(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+              <select value={paperType} onChange={(e) => setPaperType(e.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                 <option value="paper1">{PAPER_LABELS.paper1}</option>
                 <option value="paper2">{PAPER_LABELS.paper2}</option>
               </select>
             </label>
             <label className="text-sm text-ink-600">
               Timing
-              <select value={timed ? 'timed' : 'untimed'} onChange={(e) => setTimed(e.target.value === 'timed')} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+              <select value={timed ? 'timed' : 'untimed'} onChange={(e) => setTimed(e.target.value === 'timed')} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                 <option value="timed">timed</option>
                 <option value="untimed">untimed</option>
               </select>
             </label>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-ink-700">
+            <div className="rounded-lg bg-surface-raised px-3 py-2 text-sm text-ink-700">
               <p className="text-xs uppercase tracking-[0.08em] text-ink-500">Time Limit</p>
               <p>{timed ? `${preview?.timeLimitMinutes || 30} minutes` : `${preview?.timeLimitMinutes || 30} minutes (internally timed)`}</p>
             </div>
-            <div className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-ink-700">
+            <div className="rounded-lg bg-surface-raised px-3 py-2 text-sm text-ink-700">
               <p className="text-xs uppercase tracking-[0.08em] text-ink-500">Questions</p>
               <p>{Math.max(8, Math.min(20, preview?.targetQuestionFamilyIds?.length || 10))}</p>
             </div>
@@ -304,27 +304,27 @@ export default function AssessmentIntroScreen() {
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-ink-600">
                 Test Name
-                <input value={tosForm.title} onChange={(e) => setTosForm((p) => ({ ...p, title: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" />
+                <input value={tosForm.title} onChange={(e) => setTosForm((p) => ({ ...p, title: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" />
               </label>
               <label className="text-sm text-ink-600">
                 Topic
-                <input value={tosForm.topicName} onChange={(e) => setTosForm((p) => ({ ...p, topicName: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" />
+                <input value={tosForm.topicName} onChange={(e) => setTosForm((p) => ({ ...p, topicName: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" />
               </label>
               <label className="text-sm text-ink-600">
                 Total Marks
-                <input type="number" min="10" value={tosForm.totalMarks} onChange={(e) => setTosForm((p) => ({ ...p, totalMarks: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" />
+                <input type="number" min="10" value={tosForm.totalMarks} onChange={(e) => setTosForm((p) => ({ ...p, totalMarks: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" />
               </label>
               <label className="text-sm text-ink-600">
                 Duration (minutes)
-                <input type="number" min="10" value={tosForm.durationMinutes} onChange={(e) => setTosForm((p) => ({ ...p, durationMinutes: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" />
+                <input type="number" min="10" value={tosForm.durationMinutes} onChange={(e) => setTosForm((p) => ({ ...p, durationMinutes: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" />
               </label>
               <label className="text-sm text-ink-600">
                 Topic Marks Allocation
-                <input type="number" min="1" value={tosForm.marks} onChange={(e) => setTosForm((p) => ({ ...p, marks: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" />
+                <input type="number" min="1" value={tosForm.marks} onChange={(e) => setTosForm((p) => ({ ...p, marks: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" />
               </label>
               <label className="text-sm text-ink-600">
                 Difficulty
-                <select value={tosForm.difficulty} onChange={(e) => setTosForm((p) => ({ ...p, difficulty: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+                <select value={tosForm.difficulty} onChange={(e) => setTosForm((p) => ({ ...p, difficulty: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                   <option value="easy">Easy</option>
                   <option value="medium">Medium</option>
                   <option value="hard">Hard</option>
@@ -333,14 +333,14 @@ export default function AssessmentIntroScreen() {
               </label>
               <label className="text-sm text-ink-600">
                 Paper Type
-                <select value={tosForm.paperType} onChange={(e) => setTosForm((p) => ({ ...p, paperType: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+                <select value={tosForm.paperType} onChange={(e) => setTosForm((p) => ({ ...p, paperType: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                   <option value="paper1">{PAPER_LABELS.paper1}</option>
                   <option value="paper2">{PAPER_LABELS.paper2}</option>
                 </select>
               </label>
               <label className="text-sm text-ink-600">
                 Timing
-                <select value={tosForm.timed ? 'timed' : 'untimed'} onChange={(e) => setTosForm((p) => ({ ...p, timed: e.target.value === 'timed' }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+                <select value={tosForm.timed ? 'timed' : 'untimed'} onChange={(e) => setTosForm((p) => ({ ...p, timed: e.target.value === 'timed' }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                   <option value="timed">Timed</option>
                   <option value="untimed">Untimed</option>
                 </select>
@@ -356,7 +356,7 @@ export default function AssessmentIntroScreen() {
             </div>
             <label className="mt-3 block text-sm text-ink-600">
               Notes
-              <textarea value={tosForm.notes} onChange={(e) => setTosForm((p) => ({ ...p, notes: e.target.value }))} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" rows={3} />
+              <textarea value={tosForm.notes} onChange={(e) => setTosForm((p) => ({ ...p, notes: e.target.value }))} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" rows={3} />
             </label>
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -366,7 +366,7 @@ export default function AssessmentIntroScreen() {
 
             <label className="mt-3 block text-sm text-ink-600">
               Select existing specification
-              <select value={selectedSpecId} onChange={(e) => setSelectedSpecId(e.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+              <select value={selectedSpecId} onChange={(e) => setSelectedSpecId(e.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
                 <option value="">-- Select --</option>
                 {tosList.map((s) => <option key={s._id} value={s._id}>{s.title} · {s.level} · {s.totalMarks} marks</option>)}
               </select>

@@ -193,7 +193,7 @@ const ParentProfile = ({ onComplete }) => {
     }
   };
 
-  const inputCls = 'w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
+  const inputCls = 'w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft h-11 px-3.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400';
   const selectCls = `${inputCls} appearance-none pr-10`;
 
   const renderStep1 = () => (
@@ -283,7 +283,7 @@ const ParentProfile = ({ onComplete }) => {
             <label key={subject} className="ds-checkbox-item">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-hairline accent-navy-700"
+                className="h-4 w-4 rounded border-line-soft accent-navy-700"
                 checked={formData.otherSubjects.includes(subject)}
                 onChange={() => handleSubjectToggle(subject)}
               />
@@ -298,7 +298,7 @@ const ParentProfile = ({ onComplete }) => {
         <textarea
           id="learningGoals"
           name="learningGoals"
-          className="w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y"
+          className="w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y"
           value={formData.learningGoals}
           onChange={handleInputChange}
           placeholder="e.g., Improve grade from C to A, prepare for SAT, understand algebra concepts..."
@@ -312,7 +312,7 @@ const ParentProfile = ({ onComplete }) => {
         <textarea
           id="specificChallenges"
           name="specificChallenges"
-          className="w-full rounded-xl bg-paper text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-hairline px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y"
+          className="w-full rounded-xl bg-surface-white text-base sm:text-sm text-ink-700 placeholder:text-ink-300 border border-line-soft px-3.5 py-2.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40 focus-visible:border-navy-400 resize-y"
           value={formData.specificChallenges}
           onChange={handleInputChange}
           placeholder="e.g., Struggles with word problems, test anxiety, slow reading speed..."
@@ -412,7 +412,7 @@ const ParentProfile = ({ onComplete }) => {
             <label className="flex items-center gap-2 mb-3 cursor-pointer font-semibold text-ink-700">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-hairline accent-navy-700"
+                className="h-4 w-4 rounded border-line-soft accent-navy-700"
                 checked={times.available}
                 onChange={(e) => handleAvailabilityChange(day, 'available', e.target.checked)}
               />
@@ -450,7 +450,7 @@ const ParentProfile = ({ onComplete }) => {
         <label className="ds-checkbox-item">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-hairline accent-navy-700"
+            className="h-4 w-4 rounded border-line-soft accent-navy-700"
             checked={formData.agreeToTerms}
             onChange={(e) => setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
           />
@@ -479,9 +479,9 @@ const ParentProfile = ({ onComplete }) => {
   return (
     <div className="ds-wizard-shell">
       <div className="ds-wizard-card">
-        <ProgressBar value={step} max={4} barClassName="bg-navy-700" className="rounded-none" />
+        <ProgressBar value={step} max={4} barClassName="bg-emerald-deep" className="rounded-none" />
 
-        <div className="text-center text-xs font-semibold text-ink-500 py-3 border-b border-hairline">
+        <div className="text-center text-xs font-semibold text-ink-500 py-3 border-b border-line-soft">
           Step {step} of 4
         </div>
 
@@ -493,7 +493,7 @@ const ParentProfile = ({ onComplete }) => {
         <div className="ds-wizard-footer">
           {step > 1 && (
             <button
-              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] border border-hairline bg-paper text-navy-700 transition hover:bg-navy-50 disabled:opacity-50"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-btn border border-line-soft bg-surface-white text-emerald-deep transition hover:bg-emerald-tint disabled:opacity-50"
               onClick={handlePrev}
               disabled={loading}
             >
@@ -503,7 +503,7 @@ const ParentProfile = ({ onComplete }) => {
 
           {step < 4 ? (
             <button
-              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-navy-700 text-white transition hover:bg-navy-800 disabled:opacity-50"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-btn bg-emerald-deep text-white transition hover:bg-emerald-deep disabled:opacity-50"
               onClick={handleNext}
               disabled={loading}
             >
@@ -511,7 +511,7 @@ const ParentProfile = ({ onComplete }) => {
             </button>
           ) : (
             <button
-              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-[14px] bg-success-500 text-white transition hover:bg-success-700 disabled:opacity-50"
+              className="flex-1 h-12 px-5 text-[15px] font-semibold rounded-btn bg-success-500 text-white transition hover:bg-success-700 disabled:opacity-50"
               onClick={handleSubmit}
               disabled={loading}
             >

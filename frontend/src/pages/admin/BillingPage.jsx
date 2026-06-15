@@ -14,7 +14,7 @@ function Metric({ icon: Icon, label: title, value }) {
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-navy-50 text-navy-700"><Icon className="h-5 w-5" /></span>
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-tint text-emerald-deep"><Icon className="h-5 w-5" /></span>
         <div>
           <p className="font-mono text-2xl font-semibold text-ink-900">{value || 0}</p>
           <p className="text-sm font-semibold text-ink-500">{title}</p>
@@ -96,7 +96,7 @@ export default function BillingPage() {
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {(data.plans || []).map((plan) => (
-            <div key={plan.planType} className="rounded-2xl border border-hairline p-3 text-sm">
+            <div key={plan.planType} className="rounded-2xl border border-line-soft p-3 text-sm">
               <p className="font-semibold capitalize text-ink-900">{label(plan.planType)}</p>
               <p className="text-ink-500">${plan.monthlyPrice}/mo · ${plan.yearlyPrice}/yr</p>
               <p className="mt-1 text-ink-500">Students: {plan.limits?.students ?? '∞'} · Staff: {plan.limits?.staff ?? '∞'}</p>
@@ -120,14 +120,14 @@ export default function BillingPage() {
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={`${row.ownerType}-${row.ownerId}`} className="border-t border-hairline">
+                <tr key={`${row.ownerType}-${row.ownerId}`} className="border-t border-line-soft">
                   <td className="py-3 pr-4">
                     <p className="font-semibold text-ink-800">{row.name || row.ownerId}</p>
                     <p className="text-xs text-ink-500">{row.ownerType} · {label(row.role)}</p>
                   </td>
                   <td className="py-3 pr-4">
                     <select
-                      className="rounded-lg border border-hairline px-2 py-1 text-sm"
+                      className="rounded-lg border border-line-soft px-2 py-1 text-sm"
                       value={row.plan.planType}
                       disabled={savingId === row.ownerId}
                       onChange={(event) => updatePlan(row, { planType: event.target.value })}
@@ -146,7 +146,7 @@ export default function BillingPage() {
                   <td className="py-3 pr-4"><UsagePills rows={row.usageLimits || []} /></td>
                   <td className="py-3">
                     <select
-                      className="rounded-lg border border-hairline px-2 py-1 text-sm"
+                      className="rounded-lg border border-line-soft px-2 py-1 text-sm"
                       value={row.subscription?.pilotOverride?.type || ''}
                       disabled={savingId === row.ownerId}
                       onChange={(event) => updatePlan(row, {

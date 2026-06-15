@@ -42,7 +42,7 @@ export default function AssessmentResultScreen() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Score</p>
-              <p className="font-mono text-2xl sm:text-3xl font-semibold text-navy-700">{scored.totalScore}/{scored.totalMarks}</p>
+              <p className="font-mono text-2xl sm:text-3xl font-semibold text-emerald-deep">{scored.totalScore}/{scored.totalMarks}</p>
               <p className="text-sm text-ink-600">{scored.percentage}%</p>
             </div>
             <Badge tone="navy">Readiness: {readiness.readinessBand || 'developing'}</Badge>
@@ -69,7 +69,7 @@ export default function AssessmentResultScreen() {
               </div>
             </div>
 
-            <div className="border-t border-hairline pt-4">
+            <div className="border-t border-line-soft pt-4">
               <p className="text-sm font-semibold text-ink-700">Fluency Notes</p>
               <p className="mt-1 text-sm text-ink-600">{readiness.explanation || 'Build speed while keeping your answers accurate.'}</p>
               <p className="mt-3 text-sm font-semibold text-ink-700">Working Upload Status</p>

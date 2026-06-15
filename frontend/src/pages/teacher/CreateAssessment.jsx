@@ -129,7 +129,7 @@ export default function CreateAssessment() {
   return (
     <div className="mx-auto max-w-3xl p-4 sm:p-6">
       <ClassNav classId={id} name={meta?.name} level={meta?.level} />
-      <h2 className="mb-4 text-lg font-semibold text-navy-700">Create Assessment</h2>
+      <h2 className="mb-4 text-lg font-semibold text-emerald-deep">Create Assessment</h2>
 
       {error && <Alert tone="error" className="mb-4">{error}</Alert>}
 

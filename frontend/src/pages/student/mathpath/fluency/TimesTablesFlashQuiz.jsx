@@ -86,17 +86,17 @@ function ResultsScreen({ stats, onPlayAgain, onHome }) {
           <h2 className="text-2xl font-bold">Quiz Complete!</h2>
           <p className="mt-1 text-teal-100">{stats.fluencyLabel}</p>
         </div>
-        <div className="grid grid-cols-3 divide-x divide-hairline p-3 sm:p-4">
+        <div className="grid grid-cols-3 divide-x divide-line-soft p-3 sm:p-4">
           <div className="text-center">
-            <p className="text-xl sm:text-2xl font-bold text-navy-800">{stats.correct}/{stats.total}</p>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-deep">{stats.correct}/{stats.total}</p>
             <p className="text-[10px] sm:text-xs text-ink-500">Correct</p>
           </div>
           <div className="text-center">
-            <p className="text-xl sm:text-2xl font-bold text-navy-800">{accuracyPct}%</p>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-deep">{accuracyPct}%</p>
             <p className="text-[10px] sm:text-xs text-ink-500">Accuracy</p>
           </div>
           <div className="text-center">
-            <p className="text-xl sm:text-2xl font-bold text-navy-800">{avgSec}s</p>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-deep">{avgSec}s</p>
             <p className="text-[10px] sm:text-xs text-ink-500">Avg Time</p>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function TimesTablesFlashQuiz() {
         <button onClick={() => navigate('/student/mathpath/fluency/times-tables')} className="flex items-center gap-1 text-sm text-ink-500 hover:text-ink-700">
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
-        <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-bold text-teal-700">
+        <span className="rounded-full bg-emerald-tint px-3 py-1 text-xs font-bold text-emerald-deep">
           {isPractice ? 'Practice Mode' : 'Flash Quiz'} {currentIdx + 1}/{questions.length}
         </span>
       </div>
@@ -217,7 +217,7 @@ export default function TimesTablesFlashQuiz() {
 
       {/* Question card */}
       <Card className="p-8 text-center">
-        <p className="text-3xl sm:text-4xl font-bold text-navy-800">
+        <p className="text-3xl sm:text-4xl font-bold text-emerald-deep">
           {currentQuestion.a} × {currentQuestion.b}
         </p>
 
@@ -247,7 +247,7 @@ export default function TimesTablesFlashQuiz() {
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="mx-auto block w-32 rounded-xl border-2 border-hairline bg-white px-4 py-3 text-center text-2xl font-bold text-navy-800 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
+              className="mx-auto block w-32 rounded-xl border-2 border-line-soft bg-white px-4 py-3 text-center text-2xl font-bold text-emerald-deep focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-200"
               autoFocus
               placeholder="?"
             />
@@ -261,7 +261,7 @@ export default function TimesTablesFlashQuiz() {
         {isPractice && !feedback && (
           <div className="mt-4">
             {!showHint ? (
-              <button onClick={() => setShowHint(true)} className="text-sm text-teal-600 hover:text-teal-800 underline">
+              <button onClick={() => setShowHint(true)} className="text-sm text-emerald hover:text-teal-800 underline">
                 Show a hint
               </button>
             ) : (

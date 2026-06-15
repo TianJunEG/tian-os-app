@@ -69,7 +69,7 @@ export default function PracticeResult() {
       )}
 
       <Card className="mb-5 p-6 text-center">
-        <div className="font-mono text-5xl font-semibold tabular-nums text-navy-700">{stats.accuracy}%</div>
+        <div className="font-mono text-5xl font-semibold tabular-nums text-emerald-deep">{stats.accuracy}%</div>
         <p className="mt-1 text-sm text-ink-500">{stats.correct} of {stats.total} correct</p>
         <ProgressBar value={stats.correct} max={Math.max(stats.total, 1)} className="mt-4" />
       </Card>
@@ -84,8 +84,8 @@ export default function PracticeResult() {
 
       {isFluency && stats.fluencyScore !== null && stats.fluencyScore !== undefined && (
         <Card className="mb-5 border-l-4 border-l-violet-400 p-5">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-violet-700">Fluency Score</div>
-          <div className="mt-1 font-mono text-2xl sm:text-3xl font-semibold text-navy-700">{Math.round(Number(stats.fluencyScore))}</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-purple">Fluency Score</div>
+          <div className="mt-1 font-mono text-2xl sm:text-3xl font-semibold text-emerald-deep">{Math.round(Number(stats.fluencyScore))}</div>
           <p className="mt-1 text-sm text-ink-500">Your fluency score combines accuracy and speed.</p>
         </Card>
       )}

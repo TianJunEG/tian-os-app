@@ -10,11 +10,11 @@ function number(value) {
 
 function MetricCard({ icon: Icon, label, value, tone = 'navy' }) {
   const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     green: 'bg-emerald-50 text-emerald-700',
     amber: 'bg-amber-50 text-amber-700',
-    rose: 'bg-rose-50 text-rose-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+    rose: 'bg-danger-tint text-danger-deep',
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
 
   return (
     <Card className="p-4">
@@ -61,7 +61,7 @@ function ValidationTable({ rows = [] }) {
         </thead>
         <tbody>
           {rows.slice(0, 40).map((row, index) => (
-            <tr key={`${row.skillId}-${index}`} className="border-t border-hairline">
+            <tr key={`${row.skillId}-${index}`} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-semibold text-ink-800">{row.skillId} · {row.skillName}</td>
               <td className="py-3 pr-4 tabular-nums">{row.questionsUsed}</td>
               <td className="py-3 pr-4">
@@ -94,7 +94,7 @@ function RiskList({ rows = [], empty }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 12).map((row, index) => (
-        <div key={`${row.skillId}-${index}`} className="rounded-2xl border border-hairline p-3">
+        <div key={`${row.skillId}-${index}`} className="rounded-2xl border border-line-soft p-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={row.falsePositiveRisk ? 'error' : 'yellow'}>{row.skillId}</Badge>
             <Badge tone="navy">{row.confidenceLevel}</Badge>
@@ -112,7 +112,7 @@ function InterventionRows({ rows = [] }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 12).map((row) => (
-        <div key={row.assignmentId} className="border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+        <div key={row.assignmentId} className="border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-semibold text-ink-800">{row.sourceType} · {row.assignmentId}</span>
             <Badge tone={row.interventionSucceeded ? 'green' : row.recheckCompleted ? 'error' : 'yellow'}>
@@ -181,7 +181,7 @@ export default function DiagnosticValidationPage() {
         <Section title="Confidence Distribution">
           <div className="grid grid-cols-3 gap-3 text-center">
             {['high', 'medium', 'low'].map((key) => (
-              <div key={key} className="rounded-2xl border border-hairline p-3">
+              <div key={key} className="rounded-2xl border border-line-soft p-3">
                 <p className="font-mono text-xl font-semibold text-ink-900">{number(data.confidenceDistribution?.[key])}</p>
                 <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{key}</p>
               </div>

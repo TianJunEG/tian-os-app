@@ -61,7 +61,7 @@ export default function WorkingEvidenceDecision({
   const workingRecommended = requirementLevel === 'HIGH' || requirementLevel === 'MEDIUM';
 
   return (
-    <div className="rounded-xl border border-hairline bg-white p-3 sm:p-4">
+    <div className="rounded-xl border border-line-soft bg-white p-3 sm:p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-sm font-semibold text-ink-700">Show your working</p>
@@ -71,16 +71,16 @@ export default function WorkingEvidenceDecision({
       </div>
 
       <div className="mt-3 space-y-2">
-        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${submitted ? 'border-success-200 bg-success-100 text-success-700' : 'border-hairline bg-slate-50 text-ink-500'}`}>
+        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${submitted ? 'border-success-200 bg-success-100 text-success-700' : 'border-line-soft bg-surface-raised text-ink-500'}`}>
           <CheckCircle2 className={`h-4 w-4 ${submitted ? 'text-success-700' : 'text-ink-300'}`} />
           <span className="font-semibold">Working submitted</span>
         </div>
 
         {!submitted && (
-          <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${onPaper ? 'border-gold-500 bg-gold-50 text-gold-900' : 'border-hairline text-ink-700 hover:bg-slate-50'}`}>
+          <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${onPaper ? 'border-gold-500 bg-gold-50 text-gold-900' : 'border-line-soft text-ink-700 hover:bg-surface-raised'}`}>
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 rounded border-hairline text-navy-700"
+              className="mt-1 h-4 w-4 rounded border-line-soft text-emerald-deep"
               checked={onPaper}
               disabled={disabled}
               onChange={(event) => onDeclareOnPaper?.(event.target.checked)}
@@ -90,10 +90,10 @@ export default function WorkingEvidenceDecision({
         )}
 
         {!submitted && (
-          <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${notNeeded ? 'border-navy-500 bg-navy-50 text-navy-800' : 'border-hairline text-ink-700 hover:bg-slate-50'}`}>
+          <label className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${notNeeded ? 'border-emerald bg-emerald-tint text-emerald-deep' : 'border-line-soft text-ink-700 hover:bg-surface-raised'}`}>
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4 rounded border-hairline text-navy-700"
+              className="mt-1 h-4 w-4 rounded border-line-soft text-emerald-deep"
               checked={notNeeded}
               disabled={disabled}
               onChange={(event) => onDeclareNotNeeded?.(event.target.checked)}

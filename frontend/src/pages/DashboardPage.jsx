@@ -35,7 +35,7 @@ export default function DashboardPage() {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-blue-100 text-blue-800',
-      'in-progress': 'bg-navy-100 text-navy-800',
+      'in-progress': 'bg-emerald-tint text-emerald-deep',
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800'
     };
@@ -49,9 +49,9 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-lg bg-navy-900 grid place-items-center text-gold-400 font-extrabold">E</span>
+              <span className="w-8 h-8 rounded-lg bg-emerald-deep grid place-items-center text-gold-400 font-extrabold">E</span>
               <div>
-                <h1 className="text-xl font-extrabold text-navy-900 tracking-tight leading-none">Tian<span className="text-gold-500">OS</span></h1>
+                <h1 className="text-xl font-extrabold text-emerald-deep tracking-tight leading-none">Tian<span className="text-gold-500">OS</span></h1>
                 <p className="text-gray-500 text-sm">Welcome, {user?.name}</p>
               </div>
             </div>
@@ -71,9 +71,9 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => navigate(user?.role === 'parent' ? '/children' : '/learning')}
-            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
-            <TrendingUp className="w-8 h-8 text-navy-700 mb-2" />
+            <TrendingUp className="w-8 h-8 text-emerald-deep mb-2" />
             <h3 className="font-semibold text-gray-900">{user?.role === 'parent' ? 'My Children' : 'My Learning'}</h3>
             <p className="text-sm text-gray-600">{user?.role === 'parent' ? 'Each child’s progress' : 'Progress across all apps'}</p>
           </button>
@@ -81,9 +81,9 @@ export default function DashboardPage() {
             <>
               <button
                 onClick={() => navigate('/search')}
-                className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+                className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
               >
-                <Search className="w-8 h-8 text-navy-700 mb-2" />
+                <Search className="w-8 h-8 text-emerald-deep mb-2" />
                 <h3 className="font-semibold text-gray-900">Find Tutors</h3>
                 <p className="text-sm text-gray-600">Search & book tutors</p>
               </button>
@@ -94,9 +94,9 @@ export default function DashboardPage() {
             <>
               <button
                 onClick={() => navigate('/tutor/profile')}
-                className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+                className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
               >
-                <BookOpen className="w-8 h-8 text-navy-700 mb-2" />
+                <BookOpen className="w-8 h-8 text-emerald-deep mb-2" />
                 <h3 className="font-semibold text-gray-900">My Profile</h3>
                 <p className="text-sm text-gray-600">Edit your profile</p>
               </button>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/messages')}
-            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
             <MessageSquare className="w-8 h-8 text-blue-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Messages</h3>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/bookings')}
-            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
             <BookOpen className="w-8 h-8 text-green-600 mb-2" />
             <h3 className="font-semibold text-gray-900">My Bookings</h3>
@@ -123,16 +123,16 @@ export default function DashboardPage() {
 
           <a
             href="/mathpath/index.html?return=/dashboard"
-            className="block p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="block p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
-            <Calculator className="w-8 h-8 text-navy-700 mb-2" />
+            <Calculator className="w-8 h-8 text-emerald-deep mb-2" />
             <h3 className="font-semibold text-gray-900">MathPath</h3>
             <p className="text-sm text-gray-600">Mastery practice across every skill</p>
           </a>
 
           <button
             onClick={() => navigate('/worksheets')}
-            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
             <FileText className="w-8 h-8 text-gold-500 mb-2" />
             <h3 className="font-semibold text-gray-900">Worksheet Generator</h3>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/spelling')}
-            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
             <SpellCheck className="w-8 h-8 text-pink-600 mb-2" />
             <h3 className="font-semibold text-gray-900">Spelling</h3>
@@ -150,9 +150,9 @@ export default function DashboardPage() {
 
           <button
             onClick={() => navigate('/science')}
-            className="p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
-            <FlaskConical className="w-8 h-8 text-navy-700 mb-2" />
+            <FlaskConical className="w-8 h-8 text-emerald-deep mb-2" />
             <h3 className="font-semibold text-gray-900">Science</h3>
             <p className="text-sm text-gray-600">P6 revision Q&amp;A · feeds progress</p>
           </button>
@@ -161,7 +161,7 @@ export default function DashboardPage() {
             href="/science/index.html"
             target="_blank"
             rel="noopener"
-            className="block p-6 bg-white rounded-2xl border border-navy-100 shadow-sm hover:shadow-md transition text-left"
+            className="block p-6 bg-white rounded-2xl border border-emerald-tint shadow-sm hover:shadow-md transition text-left"
           >
             <FlaskConical className="w-8 h-8 text-gold-500 mb-2" />
             <h3 className="font-semibold text-gray-900">Science Lab</h3>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
               {user?.role === 'parent' && (
                 <button
                   onClick={() => navigate('/search')}
-                  className="mt-4 text-navy-700 hover:text-navy-900 font-medium"
+                  className="mt-4 text-emerald-deep hover:text-emerald-deep font-medium"
                 >
                   Find a tutor →
                 </button>

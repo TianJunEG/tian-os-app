@@ -23,8 +23,8 @@ export default function DifficultyRating({ value = 3, onChange, disabled = false
             onClick={() => onChange?.(option.value)}
             className={`min-h-[44px] rounded-xl border text-sm font-semibold ${
               value === option.value
-                ? 'border-navy-500 bg-navy-50 text-navy-700'
-                : 'border-hairline bg-paper text-ink-600 hover:bg-slate-50'
+                ? 'border-emerald bg-emerald-tint text-emerald-deep'
+                : 'border-line-soft bg-surface-white text-ink-600 hover:bg-surface-raised'
             }`}
           >
             {option.value}

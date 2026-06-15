@@ -96,11 +96,11 @@ const DOMAIN_GROUPS = [
 // Domain colour mappings for badges / accents
 // ---------------------------------------------------------------------------
 const COLOR_MAP = {
-  violet: { badge: 'navy', border: 'border-violet-200', bg: 'bg-gradient-to-br from-violet-50 via-white to-violet-50', icon: 'bg-violet-100 text-violet-700' },
-  navy: { badge: 'navy', border: 'border-navy-200', bg: 'bg-gradient-to-br from-navy-50 via-white to-emerald-50', icon: 'bg-navy-100 text-navy-700' },
+  violet: { badge: 'navy', border: 'border-purple-tint', bg: 'bg-gradient-to-br from-violet-50 via-white to-violet-50', icon: 'bg-purple-tint text-purple' },
+  navy: { badge: 'navy', border: 'border-emerald-border', bg: 'bg-gradient-to-br from-navy-50 via-white to-emerald-50', icon: 'bg-emerald-tint text-emerald-deep' },
   gold: { badge: 'gold', border: 'border-gold-200', bg: 'bg-gradient-to-br from-gold-50 via-white to-yellow-50', icon: 'bg-gold-100 text-gold-700' },
   mint: { badge: 'success', border: 'border-mint-200', bg: 'bg-gradient-to-br from-mint-50 via-white to-emerald-50', icon: 'bg-mint-100 text-success-700' },
-  emerald: { badge: 'navy', border: 'border-emerald-200', bg: 'bg-gradient-to-br from-emerald-50 via-white to-violet-50', icon: 'bg-emerald-100 text-navy-700' },
+  emerald: { badge: 'navy', border: 'border-emerald-200', bg: 'bg-gradient-to-br from-emerald-50 via-white to-violet-50', icon: 'bg-emerald-100 text-emerald-deep' },
 };
 
 function difficultyLabel(difficulty) {
@@ -291,7 +291,7 @@ export default function P2LearningPathPage() {
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase text-teal-700">P2 Maths</p>
+            <p className="text-sm font-semibold uppercase text-emerald-deep">P2 Maths</p>
             <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink-900">P2 Maths</h2>
             <p className="mt-1 text-sm text-ink-500">
               Browse all Primary 2 skills and start practising any topic.

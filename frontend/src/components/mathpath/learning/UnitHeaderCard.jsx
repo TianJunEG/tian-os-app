@@ -15,7 +15,7 @@ export default function UnitHeaderCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{unitLabel}</p>
-          <h2 className="mt-1 text-lg font-semibold text-navy-700 sm:text-xl">{title}</h2>
+          <h2 className="mt-1 text-lg font-semibold text-emerald-deep sm:text-xl">{title}</h2>
           {subtitle ? <p className="mt-1 text-sm text-ink-600">{subtitle}</p> : null}
         </div>
         <Badge tone="navy">{safePercent}%</Badge>

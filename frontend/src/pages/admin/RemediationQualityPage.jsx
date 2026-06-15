@@ -10,11 +10,11 @@ function number(value) {
 
 function MetricCard({ icon: Icon, label, value, tone = 'navy', suffix = '' }) {
   const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
+    navy: 'bg-emerald-tint text-emerald-deep',
     green: 'bg-emerald-50 text-emerald-700',
     amber: 'bg-amber-50 text-amber-700',
-    rose: 'bg-rose-50 text-rose-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+    rose: 'bg-danger-tint text-danger-deep',
+  }[tone] || 'bg-emerald-tint text-emerald-deep';
   return (
     <Card className="p-4">
       <div className="flex items-center gap-3">
@@ -48,7 +48,7 @@ function PackRows({ rows = [], empty }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 12).map((row, index) => (
-        <div key={`${row.assignmentId || row.skillId}-${index}`} className="border-b border-hairline pb-3 last:border-b-0 last:pb-0">
+        <div key={`${row.assignmentId || row.skillId}-${index}`} className="border-b border-line-soft pb-3 last:border-b-0 last:pb-0">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-semibold text-ink-800">{row.assignmentId || `${row.skillId} · ${row.skillName}`}</span>
             <Badge tone={row.qualityScore >= 85 || row.recheckSuccessRate >= 70 ? 'green' : row.qualityScore < 65 || row.repeatedFailureRate ? 'error' : 'yellow'}>
@@ -82,7 +82,7 @@ function CoverageTable({ rows = [] }) {
         </thead>
         <tbody>
           {rows.slice(0, 26).map((row) => (
-            <tr key={row.skillId} className="border-t border-hairline">
+            <tr key={row.skillId} className="border-t border-line-soft">
               <td className="py-3 pr-4 font-semibold text-ink-800">{row.skillId} · {row.skillName}</td>
               <td className="py-3 pr-4"><Badge tone={row.misconceptionTargetingExists ? 'green' : 'error'}>{row.misconceptionTargetingExists ? 'mapped' : 'missing'}</Badge></td>
               <td className="py-3 pr-4"><Badge tone={row.guidedQuestionsExist ? 'green' : 'yellow'}>{row.guidedQuestionsExist ? 'yes' : 'partial'}</Badge></td>
@@ -101,7 +101,7 @@ function GapRows({ rows = [], label = 'No gaps detected.' }) {
   return (
     <div className="space-y-3">
       {rows.slice(0, 12).map((row, index) => (
-        <div key={`${row.misconceptionId || row.assignmentId || row.skillId}-${index}`} className="rounded-2xl border border-hairline p-3">
+        <div key={`${row.misconceptionId || row.assignmentId || row.skillId}-${index}`} className="rounded-2xl border border-line-soft p-3">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="yellow">{row.misconceptionId || row.skillId || row.assignmentId}</Badge>
             {row.alignmentStatus ? <Badge tone="error">{row.alignmentStatus}</Badge> : null}

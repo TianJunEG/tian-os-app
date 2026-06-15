@@ -123,8 +123,8 @@ const DOMAIN_GROUPS = [
 const COLOR_MAP = {
   blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800', icon: 'text-blue-500' },
   purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-800', icon: 'text-purple-500' },
-  teal: { bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', badge: 'bg-teal-100 text-teal-800', icon: 'text-teal-500' },
-  rose: { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', badge: 'bg-rose-100 text-rose-800', icon: 'text-rose-500' },
+  teal: { bg: 'bg-emerald-tint', border: 'border-teal-200', text: 'text-emerald-deep', badge: 'bg-emerald-tint text-teal-800', icon: 'text-teal-500' },
+  rose: { bg: 'bg-danger-tint', border: 'border-danger-border', text: 'text-danger-deep', badge: 'bg-danger-tint text-rose-800', icon: 'text-rose-500' },
   amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800', icon: 'text-amber-500' },
   indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', badge: 'bg-indigo-100 text-indigo-800', icon: 'text-indigo-500' },
   emerald: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-800', icon: 'text-emerald-500' },
@@ -254,7 +254,7 @@ export default function P5LearningPathPage() {
                 {group.deepLink && (
                   <button
                     onClick={() => navigate(group.deepLink)}
-                    className="mt-2 text-xs font-semibold text-teal-700 hover:text-teal-900"
+                    className="mt-2 text-xs font-semibold text-emerald-deep hover:text-teal-900"
                   >
                     See full {group.label} path →
                   </button>

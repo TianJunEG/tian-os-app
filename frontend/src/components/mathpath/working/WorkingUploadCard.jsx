@@ -18,11 +18,11 @@ export default function WorkingUploadCard({
         <Badge tone={statusTone}>{status}</Badge>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-ink-600">
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <div className="rounded-lg bg-surface-raised px-3 py-2">
           <p className="text-xs uppercase tracking-[0.08em] text-ink-500">Questions</p>
           <p className="font-mono text-base font-semibold text-ink-700">{questionCount}</p>
         </div>
-        <div className="rounded-lg bg-slate-50 px-3 py-2">
+        <div className="rounded-lg bg-surface-raised px-3 py-2">
           <p className="text-xs uppercase tracking-[0.08em] text-ink-500">Working Required</p>
           <p className="font-mono text-base font-semibold text-ink-700">{requiringWorkingCount}</p>
         </div>

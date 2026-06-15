@@ -232,12 +232,12 @@ function BarModel({ model = {}, hidePartLabels = false }) {
   let runningSubpart = 0;
 
   return (
-    <div className="rounded-2xl border border-hairline bg-white p-4">
+    <div className="rounded-2xl border border-line-soft bg-white p-4">
       <div className="mb-3 flex items-center justify-between gap-3 text-sm">
-        <span className="font-semibold text-navy-700">{model.wholeLabel || '1 whole'}</span>
+        <span className="font-semibold text-emerald-deep">{model.wholeLabel || '1 whole'}</span>
         {model.remainderLabel && <Badge tone="gold">{model.remainderLabel}</Badge>}
       </div>
-      <div className="flex min-h-[88px] overflow-hidden rounded-xl border border-navy-200">
+      <div className="flex min-h-[88px] overflow-hidden rounded-xl border border-emerald-border">
         {Array.from({ length: denominator }, (_, index) => {
           const part = index + 1;
           const removed = removedParts.has(part);
@@ -245,16 +245,16 @@ function BarModel({ model = {}, hidePartLabels = false }) {
           const selected = selectedRegion.has(part);
           const shouldSubdivide = subdivide > 1 && remaining;
           const partClass = removed
-            ? 'bg-rose-50 text-rose-700 opacity-80'
+            ? 'bg-danger-tint text-danger-deep opacity-80'
             : selected || (model.highlightRemaining && remaining)
               ? 'bg-gold-100 text-gold-800'
               : remaining
-                ? 'bg-blue-50 text-navy-700'
+                ? 'bg-blue-50 text-emerald-deep'
                 : 'bg-white text-ink-500';
           return (
             <div
               key={part}
-              className={`relative flex flex-1 items-stretch justify-center border-r border-navy-200 last:border-r-0 ${partClass}`}
+              className={`relative flex flex-1 items-stretch justify-center border-r border-emerald-border last:border-r-0 ${partClass}`}
             >
               {shouldSubdivide ? (
                 <div className="flex w-full">
@@ -265,8 +265,8 @@ function BarModel({ model = {}, hidePartLabels = false }) {
                     return (
                       <div
                         key={runningSubpart}
-                        className={`relative flex flex-1 items-center justify-center border-r border-navy-200 text-xs font-semibold last:border-r-0 ${
-                          subRemoved ? 'bg-rose-50 text-rose-700 opacity-80' : subLeft ? 'bg-blue-50 text-navy-700' : 'bg-white text-ink-500'
+                        className={`relative flex flex-1 items-center justify-center border-r border-emerald-border text-xs font-semibold last:border-r-0 ${
+                          subRemoved ? 'bg-danger-tint text-danger-deep opacity-80' : subLeft ? 'bg-blue-50 text-emerald-deep' : 'bg-white text-ink-500'
                         }`}
                       >
                         {!hidePartLabels && runningSubpart}
@@ -281,7 +281,7 @@ function BarModel({ model = {}, hidePartLabels = false }) {
           );
         })}
       </div>
-      {model.equivalence && <p className="mt-3 text-sm font-medium text-navy-700">{model.equivalence}</p>}
+      {model.equivalence && <p className="mt-3 text-sm font-medium text-emerald-deep">{model.equivalence}</p>}
       {model.finalAnswer && <p className="mt-3 text-base font-semibold text-success-700">Answer: {model.finalAnswer}</p>}
     </div>
   );
@@ -446,13 +446,13 @@ function BranchingModel({ branchModel }) {
   const first = branchModel.firstBranches || [];
   const second = branchModel.secondBranches || [];
   return (
-    <div className="mt-4 rounded-2xl border border-hairline bg-white p-4">
-      <p className="mb-3 text-sm font-semibold text-navy-700">Branching method</p>
+    <div className="mt-4 rounded-2xl border border-line-soft bg-white p-4">
+      <p className="mb-3 text-sm font-semibold text-emerald-deep">Branching method</p>
       <div className="grid gap-3 text-sm">
-        <div className="rounded-xl bg-navy-50 px-3 py-2 font-semibold text-navy-700">{branchModel.wholeLabel}</div>
+        <div className="rounded-xl bg-emerald-tint px-3 py-2 font-semibold text-emerald-deep">{branchModel.wholeLabel}</div>
         <div className="grid grid-cols-2 gap-2">
           {first.map((branch) => (
-            <div key={`${branch.label}-${branch.value}`} className="rounded-xl border border-hairline px-3 py-2">
+            <div key={`${branch.label}-${branch.value}`} className="rounded-xl border border-line-soft px-3 py-2">
               <p className="text-xs font-semibold uppercase text-ink-500">{branch.label}</p>
               <p className="mt-1 font-mono text-base font-semibold text-ink-900">{branch.value}</p>
             </div>
@@ -461,7 +461,7 @@ function BranchingModel({ branchModel }) {
         <div className="rounded-xl bg-gold-100 px-3 py-2 font-semibold text-gold-800">New amount: {branchModel.remainderLabel}</div>
         <div className="grid grid-cols-2 gap-2">
           {second.map((branch) => (
-            <div key={`${branch.label}-${branch.value}`} className="rounded-xl border border-hairline px-3 py-2">
+            <div key={`${branch.label}-${branch.value}`} className="rounded-xl border border-line-soft px-3 py-2">
               <p className="text-xs font-semibold uppercase text-ink-500">{branch.label}</p>
               <p className="mt-1 font-mono text-base font-semibold text-ink-900">{branch.value}</p>
             </div>
@@ -479,7 +479,7 @@ function TemplatePicker({ templates = [], onOpen }) {
       {templates.map((template) => (
         <Card key={template.template_id} interactive className="flex flex-col p-4">
           <div className="mb-3 flex items-start justify-between gap-2">
-            <h2 className="text-base font-semibold text-navy-700">{template.title}</h2>
+            <h2 className="text-base font-semibold text-emerald-deep">{template.title}</h2>
             <Badge tone="navy">{template.question_type.replace(/_/g, ' ')}</Badge>
           </div>
           <p className="mb-4 flex-1 text-sm leading-6 text-ink-600">{template.prompt}</p>
@@ -607,7 +607,7 @@ function PatternTrainerLab() {
     <Card id="similar-question-generator" className="mt-6 scroll-mt-6 p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-navy-700">Similar Question Generator</h2>
+          <h2 className="text-xl font-semibold text-emerald-deep">Similar Question Generator</h2>
           <p className="mt-1 text-sm text-ink-500">Paste representative questions, extract a reusable pattern, then approve a generated practice bank.</p>
         </div>
         <Badge tone="gold">Teacher/Admin</Badge>
@@ -617,20 +617,20 @@ function PatternTrainerLab() {
         <textarea
           value={sampleText}
           onChange={(event) => setSampleText(event.target.value)}
-          className="min-h-[180px] rounded-xl border border-hairline px-3 py-2 text-sm"
+          className="min-h-[180px] rounded-xl border border-line-soft px-3 py-2 text-sm"
           placeholder="One sample question per line"
         />
         <div className="grid gap-3">
           <label className="text-sm font-semibold text-ink-700">Target skill
-            <input value={skillId} onChange={(event) => setSkillId(event.target.value.toUpperCase())} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 font-mono text-sm" />
+            <input value={skillId} onChange={(event) => setSkillId(event.target.value.toUpperCase())} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 font-mono text-sm" />
           </label>
           <label className="text-sm font-semibold text-ink-700">Level
-            <select value={level} onChange={(event) => setLevel(event.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm">
+            <select value={level} onChange={(event) => setLevel(event.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm">
               {['P3', 'P4', 'P5', 'P6', 'Sec1 G1'].map((row) => <option key={row}>{row}</option>)}
             </select>
           </label>
           <label className="text-sm font-semibold text-ink-700">Total variants
-            <input type="number" min="10" max="80" value={variantCount} onChange={(event) => setVariantCount(event.target.value)} className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm" />
+            <input type="number" min="10" max="80" value={variantCount} onChange={(event) => setVariantCount(event.target.value)} className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm" />
           </label>
         </div>
       </div>
@@ -644,7 +644,7 @@ function PatternTrainerLab() {
               min="0"
               value={difficultyMix[key]}
               onChange={(event) => setDifficultyMix((prev) => ({ ...prev, [key]: event.target.value }))}
-              className="mt-1 w-full rounded-lg border border-hairline px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
             />
           </label>
         ))}
@@ -662,7 +662,7 @@ function PatternTrainerLab() {
         <Button variant="secondary" onClick={approve} disabled={busy || !generated.length}>Approve and Save</Button>
       </div>
 
-      {message && <p className="mt-3 text-sm font-semibold text-navy-700">{message}</p>}
+      {message && <p className="mt-3 text-sm font-semibold text-emerald-deep">{message}</p>}
       {approvedSet?.practiceSetId && (
         <div className="mt-3">
           <Button as={Link} to={`/student/mathpath/fractions/similar-practice/${approvedSet.practiceSetId}`} variant="secondary">
@@ -671,7 +671,7 @@ function PatternTrainerLab() {
         </div>
       )}
       {analysis?.pattern && (
-        <div className="mt-5 rounded-xl bg-navy-50 p-4 text-sm">
+        <div className="mt-5 rounded-xl bg-emerald-tint p-4 text-sm">
           <div className="grid gap-2 md:grid-cols-4">
             <p><span className="font-semibold">Skill:</span> {analysis.pattern.inferredSkillIds?.join(', ')}</p>
             <p><span className="font-semibold">Archetype:</span> {analysis.pattern.archetype}</p>
@@ -697,10 +697,10 @@ function PatternTrainerLab() {
                 </div>
                 <Button size="s" variant="ghost" onClick={() => rejectVariant(item.variantId)}>Reject</Button>
               </div>
-              <textarea value={item.prompt} onChange={(e) => updateVariant(item.variantId, 'prompt', e.target.value)} className="mt-2 min-h-[64px] w-full rounded-lg border border-hairline px-2 py-1 text-sm" />
+              <textarea value={item.prompt} onChange={(e) => updateVariant(item.variantId, 'prompt', e.target.value)} className="mt-2 min-h-[64px] w-full rounded-lg border border-line-soft px-2 py-1 text-sm" />
               <div className="mt-2 grid gap-2 md:grid-cols-2">
-                <input value={item.answer} onChange={(e) => updateVariant(item.variantId, 'answer', e.target.value)} className="rounded-lg border border-hairline px-2 py-1 text-sm" />
-                <input value={item.workedSolution} onChange={(e) => updateVariant(item.variantId, 'workedSolution', e.target.value)} className="rounded-lg border border-hairline px-2 py-1 text-sm" />
+                <input value={item.answer} onChange={(e) => updateVariant(item.variantId, 'answer', e.target.value)} className="rounded-lg border border-line-soft px-2 py-1 text-sm" />
+                <input value={item.workedSolution} onChange={(e) => updateVariant(item.variantId, 'workedSolution', e.target.value)} className="rounded-lg border border-line-soft px-2 py-1 text-sm" />
               </div>
             </Card>
           ))}
@@ -939,10 +939,10 @@ export default function FractionsModelTrainer() {
                 if (key === 'you_do') setShowYouDoModel(false);
               }}
               className={`rounded-xl border px-3 py-2 text-left text-sm font-semibold ${
-                status === 'current' ? 'border-navy-700 bg-navy-50 text-navy-700'
+                status === 'current' ? 'border-emerald-deep bg-emerald-tint text-emerald-deep'
                   : status === 'completed' ? 'border-success-300 bg-success-50 text-success-700'
-                  : status === 'next' ? 'border-hairline bg-white text-ink-600'
-                  : 'border-hairline bg-slate-50 text-ink-400 cursor-not-allowed'
+                  : status === 'next' ? 'border-line-soft bg-white text-ink-600'
+                  : 'border-line-soft bg-surface-raised text-ink-400 cursor-not-allowed'
               }`}
             >
               <span className="flex items-center gap-1.5">
@@ -959,7 +959,7 @@ export default function FractionsModelTrainer() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <Badge tone="gold">Step {stepIndex + 1} of {steps.length}</Badge>
-            <h2 className="mt-2 text-xl font-semibold text-navy-700">{currentStep.title}</h2>
+            <h2 className="mt-2 text-xl font-semibold text-emerald-deep">{currentStep.title}</h2>
             <p className="mt-1 text-sm text-ink-600">{modeHelper}</p>
           </div>
           <div className="hidden min-w-[180px] md:block">
@@ -974,7 +974,7 @@ export default function FractionsModelTrainer() {
                 <HighlightedQuestion text={visibleInstruction} step={currentStep} />
               </div>
               {mode === 'we_do' && prompt && (
-              <div className="rounded-xl border border-hairline bg-white p-4">
+              <div className="rounded-xl border border-line-soft bg-white p-4">
                 {expressionQuestion ? (
                   <div className="mb-3">
                     <FractionExpressionQuestion
@@ -984,7 +984,7 @@ export default function FractionsModelTrainer() {
                     />
                   </div>
                 ) : (
-                  <p className="mb-3 text-sm font-semibold text-navy-700">{prompt.question}</p>
+                  <p className="mb-3 text-sm font-semibold text-emerald-deep">{prompt.question}</p>
                 )}
                   {prompt.type === 'choice' ? (
                     <div className="grid gap-2">
@@ -992,7 +992,7 @@ export default function FractionsModelTrainer() {
                         <button
                           key={choice}
                           onClick={() => setStudentAnswer(choice)}
-                          className={`rounded-xl border px-3 py-2 text-left text-sm ${studentAnswer === choice ? 'border-navy-700 bg-navy-50' : 'border-hairline'}`}
+                          className={`rounded-xl border px-3 py-2 text-left text-sm ${studentAnswer === choice ? 'border-emerald-deep bg-emerald-tint' : 'border-line-soft'}`}
                         >
                           {choice}
                         </button>
@@ -1009,7 +1009,7 @@ export default function FractionsModelTrainer() {
                     <input
                       value={studentAnswer}
                       onChange={(event) => setStudentAnswer(event.target.value)}
-                      className="w-full rounded-xl border border-hairline px-3 py-2 font-mono"
+                      className="w-full rounded-xl border border-line-soft px-3 py-2 font-mono"
                       placeholder="Your answer"
                     />
                   )}
@@ -1037,8 +1037,8 @@ export default function FractionsModelTrainer() {
                           onClick={() => setReflectionAnswer(option.toLowerCase())}
                           className={`rounded-lg border px-4 py-2 text-sm font-semibold ${
                             reflectionAnswer === option.toLowerCase()
-                              ? 'border-navy-700 bg-navy-50 text-navy-800'
-                              : 'border-hairline bg-white text-ink-700 hover:bg-slate-50'
+                              ? 'border-emerald-deep bg-emerald-tint text-emerald-deep'
+                              : 'border-line-soft bg-white text-ink-700 hover:bg-surface-raised'
                           }`}
                         >
                           {option}
@@ -1056,13 +1056,13 @@ export default function FractionsModelTrainer() {
           </div>
         ) : (
           <div className="grid gap-5 lg:grid-cols-[1fr,1.1fr]">
-            <div className="rounded-xl border border-dashed border-navy-300 bg-navy-50/50 p-5">
-              <div className="mb-3 flex items-center gap-2 text-navy-700">
+            <div className="rounded-xl border border-dashed border-navy-300 bg-emerald-tint/50 p-5">
+              <div className="mb-3 flex items-center gap-2 text-emerald-deep">
                 <PencilLine className="h-5 w-5" />
                 <h2 className="font-semibold">Draw your model</h2>
               </div>
               <p className="text-sm leading-6 text-ink-600">Use the full-screen drawing space so your bar model has enough room.</p>
-              <div className="mt-4 rounded-xl border border-hairline bg-white p-4">
+              <div className="mt-4 rounded-xl border border-line-soft bg-white p-4">
                 {youDoWorking.workingSubmitted ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm font-semibold text-success-700">
@@ -1073,7 +1073,7 @@ export default function FractionsModelTrainer() {
                       <img
                         src={youDoWorking.workingImage}
                         alt="Saved model drawing preview"
-                        className="max-h-44 w-full rounded-lg border border-hairline bg-white object-contain"
+                        className="max-h-44 w-full rounded-lg border border-line-soft bg-white object-contain"
                       />
                     )}
                     <div className="flex flex-wrap gap-2">
@@ -1091,8 +1091,8 @@ export default function FractionsModelTrainer() {
                   </div>
                 )}
               </div>
-              <div className="mt-4 rounded-xl border border-hairline bg-white p-4">
-                <p className="mb-3 text-sm font-semibold text-navy-700">Enter your final answer.</p>
+              <div className="mt-4 rounded-xl border border-line-soft bg-white p-4">
+                <p className="mb-3 text-sm font-semibold text-emerald-deep">Enter your final answer.</p>
                 <AnswerInputRenderer
                   question={finalAnswerQuestion}
                   value={youDoAnswer}
@@ -1132,7 +1132,7 @@ export default function FractionsModelTrainer() {
                 </p>
               )}
               <div className="mt-4 rounded-xl bg-white p-3 text-sm text-ink-700">
-                <p className="font-semibold text-navy-700">Sense check</p>
+                <p className="font-semibold text-emerald-deep">Sense check</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5">
                   {(template.sense_check_hints || []).map((hint) => <li key={hint}>{hint}</li>)}
                 </ul>
@@ -1145,8 +1145,8 @@ export default function FractionsModelTrainer() {
                   <BranchingModel branchModel={steps[steps.length - 1]?.model?.branchModel} />
                 </>
               ) : (
-                <div className="rounded-xl border border-dashed border-hairline bg-white p-4 text-sm text-ink-600">
-                  <p className="font-semibold text-navy-700">Model answer hidden</p>
+                <div className="rounded-xl border border-dashed border-line-soft bg-white p-4 text-sm text-ink-600">
+                  <p className="font-semibold text-emerald-deep">Model answer hidden</p>
                   <p className="mt-1">Reveal your own model first, then tap “Reveal model answer” when you’re ready to compare.</p>
                 </div>
               )}
@@ -1167,10 +1167,10 @@ export default function FractionsModelTrainer() {
         questionText={template.prompt || currentStep?.instruction || ''}
         questionContent={(
           <div className="space-y-3 text-base">
-            <p className="font-semibold text-navy-700">{template.title}</p>
+            <p className="font-semibold text-emerald-deep">{template.title}</p>
             <p>{template.prompt}</p>
             {youDoAnswer && (
-              <p className="rounded-lg bg-navy-50 px-3 py-2 text-sm text-navy-700">
+              <p className="rounded-lg bg-emerald-tint px-3 py-2 text-sm text-emerald-deep">
                 Your note: {youDoAnswer}
               </p>
             )}

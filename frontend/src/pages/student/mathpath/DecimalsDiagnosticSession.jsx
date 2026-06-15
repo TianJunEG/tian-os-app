@@ -162,7 +162,7 @@ export default function DecimalsDiagnosticSession() {
       </div>
 
       {encouragement && (
-        <p className="text-sm font-medium text-navy-700">{encouragement}</p>
+        <p className="text-sm font-medium text-emerald-deep">{encouragement}</p>
       )}
 
       <Card className="p-6">
@@ -174,7 +174,7 @@ export default function DecimalsDiagnosticSession() {
                 key={choice}
                 type="button"
                 onClick={() => setDraft(choice)}
-                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-navy-50 font-semibold text-navy-800' : 'border-ink-200 hover:border-navy-300'}`}
+                className={`rounded-xl border px-4 py-3 text-left text-base transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
               >
                 {choice}
               </button>
