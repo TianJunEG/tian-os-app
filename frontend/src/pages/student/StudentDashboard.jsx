@@ -831,6 +831,14 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       tone: 'border-violet-100 from-violet-50 to-white text-violet-600',
       disabled: !assessmentGate.ready,
     }] : []),
+    ...(FEATURE_FLAGS.psl ? [{
+      icon: Brain,
+      img: null,
+      title: 'Word Problems',
+      body: 'Solve word problems step by step',
+      to: '/student/psl',
+      tone: 'border-gold-100 from-gold-50 to-white text-gold-600',
+    }] : []),
   ];
 
   return (
