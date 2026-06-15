@@ -129,7 +129,15 @@ export const sanitizeInputs = (req, res, next) => {
   };
 
   req.body = sanitize(req.body);
-  req.query = sanitize(req.query);
+  // In Express 5 `req.query` is a read-only getter — assigning to it throws.
+  // Replace the value via defineProperty so downstream handlers see the
+  // sanitized object. (Works on Express 4 as well.)
+  Object.defineProperty(req, 'query', {
+    value: sanitize(req.query),
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
   req.params = sanitize(req.params);
 
   next();

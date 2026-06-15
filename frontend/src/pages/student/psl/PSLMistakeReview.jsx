@@ -1,10 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, ArrowLeft, Brain, ChevronDown, ChevronRight } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Brain, ChevronDown, ChevronRight, RotateCcw } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import MISCONCEPTIONS, { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
 import { useAuth } from '../../../context/AuthContext';
 import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
+
+const TAG_TO_HEURISTIC = {
+  'psl/missed-ratio': 'ratio', 'psl/missed-ratio-term': 'ratio',
+  'psl/wrong-model-type': 'bar-model', 'psl/wrong-unknown-position': 'bar-model',
+  'psl/confused-excess-shortage': 'excess-shortage', 'psl/excess-shortage-confusion': 'excess-shortage', 'psl/excess-shortage-mix': 'excess-shortage',
+  'psl/reversed-steps': 'work-backwards',
+  'psl/missed-step': 'multi-step', 'psl/skipped-step': 'multi-step',
+  'psl/misread-data': 'data-interpretation',
+};
+
+const HEURISTIC_NAMES = {
+  'bar-model': 'Model / Diagram', 'ratio': 'Ratio Reasoning',
+  'data-interpretation': 'Data Interpretation', 'excess-shortage': 'Excess & Shortage',
+  'work-backwards': 'Working Backwards', 'multi-step': 'Multi-Step Arithmetic',
+  'find-pattern': 'Find a Pattern', 'make-list': 'Make a List',
+  'simultaneous': 'Simultaneous', 'guess-check': 'Guess and Check',
+};
 
 export default function PSLMistakeReview() {
   const navigate = useNavigate();
@@ -49,6 +66,11 @@ export default function PSLMistakeReview() {
   if (grouped['Other']) sortedCategories.push('Other');
 
   const totalCategories = sortedCategories.length;
+
+  // Derive heuristics that have identifiable mistakes → show targeted retry CTAs
+  const weakHeuristics = [...new Set(
+    Object.keys(tagCounts).map((t) => TAG_TO_HEURISTIC[t]).filter(Boolean)
+  )];
 
   return (
     <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
@@ -155,12 +177,35 @@ export default function PSLMistakeReview() {
                 );
               })}
 
-              {/* CTA */}
-              <div className="flex flex-col gap-3 pt-4 sm:flex-row">
-                <button onClick={() => navigate('/student/psl')} className="btn-gold-outline w-full sm:w-auto">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Skills
-                </button>
+              {/* Retry CTAs */}
+              <div className="pt-4 space-y-3">
+                {weakHeuristics.length > 0 && (
+                  <div>
+                    <p className="mono-label mb-2" style={{ color: '#5a6675' }}>Practice your weak areas</p>
+                    <div className="flex flex-wrap gap-2">
+                      {weakHeuristics.map((h) => (
+                        <button
+                          key={h}
+                          onClick={() => navigate(`/student/psl?heuristic=${h}`)}
+                          className="btn-gold-outline !h-9 !px-3 !text-xs"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          {HEURISTIC_NAMES[h] || h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button onClick={() => navigate('/student/psl')} className="btn-gold w-full sm:w-auto">
+                    <RotateCcw className="h-4 w-4" />
+                    Practice Again
+                  </button>
+                  <button onClick={() => navigate('/student/psl')} className="btn-gold-outline w-full sm:w-auto">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Skills
+                  </button>
+                </div>
               </div>
             </div>
           )}

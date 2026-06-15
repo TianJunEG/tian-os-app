@@ -22,5 +22,7 @@ const studentSchema = new mongoose.Schema({
 });
 
 studentSchema.index({ workspaceId: 1 });
+studentSchema.index({ workspaceId: 1, name: 1 });
+studentSchema.index({ createdByUserId: 1 });
 
 export default mongoose.model('Student', studentSchema);

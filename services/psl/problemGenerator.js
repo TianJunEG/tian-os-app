@@ -378,13 +378,48 @@ function buildVisualSpec(template, nums, vars) {
   return null;
 }
 
+// Map mastery score (0–100) to a target difficulty (1–3).
+export function selectTargetDifficulty(masteryScore = 0) {
+  if (masteryScore >= 75) return 3;
+  if (masteryScore >= 40) return 2;
+  return 1;
+}
+
+// Build a weighted distribution of difficulties for a session.
+// 70% target, 20% easier (review), 10% harder (stretch).
+export function buildDifficultyDistribution(targetDifficulty, count) {
+  const distribution = [];
+  for (let i = 0; i < count; i++) {
+    const roll = Math.random();
+    if (roll < 0.70) {
+      distribution.push(targetDifficulty);
+    } else if (roll < 0.90) {
+      distribution.push(Math.max(1, targetDifficulty - 1));
+    } else {
+      distribution.push(Math.min(3, targetDifficulty + 1));
+    }
+  }
+  return distribution;
+}
+
+// Weighted pick: prefer templates matching desired difficulty, fall back to any.
+function pickTemplateByDifficulty(templates, desiredDifficulty) {
+  const exact = templates.filter((t) => t.difficulty === desiredDifficulty);
+  if (exact.length) return pick(exact);
+  const close = templates.filter((t) => Math.abs((t.difficulty || 1) - desiredDifficulty) <= 1);
+  if (close.length) return pick(close);
+  return pick(templates);
+}
+
 export async function generateProblem(skillId, options = {}) {
   const templates = await PSLProblemTemplate.find({ skillId }).lean();
   if (!templates.length) throw Object.assign(new Error(`No templates for skill: ${skillId}`), { status: 404 });
 
   const usedTemplateIds = options.usedTemplateIds || [];
+  const desiredDifficulty = options.difficulty || null;
   const available = templates.filter((t) => !usedTemplateIds.includes(t.templateId));
-  const template = pick(available.length ? available : templates);
+  const pool = available.length ? available : templates;
+  const template = desiredDifficulty ? pickTemplateByDifficulty(pool, desiredDifficulty) : pick(pool);
 
   const context = pick(template.contexts) || {};
   const nameA = pick(NAMES);
@@ -443,17 +478,25 @@ export async function generateProblem(skillId, options = {}) {
     } : null,
     visualSpec: buildVisualSpec(template, nums, vars),
     scaffoldSteps,
+    difficulty: template.difficulty || 1,
     status: 'pending',
   };
 }
 
-export async function generateProblemsForSession(skillId, count = 5) {
+export async function generateProblemsForSession(skillId, count = 5, options = {}) {
+  const { masteryScore } = options;
+  const targetDifficulty = masteryScore != null ? selectTargetDifficulty(masteryScore) : null;
+  const distribution = targetDifficulty ? buildDifficultyDistribution(targetDifficulty, count) : null;
+
   const problems = [];
   const usedTemplateIds = [];
   for (let i = 0; i < count; i++) {
-    const problem = await generateProblem(skillId, { usedTemplateIds });
+    const problem = await generateProblem(skillId, {
+      usedTemplateIds,
+      difficulty: distribution ? distribution[i] : null,
+    });
     usedTemplateIds.push(problem.templateId);
     problems.push(problem);
   }
-  return problems;
+  return { problems, targetDifficulty: targetDifficulty || 1 };
 }

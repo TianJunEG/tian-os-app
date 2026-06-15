@@ -21,5 +21,6 @@ const lifeLabSubmissionSchema = new mongoose.Schema({
 
 lifeLabSubmissionSchema.index({ classId: 1, activityId: 1 });
 lifeLabSubmissionSchema.index({ studentId: 1, status: 1 });
+lifeLabSubmissionSchema.index({ studentId: 1, createdAt: -1 });
 
 export default mongoose.model('LifeLabSubmission', lifeLabSubmissionSchema);

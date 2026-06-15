@@ -1,5 +1,4 @@
 import express from 'express';
-import fs from 'fs/promises';
 import multer from 'multer';
 import path from 'path';
 import { protect } from '../middleware/auth.js';
@@ -36,9 +35,9 @@ import {
 import { linkWorkingInsightToMistake as linkWorkingInsightToMistakeRecord } from '../services/mathpath/workingLinkageService.js';
 import { recordLearningEvents } from '../services/telemetry/learningTelemetryService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { persistUploadFile } from '../services/storage/objectStore.js';
 
 const router = express.Router();
-const WORKING_UPLOAD_DIR = path.join(process.cwd(), 'uploads', 'mathpath-working');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -221,25 +220,16 @@ function normalizeSkillLabel(skillId = '') {
 async function writeWorkingFiles(workingSessionId, files = []) {
   if (!files.length) return [];
   const safeSessionId = String(workingSessionId || 'working').replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(WORKING_UPLOAD_DIR, safeSessionId);
-  await fs.mkdir(dir, { recursive: true });
   const uploadedAt = new Date();
   const written = [];
   for (let index = 0; index < files.length; index += 1) {
     const file = files[index];
-    const ext = path.extname(file.originalname || '') || (
-      file.mimetype === 'application/pdf' ? '.pdf'
-        : file.mimetype === 'image/png' ? '.png'
-          : '.jpg'
-    );
-    const fileName = `${uploadedAt.getTime()}-${index + 1}${ext}`;
-    const diskPath = path.join(dir, fileName);
-    await fs.writeFile(diskPath, file.buffer);
+    const { fileUrl } = await persistUploadFile(file, `mathpath-working/${safeSessionId}`, index);
     written.push({
-      fileName: file.originalname || fileName,
+      fileName: file.originalname || path.basename(fileUrl),
       mimeType: file.mimetype || '',
       sizeBytes: file.size || 0,
-      storageRef: `/uploads/mathpath-working/${safeSessionId}/${fileName}`,
+      storageRef: fileUrl,
       uploadedAt,
     });
   }

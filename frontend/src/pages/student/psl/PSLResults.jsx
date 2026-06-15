@@ -302,7 +302,7 @@ export default function PSLResults() {
             Back to Skills
           </button>
           <button
-            onClick={() => navigate('/student/psl/mistakes')}
+            onClick={() => navigate(`/student/psl/skill/${data.skillId}`)}
             className="btn-gold w-full sm:w-auto"
           >
             <RotateCcw className="h-4 w-4" />

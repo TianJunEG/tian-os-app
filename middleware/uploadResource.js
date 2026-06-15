@@ -1,23 +1,7 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 
-const uploadsDir = 'uploads/resources';
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `resource-${uniqueSuffix}${ext}`);
-  }
-});
-
+// Resource upload (PDFs/images). In-memory so the route can persist via the
+// storage facade (R2 when configured, else disk) — see services/storage.
 const fileFilter = (req, file, cb) => {
   const allowedMimes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
   if (allowedMimes.includes(file.mimetype)) {
@@ -28,9 +12,9 @@ const fileFilter = (req, file, cb) => {
 };
 
 const uploadResource = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 export default uploadResource;

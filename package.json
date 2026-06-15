@@ -69,7 +69,7 @@
     "bullmq": "^5.78.1",
     "cors": "^2.8.6",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2",
+    "express": "^5.2.1",
     "express-validator": "^7.0.0",
     "helmet": "^8.2.0",
     "ioredis": "^5.11.1",
