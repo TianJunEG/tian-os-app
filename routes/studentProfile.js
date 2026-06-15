@@ -8,6 +8,7 @@ import {
   getStudentPersonalBests,
   getStudentProfileSummary,
 } from '../services/studentProfile/studentProfileService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ async function withStudent(req, res, handler) {
   }
 }
 
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, asyncHandler(async (req, res) => {
   await withStudent(req, res, async (student) => {
     const [summary, achievements, timeline] = await Promise.all([
       getStudentProfileSummary(student),
@@ -30,25 +31,25 @@ router.get('/', protect, async (req, res) => {
     ]);
     return { summary, achievements, timeline };
   });
-});
+}));
 
-router.get('/summary', protect, async (req, res) => {
+router.get('/summary', protect, asyncHandler(async (req, res) => {
   await withStudent(req, res, (student) => getStudentProfileSummary(student));
-});
+}));
 
-router.get('/achievements', protect, async (req, res) => {
+router.get('/achievements', protect, asyncHandler(async (req, res) => {
   await withStudent(req, res, (student) => getStudentAchievements(student));
-});
+}));
 
-router.get('/timeline', protect, async (req, res) => {
+router.get('/timeline', protect, asyncHandler(async (req, res) => {
   await withStudent(req, res, (student) => getStudentLearningTimeline(student));
-});
+}));
 
-router.get('/personal-bests', protect, async (req, res) => {
+router.get('/personal-bests', protect, asyncHandler(async (req, res) => {
   await withStudent(req, res, (student) => getStudentPersonalBests(student));
-});
+}));
 
-router.patch('/name', protect, async (req, res) => {
+router.patch('/name', protect, asyncHandler(async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const newName = String(req.body.name || '').trim();
@@ -64,6 +65,6 @@ router.patch('/name', protect, async (req, res) => {
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to update name.' });
   }
-});
+}));
 
 export default router;

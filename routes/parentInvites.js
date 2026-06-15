@@ -13,6 +13,7 @@ import MasteryRecord from '../models/MasteryRecord.js';
 import Skill from '../models/Skill.js';
 import User from '../models/User.js';
 import { sendParentInvite } from '../utils/emailService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 
@@ -52,7 +53,7 @@ async function ensureParentWorkspace(user) {
 
 // ── Create an invite (school admin / workspace owner only) ───────────────────
 // POST /api/parent-invites
-router.post('/', protect, requireWorkspace, requireEntitlement('inviteParents'), async (req, res) => {
+router.post('/', protect, requireWorkspace, requireEntitlement('inviteParents'), asyncHandler(async (req, res) => {
   const isAdminRole = req.workspaceRole === 'school_admin' || req.workspaceRole === 'admin' || req.workspaceRole === 'teacher';
   const isOwner = req.workspace && String(req.workspace.ownerUserId) === String(req.user.id);
   if (!isAdminRole && !isOwner) return res.status(403).json({ error: 'Not allowed to invite parents in this workspace.' });
@@ -88,22 +89,22 @@ router.post('/', protect, requireWorkspace, requireEntitlement('inviteParents'),
   } catch (_) { /* surfaced via emailSent flag */ }
 
   res.status(201).json({ inviteUrl, token: invite.token, email: invite.email, expiresAt });
-});
+}));
 
 // ── Public preview ───────────────────────────────────────────────────────────
 // GET /api/parent-invites/:token
-router.get('/:token', async (req, res) => {
+router.get('/:token', asyncHandler(async (req, res) => {
   const invite = await ParentInvite.findOne({ token: req.params.token });
   if (!invite) return res.status(404).json({ error: 'Invite not found.' });
   await markExpiredIfNeeded(invite);
   res.json(safePreview(invite));
-});
+}));
 
 // ── Accept ───────────────────────────────────────────────────────────────────
 // POST /api/parent-invites/:token/accept
 // Two modes: an authenticated parent (Bearer token) accepts directly, or a new
 // guardian signs up inline with { name, password }. Creates a view-only link.
-router.post('/:token/accept', async (req, res) => {
+router.post('/:token/accept', asyncHandler(async (req, res) => {
   const invite = await ParentInvite.findOne({ token: req.params.token });
   if (!invite) return res.status(404).json({ error: 'Invite not found.' });
   await markExpiredIfNeeded(invite);
@@ -156,11 +157,11 @@ router.post('/:token/accept', async (req, res) => {
     token: issuedToken, // present only for a freshly-created account
     studentName: invite.studentName,
   });
-});
+}));
 
 // ── A parent's view-only school children ─────────────────────────────────────
 // GET /api/parent-invites/children  (authenticated)
-router.get('/children/list', protect, async (req, res) => {
+router.get('/children/list', protect, asyncHandler(async (req, res) => {
   const links = await StudentGuardian.find({ guardianUserId: req.user.id, source: 'school_invite' }).lean();
   const out = await Promise.all(links.map(async (link) => {
     const student = await Student.findById(link.studentId).lean();
@@ -181,6 +182,6 @@ router.get('/children/list', protect, async (req, res) => {
     };
   }));
   res.json({ children: out.filter(Boolean) });
-});
+}));
 
 export default router;
