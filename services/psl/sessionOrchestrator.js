@@ -4,6 +4,7 @@ import PSLAttempt from '../../models/psl/PSLAttempt.js';
 import PSLSkill from '../../models/psl/PSLSkill.js';
 import Mistake from '../../models/Mistake.js';
 import LearningResult from '../../models/LearningResult.js';
+import MasteryRecord from '../../models/MasteryRecord.js';
 import { recordAttempt } from '../../utils/masteryEngine.js';
 import { generateProblemsForSession } from './problemGenerator.js';
 import { evaluateStep, evaluateAttempt } from './stepEvaluator.js';
@@ -39,13 +40,17 @@ export async function startSession({ studentId, skillId, workspaceId, problemCou
   const skill = await PSLSkill.findOne({ skillId }).lean();
   if (!skill) throw Object.assign(new Error(`PSL skill not found: ${skillId}`), { status: 404 });
 
-  const problems = await generateProblemsForSession(skillId, problemCount);
+  const mastery = await MasteryRecord.findOne({ studentId, skillId: skill._id, module: 'PSL' }).lean().catch(() => null);
+  const { problems, targetDifficulty } = await generateProblemsForSession(skillId, problemCount, {
+    masteryScore: mastery?.score ?? null,
+  });
   const session = await PSLSession.create({
     sessionId: crypto.randomUUID(),
     studentId,
     skillId,
     workspaceId,
     assignmentId,
+    targetDifficulty,
     status: 'inProgress',
     problems,
     currentProblemIndex: 0,

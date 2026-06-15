@@ -16,6 +16,7 @@ const problemSchema = new mongoose.Schema({
   correctAnswer: Number,
   barModelSpec: mongoose.Schema.Types.Mixed,
   scaffoldSteps: [scaffoldStepSchema],
+  difficulty: { type: Number, default: 1 },
   status: { type: String, enum: ['pending', 'inProgress', 'completed'], default: 'pending' },
 }, { _id: false });
 
@@ -35,6 +36,7 @@ const pslSessionSchema = new mongoose.Schema({
   skillId: { type: String, required: true },
   workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace', required: true },
   assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', default: null },
+  targetDifficulty: { type: Number, default: 1 },
   status: {
     type: String,
     enum: ['notStarted', 'inProgress', 'completed', 'abandoned'],
