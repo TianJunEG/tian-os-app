@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowUp,
   ArrowDown,
@@ -14,6 +16,7 @@ import {
   Flame,
   Lock,
   Minus,
+  Palette,
   Pencil,
   PenLine,
   Sparkles,
@@ -27,7 +30,7 @@ import {
 } from 'lucide-react';
 import { studentProfileAPI } from '../../services/api';
 import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../components/ui';
-import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
+import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode, STUDENT_VISUAL_MODES } from '../../design-os/studentVisualMode';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import { useAuth } from '../../context/AuthContext';
 import MascotAvatar from '../../components/MascotAvatar';
@@ -376,14 +379,41 @@ function PersonalBestsSection({ visual }) {
   );
 }
 
+const SKIN_OPTIONS = [
+  { key: STUDENT_VISUAL_MODES.LOWER_PRIMARY, label: 'Playful', description: 'Bright colours and fun decorations', preview: 'bg-gradient-to-br from-sky-100 via-white to-pink-100' },
+  { key: STUDENT_VISUAL_MODES.UPPER_PRIMARY, label: 'Cool', description: 'Clean purple and mint tones', preview: 'bg-gradient-to-br from-violet-100 via-white to-mint-100' },
+  { key: STUDENT_VISUAL_MODES.SECONDARY, label: 'Minimal', description: 'Simple and focused', preview: 'bg-slate-100' },
+];
+
 export default function StudentProfile() {
   const [state, setState] = useState({ loading: true, error: '', data: null });
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const [nameSaving, setNameSaving] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [skinSaving, setSkinSaving] = useState(false);
   const nameInputRef = useRef(null);
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const saveVisualMode = async (mode) => {
+    if (skinSaving) return;
+    setSkinSaving(true);
+    try {
+      await studentProfileAPI.updateVisualMode(mode);
+      setState((prev) => ({
+        ...prev,
+        data: {
+          ...prev.data,
+          summary: { ...prev.data?.summary, student: { ...prev.data?.summary?.student, studentVisualMode: mode } },
+        },
+      }));
+    } catch (err) {
+      console.error('Failed to update visual mode:', err);
+    } finally {
+      setSkinSaving(false);
+    }
+  };
 
   const startEditName = () => {
     setNameValue(state.data?.summary?.student?.name || '');
@@ -490,6 +520,14 @@ export default function StudentProfile() {
 
   return (
     <main className={`mx-auto max-w-6xl pb-6 ${visual.styles.page}`}>
+      <button
+        onClick={() => navigate('/student')}
+        className="mb-4 inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-ink-500 transition-colors hover:bg-white/60 hover:text-ink-800"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Dashboard
+      </button>
+
       <section className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <Card className={`relative overflow-hidden p-5 sm:p-6 ${visual.styles.card}`}>
           <DecorativeMotif enabled={visual.styles.decorative} />
@@ -634,6 +672,42 @@ export default function StudentProfile() {
             </div>
           )}
         </Card>
+      </section>
+
+      <section className="mt-5">
+        <div className="mb-3">
+          <h2 className="font-display text-xl font-semibold text-ink-900 sm:text-2xl">
+            <Palette className="mb-0.5 mr-2 inline h-5 w-5" />
+            {isLowerPrimary(visual.mode) ? 'Pick Your Look' : 'Theme'}
+          </h2>
+          <p className="mt-1 text-sm text-ink-500">Choose how your learning space looks and feels.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {SKIN_OPTIONS.map((skin) => {
+            const active = visual.mode === skin.key;
+            return (
+              <button
+                key={skin.key}
+                disabled={skinSaving}
+                onClick={() => !active && saveVisualMode(skin.key)}
+                className={`relative rounded-2xl border-2 p-4 text-left transition-all ${
+                  active
+                    ? 'border-teal-500 ring-2 ring-teal-200'
+                    : 'border-hairline hover:border-ink-200'
+                } ${skinSaving ? 'opacity-60' : ''}`}
+              >
+                <div className={`mb-3 h-10 rounded-xl ${skin.preview}`} />
+                <p className="text-sm font-bold text-ink-900">{skin.label}</p>
+                <p className="mt-0.5 text-xs text-ink-500">{skin.description}</p>
+                {active && (
+                  <span className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full bg-teal-500 text-white">
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </section>
 
       {showAvatarPicker && (

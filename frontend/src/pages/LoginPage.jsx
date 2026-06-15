@@ -5,7 +5,7 @@ import { ArrowLeft, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
 import { Card, Button, Field, Input, Alert } from '../components/ui';
 import { ROLE_HOME } from '../config/nav';
-import MascotAvatar from '../components/MascotAvatar';
+import { MASCOT_ORDER } from '../config/mascots';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -47,8 +47,15 @@ export default function LoginPage() {
           Back to homepage
         </Link>
         <div className="mb-6 flex justify-center"><Wordmark onDark={false} size={34} /></div>
-        <div className="mb-4 flex justify-center">
-          <MascotAvatar name="tiano" size="lg" />
+        <div className="mb-4 flex justify-center -space-x-3">
+          {MASCOT_ORDER.map((key) => (
+            <img
+              key={key}
+              src={`/mascots/${key}.png`}
+              alt={key}
+              className="h-12 w-12 rounded-full border-2 border-white object-cover shadow-sm"
+            />
+          ))}
         </div>
         <h1 className="text-center font-display text-3xl font-semibold tracking-[-0.02em] text-navy-700">Welcome back</h1>
         <p className="mb-8 mt-1 text-center text-sm text-ink-500">Sign in to your Tian OS account</p>
