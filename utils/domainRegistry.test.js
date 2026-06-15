@@ -43,8 +43,10 @@ describe('platform domain registry', () => {
     expect(domain.diagnosticAdapter.enabled).toBe(true);
     expect(domain.diagnosticAdapter.status).toBe('available');
     expect(domain.diagnosticAdapter.provider).toBeTruthy();
-    // remaining platform adapters are not yet built
-    expect(domain.worksheetAdapter.enabled).toBe(false);
+    // platform adapters reuse the MathPath services with domainId=decimals
+    expect(domain.assignmentAdapter.enabled).toBe(true);
+    expect(domain.worksheetAdapter.enabled).toBe(true);
+    expect(domain.paperAnalysisAdapter.enabled).toBe(true);
   });
 
   it('keeps the existing diagnostic registry compatible', () => {

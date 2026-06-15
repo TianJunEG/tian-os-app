@@ -173,9 +173,24 @@ export function registerDefaultDomains() {
       notes: 'DB-free adaptive diagnostic driven by the generic runtime; questions generated on-the-fly from the rule-based engine.',
       provider: diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' }),
     },
-    assignmentAdapter: { enabled: false, status: 'planned', notes: 'Will reuse the MathPath assignment service once diagnostics land.' },
-    worksheetAdapter: { enabled: false, status: 'planned' },
-    paperAnalysisAdapter: { enabled: false, status: 'planned' },
+    assignmentAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Reuses MathPath assignment service with domainId=decimals.',
+      serviceModule: 'services/mathpath/mathPathAssignmentService.js',
+    },
+    worksheetAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Reuses worksheet generation engine with domain=decimals.',
+      serviceModule: 'services/mathpath/worksheetGenerationEngine.js',
+    },
+    paperAnalysisAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Decimals-specific keyword mapper + AI fallback.',
+      serviceModule: 'services/mathpath/decimalsPaperAnalysisMapper.js',
+    },
     interventionAdapter: { enabled: false, status: 'planned' },
     // Custom capability beyond the five platform adapters: the runnable content
     // + progression layer shipped in increments 1–2.

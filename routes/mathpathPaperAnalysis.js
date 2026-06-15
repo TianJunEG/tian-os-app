@@ -10,6 +10,9 @@ import {
   buildPaperAnalysisRecommendations,
   mapPaperQuestionToSkills,
 } from '../services/mathpath/paperAnalysisSkillMapper.js';
+import {
+  mapPaperQuestionToSkills as mapDecimalsPaperQuestion,
+} from '../services/mathpath/decimalsPaperAnalysisMapper.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import {
   applyAdultReviewOverrides,
@@ -113,9 +116,10 @@ async function saveUpload(file) {
   return { originalFilename: file.originalname || filename, ...saved };
 }
 
-function normalizeDetectedQuestions(rawQuestions = []) {
+function normalizeDetectedQuestions(rawQuestions = [], { domainId = 'fractions' } = {}) {
+  const mapper = domainId === 'decimals' ? mapDecimalsPaperQuestion : mapPaperQuestionToSkills;
   return (Array.isArray(rawQuestions) ? rawQuestions : []).map((question, index) => {
-    const mapped = mapPaperQuestionToSkills(question);
+    const mapped = mapper(question);
     return {
       questionNumber: String(question.questionNumber || index + 1),
       questionText: question.questionText || '',
@@ -161,14 +165,15 @@ router.post('/upload', protect, upload.single('paper'), asyncHandler(async (req,
     } catch {
       return res.status(400).json({ error: 'Detected questions must be valid JSON.' });
     }
-    const detectedQuestions = normalizeDetectedQuestions(rawQuestions);
+    const domainId = req.body?.domainId || 'fractions';
+    const detectedQuestions = normalizeDetectedQuestions(rawQuestions, { domainId });
     const recommendations = buildPaperAnalysisRecommendations(detectedQuestions);
     const analysis = await PaperAnalysis.create({
       studentId: String(student._id),
       uploadedByUserId: String(req.user?.id || req.user?._id || ''),
       uploadedByRole: uploadedByRole(req.user),
       subjectId: req.body?.subjectId || 'math',
-      domainId: req.body?.domainId || 'fractions',
+      domainId,
       uploadType: req.body?.uploadType || 'completed_unmarked',
       sourceType: req.body?.sourceType || 'adult_upload',
       pageCount: Math.max(1, Number(req.body?.pageCount || 1)),
@@ -333,7 +338,7 @@ router.patch('/:id/review', protect, asyncHandler(async (req, res) => {
     if (!analysis) return res.status(404).json({ error: 'Paper analysis not found.' });
     await resolvePaperAnalysisStudent(req, analysis.studentId);
 
-    const detectedQuestions = applyAdultReviewOverrides(normalizeDetectedQuestions(req.body?.detectedQuestions || analysis.detectedQuestions));
+    const detectedQuestions = applyAdultReviewOverrides(normalizeDetectedQuestions(req.body?.detectedQuestions || analysis.detectedQuestions, { domainId: analysis.domainId || 'fractions' }));
     const analysisObject = typeof analysis.toObject === 'function' ? analysis.toObject() : analysis;
     const recommendations = buildReviewRecommendations({ ...analysisObject, detectedQuestions });
     analysis.detectedQuestions = detectedQuestions;
