@@ -86,6 +86,9 @@ const paperAnalysisSchema = new mongoose.Schema(
     originalFilename: { type: String, default: '' },
     fileUrl: { type: String, default: '' },
     storageKey: { type: String, default: '' },
+    // Where storageKey lives: 'disk' (absolute path, legacy/local) or 'r2' (opaque
+    // object key). Authoritative for reading the file back; see services/storage.
+    storageProvider: { type: String, default: 'disk', trim: true },
     pageCount: { type: Number, default: 1, min: 1 },
     status: { type: String, enum: PAPER_ANALYSIS_STATUS, default: 'needs_review', index: true },
     ocrPages: { type: [ocrPageSchema], default: [] },

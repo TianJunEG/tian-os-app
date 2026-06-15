@@ -5,7 +5,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import mongoose from 'mongoose';
 import connectDB from './config/db.js';
+import { closeRedis } from './config/redis.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
@@ -249,6 +251,38 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Graceful shutdown (Phase 1 WS5): on a platform stop/redeploy, stop accepting
+// new connections, let in-flight requests finish, then close Mongo + Redis so
+// rolling deploys and scale-down don't drop work or leak connections.
+let shuttingDown = false;
+async function shutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`${signal} received, shutting down gracefully…`);
+
+  // Force-exit backstop if a connection refuses to drain in time.
+  const forceExit = setTimeout(() => {
+    console.error('Shutdown timed out, forcing exit.');
+    process.exit(1);
+  }, 15000);
+  forceExit.unref();
+
+  server.close(async () => {
+    try {
+      await mongoose.connection.close();
+      await closeRedis();
+    } catch (err) {
+      console.error('Error during shutdown cleanup:', err?.message);
+    } finally {
+      clearTimeout(forceExit);
+      process.exit(0);
+    }
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

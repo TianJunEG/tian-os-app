@@ -95,6 +95,46 @@ describe('callStructured — response handling (via generateReinforcement)', () 
   });
 });
 
+describe('transient-error retry with backoff', () => {
+  const err = (status) => Object.assign(new Error(`http ${status}`), { status });
+
+  it('retries a 429 then succeeds, returning the eventual result', async () => {
+    vi.useFakeTimers();
+    try {
+      h.state.queue.push(err(429));
+      h.state.queue.push(ok({ questions: [] }));
+      const p = svc.generateReinforcement({ topic: 't', misconceptions: [], numQuestions: 6 });
+      await vi.runAllTimersAsync();
+      await expect(p).resolves.toEqual([]);
+      expect(h.state.calls).toHaveLength(2); // one failed attempt + one retry
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('does not retry a permanent 400 — fails on the first attempt', async () => {
+    h.state.queue.push(err(400));
+    await expect(svc.generateReinforcement({ topic: 't', misconceptions: [], numQuestions: 6 }))
+      .rejects.toMatchObject({ status: 400 });
+    expect(h.state.calls).toHaveLength(1);
+  });
+
+  it('gives up after the retry budget on a persistent 529 overload', async () => {
+    vi.useFakeTimers();
+    try {
+      for (let i = 0; i < 10; i += 1) h.state.queue.push(err(529));
+      const p = svc.generateReinforcement({ topic: 't', misconceptions: [], numQuestions: 6 });
+      const assertion = expect(p).rejects.toMatchObject({ status: 529 });
+      await vi.runAllTimersAsync();
+      await assertion;
+      // 1 initial attempt + WORKSHEET_AI_MAX_RETRIES (default 4) = 5 total
+      expect(h.state.calls).toHaveLength(5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
 describe('model tuning (effort / adaptive thinking) is gated by model', () => {
   it('omits thinking and effort on the cheap haiku model', async () => {
     h.state.queue.push(ok({ questions: [] }));
