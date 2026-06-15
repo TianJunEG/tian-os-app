@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Lock, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, Lock, Target } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { mathpathAPI } from '../../../services/api';
 import { Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
@@ -47,9 +48,12 @@ function SkillCard({ skill, selected, onSelect }) {
 
 export default function DecimalsLearningPathPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [records, setRecords] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+
+  const startPractice = (skillId) => navigate(`/student/mathpath/decimals/practice?skill=${skillId}`);
 
   useEffect(() => {
     let active = true;
@@ -94,10 +98,11 @@ export default function DecimalsLearningPathPage() {
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700">
             <Target className="h-5 w-5" />
           </span>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended Next</p>
             <p className="truncate text-sm font-semibold text-ink-700">{view.recommendedNext.skillName}</p>
           </div>
+          <Button size="s" icon={ArrowRight} onClick={() => startPractice(view.recommendedNext.skillId)}>Practise</Button>
         </div>
       </Card>
 
@@ -114,7 +119,9 @@ export default function DecimalsLearningPathPage() {
             </p>
           )}
           <div className="mt-3">
-            <Button size="s" disabled>{selected.locked ? 'Locked' : 'Practice (coming soon)'}</Button>
+            <Button size="s" disabled={selected.locked} onClick={() => !selected.locked && startPractice(selected.id)}>
+              {selected.locked ? 'Locked' : 'Practise This Skill'}
+            </Button>
           </div>
         </Card>
       )}
