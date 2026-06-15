@@ -11,6 +11,7 @@ import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
 import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
 import { photoWorksheetFields, logPhotoMisconceptions } from '../services/worksheets/photoWorksheet.js';
+import { buildMarkItems, missedMisconceptions, applyMarkResults } from '../services/worksheets/markSession.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 import { commonMistakes } from '../utils/commonMistakes.js';
 import { resolveStudent } from '../utils/studentContext.js';

@@ -197,6 +197,21 @@ export default function WorksheetGeneratorPage() {
     throw new Error('Worksheet is taking longer than expected. Check your history shortly.');
   };
 
+  // Async marking returns 202; poll GET /:id until the session is marked/failed.
+  const pollSessionMarked = async (id, sessionNumber, { tries = 40, intervalMs = 2000 } = {}) => {
+    for (let i = 0; i < tries; i += 1) {
+      await new Promise((r) => setTimeout(r, intervalMs));
+      const res = await worksheetsAPI.get(id);
+      const w = res.data.worksheet;
+      const session = (w?.practiceSessions || []).find((s) => s.sessionNumber === sessionNumber);
+      if (session?.markingStatus === 'marked') return w;
+      if (session?.markingStatus === 'failed') {
+        throw new Error(session.markingError || 'Marking failed.');
+      }
+    }
+    throw new Error('Marking is taking longer than expected. Check back shortly.');
+  };
+
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
