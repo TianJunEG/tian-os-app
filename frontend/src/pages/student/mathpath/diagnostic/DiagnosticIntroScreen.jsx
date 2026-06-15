@@ -34,6 +34,9 @@ export default function DiagnosticIntroScreen() {
   const location = useLocation();
   const { user } = useAuth();
   const inferred = inferLevel(user);
+  // Which diagnostic domain to run, from the registry-driven dashboard link
+  // (?domain=...) or explicit nav state; defaults to fractions.
+  const domainId = new URLSearchParams(location.search).get('domain') || location.state?.domainId || 'fractions';
   const diagnosticPurpose = location.state?.diagnosticPurpose || 'baseline';
   const allowModeOverride = Boolean(location.state?.allowModeOverride);
   const [studentLevel, setStudentLevel] = useState(inferred);
@@ -61,6 +64,7 @@ export default function DiagnosticIntroScreen() {
     setError('');
     try {
       const { data } = await mathpathAPI.startDiagnostic({
+        domainId,
         requestedMode: mode,
         studentLevel,
         diagnosticPurpose,

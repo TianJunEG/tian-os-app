@@ -24,7 +24,7 @@ import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
 import { fractionSkillGraph, getSkill } from '../../mathpath/fractions/fractionSkillGraph';
-import { learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
+import { diagnosticsAPI, learningTelemetryAPI, mathpathAPI, studentProfileAPI } from '../../services/api';
 import { Card, Button, Spinner, ErrorState, Badge } from '../../components/ui';
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 import { MascotBubble } from '../../components/MascotAvatar';
@@ -878,6 +878,22 @@ function LowerPrimaryBanner() {
   );
 }
 
+// One diagnostic CTA per registered diagnostic domain (from the registry, not
+// hardcoded). Each links to the diagnostic intro carrying its domainId.
+function DiagnosticPrompts({ domains, containerClassName = '', containerStyle }) {
+  const list = (domains && domains.length) ? domains : [{ domainId: 'fractions', displayName: 'Fractions' }];
+  return (
+    <div className={`space-y-3 ${containerClassName}`} style={containerStyle}>
+      {list.map((d) => (
+        <Card key={d.domainId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-ink-500">Start your {d.displayName} Diagnostic to find your best starting point.</p>
+          <Button to={`/student/mathpath/diagnostic?domain=${encodeURIComponent(d.domainId)}`} size="s" icon={ArrowRight}>Start Diagnostic</Button>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export default function StudentDashboard() {
   const { user } = useAuth();
   const firstName = (user?.name || 'there').split(' ')[0];
@@ -891,6 +907,10 @@ export default function StudentDashboard() {
   const [learningTimeline, setLearningTimeline] = useState([]);
   const [resetting, setResetting] = useState(false);
   const [expandedCards, setExpandedCards] = useState({ a: false, q: false, w: false, c: false, li: false });
+  // Diagnostic CTAs are driven by the diagnostic domain registry (one per
+  // domain), not hardcoded to Fractions. Seeded with Fractions so the card never
+  // regresses if the registry call fails.
+  const [diagnosticDomains, setDiagnosticDomains] = useState([{ domainId: 'fractions', displayName: 'Fractions' }]);
 
   // Dev-only mock mode: explicit opt-in. Internal alpha/default users should
   // see real pipeline output, not synthetic dashboard data.
@@ -903,14 +923,15 @@ export default function StudentDashboard() {
     (async () => {
       try {
         const studentId = user?.id || user?._id || user?.email || (useMock ? 'mock-student' : '');
-        const [latestResponse, analyticsResponse, profileResponse, timelineResponse, masteryResponse] = useMock
-          ? [null, null, null, null, null]
+        const [latestResponse, analyticsResponse, profileResponse, timelineResponse, masteryResponse, domainsResponse] = useMock
+          ? [null, null, null, null, null, null]
           : await Promise.all([
               mathpathAPI.getLatestDiagnostic(),
               learningTelemetryAPI.studentAnalytics({ days: 7 }).catch(() => ({ data: null })),
               studentProfileAPI.summary().catch(() => ({ data: null })),
               studentProfileAPI.timeline().catch(() => ({ data: [] })),
               mathpathAPI.mastery().catch(() => ({ data: null })),
+              diagnosticsAPI.domains().catch(() => ({ data: null })),
             ]);
         const latest = latestResponse?.data || null;
         const profile = profileResponse?.data || null;
@@ -956,6 +977,10 @@ export default function StudentDashboard() {
               },
             });
         if (active) {
+          const domains = (domainsResponse?.data?.domains || [])
+            .filter((d) => d && d.domainId)
+            .map((d) => ({ domainId: d.domainId, displayName: d.displayName || d.domainId }));
+          if (domains.length) setDiagnosticDomains(domains);
           setPayload(result);
           setAnalytics(analyticsResponse?.data || null);
           setProfileSummary(profile || null);
@@ -1268,12 +1293,7 @@ export default function StudentDashboard() {
           )}
 
           {showDiagnosticPrompt && (
-            <div style={{ marginTop: 20 }}>
-              <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
-                <Button to="/student/mathpath/diagnostic" size="s" icon={ArrowRight}>Start Diagnostic</Button>
-              </Card>
-            </div>
+            <DiagnosticPrompts domains={diagnosticDomains} containerStyle={{ marginTop: 20 }} />
           )}
           {hasOtherWarnings && !showDiagnosticPrompt && (
             <div style={{ marginTop: 20 }}>
@@ -1346,12 +1366,7 @@ export default function StudentDashboard() {
         <LowerPrimaryBanner />
 
         {showDiagnosticPrompt && (
-          <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
-            <Button to="/student/mathpath/diagnostic" size="s" icon={ArrowRight}>
-              Start Diagnostic
-            </Button>
-          </Card>
+          <DiagnosticPrompts domains={diagnosticDomains} />
         )}
       </main>
     );
@@ -1450,12 +1465,7 @@ export default function StudentDashboard() {
       )}
 
       {showDiagnosticPrompt && (
-        <Card className="mt-4 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-500">Start your Fractions Diagnostic to find your best starting point.</p>
-          <Button to="/student/mathpath/diagnostic" size="s" icon={ArrowRight}>
-            Start Diagnostic
-          </Button>
-        </Card>
+        <DiagnosticPrompts domains={diagnosticDomains} containerClassName="mt-4" />
       )}
       {hasOtherWarnings && !showDiagnosticPrompt && (
         <Card className="mt-4 p-4">
