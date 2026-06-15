@@ -14,7 +14,7 @@ export default {
       explanation: 'Split the whole into equal parts (the denominator), then take as many as the numerator!',
       example: {
         steps: [
-          'Tom has 24 marbles. ⅜ are blue. How many are blue?',
+          'Tom has 24 marbles. {{3/8}} are blue. How many are blue?',
           '24 ÷ 8 = 3 (one part)',
         ],
         answer: '3 × 3 = 9 blue marbles',
@@ -22,6 +22,7 @@ export default {
       sfx: 'BAM!',
       tip: 'Always draw the bar model first — it shows you what to divide and multiply!',
       barModel: { parts: 8, shaded: 3, value: 3 },
+      diagram: { type: 'pieChart', slices: [{ num: 3, den: 8 }], labels: ['⅜'] },
     },
     {
       title: 'Two-Step Word Problem',
@@ -40,6 +41,7 @@ export default {
       sfx: 'KA-POW!',
       tip: 'Underline the question, circle the numbers, then draw your model — never skip the diagram!',
       bossLevel: true,
+      diagram: { type: 'stackedBar', total: 1850, segments: [{ value: 640, label: 'Rent' }, { value: 475, label: 'Food' }, { value: 735, label: '?' }] },
     },
   ],
 };

@@ -18,6 +18,7 @@ export default {
       },
       sfx: 'BAM!',
       tip: 'Zero means "none of that place" — don\'t skip it!',
+      diagram: { type: 'placeValue', digits: [5, 0, 3, 0, 2], headers: ['TTh', 'Th', 'H', 'T', 'O'] },
     },
     {
       title: 'Comparing & Ordering',
@@ -31,6 +32,7 @@ export default {
       },
       sfx: 'POW!',
       tip: null,
+      diagram: { type: 'comparison', top: [4,7,3,1,2], bottom: [4,7,2,3,1], diffIdx: 2 },
     },
     {
       title: 'Number Patterns',
@@ -44,6 +46,7 @@ export default {
       },
       sfx: 'KA-POW!',
       tip: 'Check: does every gap equal the same jump? If yes, you\'ve got the pattern!',
+      diagram: { type: 'numberLine', points: [12000, 14500, 17000, 19500, 22000], jump: '+2 500', highlightLast: true },
     },
     {
       title: 'Rounding',
@@ -57,6 +60,7 @@ export default {
       },
       sfx: 'SNAP!',
       tip: 'You can round to nearest 10, 100, or 1 000 — same rule every time!',
+      diagram: { type: 'numberLine', points: [3800, 3847, 3900], labels: ['3 800', '3 847', '3 900'], highlightIdx: 0, arrow: 1 },
     },
   ],
 };

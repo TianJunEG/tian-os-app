@@ -23,6 +23,15 @@ const SHEETS = {
   'sg-p4-stat': sgP4Statistics,
 };
 
+const PANEL_THEMES = [
+  { bg: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)', accent: '#4f46e5', accentLight: '#c7d2fe', shadow: '#818cf8', label: '#312e81' },
+  { bg: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', accent: '#d97706', accentLight: '#fde68a', shadow: '#f59e0b', label: '#78350f' },
+  { bg: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', accent: '#16a34a', accentLight: '#bbf7d0', shadow: '#22c55e', label: '#14532d' },
+  { bg: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', accent: '#db2777', accentLight: '#fbcfe8', shadow: '#ec4899', label: '#831843' },
+  { bg: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', accent: '#0284c7', accentLight: '#bae6fd', shadow: '#0ea5e9', label: '#0c4a6e' },
+  { bg: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', accent: '#9333ea', accentLight: '#e9d5ff', shadow: '#a855f7', label: '#581c87' },
+];
+
 export default function CheatSheet() {
   const { sheetId } = useParams();
   const navigate = useNavigate();
@@ -33,7 +42,6 @@ export default function CheatSheet() {
   if (!sheet) return <p className="p-6 text-ink-500">Cheat sheet not found.</p>;
 
   const mascot = getMascot(sheet.mascot);
-  const color = mascot?.color || '#1e3a5f';
 
   const handleDownloadPDF = async () => {
     if (!sheetRef.current || exporting) return;
@@ -59,7 +67,6 @@ export default function CheatSheet() {
 
   return (
     <div className="mx-auto max-w-3xl pb-12">
-      {/* Nav bar */}
       <div className="mb-4 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-navy-700">
           <ArrowLeft className="h-4 w-4" /> Back
@@ -74,107 +81,119 @@ export default function CheatSheet() {
         </button>
       </div>
 
-      {/* Comic sheet */}
-      <div ref={sheetRef} className="overflow-hidden rounded-lg border-4 border-black bg-black">
+      <div ref={sheetRef} className="cs-wrapper">
         {/* Masthead */}
-        <div className="comic-masthead relative flex items-center gap-3 border-b-4 border-black px-4 py-3 sm:gap-4 sm:px-5">
-          <div className="comic-halftone-overlay" />
+        <div className="cs-masthead">
+          <div className="cs-masthead-burst" />
+          <div className="cs-masthead-halftone" />
           <img
             src={`/mascots/${sheet.mascot}-head.png`}
             alt={mascot?.name}
-            className="relative z-10 h-12 w-12 rounded-full border-[3px] border-yellow-400 object-cover shadow-lg sm:h-14 sm:w-14"
-            style={{ background: mascot?.colorLight || '#e2e8f0', boxShadow: `0 0 0 3px #000, 0 0 16px rgba(251,191,36,.4)` }}
+            className="cs-masthead-avatar"
+            style={{ background: mascot?.colorLight || '#e2e8f0' }}
           />
-          <div className="relative z-10 min-w-0 flex-1">
-            <h1 className="comic-title text-3xl leading-none sm:text-4xl">{sheet.topic.toUpperCase()}!</h1>
-            <p className="comic-subtitle mt-0.5">{sheet.subtitle}</p>
+          <div className="cs-masthead-text">
+            <h1 className="cs-masthead-title">{sheet.topic.toUpperCase()}!</h1>
+            <p className="cs-masthead-sub">{sheet.subtitle}</p>
           </div>
-          <div className="comic-issue-badge relative z-10">
-            {sheet.level.toUpperCase()}<br />ISSUE #{sheet.issue}
+          <div className="cs-issue-badge">
+            <span className="cs-issue-level">{sheet.level.toUpperCase()}</span>
+            <span className="cs-issue-num">ISSUE #{sheet.issue}</span>
           </div>
         </div>
 
-        {/* Panels grid */}
-        <div className="grid grid-cols-1 gap-[3px] bg-black p-[3px] sm:grid-cols-2">
+        {/* Panels */}
+        <div className="cs-panels">
           {sheet.sections.map((sec, i) => (
             <SectionPanel
               key={i}
               section={sec}
               index={i}
+              total={sheet.sections.length}
               mascotKey={sheet.mascot}
-              mascotColor={color}
-              isWide={sec.bossLevel || i === sheet.sections.length - 1 && sheet.sections.length % 2 === 1}
+              mascotName={mascot?.name || 'Kylo'}
+              theme={PANEL_THEMES[i % PANEL_THEMES.length]}
             />
           ))}
         </div>
 
         {/* Footer */}
-        <div className="comic-footer">
-          {mascot?.name?.toUpperCase()}'S CHEAT SHEET &bull; ISSUE #{sheet.issue}: {sheet.topic.toUpperCase()} &bull; TIAN OS &bull; TO BE CONTINUED…
+        <div className="cs-footer">
+          <span className="cs-footer-stars">★ ★ ★</span>
+          <span>{mascot?.name?.toUpperCase()}'S CHEAT SHEET &bull; {sheet.topic.toUpperCase()} &bull; TIAN OS</span>
+          <span className="cs-footer-stars">★ ★ ★</span>
         </div>
       </div>
     </div>
   );
 }
 
-function SectionPanel({ section, index, mascotKey, mascotColor, isWide }) {
-  const panelNum = String(index + 1).padStart(2, '0');
+function SectionPanel({ section, index, total, mascotKey, mascotName, theme }) {
+  const isWide = section.bossLevel || (index === total - 1 && total % 2 === 1);
 
   return (
     <div
-      className={`comic-panel relative ${isWide ? 'sm:col-span-2' : ''} ${section.bossLevel ? 'comic-panel--boss' : ''}`}
+      className={`cs-panel ${isWide ? 'cs-panel--wide' : ''} ${section.bossLevel ? 'cs-panel--boss' : ''}`}
+      style={{ background: theme.bg }}
     >
-      <div className="comic-halftone-bg" />
-      <span className="comic-panel-num" style={section.bossLevel ? { background: '#dc2626' } : {}}>
-        {panelNum}
-      </span>
+      {/* Starburst decoration */}
+      <div className="cs-panel-burst" style={{ color: theme.accentLight }} />
+
+      {/* Section title banner */}
+      <div className="cs-section-banner" style={{ background: theme.accent }}>
+        <span className="cs-section-num">{String(index + 1).padStart(2, '0')}</span>
+        <span className="cs-section-title">{section.title}</span>
+        <span className="cs-section-code">{section.code}</span>
+      </div>
 
       {section.bossLevel && (
-        <div className="relative z-10 mb-1 px-3 pt-1">
-          <span className="comic-boss-badge">BOSS LEVEL</span>
+        <div className="cs-boss-row">
+          <span className="cs-boss-badge">★ BOSS LEVEL ★</span>
         </div>
       )}
 
-      <div className="relative z-10 space-y-2.5 p-3 pt-6 sm:p-4 sm:pt-7">
-        {/* Mascot + speech bubble */}
-        <div className="flex items-start gap-2 sm:gap-3">
-          <img
-            src={`/mascots/${mascotKey}-head.png`}
-            alt="mascot"
-            className="h-10 w-10 shrink-0 rounded-full border-[3px] object-cover shadow-md sm:h-12 sm:w-12"
-            style={{ borderColor: mascotColor, background: '#e2e8f0', boxShadow: '3px 3px 0 #000' }}
-          />
-          <div className="comic-speech-bubble flex-1 text-xs sm:text-sm">
-            <span dangerouslySetInnerHTML={{ __html: highlightEmphasis(section.explanation) }} />
+      <div className="cs-panel-body">
+        {/* Speech bubble */}
+        <div className="cs-bubble">
+          <span dangerouslySetInnerHTML={{ __html: formatText(section.explanation) }} />
+        </div>
+
+        {/* Formula */}
+        <div className="cs-formula">
+          <div className="cs-formula-label" style={{ background: theme.accent }}>FORMULA</div>
+          <p className="cs-formula-text" dangerouslySetInnerHTML={{ __html: formatText(section.formula) }} />
+          {section.formulaNote && <p className="cs-formula-note" dangerouslySetInnerHTML={{ __html: formatText(section.formulaNote) }} />}
+        </div>
+
+        {/* Example */}
+        <div className="cs-example">
+          <div className="cs-example-label">WORKED EXAMPLE</div>
+          {section.example.steps.map((step, j) => (
+            <p key={j} className="cs-example-step" dangerouslySetInnerHTML={{ __html: formatText(step) }} />
+          ))}
+          <div className="cs-example-answer-row">
+            <span className="cs-example-answer" dangerouslySetInnerHTML={{ __html: '= ' + formatText(section.example.answer) }} />
+            <span className="cs-sfx" style={{ color: theme.accent }}>{section.sfx}</span>
           </div>
         </div>
 
-        {/* Formula card */}
-        <div className="comic-formula-card">
-          <p className="comic-formula-text">{section.formula}</p>
-          <p className="comic-formula-note">{section.formulaNote}</p>
-        </div>
+        {/* Diagram */}
+        {section.diagram && (
+          <div className="cs-diagram">
+            <Diagram data={section.diagram} theme={theme} />
+          </div>
+        )}
 
-        {/* Worked example */}
-        <div className="comic-example">
-          {section.example.steps.map((step, j) => (
-            <p key={j} className="text-xs sm:text-sm">{step}</p>
-          ))}
-          <p className="comic-example-answer">
-            = {section.example.answer}{' '}
-            <span className="comic-sfx ml-1 text-base sm:text-lg">{section.sfx}</span>
-          </p>
-        </div>
-
-        {/* Bar model (if present) */}
+        {/* Bar model */}
         {section.barModel && (
-          <div className="flex items-center gap-2">
-            <span className="comic-label">BAR MODEL:</span>
-            <div className="comic-bar-model">
+          <div className="cs-barmodel-wrap">
+            <span className="cs-barmodel-label">BAR MODEL</span>
+            <div className="cs-barmodel">
               {Array.from({ length: section.barModel.parts }).map((_, j) => (
                 <div
                   key={j}
-                  className={j < section.barModel.shaded ? 'comic-bar-on' : 'comic-bar-off'}
+                  className={j < section.barModel.shaded ? 'cs-bar-on' : 'cs-bar-off'}
+                  style={j < section.barModel.shaded ? { background: theme.accent } : {}}
                 >
                   {section.barModel.value}
                 </div>
@@ -183,11 +202,14 @@ function SectionPanel({ section, index, mascotKey, mascotColor, isWide }) {
           </div>
         )}
 
-        {/* Pro tip */}
+        {/* Tip */}
         {section.tip && (
-          <div className="comic-tip">
-            <span className="comic-tip-title">KYLO'S PRO TIP</span>
-            <p>{section.tip}</p>
+          <div className="cs-tip">
+            <span className="cs-tip-icon">⚡</span>
+            <div>
+              <span className="cs-tip-title">{mascotName.toUpperCase()}'S PRO TIP</span>
+              <p className="cs-tip-text" dangerouslySetInnerHTML={{ __html: formatText(section.tip) }} />
+            </div>
           </div>
         )}
       </div>
@@ -195,6 +217,333 @@ function SectionPanel({ section, index, mascotKey, mascotColor, isWide }) {
   );
 }
 
-function highlightEmphasis(text) {
-  return text.replace(/\*([^*]+)\*/g, '<em class="comic-em">$1</em>');
+function formatText(text) {
+  return text
+    .replace(/\*([^*]+)\*/g, '<em class="cs-em">$1</em>')
+    .replace(/\{\{([^/]+)\/([^}]+)\}\}/g, '<span class="cs-frac"><span class="cs-frac-num">$1</span><span class="cs-frac-den">$2</span></span>');
+}
+
+function Diagram({ data, theme }) {
+  const renderers = { pieChart: PieChartDiagram, placeValue: PlaceValueDiagram, comparison: ComparisonDiagram, numberLine: NumberLineDiagram, venn: VennDiagram, columnMethod: ColumnMethodDiagram, longDivision: LongDivisionDiagram, fractionStrip: FractionStripDiagram, arrowFlow: ArrowFlowDiagram, lineGraph: LineGraphDiagram, stackedBar: StackedBarDiagram };
+  const Renderer = renderers[data.type];
+  if (!Renderer) return null;
+  return <Renderer data={data} theme={theme} />;
+}
+
+function PieChartDiagram({ data, theme }) {
+  const n = data.slices.length;
+  const r = 40, diam = 100, gap = 12;
+  const totalW = n * diam + (n - 1) * gap;
+  const h = diam + 24;
+  const sliceColors = data.colors || [theme.accent, theme.shadow, theme.accentLight];
+
+  function drawPie(cx, cy, slice, idx) {
+    const fraction = slice.num / slice.den;
+    const den = slice.den;
+    const els = [];
+    els.push(<circle key={`bg${idx}`} cx={cx} cy={cy} r={r} fill="#e5e7eb" stroke="#000" strokeWidth="2.5" />);
+    for (let j = 0; j < den; j++) {
+      const a1 = -90 + (j / den) * 360;
+      const a2 = -90 + ((j + 1) / den) * 360;
+      if (j < slice.num) {
+        const la = (a2 - a1) > 180 ? 1 : 0;
+        const x1 = cx + r * Math.cos((a1 * Math.PI) / 180);
+        const y1 = cy + r * Math.sin((a1 * Math.PI) / 180);
+        const x2 = cx + r * Math.cos((a2 * Math.PI) / 180);
+        const y2 = cy + r * Math.sin((a2 * Math.PI) / 180);
+        els.push(<path key={`s${idx}_${j}`} d={`M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${la},1 ${x2},${y2} Z`} fill={sliceColors[idx % sliceColors.length]} stroke="#000" strokeWidth="2" />);
+      }
+      if (den > 1) {
+        const lx = cx + r * Math.cos((a1 * Math.PI) / 180);
+        const ly = cy + r * Math.sin((a1 * Math.PI) / 180);
+        els.push(<line key={`d${idx}_${j}`} x1={cx} y1={cy} x2={lx} y2={ly} stroke="#000" strokeWidth="1.5" />);
+      }
+    }
+    if (data.labels?.[idx]) {
+      els.push(<text key={`lb${idx}`} x={cx} y={cy + r + 16} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="12" fill="#000">{data.labels[idx]}</text>);
+    }
+    return els;
+  }
+
+  const allEls = data.slices.flatMap((s, i) => {
+    const cx = (diam / 2) + i * (diam + gap);
+    return drawPie(cx, diam / 2, s, i);
+  });
+
+  return <svg viewBox={`0 0 ${totalW} ${h}`} width={totalW} height={h} style={{ maxWidth: '100%' }}>{allEls}</svg>;
+}
+
+function PlaceValueDiagram({ data }) {
+  const w = data.headers.length * 44 + 8;
+  return (
+    <svg viewBox={`0 0 ${w} 62`} width={w} height="62">
+      {data.headers.map((h, i) => (
+        <g key={i}>
+          <rect x={4 + i * 44} y="0" width="40" height="26" rx="4" fill="#fbbf24" stroke="#000" strokeWidth="2" />
+          <text x={24 + i * 44} y="18" textAnchor="middle" fontFamily="Bangers, cursive" fontSize="12" fill="#000">{h}</text>
+          <rect x={4 + i * 44} y="30" width="40" height="28" rx="4" fill="#fff" stroke="#000" strokeWidth="2" />
+          <text x={24 + i * 44} y="50" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="16" fill="#000">{data.digits[i]}</text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function ComparisonDiagram({ data, theme }) {
+  const cols = data.top.length;
+  const w = cols * 38 + 8;
+  return (
+    <svg viewBox={`0 0 ${w} 78`} width={w} height="78">
+      {data.top.map((d, i) => {
+        const isDiff = i === data.diffIdx;
+        return (
+          <g key={i}>
+            <rect x={4 + i * 38} y="0" width="34" height="32" rx="4" fill={isDiff ? theme.accent : '#fff'} stroke="#000" strokeWidth="2" />
+            <text x={21 + i * 38} y="22" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="16" fill={isDiff ? '#fff' : '#000'}>{d}</text>
+            <rect x={4 + i * 38} y="42" width="34" height="32" rx="4" fill={isDiff ? '#fecaca' : '#fff'} stroke="#000" strokeWidth="2" />
+            <text x={21 + i * 38} y="64" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="16" fill="#000">{data.bottom[i]}</text>
+            {isDiff && <text x={21 + i * 38} y="39" textAnchor="middle" fontFamily="Bangers, cursive" fontSize="10" fill={theme.accent}>▲</text>}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function NumberLineDiagram({ data, theme }) {
+  const pts = data.points;
+  const n = pts.length;
+  const pad = 30, w = 320, h = 60;
+  const lineY = 28;
+  const spacing = (w - pad * 2) / (n - 1);
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h}>
+      <line x1={pad - 10} y1={lineY} x2={w - pad + 10} y2={lineY} stroke="#000" strokeWidth="2.5" />
+      <polygon points={`${w - pad + 10},${lineY} ${w - pad + 4},${lineY - 4} ${w - pad + 4},${lineY + 4}`} fill="#000" />
+      {pts.map((p, i) => {
+        const x = pad + i * spacing;
+        const isHighlight = data.highlightLast ? i === n - 1 : i === data.highlightIdx;
+        const isArrow = i === data.arrow;
+        const label = data.labels ? data.labels[i] : (typeof p === 'number' && p >= 1000 ? (p / 1000) + 'k' : String(p));
+        return (
+          <g key={i}>
+            <circle cx={x} cy={lineY} r={isHighlight ? 6 : 4} fill={isHighlight ? theme.accent : '#000'} stroke={isHighlight ? '#000' : 'none'} strokeWidth="1.5" />
+            <text x={x} y={lineY + 18} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="8" fill={isHighlight ? theme.accent : '#000'}>{label}</text>
+            {isArrow && (
+              <path d={`M${x},${lineY - 10} C${x},${lineY - 22} ${pad + data.highlightIdx * spacing},${lineY - 22} ${pad + data.highlightIdx * spacing},${lineY - 10}`} fill="none" stroke={theme.accent} strokeWidth="1.5" markerEnd="url(#arrowNL)" />
+            )}
+          </g>
+        );
+      })}
+      {data.jump && pts.slice(0, -1).map((_, i) => {
+        const x1 = pad + i * spacing;
+        const x2 = pad + (i + 1) * spacing;
+        return (
+          <g key={`j${i}`}>
+            <path d={`M${x1},${lineY - 8} Q${(x1 + x2) / 2},${lineY - 22} ${x2},${lineY - 8}`} fill="none" stroke={theme.accent} strokeWidth="1.5" />
+            {i === 0 && <text x={(x1 + x2) / 2} y={lineY - 22} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="7" fill={theme.accent}>{data.jump}</text>}
+          </g>
+        );
+      })}
+      <defs><marker id="arrowNL" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill={theme.accent} /></marker></defs>
+    </svg>
+  );
+}
+
+function VennDiagram({ data, theme }) {
+  return (
+    <svg viewBox="0 0 260 130" width="260" height="130">
+      <circle cx="90" cy="65" r="55" fill={theme.accentLight} fillOpacity="0.5" stroke="#000" strokeWidth="2" />
+      <circle cx="170" cy="65" r="55" fill="#fde68a" fillOpacity="0.5" stroke="#000" strokeWidth="2" />
+      <text x="55" y="20" fontFamily="Bangers, cursive" fontSize="14" fill={theme.accent}>{data.leftLabel}</text>
+      <text x="195" y="20" fontFamily="Bangers, cursive" fontSize="14" fill="#b45309">{data.rightLabel}</text>
+      <text x="55" y="65" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="9" fill="#000">{data.left.join(', ')}</text>
+      <text x="205" y="65" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="9" fill="#000">{data.right.join(', ')}</text>
+      <text x="130" y="58" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="8" fill="#000">{data.shared.slice(0, 3).join(', ')}</text>
+      <text x="130" y="72" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="8" fill="#000">{data.shared.slice(3).join(', ')}</text>
+      <rect x="108" y="90" width="44" height="18" rx="4" fill={theme.accent} stroke="#000" strokeWidth="1.5" />
+      <text x="130" y="103" textAnchor="middle" fontFamily="Bangers, cursive" fontSize="11" fill="#fff">GCF = {data.shared[data.shared.length - 1]}</text>
+    </svg>
+  );
+}
+
+function ColumnMethodDiagram({ data, theme }) {
+  const cols = Math.max(data.rows[0].length, data.answer.length);
+  const cw = 28, ch = 28, pad = 6;
+  const partialRows = data.partial || [];
+  const totalRows = data.rows.length + partialRows.length + 1;
+  const w = cols * cw + pad * 2;
+  const h = totalRows * ch + pad * 2 + (data.carries ? 18 : 0) + (partialRows.length ? 6 : 0);
+  let y = pad + (data.carries ? 16 : 0);
+  const rows = [];
+  if (data.carries) {
+    data.carries.forEach((c, i) => {
+      if (c) rows.push(
+        <text key={`c${i}`} x={pad + i * cw + cw / 2} y={pad + 10} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="9" fill={theme.accent}>{c}</text>
+      );
+    });
+  }
+  data.rows.forEach((row, ri) => {
+    row.forEach((d, ci) => {
+      const x = pad + (cols - row.length + ci) * cw;
+      rows.push(
+        <text key={`r${ri}c${ci}`} x={x + cw / 2} y={y + ch * 0.7} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="15" fill="#000">{d}</text>
+      );
+    });
+    y += ch;
+  });
+  rows.push(<line key="line1" x1={pad} y1={y} x2={w - pad} y2={y} stroke="#000" strokeWidth="2.5" />);
+  y += 4;
+  if (partialRows.length) {
+    partialRows.forEach((row, ri) => {
+      row.forEach((d, ci) => {
+        const x = pad + (cols - row.length + ci) * cw;
+        rows.push(
+          <text key={`p${ri}c${ci}`} x={x + cw / 2} y={y + ch * 0.7} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="13" fill="#555">{d}</text>
+        );
+      });
+      y += ch;
+    });
+    rows.push(<line key="line2" x1={pad} y1={y} x2={w - pad} y2={y} stroke="#000" strokeWidth="2.5" />);
+    y += 4;
+  }
+  data.answer.forEach((d, ci) => {
+    const x = pad + (cols - data.answer.length + ci) * cw;
+    rows.push(
+      <text key={`a${ci}`} x={x + cw / 2} y={y + ch * 0.7} textAnchor="middle" fontFamily="Bangers, cursive" fontSize="16" fill={theme.accent}>{d}</text>
+    );
+  });
+  return <svg viewBox={`0 0 ${w} ${y + ch + pad}`} width={w} height={y + ch + pad}>{rows}</svg>;
+}
+
+function LongDivisionDiagram({ data, theme }) {
+  const n = data.dividend.length;
+  const cw = 30, ch = 32, pad = 40;
+  const w = pad + n * cw + 20;
+  return (
+    <svg viewBox={`0 0 ${w} 70`} width={w} height="70">
+      <text x={10} y={42} fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="18" fill="#000">{data.divisor}</text>
+      <line x1={pad - 6} y1={20} x2={pad - 6} y2={50} stroke="#000" strokeWidth="2.5" />
+      <line x1={pad - 6} y1={20} x2={pad + n * cw + 4} y2={20} stroke="#000" strokeWidth="2.5" />
+      {data.dividend.map((d, i) => (
+        <text key={`d${i}`} x={pad + i * cw + cw / 2} y={42} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="18" fill="#000">{d}</text>
+      ))}
+      {data.quotient.map((d, i) => (
+        <text key={`q${i}`} x={pad + i * cw + cw / 2} y={14} textAnchor="middle" fontFamily="Bangers, cursive" fontSize="18" fill={theme.accent}>{d}</text>
+      ))}
+      <text x={pad + n * cw / 2} y={64} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="8" fill="#666">D → M → S → B ↻</text>
+    </svg>
+  );
+}
+
+function FractionStripDiagram({ data, theme }) {
+  const cw = 28, h = 36, pad = 4;
+  const w = data.parts * cw + pad * 2;
+  let idx = 0;
+  const rects = [];
+  data.groups.forEach((g, gi) => {
+    for (let i = 0; i < g.count; i++) {
+      const fill = g.color === 'accent' ? theme.accent : theme.shadow;
+      rects.push(
+        <rect key={idx} x={pad + idx * cw} y={4} width={cw - 2} height={h - 8} rx="3" fill={fill} stroke="#000" strokeWidth="2" />
+      );
+      idx++;
+    }
+    const midX = pad + (idx - g.count / 2) * cw;
+    rects.push(
+      <text key={`l${gi}`} x={midX - cw / 2} y={h + 8} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="9" fill={g.color === 'accent' ? theme.accent : theme.shadow}>{g.label}</text>
+    );
+  });
+  for (let i = idx; i < data.parts; i++) {
+    rects.push(
+      <rect key={i} x={pad + i * cw} y={4} width={cw - 2} height={h - 8} rx="3" fill="#fff" stroke="#000" strokeWidth="1.5" />
+    );
+  }
+  return <svg viewBox={`0 0 ${w} ${h + 16}`} width={w} height={h + 16}>{rects}</svg>;
+}
+
+function ArrowFlowDiagram({ data, theme }) {
+  const stepW = 80, arrowW = 14, h = 42;
+  const isArrow = (i) => i % 2 === 1;
+  const boxes = data.steps.filter((_, i) => !isArrow(i));
+  const arrows = data.steps.filter((_, i) => isArrow(i));
+  const w = boxes.length * stepW + arrows.length * arrowW + 8;
+  let x = 4;
+  const els = [];
+  data.steps.forEach((step, i) => {
+    if (isArrow(i)) {
+      els.push(
+        <g key={i}>
+          <text x={x + arrowW / 2} y={h / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="18" fill={theme.accent}>→</text>
+        </g>
+      );
+      x += arrowW;
+    } else {
+      const isLast = i === data.steps.length - 1;
+      els.push(
+        <g key={i}>
+          <rect x={x} y={4} width={stepW - 4} height={h - 8} rx="6" fill={isLast ? theme.accent : '#fff'} stroke="#000" strokeWidth="2" />
+          <text x={x + (stepW - 4) / 2} y={h / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="11" fill={isLast ? '#fff' : '#000'}>{step}</text>
+        </g>
+      );
+      x += stepW;
+    }
+  });
+  return <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ maxWidth: '100%' }}>{els}</svg>;
+}
+
+function LineGraphDiagram({ data, theme }) {
+  const w = 240, h = 120, pad = 30, top = 15;
+  const pts = data.points;
+  const yVals = pts.map(p => p.y);
+  const yMin = Math.min(...yVals) - 2;
+  const yMax = Math.max(...yVals) + 2;
+  const xStep = (w - pad * 2) / (pts.length - 1);
+  const toY = (v) => top + (h - top - pad) * (1 - (v - yMin) / (yMax - yMin));
+  const toX = (i) => pad + i * xStep;
+  const polyline = pts.map((p, i) => `${toX(i)},${toY(p.y)}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h}>
+      <line x1={pad} y1={top} x2={pad} y2={h - pad} stroke="#000" strokeWidth="1.5" />
+      <line x1={pad} y1={h - pad} x2={w - pad + 10} y2={h - pad} stroke="#000" strokeWidth="1.5" />
+      {[yMin, Math.round((yMin + yMax) / 2), yMax].map((v, i) => (
+        <g key={`y${i}`}>
+          <line x1={pad - 3} y1={toY(v)} x2={pad} y2={toY(v)} stroke="#000" strokeWidth="1" />
+          <text x={pad - 6} y={toY(v) + 3} textAnchor="end" fontFamily="Nunito, sans-serif" fontSize="7" fontWeight="700" fill="#666">{v}</text>
+        </g>
+      ))}
+      <polyline points={polyline} fill="none" stroke={theme.accent} strokeWidth="2.5" strokeLinejoin="round" />
+      {pts.map((p, i) => (
+        <g key={i}>
+          <circle cx={toX(i)} cy={toY(p.y)} r="4" fill="#fff" stroke={theme.accent} strokeWidth="2" />
+          <text x={toX(i)} y={h - pad + 14} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="8" fill="#000">{p.x}</text>
+          <text x={toX(i)} y={toY(p.y) - 7} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="8" fill={theme.accent}>{p.y}</text>
+        </g>
+      ))}
+      {data.yLabel && <text x={8} y={top + 4} fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="8" fill="#666">{data.yLabel}</text>}
+    </svg>
+  );
+}
+
+function StackedBarDiagram({ data, theme }) {
+  const w = 280, h = 50, barH = 24, pad = 10;
+  const colors = [theme.accent, theme.shadow, '#e5e7eb'];
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h}>
+      <text x={pad} y={12} fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="9" fill="#000">${data.total.toLocaleString()}</text>
+      {data.segments.reduce((acc, seg, i) => {
+        const segW = (seg.value / data.total) * (w - pad * 2);
+        const x = acc.x;
+        acc.els.push(
+          <g key={i}>
+            <rect x={x} y={18} width={segW} height={barH} fill={colors[i % colors.length]} stroke="#000" strokeWidth="1.5" rx={i === 0 ? 4 : 0} />
+            <text x={x + segW / 2} y={18 + barH / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="9" fill={i < 2 ? '#fff' : '#000'}>{seg.label}</text>
+            <text x={x + segW / 2} y={18 + barH + 12} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="7" fill="#555">${seg.value}</text>
+          </g>
+        );
+        acc.x += segW;
+        return acc;
+      }, { x: pad, els: [] }).els}
+    </svg>
+  );
 }

@@ -18,6 +18,7 @@ export default {
       },
       sfx: 'BAM!',
       tip: null,
+      diagram: { type: 'columnMethod', rows: [['', '3','2','4','7'], ['×', '','','','6']], answer: ['1','9','4','8','2'], carries: ['','1','2','4',''] },
     },
     {
       title: 'Multiply up to 3-digit by 2-digit',
@@ -31,6 +32,7 @@ export default {
       },
       sfx: 'POW!',
       tip: 'Don\'t forget to add a 0 when multiplying by the tens digit!',
+      diagram: { type: 'columnMethod', rows: [['', '2','4','3'], ['×', '','3','7']], partial: [['', '1','7','0','1'], ['+','7','2','9','0']], answer: ['','8','9','9','1'] },
     },
     {
       title: 'Divide up to 4-digit by 1-digit',
@@ -45,6 +47,7 @@ export default {
       sfx: 'KA-POW!',
       tip: 'Does Mum Sell Burgers Daily? Divide, Multiply, Subtract, Bring Down!',
       bossLevel: true,
+      diagram: { type: 'longDivision', divisor: 6, dividend: [4,8,7,2], quotient: [8,1,2] },
     },
   ],
 };

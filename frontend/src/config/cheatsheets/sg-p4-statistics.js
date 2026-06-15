@@ -22,6 +22,7 @@ export default {
       },
       sfx: 'BAM!',
       tip: 'Going up = increase, going down = decrease — check if the line rises or falls!',
+      diagram: { type: 'lineGraph', points: [{x:'Mon',y:28},{x:'Tue',y:30},{x:'Wed',y:27},{x:'Thu',y:31},{x:'Fri',y:29}], yLabel: '°C' },
     },
     {
       title: 'Reading a Pie Chart',
@@ -32,14 +33,15 @@ export default {
       example: {
         steps: [
           'A pie chart shows favourite fruits of 40 students',
-          'Apple = ¼, Orange = ½, Mango = ¼',
+          'Apple = {{1/4}}, Orange = {{1/2}}, Mango = {{1/4}}',
           'How many chose Orange?',
         ],
-        answer: '½ of 40 = 20 students',
+        answer: '{{1/2}} of 40 = 20 students',
       },
       sfx: 'POW!',
       tip: 'All the fractions in a pie chart must add up to 1 whole — use this to check your work!',
       bossLevel: true,
+      diagram: { type: 'pieChart', slices: [{ num: 1, den: 4 }, { num: 2, den: 4 }, { num: 1, den: 4 }], labels: ['Apple ¼', 'Orange ½', 'Mango ¼'], colors: ['#ef4444','#f97316','#eab308'] },
     },
   ],
 };

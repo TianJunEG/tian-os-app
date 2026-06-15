@@ -18,6 +18,7 @@ export default {
       },
       sfx: 'BAM!',
       tip: null,
+      diagram: { type: 'placeValue', digits: [0, '.', 4, 7, 3], headers: ['O', '.', 'Tth', 'Hth', 'Thth'] },
     },
     {
       title: 'Comparing Decimals',
@@ -31,6 +32,7 @@ export default {
       },
       sfx: 'POW!',
       tip: 'Pad with zeros to compare: 0.7 = 0.70 — now it\'s obvious!',
+      diagram: { type: 'comparison', top: [0,'.',7,0], bottom: [0,'.',6,5], diffIdx: 2 },
     },
     {
       title: 'Rounding Decimals',
@@ -44,6 +46,7 @@ export default {
       },
       sfx: 'SNAP!',
       tip: null,
+      diagram: { type: 'numberLine', points: [3.4, 3.467, 3.5], labels: ['3.4', '3.467', '3.5'], highlightIdx: 2, arrow: 1 },
     },
     {
       title: 'Add & Subtract Decimals',
@@ -57,6 +60,7 @@ export default {
       },
       sfx: 'KA-POW!',
       tip: 'Pad shorter decimals with trailing zeros so all columns line up!',
+      diagram: { type: 'columnMethod', rows: [['','1','2','.','3','0'], ['+','','4','.','0','5']], answer: ['','1','6','.','3','5'], isDecimal: true },
     },
     {
       title: 'Multiply/Divide Decimals',
@@ -70,6 +74,7 @@ export default {
       },
       sfx: 'BOOM!',
       tip: 'Count how many decimal places in the question — the answer has the same number!',
+      diagram: { type: 'arrowFlow', steps: ['1.2 × 4', '→ remove dot →', '12 × 4 = 48', '→ put dot back →', '4.8'] },
     },
     {
       title: 'Fraction → Decimal',
@@ -78,12 +83,13 @@ export default {
       formulaNote: 'Only when denominator is a factor of 10 or 100!',
       explanation: 'Make the bottom 10 or 100, then just read the decimal straight off!',
       example: {
-        steps: ['¾ → ⁷⁵⁄₁₀₀'],
+        steps: ['{{3/4}} → {{75/100}}'],
         answer: '0.75',
       },
       sfx: 'ZAP!',
-      tip: '½ = 0.5, ¼ = 0.25, ¾ = 0.75, ⅕ = 0.2 — memorise these!',
+      tip: '{{1/2}} = 0.5, {{1/4}} = 0.25, {{3/4}} = 0.75, {{1/5}} = 0.2 — memorise these!',
       bossLevel: true,
+      diagram: { type: 'arrowFlow', steps: ['¾', '→ ×25 →', '75/100', '→ read off →', '0.75'] },
     },
   ],
 };

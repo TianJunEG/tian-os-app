@@ -188,136 +188,272 @@ code {
 }
 
 /* =====================================================================
-   Comic cheat-sheet styles (Marvel graphic-novel aesthetic)
+   Cheat-sheet styles — Marvel graphic-novel aesthetic (v3)
+   Heavy ink, halftone dots, action lines, per-panel color themes
    ===================================================================== */
-.comic-masthead {
-  background: linear-gradient(135deg, #7f1d1d, #dc2626 40%, #ef4444);
-  overflow: hidden;
+
+/* --- Wrapper --- */
+.cs-wrapper {
+  border-radius: 8px;
+  border: 5px solid #000; background: #000;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
 }
-.comic-halftone-overlay {
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 2px 2px, rgba(0,0,0,.18) 1px, transparent 1px);
+
+/* --- Masthead --- */
+.cs-masthead {
+  position: relative; display: flex; align-items: center; gap: 12px;
+  padding: 16px 16px; overflow: hidden;
+  background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 40%, #ef4444 70%, #dc2626 100%);
+  border-bottom: 5px solid #000;
+}
+@media (min-width: 640px) { .cs-masthead { gap: 16px; padding: 18px 20px; } }
+.cs-masthead-burst {
+  position: absolute; inset: -50%; z-index: 0;
+  background: repeating-conic-gradient(rgba(255,255,255,.07) 0deg 10deg, transparent 10deg 20deg);
+  animation: cs-spin 80s linear infinite;
+}
+@keyframes cs-spin { to { transform: rotate(360deg); } }
+.cs-masthead-halftone {
+  position: absolute; inset: 0; z-index: 1;
+  background: radial-gradient(circle at 2px 2px, rgba(0,0,0,.22) 1.2px, transparent 1.2px);
+  background-size: 5px 5px;
+}
+.cs-masthead-avatar {
+  position: relative; z-index: 2; width: 72px; height: 72px;
+  border-radius: 50%; border: 4px solid #fbbf24;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px #000, 0 0 20px rgba(251,191,36,.5);
+}
+@media (min-width: 640px) { .cs-masthead-avatar { width: 84px; height: 84px; } }
+.cs-masthead-text { position: relative; z-index: 2; flex: 1; min-width: 0; }
+.cs-masthead-title {
+  font-family: 'Bangers', cursive; font-size: 34px; line-height: 1;
+  color: #fbbf24; letter-spacing: 5px;
+  text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
+               0 0 12px rgba(251,191,36,.3);
+}
+@media (min-width: 640px) { .cs-masthead-title { font-size: 44px; letter-spacing: 6px; } }
+.cs-masthead-sub {
+  font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800;
+  color: #fef3c7; letter-spacing: 3px; text-transform: uppercase; margin-top: 3px;
+}
+@media (min-width: 640px) { .cs-masthead-sub { font-size: 11px; letter-spacing: 4px; } }
+.cs-issue-badge {
+  position: relative; z-index: 2; display: flex; flex-direction: column;
+  align-items: center; background: #fbbf24; padding: 6px 14px;
+  border: 3.5px solid #000; border-radius: 4px; transform: rotate(3deg);
+  box-shadow: 3px 3px 0 #000; white-space: nowrap;
+}
+.cs-issue-level {
+  font-family: 'Bangers', cursive; font-size: 11px; color: #000;
+  letter-spacing: 1px; line-height: 1.2;
+}
+.cs-issue-num {
+  font-family: 'Bangers', cursive; font-size: 15px; color: #7f1d1d;
+  letter-spacing: 1px; line-height: 1.2;
+}
+
+/* --- Panel grid --- */
+.cs-panels {
+  display: flex; flex-direction: column;
+  gap: 3px; padding: 3px; background: #000;
+}
+
+/* --- Panel --- */
+.cs-panel {
+  position: relative; overflow: hidden;
+  border: 3.5px solid #000;
+}
+.cs-panel--wide { grid-column: 1 / -1; }
+.cs-panel--boss { border-color: #dc2626; border-width: 4.5px; }
+
+/* Halftone overlay on every panel */
+.cs-panel::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(circle at 1.5px 1.5px, rgba(0,0,0,.04) 1px, transparent 1px);
   background-size: 4px 4px;
 }
-.comic-title {
-  font-family: 'Bangers', cursive;
-  color: #fbbf24; letter-spacing: 5px;
-  text-shadow: 3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-}
-.comic-subtitle {
-  font-family: 'Nunito', sans-serif;
-  font-size: 11px; color: #fef3c7; font-weight: 800;
-  letter-spacing: 3px; text-transform: uppercase;
-}
-.comic-issue-badge {
-  background: #fbbf24; color: #000;
-  font-family: 'Bangers', cursive; font-size: 12px;
-  padding: 4px 10px; border: 3px solid #000; border-radius: 4px;
-  transform: rotate(3deg); letter-spacing: 1px; line-height: 1.2;
-  text-align: center; box-shadow: 2px 2px 0 rgba(0,0,0,.3);
-  white-space: nowrap;
+
+/* Starburst / action-lines behind panel content */
+.cs-panel-burst {
+  position: absolute; top: -80%; right: -40%; width: 250%; height: 250%;
+  background: repeating-conic-gradient(currentColor 0deg 6deg, transparent 6deg 12deg);
+  opacity: .18; pointer-events: none; z-index: 0;
 }
 
-.comic-panel {
-  background: #fff; border: 3.5px solid #000;
-  position: relative; overflow: hidden;
+/* --- Section banner (ink-heavy, skewed) --- */
+.cs-section-banner {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px; color: #fff;
+  font-family: 'Bangers', cursive; letter-spacing: 1px;
+  border-bottom: 3px solid #000;
 }
-.comic-panel--boss { border-color: #dc2626; border-width: 4px; }
-.comic-halftone-bg {
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 1.5px 1.5px, rgba(0,0,0,.025) 1px, transparent 1px);
-  background-size: 3px 3px; pointer-events: none; z-index: 1;
+.cs-section-num {
+  font-size: 22px; opacity: .4;
+  text-shadow: 2px 2px 0 rgba(0,0,0,.3);
 }
-.comic-panel-num {
-  position: absolute; top: 0; left: 0; z-index: 5;
-  background: #000; color: #fbbf24;
-  font-family: 'Bangers', cursive; font-size: 14px;
-  padding: 2px 10px; letter-spacing: 1px;
+.cs-section-title {
+  flex: 1; font-size: 16px; letter-spacing: 2px;
+  text-shadow: 1px 1px 0 rgba(0,0,0,.4);
 }
-.comic-boss-badge {
-  display: inline-block; background: #dc2626; color: #fff;
-  font-family: 'Bangers', cursive; font-size: 13px;
-  padding: 3px 12px; border: 2.5px solid #000; border-radius: 3px;
-  transform: rotate(-2deg); letter-spacing: 2px; box-shadow: 3px 3px 0 #000;
+@media (min-width: 640px) { .cs-section-title { font-size: 18px; } }
+.cs-section-code {
+  font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 800;
+  background: rgba(0,0,0,.25); padding: 2px 8px; border-radius: 3px;
+  letter-spacing: 0; border: 1.5px solid rgba(255,255,255,.2);
 }
 
-.comic-speech-bubble {
+/* --- Boss badge --- */
+.cs-boss-row { padding: 6px 12px 0; position: relative; z-index: 2; }
+.cs-boss-badge {
+  display: inline-block; font-family: 'Bangers', cursive; font-size: 14px;
+  background: #dc2626; color: #fbbf24;
+  padding: 3px 14px; border: 3px solid #000; border-radius: 3px;
+  letter-spacing: 3px; box-shadow: 4px 4px 0 #000; transform: rotate(-2deg);
+  text-shadow: 1px 1px 0 #000;
+}
+
+/* --- Panel body --- */
+.cs-panel-body {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 12px; padding-top: 10px;
+}
+@media (min-width: 640px) { .cs-panel-body { padding: 14px; } }
+
+/* --- Speech bubble (classic comic tail pointing down-left) --- */
+.cs-bubble {
   position: relative; background: #fff;
-  border: 2.5px solid #000; border-radius: 22px;
-  padding: 8px 12px; font-family: 'Nunito', sans-serif;
-  font-weight: 700; color: #1a1a1a; line-height: 1.4;
+  border: 2.5px solid #000; border-radius: 14px;
+  padding: 8px 14px; font-family: 'Nunito', sans-serif;
+  font-weight: 700; font-size: 13px; color: #1a1a1a; line-height: 1.45;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.15);
 }
-.comic-speech-bubble::after {
-  content: ''; position: absolute; bottom: -10px; left: 18px;
-  width: 0; height: 0; border: 10px solid transparent;
-  border-top: 12px solid #fff; border-bottom: none;
-}
-.comic-speech-bubble::before {
-  content: ''; position: absolute; bottom: -14px; left: 16px;
-  width: 0; height: 0; border: 12px solid transparent;
-  border-top: 14px solid #000; border-bottom: none;
-}
-.comic-em { color: #dc2626; font-style: normal; font-weight: 900; }
+@media (min-width: 640px) { .cs-bubble { font-size: 14px; } }
+.cs-em { color: #dc2626; font-style: normal; font-weight: 900; }
 
-.comic-formula-card {
+/* --- Formula card (yellow parchment, heavy ink) --- */
+.cs-formula {
   background: #fef9c3; border: 3px solid #000; border-radius: 6px;
-  padding: 10px 14px; text-align: center;
-  box-shadow: 4px 4px 0 #000;
+  text-align: center; box-shadow: 4px 4px 0 #000;
+  overflow: hidden;
 }
-.comic-formula-text {
+.cs-formula-label {
+  font-family: 'Bangers', cursive; font-size: 11px;
+  color: #fff; letter-spacing: 3px; padding: 3px 0;
+  border-bottom: 2px solid #000;
+}
+.cs-formula-text {
   font-family: 'Nunito', sans-serif; font-size: 15px;
   font-weight: 900; color: #78350f; line-height: 1.35;
+  padding: 8px 12px 4px;
 }
-@media (min-width: 640px) { .comic-formula-text { font-size: 17px; } }
-.comic-formula-note {
+@media (min-width: 640px) { .cs-formula-text { font-size: 17px; } }
+.cs-formula-note {
   font-family: 'Nunito', sans-serif; font-size: 11px;
-  font-weight: 700; color: #92400e; margin-top: 3px;
+  font-weight: 700; color: #92400e; padding: 0 12px 8px;
   font-style: italic;
 }
 
-.comic-example {
-  background: #f0fdf4; border: 2.5px solid #000; border-radius: 6px;
-  padding: 8px 12px; font-family: 'Nunito', sans-serif;
-  font-weight: 700; color: #14532d;
+/* --- Worked example (green-tinted, inked) --- */
+.cs-example {
+  background: #f0fdf4; border: 2.5px solid #000;
+  border-radius: 6px; padding: 8px 12px;
+  font-family: 'Nunito', sans-serif;
   box-shadow: 3px 3px 0 rgba(0,0,0,.12);
 }
-.comic-example-answer { color: #dc2626; font-size: 15px; font-weight: 900; margin-top: 4px; }
-.comic-sfx {
-  font-family: 'Bangers', cursive; color: #dc2626;
-  text-shadow: 2px 2px 0 #fbbf24, 3px 3px 0 #000;
-  letter-spacing: 3px; display: inline-block;
-}
-
-.comic-label {
+.cs-example-label {
   font-family: 'Bangers', cursive; font-size: 12px;
-  color: #1e3a5f; letter-spacing: 1px;
+  color: #14532d; letter-spacing: 2px; margin-bottom: 4px;
 }
-.comic-bar-model {
-  display: flex; height: 28px; border: 2.5px solid #000;
-  border-radius: 4px; overflow: hidden; flex: 1;
+.cs-example-step {
+  font-size: 12px; font-weight: 700; color: #14532d; line-height: 1.5;
 }
-.comic-bar-on, .comic-bar-off {
+@media (min-width: 640px) { .cs-example-step { font-size: 13px; } }
+.cs-example-answer-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 6px; padding-top: 6px; border-top: 2.5px solid #bbf7d0;
+}
+.cs-example-answer {
+  font-size: 15px; font-weight: 900; color: #dc2626;
+}
+@media (min-width: 640px) { .cs-example-answer { font-size: 16px; } }
+
+/* SFX text — big, rotated, multi-layer shadow */
+.cs-sfx {
+  font-family: 'Bangers', cursive; font-size: 22px;
+  color: #dc2626;
+  text-shadow: 2px 2px 0 #fbbf24, 4px 4px 0 #000;
+  letter-spacing: 4px; transform: rotate(-6deg); display: inline-block;
+}
+@media (min-width: 640px) { .cs-sfx { font-size: 28px; } }
+
+/* --- Diagram (inline SVG) --- */
+.cs-diagram {
+  display: flex; justify-content: center; align-items: center;
+  background: rgba(255,255,255,.7); border: 2.5px solid #000;
+  border-radius: 6px; padding: 10px 8px;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.10);
+  overflow-x: auto;
+}
+.cs-diagram svg { display: block; max-width: 100%; height: auto; }
+
+/* --- Bar model --- */
+.cs-barmodel-wrap { display: flex; align-items: center; gap: 8px; }
+.cs-barmodel-label {
+  font-family: 'Bangers', cursive; font-size: 12px;
+  color: #1e3a5f; letter-spacing: 2px; white-space: nowrap;
+}
+.cs-barmodel {
+  display: flex; flex: 1; height: 30px;
+  border: 2.5px solid #000; border-radius: 4px; overflow: hidden;
+}
+.cs-bar-on, .cs-bar-off {
   flex: 1; display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 900; border-right: 2px solid #000;
 }
-.comic-bar-on:last-child, .comic-bar-off:last-child { border-right: none; }
-.comic-bar-on { background: #2563eb; color: #fff; }
-.comic-bar-off { background: #94a3b8; color: #334155; }
+.cs-bar-on:last-child, .cs-bar-off:last-child { border-right: none; }
+.cs-bar-on { color: #fff; }
+.cs-bar-off { background: #94a3b8; color: #334155; }
 
-.comic-tip {
+/* --- Pro tip (pink card, inked border) --- */
+.cs-tip {
+  display: flex; align-items: flex-start; gap: 8px;
   background: #fdf2f8; border: 2.5px solid #000; border-radius: 6px;
-  padding: 7px 10px; font-size: 11px; font-weight: 700; color: #9d174d;
+  padding: 7px 10px;
   box-shadow: 3px 3px 0 rgba(0,0,0,.08);
 }
-.comic-tip-title {
-  font-family: 'Bangers', cursive; font-size: 14px;
-  color: #be185d; letter-spacing: 1px; display: block; margin-bottom: 2px;
+.cs-tip-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.cs-tip-title {
+  font-family: 'Bangers', cursive; font-size: 13px;
+  color: #be185d; letter-spacing: 2px; display: block; margin-bottom: 1px;
+}
+.cs-tip-text {
+  font-family: 'Nunito', sans-serif; font-size: 11px;
+  font-weight: 700; color: #9d174d; line-height: 1.4;
 }
 
-.comic-footer {
+/* --- Footer --- */
+.cs-footer {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
   background: #000; color: #fbbf24;
   font-family: 'Bangers', cursive; font-size: 13px;
-  text-align: center; padding: 10px;
+  text-align: center; padding: 10px 16px;
   letter-spacing: 4px; border-top: 4px solid #dc2626;
 }
-@media (min-width: 640px) { .comic-footer { font-size: 14px; letter-spacing: 5px; } }
+@media (min-width: 640px) { .cs-footer { font-size: 14px; letter-spacing: 5px; } }
+.cs-footer-stars { color: #dc2626; font-size: 10px; letter-spacing: 4px; }
+
+/* --- Vertical fraction --- */
+.cs-frac {
+  display: inline-flex; flex-direction: column; align-items: center;
+  vertical-align: middle; margin: 0 2px; line-height: 1;
+  font-weight: 900;
+}
+.cs-frac-num, .cs-frac-den {
+  display: block; text-align: center; padding: 0 2px;
+  font-size: 0.85em;
+}
+.cs-frac-num { border-bottom: 2px solid currentColor; padding-bottom: 1px; }
+.cs-frac-den { padding-top: 1px; }

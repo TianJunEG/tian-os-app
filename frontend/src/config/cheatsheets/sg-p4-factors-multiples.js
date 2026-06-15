@@ -23,6 +23,7 @@ export default {
       },
       sfx: 'BAM!',
       tip: 'Start from the bigger factors — you\'ll find the GCF faster!',
+      diagram: { type: 'venn', left: [8, 24], right: [9, 18, 36], shared: [1, 2, 3, 4, 6, 12], leftLabel: '24', rightLabel: '36' },
     },
     {
       title: 'Common Multiples',
@@ -41,6 +42,7 @@ export default {
       sfx: 'POW!',
       tip: 'If one number divides the other evenly, the bigger one IS the LCM!',
       bossLevel: true,
+      diagram: { type: 'numberLine', points: [4, 8, 12, 16, 20], points2: [6, 12, 18, 24], match: 12, label1: '×4', label2: '×6' },
     },
   ],
 };
