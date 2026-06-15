@@ -9,11 +9,16 @@ import { tutorAPI, mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { buildTutorMathPathDashboard } from '../../mathpath/dashboard/tutorMathPathDashboardEngine';
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
+import { CURRICULUM_DOMAINS, getSkillFromDomain } from '../../mathpath/curriculumDomainIndex';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
 
-function skillLabel(skillId) {
+function skillLabel(skillId, domainId) {
   if (!skillId) return '—';
+  if (domainId && domainId !== 'fractions') {
+    const skill = getSkillFromDomain(domainId, skillId);
+    return skill ? `${skill.id} ${skill.name}` : skillId;
+  }
   const skill = getSkill(skillId);
   return skill ? `${skill.id} ${skill.name}` : skillId;
 }
@@ -698,6 +703,84 @@ function RecentActivityMvp({ dashboard = {}, workingReview = {} }) {
   );
 }
 
+const DOMAIN_TAB_OPTIONS = [
+  { key: 'fractions', label: 'Fractions' },
+  ...CURRICULUM_DOMAINS,
+];
+
+function masteryLabel(state) {
+  const labels = { mastered: 'Mastered', learning: 'Learning', not_started: 'Not started', weak: 'Weak', needs_review: 'Review' };
+  return labels[state] || state || 'Not started';
+}
+
+function masteryTone(state) {
+  if (state === 'mastered') return 'positive';
+  if (state === 'learning') return 'blue';
+  if (state === 'weak' || state === 'needs_review') return 'error';
+  return 'neutral';
+}
+
+function DomainSkillStatesPanel({ skillStates, domainGroup }) {
+  if (!skillStates.length) {
+    return (
+      <Card className="p-5">
+        <p className="text-sm text-ink-500">
+          No practice data yet for {domainGroup.label}. The student hasn't started this domain.
+        </p>
+      </Card>
+    );
+  }
+
+  const byDomain = {};
+  skillStates.forEach((s) => {
+    if (!byDomain[s.domainId]) byDomain[s.domainId] = [];
+    byDomain[s.domainId].push(s);
+  });
+
+  return (
+    <div className="space-y-4">
+      {Object.entries(byDomain).map(([domainId, states]) => (
+        <Card key={domainId} className="p-5">
+          <h3 className="mb-3 text-sm font-semibold text-ink-700 capitalize">{domainId.replace(/-/g, ' ')}</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-hairline text-left text-xs font-semibold uppercase tracking-wide text-ink-500">
+                  <th className="pb-2 pr-4">Skill</th>
+                  <th className="pb-2 pr-4">Status</th>
+                  <th className="pb-2 pr-4">Accuracy</th>
+                  <th className="pb-2 pr-4">Attempts</th>
+                  <th className="pb-2">Last practiced</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-hairline">
+                {states.map((s) => {
+                  const skill = getSkillFromDomain(domainId, s.skillId);
+                  const accuracy = s.attemptCount > 0 ? Math.round((s.correctCount / s.attemptCount) * 100) : null;
+                  return (
+                    <tr key={s.skillId} className="text-ink-600">
+                      <td className="py-2 pr-4">
+                        <span className="font-mono text-xs text-ink-400">{s.skillId}</span>
+                        {skill && <span className="ml-2 text-ink-700">{skill.name}</span>}
+                      </td>
+                      <td className="py-2 pr-4">
+                        <Badge tone={masteryTone(s.masteryState || s.status)}>{masteryLabel(s.masteryState || s.status)}</Badge>
+                      </td>
+                      <td className="py-2 pr-4 font-mono">{accuracy != null ? `${accuracy}%` : '—'}</td>
+                      <td className="py-2 pr-4 font-mono">{s.attemptCount ?? 0}</td>
+                      <td className="py-2 text-ink-400">{s.lastPracticedAt ? new Date(s.lastPracticedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export default function TutorMathPathDashboardPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -712,6 +795,9 @@ export default function TutorMathPathDashboardPage() {
   const [workingReview, setWorkingReview] = useState(null);
   const [fluencySummary, setFluencySummary] = useState(null);
   const [retentionSummary, setRetentionSummary] = useState(null);
+  const [activeDomain, setActiveDomain] = useState('fractions');
+  const [domainSkillStates, setDomainSkillStates] = useState([]);
+  const [domainStatesLoading, setDomainStatesLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -787,6 +873,26 @@ export default function TutorMathPathDashboardPage() {
     }
   }, [diagnosticGrowth, id]);
 
+  const loadDomainSkillStates = useCallback(async (domainGroup) => {
+    setDomainStatesLoading(true);
+    try {
+      const res = await mathpathAPI.getSkillStates(id, domainGroup.domainIds);
+      setDomainSkillStates(res?.data?.skillStates || []);
+    } catch {
+      setDomainSkillStates([]);
+    } finally {
+      setDomainStatesLoading(false);
+    }
+  }, [id]);
+
+  const handleDomainChange = useCallback((key) => {
+    setActiveDomain(key);
+    if (key !== 'fractions') {
+      const group = CURRICULUM_DOMAINS.find((d) => d.key === key);
+      if (group) loadDomainSkillStates(group);
+    }
+  }, [loadDomainSkillStates]);
+
   useEffect(() => { load(); }, [load]);
 
   const primary = useMemo(() => {
@@ -812,9 +918,42 @@ export default function TutorMathPathDashboardPage() {
       <TutorStudentNav studentId={id} name={studentMeta?.name || 'Student'} level={studentMeta?.level} />
       <PageHeader
         title="Tutor MathPath Dashboard"
-        subtitle="Fractions intervention pilot view of root causes, fluency bottlenecks, retention risk, and session planning."
-        action={<Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>}
+        subtitle="Student progress by curriculum domain — root causes, fluency, retention, and session planning."
+        action={activeDomain === 'fractions' ? <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button> : null}
       />
+
+      <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Select domain">
+        {DOMAIN_TAB_OPTIONS.map((opt) => (
+          <button
+            key={opt.key}
+            role="tab"
+            aria-selected={activeDomain === opt.key}
+            onClick={() => handleDomainChange(opt.key)}
+            className={[
+              'rounded-full px-3 py-1 text-sm font-medium transition-colors',
+              activeDomain === opt.key
+                ? 'bg-navy-700 text-white'
+                : 'border border-hairline bg-white text-ink-600 hover:border-navy-300 hover:text-navy-700',
+            ].join(' ')}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {activeDomain !== 'fractions' ? (
+        <div className="space-y-4">
+          {domainStatesLoading ? (
+            <Spinner label={`Loading ${CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} data…`} />
+          ) : (
+            <DomainSkillStatesPanel
+              skillStates={domainSkillStates}
+              domainGroup={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)}
+            />
+          )}
+        </div>
+      ) : (
+      <>
       {!!placement?.recommendedStartingSkill?.name && (
         <Card className="mb-4 p-4">
           <p className="text-sm text-ink-600">
@@ -898,6 +1037,8 @@ export default function TutorMathPathDashboardPage() {
           <SuggestedAssignmentsCard rows={dashboard.suggestedAssignments || []} />
         </CollapsibleSection>
       </div>
+      </>
+      )}
     </>
   );
 }
