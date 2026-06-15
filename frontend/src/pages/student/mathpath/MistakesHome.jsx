@@ -119,7 +119,7 @@ export default function MistakesHome() {
       <PageHeader title="Mistake-to-Mastery" subtitle="MathPath · turn recent slips into mastery" />
 
       {mascot && (
-        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" />
+        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" voiced />
       )}
 
       <Card className={`p-5 ${visualStyles.heroCard}`}>
