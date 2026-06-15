@@ -21,6 +21,12 @@ import {
   toClientAssessmentQuestions,
   scoreDecimalsAssessment,
 } from '../services/mathpath/decimalsAssessmentService.js';
+import { decimalsSkillGraph } from '../shared/mathpath/decimals/decimalsSkillGraph.js';
+import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
+
+const DCODE_TO_SLUG = Object.fromEntries(
+  (decimalsSkillGraph.skills || []).map((s) => [s.id, s.slug])
+);
 
 const router = express.Router();
 const FLUENT_BANDS = new Set(['gold', 'platinum']);
@@ -124,6 +130,18 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
       );
     }
 
+    // Find the weakest skill and check if PSL has content for it.
+    const weakestSkill = Object.entries(scored.perSkill)
+      .filter(([, s]) => s.total > 0 && s.accuracy < 80)
+      .sort(([, a], [, b]) => a.accuracy - b.accuracy)[0];
+    let pslSuggestion = null;
+    if (weakestSkill) {
+      const slug = DCODE_TO_SLUG[weakestSkill[0]];
+      if (slug && skillHasPSLContent(slug)) {
+        pslSuggestion = { skillSlug: slug, heuristic: getHeuristicForSkill(slug) };
+      }
+    }
+
     const summary = {
       practiceSessionId: req.params.practiceSessionId,
       domainId: DOMAIN_ID,
@@ -131,6 +149,7 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
       perSkill: scored.perSkill,
       accuracySummary: scored.accuracySummary,
       persisted: true,
+      ...(pslSuggestion && { pslSuggestion }),
     };
     existing.status = 'completed';
     existing.completedAt = new Date();
