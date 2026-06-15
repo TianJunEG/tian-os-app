@@ -11,7 +11,46 @@
 //
 // extra metadata: render:'katex' (decimal/fraction notation), visualModels:[…]
 
-export default {
+// Canonical D001–D014 alignment for MathPath, mirroring the Fractions seed's
+// frameworkCode reconciliation. Stable slug keys stay for seed/reconcile
+// compatibility; the framework codes + order match the shared Decimals skill
+// graph (shared/mathpath/decimals/decimalsSkillGraph.js) exactly so seeded DB
+// records line up with the runtime graph and practice engine.
+const DECIMALS_FRAMEWORK_CODES = {
+  'dec.place-value': 'D001',
+  'dec.number-line': 'D002',
+  'dec.compare': 'D003',
+  'dec.order': 'D004',
+  'dec.round': 'D005',
+  'dec.add-sub': 'D006',
+  'dec.x-div-10-100': 'D007',
+  'dec.mult-whole': 'D008',
+  'dec.mult-decimal': 'D009',
+  'dec.div-whole': 'D010',
+  'dec.div-decimal': 'D011',
+  'dec.to-fraction': 'D012',
+  'dec.from-fraction': 'D013',
+  'dec.measure-convert': 'D014',
+};
+
+const DECIMALS_MATHPATH_SKILL_NAMES = {
+  D001: 'Decimal Place Value',
+  D002: 'Decimals on a Number Line',
+  D003: 'Comparing Decimals',
+  D004: 'Ordering Decimals',
+  D005: 'Rounding Decimals',
+  D006: 'Adding and Subtracting Decimals',
+  D007: 'Multiply and Divide by 10, 100, 1000',
+  D008: 'Multiply a Decimal by a Whole Number',
+  D009: 'Multiply a Decimal by a Decimal',
+  D010: 'Divide a Decimal by a Whole Number',
+  D011: 'Dividing by a Decimal',
+  D012: 'Converting Decimals to Fractions',
+  D013: 'Converting Fractions to Decimals',
+  D014: 'Measurement Conversions with Decimals',
+};
+
+const decimalsDomain = {
   domain: 'Decimals',
   topic: 'Decimals',
   topicOrder: 3,
@@ -133,4 +172,14 @@ export default {
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['dec.x-div-10-100'], strategy: 'bigger unit → smaller unit means multiply' },
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Convert {x} km to m.', answerRule: 'x*1000', misconceptionTag: 'dec/convert-direction' }] },
   ],
+};
+
+export default {
+  ...decimalsDomain,
+  skills: decimalsDomain.skills.map((skill) => ({
+    ...skill,
+    frameworkCode: DECIMALS_FRAMEWORK_CODES[skill.slug] || '',
+    mathPathSkillId: DECIMALS_FRAMEWORK_CODES[skill.slug] || '',
+    mathPathSkillName: DECIMALS_MATHPATH_SKILL_NAMES[DECIMALS_FRAMEWORK_CODES[skill.slug]] || '',
+  })),
 };
