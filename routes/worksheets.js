@@ -20,6 +20,7 @@ import { generateWorksheet } from '../utils/worksheetGen.js';
 import { isCorrectWithContext } from '../utils/answerCheck.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import LearningResult from '../models/LearningResult.js';
 
 const router = express.Router();
 
@@ -436,6 +437,18 @@ router.post('/:id/submit', protect, asyncHandler(async (req, res) => {
     worksheet.sessionsTotal = 1;
     worksheet.updatedAt = now;
     await worksheet.save();
+
+    const startedAt = worksheet.completion.startedAt;
+    const minutes = startedAt ? Math.max(1, Math.round((now - new Date(startedAt)) / 60000)) : 1;
+    await LearningResult.create({
+      user: student._id,
+      source: 'worksheet',
+      subject: worksheet.subject || 'emath',
+      topic: worksheet.domain || worksheet.topic || 'general',
+      accuracy,
+      mastered: accuracy >= 85,
+      minutes,
+    }).catch(() => {});
 
     if (worksheet.linkedAssignmentId) {
       await Assignment.findByIdAndUpdate(worksheet.linkedAssignmentId, {
