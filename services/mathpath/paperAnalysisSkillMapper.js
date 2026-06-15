@@ -1,5 +1,6 @@
 import { getActiveProvider } from '../../utils/aiProvider.js';
 import { detectMisconceptions } from './misconceptionDetectionService.js';
+import { withAiConcurrency } from '../../config/aiConcurrency.js';
 
 const FRACTIONS_KEYWORDS = [
   { skillId: 'F006', keywords: ['equivalent fraction', 'equivalent fractions', 'same value'], misconception: 'equivalence_scale_error' },
@@ -93,7 +94,7 @@ export async function mapPaperQuestionToSkillsWithAi(question = {}, options = {}
   try {
     const provider = getActiveProvider();
     const { primary } = provider.models();
-    const result = await provider.complete({
+    const result = await withAiConcurrency(() => provider.complete({
       model: primary,
       maxTokens: 1200,
       schema: AI_MAPPING_SCHEMA,
@@ -102,7 +103,7 @@ export async function mapPaperQuestionToSkillsWithAi(question = {}, options = {}
         role: 'user',
         content: `Question: ${question.questionText || ''}\nStudent answer: ${question.studentAnswer || ''}\nTeacher mark: ${question.teacherMark || ''}`,
       }],
-    });
+    }));
     const parsed = result.text ? JSON.parse(result.text) : null;
     const detectedSkillIds = unique((parsed?.detectedSkillIds || []).map((id) => String(id || '').trim().toUpperCase()));
     if (!detectedSkillIds.length) return { ...heuristic, aiUsed: false };

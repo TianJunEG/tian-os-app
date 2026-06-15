@@ -2,6 +2,7 @@ import express from 'express';
 import { protect, authorize } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { QUEUE_NAMES, getFailedJobs, retryFailedJob, discardFailedJob, isQueueEnabled } from '../config/queue.js';
+import { aiConcurrencyStats } from '../config/aiConcurrency.js';
 
 const router = express.Router();
 const adminOnly = [protect, authorize('admin')];
@@ -32,6 +33,11 @@ router.delete('/:queue/:jobId', adminOnly, asyncHandler(async (req, res) => {
   if (!isQueueEnabled()) return res.status(503).json({ error: 'Queue not enabled.' });
   await discardFailedJob(req.params.queue, req.params.jobId);
   res.json({ discarded: true, queue: req.params.queue, jobId: req.params.jobId });
+}));
+
+// GET /api/admin/jobs/ai-pool — current AI concurrency pool stats
+router.get('/ai-pool', adminOnly, asyncHandler(async (req, res) => {
+  res.json(aiConcurrencyStats());
 }));
 
 export default router;
