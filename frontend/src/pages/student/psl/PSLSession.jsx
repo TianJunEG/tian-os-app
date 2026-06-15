@@ -10,6 +10,7 @@ import SolveDispatcher from './components/SolveDispatcher';
 import CheckPanel from './components/CheckPanel';
 import StepFeedbackCard from './components/StepFeedbackCard';
 import MascotBubble from './components/MascotBubble';
+import HintLadder from './components/HintLadder';
 import ReasoningInput from './components/ReasoningInput';
 import WorkedSolutionWalkthrough from './components/WorkedSolutionWalkthrough';
 import WorkingCanvas from '../../../components/learning/WorkingCanvas';
@@ -55,6 +56,7 @@ export default function PSLSession() {
   const [hints, setHints] = useState([]);
   const [hintLoading, setHintLoading] = useState(false);
   const [hintExhausted, setHintExhausted] = useState(false);
+  const [showHintLadder, setShowHintLadder] = useState(false);
   const [voice, setVoice] = useState(isVoiceEnabled);
   const [solution, setSolution] = useState(null);
   const [solutionLoading, setSolutionLoading] = useState(false);
@@ -64,6 +66,7 @@ export default function PSLSession() {
     stepStartRef.current = Date.now();
     setHints([]);
     setHintExhausted(false);
+    setShowHintLadder(false);
     setSolution(null);
   }, [currentStepIdx]);
 

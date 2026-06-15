@@ -52,9 +52,9 @@ export default function LifeLab() {
   useEffect(() => {
     loadActivities(competency);
     loadSubs();
-    lifelabAPI.competencies().then((r) => setCompetencyList(r.data.competencies || [])).catch(() => {});
-    teacherAPI.groups(id).then((r) => setGroups(r.data.groups || r.data || [])).catch(() => {});
-    teacherAPI.classStudents(id).then((r) => setStudents(r.data.students || r.data || [])).catch(() => {});
+    lifelabAPI.competencies().then((r) => setCompetencyList(r.data.competencies || [])).catch((e) => console.warn("LifeLab: fetch failed", e));
+    teacherAPI.groups(id).then((r) => setGroups(r.data.groups || r.data || [])).catch((e) => console.warn("LifeLab: fetch failed", e));
+    teacherAPI.classStudents(id).then((r) => setStudents(r.data.students || r.data || [])).catch((e) => console.warn("LifeLab: fetch failed", e));
   }, [id]); // eslint-disable-line
 
   const selected = activities?.find((a) => a._id === activityId);

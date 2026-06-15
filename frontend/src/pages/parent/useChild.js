@@ -8,7 +8,7 @@ export function useChild(studentId) {
     let alive = true;
     familyAPI.children()
       .then((r) => { if (alive) setChild((r.data.children || []).find((c) => String(c.studentId) === String(studentId)) || null); })
-      .catch(() => {});
+      .catch((e) => console.warn("useChild: fetch failed", e));
     return () => { alive = false; };
   }, [studentId]);
   return child;

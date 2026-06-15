@@ -8,7 +8,7 @@ export function useTutorStudent(studentId) {
     let alive = true;
     tutorAPI.students()
       .then((r) => { if (alive) setMeta((r.data.students || []).find((s) => String(s.studentId) === String(studentId)) || null); })
-      .catch(() => {});
+      .catch((e) => console.warn("useTutorStudent: fetch failed", e));
     return () => { alive = false; };
   }, [studentId]);
   return meta;

@@ -283,7 +283,7 @@ function PersonalBestsSection({ visual }) {
     let active = true;
     studentProfileAPI.personalBests()
       .then((res) => { if (active) setBests(res.data); })
-      .catch(() => {})
+      .catch((e) => console.warn("StudentProfile: fetch failed", e))
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);

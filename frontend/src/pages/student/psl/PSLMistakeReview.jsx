@@ -13,7 +13,7 @@ export default function PSLMistakeReview() {
   useEffect(() => {
     pslAPI.mistakes()
       .then((res) => setMistakes(res.data?.mistakes || []))
-      .catch(() => {})
+      .catch((e) => console.warn("PSLMistakeReview: fetch failed", e))
       .finally(() => setLoading(false));
   }, []);
 

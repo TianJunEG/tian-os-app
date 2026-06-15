@@ -77,7 +77,7 @@ export default function PSLHome() {
       .then((res) => setData(res.data))
       .catch((err) => setError(err.response?.data?.error || 'Failed to load'))
       .finally(() => setLoading(false));
-    pslAPI.dashboard().then((res) => setDashboard(res.data)).catch(() => {});
+    pslAPI.dashboard().then((res) => setDashboard(res.data)).catch((e) => console.warn("PSLHome: fetch failed", e));
   }, []);
 
   const checkReadiness = async (skillId) => {

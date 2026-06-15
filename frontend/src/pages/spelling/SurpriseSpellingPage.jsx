@@ -44,7 +44,7 @@ export default function SurpriseSpellingPage() {
   }, []);
 
   const record = (word, correct) =>
-    spellingAPI.recordAttempts({ word, correct, mode: 'surprise' }).catch(() => {});
+    spellingAPI.recordAttempts({ word, correct, mode: 'surprise' }).catch((e) => console.warn("SurpriseSpellingPage: fetch failed", e));
 
   const { langs, lang, setLang, filtered } = useLanguageScope(words);
   const ActiveComp = useMemo(() => ACTIVITIES.find((a) => a.key === activity)?.Comp, [activity]);

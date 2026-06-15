@@ -972,7 +972,7 @@ export default function StudentDashboard() {
                 recommendationReason: selected.explanation || '',
                 source: selected.source || 'studentDashboard',
               },
-            }).catch(() => {});
+            }).catch((e) => console.warn("StudentDashboard: fetch failed", e));
           }
         }
       } catch (e) {

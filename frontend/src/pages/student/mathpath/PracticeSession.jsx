@@ -1669,7 +1669,7 @@ export default function PracticeSession() {
               timestamp: new Date().toISOString(),
               metadata: { sessionType, answered: Array.isArray(payload) ? payload.length : 0 },
             })
-          ).catch(() => {});
+          ).catch((e) => console.warn("PracticeSession: fetch failed", e));
         }
       }
       try {
@@ -1702,7 +1702,7 @@ export default function PracticeSession() {
         results: submitted.results || [],
       });
       if (telemetryEvents.length) {
-        Promise.allSettled(telemetryEvents.map((event) => learningTelemetryAPI.recordEvent(event))).catch(() => {});
+        Promise.allSettled(telemetryEvents.map((event) => learningTelemetryAPI.recordEvent(event))).catch((e) => console.warn("PracticeSession: fetch failed", e));
       }
       const weakSkillRows = submitted.accuracySummary?.accuracyPercentage < 80
         ? [{ skillId: flowSession?.targetSkillId || q.skillId, skillName: canonicalSkillName(flowSession?.targetSkillId || q.skillId, '') }]

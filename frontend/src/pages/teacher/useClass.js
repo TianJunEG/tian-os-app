@@ -8,7 +8,7 @@ export function useClass(classId) {
     let alive = true;
     teacherAPI.classes()
       .then((r) => { if (alive) setKlass((r.data.classes || []).find((c) => String(c.classId) === String(classId)) || null); })
-      .catch(() => {});
+      .catch((e) => console.warn("useClass: fetch failed", e));
     return () => { alive = false; };
   }, [classId]);
   return klass;

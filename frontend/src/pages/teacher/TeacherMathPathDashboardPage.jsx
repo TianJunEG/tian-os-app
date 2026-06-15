@@ -264,7 +264,7 @@ export default function TeacherMathPathDashboardPage() {
 
   useEffect(() => {
     let alive = true;
-    teacherAPI.classes().then((r) => { if (alive) setClasses(r?.data?.classes || []); }).catch(() => {});
+    teacherAPI.classes().then((r) => { if (alive) setClasses(r?.data?.classes || []); }).catch((e) => console.warn("TeacherMathPathDashboardPage: fetch failed", e));
     return () => { alive = false; };
   }, []);
 

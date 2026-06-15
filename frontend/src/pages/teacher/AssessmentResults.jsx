@@ -22,7 +22,7 @@ export default function AssessmentResults() {
   useEffect(() => {
     teacherAPI.assessmentResults(assessmentId)
       .then((r) => setData(r.data))
-      .catch(() => {})
+      .catch((e) => console.warn("AssessmentResults: fetch failed", e))
       .finally(() => setLoading(false));
   }, [assessmentId]);
 
