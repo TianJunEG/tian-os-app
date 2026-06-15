@@ -10,6 +10,7 @@ import StudentSciencePanel from '../../components/StudentSciencePanel';
 const MISTAKE_LEARNING_LABEL = {
   new: 'New',
   acknowledged: 'Reviewed',
+  correction_attempted: 'Retry needed',
   corrected: 'Corrected',
   understood: 'Understood',
   mastered: 'Mastered',
