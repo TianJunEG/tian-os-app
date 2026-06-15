@@ -133,6 +133,10 @@ export const mathpathAPI = {
   resetTestStudentState: (data = {}) => api.post('/mastery/test/reset-state', data),
   // skipErrorToast: a start failure falls back to a local session, so a server
   // error here is recovered from and shouldn't raise a global error toast.
+  // Decimals domain (second math domain) — persisted skill states + practice loop.
+  decimalsSkillStates: () => api.get('/mathpath/decimals/skill-states'),
+  startDecimalsPractice: (data = {}) => api.post('/mathpath/decimals/practice/start', data),
+  submitDecimalsPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/decimals/practice/${practiceSessionId}/submit`, data),
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),

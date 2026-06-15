@@ -55,9 +55,9 @@ export default function DecimalsLearningPathPage() {
     let active = true;
     (async () => {
       try {
-        const res = await mathpathAPI.mastery();
+        const res = await mathpathAPI.decimalsSkillStates();
         const all = Array.isArray(res?.data?.records) ? res.data.records : [];
-        // Decimals records are keyed by D-codes; ignore other domains' records.
+        // Defensive: keep only D-coded records in case the endpoint widens later.
         const decimalRecords = all.filter((r) => /^D0\d\d$/.test(String(r.skillId || '')));
         if (active) setRecords(decimalRecords);
       } catch {
