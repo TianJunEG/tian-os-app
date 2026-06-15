@@ -1,3 +1,5 @@
+import { captureException } from '../services/errorMonitoring.js';
+
 /**
  * Global error handling middleware
  * Catches and formats all errors consistently
@@ -12,6 +14,14 @@ export const errorHandler = (err, req, res, next) => {
     method: req.method,
     timestamp: new Date().toISOString()
   });
+
+  const statusCode = err.status || 500;
+  if (statusCode >= 500) {
+    captureException(err, {
+      tags: { path: req.path, method: req.method },
+      user: req.user ? { id: req.user.id, email: req.user.email } : undefined,
+    });
+  }
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {

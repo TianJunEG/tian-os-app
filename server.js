@@ -7,6 +7,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { initErrorMonitoring, sentryRequestHandler, sentryErrorHandler } from './services/errorMonitoring.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
 import authRoutes from './routes/auth.js';
@@ -72,10 +73,15 @@ import { featureGate } from './middleware/featureGate.js';
 
 dotenv.config();
 
+initErrorMonitoring();
+
 const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+// Sentry request handler must be the first middleware
+app.use(sentryRequestHandler());
 
 // Middleware
 app.use(helmet({
@@ -236,6 +242,9 @@ if (fs.existsSync(path.join(clientDist, 'index.html'))) {
 
 // 404 handler
 app.use(notFoundHandler);
+
+// Sentry error handler captures unhandled errors before the app error handler
+app.use(sentryErrorHandler());
 
 // Global error handling middleware (must be last)
 app.use(errorHandler);
