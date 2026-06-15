@@ -45,7 +45,7 @@ export function isSecondary(mode) {
 
 export const VISUAL_MODE_STYLES = Object.freeze({
   lower_primary: {
-    page: 'student-visual-lower',
+    page: 'student-visual-lower skin-lower-primary',
     shell: 'bg-gradient-to-br from-sky-50 via-white to-pink-50',
     header: 'border-white/70 bg-white/85 shadow-sm',
     navActive: 'bg-sky-100 text-navy-700',

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Fredoka:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -50,7 +50,7 @@
   --mastery-3:#6EE7B7; --mastery-4:#34D399; --mastery-5:#064E3B;
   /* ── Type ─────────────────────────────────────────────────────────── */
   --font-display:'DM Serif Display',serif;
-  --font-text:'Nunito',system-ui,sans-serif;
+  --font-text:'Hanken Grotesk',system-ui,sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
   /* ── Elevation / motion / layout ─────────────────────────────────── */
   --shadow-resting:0 2px 8px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
@@ -84,7 +84,7 @@
 
 body {
   background: var(--canvas);
-  font-family: 'Nunito', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Hanken Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   color: var(--slate-800);
@@ -186,4 +186,193 @@ code {
 @keyframes ds-fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================================================================
+   PSL Design System — utility classes from Claude Design handoff
+   ===================================================================== */
+
+/* Dot-grid page background */
+.bg-dot-grid {
+  background-color: #e7eaef;
+  background-image: radial-gradient(#d3d8e0 1px, transparent 1.4px);
+  background-size: 26px 26px;
+}
+
+/* Step shell card */
+.step-shell {
+  background: #f5f6f8;
+  border: 1px solid #dde1e8;
+  border-radius: 16px;
+  box-shadow: 0 20px 44px -30px rgba(30,42,66,0.4);
+  padding: 22px 26px 26px;
+}
+
+/* Notebook ruled surface */
+.ruled {
+  background-color: #fff;
+  background-image:
+    repeating-linear-gradient(
+      transparent, transparent 31px,
+      #e4e7ec 31px, #e4e7ec 32px
+    );
+  border-radius: 14px;
+  position: relative;
+}
+.ruled::before {
+  content: '';
+  position: absolute;
+  left: 48px;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: #f2b8b5;
+  opacity: 0.55;
+  z-index: 1;
+}
+
+/* Mono eyebrow label */
+.mono-label {
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* Gold CTA button */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #d9892e;
+  color: #fff;
+  font-size: 15.5px;
+  font-weight: 700;
+  padding: 13px 28px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(217,137,46,0.35);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+.btn-gold:hover {
+  background: #b06f1f;
+  box-shadow: 0 4px 14px -4px rgba(217,137,46,0.6);
+}
+.btn-gold:active { transform: translateY(1px); }
+.btn-gold:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Gold outline button */
+.btn-gold-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: #d9892e;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1.5px solid #f0dcb8;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-gold-outline:hover {
+  background: #fffbf0;
+  border-color: #d9892e;
+}
+
+/* Read-aloud chip */
+.chip-read-aloud {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #cfe3f7;
+  border-radius: 10px;
+  padding: 7px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #2f80d8;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.chip-read-aloud:hover { background: #eaf3fc; }
+
+/* Two-column PSL session grid */
+.psl-session-grid {
+  display: grid;
+  grid-template-columns: 1.62fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 768px) {
+  .psl-session-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark results panel */
+.results-dark {
+  background: linear-gradient(160deg, #13223e 0%, #101d36 100%);
+}
+.results-dark-card {
+  background: #172a49;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 24px 50px -30px rgba(13,23,48,0.6);
+}
+
+/* Mistake hint box */
+.mistake-hint-box {
+  background: #fdf6ea;
+  border: 1.5px dashed #f0dcb8;
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+/* Lower-primary skin override — Fredoka display + Nunito body, rounder corners, larger targets */
+.skin-lower-primary {
+  font-family: 'Nunito', system-ui, sans-serif;
+}
+.skin-lower-primary h1,
+.skin-lower-primary h2,
+.skin-lower-primary h3 {
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+.skin-lower-primary button,
+.skin-lower-primary [role="button"] {
+  border-radius: 20px;
+  min-height: 48px;
+  font-size: 16px;
+}
+.skin-lower-primary .rounded-xl {
+  border-radius: 20px;
+}
+.skin-lower-primary .rounded-lg {
+  border-radius: 16px;
+}
+
+/* Marketing page (Our Story) */
+.marketing-page {
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+}
+.marketing-page h1,
+.marketing-page h2,
+.marketing-page h3 {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+/* Scroll reveal animation */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }

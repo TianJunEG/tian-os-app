@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, Brain } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, isLowerPrimary } from '../../../design-os/studentVisualMode';
 import { Card, Spinner } from '../../../components/ui';
 import MISCONCEPTIONS, { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
 
 
 export default function PSLMistakeReview() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const playful = isLowerPrimary(resolveStudentVisualMode(user || {}));
   const [mistakes, setMistakes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,54 +41,71 @@ export default function PSLMistakeReview() {
   if (grouped['Other']) sortedCategories.push('Other');
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-4 pb-6 sm:p-6">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate('/student/psl')} className="rounded-lg p-1.5 hover:bg-ink-100">
-          <ArrowLeft className="h-5 w-5 text-ink-500" />
-        </button>
-        <div>
-          <h1 className="text-lg font-bold text-ink-800">Mistake Review</h1>
-          <p className="text-sm text-ink-500">{mistakes.length} mistake{mistakes.length !== 1 ? 's' : ''} to learn from</p>
-        </div>
-      </div>
-
-      {mistakes.length === 0 ? (
-        <Card className="p-8 text-center">
-          <Brain className="mx-auto h-10 w-10 text-gold-400" />
-          <p className="mt-3 text-sm font-medium text-ink-600">No mistakes yet!</p>
-          <p className="mt-1 text-xs text-ink-400">Complete some practice sessions to see your learning areas here.</p>
-        </Card>
-      ) : (
-        sortedCategories.map((category) => (
-          <div key={category}>
-            <h2 className="mb-2 text-sm font-semibold text-ink-500">{category} errors</h2>
-            <div className="space-y-2">
-              {grouped[category].map(({ tag, count, label, tip }) => (
-                <Card key={tag} className="p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-ink-700">{label}</p>
-                        <span className="rounded-full bg-ink-100 px-2 py-0.5 text-xs font-mono text-ink-500">{count}x</span>
-                      </div>
-                      {tip && <p className="mt-1 text-xs text-ink-500">{tip}</p>}
-                      {tag === 'psl/arithmetic-error' && (
-                        <button
-                          onClick={() => navigate('/student/mathpath')}
-                          className="mt-2 rounded-lg bg-gold-100 px-3 py-1.5 text-xs font-semibold text-gold-700 hover:bg-gold-200"
-                        >
-                          Practice in MathPath
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
+    <div className={`bg-dot-grid min-h-screen pb-10${playful ? ' skin-lower-primary' : ''}`}>
+      <div className="mx-auto max-w-[780px] px-6 pt-6 sm:px-10">
+        <div className="step-shell">
+          <div className="mb-5 flex items-center gap-3">
+            <button onClick={() => navigate('/student/psl')} className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors hover:bg-white">
+              <ArrowLeft className="h-5 w-5" style={{ color: '#8a93a3' }} />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold" style={{ color: '#232c39' }}>Mistake Review</h1>
+              <p className="text-sm" style={{ color: '#8a93a3' }}>{mistakes.length} mistake{mistakes.length !== 1 ? 's' : ''} to learn from</p>
             </div>
           </div>
-        ))
-      )}
+
+          {mistakes.length === 0 ? (
+            <div className="rounded-2xl border border-ink-200 bg-white p-10 text-center">
+              <Brain className="mx-auto h-12 w-12" style={{ color: '#d9892e' }} />
+              <p className="mt-4 text-base font-semibold" style={{ color: '#232c39' }}>No mistakes yet!</p>
+              <p className="mt-1 text-sm" style={{ color: '#8a93a3' }}>Complete some practice sessions to see your learning areas here.</p>
+            </div>
+          ) : (
+            sortedCategories.map((category) => (
+              <div key={category} className="mb-5">
+                <h2 className="mono-label mb-3" style={{ color: '#d8694f' }}>{category} errors</h2>
+                <div className="space-y-3">
+                  {grouped[category].map(({ tag, count, label, tip }) => (
+                    <div key={tag} className="rounded-2xl border border-ink-200 bg-white p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full" style={{ background: '#fbece9' }}>
+                          <AlertTriangle className="h-3.5 w-3.5" style={{ color: '#d8694f' }} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold" style={{ color: '#232c39' }}>{label}</p>
+                            <span className="mono-label rounded-full px-2.5 py-0.5" style={{ background: '#fbece9', color: '#d8694f', fontSize: '11px' }}>{count}x</span>
+                          </div>
+                          {tip && (
+                            <div className="mistake-hint-box mt-3">
+                              <p className="text-xs leading-relaxed" style={{ color: '#a8743a' }}>{tip}</p>
+                            </div>
+                          )}
+                          {tag === 'psl/arithmetic-error' && (
+                            <button
+                              onClick={() => navigate('/student/mathpath')}
+                              className="btn-gold-outline mt-3"
+                            >
+                              Practice in MathPath
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+
+          <button
+            onClick={() => navigate('/student/psl')}
+            className="btn-gold mt-4 w-full"
+          >
+            Back to Skills
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

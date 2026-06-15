@@ -268,24 +268,30 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
 }
 
 function CompactStatCard({ icon: Icon, label, value, tone = 'navy', visual }) {
-  const toneClass = {
-    navy: 'bg-navy-50 text-navy-700',
-    gold: 'bg-gold-100 text-gold-700',
-    success: 'bg-success-100 text-success-700',
-  }[tone] || 'bg-navy-50 text-navy-700';
+  const toneConfig = {
+    navy: { iconBg: '#eef1f5', iconColor: '#475569', accent: '#475569' },
+    gold: { iconBg: '#fbf1e1', iconColor: '#d9892e', accent: '#d9892e' },
+    success: { iconBg: '#eaf6ef', iconColor: '#1f8a5b', accent: '#1f8a5b' },
+  }[tone] || { iconBg: '#eef1f5', iconColor: '#475569', accent: '#475569' };
   return (
-    <Card className={`relative overflow-hidden p-4 ${visual?.styles?.card || ''}`}>
+    <div
+      className="relative overflow-hidden rounded-[22px] bg-white p-5"
+      style={{ boxShadow: '0 8px 26px -16px rgba(30,42,66,0.30), 0 1px 2px rgba(30,42,66,0.06)' }}
+    >
       <DecorativeMotifs enabled={visual?.styles?.decorative && tone === 'gold'} />
-      <div className="flex items-center gap-3">
-        <span className={`grid ${isLowerPrimary(visual?.mode) ? 'h-12 w-12' : 'h-11 w-11'} shrink-0 place-items-center rounded-xl ${visual?.styles?.icon || toneClass}`}>
-          <Icon className="h-5 w-5" />
+      <div className="flex items-center gap-4">
+        <span
+          className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl"
+          style={{ background: toneConfig.iconBg }}
+        >
+          <Icon className="h-5 w-5" style={{ color: toneConfig.iconColor }} />
         </span>
         <div className="min-w-0">
-          <p className={`${isLowerPrimary(visual?.mode) ? 'text-base' : 'text-sm'} font-semibold text-ink-500`}>{label}</p>
-          <p className="mt-0.5 text-2xl font-semibold text-ink-900">{value}</p>
+          <p className="text-sm font-semibold" style={{ color: '#5a6675' }}>{label}</p>
+          <p className="mt-1 font-mono text-[32px] font-extrabold leading-none" style={{ color: '#232c39' }}>{value}</p>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -1094,28 +1100,54 @@ export default function StudentDashboard() {
     };
 
     return (
-      <main style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", color: '#232c39', background: '#eef1f5', minHeight: '100vh', padding: '40px 36px 56px' }}>
+      <main style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", color: '#232c39', background: '#e7eaef', backgroundImage: 'radial-gradient(#d3d8e0 1px, transparent 1.4px)', backgroundSize: '26px 26px', minHeight: '100vh', padding: '0 0 96px' }}>
         <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-        <div style={{ maxWidth: 1240, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1360, margin: '0 auto', padding: '0 44px' }}>
+          <div style={{ background: '#f5f6f8', border: '1px solid #dde1e8', borderRadius: 16, overflow: 'hidden', boxShadow: '0 36px 70px -34px rgba(30,42,66,0.45)' }}>
+
+            {/* Nav */}
+            <div style={{ background: '#fff', borderBottom: '1px solid #eaedf2', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 22px', height: 50 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 34 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(150deg, #e3a64f, #d2812c)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 17, boxShadow: '0 2px 6px rgba(210,129,44,0.4)' }}>T</div>
+                  <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }}>TianOS</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ padding: '6px 10px', borderRadius: 8, background: '#eef0f4', color: '#232c39', fontSize: 13.5, fontWeight: 600 }}>Home</span>
+                  <a href="/student/mathpath" style={{ padding: '6px 9px', borderRadius: 8, color: '#6b7585', fontSize: 13.5, fontWeight: 500, textDecoration: 'none' }}>MathPath</a>
+                  {FEATURE_FLAGS.psl && <a href="/student/psl" style={{ padding: '6px 9px', borderRadius: 8, color: '#6b7585', fontSize: 13.5, fontWeight: 500, textDecoration: 'none' }}>Word Problems</a>}
+                  <a href="/student/profile" style={{ padding: '6px 9px', borderRadius: 8, color: '#6b7585', fontSize: 13.5, fontWeight: 500, textDecoration: 'none' }}>Profile</a>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '26px 30px 32px' }}>
 
           {/* Header */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between" style={{ marginBottom: 24 }}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between" style={{ marginBottom: 22 }}>
             <div>
-              <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', color: '#1c2433' }}>
-                Hi {firstName} {'—'} here's your week
+              <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.01em', color: '#232c39' }}>
+                Good afternoon, {firstName}
               </div>
-              <div style={{ fontFamily: monoFont, fontSize: 12.5, color: '#8a93a3', marginTop: 4, letterSpacing: '0.02em' }}>
-                Tap any card to see what it means
+              <div style={{ fontFamily: monoFont, fontSize: 13, color: '#8a93a3', marginTop: 3 }}>
+                {dateLabel} {'·'} tap any card to see what it means
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #f0dcb8', borderRadius: 12, padding: '9px 14px' }}>
+                <Flame size={18} style={{ color: '#f6a93b' }} />
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#232c39' }}>{displayStreak || 0}</span>
+                <span style={{ fontSize: 13, color: '#8a93a3' }}>day streak</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #eaedf2', borderRadius: 12, padding: '9px 14px' }}>
+                <span style={{ fontFamily: monoFont, fontSize: 14, fontWeight: 600, color: '#d9892e' }}>{displayXp || 0}</span>
+                <span style={{ fontSize: 13, color: '#8a93a3' }}>XP</span>
+              </div>
               {canResetStudentState && (
                 <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>
                   {resetting ? 'Resetting...' : 'Reset'}
                 </Button>
               )}
-              <Button to="/student/profile" size="s" variant="secondary" icon={UserCircle}>Profile</Button>
-              <span style={{ fontFamily: monoFont, fontSize: 11.5, color: '#aab2bf', letterSpacing: '0.06em' }}>{dateLabel}</span>
             </div>
           </div>
 
@@ -1250,20 +1282,53 @@ export default function StudentDashboard() {
             <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} masteredSkillCount={safeMasteredCount} />
           </div>
 
-          {FEATURE_FLAGS.psl && (
-            <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
-                  <Brain className="h-5 w-5 text-gold-600" />
+          {/* Subject cards */}
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', margin: '24px 2px 14px' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#232c39' }}>Your subjects</div>
+            <span style={{ fontFamily: monoFont, fontSize: 12, color: '#8a93a3' }}>
+              {FEATURE_FLAGS.psl ? '2' : '1'} active
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: FEATURE_FLAGS.psl ? 'repeat(2, 1fr)' : '1fr', gap: 18 }}>
+            {/* MathPath */}
+            <a href="/student/mathpath" style={{ textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #e7eaef', borderRadius: 18, boxShadow: '0 1px 3px rgba(30,42,66,0.05)', padding: 20, display: 'block' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 13, background: '#e7f3ec', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1f8a5b' }}>
+                  <Calculator size={23} />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>
-                  <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
+                <span style={{ fontFamily: monoFont, fontSize: 11, fontWeight: 600, color: '#1f8a5b', background: '#e7f3ec', padding: '4px 9px', borderRadius: 7, letterSpacing: '0.04em' }}>
+                  {safeMasteredCount}/{totalSkills} MASTERED
+                </span>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#232c39' }}>MathPath</div>
+              <div style={{ fontSize: 13.5, color: '#6b7585', marginTop: 3 }}>Fractions &amp; number sense</div>
+              <div style={{ height: 8, borderRadius: 5, background: '#eef0f3', marginTop: 16, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.round((safeMasteredCount / Math.max(totalSkills, 1)) * 100)}%`, height: '100%', background: '#1f8a5b' }} />
+              </div>
+              <div style={{ marginTop: 15, display: 'flex', alignItems: 'center', gap: 6, color: '#1f8a5b', fontWeight: 700, fontSize: 14 }}>
+                Continue <ChevronRight size={16} />
+              </div>
+            </a>
+            {/* Word Problems / PSL */}
+            {FEATURE_FLAGS.psl && (
+              <a href="/student/psl" style={{ textDecoration: 'none', color: 'inherit', background: '#fff', border: '1.5px solid #f0dcb8', borderRadius: 18, boxShadow: '0 6px 20px -12px rgba(217,137,46,0.35)', padding: 20, display: 'block' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 13, background: '#fbf1e1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d9892e' }}>
+                    <BookOpen size={23} />
+                  </div>
+                  <span style={{ fontFamily: monoFont, fontSize: 11, fontWeight: 600, color: '#a8743a', background: '#fbf1e1', padding: '4px 9px', borderRadius: 7, letterSpacing: '0.04em' }}>IN PROGRESS</span>
                 </div>
-                <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
-              </Card>
-            </div>
-          )}
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#232c39' }}>Word Problems</div>
+                <div style={{ fontSize: 13.5, color: '#6b7585', marginTop: 3 }}>Heuristics &amp; multi-step solving</div>
+                <div style={{ height: 8, borderRadius: 5, background: '#eef0f3', marginTop: 16, overflow: 'hidden' }}>
+                  <div style={{ width: '48%', height: '100%', background: '#d9892e' }} />
+                </div>
+                <div style={{ marginTop: 15, display: 'flex', alignItems: 'center', gap: 6, color: '#a8743a', fontWeight: 700, fontSize: 14 }}>
+                  Continue <ChevronRight size={16} />
+                </div>
+              </a>
+            )}
+          </div>
 
           {showDiagnosticPrompt && (
             <div style={{ marginTop: 20 }}>
@@ -1282,6 +1347,9 @@ export default function StudentDashboard() {
               </Card>
             </div>
           )}
+
+            </div>{/* end padding wrapper */}
+          </div>{/* end step-shell */}
         </div>
       </main>
     );

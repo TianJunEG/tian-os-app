@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Brain, ChevronDown, ChevronRight, HelpCircle, Lock, Star, Target } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, isLowerPrimary } from '../../../design-os/studentVisualMode';
 import { Card, Spinner } from '../../../components/ui';
 import PrerequisiteGate from './components/PrerequisiteGate';
 
@@ -32,6 +34,8 @@ function MasteryBadge({ mastery }) {
 
 export default function PSLHome() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const playful = isLowerPrimary(resolveStudentVisualMode(user || {}));
   const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -94,15 +98,16 @@ export default function PSLHome() {
   }, {});
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4 p-4 pb-6 sm:space-y-6 sm:p-6">
+    <div className={`bg-dot-grid min-h-screen pb-8${playful ? ' skin-lower-primary' : ''}`}>
+      <div className="mx-auto max-w-[860px] space-y-4 px-6 pt-6 sm:space-y-6 sm:px-10">
       <div>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-100">
-            <Brain className="h-5 w-5 text-gold-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: '#fbf1e1' }}>
+            <Brain className="h-5 w-5" style={{ color: '#d9892e' }} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-ink-800">Problem Solving Lab</h1>
-            <p className="text-sm text-ink-500">Learn to solve word problems step by step</p>
+            <h1 className="text-xl font-bold" style={{ color: '#232c39' }}>Problem Solving Lab</h1>
+            <p className="text-sm" style={{ color: '#8a93a3' }}>Read it, plan it, solve it — one step at a time</p>
           </div>
         </div>
       </div>
@@ -120,7 +125,7 @@ export default function PSLHome() {
             <button
               onClick={() => handleStart(data.recommended)}
               disabled={starting === data.recommended}
-              className="rounded-xl bg-gold-400 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gold-500 disabled:opacity-50"
+              className="btn-gold !py-2 !px-5 !text-sm disabled:opacity-50"
             >
               {starting === data.recommended ? 'Starting...' : 'Start'}
             </button>
@@ -242,6 +247,7 @@ export default function PSLHome() {
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

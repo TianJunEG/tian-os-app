@@ -10,6 +10,7 @@ const DiagramDemo = lazy(() => import('./pages/DiagramDemo'));
 
 // Pages
 const FounderStoryPage = lazy(() => import('./pages/FounderStoryPage'));
+const OurStoryPage = lazy(() => import('./pages/OurStoryPage'));
 const MethodologyPage = lazy(() => import('./pages/MethodologyPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
@@ -419,6 +420,7 @@ function App() {
           <Route path="/demo/stroke-replay" element={<StrokeReplayDemo />} />
           <Route path="/demo/diagrams" element={<DiagramDemo />} />
           <Route path="/founder" element={<FounderStoryPage />} />
+          <Route path="/our-story" element={<OurStoryPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
