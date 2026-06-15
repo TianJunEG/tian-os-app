@@ -679,4 +679,103 @@ router.get('/classes/:id/psl/dashboard', asyncHandler(async (req, res) => {
   });
 }));
 
+// ── PSL student session review ────────────────────────────────────
+router.get('/students/:id/psl/sessions', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const enrolled = await ClassStudent.findOne({ studentId: req.params.id, workspaceId: req.workspaceId });
+  const partnerAllowed = !enrolled
+    ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId: req.params.id })
+    : false;
+  if (!enrolled && !partnerAllowed) return res.status(403).json({ error: 'Student not in your classes.' });
+
+  const student = await Student.findById(req.params.id).select('name level').lean();
+  if (!student) return res.status(404).json({ error: 'Student not found.' });
+
+  const sessions = await PSLSession.find({ studentId: req.params.id, status: 'completed' })
+    .sort({ completedAt: -1 })
+    .limit(50)
+    .lean();
+
+  const skillIds = [...new Set(sessions.map((s) => s.skillId))];
+  const skills = await PSLSkill.find({ skillId: { $in: skillIds } }).select('skillId name heuristic level').lean();
+  const skillLookup = Object.fromEntries(skills.map((s) => [s.skillId, s]));
+
+  res.json({
+    student: { id: student._id, name: student.name, level: student.level },
+    sessions: sessions.map((s) => {
+      const sk = skillLookup[s.skillId] || {};
+      return {
+        sessionId: s.sessionId,
+        skillId: s.skillId,
+        skillName: sk.name || s.skillId,
+        heuristic: sk.heuristic || '',
+        level: sk.level || '',
+        completedAt: s.completedAt,
+        totalProblems: s.summary?.totalProblems || 0,
+        overallScore: s.summary?.overallScore || 0,
+        fullMarks: s.summary?.fullMarks || 0,
+        misconceptionCounts: s.summary?.misconceptionCounts || {},
+        targetDifficulty: s.targetDifficulty || 1,
+      };
+    }),
+  });
+}));
+
+router.get('/students/:id/psl/sessions/:sessionId', asyncHandler(async (req, res) => {
+  if (!ensureTeacherWorkspace(req, res)) return;
+  const enrolled = await ClassStudent.findOne({ studentId: req.params.id, workspaceId: req.workspaceId });
+  const partnerAllowed = !enrolled
+    ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId: req.params.id })
+    : false;
+  if (!enrolled && !partnerAllowed) return res.status(403).json({ error: 'Student not in your classes.' });
+
+  const session = await PSLSession.findOne({ sessionId: req.params.sessionId, studentId: req.params.id }).lean();
+  if (!session) return res.status(404).json({ error: 'Session not found.' });
+
+  const attempts = await PSLAttempt.find({ sessionId: req.params.sessionId }).lean();
+  const attemptsByProblem = Object.fromEntries(attempts.map((a) => [a.problemId, a]));
+
+  const skill = await PSLSkill.findOne({ skillId: session.skillId }).select('skillId name heuristic level').lean();
+
+  const problems = (session.problems || []).map((p) => {
+    const attempt = attemptsByProblem[p.problemId];
+    return {
+      problemId: p.problemId,
+      storyText: p.storyText,
+      correctAnswer: p.correctAnswer,
+      difficulty: p.difficulty || 1,
+      status: p.status,
+      steps: (attempt?.steps || []).map((step) => ({
+        stepId: step.stepId,
+        response: step.response,
+        correct: step.correct,
+        score: step.score,
+        misconceptionTag: step.misconceptionTag || '',
+        hintUsed: step.hintUsed || false,
+        retried: step.retried || false,
+        timeSpentMs: step.timeSpentMs || 0,
+      })),
+      overallCorrect: attempt?.overallCorrect ?? null,
+      overallScore: attempt?.overallScore ?? null,
+      totalTimeMs: attempt?.totalTimeMs ?? null,
+    };
+  });
+
+  res.json({
+    session: {
+      sessionId: session.sessionId,
+      skillId: session.skillId,
+      skillName: skill?.name || session.skillId,
+      heuristic: skill?.heuristic || '',
+      level: skill?.level || '',
+      status: session.status,
+      targetDifficulty: session.targetDifficulty || 1,
+      startedAt: session.startedAt,
+      completedAt: session.completedAt,
+      summary: session.summary || {},
+    },
+    problems,
+  });
+}));
+
 export default router;

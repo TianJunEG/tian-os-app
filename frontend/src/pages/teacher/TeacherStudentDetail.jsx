@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Mail } from 'lucide-react';
+import { ArrowLeft, Brain, Copy, Mail } from 'lucide-react';
 import { teacherAPI, parentInvitesAPI } from '../../services/api';
 import { useEntitlements } from '../../context/useEntitlements';
 import { Card, Badge, Button, StatusBadge, StatTile, PageHeader, Spinner, ErrorState } from '../../components/ui';
@@ -74,6 +74,13 @@ export default function TeacherStudentDetail() {
           <StatTile label="Open mistakes" value={mistakes.length} />
         </div>
       </Card>
+
+      <button
+        onClick={() => navigate(`/teacher/students/${id}/psl`)}
+        className="mb-4 inline-flex items-center gap-2 rounded-xl border border-hairline px-4 py-2.5 text-sm font-semibold text-navy-700 transition hover:border-navy-300 hover:bg-navy-50/40"
+      >
+        <Brain className="h-4 w-4" /> View Problem Solving Lab Sessions
+      </button>
 
       <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
         <Card className="p-5">

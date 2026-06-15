@@ -201,7 +201,7 @@ export default function TeacherPSLDashboardPage() {
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState(false);
 
-  const openStudent = useCallback((sid) => navigate(`/teacher/students/${sid}`), [navigate]);
+  const openStudent = useCallback((sid) => navigate(`/teacher/students/${sid}/psl`), [navigate]);
 
   const load = useCallback(async () => {
     setError(false);
