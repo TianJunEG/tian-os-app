@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowLeft, Brain, ChevronDown, ChevronRight } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import MISCONCEPTIONS, { CATEGORY_ORDER, getMisconception } from './utils/misconceptions';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
 export default function PSLMistakeReview() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [mistakes, setMistakes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
@@ -47,7 +51,7 @@ export default function PSLMistakeReview() {
   const totalCategories = sortedCategories.length;
 
   return (
-    <div className="bg-dot-grid min-h-screen pb-8">
+    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
       <div className="mx-auto max-w-[1180px] px-3 pt-4 sm:px-6 sm:pt-6 lg:px-10">
         <div className="step-shell">
           {/* Header */}

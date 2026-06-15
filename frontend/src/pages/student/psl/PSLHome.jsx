@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Brain, ChevronDown, ChevronRight, HelpCircle, Star } from 'lucide-react';
 import { pslAPI } from '../../../services/api';
 import PrerequisiteGate from './components/PrerequisiteGate';
+import { useAuth } from '../../../context/AuthContext';
+import { resolveStudentVisualMode, getVisualModeStyles } from '../../../design-os/studentVisualMode';
 
 const HEURISTIC_LABELS = {
   'bar-model': 'Bar Model (Units & Parts)',
@@ -61,6 +63,8 @@ function MasteryBadge({ mastery }) {
 
 export default function PSLHome() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const visualStyles = getVisualModeStyles(resolveStudentVisualMode(user || {}));
   const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -154,7 +158,7 @@ export default function PSLHome() {
     : null;
 
   return (
-    <div className="bg-dot-grid min-h-screen pb-8">
+    <div className={`bg-dot-grid min-h-screen pb-8 ${visualStyles.page}`}>
       <div className="mx-auto max-w-2xl px-3 pt-0 pb-6 sm:px-6 lg:max-w-4xl">
 
         {/* ── Hero banner ──────────────────────────────────── */}
