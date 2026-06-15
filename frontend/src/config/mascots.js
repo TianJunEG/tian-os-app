@@ -96,6 +96,21 @@ export function getMascot(key) {
   return MASCOTS[key] || null;
 }
 
+// Voice profile for a mascot: gender (for voice selection) plus a pitch/rate
+// derived from age so each of the Tian 7 sounds distinct — younger mascots
+// speak a little higher, boys lower than girls. Pitch is clamped to the
+// SpeechSynthesis range (0–2); the consumer (utils/sound speak) picks a
+// gender-matching system voice best-effort and applies these.
+export function getMascotVoice(key) {
+  const m = MASCOTS[key];
+  if (!m) return { gender: 'female', pitch: 1.1, rate: 0.95 };
+  const base = m.gender === 'boy' ? 0.85 : 1.15;
+  const ageAdjust = (12 - m.age) * 0.03; // younger → higher
+  const pitch = Math.max(0.5, Math.min(1.6, base + ageAdjust));
+  const rate = m.age <= 8 ? 0.9 : 0.95;   // youngest speak a touch slower
+  return { gender: m.gender === 'boy' ? 'male' : 'female', pitch, rate };
+}
+
 export function getMascotForModule(moduleKey) {
   const mascotKey = MODULE_MASCOT_MAP[moduleKey];
   return mascotKey ? { key: mascotKey, ...MASCOTS[mascotKey] } : null;

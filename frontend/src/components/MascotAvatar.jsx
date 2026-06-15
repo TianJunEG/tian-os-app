@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
-import { getMascot, MASCOTS, MASCOT_ORDER } from '../config/mascots';
+import { getMascot, getMascotVoice, MASCOTS, MASCOT_ORDER } from '../config/mascots';
 import { useAuth } from '../context/AuthContext';
 import { speak } from '../utils/sound';
 
@@ -90,9 +90,9 @@ export function MascotBubble({
   useEffect(() => {
     if (speakEnabled && text && text !== spokenRef.current) {
       spokenRef.current = text;
-      speak(text);
+      speak(text, getMascotVoice(mascotKey));
     }
-  }, [text, speakEnabled]);
+  }, [text, speakEnabled, mascotKey]);
 
   if (!text) return null;
 
