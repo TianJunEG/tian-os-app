@@ -6,14 +6,13 @@ test('pilot gate: student practice critical path', async ({ page }) => {
   await page.goto('/student/mathpath');
   await expect(page.getByText(/MathPath|Fractions|Learning Paths/i).first()).toBeVisible();
 
-  // Continue Learning should route to a practice-capable session surface.
+  // Continue Learning / Mastery Check route to a practice surface.
+  // "Start Fractions Check-In" intentionally excluded — it leads to the
+  // diagnostic flow, not a practice session.
   const continueLearning = page.getByRole('button', { name: /continue learning/i }).first();
-  const checkIn = page.getByRole('button', { name: /start fractions check-in|start fractions diagnostic/i }).first();
-  const startLearning = page.getByRole('button', { name: /continue|start mastery check|start practice test/i }).first();
+  const startLearning = page.getByRole('button', { name: /start mastery check|start practice test/i }).first();
   if (await continueLearning.count()) {
     await continueLearning.click();
-  } else if (await checkIn.count()) {
-    await checkIn.click();
   } else if (await startLearning.count()) {
     await startLearning.click();
   } else {
