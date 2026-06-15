@@ -13,6 +13,7 @@ import { getBullConnection, QUEUE_NAMES, closeQueues } from '../config/queue.js'
 import { processPaperAnalysis } from './paperAnalysisWorker.js';
 import { processWorksheetGenerate } from './worksheetGenerateWorker.js';
 import { processMarkAnswers } from './markAnswersWorker.js';
+import { processReinforce } from './reinforceWorksheetWorker.js';
 
 if (!process.env.REDIS_URL) {
   console.error('[worker] REDIS_URL is required to run the background worker.');
@@ -30,6 +31,7 @@ const HANDLERS = [
   { name: QUEUE_NAMES.paperAnalysis, processor: processPaperAnalysis },
   { name: QUEUE_NAMES.worksheetGenerate, processor: processWorksheetGenerate },
   { name: QUEUE_NAMES.markAnswers, processor: processMarkAnswers },
+  { name: QUEUE_NAMES.reinforce, processor: processReinforce },
 ];
 
 const workers = HANDLERS.map(({ name, processor }) => {
