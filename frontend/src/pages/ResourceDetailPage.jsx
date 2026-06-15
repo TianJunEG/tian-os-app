@@ -6,39 +6,66 @@ import { ArrowLeft, ArrowRight, Download, Lock } from 'lucide-react';
 import { resourcesAPI, SERVER_ORIGIN } from '../services/api';
 import { GROUP_NAME, RESOURCE_CATEGORIES } from '../config/brand';
 import Seo from '../components/Seo';
-import SiteHeader from '../components/SiteHeader';
+import MarketingHeader from '../components/MarketingHeader';
 import SiteFooter from '../components/SiteFooter';
+import useScrollReveal from '../hooks/useScrollReveal';
 import { trackEvent } from '../lib/analytics';
 
 const categoryName = (id) => RESOURCE_CATEGORIES.find((c) => c.id === id)?.name || id;
 
-// Tailwind-styled element mappings for rendered Markdown.
-const markdownComponents = {
-  h1: ({ node, ...props }) => <h2 className="mt-8 mb-3 font-display text-2xl font-bold text-slate-900" {...props} />,
-  h2: ({ node, ...props }) => <h3 className="mt-8 mb-2 font-display text-xl font-semibold text-slate-900" {...props} />,
-  h3: ({ node, ...props }) => <h4 className="mt-6 mb-2 font-display text-lg font-semibold text-slate-900" {...props} />,
-  p: ({ node, ...props }) => <p className="mb-4 leading-relaxed text-slate-700" {...props} />,
-  ul: ({ node, ...props }) => <ul className="mb-4 list-disc space-y-1 pl-6 text-slate-700" {...props} />,
-  ol: ({ node, ...props }) => <ol className="mb-4 list-decimal space-y-1 pl-6 text-slate-700" {...props} />,
-  li: ({ node, ...props }) => <li className="leading-relaxed" {...props} />,
+// Article body typography — matches the Our Story "light section" design
+const md = {
+  h1: ({ node, ...props }) => (
+    <h2 style={{ fontFamily: "'Newsreader', serif", fontWeight: 500, fontSize: 'clamp(26px, 3vw, 38px)', lineHeight: 1.12, letterSpacing: '-0.015em', color: '#1c2433', margin: '52px 0 16px' }} {...props} />
+  ),
+  h2: ({ node, ...props }) => (
+    <h3 style={{ fontFamily: "'Newsreader', serif", fontWeight: 500, fontSize: 'clamp(21px, 2.2vw, 28px)', lineHeight: 1.2, letterSpacing: '-0.01em', color: '#1c2433', margin: '44px 0 12px' }} {...props} />
+  ),
+  h3: ({ node, ...props }) => (
+    <h4 style={{ fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, fontSize: 18, lineHeight: 1.3, color: '#1c2433', margin: '36px 0 10px' }} {...props} />
+  ),
+  p: ({ node, ...props }) => (
+    <p style={{ fontSize: 18, lineHeight: 1.72, color: '#3a4150', margin: '0 0 22px' }} {...props} />
+  ),
+  ul: ({ node, ...props }) => (
+    <ul style={{ paddingLeft: 26, margin: '0 0 22px', color: '#3a4150' }} {...props} />
+  ),
+  ol: ({ node, ...props }) => (
+    <ol style={{ paddingLeft: 26, margin: '0 0 22px', color: '#3a4150' }} {...props} />
+  ),
+  li: ({ node, ...props }) => (
+    <li style={{ fontSize: 18, lineHeight: 1.65, marginBottom: 6 }} {...props} />
+  ),
   a: ({ node, ...props }) => (
-    <a className="text-navy-600 underline hover:text-navy-700" target="_blank" rel="noopener noreferrer" {...props} />
+    <a style={{ color: '#5d86f0', textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer" {...props} />
   ),
-  strong: ({ node, ...props }) => <strong className="font-semibold text-slate-900" {...props} />,
+  strong: ({ node, ...props }) => (
+    <strong style={{ fontWeight: 600, color: '#1c2433' }} {...props} />
+  ),
   blockquote: ({ node, ...props }) => (
-    <blockquote className="mb-4 border-l-4 border-navy-200 pl-4 italic text-slate-600" {...props} />
+    <blockquote style={{
+      borderLeft: '2px solid #cf8a44', paddingLeft: 28, margin: '36px 0',
+      fontFamily: "'Newsreader', serif", fontStyle: 'italic',
+      fontSize: 'clamp(22px, 2.5vw, 32px)', lineHeight: 1.25, letterSpacing: '-0.01em', color: '#1c2433',
+    }} {...props} />
   ),
-  code: ({ node, ...props }) => <code className="rounded bg-slate-100 px-1 py-0.5 text-sm" {...props} />,
   table: ({ node, ...props }) => (
-    <div className="mb-4 overflow-x-auto">
-      <table className="min-w-full border border-slate-200 text-sm" {...props} />
+    <div style={{ overflowX: 'auto', margin: '0 0 24px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 15.5, color: '#3a4150' }} {...props} />
     </div>
   ),
   th: ({ node, ...props }) => (
-    <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold" {...props} />
+    <th style={{ borderBottom: '2px solid #e1d9ca', padding: '10px 14px', textAlign: 'left', fontWeight: 600, color: '#1c2433' }} {...props} />
   ),
-  td: ({ node, ...props }) => <td className="border border-slate-200 px-3 py-2" {...props} />,
-  del: ({ node, ...props }) => <del className="text-slate-500" {...props} />,
+  td: ({ node, ...props }) => (
+    <td style={{ borderBottom: '1px solid #e1d9ca', padding: '10px 14px' }} {...props} />
+  ),
+  hr: ({ node, ...props }) => (
+    <hr style={{ border: 'none', borderTop: '1px solid #e1d9ca', margin: '44px 0' }} {...props} />
+  ),
+  code: ({ node, ...props }) => (
+    <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 14, background: '#f4efe6', borderRadius: 4, padding: '2px 6px' }} {...props} />
+  ),
 };
 
 function GateForm({ slug, resourceTitle, onUnlock }) {
@@ -61,29 +88,71 @@ function GateForm({ slug, resourceTitle, onUnlock }) {
   };
 
   return (
-    <div className="mt-2 rounded-xl border border-navy-100 bg-navy-50/60 p-6">
-      <div className="flex items-center gap-2 text-navy-700">
-        <Lock className="h-4 w-4" />
-        <h2 className="font-display text-lg font-semibold text-slate-900">Get free access</h2>
+    <div style={{
+      marginTop: 32, padding: 32, borderRadius: 16,
+      background: 'white', border: '1px solid #e1d9ca',
+      boxShadow: '0 4px 20px rgba(30,42,66,0.07)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+        <Lock size={16} color="#cf8a44" />
+        <h2 style={{ margin: 0, fontFamily: "'Hanken Grotesk', sans-serif", fontWeight: 600, fontSize: 18, color: '#1c2433' }}>
+          Get free access
+        </h2>
       </div>
-      <p className="mt-1 mb-4 text-sm text-slate-600">
-        Enter your email and we'll unlock this resource. We'll only use it to share helpful learning
-        materials — no spam.
+      <p style={{ margin: '0 0 24px', fontSize: 15, lineHeight: 1.6, color: '#5c6472' }}>
+        Enter your email to unlock this resource. We'll only use it to share helpful learning materials — no spam.
       </p>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {error && (
+          <div style={{ padding: '10px 14px', borderRadius: 8, background: '#fbece9', border: '1px solid #ecc3ba', fontSize: 14, color: '#d8694f' }}>
+            {error}
+          </div>
+        )}
         <div>
-          <label htmlFor="gate-name" className="field-label">
-            Name <span className="text-slate-400">(optional)</span>
+          <label htmlFor="gate-name" style={{ display: 'block', fontSize: 13.5, fontWeight: 500, color: '#5c6472', marginBottom: 6 }}>
+            Name <span style={{ color: '#aebbd2' }}>(optional)</span>
           </label>
-          <input id="gate-name" type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} maxLength={100} className="field" />
+          <input
+            id="gate-name"
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+            maxLength={100}
+            style={{
+              width: '100%', padding: '11px 14px', borderRadius: 10,
+              border: '1px solid #e1d9ca', fontSize: 15, color: '#1c2433',
+              background: '#faf6ef', outline: 'none', boxSizing: 'border-box',
+            }}
+          />
         </div>
         <div>
-          <label htmlFor="gate-email" className="field-label">Email</label>
-          <input id="gate-email" type="email" required value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} className="field" />
+          <label htmlFor="gate-email" style={{ display: 'block', fontSize: 13.5, fontWeight: 500, color: '#5c6472', marginBottom: 6 }}>
+            Email
+          </label>
+          <input
+            id="gate-email"
+            type="email"
+            required
+            value={form.email}
+            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+            style={{
+              width: '100%', padding: '11px 14px', borderRadius: 10,
+              border: '1px solid #e1d9ca', fontSize: 15, color: '#1c2433',
+              background: '#faf6ef', outline: 'none', boxSizing: 'border-box',
+            }}
+          />
         </div>
-        <button type="submit" disabled={submitting} className="btn-primary">
-          {submitting ? 'Unlocking...' : 'Unlock resource'}
+        <button
+          type="submit"
+          disabled={submitting}
+          style={{
+            padding: '13px 24px', borderRadius: 12, border: 'none', cursor: 'pointer',
+            background: '#cf8a44', color: 'white', fontFamily: "'Hanken Grotesk', sans-serif",
+            fontWeight: 700, fontSize: 15.5, transition: 'background .15s',
+            opacity: submitting ? 0.7 : 1,
+          }}
+        >
+          {submitting ? 'Unlocking…' : 'Unlock resource'}
         </button>
       </form>
     </div>
@@ -93,8 +162,9 @@ function GateForm({ slug, resourceTitle, onUnlock }) {
 export default function ResourceDetailPage() {
   const { slug } = useParams();
   const [resource, setResource] = useState(null);
-  const [unlocked, setUnlocked] = useState(null); // { body, fileUrl } once email is captured
-  const [status, setStatus] = useState('loading'); // loading | ready | notfound
+  const [unlocked, setUnlocked] = useState(null);
+  const [status, setStatus] = useState('loading');
+  useScrollReveal();
 
   useEffect(() => {
     let cancelled = false;
@@ -103,25 +173,20 @@ export default function ResourceDetailPage() {
       setUnlocked(null);
       try {
         const res = await resourcesAPI.getBySlug(slug);
-        if (!cancelled) {
-          setResource(res.data.resource);
-          setStatus('ready');
-        }
-      } catch (error) {
+        if (!cancelled) { setResource(res.data.resource); setStatus('ready'); }
+      } catch {
         if (!cancelled) setStatus('notfound');
       }
     };
     fetchResource();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [slug]);
 
   const body = unlocked?.body ?? resource?.body;
   const fileUrl = unlocked?.fileUrl ?? resource?.fileUrl;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div style={{ minHeight: '100vh', background: '#f4efe6', fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
       {resource && (
         <Seo
           title={resource.title}
@@ -130,46 +195,104 @@ export default function ResourceDetailPage() {
         />
       )}
       <a href="#main" className="skip-link">Skip to content</a>
-      <SiteHeader />
 
-      <main id="main" className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <Link to="/resources" className="inline-flex items-center gap-1.5 text-sm font-medium text-navy-600 hover:text-navy-700">
-          <ArrowLeft className="h-4 w-4" /> All resources
-        </Link>
+      {/* ── HERO ──────────────────────────────────────────────────────── */}
+      <section style={{ position: 'relative', background: 'linear-gradient(180deg, #13223e 0%, #0e1a31 100%)', overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          backgroundImage: 'linear-gradient(rgba(143,177,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(143,177,255,0.05) 1px, transparent 1px)',
+          backgroundSize: '64px 64px',
+        }} />
+        <div style={{
+          position: 'absolute', top: -80, right: -60, width: 380, height: 380,
+          borderRadius: '50%', pointerEvents: 'none',
+          background: 'radial-gradient(circle, rgba(79,123,240,0.18), transparent 65%)',
+        }} />
 
-        {status === 'loading' && <p className="mt-10 text-center text-slate-500" role="status">Loading...</p>}
+        <div style={{ position: 'relative' }}>
+          <MarketingHeader />
 
-        {status === 'notfound' && (
-          <div className="mt-16 text-center">
-            <h1 className="font-display text-2xl font-bold text-slate-900">Resource not found</h1>
-            <Link to="/resources" className="mt-4 inline-block font-medium text-navy-600 hover:text-navy-700">
-              Browse all resources
+          <div style={{ maxWidth: 820, margin: '0 auto', padding: '40px 40px 80px' }}>
+            <Link
+              to="/resources"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#aebbd2', fontSize: 14, textDecoration: 'none', marginBottom: 32 }}
+            >
+              <ArrowLeft size={15} /> All resources
             </Link>
+
+            {status === 'ready' && resource && (
+              <>
+                <div data-reveal style={{
+                  fontFamily: 'ui-monospace, monospace', fontSize: 12, letterSpacing: '0.2em',
+                  textTransform: 'uppercase', color: '#8fb1ff', marginBottom: 14,
+                }}>
+                  {categoryName(resource.category)}
+                </div>
+                <h1 data-reveal data-delay="1" style={{
+                  fontFamily: "'Newsreader', serif", fontWeight: 400,
+                  fontSize: 'clamp(28px, 4vw, 52px)', lineHeight: 1.08, letterSpacing: '-0.02em',
+                  color: '#f6f2ea', margin: '0 0 24px',
+                }}>
+                  {resource.title}
+                </h1>
+                <div data-reveal data-delay="2" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {resource.level && (
+                    <span style={{
+                      padding: '4px 12px', borderRadius: 6,
+                      background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
+                      fontSize: 13, color: '#aebbd2',
+                    }}>
+                      {resource.level}
+                    </span>
+                  )}
+                  {resource.subject && (
+                    <span style={{
+                      padding: '4px 12px', borderRadius: 6,
+                      background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)',
+                      fontSize: 13, color: '#aebbd2',
+                    }}>
+                      {resource.subject}
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+
+            {status === 'loading' && (
+              <p style={{ color: '#aebbd2', fontSize: 15 }} role="status">Loading…</p>
+            )}
+            {status === 'notfound' && (
+              <h1 style={{ fontFamily: "'Newsreader', serif", fontWeight: 400, fontSize: 36, color: '#f6f2ea' }}>
+                Resource not found
+              </h1>
+            )}
           </div>
+        </div>
+      </section>
+
+      {/* ── ARTICLE BODY ────────────────────────────────────────────────── */}
+      <main id="main" style={{ maxWidth: 820, margin: '0 auto', padding: '56px 40px 100px' }}>
+        {status === 'notfound' && (
+          <Link to="/resources" style={{ color: '#5d86f0', fontSize: 15 }}>
+            Browse all resources
+          </Link>
         )}
 
         {status === 'ready' && resource && (
-          <article className="mt-6">
-            <span className="text-xs font-semibold uppercase tracking-wide text-navy-700">
-              {categoryName(resource.category)}
-            </span>
-            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-              {resource.title}
-            </h1>
-            <div className="mt-4 mb-8 flex flex-wrap gap-2 text-xs text-slate-500">
-              {resource.level && <span className="rounded bg-slate-100 px-2 py-1">{resource.level}</span>}
-              {resource.subject && <span className="rounded bg-slate-100 px-2 py-1">{resource.subject}</span>}
-            </div>
-
+          <article data-reveal>
             {resource.gated && !unlocked ? (
               <>
-                {resource.summary && <p className="mb-4 text-lg leading-relaxed text-slate-700">{resource.summary}</p>}
+                {resource.summary && (
+                  <p style={{ fontSize: 18, lineHeight: 1.72, color: '#3a4150', marginBottom: 8 }}>
+                    {resource.summary}
+                  </p>
+                )}
                 <GateForm slug={resource.slug} resourceTitle={resource.title} onUnlock={(data) => setUnlocked(data)} />
               </>
             ) : (
               <>
                 {body && (
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={md}>
                     {body}
                   </ReactMarkdown>
                 )}
@@ -179,25 +302,44 @@ export default function ResourceDetailPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => trackEvent('Resource Download', { resource: resource.title })}
-                    className="btn-primary mt-2"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      marginTop: 16, padding: '12px 22px', borderRadius: 12,
+                      background: '#13223e', color: '#f4f0e8', textDecoration: 'none',
+                      fontWeight: 600, fontSize: 15,
+                    }}
                   >
-                    <Download className="h-4 w-4" /> Download
+                    <Download size={16} /> Download
                   </a>
                 )}
               </>
             )}
 
-            <div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-6 sm:flex sm:items-center sm:justify-between">
+            {/* CTA block */}
+            <div style={{
+              marginTop: 64, padding: '32px 36px', borderRadius: 16,
+              background: 'white', border: '1px solid #e1d9ca',
+              display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 20,
+            }}>
               <div>
-                <p className="font-display font-semibold text-slate-900">Need a hand with this topic?</p>
-                <p className="mt-1 text-sm text-slate-600">Get matched with a vetted tutor who can help.</p>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 17, color: '#1c2433' }}>
+                  Need a hand with this topic?
+                </p>
+                <p style={{ margin: '4px 0 0', fontSize: 14.5, color: '#5c6472' }}>
+                  Get matched with a vetted tutor who can help.
+                </p>
               </div>
               <Link
                 to="/register?role=parent"
                 onClick={() => trackEvent('Find a Tutor', { source: 'resource' })}
-                className="btn-primary mt-4 sm:mt-0"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '12px 22px', borderRadius: 12,
+                  background: '#13223e', color: '#f4f0e8', textDecoration: 'none',
+                  fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap',
+                }}
               >
-                Find a tutor <ArrowRight className="h-4 w-4" />
+                Find a tutor <ArrowRight size={15} />
               </Link>
             </div>
           </article>
