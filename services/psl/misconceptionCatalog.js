@@ -409,26 +409,6 @@ export function getFeedback(tag, isPartial) {
   return m.feedback;
 }
 
-/**
- * Return structured feedback with an optional worked example and remediation hint.
- * The extra `vars` object is provided by the step evaluator so feedback can
- * reference specific numbers from the problem (not used in the base catalog, but
- * kept available for richer misconception entries in future).
- *
- * @param {string}  tag       – misconception tag
- * @param {boolean} isPartial – true when the student was partially correct
- * @param {object}  vars      – problem variables for template interpolation (ignored by base catalog)
- * @returns {{ feedback: string, workedExample: string|null, remediation: string|null }}
- */
-export function getDetailedFeedback(tag, isPartial, vars = {}) {
-  const m = getMisconception(tag);
-  return {
-    feedback: isPartial ? `Almost! ${m.tip}` : m.feedback,
-    workedExample: m.workedExample || null,
-    remediation: m.tip || null,
-  };
-}
-
 const COUNTER_EXAMPLES = {
   'psl/arithmetic-error': (vars) => {
     if (vars.expression) return { title: 'Check your arithmetic', steps: [`The expression is: ${vars.expression}`, `Work it out step by step to get: ${vars.answer}`] };
