@@ -576,13 +576,13 @@ function App() {
             <Route path="/student/mathpath/p4" element={<P4LearningPathPage />} />
             <Route path="/student/mathpath/p5" element={<P5LearningPathPage />} />
             <Route path="/student/mathpath/p6" element={<P6LearningPathPage />} />
-            <Route path="/student/mathpath/fractions/story" element={<FractionsStoryModeSession />} />
-            <Route path="/student/mathpath/fractions/story/:skillId" element={<FractionsStoryModeSession />} />
-            <Route path="/student/mathpath/:domain/story" element={<StoryModeDomainRoute />} />
-            <Route path="/student/mathpath/:domain/story/:skillId" element={<StoryModeDomainRoute />} />
-            <Route path="/student/mathpath/fractions/model-trainer" element={<FractionsModelTrainer />} />
-            <Route path="/student/mathpath/fractions/model-trainer/:templateId" element={<FractionsModelTrainer />} />
-            <Route path="/student/mathpath/fractions/similar-practice/:practiceSetId" element={<SimilarQuestionPractice />} />
+            <Route path="/student/mathpath/fractions/story" element={<FeatureGuard feature="fractionsStoryMode"><FractionsStoryModeSession /></FeatureGuard>} />
+            <Route path="/student/mathpath/fractions/story/:skillId" element={<FeatureGuard feature="fractionsStoryMode"><FractionsStoryModeSession /></FeatureGuard>} />
+            <Route path="/student/mathpath/:domain/story" element={<FeatureGuard feature="fractionsStoryMode"><StoryModeDomainRoute /></FeatureGuard>} />
+            <Route path="/student/mathpath/:domain/story/:skillId" element={<FeatureGuard feature="fractionsStoryMode"><StoryModeDomainRoute /></FeatureGuard>} />
+            <Route path="/student/mathpath/fractions/model-trainer" element={<FeatureGuard feature="modelTrainer"><FractionsModelTrainer /></FeatureGuard>} />
+            <Route path="/student/mathpath/fractions/model-trainer/:templateId" element={<FeatureGuard feature="modelTrainer"><FractionsModelTrainer /></FeatureGuard>} />
+            <Route path="/student/mathpath/fractions/similar-practice/:practiceSetId" element={<FeatureGuard feature="modelTrainer"><SimilarQuestionPractice /></FeatureGuard>} />
             {/* Mistake-to-Mastery (MathPath feature) */}
             <Route path="/student/mathpath/mistakes" element={<MistakesHome />} />
             <Route path="/student/mathpath/mistakes/review" element={<MistakeReview />} />
@@ -590,21 +590,21 @@ function App() {
             <Route path="/student/mathpath/diagnostic" element={<DiagnosticIntroScreen />} />
             <Route path="/student/mathpath/diagnostic/session/:diagnosticSessionId" element={<DiagnosticQuestionScreen />} />
             <Route path="/student/mathpath/diagnostic/results/:diagnosticSessionId" element={<DiagnosticResultScreen />} />
-            <Route path="/student/mathpath/assessment" element={<AssessmentIntroScreen />} />
+            <Route path="/student/mathpath/assessment" element={<FeatureGuard feature="assessments"><AssessmentIntroScreen /></FeatureGuard>} />
             <Route path="/student/mathpath/test" element={<Navigate to="/student/mathpath/assessment" replace />} />
-            <Route path="/student/mathpath/assessment/session/:assessmentSessionId" element={<AssessmentQuestionScreen />} />
-            <Route path="/student/mathpath/assessment/review/:assessmentSessionId" element={<AssessmentReviewScreen />} />
-            <Route path="/student/mathpath/assessment/working/:assessmentSessionId" element={<AssessmentWorkingPromptScreen />} />
-            <Route path="/student/mathpath/assessment/results/:assessmentSessionId" element={<AssessmentResultScreen />} />
-            <Route path="/student/mathpath/upload-paper" element={<UploadPaperPage />} />
+            <Route path="/student/mathpath/assessment/session/:assessmentSessionId" element={<FeatureGuard feature="assessments"><AssessmentQuestionScreen /></FeatureGuard>} />
+            <Route path="/student/mathpath/assessment/review/:assessmentSessionId" element={<FeatureGuard feature="assessments"><AssessmentReviewScreen /></FeatureGuard>} />
+            <Route path="/student/mathpath/assessment/working/:assessmentSessionId" element={<FeatureGuard feature="assessments"><AssessmentWorkingPromptScreen /></FeatureGuard>} />
+            <Route path="/student/mathpath/assessment/results/:assessmentSessionId" element={<FeatureGuard feature="assessments"><AssessmentResultScreen /></FeatureGuard>} />
+            <Route path="/student/mathpath/upload-paper" element={<FeatureGuard feature="assessments"><UploadPaperPage /></FeatureGuard>} />
             <Route path="/student/mathpath/working/upload" element={<WorkingUploadScreen />} />
             <Route path="/student/mathpath/working/review" element={<WorkingUploadReviewScreen />} />
             <Route path="/student/mathpath/working/success" element={<WorkingUploadSuccessScreen />} />
             {/* Fluency (MathPath feature). Practice/results reuse the shared MathPath screens. */}
-            <Route path="/student/mathpath/fluency" element={<FluencyHome />} />
-            <Route path="/student/mathpath/fluency/skills" element={<FluencySkills />} />
-            <Route path="/student/mathpath/fluency/times-tables" element={<TimesTablesHome />} />
-            <Route path="/student/mathpath/fluency/times-tables/flash-quiz" element={<TimesTablesFlashQuiz />} />
+            <Route path="/student/mathpath/fluency" element={<FeatureGuard feature="fluency"><FluencyHome /></FeatureGuard>} />
+            <Route path="/student/mathpath/fluency/skills" element={<FeatureGuard feature="fluency"><FluencySkills /></FeatureGuard>} />
+            <Route path="/student/mathpath/fluency/times-tables" element={<FeatureGuard feature="fluency"><TimesTablesHome /></FeatureGuard>} />
+            <Route path="/student/mathpath/fluency/times-tables/flash-quiz" element={<FeatureGuard feature="fluency"><TimesTablesFlashQuiz /></FeatureGuard>} />
             <Route path="/student/fluency" element={<Navigate to="/student/mathpath/fluency" replace />} />
             <Route path="/student/worksheets" element={<FeatureGuard feature="worksheets"><StudentWorksheets /></FeatureGuard>} />
             <Route path="/student/worksheets/new" element={<FeatureGuard feature="worksheets"><StudentWorksheetSetup /></FeatureGuard>} />
