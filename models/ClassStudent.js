@@ -10,5 +10,6 @@ const classStudentSchema = new mongoose.Schema({
 });
 
 classStudentSchema.index({ classId: 1, studentId: 1 }, { unique: true });
+classStudentSchema.index({ classId: 1, status: 1 });
 
 export default mongoose.model('ClassStudent', classStudentSchema);
