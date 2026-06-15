@@ -17,6 +17,8 @@ describe('PaperAnalysis model', () => {
       'processing',
       'ocr_complete',
       'questions_detected',
+      'needs_ocr_confirmation',
+      'questions_confirmed',
       'skills_mapped',
       'needs_review',
       'reviewed',
