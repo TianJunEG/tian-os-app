@@ -30,7 +30,8 @@ import { Badge, Button, Card, ErrorState, ProgressBar, Spinner } from '../../com
 import { getVisualModeStyles, isLowerPrimary, isSecondary, resolveStudentVisualMode } from '../../design-os/studentVisualMode';
 import { FEATURE_FLAGS } from '../../config/featureFlags';
 import { useAuth } from '../../context/AuthContext';
-import { MascotAvatar, AvatarPicker } from '../../components/MascotAvatar';
+import MascotAvatar from '../../components/MascotAvatar';
+import { AvatarPicker } from '../../components/MascotAvatar';
 
 const iconMap = {
   badge: Award,
@@ -496,7 +497,7 @@ export default function StudentProfile() {
             <div className="flex min-w-0 items-center gap-4">
               <button onClick={() => setShowAvatarPicker(true)} className="group relative shrink-0" title="Change avatar">
                 {user?.avatar ? (
-                  <MascotAvatar mascotKey={user.avatar} size={64} />
+                  <MascotAvatar name={user.avatar} size="lg" />
                 ) : (
                   <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl font-display text-xl font-semibold ${visual.styles.primaryIcon}`}>
                     {avatarText}
