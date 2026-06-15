@@ -1,6 +1,7 @@
 export const MISTAKE_LEARNING_STATUSES = Object.freeze({
   NEW: 'new',
   ACKNOWLEDGED: 'acknowledged',
+  CORRECTION_ATTEMPTED: 'correction_attempted',
   CORRECTED: 'corrected',
   UNDERSTOOD: 'understood',
   MASTERED: 'mastered',
@@ -9,6 +10,7 @@ export const MISTAKE_LEARNING_STATUSES = Object.freeze({
 const STUDENT_STATUS_COPY = {
   new: 'Ready to learn from this mistake.',
   acknowledged: 'You found the mistake.',
+  correction_attempted: 'Not quite right yet — try the correction again.',
   corrected: 'You fixed the mistake.',
   understood: 'You showed understanding.',
   mastered: 'You can now solve similar questions successfully.',
@@ -63,8 +65,8 @@ export function buildMistakeCorrectionFlow(mistake = {}) {
     masteryRule: 'Mastery needs a successful correction, guided question, independent question, or recheck evidence.',
     canProgress: {
       acknowledge: learningStatus === 'new',
-      correct: ['new', 'acknowledged'].includes(learningStatus),
-      understand: ['acknowledged', 'corrected'].includes(learningStatus),
+      correct: ['new', 'acknowledged', 'correction_attempted'].includes(learningStatus),
+      understand: learningStatus === 'corrected',
       master: learningStatus === 'understood',
     },
   };
@@ -113,7 +115,7 @@ export function applyMistakeLearningAction(mistake, {
     mistake.reviewSource = source;
     const matched = correctionMatches(mistake, correctionAttempt);
     mistake.status = matched ? 'corrected' : 'correction_attempted';
-    mistake.learningStatus = matched ? 'corrected' : 'acknowledged';
+    mistake.learningStatus = matched ? 'corrected' : 'correction_attempted';
     return {
       mistake,
       learningStatus: mistake.learningStatus,
@@ -123,7 +125,7 @@ export function applyMistakeLearningAction(mistake, {
   }
 
   if (action === 'understand') {
-    if (current !== 'corrected' && !correctionMatches(mistake, mistake.correctionAttempt)) {
+    if (current !== 'corrected') {
       const err = new Error('Correct the mistake before the understanding check.');
       err.status = 409;
       err.code = 'CORRECTION_NOT_COMPLETE';
