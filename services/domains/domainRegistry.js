@@ -161,6 +161,31 @@ export function registerDefaultDomains() {
 
 registerDefaultDomains();
 
+// Decimals domain — decimal place value, operations, conversion (P4–P6).
+if (!hasDomain({ subjectId: 'math', domainId: 'decimals' })) {
+  const decimalsDiagnostic = diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId: 'decimals' });
+  registerDomain({
+    subjectId: 'math',
+    domainId: 'decimals',
+    displayName: 'MathPath Decimals',
+    domainVersion: decimalsDiagnostic.domainVersion || 'decimals-v1',
+    diagnosticAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Generator-backed adaptive diagnostic domain (DB-free).',
+      provider: decimalsDiagnostic,
+    },
+    assignmentAdapter: null,
+    worksheetAdapter: null,
+    paperAnalysisAdapter: null,
+    interventionAdapter: null,
+    skillGraphAdapter: {
+      status: 'available',
+      notes: 'Shared 14-skill decimals graph (D001–D014).',
+    },
+  });
+}
+
 // Problem Solving Lab — guided heuristic word-problem reasoning (bar models).
 // PSL uses the shared mastery engine (module: 'PSL') and Mistake model; it does
 // not need diagnostic/assignment/worksheet adapters — its session lifecycle is

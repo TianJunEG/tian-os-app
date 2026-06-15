@@ -1,4 +1,5 @@
 import fractionsDiagnosticDomain from './domains/fractionsDiagnosticDomain.js';
+import decimalsDiagnosticDomain from './domains/decimalsDiagnosticDomain.js';
 
 const domains = new Map();
 
@@ -43,6 +44,7 @@ export function clearDiagnosticDomainsForTest() {
 }
 
 registerDiagnosticDomain(fractionsDiagnosticDomain);
+registerDiagnosticDomain(decimalsDiagnosticDomain);
 
 export default {
   getDiagnosticDomain,

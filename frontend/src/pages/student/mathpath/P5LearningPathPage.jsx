@@ -51,6 +51,7 @@ const DOMAIN_GROUPS = [
       { id: 'P5-DEC-02', name: 'Decimal Four Operations' },
       { id: 'P5-DEC-03', name: 'Fraction-Decimal Conversion' },
     ],
+    deepLink: '/student/mathpath/decimals',
   },
   {
     key: 'percentage',
@@ -250,6 +251,14 @@ export default function P5LearningPathPage() {
                     );
                   })}
                 </div>
+                {group.deepLink && (
+                  <button
+                    onClick={() => navigate(group.deepLink)}
+                    className="mt-2 text-xs font-semibold text-teal-700 hover:text-teal-900"
+                  >
+                    See full {group.label} path →
+                  </button>
+                )}
               </div>
             );
           })}

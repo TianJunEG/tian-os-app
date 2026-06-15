@@ -168,6 +168,12 @@ export const mathpathAPI = {
   getP6Practice: (practiceSessionId) => api.get(`/mastery/p6/practice/${practiceSessionId}`),
   submitP6Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p6/practice/${practiceSessionId}/submit`, data),
   getP6SkillStates: () => api.get('/mastery/p6/skill-states'),
+  // Decimals domain (unified 14-skill graph, D001–D014)
+  decimalsSkillStates: () => api.get('/mathpath/decimals/skill-states'),
+  startDecimalsPractice: (data = {}) => api.post('/mathpath/decimals/practice/start', data),
+  submitDecimalsPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/decimals/practice/${practiceSessionId}/submit`, data),
+  startDecimalsFluency: (data = {}) => api.post('/mathpath/decimals/fluency/start', data),
+  submitDecimalsFluency: (practiceSessionId, data = {}) => api.post(`/mathpath/decimals/fluency/${practiceSessionId}/submit`, data),
   startSession: (data) => api.post('/practice/sessions', data),
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),
