@@ -29,12 +29,12 @@ function renderDiagnostic({ questions, session }) {
   return render(
     <MemoryRouter
       initialEntries={[{
-        pathname: `/student/mathpath/diagnostic/session-1`,
+        pathname: `/student/mathpath/diagnostic/session/session-1`,
         state: { questions, session },
       }]}
     >
       <Routes>
-        <Route path="/student/mathpath/diagnostic/:diagnosticSessionId" element={<DiagnosticQuestionScreenWrapper />} />
+        <Route path="/student/mathpath/diagnostic/session/:diagnosticSessionId" element={<DiagnosticQuestionScreenWrapper />} />
         <Route path="/student/mathpath/diagnostic/results/:diagnosticSessionId" element={<div>Diagnostic results</div>} />
       </Routes>
     </MemoryRouter>
