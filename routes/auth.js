@@ -41,13 +41,14 @@ router.post(
         name,
         email,
         password,
-        role
+        role,
+        roles: [role],
       });
 
       await user.save();
 
       // Generate token
-      const token = getSignedToken(user._id, user.role);
+      const token = getSignedToken(user._id, user.role, user.roles);
 
       res.status(201).json({
         success: true,
@@ -56,7 +57,8 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
+          roles: user.roles,
         }
       });
     } catch (error) {
@@ -104,7 +106,7 @@ router.post(
       }
 
       // Generate token
-      const token = getSignedToken(user._id, user.role);
+      const token = getSignedToken(user._id, user.role, user.roles);
 
       res.json({
         success: true,
@@ -114,6 +116,7 @@ router.post(
           name: user.name,
           email: user.email,
           role: user.role,
+          roles: user.roles || [user.role],
           is_test_account: Boolean(user.is_test_account),
           avatar: user.avatar,
           studentLevel: user.studentLevel || ''
@@ -207,7 +210,7 @@ router.post('/reset-password/:token', async (req, res) => {
     user.resetPasswordExpire = undefined;
     await user.save();
 
-    const token = getSignedToken(user._id, user.role);
+    const token = getSignedToken(user._id, user.role, user.roles);
     res.json({ success: true, token });
   } catch (error) {
     res.status(500).json({ error: error.message });

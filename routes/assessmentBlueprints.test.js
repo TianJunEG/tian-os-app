@@ -38,6 +38,7 @@ vi.mock('../middleware/auth.js', () => ({
     req.workspaceId = MOCK_WORKSPACE_ID;
     next();
   },
+  resolveRoles: (u = {}) => new Set([u.role, ...(Array.isArray(u.roles) ? u.roles : [])].filter(Boolean)),
 }));
 
 vi.mock('../models/mathpath/AssessmentBlueprint.js', () => ({

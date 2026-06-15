@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import AssessmentBlueprint from '../models/mathpath/AssessmentBlueprint.js';
 import SchoolAssessmentProfile from '../models/mathpath/SchoolAssessmentProfile.js';
 import {
@@ -22,13 +22,9 @@ import {
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
-function roleSet(user) {
-  return new Set([user?.role, ...(Array.isArray(user?.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function canManageBlueprint(req, blueprint) {
   if (!blueprint) return false;
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (roles.has('admin')) return true;
   if (String(blueprint.createdByUserId || blueprint.createdBy || '') === String(req.user?.id || '')) return true;
   if (req.workspaceId && blueprint.workspaceId && String(req.workspaceId) === String(blueprint.workspaceId)) return true;

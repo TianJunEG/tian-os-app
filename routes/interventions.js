@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import {
   auditDecisionLogic,
@@ -9,12 +9,8 @@ import {
 
 const router = express.Router();
 
-function roleSet(user = {}) {
-  return new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function assertAdultFeedAccess(req) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (['parent', 'tutor', 'teacher', 'student_care', 'admin'].some((role) => roles.has(role))) return;
   const err = new Error('Adult intervention recommendation access required.');
   err.status = 403;

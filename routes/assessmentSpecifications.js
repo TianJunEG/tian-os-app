@@ -1,6 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import AssessmentSpecification from '../models/mathpath/AssessmentSpecification.js';
 import MathPathAssessmentSession from '../models/mathpath/MathPathAssessmentSession.js';
 import StudentGuardian from '../models/StudentGuardian.js';
@@ -17,8 +17,7 @@ const router = express.Router();
 
 const toObjectId = (id) => (mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null);
 const asArray = (v) => (Array.isArray(v) ? v : []);
-const roleSet = (user) => new Set([user?.role, ...(Array.isArray(user?.roles) ? user.roles : [])].filter(Boolean));
-const hasRole = (user, role) => roleSet(user).has(role);
+const hasRole = (user, role) => resolveRoles(user).has(role);
 
 function assessmentSessionId(prefix = 'specassess') {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;

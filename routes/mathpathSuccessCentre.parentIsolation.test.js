@@ -11,6 +11,7 @@ vi.mock('../middleware/auth.js', () => ({
     req.user = req.mockUser || { id: 'parent_1', role: 'parent' };
     next();
   },
+  resolveRoles: (u = {}) => new Set([u.role, ...(Array.isArray(u.roles) ? u.roles : [])].filter(Boolean)),
 }));
 
 vi.mock('../utils/studentContext.js', () => ({

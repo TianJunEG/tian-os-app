@@ -86,6 +86,7 @@ vi.mock('../middleware/auth.js', () => ({
     req.user = mockUser;
     next();
   },
+  resolveRoles: (u = {}) => new Set([u.role, ...(Array.isArray(u.roles) ? u.roles : [])].filter(Boolean)),
 }));
 
 vi.mock('../models/mathpath/UploadedAssessment.js', () => ({

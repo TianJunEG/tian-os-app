@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'fs/promises';
 import multer from 'multer';
 import path from 'path';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
 import MathPathWorkingIntelligence from '../models/mathpath/MathPathWorkingIntelligence.js';
 import MathPathWorkingSession from '../models/mathpath/MathPathWorkingSession.js';
@@ -52,12 +52,8 @@ const upload = multer({
   },
 });
 
-function roleSet(user) {
-  return new Set([user?.role, ...(Array.isArray(user?.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function getSubmittedByRole(user) {
-  const roles = roleSet(user);
+  const roles = resolveRoles(user);
   if (roles.has('admin')) return 'admin';
   if (roles.has('teacher')) return 'teacher';
   if (roles.has('tutor')) return 'tutor';
@@ -67,7 +63,7 @@ function getSubmittedByRole(user) {
 }
 
 function canActForStudent(req, studentId) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (roles.has('admin') || roles.has('teacher') || roles.has('tutor') || roles.has('parent')) return true;
   return String(req.user?.id || req.user?._id || '') === String(studentId || '');
 }
@@ -82,7 +78,7 @@ async function assertCanActForStudent(req, studentId) {
 }
 
 async function resolveWorkingStudentScope(req, explicitId = '', { allowAdultAll = false } = {}) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   const hasAdultScope = roles.has('admin') || roles.has('teacher') || roles.has('tutor') || roles.has('parent');
   if (allowAdultAll && hasAdultScope && !explicitId) {
     return { query: {}, student: null, studentIds: [], legacyUserIds: [] };
@@ -692,7 +688,7 @@ router.get('/intelligence/:workingId', async (req, res) => {
 
 router.post('/intelligence/:workingId/review', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
       return res.status(403).json({ error: 'Only tutors, teachers and admins can review working intelligence records.' });
     }
@@ -717,7 +713,7 @@ router.post('/intelligence/:workingId/review', async (req, res) => {
 
 router.post('/intelligence/:workingId/procedure-analysis', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
       return res.status(403).json({ error: 'Only tutors, teachers and admins can run procedure analysis.' });
     }
@@ -748,7 +744,7 @@ router.post('/intelligence/:workingId/procedure-analysis', async (req, res) => {
 
 router.post('/intelligence/:workingId/procedure-review', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
       return res.status(403).json({ error: 'Only tutors, teachers and admins can review procedure analysis.' });
     }
@@ -791,7 +787,7 @@ router.post('/intelligence/:workingId/procedure-review', async (req, res) => {
 
 router.post('/intelligence/:workingId/reasoning-analysis', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
       return res.status(403).json({ error: 'Only tutors, teachers and admins can run reasoning analysis.' });
     }
@@ -832,7 +828,7 @@ router.post('/intelligence/:workingId/reasoning-analysis', async (req, res) => {
 
 router.post('/intelligence/:workingId/reasoning-review', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
       return res.status(403).json({ error: 'Only tutors, teachers and admins can review reasoning analysis.' });
     }
@@ -862,7 +858,7 @@ router.post('/intelligence/:workingId/reasoning-review', async (req, res) => {
 
 router.get('/help-requests', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     const studentId = req.query.studentId ? String(req.query.studentId) : '';
     if (!studentId && !roles.has('admin') && !roles.has('teacher') && !roles.has('tutor') && !roles.has('parent')) {
       const student = await resolveStudent(req);
@@ -1032,7 +1028,7 @@ router.post('/:workingSessionId/no-working', async (req, res) => {
 
 router.post('/:workingSessionId/analysis', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     if (!roles.has('admin') && !roles.has('teacher') && !roles.has('tutor')) {
       return res.status(403).json({ error: 'Only adults can update working analysis.' });
     }

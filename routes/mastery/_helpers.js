@@ -20,11 +20,12 @@ import { calculateQuestionTiming } from '../../shared/mathpath/fractions/fractio
 import { createLinkId } from '../../services/mathpath/workingLinkageService.js';
 import { fractionSkillGraph } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
 import { buildSkillGraphView } from '../../utils/skillGraphView.js';
+import { resolveRoles } from '../../middleware/auth.js';
 
 export const STATUS_LABEL = { not_started: 'needs practice', needs_review: 'needs practice', learning: 'learning', mastered: 'fluent' };
 
 export function canTrainQuestionPatterns(user = {}) {
-  const roles = new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
+  const roles = resolveRoles(user);
   return roles.has('admin') || roles.has('teacher') || roles.has('tutor');
 }
 

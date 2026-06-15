@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import Student from '../models/Student.js';
 import MathPathAssignment from '../models/mathpath/MathPathAssignment.js';
 import PaperAnalysis from '../models/mathpath/PaperAnalysis.js';
@@ -18,12 +18,8 @@ import { buildStudentCareMetrics } from '../services/studentCare/studentCareMetr
 
 const router = express.Router();
 
-function roleSet(user = {}) {
-  return new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function requireStudentCare(req) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (roles.has('student_care') || roles.has('admin')) return;
   const err = new Error('Student Care access required.');
   err.status = 403;
@@ -35,7 +31,7 @@ function workspaceId(req) {
 }
 
 async function listAccessibleStudents(req) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   const workspace = workspaceId(req);
   const partnerStudentIds = await listPartnerStudentIdsForUser(req.user.id);
   if (workspace) {

@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import mongoose from 'mongoose';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import UploadedAssessment from '../models/mathpath/UploadedAssessment.js';
 import AssessmentBlueprint from '../models/mathpath/AssessmentBlueprint.js';
 import Student from '../models/Student.js';
@@ -40,17 +40,13 @@ const upload = multer({
   },
 });
 
-function roleSet(user) {
-  return new Set([user?.role, ...(Array.isArray(user?.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function toObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id) ? new mongoose.Types.ObjectId(id) : null;
 }
 
 function normalizeOwnerType(req) {
   const requested = String(req.body?.ownerType || req.user?.role || '').trim();
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (requested && roles.has(requested)) return requested;
   if (roles.has('admin')) return 'admin';
   if (roles.has('teacher')) return 'teacher';
@@ -178,7 +174,7 @@ async function validateOwnership(req, ownerType) {
 }
 
 function canReadUpload(req, uploadDoc) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (roles.has('admin')) return true;
   return String(uploadDoc.ownerId || '') === String(req.user?.id || '');
 }
@@ -211,7 +207,7 @@ router.use(protect);
 
 router.get('/', async (req, res) => {
   try {
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     const query = {};
     if (!roles.has('admin')) {
       query.ownerId = req.user.id;

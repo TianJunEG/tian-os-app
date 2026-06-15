@@ -2,7 +2,7 @@ import express from 'express';
 import fs from 'fs/promises';
 import multer from 'multer';
 import path from 'path';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import PaperAnalysis from '../models/mathpath/PaperAnalysis.js';
 import Student from '../models/Student.js';
 import User from '../models/User.js';
@@ -40,12 +40,8 @@ const upload = multer({
   },
 });
 
-function roleSet(user) {
-  return new Set([user?.role, ...(Array.isArray(user?.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function uploadedByRole(user) {
-  const roles = roleSet(user);
+  const roles = resolveRoles(user);
   if (roles.has('admin')) return 'admin';
   if (roles.has('teacher')) return 'teacher';
   if (roles.has('tutor')) return 'tutor';
@@ -55,7 +51,7 @@ function uploadedByRole(user) {
 }
 
 function assertAdultUploader(req) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (roles.has('admin') || roles.has('teacher') || roles.has('tutor') || roles.has('parent') || roles.has('student_care')) return;
   const err = new Error('Paper analysis uploads are currently available to parents, tutors, teachers, student care staff and admins.');
   err.status = 403;
@@ -63,7 +59,7 @@ function assertAdultUploader(req) {
 }
 
 function hasRole(user, role) {
-  return roleSet(user).has(role);
+  return resolveRoles(user).has(role);
 }
 
 async function resolvePaperAnalysisStudent(req, explicitId) {

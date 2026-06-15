@@ -13,6 +13,12 @@ function verifyWithRotation(token) {
   }
 }
 
+export function resolveRoles(user = {}) {
+  return new Set(
+    [user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean)
+  );
+}
+
 export const protect = (req, res, next) => {
   let token;
 
@@ -33,20 +39,21 @@ export const protect = (req, res, next) => {
   }
 };
 
-export const authorize = (...roles) => {
+export const authorize = (...allowed) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    const userRoles = resolveRoles(req.user);
+    if (!allowed.some((r) => userRoles.has(r))) {
       return res.status(403).json({
-        error: `User role '${req.user.role}' is not authorized to access this route`
+        error: `User role '${[...userRoles].join(',')}' is not authorized to access this route`
       });
     }
     next();
   };
 };
 
-export const getSignedToken = (id, role) => {
+export const getSignedToken = (id, role, roles) => {
   return jwt.sign(
-    { id, role },
+    { id, role, roles: roles || [role] },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );

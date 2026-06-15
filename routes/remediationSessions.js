@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import {
   startRemediationSession,
@@ -15,10 +15,6 @@ const router = express.Router();
 
 function userId(req) {
   return String(req.user?.id || req.user?._id || '');
-}
-
-function roleSet(user = {}) {
-  return new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
 }
 
 async function loadSession(req, sessionId, { write = false } = {}) {
@@ -96,7 +92,7 @@ router.post('/:id/handle-mastery', protect, async (req, res) => {
 router.post('/:id/skip-prerequisite', protect, async (req, res) => {
   try {
     await loadSession(req, req.params.id, { write: true });
-    const roles = roleSet(req.user);
+    const roles = resolveRoles(req.user);
     if (!roles.has('parent') && !roles.has('tutor') && !roles.has('teacher') && !roles.has('admin')) {
       return res.status(403).json({ error: 'Only parents, tutors, teachers, or admins can skip prerequisites.' });
     }

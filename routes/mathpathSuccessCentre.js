@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import MathPathAssignment from '../models/mathpath/MathPathAssignment.js';
 import PaperAnalysis from '../models/mathpath/PaperAnalysis.js';
@@ -18,12 +18,8 @@ import { getPilotDashboardMetrics } from '../services/mathpath/pilotDashboardMet
 
 const router = express.Router();
 
-function roleSet(user = {}) {
-  return new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function requireAnyRole(req, roles = []) {
-  const set = roleSet(req.user);
+  const set = resolveRoles(req.user);
   if (roles.some((role) => set.has(role))) return;
   const err = new Error('Not authorized for this MathPath view.');
   err.status = 403;

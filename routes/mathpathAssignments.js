@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/auth.js';
+import { protect, resolveRoles } from '../middleware/auth.js';
 import PaperAnalysis from '../models/mathpath/PaperAnalysis.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import {
@@ -23,12 +23,8 @@ function userId(req) {
   return String(req.user?.id || req.user?._id || '');
 }
 
-function roleSet(user = {}) {
-  return new Set([user.role, ...(Array.isArray(user.roles) ? user.roles : [])].filter(Boolean));
-}
-
 function assertCanAssign(req, { allowStudentDiagnosticSelfAssign = false } = {}) {
-  const roles = roleSet(req.user);
+  const roles = resolveRoles(req.user);
   if (roles.has('parent') || roles.has('tutor') || roles.has('teacher') || roles.has('student_care') || roles.has('admin')) return;
   if (allowStudentDiagnosticSelfAssign && roles.has('student')) return;
   const err = new Error('Students can view Recovery Packs but cannot assign them.');

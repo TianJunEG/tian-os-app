@@ -23,6 +23,7 @@ vi.mock('../middleware/auth.js', () => ({
     req.user = req.mockUser || { id: 'care_1', role: 'student_care' };
     next();
   },
+  resolveRoles: (u = {}) => new Set([u.role, ...(Array.isArray(u.roles) ? u.roles : [])].filter(Boolean)),
 }));
 
 vi.mock('../models/Student.js', () => ({
