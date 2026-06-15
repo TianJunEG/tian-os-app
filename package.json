@@ -64,7 +64,8 @@
   "license": "ISC",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
-    "@prisma/client": "^6.19.3",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.78.1",
     "cors": "^2.8.6",
@@ -89,7 +90,7 @@
     "@playwright/test": "^1.60.0",
     "mongodb-memory-server-core": "^11.1.0",
     "nodemon": "^3.1.14",
-    "prisma": "^6.19.3",
+    "prisma": "^7.8.0",
     "vitest": "^4.1.7"
   }
 }

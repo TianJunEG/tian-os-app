@@ -1,11 +1,18 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  // Prisma 7 requires an explicit output. Generated into the repo (gitignored)
+  // rather than node_modules; the client is imported from this path.
+  output   = "../generated/prisma"
+  // Emit ESM JS (+ .d.ts) so the plain Node ESM backend can import it directly
+  // without a TypeScript/bundler build step.
+  runtime      = "nodejs"
+  moduleFormat = "esm"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_DIRECT_URL")
+  // Prisma 7: connection URLs live in prisma.config.mjs (CLI) and are provided
+  // at runtime via the driver adapter (PrismaPg). Only `provider` belongs here.
+  provider = "postgresql"
 }
 
 enum ReferenceStatus {
