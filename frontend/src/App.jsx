@@ -23,6 +23,8 @@ const PaymentPage = lazy(() => import('./pages/PaymentPage'));
 const BookingsPage = lazy(() => import('./pages/BookingsPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const TutorProfilePage = lazy(() => import('./pages/TutorProfilePage'));
+const TutoringLandingPage = lazy(() => import('./pages/TutoringLandingPage'));
+const EduAppsLandingPage = lazy(() => import('./pages/EduAppsLandingPage'));
 const ResourcesHubPage = lazy(() => import('./pages/ResourcesHubPage'));
 const ResourceDetailPage = lazy(() => import('./pages/ResourceDetailPage'));
 const SciencePracticePage = lazy(() => import('./pages/SciencePracticePage'));
@@ -429,6 +431,8 @@ function App() {
           <Route path="/founder" element={<FounderStoryPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
           <Route path="/our-story" element={<OurStoryPage />} />
+          <Route path="/tutoring" element={<TutoringLandingPage />} />
+          <Route path="/edu-apps" element={<EduAppsLandingPage />} />
           <Route path="/resources" element={<ResourcesHubPage />} />
           <Route path="/resources/:slug" element={<ResourceDetailPage />} />
           <Route path="/student/mathpath/cheatsheet/:sheetId" element={<CheatSheet />} />
