@@ -401,7 +401,11 @@ export default function WorksheetGeneratorPage() {
     setError(null);
     try {
       const res = await worksheetsAPI.reinforce(worksheet._id, { misconceptionTitles: missedTitles });
-      adoptWorksheet(res.data.worksheet);
+      // 202 + queued → the worker is generating; poll until ready.
+      const ready = res.data.queued
+        ? await pollWorksheetReady(res.data.worksheet._id)
+        : res.data.worksheet;
+      adoptWorksheet(ready);
       setEscalatedNote(null);
       loadHistory();
       window.scrollTo({ top: 0, behavior: 'smooth' });

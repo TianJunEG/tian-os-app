@@ -686,6 +686,31 @@ router.post('/:id/reinforce', protect, asyncHandler(async (req, res) => {
     const perSession = Math.min(Math.max(parseInt(req.body.questionsPerSession, 10) || 5, 2), 6);
     const totalQuestions = perSession * SESSION_OFFSETS.length;
 
+    // Async path: create a pending reinforcement worksheet (source-derived fields,
+    // no questions yet), enqueue, and return 202; the client polls generationStatus.
+    const queue = isQueueEnabled() ? getQueue(QUEUE_NAMES.reinforce) : null;
+    if (queue) {
+      let pending = null;
+      try {
+        pending = await Worksheet.create({
+          ...buildReinforcementWorksheet({ source, userId: req.user.id, misconceptions, questions: [] }),
+          generationStatus: 'pending',
+        });
+        await queue.add('run', {
+          worksheetId: String(pending._id),
+          topic: source.topic,
+          misconceptions,
+          gradeLevel: source.gradeLevel,
+          totalQuestions,
+        });
+        return res.status(202).json({ success: true, worksheet: pending, queued: true });
+      } catch (queueErr) {
+        console.error('Reinforcement enqueue failed, running inline:', queueErr.message);
+        if (pending) await Worksheet.findByIdAndDelete(pending._id).catch(() => {});
+      }
+    }
+
+    // Synchronous path (queue disabled or enqueue failed) — unchanged behaviour.
     const questions = await generateReinforcement({
       topic: source.topic,
       misconceptions,
