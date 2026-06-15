@@ -65,7 +65,7 @@ export default function PracticeResult() {
       <PageHeader title="Session complete" subtitle="Nice work — here's how it went." />
 
       {mascot && (
-        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mb-4" />
+        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mb-4" voiced />
       )}
 
       <Card className="mb-5 p-6 text-center">

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { getMascot, MASCOTS, MASCOT_ORDER } from '../config/mascots';
+import React, { useEffect, useRef, useState } from 'react';
+import { getMascot, getMascotVoice, MASCOTS, MASCOT_ORDER } from '../config/mascots';
 import { useAuth } from '../context/AuthContext';
+import { speak } from '../utils/sound';
 import { Check } from 'lucide-react';
 
 const SIZES = {
@@ -133,8 +134,19 @@ export function AvatarPicker({ currentAvatar, onSelect, onClose }) {
   );
 }
 
-export function MascotBubble({ name, message, size = 'md', className = '' }) {
+export function MascotBubble({ name, message, size = 'md', className = '', voiced = false }) {
   const mascot = getMascot(name);
+  // Opt-in TTS: read the message aloud in this mascot's voice (Kokoro when
+  // ready, Web Speech fallback). speak() itself respects the voiceEnabled/muted
+  // gate, so nothing plays unless the user has turned voice on.
+  const spokenRef = useRef('');
+  useEffect(() => {
+    if (voiced && message && message !== spokenRef.current) {
+      spokenRef.current = message;
+      speak(message, getMascotVoice(name));
+    }
+  }, [voiced, message, name]);
+
   if (!mascot) return null;
 
   return (
