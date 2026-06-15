@@ -24,6 +24,7 @@ import {
 } from './diagnosticGrowthService.js';
 import { createAssignmentFromDiagnostic } from '../mathpath/mathPathAssignmentService.js';
 import { notify } from '../notifications/notificationService.js';
+import logger from '../../config/logger.js';
 
 const DIAG_PURPOSES = new Set(['baseline', 'recheck', 'assigned']);
 const COMPLETION_REASONS = Object.freeze({
@@ -84,7 +85,7 @@ export function buildDiagnosticLifecycleLog({
 
 function logDiagnosticLifecycle(payload = {}) {
   const entry = buildDiagnosticLifecycleLog(payload);
-  console.info('[diagnostic:lifecycle]', entry);
+  logger.info({ event: 'diagnostic:lifecycle', ...entry });
   return entry;
 }
 
@@ -849,7 +850,7 @@ export async function answerAdaptiveDiagnostic({ student, sessionId, body = {} }
   await session.save();
   if (sessionComplete) {
     handleDiagnosticCompletion({ student, session }).catch((err) =>
-      console.warn('handleDiagnosticCompletion error:', err.message)
+      logger.warn({ err: err.message }, 'handleDiagnosticCompletion error')
     );
   }
   const lifecycleLog = logDiagnosticLifecycle({
@@ -991,7 +992,7 @@ async function handleDiagnosticCompletion({ student, session }) {
       });
     }
   } catch (err) {
-    console.warn('Post-diagnostic auto-assignment skipped:', err.message);
+    logger.warn({ err: err.message }, 'post-diagnostic auto-assignment skipped');
   }
 
   // 2. Seed mastery records from per-skill diagnostic evidence
@@ -1030,7 +1031,7 @@ async function handleDiagnosticCompletion({ student, session }) {
       }
     }
   } catch (err) {
-    console.warn('Post-diagnostic mastery seeding skipped:', err.message);
+    logger.warn({ err: err.message }, 'post-diagnostic mastery seeding skipped');
   }
 
   // 3. Notify linked parents/tutors
@@ -1051,7 +1052,7 @@ async function handleDiagnosticCompletion({ student, session }) {
       });
     }
   } catch (err) {
-    console.warn('Post-diagnostic notification skipped:', err.message);
+    logger.warn({ err: err.message }, 'post-diagnostic notification skipped');
   }
 }
 

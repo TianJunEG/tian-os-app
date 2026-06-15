@@ -1,4 +1,5 @@
 import RemediationSession, { REMEDIATION_STEPS } from '../../models/mathpath/RemediationSession.js';
+import logger from '../../config/logger.js';
 import MathPathDiagnosticSession from '../../models/mathpath/MathPathDiagnosticSession.js';
 import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
 import MathPathAssignment from '../../models/mathpath/MathPathAssignment.js';
@@ -451,7 +452,7 @@ export async function notifyRemediationOfAssignmentCompletion({ assignmentId }) 
     const masteryPassed = assignment.masteryCheckProgress?.passed === true;
     await handleMasteryCheckResult({ remediationSessionId: String(session._id), passed: masteryPassed });
   } catch (err) {
-    console.error('[remediationSession] notifyRemediationOfAssignmentCompletion error:', err.message);
+    logger.error({ err: err.message }, 'notifyRemediationOfAssignmentCompletion failed');
   }
 }
 
