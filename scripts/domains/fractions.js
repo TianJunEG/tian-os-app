@@ -84,9 +84,9 @@ const skills = [
   { slug: 'fr.of-quantity', name: 'Fraction of a quantity', level: 'Primary 3', prerequisites: ['fr.meaning.parts', 'op.div.facts'] },
   { slug: 'fr.mult.fraction', name: 'Multiplying a fraction by a fraction', level: 'Primary 6', prerequisites: ['fr.of-quantity', 'fr.simplify'] },
   { slug: 'fr.div.fraction', name: 'Dividing by a fraction', level: 'Primary 6', prerequisites: ['fr.mult.fraction'] },
-  { slug: 'fr.word-problems', name: 'Fraction word problems', level: 'Primary 5', prerequisites: ['fr.add.unlike', 'fr.of-quantity'] },
-  { slug: 'fr.word-multi-step', name: 'Multi-step fraction problems', level: 'Primary 6', prerequisites: ['fr.word-problems'] },
-  { slug: 'fr.exam-applications', name: 'Exam-style fraction applications', level: 'Primary 6', prerequisites: ['fr.word-multi-step'] },
+  { slug: 'fr.word-problems', name: 'Fraction word problems', level: 'Primary 5', prerequisites: ['fr.add.unlike', 'fr.of-quantity'], heuristic: 'bar-model' },
+  { slug: 'fr.word-multi-step', name: 'Multi-step fraction problems', level: 'Primary 6', prerequisites: ['fr.word-problems'], heuristic: 'bar-model' },
+  { slug: 'fr.exam-applications', name: 'Exam-style fraction applications', level: 'Primary 6', prerequisites: ['fr.word-multi-step'], heuristic: 'bar-model' },
   { slug: 'fr.mastery-challenge', name: 'Fractions mastery challenge', level: 'Primary 6', prerequisites: ['fr.exam-applications'] },
 ];
 
