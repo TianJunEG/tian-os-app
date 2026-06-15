@@ -23,6 +23,7 @@ import { generateWorksheet } from '../utils/worksheetGen.js';
 import PSLSession from '../models/psl/PSLSession.js';
 import PSLSkill from '../models/psl/PSLSkill.js';
 import PSLAttempt from '../models/psl/PSLAttempt.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace);
@@ -74,7 +75,7 @@ function topicStatusForStudent(recordsInTopic) {
 }
 
 // ── Home ──────────────────────────────────────────────────────────
-router.get('/home', async (req, res) => {
+router.get('/home', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const classes = await Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id, status: 'active' });
   const activeInterventions = await InterventionRecord.countDocuments({ workspaceId: req.workspaceId, status: { $in: ['needs_support', 'improving'] } });
@@ -86,10 +87,10 @@ router.get('/home', async (req, res) => {
     if (recs.length) attention.push({ classId: c._id, name: c.name, flagged: new Set(recs.map((r) => String(r.studentId))).size });
   }
   res.json({ classCount: classes.length, activeInterventions, attention });
-});
+}));
 
 // ── Classes ───────────────────────────────────────────────────────
-router.get('/classes', async (req, res) => {
+router.get('/classes', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const classes = await Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id }).sort({ createdAt: 1 });
   const out = await Promise.all(classes.map(async (c) => {
@@ -105,9 +106,9 @@ router.get('/classes', async (req, res) => {
     return { classId: c._id, name: c.name, level: c.level, modules: c.modules, studentCount: ids.length, overallMastery: overall, completionRate: completion, weakestTopic };
   }));
   res.json({ classes: out });
-});
+}));
 
-router.get('/classes/:id', async (req, res) => {
+router.get('/classes/:id', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = await rosterIds(c._id);
@@ -158,12 +159,12 @@ router.get('/classes/:id', async (req, res) => {
   }
 
   res.json({ class: { id: c._id, name: c.name, level: c.level, modules: c.modules }, studentCount: ids.length, overallMastery: overall, topWeakTopics: topWeak, studentsNeedingSupport: needSupport, science });
-});
+}));
 
 // Class mastery map: topic × status counts, with affected (needs-support) students.
 // Subject defaults to math for back-compat; pass ?subject=science to drill into
 // the Science Adaptive Revision standing across the class.
-router.get('/classes/:id/mastery', async (req, res) => {
+router.get('/classes/:id/mastery', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = await rosterIds(c._id);
@@ -190,9 +191,9 @@ router.get('/classes/:id/mastery', async (req, res) => {
     return { topicId: t._id, name: t.name, moeLevel: t.moeLevel || '', counts, affected };
   });
   res.json({ classId: c._id, subject: subjectKey, topics: map });
-});
+}));
 
-router.get('/classes/:id/students', async (req, res) => {
+router.get('/classes/:id/students', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = await rosterIds(c._id);
@@ -209,12 +210,12 @@ router.get('/classes/:id/students', async (req, res) => {
       interventionStatus: intByStudent[String(s._id)] || null };
   });
   res.json({ students: out });
-});
+}));
 
 // Real-data class dashboard: class overview, the "Needs you this week" flag list
 // (students who need in-person remediation, the exact skill + reason), per-domain
 // grasp, and a per-skill mastery heatmap. Replaces the synthetic client builders.
-router.get('/classes/:id/dashboard', async (req, res) => {
+router.get('/classes/:id/dashboard', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = await rosterIds(c._id);
@@ -229,10 +230,10 @@ router.get('/classes/:id/dashboard', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Failed to build class dashboard.' });
   }
-});
+}));
 
 // Single student detail (must be enrolled in a class in this workspace).
-router.get('/students/:id', async (req, res) => {
+router.get('/students/:id', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const enrolled = await ClassStudent.findOne({ studentId: req.params.id, workspaceId: req.workspaceId });
   const partnerAllowed = !enrolled
@@ -251,10 +252,10 @@ router.get('/students/:id', async (req, res) => {
     mistakes: mistakes.map((m) => ({ id: m._id, skillName: m.skillId?.name, questionStem: m.questionStem, studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer })),
     assignments: assignments.map((a) => ({ id: a._id, module: a.module, status: a.status, score: a.score, skillNames: a.skillIds.map((s) => s.name) })),
   });
-});
+}));
 
 // ── Grouping ──────────────────────────────────────────────────────
-router.get('/classes/:id/groups', async (req, res) => {
+router.get('/classes/:id/groups', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = await rosterIds(c._id);
@@ -267,9 +268,9 @@ router.get('/classes/:id/groups', async (req, res) => {
   const suggested = buildSuggestedGroups({ students: input });
   const saved = await StudentGroup.find({ classId: c._id });
   res.json({ classId: c._id, suggested, saved });
-});
+}));
 
-router.post('/classes/:id/groups', async (req, res) => {
+router.post('/classes/:id/groups', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const g = await StudentGroup.create({
@@ -278,10 +279,10 @@ router.post('/classes/:id/groups', async (req, res) => {
     targetSkillId: req.body.targetSkillId || null, studentIds: req.body.studentIds || [],
   });
   res.status(201).json({ group: g });
-});
+}));
 
 // ── MathPath weak groups and intervention actions ─────────────────
-router.get('/classes/:id/weak-groups', async (req, res) => {
+router.get('/classes/:id/weak-groups', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const subjectId = String(req.query.subjectId || 'math');
@@ -298,9 +299,9 @@ router.get('/classes/:id/weak-groups', async (req, res) => {
       affectedStudentCount: new Set(groups.flatMap((group) => group.studentIds || [])).size,
     },
   });
-});
+}));
 
-router.get('/classes/:id/intervention-overview', async (req, res) => {
+router.get('/classes/:id/intervention-overview', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const subjectId = String(req.query.subjectId || 'math');
@@ -342,9 +343,9 @@ router.get('/classes/:id/intervention-overview', async (req, res) => {
         : 'Improvement will appear after recovery packs and rechecks are completed.',
     },
   });
-});
+}));
 
-router.post('/classes/:id/weak-groups/:skillId/assign-recovery', async (req, res) => {
+router.post('/classes/:id/weak-groups/:skillId/assign-recovery', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const subjectId = String(req.body.subjectId || req.query.subjectId || 'math');
@@ -372,9 +373,9 @@ router.post('/classes/:id/weak-groups/:skillId/assign-recovery', async (req, res
   }
 
   res.status(201).json({ assigned: assignments.length, assignments });
-});
+}));
 
-router.post('/classes/:id/weak-groups/:skillId/generate-worksheet', async (req, res) => {
+router.post('/classes/:id/weak-groups/:skillId/generate-worksheet', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const subjectId = String(req.body.subjectId || req.query.subjectId || 'math');
@@ -440,9 +441,9 @@ router.post('/classes/:id/weak-groups/:skillId/generate-worksheet', async (req, 
       studentCount: group.studentIds.length,
     },
   });
-});
+}));
 
-router.post('/classes/:id/weak-groups/:skillId/assign-recheck', async (req, res) => {
+router.post('/classes/:id/weak-groups/:skillId/assign-recheck', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = (await rosterIds(c._id)).map(String);
@@ -465,10 +466,10 @@ router.post('/classes/:id/weak-groups/:skillId/assign-recheck', async (req, res)
     }
   }
   res.status(201).json({ created: rechecks.filter((item) => item.created).length, rechecks });
-});
+}));
 
 // ── Assign practice (class / group / individual) ──────────────────
-router.post('/classes/:id/assign', async (req, res) => {
+router.post('/classes/:id/assign', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const {
@@ -493,19 +494,19 @@ router.post('/classes/:id/assign', async (req, res) => {
   }));
   const created = await Assignment.insertMany(docs);
   res.status(201).json({ assigned: created.length });
-});
+}));
 
 // ── Intervention tracker ──────────────────────────────────────────
-router.get('/classes/:id/interventions', async (req, res) => {
+router.get('/classes/:id/interventions', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const list = await InterventionRecord.find({ classId: c._id }).populate({ path: 'targetSkillId', model: Skill });
   const students = await Student.find({ _id: { $in: list.map((i) => i.studentId) } });
   const nameById = Object.fromEntries(students.map((s) => [String(s._id), s.name]));
   res.json({ interventions: list.map((i) => ({ id: i._id, studentId: i.studentId, studentName: nameById[String(i.studentId)] || '', targetSkill: i.targetSkillId?.name || null, status: i.status, notes: i.notes, nextAction: i.nextAction, startedAt: i.startedAt })) });
-});
+}));
 
-router.post('/classes/:id/interventions', async (req, res) => {
+router.post('/classes/:id/interventions', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const i = await InterventionRecord.create({
@@ -514,9 +515,9 @@ router.post('/classes/:id/interventions', async (req, res) => {
     notes: req.body.notes || '', nextAction: req.body.nextAction || '',
   });
   res.status(201).json({ intervention: i });
-});
+}));
 
-router.put('/interventions/:iid', async (req, res) => {
+router.put('/interventions/:iid', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const i = await InterventionRecord.findOne({ _id: req.params.iid, workspaceId: req.workspaceId });
   if (!i) return res.status(404).json({ error: 'Intervention not found.' });
@@ -524,10 +525,10 @@ router.put('/interventions/:iid', async (req, res) => {
   i.updatedAt = new Date();
   await i.save();
   res.json({ intervention: i });
-});
+}));
 
 // ── Simple report preview ─────────────────────────────────────────
-router.get('/classes/:id/reports', async (req, res) => {
+router.get('/classes/:id/reports', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req); if (!c) return res.status(404).json({ error: 'Class not found.' });
   const ids = await rosterIds(c._id);
@@ -542,10 +543,10 @@ router.get('/classes/:id/reports', async (req, res) => {
     assignmentCompletion: assignments.length ? Math.round((assignments.filter((a) => a.status === 'completed').length / assignments.length) * 100) : 0,
     topics: Object.entries(byTopic).map(([t, arr]) => ({ topic: t, avg: Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) })).sort((a, b) => a.avg - b.avg),
   });
-});
+}));
 
 // ── PSL class dashboard ─────────────────────────────────────────────
-router.get('/classes/:id/psl/dashboard', async (req, res) => {
+router.get('/classes/:id/psl/dashboard', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const c = await getOwnedClass(req);
   if (!c) return res.status(404).json({ error: 'Class not found.' });
@@ -676,6 +677,6 @@ router.get('/classes/:id/psl/dashboard', async (req, res) => {
     heuristics,
     stepAnalytics,
   });
-});
+}));
 
 export default router;

@@ -12,6 +12,7 @@ import {
   importRoster,
   parseRosterCsv,
 } from '../services/school/schoolAdminService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
 router.use(protect, requireWorkspace, requireEntitlement('schoolAdminConsole'));
@@ -29,7 +30,7 @@ function ensureSchoolAdmin(req, res) {
 }
 
 // Overview: classes with roster counts + seat usage vs the plan limit.
-router.get('/overview', async (req, res) => {
+router.get('/overview', asyncHandler(async (req, res) => {
   if (!ensureSchoolAdmin(req, res)) return;
   const classes = await Class.find({ workspaceId: req.workspaceId }).sort({ createdAt: 1 }).lean();
   const totalStudents = await Student.countDocuments({ workspaceId: req.workspaceId });
@@ -45,10 +46,10 @@ router.get('/overview', async (req, res) => {
     seatUsage: { students: totalStudents, studentLimit },
     classes: out,
   });
-});
+}));
 
 // Create a class.
-router.post('/classes', async (req, res) => {
+router.post('/classes', asyncHandler(async (req, res) => {
   if (!ensureSchoolAdmin(req, res)) return;
   const { name, level = '', modules = ['MathPath'], academicYear = '', teacherUserId } = req.body || {};
   if (!name || !String(name).trim()) return res.status(400).json({ error: 'Class name is required.' });
@@ -57,10 +58,10 @@ router.post('/classes', async (req, res) => {
     name: String(name).trim(), level, modules, academicYear, status: 'active',
   });
   res.status(201).json({ class: { classId: cls._id, name: cls.name, level: cls.level } });
-});
+}));
 
 // Create one student (optionally with a login + class enrolment).
-router.post('/students', async (req, res) => {
+router.post('/students', asyncHandler(async (req, res) => {
   if (!ensureSchoolAdmin(req, res)) return;
   const { name, level = '', classId = null, email = '', password = '', createLogin = false } = req.body || {};
   try {
@@ -76,11 +77,11 @@ router.post('/students', async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: err.message || 'Could not create student.' });
   }
-});
+}));
 
 // Bulk roster import. Accepts either { csv } text or { rows: [...] }.
 // Gated additionally on the bulkOnboarding capability.
-router.post('/students/bulk', requireEntitlement('bulkOnboarding'), async (req, res) => {
+router.post('/students/bulk', requireEntitlement('bulkOnboarding'), asyncHandler(async (req, res) => {
   if (!ensureSchoolAdmin(req, res)) return;
   const { csv = '', rows: bodyRows, defaultClassId = null, createLogins = false, createMissingClasses = true } = req.body || {};
   let rows = Array.isArray(bodyRows) ? bodyRows : [];
@@ -100,10 +101,10 @@ router.post('/students/bulk', requireEntitlement('bulkOnboarding'), async (req, 
   } catch (err) {
     res.status(500).json({ error: err.message || 'Import failed.' });
   }
-});
+}));
 
 // Generate / fetch a class join code.
-router.post('/classes/:id/join-code', async (req, res) => {
+router.post('/classes/:id/join-code', asyncHandler(async (req, res) => {
   if (!ensureSchoolAdmin(req, res)) return;
   const cls = await Class.findOne({ _id: req.params.id, workspaceId: req.workspaceId });
   if (!cls) return res.status(404).json({ error: 'Class not found.' });
@@ -118,12 +119,12 @@ router.post('/classes/:id/join-code', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || 'Could not create join code.' });
   }
-});
+}));
 
-router.get('/classes/:id/join-code', async (req, res) => {
+router.get('/classes/:id/join-code', asyncHandler(async (req, res) => {
   if (!ensureSchoolAdmin(req, res)) return;
   const active = await ClassJoinCode.findOne({ classId: req.params.id, workspaceId: req.workspaceId, status: 'active' }).sort({ createdAt: -1 }).lean();
   res.json({ joinCode: active ? { code: active.code, expiresAt: active.expiresAt, maxUses: active.maxUses, usedCount: active.usedCount } : null });
-});
+}));
 
 export default router;
