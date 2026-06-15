@@ -103,7 +103,13 @@ describe('usageTrackingService', () => {
     expect(usage.staff).toBe(1);
     expect(usage.diagnosticsPerMonth).toBe(1);
     expect(usage.paperUploadsPerMonth).toBe(1);
-    expect(usage.worksheetsPerMonth).toBe(1);
+    // worksheetsPerMonth sums persisted Worksheet docs + explicit
+    // `worksheet_generated` events. This case creates one of each, so the
+    // total is 2. Under Mongoose 7 it was 1 because the persisted Worksheet
+    // (studentId stored as ObjectId) was silently dropped by the mixed
+    // `$in: [string, ObjectId]` student filter — a casting bug fixed in
+    // Mongoose 9, which now correctly matches the doc.
+    expect(usage.worksheetsPerMonth).toBe(2);
     expect(usage.recoveryPacksPerMonth).toBe(1);
     expect(usage.reportsPerMonth).toBe(1);
   });
