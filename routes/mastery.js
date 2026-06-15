@@ -2838,5 +2838,22 @@ router.get('/p6/skill-states', protect, asyncHandler(async (req, res) => {
   } catch (err) { res.status(err.status || 500).json({ error: err.message || 'Failed to load P6 skill states.' }); }
 }));
 
+// @route GET /api/mastery/skill-states?studentId=X&domainIds=p1-money,p2-money
+// @desc  Return MathPathStudentSkillState records for specific domainIds.
+//        Tutor-accessible via resolveStudent (pass ?studentId= for a tutored student).
+// @access Private
+router.get('/skill-states', protect, asyncHandler(async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const rawIds = req.query.domainIds ? String(req.query.domainIds).split(',').map((s) => s.trim()).filter(Boolean) : [];
+    const filter = { studentId: String(student._id) };
+    if (rawIds.length) filter.domainId = { $in: rawIds };
+    const states = await MathPathStudentSkillState.find(filter).lean();
+    res.json({ skillStates: states, studentId: String(student._id) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load skill states.' });
+  }
+}));
+
 export default router;
 
