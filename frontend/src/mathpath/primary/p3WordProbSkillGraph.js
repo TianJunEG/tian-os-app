@@ -41,6 +41,26 @@ const p3WordProbSkills = [
     visual: 'essential',
     misconceptions: ['wrong_operation_choice', 'stops_after_one_step', 'misreads_question'],
   },
+  {
+    id: 'P3-WP-03',
+    name: 'Bar Model: Part-Whole',
+    description: 'Read a bar model diagram to find a missing part or the whole; choose the correct operation from the model structure.',
+    strand: 'Word Problems',
+    prerequisites: ['P3-AS-03', 'P3-AS-04'],
+    difficulty: 3,
+    singaporeLevel: ['P3'],
+    mastery: { minimumAccuracy: 80, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 40 },
+    retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['P3-AS-03', 'P3-AS-04'],
+    questionFamilies: [
+      'QF_P3-WP-03_001',
+      'QF_P3-WP-03_002',
+      'QF_P3-WP-03_003',
+    ],
+    visual: 'essential',
+    misconceptions: ['wrong_operation_choice', 'op/model-wrong-parts', 'misreads_question'],
+  },
 ];
 
 const skills = p3WordProbSkills.map((s) => ({ ...s }));

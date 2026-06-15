@@ -54,6 +54,35 @@ const familiesBySkillBlueprint = {
       misconceptionTags: ['wrong_operation_choice', 'misreads_question'],
     },
   ],
+  'P3-WP-03': [
+    {
+      name: 'Bar Model: Find the Total',
+      description: 'Given a bar model showing two known parts, add to find the whole.',
+      difficulty: 2,
+      fluencyTargetSeconds: 30,
+      answerType: 'numeric',
+      workingRequired: false,
+      misconceptionTags: ['wrong_operation_choice', 'op/model-wrong-parts'],
+    },
+    {
+      name: 'Bar Model: Find the Missing Part',
+      description: 'Given a bar model showing the total and one part, subtract to find the other part.',
+      difficulty: 3,
+      fluencyTargetSeconds: 36,
+      answerType: 'numeric',
+      workingRequired: false,
+      misconceptionTags: ['wrong_operation_choice', 'op/model-wrong-parts'],
+    },
+    {
+      name: 'Bar Model: Comparison',
+      description: 'Given a comparison bar model, find the difference between two quantities.',
+      difficulty: 3,
+      fluencyTargetSeconds: 40,
+      answerType: 'numeric',
+      workingRequired: false,
+      misconceptionTags: ['wrong_operation_choice', 'misreads_question'],
+    },
+  ],
   'P3-WP-02': [
     {
       name: 'Two-Step: Subtract Twice',
