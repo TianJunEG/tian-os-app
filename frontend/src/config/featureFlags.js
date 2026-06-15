@@ -19,6 +19,9 @@ export const FEATURE_FLAGS = {
   fluency: FLUENCY_ENABLED,
   mistakes: true,
   progress: true,
+  // Mascot-narrated parent progress update (Chelya) on the parent dashboard.
+  // Prototype — default off; enable with VITE_ENABLE_PARENT_NARRATION=true.
+  parentNarration: flagEnabled('PARENT_NARRATION', false),
   // Metacognition: prompt students to explain why a correct answer worked
   // (self-explanation effect). Prototype — default off; enable with
   // VITE_ENABLE_SELF_EXPLANATION=true.
