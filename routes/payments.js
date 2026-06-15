@@ -12,7 +12,11 @@ import { sendPaymentConfirmationEmail } from '../utils/emailService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Pin the API version to the one this code was written against (Stripe SDK
+// v11's default). Upgrading the SDK to v22 modernizes the library without
+// changing request/response or webhook payload shapes; adopting a newer API
+// version is a separate, deliberately-tested change.
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' });
 
 // @route   POST /api/payments/create-intent
 // @desc    Create a Stripe payment intent for a booking

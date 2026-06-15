@@ -16,7 +16,9 @@ export function isStripeConfigured() {
 async function getStripe() {
   if (!isStripeConfigured()) return null;
   if (!_stripePromise) {
-    _stripePromise = import('stripe').then((m) => new m.default(process.env.STRIPE_SECRET_KEY));
+    // Pin the API version to Stripe SDK v11's default so the v22 SDK upgrade
+    // is behavior-preserving for Connect accounts/charges.
+    _stripePromise = import('stripe').then((m) => new m.default(process.env.STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' }));
   }
   return _stripePromise;
 }
