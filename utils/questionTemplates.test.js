@@ -13,9 +13,17 @@ import { isGeneratable, generateQuestionsForSkill } from './questionTemplates.js
 
 const domainsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../scripts/domains');
 
-// Skills that intrinsically need a visual stimulus — left to authored items.
-const FIGURE_ONLY = new Set([
+// Skills not covered by the legacy template generator:
+//   - figure-dependent skills (need a diagram stimulus — left to authored items)
+//   - skills from domains added in Step 4+ that use genericQuestionGenerator instead
+const NOT_IN_LEGACY_GENERATOR = new Set([
   'Drawing and constructing figures',
+  'Perimeter of composite shapes',
+  'Perimeter and area in real-world contexts',
+  'Recognising coins and notes',
+  'Finding total cost (unit price × quantity)',
+  'Calculating change',
+  'Converting time units (hours, minutes, seconds)',
 ]);
 
 describe('question generator coverage', async () => {
@@ -36,10 +44,9 @@ describe('question generator coverage', async () => {
     allNames = allNames.concat(names);
   }
 
-  it('generates every figure-free skill and leaves figure-only skills to authored items', () => {
+  it('generates every legacy-covered skill and exempts figure-only + new-generator skills', () => {
     const missing = allNames.filter((n) => !isGeneratable(n));
-    // The only un-generatable skills must be the figure-dependent set.
-    expect(new Set(missing)).toEqual(FIGURE_ONLY);
+    expect(new Set(missing)).toEqual(NOT_IN_LEGACY_GENERATOR);
     expect(allNames.filter((n) => isGeneratable(n)).length).toBeGreaterThanOrEqual(160);
   });
 

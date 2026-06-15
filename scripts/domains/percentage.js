@@ -46,7 +46,7 @@ export default {
 
     // ── Core applications ──
     { slug: 'pct.of-quantity', name: 'Percentage of a quantity', level: 'Primary 5',
-      prerequisites: ['pct.convert', 'fr.of-quantity', 'dec.mult-whole'], masteryType: 'procedural', fluencyType: 'timed',
+      prerequisites: ['pct.convert', 'fr.of-quantity', 'dec.mult-whole'], masteryType: 'procedural', fluencyType: 'timed', heuristic: 'bar-model',
       fluency: { targetSeconds: 8, targetAccuracy: 90 },
       render: 'katex', visualModels: ['bar', 'hundred-grid'],
       misconceptions: [{ tag: 'pct/forgot-divide-100', label: 'Multiplies by the percent number without dividing by 100' }],
@@ -61,7 +61,7 @@ export default {
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['pct.convert'], strategy: 'part ÷ whole × 100 — identify the whole first' },
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: '{a} is what percentage of {b}?', answerRule: 'a/b*100', misconceptionTag: 'pct/wrong-base' }] },
     { slug: 'pct.find-whole', name: 'Finding the whole from a percentage', level: 'Primary 6',
-      prerequisites: ['pct.of-quantity'], masteryType: 'application', fluencyType: 'untimed-reasoning',
+      prerequisites: ['pct.of-quantity'], masteryType: 'application', fluencyType: 'untimed-reasoning', heuristic: 'work-backwards',
       render: 'katex', visualModels: ['bar'],
       misconceptions: [{ tag: 'pct/part-is-whole', label: 'Treats the given part as the whole (100%)' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
@@ -70,7 +70,7 @@ export default {
 
     // ── Change ──
     { slug: 'pct.increase-decrease', name: 'Percentage increase and decrease', level: 'Primary 6',
-      prerequisites: ['pct.of-quantity'], masteryType: 'procedural', fluencyType: 'accuracy',
+      prerequisites: ['pct.of-quantity'], masteryType: 'procedural', fluencyType: 'accuracy', heuristic: 'bar-model',
       render: 'katex', visualModels: ['bar'],
       misconceptions: [
         { tag: 'pct/add-percent-not-amount', label: 'Adds the percent number rather than the computed amount' },
@@ -79,7 +79,7 @@ export default {
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['pct.of-quantity'], strategy: 'find the change amount, then add/subtract from the ORIGINAL' },
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'Increase {q} by {p}\\%.', answerRule: 'q*(1+p/100)', misconceptionTag: 'pct/base-after-not-before' }] },
     { slug: 'pct.before-after', name: 'Percentage change with a repeated base (before & after)', level: 'Primary 6',
-      prerequisites: ['pct.increase-decrease', 'pct.find-whole'], masteryType: 'application', fluencyType: 'untimed-reasoning',
+      prerequisites: ['pct.increase-decrease', 'pct.find-whole'], masteryType: 'application', fluencyType: 'untimed-reasoning', heuristic: 'before-after',
       render: 'katex', visualModels: ['bar'],
       misconceptions: [{ tag: 'pct/percent-of-different-base', label: 'Applies both percentages to the same base when the base changes' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
@@ -88,14 +88,14 @@ export default {
 
     // ── Real-world applications ──
     { slug: 'pct.discount', name: 'Discount', level: 'Primary 6',
-      prerequisites: ['pct.increase-decrease'], masteryType: 'application', fluencyType: 'accuracy',
+      prerequisites: ['pct.increase-decrease'], masteryType: 'application', fluencyType: 'accuracy', heuristic: 'bar-model',
       render: 'katex', visualModels: ['bar'],
       misconceptions: [{ tag: 'pct/discount-of-discounted', label: 'Applies a second discount to the already-discounted price by mistake / mixes base' }],
       practiceModes: ['short_answer', 'mcq', 'worked_example'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['pct.increase-decrease'], strategy: 'discount amount = % × marked price; pay = marked − discount' },
       questionStructures: [{ mode: 'short_answer', type: 'short_answer', difficulty: 'medium', stem: 'A {item} costs ${price}. After a {p}\\% discount, what is the selling price?', answerRule: 'price*(1-p/100)', misconceptionTag: 'pct/discount-of-discounted' }] },
     { slug: 'pct.gst', name: 'GST (tax added on)', level: 'Primary 6',
-      prerequisites: ['pct.increase-decrease'], masteryType: 'application', fluencyType: 'accuracy',
+      prerequisites: ['pct.increase-decrease'], masteryType: 'application', fluencyType: 'accuracy', heuristic: 'bar-model',
       render: 'katex', visualModels: ['bar'],
       misconceptions: [{ tag: 'pct/gst-wrong-base', label: 'Applies GST to the wrong base (e.g. to a discounted-then-taxed value in the wrong order)' }],
       practiceModes: ['short_answer', 'mcq', 'worked_example'],

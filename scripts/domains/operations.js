@@ -189,14 +189,14 @@ export default {
 
     // ── Problem-solving heuristics ──
     { slug: 'op.model-drawing', name: 'Model drawing (bar models)', level: 'Primary 3',
-      prerequisites: ['op.add.regroup', 'op.sub.regroup'], masteryType: 'conceptual', fluencyType: 'untimed-reasoning',
+      prerequisites: ['op.add.regroup', 'op.sub.regroup'], masteryType: 'conceptual', fluencyType: 'untimed-reasoning', heuristic: 'bar-model',
       visualModels: ['bar'],
       misconceptions: [{ tag: 'op/model-wrong-parts', label: 'Draws the parts/whole in the wrong relationship' }],
       practiceModes: ['visual_model', 'worked_example', 'diagnostic'],
       remediation: { onRepeatedFail: 'worked-example', reinforce: ['op.sub.regroup'], strategy: 'draw the whole, then the parts; label what is known and unknown' },
       questionStructures: [{ mode: 'visual_model', type: 'short_answer', difficulty: 'medium', stem: 'Draw a bar model and solve: {part-whole word problem}.', answerRule: 'whole − part / sum of parts', misconceptionTag: 'op/model-wrong-parts' }] },
     { slug: 'op.word-multi-step', name: 'Multi-step word problems', level: 'Primary 5',
-      prerequisites: ['op.model-drawing', 'op.mult.2x1', 'op.div.short'], masteryType: 'application', fluencyType: 'untimed-reasoning',
+      prerequisites: ['op.model-drawing', 'op.mult.2x1', 'op.div.short'], masteryType: 'application', fluencyType: 'untimed-reasoning', heuristic: 'bar-model',
       visualModels: ['bar'],
       misconceptions: [{ tag: 'op/wrong-operation-choice', label: 'Chooses the wrong operation / order of steps' }],
       practiceModes: ['short_answer', 'worked_example', 'diagnostic'],
