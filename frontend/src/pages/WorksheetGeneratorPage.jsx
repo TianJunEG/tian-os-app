@@ -182,6 +182,21 @@ export default function WorksheetGeneratorPage() {
     setActiveSession(next ? next.sessionNumber : 1);
   };
 
+  // When the server offloads generation to the background worker it returns a
+  // 202 with a 'pending' worksheet; poll GET /:id until it's ready or failed.
+  const pollWorksheetReady = async (id, { tries = 40, intervalMs = 2000 } = {}) => {
+    for (let i = 0; i < tries; i += 1) {
+      await new Promise((r) => setTimeout(r, intervalMs));
+      const res = await worksheetsAPI.get(id);
+      const w = res.data.worksheet;
+      if (w?.generationStatus === 'ready') return w;
+      if (w?.generationStatus === 'failed') {
+        throw new Error(w.generationError || 'Worksheet generation failed.');
+      }
+    }
+    throw new Error('Worksheet is taking longer than expected. Check your history shortly.');
+  };
+
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
@@ -213,7 +228,11 @@ export default function WorksheetGeneratorPage() {
       formData.append('questionsPerSession', questionsPerSession);
 
       const res = await worksheetsAPI.generate(formData);
-      adoptWorksheet(res.data.worksheet);
+      // 202 + queued → the worker is generating; poll until it's ready.
+      const worksheetReady = res.data.queued
+        ? await pollWorksheetReady(res.data.worksheet._id)
+        : res.data.worksheet;
+      adoptWorksheet(worksheetReady);
       setEscalatedNote(res.data.escalated ? `Handwriting was unclear — read with ${res.data.modelUsed}.` : null);
       loadHistory();
       loadMistakes();

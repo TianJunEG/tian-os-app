@@ -7,11 +7,12 @@ import Mistake from '../models/Mistake.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadWorksheet from '../middleware/uploadWorksheet.js';
 import { analyzeAndGenerateWorksheet, markAnswers, generateReinforcement } from '../utils/aiService.js';
-import { SESSION_OFFSETS, buildSessions, recomputeSchedule } from '../utils/practiceSchedule.js';
+import { SESSION_OFFSETS, recomputeSchedule } from '../utils/practiceSchedule.js';
 import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
 import { applyMarks } from '../utils/marking.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
-import { logDiagnosedMisconceptions } from '../utils/misconceptionLog.js';
+import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
+import { photoWorksheetFields, logPhotoMisconceptions } from '../services/worksheets/photoWorksheet.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 import { commonMistakes } from '../utils/commonMistakes.js';
 import { resolveStudent } from '../utils/studentContext.js';
@@ -74,7 +75,45 @@ router.post(
 
       const buffer = await fs.readFile(req.file.path);
       const imageBase64 = buffer.toString('base64');
+      const studentUserId = assignedStudent ? assignedStudent._id : null;
+      const resolvedStudentName = studentName ? String(studentName).slice(0, 100) : assignedStudent?.name;
+      const base = {
+        userId: req.user.id,
+        studentId: studentUserId,
+        studentName: resolvedStudentName,
+        subject: 'Math',
+        gradeLevel,
+        sourceImageUrl: `/uploads/worksheets/${req.file.filename}`,
+      };
 
+      // Async path: create a pending worksheet, hand the photo to the worker, and
+      // return 202 so the request doesn't block on the 5-30s AI call. The client
+      // polls GET /:id until generationStatus becomes 'ready'/'failed'.
+      const queue = isQueueEnabled() ? getQueue(QUEUE_NAMES.worksheetGenerate) : null;
+      if (queue) {
+        let pending = null;
+        try {
+          pending = await Worksheet.create({ ...base, generationStatus: 'pending', practiceSessions: [] });
+          await queue.add('run', {
+            worksheetId: String(pending._id),
+            imageBase64,
+            mimeType: req.file.mimetype,
+            gradeLevel,
+            topicHint,
+            totalQuestions,
+            ownerUserId: String(req.user.id),
+            studentUserId: studentUserId ? String(studentUserId) : null,
+            studentName: resolvedStudentName,
+          });
+          return res.status(202).json({ success: true, worksheet: pending, queued: true });
+        } catch (queueErr) {
+          // Enqueue failed — drop the orphan pending doc and run inline instead.
+          console.error('Worksheet enqueue failed, running inline:', queueErr.message);
+          if (pending) await Worksheet.findByIdAndDelete(pending._id).catch(() => {});
+        }
+      }
+
+      // Synchronous path (queue disabled or enqueue failed) — unchanged behaviour.
       const result = await analyzeAndGenerateWorksheet({
         imageBase64,
         mimeType: req.file.mimetype,
@@ -82,38 +121,16 @@ router.post(
         topicHint,
         numQuestions: totalQuestions
       });
-
-      const practiceSessions = buildSessions(result.questions);
-
-      const worksheet = new Worksheet({
-        userId: req.user.id,
-        studentId: assignedStudent ? assignedStudent._id : null,
-        studentName: studentName ? String(studentName).slice(0, 100) : assignedStudent?.name,
-        subject: 'Math',
-        topic: result.topic,
-        gradeLevel,
-        sourceImageUrl: `/uploads/worksheets/${req.file.filename}`,
-        overallSummary: result.overallSummary,
-        misconceptions: Array.isArray(result.misconceptions) ? result.misconceptions : [],
-        skillsToReinforce: Array.isArray(result.skillsToReinforce) ? result.skillsToReinforce : [],
-        practiceSessions
-      });
+      const worksheet = new Worksheet({ ...base, ...photoWorksheetFields(result) });
       recomputeSchedule(worksheet);
       await worksheet.save();
-
-      // Log the diagnosed misconceptions against this student (best-effort —
-      // never fail the worksheet if this write has a problem).
-      try {
-        await logDiagnosedMisconceptions({
-          result,
-          ownerUserId: req.user.id,
-          studentUserId: assignedStudent ? assignedStudent._id : null,
-          studentName: worksheet.studentName || '',
-          worksheetId: worksheet._id,
-        });
-      } catch (logErr) {
-        console.error('Diagnosed-misconception logging failed (non-fatal):', logErr.message);
-      }
+      await logPhotoMisconceptions({
+        result,
+        ownerUserId: req.user.id,
+        studentUserId,
+        studentName: worksheet.studentName || '',
+        worksheetId: worksheet._id,
+      });
 
       return res.status(201).json({
         success: true,

@@ -70,6 +70,16 @@ const worksheetSchema = new mongoose.Schema({
   skillsToReinforce: [String],
   practiceSessions: [practiceSessionSchema],
 
+  // Photo-flow async generation status (Phase 1 WS3). 'ready' is the default so
+  // every existing/structured worksheet and the synchronous path are unaffected;
+  // the background worker sets 'pending' → 'ready'/'failed'.
+  generationStatus: {
+    type: String,
+    enum: ['pending', 'ready', 'failed'],
+    default: 'ready',
+  },
+  generationError: { type: String, default: '' },
+
   // ── Structured generation (Phase 4 Worksheet Generator) ─────────────────
   // Additive: the legacy photo flow above is untouched. A generated worksheet
   // stores structured content first (never PDF-only).
