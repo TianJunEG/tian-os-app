@@ -159,11 +159,18 @@ router.get('/me', protect, asyncHandler(async (req, res) => {
 // @access  Private
 router.put('/update-profile', protect, asyncHandler(async (req, res) => {
   try {
-    const { name, bio, phone, location, avatar } = req.body;
+    // Only update fields that were actually provided. Building the update from
+    // the raw body would write `undefined` for omitted keys, which can wipe
+    // required fields (e.g. an avatar-only update nulling `name`).
+    const updatable = ['name', 'bio', 'phone', 'location', 'avatar'];
+    const updates = { updatedAt: new Date() };
+    for (const key of updatable) {
+      if (req.body[key] !== undefined) updates[key] = req.body[key];
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
-      { name, bio, phone, location, avatar, updatedAt: new Date() },
+      { $set: updates },
       { new: true, runValidators: true }
     );
 

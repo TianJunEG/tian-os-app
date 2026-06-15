@@ -73,7 +73,7 @@ import informalAssessmentRoutes from './routes/informalAssessments.js';
 import informalAssessmentStudentRoutes from './routes/informalAssessmentStudent.js';
 import { featureGate } from './middleware/featureGate.js';
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const REQUIRED_ENV = ['MONGODB_URI', 'JWT_SECRET'];
 for (const key of REQUIRED_ENV) {
