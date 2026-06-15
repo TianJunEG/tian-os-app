@@ -136,12 +136,113 @@ function generateTwoStep(familyId) {
 }
 
 // ---------------------------------------------------------------------------
+// P3-WP-03: Bar Model — Part-Whole
+// Auto-gradable numeric questions backed by a part_whole_bar or comparison_bar
+// diagramSpec. Students read the model and find the missing value.
+// ---------------------------------------------------------------------------
+
+function generateBarModel(familyId) {
+  if (familyId.endsWith('_001')) {
+    // Find the total: both parts shown, whole is unknown.
+    const partA = randInt(20, 150);
+    const partB = randInt(15, 130);
+    const total = partA + partB;
+    const name = pick(NAMES);
+    const colA = pick(['red', 'blue', 'green', 'yellow', 'purple']);
+    const colB = pick(['white', 'orange', 'pink', 'brown', 'black']);
+    const item = pick(['stickers', 'beads', 'marbles', 'stamps', 'cards', 'buttons']);
+    return {
+      skillId: 'P3-WP-03',
+      questionFamilyId: familyId,
+      prompt: `${name} has ${partA} ${colA} ${item} and ${partB} ${colB} ${item}. The bar model shows the two groups.\nHow many ${item} does ${name} have altogether?`,
+      answer: total,
+      answerType: 'number',
+      instructionHint: 'Add the two parts shown in the bar model.',
+      solutionText: `${partA} + ${partB} = ${total}. ${name} has ${total} ${item} altogether.`,
+      misconceptionTraps: ['wrong_operation_choice', 'op/model-wrong-parts'],
+      diagramSpec: {
+        type: 'part_whole_bar',
+        width: 560,
+        height: 140,
+        data: {
+          parts: [
+            { value: partA, label: `${partA}`, fill: '#dbeafe' },
+            { value: partB, label: `${partB}`, fill: '#bfdbfe' },
+          ],
+        },
+      },
+    };
+  }
+
+  if (familyId.endsWith('_002')) {
+    // Find the missing part: total and one part shown, other is unknown.
+    const missing = randInt(20, 130);
+    const known = randInt(20, 150);
+    const total = missing + known;
+    const name = pick(NAMES);
+    const item = pick(['apples', 'books', 'stickers', 'coins', 'pencils', 'eggs', 'flowers']);
+    return {
+      skillId: 'P3-WP-03',
+      questionFamilyId: familyId,
+      prompt: `${name} has ${total} ${item} in two boxes. ${known} ${item} are in the first box. The bar model shows the total and one part.\nHow many ${item} are in the second box?`,
+      answer: missing,
+      answerType: 'number',
+      instructionHint: 'Subtract the known part from the total.',
+      solutionText: `${total} − ${known} = ${missing}. There are ${missing} ${item} in the second box.`,
+      misconceptionTraps: ['wrong_operation_choice', 'op/model-wrong-parts'],
+      diagramSpec: {
+        type: 'part_whole_bar',
+        width: 560,
+        height: 140,
+        data: {
+          parts: [
+            { value: known, label: `${known}`, fill: '#dbeafe' },
+            { value: missing, label: '?', fill: '#e0f2fe' },
+          ],
+        },
+      },
+    };
+  }
+
+  // _003: Comparison model — find the difference.
+  const smaller = randInt(20, 180);
+  const diff = randInt(10, 100);
+  const larger = smaller + diff;
+  const nameA = pick(NAMES);
+  let nameB = pick(NAMES);
+  while (nameB === nameA) nameB = pick(NAMES);
+  const item = pick(['stamps', 'marbles', 'stickers', 'cards', 'books', 'coins', 'beads']);
+  return {
+    skillId: 'P3-WP-03',
+    questionFamilyId: familyId,
+    prompt: `${nameA} has ${smaller} ${item}. ${nameB} has ${larger} ${item}. The bar model compares their amounts.\nHow many more ${item} does ${nameB} have than ${nameA}?`,
+    answer: diff,
+    answerType: 'number',
+    instructionHint: 'Subtract the smaller amount from the larger amount.',
+    solutionText: `${larger} − ${smaller} = ${diff}. ${nameB} has ${diff} more ${item} than ${nameA}.`,
+    misconceptionTraps: ['wrong_operation_choice', 'misreads_question'],
+    diagramSpec: {
+      type: 'comparison_bar',
+      width: 560,
+      height: 160,
+      data: {
+        leftValue: smaller,
+        rightValue: larger,
+        leftLabel: `${nameA}: ${smaller}`,
+        rightLabel: `${nameB}: ${larger}`,
+      },
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Generator registry
 // ---------------------------------------------------------------------------
 
 const generatorsBySkill = {
   'P3-WP-01': generateShareEqually,
   'P3-WP-02': generateTwoStep,
+  'P3-WP-03': generateBarModel,
 };
 
 // ---------------------------------------------------------------------------
