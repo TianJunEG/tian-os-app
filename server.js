@@ -151,7 +151,7 @@ app.use(apiRateLimit);
 // short-lived signed R2 URL (so files live in shared storage and the web tier can
 // scale horizontally); otherwise fall through to local-disk static serving. The
 // public '/uploads/<namespace>/<file>' URL shape is identical either way.
-app.get('/uploads/:path(*)', async (req, res, next) => {
+app.get('/uploads/*path', async (req, res, next) => {
   if (!isObjectStorageConfigured()) return next();
   try {
     const url = await signedUrlForUploadPath(req.path);
