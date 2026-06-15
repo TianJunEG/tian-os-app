@@ -204,9 +204,13 @@ function createFingerprint(payload = {}) {
   return crypto.createHash('sha256').update(fingerprintInput).digest('hex');
 }
 
-function chooseDifficulty(questionCategory, variantSeed) {
+function chooseDifficulty(questionCategory, variantSeed, familyDifficulty = null) {
   const config = CATEGORY_CONFIG[questionCategory] || CATEGORY_CONFIG.practice;
-  return pickDeterministic(config.difficultyLevels, variantSeed) || 3;
+  const raw = pickDeterministic(config.difficultyLevels, variantSeed) || 3;
+  if (familyDifficulty == null) return raw;
+  // Clamp to ±1 of the family's declared difficulty so easy families don't get
+  // hard questions and advanced families don't get trivial ones.
+  return Math.max(1, Math.min(5, Math.max(familyDifficulty - 1, Math.min(familyDifficulty + 1, raw))));
 }
 
 function chooseTemplateRules(questionCategory) {
@@ -348,7 +352,7 @@ function generateSingleQuestion({
   if (!template) return null;
 
   const seed = `${skillId}|${questionFamilyId}|${questionCategory}|${variantIndex}`;
-  const difficultyLevel = chooseDifficulty(questionCategory, seed);
+  const difficultyLevel = chooseDifficulty(questionCategory, seed, family.difficulty ?? null);
   const mode = CATEGORY_CONFIG[questionCategory]?.mode || 'practice';
 
   let generated = null;
@@ -429,7 +433,7 @@ function generateFallbackQuestion({
 
   const seed = `${skillId}|${questionFamilyId}|${questionCategory}|fallback|${variantIndex}`;
   const base = Math.abs(hashText(seed));
-  const difficultyLevel = chooseDifficulty(questionCategory, seed);
+  const difficultyLevel = chooseDifficulty(questionCategory, seed, family.difficulty ?? null);
   let prompt = '';
   let finalAnswer = '';
   let acceptedAnswers = [];
