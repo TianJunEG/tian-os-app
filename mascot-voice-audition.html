@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tian 7 — Voice Audition</title>
+<style>
+  :root { color-scheme: light dark; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  body { max-width: 760px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.4rem; margin-bottom: .25rem; }
+  .sub { color: #667; margin-top: 0; font-size: .9rem; }
+  #status { margin: 1rem 0; padding: .6rem .9rem; border-radius: .6rem; background: #eef; font-size: .9rem; }
+  .card { display: grid; grid-template-columns: 16px 1fr auto auto; gap: .75rem; align-items: center;
+          border: 1px solid #ccd; border-radius: .8rem; padding: .8rem 1rem; margin: .6rem 0; }
+  .swatch { width: 16px; height: 16px; border-radius: 50%; }
+  .name { font-weight: 600; }
+  .meta { color: #778; font-size: .8rem; }
+  select { padding: .35rem; border-radius: .5rem; }
+  button { padding: .45rem .9rem; border-radius: .6rem; border: 1px solid #88a; background: #4a6; color: #fff; font-weight: 600; cursor: pointer; }
+  button.secondary { background: #fff; color: #335; }
+  button:disabled { opacity: .5; cursor: default; }
+  .row-actions { display: flex; gap: .5rem; }
+  #playall { margin-bottom: 1rem; }
+  code { background: #0001; padding: .1rem .3rem; border-radius: .3rem; }
+</style>
+</head>
+<body>
+  <h1>The Tian 7 — Voice Audition</h1>
+  <p class="sub">Click ▶ to hear each mascot in its current voice. Use the dropdown to try alternates (same gender), then tell which IDs to keep. First play downloads the ~88&nbsp;MB Kokoro model once (cached after).</p>
+
+  <div id="status">Idle — first ▶ will load the model (takes ~20–60s the first time).</div>
+  <button id="playall" class="secondary">▶ Play all (current voices)</button>
+  <div id="list"></div>
+
+  <script type="module">
+    import { KokoroTTS } from 'https://esm.sh/kokoro-js@1.2.1';
+
+    // Current mapping (matches config/mascots.js KOKORO_VOICE) + a sample line each.
+    const MASCOTS = [
+      { key:'tiano',  name:'Tiano',  role:'Welcome guide',    color:'#0284c7', gender:'m', voice:'am_liam',   line:"Hey there, ready to learn?" },
+      { key:'lysa',   name:'Lysa',   role:'Spelling coach',   color:'#7c3aed', gender:'f', voice:'af_sky',    line:"Let's spell it out!" },
+      { key:'lejo',   name:'Lejo',   role:'Problem solver',   color:'#ea580c', gender:'m', voice:'bm_fable',  line:"Think it through — you've got this." },
+      { key:'chelya', name:'Chelya', role:'Progress reporter',color:'#059669', gender:'f', voice:'af_sarah',  line:"Look how far you've come!" },
+      { key:'talia',  name:'Talia',  role:'Encourager',       color:'#e11d48', gender:'f', voice:'af_heart',  line:"Mistakes are how we learn. Try again!" },
+      { key:'kaesy',  name:'Kaesy',  role:'Hype & rewards',   color:'#2563eb', gender:'f', voice:'bf_alice',  line:"Nice work — you're on fire!" },
+      { key:'kylo',   name:'Kylo',   role:'Math buddy',       color:'#1e3a5f', gender:'m', voice:'am_eric',   line:"Let's do some math!" },
+    ];
+
+    // Candidate voices to audition, by gender.
+    const MALE   = ['am_michael','am_adam','am_puck','am_echo','am_eric','am_liam','am_onyx','am_fenrir','bm_george','bm_lewis','bm_daniel','bm_fable'];
+    const FEMALE = ['af_bella','af_nicole','af_sky','af_sarah','af_heart','af_aoede','af_kore','af_nova','af_jessica','bf_emma','bf_alice','bf_lily'];
+
+    const statusEl = document.getElementById('status');
+    let ttsPromise = null;
+    const loadTTS = () => {
+      if (!ttsPromise) {
+        statusEl.textContent = 'Loading Kokoro model (~88 MB)… first time only.';
+        ttsPromise = KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', { dtype: 'q8' })
+          .then(t => { statusEl.textContent = 'Model ready. ▶ to play.'; return t; })
+          .catch(e => { statusEl.textContent = 'Model failed to load: ' + e.message; ttsPromise = null; throw e; });
+      }
+      return ttsPromise;
+    };
+
+    let current = null;
+    async function play(line, voice, btn) {
+      try {
+        if (btn) btn.disabled = true;
+        const tts = await loadTTS();
+        statusEl.textContent = `Generating "${voice}"…`;
+        const audio = await tts.generate(line, { voice });
+        if (current) { try { current.pause(); } catch {} }
+        const url = URL.createObjectURL(audio.toBlob());
+        current = new Audio(url);
+        current.addEventListener('ended', () => URL.revokeObjectURL(url), { once: true });
+        await current.play();
+        statusEl.textContent = `Played ${voice}.`;
+      } catch (e) {
+        statusEl.textContent = 'Error: ' + (e.message || e);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    const list = document.getElementById('list');
+    for (const m of MASCOTS) {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const sw = document.createElement('div'); sw.className = 'swatch'; sw.style.background = m.color;
+
+      const info = document.createElement('div');
+      info.innerHTML = `<div class="name">${m.name}</div><div class="meta">${m.role} · "${m.line}"</div>`;
+
+      const sel = document.createElement('select');
+      const opts = (m.gender === 'm' ? MALE : FEMALE);
+      for (const v of opts) {
+        const o = document.createElement('option'); o.value = v; o.textContent = v;
+        if (v === m.voice) o.selected = true;
+        sel.appendChild(o);
+      }
+
+      const actions = document.createElement('div'); actions.className = 'row-actions';
+      const playBtn = document.createElement('button'); playBtn.textContent = '▶';
+      playBtn.onclick = () => play(m.line, sel.value, playBtn);
+      actions.appendChild(playBtn);
+
+      card.append(sw, info, sel, actions);
+      list.appendChild(card);
+      m._sel = sel;
+    }
+
+    document.getElementById('playall').onclick = async function () {
+      this.disabled = true;
+      for (const m of MASCOTS) { await play(m.line, m._sel.value); }
+      this.disabled = false;
+    };
+  </script>
+</body>
+</html>
