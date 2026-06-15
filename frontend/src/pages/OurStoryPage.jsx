@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Seo from '../components/Seo';
 import MarketingHeader from '../components/MarketingHeader';
 import SiteFooter from '../components/SiteFooter';
+import useScrollReveal from '../hooks/useScrollReveal';
 
 const BELIEFS = [
   {
@@ -31,22 +32,6 @@ const TIMELINE = [
   { label: 'Today — Tian OS', title: 'The platform built to lift the ceiling for good.', body: 'Everything those years taught her, turned into software — so the right approach can reach every student, not just the ones who find the right teacher.', highlight: true },
 ];
 
-function useScrollReveal() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const root = ref.current;
-    if (!root) return;
-    const els = root.querySelectorAll('.scroll-reveal');
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } }),
-      { threshold: 0.1 },
-    );
-    els.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
-  return ref;
-}
-
 function Eyebrow({ children, light }) {
   return (
     <div className="scroll-reveal mb-7 font-mono text-[12.5px] uppercase tracking-[0.22em]" style={{ color: light ? '#8fb1ff' : '#4f7bf0' }}>
@@ -64,15 +49,11 @@ function SectionHeading({ children, light, className = '' }) {
 }
 
 export default function OurStoryPage() {
-  const rootRef = useScrollReveal();
+  useScrollReveal();
 
   return (
-    <div ref={rootRef} className="marketing-page" style={{ color: '#1d2230', background: '#f4efe6', overflowX: 'hidden' }}>
-      <Seo
-        title="Our Story — Tian OS"
-        description="We started Tian OS because teaching is too important to do alone. The story behind the platform."
-        path="/our-story"
-      />
+    <div className="marketing-page" style={{ color: '#1d2230', background: '#f4efe6', overflowX: 'hidden' }}>
+      <Seo title="Our Story" description="How Tian OS began — and why teaching is too important to do alone." path="/our-story" />
 
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #13223e 0%, #0e1a31 100%)', color: '#f4f0e8' }}>
