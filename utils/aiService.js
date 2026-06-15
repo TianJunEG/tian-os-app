@@ -40,19 +40,17 @@ function backoffDelayMs(err, attempt) {
 // Without this a burst of concurrent students hits provider 429s and fails hard;
 // the SDK's own retries are limited and not tuned for this load.
 async function completeWithRetry(provider, opts) {
-  return withAiConcurrency(async () => {
-    let lastErr;
-    for (let attempt = 0; attempt <= MAX_AI_RETRIES; attempt += 1) {
-      try {
-        return await provider.complete(opts);
-      } catch (err) {
-        lastErr = err;
-        if (!RETRYABLE_STATUSES.has(err?.status) || attempt === MAX_AI_RETRIES) throw err;
-        await sleep(backoffDelayMs(err, attempt));
-      }
+  let lastErr;
+  for (let attempt = 0; attempt <= MAX_AI_RETRIES; attempt += 1) {
+    try {
+      return await provider.complete(opts);
+    } catch (err) {
+      lastErr = err;
+      if (!RETRYABLE_STATUSES.has(err?.status) || attempt === MAX_AI_RETRIES) throw err;
+      await sleep(backoffDelayMs(err, attempt));
     }
-    throw lastErr;
-  });
+  }
+  throw lastErr;
 }
 
 // Run one structured call through the active provider and turn its neutral
