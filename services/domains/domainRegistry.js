@@ -191,7 +191,12 @@ export function registerDefaultDomains() {
       notes: 'Decimals-specific keyword mapper + AI fallback.',
       serviceModule: 'services/mathpath/decimalsPaperAnalysisMapper.js',
     },
-    interventionAdapter: { enabled: false, status: 'planned' },
+    interventionAdapter: {
+      enabled: true,
+      status: 'available',
+      notes: 'Reuses MathPath recheck recommendation service (domain-agnostic).',
+      serviceModule: 'services/mathpath/recheckRecommendationService.js',
+    },
     // Custom capability beyond the five platform adapters: the runnable content
     // + progression layer shipped in increments 1–2.
     practiceAdapter: {
