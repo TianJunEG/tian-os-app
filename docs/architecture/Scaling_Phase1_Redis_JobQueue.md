@@ -1,6 +1,6 @@
 # Scaling Phase 1 — Redis + Background Job Queue
 
-**Status:** In progress — WS1 (Redis client), WS2 (distributed rate limiter), WS3 (queue + worker, `paper-analysis` job type), WS5 (web graceful shutdown), and WS6 (managed Redis + worker wiring in `render.yaml`) landed. Remaining: WS3 for `worksheet-generate`/`mark-answers`. **Render note:** the worker's disk blocker for paper-analysis is now RESOLVED — Phase 2 moved those uploads to R2, so the worker can be enabled in production once R2 is configured (see [Scaling_Phase2_ObjectStorage.md](Scaling_Phase2_ObjectStorage.md)). The WS4 caveat below is superseded for paper-analysis.
+**Status:** In progress — WS1 (Redis client), WS2 (distributed rate limiter), WS3 (queue + worker, `paper-analysis` job type), WS5 (web graceful shutdown), and WS6 (managed Redis + worker wiring in `render.yaml`) landed. WS3 `worksheet-generate` job type also landed (photo → worker via 202 + poll; image passed as base64 in the job, decoupled from worksheet-photo storage; frontend polls `generationStatus`). Remaining: WS3 `mark-answers`. **Render note:** the worker's disk blocker for paper-analysis is now RESOLVED — Phase 2 moved those uploads to R2, so the worker can be enabled in production once R2 is configured (see [Scaling_Phase2_ObjectStorage.md](Scaling_Phase2_ObjectStorage.md)). The WS4 caveat below is superseded for paper-analysis.
 **Author:** generated with Claude Code
 **Date:** 2026-06-15
 **Depends on:** Phase 0 (PR #176 — practice-session persistence + AI retry/backoff)

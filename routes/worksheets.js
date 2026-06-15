@@ -11,8 +11,6 @@ import { buildReinforcementWorksheet } from '../utils/reinforcement.js';
 import { canViewWorksheet, redactWorksheetForViewer } from '../utils/worksheetAccess.js';
 import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
 import { photoWorksheetFields, logPhotoMisconceptions } from '../services/worksheets/photoWorksheet.js';
-import { buildMarkItems, missedMisconceptions, applyMarkResults } from '../services/worksheets/markSession.js';
-import { persistUploadFile } from '../services/storage/objectStore.js';
 import DiagnosedMisconception from '../models/DiagnosedMisconception.js';
 import { commonMistakes } from '../utils/commonMistakes.js';
 import { resolveStudent } from '../utils/studentContext.js';
@@ -74,8 +72,8 @@ router.post(
         }
       }
 
-      const imageBase64 = req.file.buffer.toString('base64');
-      const { fileUrl: sourceImageUrl } = await persistUploadFile(req.file, 'worksheets');
+      const buffer = await fs.readFile(req.file.path);
+      const imageBase64 = buffer.toString('base64');
       const studentUserId = assignedStudent ? assignedStudent._id : null;
       const resolvedStudentName = studentName ? String(studentName).slice(0, 100) : assignedStudent?.name;
       const base = {
@@ -84,7 +82,7 @@ router.post(
         studentName: resolvedStudentName,
         subject: 'Math',
         gradeLevel,
-        sourceImageUrl,
+        sourceImageUrl: `/uploads/worksheets/${req.file.filename}`,
       };
 
       // Async path: create a pending worksheet, hand the photo to the worker, and

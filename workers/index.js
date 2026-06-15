@@ -11,6 +11,7 @@ import { Worker } from 'bullmq';
 import connectDB from '../config/db.js';
 import { getBullConnection, QUEUE_NAMES, closeQueues } from '../config/queue.js';
 import { processPaperAnalysis } from './paperAnalysisWorker.js';
+import { processWorksheetGenerate } from './worksheetGenerateWorker.js';
 
 if (!process.env.REDIS_URL) {
   console.error('[worker] REDIS_URL is required to run the background worker.');
@@ -26,6 +27,7 @@ const concurrency = Number(process.env.WORKER_CONCURRENCY) > 0 ? Number(process.
 // (worksheet-generate, mark-answers).
 const HANDLERS = [
   { name: QUEUE_NAMES.paperAnalysis, processor: processPaperAnalysis },
+  { name: QUEUE_NAMES.worksheetGenerate, processor: processWorksheetGenerate },
 ];
 
 const workers = HANDLERS.map(({ name, processor }) => {
