@@ -10,7 +10,7 @@ const CATEGORY_ICONS = {
   Checking: '✅',
 };
 
-export default function StepFeedbackCard({ correct, partial, feedback, misconceptionTag, onContinue }) {
+export default function StepFeedbackCard({ correct, partial, feedback, misconceptionTag, workedExample, remediation, onContinue }) {
   let icon, bgColor, borderColor, textColor;
   if (correct) {
     icon = <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
@@ -48,6 +48,26 @@ export default function StepFeedbackCard({ correct, partial, feedback, misconcep
               <p className="text-xs font-medium text-ink-600 leading-relaxed">{misconception.tip}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {workedExample && !correct && (
+        <div className="rounded-lg border border-dashed p-3 space-y-2" style={{ borderColor: '#f0dcb8', background: '#fdf6ea' }}>
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: '#a8743a' }}>{workedExample.title}</p>
+          {workedExample.steps && (
+            <ol className="list-decimal list-inside space-y-1">
+              {workedExample.steps.map((step, i) => (
+                <li key={i} className="text-xs leading-relaxed" style={{ color: '#5a4020' }}>{step}</li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
+
+      {remediation && !correct && (
+        <div className="flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-100 p-3">
+          <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-500" />
+          <p className="text-xs font-medium text-blue-700 leading-relaxed">{remediation}</p>
         </div>
       )}
 
