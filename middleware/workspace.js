@@ -1,5 +1,8 @@
 import WorkspaceMember from '../models/WorkspaceMember.js';
 import Workspace from '../models/Workspace.js';
+import { cacheGet, cacheSet, workspaceCacheKey } from '../services/cache.js';
+
+const WORKSPACE_TTL = 300;
 
 // Enforces the Tian OS privacy boundary: every workspace-scoped request must
 // name an active workspace the user belongs to. School (teacher) data and
@@ -19,6 +22,15 @@ export const requireWorkspace = async (req, res, next) => {
     return res.status(400).json({ error: 'No active workspace. Select a workspace first.' });
   }
   try {
+    const cacheKey = workspaceCacheKey(req.user.id, workspaceId);
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      req.workspaceId = workspaceId;
+      req.workspace = cached.workspace;
+      req.workspaceRole = cached.role;
+      return next();
+    }
+
     const member = await WorkspaceMember.findOne({
       workspaceId,
       userId: req.user.id,
@@ -32,6 +44,7 @@ export const requireWorkspace = async (req, res, next) => {
     if (!workspace) {
       return res.status(403).json({ error: 'Not a member of this workspace.' });
     }
+    await cacheSet(cacheKey, { role: member.role, workspace }, WORKSPACE_TTL);
     req.workspaceId = workspaceId;
     req.workspace = workspace;
     req.workspaceRole = member.role;

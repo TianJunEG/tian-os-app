@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { initErrorMonitoring, sentryRequestHandler, sentryErrorHandler } from './services/errorMonitoring.js';
+import { initCache } from './services/cache.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
 import authRoutes from './routes/auth.js';
@@ -74,6 +75,7 @@ import { featureGate } from './middleware/featureGate.js';
 dotenv.config();
 
 initErrorMonitoring();
+initCache();
 
 const app = express();
 
