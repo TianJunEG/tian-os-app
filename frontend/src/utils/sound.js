@@ -82,17 +82,33 @@ export const setVoiceEnabled = (value) => {
   } catch { /* ignore */ }
 };
 
-export const speak = (text) => {
+// Best-effort gender hints found in common system voice names (macOS, Windows,
+// Chrome/Android). Used to pick a fitting voice per mascot; we always fall back
+// to any English voice, and pitch still differentiates mascots if the OS only
+// exposes one voice.
+const MALE_VOICE_HINTS = ['male', 'daniel', 'alex', 'fred', 'rishi', 'aaron', 'oliver', 'arthur', 'gordon'];
+const FEMALE_VOICE_HINTS = ['female', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona', 'serena', 'zira', 'martha'];
+
+const pickVoice = (voices, gender) => {
+  const en = voices.filter((v) => v.lang && v.lang.startsWith('en'));
+  if (!en.length) return null;
+  const hints = gender === 'male' ? MALE_VOICE_HINTS : FEMALE_VOICE_HINTS;
+  const match = en.find((v) => hints.some((h) => v.name.toLowerCase().includes(h)));
+  return match || en[0];
+};
+
+// speak(text, opts?) — opts: { gender: 'male'|'female', pitch, rate } (e.g. from
+// getMascotVoice). Backward compatible: speak(text) keeps the original voice.
+export const speak = (text, opts = {}) => {
   if (!voiceEnabled || muted || typeof window === 'undefined') return;
   const synth = window.speechSynthesis;
   if (!synth) return;
   synth.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.9;
-  utterance.pitch = 1.1;
+  utterance.rate = opts.rate ?? 0.9;
+  utterance.pitch = opts.pitch ?? 1.1;
   const voices = synth.getVoices();
-  const preferred = voices.find((v) => v.lang.startsWith('en') && v.name.includes('Female'))
-    || voices.find((v) => v.lang.startsWith('en'));
+  const preferred = pickVoice(voices, opts.gender || 'female');
   if (preferred) utterance.voice = preferred;
   synth.speak(utterance);
 };
