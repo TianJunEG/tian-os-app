@@ -28,24 +28,9 @@ import {
   getStudentAssignments,
 } from '../services/mathpath/mathPathAssignmentService.js';
 import { getQueue, isQueueEnabled, QUEUE_NAMES } from '../config/queue.js';
+import { putUpload } from '../services/storage/objectStore.js';
 
 const router = express.Router();
-
-// Enqueue the analysis pipeline for the background worker. Returns true when the
-// job was queued; false when the queue is disabled/unavailable so the caller falls
-// back to running the pipeline synchronously. The worker reads the uploaded file
-// from the saved storageKey, so the job payload carries only references.
-async function enqueuePaperAnalysis(analysis, file) {
-  if (!isQueueEnabled()) return false;
-  const queue = getQueue(QUEUE_NAMES.paperAnalysis);
-  if (!queue) return false;
-  await queue.add('run', {
-    analysisId: String(analysis._id),
-    mimeType: file.mimetype,
-    filename: file.originalname,
-  });
-  return true;
-}
 
 // Enqueue the analysis pipeline for the background worker. Returns true when the
 // job was queued; false when the queue is disabled/unavailable so the caller falls

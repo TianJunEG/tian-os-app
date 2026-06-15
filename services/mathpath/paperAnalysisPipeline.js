@@ -90,38 +90,6 @@ async function readBufferFromAnalysis(analysis) {
   return getUploadBuffer({ storageKey: analysis.storageKey, storageProvider: analysis.storageProvider });
 }
 
-// Runs skill mapping + misconception detection on the questions already stored on
-// `analysis`, then advances status to skills_mapped → needs_review. Mutates the
-// analysis document and saves; does NOT re-throw (callers handle errors).
-async function runSkillMappingPhase(analysis) {
-  const mapWithAi = getSkillMapper(analysis.domainId);
-  const enriched = await Promise.all(analysis.detectedQuestions.map((q) => mergeQuestionAnalysis(q, { mapWithAi })));
-  analysis.detectedQuestions = enriched;
-  if (enriched.length) {
-    analysis.status = 'skills_mapped';
-    analysis.pipelineLog.push(log('skills_mapped', 'Question skill mapping completed.', {
-      mappedQuestions: enriched.filter((q) => (q.detectedSkillIds || []).length).length,
-      lowConfidenceMappings: enriched.filter((q) => Number(q.skillMappingConfidence || 0) < 0.7).length,
-    }));
-    await analysis.save();
-  }
-  const recommendation = buildReviewRecommendations(analysis);
-  analysis.reportSummary = recommendation.report;
-  analysis.recommendedActions = recommendation.recommendedActions;
-  analysis.weakSkillIds = recommendation.report.weakSkills || [];
-  analysis.extractionSummary = {
-    ocrPageCount: analysis.ocrPages.length,
-    detectedQuestionCount: enriched.length,
-    lowConfidencePageCount: analysis.ocrPages.filter((p) => p.needsReview).length,
-    lowConfidenceQuestionCount: enriched.filter((q) => q.needsAdultReview).length,
-    adultReviewRequired: true,
-  };
-  analysis.dataQualityWarnings = analysisWarnings({ ocrPages: analysis.ocrPages, detectedQuestions: enriched });
-  analysis.status = 'needs_review';
-  analysis.pipelineLog.push(log('needs_review', 'Analysis prepared for adult review.', analysis.extractionSummary));
-  await analysis.save();
-}
-
 export async function runPaperAnalysisPipeline({
   analysisId,
   fileBuffer = null,

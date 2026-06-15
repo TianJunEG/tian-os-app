@@ -49,21 +49,30 @@ services:
           type: redis
           name: tian-os-redis
           property: connectionString
-      # Job queue stays OFF until the worker can read uploads (see worker note).
-      # Set to "1" in the dashboard only after Phase 2 (object storage) lands.
+      # Safe to set to "1" once R2 is configured (Phase 2): paper-analysis uploads
+      # then live in R2, which the worker can read. Leave unset to run inline.
       - key: JOB_QUEUE_ENABLED
+        sync: false
+      # Cloudflare R2 (object storage for audio + paper-analysis uploads).
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_ENDPOINT
         sync: false
 
   # ---- Background worker (paper-analysis OCR/AI off the request path) ----
   #
-  # ⚠️ Render persistent disks attach to ONE service, so this worker CANNOT mount
-  # the web service's `uploads` disk. The paper-analysis pipeline reads uploaded
-  # files from their on-disk storageKey, so the queue path only works once
-  # uploads move to shared object storage (Phase 2). Until then:
-  #   - keep JOB_QUEUE_ENABLED unset/0 on Render (web runs the pipeline inline),
-  #   - the full enqueue→worker path is exercised locally, where `npm start` and
-  #     `npm run worker` share one filesystem + a local Redis.
-  # The service is defined here so the deploy wiring is ready for Phase 2.
+  # The worker reads paper-analysis uploads from R2 (Phase 2), so it does NOT need
+  # the web service's `uploads` disk. To enable the queue in production: configure
+  # the R2_* vars on BOTH services, then set JOB_QUEUE_ENABLED=1.
+  # (Other upload categories — worksheets/resources/credentials — still live on the
+  # web disk; they aren't run by the worker, but they keep the *web* tier at one
+  # replica until they're migrated too.)
   - type: worker
     name: tian-os-worker
     runtime: node
@@ -83,6 +92,17 @@ services:
           property: connectionString
       - key: WORKER_CONCURRENCY
         value: "2"
+      # Cloudflare R2 — the worker reads uploaded papers from here.
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_ENDPOINT
+        sync: false
 
   # ---- Managed Redis (rate-limiter counters + BullMQ queue) ----
   - type: redis
