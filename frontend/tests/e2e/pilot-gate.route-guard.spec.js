@@ -109,5 +109,7 @@ test('pilot gate: test specification routes are available for parent/tutor/teach
 test('pilot gate: unauthorized role access is blocked', async ({ page }) => {
   await loginAs(page, accounts.student, '/student');
   await page.goto('/teacher');
+  // RoleGuard is async — wait up to 5 s for the client-side redirect to fire.
+  await page.waitForURL((url) => !url.pathname.endsWith('/teacher'), { timeout: 5_000 }).catch(() => {});
   await expect(page).not.toHaveURL(/\/teacher$/);
 });
