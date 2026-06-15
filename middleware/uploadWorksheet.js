@@ -1,23 +1,7 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 
-const uploadsDir = 'uploads/worksheets';
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname) || '.jpg';
-    cb(null, `${req.user.id}-${uniqueSuffix}${ext}`);
-  }
-});
-
+// Worksheet photo upload. In-memory so the route can persist via the storage
+// facade (R2 when configured, else disk) — see services/storage/objectStore.js.
 const fileFilter = (req, file, cb) => {
   const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
   if (allowedMimes.includes(file.mimetype)) {
@@ -28,11 +12,9 @@ const fileFilter = (req, file, cb) => {
 };
 
 const uploadWorksheet = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
-  limits: {
-    fileSize: 8 * 1024 * 1024 // 8MB
-  }
+  limits: { fileSize: 8 * 1024 * 1024 },
 });
 
 export default uploadWorksheet;

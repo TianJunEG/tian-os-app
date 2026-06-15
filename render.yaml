@@ -9,14 +9,10 @@ services:
     name: tian-os-api
     runtime: node
     rootDir: .
-    plan: starter # always-on; required for the persistent disk below
+    plan: starter # always-on
     buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /api/health
-    disk:
-      name: uploads
-      mountPath: /opt/render/project/src/uploads
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
@@ -53,11 +49,11 @@ services:
           type: redis
           name: tian-os-redis
           property: connectionString
-      # Safe to set to "1" once R2 is configured (Phase 2): paper-analysis uploads
-      # then live in R2, which the worker can read. Leave unset to run inline.
+      # Set to "1" once R2 is configured: all upload categories live in R2 (Phase 2
+      # complete), so the worker can read them. Leave unset to run AI inline.
       - key: JOB_QUEUE_ENABLED
         sync: false
-      # Cloudflare R2 (object storage for audio + paper-analysis uploads).
+      # Cloudflare R2 (object storage — all upload categories: Phase 2 complete).
       - key: R2_ACCOUNT_ID
         sync: false
       - key: R2_ACCESS_KEY_ID
@@ -71,12 +67,9 @@ services:
 
   # ---- Background worker (paper-analysis OCR/AI off the request path) ----
   #
-  # The worker reads paper-analysis uploads from R2 (Phase 2), so it does NOT need
-  # the web service's `uploads` disk. To enable the queue in production: configure
-  # the R2_* vars on BOTH services, then set JOB_QUEUE_ENABLED=1.
-  # (Other upload categories — worksheets/resources/credentials — still live on the
-  # web disk; they aren't run by the worker, but they keep the *web* tier at one
-  # replica until they're migrated too.)
+  # All upload categories now live in R2 (Phase 2 complete). The worker reads
+  # uploads from R2 and does NOT need the web disk. To enable the queue:
+  # configure the R2_* vars on BOTH services, then set JOB_QUEUE_ENABLED=1.
   - type: worker
     name: tian-os-worker
     runtime: node

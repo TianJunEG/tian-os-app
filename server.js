@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import connectDB from './config/db.js';
 import { closeRedis } from './config/redis.js';
+import { isObjectStorageConfigured, signedUrlForUploadPath } from './services/storage/objectStore.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
@@ -143,7 +144,19 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(sanitizeInputs);
 app.use(apiRateLimit);
 
-// Serve uploaded files statically
+// Serve uploaded files. When object storage is configured, 302-redirect to a
+// short-lived signed R2 URL (so files live in shared storage and the web tier can
+// scale horizontally); otherwise fall through to local-disk static serving. The
+// public '/uploads/<namespace>/<file>' URL shape is identical either way.
+app.get('/uploads/*', async (req, res, next) => {
+  if (!isObjectStorageConfigured()) return next();
+  try {
+    const url = await signedUrlForUploadPath(req.path);
+    return url ? res.redirect(302, url) : res.status(404).end();
+  } catch {
+    return res.status(404).end();
+  }
+});
 app.use('/uploads', express.static('uploads'));
 
 // Health check
