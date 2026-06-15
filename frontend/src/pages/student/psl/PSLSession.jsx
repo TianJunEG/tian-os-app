@@ -202,16 +202,22 @@ export default function PSLSession() {
   };
 
   const handleRequestHint = async () => {
-    if (hintLoading || hintExhausted || !currentProblem) return;
+    if (hintLoading || !currentProblem) return;
+    if (hints.length > 0) { setShowHintLadder(true); return; }
     setHintLoading(true);
     try {
-      const res = await pslAPI.getHint(sessionId, currentProblem.problemId, currentStepId);
-      if (res.data.hint) {
-        setHints((prev) => [...prev, res.data.hint]);
+      const collected = [];
+      let exhausted = false;
+      while (!exhausted && collected.length < 3) {
+        const res = await pslAPI.getHint(sessionId, currentProblem.problemId, currentStepId);
+        if (res.data.hint) {
+          const h = res.data.hint;
+          collected.push(typeof h === 'string' ? { title: '', text: h } : h);
+        }
+        exhausted = res.data.exhausted;
       }
-      if (res.data.exhausted) {
-        setHintExhausted(true);
-      }
+      if (collected.length > 0) { setHints(collected); setShowHintLadder(true); }
+      if (exhausted) setHintExhausted(true);
     } catch {}
     setHintLoading(false);
   };
@@ -536,12 +542,16 @@ export default function PSLSession() {
                   <button
                     type="button"
                     onClick={handleRequestHint}
-                    disabled={hintLoading || hintExhausted}
+                    disabled={hintLoading}
                     className="flex items-center gap-1.5 rounded-[10px] border px-3 py-2 text-[13.5px] font-semibold transition-colors disabled:opacity-40"
-                    style={{ borderColor: '#fbf1e1', background: '#fff', color: '#d9892e' }}
+                    style={{
+                      borderColor: hints.length > 0 ? '#d9892e' : '#fbf1e1',
+                      background: hints.length > 0 ? '#fbf1e1' : '#fff',
+                      color: '#d9892e',
+                    }}
                   >
                     <HelpCircle className="h-4 w-4" />
-                    {hintLoading ? '...' : 'Hint'}
+                    {hintLoading ? '...' : hints.length > 0 ? 'Show Hints' : 'Hint'}
                   </button>
                 )}
               </div>
@@ -580,13 +590,13 @@ export default function PSLSession() {
                 )}
               </div>
 
-              {/* Hints */}
-              {hints.length > 0 && !feedback && (
-                <div className="space-y-2">
-                  {hints.map((hint, i) => (
-                    <MascotBubble key={i} text={hint} />
-                  ))}
-                </div>
+              {/* Hint Ladder modal */}
+              {showHintLadder && hints.length > 0 && (
+                <HintLadder
+                  hints={hints}
+                  onClose={() => setShowHintLadder(false)}
+                  onTryAgain={() => setShowHintLadder(false)}
+                />
               )}
 
               {/* Feedback */}
@@ -596,6 +606,8 @@ export default function PSLSession() {
                   partial={feedback.partial}
                   feedback={feedback.feedback}
                   misconceptionTag={feedback.misconceptionTag}
+                  workedExample={feedback.workedExample}
+                  remediation={feedback.remediation}
                   onContinue={handleContinue}
                 />
               )}

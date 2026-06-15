@@ -82,7 +82,7 @@ function NotificationBell() {
     let active = true;
     const refresh = () => notificationsAPI.unreadCount()
       .then((r) => { if (active) setCount(r.data.count || 0); })
-      .catch(() => {});
+      .catch((e) => console.warn('AppShell: notification refresh failed', e));
     refresh();
     const t = setInterval(refresh, 60000);
     return () => { active = false; clearInterval(t); };

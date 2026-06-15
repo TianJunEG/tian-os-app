@@ -1,4 +1,4 @@
-import { getFeedback } from './misconceptionCatalog.js';
+import { getFeedback, getDetailedFeedback } from './misconceptionCatalog.js';
 
 export const STEP_IDS = ['understand', 'identify_info', 'identify_question', 'plan', 'solve', 'check'];
 
@@ -218,24 +218,37 @@ const EVALUATORS = {
   check: evaluateCheck,
 };
 
-export function evaluateStep(stepId, response, expectedResponse) {
+export function evaluateStep(stepId, response, expectedResponse, problemVars = {}) {
   const evaluator = EVALUATORS[stepId];
   if (!evaluator) return { correct: false, partial: false, score: 0, misconceptionTag: '', feedback: 'Unknown step.' };
 
   const result = evaluator(response, expectedResponse);
 
   let feedback = '';
+  let workedExample = null;
+  let remediation = null;
+
   if (result.correct) {
     feedback = 'Well done!';
   } else if (result.misconceptionTag) {
-    feedback = getFeedback(result.misconceptionTag, result.partial);
+    const detailed = getDetailedFeedback(result.misconceptionTag, result.partial, {
+      ...problemVars,
+      operation: expectedResponse?.operation,
+      expression: expectedResponse?.expression,
+    });
+    feedback = detailed.feedback;
+    workedExample = detailed.workedExample || null;
+    remediation = detailed.remediation || null;
   } else if (result.partial) {
     feedback = 'Almost there — check your answer carefully.';
   } else {
     feedback = "Not quite. Let's look at this again.";
   }
 
-  return { ...result, feedback };
+  const out = { ...result, feedback };
+  if (workedExample) out.workedExample = workedExample;
+  if (remediation) out.remediation = remediation;
+  return out;
 }
 
 export function evaluateAttempt(steps) {

@@ -376,7 +376,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), asyncHandler(
         break;
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.warn(`payments: unhandled Stripe event type: ${event.type}`);
     }
 
     res.json({ received: true });
