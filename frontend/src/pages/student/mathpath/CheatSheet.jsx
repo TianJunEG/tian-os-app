@@ -322,13 +322,13 @@ function PieChartDiagram({ data, theme }) {
     return drawPie(cx, diam / 2, s, i);
   });
 
-  return <svg viewBox={`0 0 ${totalW} ${h}`} width={totalW} height={h} style={{ maxWidth: '100%' }}>{allEls}</svg>;
+  return <svg viewBox={`0 0 ${totalW} ${h}`} width="100%" style={{ maxWidth: totalW }}>{allEls}</svg>;
 }
 
 function PlaceValueDiagram({ data }) {
   const w = data.headers.length * 44 + 8;
   return (
-    <svg viewBox={`0 0 ${w} 62`} width={w} height="62">
+    <svg viewBox={`0 0 ${w} 62`} width="100%" style={{ maxWidth: w }}>
       {data.headers.map((h, i) => (
         <g key={i}>
           <rect x={4 + i * 44} y="0" width="40" height="26" rx="4" fill="#fbbf24" stroke="#000" strokeWidth="2" />
@@ -342,18 +342,20 @@ function PlaceValueDiagram({ data }) {
 }
 
 function ComparisonDiagram({ data, theme }) {
-  const cols = data.top.length;
+  const top = data.top || String(data.numA).split('');
+  const bottom = data.bottom || String(data.numB).split('');
+  const cols = Math.max(top.length, bottom.length);
   const w = cols * 38 + 8;
   return (
-    <svg viewBox={`0 0 ${w} 78`} width={w} height="78">
-      {data.top.map((d, i) => {
+    <svg viewBox={`0 0 ${w} 78`} width="100%" style={{ maxWidth: w }}>
+      {top.map((d, i) => {
         const isDiff = i === data.diffIdx;
         return (
           <g key={i}>
             <rect x={4 + i * 38} y="0" width="34" height="32" rx="4" fill={isDiff ? theme.accent : '#fff'} stroke="#000" strokeWidth="2" />
             <text x={21 + i * 38} y="22" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="16" fill={isDiff ? '#fff' : '#000'}>{d}</text>
             <rect x={4 + i * 38} y="42" width="34" height="32" rx="4" fill={isDiff ? '#fecaca' : '#fff'} stroke="#000" strokeWidth="2" />
-            <text x={21 + i * 38} y="64" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="16" fill="#000">{data.bottom[i]}</text>
+            <text x={21 + i * 38} y="64" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="16" fill="#000">{bottom[i]}</text>
             {isDiff && <text x={21 + i * 38} y="39" textAnchor="middle" fontFamily="Bangers, cursive" fontSize="10" fill={theme.accent}>▲</text>}
           </g>
         );
@@ -365,23 +367,29 @@ function ComparisonDiagram({ data, theme }) {
 function NumberLineDiagram({ data, theme }) {
   const pts = data.points;
   const n = pts.length;
-  const pad = 30, w = 320, h = 60;
+  const pad = 30, w = Math.max(320, n * 50 + pad * 2), h = 60;
   const lineY = 28;
-  const spacing = (w - pad * 2) / (n - 1);
+  const spacing = n > 1 ? (w - pad * 2) / (n - 1) : 0;
+  const toX = (val) => {
+    if (data.start != null && data.end != null) {
+      return pad + ((val - data.start) / (data.end - data.start)) * (w - pad * 2);
+    }
+    const idx = pts.indexOf(val);
+    return idx >= 0 ? pad + idx * spacing : pad;
+  };
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h}>
+    <svg viewBox={`0 0 ${w} ${h}`} width="100%" style={{ maxWidth: w }}>
       <line x1={pad - 10} y1={lineY} x2={w - pad + 10} y2={lineY} stroke="#000" strokeWidth="2.5" />
       <polygon points={`${w - pad + 10},${lineY} ${w - pad + 4},${lineY - 4} ${w - pad + 4},${lineY + 4}`} fill="#000" />
       {pts.map((p, i) => {
         const x = pad + i * spacing;
         const isHighlight = data.highlightLast ? i === n - 1 : i === data.highlightIdx;
-        const isArrow = i === data.arrow;
         const label = data.labels ? data.labels[i] : (typeof p === 'number' && p >= 1000 ? (p / 1000) + 'k' : String(p));
         return (
           <g key={i}>
             <circle cx={x} cy={lineY} r={isHighlight ? 6 : 4} fill={isHighlight ? theme.accent : '#000'} stroke={isHighlight ? '#000' : 'none'} strokeWidth="1.5" />
             <text x={x} y={lineY + 18} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="8" fill={isHighlight ? theme.accent : '#000'}>{label}</text>
-            {isArrow && (
+            {i === data.arrow && data.highlightIdx != null && (
               <path d={`M${x},${lineY - 10} C${x},${lineY - 22} ${pad + data.highlightIdx * spacing},${lineY - 22} ${pad + data.highlightIdx * spacing},${lineY - 10}`} fill="none" stroke={theme.accent} strokeWidth="1.5" markerEnd="url(#arrowNL)" />
             )}
           </g>
@@ -397,6 +405,20 @@ function NumberLineDiagram({ data, theme }) {
           </g>
         );
       })}
+      {data.jumps && data.jumps.map((j, ji) => {
+        const fromIdx = pts.indexOf(j.from);
+        const toIdx = pts.indexOf(j.to);
+        if (fromIdx < 0 || toIdx < 0) return null;
+        const x1 = pad + fromIdx * spacing;
+        const x2 = pad + toIdx * spacing;
+        const dir = x2 > x1 ? 1 : -1;
+        return (
+          <g key={`jmp${ji}`}>
+            <path d={`M${x1},${lineY - 8} Q${(x1 + x2) / 2},${lineY - 24} ${x2},${lineY - 8}`} fill="none" stroke={theme.accent} strokeWidth="1.5" />
+            <text x={(x1 + x2) / 2} y={lineY - 26} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="7" fill={theme.accent}>{j.label}</text>
+          </g>
+        );
+      })}
       <defs><marker id="arrowNL" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill={theme.accent} /></marker></defs>
     </svg>
   );
@@ -404,7 +426,7 @@ function NumberLineDiagram({ data, theme }) {
 
 function VennDiagram({ data, theme }) {
   return (
-    <svg viewBox="0 0 260 130" width="260" height="130">
+    <svg viewBox="0 0 260 130" width="100%" style={{ maxWidth: 260 }}>
       <circle cx="90" cy="65" r="55" fill={theme.accentLight} fillOpacity="0.5" stroke="#000" strokeWidth="2" />
       <circle cx="170" cy="65" r="55" fill="#fde68a" fillOpacity="0.5" stroke="#000" strokeWidth="2" />
       <text x="55" y="20" fontFamily="Bangers, cursive" fontSize="14" fill={theme.accent}>{data.leftLabel}</text>
@@ -465,7 +487,7 @@ function ColumnMethodDiagram({ data, theme }) {
       <text key={`a${ci}`} x={x + cw / 2} y={y + ch * 0.7} textAnchor="middle" fontFamily="Bangers, cursive" fontSize="16" fill={theme.accent}>{d}</text>
     );
   });
-  return <svg viewBox={`0 0 ${w} ${y + ch + pad}`} width={w} height={y + ch + pad}>{rows}</svg>;
+  return <svg viewBox={`0 0 ${w} ${y + ch + pad}`} width="100%" style={{ maxWidth: w }}>{rows}</svg>;
 }
 
 function LongDivisionDiagram({ data, theme }) {
@@ -473,7 +495,7 @@ function LongDivisionDiagram({ data, theme }) {
   const cw = 30, ch = 32, pad = 40;
   const w = pad + n * cw + 20;
   return (
-    <svg viewBox={`0 0 ${w} 70`} width={w} height="70">
+    <svg viewBox={`0 0 ${w} 70`} width="100%" style={{ maxWidth: w }}>
       <text x={10} y={42} fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="18" fill="#000">{data.divisor}</text>
       <line x1={pad - 6} y1={20} x2={pad - 6} y2={50} stroke="#000" strokeWidth="2.5" />
       <line x1={pad - 6} y1={20} x2={pad + n * cw + 4} y2={20} stroke="#000" strokeWidth="2.5" />
@@ -511,37 +533,35 @@ function FractionStripDiagram({ data, theme }) {
       <rect key={i} x={pad + i * cw} y={4} width={cw - 2} height={h - 8} rx="3" fill="#fff" stroke="#000" strokeWidth="1.5" />
     );
   }
-  return <svg viewBox={`0 0 ${w} ${h + 16}`} width={w} height={h + 16}>{rects}</svg>;
+  return <svg viewBox={`0 0 ${w} ${h + 16}`} width="100%" style={{ maxWidth: w }}>{rects}</svg>;
 }
 
 function ArrowFlowDiagram({ data, theme }) {
-  const stepW = 80, arrowW = 14, h = 42;
-  const isArrow = (i) => i % 2 === 1;
-  const boxes = data.steps.filter((_, i) => !isArrow(i));
-  const arrows = data.steps.filter((_, i) => isArrow(i));
-  const w = boxes.length * stepW + arrows.length * arrowW + 8;
+  const boxes = data.steps.filter(s => !/^→/.test(s) && !/→$/.test(s));
+  const stepW = boxes.length > 4 ? 68 : 80;
+  const arrowW = 16, h = 42;
+  const w = boxes.length * stepW + (boxes.length - 1) * arrowW + 8;
   let x = 4;
   const els = [];
-  data.steps.forEach((step, i) => {
-    if (isArrow(i)) {
-      els.push(
-        <g key={i}>
-          <text x={x + arrowW / 2} y={h / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="18" fill={theme.accent}>→</text>
-        </g>
-      );
+  boxes.forEach((step, i) => {
+    if (i > 0) {
+      els.push(<text key={`a${i}`} x={x + arrowW / 2} y={h / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="18" fill={theme.accent}>→</text>);
       x += arrowW;
-    } else {
-      const isLast = i === data.steps.length - 1;
-      els.push(
-        <g key={i}>
-          <rect x={x} y={4} width={stepW - 4} height={h - 8} rx="6" fill={isLast ? theme.accent : '#fff'} stroke="#000" strokeWidth="2" />
-          <text x={x + (stepW - 4) / 2} y={h / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="11" fill={isLast ? '#fff' : '#000'}>{step}</text>
-        </g>
-      );
-      x += stepW;
     }
+    const isLast = i === boxes.length - 1;
+    const lines = step.split('\n');
+    els.push(
+      <g key={i}>
+        <rect x={x} y={4} width={stepW - 4} height={h - 8} rx="6" fill={isLast ? theme.accent : '#fff'} stroke="#000" strokeWidth="2" />
+        {lines.length === 1
+          ? <text x={x + (stepW - 4) / 2} y={h / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="10" fill={isLast ? '#fff' : '#000'}>{step}</text>
+          : lines.map((ln, li) => <text key={li} x={x + (stepW - 4) / 2} y={h / 2 - 4 + li * 13} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="9" fill={isLast ? '#fff' : '#000'}>{ln}</text>)
+        }
+      </g>
+    );
+    x += stepW;
   });
-  return <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ maxWidth: '100%' }}>{els}</svg>;
+  return <svg viewBox={`0 0 ${w} ${h}`} width="100%" style={{ maxWidth: '100%' }}>{els}</svg>;
 }
 
 function LineGraphDiagram({ data, theme }) {
@@ -555,7 +575,7 @@ function LineGraphDiagram({ data, theme }) {
   const toX = (i) => pad + i * xStep;
   const polyline = pts.map((p, i) => `${toX(i)},${toY(p.y)}`).join(' ');
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h}>
+    <svg viewBox={`0 0 ${w} ${h}`} width="100%" style={{ maxWidth: w }}>
       <line x1={pad} y1={top} x2={pad} y2={h - pad} stroke="#000" strokeWidth="1.5" />
       <line x1={pad} y1={h - pad} x2={w - pad + 10} y2={h - pad} stroke="#000" strokeWidth="1.5" />
       {[yMin, Math.round((yMin + yMax) / 2), yMax].map((v, i) => (
@@ -580,17 +600,18 @@ function LineGraphDiagram({ data, theme }) {
 function StackedBarDiagram({ data, theme }) {
   const w = 280, h = 50, barH = 24, pad = 10;
   const colors = [theme.accent, theme.shadow, '#e5e7eb'];
+  const fmt = (v) => typeof v === 'number' ? v.toLocaleString() : String(v);
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h}>
-      <text x={pad} y={12} fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="9" fill="#000">${data.total.toLocaleString()}</text>
+    <svg viewBox={`0 0 ${w} ${h}`} width="100%" style={{ maxWidth: w }}>
+      <text x={pad} y={12} fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="9" fill="#000">{fmt(data.total)}</text>
       {data.segments.reduce((acc, seg, i) => {
-        const segW = (seg.value / data.total) * (w - pad * 2);
+        const segW = Math.max((seg.value / data.total) * (w - pad * 2), 20);
         const x = acc.x;
         acc.els.push(
           <g key={i}>
             <rect x={x} y={18} width={segW} height={barH} fill={colors[i % colors.length]} stroke="#000" strokeWidth="1.5" rx={i === 0 ? 4 : 0} />
             <text x={x + segW / 2} y={18 + barH / 2 + 4} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="800" fontSize="9" fill={i < 2 ? '#fff' : '#000'}>{seg.label}</text>
-            <text x={x + segW / 2} y={18 + barH + 12} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="7" fill="#555">${seg.value}</text>
+            <text x={x + segW / 2} y={18 + barH + 12} textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize="7" fill="#555">{fmt(seg.value)}</text>
           </g>
         );
         acc.x += segW;
