@@ -51,6 +51,7 @@
     "qa:fractions:closure": "node scripts/fractions-final-pilot-closure.js",
     "qa:fractions:questions": "node scripts/auditFractionsQuestionQuality.js",
     "seed:resources": "node scripts/seedResources.js",
+    "seed:decimals-pilot": "node scripts/seedDecimalsPilot.js",
     "postgres:prisma:generate": "prisma generate && esbuild generated/prisma/client.ts --bundle --platform=node --format=esm --packages=external --outfile=generated/prisma/client.js",
     "postgres:health": "node scripts/postgres/checkPrismaHealth.js",
     "postgres:phase1:backfill": "node scripts/postgres/backfillMathPathReferenceData.js",
