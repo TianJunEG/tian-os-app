@@ -263,7 +263,7 @@ export default function PSLResults() {
 
         {/* ── Mascot feedback ────────────────────────────────── */}
         {mascot && (
-          <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mt-6" />
+          <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mt-6" voiced />
         )}
 
         {/* ── Misconceptions ─────────────────────────────────── */}
