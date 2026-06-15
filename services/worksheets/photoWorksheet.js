@@ -2,6 +2,7 @@
 // route path (queue disabled) and the background worker (queue enabled), so the AI
 // call + session building + misconception logging live in one place.
 import Worksheet from '../../models/Worksheet.js';
+import logger from '../../config/logger.js';
 import { analyzeAndGenerateWorksheet } from '../../utils/aiService.js';
 import { buildSessions, recomputeSchedule } from '../../utils/practiceSchedule.js';
 import { logDiagnosedMisconceptions } from '../../utils/misconceptionLog.js';
@@ -22,7 +23,7 @@ export async function logPhotoMisconceptions({ result, ownerUserId, studentUserI
   try {
     await logDiagnosedMisconceptions({ result, ownerUserId, studentUserId, studentName: studentName || '', worksheetId });
   } catch (logErr) {
-    console.error('Diagnosed-misconception logging failed (non-fatal):', logErr.message);
+    logger.error({ err: logErr.message }, 'diagnosed-misconception logging failed (non-fatal)');
   }
 }
 

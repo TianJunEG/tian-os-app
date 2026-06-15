@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import logger from '../../config/logger.js';
 import PSLSession from '../../models/psl/PSLSession.js';
 import PSLAttempt from '../../models/psl/PSLAttempt.js';
 import PSLSkill from '../../models/psl/PSLSkill.js';
@@ -200,7 +201,7 @@ export async function completeProblem({ sessionId, problemId, studentId = null }
         subject: 'Math',
       });
     } catch (err) {
-      console.error('[PSL] recordAttempt failed:', err.message);
+      logger.error({ err: err.message }, 'PSL recordAttempt failed');
     }
 
     if (!attempt.overallCorrect) {

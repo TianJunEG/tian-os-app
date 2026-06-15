@@ -10,6 +10,7 @@ import connectDB from './config/db.js';
 import { closeRedis } from './config/redis.js';
 import { isObjectStorageConfigured, signedUrlForUploadPath } from './services/storage/objectStore.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { requestLogger } from './middleware/requestLogger.js';
 import { apiRateLimit, authRateLimit } from './middleware/rateLimiter.js';
 import { sanitizeInputs } from './middleware/validation.js';
 import authRoutes from './routes/auth.js';
@@ -91,6 +92,7 @@ const app = express();
 connectDB();
 
 // Middleware
+app.use(requestLogger);
 app.use(helmet({
   // allow the separate-origin frontend to load images served from /uploads
   crossOriginResourcePolicy: { policy: 'cross-origin' }
