@@ -30,8 +30,9 @@ export function resolveStudentVisualMode(studentOrUser = {}) {
     || '';
   const parsed = levelNumber(level);
   if (parsed.band === 'secondary') return STUDENT_VISUAL_MODES.SECONDARY;
-  if (parsed.band === 'primary' && parsed.year > 0 && parsed.year <= 4) return STUDENT_VISUAL_MODES.LOWER_PRIMARY;
-  if (parsed.band === 'primary' && parsed.year >= 5) return STUDENT_VISUAL_MODES.UPPER_PRIMARY;
+  // P1–P3 get the gamified lower-primary skin; P4–P6 get upper-primary.
+  if (parsed.band === 'primary' && parsed.year > 0 && parsed.year <= 3) return STUDENT_VISUAL_MODES.LOWER_PRIMARY;
+  if (parsed.band === 'primary' && parsed.year >= 4) return STUDENT_VISUAL_MODES.UPPER_PRIMARY;
   return STUDENT_VISUAL_MODES.UPPER_PRIMARY;
 }
 
