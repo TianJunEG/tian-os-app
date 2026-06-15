@@ -104,6 +104,15 @@ export default function DecimalsLearningPathPage() {
           </div>
           <Button size="s" icon={ArrowRight} onClick={() => startPractice(view.recommendedNext.skillId)}>Practise</Button>
         </div>
+        <div className="mt-4 border-t border-ink-100 pt-3">
+          <button
+            type="button"
+            onClick={() => navigate('/student/mathpath/decimals/diagnostic')}
+            className="text-sm font-semibold text-navy-700 hover:text-navy-900"
+          >
+            Not sure where to start? Take a quick check-in →
+          </button>
+        </div>
       </Card>
 
       {selected && (
