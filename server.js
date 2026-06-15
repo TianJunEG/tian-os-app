@@ -288,3 +288,14 @@ async function shutdown(signal) {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
+
+// Resilience: a single unhandled async error must not silently take the whole
+// server down. Under `npm start` (plain node, no nodemon) an unhandled rejection
+// would exit the process with no restart, 500-ing every subsequent request.
+// Log loudly and keep serving; logged errors should still be investigated.
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled promise rejection:', reason, '\n  at:', promise);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+});
