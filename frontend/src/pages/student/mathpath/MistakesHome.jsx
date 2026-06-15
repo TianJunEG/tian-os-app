@@ -6,6 +6,8 @@ import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../c
 import { MathText } from '../../../components/ui/Fraction';
 import { useAuth } from '../../../context/AuthContext';
 import { getVisualModeStyles, resolveStudentVisualMode } from '../../../design-os/studentVisualMode';
+import { MascotBubble } from '../../../components/MascotAvatar';
+import { getMascotForModule } from '../../../config/mascots';
 
 function formatMistakeDate(value) {
   if (!value) return 'Recently';
@@ -106,9 +108,19 @@ export default function MistakesHome() {
     skillName: recommendedRaw.skillName || recommendedRaw.name || recommendedRaw.title || 'the recommended skill',
   } : null;
 
+  const mascot = getMascotForModule('mistakes');
+  const firstName = (user?.name || 'there').split(' ')[0];
+  const mascotMessage = hasMistakes
+    ? `Hey ${firstName}, mistakes are how we grow. Let's turn these into wins!`
+    : `No mistakes to review, ${firstName} — you're on fire!`;
+
   return (
     <div className={`${visualStyles.page} space-y-6`}>
       <PageHeader title="Mistake-to-Mastery" subtitle="MathPath · turn recent slips into mastery" />
+
+      {mascot && (
+        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" />
+      )}
 
       <Card className={`p-5 ${visualStyles.heroCard}`}>
         <div className={`mb-1 flex items-center gap-2 ${visualStyles.accent}`}><Wrench className="h-4 w-4" /><span className="text-[11px] font-semibold uppercase tracking-[0.1em]">Turn slips into mastery</span></div>

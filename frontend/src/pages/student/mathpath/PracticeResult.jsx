@@ -5,6 +5,8 @@ import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import { getUniversalSkillByFrameworkId } from '../../../mathpath/curriculum';
+import { MascotBubble } from '../../../components/MascotAvatar';
+import { getMascotForModule } from '../../../config/mascots';
 
 function canonicalSkillName(skillId, fallback = '') {
   const normalized = String(skillId || '').toUpperCase();
@@ -50,10 +52,21 @@ export default function PracticeResult() {
       : defaultHomeLabel
     : defaultHomeLabel);
   const mistakesBase = state.mistakesBase || (isScience ? '/student/science/mistakes' : '/student/mathpath/mistakes');
+  const moduleKey = isScience ? 'science' : 'mathpath';
+  const mascot = getMascotForModule(moduleKey);
+  const mascotMessage = stats.accuracy >= 80
+    ? `Amazing — ${stats.accuracy}% accuracy! You're crushing it!`
+    : stats.accuracy >= 50
+      ? `Good effort — ${stats.accuracy}%. Let's review the tricky ones together.`
+      : `${stats.accuracy}% this round. Don't worry — every mistake is a chance to learn!`;
 
   return (
     <div className="mx-auto max-w-xl">
       <PageHeader title="Session complete" subtitle="Nice work — here's how it went." />
+
+      {mascot && (
+        <MascotBubble name={mascot.key} message={mascotMessage} size="sm" className="mb-4" />
+      )}
 
       <Card className="mb-5 p-6 text-center">
         <div className="font-mono text-5xl font-semibold tabular-nums text-navy-700">{stats.accuracy}%</div>

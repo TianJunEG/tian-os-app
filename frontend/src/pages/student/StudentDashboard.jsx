@@ -1380,6 +1380,13 @@ export default function StudentDashboard() {
         </div>
       </div>
 
+      <MascotBubble
+        name={getDashboardMascot().key}
+        message={getDashboardMascot().greeting(firstName)}
+        size="sm"
+        className="mb-4"
+      />
+
       <TodaysMissionCard
         currentSkill={vm.currentSkill}
         nextAction={vm.nextAction}
