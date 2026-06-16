@@ -108,8 +108,41 @@ function buildFluencyBottlenecks(attempts, resolvers) {
   return rows.sort((a, b) => a.accuracy - b.accuracy);
 }
 
+// Read-side retention risk: a secure skill that hasn't been practised in a
+// while is at risk of being forgotten. Derived from the masteredAt /
+// lastPractisedAt timestamps the p{N} practice handlers already persist — no
+// spaced-repetition schedule is stored, so this is a "stale mastery" heuristic
+// rather than a full review scheduler.
+const RETENTION_DUE_DAYS = 21;
+const RETENTION_OVERDUE_DAYS = 60;
+
+function buildRetentionRisks(skillStates, resolvers, now) {
+  const nowMs = now instanceof Date ? now.getTime() : Number(now) || Date.now();
+  const rows = [];
+  (Array.isArray(skillStates) ? skillStates : []).forEach((s) => {
+    if (!isSecureState(s)) return;
+    // Model field is British-spelt `lastPractisedAt`; tolerate the American variant.
+    const last = s.lastPractisedAt || s.lastPracticedAt || s.masteredAt || null;
+    if (!last) return;
+    const days = Math.floor((nowMs - new Date(last).getTime()) / 86400000);
+    if (days < RETENTION_DUE_DAYS) return; // still fresh
+    const riskLevel = days >= RETENTION_OVERDUE_DAYS ? 'high' : 'medium';
+    rows.push({
+      skillId: s.skillId,
+      skillName: resolvers.getSkillName(s.skillId),
+      status: s.status || s.masteryState || 'mastered',
+      lastPractisedAt: last,
+      daysSincePractice: days,
+      riskLevel,
+      retentionStatus: riskLevel === 'high' ? 'forgotten' : 'needsReview',
+      recommendation: riskLevel === 'high' ? 'scheduleRetentionReview' : 'conductMiniAssessment',
+    });
+  });
+  return rows.sort((a, b) => b.daysSincePractice - a.daysSincePractice);
+}
+
 export function buildCurriculumDomainDashboard(options = {}) {
-  const { resolvers, skillStates = [], mistakes = [], attempts = [] } = options;
+  const { resolvers, skillStates = [], mistakes = [], attempts = [], now } = options;
   if (!resolvers) {
     return {
       available: false,
@@ -120,6 +153,7 @@ export function buildCurriculumDomainDashboard(options = {}) {
       rootCauses: [],
       mistakeClusters: [],
       fluencyBottlenecks: [],
+      retentionRisks: [],
       interventionPriorities: [],
       recommendedFocus: null,
     };
@@ -267,6 +301,9 @@ export function buildCurriculumDomainDashboard(options = {}) {
   // --- Fluency bottlenecks (from persisted per-question attempts) ----------
   const fluencyBottlenecks = buildFluencyBottlenecks(attempts, resolvers);
 
+  // --- Retention risks (stale-mastery heuristic from skill-state timestamps)
+  const retentionRisks = buildRetentionRisks(states, resolvers, now);
+
   return {
     available: skillSummary.total > 0 || domainMistakes.length > 0 || fluencyBottlenecks.length > 0,
     domainKey,
@@ -276,6 +313,7 @@ export function buildCurriculumDomainDashboard(options = {}) {
     rootCauses,
     mistakeClusters,
     fluencyBottlenecks,
+    retentionRisks,
     interventionPriorities,
     recommendedFocus,
   };
