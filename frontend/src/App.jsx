@@ -85,6 +85,7 @@ const TimeLearningPathPage = lazy(() => import('./pages/student/mathpath/TimeLea
 const TimePracticeSession = lazy(() => import('./pages/student/mathpath/TimePracticeSession'));
 const VolumeLearningPathPage = lazy(() => import('./pages/student/mathpath/VolumeLearningPathPage'));
 const VolumePracticeSession = lazy(() => import('./pages/student/mathpath/VolumePracticeSession'));
+const DomainDiagnosticSession = lazy(() => import('./pages/student/mathpath/DomainDiagnosticSession'));
 const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
 const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
 const DecimalsAssessmentSession = lazy(() => import('./pages/student/mathpath/DecimalsAssessmentSession'));
@@ -642,6 +643,7 @@ function App() {
             <Route path="/student/mathpath/time/practice" element={<TimePracticeSession />} />
             <Route path="/student/mathpath/volume" element={<VolumeLearningPathPage />} />
             <Route path="/student/mathpath/volume/practice" element={<VolumePracticeSession />} />
+            <Route path="/student/mathpath/:domainId/diagnostic" element={<DomainDiagnosticSession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
             <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />
