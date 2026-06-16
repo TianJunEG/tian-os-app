@@ -451,7 +451,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'planned',
-      practice: 'planned',       // GATED: MeasurementQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
+      practice: 'available',     // rebuilt: MeasurementQuestionGenerator.js (units, conversions, scale reading, perimeter/area/volume, nets, rate, money). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',

@@ -17,11 +17,11 @@
 
 export const WITHHELD_DOMAINS = {
   geometry: 'stub',
-  measurement: 'stub',
   // money:        rebuilt and re-enabled (see MoneyQuestionGenerator.js / P1).
   // time:         rebuilt and re-enabled (see TimeQuestionGenerator.js / P1).
   // operations:   rebuilt and re-enabled (see OperationsQuestionGenerator.js / P1).
   // number-sense: rebuilt and re-enabled (see NumberSenseQuestionGenerator.js / P1).
+  // measurement:  rebuilt and re-enabled (see MeasurementQuestionGenerator.js / P1).
 };
 
 // Back-compat: the subset that are pure a+b stubs.
