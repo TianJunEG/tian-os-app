@@ -18,8 +18,18 @@ import {
   Target,
   Trophy,
   UserCircle,
+  BarChart2,
+  Box,
+  Circle,
+  Clock,
+  DollarSign,
+  Hash,
   Percent,
+  Ruler,
   Scale,
+  Sigma,
+  Square,
+  Triangle,
   Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
