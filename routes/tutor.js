@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { requireWorkspace } from '../middleware/workspace.js';
+import User from '../models/User.js';
 import Student from '../models/Student.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import Skill from '../models/Skill.js';
@@ -91,19 +92,39 @@ router.get('/students', asyncHandler(async (req, res) => {
 // @route GET /api/tutor/home — dashboard summary
 router.get('/home', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
-  const studentIds = await tutorStudentIds(req);
+  const [studentIds, tutorUser, recentNotes, cert] = await Promise.all([
+    tutorStudentIds(req),
+    User.findById(req.user.id).select('name').lean(),
+    LessonNote.find({ tutorUserId: req.user.id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5),
+    TutorCertification.findOne({ tutorUserId: req.user.id }),
+  ]);
   const overdue = await Assignment.countDocuments({ studentId: { $in: studentIds }, status: 'overdue' });
-  const recentNotes = await LessonNote.find({ tutorUserId: req.user.id, workspaceId: req.workspaceId }).sort({ createdAt: -1 }).limit(5);
-  const cert = await TutorCertification.findOne({ tutorUserId: req.user.id });
-  // Students needing attention: any with a weak (<40) skill.
-  const attention = [];
-  for (const id of studentIds) {
-    const sum = await masterySummary(id);
-    if (sum.weakestSkill) { const s = await Student.findById(id); attention.push({ studentId: id, name: s?.name, weakestSkill: sum.weakestSkill }); }
-  }
+
+  // Fetch all students + their mastery in parallel (avoids N+1 serial loop).
+  const studentDocs = await Student.find({ _id: { $in: studentIds } }).lean();
+  const summaries = await Promise.all(studentDocs.map((s) => masterySummary(s._id)));
+
+  const students = studentDocs.map((s, i) => {
+    const sum = summaries[i];
+    return {
+      studentId: s._id,
+      name: s.name,
+      level: s.level,
+      weakestSkill: sum.weakestSkill,
+      status: sum.weakestSkill ? 'needs_review' : 'on_track',
+      reason: sum.weakestSkill ? `${sum.weakestSkill} needs review` : null,
+    };
+  });
+  const attention = students.filter((s) => s.status === 'needs_review');
+
   res.json({
-    studentCount: studentIds.length, overdueCount: overdue,
-    attention, recentNotes: recentNotes.map((n) => ({ id: n._id, studentId: n.studentId, covered: n.covered, createdAt: n.createdAt })),
+    tutorName: tutorUser?.name || null,
+    studentCount: studentIds.length,
+    sessionsToday: 0,
+    overdueCount: overdue,
+    students,
+    attention,
+    recentNotes: recentNotes.map((n) => ({ id: n._id, studentId: n.studentId, covered: n.covered, createdAt: n.createdAt })),
     certificationStatus: cert?.status || 'not_started',
   });
 }));
