@@ -1,5 +1,6 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
+import { writeCurriculumAttempts } from '../services/mathpath/curriculumAttemptWriter.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
 import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
@@ -81,6 +82,7 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
 
     const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
     const scored = scoreRatioRateSubmission({ questions: existing.questions || [], responses });
+    await writeCurriculumAttempts({ studentId, domainId: DOMAIN_ID, sessionId: req.params.practiceSessionId, results: scored.results });
 
     await Promise.all(Object.entries(scored.perSkill).map(([skillId, counts]) => {
       const set = { status: counts.status, accuracy: counts.accuracy, lastPractisedAt: new Date() };
