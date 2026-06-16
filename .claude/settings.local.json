@@ -48,7 +48,10 @@
       "Bash(cd)",
       "Bash(git stash *)",
       "Bash(git checkout *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(git push *)",
+      "Bash(gh pr create --base feat/percentages-ratio-rate-pages --head feat/percentage-ratio-fluency --title 'feat\\(mathpath\\): fluency drills for Percentage + Ratio' --body ' *)",
+      "Bash(gh pr *)"
     ]
   }
 }
