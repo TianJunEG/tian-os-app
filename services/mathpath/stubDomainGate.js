@@ -16,12 +16,12 @@
 // shared/mathpath/domainCatalog.js).
 
 export const WITHHELD_DOMAINS = {
-  'number-sense': 'stub',
   geometry: 'stub',
   measurement: 'stub',
-  // money:      rebuilt and re-enabled (see MoneyQuestionGenerator.js / P1).
-  // time:       rebuilt and re-enabled (see TimeQuestionGenerator.js / P1).
-  // operations: rebuilt and re-enabled (see OperationsQuestionGenerator.js / P1).
+  // money:        rebuilt and re-enabled (see MoneyQuestionGenerator.js / P1).
+  // time:         rebuilt and re-enabled (see TimeQuestionGenerator.js / P1).
+  // operations:   rebuilt and re-enabled (see OperationsQuestionGenerator.js / P1).
+  // number-sense: rebuilt and re-enabled (see NumberSenseQuestionGenerator.js / P1).
 };
 
 // Back-compat: the subset that are pure a+b stubs.

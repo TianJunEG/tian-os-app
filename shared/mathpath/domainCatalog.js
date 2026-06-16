@@ -167,7 +167,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P0',
     capabilities: {
       diagnostic: 'engine_ready', // wholeNumbersDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'planned',        // GATED: NumberSenseQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
+      practice: 'available',      // rebuilt: NumberSenseQuestionGenerator.js (counting, place value, compare/order, patterns, rounding, estimation, negatives). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
