@@ -9,7 +9,8 @@ import { tutorAPI, mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { buildTutorMathPathDashboard } from '../../mathpath/dashboard/tutorMathPathDashboardEngine';
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
-import { CURRICULUM_DOMAINS, getSkillFromDomain } from '../../mathpath/curriculumDomainIndex';
+import { CURRICULUM_DOMAINS, getSkillFromDomain, getDomainResolvers } from '../../mathpath/curriculumDomainIndex';
+import { buildCurriculumDomainDashboard } from '../../mathpath/dashboard/curriculumDomainTutorEngine';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
 
@@ -938,6 +939,110 @@ function DomainSkillStatesPanel({ skillStates, domainGroup }) {
   );
 }
 
+function CurriculumDomainIntelligence({ dash }) {
+  if (!dash || !dash.available) return null;
+  const { skillSummary, recommendedFocus, interventionPriorities, rootCauses, mistakeClusters } = dash;
+
+  return (
+    <div className="space-y-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Domain skill summary">
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills mastered</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{skillSummary.mastered}/{skillSummary.total}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Weak skills</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-error-700">{skillSummary.weak}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Avg accuracy</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{skillSummary.averageAccuracy != null ? `${skillSummary.averageAccuracy}%` : '—'}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills attempted</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{skillSummary.attempted}</p>
+        </Card>
+      </section>
+
+      {recommendedFocus && (
+        <Card className="border-l-4 border-emerald p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended Lesson Focus</p>
+          <h3 className="mt-1 font-display text-xl font-semibold text-emerald-deep">{recommendedFocus.primarySkillName}</h3>
+          <p className="mt-1 text-sm text-ink-700">{recommendedFocus.why}</p>
+          <p className="mt-1 text-sm text-ink-600">Recommended action: {readableAction(recommendedFocus.recommendedAction)}</p>
+          {!!recommendedFocus.suggestedAssignments.length && (
+            <div className="mt-3 space-y-2">
+              {recommendedFocus.suggestedAssignments.map((a, i) => (
+                <div key={`${a.skillName}-${i}`} className="rounded-lg border border-line-soft p-3 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-ink-700">{a.assignmentType}: {a.skillName}</p>
+                    <Badge tone="gold">{a.recommendedQuestionCount} questions</Badge>
+                  </div>
+                  <p className="mt-1 text-ink-600">{a.reason}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold text-ink-700">Intervention Queue</h3>
+          {interventionPriorities.length ? (
+            <div className="mt-3 space-y-2 text-sm">
+              {interventionPriorities.map((p) => (
+                <div key={`${p.priorityRank}-${p.skillName}-${p.issueType}`} className="rounded-lg border border-line-soft p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-ink-800">{p.skillName}</p>
+                    <Badge tone={severityTone(p.severity)}>{p.severity === 'high' ? 'High priority' : p.severity === 'medium' ? 'Medium' : 'Monitor'}</Badge>
+                  </div>
+                  <p className="mt-1 text-ink-600">{p.reason}</p>
+                  <p className="mt-1 text-ink-700"><span className="font-semibold">Action:</span> {readableAction(p.recommendedAction)}</p>
+                </div>
+              ))}
+            </div>
+          ) : <p className="mt-2 text-sm text-ink-500">No interventions flagged yet for this domain.</p>}
+        </Card>
+
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold text-ink-700">Root Cause Analysis</h3>
+          {rootCauses.length ? (
+            <div className="mt-3 space-y-2 text-sm">
+              {rootCauses.slice(0, 4).map((r) => (
+                <div key={r.weakSkillId} className="rounded-lg border border-line-soft p-3">
+                  <p><span className="font-semibold text-ink-700">Weak skill:</span> {r.weakSkillName}</p>
+                  <p><span className="font-semibold text-ink-700">Likely root cause:</span> {r.suspectedRootCauseName}</p>
+                  <p className="text-ink-600">Chain: {r.prerequisiteChain.map((c) => c.name).join(' → ')}</p>
+                  <Badge tone={severityTone(r.severity)}>Severity: {r.severity}</Badge>
+                </div>
+              ))}
+            </div>
+          ) : <p className="mt-2 text-sm text-ink-500">No weak-skill root causes detected yet.</p>}
+        </Card>
+      </div>
+
+      <Card className="p-5">
+        <h3 className="text-sm font-semibold text-ink-700">Mistake Clusters</h3>
+        {mistakeClusters.length ? (
+          <div className="mt-3 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+            {mistakeClusters.slice(0, 6).map((c) => (
+              <div key={c.misconceptionTag || c.name} className="rounded-lg border border-line-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink-700">{c.name}</p>
+                  <Badge tone={severityTone(c.severity)}>{c.frequency}×</Badge>
+                </div>
+                {c.affectedSkills.length ? <p className="mt-1 text-ink-600">Affected: {c.affectedSkills.join(', ')}</p> : null}
+                {c.remediation ? <p className="mt-1 text-ink-500">{c.remediation}</p> : null}
+              </div>
+            ))}
+          </div>
+        ) : <p className="mt-2 text-sm text-ink-500">No recurring mistakes logged for this domain yet.</p>}
+      </Card>
+    </div>
+  );
+}
+
 export default function TutorMathPathDashboardPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -1062,6 +1167,13 @@ export default function TutorMathPathDashboardPage() {
     return { label: 'Start Recommended Session', icon: Target, to: `/tutor/students/${id}/lesson-prep` };
   }, [dashboard, id]);
 
+  const domainDash = useMemo(() => {
+    if (activeDomain === 'fractions') return null;
+    const resolvers = getDomainResolvers(activeDomain);
+    if (!resolvers) return null;
+    return buildCurriculumDomainDashboard({ resolvers, skillStates: domainSkillStates, mistakes: studentMistakes });
+  }, [activeDomain, domainSkillStates, studentMistakes]);
+
   if (loading) return <Spinner label="Loading tutor dashboard…" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!dashboard) return <ErrorState message="No tutor dashboard data available yet." onRetry={load} />;
@@ -1109,13 +1221,13 @@ export default function TutorMathPathDashboardPage() {
               <Brain className="mt-0.5 h-4 w-4 shrink-0 text-gold-700" />
               <div className="text-sm text-ink-700">
                 <p className="font-semibold">
-                  {CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label}: skill states &amp; struggles (beta)
+                  {CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} intelligence
                 </p>
                 <p className="mt-1 text-ink-600">
-                  Skill mastery, accuracy, filters and struggled questions are live for this domain. The full intelligence
-                  layer — root-cause analysis, fluency &amp; retention modelling, working-evidence review and auto-generated
-                  session plans — is currently available for <span className="font-semibold">Fractions</span> only. Use the
-                  actions below to assign practice or prepare a lesson.
+                  Skill mastery, root-cause analysis, mistake clusters, intervention queue and recommended lesson focus are
+                  live for this domain, built from the student's skill states and logged mistakes. Fluency &amp; retention
+                  modelling and working-evidence review remain <span className="font-semibold">Fractions</span>-only for now
+                  (those need per-domain practice timing data that isn't collected yet).
                 </p>
               </div>
             </div>
@@ -1124,6 +1236,7 @@ export default function TutorMathPathDashboardPage() {
             <Spinner label={`Loading ${CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} data…`} />
           ) : (
             <>
+              <CurriculumDomainIntelligence dash={domainDash} />
               <DomainSkillStatesPanel
                 skillStates={domainSkillStates}
                 domainGroup={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)}
