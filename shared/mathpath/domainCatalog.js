@@ -167,7 +167,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P0',
     capabilities: {
       diagnostic: 'engine_ready', // wholeNumbersDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // templates in scripts/domains/numberSense.js
+      practice: 'available',      // rebuilt: NumberSenseQuestionGenerator.js (counting, place value, compare/order, patterns, rounding, estimation, negatives). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -195,7 +195,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P0',
     capabilities: {
       diagnostic: 'engine_ready', // fourOperationsDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // templates in scripts/domains/operations.js
+      practice: 'available',      // rebuilt: OperationsQuestionGenerator.js (real per-skill +−×÷, long division, order of ops, HCF/LCM, bar models). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -395,7 +395,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'engine_ready', // moneyDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // scripts/domains/money.js (5 skills)
+      practice: 'available',      // rebuilt: MoneyQuestionGenerator.js (integer-cents, misconception distractors, bar-model diagrams). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -423,7 +423,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'engine_ready', // timeDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // scripts/domains/time.js (5 skills)
+      practice: 'available',      // rebuilt: TimeQuestionGenerator.js (minutes-since-midnight, real elapsed-time, 12/24h, clock diagrams). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -451,7 +451,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'planned',
-      practice: 'available',     // templates in scripts/domains/measurement.js
+      practice: 'available',     // rebuilt: MeasurementQuestionGenerator.js (units, conversions, scale reading, perimeter/area/volume, nets, rate, money). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -535,7 +535,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'planned',
-      practice: 'available',     // templates in scripts/domains/geometry.js
+      practice: 'available',     // rebuilt: GeometryQuestionGenerator.js (2D/3D shapes, angles, triangles, quads, symmetry, nets, compass, perimeter/area, circles, composite). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
