@@ -26,6 +26,10 @@ export const FEATURE_FLAGS = {
   // (self-explanation effect). Prototype — default off; enable with
   // VITE_ENABLE_SELF_EXPLANATION=true.
   selfExplanation: flagEnabled('SELF_EXPLANATION', false),
+  // After a wrong answer, Talia names the likely misconception for that skill
+  // and what to do about it. Prototype — default off; enable with
+  // VITE_ENABLE_MISCONCEPTION_FEEDBACK=true.
+  misconceptionFeedback: flagEnabled('MISCONCEPTION_FEEDBACK', false),
   assessments: ASSESSMENTS_ENABLED,
   modelTrainer: MODEL_TRAINER_ENABLED,
   workingMathInserts: WORKING_MATH_INSERTS_ENABLED,
