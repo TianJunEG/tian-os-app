@@ -63,6 +63,28 @@ const PercentagesLearningPathPage = lazy(() => import('./pages/student/mathpath/
 const PercentagesPracticeSession = lazy(() => import('./pages/student/mathpath/PercentagesPracticeSession'));
 const RatioRateLearningPathPage = lazy(() => import('./pages/student/mathpath/RatioRateLearningPathPage'));
 const RatioRatePracticeSession = lazy(() => import('./pages/student/mathpath/RatioRatePracticeSession'));
+const AlgebraLearningPathPage = lazy(() => import('./pages/student/mathpath/AlgebraLearningPathPage'));
+const AlgebraPracticeSession = lazy(() => import('./pages/student/mathpath/AlgebraPracticeSession'));
+const AreaPerimeterLearningPathPage = lazy(() => import('./pages/student/mathpath/AreaPerimeterLearningPathPage'));
+const AreaPerimeterPracticeSession = lazy(() => import('./pages/student/mathpath/AreaPerimeterPracticeSession'));
+const CirclesLearningPathPage = lazy(() => import('./pages/student/mathpath/CirclesLearningPathPage'));
+const CirclesPracticeSession = lazy(() => import('./pages/student/mathpath/CirclesPracticeSession'));
+const GeometryLearningPathPage = lazy(() => import('./pages/student/mathpath/GeometryLearningPathPage'));
+const GeometryPracticeSession = lazy(() => import('./pages/student/mathpath/GeometryPracticeSession'));
+const MeasurementLearningPathPage = lazy(() => import('./pages/student/mathpath/MeasurementLearningPathPage'));
+const MeasurementPracticeSession = lazy(() => import('./pages/student/mathpath/MeasurementPracticeSession'));
+const MoneyLearningPathPage = lazy(() => import('./pages/student/mathpath/MoneyLearningPathPage'));
+const MoneyPracticeSession = lazy(() => import('./pages/student/mathpath/MoneyPracticeSession'));
+const NumberSenseLearningPathPage = lazy(() => import('./pages/student/mathpath/NumberSenseLearningPathPage'));
+const NumberSensePracticeSession = lazy(() => import('./pages/student/mathpath/NumberSensePracticeSession'));
+const OperationsLearningPathPage = lazy(() => import('./pages/student/mathpath/OperationsLearningPathPage'));
+const OperationsPracticeSession = lazy(() => import('./pages/student/mathpath/OperationsPracticeSession'));
+const StatisticsLearningPathPage = lazy(() => import('./pages/student/mathpath/StatisticsLearningPathPage'));
+const StatisticsPracticeSession = lazy(() => import('./pages/student/mathpath/StatisticsPracticeSession'));
+const TimeLearningPathPage = lazy(() => import('./pages/student/mathpath/TimeLearningPathPage'));
+const TimePracticeSession = lazy(() => import('./pages/student/mathpath/TimePracticeSession'));
+const VolumeLearningPathPage = lazy(() => import('./pages/student/mathpath/VolumeLearningPathPage'));
+const VolumePracticeSession = lazy(() => import('./pages/student/mathpath/VolumePracticeSession'));
 const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
 const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
 const DecimalsAssessmentSession = lazy(() => import('./pages/student/mathpath/DecimalsAssessmentSession'));
@@ -598,6 +620,28 @@ function App() {
             <Route path="/student/mathpath/percentages/practice" element={<PercentagesPracticeSession />} />
             <Route path="/student/mathpath/ratio-rate" element={<RatioRateLearningPathPage />} />
             <Route path="/student/mathpath/ratio-rate/practice" element={<RatioRatePracticeSession />} />
+            <Route path="/student/mathpath/algebra" element={<AlgebraLearningPathPage />} />
+            <Route path="/student/mathpath/algebra/practice" element={<AlgebraPracticeSession />} />
+            <Route path="/student/mathpath/area-perimeter" element={<AreaPerimeterLearningPathPage />} />
+            <Route path="/student/mathpath/area-perimeter/practice" element={<AreaPerimeterPracticeSession />} />
+            <Route path="/student/mathpath/circles" element={<CirclesLearningPathPage />} />
+            <Route path="/student/mathpath/circles/practice" element={<CirclesPracticeSession />} />
+            <Route path="/student/mathpath/geometry" element={<GeometryLearningPathPage />} />
+            <Route path="/student/mathpath/geometry/practice" element={<GeometryPracticeSession />} />
+            <Route path="/student/mathpath/measurement" element={<MeasurementLearningPathPage />} />
+            <Route path="/student/mathpath/measurement/practice" element={<MeasurementPracticeSession />} />
+            <Route path="/student/mathpath/money" element={<MoneyLearningPathPage />} />
+            <Route path="/student/mathpath/money/practice" element={<MoneyPracticeSession />} />
+            <Route path="/student/mathpath/number-sense" element={<NumberSenseLearningPathPage />} />
+            <Route path="/student/mathpath/number-sense/practice" element={<NumberSensePracticeSession />} />
+            <Route path="/student/mathpath/operations" element={<OperationsLearningPathPage />} />
+            <Route path="/student/mathpath/operations/practice" element={<OperationsPracticeSession />} />
+            <Route path="/student/mathpath/statistics" element={<StatisticsLearningPathPage />} />
+            <Route path="/student/mathpath/statistics/practice" element={<StatisticsPracticeSession />} />
+            <Route path="/student/mathpath/time" element={<TimeLearningPathPage />} />
+            <Route path="/student/mathpath/time/practice" element={<TimePracticeSession />} />
+            <Route path="/student/mathpath/volume" element={<VolumeLearningPathPage />} />
+            <Route path="/student/mathpath/volume/practice" element={<VolumePracticeSession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
             <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />

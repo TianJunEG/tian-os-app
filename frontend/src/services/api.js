@@ -200,6 +200,50 @@ export const mathpathAPI = {
   ratioRateSkillStates: () => api.get('/mathpath/ratio-rate/skill-states'),
   startRatioRatePractice: (data = {}) => api.post('/mathpath/ratio-rate/practice/start', data),
   submitRatioRatePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/ratio-rate/practice/${practiceSessionId}/submit`, data),
+  // Algebra domain
+  algebraSkillStates: () => api.get('/mathpath/algebra/skill-states'),
+  startAlgebraPractice: (data = {}) => api.post('/mathpath/algebra/practice/start', data),
+  submitAlgebraPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/algebra/practice/${practiceSessionId}/submit`, data),
+  // Area & Perimeter domain
+  areaPerimeterSkillStates: () => api.get('/mathpath/area-perimeter/skill-states'),
+  startAreaPerimeterPractice: (data = {}) => api.post('/mathpath/area-perimeter/practice/start', data),
+  submitAreaPerimeterPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/area-perimeter/practice/${practiceSessionId}/submit`, data),
+  // Circles domain
+  circlesSkillStates: () => api.get('/mathpath/circles/skill-states'),
+  startCirclesPractice: (data = {}) => api.post('/mathpath/circles/practice/start', data),
+  submitCirclesPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/circles/practice/${practiceSessionId}/submit`, data),
+  // Geometry domain
+  geometrySkillStates: () => api.get('/mathpath/geometry/skill-states'),
+  startGeometryPractice: (data = {}) => api.post('/mathpath/geometry/practice/start', data),
+  submitGeometryPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/geometry/practice/${practiceSessionId}/submit`, data),
+  // Measurement domain
+  measurementSkillStates: () => api.get('/mathpath/measurement/skill-states'),
+  startMeasurementPractice: (data = {}) => api.post('/mathpath/measurement/practice/start', data),
+  submitMeasurementPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/measurement/practice/${practiceSessionId}/submit`, data),
+  // Money domain
+  moneySkillStates: () => api.get('/mathpath/money/skill-states'),
+  startMoneyPractice: (data = {}) => api.post('/mathpath/money/practice/start', data),
+  submitMoneyPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/money/practice/${practiceSessionId}/submit`, data),
+  // Number Sense domain
+  numberSenseSkillStates: () => api.get('/mathpath/number-sense/skill-states'),
+  startNumberSensePractice: (data = {}) => api.post('/mathpath/number-sense/practice/start', data),
+  submitNumberSensePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/number-sense/practice/${practiceSessionId}/submit`, data),
+  // Operations domain
+  operationsSkillStates: () => api.get('/mathpath/operations/skill-states'),
+  startOperationsPractice: (data = {}) => api.post('/mathpath/operations/practice/start', data),
+  submitOperationsPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/operations/practice/${practiceSessionId}/submit`, data),
+  // Statistics domain
+  statisticsSkillStates: () => api.get('/mathpath/statistics/skill-states'),
+  startStatisticsPractice: (data = {}) => api.post('/mathpath/statistics/practice/start', data),
+  submitStatisticsPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/statistics/practice/${practiceSessionId}/submit`, data),
+  // Time domain
+  timeSkillStates: () => api.get('/mathpath/time/skill-states'),
+  startTimePractice: (data = {}) => api.post('/mathpath/time/practice/start', data),
+  submitTimePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/time/practice/${practiceSessionId}/submit`, data),
+  // Volume domain
+  volumeSkillStates: () => api.get('/mathpath/volume/skill-states'),
+  startVolumePractice: (data = {}) => api.post('/mathpath/volume/practice/start', data),
+  submitVolumePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/volume/practice/${practiceSessionId}/submit`, data),
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),
