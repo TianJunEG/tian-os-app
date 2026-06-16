@@ -218,6 +218,7 @@ export default function TutorHome() {
   const studentCount = data.studentCount || students.length;
   const sessionsToday = data.sessionsToday || 0;
   const prepStudent = data.nextSession || (students[0] ? {
+    studentId: students[0].studentId,
     name: students[0].name,
     level: students[0].level || 'P5',
     focus: students[0].weakestSkill ? { skill: students[0].weakestSkill, note: 'Needs review' } : null,
@@ -226,11 +227,33 @@ export default function TutorHome() {
   } : null);
 
   const getStudentStatus = (s) => {
-    if (s.status === 'on_track' || s.trend === 'up') return { bg: '#e7f3ec', fg: '#1f8a5b', text: `On track${s.trend ? ` · +${s.trend}` : ''}`, icon: <Check style={{ width: 13, height: 13 }} /> };
-    if (s.status === 'needs_review' || s.flagged) return { bg: '#fdeeea', fg: '#c8472f', text: s.reason || `${s.weakestSkill} · needs review`, icon: <AlertCircle style={{ width: 13, height: 13 }} /> };
+    if (s.status === 'on_track') return { bg: '#e7f3ec', fg: '#1f8a5b', text: 'On track', icon: <Check style={{ width: 13, height: 13 }} /> };
+    if (s.status === 'needs_review') return { bg: '#fdeeea', fg: '#c8472f', text: s.reason || `${s.weakestSkill} · needs review`, icon: <AlertCircle style={{ width: 13, height: 13 }} /> };
     if (s.status === 'missed') return { bg: '#fef3ed', fg: '#b06f1f', text: 'Missed last session', icon: <AlertCircle style={{ width: 13, height: 13 }} /> };
     return { bg: '#f5f6f8', fg: '#6b7585', text: s.weakestSkill || 'Building up', icon: null };
   };
+
+  const studentGrid = (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {students.map((s, i) => {
+        const st = getStudentStatus(s);
+        return (
+          <StudentCard
+            key={s.studentId || i}
+            name={s.name}
+            initials={initials(s.name)}
+            level={s.level || 'P5'}
+            schedule={s.schedule}
+            statusBg={st.bg}
+            statusFg={st.fg}
+            statusText={st.text}
+            statusIcon={st.icon}
+            onClick={() => navigate(`/tutor/students/${s.studentId}`)}
+          />
+        );
+      })}
+    </div>
+  );
 
   return (
     <div style={pageStyle}>
@@ -245,7 +268,7 @@ export default function TutorHome() {
                 <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', color: '#1f8a5b', background: '#e7f3ec', border: '1px solid #c7e6d4', padding: '3px 7px', borderRadius: 6 }}>TUTOR</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                {['Today', 'Students', 'Sessions', 'Notes'].map((tab) => (
+                {['Today', 'Students', 'Notes'].map((tab) => (
                   <NavTab key={tab} label={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)} />
                 ))}
               </div>
@@ -258,6 +281,39 @@ export default function TutorHome() {
             </div>
           </div>
 
+          {activeTab === 'Students' ? (
+            <div style={{ padding: '24px 30px 30px' }}>
+              <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>My students</div>
+              {studentGrid}
+            </div>
+          ) : activeTab === 'Notes' ? (
+            <div style={{ padding: '24px 30px 30px' }}>
+              <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>Recent lesson notes</div>
+              {data.recentNotes?.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {data.recentNotes.map((n) => (
+                    <div
+                      key={n.id}
+                      style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                      onClick={() => navigate(`/tutor/students/${n.studentId}/lesson-notes`)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <FileText style={{ width: 16, height: 16, color: '#c2c8d0', flex: '0 0 auto' }} />
+                      <span style={{ flex: 1, fontSize: 14, color: '#46505f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {n.covered || 'Lesson note'}
+                      </span>
+                      <span style={{ fontFamily: MONO, fontSize: 12, color: '#aab2bf' }}>
+                        {new Date(n.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 14, color: '#8a93a3' }}>No lesson notes yet.</div>
+              )}
+            </div>
+          ) : (
           <div style={{ padding: '24px 30px 30px', display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: 20, alignItems: 'start' }}>
             {/* Caseload */}
             <div>
@@ -268,14 +324,19 @@ export default function TutorHome() {
                     {studentCount} active · {sessionsToday} session{sessionsToday !== 1 ? 's' : ''} today
                   </div>
                 </div>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  background: '#fff', border: '1px solid #e2e6ec', borderRadius: 11,
-                  padding: '9px 13px', fontSize: 13.5, fontWeight: 600, color: '#46505f',
-                  cursor: 'pointer',
-                }}>
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    background: '#fff', border: '1px solid #e2e6ec', borderRadius: 11,
+                    padding: '9px 13px', fontSize: 13.5, fontWeight: 600, color: '#46505f',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => navigate('/tutor/students')}
+                  role="button"
+                  tabIndex={0}
+                >
                   <Search style={{ width: 15, height: 15, color: '#8a93a3' }} />
-                  Search
+                  All students
                 </div>
               </div>
 
@@ -298,49 +359,38 @@ export default function TutorHome() {
                 </Link>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                {students.map((s, i) => {
-                  const st = getStudentStatus(s);
-                  return (
-                    <StudentCard
-                      key={s.studentId || i}
-                      name={s.name}
-                      initials={initials(s.name)}
-                      level={s.level || 'P5'}
-                      schedule={s.schedule}
-                      statusBg={st.bg}
-                      statusFg={st.fg}
-                      statusText={st.text}
-                      statusIcon={st.icon}
-                      onClick={() => navigate(`/tutor/students/${s.studentId}`)}
-                    />
-                  );
-                })}
-              </div>
+              {studentGrid}
             </div>
 
             {/* Session prep */}
             <SessionPrepPanel
               student={prepStudent}
               onStartSession={() => {
-                const id = prepStudent?.studentId || students[0]?.studentId;
-                if (id) navigate(`/tutor/students/${id}/session`);
+                const sid = prepStudent?.studentId || students[0]?.studentId;
+                if (sid) navigate(`/tutor/students/${sid}/lesson-prep`);
               }}
               onOpenNotes={() => {
-                const id = prepStudent?.studentId || students[0]?.studentId;
-                if (id) navigate(`/tutor/students/${id}/notes`);
+                const sid = prepStudent?.studentId || students[0]?.studentId;
+                if (sid) navigate(`/tutor/students/${sid}/lesson-notes`);
               }}
             />
           </div>
+          )}
         </div>
 
-        {/* Recent notes */}
-        {data.recentNotes?.length > 0 && (
+        {/* Recent notes — only shown on Today tab */}
+        {activeTab === 'Today' && data.recentNotes?.length > 0 && (
           <div style={{ marginTop: 24 }}>
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#8a93a3', marginBottom: 10, paddingLeft: 4 }}>Recent lesson notes</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {data.recentNotes.map((n) => (
-                <div key={n.id} style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  key={n.id}
+                  style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                  onClick={() => navigate(`/tutor/students/${n.studentId}/lesson-notes`)}
+                  role="button"
+                  tabIndex={0}
+                >
                   <FileText style={{ width: 16, height: 16, color: '#c2c8d0', flex: '0 0 auto' }} />
                   <span style={{ flex: 1, fontSize: 14, color: '#46505f', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {n.covered || 'Lesson note'}

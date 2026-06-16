@@ -649,7 +649,7 @@ function TutorActionsMvp({ id, navigate }) {
     { label: 'Assign Practice', icon: FileText, to: `/tutor/students/${id}/assign-homework`, disabled: false },
     { label: 'Generate Worksheet', icon: FileText, to: `/tutor/students/${id}/assign-homework?module=Mastery%20Worksheet&worksheetType=intervention`, disabled: false },
     { label: 'Review Working', icon: Eye, to: `/tutor/students/${id}/lesson-notes`, disabled: false },
-    { label: 'View Mistakes', icon: AlertTriangle, to: `/tutor/students/${id}/mathpath`, disabled: true },
+    { label: 'View Mistakes', icon: AlertTriangle, to: `/tutor/students/${id}`, disabled: false },
     { label: 'View Progress', icon: Activity, to: `/tutor/students/${id}`, disabled: false },
   ];
 
@@ -966,7 +966,7 @@ export default function TutorMathPathDashboardPage() {
         <DiagnosticGrowthCard
           growth={diagnosticGrowth}
           onViewHistory={() => navigate(`/tutor/students/${id}/mathpath`)}
-          onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
+          onRunRecheck={() => navigate(`/tutor/students/${id}/lesson-prep`)}
           onAssignRecovery={assignRecoveryPack}
           assigningRecovery={assigningRecovery}
           assignmentMessage={assignmentMessage}
