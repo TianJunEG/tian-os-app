@@ -3,44 +3,36 @@ import { assertDomainServable, GATED_STUB_DOMAINS, WITHHELD_DOMAINS } from './st
 import { buildGeometryPracticeSession } from './geometryPracticeService.js';
 
 describe('stubDomainGate', () => {
-  it('withholds only Geometry (the last stub)', () => {
-    expect(WITHHELD_DOMAINS).toEqual({
-      geometry: 'stub',
-    });
+  it('withholds no domains — all six have been rebuilt and re-enabled', () => {
+    expect(WITHHELD_DOMAINS).toEqual({});
+    expect(GATED_STUB_DOMAINS).toEqual(new Set());
   });
 
-  it('no longer withholds money, time, operations, number-sense or measurement', () => {
-    expect(() => assertDomainServable('money')).not.toThrow();
-    expect(() => assertDomainServable('time')).not.toThrow();
-    expect(() => assertDomainServable('operations')).not.toThrow();
-    expect(() => assertDomainServable('number-sense')).not.toThrow();
-    expect(() => assertDomainServable('measurement')).not.toThrow();
+  it('is a no-op for every MathPath domain', () => {
+    for (const id of ['money', 'time', 'operations', 'number-sense', 'measurement', 'geometry', 'fractions']) {
+      expect(() => assertDomainServable(id), id).not.toThrow();
+    }
   });
 
-  it('exposes the pure-stub subset', () => {
-    expect(GATED_STUB_DOMAINS).toEqual(
-      new Set(['geometry']),
-    );
+  it('a previously-gated service now builds a session instead of throwing 503', () => {
+    const session = buildGeometryPracticeSession({ targetSkillId: 'GE001', questionCount: 4 });
+    expect(session.domainId).toBe('geometry');
+    expect(session.questions.length).toBe(4);
   });
 
-  it('throws a 503 with a reason for a withheld domain', () => {
+  // The gate mechanism still works if a domain is ever re-added to the map.
+  it('still throws 503 for a hypothetically-withheld domain', () => {
+    const original = { ...WITHHELD_DOMAINS };
+    WITHHELD_DOMAINS.geometry = 'stub';
     try {
       assertDomainServable('geometry');
       throw new Error('expected assertDomainServable to throw');
     } catch (err) {
       expect(err.status).toBe(503);
       expect(err.code).toBe('DOMAIN_NOT_SERVABLE');
-      expect(err.reason).toBe('stub');
+    } finally {
+      for (const k of Object.keys(WITHHELD_DOMAINS)) delete WITHHELD_DOMAINS[k];
+      Object.assign(WITHHELD_DOMAINS, original);
     }
-  });
-
-  it('is a no-op for a servable domain', () => {
-    expect(() => assertDomainServable('fractions')).not.toThrow();
-  });
-
-  it.each([
-    ['geometry', buildGeometryPracticeSession],
-  ])('build*PracticeSession refuses to serve %s', (_id, build) => {
-    expect(() => build({})).toThrowError(/temporarily unavailable/);
   });
 });

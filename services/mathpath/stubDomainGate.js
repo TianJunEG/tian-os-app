@@ -15,14 +15,11 @@
 // (and flip its catalog `practice` status back to 'available' in
 // shared/mathpath/domainCatalog.js).
 
-export const WITHHELD_DOMAINS = {
-  geometry: 'stub',
-  // money:        rebuilt and re-enabled (see MoneyQuestionGenerator.js / P1).
-  // time:         rebuilt and re-enabled (see TimeQuestionGenerator.js / P1).
-  // operations:   rebuilt and re-enabled (see OperationsQuestionGenerator.js / P1).
-  // number-sense: rebuilt and re-enabled (see NumberSenseQuestionGenerator.js / P1).
-  // measurement:  rebuilt and re-enabled (see MeasurementQuestionGenerator.js / P1).
-};
+// All MathPath domains have been rebuilt and re-enabled (P1). This map is now
+// empty; the gate stays in place as the mechanism for withholding any domain
+// whose generator regresses or is newly added in a stub state.
+//   money / time / operations / number-sense / measurement / geometry — all live.
+export const WITHHELD_DOMAINS = {};
 
 // Back-compat: the subset that are pure a+b stubs.
 export const GATED_STUB_DOMAINS = new Set(

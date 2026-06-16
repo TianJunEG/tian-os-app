@@ -535,7 +535,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'planned',
-      practice: 'planned',       // GATED: GeometryQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
+      practice: 'available',     // rebuilt: GeometryQuestionGenerator.js (2D/3D shapes, angles, triangles, quads, symmetry, nets, compass, perimeter/area, circles, composite). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
