@@ -66,6 +66,12 @@ const md = {
   code: ({ node, ...props }) => (
     <code style={{ fontFamily: 'ui-monospace, monospace', fontSize: 14, background: '#f4efe6', borderRadius: 4, padding: '2px 6px' }} {...props} />
   ),
+  img: ({ node, src, alt, ...props }) => (
+    <figure style={{ margin: '36px 0' }}>
+      <img src={src} alt={alt || ''} style={{ width: '100%', borderRadius: 12, display: 'block' }} {...props} />
+      {alt && <figcaption style={{ marginTop: 8, fontSize: 14, color: '#8a94a6', textAlign: 'center' }}>{alt}</figcaption>}
+    </figure>
+  ),
 };
 
 function GateForm({ slug, resourceTitle, onUnlock }) {
@@ -280,6 +286,17 @@ export default function ResourceDetailPage() {
 
         {status === 'ready' && resource && (
           <article data-reveal>
+            {/* Hero image (first generated image, if any) */}
+            {resource.images?.length > 0 && (
+              <figure style={{ margin: '0 0 48px' }}>
+                <img
+                  src={resource.images[0].url}
+                  alt={resource.images[0].alt || resource.title}
+                  style={{ width: '100%', borderRadius: 16, display: 'block', maxHeight: 460, objectFit: 'cover' }}
+                />
+              </figure>
+            )}
+
             {resource.gated && !unlocked ? (
               <>
                 {resource.summary && (

@@ -5,6 +5,7 @@ import ResourceLead from '../models/ResourceLead.js';
 import { protect, authorize } from '../middleware/auth.js';
 import uploadResource from '../middleware/uploadResource.js';
 import { persistUploadFile } from '../services/storage/objectStore.js';
+import { generateResourceImage } from '../services/resources/resourceImageService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -226,6 +227,46 @@ router.delete('/:id', adminOnly, asyncHandler(async (req, res) => {
     console.error('Delete resource error:', error);
     res.status(500).json({ message: 'Error deleting resource' });
   }
+}));
+
+// @route   POST /api/resources/:slug/generate-image
+// @desc    Generate a DALL-E 3 illustration for an article and persist it.
+//          Optional body: { prompt } to override the auto-built prompt.
+//          Optional query: ?size=1792x1024 (default) | 1024x1024 | 1024x1792
+// @access  Admin
+router.post('/:slug/generate-image', adminOnly, asyncHandler(async (req, res) => {
+  const resource = await Resource.findOne({ slug: req.params.slug });
+  if (!resource) return res.status(404).json({ error: 'Resource not found' });
+
+  const validSizes = ['1792x1024', '1024x1024', '1024x1792'];
+  const size = validSizes.includes(req.query.size) ? req.query.size : '1792x1024';
+
+  const image = await generateResourceImage({
+    title: resource.title,
+    summary: resource.summary || '',
+    customPrompt: req.body?.prompt || null,
+    size,
+  });
+
+  resource.images.push(image);
+  await resource.save();
+
+  res.json({ image, totalImages: resource.images.length });
+}));
+
+// @route   DELETE /api/resources/:slug/images/:imageId
+// @desc    Remove a generated image from an article.
+// @access  Admin
+router.delete('/:slug/images/:imageId', adminOnly, asyncHandler(async (req, res) => {
+  const resource = await Resource.findOne({ slug: req.params.slug });
+  if (!resource) return res.status(404).json({ error: 'Resource not found' });
+
+  const before = resource.images.length;
+  resource.images = resource.images.filter((img) => img._id.toString() !== req.params.imageId);
+  if (resource.images.length === before) return res.status(404).json({ error: 'Image not found' });
+
+  await resource.save();
+  res.json({ removed: req.params.imageId, totalImages: resource.images.length });
 }));
 
 // @route   GET /api/resources/:slug

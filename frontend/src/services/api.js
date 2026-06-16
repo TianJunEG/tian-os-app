@@ -640,7 +640,10 @@ export const resourcesAPI = {
     api.put(`/resources/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   remove: (id) => api.delete(`/resources/${id}`),
   unlock: (slug, data) => api.post(`/resources/${slug}/unlock`, data),
-  getLeads: () => api.get('/resources/leads')
+  getLeads: () => api.get('/resources/leads'),
+  generateImage: (slug, { prompt, size } = {}) =>
+    api.post(`/resources/${slug}/generate-image`, { prompt }, { params: size ? { size } : {} }),
+  removeImage: (slug, imageId) => api.delete(`/resources/${slug}/images/${imageId}`),
 };
 
 // Search API
