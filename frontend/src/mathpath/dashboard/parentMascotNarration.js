@@ -11,6 +11,9 @@ const firstName = (name) => String(name || '').trim().split(/\s+/)[0] || 'Your c
 
 export function buildMascotNarration(snapshot = {}, opts = {}) {
   const name = firstName(opts.childName || snapshot.childName);
+  // Domain noun for the win line — defaults to 'fraction' so the live Fractions
+  // pilot copy is unchanged; other domains pass their own (e.g. 'percentage').
+  const domainNoun = opts.domainNoun || snapshot.domainNoun || 'fraction';
   const mastered = Number(snapshot.mastered) || 0;
   const total = Number(snapshot.total) || 0;
   const streak = Number(snapshot.streak) || 0;
@@ -24,7 +27,7 @@ export function buildMascotNarration(snapshot = {}, opts = {}) {
   if (streak >= 3) {
     win = `${name} has kept a ${streak}-day streak going — that consistency is exactly what builds mastery`;
   } else if (mastered > 0) {
-    win = `${name} has mastered ${mastered}${total ? ` of ${total}` : ''} fraction skills so far`;
+    win = `${name} has mastered ${mastered}${total ? ` of ${total}` : ''} ${domainNoun} skills so far`;
   } else {
     win = `${name} is just getting started — every session from here builds momentum`;
   }
