@@ -521,7 +521,7 @@ export function validateOperationsSkillGraph() {
 }
 
 export const operationsSkillGraph = {
-  domainId: 'operations',
+  domainId: 'four_operations',
   domainName: 'Operations',
   version: '1.0.0',
   skillIds: skills.map((s) => s.id),
