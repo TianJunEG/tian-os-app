@@ -96,6 +96,35 @@ router.get('/recheck-summary/:sessionId', protect, asyncHandler(async (req, res)
   }
 }));
 
+// Returns any in-progress diagnostic session for the authenticated student so the
+// frontend can resume after a tab close instead of getting a 409 on a fresh /start.
+router.get('/in-progress', protect, asyncHandler(async (req, res) => {
+  try {
+    const { subjectId = 'math', domainId } = req.query;
+    const student = await resolveStudent(req);
+    const query = {
+      studentId: String(student._id),
+      status: 'inProgress',
+    };
+    if (subjectId) query.subjectId = subjectId;
+    if (domainId) query.domainId = domainId;
+    const session = await MathPathDiagnosticSession.findOne(query).sort({ createdAt: -1 });
+    if (!session) return res.status(404).json({ code: 'NO_ACTIVE_SESSION', message: 'No in-progress diagnostic session.' });
+    return res.json({
+      sessionId: session.diagnosticSessionId,
+      subjectId: session.subjectId,
+      domainId: session.domainId,
+      status: session.status,
+      currentQuestionId: session.currentQuestionId,
+      questionCount: session.questionIds?.length || 0,
+      answeredCount: session.responses?.length || 0,
+      resumable: true,
+    });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to check for in-progress diagnostic.');
+  }
+}));
+
 // Rehydrates an in-progress session so the student can resume after a tab close.
 // Returns the minimal state needed to continue without triggering a fresh /start,
 // which would hit the 409 DIAGNOSTIC_REPLAY_BLOCKED guard.

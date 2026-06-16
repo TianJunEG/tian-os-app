@@ -25,7 +25,10 @@ function normalise(value = '') {
 }
 
 function hasUsefulReflection(text = '') {
-  return clean(text).length >= 8;
+  const s = clean(text);
+  if (s.length < 8) return false;
+  if (/^(.)\1*$/.test(s.replace(/\s/g, ''))) return false;
+  return s.split(/\s+/).filter((w) => w.length > 0).length >= 2;
 }
 
 function correctionMatches(mistake = {}, correctionAttempt = '') {
@@ -46,7 +49,10 @@ function inferUnderstandingPrompt(mistake = {}) {
 }
 
 function understandingPassed(answer = '') {
-  return clean(answer).length >= 8;
+  const s = clean(answer);
+  if (s.length < 8) return false;
+  if (/^(.)\1*$/.test(s.replace(/\s/g, ''))) return false;
+  return s.split(/\s+/).filter((w) => w.length > 0).length >= 2;
 }
 
 export function statusCopy(status = 'new') {

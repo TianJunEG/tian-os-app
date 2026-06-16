@@ -15,8 +15,7 @@ export const RECHECK_PASS_THRESHOLD = 70;
 const asArray = (value) => (Array.isArray(value) ? value : []);
 
 function isRecheckSession(session = {}) {
-  return String(session.diagnosticPurpose || '') === 'recheck'
-    && String(session.domainId || '') === 'fractions';
+  return String(session.diagnosticPurpose || '') === 'recheck';
 }
 
 /**
@@ -34,11 +33,13 @@ export function selectPassingRecheckSkills(session = {}) {
 }
 
 /**
- * Promotes passed recheck skills to the retained (mastered) state. No-op for non-recheck sessions,
- * non-fractions domains, or when no skill passed. Returns the skills promoted.
+ * Promotes passed recheck skills to the retained (mastered) state. No-op for non-recheck sessions
+ * or when no skill passed. Applies to all registered domains, not just fractions.
+ * Returns the skills promoted.
  */
 export async function applyRecheckMasteryEvidence({ session = {} } = {}) {
   const studentId = String(session.studentId || '');
+  const domainId = String(session.domainId || 'fractions');
   if (!studentId || !isRecheckSession(session)) {
     return { applied: false, skillIds: [] };
   }
@@ -49,7 +50,7 @@ export async function applyRecheckMasteryEvidence({ session = {} } = {}) {
   const now = new Date();
   await Promise.all(skillIds.map((skillId) =>
     MathPathStudentSkillState.findOneAndUpdate(
-      { studentId, domainId: 'fractions', skillId },
+      { studentId, domainId, skillId },
       {
         $set: {
           status: 'retained',

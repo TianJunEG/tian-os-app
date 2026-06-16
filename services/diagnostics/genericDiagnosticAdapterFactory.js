@@ -214,6 +214,26 @@ export function createDiagnosticDomain(config = {}) {
     )];
     const recommendedSkillId = assignedPracticeSkillIds[0] || weakSkillIds[0] || session.currentSkillId || _defaultStart[0] || _fallback;
     const nameFor = (id) => bySlug.get(id)?.name || id;
+
+    // Build per-skill snapshots so diagnosticRuntime can seed MasteryRecords and
+    // recheckMasteryEvidenceService can promote skills to 'retained' after a recheck.
+    const skillResponseMap = new Map();
+    for (const r of responses) {
+      if (!r.skillId) continue;
+      const entry = skillResponseMap.get(r.skillId) || { correct: 0, wrong: 0, total: 0 };
+      entry.total += 1;
+      if (r.correct) entry.correct += 1; else entry.wrong += 1;
+      skillResponseMap.set(r.skillId, entry);
+    }
+    const perSkillSnapshot = [...skillResponseMap.entries()].map(([skillId, counts]) => ({
+      skillId,
+      questionsAnswered: counts.total,
+      questionsCorrect:  counts.correct,
+      score: counts.total > 0 ? Math.round((counts.correct / counts.total) * 100) : 0,
+      isSecure: secureSkillIds.includes(skillId),
+      isWeak:   weakSkillIds.includes(skillId),
+    }));
+
     return {
       adaptive: true,
       domainId,
@@ -224,6 +244,7 @@ export function createDiagnosticDomain(config = {}) {
       totalQuestions:    responses.length,
       masteredSkills:    secureSkillIds.map((id) => ({ skillId: id, name: nameFor(id) })),
       weakSkills:        weakSkillIds.map((id) => ({ skillId: id, name: nameFor(id) })),
+      perSkillSnapshot,
       recommendedStartingSkill:   { skillId: recommendedSkillId, name: nameFor(recommendedSkillId) },
       recommendedStartingSkillId: recommendedSkillId,
       recommendedStartingTopic:   displayName,

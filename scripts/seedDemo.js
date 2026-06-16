@@ -19,6 +19,12 @@ import LifeLabSubmission from '../models/LifeLabSubmission.js';
 import { buildSpellingAttempts, buildResults, ETHAN_WORDS, MAYA_WORDS, ETHAN_RESULTS, MAYA_RESULTS } from './seedData.js';
 
 dotenv.config();
+
+if (process.env.NODE_ENV === 'production') {
+  console.error('seedDemo: refusing to run in production (NODE_ENV=production).');
+  process.exit(1);
+}
+
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
 const EMAIL = 'demo.parent@tianos.test';
 const PASSWORD = 'Passw0rd!';

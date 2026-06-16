@@ -23,6 +23,8 @@ import {
   resolveDiagnosticLineage,
 } from './diagnosticGrowthService.js';
 import { createAssignmentFromDiagnostic } from '../mathpath/mathPathAssignmentService.js';
+import { applyRecheckMasteryEvidence } from '../mathpath/recheckMasteryEvidenceService.js';
+import Mistake from '../../models/Mistake.js';
 import { notify } from '../notifications/notificationService.js';
 import logger from '../../config/logger.js';
 
@@ -285,6 +287,33 @@ async function maybePersistMistake({ student, session, question, skillId, respon
   const qid = question?._id || question?.questionId;
   if (correct || !qid) return;
   const mistakeCode = question.misconceptionTag || detectedErrorTags[0] || 'diagnostic_error';
+
+  // Write to the shared Mistake collection so student mistakes UI picks it up
+  if (student.workspaceId) {
+    await Mistake.findOneAndUpdate(
+      { studentId: student._id, questionId: String(qid), sessionId: session.diagnosticSessionId || '' },
+      {
+        $setOnInsert: {
+          studentId: student._id,
+          workspaceId: student.workspaceId,
+          questionId: String(qid),
+          sessionId: session.diagnosticSessionId || '',
+          skillCode: skillId || '',
+          module: 'MathPath',
+          questionText: question.stem || question.prompt || '',
+          questionStem: question.stem || question.prompt || '',
+          studentAnswer: String(response.answer || ''),
+          correctAnswer: String(question.answer || ''),
+          confidence: response.confidence || '',
+          answerCorrect: false,
+          mistakeCategory: 'knowledge_gap',
+          timestamp: new Date(),
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).catch((err) => logger.warn({ err: err.message }, 'diagnostic Mistake upsert skipped'));
+  }
+
   await MathPathMistakeRecord.findOneAndUpdate(
     {
       studentId: String(student._id),
@@ -990,6 +1019,27 @@ async function handleDiagnosticCompletion({ student, session }) {
   const studentId = String(student._id);
   const diagnosticSessionId = session.diagnosticSessionId;
   const result = session.result || {};
+
+  // 0. Apply recheck mastery evidence and fire recheck_completed telemetry
+  try {
+    const recheckResult = await applyRecheckMasteryEvidence({ session });
+    if (session.diagnosticPurpose === 'recheck') {
+      await recordLearningEvents([{
+        studentId,
+        eventType: 'recheck_completed',
+        subjectId: session.subjectId || 'math',
+        domain: session.domainId || '',
+        sessionId: session.diagnosticSessionId,
+        metadata: {
+          skillsPromoted: recheckResult.skillIds || [],
+          promoted: recheckResult.applied || false,
+          readinessScore: result.readinessScore || 0,
+        },
+      }]).catch((err) => logger.warn({ err: err.message }, 'recheck_completed telemetry skipped'));
+    }
+  } catch (err) {
+    logger.warn({ err: err.message }, 'post-diagnostic recheck mastery evidence skipped');
+  }
 
   // 1. Auto-assign recovery pack from weak skills
   try {

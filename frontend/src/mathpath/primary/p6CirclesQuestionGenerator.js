@@ -3,6 +3,7 @@ import { getQuestionFamiliesBySkill } from './p6CirclesQuestionFamilies.js';
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function round2(n) { return Math.round(n * 100) / 100; }
 
 /* ---------- Diameter/radius pools for clean arithmetic ---------- */
 
@@ -23,6 +24,13 @@ const SIDES_COMPOSITE_22_7 = [14, 28, 42, 56, 70];
 
 /* ---------- P6-CIR-01: Circumference of Circle ---------- */
 
+function circleSpec(radius) {
+  return { type: 'circle', payload: { radius, showRadius: true, showDiameter: false } };
+}
+function circleDiameterSpec(diameter) {
+  return { type: 'circle', payload: { radius: diameter / 2, showRadius: false, showDiameter: true } };
+}
+
 function generateCircumference(familyId) {
   if (familyId.endsWith('_001')) {
     // Circumference from diameter, π = 22/7
@@ -32,6 +40,7 @@ function generateCircumference(familyId) {
       skillId: 'P6-CIR-01', questionFamilyId: familyId,
       prompt: `Find the circumference of a circle with diameter ${d} cm. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleDiameterSpec(d),
       instructionHint: 'Circumference = π × diameter. Substitute π = 22/7 and multiply.',
       solutionText: `C = π × d = 22/7 × ${d} = ${answer} cm.`,
       misconceptionTraps: ['uses_diameter_as_radius', 'pi_approximation_error'],
@@ -40,13 +49,13 @@ function generateCircumference(familyId) {
 
   if (familyId.endsWith('_002')) {
     // Circumference from radius, π = 22/7
-    // Use radii that are multiples of 7 so 2 × 22/7 × r is clean
-    const r = pick(DIAMETERS_22_7); // re-use pool; these are multiples of 7
+    const r = pick(DIAMETERS_22_7);
     const answer = 2 * (22 / 7) * r;
     return {
       skillId: 'P6-CIR-01', questionFamilyId: familyId,
       prompt: `A circle has radius ${r} cm. Find its circumference. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleSpec(r),
       instructionHint: 'Circumference = 2 × π × radius. Substitute π = 22/7 and multiply.',
       solutionText: `C = 2 × π × r = 2 × 22/7 × ${r} = ${answer} cm.`,
       misconceptionTraps: ['uses_diameter_as_radius', 'pi_approximation_error'],
@@ -55,11 +64,12 @@ function generateCircumference(familyId) {
 
   // _003: Circumference with π = 3.14
   const d = pick(DIAMETERS_3_14);
-  const answer = 3.14 * d;
+  const answer = round2(3.14 * d);
   return {
     skillId: 'P6-CIR-01', questionFamilyId: familyId,
     prompt: `Find the circumference of a circle with diameter ${d} cm. (Take π = 3.14)`,
     answer, answerType: 'number',
+    diagramSpec: circleDiameterSpec(d),
     instructionHint: 'Circumference = π × diameter. Substitute π = 3.14 and multiply.',
     solutionText: `C = π × d = 3.14 × ${d} = ${answer} cm.`,
     misconceptionTraps: ['pi_approximation_error', 'confuses_circumference_area_formulas'],
@@ -70,13 +80,13 @@ function generateCircumference(familyId) {
 
 function generateArea(familyId) {
   if (familyId.endsWith('_001')) {
-    // Area from radius, π = 22/7
     const r = pick(RADII_AREA_22_7);
     const answer = (22 / 7) * r * r;
     return {
       skillId: 'P6-CIR-02', questionFamilyId: familyId,
       prompt: `Find the area of a circle with radius ${r} cm. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleSpec(r),
       instructionHint: 'Area = π × r × r. Substitute π = 22/7 and multiply.',
       solutionText: `A = π × r × r = 22/7 × ${r} × ${r} = 22/7 × ${r * r} = ${answer} cm².`,
       misconceptionTraps: ['area_uses_diameter_not_radius', 'confuses_circumference_area_formulas'],
@@ -84,8 +94,6 @@ function generateArea(familyId) {
   }
 
   if (familyId.endsWith('_002')) {
-    // Area from diameter, π = 22/7 — must halve to get radius
-    // Diameter must be even multiple of 7 so radius is multiple of 7
     const d = pick(DIAMETERS_AREA_22_7);
     const r = d / 2;
     const answer = (22 / 7) * r * r;
@@ -93,6 +101,7 @@ function generateArea(familyId) {
       skillId: 'P6-CIR-02', questionFamilyId: familyId,
       prompt: `The diameter of a circle is ${d} cm. Find its area. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleDiameterSpec(d),
       instructionHint: 'First find the radius (diameter ÷ 2), then use Area = π × r × r.',
       solutionText: `Radius = ${d} ÷ 2 = ${r} cm. A = π × r × r = 22/7 × ${r} × ${r} = ${answer} cm².`,
       misconceptionTraps: ['area_uses_diameter_not_radius', 'pi_approximation_error'],
@@ -101,11 +110,12 @@ function generateArea(familyId) {
 
   // _003: Area with π = 3.14
   const r = pick(RADII_AREA_3_14);
-  const answer = 3.14 * r * r;
+  const answer = round2(3.14 * r * r);
   return {
     skillId: 'P6-CIR-02', questionFamilyId: familyId,
     prompt: `Find the area of a circle with radius ${r} cm. (Take π = 3.14)`,
     answer, answerType: 'number',
+    diagramSpec: circleSpec(r),
     instructionHint: 'Area = π × r × r. Substitute π = 3.14 and multiply.',
     solutionText: `A = π × r × r = 3.14 × ${r} × ${r} = 3.14 × ${r * r} = ${answer} cm².`,
     misconceptionTraps: ['area_uses_diameter_not_radius', 'pi_approximation_error'],

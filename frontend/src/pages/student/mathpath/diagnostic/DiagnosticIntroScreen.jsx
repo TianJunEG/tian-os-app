@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
 import { Card, Button, PageHeader, Badge } from '../../../../components/ui';
-import { mathpathAPI } from '../../../../services/api';
+import { diagnosticsAPI, mathpathAPI } from '../../../../services/api';
 
 function inferLevel(user) {
   return user?.studentLevel || user?.moeLevel || user?.profile?.studentLevel || 'P4';
@@ -80,6 +80,32 @@ export default function DiagnosticIntroScreen() {
         state: { session, questions, studentLevel, mode },
       });
     } catch (e) {
+      const code = e?.response?.data?.code;
+      const inProgressSessionId = e?.response?.data?.inProgressSessionId;
+      // If the student has a session already in progress (tab closed mid-diagnostic),
+      // navigate them directly to it instead of surfacing the replay-blocked error.
+      if (code === 'DIAGNOSTIC_REPLAY_BLOCKED' && inProgressSessionId) {
+        try {
+          const { data: rd } = await diagnosticsAPI.resumeDiagnostic(inProgressSessionId);
+          navigate(`/student/mathpath/diagnostic/session/${inProgressSessionId}`, {
+            state: {
+              session: {
+                sessionId: inProgressSessionId,
+                mode: rd.mode,
+                studentLevel: rd.studentLevel,
+                domainId: rd.domainId,
+                diagnosticPurpose: rd.diagnosticPurpose,
+              },
+              questions: rd.currentQuestion ? [rd.currentQuestion] : [],
+              studentLevel: rd.studentLevel,
+              mode: rd.mode,
+            },
+          });
+          return;
+        } catch (_) {
+          // Fall through to the generic error if resume fails.
+        }
+      }
       setError(e?.response?.data?.error || e.message || "Couldn't start diagnostic.");
       setStarting(false);
     }

@@ -30,10 +30,10 @@ export default defineConfig({
         // Split heavy/stable vendors into their own cacheable chunks so the app
         // code stays small and KaTeX (with its fonts) loads in parallel and is
         // cached across deploys instead of re-downloaded with every app change.
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          katex: ['katex'],
-          icons: ['lucide-react'],
+        manualChunks: (id) => {
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react';
+          if (id.includes('katex')) return 'katex';
+          if (id.includes('lucide-react')) return 'icons';
         },
       },
     },

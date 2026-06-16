@@ -84,8 +84,16 @@ async function assertCanActForStudent(req, studentId) {
 async function resolveWorkingStudentScope(req, explicitId = '', { allowAdultAll = false } = {}) {
   const roles = roleSet(req.user);
   const hasAdultScope = roles.has('admin') || roles.has('teacher') || roles.has('tutor') || roles.has('parent');
-  if (allowAdultAll && hasAdultScope && !explicitId) {
+  // Admin-only unrestricted list: only admins may omit studentId. All other adults
+  // must supply a studentId and pass through the guardian/tutor-link ownership check.
+  if (allowAdultAll && roles.has('admin') && !explicitId) {
     return { query: {}, student: null, studentIds: [], legacyUserIds: [] };
+  }
+  if (allowAdultAll && hasAdultScope && !explicitId) {
+    const err = new Error('studentId is required.');
+    err.status = 400;
+    err.code = 'STUDENT_ID_REQUIRED';
+    throw err;
   }
 
   const student = process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1' && explicitId
