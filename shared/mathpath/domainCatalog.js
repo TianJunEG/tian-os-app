@@ -423,7 +423,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'engine_ready', // timeDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'planned',        // WITHHELD: TimeQuestionGenerator.js ships misgrades (fabricated durations, impossible clock faces, concatenated-integer answers that don't match the prompt). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
+      practice: 'available',      // rebuilt: TimeQuestionGenerator.js (minutes-since-midnight, real elapsed-time, 12/24h, clock diagrams). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',

@@ -4,21 +4,20 @@ import { buildNumberSensePracticeSession } from './numberSensePracticeService.js
 import { buildOperationsPracticeSession } from './operationsPracticeService.js';
 import { buildGeometryPracticeSession } from './geometryPracticeService.js';
 import { buildMeasurementPracticeSession } from './measurementPracticeService.js';
-import { buildTimePracticeSession } from './timePracticeService.js';
 
 describe('stubDomainGate', () => {
-  it('withholds the four stub domains and Time (Money has been rebuilt)', () => {
+  it('withholds only the four stub domains (Money and Time have been rebuilt)', () => {
     expect(WITHHELD_DOMAINS).toEqual({
       'number-sense': 'stub',
       operations: 'stub',
       geometry: 'stub',
       measurement: 'stub',
-      time: 'not-exam-ready',
     });
   });
 
-  it('no longer withholds money', () => {
+  it('no longer withholds money or time', () => {
     expect(() => assertDomainServable('money')).not.toThrow();
+    expect(() => assertDomainServable('time')).not.toThrow();
   });
 
   it('exposes the pure-stub subset', () => {
@@ -29,12 +28,12 @@ describe('stubDomainGate', () => {
 
   it('throws a 503 with a reason for a withheld domain', () => {
     try {
-      assertDomainServable('time');
+      assertDomainServable('geometry');
       throw new Error('expected assertDomainServable to throw');
     } catch (err) {
       expect(err.status).toBe(503);
       expect(err.code).toBe('DOMAIN_NOT_SERVABLE');
-      expect(err.reason).toBe('not-exam-ready');
+      expect(err.reason).toBe('stub');
     }
   });
 
@@ -47,7 +46,6 @@ describe('stubDomainGate', () => {
     ['operations', buildOperationsPracticeSession],
     ['geometry', buildGeometryPracticeSession],
     ['measurement', buildMeasurementPracticeSession],
-    ['time', buildTimePracticeSession],
   ])('build*PracticeSession refuses to serve %s', (_id, build) => {
     expect(() => build({})).toThrowError(/temporarily unavailable/);
   });
