@@ -13,6 +13,9 @@ import { getSkill as p6CirclesSkill } from './primary/p6CirclesSkillGraph.js';
 import { getSkill as p5RatioSkill } from './primary/p5RatioSkillGraph.js';
 import { getSkill as p6RatioSkill } from './primary/p6RatioSkillGraph.js';
 import { getSkill as p6SpeedSkill } from './primary/p6SpeedSkillGraph.js';
+import { getSkill as p5PercentageSkill } from './primary/p5PercentageSkillGraph.js';
+import { getSkill as p6PercentageSkill } from './primary/p6PercentageSkillGraph.js';
+import { getSkill as p6AlgebraSkill } from './primary/p6AlgebraSkillGraph.js';
 
 const DOMAIN_GETTERS = {
   'p1-money': p1MoneySkill,
@@ -27,6 +30,9 @@ const DOMAIN_GETTERS = {
   'p5-ratio': p5RatioSkill,
   'p6-ratio': p6RatioSkill,
   'p6-speed': p6SpeedSkill,
+  'p5-percentage': p5PercentageSkill,
+  'p6-percentage': p6PercentageSkill,
+  'p6-algebra': p6AlgebraSkill,
 };
 
 export function getSkillFromDomain(domainId, skillId) {
@@ -42,4 +48,6 @@ export const CURRICULUM_DOMAINS = [
   { key: 'circles', label: 'Circles', domainIds: ['p6-circles'] },
   { key: 'ratio', label: 'Ratio', domainIds: ['p5-ratio', 'p6-ratio'] },
   { key: 'rate', label: 'Rate', domainIds: ['p6-speed'] },
+  { key: 'percentage', label: 'Percentage', domainIds: ['p5-percentage', 'p6-percentage'] },
+  { key: 'algebra', label: 'Algebra', domainIds: ['p6-algebra'] },
 ];

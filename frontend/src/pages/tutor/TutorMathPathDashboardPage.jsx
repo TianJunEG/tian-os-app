@@ -646,6 +646,54 @@ function WorkingEvidenceMvp({ workingReview = {} }) {
   );
 }
 
+function QuestionsStruggledCard({ mistakes = [], skillCodeFilter = null, domainLabel }) {
+  const rows = (Array.isArray(mistakes) ? mistakes : [])
+    .filter((m) => {
+      if (!skillCodeFilter) return true;
+      return m.skillCode && skillCodeFilter.has(m.skillCode);
+    })
+    .slice(0, 8);
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4 text-error-700" />
+        <h3 className="text-sm font-semibold text-ink-700">Questions Struggled With</h3>
+      </div>
+      {rows.length ? (
+        <div className="mt-3 space-y-2 text-sm">
+          {rows.map((m) => (
+            <div key={m.id} className="rounded-lg border border-line-soft p-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium text-ink-800">{m.questionStem || 'Question'}</p>
+                {(m.skillName || m.skillCode) && (
+                  <span className="shrink-0 font-mono text-xs text-ink-400">{m.skillCode || m.skillName}</span>
+                )}
+              </div>
+              <p className="mt-1 text-ink-600">
+                <span className="text-error-700">Answered: {m.studentAnswer || '—'}</span>
+                {m.correctAnswer ? <span className="text-emerald-deep"> · Correct: {m.correctAnswer}</span> : null}
+              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-500">
+                {m.misconceptionTag && <Badge tone="error">{m.misconceptionTag}</Badge>}
+                {m.confidence && <span>Confidence: {m.confidence}</span>}
+                <span>Status: {m.learningStatus || m.mistakeStatus || 'new'}</span>
+                {m.occurredAt && <span>· {formatDate(m.occurredAt)}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm text-ink-500">
+          {skillCodeFilter
+            ? `No recorded incorrect questions for ${domainLabel || 'this domain'} yet.`
+            : 'No incorrect questions recorded yet.'}
+        </p>
+      )}
+    </Card>
+  );
+}
+
 function TutorActionsMvp({ id, navigate }) {
   const actions = [
     { label: 'Start Recommended Practice', icon: Target, to: `/tutor/students/${id}/lesson-prep`, disabled: false },
@@ -711,38 +759,144 @@ const DOMAIN_TAB_OPTIONS = [
   ...CURRICULUM_DOMAINS,
 ];
 
+// Normalises both the persisted MathPathStudentSkillState enum
+// (notStarted/learning/accurate/fluent/retained/needsReview/weak/forgotten)
+// and the legacy snake_case states used elsewhere.
+function normaliseMasteryState(state) {
+  return String(state || '').trim().toLowerCase().replace(/[\s_-]+/g, '');
+}
+
 function masteryLabel(state) {
-  const labels = { mastered: 'Mastered', learning: 'Learning', not_started: 'Not started', weak: 'Weak', needs_review: 'Review' };
-  return labels[state] || state || 'Not started';
+  const labels = {
+    notstarted: 'Not started', learning: 'Learning', accurate: 'Accurate',
+    fluent: 'Fluent', retained: 'Retained', needsreview: 'Review',
+    weak: 'Weak', forgotten: 'Forgotten', mastered: 'Mastered',
+  };
+  return labels[normaliseMasteryState(state)] || state || 'Not started';
 }
 
 function masteryTone(state) {
-  if (state === 'mastered') return 'positive';
-  if (state === 'learning') return 'blue';
-  if (state === 'weak' || state === 'needs_review') return 'error';
+  const key = normaliseMasteryState(state);
+  if (['mastered', 'fluent', 'retained', 'accurate'].includes(key)) return 'positive';
+  if (key === 'learning') return 'blue';
+  if (['weak', 'needsreview', 'forgotten'].includes(key)) return 'error';
   return 'neutral';
 }
 
+function skillStateAccuracy(s) {
+  if (s.attemptCount > 0) return Math.round((s.correctCount / s.attemptCount) * 100);
+  if (Number.isFinite(Number(s.accuracy)) && Number(s.accuracy) > 0) return Math.round(Number(s.accuracy));
+  return null;
+}
+
+function skillStateLastPractised(s) {
+  // Model field is British-spelt `lastPractisedAt`; tolerate the American variant too.
+  return s.lastPractisedAt || s.lastPracticedAt || null;
+}
+
+const SKILL_STATE_STATUS_FILTERS = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'attention', label: 'Needs attention (weak / review / forgotten)' },
+  { value: 'learning', label: 'Learning' },
+  { value: 'secure', label: 'Secure (accurate / fluent / retained)' },
+  { value: 'notstarted', label: 'Not started' },
+];
+
+const SKILL_STATE_DATE_FILTERS = [
+  { value: 'any', label: 'Any time' },
+  { value: '7', label: 'Practised in last 7 days' },
+  { value: '30', label: 'Practised in last 30 days' },
+];
+
+function matchesStatusFilter(state, filter) {
+  if (filter === 'all') return true;
+  const key = normaliseMasteryState(state);
+  if (filter === 'attention') return ['weak', 'needsreview', 'forgotten'].includes(key);
+  if (filter === 'learning') return key === 'learning';
+  if (filter === 'secure') return ['accurate', 'fluent', 'retained', 'mastered'].includes(key);
+  if (filter === 'notstarted') return key === 'notstarted' || !key;
+  return true;
+}
+
+function matchesDateFilter(lastPractised, filter) {
+  if (filter === 'any') return true;
+  if (!lastPractised) return false;
+  const days = Number(filter);
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return new Date(lastPractised).getTime() >= cutoff;
+}
+
 function DomainSkillStatesPanel({ skillStates, domainGroup }) {
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('any');
+
+  const decorated = useMemo(() => skillStates.map((s) => {
+    const skill = getSkillFromDomain(s.domainId, s.skillId);
+    return { ...s, _name: skill?.name || '', _topic: skill?.topic || skill?.strand || '' };
+  }), [skillStates]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return decorated.filter((s) => {
+      if (q && !(`${s.skillId} ${s._name} ${s._topic}`.toLowerCase().includes(q))) return false;
+      if (!matchesStatusFilter(s.status, statusFilter)) return false;
+      if (!matchesDateFilter(skillStateLastPractised(s), dateFilter)) return false;
+      return true;
+    });
+  }, [decorated, query, statusFilter, dateFilter]);
+
   if (!skillStates.length) {
     return (
       <Card className="p-5">
-        <p className="text-sm text-ink-500">
-          No practice data yet for {domainGroup.label}. The student hasn't started this domain.
+        <p className="text-sm font-medium text-ink-700">No practice data recorded yet for {domainGroup.label}.</p>
+        <p className="mt-1 text-sm text-ink-500">
+          This domain is wired and ready — skill states will appear here once the student attempts {domainGroup.label} practice.
+          (An empty table means no attempts yet, not that the domain is unavailable.)
         </p>
       </Card>
     );
   }
 
   const byDomain = {};
-  skillStates.forEach((s) => {
+  filtered.forEach((s) => {
     if (!byDomain[s.domainId]) byDomain[s.domainId] = [];
     byDomain[s.domainId].push(s);
   });
 
   return (
     <div className="space-y-4">
-      {Object.entries(byDomain).map(([domainId, states]) => (
+      <Card className="p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <label className="flex-1">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500">Filter by skill / topic</span>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. equivalent, area, F010…"
+              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm text-ink-700 focus:border-navy-400 focus:outline-none"
+            />
+          </label>
+          <label>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500">Status</span>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-hairline px-3 py-2 text-sm text-ink-700 focus:border-navy-400 focus:outline-none">
+              {SKILL_STATE_STATUS_FILTERS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500">Last practised</span>
+            <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="rounded-lg border border-hairline px-3 py-2 text-sm text-ink-700 focus:border-navy-400 focus:outline-none">
+              {SKILL_STATE_DATE_FILTERS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+        </div>
+        <p className="mt-2 text-xs text-ink-400">Showing {filtered.length} of {skillStates.length} skills.</p>
+      </Card>
+
+      {filtered.length === 0 ? (
+        <Card className="p-5"><p className="text-sm text-ink-500">No skills match the current filters.</p></Card>
+      ) : Object.entries(byDomain).map(([domainId, states]) => (
         <Card key={domainId} className="p-5">
           <h3 className="mb-3 text-sm font-semibold text-ink-700 capitalize">{domainId.replace(/-/g, ' ')}</h3>
           <div className="overflow-x-auto">
@@ -753,25 +907,25 @@ function DomainSkillStatesPanel({ skillStates, domainGroup }) {
                   <th className="pb-2 pr-4">Status</th>
                   <th className="pb-2 pr-4">Accuracy</th>
                   <th className="pb-2 pr-4">Attempts</th>
-                  <th className="pb-2">Last practiced</th>
+                  <th className="pb-2">Last practised</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline">
                 {states.map((s) => {
-                  const skill = getSkillFromDomain(domainId, s.skillId);
-                  const accuracy = s.attemptCount > 0 ? Math.round((s.correctCount / s.attemptCount) * 100) : null;
+                  const accuracy = skillStateAccuracy(s);
+                  const last = skillStateLastPractised(s);
                   return (
                     <tr key={s.skillId} className="text-ink-600">
                       <td className="py-2 pr-4">
                         <span className="font-mono text-xs text-ink-400">{s.skillId}</span>
-                        {skill && <span className="ml-2 text-ink-700">{skill.name}</span>}
+                        {s._name && <span className="ml-2 text-ink-700">{s._name}</span>}
                       </td>
                       <td className="py-2 pr-4">
-                        <Badge tone={masteryTone(s.masteryState || s.status)}>{masteryLabel(s.masteryState || s.status)}</Badge>
+                        <Badge tone={masteryTone(s.status || s.masteryState)}>{masteryLabel(s.status || s.masteryState)}</Badge>
                       </td>
                       <td className="py-2 pr-4 font-mono">{accuracy != null ? `${accuracy}%` : '—'}</td>
                       <td className="py-2 pr-4 font-mono">{s.attemptCount ?? 0}</td>
-                      <td className="py-2 text-ink-400">{s.lastPracticedAt ? new Date(s.lastPracticedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
+                      <td className="py-2 text-ink-400">{last ? new Date(last).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
                     </tr>
                   );
                 })}
@@ -801,6 +955,7 @@ export default function TutorMathPathDashboardPage() {
   const [activeDomain, setActiveDomain] = useState('fractions');
   const [domainSkillStates, setDomainSkillStates] = useState([]);
   const [domainStatesLoading, setDomainStatesLoading] = useState(false);
+  const [studentMistakes, setStudentMistakes] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -811,7 +966,7 @@ export default function TutorMathPathDashboardPage() {
         mathpathAPI.mastery({ studentId: id }).catch(() => null),
         mathpathAPI.getLatestDiagnostic({ studentId: id }).catch(() => null),
         mathpathAPI.getDiagnosticGrowth({ studentId: id }).catch(() => null),
-        mathpathAPI.workingReviewSummary({ studentId: id }).catch(() => null),
+        mathpathAPI.workingReviewSummary({ studentId: id, domainId: 'fractions' }).catch(() => null),
         mathpathAPI.fluency(id).catch(() => null),
         mathpathAPI.retention(id).catch(() => null),
       ]);
@@ -820,6 +975,7 @@ export default function TutorMathPathDashboardPage() {
       const workingPayload = workingRes?.data || {};
       const practiceState = derivePracticeState(masteryPayload, studentPayload.student || {});
       const mistakePlans = buildMistakePlans(studentPayload.mistakes || []);
+      setStudentMistakes(Array.isArray(studentPayload.mistakes) ? studentPayload.mistakes : []);
 
       const pipeline = runMathPathDomainPipeline({
         studentId: id,
@@ -922,7 +1078,9 @@ export default function TutorMathPathDashboardPage() {
       <PageHeader
         title="Tutor MathPath Dashboard"
         subtitle="Student progress by curriculum domain — root causes, fluency, retention, and session planning."
-        action={activeDomain === 'fractions' ? <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button> : null}
+        action={activeDomain === 'fractions'
+          ? <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
+          : <Button icon={FileText} onClick={() => navigate(`/tutor/students/${id}/assign-homework`)}>Assign Practice</Button>}
       />
 
       <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Select domain">
@@ -946,14 +1104,38 @@ export default function TutorMathPathDashboardPage() {
 
       {activeDomain !== 'fractions' ? (
         <div className="space-y-4">
+          <Card className="border-l-4 border-gold-400 bg-gold-50 p-4">
+            <div className="flex items-start gap-2">
+              <Brain className="mt-0.5 h-4 w-4 shrink-0 text-gold-700" />
+              <div className="text-sm text-ink-700">
+                <p className="font-semibold">
+                  {CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label}: skill states &amp; struggles (beta)
+                </p>
+                <p className="mt-1 text-ink-600">
+                  Skill mastery, accuracy, filters and struggled questions are live for this domain. The full intelligence
+                  layer — root-cause analysis, fluency &amp; retention modelling, working-evidence review and auto-generated
+                  session plans — is currently available for <span className="font-semibold">Fractions</span> only. Use the
+                  actions below to assign practice or prepare a lesson.
+                </p>
+              </div>
+            </div>
+          </Card>
           {domainStatesLoading ? (
             <Spinner label={`Loading ${CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} data…`} />
           ) : (
-            <DomainSkillStatesPanel
-              skillStates={domainSkillStates}
-              domainGroup={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)}
-            />
+            <>
+              <DomainSkillStatesPanel
+                skillStates={domainSkillStates}
+                domainGroup={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)}
+              />
+              <QuestionsStruggledCard
+                mistakes={studentMistakes}
+                skillCodeFilter={new Set(domainSkillStates.map((s) => s.skillId).filter(Boolean))}
+                domainLabel={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label}
+              />
+            </>
           )}
+          <TutorActionsMvp id={id} navigate={navigate} />
         </div>
       ) : (
       <>
@@ -1010,6 +1192,7 @@ export default function TutorMathPathDashboardPage() {
           <RecentActivityMvp dashboard={dashboard} workingReview={workingReview || {}} />
         </div>
 
+        <QuestionsStruggledCard mistakes={studentMistakes} domainLabel="Fractions" />
         <WorkingEvidenceMvp workingReview={workingReview || {}} />
         <TutorActionsMvp id={id} navigate={navigate} />
 
