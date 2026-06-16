@@ -1346,6 +1346,160 @@ export default function StudentDashboard() {
               </Card>
             </div>
           )}
+          {FEATURE_FLAGS.operations && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
+                  <Calculator className="h-5 w-5 text-orange-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Operations</p>
+                  <p className="text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
+                </div>
+                <Button to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.numberSense && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+                  <Hash className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Number Sense</p>
+                  <p className="text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
+                </div>
+                <Button to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.money && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Money</p>
+                  <p className="text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
+                </div>
+                <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.timeDomain && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+                  <Clock className="h-5 w-5 text-sky-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Time</p>
+                  <p className="text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
+                </div>
+                <Button to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.measurement && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+                  <Ruler className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Measurement</p>
+                  <p className="text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
+                </div>
+                <Button to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.geometry && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100">
+                  <Triangle className="h-5 w-5 text-violet-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Geometry</p>
+                  <p className="text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
+                </div>
+                <Button to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.areaPerimeter && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100">
+                  <Square className="h-5 w-5 text-rose-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
+                  <p className="text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
+                </div>
+                <Button to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.circles && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100">
+                  <Circle className="h-5 w-5 text-cyan-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Circles</p>
+                  <p className="text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
+                </div>
+                <Button to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.volume && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-100">
+                  <Box className="h-5 w-5 text-lime-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
+                  <p className="text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
+                </div>
+                <Button to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.statistics && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                  <BarChart2 className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Statistics</p>
+                  <p className="text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
+                </div>
+                <Button to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+          {FEATURE_FLAGS.algebra && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fuchsia-100">
+                  <Sigma className="h-5 w-5 text-fuchsia-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Algebra</p>
+                  <p className="text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
+                </div>
+                <Button to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
 
           {showDiagnosticPrompt && (
             <DiagnosticPrompts domains={diagnosticDomains} containerStyle={{ marginTop: 20 }} />
@@ -1456,6 +1610,138 @@ export default function StudentDashboard() {
               <p className="text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
             </div>
             <Button to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.operations && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
+              <Calculator className="h-5 w-5 text-orange-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Operations</p>
+              <p className="text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
+            </div>
+            <Button to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.numberSense && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+              <Hash className="h-5 w-5 text-indigo-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Number Sense</p>
+              <p className="text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
+            </div>
+            <Button to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.money && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
+              <DollarSign className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Money</p>
+              <p className="text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
+            </div>
+            <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.timeDomain && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+              <Clock className="h-5 w-5 text-sky-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Time</p>
+              <p className="text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
+            </div>
+            <Button to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.measurement && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+              <Ruler className="h-5 w-5 text-amber-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Measurement</p>
+              <p className="text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
+            </div>
+            <Button to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.geometry && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100">
+              <Triangle className="h-5 w-5 text-violet-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Geometry</p>
+              <p className="text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
+            </div>
+            <Button to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.areaPerimeter && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100">
+              <Square className="h-5 w-5 text-rose-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
+              <p className="text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
+            </div>
+            <Button to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.circles && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100">
+              <Circle className="h-5 w-5 text-cyan-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Circles</p>
+              <p className="text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
+            </div>
+            <Button to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.volume && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-100">
+              <Box className="h-5 w-5 text-lime-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
+              <p className="text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
+            </div>
+            <Button to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.statistics && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+              <BarChart2 className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Statistics</p>
+              <p className="text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
+            </div>
+            <Button to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+        {FEATURE_FLAGS.algebra && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fuchsia-100">
+              <Sigma className="h-5 w-5 text-fuchsia-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Algebra</p>
+              <p className="text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
+            </div>
+            <Button to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
 
@@ -1594,6 +1880,138 @@ export default function StudentDashboard() {
             <p className="text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
           </div>
           <Button to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.operations && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
+            <Calculator className="h-5 w-5 text-orange-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Operations</p>
+            <p className="text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
+          </div>
+          <Button to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.numberSense && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+            <Hash className="h-5 w-5 text-indigo-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Number Sense</p>
+            <p className="text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
+          </div>
+          <Button to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.money && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
+            <DollarSign className="h-5 w-5 text-green-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Money</p>
+            <p className="text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
+          </div>
+          <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.timeDomain && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+            <Clock className="h-5 w-5 text-sky-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Time</p>
+            <p className="text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
+          </div>
+          <Button to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.measurement && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
+            <Ruler className="h-5 w-5 text-amber-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Measurement</p>
+            <p className="text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
+          </div>
+          <Button to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.geometry && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100">
+            <Triangle className="h-5 w-5 text-violet-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Geometry</p>
+            <p className="text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
+          </div>
+          <Button to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.areaPerimeter && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100">
+            <Square className="h-5 w-5 text-rose-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
+            <p className="text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
+          </div>
+          <Button to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.circles && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100">
+            <Circle className="h-5 w-5 text-cyan-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Circles</p>
+            <p className="text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
+          </div>
+          <Button to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.volume && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-100">
+            <Box className="h-5 w-5 text-lime-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
+            <p className="text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
+          </div>
+          <Button to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.statistics && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+            <BarChart2 className="h-5 w-5 text-blue-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Statistics</p>
+            <p className="text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
+          </div>
+          <Button to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+      {FEATURE_FLAGS.algebra && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fuchsia-100">
+            <Sigma className="h-5 w-5 text-fuchsia-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Algebra</p>
+            <p className="text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
+          </div>
+          <Button to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
 
