@@ -66,7 +66,7 @@ export function buildMistakeCorrectionFlow(mistake = {}) {
     canProgress: {
       acknowledge: learningStatus === 'new',
       correct: ['new', 'acknowledged', 'correction_attempted'].includes(learningStatus),
-      understand: learningStatus === 'corrected',
+      understand: ['corrected'].includes(learningStatus),
       master: learningStatus === 'understood',
     },
   };
