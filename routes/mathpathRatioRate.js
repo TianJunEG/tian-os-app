@@ -10,6 +10,11 @@ import {
   toClientQuestions,
   scoreRatioRateSubmission,
 } from '../services/mathpath/ratioRatePracticeService.js';
+import {
+  buildRatioRateFluencyDrill,
+  toClientFluencyQuestions,
+  scoreRatioRateFluencyDrill,
+} from '../services/mathpath/ratioRateFluencyService.js';
 import { ratioRateSkillGraph } from '../shared/mathpath/ratioRate/ratioRateSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
 
@@ -18,6 +23,7 @@ const RCODE_TO_SLUG = Object.fromEntries(
 );
 
 const router = express.Router();
+const FLUENT_BANDS = new Set(['gold', 'platinum']);
 
 function newSessionId() {
   return `rrpractice_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -144,6 +150,86 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
     res.json(summary);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit ratio & rate practice.' });
+  }
+});
+
+// @route POST /api/mathpath/ratio-rate/fluency/start
+// @desc  Build + persist a timed fluency drill; returns answer-stripped questions.
+router.post('/fluency/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const { skillId, count = 8 } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'skillId is required.' });
+
+    const drill = buildRatioRateFluencyDrill({ skillId, count });
+    const practiceSessionId = `rrfluency_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    await MathPathPracticeSession.create({
+      practiceSessionId,
+      studentId,
+      domainId: DOMAIN_ID,
+      targetSkillId: skillId,
+      targetQuestionFamilyIds: [...new Set(drill.questions.map((q) => q.questionFamilyId))],
+      sessionGoal: 'Ratio & Rate fluency',
+      estimatedQuestionCount: drill.questions.length,
+      questions: drill.questions,
+      responses: [],
+      status: 'inProgress',
+      startedAt: new Date(),
+    });
+
+    res.json({
+      practiceSessionId,
+      domainId: DOMAIN_ID,
+      skillId,
+      benchmarks: drill.benchmarks,
+      targetSeconds: drill.targetSeconds,
+      questions: toClientFluencyQuestions(drill.questions),
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start ratio & rate fluency drill.' });
+  }
+});
+
+// @route POST /api/mathpath/ratio-rate/fluency/:practiceSessionId/submit
+// @desc  Score the drill into a fluency band; persist fluencyLevel on the skill.
+router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Ratio & Rate fluency drill not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a ratio & rate session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const scored = scoreRatioRateFluencyDrill({ skillId: existing.targetSkillId, questions: existing.questions || [], responses });
+
+    const set = {
+      fluencyLevel: scored.band,
+      lastPractisedAt: new Date(),
+    };
+    if (FLUENT_BANDS.has(scored.band)) {
+      set.status = 'fluent';
+      set.fluentAt = new Date();
+    }
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      { $inc: { attemptCount: scored.total, correctCount: scored.correct }, $set: set },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', ...scored, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = responses;
+    existing.summary = summary;
+    await existing.save();
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit ratio & rate fluency drill.' });
   }
 });
 
