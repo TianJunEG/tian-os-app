@@ -123,8 +123,8 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
   };
 }
 
-function ChelyaUpdateCard({ snapshot }) {
-  const { body } = buildMascotNarration(snapshot, { childName: snapshot.childName });
+function ChelyaUpdateCard({ snapshot, domainName }) {
+  const { body } = buildMascotNarration(snapshot, { childName: snapshot.childName, domainName });
   if (!body) return null;
   return (
     <Card className="border-l-4 p-5" style={{ borderLeftColor: '#059669' }}>
@@ -145,7 +145,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
 
   return (
     <div className="space-y-4">
-      {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} />}
+      {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} domainName={domainName} />}
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">What to know right now</h2>
@@ -405,13 +405,15 @@ function WeeklyActionPlanCard({ plan, onPrimary }) {
 }
 
 export default function ParentMathPathDashboardPage() {
-  const { studentId } = useParams();
+  const { studentId, domainId: routeDomainId } = useParams();
   const navigate = useNavigate();
   const child = useChild(studentId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [masteryRaw, setMasteryRaw] = useState(null);
-  const [selectedDomain, setSelectedDomain] = useState('fractions');
+  // Domain is driven by the optional :domainId route param; the param-less route
+  // (/parent/children/:studentId/mathpath) defaults to fractions for the pilot.
+  const [selectedDomain, setSelectedDomain] = useState(routeDomainId || 'fractions');
   const [placement, setPlacement] = useState(null);
   const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
   const [assigningRecovery, setAssigningRecovery] = useState(false);
@@ -482,6 +484,14 @@ export default function ParentMathPathDashboardPage() {
     [masteryRaw, workingReview, selectedDomain, studentId]
   );
 
+  // Keep the selected domain in sync with the :domainId route param (deep links
+  // and browser navigation drive the view).
+  useEffect(() => {
+    if (routeDomainId && routeDomainId !== selectedDomain) {
+      setSelectedDomain(routeDomainId);
+    }
+  }, [routeDomainId, selectedDomain]);
+
   // If the selected domain has no data for this child, fall back to one that does.
   useEffect(() => {
     if (availableDomains.length && !availableDomains.includes(selectedDomain)) {
@@ -536,7 +546,11 @@ export default function ParentMathPathDashboardPage() {
           <select
             id="parent-domain"
             value={selectedDomain}
-            onChange={(event) => setSelectedDomain(event.target.value)}
+            onChange={(event) => {
+              const next = event.target.value;
+              setSelectedDomain(next);
+              navigate(`/parent/children/${studentId}/mathpath/${next}`, { replace: true });
+            }}
             className="h-10 rounded-xl border border-line-soft bg-surface-white px-3 text-sm font-semibold text-emerald-deep outline-none focus:border-emerald"
           >
             {availableDomains.map((id) => <option key={id} value={id}>{domainLabel(id)}</option>)}
