@@ -4,6 +4,7 @@ import { resolveStudent } from '../utils/studentContext.js';
 import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
 import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
 import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
+import { persistDomainPracticeMistakes } from '../services/mathpath/domainMistakePersistence.js';
 import {
   DOMAIN_ID,
   buildDecimalsPracticeSession,
@@ -106,29 +107,9 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
       );
     }));
 
-    // Persist mistakes (one record per misconception/skill, frequency incremented).
-    for (const mistake of scored.mistakes) {
-      const tag = mistake.misconceptionTag || 'decimal_error';
-      await MathPathMistakeRecord.findOneAndUpdate(
-        { studentId, domainId: DOMAIN_ID, mistakeCode: tag, skillId: mistake.skillId || '', questionFamilyId: mistake.questionFamilyId || '' },
-        {
-          $inc: { frequency: 1 },
-          $set: { mistakeName: tag, severity: mistake.confidence === 'i_know_this' ? 'high' : 'medium', lastSeenAt: new Date() },
-          $push: { evidence: {
-            source: 'decimals-practice-incorrect',
-            questionId: mistake.questionId,
-            sessionId: req.params.practiceSessionId,
-            studentAnswer: mistake.studentAnswer,
-            correctAnswer: mistake.correctAnswer,
-            answerCorrect: false,
-            confidence: mistake.confidence,
-            timeTaken: mistake.timeTaken,
-            seenAt: new Date(),
-          } },
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
-    }
+    // Persist mistakes: aggregate misconception record + per-question Mistake
+    // docs that feed Mistake-to-Mastery review and the correction ladder.
+    await persistDomainPracticeMistakes({ student, domainId: DOMAIN_ID, sessionId: req.params.practiceSessionId, scored, questions: existing.questions || [] });
 
     // Find the weakest skill and check if PSL has content for it.
     const weakestSkill = Object.entries(scored.perSkill)

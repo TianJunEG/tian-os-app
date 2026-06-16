@@ -12,6 +12,17 @@ import {
 
 const CANVAS_WIDTH = 1400;
 const CANVAS_HEIGHT = 900;
+// Lowest zoom allowed — small enough that the full 1400px-wide canvas fits a
+// phone viewport (≈360px → ~0.24) without horizontal scrolling.
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 2;
+
+// Zoom that fits the canvas width into the scroll container (minus padding).
+function fitZoomFor(el) {
+  if (!el || !el.clientWidth) return 1;
+  const usable = el.clientWidth - 24; // p-3 padding both sides
+  return Math.min(1, Math.max(MIN_ZOOM, Math.round((usable / CANVAS_WIDTH) * 100) / 100));
+}
 const QUESTION_PANEL = { x: 48, y: 44, width: 620, height: 170 };
 const EMPTY_STROKES = [];
 const EMPTY_MATH_OBJECTS = [];
@@ -399,7 +410,13 @@ export default function FullScreenWorkingMode({
     setMathObjects(nextMathObjects);
     setSelectedObjectId(null);
     setRedoStack([]);
-    setZoom(1);
+    // Fit the canvas to the viewport on open so phones see the whole working
+    // area, not just the top-left corner. rAF lets the scroll container lay out
+    // first (its width is 0 during this commit).
+    setZoom(fitZoomFor(scrollRef.current));
+    if (typeof window !== 'undefined' && window.requestAnimationFrame) {
+      window.requestAnimationFrame(() => setZoom(fitZoomFor(scrollRef.current)));
+    }
     setHasCanvasMarks(nextStrokes.length > 0 || nextMathObjects.length > 0);
     setHasObjectEdit(false);
     setMathDraft(null);
@@ -587,8 +604,8 @@ export default function FullScreenWorkingMode({
     setTextDraft(null);
   };
 
-  const zoomBy = (delta) => setZoom((value) => Math.min(2, Math.max(0.75, Math.round((value + delta) * 100) / 100)));
-  const resetZoom = () => setZoom(1);
+  const zoomBy = (delta) => setZoom((value) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((value + delta) * 100) / 100)));
+  const resetZoom = () => setZoom(fitZoomFor(scrollRef.current));
 
   const pan = (direction) => {
     const node = scrollRef.current;

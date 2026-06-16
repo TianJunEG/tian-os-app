@@ -510,7 +510,7 @@ export default function ParentMathPathDashboardPage() {
     const actions = summary?.recommendedNextActions || [];
     if (actions.includes('uploadWorking')) return { label: 'Upload Working', to: '/student/mathpath/working/upload', icon: Upload };
     if (actions.includes('attemptAssessment')) return { label: 'Try Progress Assessment', to: '/student/mathpath/assessment', icon: FileText };
-    if (actions.includes('reviewPreviousSkill')) return { label: 'Complete Review', to: '/student/mathpath/path', icon: Clock3 };
+    if (actions.includes('reviewPreviousSkill')) return { label: 'Complete Review', to: '/student/mathpath/fractions', icon: Clock3 };
     return { label: "Start Today's Practice", to: '/student/mathpath', icon: Target };
   }, [summary]);
 

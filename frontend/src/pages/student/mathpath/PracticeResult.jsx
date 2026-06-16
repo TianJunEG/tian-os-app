@@ -23,6 +23,8 @@ export default function PracticeResult() {
   const [data, setData] = useState(null);
   const [recommended, setRecommended] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -33,6 +35,37 @@ export default function PracticeResult() {
       } finally { setLoading(false); }
     })();
   }, [sessionId]);
+
+  // Start the recommended next practice. Mirrors MistakesHome.practise so the
+  // session returns to MathPath afterwards. Framework (fraction) skills use the
+  // recommended-pathway flow; everything else gets a normal practice session.
+  async function practiseRecommended() {
+    const skillId = recommended?.skillId || recommended?.skillCode || recommended?.id || '';
+    if (!skillId || starting) {
+      if (!skillId) navigate('/student/mathpath');
+      return;
+    }
+    setStarting(true);
+    setStartError('');
+    try {
+      if (/^F\d{3}$/i.test(String(skillId))) {
+        navigate('/student/mathpath/practice/recommended-pathway', {
+          state: {
+            skillId: String(skillId).toUpperCase(), questionCount: 5, sessionType: 'practice',
+            source: 'result-recommended', backTo: '/student/mathpath', homeBase: '/student/mathpath',
+          },
+        });
+        return;
+      }
+      const { data: s } = await mathpathAPI.startSession({ feature: 'Recommended Practice', skillId, questionCount: 5 });
+      navigate(`/student/mathpath/practice/${s.session_id}`, {
+        state: { items: s.items, resultsBase: '/student/mathpath', backTo: '/student/mathpath', homeBase: '/student/mathpath' },
+      });
+    } catch (e) {
+      setStartError(e.response?.data?.error || 'Could not start that practice. Try again.');
+      setStarting(false);
+    }
+  }
 
   if (loading) return <Spinner label="Scoring…" />;
   if (!data) return <EmptyState message="Could not load these results." />;
@@ -120,7 +153,24 @@ export default function PracticeResult() {
       {recommended && (
         <Card className="mb-5 border-l-4 border-l-gold-400 p-4">
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended next</div>
-          <p className="mt-0.5 text-sm text-ink-700">{canonicalSkillName(recommended.skillId, recommended.skillName)} <span className="text-ink-500">· {recommended.topicName}</span></p>
+          <p className="mt-0.5 text-base font-semibold text-ink-800">
+            {canonicalSkillName(recommended.skillId, recommended.skillName)}
+            {recommended.topicName ? <span className="font-normal text-ink-500"> · {recommended.topicName}</span> : null}
+          </p>
+          <p className="mt-1 text-xs text-ink-500">
+            {mistakes.length > 0
+              ? 'Building on the skills you just practised — this is your best next step to turn those slips into mastery.'
+              : 'This is your best next step to keep building mastery.'}
+          </p>
+          {startError && <p className="mt-2 text-xs font-semibold text-error-700">{startError}</p>}
+          <Button
+            icon={ArrowRight}
+            disabled={starting}
+            onClick={practiseRecommended}
+            className="mt-3 w-full sm:w-auto"
+          >
+            {starting ? 'Starting…' : 'Start this practice'}
+          </Button>
         </Card>
       )}
 
@@ -148,9 +198,9 @@ export default function PracticeResult() {
           disabled={mistakes.length > 0}
           onClick={() => navigate(homeBase)}
           className="flex-1"
-          title={mistakes.length > 0 ? 'Review your mistakes first' : undefined}
         >
-          {homeLabel}
+          {/* Self-explanatory when disabled — a title tooltip is invisible on touch. */}
+          {mistakes.length > 0 ? 'Review mistakes first' : homeLabel}
         </Button>
       </div>
     </div>

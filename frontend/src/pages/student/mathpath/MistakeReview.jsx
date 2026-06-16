@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, AlertTriangle, PartyPopper, Wand2, Zap } from 'lucide-react';
+import { ArrowRight, AlertTriangle, PartyPopper, Wand2, Wrench, Zap } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
@@ -75,7 +75,7 @@ export default function MistakeReview() {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await mathpathAPI.mistakes({ domain: 'fractions' });
+        const { data } = await mathpathAPI.mistakes({ domain: 'mathpath' });
         const loaded = data.mistakes || [];
         console.info('[mistakes] displayed', { view: 'review', count: loaded.length });
         setMistakes(loaded);
@@ -217,10 +217,14 @@ export default function MistakeReview() {
                 <WorkingReviewCard mistake={m} />
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
+                {/* Primary path into the acknowledge→correct→understand→master ladder
+                    so the correction loop actually closes (Try Again alone never
+                    records that the mistake was fixed). */}
+                <Button size="s" icon={Wrench} onClick={() => navigate(`/student/mathpath/mistakes/${m.id}`)}>Fix this mistake</Button>
                 <Button variant="secondary" size="s" icon={ArrowRight} onClick={() => setOpenHelp(openHelp === m.id ? null : m.id)}>
                   {openHelp === m.id ? 'Hide Try Together' : 'Try Together'}
                 </Button>
-                <Button size="s" onClick={() => practiseSimilar(m.skillId)} disabled={starting}>Try Again</Button>
+                <Button variant="secondary" size="s" onClick={() => practiseSimilar(m.skillId)} disabled={starting}>Try Again</Button>
                 {(() => {
                   const modelTrainer = getModelDrawingTrainerForMistake({
                     mistakeCode: m.misconceptionTag,

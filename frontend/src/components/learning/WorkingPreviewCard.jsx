@@ -28,11 +28,20 @@ export default function WorkingPreviewCard({
       {hasWorking && (
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
           {workingImage ? (
-            <img
-              src={workingImage}
-              alt="Saved working preview"
-              className="max-h-[120px] w-full rounded-lg border border-line-soft bg-white object-contain sm:w-40"
-            />
+            <button
+              type="button"
+              onClick={onOpen}
+              aria-label="Open working full screen"
+              className="block w-full overflow-hidden rounded-lg border border-line-soft bg-white sm:flex-1"
+            >
+              {/* Taller, top-aligned so a full page of working is actually legible
+                  (was capped at 120px scale-to-fit). Tap to open full screen. */}
+              <img
+                src={workingImage}
+                alt="Saved working preview"
+                className="max-h-[260px] w-full object-contain object-top"
+              />
+            </button>
           ) : (
             <div className="flex h-24 w-full items-center justify-center rounded-lg border border-line-soft bg-surface-raised text-xs font-semibold text-ink-400 sm:w-40">
               Working saved

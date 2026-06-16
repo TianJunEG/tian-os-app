@@ -610,7 +610,9 @@ function App() {
             <Route path="/student/mathpath/assignments" element={<MathPathAssignments />} />
             <Route path="/student/mathpath/recovery-pack/:assignmentId" element={<RecoveryPackTeachingFlow />} />
             <Route path="/student/mathpath/remediation/:id" element={<RemediationJourney />} />
-            <Route path="/student/mathpath/path" element={<FractionsLearningPathPage />} />
+            <Route path="/student/mathpath/fractions" element={<FractionsLearningPathPage />} />
+            {/* Legacy alias — Fractions used /path before domains were unified on /<domain>. */}
+            <Route path="/student/mathpath/path" element={<Navigate to="/student/mathpath/fractions" replace />} />
             <Route path="/student/mathpath/decimals" element={<DecimalsLearningPathPage />} />
             <Route path="/student/mathpath/decimals/practice" element={<DecimalsPracticeSession />} />
             <Route path="/student/mathpath/decimals/diagnostic" element={<DecimalsDiagnosticSession />} />

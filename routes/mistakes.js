@@ -117,8 +117,15 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     // ?domain=fractions keeps times-table/fluency slips out of the fractions review
     // so they are not mistaken for fraction gaps. Opt-in, so other callers are
     // unaffected. Fluency slips are surfaced separately by the fluency module.
-    if (String(req.query.domain || '').toLowerCase() === 'fractions') {
+    const domainParam = String(req.query.domain || '').toLowerCase();
+    if (domainParam === 'fractions') {
       filter.skillCode = { $regex: /^F\d{3}$/i };
+    } else if (domainParam === 'mathpath') {
+      // All MathPath curriculum skills (fractions F### + domain codes like D006,
+      // CI001, AL002, NS010 …). Curriculum codes are 1–3 letters + 2–3 digits;
+      // fluency/times-table slips carry a 24-hex Mongo ObjectId skillCode and so
+      // are excluded, keeping the review focused on curriculum gaps.
+      filter.skillCode = { $regex: /^[A-Z]{1,3}\d{2,3}$/i };
     }
 
     const mistakes = await Mistake.find(filter)

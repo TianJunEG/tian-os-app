@@ -3,7 +3,7 @@ import { protect } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
 import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
-import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
+import { persistDomainPracticeMistakes } from '../services/mathpath/domainMistakePersistence.js';
 import {
   DOMAIN_ID, buildAlgebraPracticeSession, toClientQuestions, scoreAlgebraSubmission,
 } from '../services/mathpath/algebraPracticeService.js';
@@ -71,23 +71,7 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
         { upsert: true, new: true, setDefaultsOnInsert: true },
       );
     }));
-    for (const mistake of scored.mistakes) {
-      const tag = mistake.misconceptionTag || 'algebra_error';
-      await MathPathMistakeRecord.findOneAndUpdate(
-        { studentId, domainId: DOMAIN_ID, mistakeCode: tag, skillId: mistake.skillId || '', questionFamilyId: mistake.questionFamilyId || '' },
-        {
-          $inc: { frequency: 1 },
-          $set: { mistakeName: tag, severity: mistake.confidence === 'i_know_this' ? 'high' : 'medium', lastSeenAt: new Date() },
-          $push: { evidence: {
-            source: 'algebra-practice-incorrect', questionId: mistake.questionId,
-            sessionId: req.params.practiceSessionId, studentAnswer: mistake.studentAnswer,
-            correctAnswer: mistake.correctAnswer, answerCorrect: false,
-            confidence: mistake.confidence, timeTaken: mistake.timeTaken, seenAt: new Date(),
-          } },
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
-    }
+    await persistDomainPracticeMistakes({ student, domainId: DOMAIN_ID, sessionId: req.params.practiceSessionId, scored, questions: existing.questions || [] });
     const weakestSkill = Object.entries(scored.perSkill)
       .filter(([, s]) => s.total > 0 && s.accuracy < 80)
       .sort(([, a], [, b]) => a.accuracy - b.accuracy)[0];

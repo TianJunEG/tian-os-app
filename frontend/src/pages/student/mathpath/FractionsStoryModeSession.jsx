@@ -332,7 +332,7 @@ export default function FractionsStoryModeSession() {
           {submitting ? <p className="mt-2 text-xs text-ink-500">Saving story attempt...</p> : null}
           <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
             <Button variant="secondary" onClick={() => window.location.reload()}>Try another mission</Button>
-            <Button variant="secondary" onClick={() => navigate('/student/mathpath/path')}>Back to pathway</Button>
+            <Button variant="secondary" onClick={() => navigate('/student/mathpath/fractions')}>Back to pathway</Button>
             <Button onClick={() => navigate('/student/mathpath/review', { state: { source: 'story', reviewItems: result.stepResults } })}>Review mistake</Button>
           </div>
         </Card>
