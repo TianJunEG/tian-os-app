@@ -25,6 +25,8 @@ export const FEATURE_FLAGS = {
   // Tier 2: LLM-generated (warmer, varied) parent narration; falls back to the
   // deterministic Tier 1 composer. Requires parentNarration on too. Default off.
   parentNarrationAI: flagEnabled('PARENT_NARRATION_AI', false),
+  // Class-level Chelya update on the teacher MathPath dashboard. Default off.
+  teacherNarration: flagEnabled('TEACHER_NARRATION', false),
   // Metacognition: prompt students to explain why a correct answer worked
   // (self-explanation effect). Prototype — default off; enable with
   // VITE_ENABLE_SELF_EXPLANATION=true.
