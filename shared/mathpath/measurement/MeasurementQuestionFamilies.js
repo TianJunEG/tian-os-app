@@ -18,7 +18,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_ME001_002',
     skillId: 'ME001',
@@ -34,7 +34,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_ME002_001',
     skillId: 'ME002',
@@ -50,7 +50,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_ME002_002',
     skillId: 'ME002',
@@ -66,7 +66,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_ME003_001',
     skillId: 'ME003',
@@ -82,7 +82,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_ME003_002',
     skillId: 'ME003',
@@ -98,7 +98,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_ME004_001',
     skillId: 'ME004',
@@ -114,7 +114,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME004_002',
     skillId: 'ME004',
@@ -130,7 +130,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME005_001',
     skillId: 'ME005',
@@ -146,7 +146,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME005_002',
     skillId: 'ME005',
@@ -162,7 +162,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME006_001',
     skillId: 'ME006',
@@ -178,7 +178,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME006_002',
     skillId: 'ME006',
@@ -194,7 +194,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME007_001',
     skillId: 'ME007',
@@ -210,7 +210,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME007_002',
     skillId: 'ME007',
@@ -226,7 +226,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME008_001',
     skillId: 'ME008',
@@ -242,7 +242,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME008_002',
     skillId: 'ME008',
@@ -258,7 +258,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME009_001',
     skillId: 'ME009',
@@ -274,7 +274,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME009_002',
     skillId: 'ME009',
@@ -290,7 +290,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME010_001',
     skillId: 'ME010',
@@ -306,7 +306,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME010_002',
     skillId: 'ME010',
@@ -322,7 +322,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME011_001',
     skillId: 'ME011',
@@ -338,7 +338,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME011_002',
     skillId: 'ME011',
@@ -354,7 +354,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME012_001',
     skillId: 'ME012',
@@ -370,7 +370,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME012_002',
     skillId: 'ME012',
@@ -386,7 +386,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME013_001',
     skillId: 'ME013',
@@ -402,7 +402,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME013_002',
     skillId: 'ME013',
@@ -418,7 +418,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME014_001',
     skillId: 'ME014',
@@ -434,7 +434,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ME014_002',
     skillId: 'ME014',

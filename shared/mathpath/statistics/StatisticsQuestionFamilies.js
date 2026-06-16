@@ -18,7 +18,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST001_002',
     skillId: 'ST001',
@@ -34,7 +34,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST002_001',
     skillId: 'ST002',
@@ -50,7 +50,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST002_002',
     skillId: 'ST002',
@@ -66,7 +66,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST003_001',
     skillId: 'ST003',
@@ -82,7 +82,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST003_002',
     skillId: 'ST003',
@@ -98,7 +98,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST004_001',
     skillId: 'ST004',
@@ -114,7 +114,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST004_002',
     skillId: 'ST004',
@@ -130,7 +130,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST005_001',
     skillId: 'ST005',
@@ -146,7 +146,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST005_002',
     skillId: 'ST005',
@@ -162,7 +162,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST006_001',
     skillId: 'ST006',
@@ -178,7 +178,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST006_002',
     skillId: 'ST006',
@@ -194,7 +194,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST007_001',
     skillId: 'ST007',
@@ -210,7 +210,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST007_002',
     skillId: 'ST007',
@@ -226,7 +226,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST008_001',
     skillId: 'ST008',
@@ -242,7 +242,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_ST008_002',
     skillId: 'ST008',

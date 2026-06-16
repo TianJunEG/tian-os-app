@@ -18,7 +18,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_VL001_002',
     skillId: 'VL001',
@@ -34,7 +34,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_VL002_001',
     skillId: 'VL002',
@@ -50,7 +50,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_VL002_002',
     skillId: 'VL002',
@@ -66,7 +66,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_VL003_001',
     skillId: 'VL003',
@@ -82,7 +82,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_VL003_002',
     skillId: 'VL003',
@@ -98,7 +98,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_VL004_001',
     skillId: 'VL004',
@@ -114,7 +114,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_VL004_002',
     skillId: 'VL004',

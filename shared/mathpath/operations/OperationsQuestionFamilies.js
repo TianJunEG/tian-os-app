@@ -18,7 +18,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP001_002',
     skillId: 'OP001',
@@ -34,7 +34,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP002_001',
     skillId: 'OP002',
@@ -50,7 +50,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP002_002',
     skillId: 'OP002',
@@ -66,7 +66,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP003_001',
     skillId: 'OP003',
@@ -82,7 +82,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP003_002',
     skillId: 'OP003',
@@ -98,7 +98,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP004_001',
     skillId: 'OP004',
@@ -114,7 +114,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP004_002',
     skillId: 'OP004',
@@ -130,7 +130,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP005_001',
     skillId: 'OP005',
@@ -146,7 +146,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP005_002',
     skillId: 'OP005',
@@ -162,7 +162,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP006_001',
     skillId: 'OP006',
@@ -178,7 +178,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP006_002',
     skillId: 'OP006',
@@ -194,7 +194,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP007_001',
     skillId: 'OP007',
@@ -210,7 +210,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP007_002',
     skillId: 'OP007',
@@ -226,7 +226,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP008_001',
     skillId: 'OP008',
@@ -242,7 +242,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP008_002',
     skillId: 'OP008',
@@ -258,7 +258,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP009_001',
     skillId: 'OP009',
@@ -274,7 +274,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP009_002',
     skillId: 'OP009',
@@ -290,7 +290,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP010_001',
     skillId: 'OP010',
@@ -306,7 +306,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP010_002',
     skillId: 'OP010',
@@ -322,7 +322,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP011_001',
     skillId: 'OP011',
@@ -338,7 +338,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP011_002',
     skillId: 'OP011',
@@ -354,7 +354,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP012_001',
     skillId: 'OP012',
@@ -370,7 +370,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP012_002',
     skillId: 'OP012',
@@ -386,7 +386,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP013_001',
     skillId: 'OP013',
@@ -402,7 +402,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP013_002',
     skillId: 'OP013',
@@ -418,7 +418,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP014_001',
     skillId: 'OP014',
@@ -434,7 +434,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP014_002',
     skillId: 'OP014',
@@ -450,7 +450,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP015_001',
     skillId: 'OP015',
@@ -466,7 +466,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP015_002',
     skillId: 'OP015',
@@ -482,7 +482,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP016_001',
     skillId: 'OP016',
@@ -498,7 +498,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP016_002',
     skillId: 'OP016',
@@ -514,7 +514,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP017_001',
     skillId: 'OP017',
@@ -530,7 +530,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP017_002',
     skillId: 'OP017',
@@ -546,7 +546,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP018_001',
     skillId: 'OP018',
@@ -562,7 +562,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP018_002',
     skillId: 'OP018',
@@ -578,7 +578,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP019_001',
     skillId: 'OP019',
@@ -594,7 +594,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP019_002',
     skillId: 'OP019',
@@ -610,7 +610,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP020_001',
     skillId: 'OP020',
@@ -626,7 +626,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP020_002',
     skillId: 'OP020',
@@ -642,7 +642,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP021_001',
     skillId: 'OP021',
@@ -658,7 +658,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP021_002',
     skillId: 'OP021',
@@ -674,7 +674,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP022_001',
     skillId: 'OP022',
@@ -690,7 +690,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP022_002',
     skillId: 'OP022',
@@ -706,7 +706,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP023_001',
     skillId: 'OP023',
@@ -722,7 +722,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP023_002',
     skillId: 'OP023',
@@ -738,7 +738,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_OP024_001',
     skillId: 'OP024',
@@ -754,7 +754,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_OP024_002',
     skillId: 'OP024',

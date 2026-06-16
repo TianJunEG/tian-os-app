@@ -18,7 +18,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS001_002',
     skillId: 'NS001',
@@ -34,7 +34,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS002_001',
     skillId: 'NS002',
@@ -50,7 +50,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS002_002',
     skillId: 'NS002',
@@ -66,7 +66,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS003_001',
     skillId: 'NS003',
@@ -82,7 +82,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS003_002',
     skillId: 'NS003',
@@ -98,7 +98,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS004_001',
     skillId: 'NS004',
@@ -114,7 +114,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS004_002',
     skillId: 'NS004',
@@ -130,7 +130,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS005_001',
     skillId: 'NS005',
@@ -146,7 +146,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS005_002',
     skillId: 'NS005',
@@ -162,7 +162,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS006_001',
     skillId: 'NS006',
@@ -178,7 +178,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS006_002',
     skillId: 'NS006',
@@ -194,7 +194,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS007_001',
     skillId: 'NS007',
@@ -210,7 +210,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS007_002',
     skillId: 'NS007',
@@ -226,7 +226,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS008_001',
     skillId: 'NS008',
@@ -242,7 +242,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS008_002',
     skillId: 'NS008',
@@ -258,7 +258,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS009_001',
     skillId: 'NS009',
@@ -274,7 +274,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS009_002',
     skillId: 'NS009',
@@ -290,7 +290,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS010_001',
     skillId: 'NS010',
@@ -306,7 +306,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS010_002',
     skillId: 'NS010',
@@ -322,7 +322,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS011_001',
     skillId: 'NS011',
@@ -338,7 +338,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS011_002',
     skillId: 'NS011',
@@ -354,7 +354,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS012_001',
     skillId: 'NS012',
@@ -370,7 +370,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS012_002',
     skillId: 'NS012',
@@ -386,7 +386,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS013_001',
     skillId: 'NS013',
@@ -402,7 +402,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS013_002',
     skillId: 'NS013',
@@ -418,7 +418,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS014_001',
     skillId: 'NS014',
@@ -434,7 +434,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS014_002',
     skillId: 'NS014',
@@ -450,7 +450,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS015_001',
     skillId: 'NS015',
@@ -466,7 +466,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS015_002',
     skillId: 'NS015',
@@ -482,7 +482,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS016_001',
     skillId: 'NS016',
@@ -498,7 +498,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS016_002',
     skillId: 'NS016',
@@ -514,7 +514,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS017_001',
     skillId: 'NS017',
@@ -530,7 +530,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS017_002',
     skillId: 'NS017',
@@ -546,7 +546,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS018_001',
     skillId: 'NS018',
@@ -562,7 +562,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS018_002',
     skillId: 'NS018',
@@ -578,7 +578,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS019_001',
     skillId: 'NS019',
@@ -594,7 +594,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS019_002',
     skillId: 'NS019',
@@ -610,7 +610,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS020_001',
     skillId: 'NS020',
@@ -626,7 +626,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS020_002',
     skillId: 'NS020',
@@ -642,7 +642,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS021_001',
     skillId: 'NS021',
@@ -658,7 +658,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS021_002',
     skillId: 'NS021',
@@ -674,7 +674,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_NS022_001',
     skillId: 'NS022',
@@ -690,7 +690,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS022_002',
     skillId: 'NS022',
@@ -706,7 +706,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS023_001',
     skillId: 'NS023',
@@ -722,7 +722,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_NS023_002',
     skillId: 'NS023',

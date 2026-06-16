@@ -18,7 +18,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE001_002',
     skillId: 'GE001',
@@ -34,7 +34,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE002_001',
     skillId: 'GE002',
@@ -50,7 +50,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE002_002',
     skillId: 'GE002',
@@ -66,7 +66,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE003_001',
     skillId: 'GE003',
@@ -82,7 +82,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE003_002',
     skillId: 'GE003',
@@ -98,7 +98,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE004_001',
     skillId: 'GE004',
@@ -114,7 +114,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE004_002',
     skillId: 'GE004',
@@ -130,7 +130,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE005_001',
     skillId: 'GE005',
@@ -146,7 +146,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE005_002',
     skillId: 'GE005',
@@ -162,7 +162,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE006_001',
     skillId: 'GE006',
@@ -178,7 +178,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE006_002',
     skillId: 'GE006',
@@ -194,7 +194,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE007_001',
     skillId: 'GE007',
@@ -210,7 +210,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE007_002',
     skillId: 'GE007',
@@ -226,7 +226,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE008_001',
     skillId: 'GE008',
@@ -242,7 +242,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE008_002',
     skillId: 'GE008',
@@ -258,7 +258,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE009_001',
     skillId: 'GE009',
@@ -274,7 +274,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE009_002',
     skillId: 'GE009',
@@ -290,7 +290,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE010_001',
     skillId: 'GE010',
@@ -306,7 +306,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE010_002',
     skillId: 'GE010',
@@ -322,7 +322,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE011_001',
     skillId: 'GE011',
@@ -338,7 +338,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE011_002',
     skillId: 'GE011',
@@ -354,7 +354,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE012_001',
     skillId: 'GE012',
@@ -370,7 +370,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE012_002',
     skillId: 'GE012',
@@ -386,7 +386,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE013_001',
     skillId: 'GE013',
@@ -402,7 +402,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE013_002',
     skillId: 'GE013',
@@ -418,7 +418,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: true,
     workingRequired: false,
-  }
+  },
   {
     id: 'QF_GE014_001',
     skillId: 'GE014',
@@ -434,7 +434,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE014_002',
     skillId: 'GE014',
@@ -450,7 +450,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE015_001',
     skillId: 'GE015',
@@ -466,7 +466,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE015_002',
     skillId: 'GE015',
@@ -482,7 +482,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE016_001',
     skillId: 'GE016',
@@ -498,7 +498,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE016_002',
     skillId: 'GE016',
@@ -514,7 +514,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE017_001',
     skillId: 'GE017',
@@ -530,7 +530,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE017_002',
     skillId: 'GE017',
@@ -546,7 +546,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE018_001',
     skillId: 'GE018',
@@ -562,7 +562,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE018_002',
     skillId: 'GE018',
@@ -578,7 +578,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE019_001',
     skillId: 'GE019',
@@ -594,7 +594,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE019_002',
     skillId: 'GE019',
@@ -610,7 +610,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE020_001',
     skillId: 'GE020',
@@ -626,7 +626,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE020_002',
     skillId: 'GE020',
@@ -642,7 +642,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE021_001',
     skillId: 'GE021',
@@ -658,7 +658,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE021_002',
     skillId: 'GE021',
@@ -674,7 +674,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE022_001',
     skillId: 'GE022',
@@ -690,7 +690,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_GE022_002',
     skillId: 'GE022',
