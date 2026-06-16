@@ -79,7 +79,9 @@ function computeAnswer_CI002_1(a, b, v) { return round2(3.14 * a * 2); }
 function buildPrompt_CI002_1(a, b, v) { return `Find the circumference of a circle with diameter ${a * 2} cm. (Use π = 3.14)`; }
 function computeAnswer_CI003_0(a, b, v) { return round2(3.14 * a * a); }
 function buildPrompt_CI003_0(a, b, v) { return `Find the area of a circle with radius ${a} cm. (Use π = 3.14)`; }
-function computeAnswer_CI003_1(a, b, v) { return round2(3.14 * (a/2) * (a/2)); }
+// Prompt states diameter = a*2, so radius = a. Area = πr² = 3.14·a².
+// (Previously computed 3.14·(a/2)² — wrong by a factor of 4. See audit.)
+function computeAnswer_CI003_1(a, b, v) { return round2(3.14 * a * a); }
 function buildPrompt_CI003_1(a, b, v) { return `Find the area of a circle with diameter ${a * 2} cm. (Use π = 3.14)`; }
 function computeAnswer_CI004_0(a, b, v) { return round2(3.14 * a * a / 2); }
 function buildPrompt_CI004_0(a, b, v) { return `Find the area of a semicircle with radius ${a} cm. (Use π = 3.14)`; }

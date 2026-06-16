@@ -356,9 +356,12 @@ const GENERATORS = {
     const boysAfter = boysBefore + boysAdded;
 
     if (family.name.toLowerCase().includes('harder')) {
-      // Harder: given after-ratio and total, find original boys
-      const [c, d] = pick(rng, ratioOptions.filter(([x]) => x > a));
-      if (!c) {
+      // Harder: given after-ratio and total, find original boys.
+      // Check the filtered set BEFORE destructuring: when `a` is the largest
+      // first term the filter is empty and pick() returns undefined, which used
+      // to throw on `const [c, d] = undefined` (~27% of variants). See audit.
+      const harderOptions = ratioOptions.filter(([x]) => x > a);
+      if (harderOptions.length === 0) {
         // fallback to basic
         const prompt = `Before: ${boysBefore} boys and ${girlCount} girls. ${boysAdded} boys join. How many boys are there now?`;
         return shortAnswer({
@@ -368,7 +371,9 @@ const GENERATORS = {
           misconceptionTag: 'rr/assume-total-constant', difficulty, mode,
         });
       }
-      // girlCount unchanged; after ratio boys:girls = c:d → but we keep simple version
+      // girlCount unchanged; the harder variant currently falls through to the
+      // same forward prompt below (a genuinely harder reconstruction task is a
+      // P1 follow-up — see audit).
     }
 
     const prompt = `Before, the ratio of boys to girls was ${a} : ${b}. There were ${girlCount} girls. After ${boysAdded} more boys joined, how many boys are there?`;

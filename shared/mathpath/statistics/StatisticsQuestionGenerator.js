@@ -81,26 +81,41 @@ function computeAnswer_ST003_0(a, b, v) { return a + b + 4 + 7; }
 function buildPrompt_ST003_0(a, b, v) { return `A bar graph shows: Class A: ${a}, Class B: ${b}, Class C: 4, Class D: 7 students. What is the total?`; }
 function computeAnswer_ST003_1(a, b, v) { return a - b; }
 function buildPrompt_ST003_1(a, b, v) { return `A bar graph shows Team X scored ${a} and Team Y scored ${b}. How many more did Team X score?`; }
-function computeAnswer_ST004_0(a, b, v) { return a + b; }
-function buildPrompt_ST004_0(a, b, v) { return `A line graph shows temperature at 9am was ${a}°C and at noon was ${b}°C. What was the total rise if temp increased ${b - a}°C?`; }
-function computeAnswer_ST004_1(a, b, v) { return a - b; }
-function buildPrompt_ST004_1(a, b, v) { return `A line graph shows sales of ${a} units in Jan and ${b} units in Feb. By how much did sales fall?`; }
+// Second reading is a+b so the rise is exactly b (always positive). The old
+// version answered a+b (the sum of the two readings), not the rise, and its
+// "increased ${b-a}°C" text went negative when a > b. See audit.
+function computeAnswer_ST004_0(a, b, v) { return b; }
+function buildPrompt_ST004_0(a, b, v) { return `A line graph shows the temperature was ${a}°C at 9 am and ${a + b}°C at noon. By how much did the temperature rise?`; }
+// January reading is a+b, February is a, so the fall is exactly b (positive).
+// The old version answered a−b, which went negative whenever b > a. See audit.
+function computeAnswer_ST004_1(a, b, v) { return b; }
+function buildPrompt_ST004_1(a, b, v) { return `A line graph shows sales of ${a + b} units in January and ${a} units in February. By how much did sales fall?`; }
 function computeAnswer_ST005_0(a, b, v) { return a + b + 5 + 3; }
 function buildPrompt_ST005_0(a, b, v) { return `From a bar chart: Mon: ${a}, Tue: ${b}, Wed: 5, Thu: 3. What is the total for all 4 days?`; }
 function computeAnswer_ST005_1(a, b, v) { return Math.max(a, b, 5, 3); }
 function buildPrompt_ST005_1(a, b, v) { return `From the same chart (Mon:${a}, Tue:${b}, Wed:5, Thu:3), what was the highest daily value?`; }
-function computeAnswer_ST006_0(a, b, v) { return Math.floor((a + b + (a+1) + (b-1)) / 4); }
+// Exact mean (round2); the old Math.floor silently truncated a real fraction
+// (e.g. mean 5.5 reported as 5), misgrading the student. Means may be decimal.
+function computeAnswer_ST006_0(a, b, v) { return round2((a + b + (a+1) + (b-1)) / 4); }
 function buildPrompt_ST006_0(a, b, v) { return `Find the mean of ${a}, ${b}, ${a+1}, ${b-1}.`; }
-function computeAnswer_ST006_1(a, b, v) { return Math.floor((a + b + 3*a) / 5); }
+function computeAnswer_ST006_1(a, b, v) { return round2((a + b + 3*a) / 5); }
 function buildPrompt_ST006_1(a, b, v) { return `Five numbers are ${a}, ${b}, ${a}, ${a}, ${a}. Find the mean.`; }
 function computeAnswer_ST007_0(a, b, v) { return a * b; }
 function buildPrompt_ST007_0(a, b, v) { return `The mean of ${b} numbers is ${a}. What is their total sum?`; }
-function computeAnswer_ST007_1(a, b, v) { return a * (b + 1) - (a * b - a); }
+// New mean = (old total + added score) / (old count + 1)
+//          = (a·b + 2a) / (b + 1). The old formula simplified to 2a (it just
+// returned the added score), which is wrong. Means may be decimal → round2.
+function computeAnswer_ST007_1(a, b, v) { return round2((a * b + 2 * a) / (b + 1)); }
 function buildPrompt_ST007_1(a, b, v) { return `The mean of ${b} scores is ${a}. After adding one more score of ${2*a}, what is the new mean?`; }
-function computeAnswer_ST008_0(a, b, v) { return Math.round(a * 36 / 10); }
-function buildPrompt_ST008_0(a, b, v) { return `In a pie chart showing 100 students, ${a * 10}% chose red. How many degrees is that sector?`; }
-function computeAnswer_ST008_1(a, b, v) { return Math.round(a / b * 100); }
-function buildPrompt_ST008_1(a, b, v) { return `In a class of ${b} students, ${a} chose Science. What percentage chose Science?`; }
+// Use b (range 2–10) so the percentage b·10 is always ≤ 100% and the sector
+// b·36° is a whole number ≤ 360°. The old version used a (up to 25) → >100%
+// pies, and divided the degrees by 10 (40% → 14° instead of 144°). See audit.
+function computeAnswer_ST008_0(a, b, v) { return b * 36; }
+function buildPrompt_ST008_0(a, b, v) { return `In a pie chart, ${b * 10}% of the students chose red. How many degrees is that sector? (A full circle is 360°.)`; }
+// Guarantee part ≤ whole so the percentage never exceeds 100%. The old version
+// used independent a, b and produced "2 students, 10 chose Science → 500%".
+function computeAnswer_ST008_1(a, b, v) { return Math.round(Math.min(a, b) / Math.max(a, b) * 100); }
+function buildPrompt_ST008_1(a, b, v) { return `In a class of ${Math.max(a, b)} students, ${Math.min(a, b)} chose Science. What percentage chose Science? (Round to the nearest whole number.)`; }
 
 function statTableRead(family, rng, variant) {
   const v = variant % 20;

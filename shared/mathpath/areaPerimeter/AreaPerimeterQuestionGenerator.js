@@ -73,7 +73,9 @@ function computeAnswer_AP001_0(a, b, v) { return 2 * (a + b); }
 function buildPrompt_AP001_0(a, b, v) { return `Find the perimeter of a rectangle with length ${a} cm and width ${b} cm.`; }
 function computeAnswer_AP001_1(a, b, v) { return 4 * a; }
 function buildPrompt_AP001_1(a, b, v) { return `Find the perimeter of a square with side ${a} cm.`; }
-function computeAnswer_AP002_0(a, b, v) { return 2 * a + 3 * b; }
+// The printed sides are a, b, a, b, b, a → they sum to 3a + 3b. The old key
+// returned 2a + 3b, contradicting the very numbers in the prompt. See audit.
+function computeAnswer_AP002_0(a, b, v) { return 3 * (a + b); }
 function buildPrompt_AP002_0(a, b, v) { return `An L-shaped figure has sides measuring ${a}, ${b}, ${a}, ${b}, ${b}, ${a} cm. Find the perimeter.`; }
 function computeAnswer_AP002_1(a, b, v) { return a * 4 + b * 2; }
 function buildPrompt_AP002_1(a, b, v) { return `A composite shape has 4 sides of ${a} cm and 2 sides of ${b} cm. Find the perimeter.`; }
@@ -89,8 +91,11 @@ function computeAnswer_AP005_0(a, b, v) { return a * b + (a * Math.floor(b/2)); 
 function buildPrompt_AP005_0(a, b, v) { return `A composite figure is made of a rectangle ${a}×${b} cm² and another rectangle ${a}×${Math.floor(b/2)} cm². Find the total area.`; }
 function computeAnswer_AP005_1(a, b, v) { return a * b - Math.floor(a/2) * Math.floor(b/2); }
 function buildPrompt_AP005_1(a, b, v) { return `A rectangle ${a}×${b} has a ${Math.floor(a/2)}×${Math.floor(b/2)} cm square cut from a corner. Find the remaining area.`; }
-function computeAnswer_AP006_0(a, b, v) { return 2 * (a + b) * 100; }
-function buildPrompt_AP006_0(a, b, v) { return `A garden is ${a} m long and ${b} m wide. Fencing costs $1 per cm. Find the fencing cost in dollars if perimeter in cm is ${2*(a+b)*100}.`; }
+// Cost = perimeter (m) × $1/m = 2(a+b). The old version priced at $1/cm and
+// then handed the student the pre-computed perimeter in cm, giving away its own
+// answer; it also mixed metres and centimetres incoherently. See audit.
+function computeAnswer_AP006_0(a, b, v) { return 2 * (a + b); }
+function buildPrompt_AP006_0(a, b, v) { return `A rectangular garden is ${a} m long and ${b} m wide. Fencing costs $1 per metre. Find the total cost of fencing all the way around the garden.`; }
 function computeAnswer_AP006_1(a, b, v) { return a * b; }
 function buildPrompt_AP006_1(a, b, v) { return `A carpet tile is ${a} cm × ${b} cm. What is its area in cm²?`; }
 

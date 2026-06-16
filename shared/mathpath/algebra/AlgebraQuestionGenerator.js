@@ -69,13 +69,16 @@ function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, miscon
   };
 }
 
-function computeAnswer_AL001_0(a, b, v) { return a + b; }
+// The answer is the UNKNOWN, not the right-hand-side total. For `a + ___ = a+b`
+// the missing number is b; for `___ × b = a*b` it is a. The old code returned
+// the RHS total (a+b / a*b), misgrading every AL001/AL002 item. See audit.
+function computeAnswer_AL001_0(a, b, v) { return b; }
 function buildPrompt_AL001_0(a, b, v) { return `${a} + ___ = ${a + b}. What is the missing number?`; }
-function computeAnswer_AL001_1(a, b, v) { return a * b; }
+function computeAnswer_AL001_1(a, b, v) { return a; }
 function buildPrompt_AL001_1(a, b, v) { return `___ × ${b} = ${a * b}. What is the missing number?`; }
-function computeAnswer_AL002_0(a, b, v) { return a + b; }
+function computeAnswer_AL002_0(a, b, v) { return a; }
 function buildPrompt_AL002_0(a, b, v) { return `n + ${b} = ${a + b}. What is n?`; }
-function computeAnswer_AL002_1(a, b, v) { return a * b; }
+function computeAnswer_AL002_1(a, b, v) { return a; }
 function buildPrompt_AL002_1(a, b, v) { return `k × ${b} = ${a * b}. What is k?`; }
 function computeAnswer_AL003_0(a, b, v) { return a * b; }
 function buildPrompt_AL003_0(a, b, v) { return `If n = ${a}, what is ${b}n?`; }
@@ -101,8 +104,11 @@ function computeAnswer_AL008_0(a, b, v) { return a + b; }
 function buildPrompt_AL008_0(a, b, v) { return `Solve: n − ${b} = ${a}. What is n?`; }
 function computeAnswer_AL008_1(a, b, v) { return a * b; }
 function buildPrompt_AL008_1(a, b, v) { return `Solve: m ÷ ${b} = ${a}. What is m?`; }
-function computeAnswer_AL009_0(a, b, v) { return Math.floor((a + b) / 2); }
-function buildPrompt_AL009_0(a, b, v) { return `Solve: 2n + ${b} = ${a + b + (a + b) % 2}. What is n?`; }
+// Equation 2n + b = 2a + b ⇒ n = a (always a clean integer). The old version
+// built the RHS from one formula and the answer from another, so prompt and key
+// disagreed (e.g. "2n + 10 = 14" was keyed 6 instead of 2). See audit.
+function computeAnswer_AL009_0(a, b, v) { return a; }
+function buildPrompt_AL009_0(a, b, v) { return `Solve: 2n + ${b} = ${2 * a + b}. What is n?`; }
 function computeAnswer_AL009_1(a, b, v) { return a; }
 function buildPrompt_AL009_1(a, b, v) { return `Solve: 3k − ${b} = ${3*a - b}. What is k?`; }
 function computeAnswer_AL010_0(a, b, v) { return Math.floor((a - b) / 3); }
