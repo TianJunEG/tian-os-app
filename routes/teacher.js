@@ -77,14 +77,25 @@ function topicStatusForStudent(recordsInTopic) {
 // ── Home ──────────────────────────────────────────────────────────
 router.get('/home', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
-  const classes = await Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id, status: 'active' });
-  const activeInterventions = await InterventionRecord.countDocuments({ workspaceId: req.workspaceId, status: { $in: ['needs_support', 'improving'] } });
-  // Classes needing attention: any with students scoring needs_review.
+  const [classes, activeInterventions] = await Promise.all([
+    Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id, status: 'active' }),
+    InterventionRecord.countDocuments({ workspaceId: req.workspaceId, status: { $in: ['needs_support', 'improving'] } }),
+  ]);
+  // Batch roster + mastery look-ups to avoid N+1.
+  const classIds = classes.map((c) => c._id);
+  const allLinks = await ClassStudent.find({ classId: { $in: classIds }, status: 'active' }).select('classId studentId');
+  const idsPerClass = new Map(classIds.map((id) => [String(id), []]));
+  for (const l of allLinks) idsPerClass.get(String(l.classId))?.push(l.studentId);
+  const allStudentIds = [...new Set(allLinks.map((l) => String(l.studentId)))];
+  const reviewRecs = allStudentIds.length
+    ? await MasteryRecord.find({ studentId: { $in: allStudentIds }, status: 'needs_review' }).select('studentId')
+    : [];
+  const reviewStudentSet = new Set(reviewRecs.map((r) => String(r.studentId)));
   const attention = [];
   for (const c of classes) {
-    const ids = await rosterIds(c._id);
-    const recs = await MasteryRecord.find({ studentId: { $in: ids }, status: 'needs_review' });
-    if (recs.length) attention.push({ classId: c._id, name: c.name, flagged: new Set(recs.map((r) => String(r.studentId))).size });
+    const ids = idsPerClass.get(String(c._id)) || [];
+    const flagged = ids.filter((id) => reviewStudentSet.has(String(id))).length;
+    if (flagged) attention.push({ classId: c._id, name: c.name, flagged });
   }
   res.json({ classCount: classes.length, activeInterventions, attention });
 }));

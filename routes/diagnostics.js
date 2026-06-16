@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
 import {
   answerAdaptiveDiagnostic,
   startAdaptiveDiagnostic,
@@ -92,6 +93,53 @@ router.get('/recheck-summary/:sessionId', protect, asyncHandler(async (req, res)
     return res.json({ studentId: String(student._id), subjectId, domainId, diagnosticSessionId: req.params.sessionId, summary });
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to load recheck summary.');
+  }
+}));
+
+// Rehydrates an in-progress session so the student can resume after a tab close.
+// Returns the minimal state needed to continue without triggering a fresh /start,
+// which would hit the 409 DIAGNOSTIC_REPLAY_BLOCKED guard.
+router.get('/:sessionId/resume', protect, asyncHandler(async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const session = await MathPathDiagnosticSession.findOne({
+      diagnosticSessionId: req.params.sessionId,
+    });
+    if (!session) {
+      return res.status(404).json({ code: 'SESSION_NOT_FOUND', error: 'Diagnostic session not found.' });
+    }
+    if (String(session.studentId) !== String(student._id)) {
+      return res.status(403).json({ code: 'FORBIDDEN', error: 'This diagnostic session belongs to a different student.' });
+    }
+    if (session.status === 'completed') {
+      return res.status(409).json({
+        code: 'SESSION_COMPLETED',
+        error: 'This diagnostic session is already completed.',
+        result: session.result || {},
+      });
+    }
+    const adaptiveState = session.adaptiveState || {};
+    const attemptedIds = new Set((adaptiveState.attemptedQuestionIds || []).map(String));
+    const remainingQuestionIds = (adaptiveState.candidateQuestionIds || []).filter(
+      (id) => !attemptedIds.has(String(id))
+    );
+    return res.json({
+      sessionId: session.diagnosticSessionId,
+      subjectId: session.subjectId,
+      domainId: session.domainId,
+      diagnosticPurpose: session.diagnosticPurpose,
+      mode: session.mode,
+      studentLevel: session.studentLevel,
+      status: session.status,
+      currentQuestionId: session.currentQuestionId,
+      currentSkillId: session.currentSkillId,
+      answeredCount: adaptiveState.answeredCount || 0,
+      estimatedQuestionCount: adaptiveState.maxQuestions || 10,
+      remainingQuestionIds,
+      responses: adaptiveState.responses || [],
+    });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to resume diagnostic session.');
   }
 }));
 

@@ -1756,7 +1756,7 @@ function readinessBandFromLevel(level = '') {
 }
 
 async function loadFractionsSkills() {
-  const skills = await Skill.find({ slug: /^fr\./i }).sort({ order: 1 });
+  const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
   const byFrameworkId = new Map();
   const byObjectId = new Map();
   for (const s of skills) {
