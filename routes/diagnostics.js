@@ -123,6 +123,25 @@ router.get('/:sessionId/resume', protect, asyncHandler(async (req, res) => {
     const remainingQuestionIds = (adaptiveState.candidateQuestionIds || []).filter(
       (id) => !attemptedIds.has(String(id))
     );
+
+    // Attempt to load the current question object so the frontend can render it
+    // immediately without a separate fetch.
+    let currentQuestion = null;
+    if (session.currentQuestionId) {
+      try {
+        const domain = getDiagnosticDomain({
+          subjectId: session.subjectId || 'math',
+          domainId: session.domainId,
+        });
+        const questionDoc = await domain.getQuestionById(session.currentQuestionId);
+        if (questionDoc) {
+          currentQuestion = domain.normaliseQuestion(questionDoc, questionDoc.skillId);
+        }
+      } catch (_) {
+        // Non-fatal: frontend will display a fallback if currentQuestion is null.
+      }
+    }
+
     return res.json({
       sessionId: session.diagnosticSessionId,
       subjectId: session.subjectId,
@@ -133,6 +152,7 @@ router.get('/:sessionId/resume', protect, asyncHandler(async (req, res) => {
       status: session.status,
       currentQuestionId: session.currentQuestionId,
       currentSkillId: session.currentSkillId,
+      currentQuestion,
       answeredCount: adaptiveState.answeredCount || 0,
       estimatedQuestionCount: adaptiveState.maxQuestions || 10,
       remainingQuestionIds,
