@@ -1,35 +1,50 @@
-// P0 production gate for MathPath domains whose question generators are still
-// stubs (every skill emits "Compute: a + b = ?" regardless of topic).
+// P0 production gate for MathPath domains that are not safe to serve to
+// students. See MATHPATH_QUESTION_QUALITY_AUDIT.md. The gate is enforced at the
+// practice-service entry point so it holds no matter which route or
+// orchestrator calls in.
 //
-// See MATHPATH_QUESTION_QUALITY_AUDIT.md. Until the content layer in the
-// corresponding *QuestionGenerator.js is implemented, these domains must not
-// serve practice to students. The gate is enforced at the practice-service
-// entry point so it holds no matter which route or orchestrator calls in.
+// Two reasons a domain is withheld:
+//   'stub'          — the *QuestionGenerator.js emits "Compute: a + b = ?" for
+//                     every skill, regardless of topic.
+//   'not-exam-ready'— the generator computes real questions but ships pervasive
+//                     correctness/misgrade bugs (e.g. answers stored in a format
+//                     the answer-checker rejects, impossible values) that cannot
+//                     be made safe with surgical fixes.
 //
-// To re-enable a domain: implement its generator, then remove its id from
-// GATED_STUB_DOMAINS (and ideally flip its catalog `practice` status back to
-// 'available' in shared/mathpath/domainCatalog.js).
+// To re-enable a domain: rebuild/repair its generator, then remove its id here
+// (and flip its catalog `practice` status back to 'available' in
+// shared/mathpath/domainCatalog.js).
 
-export const GATED_STUB_DOMAINS = new Set([
-  'number-sense',
-  'operations',
-  'geometry',
-  'measurement',
-]);
+export const WITHHELD_DOMAINS = {
+  'number-sense': 'stub',
+  operations: 'stub',
+  geometry: 'stub',
+  measurement: 'stub',
+  time: 'not-exam-ready',
+  money: 'not-exam-ready',
+};
+
+// Back-compat: the subset that are pure a+b stubs.
+export const GATED_STUB_DOMAINS = new Set(
+  Object.entries(WITHHELD_DOMAINS)
+    .filter(([, reason]) => reason === 'stub')
+    .map(([id]) => id),
+);
 
 /**
- * Throws a 503-tagged error when the domain's generator is a known stub.
+ * Throws a 503-tagged error when the domain is currently withheld.
  * Call at the top of each build*PracticeSession entry point.
  * @param {string} domainId
  */
 export function assertDomainServable(domainId) {
-  if (GATED_STUB_DOMAINS.has(domainId)) {
+  if (Object.prototype.hasOwnProperty.call(WITHHELD_DOMAINS, domainId)) {
     const err = new Error(
       `The "${domainId}" practice domain is temporarily unavailable while its ` +
         `question content is being rebuilt.`,
     );
     err.status = 503;
     err.code = 'DOMAIN_NOT_SERVABLE';
+    err.reason = WITHHELD_DOMAINS[domainId];
     throw err;
   }
 }

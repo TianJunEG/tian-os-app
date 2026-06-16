@@ -395,7 +395,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'engine_ready', // moneyDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // scripts/domains/money.js (5 skills)
+      practice: 'planned',        // WITHHELD: MoneyQuestionGenerator.js ships misgrades (negative "money left", malformed amounts, bare-integer answers the checker rejects). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -423,7 +423,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'engine_ready', // timeDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // scripts/domains/time.js (5 skills)
+      practice: 'planned',        // WITHHELD: TimeQuestionGenerator.js ships misgrades (fabricated durations, impossible clock faces, concatenated-integer answers that don't match the prompt). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',

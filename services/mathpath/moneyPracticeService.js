@@ -4,6 +4,7 @@ import {
 } from '../../shared/mathpath/money/MoneyQuestionGenerator.js';
 import { selectNextMoneyPracticeTarget } from '../../shared/mathpath/money/MoneyPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/money/MoneySkillGraph.js';
+import { assertDomainServable } from './stubDomainGate.js';
 
 export const DOMAIN_ID = 'money';
 
@@ -16,6 +17,7 @@ function statusFromAccuracy(accuracy) {
 export function buildMoneyPracticeSession({
   targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6, mode = 'practice',
 } = {}) {
+  assertDomainServable(DOMAIN_ID);
   let skillId = targetSkillId;
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextMoneyPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
