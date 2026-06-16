@@ -17,6 +17,20 @@ describe('buildMascotNarration', () => {
     expect(body).toContain('mastered 7 of 26');
   });
 
+  it('names the selected domain in the mastered-count win', () => {
+    const { body } = buildMascotNarration(
+      { mastered: 5, total: 20, streak: 0 },
+      { childName: 'Ivy', domainName: 'Decimals' },
+    );
+    expect(body).toContain('mastered 5 of 20 Decimals skills');
+    expect(body).not.toContain('fraction');
+  });
+
+  it('falls back to a generic "skills" noun when no domain is given', () => {
+    const { body } = buildMascotNarration({ mastered: 3, total: 10, streak: 0 }, { childName: 'Roy' });
+    expect(body).toContain('mastered 3 of 10 skills');
+  });
+
   it('handles a cold start (no progress yet) without sounding negative', () => {
     const { body } = buildMascotNarration({ mastered: 0, total: 26, streak: 0 }, { childName: 'Sam' });
     expect(body).toContain('just getting started');
