@@ -18,7 +18,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM001_002',
     skillId: 'TM001',
@@ -34,7 +34,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM002_001',
     skillId: 'TM002',
@@ -50,7 +50,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM002_002',
     skillId: 'TM002',
@@ -66,7 +66,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM003_001',
     skillId: 'TM003',
@@ -82,7 +82,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM003_002',
     skillId: 'TM003',
@@ -98,7 +98,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM004_001',
     skillId: 'TM004',
@@ -114,7 +114,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM004_002',
     skillId: 'TM004',
@@ -130,7 +130,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM005_001',
     skillId: 'TM005',
@@ -146,7 +146,7 @@ const families = [
     assessmentRelevant: true,
     mentalMathEligible: false,
     workingRequired: true,
-  }
+  },
   {
     id: 'QF_TM005_002',
     skillId: 'TM005',
