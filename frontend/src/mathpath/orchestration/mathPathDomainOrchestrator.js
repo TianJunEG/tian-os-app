@@ -110,8 +110,20 @@ function deriveFluencyState(attemptHistory = []) {
   };
 }
 
+// Canonical registry domains the pipeline accepts. Fractions has dedicated
+// frontend engines; the other domains run the parent-dashboard ('full') path
+// using provided/empty state + the domain-generic dashboard engine (which
+// resolves a per-domain skill graph). The fractions-specific COMPUTE branches
+// (diagnostic build, practice build, mistake fallback) are gated to fractions
+// inside runMathPathDomainPipeline so foreign data never hits a fractions engine.
+const SUPPORTED_DOMAINS = new Set([
+  'fractions', 'decimals', 'percentage', 'ratio', 'circles', 'geometry', 'algebra',
+  'volume', 'area_perimeter', 'statistics', 'speed', 'four_operations',
+  'number_sense', 'money', 'time', 'measurement',
+]);
+
 export function getDomainEngines(domainId) {
-  if (domainId !== 'fractions') return null;
+  if (!SUPPORTED_DOMAINS.has(domainId)) return null;
   return {
     diagnostic: { buildFractionDiagnosticSession, scoreFractionDiagnosticAttempt },
     practice: { buildFractionPracticeSession, getFractionPracticeQueue },
@@ -233,7 +245,7 @@ export function runMathPathDomainPipeline(options = {}) {
     if (mode === 'diagnostic' || mode === 'full' || mode === 'practice' || mode === 'fluency' || mode === 'retention' || mode === 'assessment') {
       if (options.diagnosticResult) {
         diagnostic = { summary: safeObj(options.diagnosticResult), source: 'provided' };
-      } else if (Array.isArray(options.diagnosticResponses) && options.diagnosticResponses.length) {
+      } else if (domainId === 'fractions' && Array.isArray(options.diagnosticResponses) && options.diagnosticResponses.length) {
         const session = buildFractionDiagnosticSession({
           studentLevel: options.studentLevel || 'P4',
           mode: options.diagnosticMode || 'core',
@@ -254,7 +266,7 @@ export function runMathPathDomainPipeline(options = {}) {
     if (mode === 'practice' || mode === 'full' || mode === 'fluency' || mode === 'retention' || mode === 'assessment') {
       if (options.practiceState) {
         practice = { state: safeObj(options.practiceState), source: 'provided' };
-      } else {
+      } else if (domainId === 'fractions') {
         const session = buildFractionPracticeSession({
           studentId,
           diagnosticResult: diagnostic?.summary || {},
@@ -318,7 +330,7 @@ export function runMathPathDomainPipeline(options = {}) {
       const plans = options.mistakePlans || [];
       if (plans.length) {
         mistakes = { plans, source: 'provided' };
-      } else {
+      } else if (domainId === 'fractions') {
         const fallback = buildMistakeToMasteryPlan({
           studentId,
           mistakeResults: [],
@@ -397,7 +409,7 @@ export function runMathPathDomainPipeline(options = {}) {
 export function validateMathPathDomainOrchestrator() {
   const unsupported = runMathPathDomainPipeline({
     studentId: 's1',
-    domainId: 'algebra',
+    domainId: 'not_a_real_domain',
     mode: 'full',
   });
   const invalidMode = runMathPathDomainPipeline({

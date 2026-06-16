@@ -6,7 +6,7 @@ import FEATURE_FLAGS from '../../config/featureFlags';
 import ChildNav from './ChildNav';
 import { useChild } from './useChild';
 import { mathpathAPI } from '../../services/api';
-import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
+import { deriveParentPayload, availableDomainsFromMastery, domainLabel } from './parentDomainDashboardData';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
 import { buildMascotNarration } from '../../mathpath/dashboard/parentMascotNarration';
@@ -138,7 +138,7 @@ function ChelyaUpdateCard({ snapshot }) {
   );
 }
 
-function ParentDashboardMvp({ snapshot, studentId, navigate }) {
+function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathPath' }) {
   const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId || 'F010')}`;
   const worksheetUrl = `/parent/children/${studentId}/worksheets/new?mode=weak_skills&worksheetType=parent_support_worksheet`;
   const mistakesUrl = `/parent/children/${studentId}/mistakes`;
@@ -154,7 +154,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills Mastered</p>
           <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-emerald-deep">{snapshot.mastered}/{snapshot.total}</p>
-          <p className="mt-1 text-sm text-ink-500">{snapshot.masteryPercent}% of Fractions</p>
+          <p className="mt-1 text-sm text-ink-500">{snapshot.masteryPercent}% of {domainName}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Focus</p>
@@ -222,14 +222,14 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
   );
 }
 
-function ParentOverviewCard({ summary, currentFocus }) {
+function ParentOverviewCard({ summary, currentFocus, domainName = 'MathPath' }) {
   return (
     <Card className="p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Overall Status</p>
           <p className="text-xl font-semibold text-emerald-deep">{toTitle(summary.overallStatus)}</p>
-          <p className="mt-1 text-sm text-ink-600">Current domain: Fractions</p>
+          <p className="mt-1 text-sm text-ink-600">Current domain: {domainName}</p>
           <p className="mt-1 text-sm text-ink-700">Current focus: {currentFocus || 'Start with diagnostic'}</p>
         </div>
         <Badge tone={statusTone(summary.overallStatus)}>Readiness: {toTitle(summary.assessmentSummary?.readinessBand || 'developing')}</Badge>
@@ -404,46 +404,14 @@ function WeeklyActionPlanCard({ plan, onPrimary }) {
   );
 }
 
-function deriveParentPayload(studentId, mastery, workingAnalysisSummary = {}) {
-  const records = Array.isArray(mastery?.records) ? mastery.records : [];
-  const masteredSkillIds = records
-    .filter((r) => ['mastered', 'accurate', 'fluent', 'retained'].includes(String(r.status || '').toLowerCase()))
-    .map((r) => r.skillId)
-    .filter(Boolean);
-  const weakSkillIds = records
-    .filter((r) => ['weak', 'needs_review', 'needsreview'].includes(String(r.status || '').toLowerCase()))
-    .map((r) => r.skillId)
-    .filter(Boolean);
-  const fluentSkillIds = records
-    .filter((r) => ['fluent', 'retained'].includes(String(r.status || '').toLowerCase()))
-    .map((r) => r.skillId)
-    .filter(Boolean);
-
-  const pipeline = runMathPathDomainPipeline({
-    studentId,
-    domainId: 'fractions',
-    mode: 'full',
-    practiceState: {
-      currentSkillId: mastery?.recommended?.skillId || null,
-      masteredSkillIds,
-      weakSkillIds,
-      fluentSkillIds,
-    },
-    retentionState: {},
-    assessmentResults: [],
-    mistakePlans: [],
-    workingAnalysisSummary,
-  });
-  return pipeline.parentDashboard || null;
-}
-
 export default function ParentMathPathDashboardPage() {
   const { studentId } = useParams();
   const navigate = useNavigate();
   const child = useChild(studentId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [summary, setSummary] = useState(null);
+  const [masteryRaw, setMasteryRaw] = useState(null);
+  const [selectedDomain, setSelectedDomain] = useState('fractions');
   const [placement, setPlacement] = useState(null);
   const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
   const [assigningRecovery, setAssigningRecovery] = useState(false);
@@ -457,7 +425,7 @@ export default function ParentMathPathDashboardPage() {
     loadRequestRef.current = requestId;
     setLoading(true);
     setError('');
-    setSummary(null);
+    setMasteryRaw(null);
     setPlacement(null);
     setDiagnosticGrowth(null);
     setWorkingReview(null);
@@ -472,8 +440,7 @@ export default function ParentMathPathDashboardPage() {
         mathpathAPI.fluency(studentId),
       ]);
       if (requestId !== loadRequestRef.current) return;
-      const parentPayload = deriveParentPayload(studentId, masteryRes?.data || {}, workingRes?.data?.summary || {});
-      setSummary(parentPayload);
+      setMasteryRaw(masteryRes?.data || {});
       setPlacement(latestRes?.data?.result || null);
       setDiagnosticGrowth(growthRes?.data || null);
       setWorkingReview(workingRes?.data || null);
@@ -505,6 +472,22 @@ export default function ParentMathPathDashboardPage() {
   }, [diagnosticGrowth, studentId]);
 
   useEffect(() => { load(); }, [load]);
+
+  const availableDomains = useMemo(() => availableDomainsFromMastery(masteryRaw), [masteryRaw]);
+
+  // Derived per-domain summary — recomputes when the parent switches domain,
+  // no refetch (records are already in masteryRaw).
+  const summary = useMemo(
+    () => (masteryRaw ? deriveParentPayload(studentId, masteryRaw, workingReview?.summary || {}, selectedDomain) : null),
+    [masteryRaw, workingReview, selectedDomain, studentId]
+  );
+
+  // If the selected domain has no data for this child, fall back to one that does.
+  useEffect(() => {
+    if (availableDomains.length && !availableDomains.includes(selectedDomain)) {
+      setSelectedDomain(availableDomains[0]);
+    }
+  }, [availableDomains, selectedDomain]);
 
   const primary = useMemo(() => {
     const actions = summary?.recommendedNextActions || [];
@@ -541,14 +524,28 @@ export default function ParentMathPathDashboardPage() {
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
       <PageHeader
         title="Parent MathPath Dashboard"
-        subtitle="Fractions intervention pilot view of mastery, fluency, retention, and next actions."
+        subtitle={`${domainLabel(selectedDomain)} view of mastery, fluency, retention, and next actions.`}
         action={(
           <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
         )}
       />
 
+      {availableDomains.length > 1 && (
+        <div className="mb-4 flex items-center gap-2">
+          <label htmlFor="parent-domain" className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Domain</label>
+          <select
+            id="parent-domain"
+            value={selectedDomain}
+            onChange={(event) => setSelectedDomain(event.target.value)}
+            className="h-10 rounded-xl border border-line-soft bg-surface-white px-3 text-sm font-semibold text-emerald-deep outline-none focus:border-emerald"
+          >
+            {availableDomains.map((id) => <option key={id} value={id}>{domainLabel(id)}</option>)}
+          </select>
+        </div>
+      )}
+
       <div className="space-y-4">
-        <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} />
+        <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} domainName={domainLabel(selectedDomain)} />
         <DiagnosticGrowthCard
           growth={diagnosticGrowth}
           onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath`)}
@@ -557,7 +554,7 @@ export default function ParentMathPathDashboardPage() {
           assigningRecovery={assigningRecovery}
           assignmentMessage={assignmentMessage}
         />
-        <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} />
+        <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} domainName={domainLabel(selectedDomain)} />
         {!!placementSkill && (
           <Card className="p-4">
             <p className="text-sm text-ink-600">
