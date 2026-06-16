@@ -96,6 +96,11 @@ export default function AreaPerimeterLearningPathPage() {
           </div>
           <Button size="s" icon={ArrowRight} onClick={() => startPractice(view.recommendedNext.skillId)}>Practise</Button>
         </div>
+        <div className="mt-4 border-t border-ink-100 pt-3">
+          <button type="button" onClick={() => navigate('/student/mathpath/area-perimeter/diagnostic')} className="text-sm font-semibold text-emerald-deep hover:text-emerald-deep">
+            Not sure where to start? Take a quick check-in →
+          </button>
+        </div>
       </Card>
 
       {selected && (
