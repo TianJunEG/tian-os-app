@@ -1,4 +1,5 @@
-import { fractionSkillGraph, getSkill } from '../fractions/fractionSkillGraph.js';
+import { fractionSkillGraph, getSkill as getFractionSkill } from '../fractions/fractionSkillGraph.js';
+import { resolveDomainSkillGraph } from './domainSkillGraphResolver.js';
 import {
   buildAdultActionCentre,
   buildUnifiedAdultIntelligenceModel,
@@ -15,20 +16,27 @@ function dedupe(arr) {
   return [...new Set(arr)];
 }
 
-function skillName(skillId) {
-  return getSkill(skillId)?.name || skillId;
+// Build a skill-id → parent-friendly name labeller for a domain's skill lookup.
+// Resolves a human name when the lookup knows the skill; otherwise returns the
+// raw value (already-friendly strings pass straight through).
+function makeLabeller(getSkillFn) {
+  return function labelFor(value) {
+    if (!value) return '';
+    const skill = typeof getSkillFn === 'function' ? getSkillFn(value) : null;
+    if (skill?.name) return skill.name;
+    return String(value);
+  };
 }
 
-function toParentLabel(value) {
-  if (!value) return '';
-  if (value.startsWith('F')) return skillName(value);
-  return String(value);
-}
+// Default labeller preserves the prior fractions behaviour for any caller that
+// does not supply a domain labeller.
+const defaultLabel = makeLabeller(getFractionSkill);
 
 function stripTechnicalJargon(text) {
   return String(text || '')
-    .replace(/\bF\d{3}\b/g, '')
-    .replace(/\bQF_F\d{3}_\d{3}\b/g, '')
+    .replace(/\bF\d{3}\b/g, '')                       // fractions skill code, e.g. F010
+    .replace(/\bQF_F\d{3}_\d{3}\b/g, '')               // fractions question-family code
+    .replace(/\b[A-Z]\d?-[A-Z]{2,5}-\d{2,3}\b/g, '')   // P6-style code, e.g. P6-PCT-01, P6-SPD-02
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
@@ -41,7 +49,7 @@ function statusBandFromMetrics({ percentageMastered = 0, readinessScore = 0, wea
   return 'needsSupport';
 }
 
-export function buildMasteryProgressSummary(skillGraph = fractionSkillGraph, studentState = {}) {
+export function buildMasteryProgressSummary(skillGraph = fractionSkillGraph, studentState = {}, labelFor = defaultLabel) {
   const totalSkills = skillGraph?.skillIds?.length || 0;
   const masteredSet = new Set(studentState.masteredSkillIds || []);
   const weakSet = new Set(studentState.weakSkillIds || []);
@@ -60,28 +68,28 @@ export function buildMasteryProgressSummary(skillGraph = fractionSkillGraph, stu
 
   return {
     totalSkills,
-    masteredSkills: masteredSkills.map(toParentLabel),
-    fluentSkills: fluentSkills.map(toParentLabel),
-    retainedSkills: retainedSkills.map(toParentLabel),
-    inProgressSkills: inProgressSkills.map(toParentLabel),
-    weakSkills: weakSkills.map(toParentLabel),
+    masteredSkills: masteredSkills.map(labelFor),
+    fluentSkills: fluentSkills.map(labelFor),
+    retainedSkills: retainedSkills.map(labelFor),
+    inProgressSkills: inProgressSkills.map(labelFor),
+    weakSkills: weakSkills.map(labelFor),
     percentageMastered,
     percentageFluent,
     percentageRetained,
   };
 }
 
-export function buildFluencyParentSummary(fluencyState = {}) {
+export function buildFluencyParentSummary(fluencyState = {}, labelFor = defaultLabel) {
   const familyResults = fluencyState.questionFamilyResults || [];
   const accurateButSlowAreas = familyResults
     .filter((r) => r.status === 'accurateButSlow')
-    .map((r) => r.displayName || toParentLabel(r.skillId || r.questionFamilyId));
+    .map((r) => r.displayName || labelFor(r.skillId || r.questionFamilyId));
   const fluentAreas = familyResults
     .filter((r) => r.status === 'fluent')
-    .map((r) => r.displayName || toParentLabel(r.skillId || r.questionFamilyId));
+    .map((r) => r.displayName || labelFor(r.skillId || r.questionFamilyId));
   const automaticAreas = familyResults
     .filter((r) => r.status === 'automatic')
-    .map((r) => r.displayName || toParentLabel(r.skillId || r.questionFamilyId));
+    .map((r) => r.displayName || labelFor(r.skillId || r.questionFamilyId));
 
   const overallFluencyBand =
     automaticAreas.length >= 3 ? 'advanced'
@@ -100,10 +108,10 @@ export function buildFluencyParentSummary(fluencyState = {}) {
   return { overallFluencyBand, accurateButSlowAreas, fluentAreas, automaticAreas, parentExplanation };
 }
 
-export function buildRetentionParentSummary(retentionState = {}) {
-  const retainedSkills = (retentionState.retainedSkillIds || []).map(toParentLabel);
-  const skillsDueForReview = (retentionState.skillsDueForReview || []).map(toParentLabel);
-  const skillsNeedingRefresh = (retentionState.skillsNeedingRefresh || []).map(toParentLabel);
+export function buildRetentionParentSummary(retentionState = {}, labelFor = defaultLabel) {
+  const retainedSkills = (retentionState.retainedSkillIds || []).map(labelFor);
+  const skillsDueForReview = (retentionState.skillsDueForReview || []).map(labelFor);
+  const skillsNeedingRefresh = (retentionState.skillsNeedingRefresh || []).map(labelFor);
 
   const parentExplanation =
     skillsDueForReview.length || skillsNeedingRefresh.length
@@ -113,7 +121,7 @@ export function buildRetentionParentSummary(retentionState = {}) {
   return { retainedSkills, skillsDueForReview, skillsNeedingRefresh, parentExplanation };
 }
 
-export function buildAssessmentParentSummary(assessmentResults = []) {
+export function buildAssessmentParentSummary(assessmentResults = [], labelFor = defaultLabel) {
   const list = Array.isArray(assessmentResults) ? assessmentResults : [];
   const latest = list[list.length - 1] || null;
   const previous = list[list.length - 2] || null;
@@ -128,10 +136,10 @@ export function buildAssessmentParentSummary(assessmentResults = []) {
   const latestSkillEntries = Object.entries(latest?.skillBreakdown || {});
   const improvedAreas = latestSkillEntries
     .filter(([, v]) => toNum(v.percentage) >= 75)
-    .map(([skillId]) => toParentLabel(skillId));
+    .map(([skillId]) => labelFor(skillId));
   const weakAreas = latestSkillEntries
     .filter(([, v]) => toNum(v.percentage) < 60)
-    .map(([skillId]) => toParentLabel(skillId));
+    .map(([skillId]) => labelFor(skillId));
 
   const parentExplanation =
     latestScore === null
@@ -143,11 +151,11 @@ export function buildAssessmentParentSummary(assessmentResults = []) {
   return { latestScore, previousScore, scoreChange, readinessBand, improvedAreas, weakAreas, parentExplanation };
 }
 
-export function buildMistakeParentSummary(mistakeToMasteryPlans = []) {
+export function buildMistakeParentSummary(mistakeToMasteryPlans = [], labelFor = defaultLabel) {
   const plans = Array.isArray(mistakeToMasteryPlans) ? mistakeToMasteryPlans : [];
   const latest = plans[plans.length - 1] || {};
-  const likelyRootCauses = (latest.rootCauseSkillIds || []).map(toParentLabel);
-  const recommendedRemediation = (latest.remediationQueue || []).slice(0, 5).map((q) => toParentLabel(q.skillId));
+  const likelyRootCauses = (latest.rootCauseSkillIds || []).map(labelFor);
+  const recommendedRemediation = (latest.remediationQueue || []).slice(0, 5).map((q) => labelFor(q.skillId));
   const parentExplanation =
     likelyRootCauses.length
       ? `We identified likely root causes in ${likelyRootCauses.slice(0, 3).join(', ')}. Targeted review is recommended before moving to harder tasks.`
@@ -253,16 +261,23 @@ export function buildParentMathPathSummary(options = {}) {
     helpRequests = [],
   } = options;
 
-  const masteryProgress = buildMasteryProgressSummary(fractionSkillGraph, {
+  // Resolve the domain's skill graph + name lookup (defaults to fractions).
+  // options.skillGraph / options.getSkill allow an explicit override (tests,
+  // future per-level resolution).
+  const resolved = resolveDomainSkillGraph(domainId);
+  const skillGraph = options.skillGraph || resolved.skillGraph;
+  const labelFor = makeLabeller(options.getSkill || resolved.getSkill);
+
+  const masteryProgress = buildMasteryProgressSummary(skillGraph, {
     masteredSkillIds: practiceState.masteredSkillIds || diagnosticResult.masteredSkillIds || [],
     weakSkillIds: practiceState.weakSkillIds || diagnosticResult.weakSkillIds || [],
     fluentSkillIds: fluencyState.fluentSkillIds || [],
     retainedSkillIds: retentionState.retainedSkillIds || [],
-  });
-  const fluencySummary = buildFluencyParentSummary(fluencyState);
-  const retentionSummary = buildRetentionParentSummary(retentionState);
-  const assessmentSummary = buildAssessmentParentSummary(assessmentResults);
-  const mistakeSummary = buildMistakeParentSummary(mistakeToMasteryPlans);
+  }, labelFor);
+  const fluencySummary = buildFluencyParentSummary(fluencyState, labelFor);
+  const retentionSummary = buildRetentionParentSummary(retentionState, labelFor);
+  const assessmentSummary = buildAssessmentParentSummary(assessmentResults, labelFor);
+  const mistakeSummary = buildMistakeParentSummary(mistakeToMasteryPlans, labelFor);
   const workingSummary = buildWorkingQualityParentSummary(workingAnalysisSummary);
 
   const currentWeaknesses = dedupe([
@@ -339,7 +354,7 @@ export function buildParentMathPathSummary(options = {}) {
     workingSummary,
     parentHome: {
       overallProgress: masteryProgress.percentageMastered,
-      currentFocusSkills: adultIntelligence.masterySignals.currentFocusSkills.map((skillId) => toParentLabel(skillId)),
+      currentFocusSkills: adultIntelligence.masterySignals.currentFocusSkills.map((skillId) => labelFor(skillId)),
       recentlyMasteredSkills: adultIntelligence.masterySignals.recentlyMasteredSkills,
       skillsRequiringAttention: adultIntelligence.masterySignals.skillsRequiringAttention,
       upcomingActivities: adultIntelligence.upcomingActivities,
