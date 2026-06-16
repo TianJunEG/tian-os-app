@@ -566,7 +566,8 @@ export const tutorsAPI = {
 export const parentsAPI = {
   createProfile: (data) => api.post('/parents/profile', data),
   getProfile: () => api.get('/parents/profile'),
-  updateProfile: (data) => api.put('/parents/profile', data)
+  updateProfile: (data) => api.put('/parents/profile', data),
+  mathpathNarration: (data) => api.post('/parents/mathpath-narration', data, { skipErrorToast: true }),
 };
 
 // Partners API

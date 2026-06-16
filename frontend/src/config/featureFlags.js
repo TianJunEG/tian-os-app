@@ -22,6 +22,9 @@ export const FEATURE_FLAGS = {
   // Mascot-narrated parent progress update (Chelya) on the parent dashboard.
   // Prototype — default off; enable with VITE_ENABLE_PARENT_NARRATION=true.
   parentNarration: flagEnabled('PARENT_NARRATION', false),
+  // Tier 2: LLM-generated (warmer, varied) parent narration; falls back to the
+  // deterministic Tier 1 composer. Requires parentNarration on too. Default off.
+  parentNarrationAI: flagEnabled('PARENT_NARRATION_AI', false),
   // Metacognition: prompt students to explain why a correct answer worked
   // (self-explanation effect). Prototype — default off; enable with
   // VITE_ENABLE_SELF_EXPLANATION=true.

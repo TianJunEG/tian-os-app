@@ -5,7 +5,7 @@ import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSectio
 import FEATURE_FLAGS from '../../config/featureFlags';
 import ChildNav from './ChildNav';
 import { useChild } from './useChild';
-import { mathpathAPI } from '../../services/api';
+import { mathpathAPI, parentsAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
@@ -124,7 +124,26 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
 }
 
 function ChelyaUpdateCard({ snapshot }) {
-  const { body } = buildMascotNarration(snapshot, { childName: snapshot.childName });
+  // Tier 1: deterministic, instant.
+  const tier1 = buildMascotNarration(snapshot, { childName: snapshot.childName });
+  // Tier 2 (opt-in): warmer LLM narration; falls back to Tier 1 on any error.
+  const [aiBody, setAiBody] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (!FEATURE_FLAGS.parentNarrationAI) return undefined;
+    parentsAPI
+      .mathpathNarration({ childName: snapshot.childName, summary: snapshot })
+      .then((res) => {
+        const n = res?.data?.narration;
+        if (!cancelled && n?.body) {
+          setAiBody(n.nextStep ? `${n.body} Best next step: ${n.nextStep}` : n.body);
+        }
+      })
+      .catch(() => { /* keep Tier 1 */ });
+    return () => { cancelled = true; };
+  }, [snapshot]);
+
+  const body = aiBody || tier1.body;
   if (!body) return null;
   return (
     <Card className="border-l-4 p-5" style={{ borderLeftColor: '#059669' }}>
