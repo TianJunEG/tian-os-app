@@ -323,3 +323,55 @@ export async function generateReinforcement({ topic, misconceptions, gradeLevel,
 
   return result.questions || [];
 }
+
+// Tier 2 of the mascot-narrated parent report: a warm, growth-mindset progress
+// note "from Chelya", generated from the structured snapshot. Constrained to the
+// supplied facts (no invented skills/scores). Callers fall back to the
+// deterministic Tier 1 composer (parentMascotNarration) on any error.
+const PARENT_NARRATION_SYSTEM = [
+  'You are Chelya, a warm, encouraging learning mascot writing a short progress',
+  "note to a parent about their child's MathPath practice.",
+  'Use a growth-mindset tone: praise effort and strategy; never say the child is',
+  '"behind", "failing", or "struggling".',
+  'Use ONLY the facts provided — do not invent skills, scores, or claims.',
+  'Keep it to 2–3 warm sentences and end with one concrete next step.',
+].join(' ');
+
+const PARENT_NARRATION_SCHEMA = {
+  type: 'object',
+  properties: {
+    headline: { type: 'string', description: 'A short warm headline, ~8 words max.' },
+    body: { type: 'string', description: '2-3 warm sentences using only the provided facts.' },
+    nextStep: { type: 'string', description: 'One concrete next step for the parent/child.' },
+  },
+  required: ['headline', 'body', 'nextStep'],
+  additionalProperties: false,
+};
+
+export async function generateParentNarration({ childName, summary = {} }) {
+  const facts = [
+    `Child: ${childName || 'the student'}.`,
+    `Skills mastered: ${summary.mastered ?? 0}${summary.total ? ` of ${summary.total}` : ''}.`,
+    summary.masteryPercent != null ? `Mastery: ${summary.masteryPercent}% of the current topic.` : '',
+    summary.streak ? `Current streak: ${summary.streak} days.` : '',
+    summary.attentionSkill
+      ? `Current growth area: ${summary.attentionSkill}${summary.accuracy != null ? ` (around ${summary.accuracy}% accuracy)` : ''}.`
+      : '',
+    summary.recommendation ? `Suggested next step: ${summary.recommendation}.` : '',
+  ].filter(Boolean).join('\n');
+
+  const instructions = [
+    'Write a short parent progress note from Chelya using ONLY these facts:',
+    facts,
+    'Return only the structured data.',
+  ].join('\n');
+
+  return callStructured({
+    model: getActiveProvider().models().primary,
+    system: PARENT_NARRATION_SYSTEM,
+    messages: [{ role: 'user', content: instructions }],
+    schema: PARENT_NARRATION_SCHEMA,
+    effort: 'low',
+    maxTokens: 600,
+  });
+}

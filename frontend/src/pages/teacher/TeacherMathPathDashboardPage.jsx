@@ -8,6 +8,8 @@ import { useClass } from './useClass';
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Spinner, CollapsibleSection } from '../../components/ui';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
+import { MascotBubble } from '../../components/MascotAvatar';
+import { buildTeacherNarration } from '../../mathpath/dashboard/teacherMascotNarration';
 
 function toneForSeverity(severity) {
   if (severity === 'high') return 'error';
@@ -19,6 +21,18 @@ function masteryTone(pct) {
   if (pct >= 70) return 'navy';
   if (pct >= 55) return 'gold';
   return 'error';
+}
+
+// Class-level "Chelya update" — a one-line read of where the class is + where to start.
+function TeacherChelyaCard({ overview, flaggedCount, className }) {
+  const { body } = buildTeacherNarration(overview || {}, { className, needsAttentionCount: flaggedCount });
+  if (!body) return null;
+  return (
+    <Card className="border-l-4 p-5" style={{ borderLeftColor: '#059669' }}>
+      <p className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: '#059669' }}>Class update</p>
+      <div className="mt-3"><MascotBubble name="chelya" message={body} size="sm" /></div>
+    </Card>
+  );
 }
 
 // The hero of the page: students who need the teacher's attention this week,
@@ -346,6 +360,13 @@ export default function TeacherMathPathDashboardPage() {
       </Card>
 
       <div className="space-y-4">
+        {FEATURE_FLAGS.teacherNarration && (
+          <TeacherChelyaCard
+            overview={dashboard.classOverview}
+            flaggedCount={(dashboard.flaggedStudents || []).length}
+            className={meta?.name}
+          />
+        )}
         <NeedsAttentionCard rows={dashboard.flaggedStudents || []} onOpenStudent={openStudent} />
         <ClassOverviewCard data={dashboard.classOverview} />
 

@@ -1,8 +1,23 @@
 import express from 'express';
 import User from '../models/User.js';
 import { protect, authorize } from '../middleware/auth.js';
+import { generateParentNarration } from '../utils/aiService.js';
 
 const router = express.Router();
+
+// @route   POST /api/parents/mathpath-narration
+// @desc    Tier 2: warm, LLM-generated "Chelya's update" from a progress snapshot
+// @access  Private (parent only)
+router.post('/mathpath-narration', protect, authorize('parent'), async (req, res) => {
+  try {
+    const { childName, summary } = req.body || {};
+    const narration = await generateParentNarration({ childName, summary: summary || {} });
+    res.json({ success: true, narration });
+  } catch (error) {
+    // Client falls back to the deterministic Tier 1 composer.
+    res.status(502).json({ success: false, error: 'narration_unavailable' });
+  }
+});
 
 // @route   POST /api/parents/profile
 // @desc    Create/update parent profile
