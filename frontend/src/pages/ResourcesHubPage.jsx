@@ -29,6 +29,15 @@ function ResourceCard({ resource }) {
         transition: 'border-color .2s, transform .2s, box-shadow .2s',
       }}
     >
+      {resource.images?.[0]?.url && (
+        <div style={{ margin: '-24px -26px 20px', borderRadius: '14px 14px 0 0', overflow: 'hidden', height: 160 }}>
+          <img
+            src={resource.images[0].url}
+            alt={resource.images[0].alt || resource.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        </div>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <span style={{
           fontFamily: 'ui-monospace, monospace', fontSize: 11,

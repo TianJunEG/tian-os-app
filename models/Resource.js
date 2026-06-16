@@ -50,7 +50,17 @@ const resourceSchema = new mongoose.Schema(
     gated: {
       type: Boolean,
       default: false
-    }
+    },
+    images: [
+      {
+        alt: { type: String, default: '' },
+        prompt: { type: String, default: '' },
+        url: { type: String },
+        storageKey: { type: String },
+        storageProvider: { type: String, enum: ['r2', 'disk'], default: 'disk' },
+        generatedAt: { type: Date },
+      },
+    ],
   },
   { timestamps: true }
 );
