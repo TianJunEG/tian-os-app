@@ -59,6 +59,10 @@ const RemediationJourney = lazy(() => import('./pages/student/mathpath/Remediati
 const FractionsLearningPathPage = lazy(() => import('./pages/student/mathpath/FractionsLearningPathPage'));
 const DecimalsLearningPathPage = lazy(() => import('./pages/student/mathpath/DecimalsLearningPathPage'));
 const DecimalsPracticeSession = lazy(() => import('./pages/student/mathpath/DecimalsPracticeSession'));
+const PercentagesLearningPathPage = lazy(() => import('./pages/student/mathpath/PercentagesLearningPathPage'));
+const PercentagesPracticeSession = lazy(() => import('./pages/student/mathpath/PercentagesPracticeSession'));
+const RatioRateLearningPathPage = lazy(() => import('./pages/student/mathpath/RatioRateLearningPathPage'));
+const RatioRatePracticeSession = lazy(() => import('./pages/student/mathpath/RatioRatePracticeSession'));
 const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
 const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
 const DecimalsAssessmentSession = lazy(() => import('./pages/student/mathpath/DecimalsAssessmentSession'));
@@ -589,6 +593,10 @@ function App() {
             <Route path="/student/mathpath/decimals/diagnostic" element={<DecimalsDiagnosticSession />} />
             <Route path="/student/mathpath/decimals/fluency" element={<DecimalsFluencySession />} />
             <Route path="/student/mathpath/decimals/assessment" element={<DecimalsAssessmentSession />} />
+            <Route path="/student/mathpath/percentages" element={<PercentagesLearningPathPage />} />
+            <Route path="/student/mathpath/percentages/practice" element={<PercentagesPracticeSession />} />
+            <Route path="/student/mathpath/ratio-rate" element={<RatioRateLearningPathPage />} />
+            <Route path="/student/mathpath/ratio-rate/practice" element={<RatioRatePracticeSession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
             <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />
