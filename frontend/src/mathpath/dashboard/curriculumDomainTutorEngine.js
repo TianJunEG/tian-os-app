@@ -106,9 +106,15 @@ export function buildCurriculumDomainDashboard(options = {}) {
   // --- Root cause analysis -------------------------------------------------
   const rootCauses = weakSkills.map((w) => {
     const chain = prerequisiteChain(w.skillId, resolvers);
-    // Suspected root cause: deepest prerequisite that is itself weak / un-secure.
-    const suspect = chain.find((id) => id !== w.skillId && (isWeakState(stateBySkill.get(id) || {}) || !isSecureState(stateBySkill.get(id) || {})))
-      || chain[0]
+    const candidates = chain.filter((id) => id !== w.skillId);
+    // Suspected root cause, in priority order: a tracked prerequisite that is
+    // itself weak → a tracked prerequisite not yet secure → an in-domain
+    // (name-resolvable) prerequisite → the weak skill itself. This avoids
+    // surfacing unresolved cross-domain prerequisite ids (e.g. a Decimals skill
+    // referenced by a Percentage skill) as the headline root cause.
+    const suspect = candidates.find((id) => stateBySkill.has(id) && isWeakState(stateBySkill.get(id)))
+      || candidates.find((id) => stateBySkill.has(id) && !isSecureState(stateBySkill.get(id)))
+      || candidates.find((id) => resolvers.getSkillName(id) !== id)
       || w.skillId;
     return {
       weakSkillId: w.skillId,
