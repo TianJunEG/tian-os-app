@@ -77,14 +77,25 @@ function topicStatusForStudent(recordsInTopic) {
 // ── Home ──────────────────────────────────────────────────────────
 router.get('/home', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
-  const classes = await Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id, status: 'active' });
-  const activeInterventions = await InterventionRecord.countDocuments({ workspaceId: req.workspaceId, status: { $in: ['needs_support', 'improving'] } });
-  // Classes needing attention: any with students scoring needs_review.
+  const [classes, activeInterventions] = await Promise.all([
+    Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id, status: 'active' }),
+    InterventionRecord.countDocuments({ workspaceId: req.workspaceId, status: { $in: ['needs_support', 'improving'] } }),
+  ]);
+  // Batch roster + mastery look-ups to avoid N+1.
+  const classIds = classes.map((c) => c._id);
+  const allLinks = await ClassStudent.find({ classId: { $in: classIds }, status: 'active' }).select('classId studentId');
+  const idsPerClass = new Map(classIds.map((id) => [String(id), []]));
+  for (const l of allLinks) idsPerClass.get(String(l.classId))?.push(l.studentId);
+  const allStudentIds = [...new Set(allLinks.map((l) => String(l.studentId)))];
+  const reviewRecs = allStudentIds.length
+    ? await MasteryRecord.find({ studentId: { $in: allStudentIds }, status: 'needs_review' }).select('studentId')
+    : [];
+  const reviewStudentSet = new Set(reviewRecs.map((r) => String(r.studentId)));
   const attention = [];
   for (const c of classes) {
-    const ids = await rosterIds(c._id);
-    const recs = await MasteryRecord.find({ studentId: { $in: ids }, status: 'needs_review' });
-    if (recs.length) attention.push({ classId: c._id, name: c.name, flagged: new Set(recs.map((r) => String(r.studentId))).size });
+    const ids = idsPerClass.get(String(c._id)) || [];
+    const flagged = ids.filter((id) => reviewStudentSet.has(String(id))).length;
+    if (flagged) attention.push({ classId: c._id, name: c.name, flagged });
   }
   res.json({ classCount: classes.length, activeInterventions, attention });
 }));
@@ -93,18 +104,38 @@ router.get('/home', asyncHandler(async (req, res) => {
 router.get('/classes', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
   const classes = await Class.find({ workspaceId: req.workspaceId, teacherUserId: req.user.id }).sort({ createdAt: 1 });
-  const out = await Promise.all(classes.map(async (c) => {
-    const ids = await rosterIds(c._id);
-    const recs = await MasteryRecord.find({ studentId: { $in: ids } }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } });
+  if (!classes.length) return res.json({ classes: [] });
+
+  // Batch all roster + mastery + assignment queries — avoids N queries per class.
+  const classIds = classes.map((c) => c._id);
+  const allLinks = await ClassStudent.find({ classId: { $in: classIds }, status: 'active' }).select('classId studentId');
+  const idsPerClass = new Map(classIds.map((id) => [String(id), []]));
+  for (const l of allLinks) idsPerClass.get(String(l.classId))?.push(l.studentId);
+  const allStudentIds = [...new Set(allLinks.map((l) => String(l.studentId)))];
+
+  const [allRecs, allAssignments] = allStudentIds.length
+    ? await Promise.all([
+        MasteryRecord.find({ studentId: { $in: allStudentIds } }).populate({ path: 'skillId', model: Skill, populate: { path: 'topicId' } }),
+        Assignment.find({ studentId: { $in: allStudentIds } }).select('studentId status'),
+      ])
+    : [[], []];
+
+  const recsByStudent = new Map();
+  for (const r of allRecs) { const k = String(r.studentId); if (!recsByStudent.has(k)) recsByStudent.set(k, []); recsByStudent.get(k).push(r); }
+  const assignmentsByStudent = new Map();
+  for (const a of allAssignments) { const k = String(a.studentId); if (!assignmentsByStudent.has(k)) assignmentsByStudent.set(k, []); assignmentsByStudent.get(k).push(a); }
+
+  const out = classes.map((c) => {
+    const ids = idsPerClass.get(String(c._id)) || [];
+    const recs = ids.flatMap((id) => recsByStudent.get(String(id)) || []);
+    const assignments = ids.flatMap((id) => assignmentsByStudent.get(String(id)) || []);
     const overall = recs.length ? Math.round(recs.reduce((s, r) => s + r.score, 0) / recs.length) : 0;
-    const assignments = await Assignment.find({ studentId: { $in: ids } });
     const completion = assignments.length ? Math.round((assignments.filter((a) => a.status === 'completed').length / assignments.length) * 100) : 0;
-    // Weakest topic = topic with lowest average score.
     const byTopic = {};
     for (const r of recs) { const t = r.skillId?.topicId?.name || '—'; (byTopic[t] ||= []).push(r.score); }
     const weakestTopic = Object.entries(byTopic).map(([t, arr]) => [t, arr.reduce((a, b) => a + b, 0) / arr.length]).sort((a, b) => a[1] - b[1])[0]?.[0] || null;
     return { classId: c._id, name: c.name, level: c.level, modules: c.modules, studentCount: ids.length, overallMastery: overall, completionRate: completion, weakestTopic };
-  }));
+  });
   res.json({ classes: out });
 }));
 
@@ -519,7 +550,7 @@ router.post('/classes/:id/interventions', asyncHandler(async (req, res) => {
 
 router.put('/interventions/:iid', asyncHandler(async (req, res) => {
   if (!ensureTeacherWorkspace(req, res)) return;
-  const i = await InterventionRecord.findOne({ _id: req.params.iid, workspaceId: req.workspaceId });
+  const i = await InterventionRecord.findOne({ _id: req.params.iid, workspaceId: req.workspaceId, teacherUserId: req.user.id });
   if (!i) return res.status(404).json({ error: 'Intervention not found.' });
   for (const k of ['status', 'notes', 'nextAction']) if (req.body[k] !== undefined) i[k] = req.body[k];
   i.updatedAt = new Date();

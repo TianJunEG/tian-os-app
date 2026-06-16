@@ -58,8 +58,13 @@ describe('Scenario 1: Strong student climbs difficulty', () => {
     expect(d.nextDifficulty).toBe(2);
   });
 
-  it('marks SECURE when no harder related skill exists', () => {
+  it('asks for same-level confirmation on first correct when no harder skill exists', () => {
     const d = decide('F010', { correct: true, confidence: 'high', timeTakenMs: 10000 });
+    expect(d.decisionType).toBe(DIAGNOSTIC_DECISIONS.SAME_LEVEL_CONFIRMATION);
+  });
+
+  it('marks SECURE after two correct answers with high confidence when no harder skill exists', () => {
+    const d = decide('F010', { correct: true, confidence: 'high', timeTakenMs: 10000 }, { currentSkillCorrectCount: 1 });
     expect(d.decisionType).toBe(DIAGNOSTIC_DECISIONS.MARK_SECURE);
   });
 });

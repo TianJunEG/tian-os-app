@@ -16,6 +16,9 @@ vi.mock('../../../services/api', () => ({
     updateMistakeLearning: (...args) => mocks.updateMistakeLearning(...args),
     startSession: (...args) => mocks.startSession(...args),
   },
+  learningTelemetryAPI: {
+    recordEvent: vi.fn().mockResolvedValue({}),
+  },
 }));
 
 vi.mock('react-router-dom', async () => {

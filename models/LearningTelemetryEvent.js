@@ -28,6 +28,9 @@ export const LEARNING_EVENT_TYPES = [
   'recommendation_selected',
   'mastery_test_started',
   'mastery_test_completed',
+  'mistake_detail_viewed',
+  'correction_attempted',
+  'recheck_completed',
 ];
 
 const learningTelemetryEventSchema = new mongoose.Schema(

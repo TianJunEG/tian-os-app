@@ -144,7 +144,8 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow same-origin/non-browser requests (no Origin header), explicit allowlist,
     // and Vercel preview deployments (*.vercel.app).
-    if (!origin || allowedOrigins.includes(origin) || localDevOriginRegex.test(origin) || vercelPreviewRegex.test(origin)) {
+    const allowLocalDev = process.env.NODE_ENV !== 'production' && localDevOriginRegex.test(origin);
+    if (!origin || allowedOrigins.includes(origin) || allowLocalDev || vercelPreviewRegex.test(origin)) {
       return callback(null, true);
     }
     return callback(new Error('Not allowed by CORS'));
@@ -177,7 +178,11 @@ app.use('/uploads', express.static('uploads'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'Backend is running', timestamp: new Date() });
+  const dbState = mongoose.connection.readyState; // 1 = connected
+  if (dbState !== 1) {
+    return res.status(503).json({ status: 'degraded', db: 'disconnected', timestamp: new Date() });
+  }
+  res.json({ status: 'ok', db: 'connected', timestamp: new Date() });
 });
 
 // Ops-friendly root health endpoint for Render checks and quick curl tests.

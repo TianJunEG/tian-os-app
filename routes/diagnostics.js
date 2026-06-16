@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import MathPathDiagnosticSession from '../models/mathpath/MathPathDiagnosticSession.js';
 import {
   answerAdaptiveDiagnostic,
   startAdaptiveDiagnostic,
@@ -92,6 +93,102 @@ router.get('/recheck-summary/:sessionId', protect, asyncHandler(async (req, res)
     return res.json({ studentId: String(student._id), subjectId, domainId, diagnosticSessionId: req.params.sessionId, summary });
   } catch (err) {
     return sendDiagnosticError(res, err, 'Failed to load recheck summary.');
+  }
+}));
+
+// Returns any in-progress diagnostic session for the authenticated student so the
+// frontend can resume after a tab close instead of getting a 409 on a fresh /start.
+router.get('/in-progress', protect, asyncHandler(async (req, res) => {
+  try {
+    const { subjectId = 'math', domainId } = req.query;
+    const student = await resolveStudent(req);
+    const query = {
+      studentId: String(student._id),
+      status: 'inProgress',
+    };
+    if (subjectId) query.subjectId = subjectId;
+    if (domainId) query.domainId = domainId;
+    const session = await MathPathDiagnosticSession.findOne(query).sort({ createdAt: -1 });
+    if (!session) return res.status(404).json({ code: 'NO_ACTIVE_SESSION', message: 'No in-progress diagnostic session.' });
+    return res.json({
+      sessionId: session.diagnosticSessionId,
+      subjectId: session.subjectId,
+      domainId: session.domainId,
+      status: session.status,
+      currentQuestionId: session.currentQuestionId,
+      questionCount: session.questionIds?.length || 0,
+      answeredCount: session.responses?.length || 0,
+      resumable: true,
+    });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to check for in-progress diagnostic.');
+  }
+}));
+
+// Rehydrates an in-progress session so the student can resume after a tab close.
+// Returns the minimal state needed to continue without triggering a fresh /start,
+// which would hit the 409 DIAGNOSTIC_REPLAY_BLOCKED guard.
+router.get('/:sessionId/resume', protect, asyncHandler(async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const session = await MathPathDiagnosticSession.findOne({
+      diagnosticSessionId: req.params.sessionId,
+    });
+    if (!session) {
+      return res.status(404).json({ code: 'SESSION_NOT_FOUND', error: 'Diagnostic session not found.' });
+    }
+    if (String(session.studentId) !== String(student._id)) {
+      return res.status(403).json({ code: 'FORBIDDEN', error: 'This diagnostic session belongs to a different student.' });
+    }
+    if (session.status === 'completed') {
+      return res.status(409).json({
+        code: 'SESSION_COMPLETED',
+        error: 'This diagnostic session is already completed.',
+        result: session.result || {},
+      });
+    }
+    const adaptiveState = session.adaptiveState || {};
+    const attemptedIds = new Set((adaptiveState.attemptedQuestionIds || []).map(String));
+    const remainingQuestionIds = (adaptiveState.candidateQuestionIds || []).filter(
+      (id) => !attemptedIds.has(String(id))
+    );
+
+    // Attempt to load the current question object so the frontend can render it
+    // immediately without a separate fetch.
+    let currentQuestion = null;
+    if (session.currentQuestionId) {
+      try {
+        const domain = getDiagnosticDomain({
+          subjectId: session.subjectId || 'math',
+          domainId: session.domainId,
+        });
+        const questionDoc = await domain.getQuestionById(session.currentQuestionId);
+        if (questionDoc) {
+          currentQuestion = domain.normaliseQuestion(questionDoc, questionDoc.skillId);
+        }
+      } catch (_) {
+        // Non-fatal: frontend will display a fallback if currentQuestion is null.
+      }
+    }
+
+    return res.json({
+      sessionId: session.diagnosticSessionId,
+      subjectId: session.subjectId,
+      domainId: session.domainId,
+      diagnosticPurpose: session.diagnosticPurpose,
+      mode: session.mode,
+      studentLevel: session.studentLevel,
+      status: session.status,
+      currentQuestionId: session.currentQuestionId,
+      currentSkillId: session.currentSkillId,
+      currentQuestion,
+      answeredCount: adaptiveState.answeredCount || 0,
+      estimatedQuestionCount: adaptiveState.maxQuestions || 10,
+      remainingQuestionIds,
+      responses: adaptiveState.responses || [],
+    });
+  } catch (err) {
+    return sendDiagnosticError(res, err, 'Failed to resume diagnostic session.');
   }
 }));
 

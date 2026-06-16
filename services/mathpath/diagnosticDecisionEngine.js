@@ -263,6 +263,10 @@ export function decideNextDiagnosticStep({
   }
 
   if (correct && confidence === 'high' && !slow) {
+    const skillId = toId(currentSkill);
+    const bySkill = studentEvidence.attemptsBySkill?.[skillId] || sessionState.attemptsBySkill?.[skillId] || {};
+    const priorCorrect = toNumber(bySkill.correctCount, 0) + toNumber(sessionState.currentSkillCorrectCount, 0);
+    const MIN_CORRECT_FOR_SECURE = 2;
     if (moveUpId) {
       return makeDecision({
         ...base,
@@ -272,10 +276,19 @@ export function decideNextDiagnosticStep({
         reason: 'Correct answer with high confidence and reasonable time. Move to a harder linked skill.',
       });
     }
+    if (priorCorrect >= MIN_CORRECT_FOR_SECURE - 1) {
+      return makeDecision({
+        ...base,
+        decisionType: DIAGNOSTIC_DECISIONS.MARK_SECURE,
+        reason: 'At least 2 correct answers with high confidence. Mark current skill secure.',
+      });
+    }
     return makeDecision({
       ...base,
-      decisionType: DIAGNOSTIC_DECISIONS.MARK_SECURE,
-      reason: 'Correct answer with high confidence and reasonable time. Mark current skill secure.',
+      decisionType: DIAGNOSTIC_DECISIONS.SAME_LEVEL_CONFIRMATION,
+      nextSkillId: skillId,
+      nextDifficulty: skillDifficulty(currentSkill),
+      reason: 'First correct answer with high confidence — need one more to confirm before marking secure.',
     });
   }
 

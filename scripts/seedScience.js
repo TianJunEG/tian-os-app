@@ -20,6 +20,11 @@ import Question from '../models/Question.js';
 import { cleanupOrphanMastery } from './cleanupOrphanMastery.js';
 
 dotenv.config();
+
+if (process.env.NODE_ENV === "production") {
+  console.error("Seed script: refusing to run in production (NODE_ENV=production).");
+  process.exit(1);
+}
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
 const LEGACY = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/p6Science.json'), 'utf8'));

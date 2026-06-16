@@ -1,7 +1,7 @@
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Check, Dumbbell, AlertTriangle, Lightbulb, Wand2 } from 'lucide-react';
-import { mathpathAPI } from '../../../services/api';
+import { mathpathAPI, learningTelemetryAPI } from '../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection, Textarea } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
 import RemediationPanel from '../../../components/mathpath/RemediationPanel';
@@ -89,6 +89,12 @@ export default function MistakeDetail() {
     try {
       const { data } = await mathpathAPI.mistake(mistakeId);
       setM(data || null);
+      learningTelemetryAPI.recordEvent({
+        eventType: 'mistake_detail_viewed',
+        skillCode: data?.skillId || data?.skillCode || '',
+        domain: data?.module || data?.domainId || '',
+        metadata: { mistakeId, learningStatus: data?.learningStatus || '' },
+      }).catch(() => {});
     } catch (e) { setError(e.response?.data?.error || 'Could not load mistake.'); }
     finally { setLoading(false); }
   };
@@ -100,6 +106,14 @@ export default function MistakeDetail() {
     try {
       const { data } = await mathpathAPI.updateMistakeLearning(mistakeId, { source: 'student', ...payload });
       setLearningMessage(data.message || 'Progress saved.');
+      if (payload.action === 'correct') {
+        learningTelemetryAPI.recordEvent({
+          eventType: 'correction_attempted',
+          skillCode: m?.skillId || m?.skillCode || '',
+          domain: m?.module || m?.domainId || '',
+          metadata: { mistakeId, correctionCorrect: data?.correctionCorrect ?? null },
+        }).catch(() => {});
+      }
       await load();
     } catch (err) {
       setLearningMessage(err?.response?.data?.error || 'Could not save mistake learning progress.');

@@ -26,7 +26,7 @@ const MODULES = [
     icon: Pencil,
     label: 'Coming soon',
     title: 'Spelling',
-    body: 'Systematic spelling practice tied to the MOE word list, with AI-generated sentences and adaptive recall scheduling.',
+    body: 'Systematic spelling practice tied to the MOE word list, with contextual sentences and adaptive recall scheduling.',
     active: false,
   },
 ];
