@@ -37,7 +37,6 @@ router.use(protect, requireWorkspace);
 
 // Reject if the active workspace is not a tutor workspace (defence in depth).
 function ensureTutorWorkspace(req, res) {
-  if (process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1') return true;
   if (req.workspaceRole !== 'tutor') { res.status(403).json({ error: 'Not a tutor workspace.' }); return false; }
   return true;
 }

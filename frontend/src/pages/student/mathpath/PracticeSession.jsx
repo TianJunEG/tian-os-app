@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Check, ChevronRight, HelpCircle, Lightbulb, Maximize2, RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowRight, Check, ChevronRight, HelpCircle, Lightbulb, Maximize2, Mic, MicOff, RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
 import { learningTelemetryAPI, mathpathAPI } from '../../../services/api';
 import { confettiBurst } from '../../../utils/confetti';
 import { useAuth } from '../../../context/AuthContext';
@@ -54,7 +54,7 @@ import {
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
 import { isFractionsStoryModeEnabled, FEATURE_FLAGS } from '../../../config/featureFlags';
-import { getMisconceptionHintForSkill } from '../../../mathpath/fractions/misconceptionHints';
+import { getMisconceptionFromAnswer } from '../../../mathpath/fractions/misconceptionHints';
 import FractionsStoryModeSession from './FractionsStoryModeSession';
 import { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
 import QuestionDiagram, {
@@ -95,8 +95,8 @@ const SELF_EXPLANATION_OPTIONS = [
 
 // After a wrong (non-skipped) answer, Talia surfaces the likely misconception for
 // the skill and what to do — only when a hint is catalogued for that skill.
-function MisconceptionHint({ skillId }) {
-  const hint = getMisconceptionHintForSkill(skillId);
+function MisconceptionHint({ question, studentAnswer }) {
+  const hint = getMisconceptionFromAnswer(question, studentAnswer);
   if (!hint) return null;
   return (
     <div className="mt-3">
@@ -105,8 +105,29 @@ function MisconceptionHint({ skillId }) {
   );
 }
 
+// Returns a SpeechRecognition instance if the browser supports it, else null.
+function makeSpeechRecognizer() {
+  const SR = (typeof window !== 'undefined') && (window.SpeechRecognition || window.webkitSpeechRecognition);
+  if (!SR) return null;
+  const rec = new SR();
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.lang = 'en-SG';
+  return rec;
+}
+
 function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'kylo' }) {
   const [chosen, setChosen] = useState(null);
+  // mic states: 'idle' | 'recording' | 'review' | 'done' | 'denied' | 'unavailable'
+  const [micState, setMicState] = useState(() => {
+    if (!FEATURE_FLAGS.spokenInput) return 'unavailable';
+    const SR = (typeof window !== 'undefined') && (window.SpeechRecognition || window.webkitSpeechRecognition);
+    return SR ? 'idle' : 'unavailable';
+  });
+  const [transcript, setTranscript] = useState('');
+  const [interimText, setInterimText] = useState('');
+  const recRef = useRef(null);
+
   const choose = (value) => {
     setChosen(value);
     if (value === 'skipped') return;
@@ -116,34 +137,137 @@ function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'ky
       questionId: questionId || '',
       sessionId: sessionId || '',
       reason: value,
-    }).catch(() => { /* non-blocking */ });
+    }).catch(() => {});
   };
+
+  const startRecording = () => {
+    const rec = makeSpeechRecognizer();
+    if (!rec) return;
+    recRef.current = rec;
+    let final = '';
+    rec.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      setTranscript(final);
+      setInterimText(interim);
+    };
+    rec.onerror = (e) => {
+      if (e.error === 'not-allowed' || e.error === 'permission-denied') setMicState('denied');
+      else setMicState('idle');
+    };
+    rec.onend = () => {
+      setInterimText('');
+      setMicState((s) => s === 'recording' ? 'review' : s);
+    };
+    try {
+      rec.start();
+      setMicState('recording');
+    } catch {
+      setMicState('idle');
+    }
+  };
+
+  const stopRecording = () => {
+    recRef.current?.stop();
+    // onend fires → sets state to 'review'
+  };
+
+  const confirmTranscript = () => {
+    setMicState('done');
+    setChosen('spoken');
+    learningTelemetryAPI.recordEvent({
+      eventType: 'spoken_self_explanation',
+      skillId: skillId || '',
+      questionId: questionId || '',
+      sessionId: sessionId || '',
+      transcript: transcript.trim(),
+      engine: 'web_speech_api',
+    }).catch(() => {});
+  };
+
+  const retryRecording = () => {
+    setTranscript('');
+    setMicState('idle');
+  };
+
+  const doneMessage = chosen === 'spoken'
+    ? 'Great — saying it out loud helps it stick! 🧠'
+    : chosen && chosen !== 'skipped'
+    ? 'Thanks — explaining it helps it stick! 🧠'
+    : null;
+
   return (
     <div className="mt-3 rounded-xl border border-purple-tint bg-purple-tint p-3">
       <MascotBubble
         name={mascotKey}
         size="sm"
-        message={chosen && chosen !== 'skipped' ? 'Thanks — explaining it helps it stick! 🧠' : 'Nice! Why did that work?'}
+        message={doneMessage || (micState === 'recording' ? "I'm listening — explain it in your own words!" : 'Nice! Why did that work?')}
       />
-      {!chosen && (
+
+      {/* Chip options */}
+      {!chosen && micState !== 'recording' && micState !== 'review' && (
         <div className="mt-2 flex flex-wrap gap-2">
           {SELF_EXPLANATION_OPTIONS.map((o) => (
-            <button
-              key={o.value}
-              type="button"
-              onClick={() => choose(o.value)}
-              className="rounded-full border border-purple-tint bg-white px-3 py-1.5 text-xs font-semibold text-purple hover:bg-purple-tint"
-            >
+            <button key={o.value} type="button" onClick={() => choose(o.value)}
+              className="rounded-full border border-purple-tint bg-white px-3 py-1.5 text-xs font-semibold text-purple hover:bg-purple-tint">
               {o.label}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => choose('skipped')}
-            className="rounded-full px-3 py-1.5 text-xs font-medium text-ink-400 hover:text-ink-600"
-          >
+
+          {/* Mic button — only when Web Speech is available */}
+          {micState === 'idle' && (
+            <button type="button" onClick={startRecording}
+              className="inline-flex items-center gap-1.5 rounded-full border border-purple-tint bg-white px-3 py-1.5 text-xs font-semibold text-purple hover:bg-purple-tint">
+              <Mic className="h-3.5 w-3.5" /> Speak it
+            </button>
+          )}
+          {micState === 'denied' && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1.5 text-xs text-amber-700">
+              <MicOff className="h-3.5 w-3.5" /> Mic access blocked
+            </span>
+          )}
+
+          <button type="button" onClick={() => choose('skipped')}
+            className="rounded-full px-3 py-1.5 text-xs font-medium text-ink-400 hover:text-ink-600">
             Skip
           </button>
+        </div>
+      )}
+
+      {/* Recording state */}
+      {micState === 'recording' && (
+        <div className="mt-2 space-y-2">
+          <p className="min-h-[1.5rem] rounded-lg bg-white/70 px-3 py-2 text-sm italic text-ink-600">
+            {interimText || transcript || '…'}
+          </p>
+          <button type="button" onClick={stopRecording}
+            className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 px-4 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-200">
+            <MicOff className="h-3.5 w-3.5" /> Stop
+          </button>
+        </div>
+      )}
+
+      {/* Review transcript */}
+      {micState === 'review' && (
+        <div className="mt-2 space-y-2">
+          <p className="rounded-lg bg-white px-3 py-2 text-sm text-ink-700">
+            {transcript.trim() || <span className="italic text-ink-400">Nothing captured — try again.</span>}
+          </p>
+          <div className="flex gap-2">
+            {transcript.trim() && (
+              <button type="button" onClick={confirmTranscript}
+                className="inline-flex items-center gap-1.5 rounded-full bg-purple px-4 py-1.5 text-xs font-semibold text-white hover:opacity-90">
+                <Check className="h-3.5 w-3.5" /> Use this
+              </button>
+            )}
+            <button type="button" onClick={retryRecording}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line-soft bg-white px-4 py-1.5 text-xs font-semibold text-ink-600 hover:bg-ink-50">
+              <Mic className="h-3.5 w-3.5" /> Try again
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -986,7 +1110,7 @@ function LegacyPracticeSession() {
           />
         )}
         {FEATURE_FLAGS.misconceptionFeedback && result && result.correct === false && !result.skipped && (
-          <MisconceptionHint key={q.questionId} skillId={q.skillId} />
+          <MisconceptionHint key={q.questionId} question={q} studentAnswer={answer} />
         )}
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
         <div className="mt-auto pt-4">{!result ? <Button size="l" disabled={busy || !answer} onClick={openReviewModal} className="w-full">Submit answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>

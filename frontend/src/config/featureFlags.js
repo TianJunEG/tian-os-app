@@ -44,6 +44,12 @@ export const FEATURE_FLAGS = {
   // and what to do about it. Prototype — default off; enable with
   // VITE_ENABLE_MISCONCEPTION_FEEDBACK=true.
   misconceptionFeedback: flagEnabled('MISCONCEPTION_FEEDBACK', false),
+  // Spoken self-explanation: mic button on the self-explanation prompt lets
+  // students speak their reasoning aloud (Web Speech API, transcribed + stored).
+  // Phase 1: free-form transcription only, no answer parsing. Default off; enable
+  // with VITE_ENABLE_SPOKEN_INPUT=true. Requires parental consent before enabling
+  // for under-13 students in production (COPPA / SG PDPA).
+  spokenInput: flagEnabled('SPOKEN_INPUT', false),
   assessments: ASSESSMENTS_ENABLED,
   modelTrainer: MODEL_TRAINER_ENABLED,
   workingMathInserts: WORKING_MATH_INSERTS_ENABLED,
