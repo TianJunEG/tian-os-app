@@ -301,7 +301,9 @@ export function checkMeasurementAnswer({ question, studentResponse }) {
   const exp = String(question.answer?.display ?? question.answer ?? '').trim().toLowerCase();
   if (['<', '>', '='].includes(exp)) return { correct: raw === exp };
   if (raw === exp) return { correct: true };
-  const digits = (s) => s.replace(/[^0-9.\-]/g, '');
+  // Strip unit tokens first so the "3" in "cm3" isn't read as a digit.
+  const stripUnits = (s) => s.replace(/cm³|cm3|cm²|cm2|m³|m3|m²|m2|cm|km|mm|ml|kg|\bl\b|\bg\b/g, '');
+  const digits = (s) => stripUnits(s).replace(/[^0-9.\-]/g, '');
   const a = digits(raw), b = digits(exp);
   if (a !== '' && a === b) return { correct: true };
   const na = parseFloat(a), nb = parseFloat(b);
