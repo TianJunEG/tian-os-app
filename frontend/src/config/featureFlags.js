@@ -27,6 +27,10 @@ export const FEATURE_FLAGS = {
   parentNarrationAI: flagEnabled('PARENT_NARRATION_AI', false),
   // Class-level Chelya update on the teacher MathPath dashboard. Default off.
   teacherNarration: flagEnabled('TEACHER_NARRATION', false),
+  // On-device spoken input (Whisper STT) for self-explanation. Prototype, default
+  // OFF. Captures child voice — requires parental consent + legal review before
+  // production enablement. Enable with VITE_ENABLE_SPEECH_INPUT=true.
+  speechInput: flagEnabled('SPEECH_INPUT', false),
   // Metacognition: prompt students to explain why a correct answer worked
   // (self-explanation effect). Prototype — default off; enable with
   // VITE_ENABLE_SELF_EXPLANATION=true.

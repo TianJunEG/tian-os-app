@@ -55,6 +55,7 @@ import {
 } from '../../../mathpath/state/mathPathDomainProgressState';
 import { isFractionsStoryModeEnabled, FEATURE_FLAGS } from '../../../config/featureFlags';
 import { getMisconceptionFromAnswer } from '../../../mathpath/fractions/misconceptionMatchers';
+import SpeechInputButton from '../../../components/SpeechInputButton';
 import FractionsStoryModeSession from './FractionsStoryModeSession';
 import { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
 import QuestionDiagram, {
@@ -108,7 +109,7 @@ function MisconceptionHint({ question, studentAnswer }) {
 
 function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'kylo' }) {
   const [chosen, setChosen] = useState(null);
-  const choose = (value) => {
+  const choose = (value, detail) => {
     setChosen(value);
     if (value === 'skipped') return;
     learningTelemetryAPI.recordEvent({
@@ -117,6 +118,7 @@ function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'ky
       questionId: questionId || '',
       sessionId: sessionId || '',
       reason: value,
+      ...(detail ? { detail } : {}),
     }).catch(() => { /* non-blocking */ });
   };
   return (
@@ -145,6 +147,9 @@ function SelfExplanationPrompt({ skillId, questionId, sessionId, mascotKey = 'ky
           >
             Skip
           </button>
+          {FEATURE_FLAGS.speechInput && (
+            <SpeechInputButton label="Say why" onTranscript={(text) => choose('spoken', text)} />
+          )}
         </div>
       )}
     </div>
