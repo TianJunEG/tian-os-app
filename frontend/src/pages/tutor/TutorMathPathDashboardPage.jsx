@@ -128,15 +128,18 @@ function derivePracticeState(mastery = {}, student = {}) {
   };
 }
 
-function TutorOverviewCard({ studentName, dashboard, currentSkill }) {
+function TutorOverviewCard({ studentName, dashboard, currentSkill, activeDomain }) {
   const topPriority = dashboard.interventionPriorities?.[0];
+  const domainLabel = activeDomain && activeDomain !== 'fractions'
+    ? (CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label || activeDomain)
+    : 'Fractions';
   return (
     <Card className="p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Tutor Overview</p>
           <p className="text-lg font-semibold text-emerald-deep">{studentName}</p>
-          <p className="mt-1 text-sm text-ink-600">Domain: Fractions</p>
+          <p className="mt-1 text-sm text-ink-600">Domain: {domainLabel}</p>
           <p className="text-sm text-ink-600">Current skill: {skillLabel(currentSkill)}</p>
           <p className="mt-1 text-sm text-ink-700">Overall readiness: {dashboard.tutorNotes?.readinessBand || 'developing'} ({dashboard.tutorNotes?.readinessScore ?? '—'})</p>
         </div>
@@ -804,13 +807,13 @@ export default function TutorMathPathDashboardPage() {
     setError('');
     try {
       const [studentRes, masteryRes, latestRes, growthRes, workingRes, fluencyRes, retentionRes] = await Promise.all([
-        tutorAPI.student(id),
-        mathpathAPI.mastery({ studentId: id }),
-        mathpathAPI.getLatestDiagnostic({ studentId: id }),
-        mathpathAPI.getDiagnosticGrowth({ studentId: id }),
-        mathpathAPI.workingReviewSummary({ studentId: id }),
-        mathpathAPI.fluency(id),
-        mathpathAPI.retention(id),
+        tutorAPI.student(id).catch(() => null),
+        mathpathAPI.mastery({ studentId: id }).catch(() => null),
+        mathpathAPI.getLatestDiagnostic({ studentId: id }).catch(() => null),
+        mathpathAPI.getDiagnosticGrowth({ studentId: id }).catch(() => null),
+        mathpathAPI.workingReviewSummary({ studentId: id }).catch(() => null),
+        mathpathAPI.fluency(id).catch(() => null),
+        mathpathAPI.retention(id).catch(() => null),
       ]);
       const studentPayload = studentRes?.data || {};
       const masteryPayload = masteryRes?.data || {};
@@ -1010,7 +1013,7 @@ export default function TutorMathPathDashboardPage() {
         <WorkingEvidenceMvp workingReview={workingReview || {}} />
         <TutorActionsMvp id={id} navigate={navigate} />
 
-        <TutorOverviewCard studentName={studentMeta?.name || 'Student'} dashboard={dashboard} currentSkill={dashboard.tutorNotes?.currentSkill} />
+        <TutorOverviewCard studentName={studentMeta?.name || 'Student'} dashboard={dashboard} currentSkill={dashboard.tutorNotes?.currentSkill} activeDomain={activeDomain} />
         <AdultWorkingReviewPanel review={workingReview || {}} title="Working Review Queue" />
 
         <CollapsibleSection

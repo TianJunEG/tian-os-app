@@ -57,7 +57,7 @@ export default function TutorStudentProfile() {
                 <li key={m.id} className="text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-medium text-ink-700">{m.skillName}</p>
-                    <StatusBadge status={m.learningStatus === 'mastered' ? 'mastered' : m.learningStatus === 'new' ? 'needs_review' : 'learning'} />
+                    <StatusBadge status={m.learningStatus || 'new'} />
                   </div>
                   <p className="text-xs font-semibold text-ink-500">{MISTAKE_LEARNING_LABEL[m.learningStatus || 'new'] || 'Learning'}</p>
                   <p className="text-ink-500"><MathText text={m.questionStem} /></p>

@@ -79,8 +79,10 @@ router.get('/students', asyncHandler(async (req, res) => {
   const studentIds = await tutorStudentIds(req);
   const students = await Student.find({ _id: { $in: studentIds } });
   const out = await Promise.all(students.map(async (s) => {
-    const sum = await masterySummary(s._id);
-    const assignments = await Assignment.find({ studentId: s._id });
+    const [sum, assignments] = await Promise.all([
+      masterySummary(s._id),
+      Assignment.find({ studentId: s._id }),
+    ]);
     const done = assignments.filter((a) => a.status === 'completed').length;
     return { studentId: s._id, name: s.name, level: s.level, focusArea: s.profile?.mainFocus || 'MathPath',
       overallMastery: sum.overallMastery, weakestSkill: sum.weakestSkill, weakestTopic: sum.weakestTopic,
@@ -357,7 +359,15 @@ router.post('/students/:id/mistakes/:mistakeId/explanation-audio', audioUpload.s
 // @route GET/POST /api/tutor/lesson-notes — MathPath lesson notes API
 router.get('/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
-  const student = await requireLinkedStudent({ ...req, params: { id: req.query.studentId } }, res); if (!student) return;
+  const studentId = req.query.studentId;
+  if (!studentId) return res.status(400).json({ error: 'studentId query param is required.' });
+  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
+  const partnerAllowed = !link ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId }) : false;
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
+    return res.status(403).json({ error: 'Student not assigned to you.' });
+  }
+  const student = await Student.findById(studentId);
+  if (!student) return res.status(404).json({ error: 'Student not found.' });
   const notes = await LessonNote.find({
     studentId: student._id,
     workspaceId: req.workspaceId,
@@ -369,7 +379,15 @@ router.get('/lesson-notes', asyncHandler(async (req, res) => {
 
 router.post('/lesson-notes', asyncHandler(async (req, res) => {
   if (!ensureTutorWorkspace(req, res)) return;
-  const student = await requireLinkedStudent({ ...req, params: { id: req.body?.studentId } }, res); if (!student) return;
+  const studentId = req.body?.studentId;
+  if (!studentId) return res.status(400).json({ error: 'studentId is required.' });
+  const link = await TutorStudentLink.findOne({ workspaceId: req.workspaceId, tutorUserId: req.user.id, studentId });
+  const partnerAllowed = !link ? await userCanAccessPartnerStudent({ userId: req.user.id, studentId }) : false;
+  if (!link && !partnerAllowed && !(process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
+    return res.status(403).json({ error: 'Student not assigned to you.' });
+  }
+  const student = await Student.findById(studentId);
+  if (!student) return res.status(404).json({ error: 'Student not found.' });
   const b = req.body || {};
   const note = await LessonNote.create({
     workspaceId: req.workspaceId,
