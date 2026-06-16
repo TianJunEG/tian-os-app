@@ -9,6 +9,8 @@ import { mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
+import { buildMascotNarration } from '../../mathpath/dashboard/parentMascotNarration';
+import { MascotBubble } from '../../components/MascotAvatar';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
 
 function statusTone(status) {
@@ -105,6 +107,7 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
   });
 
   return {
+    childName: child?.name || '',
     mastered,
     total,
     masteryPercent,
@@ -120,6 +123,21 @@ function deriveParentSnapshot(summary = {}, placement = null, child = null) {
   };
 }
 
+function ChelyaUpdateCard({ snapshot }) {
+  const { body } = buildMascotNarration(snapshot, { childName: snapshot.childName });
+  if (!body) return null;
+  return (
+    <Card className="border-l-4 p-5" style={{ borderLeftColor: '#059669' }}>
+      <p className="text-xs font-semibold uppercase tracking-[0.08em]" style={{ color: '#059669' }}>
+        Your weekly update
+      </p>
+      <div className="mt-3">
+        <MascotBubble name="chelya" message={body} size="sm" />
+      </div>
+    </Card>
+  );
+}
+
 function ParentDashboardMvp({ snapshot, studentId, navigate }) {
   const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId || 'F010')}`;
   const worksheetUrl = `/parent/children/${studentId}/worksheets/new?mode=weak_skills&worksheetType=parent_support_worksheet`;
@@ -127,6 +145,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate }) {
 
   return (
     <div className="space-y-4">
+      {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} />}
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-navy-700">What to know right now</h2>
