@@ -126,8 +126,12 @@ function numberLine(spec) {
 
 function partWholeBar(spec) {
   const parts = spec.data.parts || [];
+  const { totalLabel } = spec.data;
   const total = parts.reduce((s, p) => s + Number(p.value || 0), 0) || 1;
-  const w = spec.width; const h = spec.height; const x = 40; const y = h / 2 - 20; const bw = w - 80; const bh = 40;
+  const w = spec.width; const h = spec.height;
+  // Reserve extra height at bottom when totalLabel is present
+  const bracketH = totalLabel ? 36 : 0;
+  const x = 40; const y = (h - bracketH) / 2 - 20; const bw = w - 80; const bh = 40;
   if (REDUCE_MOTION) {
     let cursor = x; let body = '';
     for (const p of parts) {
@@ -135,9 +139,17 @@ function partWholeBar(spec) {
       body += `<rect x="${cursor}" y="${y}" width="${pw}" height="${bh}" fill="${esc(p.fill || '#dbeafe')}" stroke="#111"/><text x="${cursor + pw / 2}" y="${y + 25}" font-size="13" text-anchor="middle">${esc(p.label || '')}</text>`;
       cursor += pw;
     }
+    if (totalLabel) {
+      const by = y + bh + 8;
+      body += `<line x1="${x}" y1="${by}" x2="${x}" y2="${by + 10}" stroke="#111"/>`;
+      body += `<line x1="${x + bw}" y1="${by}" x2="${x + bw}" y2="${by + 10}" stroke="#111"/>`;
+      body += `<line x1="${x}" y1="${by + 10}" x2="${x + bw}" y2="${by + 10}" stroke="#111"/>`;
+      body += `<text x="${x + bw / 2}" y="${by + 26}" font-size="16" font-weight="700" text-anchor="middle" fill="#1d4ed8">${esc(totalLabel)}</text>`;
+    }
     return svgShell(spec, body, 'part whole bar');
   }
   const perPart = Math.min(0.2, 1.0 / (parts.length || 1));
+  const allPartsEnd = (parts.length - 1) * perPart + 0.3;
   let cursor = x; let body = ''; let idx = 0;
   for (const p of parts) {
     const pw = bw * (Number(p.value || 0) / total);
@@ -148,17 +160,34 @@ function partWholeBar(spec) {
     cursor += pw;
     idx += 1;
   }
+  if (totalLabel) {
+    const by = y + bh + 8;
+    const bracketDelay = (allPartsEnd + 0.1).toFixed(2);
+    const labelDelay2 = (allPartsEnd + 0.3).toFixed(2);
+    body += `<line x1="${x}" y1="${by}" x2="${x}" y2="${by + 10}" stroke="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="${bracketDelay}s" fill="freeze"/></line>`;
+    body += `<line x1="${x + bw}" y1="${by}" x2="${x + bw}" y2="${by + 10}" stroke="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.15s" begin="${bracketDelay}s" fill="freeze"/></line>`;
+    body += `<line x1="${x}" y1="${by + 10}" x2="${x + bw}" y2="${by + 10}" stroke="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="${bracketDelay}s" fill="freeze"/></line>`;
+    body += `<text x="${x + bw / 2}" y="${by + 26}" font-size="16" font-weight="700" text-anchor="middle" fill="#1d4ed8" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="${labelDelay2}s" fill="freeze"/>${esc(totalLabel)}</text>`;
+  }
   return svgShell(spec, body, 'part whole bar');
 }
 
 function comparisonBar(spec) {
-  const { leftValue, rightValue, leftLabel = 'A', rightLabel = 'B' } = spec.data;
+  const { leftValue, rightValue, leftLabel = 'A', rightLabel = 'B', diffLabel } = spec.data;
   const max = Math.max(leftValue, rightValue);
   const w = spec.width; const h = spec.height; const x = 130; const bw = w - 170;
-  const h1 = (leftValue / max) * (bw); const h2 = (rightValue / max) * (bw);
+  const h1 = (leftValue / max) * bw; const h2 = (rightValue / max) * bw;
   const y1 = h / 2 - 45; const y2 = h / 2 + 15;
+  // diff bracket runs from the end of the shorter bar to the end of the longer bar
+  const shorter = Math.min(h1, h2); const longer = Math.max(h1, h2);
+  const diffY = (h1 <= h2 ? y1 : y2); // row of the shorter bar
   if (REDUCE_MOTION) {
-    const body = `<text x="40" y="${y1 + 18}" font-size="14">${esc(leftLabel)}</text><rect x="${x}" y="${y1}" width="${h1}" height="28" fill="#bfdbfe" stroke="#111"/><text x="${x + h1 + 8}" y="${y1 + 18}" font-size="14">${leftValue}</text><text x="40" y="${y2 + 18}" font-size="14">${esc(rightLabel)}</text><rect x="${x}" y="${y2}" width="${h2}" height="28" fill="#ddd6fe" stroke="#111"/><text x="${x + h2 + 8}" y="${y2 + 18}" font-size="14">${rightValue}</text>`;
+    let body = `<text x="40" y="${y1 + 18}" font-size="14">${esc(leftLabel)}</text><rect x="${x}" y="${y1}" width="${h1}" height="28" fill="#bfdbfe" stroke="#111"/><text x="${x + h1 + 8}" y="${y1 + 18}" font-size="14">${leftValue}</text><text x="40" y="${y2 + 18}" font-size="14">${esc(rightLabel)}</text><rect x="${x}" y="${y2}" width="${h2}" height="28" fill="#ddd6fe" stroke="#111"/><text x="${x + h2 + 8}" y="${y2 + 18}" font-size="14">${rightValue}</text>`;
+    if (diffLabel) {
+      const dx1 = x + shorter; const dx2 = x + longer; const dy = diffY;
+      body += `<rect x="${dx1}" y="${dy}" width="${dx2 - dx1}" height="28" fill="#fef9c3" stroke="#111" stroke-dasharray="4 2"/>`;
+      body += `<text x="${(dx1 + dx2) / 2}" y="${dy + 18}" font-size="14" font-weight="700" text-anchor="middle" fill="#1d4ed8">${esc(diffLabel)}</text>`;
+    }
     return svgShell(spec, body, 'comparison bar');
   }
   let body = '';
@@ -168,6 +197,11 @@ function comparisonBar(spec) {
   body += `<rect x="${x}" y="${y2}" width="0" height="28" fill="#ddd6fe" stroke="#111"><animate attributeName="width" from="0" to="${h2}" dur="0.4s" begin="0.4s" fill="freeze"/></rect>`;
   body += `<text x="${x + h1 + 8}" y="${y1 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.6s" fill="freeze"/>${leftValue}</text>`;
   body += `<text x="${x + h2 + 8}" y="${y2 + 18}" font-size="14" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="0.8s" fill="freeze"/>${rightValue}</text>`;
+  if (diffLabel) {
+    const dx1 = x + shorter; const dx2 = x + longer; const dy = diffY;
+    body += `<rect x="${dx1}" y="${dy}" width="0" height="28" fill="#fef9c3" stroke="#111" stroke-dasharray="4 2"><animate attributeName="width" from="0" to="${dx2 - dx1}" dur="0.3s" begin="0.9s" fill="freeze"/></rect>`;
+    body += `<text x="${(dx1 + dx2) / 2}" y="${dy + 18}" font-size="14" font-weight="700" text-anchor="middle" fill="#1d4ed8" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.2s" begin="1.1s" fill="freeze"/>${esc(diffLabel)}</text>`;
+  }
   return svgShell(spec, body, 'comparison bar');
 }
 

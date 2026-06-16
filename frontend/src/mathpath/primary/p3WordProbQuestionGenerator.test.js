@@ -15,8 +15,8 @@ describe('p3WordProbSkillGraph', () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  it('contains all 2 P3-WP skills', () => {
-    expect(p3WordProbSkillGraph.skills).toHaveLength(2);
+  it('contains all 3 P3-WP skills', () => {
+    expect(p3WordProbSkillGraph.skills).toHaveLength(3);
   });
 });
 
@@ -24,17 +24,18 @@ describe('p3WordProbQuestionFamilies', () => {
   it('validates without errors', () => {
     const result = validateP3WordProbQuestionFamilies();
     expect(result.isValid).toBe(true);
-    expect(result.totalQuestionFamilies).toBe(6);
+    expect(result.totalQuestionFamilies).toBe(9);
     expect(result.errors).toHaveLength(0);
   });
 });
 
 describe('p3WordProbQuestionGenerator', () => {
-  it('supports all 2 skill IDs', () => {
+  it('supports all 3 skill IDs', () => {
     const ids = getSupportedSkillIds();
-    expect(ids).toHaveLength(2);
+    expect(ids).toHaveLength(3);
     expect(ids).toContain('P3-WP-01');
     expect(ids).toContain('P3-WP-02');
+    expect(ids).toContain('P3-WP-03');
   });
 
   // -------------------------------------------------------------------------
@@ -109,6 +110,50 @@ describe('p3WordProbQuestionGenerator', () => {
         expect(q.prompt).toContain('change');
         expect(q.answer).toBeGreaterThan(0);
         expect(q.solutionText).toContain('Total cost');
+      }
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // P3-WP-03: Bar Model Part-Whole
+  // -------------------------------------------------------------------------
+
+  describe('P3-WP-03: Bar Model Part-Whole', () => {
+    it('generates find-the-total questions (_001) with diagramSpec', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P3-WP-03', { questionFamilyId: 'QF_P3-WP-03_001' });
+        expect(q).not.toBeNull();
+        expect(q.skillId).toBe('P3-WP-03');
+        expect(q.prompt).toContain('altogether');
+        expect(q.answer).toBeGreaterThan(0);
+        expect(q.diagramSpec.type).toBe('part_whole_bar');
+        expect(q.diagramSpec.data.parts).toHaveLength(2);
+      }
+    });
+
+    it('generates find-the-missing-part questions (_002) with diagramSpec', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P3-WP-03', { questionFamilyId: 'QF_P3-WP-03_002' });
+        expect(q).not.toBeNull();
+        expect(q.prompt).toContain('second box');
+        expect(q.answer).toBeGreaterThan(0);
+        expect(q.diagramSpec.type).toBe('part_whole_bar');
+        const labels = q.diagramSpec.data.parts.map((p) => p.label);
+        expect(labels).toContain('?');
+      }
+    });
+
+    it('generates comparison questions (_003) with diagramSpec', () => {
+      for (let i = 0; i < 10; i++) {
+        const q = generateQuestion('P3-WP-03', { questionFamilyId: 'QF_P3-WP-03_003' });
+        expect(q).not.toBeNull();
+        expect(q.prompt).toContain('more');
+        expect(q.answer).toBeGreaterThan(0);
+        expect(q.diagramSpec.type).toBe('comparison_bar');
+        expect(q.diagramSpec.data).toMatchObject({
+          leftValue: expect.any(Number),
+          rightValue: expect.any(Number),
+        });
       }
     });
   });

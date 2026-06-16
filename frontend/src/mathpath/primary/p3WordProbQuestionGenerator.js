@@ -163,12 +163,13 @@ function generateBarModel(familyId) {
       diagramSpec: {
         type: 'part_whole_bar',
         width: 560,
-        height: 140,
+        height: 170,
         data: {
           parts: [
             { value: partA, label: `${partA}`, fill: '#dbeafe' },
             { value: partB, label: `${partB}`, fill: '#bfdbfe' },
           ],
+          totalLabel: '?',
         },
       },
     };
@@ -230,6 +231,7 @@ function generateBarModel(familyId) {
         rightValue: larger,
         leftLabel: `${nameA}: ${smaller}`,
         rightLabel: `${nameB}: ${larger}`,
+        diffLabel: '?',
       },
     },
   };

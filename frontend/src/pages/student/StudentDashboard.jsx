@@ -18,6 +18,7 @@ import {
   Target,
   Trophy,
   UserCircle,
+  Percent,
   Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -1315,6 +1316,21 @@ export default function StudentDashboard() {
             </div>
           )}
 
+          {FEATURE_FLAGS.percentages && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-tint">
+                  <Percent className="h-5 w-5 text-purple" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Percentage</p>
+                  <p className="text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
+                </div>
+                <Button to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+
           {showDiagnosticPrompt && (
             <DiagnosticPrompts domains={diagnosticDomains} containerStyle={{ marginTop: 20 }} />
           )}
@@ -1398,6 +1414,19 @@ export default function StudentDashboard() {
               <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
             </div>
             <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
+          </Card>
+        )}
+
+        {FEATURE_FLAGS.percentages && (
+          <Card className="flex items-center gap-4 p-4" interactive>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-tint">
+              <Percent className="h-5 w-5 text-purple" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-ink-700">Percentage</p>
+              <p className="text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
+            </div>
+            <Button to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
 
@@ -1510,6 +1539,19 @@ export default function StudentDashboard() {
             <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
           </div>
           <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
+        </Card>
+      )}
+
+      {FEATURE_FLAGS.percentages && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-tint">
+            <Percent className="h-5 w-5 text-purple" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Percentage</p>
+            <p className="text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
+          </div>
+          <Button to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
 

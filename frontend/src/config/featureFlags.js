@@ -17,6 +17,7 @@ export const FEATURE_FLAGS = {
   // Core student features (enabled)
   mathpath: true,
   decimals: flagEnabled('DECIMALS', true),
+  percentages: flagEnabled('PERCENTAGES', true),
   fluency: FLUENCY_ENABLED,
   mistakes: true,
   progress: true,
