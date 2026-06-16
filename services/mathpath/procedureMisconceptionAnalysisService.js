@@ -66,7 +66,7 @@ export const MISCONCEPTION_LIBRARY_V1 = [
   },
   {
     misconceptionId: 'PCT_FRACTION_CONFUSION',
-    domain: 'percentages',
+    domain: 'percentage',
     description: 'Percent-fraction confusion.',
     detectionRules: ['treats percent number as numerator without denominator 100'],
     confidenceThreshold: 0.58,
@@ -74,7 +74,7 @@ export const MISCONCEPTION_LIBRARY_V1 = [
   },
   {
     misconceptionId: 'PCT_DECIMAL_CONFUSION',
-    domain: 'percentages',
+    domain: 'percentage',
     description: 'Percent-decimal confusion.',
     detectionRules: ['moves decimal point incorrectly when converting percent'],
     confidenceThreshold: 0.58,

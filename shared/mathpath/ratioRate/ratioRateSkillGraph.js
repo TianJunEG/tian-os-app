@@ -433,7 +433,7 @@ export function validateRatioRateSkillGraph() {
 }
 
 export const ratioRateSkillGraph = {
-  domainId: 'ratio-rate',
+  domainId: 'ratio',
   domainName: 'Ratio & Rate',
   version: '1.0.0',
   skillIds: skills.map((s) => s.id),

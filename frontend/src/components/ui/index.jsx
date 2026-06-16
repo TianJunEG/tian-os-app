@@ -111,8 +111,11 @@ const STATUS_MAP = {
   completed: ['success', 'Completed'], overdue: ['rose', 'Overdue'],
   prepared: ['success', 'Prepared'], improving: ['success', 'Improving'], stable: ['emerald', 'Stable'],
   developing: ['sunshine', 'Developing'], practising: ['emerald', 'Practising'], fluent: ['success', 'Fluent'],
-  new: ['rose', 'New mistake'], acknowledged: ['neutral', 'Reviewed'],
-  correction_attempted: ['gold', 'Retry needed'], corrected: ['emerald', 'Corrected'],
+  // Mistake learning-status values
+  new: ['rose', 'New mistake'],
+  acknowledged: ['neutral', 'Reviewed'],
+  correction_attempted: ['gold', 'Retry needed'],
+  corrected: ['emerald', 'Corrected'],
   understood: ['navy', 'Understood'],
 };
 export function StatusBadge({ status }) {
