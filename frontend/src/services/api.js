@@ -280,6 +280,7 @@ export const mathpathAPI = {
   submitP6Practice: (practiceSessionId, data = {}) => api.post(`/mastery/p6/practice/${practiceSessionId}/submit`, data),
   getP6SkillStates: () => api.get('/mastery/p6/skill-states'),
   getSkillStates: (studentId, domainIds = []) => api.get('/mastery/skill-states', { params: { studentId, domainIds: domainIds.join(',') } }),
+  getAttempts: (studentId, domainIds = []) => api.get('/mastery/attempts', { params: { studentId, domainIds: domainIds.join(',') } }),
   startSession: (data) => api.post('/practice/sessions', data),
   attempt: (sessionId, data) => api.post(`/practice/sessions/${sessionId}/attempts`, data),
   complete: (sessionId) => api.post(`/practice/sessions/${sessionId}/complete`),

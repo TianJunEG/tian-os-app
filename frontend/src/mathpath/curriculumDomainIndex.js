@@ -34,6 +34,22 @@ import * as p5PercentageMc from './primary/p5PercentageMisconceptionMap.js';
 import * as p6PercentageMc from './primary/p6PercentageMisconceptionMap.js';
 import * as p6AlgebraMc from './primary/p6AlgebraMisconceptionMap.js';
 
+import * as p1MoneyFam from './primary/p1MoneyQuestionFamilies.js';
+import * as p2MoneyFam from './primary/p2MoneyQuestionFamilies.js';
+import * as p3MoneyFam from './primary/p3MoneyQuestionFamilies.js';
+import * as p2TimeFam from './primary/p2TimeQuestionFamilies.js';
+import * as p3MeasTimeFam from './primary/p3MeasTimeQuestionFamilies.js';
+import * as p3AreaPerimFam from './primary/p3AreaPerimQuestionFamilies.js';
+import * as p5AreaVolFam from './primary/p5AreaVolQuestionFamilies.js';
+import * as p6AreaVolFam from './primary/p6AreaVolQuestionFamilies.js';
+import * as p6CirclesFam from './primary/p6CirclesQuestionFamilies.js';
+import * as p5RatioFam from './primary/p5RatioQuestionFamilies.js';
+import * as p6RatioFam from './primary/p6RatioQuestionFamilies.js';
+import * as p6SpeedFam from './primary/p6SpeedQuestionFamilies.js';
+import * as p5PercentageFam from './primary/p5PercentageQuestionFamilies.js';
+import * as p6PercentageFam from './primary/p6PercentageQuestionFamilies.js';
+import * as p6AlgebraFam from './primary/p6AlgebraQuestionFamilies.js';
+
 // Per-domainId skill graph modules (each exposes getSkill / getPrerequisites /
 // getRemediationTargets / getAllSkills with a uniform signature).
 const DOMAIN_GRAPHS = {
@@ -73,6 +89,27 @@ const DOMAIN_MISCONCEPTIONS = {
   'p5-percentage': p5PercentageMc,
   'p6-percentage': p6PercentageMc,
   'p6-algebra': p6AlgebraMc,
+};
+
+// Per-domainId question-family registries (each exposes getQuestionFamily /
+// getQuestionFamiliesBySkill / getAllQuestionFamilies; family objects carry
+// fluencyTargetSeconds + fluencyBenchmarks for client-side fluency scoring).
+const DOMAIN_FAMILIES = {
+  'p1-money': p1MoneyFam,
+  'p2-money': p2MoneyFam,
+  'p3-money': p3MoneyFam,
+  'p2-time': p2TimeFam,
+  'p3-meas-time': p3MeasTimeFam,
+  'p3-area-perimeter': p3AreaPerimFam,
+  'p5-areavol': p5AreaVolFam,
+  'p6-area-volume': p6AreaVolFam,
+  'p6-circles': p6CirclesFam,
+  'p5-ratio': p5RatioFam,
+  'p6-ratio': p6RatioFam,
+  'p6-speed': p6SpeedFam,
+  'p5-percentage': p5PercentageFam,
+  'p6-percentage': p6PercentageFam,
+  'p6-algebra': p6AlgebraFam,
 };
 
 export function getSkillFromDomain(domainId, skillId) {
@@ -121,6 +158,13 @@ export function getDomainResolvers(domainKey) {
       for (const domainId of domainIds) {
         const m = DOMAIN_MISCONCEPTIONS[domainId]?.getMisconception?.(tag);
         if (m) return m;
+      }
+      return null;
+    },
+    getQuestionFamily: (familyId) => {
+      for (const domainId of domainIds) {
+        const f = DOMAIN_FAMILIES[domainId]?.getQuestionFamily?.(familyId);
+        if (f) return f;
       }
       return null;
     },

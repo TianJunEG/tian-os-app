@@ -2876,5 +2876,29 @@ router.get('/skill-states', protect, asyncHandler(async (req, res) => {
   }
 }));
 
+// @route GET /api/mastery/attempts?studentId=X&domainIds=p5-percentage,p6-percentage
+// @desc  Return MathPathAttempt records (per-question timing/correctness) for
+//        specific domainIds, so the curriculum tutor dashboard can compute
+//        fluency on the client (question families + benchmarks live there).
+//        Tutor-accessible via resolveStudent.
+// @access Private
+router.get('/attempts', protect, asyncHandler(async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const rawIds = req.query.domainIds ? String(req.query.domainIds).split(',').map((s) => s.trim()).filter(Boolean) : [];
+    const limit = Math.max(1, Math.min(2000, Number(req.query.limit || 1000)));
+    const filter = { studentId: String(student._id) };
+    if (rawIds.length) filter.domainId = { $in: rawIds };
+    const attempts = await MathPathAttempt.find(filter)
+      .select('domainId skillId questionFamilyId questionId correct answerCorrect timeTaken confidence skipped sessionType createdAt')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+    res.json({ attempts, studentId: String(student._id) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load attempts.' });
+  }
+}));
+
 export default router;
 

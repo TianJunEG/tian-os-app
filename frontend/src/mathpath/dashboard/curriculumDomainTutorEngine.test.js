@@ -11,6 +11,10 @@ const SKILLS = {
 const MISCONCEPTIONS = {
   adds_percent_directly: { tag: 'adds_percent_directly', label: 'Adds the percentage directly to the value', description: 'desc', remediationExplanation: 'Multiply, do not add.' },
 };
+const FAMILIES = {
+  QF_PCT02_001: { id: 'QF_PCT02_001', skillId: 'PCT02', name: 'Find X% of Y', fluencyTargetSeconds: 15 },
+  QF_PCT03_001: { id: 'QF_PCT03_001', skillId: 'PCT03', name: 'Percentage increase', fluencyTargetSeconds: 20 },
+};
 
 const resolvers = {
   domainKey: 'percentage',
@@ -22,6 +26,7 @@ const resolvers = {
   getRemediationTargets: () => [],
   getAllSkillIds: () => Object.keys(SKILLS),
   getMisconception: (tag) => MISCONCEPTIONS[tag] || null,
+  getQuestionFamily: (id) => FAMILIES[id] || null,
 };
 
 describe('buildCurriculumDomainDashboard', () => {
@@ -92,6 +97,39 @@ describe('buildCurriculumDomainDashboard', () => {
       mistakes: [{ skillCode: 'F010', misconceptionTag: 'fraction_thing' }],
     });
     expect(out.mistakeClusters).toHaveLength(0);
+  });
+
+  it('flags fluency bottlenecks from attempts (slow-but-accurate vs inaccurate)', () => {
+    const out = buildCurriculumDomainDashboard({
+      resolvers,
+      skillStates: [{ skillId: 'PCT02', status: 'learning', attemptCount: 6, correctCount: 5 }],
+      attempts: [
+        // PCT02 family: accurate (all correct) but slow (~30s vs 15s target) → accurateButSlow
+        ...Array.from({ length: 4 }, () => ({ questionFamilyId: 'QF_PCT02_001', skillId: 'PCT02', correct: true, timeTaken: 30 })),
+        // PCT03 family: fast but inaccurate (1/4 correct) → fastButInaccurate
+        { questionFamilyId: 'QF_PCT03_001', skillId: 'PCT03', correct: true, timeTaken: 8 },
+        ...Array.from({ length: 3 }, () => ({ questionFamilyId: 'QF_PCT03_001', skillId: 'PCT03', correct: false, timeTaken: 8 })),
+      ],
+    });
+    const slow = out.fluencyBottlenecks.find((f) => f.questionFamilyId === 'QF_PCT02_001');
+    const inacc = out.fluencyBottlenecks.find((f) => f.questionFamilyId === 'QF_PCT03_001');
+    expect(slow?.issueType).toBe('accurateButSlow');
+    expect(slow?.recommendation).toBe('runFluencyDrill');
+    expect(slow?.questionFamilyName).toBe('Find X% of Y');
+    expect(inacc?.issueType).toBe('fastButInaccurate');
+    expect(inacc?.accuracy).toBe(25);
+  });
+
+  it('ignores fluency families below the minimum attempt threshold and skipped attempts', () => {
+    const out = buildCurriculumDomainDashboard({
+      resolvers,
+      skillStates: [{ skillId: 'PCT02', status: 'learning', attemptCount: 2, correctCount: 0 }],
+      attempts: [
+        { questionFamilyId: 'QF_PCT02_001', skillId: 'PCT02', correct: false, timeTaken: 40 },
+        { questionFamilyId: 'QF_PCT02_001', skillId: 'PCT02', correct: false, timeTaken: 40, skipped: true },
+      ],
+    });
+    expect(out.fluencyBottlenecks).toHaveLength(0);
   });
 
   it('ranks high-severity issues first and recommends a focus', () => {
