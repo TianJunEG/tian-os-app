@@ -195,7 +195,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P0',
     capabilities: {
       diagnostic: 'engine_ready', // fourOperationsDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'planned',        // GATED: OperationsQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
+      practice: 'available',      // rebuilt: OperationsQuestionGenerator.js (real per-skill +−×÷, long division, order of ops, HCF/LCM, bar models). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',

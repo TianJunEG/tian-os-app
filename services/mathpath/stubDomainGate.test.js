@@ -1,28 +1,27 @@
 import { describe, it, expect } from 'vitest';
 import { assertDomainServable, GATED_STUB_DOMAINS, WITHHELD_DOMAINS } from './stubDomainGate.js';
 import { buildNumberSensePracticeSession } from './numberSensePracticeService.js';
-import { buildOperationsPracticeSession } from './operationsPracticeService.js';
 import { buildGeometryPracticeSession } from './geometryPracticeService.js';
 import { buildMeasurementPracticeSession } from './measurementPracticeService.js';
 
 describe('stubDomainGate', () => {
-  it('withholds only the four stub domains (Money and Time have been rebuilt)', () => {
+  it('withholds only the three remaining stub domains', () => {
     expect(WITHHELD_DOMAINS).toEqual({
       'number-sense': 'stub',
-      operations: 'stub',
       geometry: 'stub',
       measurement: 'stub',
     });
   });
 
-  it('no longer withholds money or time', () => {
+  it('no longer withholds money, time or operations', () => {
     expect(() => assertDomainServable('money')).not.toThrow();
     expect(() => assertDomainServable('time')).not.toThrow();
+    expect(() => assertDomainServable('operations')).not.toThrow();
   });
 
   it('exposes the pure-stub subset', () => {
     expect(GATED_STUB_DOMAINS).toEqual(
-      new Set(['number-sense', 'operations', 'geometry', 'measurement']),
+      new Set(['number-sense', 'geometry', 'measurement']),
     );
   });
 
@@ -43,7 +42,6 @@ describe('stubDomainGate', () => {
 
   it.each([
     ['number-sense', buildNumberSensePracticeSession],
-    ['operations', buildOperationsPracticeSession],
     ['geometry', buildGeometryPracticeSession],
     ['measurement', buildMeasurementPracticeSession],
   ])('build*PracticeSession refuses to serve %s', (_id, build) => {
