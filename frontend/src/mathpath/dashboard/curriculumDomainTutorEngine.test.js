@@ -132,6 +132,33 @@ describe('buildCurriculumDomainDashboard', () => {
     expect(out.fluencyBottlenecks).toHaveLength(0);
   });
 
+  it('flags retention risk for secure skills not practised recently', () => {
+    const NOW = new Date('2026-06-16T00:00:00Z');
+    const ago = (d) => new Date(NOW.getTime() - d * 86400000).toISOString();
+    const out = buildCurriculumDomainDashboard({
+      resolvers,
+      now: NOW,
+      skillStates: [
+        { skillId: 'PCT01', status: 'fluent', attemptCount: 8, correctCount: 8, lastPractisedAt: ago(90) }, // overdue → high
+        { skillId: 'PCT02', status: 'accurate', attemptCount: 6, correctCount: 5, lastPractisedAt: ago(30) }, // due → medium
+        { skillId: 'PCT03', status: 'accurate', attemptCount: 6, correctCount: 5, lastPractisedAt: ago(3) },  // fresh → none
+      ],
+    });
+    expect(out.retentionRisks.map((r) => r.skillId)).toEqual(['PCT01', 'PCT02']);
+    expect(out.retentionRisks.find((r) => r.skillId === 'PCT01').riskLevel).toBe('high');
+    expect(out.retentionRisks.find((r) => r.skillId === 'PCT02').riskLevel).toBe('medium');
+  });
+
+  it('does not flag weak skills as retention risks', () => {
+    const NOW = new Date('2026-06-16T00:00:00Z');
+    const out = buildCurriculumDomainDashboard({
+      resolvers,
+      now: NOW,
+      skillStates: [{ skillId: 'PCT02', status: 'weak', attemptCount: 8, correctCount: 1, lastPractisedAt: new Date('2026-01-01T00:00:00Z').toISOString() }],
+    });
+    expect(out.retentionRisks).toHaveLength(0);
+  });
+
   it('ranks high-severity issues first and recommends a focus', () => {
     const out = buildCurriculumDomainDashboard({
       resolvers,

@@ -941,7 +941,7 @@ function DomainSkillStatesPanel({ skillStates, domainGroup }) {
 
 function CurriculumDomainIntelligence({ dash }) {
   if (!dash || !dash.available) return null;
-  const { skillSummary, recommendedFocus, interventionPriorities, rootCauses, mistakeClusters, fluencyBottlenecks = [] } = dash;
+  const { skillSummary, recommendedFocus, interventionPriorities, rootCauses, mistakeClusters, fluencyBottlenecks = [], retentionRisks = [] } = dash;
 
   return (
     <div className="space-y-4">
@@ -1066,6 +1066,26 @@ function CurriculumDomainIntelligence({ dash }) {
           <p className="mt-2 text-sm text-ink-500">
             No fluency bottlenecks detected yet — needs at least a few timed attempts per question family.
           </p>
+        )}
+      </Card>
+
+      <Card className="p-5">
+        <h3 className="text-sm font-semibold text-ink-700">Retention Risks</h3>
+        {retentionRisks.length ? (
+          <div className="mt-3 space-y-2 text-sm">
+            {retentionRisks.slice(0, 6).map((r) => (
+              <div key={r.skillId} className="rounded-lg border border-line-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink-700">{r.skillName}</p>
+                  <Badge tone={severityTone(r.riskLevel)}>{r.riskLevel === 'high' ? 'Likely forgotten' : 'Due for review'}</Badge>
+                </div>
+                <p className="text-ink-600">Mastered, but not practised in {r.daysSincePractice} days.</p>
+                <p className="text-ink-700"><span className="font-semibold">Recommended:</span> {readableAction(r.recommendation)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-ink-500">No retention risks — secure skills have been practised recently.</p>
         )}
       </Card>
     </div>
@@ -1259,10 +1279,10 @@ export default function TutorMathPathDashboardPage() {
                   {CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} intelligence
                 </p>
                 <p className="mt-1 text-ink-600">
-                  Skill mastery, root-cause analysis, mistake clusters, intervention queue, recommended lesson focus and
-                  fluency bottlenecks are live for this domain, built from the student's skill states, logged mistakes and
-                  timed practice attempts. Retention modelling and working-evidence review remain
-                  <span className="font-semibold"> Fractions</span>-only for now.
+                  Skill mastery, root-cause analysis, mistake clusters, intervention queue, recommended lesson focus,
+                  fluency bottlenecks and retention risks are live for this domain, built from the student's skill states,
+                  logged mistakes and timed practice attempts. Working-evidence review remains
+                  <span className="font-semibold"> Fractions</span>-only for now (curriculum practice doesn't capture written working yet).
                 </p>
               </div>
             </div>
