@@ -1,22 +1,28 @@
 // Server-side aggregation for the unified MathPath parent dashboard.
 //
-// Until now the parent dashboard had no backend endpoint: the React page
-// hand-assembled 4–5 calls (mastery, mistakes, fluency, retention) and
-// re-derived the parent summary client-side, hard-locked to Fractions. This
-// service is the single server-side aggregation path. It reuses the SAME data
-// sources the existing routes use:
-//   • MasteryRecord (routes/mastery.js)   — progress, weak skills, recommended next
-//   • Mistake       (routes/mistakes.js)  — recent mistakes
-//   • FluencyRecord / RetentionReview via the fluency route's public summaries
-// and the SAME pure summary builders the frontend engine uses
-// (shared/mathpath/dashboard/parentSummaryBuilders.js), so Fractions output is
-// unchanged while every registered domain renders whatever data exists.
+// The parent dashboard had no backend endpoint: the React page hand-assembled
+// 4–5 calls and re-derived the summary client-side, hard-locked to Fractions.
+// This service is the single server-side aggregation path. It reuses the same
+// pure summary builders the frontend engine uses
+// (shared/mathpath/dashboard/parentSummaryBuilders.js) so Fractions output is
+// unchanged, and it reads from two stores so every domain shows real data:
+//
+//   • Fractions (legacy) → MasteryRecord + Mistake + FluencyRecord/RetentionReview
+//   • Other domains      → MathPathStudentSkillState + MathPathMistakeRecord
+//
+// Source selection is per request: if the legacy MasteryRecord store has rows
+// for the domain we use it (Fractions, unchanged); otherwise we fall back to the
+// MathPath per-domain store (Percentage/Ratio/Algebra/Geometry/Volume). A domain
+// with no data anywhere still returns a valid empty payload.
 
 import MasteryRecord from '../../models/MasteryRecord.js';
 import Skill from '../../models/Skill.js';
 import Mistake from '../../models/Mistake.js';
+import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
+import MathPathMistakeRecord from '../../models/mathpath/MathPathMistakeRecord.js';
 import { domainIdFromSlug } from '../../utils/skillSlugDomain.js';
 import { getDomain, listDomains } from '../domains/domainRegistry.js';
+import { getDomainSkillGraph } from './domainSkillGraphServer.js';
 import { publicFluencySummary, publicRetentionSummary } from '../../routes/fluency.js';
 import {
   dedupe,
@@ -27,11 +33,13 @@ import {
   buildWeeklyParentActionPlan,
 } from '../../shared/mathpath/dashboard/parentSummaryBuilders.js';
 
-// Status buckets mirror the client-side classification the page used before
-// (frontend deriveParentPayload): which MasteryRecord statuses count as
-// mastered vs weak. Kept identical so Fractions categorisation does not move.
+// Status buckets. Legacy MasteryRecord uses 'mastered'/'needs_review';
+// MathPathStudentSkillState uses 'accurate'/'fluent'/'retained'/'weak'/
+// 'needsReview'/'forgotten'. Both vocabularies are covered so one classifier
+// serves both stores (mirrors the prior client-side classification for
+// fractions, so that categorisation does not move).
 const MASTERED_STATUSES = new Set(['mastered', 'accurate', 'fluent', 'retained']);
-const WEAK_STATUSES = new Set(['weak', 'needs_review', 'needsreview']);
+const WEAK_STATUSES = new Set(['weak', 'needs_review', 'needsreview', 'forgotten']);
 const FLUENT_STATUSES = new Set(['fluent', 'retained']);
 
 function statusOf(record) {
@@ -62,8 +70,7 @@ function shapeDomainMeta(subjectId, domainId) {
 }
 
 // Map FluencyRecord buckets → the questionFamilyResults shape the pure builder
-// expects, so buildFluencyParentSummary produces the same "accurate but slow /
-// fluent / automatic" framing without a second classifier.
+// expects, so buildFluencyParentSummary produces the same framing.
 function fluencyBucketsToFamilyResults(buckets = {}) {
   const fluent = (buckets.fluentSkills || []).map((s) => ({ status: 'fluent', skillId: s.skillId, displayName: s.skillName }));
   const developing = (buckets.developingSkills || []).map((s) => ({ status: 'accurateButSlow', skillId: s.skillId, displayName: s.skillName }));
@@ -79,20 +86,12 @@ function retentionToState(retention = {}) {
   };
 }
 
-// Build the full unified parent dashboard payload for one student + domain.
-// Caller is responsible for access control (resolveStudent) and domain
-// validation (hasDomain) BEFORE calling this.
-export async function buildParentMathPathDashboard({ student, subjectId = 'math', domainId = 'fractions' } = {}) {
-  const studentId = student._id;
-  getDomain({ subjectId, domainId }); // throws DOMAIN_NOT_FOUND if unregistered (defensive)
-  const domain = shapeDomainMeta(subjectId, domainId);
-  const domainNoun = domain.displayNoun;
-
-  // 1) Mastery records → domain-scoped student state. Records are tagged with a
-  // domainId derived from the skill slug; we filter to the requested domain.
+// ── Source A: legacy MasteryRecord store (Fractions) ────────────────────────
+async function loadLegacyDomainData({ studentId, domainId, domainNoun }) {
   const records = await MasteryRecord.find({ studentId, module: 'MathPath' })
     .populate({ path: 'skillId', model: Skill });
   const domainRecords = records.filter((r) => domainIdFromSlug(r.skillId?.slug) === domainId);
+  if (!domainRecords.length) return { hasData: false };
 
   const idName = new Map();
   domainRecords.forEach((r) => {
@@ -104,37 +103,24 @@ export async function buildParentMathPathDashboard({ student, subjectId = 'math'
   const weakSkillIds = weakRecords.map((r) => String(r.skillId?._id)).filter(Boolean);
   const fluentSkillIds = domainRecords.filter((r) => FLUENT_STATUSES.has(statusOf(r))).map((r) => String(r.skillId?._id)).filter(Boolean);
 
-  // Total skills = the domain's full skill set (true denominator), derived from
-  // skill slugs. Falls back to attempted-record count if no skills are seeded.
+  // Total skills = the domain's full skill set (true denominator), from slugs.
   const allSkills = await Skill.find({}, 'name slug').lean();
   const domainSkills = allSkills.filter((s) => domainIdFromSlug(s.slug) === domainId);
   domainSkills.forEach((s) => { if (!idName.has(String(s._id))) idName.set(String(s._id), s.name || String(s._id)); });
   const skillIds = domainSkills.length
     ? domainSkills.map((s) => String(s._id))
     : dedupe(domainRecords.map((r) => String(r.skillId?._id)).filter(Boolean));
-
   const labelFor = (id) => idName.get(String(id)) || String(id || '');
 
-  const masteryProgress = buildMasteryProgressSummary(
-    { domainId, skillIds },
-    { masteredSkillIds, weakSkillIds, fluentSkillIds },
-    labelFor,
-  );
+  const masteryProgress = buildMasteryProgressSummary({ domainId, skillIds }, { masteredSkillIds, weakSkillIds, fluentSkillIds }, labelFor);
 
-  // 2) Fluency + retention via the fluency route's canonical public summaries.
   const [fluencyBuckets, retention] = await Promise.all([
     publicFluencySummary(studentId),
     publicRetentionSummary(studentId),
   ]);
-  const fluencySummary = buildFluencyParentSummary(
-    { questionFamilyResults: fluencyBucketsToFamilyResults(fluencyBuckets) },
-    labelFor,
-    { domainNoun },
-  );
-  const retentionState = retentionToState(retention);
-  const retentionSummary = buildRetentionParentSummary(retentionState, labelFor);
+  const fluencySummary = buildFluencyParentSummary({ questionFamilyResults: fluencyBucketsToFamilyResults(fluencyBuckets) }, labelFor, { domainNoun });
+  const retentionSummary = buildRetentionParentSummary(retentionToState(retention), labelFor);
 
-  // 3) Recent mistakes for this domain (light shape for the parent view).
   const mistakes = await Mistake.find({ studentId, module: 'MathPath', seeded: { $ne: true } })
     .populate({ path: 'skillId', model: Skill })
     .sort({ occurredAt: -1 })
@@ -152,15 +138,6 @@ export async function buildParentMathPathDashboard({ student, subjectId = 'math'
       occurredAt: m.occurredAt || m.timestamp || null,
     }));
 
-  // 4) Derive cross-cut weaknesses + recommended actions + weekly plan.
-  const currentWeaknesses = dedupe(masteryProgress.weakSkills || []).slice(0, 6);
-  const recommendedNextActions = dedupe([
-    currentWeaknesses.length ? 'followRemediationPlan' : null,
-    fluencySummary.accurateButSlowAreas?.length ? 'startFluencyPractice' : null,
-    retentionSummary.skillsDueForReview?.length ? 'reviewPreviousSkill' : null,
-    masteryProgress.percentageMastered >= 70 && !currentWeaknesses.length ? 'moveToNextSkill' : 'continueCurrentSkill',
-  ].filter(Boolean));
-
   const recommendedNextPractice = (() => {
     const weak = weakRecords[0];
     if (weak?.skillId?._id) return { skillId: String(weak.skillId._id), skillName: weak.skillId.name || '' };
@@ -168,6 +145,161 @@ export async function buildParentMathPathDashboard({ student, subjectId = 'math'
     if (inProgress?.skillId?._id) return { skillId: String(inProgress.skillId._id), skillName: inProgress.skillId.name || '' };
     return null;
   })();
+
+  return {
+    hasData: true,
+    source: 'mastery',
+    masteryProgress,
+    weakSkills: weakRecords.slice(0, 5).map((r) => ({ skillId: String(r.skillId?._id || ''), skillName: r.skillId?.name || '', status: statusOf(r) })),
+    recentMistakes,
+    fluency: { ...fluencyBuckets, emptyState: fluencyBucketsToFamilyResults(fluencyBuckets).length ? null : 'Complete more practice to begin fluency tracking.' },
+    fluencySummary,
+    retention,
+    retentionSummary,
+    recommendedNextPractice,
+  };
+}
+
+// ── Source B: MathPath per-domain store (Percentage/Ratio/Algebra/…) ────────
+const FLUENT_LEVELS = new Set(['gold', 'platinum']);
+const DEVELOPING_LEVELS = new Set(['bronze', 'silver']);
+
+function interpretFluency(state) {
+  if (FLUENT_LEVELS.has(state.fluencyLevel)) return 'This skill is accurate and quick enough for retention review.';
+  if (Number(state.accuracy) >= 85) return 'Your child understands the concept but needs more practice to answer quickly and confidently.';
+  return 'This skill needs more accurate practice before fluency training.';
+}
+
+async function loadMathPathDomainData({ studentId, domainId, domainNoun }) {
+  const sid = String(studentId);
+  const states = await MathPathStudentSkillState.find({ studentId: sid, domainId }).lean();
+  if (!states.length) return { hasData: false };
+
+  const graph = getDomainSkillGraph(domainId);
+  const labelFor = (id) => graph.nameFor(id);
+
+  const masteredSkillIds = states.filter((s) => MASTERED_STATUSES.has(statusOf(s))).map((s) => s.skillId);
+  const weakStates = states.filter((s) => WEAK_STATUSES.has(statusOf(s)));
+  const weakSkillIds = weakStates.map((s) => s.skillId);
+  const fluentSkillIds = states.filter((s) => FLUENT_STATUSES.has(statusOf(s)) || FLUENT_LEVELS.has(s.fluencyLevel)).map((s) => s.skillId);
+
+  const skillIds = graph.hasGraph ? graph.skillIds : dedupe(states.map((s) => s.skillId));
+  const masteryProgress = buildMasteryProgressSummary({ domainId, skillIds }, { masteredSkillIds, weakSkillIds, fluentSkillIds }, labelFor);
+
+  // Fluency buckets derived from the per-skill state (no FluencyRecord rows for
+  // these domains). Only practised skills are bucketed.
+  const practised = states.filter((s) => Number(s.attemptCount) > 0);
+  const fluencyShape = (s, fluencyStatus) => ({
+    skillId: s.skillId,
+    skillName: labelFor(s.skillId),
+    accuracy: Number(s.accuracy) || 0,
+    averageTimeSeconds: s.averageTime != null ? Math.round(Number(s.averageTime)) : null,
+    fluencyStatus,
+    interpretation: interpretFluency(s),
+  });
+  const fluentSkills = practised.filter((s) => FLUENT_LEVELS.has(s.fluencyLevel) || FLUENT_STATUSES.has(statusOf(s))).map((s) => fluencyShape(s, 'fluent'));
+  const developingSkills = practised.filter((s) => DEVELOPING_LEVELS.has(s.fluencyLevel)).map((s) => fluencyShape(s, 'developing'));
+  const needsPracticeSkills = practised
+    .filter((s) => !FLUENT_LEVELS.has(s.fluencyLevel) && !DEVELOPING_LEVELS.has(s.fluencyLevel) && !FLUENT_STATUSES.has(statusOf(s)))
+    .map((s) => fluencyShape(s, 'needsPractice'));
+  const fluencyBuckets = { fluentSkills, developingSkills, needsPracticeSkills };
+  const fluencySummary = buildFluencyParentSummary({ questionFamilyResults: fluencyBucketsToFamilyResults(fluencyBuckets) }, labelFor, { domainNoun });
+
+  // Retention derived from the per-skill state.
+  const now = Date.now();
+  const isDue = (s) => statusOf(s) === 'needsreview' || s.retentionStatus === 'needsReview' || (s.nextReviewDate && new Date(s.nextReviewDate).getTime() <= now && s.retentionStatus !== 'retained');
+  const dueStates = states.filter(isDue);
+  const retentionState = {
+    retainedSkillIds: states.filter((s) => s.retentionStatus === 'retained').map((s) => s.skillId),
+    skillsDueForReview: dueStates.map((s) => s.skillId),
+    skillsNeedingRefresh: states.filter((s) => s.retentionStatus === 'forgotten' || statusOf(s) === 'forgotten').map((s) => s.skillId),
+  };
+  const retentionSummary = buildRetentionParentSummary(retentionState, labelFor);
+  const retention = {
+    upcomingReviews: dueStates.map((s) => ({ skillId: s.skillId, skillName: labelFor(s.skillId), reviewDate: s.nextReviewDate || null })),
+    overdueReviews: [],
+    retentionHistory: states.filter((s) => s.retentionStatus === 'retained').map((s) => ({ skillId: s.skillId, skillName: labelFor(s.skillId), retained: true })),
+    emptyState: dueStates.length ? null : 'No review is due today.',
+  };
+
+  // Recent mistakes from the MathPath mistake store.
+  const mistakeRecords = await MathPathMistakeRecord.find({ studentId: sid, domainId }).sort({ lastSeenAt: -1 }).limit(10).lean();
+  const recentMistakes = mistakeRecords.map((m) => {
+    const lastEvidence = Array.isArray(m.evidence) && m.evidence.length ? m.evidence[m.evidence.length - 1] : {};
+    return {
+      id: String(m._id),
+      skillName: (m.skillId && graph.nameFor(m.skillId)) || m.mistakeName || m.mistakeCode || 'Unknown skill',
+      misconceptionTag: m.mistakeCode || '',
+      questionText: lastEvidence.questionText || '',
+      studentAnswer: lastEvidence.studentAnswer,
+      correctAnswer: lastEvidence.correctAnswer,
+      occurredAt: m.lastSeenAt || null,
+    };
+  });
+
+  const recommendedNextPractice = (() => {
+    const weak = weakStates[0];
+    if (weak) return { skillId: weak.skillId, skillName: labelFor(weak.skillId) };
+    const inProgress = states.find((s) => !MASTERED_STATUSES.has(statusOf(s)));
+    if (inProgress) return { skillId: inProgress.skillId, skillName: labelFor(inProgress.skillId) };
+    return null;
+  })();
+
+  return {
+    hasData: true,
+    source: 'mathpath',
+    masteryProgress,
+    weakSkills: weakStates.slice(0, 5).map((s) => ({ skillId: s.skillId, skillName: labelFor(s.skillId), status: statusOf(s) })),
+    recentMistakes,
+    fluency: { ...fluencyBuckets, emptyState: practised.length ? null : 'Complete more practice to begin fluency tracking.' },
+    fluencySummary,
+    retention,
+    retentionSummary,
+    recommendedNextPractice,
+  };
+}
+
+// Empty-but-valid dataset so a domain with no activity anywhere still renders.
+function emptyDomainData() {
+  return {
+    source: 'none',
+    masteryProgress: buildMasteryProgressSummary({ skillIds: [] }, {}, (v) => String(v || '')),
+    weakSkills: [],
+    recentMistakes: [],
+    fluency: { fluentSkills: [], developingSkills: [], needsPracticeSkills: [], emptyState: 'Complete more practice to begin fluency tracking.' },
+    fluencySummary: buildFluencyParentSummary({}, (v) => String(v || '')),
+    retention: { upcomingReviews: [], overdueReviews: [], retentionHistory: [], emptyState: 'No review is due today.' },
+    retentionSummary: buildRetentionParentSummary({}, (v) => String(v || '')),
+    recommendedNextPractice: null,
+  };
+}
+
+// Build the full unified parent dashboard payload for one student + domain.
+// Caller is responsible for access control (resolveStudent) and domain
+// validation (hasDomain) BEFORE calling this.
+export async function buildParentMathPathDashboard({ student, subjectId = 'math', domainId = 'fractions' } = {}) {
+  const studentId = student._id;
+  getDomain({ subjectId, domainId }); // throws DOMAIN_NOT_FOUND if unregistered (defensive)
+  const domain = shapeDomainMeta(subjectId, domainId);
+  const domainNoun = domain.displayNoun;
+
+  // Source selection: legacy MasteryRecord (Fractions, unchanged) first, then
+  // the MathPath per-domain store, then an empty-but-valid payload.
+  const data = (await loadLegacyDomainData({ studentId, domainId, domainNoun }))
+    || null;
+  const resolved = (data && data.hasData)
+    ? data
+    : (await loadMathPathDomainData({ studentId, domainId, domainNoun }));
+  const finalData = resolved && resolved.hasData ? resolved : emptyDomainData();
+
+  const masteryProgress = finalData.masteryProgress;
+  const currentWeaknesses = dedupe(masteryProgress.weakSkills || []).slice(0, 6);
+  const recommendedNextActions = dedupe([
+    currentWeaknesses.length ? 'followRemediationPlan' : null,
+    finalData.fluencySummary.accurateButSlowAreas?.length ? 'startFluencyPractice' : null,
+    finalData.retentionSummary.skillsDueForReview?.length ? 'reviewPreviousSkill' : null,
+    masteryProgress.percentageMastered >= 70 && !currentWeaknesses.length ? 'moveToNextSkill' : 'continueCurrentSkill',
+  ].filter(Boolean));
 
   const readinessScoreProxy = (masteryProgress.percentageMastered + masteryProgress.percentageFluent) / 2;
   const overallStatus = statusBandFromMetrics({
@@ -178,8 +310,8 @@ export async function buildParentMathPathDashboard({ student, subjectId = 'math'
 
   const weeklyActionPlan = buildWeeklyParentActionPlan({
     masteryProgress,
-    fluencySummary,
-    retentionSummary,
+    fluencySummary: finalData.fluencySummary,
+    retentionSummary: finalData.retentionSummary,
     currentWeaknesses,
     recommendedNextActions,
     domainNoun,
@@ -190,36 +322,36 @@ export async function buildParentMathPathDashboard({ student, subjectId = 'math'
     subjectId,
     domainId,
     domain,
+    dataSource: finalData.source,
     overallStatus,
     masteryProgress,
-    weakSkills: weakRecords.slice(0, 5).map((r) => ({
-      skillId: String(r.skillId?._id || ''),
-      skillName: r.skillId?.name || '',
-      status: statusOf(r),
-    })),
-    recentMistakes,
-    fluency: { ...fluencyBuckets, emptyState: fluencyBucketsToFamilyResults(fluencyBuckets).length ? null : 'Complete more practice to begin fluency tracking.' },
-    fluencySummary,
-    retention,
-    retentionSummary,
+    weakSkills: finalData.weakSkills,
+    recentMistakes: finalData.recentMistakes,
+    fluency: finalData.fluency,
+    fluencySummary: finalData.fluencySummary,
+    retention: finalData.retention,
+    retentionSummary: finalData.retentionSummary,
     currentWeaknesses,
     recommendedNextActions,
-    recommendedNextPractice,
+    recommendedNextPractice: finalData.recommendedNextPractice,
     weeklyActionPlan,
   };
 }
 
 // Domains the child actually has activity in, intersected with the registry.
-// Used by the UI to render only relevant domain chips. Always includes the
-// requested/active domain handling on the caller side; here we return the pure
-// intersection (plus a hasActivity flag).
+// Activity is sourced from BOTH stores: legacy MasteryRecord (Fractions, via
+// skill-slug → domainId) and MathPathStudentSkillState (per-domain). Used by the
+// UI to render only relevant domain chips.
 export async function listChildMathPathDomains({ student, subjectId = 'math' } = {}) {
   const studentId = student._id;
-  const records = await MasteryRecord.find({ studentId, module: 'MathPath' })
-    .populate({ path: 'skillId', model: Skill, select: 'slug' });
-  const activeDomainIds = new Set(
-    records.map((r) => domainIdFromSlug(r.skillId?.slug)).filter(Boolean),
-  );
+  const [records, mathDomainIds] = await Promise.all([
+    MasteryRecord.find({ studentId, module: 'MathPath' }).populate({ path: 'skillId', model: Skill, select: 'slug' }),
+    MathPathStudentSkillState.distinct('domainId', { studentId: String(studentId) }),
+  ]);
+  const activeDomainIds = new Set([
+    ...records.map((r) => domainIdFromSlug(r.skillId?.slug)).filter(Boolean),
+    ...mathDomainIds.filter(Boolean),
+  ]);
   const registered = listDomains().filter((d) => d.subjectId === subjectId);
   return registered
     .filter((d) => activeDomainIds.has(d.domainId))
