@@ -317,12 +317,20 @@ async function maybePersistMistake({ student, session, question, skillId, respon
 }
 
 async function enforceReplayPolicy({ student, userId, subjectId, domainId, purpose }) {
-  const latestCompleted = await MathPathDiagnosticSession.findOne({
-    studentId: String(student._id),
-    subjectId,
-    domainId,
-    status: 'completed',
-  }).sort({ completedAt: -1, createdAt: -1 });
+  const [latestCompleted, inProgressSession] = await Promise.all([
+    MathPathDiagnosticSession.findOne({
+      studentId: String(student._id),
+      subjectId,
+      domainId,
+      status: 'completed',
+    }).sort({ completedAt: -1, createdAt: -1 }),
+    MathPathDiagnosticSession.findOne({
+      studentId: String(student._id),
+      subjectId,
+      domainId,
+      status: 'inProgress',
+    }).sort({ createdAt: -1 }).select('diagnosticSessionId'),
+  ]);
   const requester = userId ? await User.findById(userId).select('is_test_account email') : null;
   const replayPolicy = evaluateDiagnosticReplayPolicy({
     diagnosticPurpose: purpose,
@@ -335,6 +343,9 @@ async function enforceReplayPolicy({ student, userId, subjectId, domainId, purpo
     err.payload = {
       code: err.code,
       replayPolicy,
+      // Surfaces any in-progress session so the frontend can call GET /:sessionId/resume
+      // instead of displaying an error when the student reloads mid-diagnostic.
+      inProgressSessionId: inProgressSession?.diagnosticSessionId || null,
       latestPlacement: latestCompleted
         ? {
             sessionId: latestCompleted.diagnosticSessionId,
