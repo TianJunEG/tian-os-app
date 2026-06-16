@@ -128,6 +128,13 @@ function ChelyaUpdateCard({ snapshot }) {
   const tier1 = buildMascotNarration(snapshot, { childName: snapshot.childName });
   // Tier 2 (opt-in): warmer LLM narration; falls back to Tier 1 on any error.
   const [aiBody, setAiBody] = useState(null);
+  // `snapshot` is rebuilt every render, so depend on a stable key of the fields
+  // we actually send — otherwise the LLM call would refire on every re-render.
+  const narrationKey = JSON.stringify({
+    c: snapshot.childName, m: snapshot.mastered, t: snapshot.total,
+    p: snapshot.masteryPercent, s: snapshot.streak,
+    a: snapshot.attentionSkill, acc: snapshot.accuracy, r: snapshot.recommendation,
+  });
   useEffect(() => {
     let cancelled = false;
     if (!FEATURE_FLAGS.parentNarrationAI) return undefined;
@@ -141,7 +148,8 @@ function ChelyaUpdateCard({ snapshot }) {
       })
       .catch(() => { /* keep Tier 1 */ });
     return () => { cancelled = true; };
-  }, [snapshot]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [narrationKey]);
 
   const body = aiBody || tier1.body;
   if (!body) return null;
