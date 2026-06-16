@@ -10,6 +10,11 @@ import timeDiagnosticDomain from './domains/timeDiagnosticDomain.js';
 import areaPerimeterDiagnosticDomain from './domains/areaPerimeterDiagnosticDomain.js';
 import volumeDiagnosticDomain from './domains/volumeDiagnosticDomain.js';
 import circlesDiagnosticDomain from './domains/circlesDiagnosticDomain.js';
+import numberSenseDiagnosticDomain from './domains/numberSenseDiagnosticDomain.js';
+import measurementDiagnosticDomain from './domains/measurementDiagnosticDomain.js';
+import geometryDiagnosticDomain from './domains/geometryDiagnosticDomain.js';
+import statisticsDiagnosticDomain from './domains/statisticsDiagnosticDomain.js';
+import algebraDiagnosticDomain from './domains/algebraDiagnosticDomain.js';
 
 const domains = new Map();
 
@@ -68,6 +73,12 @@ registerDiagnosticDomain(timeDiagnosticDomain);
 registerDiagnosticDomain(areaPerimeterDiagnosticDomain);
 registerDiagnosticDomain(volumeDiagnosticDomain);
 registerDiagnosticDomain(circlesDiagnosticDomain);
+// ── Step 5 (curriculum expansion) ─────────────────────────────────────────────
+registerDiagnosticDomain(numberSenseDiagnosticDomain);
+registerDiagnosticDomain(measurementDiagnosticDomain);
+registerDiagnosticDomain(geometryDiagnosticDomain);
+registerDiagnosticDomain(statisticsDiagnosticDomain);
+registerDiagnosticDomain(algebraDiagnosticDomain);
 
 export default {
   getDiagnosticDomain,
