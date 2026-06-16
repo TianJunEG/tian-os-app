@@ -11,7 +11,7 @@ import { getSkill } from '../../shared/mathpath/percentages/percentageSkillGraph
 // layer persists what these functions return. Mirrors decimalsPracticeService.js
 // exactly (s/decimal/percentage/g, s/Decimal/Percentage/g, s/D00/P00/g).
 
-export const DOMAIN_ID = 'percentages';
+export const DOMAIN_ID = 'percentage';
 
 function statusFromAccuracy(accuracy) {
   if (accuracy >= 90) return 'mastered';

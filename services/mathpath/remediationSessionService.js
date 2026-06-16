@@ -5,6 +5,10 @@ import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkil
 import MathPathAssignment from '../../models/mathpath/MathPathAssignment.js';
 import RetentionReview from '../../models/RetentionReview.js';
 import Skill from '../../models/Skill.js';
+import Student from '../../models/Student.js';
+import TutorStudentLink from '../../models/TutorStudentLink.js';
+import StudentGuardian from '../../models/StudentGuardian.js';
+import Notification from '../../models/Notification.js';
 import { createAssignmentFromLessonPrep } from './mathPathAssignmentService.js';
 import { getPrerequisites, getSkill } from '../../shared/mathpath/fractions/fractionSkillGraph.js';
 import { buildRetentionReviews } from '../../utils/fluencyEngine.js';
@@ -248,6 +252,33 @@ export async function handleMasteryCheckResult({ remediationSessionId, passed })
   if (session.reteachAttempts.length >= session.maxReteachAttempts) {
     markStep(session, 'original_complexity', 'in_progress', { needsTutorIntervention: true });
     await session.save();
+    // Notify linked tutors and guardians so the escalation doesn't silently dead-end.
+    try {
+      const student = await Student.findById(session.studentId).select('userId name');
+      const studentName = student?.name || 'Your student';
+      const [tutorLinks, guardianLinks] = await Promise.all([
+        TutorStudentLink.find({ studentId: String(session.studentId), status: 'active' }).select('tutorUserId'),
+        StudentGuardian.find({ studentId: String(session.studentId) }).select('guardianUserId'),
+      ]);
+      const recipientUserIds = [
+        ...tutorLinks.map((l) => l.tutorUserId),
+        ...guardianLinks.map((l) => l.guardianUserId),
+      ].filter(Boolean);
+      if (recipientUserIds.length) {
+        await Notification.insertMany(recipientUserIds.map((userId) => ({
+          recipientUserId: userId,
+          type: 'tutor_escalation',
+          title: `${studentName} needs human support`,
+          body: `${studentName} has not been able to master this skill after ${session.maxReteachAttempts} reteach attempts. Please review their mistakes and provide a guided lesson.`,
+          linkPath: `/student/${session.studentId}/mistakes`,
+          sourceType: 'RemediationSession',
+          sourceId: session._id,
+          channels: ['in_app'],
+        })));
+      }
+    } catch (notifErr) {
+      logger.warn({ err: notifErr.message }, 'tutor escalation notification failed — session still saved');
+    }
     return { session: shapeSession(session), action: 'needs_tutor' };
   }
 

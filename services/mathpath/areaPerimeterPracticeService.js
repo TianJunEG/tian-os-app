@@ -5,7 +5,7 @@ import {
 import { selectNextAreaPerimeterPracticeTarget } from '../../shared/mathpath/areaPerimeter/AreaPerimeterPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/areaPerimeter/AreaPerimeterSkillGraph.js';
 
-export const DOMAIN_ID = 'area-perimeter';
+export const DOMAIN_ID = 'area_perimeter';
 
 function statusFromAccuracy(accuracy) {
   if (accuracy >= 90) return 'mastered';

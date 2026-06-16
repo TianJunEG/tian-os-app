@@ -27,6 +27,12 @@ import Topic from '../models/Topic.js';
 import Skill from '../models/Skill.js';
 
 dotenv.config();
+
+if (process.env.NODE_ENV === 'production') {
+  console.error('seedFoundation: refusing to run in production (NODE_ENV=production).');
+  process.exit(1);
+}
+
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
 const PASSWORD = 'Passw0rd!';
 

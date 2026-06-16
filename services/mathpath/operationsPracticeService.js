@@ -5,7 +5,7 @@ import {
 import { selectNextOperationsPracticeTarget } from '../../shared/mathpath/operations/OperationsPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/operations/OperationsSkillGraph.js';
 
-export const DOMAIN_ID = 'operations';
+export const DOMAIN_ID = 'four_operations';
 
 function statusFromAccuracy(accuracy) {
   if (accuracy >= 90) return 'mastered';

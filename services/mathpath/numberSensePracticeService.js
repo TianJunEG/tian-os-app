@@ -5,7 +5,7 @@ import {
 import { selectNextNumberSensePracticeTarget } from '../../shared/mathpath/numberSense/NumberSensePracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/numberSense/NumberSenseSkillGraph.js';
 
-export const DOMAIN_ID = 'number-sense';
+export const DOMAIN_ID = 'number_sense';
 
 function statusFromAccuracy(accuracy) {
   if (accuracy >= 90) return 'mastered';

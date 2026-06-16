@@ -502,7 +502,7 @@ export function validateNumberSenseSkillGraph() {
 }
 
 export const numberSenseSkillGraph = {
-  domainId: 'number-sense',
+  domainId: 'number_sense',
   domainName: 'NumberSense',
   version: '1.0.0',
   skillIds: skills.map((s) => s.id),

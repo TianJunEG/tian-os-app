@@ -68,7 +68,7 @@ const DOMAIN_GROUPS = [
   },
   {
     key: 'geo',
-    label: 'Shapes',
+    label: 'Geometry',
     description: 'Identifying and naming 3D solids — cube, cuboid, cone, cylinder, sphere.',
     icon: Shapes,
     color: 'emerald',

@@ -56,7 +56,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
   }, [m.id, m._id, feedbackBusy]);
 
   const timeLabel = formatTimeTaken(m.timeTaken);
-  const hasMetadata = timeLabel || m.confidence || m.misconceptionTag || m.skillCode || m.workingQualityBand;
+  const hasMetadata = timeLabel || m.confidence || m.misconceptionTag || (m.skillCode && m.skillName && m.skillName !== m.skillCode) || m.workingQualityBand;
 
   return (
     <Card className="p-5">
@@ -106,8 +106,8 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
           {m.misconceptionTag && (
             <Badge tone="gold">{m.misconceptionTag}</Badge>
           )}
-          {m.skillCode && (
-            <span className="font-mono text-ink-300">{m.skillCode}</span>
+          {m.skillCode && m.skillName && m.skillName !== m.skillCode && (
+            <span className="text-xs text-ink-400">{m.skillName}</span>
           )}
           {m.workingQualityBand && (
             <Badge tone={QUALITY_BAND_TONE[m.workingQualityBand] || 'neutral'}>

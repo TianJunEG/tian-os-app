@@ -31,6 +31,8 @@ export default defineConfig({
         NODE_ENV: 'test',
         QA_DISABLE_RATE_LIMIT: '1',
         AUTO_SEED_PILOT_ACCOUNTS: '1',
+        MONGODB_URI: process.env.MONGODB_URI || '',
+        JWT_SECRET: process.env.JWT_SECRET || 'qa-test-secret',
       },
     },
     {

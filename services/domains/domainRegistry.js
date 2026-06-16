@@ -248,6 +248,75 @@ if (!hasDomain({ subjectId: 'math', domainId: 'psl' })) {
   });
 }
 
+// Register all remaining core math domains. Each has a live diagnostic domain,
+// practice route, service, seed, and frontend page. Platform adapters (assignment,
+// worksheet, paper analysis, intervention) reuse the shared services that are
+// domain-agnostic; they are marked available here so getDomain() stops throwing
+// DOMAIN_NOT_FOUND for these 13 domains.
+const CORE_MATH_DOMAINS = [
+  { domainId: 'whole_numbers',   displayName: 'Whole Numbers' },
+  { domainId: 'four_operations', displayName: 'Four Operations' },
+  { domainId: 'percentage',      displayName: 'Percentage' },
+  { domainId: 'ratio',           displayName: 'Ratio' },
+  { domainId: 'rate',            displayName: 'Rate' },
+  { domainId: 'money',           displayName: 'Money' },
+  { domainId: 'time',            displayName: 'Time' },
+  { domainId: 'area_perimeter',  displayName: 'Area & Perimeter' },
+  { domainId: 'volume',          displayName: 'Volume' },
+  { domainId: 'circles',         displayName: 'Circles' },
+  { domainId: 'number_sense',    displayName: 'Number Sense' },
+  { domainId: 'measurement',     displayName: 'Measurement' },
+  { domainId: 'geometry',        displayName: 'Geometry' },
+  { domainId: 'statistics',      displayName: 'Statistics' },
+  { domainId: 'algebra',         displayName: 'Algebra' },
+];
+
+for (const { domainId, displayName } of CORE_MATH_DOMAINS) {
+  if (!hasDomain({ subjectId: 'math', domainId })) {
+    let diagnosticProvider = null;
+    try {
+      diagnosticProvider = diagnosticsRegistry.getDiagnosticDomain({ subjectId: 'math', domainId });
+    } catch (_) { /* diagnostic domain not yet registered — adapter stays null */ }
+    registerDomain({
+      subjectId: 'math',
+      domainId,
+      displayName,
+      domainVersion: `${domainId}-v0.1`,
+      diagnosticAdapter: diagnosticProvider
+        ? { enabled: true, status: 'available', notes: 'Adaptive diagnostic domain registered.', provider: diagnosticProvider }
+        : null,
+      assignmentAdapter: {
+        enabled: true,
+        status: 'available',
+        notes: 'Reuses shared MathPath assignment service.',
+        serviceModule: 'services/mathpath/mathPathAssignmentService.js',
+      },
+      worksheetAdapter: {
+        enabled: true,
+        status: 'available',
+        notes: 'Reuses shared worksheet generation engine.',
+        serviceModule: 'services/mathpath/worksheetGenerationEngine.js',
+      },
+      paperAnalysisAdapter: {
+        enabled: true,
+        status: 'available',
+        notes: 'Uses shared paper analysis pipeline.',
+        serviceModule: 'services/mathpath/paperAnalysisPipeline.js',
+      },
+      interventionAdapter: {
+        enabled: true,
+        status: 'available',
+        notes: 'Reuses shared recheck recommendation service.',
+        serviceModule: 'services/mathpath/recheckRecommendationService.js',
+      },
+      skillGraphAdapter: {
+        status: 'available',
+        notes: `Skill graph seeded via scripts/domains/${domainId.replace(/_/g, '')}.js`,
+      },
+    });
+  }
+}
+
 export default {
   registerDomain,
   getDomain,

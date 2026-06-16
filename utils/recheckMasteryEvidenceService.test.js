@@ -33,9 +33,9 @@ describe('recheck mastery evidence: pass selection', () => {
     expect(selectPassingRecheckSkills(baseline)).toEqual([]);
   });
 
-  it('does not apply to non-fractions domains', () => {
+  it('applies to non-fractions domains (domain-agnostic after recheck generalisation)', () => {
     const other = { ...recheck([{ skillId: 'F016', score: 100, questionsAnswered: 4 }]), domainId: 'spelling' };
-    expect(selectPassingRecheckSkills(other)).toEqual([]);
+    expect(selectPassingRecheckSkills(other)).toEqual(['F016']);
   });
 
   it('uppercases skill ids and dedupes via the caller', () => {

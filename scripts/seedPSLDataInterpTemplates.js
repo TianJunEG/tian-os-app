@@ -1,5 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
+
+if (process.env.NODE_ENV === "production") {
+  console.error("Seed script: refusing to run in production (NODE_ENV=production).");
+  process.exit(1);
+}
 import mongoose from 'mongoose';
 import connectDB from '../config/db.js';
 import PSLProblemTemplate from '../models/psl/PSLProblemTemplate.js';

@@ -1446,6 +1446,17 @@ export default function PracticeSession() {
     if (summary || loading || !questions.length) return;
     setQuestionStartedAt(Date.now());
     setElapsedSec(0);
+    const q = questions[idx];
+    if (q) {
+      learningTelemetryAPI.recordEvent({
+        eventType: 'question_viewed',
+        skillCode: q.skillId || q.skillCode || '',
+        questionId: q.questionId || q.id || '',
+        sessionId: flowSession?.practiceSessionId || routeSessionId || '',
+        domain: flowSession?.domainId || '',
+        metadata: { questionIndex: idx, sessionType },
+      }).catch(() => {});
+    }
   }, [isMainFlowRender, idx, summary, loading, questions.length]);
 
   useEffect(() => {

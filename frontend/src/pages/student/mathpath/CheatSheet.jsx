@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { getMascot } from '../../../config/mascots';
 
 import sgP1Numbers from '../../../config/cheatsheets/sg-p1-numbers';
@@ -107,6 +106,7 @@ export default function CheatSheet() {
         windowWidth: 720,
       });
       const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width, canvas.height] });
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.save(`${sheet.topic}-CheatSheet-${sheet.level.replace(/\s/g, '')}.pdf`);

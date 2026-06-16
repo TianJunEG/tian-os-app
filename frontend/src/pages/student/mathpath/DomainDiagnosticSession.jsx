@@ -1,23 +1,46 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
 
-// Adaptive Decimals diagnostic ("check-in"). Drives the generic
-// /api/diagnostics/* runtime with domainId 'decimals': start returns the first
-// question; each answer returns the adaptively-chosen next question (or the
-// final result). Pure helpers are exported and unit-tested; the component is
-// thin orchestration.
+// Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
+// Mirrors DecimalsDiagnosticSession but reads the domain from the :domainId
+// route param, so a single route — /student/mathpath/:domainId/diagnostic —
+// covers all 13 non-fractions domains. The backend /api/diagnostics runtime is
+// already domain-generic (genericDiagnosticAdapterFactory), so the only
+// per-domain concerns here are the URL segment, the canonical backend domainId,
+// and display copy.
 
-// ── Pure helpers (unit-tested) ──────────────────────────────────────────────
-export function buildAnswerBody({ question, draft, startedAtMs, nowMs }) {
-  return {
-    questionId: question?.questionId,
-    studentAnswer: String(draft ?? ''),
-    timeTakenMs: Math.max(0, Number(nowMs) - Number(startedAtMs)),
-  };
+// URL segment → { backend canonical domainId, display label }. Segments that
+// already equal their canonical id (circles, geometry, …) fall through to the
+// derive() default. Underscore is the canonical persisted form (see the domain
+// registry); the URL keeps the kebab/plural segment used by the practice routes.
+const DOMAIN_CONFIG = {
+  decimals: { domainId: 'decimals', label: 'Decimals' },
+  percentages: { domainId: 'percentage', label: 'Percentage' },
+  'ratio-rate': { domainId: 'ratio', label: 'Ratio & Rate' },
+  'area-perimeter': { domainId: 'area_perimeter', label: 'Area & Perimeter' },
+  'number-sense': { domainId: 'number_sense', label: 'Number Sense' },
+  operations: { domainId: 'four_operations', label: 'Operations' },
+  algebra: { domainId: 'algebra', label: 'Algebra' },
+  circles: { domainId: 'circles', label: 'Circles' },
+  geometry: { domainId: 'geometry', label: 'Geometry' },
+  volume: { domainId: 'volume', label: 'Volume' },
+  measurement: { domainId: 'measurement', label: 'Measurement' },
+  money: { domainId: 'money', label: 'Money' },
+  time: { domainId: 'time', label: 'Time' },
+  statistics: { domainId: 'statistics', label: 'Statistics' },
+};
+
+function resolveDomain(segment) {
+  const key = String(segment || '').toLowerCase();
+  if (DOMAIN_CONFIG[key]) return { segment: key, ...DOMAIN_CONFIG[key] };
+  // Fallback: underscore the segment for the backend, title-case it for display.
+  const domainId = key.replace(/-/g, '_');
+  const label = key.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return { segment: key, domainId, label };
 }
 
 export function summariseDiagnosticResult(result = {}) {
@@ -28,8 +51,16 @@ export function summariseDiagnosticResult(result = {}) {
     totalQuestions: result.totalQuestions || 0,
     weakSkills: (result.weakSkills || []).map((s) => ({ skillId: s.skillId, name: s.name || s.skillId })),
     masteredSkills: (result.masteredSkills || []).map((s) => ({ skillId: s.skillId, name: s.name || s.skillId })),
-    recommendedStartingSkillId: result.recommendedStartingSkillId || result.recommendedStartingSkill?.skillId || 'D001',
+    recommendedStartingSkillId: result.recommendedStartingSkillId || result.recommendedStartingSkill?.skillId || '',
     recommendedStartingSkillName: result.recommendedStartingSkill?.name || result.recommendedStartingSkillId || '',
+  };
+}
+
+export function buildAnswerBody({ question, draft, startedAtMs, nowMs }) {
+  return {
+    questionId: question?.questionId,
+    studentAnswer: String(draft ?? ''),
+    timeTakenMs: Math.max(0, Number(nowMs) - Number(startedAtMs)),
   };
 }
 
@@ -39,9 +70,11 @@ function bandTone(band) {
   return 'navy';
 }
 
-// ── Component ───────────────────────────────────────────────────────────────
-export default function DecimalsDiagnosticSession() {
+export default function DomainDiagnosticSession() {
   const navigate = useNavigate();
+  const { domainId: domainParam } = useParams();
+  const domain = resolveDomain(domainParam);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sessionId, setSessionId] = useState('');
@@ -57,7 +90,7 @@ export default function DecimalsDiagnosticSession() {
     let active = true;
     (async () => {
       try {
-        const res = await diagnosticsAPI.startDiagnostic({ subjectId: 'math', domainId: 'decimals', mode: 'core', purpose: 'baseline' });
+        const res = await diagnosticsAPI.startDiagnostic({ subjectId: 'math', domainId: domain.domainId, mode: 'core', purpose: 'baseline' });
         const data = res?.data || {};
         if (!data.currentQuestion) throw new Error('No diagnostic question returned.');
         if (active) {
@@ -69,8 +102,8 @@ export default function DecimalsDiagnosticSession() {
       } catch (e) {
         const code = e?.response?.data?.code;
         const inProgressSessionId = e?.response?.data?.inProgressSessionId;
-        // If a session is already in progress (tab closed mid-diagnostic), resume it
-        // instead of surfacing the replay-blocked error to the student.
+        // Resume an in-progress session (tab closed mid-diagnostic) instead of
+        // surfacing the replay-blocked error to the student.
         if (code === 'DIAGNOSTIC_REPLAY_BLOCKED' && inProgressSessionId && active) {
           try {
             const resumeRes = await diagnosticsAPI.resumeDiagnostic(inProgressSessionId);
@@ -95,7 +128,8 @@ export default function DecimalsDiagnosticSession() {
       }
     })();
     return () => { active = false; };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [domain.domainId]);
 
   async function submitAnswer() {
     if (!question || submitting) return;
@@ -121,6 +155,7 @@ export default function DecimalsDiagnosticSession() {
   }
 
   const estimated = progress.estimatedQuestionCount || 8;
+  const backToMap = () => navigate(`/student/mathpath/${domain.segment}`);
 
   if (loading) return <div className="grid place-items-center py-20"><Spinner label="Setting up your check-in…" /></div>;
 
@@ -128,7 +163,7 @@ export default function DecimalsDiagnosticSession() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8">
         <Alert tone="error">{error}</Alert>
-        <Button className="mt-4" onClick={() => navigate('/student/mathpath/decimals')}>Back to Decimals</Button>
+        <Button className="mt-4" onClick={backToMap}>Back to {domain.label}</Button>
       </div>
     );
   }
@@ -140,7 +175,7 @@ export default function DecimalsDiagnosticSession() {
         <MascotBubble
           name="kylo"
           message={result.readinessBand === 'ready'
-            ? 'Great job — you really know your decimals!'
+            ? `Great job — you really know your ${domain.label.toLowerCase()}!`
             : result.readinessBand === 'progressing'
               ? 'Good start! I know just where to begin.'
               : "No worries — let's build up from here together!"}
@@ -159,14 +194,18 @@ export default function DecimalsDiagnosticSession() {
               </div>
             </div>
           )}
-          <div className="mt-5 flex items-center gap-3 rounded-xl bg-gold-50 p-3">
-            <Sparkles className="h-5 w-5 text-gold-700" />
-            <p className="text-sm font-semibold text-ink-700">Recommended start: {result.recommendedStartingSkillName || result.recommendedStartingSkillId}</p>
-          </div>
+          {result.recommendedStartingSkillId && (
+            <div className="mt-5 flex items-center gap-3 rounded-xl bg-gold-50 p-3">
+              <Sparkles className="h-5 w-5 text-gold-700" />
+              <p className="text-sm font-semibold text-ink-700">Recommended start: {result.recommendedStartingSkillName || result.recommendedStartingSkillId}</p>
+            </div>
+          )}
         </Card>
         <div className="flex gap-3">
-          <Button icon={ArrowRight} onClick={() => navigate(`/student/mathpath/decimals/practice?skill=${result.recommendedStartingSkillId}`)}>Start Practising</Button>
-          <Button variant="secondary" onClick={() => navigate('/student/mathpath/decimals')}>Back to Skill Map</Button>
+          {result.recommendedStartingSkillId && (
+            <Button icon={ArrowRight} onClick={() => navigate(`/student/mathpath/${domain.segment}/practice?skill=${result.recommendedStartingSkillId}`)}>Start Practising</Button>
+          )}
+          <Button variant="secondary" onClick={backToMap}>Back to Skill Map</Button>
         </div>
       </div>
     );
@@ -174,7 +213,7 @@ export default function DecimalsDiagnosticSession() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
-      <PageHeader title="Decimals Check-in" subtitle="A short adaptive check to find your best starting point." />
+      <PageHeader title={`${domain.label} Check-in`} subtitle="A short adaptive check to find your best starting point." />
       {progress.answeredCount === 0 && (
         <MascotBubble name="kylo" message="Just do your best — this helps me find the right starting point for you!" size="sm" className="mb-2" />
       )}
@@ -205,7 +244,7 @@ export default function DecimalsDiagnosticSession() {
         ) : (
           <input
             type="text"
-            inputMode="decimal"
+            inputMode="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim()) submitAnswer(); }}

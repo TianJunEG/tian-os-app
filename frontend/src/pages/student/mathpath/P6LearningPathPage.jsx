@@ -6,6 +6,13 @@ import { mathpathAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import p6AlgebraSkillGraph from '../../../mathpath/primary/p6AlgebraSkillGraph';
 import p6AreaVolSkillGraph from '../../../mathpath/primary/p6AreaVolSkillGraph';
+import p6CirclesSkillGraph from '../../../mathpath/primary/p6CirclesSkillGraph';
+import p6DataAnalysisSkillGraph from '../../../mathpath/primary/p6DataAnalysisSkillGraph';
+import p6FractionsSkillGraph from '../../../mathpath/primary/p6FractionsSkillGraph';
+import p6GeometrySkillGraph from '../../../mathpath/primary/p6GeometrySkillGraph';
+import p6PercentageSkillGraph from '../../../mathpath/primary/p6PercentageSkillGraph';
+import p6RatioSkillGraph from '../../../mathpath/primary/p6RatioSkillGraph';
+import p6SpeedSkillGraph from '../../../mathpath/primary/p6SpeedSkillGraph';
 
 const DOMAIN_GROUPS = [
   {
@@ -23,6 +30,62 @@ const DOMAIN_GROUPS = [
     icon: Box,
     color: 'navy',
     graph: p6AreaVolSkillGraph,
+  },
+  {
+    key: 'circles',
+    label: 'Circles',
+    description: 'Circumference, area, and composite circle problems.',
+    icon: Trophy,
+    color: 'gold',
+    graph: p6CirclesSkillGraph,
+  },
+  {
+    key: 'dataanalysis',
+    label: 'Statistics',
+    description: 'Pie charts, line graphs, mean, and data interpretation.',
+    icon: AlertCircle,
+    color: 'mint',
+    graph: p6DataAnalysisSkillGraph,
+  },
+  {
+    key: 'fractions',
+    label: 'Fractions',
+    description: 'Fraction operations, mixed numbers, and fraction word problems.',
+    icon: Variable,
+    color: 'sky',
+    graph: p6FractionsSkillGraph,
+  },
+  {
+    key: 'geometry',
+    label: 'Geometry',
+    description: 'Angles in triangles, quadrilaterals, and unknown angle problems.',
+    icon: Box,
+    color: 'navy',
+    graph: p6GeometrySkillGraph,
+  },
+  {
+    key: 'percentage',
+    label: 'Percentage',
+    description: 'Percentage increase/decrease, GST, and discount problems.',
+    icon: Trophy,
+    color: 'gold',
+    graph: p6PercentageSkillGraph,
+  },
+  {
+    key: 'ratio',
+    label: 'Ratio',
+    description: 'Equivalent ratios, ratio word problems, and ratio changes.',
+    icon: Variable,
+    color: 'mint',
+    graph: p6RatioSkillGraph,
+  },
+  {
+    key: 'speed',
+    label: 'Speed',
+    description: 'Average speed, distance-time graphs, and travel word problems.',
+    icon: ArrowRight,
+    color: 'sky',
+    graph: p6SpeedSkillGraph,
   },
 ];
 
@@ -201,8 +264,8 @@ export default function P6LearningPathPage() {
       <PageHeader
         title="Primary 6 Mathematics"
         subtitle={totalMastered > 0
-          ? `${totalMastered}/${totalSkills} skills mastered — ${totalSkills} skills across 2 domains.`
-          : `${totalSkills} skills across 2 domains — Singapore MOE P6 syllabus.`}
+          ? `${totalMastered}/${totalSkills} skills mastered — ${totalSkills} skills across ${DOMAIN_GROUPS.length} domains.`
+          : `${totalSkills} skills across ${DOMAIN_GROUPS.length} domains — Singapore MOE P6 syllabus.`}
       />
 
       <Card className="p-5">

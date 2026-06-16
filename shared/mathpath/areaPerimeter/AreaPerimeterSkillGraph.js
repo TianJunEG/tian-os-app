@@ -214,7 +214,7 @@ export function validateAreaPerimeterSkillGraph() {
 }
 
 export const areaPerimeterSkillGraph = {
-  domainId: 'area-perimeter',
+  domainId: 'area_perimeter',
   domainName: 'AreaPerimeter',
   version: '1.0.0',
   skillIds: skills.map((s) => s.id),
