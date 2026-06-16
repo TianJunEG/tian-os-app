@@ -3,6 +3,8 @@ import { ThumbsUp, ThumbsDown, Clock, ChevronDown } from 'lucide-react';
 import { Card, Badge } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
 import { mathpathAPI } from '../../services/api';
+import { getFriendlyMisconception } from '../../mathpath/insights/misconceptionFriendlyMap';
+import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
 
 const StrokeReplayPlayer = lazy(() => import('../../components/learning/StrokeReplayPlayer'));
 
@@ -38,6 +40,35 @@ function formatTimeTaken(seconds) {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
+// Build a plain-English explanation + at-home tip for a single mistake.
+// Prefers the tag-specific friendly copy (what the child likely misunderstood),
+// then falls back to the confidence/working-aware parent insight so a card with
+// no mapped tag still gives parents meaning instead of a slug.
+function buildParentExplanation(m) {
+  const friendly = m.misconceptionTag ? getFriendlyMisconception(m.misconceptionTag) : null;
+
+  const insight = buildParentInsight({
+    correct: false,
+    confidence: m.confidence,
+    skillName: m.skillName,
+    methodDetected: m.workingInsight?.detectedMethod,
+    detectedIssue: m.workingInsight?.issue,
+    missingWorking: !m.workingSubmitted && !m.workingNotNeeded && !(m.workingStrokes?.length) && !m.workingImage,
+  });
+
+  const plainExplanation =
+    friendly?.plainExplanation
+    // A backend-provided human label (MISCONCEPTION_LABELS) reads as a phrase,
+    // so frame it as a sentence rather than dropping it raw.
+    || (m.mistakeTypeLabel ? `${m.mistakeTypeLabel}.` : '')
+    || insight.whatIsTheIssue;
+
+  const atHomeTip = friendly?.atHomeTip || insight.whatCanIDo;
+
+  if (!plainExplanation && !atHomeTip) return null;
+  return { plainExplanation, atHomeTip };
+}
+
 export default function MistakeCard({ mistake: m, formula = false, action = null }) {
   const Stem = formula ? MathText : PlainText;
   const Ans = formula ? MathText : PlainText;
@@ -56,7 +87,8 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
   }, [m.id, m._id, feedbackBusy]);
 
   const timeLabel = formatTimeTaken(m.timeTaken);
-  const hasMetadata = timeLabel || m.confidence || m.misconceptionTag || (m.skillCode && m.skillName && m.skillName !== m.skillCode) || m.workingQualityBand;
+  const explanation = buildParentExplanation(m);
+  const hasMetadata = timeLabel || m.confidence || (m.skillCode && m.skillName && m.skillName !== m.skillCode) || m.workingQualityBand;
 
   return (
     <Card className="p-5">
@@ -91,6 +123,25 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
         )}
       </div>
 
+      {explanation && (
+        <div className="mt-3 rounded-xl border border-gold-border bg-gold-tint p-3">
+          {explanation.plainExplanation && (
+            <>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gold-deep">
+                What likely tripped them up
+              </p>
+              <p className="text-sm text-ink-700">{explanation.plainExplanation}</p>
+            </>
+          )}
+          {explanation.atHomeTip && (
+            <p className="mt-2 text-sm text-ink-600">
+              <span className="font-semibold text-ink-700">Try at home: </span>
+              {explanation.atHomeTip}
+            </p>
+          )}
+        </div>
+      )}
+
       {hasMetadata && (
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
           {timeLabel && (
@@ -102,9 +153,6 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
             <Badge tone={m.confidence >= 4 ? 'success' : m.confidence >= 2 ? 'gold' : 'error'}>
               Confidence {m.confidence}/5
             </Badge>
-          )}
-          {m.misconceptionTag && (
-            <Badge tone="gold">{m.misconceptionTag}</Badge>
           )}
           {m.skillCode && m.skillName && m.skillName !== m.skillCode && (
             <span className="text-xs text-ink-400">{m.skillName}</span>
