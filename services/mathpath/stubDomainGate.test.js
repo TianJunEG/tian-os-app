@@ -5,18 +5,20 @@ import { buildOperationsPracticeSession } from './operationsPracticeService.js';
 import { buildGeometryPracticeSession } from './geometryPracticeService.js';
 import { buildMeasurementPracticeSession } from './measurementPracticeService.js';
 import { buildTimePracticeSession } from './timePracticeService.js';
-import { buildMoneyPracticeSession } from './moneyPracticeService.js';
 
 describe('stubDomainGate', () => {
-  it('withholds the four stub domains and the two not-exam-ready domains', () => {
+  it('withholds the four stub domains and Time (Money has been rebuilt)', () => {
     expect(WITHHELD_DOMAINS).toEqual({
       'number-sense': 'stub',
       operations: 'stub',
       geometry: 'stub',
       measurement: 'stub',
       time: 'not-exam-ready',
-      money: 'not-exam-ready',
     });
+  });
+
+  it('no longer withholds money', () => {
+    expect(() => assertDomainServable('money')).not.toThrow();
   });
 
   it('exposes the pure-stub subset', () => {
@@ -46,7 +48,6 @@ describe('stubDomainGate', () => {
     ['geometry', buildGeometryPracticeSession],
     ['measurement', buildMeasurementPracticeSession],
     ['time', buildTimePracticeSession],
-    ['money', buildMoneyPracticeSession],
   ])('build*PracticeSession refuses to serve %s', (_id, build) => {
     expect(() => build({})).toThrowError(/temporarily unavailable/);
   });

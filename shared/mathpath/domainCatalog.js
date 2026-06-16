@@ -395,7 +395,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'engine_ready', // moneyDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'planned',        // WITHHELD: MoneyQuestionGenerator.js ships misgrades (negative "money left", malformed amounts, bare-integer answers the checker rejects). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
+      practice: 'available',      // rebuilt: MoneyQuestionGenerator.js (integer-cents, misconception distractors, bar-model diagrams). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',

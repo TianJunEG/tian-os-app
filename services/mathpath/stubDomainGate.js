@@ -21,7 +21,7 @@ export const WITHHELD_DOMAINS = {
   geometry: 'stub',
   measurement: 'stub',
   time: 'not-exam-ready',
-  money: 'not-exam-ready',
+  // money: rebuilt and re-enabled (see MoneyQuestionGenerator.js / P1).
 };
 
 // Back-compat: the subset that are pure a+b stubs.
