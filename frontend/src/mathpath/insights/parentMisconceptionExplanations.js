@@ -273,12 +273,24 @@ export function getParentMisconception(tag = '') {
   if (topic) {
     return {
       plainExplanation: `This looks like a slip with ${topic}.`,
-      atHomeTip: `Go back over a ${topic} example together and ask your child to talk through each step out loud.`,
+      // No leading article — topics include vowel-initial words ("addition") and
+      // phrases ("working through the steps in order") that "a ..." reads wrongly with.
+      atHomeTip: `Go back over ${topic} together and ask your child to talk through each step out loud.`,
       matched: 'domain',
     };
   }
 
   return null;
+}
+
+// Confidence reaches the card either as a 1–5 numeric rating or already as a label.
+// Map the numeric form to the label buildParentInsight's normalizeConfidence understands
+// (mirrors the 1–5 banding used elsewhere in MistakeCard); pass non-numeric values through.
+function toConfidenceLabel(value) {
+  if (value === '' || value == null) return value;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 1 || n > 5) return value;
+  return n >= 4 ? 'high' : n >= 2 ? 'medium' : 'low';
 }
 
 /**
@@ -304,7 +316,9 @@ export function describeMistakeForParent(mistake = {}) {
   // makes the better headline.
   const parentInsight = buildParentInsight({
     correct: mistake.answerCorrect === true,
-    confidence: mistake.confidence,
+    // On the card, confidence is a 1–5 rating; buildParentInsight's normalizeConfidence
+    // expects a label ('high'/'medium'/'low'), so map numeric ratings before handing off.
+    confidence: toConfidenceLabel(mistake.confidence),
     skillName: mistake.skillName,
     mistakeName: (mistake.mistakeTypeLabel || '').trim() || undefined,
     workingAnalysis: mistake.workingInsight || undefined,

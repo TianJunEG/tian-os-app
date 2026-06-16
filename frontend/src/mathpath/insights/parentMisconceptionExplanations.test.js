@@ -75,6 +75,27 @@ describe('parentMisconceptionExplanations', () => {
       expect(out.atHomeTip).toMatch(/review|explain|step/i);
     });
 
+    it('maps a numeric 1-5 confidence rating to a label for the generic builder', () => {
+      // confidence 5 (high) on a wrong answer should reach the confidence-aware
+      // parent interpretation, not be normalized to "unknown" and fall flat.
+      const out = describeMistakeForParent({
+        misconceptionTag: 'unknownns/mystery',
+        skillName: 'Equivalent Fractions',
+        confidence: 5,
+        answerCorrect: false,
+      });
+      expect(out.source).toBe('generic');
+      expect(out.atHomeTip).toBeTruthy();
+      expect(out.atHomeTip).not.toMatch(SLUG_RE);
+    });
+
+    it('produces grammatical domain-fallback tips for vowel-initial topics', () => {
+      const out = describeMistakeForParent({ misconceptionTag: 'add/brand-new' });
+      expect(out.source).toBe('domain');
+      expect(out.atHomeTip).not.toMatch(/\ba addition\b/);
+      expect(out.atHomeTip).toMatch(/addition/);
+    });
+
     it('prefers a backend human label over the generic builder when present', () => {
       const out = describeMistakeForParent({
         misconceptionTag: 'unknownns/mystery',
