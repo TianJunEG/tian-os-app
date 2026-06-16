@@ -181,6 +181,7 @@ const TutorHomework = lazy(() => import('./pages/tutor/TutorHomework'));
 const TutorAvailability = lazy(() => import('./pages/tutor/Availability'));
 const TutorTraining = lazy(() => import('./pages/tutor/Training'));
 const TutorExplanationRecorder = lazy(() => import('./pages/tutor/TutorExplanationRecorder'));
+const TutorMistakesPage = lazy(() => import('./pages/tutor/TutorMistakesPage'));
 // Teacher (Phase 5)
 const TeacherHome = lazy(() => import('./pages/teacher/TeacherHome'));
 const Classes = lazy(() => import('./pages/teacher/Classes'));
@@ -715,6 +716,7 @@ function App() {
             <Route path="/tutor/request-access" element={<FeatureGuard feature="tutor"><TutorRequestStudentLink /></FeatureGuard>} />
             <Route path="/agency" element={<AgencyDashboard />} />
             <Route path="/admin/partners/:pid/licence" element={<PartnerLicencePage />} />
+            <Route path="/tutor/students/:id/mistakes" element={<FeatureGuard feature="tutor"><TutorMistakesPage /></FeatureGuard>} />
             <Route path="/tutor/students/:id/assign-homework" element={<FeatureGuard feature="tutor"><AssignHomework /></FeatureGuard>} />
             <Route path="/tutor/homework" element={<FeatureGuard feature="tutor"><TutorHomework /></FeatureGuard>} />
             <Route path="/tutor/students/:id/mistakes/:mistakeId/explain" element={<FeatureGuard feature="tutor"><TutorExplanationRecorder /></FeatureGuard>} />
