@@ -167,7 +167,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P0',
     capabilities: {
       diagnostic: 'engine_ready', // wholeNumbersDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // templates in scripts/domains/numberSense.js
+      practice: 'planned',        // GATED: NumberSenseQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -195,7 +195,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P0',
     capabilities: {
       diagnostic: 'engine_ready', // fourOperationsDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // templates in scripts/domains/operations.js
+      practice: 'planned',        // GATED: OperationsQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -451,7 +451,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'planned',
-      practice: 'available',     // templates in scripts/domains/measurement.js
+      practice: 'planned',       // GATED: MeasurementQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
@@ -535,7 +535,7 @@ export const DOMAIN_CATALOG = [
     priority: 'P2',
     capabilities: {
       diagnostic: 'planned',
-      practice: 'available',     // templates in scripts/domains/geometry.js
+      practice: 'planned',       // GATED: GeometryQuestionGenerator.js is a stub (emits "Compute: a+b"). See MATHPATH_QUESTION_QUALITY_AUDIT.md / stubDomainGate.js
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
