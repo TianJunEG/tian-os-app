@@ -54,7 +54,7 @@ import {
   setMathPathDomainProgressState,
 } from '../../../mathpath/state/mathPathDomainProgressState';
 import { isFractionsStoryModeEnabled, FEATURE_FLAGS } from '../../../config/featureFlags';
-import { getMisconceptionHintForSkill } from '../../../mathpath/fractions/misconceptionHints';
+import { getMisconceptionFromAnswer } from '../../../mathpath/fractions/misconceptionHints';
 import FractionsStoryModeSession from './FractionsStoryModeSession';
 import { shouldUseFractionAnswerInput } from './components/FractionAnswerInput';
 import QuestionDiagram, {
@@ -95,8 +95,8 @@ const SELF_EXPLANATION_OPTIONS = [
 
 // After a wrong (non-skipped) answer, Talia surfaces the likely misconception for
 // the skill and what to do — only when a hint is catalogued for that skill.
-function MisconceptionHint({ skillId }) {
-  const hint = getMisconceptionHintForSkill(skillId);
+function MisconceptionHint({ question, studentAnswer }) {
+  const hint = getMisconceptionFromAnswer(question, studentAnswer);
   if (!hint) return null;
   return (
     <div className="mt-3">
@@ -986,7 +986,7 @@ function LegacyPracticeSession() {
           />
         )}
         {FEATURE_FLAGS.misconceptionFeedback && result && result.correct === false && !result.skipped && (
-          <MisconceptionHint key={q.questionId} skillId={q.skillId} />
+          <MisconceptionHint key={q.questionId} question={q} studentAnswer={answer} />
         )}
         {err && <p className="mt-3 text-sm text-error-700">{err}</p>}
         <div className="mt-auto pt-4">{!result ? <Button size="l" disabled={busy || !answer} onClick={openReviewModal} className="w-full">Submit answer</Button> : <Button size="l" icon={ArrowRight} onClick={next} className="w-full">{isLast ? sessionMeta.finishLabel : 'Next question'}</Button>}</div>
