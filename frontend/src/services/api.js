@@ -192,6 +192,14 @@ export const mathpathAPI = {
   decimalsAssessmentReadiness: () => api.get('/mathpath/decimals/assessment/readiness'),
   startDecimalsAssessment: (data = {}) => api.post('/mathpath/decimals/assessment/start', data),
   submitDecimalsAssessment: (practiceSessionId, data = {}) => api.post(`/mathpath/decimals/assessment/${practiceSessionId}/submit`, data),
+  // Percentages domain — skill states + practice loop.
+  percentagesSkillStates: () => api.get('/mathpath/percentages/skill-states'),
+  startPercentagesPractice: (data = {}) => api.post('/mathpath/percentages/practice/start', data),
+  submitPercentagesPractice: (practiceSessionId, data = {}) => api.post(`/mathpath/percentages/practice/${practiceSessionId}/submit`, data),
+  // Ratio & Rate domain — skill states + practice loop.
+  ratioRateSkillStates: () => api.get('/mathpath/ratio-rate/skill-states'),
+  startRatioRatePractice: (data = {}) => api.post('/mathpath/ratio-rate/practice/start', data),
+  submitRatioRatePractice: (practiceSessionId, data = {}) => api.post(`/mathpath/ratio-rate/practice/${practiceSessionId}/submit`, data),
   startFractionPractice: (data = {}) => api.post('/mastery/fractions/practice/start', data, { skipErrorToast: true }),
   getFractionPractice: (practiceSessionId) => api.get(`/mastery/fractions/practice/${practiceSessionId}`),
   submitFractionPractice: (practiceSessionId, data = {}) => api.post(`/mastery/fractions/practice/${practiceSessionId}/submit`, data),
