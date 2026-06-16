@@ -59,8 +59,57 @@ function prerequisiteChain(skillId, resolvers, depth = 0, seen = new Set()) {
   return chain;
 }
 
+const MIN_FLUENCY_ATTEMPTS = 3;
+
+// Group answered (non-skipped) attempts by question family and score fluency
+// against the family's benchmark. Surfaces only families that show an issue
+// (slow-but-accurate, or inaccurate). Names resolved via injected resolvers.
+function buildFluencyBottlenecks(attempts, resolvers) {
+  const byFamily = new Map();
+  (Array.isArray(attempts) ? attempts : []).forEach((a) => {
+    if (a.skipped) return;
+    const famId = a.questionFamilyId;
+    if (!famId) return;
+    if (!byFamily.has(famId)) byFamily.set(famId, []);
+    byFamily.get(famId).push(a);
+  });
+
+  const rows = [];
+  byFamily.forEach((items, famId) => {
+    if (items.length < MIN_FLUENCY_ATTEMPTS) return;
+    const family = resolvers.getQuestionFamily(famId);
+    const total = items.length;
+    const correct = items.filter((i) => i.correct || i.answerCorrect).length;
+    const accuracy = Math.round((correct / total) * 100);
+    const timed = items.map((i) => Number(i.timeTaken)).filter((t) => Number.isFinite(t) && t > 0);
+    const averageTime = timed.length ? Math.round(timed.reduce((a, b) => a + b, 0) / timed.length) : null;
+    const benchmarkTime = family?.fluencyTargetSeconds ?? family?.fluencyBenchmarks?.gold ?? null;
+    const skillId = family?.skillId || items[0].skillId || '';
+
+    let issueType = null;
+    if (accuracy < 70) issueType = 'fastButInaccurate';
+    else if (averageTime != null && benchmarkTime != null && averageTime > benchmarkTime * 1.4) issueType = 'accurateButSlow';
+    if (!issueType) return; // fluent enough — not a bottleneck
+
+    rows.push({
+      skillId,
+      skillName: resolvers.getSkillName(skillId),
+      questionFamilyId: famId,
+      questionFamilyName: family?.name || famId,
+      accuracy,
+      averageTime,
+      benchmarkTime,
+      attempts: total,
+      issueType,
+      recommendation: issueType === 'accurateButSlow' ? 'runFluencyDrill' : 'assignTargetedPractice',
+    });
+  });
+
+  return rows.sort((a, b) => a.accuracy - b.accuracy);
+}
+
 export function buildCurriculumDomainDashboard(options = {}) {
-  const { resolvers, skillStates = [], mistakes = [] } = options;
+  const { resolvers, skillStates = [], mistakes = [], attempts = [] } = options;
   if (!resolvers) {
     return {
       available: false,
@@ -70,6 +119,7 @@ export function buildCurriculumDomainDashboard(options = {}) {
       weakSkills: [],
       rootCauses: [],
       mistakeClusters: [],
+      fluencyBottlenecks: [],
       interventionPriorities: [],
       recommendedFocus: null,
     };
@@ -214,14 +264,18 @@ export function buildCurriculumDomainDashboard(options = {}) {
     }
     : null;
 
+  // --- Fluency bottlenecks (from persisted per-question attempts) ----------
+  const fluencyBottlenecks = buildFluencyBottlenecks(attempts, resolvers);
+
   return {
-    available: skillSummary.total > 0 || domainMistakes.length > 0,
+    available: skillSummary.total > 0 || domainMistakes.length > 0 || fluencyBottlenecks.length > 0,
     domainKey,
     domainLabel,
     skillSummary,
     weakSkills,
     rootCauses,
     mistakeClusters,
+    fluencyBottlenecks,
     interventionPriorities,
     recommendedFocus,
   };
