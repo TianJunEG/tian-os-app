@@ -65,6 +65,14 @@ router.post('/:episodeId/complete', async (req, res) => {
       'e10-p1-q1': 'mass-addition',
       'e10-p2-q1': 'mass-conversion-kg-g',
       'e10-p3-q1': 'mass-subtraction',
+      // Episode 11 — Topped Up
+      'e11-p1-q1': 'capacity-addition',
+      'e11-p2-q1': 'capacity-conversion-l-ml',
+      'e11-p3-q1': 'capacity-subtraction',
+      // Episode 12 — Table Master
+      'e12-p1-q1': 'multiplication-tables',
+      'e12-p2-q1': 'multiplication-word-problem',
+      'e12-p3-q1': 'multiplication-multistep',
     };
 
     await Promise.allSettled(

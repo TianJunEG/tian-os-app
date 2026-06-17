@@ -1123,6 +1123,224 @@ export const episodes = [
       character: 'chelya',
     },
   },
+  {
+    id: 'ep-011',
+    slug: 'topped-up',
+    title: 'Topped Up',
+    episode: 11,
+    grade: 'P3–P4',
+    publishedAt: '2026-08-25',
+    tagline: 'Smoothie station is open — Chelya needs every pour measured to the millilitre.',
+    coverCharacters: ['chelya', 'kylo'],
+    coverBg: 'hawker-centre',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'hawker-centre',
+        characters: [
+          { key: 'chelya', pose: 'measuring', side: 'left' },
+          { key: 'kylo', pose: 'excited', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'chelya',
+            side: 'left',
+            text: "Smoothie station! This jug holds 400 ml, and I'll pour in 350 ml more.",
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Add them for the total?',
+          },
+        ],
+        problem: {
+          id: 'e11-p1-q1',
+          question: 'A jug holds 400 ml of juice. Chelya adds 350 ml more. How much juice is in the jug now?',
+          hint: 'Add the two amounts: 400 ml + 350 ml.',
+          answer: 750,
+          unit: ' ml',
+          unitPosition: 'suffix',
+          skill: 'capacity-addition',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'hawker-centre',
+        characters: [
+          { key: 'chelya', pose: 'standing', side: 'left' },
+          { key: 'kylo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'chelya',
+            side: 'left',
+            text: 'This bottle says 1 litre. How many millilitres is that?',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Litres to millilitres… I know this!',
+          },
+        ],
+        problem: {
+          id: 'e11-p2-q1',
+          question: 'How many millilitres are there in 1 litre?',
+          hint: 'Remember the rule: 1 litre = 1000 millilitres.',
+          answer: 1000,
+          unit: ' ml',
+          unitPosition: 'suffix',
+          skill: 'capacity-conversion-l-ml',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'hawker-centre',
+        characters: [
+          { key: 'chelya', pose: 'happy', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'chelya',
+            side: 'left',
+            text: 'Our 1000 ml flask is filled to 750 ml. How much more will fit?',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Take 750 away from 1000…',
+          },
+          {
+            character: 'chelya',
+            side: 'left',
+            text: 'Top it up!',
+          },
+        ],
+        problem: {
+          id: 'e11-p3-q1',
+          question: 'A flask holds 1000 ml. It is filled to 750 ml. How many more millilitres are needed to fill it?',
+          hint: 'Find the difference: 1000 ml − 750 ml.',
+          answer: 250,
+          unit: ' ml',
+          unitPosition: 'suffix',
+          skill: 'capacity-subtraction',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: "Next week: Kylo faces Lejo's times-table challenge — speed and accuracy!",
+      character: 'kylo',
+    },
+  },
+  {
+    id: 'ep-012',
+    slug: 'table-master',
+    title: 'Table Master',
+    episode: 12,
+    grade: 'P3–P4',
+    publishedAt: '2026-09-01',
+    tagline: 'Lejo puts Kylo through a times-table gauntlet — no calculators allowed.',
+    coverCharacters: ['kylo', 'lejo'],
+    coverBg: 'study-den',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'study-den',
+        characters: [
+          { key: 'kylo', pose: 'excited', side: 'left' },
+          { key: 'lejo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lejo',
+            side: 'right',
+            text: "Times-table drill, rookie. Quick — what's 7 times 6?",
+          },
+          {
+            character: 'kylo',
+            side: 'left',
+            text: 'Seven sixes… give me a second!',
+          },
+        ],
+        problem: {
+          id: 'e12-p1-q1',
+          question: 'What is 7 × 6?',
+          hint: 'Seven sixes. If you know 7 × 5 = 35, add one more 7 to get 7 × 6.',
+          answer: 42,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'multiplication-tables',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'study-den',
+        characters: [
+          { key: 'kylo', pose: 'pointing', side: 'left' },
+          { key: 'lejo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lejo',
+            side: 'right',
+            text: 'Word problem. A box holds 8 cupcakes. There are 4 boxes.',
+          },
+          {
+            character: 'kylo',
+            side: 'left',
+            text: 'Four lots of eight!',
+          },
+        ],
+        problem: {
+          id: 'e12-p2-q1',
+          question: 'A box holds 8 cupcakes. How many cupcakes are there in 4 boxes?',
+          hint: '4 groups of 8: multiply 4 × 8.',
+          answer: 32,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'multiplication-word-problem',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'study-den',
+        characters: [
+          { key: 'kylo', pose: 'standing', side: 'left' },
+          { key: 'lejo', pose: 'aha', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lejo',
+            side: 'right',
+            text: 'Two steps now. Kylo buys 3 packs of 6 stickers, then gets 5 more free.',
+          },
+          {
+            character: 'kylo',
+            side: 'left',
+            text: 'Multiply first, then add the extra…',
+          },
+          {
+            character: 'lejo',
+            side: 'right',
+            text: 'Exactly. Order matters.',
+          },
+        ],
+        problem: {
+          id: 'e12-p3-q1',
+          question: 'Kylo buys 3 packs of 6 stickers and is given 5 more. How many stickers does he have altogether?',
+          hint: 'First multiply: 3 × 6 = 18. Then add the 5 free stickers.',
+          answer: 23,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'multiplication-multistep',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: 'Next week: Tiano maps out the pitch — perimeter, sides and distance.',
+      character: 'tiano',
+    },
+  },
 ];
 
 export function getEpisode(slug) {
