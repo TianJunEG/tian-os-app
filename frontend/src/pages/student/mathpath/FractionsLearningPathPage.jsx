@@ -372,8 +372,8 @@ export default function FractionsLearningPathPage() {
           questionCount: 8,
           sessionType: 'practice',
           source: 'fractions-pathway',
-          backTo: '/student/mathpath/path',
-          homeBase: '/student/mathpath/path',
+          backTo: '/student/mathpath/fractions',
+          homeBase: '/student/mathpath/fractions',
         },
       });
       return;
@@ -423,8 +423,8 @@ export default function FractionsLearningPathPage() {
                 questionCount: 8,
                 sessionType: 'practice',
                 source: 'fractions-pathway-skill-card',
-                backTo: '/student/mathpath/path',
-                homeBase: '/student/mathpath/path',
+                backTo: '/student/mathpath/fractions',
+                homeBase: '/student/mathpath/fractions',
               },
             });
           }}

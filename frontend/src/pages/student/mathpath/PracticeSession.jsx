@@ -2188,6 +2188,20 @@ export default function PracticeSession() {
               <AnswerFeedbackCard feedback={feedback} correctAnswer={feedback?.correctAnswer} solutionSteps={q.solutionSteps} onTryAgain={handleTryAgain} />
             </div>
 
+            {/* Metacognition prompts — previously only rendered on the dead legacy
+                path, so they never fired on the live MathPath route. */}
+            {FEATURE_FLAGS.selfExplanation && answered && feedback?.correct && (
+              <SelfExplanationPrompt
+                key={q.questionId}
+                skillId={q.skillId}
+                questionId={q.questionId}
+                sessionId={flowSession?.practiceSessionId || routeSessionId}
+              />
+            )}
+            {FEATURE_FLAGS.misconceptionFeedback && answered && feedback && feedback.correct === false && !feedback.skipped && (
+              <MisconceptionHint key={`mh-${q.questionId}`} question={q} studentAnswer={answer} />
+            )}
+
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {!answered ? (
                 <>

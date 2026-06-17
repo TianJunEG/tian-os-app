@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
 import FractionAnswerInput, { shouldUseFractionAnswerInput } from './FractionAnswerInput';
+import MathSymbolBar from './MathSymbolBar';
+
+// Expression / algebra answers need symbol entry (x, exponents, roots, π,
+// brackets) that a bare text input can't provide.
+const EXPRESSION_SYMBOLS = ['x', 'power', 'root', 'fraction', 'times', 'divide', 'lparen', 'rparen', 'pi'];
 
 function normalizeType(question = {}) {
   if (question.type === 'mcq') return 'multiple_choice';
@@ -87,7 +92,7 @@ function OrderingAnswerInput({ question, value, onChange, disabled, onEnter }) {
               value={parts[index] || ''}
               onChange={(event) => setPart(index, event.target.value)}
               disabled={disabled}
-              placeholder={items[index] ? 'Drag mentally, type here' : 'Fraction'}
+              placeholder={items[index] ? 'Type here' : 'Fraction'}
               className="h-12 w-full rounded-xl border border-line-soft px-3 text-center font-mono text-base text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
               onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
             />
@@ -139,6 +144,9 @@ export default function AnswerInputRenderer({
         className="w-full rounded-xl border border-line-soft px-4 py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
       />
+      {type === 'expression' && (
+        <MathSymbolBar symbols={EXPRESSION_SYMBOLS} value={value} onChange={onChange} disabled={disabled} className="mt-3 justify-center" />
+      )}
       <div className="mt-2 flex justify-end">
         <button
           type="button"
