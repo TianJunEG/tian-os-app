@@ -1341,6 +1341,224 @@ export const episodes = [
       character: 'tiano',
     },
   },
+  {
+    id: 'ep-013',
+    slug: 'perimeter-patrol',
+    title: 'Perimeter Patrol',
+    episode: 13,
+    grade: 'P3–P4',
+    publishedAt: '2026-09-08',
+    tagline: 'Captain Tiano is marking out the pitch — every distance around has to be exact.',
+    coverCharacters: ['tiano', 'kylo'],
+    coverBg: 'sports-field',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'sports-field',
+        characters: [
+          { key: 'tiano', pose: 'pointing', side: 'left' },
+          { key: 'kylo', pose: 'excited', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'tiano',
+            side: 'left',
+            text: 'Marking the pitch, team. This square goal box has 5 m sides.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Perimeter means all the way around?',
+          },
+        ],
+        problem: {
+          id: 'e13-p1-q1',
+          question: 'A square goal box has sides of 5 m each. What is its perimeter?',
+          hint: 'A square has 4 equal sides. Add them, or multiply: 4 × 5.',
+          answer: 20,
+          unit: ' m',
+          unitPosition: 'suffix',
+          skill: 'perimeter-square',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'sports-field',
+        characters: [
+          { key: 'tiano', pose: 'standing', side: 'left' },
+          { key: 'kylo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'tiano',
+            side: 'left',
+            text: 'The full pitch is 30 m long and 20 m wide.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Add up all four sides…',
+          },
+        ],
+        problem: {
+          id: 'e13-p2-q1',
+          question: 'A rectangular pitch is 30 m long and 20 m wide. What is its perimeter?',
+          hint: 'A rectangle has two long sides and two short sides: 30 + 20 + 30 + 20.',
+          answer: 100,
+          unit: ' m',
+          unitPosition: 'suffix',
+          skill: 'perimeter-rectangle',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'sports-field',
+        characters: [
+          { key: 'tiano', pose: 'confident', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'tiano',
+            side: 'left',
+            text: 'Trickier. A training rectangle has a perimeter of 24 m and a length of 8 m.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'So length plus width is half of 24…',
+          },
+          {
+            character: 'tiano',
+            side: 'left',
+            text: 'Find the width.',
+          },
+        ],
+        problem: {
+          id: 'e13-p3-q1',
+          question: 'A rectangle has a perimeter of 24 m. Its length is 8 m. What is its width?',
+          hint: 'Half the perimeter is one length + one width: 24 ÷ 2 = 12. Then take away the length: 12 − 8.',
+          answer: 4,
+          unit: ' m',
+          unitPosition: 'suffix',
+          skill: 'perimeter-missing-side',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: 'Next week: Lysa cracks the code — place value and rounding to the nearest 10.',
+      character: 'lysa',
+    },
+  },
+  {
+    id: 'ep-014',
+    slug: 'round-it-out',
+    title: 'Round It Out',
+    episode: 14,
+    grade: 'P3–P4',
+    publishedAt: '2026-09-15',
+    tagline: 'Lysa runs a number-sense drill — read the place value, then round with confidence.',
+    coverCharacters: ['lysa', 'kylo'],
+    coverBg: 'common-room',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'common-room',
+        characters: [
+          { key: 'lysa', pose: 'presenting', side: 'left' },
+          { key: 'kylo', pose: 'excited', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lysa',
+            side: 'left',
+            text: 'Place value puzzle! In the number 473, look closely at the digit 7.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: "It's in the tens place…",
+          },
+        ],
+        problem: {
+          id: 'e14-p1-q1',
+          question: 'In the number 473, what is the value of the digit 7?',
+          hint: 'The 7 sits in the tens column, so its value is 7 tens.',
+          answer: 70,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'place-value',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'common-room',
+        characters: [
+          { key: 'lysa', pose: 'standing', side: 'left' },
+          { key: 'kylo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lysa',
+            side: 'left',
+            text: 'Now round 68 to the nearest 10.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: '68 is closer to 70 than to 60.',
+          },
+        ],
+        problem: {
+          id: 'e14-p2-q1',
+          question: 'Round 68 to the nearest 10.',
+          hint: 'The ones digit is 8, which is 5 or more, so round up to the next ten.',
+          answer: 70,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'rounding-nearest-10',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'common-room',
+        characters: [
+          { key: 'lysa', pose: 'happy', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lysa',
+            side: 'left',
+            text: 'Last one — round 234 to the nearest 100.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'The tens digit is 3, so round down…',
+          },
+          {
+            character: 'lysa',
+            side: 'left',
+            text: "You've cracked the code!",
+          },
+        ],
+        problem: {
+          id: 'e14-p3-q1',
+          question: 'Round 234 to the nearest 100.',
+          hint: 'Look at the tens digit (3). It is less than 5, so round down to 200.',
+          answer: 200,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'rounding-nearest-100',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: 'Next week: the Grand Quiz — the whole Tian 7 team up for one mixed challenge!',
+      character: 'tiano',
+    },
+  },
 ];
 
 export function getEpisode(slug) {

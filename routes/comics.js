@@ -73,6 +73,14 @@ router.post('/:episodeId/complete', async (req, res) => {
       'e12-p1-q1': 'multiplication-tables',
       'e12-p2-q1': 'multiplication-word-problem',
       'e12-p3-q1': 'multiplication-multistep',
+      // Episode 13 — Perimeter Patrol
+      'e13-p1-q1': 'perimeter-square',
+      'e13-p2-q1': 'perimeter-rectangle',
+      'e13-p3-q1': 'perimeter-missing-side',
+      // Episode 14 — Round It Out
+      'e14-p1-q1': 'place-value',
+      'e14-p2-q1': 'rounding-nearest-10',
+      'e14-p3-q1': 'rounding-nearest-100',
     };
 
     await Promise.allSettled(
