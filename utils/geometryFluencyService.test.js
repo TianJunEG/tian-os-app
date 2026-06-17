@@ -108,6 +108,7 @@ const MathPathPracticeSession = {
 };
 const MathPathStudentSkillState = {
   find: vi.fn(),
+  findOne: vi.fn(() => ({ lean: vi.fn(async () => null) })),
   findOneAndUpdate: vi.fn(),
 };
 const MathPathMistakeRecord = {
