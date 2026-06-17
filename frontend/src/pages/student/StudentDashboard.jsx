@@ -24,6 +24,7 @@ import {
   Search,
   Sigma,
   Sparkles,
+  Sprout,
   Square,
   Timer,
   Target,
@@ -1337,6 +1338,21 @@ export default function StudentDashboard() {
             </div>
           )}
 
+          {FEATURE_FLAGS.lifelab && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
+                  <Sprout className="h-5 w-5 text-emerald" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">LifeLab</p>
+                  <p className="text-xs text-ink-500">Build real-world skills and 21st Century competencies</p>
+                </div>
+                <Button to="/student/lifelab" size="s" icon={ArrowRight}>Explore</Button>
+              </Card>
+            </div>
+          )}
+
           {FEATURE_FLAGS.decimals && (
             <div style={{ marginTop: 20 }}>
               <Card className="flex items-center gap-4 p-4" interactive>
@@ -1891,6 +1907,19 @@ export default function StudentDashboard() {
             <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
           </div>
           <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
+        </Card>
+      )}
+
+      {FEATURE_FLAGS.lifelab && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
+            <Sprout className="h-5 w-5 text-emerald" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">LifeLab</p>
+            <p className="text-xs text-ink-500">Build real-world skills and 21st Century competencies</p>
+          </div>
+          <Button to="/student/lifelab" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
 
