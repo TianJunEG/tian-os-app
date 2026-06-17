@@ -20,6 +20,7 @@ import {
   isTestMode,
 } from '../services/mathpath/testModePresets.js';
 import { sourceWeakSkills } from '../services/mathpath/weaknessSkillSourcer.js';
+import { buildPaperSections } from '../services/mathpath/paperSectioning.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -370,6 +371,17 @@ export async function generateTestFromSpecification(specificationId, options = {
   }
 
   const generatedTotalMarks = responsesBlueprint.reduce((s, q) => s + Number(q.marks || 0), 0);
+
+  // Group the flat question list into PSLE-style paper sections (Paper 1 booklets
+  // + Paper 2). Reorders the questions by section and tags each with its section;
+  // non-booklet specs collapse to a single section, preserving prior behaviour.
+  const { sections, questions: sectionedQuestions } = buildPaperSections({
+    questions: responsesBlueprint,
+    paperType: spec.paperType,
+    testMode,
+    calculatorAllowed: Boolean(spec.calculatorAllowed),
+  });
+
   const sessionDoc = await MathPathAssessmentSession.create({
     assessmentSessionId: sessionId,
     studentId: targetStudentId || 'class-assignment',
@@ -394,7 +406,8 @@ export async function generateTestFromSpecification(specificationId, options = {
       source: spec.source,
       title: spec.title,
       topicBlueprint,
-      questions: responsesBlueprint,
+      sections,
+      questions: sectionedQuestions,
     },
   });
 
@@ -416,7 +429,8 @@ export async function generateTestFromSpecification(specificationId, options = {
     calculatorAllowed: Boolean(spec.calculatorAllowed),
     totalMarks: generatedTotalMarks,
     topicBlueprint,
-    questions: responsesBlueprint,
+    sections,
+    questions: sectionedQuestions,
   };
 }
 

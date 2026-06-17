@@ -28,6 +28,7 @@ export default function AssessmentQuestionScreen() {
   const session = location.state?.session;
   const rawQuestions = location.state?.questions || [];
   const questions = useMemo(() => repairFractionQuestions(rawQuestions), [rawQuestions]);
+  const sections = location.state?.sections || [];
 
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -56,6 +57,12 @@ export default function AssessmentQuestionScreen() {
   }
 
   const q = questions[idx];
+  // Section the current question belongs to (PSLE booklet structure), and whether
+  // this question is the first of that section (so we show a section banner once).
+  const currentSection = sections.length
+    ? (sections.find((s) => s.id === q.sectionId) || sections[Math.max(0, q.sectionIndex || 0)] || null)
+    : null;
+  const isSectionStart = !!currentSection && (idx === 0 || questions[idx - 1]?.sectionId !== q.sectionId);
   const choices = q.type === 'mcq' ? [...new Set(q.choices || [])] : [];
   const useFractionInput = shouldUseFractionAnswerInput(q);
   const expressionQuestion = useFractionInput && Boolean(extractFractionExpression(q.prompt || q.stem || ''));
@@ -116,11 +123,21 @@ export default function AssessmentQuestionScreen() {
       </div>
       <ProgressBar value={Object.keys(answers).length} max={questions.length} className="mb-4" />
 
+      {isSectionStart && (
+        <div className="mb-3 rounded-xl border border-navy-200 bg-navy-50 p-3">
+          <p className="text-sm font-semibold text-navy-700">{currentSection.name}</p>
+          <p className="mt-0.5 text-xs text-navy-600">
+            {currentSection.questionCount} question{currentSection.questionCount === 1 ? '' : 's'} · {currentSection.marks} marks · {currentSection.calculatorAllowed ? 'Calculator allowed' : 'Calculator not allowed'}
+          </p>
+          {currentSection.instructions && <p className="mt-1 text-xs text-navy-600">{currentSection.instructions}</p>}
+        </div>
+      )}
+
       <Card className="p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Marks: {q.marks || 1}</p>
           <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
-          <p className="text-xs text-ink-500">{session.calculatorAllowed ? 'Calculator is allowed for this assessment.' : 'Calculator is not allowed for this assessment.'}</p>
+          <p className="text-xs text-ink-500">{(currentSection ? currentSection.calculatorAllowed : session.calculatorAllowed) ? 'Calculator is allowed for this section.' : 'Calculator is not allowed for this section.'}</p>
         </div>
         <div className="origin-top-left" style={{ zoom: questionZoom }}>
           <div className="mb-3 text-lg text-ink-900">
