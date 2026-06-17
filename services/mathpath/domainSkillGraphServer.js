@@ -1,16 +1,9 @@
 // Server-side resolver: canonical domainId → that domain's shared skill graph.
-//
-// Non-fractions MathPath practice persists progress to MathPathStudentSkillState
-// keyed by the skill GRAPH id (e.g. 'P001', 'GE001'), not a Mongo Skill _id.
-// The parent dashboard aggregator uses this resolver to turn those ids into
-// parent-friendly names and to know each domain's full skill count (the
-// denominator for "x of y mastered").
-//
-// Every non-fractions domain whose practice route writes MathPathStudentSkillState
-// and which ships a shared skill graph is registered here. Fractions is
-// intentionally absent: it flows through the legacy MasteryRecord + Skill
-// collection path, so its names/denominator come from Mongo, unchanged.
+// All 15 MathPath domains are registered here so the parent dashboard aggregator
+// can resolve parent-friendly skill names and the correct total-skill denominator
+// ("x of y mastered") for every domain including Fractions.
 
+import { FRACTION_CANONICAL_SKILL_ROWS } from '../../shared/mathpath/curriculum/fractionCanonicalSkillMap.js';
 import percentageSkillGraph from '../../shared/mathpath/percentages/percentageSkillGraph.js';
 import ratioRateSkillGraph from '../../shared/mathpath/ratioRate/ratioRateSkillGraph.js';
 import algebraSkillGraph from '../../shared/mathpath/algebra/AlgebraSkillGraph.js';
@@ -26,9 +19,16 @@ import timeSkillGraph from '../../shared/mathpath/time/TimeSkillGraph.js';
 import numberSenseSkillGraph from '../../shared/mathpath/numberSense/NumberSenseSkillGraph.js';
 import operationsSkillGraph from '../../shared/mathpath/operations/OperationsSkillGraph.js';
 
+// Fractions skill graph derived from the canonical skill map (F001–F026).
+// Uses parentName so labels are parent-friendly ("Recognising fractions as equal parts").
+const fractionsSkillGraph = {
+  skills: FRACTION_CANONICAL_SKILL_ROWS.map((row) => ({ id: row.frameworkSkillId, name: row.parentName })),
+};
+
 // Keyed on the registry's canonical domainIds (services/domains/domainRegistry.js)
 // — which match each practice service's DOMAIN_ID constant.
 const GRAPHS = {
+  fractions: fractionsSkillGraph,
   percentage: percentageSkillGraph,
   ratio: ratioRateSkillGraph,
   algebra: algebraSkillGraph,
