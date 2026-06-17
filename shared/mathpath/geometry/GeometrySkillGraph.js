@@ -17,7 +17,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/orientation-changes-shape'],
-    questionFamilies: ['QF_GE001_001', 'QF_GE001_002'],
+    questionFamilies: ['QF_GE001_001', 'QF_GE001_002', 'QF_GE001_003'],
   },
   {
     id: 'GE002',
@@ -34,7 +34,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/side-vertex-count'],
-    questionFamilies: ['QF_GE002_001', 'QF_GE002_002'],
+    questionFamilies: ['QF_GE002_001', 'QF_GE002_002', 'QF_GE002_003'],
   },
   {
     id: 'GE003',
@@ -51,7 +51,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/parallel-perp-confuse'],
-    questionFamilies: ['QF_GE003_001', 'QF_GE003_002'],
+    questionFamilies: ['QF_GE003_001', 'QF_GE003_002', 'QF_GE003_003'],
   },
   {
     id: 'GE004',
@@ -68,7 +68,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/angle-by-arm-length'],
-    questionFamilies: ['QF_GE004_001', 'QF_GE004_002'],
+    questionFamilies: ['QF_GE004_001', 'QF_GE004_002', 'QF_GE004_003'],
   },
   {
     id: 'GE005',
@@ -85,7 +85,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/protractor-scale'],
-    questionFamilies: ['QF_GE005_001', 'QF_GE005_002'],
+    questionFamilies: ['QF_GE005_001', 'QF_GE005_002', 'QF_GE005_003'],
   },
   {
     id: 'GE006',
@@ -102,7 +102,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/angle-relationship'],
-    questionFamilies: ['QF_GE006_001', 'QF_GE006_002'],
+    questionFamilies: ['QF_GE006_001', 'QF_GE006_002', 'QF_GE006_003'],
   },
   {
     id: 'GE007',
@@ -119,7 +119,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/triangle-by-look'],
-    questionFamilies: ['QF_GE007_001', 'QF_GE007_002'],
+    questionFamilies: ['QF_GE007_001', 'QF_GE007_002', 'QF_GE007_003'],
   },
   {
     id: 'GE008',
@@ -136,7 +136,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/angle-sum-wrong'],
-    questionFamilies: ['QF_GE008_001', 'QF_GE008_002'],
+    questionFamilies: ['QF_GE008_001', 'QF_GE008_002', 'QF_GE008_003'],
   },
   {
     id: 'GE009',
@@ -153,7 +153,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/square-not-rectangle'],
-    questionFamilies: ['QF_GE009_001', 'QF_GE009_002'],
+    questionFamilies: ['QF_GE009_001', 'QF_GE009_002', 'QF_GE009_003'],
   },
   {
     id: 'GE010',
@@ -170,7 +170,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/quad-angle-relationship'],
-    questionFamilies: ['QF_GE010_001', 'QF_GE010_002'],
+    questionFamilies: ['QF_GE010_001', 'QF_GE010_002', 'QF_GE010_003'],
   },
   {
     id: 'GE011',
@@ -187,7 +187,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/diagonal-symmetry-miss'],
-    questionFamilies: ['QF_GE011_001', 'QF_GE011_002'],
+    questionFamilies: ['QF_GE011_001', 'QF_GE011_002', 'QF_GE011_003'],
   },
   {
     id: 'GE012',
@@ -204,7 +204,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/reflect-not-translate'],
-    questionFamilies: ['QF_GE012_001', 'QF_GE012_002'],
+    questionFamilies: ['QF_GE012_001', 'QF_GE012_002', 'QF_GE012_003'],
   },
   {
     id: 'GE013',
@@ -221,7 +221,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/faces-edges-confuse'],
-    questionFamilies: ['QF_GE013_001', 'QF_GE013_002'],
+    questionFamilies: ['QF_GE013_001', 'QF_GE013_002', 'QF_GE013_003'],
   },
   {
     id: 'GE014',
@@ -238,7 +238,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/net-folding'],
-    questionFamilies: ['QF_GE014_001', 'QF_GE014_002'],
+    questionFamilies: ['QF_GE014_001', 'QF_GE014_002', 'QF_GE014_003'],
   },
   {
     id: 'GE015',
@@ -255,7 +255,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/compass-confuse'],
-    questionFamilies: ['QF_GE015_001', 'QF_GE015_002'],
+    questionFamilies: ['QF_GE015_001', 'QF_GE015_002', 'QF_GE015_003'],
   },
   {
     id: 'GE016',
@@ -272,7 +272,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/construction-precision'],
-    questionFamilies: ['QF_GE016_001', 'QF_GE016_002'],
+    questionFamilies: ['QF_GE016_001', 'QF_GE016_002', 'QF_GE016_003'],
   },
   {
     id: 'GE017',
@@ -289,7 +289,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/perimeter-vs-area'],
-    questionFamilies: ['QF_GE017_001', 'QF_GE017_002'],
+    questionFamilies: ['QF_GE017_001', 'QF_GE017_002', 'QF_GE017_003'],
   },
   {
     id: 'GE018',
@@ -306,7 +306,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/area-add-sides'],
-    questionFamilies: ['QF_GE018_001', 'QF_GE018_002'],
+    questionFamilies: ['QF_GE018_001', 'QF_GE018_002', 'QF_GE018_003'],
   },
   {
     id: 'GE019',
@@ -323,7 +323,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/triangle-no-half', 'geo/wrong-height'],
-    questionFamilies: ['QF_GE019_001', 'QF_GE019_002'],
+    questionFamilies: ['QF_GE019_001', 'QF_GE019_002', 'QF_GE019_003'],
   },
   {
     id: 'GE020',
@@ -340,7 +340,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/radius-diameter-confuse', 'geo/circumference-area-formula'],
-    questionFamilies: ['QF_GE020_001', 'QF_GE020_002'],
+    questionFamilies: ['QF_GE020_001', 'QF_GE020_002', 'QF_GE020_003'],
   },
   {
     id: 'GE021',
@@ -357,7 +357,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/forgot-straight-edges'],
-    questionFamilies: ['QF_GE021_001', 'QF_GE021_002'],
+    questionFamilies: ['QF_GE021_001', 'QF_GE021_002', 'QF_GE021_003'],
   },
   {
     id: 'GE022',
@@ -374,7 +374,7 @@ const geometrySkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['geo/double-count-edges', 'geo/missing-region'],
-    questionFamilies: ['QF_GE022_001', 'QF_GE022_002'],
+    questionFamilies: ['QF_GE022_001', 'QF_GE022_002', 'QF_GE022_003'],
   },
 ];
 

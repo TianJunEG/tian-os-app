@@ -51,6 +51,33 @@ describe('VolumeQuestionGenerator', () => {
     expect(generateVolumeQuestionSet({ skillId: 'VL003', count: 1 })[0].diagram?.kind).toBe('net');
   });
 
+  it('word-problem families (_003) cycle in at every 3rd position', () => {
+    // VL001W: unit cubes arranged L long, W wide and H high
+    const vl1 = generateVolumeQuestionSet({ skillId: 'VL001', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(vl1[i].prompt).toMatch(/long.*wide.*high/);
+      expect(Number(dig(vl1[i].answer.display))).toBeGreaterThan(0);
+    }
+    // VL002W: cuboid measures L cm by W cm by H cm
+    const vl2 = generateVolumeQuestionSet({ skillId: 'VL002', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(vl2[i].prompt).toMatch(/cm by \d+ cm by/);
+      expect(Number(dig(vl2[i].answer.display))).toBeGreaterThan(0);
+    }
+    // VL003W: net with edges (word problem)
+    const vl3 = generateVolumeQuestionSet({ skillId: 'VL003', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(vl3[i].prompt).toMatch(/edges \d+ cm/);
+      expect(Number(dig(vl3[i].answer.display))).toBeGreaterThan(0);
+    }
+    // VL004W: flow rate or water-level context
+    const vl4 = generateVolumeQuestionSet({ skillId: 'VL004', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(vl4[i].prompt).toMatch(/litres per minute|base area/i);
+      expect(checkVolumeAnswer({ question: vl4[i], studentResponse: vl4[i].answer.display }).correct).toBe(true);
+    }
+  });
+
   it('is unit-tolerant', () => {
     const [q] = generateVolumeQuestionSet({ skillId: 'VL002', count: 1 });
     expect(checkVolumeAnswer({ question: q, studentResponse: dig(q.answer.display) }).correct).toBe(true);

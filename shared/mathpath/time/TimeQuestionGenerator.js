@@ -346,12 +346,152 @@ function timDurationWord(family, rng, variant) {
   });
 }
 
+// ── Word-problem families (_003): one per skill, real-world contexts ─────────
+
+// TM001W — Translate a spoken time phrase to h:mm
+function tm001Word(family, rng) {
+  const h = rint(rng, 1, 12);
+  const halfPast = rng() < 0.5;
+  const m = halfPast ? 30 : 0;
+  const context = pick(rng, ['library', 'bakery', 'sports hall', 'pool', 'clinic']);
+  const action = pick(rng, ['opens', 'closes', 'starts', 'ends']);
+  const timePhrase = halfPast ? `half past ${h}` : `${h} o'clock`;
+  const ans = fmtClock(h, m);
+  return shortAnswer({
+    family,
+    prompt: `A ${context} ${action}s at ${timePhrase} in the morning. Write this time as h:mm.`,
+    answerDisplay: ans, acceptedAnswers: [ans],
+    solutionSteps: [
+      halfPast
+        ? `"Half past ${h}" means 30 minutes after the ${h} o'clock mark.`
+        : `"${h} o'clock" means exactly on the hour — 0 minutes past ${h}.`,
+      `The time is ${ans}.`,
+    ],
+    misconceptionTag: 'tim/hour-half', difficulty: family.difficulty, mode: 'practice',
+  });
+}
+
+// TM002W — Translate a five-minute "X past/to Y" phrase to h:mm
+function tm002Word(family, rng) {
+  const h = rint(rng, 1, 12);
+  const m = pick(rng, FIVE_MIN.filter((x) => x !== 0));
+  const pastTo = m <= 30 ? 'past' : 'to';
+  const minRef = m <= 30 ? m : 60 - m;
+  const hRef = m <= 30 ? h : (h % 12) + 1;
+  const timePhrase = m === 30
+    ? `half past ${h}`
+    : `${minRef} minutes ${pastTo} ${hRef}`;
+  const context = pick(rng, ['school bell', 'alarm clock', 'library clock', 'station clock']);
+  const ans = fmtClock(h, m);
+  return shortAnswer({
+    family,
+    prompt: `A ${context} shows ${timePhrase}. Write this time as h:mm.`,
+    answerDisplay: ans, acceptedAnswers: [ans],
+    solutionSteps: [
+      m === 30
+        ? `"Half past ${h}" means 30 minutes after ${h}:00.`
+        : m <= 30
+          ? `"${minRef} minutes past ${hRef}" — the hour is ${h} and the minutes are ${m}.`
+          : `"${minRef} minutes to ${hRef}" means ${60 - minRef} minutes are gone, so the time is ${h}:${pad2(m)}.`,
+      `The time is ${ans}.`,
+    ],
+    misconceptionTag: 'tim/minute-skip', difficulty: family.difficulty, mode: 'practice',
+  });
+}
+
+// TM003W — Time-unit conversion embedded in a real context
+function tm003Word(family, rng, variant) {
+  const kind = variant % 3;
+  let prompt, ans, steps;
+  if (kind === 0) {
+    const h = rint(rng, 1, 4);
+    const ctx = pick(rng, ['flight', 'road trip', 'film', 'match', 'concert']);
+    ans = h * 60;
+    prompt = `A ${ctx} lasts ${h} hour${h > 1 ? 's' : ''}. How many minutes is that?`;
+    steps = ['1 hour = 60 minutes.', `${h} × 60 = ${ans} minutes.`];
+  } else if (kind === 1) {
+    const m2 = rint(rng, 2, 9);
+    const ctx = pick(rng, ['sprint', 'warm-up', 'quiz', 'song', 'drill']);
+    ans = m2 * 60;
+    prompt = `A ${ctx} lasts ${m2} minutes. How many seconds is that?`;
+    steps = ['1 minute = 60 seconds.', `${m2} × 60 = ${ans} seconds.`];
+  } else {
+    const h = rint(rng, 1, 4), m2 = pick(rng, [10, 15, 20, 30, 40, 45]);
+    const ctx = pick(rng, ['bus ride', 'hike', 'workshop', 'swim session']);
+    ans = h * 60 + m2;
+    prompt = `A ${ctx} takes ${h} h ${m2} min. How many minutes is that in total?`;
+    steps = [`${h} hour${h > 1 ? 's' : ''} = ${h * 60} minutes.`, `${h * 60} + ${m2} = ${ans} minutes.`];
+  }
+  return shortAnswer({
+    family, prompt, answerDisplay: String(ans), acceptedAnswers: [String(ans)],
+    solutionSteps: steps, misconceptionTag: 'tim/base-10-error',
+    difficulty: family.difficulty, mode: 'practice',
+  });
+}
+
+// TM004W — 24-hour clock embedded in a transport/timetable context
+function tm004Word(family, rng, variant) {
+  const ctx = pick(rng, ['bus timetable', 'train schedule', 'flight board', 'school timetable']);
+  const m = pick(rng, [0, 5, 15, 20, 30, 40, 45, 50]);
+  let prompt, ans, steps;
+  if (variant % 2 === 0) {
+    const h = rint(rng, 1, 11);
+    const pm = rng() < 0.5;
+    const min24 = (pm ? h + 12 : h) * 60 + m;
+    ans = fmt24(min24);
+    prompt = `A ${ctx} shows a departure at ${h}:${pad2(m)} ${pm ? 'p.m.' : 'a.m.'}. Write this time in 24-hour format.`;
+    steps = pm
+      ? [`For p.m., add 12 to the hour: ${h} + 12 = ${h + 12}.`, `The 24-hour time is ${ans}.`]
+      : [`For a.m., write the hour with two digits.`, `The 24-hour time is ${ans}.`];
+  } else {
+    const H = rint(rng, 1, 23);
+    const min24 = H * 60 + m;
+    ans = fmt12(min24);
+    prompt = `A ${ctx} shows ${fmt24(min24)}. Write this time in 12-hour format (include a.m. or p.m.).`;
+    steps = H >= 12
+      ? [`For 1300–2300, subtract 12 and write p.m.: ${H} − 12 = ${H === 12 ? 12 : H - 12}.`, `The 12-hour time is ${ans}.`]
+      : [`For 0000–1159, keep the hour and write a.m.`, `The 12-hour time is ${ans}.`];
+  }
+  return shortAnswer({
+    family, prompt, answerDisplay: ans, acceptedAnswers: [ans],
+    solutionSteps: steps, misconceptionTag: 'mea/24hr-convert',
+    difficulty: family.difficulty, mode: 'practice',
+  });
+}
+
+// TM005W — Multi-step: find actual travel time excluding a mid-journey stop
+function tm005Multi(family, rng) {
+  const startH = rint(rng, 7, 17);
+  const startM = pick(rng, [0, 5, 10, 15, 20, 30, 40, 45, 50]);
+  const travelMin = rint(rng, 40, 180);
+  const stopMin = pick(rng, [10, 15, 20, 30]);
+  const start = startH * 60 + startM;
+  const end = wrap(start + travelMin + stopMin);
+  const vehicle = pick(rng, ['bus', 'train', 'ferry', 'coach']);
+  const ans = fmtDur(travelMin);
+  return shortAnswer({
+    family,
+    prompt: `A ${vehicle} departs at ${fmt12(start)} and arrives at ${fmt12(end)}. During the journey it stops for ${stopMin} minutes. How long is the actual travel time, excluding the stop?`,
+    answerDisplay: ans, acceptedAnswers: [ans],
+    solutionSteps: [
+      `Total time from ${fmt12(start)} to ${fmt12(end)} = ${fmtDur(travelMin + stopMin)}.`,
+      `Travel time = ${fmtDur(travelMin + stopMin)} − ${stopMin} min = ${ans}.`,
+    ],
+    misconceptionTag: 'mea/time-base-60', difficulty: family.difficulty, mode: 'practice',
+  });
+}
+
 const GENERATORS = {
   timTellHour, timTellHourMCQ,
   timTellMinutes, timTellMinutesMCQ,
   timConvert, timConvertWord,
   tim24hr, tim24hrMCQ,
   timDuration, timDurationWord,
+  timTellHourWord: tm001Word,
+  timTellMinutesWord: tm002Word,
+  timConvertContext: tm003Word,
+  tim24hrSchedule: tm004Word,
+  timDurationMulti: tm005Multi,
 };
 
 export function generateTimeQuestionSet({ skillId, count = 6, mode = 'practice' }) {

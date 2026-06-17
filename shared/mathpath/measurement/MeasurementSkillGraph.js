@@ -17,7 +17,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/wrong-unit'],
-    questionFamilies: ['QF_ME001_001', 'QF_ME001_002'],
+    questionFamilies: ['QF_ME001_001', 'QF_ME001_002', 'QF_ME001_003'],
   },
   {
     id: 'ME002',
@@ -34,7 +34,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/wrong-unit'],
-    questionFamilies: ['QF_ME002_001', 'QF_ME002_002'],
+    questionFamilies: ['QF_ME002_001', 'QF_ME002_002', 'QF_ME002_003'],
   },
   {
     id: 'ME003',
@@ -51,7 +51,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/capacity-volume-confuse'],
-    questionFamilies: ['QF_ME003_001', 'QF_ME003_002'],
+    questionFamilies: ['QF_ME003_001', 'QF_ME003_002', 'QF_ME003_003'],
   },
   {
     id: 'ME004',
@@ -68,7 +68,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/scale-interval'],
-    questionFamilies: ['QF_ME004_001', 'QF_ME004_002'],
+    questionFamilies: ['QF_ME004_001', 'QF_ME004_002', 'QF_ME004_003'],
   },
   {
     id: 'ME005',
@@ -85,7 +85,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/24hr-convert'],
-    questionFamilies: ['QF_ME005_001', 'QF_ME005_002'],
+    questionFamilies: ['QF_ME005_001', 'QF_ME005_002', 'QF_ME005_003'],
   },
   {
     id: 'ME006',
@@ -102,7 +102,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/time-base-60'],
-    questionFamilies: ['QF_ME006_001', 'QF_ME006_002'],
+    questionFamilies: ['QF_ME006_001', 'QF_ME006_002', 'QF_ME006_003'],
   },
   {
     id: 'ME007',
@@ -119,7 +119,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/convert-direction'],
-    questionFamilies: ['QF_ME007_001', 'QF_ME007_002'],
+    questionFamilies: ['QF_ME007_001', 'QF_ME007_002', 'QF_ME007_003'],
   },
   {
     id: 'ME008',
@@ -136,7 +136,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/compare-mixed-units'],
-    questionFamilies: ['QF_ME008_001', 'QF_ME008_002'],
+    questionFamilies: ['QF_ME008_001', 'QF_ME008_002', 'QF_ME008_003'],
   },
   {
     id: 'ME009',
@@ -153,7 +153,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/perimeter-units'],
-    questionFamilies: ['QF_ME009_001', 'QF_ME009_002'],
+    questionFamilies: ['QF_ME009_001', 'QF_ME009_002', 'QF_ME009_003'],
   },
   {
     id: 'ME010',
@@ -170,7 +170,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/area-units'],
-    questionFamilies: ['QF_ME010_001', 'QF_ME010_002'],
+    questionFamilies: ['QF_ME010_001', 'QF_ME010_002', 'QF_ME010_003'],
   },
   {
     id: 'ME011',
@@ -187,7 +187,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/volume-add-edges'],
-    questionFamilies: ['QF_ME011_001', 'QF_ME011_002'],
+    questionFamilies: ['QF_ME011_001', 'QF_ME011_002', 'QF_ME011_003'],
   },
   {
     id: 'ME012',
@@ -204,7 +204,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/net-dimensions'],
-    questionFamilies: ['QF_ME012_001', 'QF_ME012_002'],
+    questionFamilies: ['QF_ME012_001', 'QF_ME012_002', 'QF_ME012_003'],
   },
   {
     id: 'ME013',
@@ -221,7 +221,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/rate-volume-confuse'],
-    questionFamilies: ['QF_ME013_001', 'QF_ME013_002'],
+    questionFamilies: ['QF_ME013_001', 'QF_ME013_002', 'QF_ME013_003'],
   },
   {
     id: 'ME014',
@@ -238,7 +238,7 @@ const measurementSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['mea/money-decimal-place'],
-    questionFamilies: ['QF_ME014_001', 'QF_ME014_002'],
+    questionFamilies: ['QF_ME014_001', 'QF_ME014_002', 'QF_ME014_003'],
   },
 ];
 

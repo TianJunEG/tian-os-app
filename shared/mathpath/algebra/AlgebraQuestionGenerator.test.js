@@ -60,6 +60,7 @@ describe('AlgebraQuestionGenerator', () => {
     expect(checkAlgebraAnswer({ question: { answer: { display: '12p' } }, studentResponse: '12' }).correct).toBe(false);
   });
 
+<<<<<<< HEAD
   describe('Secondary 1 (G1) — AL011–AL016', () => {
     it('tags every Sec 1 algebra skill as Secondary 1', () => {
       for (const id of ['AL011', 'AL012', 'AL013', 'AL014', 'AL015', 'AL016']) {
@@ -102,5 +103,25 @@ describe('AlgebraQuestionGenerator', () => {
         }
       }
     });
+=======
+  it('word-problem families (_003) cycle in at every 3rd position', () => {
+    // AL004 _003 produces subtraction-expression answers like "n - 5"
+    const al4 = generateAlgebraQuestionSet({ skillId: 'AL004', count: 9 });
+    for (const i of [2, 5, 8]) {
+      expect(al4[i].answer.display).toMatch(/^[a-z] - \d+$/);
+      expect(al4[i].type).toBe('short_answer');
+    }
+    // AL006 _003 produces perimeter-expression answers like "12n"
+    const al6 = generateAlgebraQuestionSet({ skillId: 'AL006', count: 9 });
+    for (const i of [2, 5, 8]) expect(al6[i].answer.display).toMatch(/^\d+[a-z]$/);
+    // Remaining word-problem families return positive numeric answers
+    for (const skillId of ['AL001', 'AL002', 'AL003', 'AL005', 'AL007', 'AL008', 'AL009', 'AL010']) {
+      const qs = generateAlgebraQuestionSet({ skillId, count: 9 });
+      for (const i of [2, 5, 8]) {
+        expect(Number(qs[i].answer.display)).toBeGreaterThan(0);
+        expect(qs[i].solutionSteps.length).toBeGreaterThan(0);
+      }
+    }
+>>>>>>> e9bc46eb (feat(mathpath): word-problem _003 families for 7 domains + Circles retention engine)
   });
 });
