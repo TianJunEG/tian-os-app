@@ -6,7 +6,7 @@ const problemAttemptSchema = new mongoose.Schema({
 }, { _id: false });
 
 const comicProgressSchema = new mongoose.Schema({
-  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
   workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Workspace' },
   episodeId: { type: String, required: true },
   problems: [problemAttemptSchema],
