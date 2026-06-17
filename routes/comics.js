@@ -108,13 +108,18 @@ router.post('/:episodeId/complete', async (req, res) => {
       console.warn(`comics: no Skill found for slugs (mastery skipped): ${missing.join(', ')}`);
     }
 
-    await Promise.allSettled(
-      problems.map(({ problemId, correct }) => {
-        const skillId = skillIdBySlug.get(SKILL_SLUG[problemId]);
-        if (!skillId) return Promise.resolve();
-        return recordAttempt({ studentId, skillId, workspaceId, correct, module: 'Comics', subject: 'Math' });
-      }),
-    );
+    // Sequential, not concurrent: several episodes map multiple problems to the
+    // same skill (e.g. Ep1 p1/p2 → mon.add), and concurrent recordAttempt calls
+    // on one {studentId,skillId} would race the unique index and drop an attempt.
+    for (const { problemId, correct } of problems) {
+      const skillId = skillIdBySlug.get(SKILL_SLUG[problemId]);
+      if (!skillId) continue;
+      try {
+        await recordAttempt({ studentId, skillId, workspaceId, correct, module: 'Comics', subject: 'Math' });
+      } catch (e) {
+        console.error(`comics: mastery write failed for ${problemId}: ${e.message}`);
+      }
+    }
 
     res.json({ ok: true });
   } catch (err) {
