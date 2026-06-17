@@ -2,6 +2,7 @@
 // module (MathPath, Mistake-to-Mastery, Worksheet practice, Fluency) calls
 // recordAttempt(); nothing else writes MasteryRecord. Keeps "one shared core".
 import MasteryRecord from '../models/MasteryRecord.js';
+import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
 import Mistake from '../models/Mistake.js';
 import Subject from '../models/Subject.js';
 import Topic from '../models/Topic.js';
@@ -106,19 +107,92 @@ export async function recordAttempt({ studentId, skillId, workspaceId, correct, 
   return { before, after: { score: rec.score, status: rec.status }, masteredNow };
 }
 
+// Fractions practice data lives in MathPathStudentSkillState (skill-state store).
+// These helpers translate those records into MasteryRecord-compatible shapes so
+// weakSkills() and recommendNextSkill() can merge them without changing callers.
+
+const SKILL_STATE_MASTERED = new Set(['accurate', 'fluent', 'retained', 'mastered']);
+
+function skillStateToStatus(s) {
+  const v = String(s || '');
+  if (v === 'needsReview') return 'needs_review';
+  if (v === 'notStarted') return 'not_started';
+  if (SKILL_STATE_MASTERED.has(v)) return 'mastered';
+  return v; // 'learning', 'weak', etc. pass through
+}
+
+function fluencyStatusFromLevel(level) {
+  if (level === 'gold' || level === 'platinum') return 'automatic';
+  if (level === 'silver' || level === 'bronze') return 'developing';
+  return 'unknown';
+}
+
+// Returns { masteryLike } where each element has the same fields weakSkills()
+// and recommendNextSkill() expect from MasteryRecord documents:
+//   .skillId  — populated Skill doc    (for weakSkills callers)
+//   .score    — number
+//   .status   — MasteryRecord vocab string
+//   .fluencyStatus, .lastPracticedAt
+async function loadFractionsAsMasteryLike(studentId) {
+  const states = await MathPathStudentSkillState.find({ studentId: String(studentId), domainId: 'fractions' }).lean();
+  if (!states.length) return { masteryLike: [] };
+
+  const fCodes = [...new Set(states.map((s) => s.skillId).filter(Boolean))];
+  const skills = await Skill.find({
+    $or: [
+      { 'metadata.mathPathSkillId': { $in: fCodes } },
+      { 'metadata.frameworkCode': { $in: fCodes } },
+    ],
+  }).populate('topicId');
+
+  const skillByCode = new Map();
+  for (const skill of skills) {
+    const code = skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode;
+    if (code) skillByCode.set(String(code).toUpperCase(), skill);
+  }
+
+  const masteryLike = states
+    .map((state) => {
+      const skill = skillByCode.get(String(state.skillId).toUpperCase());
+      if (!skill) return null;
+      return {
+        skillId: skill,                           // populated Skill doc
+        score: state.accuracy || 0,
+        attempts: state.attemptCount || 0,
+        status: skillStateToStatus(state.status),
+        fluencyStatus: fluencyStatusFromLevel(state.fluencyLevel),
+        lastPracticedAt: state.lastPractisedAt || null,
+        _fromSkillState: true,
+      };
+    })
+    .filter(Boolean);
+
+  return { masteryLike };
+}
+
 // Weak skills for a student: lowest score / needs_review first. Optionally only
 // those with recent unresolved mistakes.
 export async function weakSkills(studentId, { limit = 10, withMistakesOnly = false } = {}) {
+  // Fractions data from skill-state store — merged in before MasteryRecord results
+  // so seeded and production fractions students both show correct weak skills.
+  const { masteryLike: fractionsAll } = await loadFractionsAsMasteryLike(studentId);
+  const fractionsWeak = fractionsAll.filter((r) => r.status !== 'mastered').sort((a, b) => a.score - b.score);
+  const coveredIds = new Set(fractionsWeak.map((r) => String(r.skillId._id)));
+
   // MathPath surfaces only — spelling/other-module records are excluded.
   const q = { studentId, module: 'MathPath', status: { $in: ['needs_review', 'learning', 'not_started'] } };
   let records = await MasteryRecord.find(q).populate({ path: 'skillId', populate: { path: 'topicId' } }).sort({ score: 1 }).limit(limit * 2);
+  // Drop any MasteryRecord entries already covered by skill state (fractions dual-writes).
+  records = records.filter((r) => !coveredIds.has(String(r.skillId?._id)));
+
+  let merged = [...fractionsWeak, ...records];
   if (withMistakesOnly) {
-    const skillIds = records.map((r) => r.skillId?._id).filter(Boolean);
+    const skillIds = merged.map((r) => r.skillId?._id).filter(Boolean);
     const withMistakes = await Mistake.distinct('skillId', { studentId, skillId: { $in: skillIds }, status: { $ne: 'resolved' } });
     const set = new Set(withMistakes.map(String));
-    records = records.filter((r) => set.has(String(r.skillId?._id)));
+    merged = merged.filter((r) => set.has(String(r.skillId?._id)));
   }
-  return records.slice(0, limit);
+  return merged.slice(0, limit);
 }
 
 // The recommended next MathPath skill, prerequisite-aware. Pick a target — the
@@ -139,9 +213,20 @@ export async function recommendNextSkill(studentId) {
   const byCurriculum = (a, b) => (topicOrder(a) - topicOrder(b)) || ((a.order ?? 0) - (b.order ?? 0));
 
   const records = await MasteryRecord.find({ studentId, module: 'MathPath' });
-  const recBySkill = new Map(records.map((r) => [String(r.skillId), r]));
+
+  // Supplement MasteryRecord with fractions data from skill-state store.
+  // Fractions seed scripts write only to MathPathStudentSkillState, so real
+  // students and seeded students alike need this source for correct recommendations.
+  const { masteryLike: fractionsAll } = await loadFractionsAsMasteryLike(studentId);
+  const masteryRecordSkillIds = new Set(records.map((r) => String(r.skillId)));
+  const fractionsExtra = fractionsAll
+    .filter((r) => !masteryRecordSkillIds.has(String(r.skillId._id)))
+    .map((r) => ({ skillId: r.skillId._id, score: r.score, status: r.status, fluencyStatus: r.fluencyStatus, lastPracticedAt: r.lastPracticedAt }));
+  const allRecords = [...records, ...fractionsExtra];
+
+  const recBySkill = new Map(allRecords.map((r) => [String(r.skillId), r]));
   // Stale-mastered skills are treated as un-mastered so they resurface for a refresh.
-  const masteredIds = new Set(records.filter((r) => r.status === 'mastered' && !isStale(r)).map((r) => String(r.skillId)));
+  const masteredIds = new Set(allRecords.filter((r) => r.status === 'mastered' && !isStale(r)).map((r) => String(r.skillId)));
 
   const resolveReadyGap = (startId) => {
     const seen = new Set();
@@ -161,7 +246,7 @@ export async function recommendNextSkill(studentId) {
   };
 
   // Target: weakest in-progress skill, else next un-mastered in curriculum order.
-  const weak = records
+  const weak = allRecords
     .filter((r) => ['needs_review', 'learning', 'not_started'].includes(r.status))
     .sort((a, b) => a.score - b.score);
   let targetId = weak[0] ? String(weak[0].skillId) : null;
