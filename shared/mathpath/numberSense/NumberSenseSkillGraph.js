@@ -497,6 +497,62 @@ const numberSenseSkills = [
     misconceptions: ['int/direction', 'int/wrong-operation'],
     questionFamilies: ['QF_NS029_001', 'QF_NS029_002'],
   },
+
+  // ── Secondary 1 (G1) — Number: factors, powers and roots (MOE N1.2/N1.3) ────
+  {
+    id: 'NS030', slug: 'ns.num.prime-factorisation', name: 'Prime factorisation',
+    description: 'Express a number as a product of its prime factors.',
+    strand: 'Factors & Powers', prerequisites: ['NS008'], crossDomainPrerequisites: [], difficulty: 3,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 85, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 88, targetAverageSeconds: 20 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: [], misconceptions: ['num/not-fully-factorised'],
+    questionFamilies: ['QF_NS030_001', 'QF_NS030_002'],
+  },
+  {
+    id: 'NS031', slug: 'ns.num.hcf', name: 'HCF by prime factorisation',
+    description: 'Find the highest common factor of two numbers.',
+    strand: 'Factors & Powers', prerequisites: ['NS030'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 22 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['NS030'], misconceptions: ['num/hcf-lcm-confuse'],
+    questionFamilies: ['QF_NS031_001', 'QF_NS031_002'],
+  },
+  {
+    id: 'NS032', slug: 'ns.num.lcm', name: 'LCM by prime factorisation',
+    description: 'Find the lowest common multiple of two numbers.',
+    strand: 'Factors & Powers', prerequisites: ['NS030'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 22 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['NS030'], misconceptions: ['num/hcf-lcm-confuse'],
+    questionFamilies: ['QF_NS032_001', 'QF_NS032_002'],
+  },
+  {
+    id: 'NS033', slug: 'ns.num.squares-cubes', name: 'Squares and cubes',
+    description: 'Evaluate squares and cubes of whole numbers.',
+    strand: 'Factors & Powers', prerequisites: [], crossDomainPrerequisites: ['op.mult.facts'], difficulty: 3,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 85, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 90, targetAverageSeconds: 8 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: [], misconceptions: ['num/power-as-multiply'],
+    questionFamilies: ['QF_NS033_001', 'QF_NS033_002'],
+  },
+  {
+    id: 'NS034', slug: 'ns.num.roots', name: 'Square and cube roots',
+    description: 'Evaluate square and cube roots of perfect squares and cubes.',
+    strand: 'Factors & Powers', prerequisites: ['NS033'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 88, targetAverageSeconds: 10 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['NS033'], misconceptions: ['num/root-as-divide'],
+    questionFamilies: ['QF_NS034_001', 'QF_NS034_002'],
+  },
+  {
+    id: 'NS035', slug: 'ns.num.powers', name: 'Index notation and powers',
+    description: 'Evaluate positive integer powers using index notation.',
+    strand: 'Factors & Powers', prerequisites: ['NS033'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 12 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['NS033'], misconceptions: ['num/power-as-multiply'],
+    questionFamilies: ['QF_NS035_001', 'QF_NS035_002'],
+  },
 ];
 
 const skills = numberSenseSkills.map((skill) => ({ ...skill }));
@@ -573,7 +629,7 @@ function detectCycles(graphSkills) {
 }
 
 export function validateNumberSenseSkillGraph() {
-  const expectedIds = ['NS001', 'NS002', 'NS003', 'NS004', 'NS005', 'NS006', 'NS007', 'NS008', 'NS009', 'NS010', 'NS011', 'NS012', 'NS013', 'NS014', 'NS015', 'NS016', 'NS017', 'NS018', 'NS019', 'NS020', 'NS021', 'NS022', 'NS023', 'NS024', 'NS025', 'NS026', 'NS027', 'NS028', 'NS029'];
+  const expectedIds = ['NS001', 'NS002', 'NS003', 'NS004', 'NS005', 'NS006', 'NS007', 'NS008', 'NS009', 'NS010', 'NS011', 'NS012', 'NS013', 'NS014', 'NS015', 'NS016', 'NS017', 'NS018', 'NS019', 'NS020', 'NS021', 'NS022', 'NS023', 'NS024', 'NS025', 'NS026', 'NS027', 'NS028', 'NS029', 'NS030', 'NS031', 'NS032', 'NS033', 'NS034', 'NS035'];
   const actualIds = skills.map((s) => s.id);
   const missingSkills = expectedIds.filter((id) => !skillById.has(id));
   const duplicateIds = actualIds.filter((id, index) => actualIds.indexOf(id) !== index);
