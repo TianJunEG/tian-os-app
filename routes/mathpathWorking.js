@@ -592,6 +592,7 @@ router.get('/review-summary', asyncHandler(async (req, res) => {
     const scope = await resolveWorkingStudentScope(req, req.query.studentId, { allowAdultAll: true });
     const query = { ...scope.query };
     if (req.query.analysisStatus) query.analysisStatus = String(req.query.analysisStatus);
+    if (req.query.domainId) query.domainId = String(req.query.domainId);
     const limit = Math.max(1, Math.min(200, Number(req.query.limit || 50)));
     const sessions = await MathPathWorkingSession.find(query).sort({ updatedAt: -1 }).limit(limit).lean();
     const studentIds = [...new Set([
