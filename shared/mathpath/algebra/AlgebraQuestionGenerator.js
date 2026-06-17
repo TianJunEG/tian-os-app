@@ -55,7 +55,9 @@ function mcqFrom({ family, prompt, answerDisplay, q, solutionSteps, misconceptio
     const deltas = [1, -1, 2, -2, 3, -3, 5, -5];
     for (let i = 0; opts.length < 4 && i < deltas.length && Number.isFinite(base); i++) {
       const v = base + deltas[i];
-      if (v <= 0) continue;
+      // Keep non-negative answers' options non-negative; negative answers
+      // (e.g. substitution with negatives) may have negative options.
+      if (base >= 0 && v <= 0) continue;
       if (!seen.has(String(v))) { seen.add(String(v)); opts.push(String(v)); }
     }
     opts = opts.slice(0, 4);
@@ -75,6 +77,31 @@ function mcqFrom({ family, prompt, answerDisplay, q, solutionSteps, misconceptio
 
 const AL = (n) => `AL${String(n).padStart(3, '0')}`;
 const LETTERS = ['n', 'p', 'k', 'm', 'y', 'a'];
+const VARS = ['x', 'y', 'n', 'a', 'm'];
+
+// Format a linear expression ax + b nicely, e.g. "2x + 7", "3x - 4", "-x + 6".
+function mkExpr(a, b, v) {
+  const coeff = a === 1 ? v : a === -1 ? `-${v}` : `${a}${v}`;
+  if (b === 0) return coeff;
+  return `${coeff} ${b > 0 ? '+' : '-'} ${Math.abs(b)}`;
+}
+function termV(n, v) { return `${n >= 0 ? '+' : '-'} ${Math.abs(n) === 1 ? '' : Math.abs(n)}${v}`; }
+function term(n) { return `${n >= 0 ? '+' : '-'} ${Math.abs(n)}`; }
+// Canonicalise a single-variable linear expression to "<coeff><var>+<const>";
+// returns null when the string has no variable (i.e. it is purely numeric).
+function canonLinear(s) {
+  let t = String(s).toLowerCase().replace(/\s+/g, '').replace(/−/g, '-').replace(/[*×]/g, '');
+  if (!/[a-z]/.test(t)) return null;
+  const v = t.match(/[a-z]/)[0];
+  if (t[0] !== '-' && t[0] !== '+') t = `+${t}`;
+  const terms = t.match(/[+-][^+-]*/g) || [];
+  let coeff = 0, cons = 0;
+  for (const tm of terms) {
+    if (tm.includes(v)) { let c = tm.replace(v, ''); if (c === '+' || c === '') c = '1'; if (c === '-') c = '-1'; coeff += parseInt(c, 10) || 0; }
+    else { cons += parseInt(tm, 10) || 0; }
+  }
+  return `${coeff}${v}${cons >= 0 ? '+' : ''}${cons}`;
+}
 
 const BUILDERS = {
   // AL001 — Unknowns in arithmetic (missing number)
@@ -97,6 +124,54 @@ const BUILDERS = {
   [AL(9)]: (rng) => { const L = pick(rng, LETTERS), x = rint(rng, 2, 9), k = rint(rng, 2, 4), b = rint(rng, 1, 9); return { prompt: `Solve: ${k}${L} + ${b} = ${k * x + b}. What is ${L}?`, value: x, tag: 'alg/order-of-undo', steps: [`Subtract ${b}: ${k}${L} = ${k * x}.`, `Divide by ${k}: ${L} = ${x}.`], distractors: [k * x + b, k * x, x + 1] }; },
   // AL010 — Word problem forming a simple (non-negative) relationship
   [AL(10)]: (rng) => { const L = pick(rng, LETTERS), more = rint(rng, 2, 9), end = rint(rng, 10, 20); const start = end + more; return { prompt: `A pupil had ${L} stickers. After giving away ${more}, they had ${end} left. How many stickers did they start with?`, value: start, tag: 'alg/wrong-relation', steps: [`${L} − ${more} = ${end}, so ${L} = ${end} + ${more} = ${start}.`], distractors: [end - more > 0 ? end - more : end + 1, end, more] }; },
+
+  // ── Secondary 1 (G1) — Algebra ──────────────────────────────────────────────
+  [AL(11)]: (rng) => {
+    const v = pick(rng, VARS);
+    let a1 = rint(rng, 2, 8), a2 = rint(rng, 1, 5) * (rng() < 0.5 ? -1 : 1);
+    if (a1 + a2 === 0) a2 += 1;
+    const b1 = rint(rng, 1, 9), b2 = rint(rng, 1, 8) * (rng() < 0.5 ? -1 : 1);
+    const coeff = a1 + a2, cons = b1 + b2;
+    const ans = mkExpr(coeff, cons, v);
+    return { prompt: `Simplify: ${a1}${v} ${term(b1)} ${termV(a2, v)} ${term(b2)}`, value: ans, tag: 'alg/combine-unlike',
+      steps: [`Collect the ${v}-terms: ${a1}${v} ${termV(a2, v)} = ${coeff}${v}.`, `Collect the numbers: ${b1} ${term(b2)} = ${cons}.`, `Answer: ${ans}.`],
+      choices: [ans, mkExpr(a1 - a2, cons, v), mkExpr(coeff, b1 - b2, v), mkExpr(coeff + 1, cons, v)] };
+  },
+  [AL(12)]: (rng) => {
+    const v = pick(rng, VARS), k = rint(rng, 2, 6), c = rint(rng, 1, 8) * (rng() < 0.5 ? -1 : 1);
+    const ans = mkExpr(k, k * c, v);
+    return { prompt: `Expand: ${k}(${v} ${term(c)})`, value: ans, tag: 'alg/distribute-partial',
+      steps: [`Multiply each term inside the bracket by ${k}.`, `${k} × ${v} = ${k}${v}; ${k} × ${term(c).replace(' ', '')} = ${k * c >= 0 ? '+' : '-'} ${Math.abs(k * c)}.`, `Answer: ${ans}.`],
+      choices: [ans, mkExpr(k, c, v), mkExpr(1, k * c, v), mkExpr(k, k * c + k, v)] };
+  },
+  [AL(13)]: (rng) => {
+    const v = pick(rng, VARS), a = rint(rng, 2, 6), x = rint(rng, 2, 9), b = rint(rng, 1, 9) * (rng() < 0.5 ? -1 : 1);
+    const c = a * x + b;
+    return { prompt: `Solve: ${a}${v} ${term(b)} = ${c}. ${v} = ?`, value: x, tag: 'alg/order-of-undo',
+      steps: [`${b >= 0 ? `Subtract ${b}` : `Add ${-b}`} from both sides: ${a}${v} = ${a * x}.`, `Divide by ${a}: ${v} = ${x}.`],
+      distractors: [c - b, c + b, x + 1].filter((d) => d !== x) };
+  },
+  [AL(14)]: (rng) => {
+    const v = pick(rng, VARS), a = rint(rng, 2, 5), x = rint(rng, 2, 9), b = rint(rng, 1, 6) * (rng() < 0.5 ? -1 : 1);
+    const c = a * (x + b);
+    return { prompt: `Solve: ${a}(${v} ${term(b)}) = ${c}. ${v} = ?`, value: x, tag: 'alg/distribute-partial',
+      steps: [`Divide both sides by ${a}: ${v} ${term(b)} = ${x + b}.`, `${b >= 0 ? `Subtract ${b}` : `Add ${-b}`}: ${v} = ${x}.`],
+      distractors: [x + b, c - b, x + 1].filter((d) => d !== x) };
+  },
+  [AL(15)]: (rng) => {
+    const k = rint(rng, 2, 5), a = -rint(rng, 1, 7), b = rint(rng, 1, 8) * (rng() < 0.5 ? -1 : 1);
+    const ans = k * a - b;
+    return { prompt: `Find the value of ${k}a − b when a = ${a} and b = ${b}.`, value: ans, tag: 'alg/sign-error',
+      steps: [`${k} × (${a}) = ${k * a}.`, `${k * a} − (${b}) = ${ans}.`],
+      distractors: [k * a + b, k * Math.abs(a) - b, k * a - Math.abs(b)].filter((d) => d !== ans) };
+  },
+  [AL(16)]: (rng) => {
+    const k = rint(rng, 2, 5), x = rint(rng, 2, 12), add = rint(rng, 1, 9);
+    const total = k * x + add;
+    return { prompt: `I think of a number, multiply it by ${k}, then add ${add}. The result is ${total}. What is the number?`, value: x, tag: 'alg/wrong-relation',
+      steps: [`Let the number be n. Then ${k}n + ${add} = ${total}.`, `${k}n = ${total - add}, so n = ${x}.`],
+      distractors: [total - add, total + add, x + 1].filter((d) => d !== x) };
+  },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -135,6 +210,13 @@ const GENERATORS = {
   algEquation1Step: makePractice(AL(8)), algEquation1StepWord: makeMCQ(AL(8)),
   algEquation2Step: makePractice(AL(9)), algEquation2StepWord: makeMCQ(AL(9)),
   algWordToEquation: makePractice(AL(10)), algWordToEquationMCQ: makeMCQ(AL(10)),
+  // Secondary 1 (G1)
+  algSimplifyLinear: makePractice(AL(11)), algSimplifyLinearMCQ: makeMCQ(AL(11)),
+  algExpandBrackets: makePractice(AL(12)), algExpandBracketsMCQ: makeMCQ(AL(12)),
+  algSolveTwoStep: makePractice(AL(13)), algSolveTwoStepMCQ: makeMCQ(AL(13)),
+  algSolveBrackets: makePractice(AL(14)), algSolveBracketsMCQ: makeMCQ(AL(14)),
+  algSubstituteNeg: makePractice(AL(15)), algSubstituteNegMCQ: makeMCQ(AL(15)),
+  algFormSolve: makePractice(AL(16)), algFormSolveMCQ: makeMCQ(AL(16)),
 };
 
 export function generateAlgebraQuestionSet({ skillId, count = 6, mode = 'practice' }) {
@@ -155,8 +237,13 @@ export function generateAlgebraQuestionSet({ skillId, count = 6, mode = 'practic
 // Accepts numbers and simple terms ("8n"), whitespace-insensitive.
 export function checkAlgebraAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
+  const expected = question.answer?.display ?? question.answer ?? '';
+  // Linear-expression answers (e.g. "2x + 7", "12n") are compared by their
+  // canonical form, so "7 + 2x" and "2x + 7" both match.
+  const expCanon = canonLinear(expected);
+  if (expCanon !== null) return { correct: canonLinear(studentResponse) === expCanon };
   const norm = (s) => String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/×/g, '');
-  return { correct: norm(studentResponse) === norm(question.answer?.display ?? question.answer ?? '') };
+  return { correct: norm(studentResponse) === norm(expected) };
 }
 
 export default { generateAlgebraQuestionSet, checkAlgebraAnswer };

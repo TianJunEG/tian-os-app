@@ -172,6 +172,62 @@ const algebraSkills = [
     misconceptions: ['alg/wrong-relation'],
     questionFamilies: ['QF_AL010_001', 'QF_AL010_002'],
   },
+
+  // ── Secondary 1 (G1) — Algebra: expressions & linear equations (MOE A1/A2) ──
+  {
+    id: 'AL011', slug: 'alg.simplify-linear', name: 'Simplifying linear expressions',
+    description: 'Collect like terms in a linear expression (with negatives).',
+    strand: 'Expressions', prerequisites: ['AL006'], crossDomainPrerequisites: [], difficulty: 3,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 85, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 88, targetAverageSeconds: 12 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AL006'], misconceptions: ['alg/combine-unlike', 'alg/sign-error'],
+    questionFamilies: ['QF_AL011_001', 'QF_AL011_002'],
+  },
+  {
+    id: 'AL012', slug: 'alg.expand-brackets', name: 'Expanding single brackets',
+    description: 'Expand a single bracket using the distributive law.',
+    strand: 'Expressions', prerequisites: ['AL011'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 14 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AL011'], misconceptions: ['alg/distribute-partial', 'alg/sign-error'],
+    questionFamilies: ['QF_AL012_001', 'QF_AL012_002'],
+  },
+  {
+    id: 'AL013', slug: 'alg.solve-two-step', name: 'Solving two-step linear equations',
+    description: 'Solve ax + b = c for an integer solution.',
+    strand: 'Equations', prerequisites: ['AL009'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 18 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AL009'], misconceptions: ['alg/order-of-undo', 'alg/sign-error'],
+    questionFamilies: ['QF_AL013_001', 'QF_AL013_002'],
+  },
+  {
+    id: 'AL014', slug: 'alg.solve-brackets', name: 'Solving equations with brackets',
+    description: 'Solve a(x + b) = c for an integer solution.',
+    strand: 'Equations', prerequisites: ['AL012', 'AL013'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 80, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 82, targetAverageSeconds: 22 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AL013'], misconceptions: ['alg/distribute-partial', 'alg/order-of-undo'],
+    questionFamilies: ['QF_AL014_001', 'QF_AL014_002'],
+  },
+  {
+    id: 'AL015', slug: 'alg.substitute-negatives', name: 'Substitution with negative values',
+    description: 'Evaluate an expression by substituting negative integers.',
+    strand: 'Expressions', prerequisites: ['AL005'], crossDomainPrerequisites: ['ns.int.multiply'], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 16 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AL005'], misconceptions: ['alg/sign-error', 'alg/sub-ignore-precedence'],
+    questionFamilies: ['QF_AL015_001', 'QF_AL015_002'],
+  },
+  {
+    id: 'AL016', slug: 'alg.form-solve', name: 'Forming and solving linear equations',
+    description: 'Form a linear equation from a word problem and solve it.',
+    strand: 'Applications', prerequisites: ['AL013'], crossDomainPrerequisites: [], difficulty: 5,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 80, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 80, targetAverageSeconds: 30 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AL013'], misconceptions: ['alg/wrong-relation'],
+    questionFamilies: ['QF_AL016_001', 'QF_AL016_002'],
+  },
 ];
 
 const skills = algebraSkills.map((skill) => ({ ...skill }));
@@ -248,7 +304,7 @@ function detectCycles(graphSkills) {
 }
 
 export function validateAlgebraSkillGraph() {
-  const expectedIds = ['AL001', 'AL002', 'AL003', 'AL004', 'AL005', 'AL006', 'AL007', 'AL008', 'AL009', 'AL010'];
+  const expectedIds = ['AL001', 'AL002', 'AL003', 'AL004', 'AL005', 'AL006', 'AL007', 'AL008', 'AL009', 'AL010', 'AL011', 'AL012', 'AL013', 'AL014', 'AL015', 'AL016'];
   const actualIds = skills.map((s) => s.id);
   const missingSkills = expectedIds.filter((id) => !skillById.has(id));
   const duplicateIds = actualIds.filter((id, index) => actualIds.indexOf(id) !== index);
