@@ -154,9 +154,9 @@ export const DOMAIN_CATALOG = [
     domainId: 'whole_numbers',
     displayName: 'Whole Numbers',
     subjectId: 'math',
-    levelRange: 'P1–P6',
+    levelRange: 'P1–S1',
     topicOrder: 0,
-    strands: ['counting', 'place value', 'compare & order', 'rounding', 'factors & multiples', 'negative numbers'],
+    strands: ['counting', 'place value', 'compare & order', 'rounding', 'factors & multiples', 'negative numbers', 'integers (Sec 1 G1)'],
     prerequisites: [],
     questionTypes: ['mcq', 'short_answer', 'fill_blank', 'number_line', 'place_value_blocks'],
     misconceptionTags: ['place_value_error', 'factor_multiple_confusion', 'rounding_error', 'careless_copying'],
@@ -167,12 +167,12 @@ export const DOMAIN_CATALOG = [
     priority: 'P0',
     capabilities: {
       diagnostic: 'engine_ready', // wholeNumbersDiagnosticDomain.js via genericDiagnosticAdapterFactory
-      practice: 'available',      // rebuilt: NumberSenseQuestionGenerator.js (counting, place value, compare/order, patterns, rounding, estimation, negatives). See MATHPATH_QUESTION_QUALITY_AUDIT.md
+      practice: 'available',      // rebuilt: NumberSenseQuestionGenerator.js (counting, place value, compare/order, patterns, rounding, estimation, negatives, Sec 1 G1 integers). See MATHPATH_QUESTION_QUALITY_AUDIT.md
       assignment: 'planned',
       worksheet: 'planned',
       paperAnalysis: 'planned',
       intervention: 'planned',
-      skillGraph: 'available',    // scripts/domains/numberSense.js (23 skills)
+      skillGraph: 'available',    // NumberSenseSkillGraph.js (29 skills: NS001–NS029, incl. Sec 1 G1 integers NS024–NS029)
     },
     skillGraphFile: 'scripts/domains/numberSense.js',
     notes: 'DB-free diagnostic adapter registered (engine_ready); session runtime + UI pending (Step 3).',

@@ -34,6 +34,10 @@ function round10(x) { return Math.round(x / 10) * 10; }
 function round100(x) { return Math.round(x / 100) * 100; }
 function round1000(x) { return Math.round(x / 1000) * 1000; }
 function cmpSym(a, b) { return a > b ? '>' : a < b ? '<' : '='; }
+// Integer helpers (Secondary 1). nz: a non-zero integer in [-max, max]; par:
+// wrap a negative in parentheses for readable expressions, e.g. (-6).
+function nzInt(rng, max) { const v = rint(rng, 1, max) * (rng() < 0.5 ? -1 : 1); return v; }
+function par(n) { return n < 0 ? `(${n})` : `${n}`; }
 
 // ── Question envelope builders ───────────────────────────────────────────────
 function shortAnswer({ family, prompt, answerDisplay, acceptedAnswers, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
@@ -156,6 +160,54 @@ const BUILDERS = {
   [NS(21)]: (rng) => { const start = rint(rng, 0, 4), steps = rint(rng, start + 1, start + 6); const a = start - steps; return { prompt: `On a number line, what number is ${steps} steps to the left of ${start}?`, answer: a, tag: 'neg/magnitude-order', steps: [`Moving left subtracts: ${start} − ${steps} = ${a}.`], distractors: [start + steps, -start - steps, steps - start], diagram: { kind: 'number-line', from: -10, to: 5, mark: a } }; },
   [NS(22)]: (rng) => { const a = rint(rng, -9, 9), b = rint(rng, -9, 9); return { prompt: `Compare the integers. Write <, > or =:  ${a} ___ ${b}`, answer: cmpSym(a, b), tag: 'neg/order-like-positive', steps: [`On a number line, numbers further left are smaller: ${a} ${cmpSym(a, b)} ${b}.`], choices: ['<', '>', '='] }; },
   [NS(23)]: (rng) => { const startT = rint(rng, -3, 8), drop = rint(rng, startT + 4, startT + 12); const a = startT - drop; return { prompt: `The temperature was ${startT}°C. It fell by ${drop}°C. What is the new temperature (in °C)?`, answer: a, tag: 'neg/direction', steps: [`A fall subtracts: ${startT} − ${drop} = ${a}.`, `The new temperature is ${a}°C.`], distractors: [startT + drop, drop - startT, -startT - drop] }; },
+
+  // ── Secondary 1 (G1) — Integers ─────────────────────────────────────────────
+  [NS(24)]: (rng) => {
+    const a = nzInt(rng, 12), b = nzInt(rng, 12); const ans = a + b;
+    return { prompt: `${par(a)} + ${par(b)} = ?`, answer: ans, tag: 'int/ignore-sign',
+      steps: [`Start at ${a} on the number line and move ${b >= 0 ? `${b} right` : `${Math.abs(b)} left`}.`, `${a} + ${b} = ${ans}.`],
+      distractors: [a - b, Math.abs(a) + Math.abs(b), -(a + b)].filter((d) => d !== ans) };
+  },
+  [NS(25)]: (rng) => {
+    const a = nzInt(rng, 12), b = nzInt(rng, 12); const ans = a - b;
+    return { prompt: `${par(a)} − ${par(b)} = ?`, answer: ans, tag: 'int/subtract-negative',
+      steps: [`Subtracting ${b} is the same as adding ${-b}.`, `${a} − ${b} = ${a} + ${-b} = ${ans}.`],
+      distractors: [a + b, b - a, -(a - b)].filter((d) => d !== ans) };
+  },
+  [NS(26)]: (rng) => {
+    const a = nzInt(rng, 9), b = nzInt(rng, 9); const ans = a * b;
+    return { prompt: `${par(a)} × ${par(b)} = ?`, answer: ans, tag: 'int/sign-rule-mult',
+      steps: [`${a < 0 === (b < 0) ? 'Same signs give a positive answer.' : 'Different signs give a negative answer.'}`, `${a} × ${b} = ${ans}.`],
+      distractors: [-ans, ans + a, Math.abs(ans) === ans ? -Math.abs(ans) : Math.abs(ans)].filter((d) => d !== ans) };
+  },
+  [NS(27)]: (rng) => {
+    const b = nzInt(rng, 9), q = nzInt(rng, 9); const a = b * q; const ans = q;
+    return { prompt: `${par(a)} ÷ ${par(b)} = ?`, answer: ans, tag: 'int/sign-rule-div',
+      steps: [`${a < 0 === (b < 0) ? 'Same signs give a positive answer.' : 'Different signs give a negative answer.'}`, `${a} ÷ ${b} = ${ans}.`],
+      distractors: [-ans, ans + 1, ans - 1].filter((d) => d !== ans) };
+  },
+  [NS(28)]: (rng) => {
+    const p = nzInt(rng, 8), q = rint(rng, 2, 6), r = nzInt(rng, 6); const ans = p + q * r;
+    return { prompt: `${par(p)} + ${q} × ${par(r)} = ?`, answer: ans, tag: 'int/left-to-right',
+      steps: ['Do the multiplication first.', `${q} × ${r} = ${q * r}; ${p} + ${q * r} = ${ans}.`],
+      distractors: [(p + q) * r, p + q + r, p - q * r].filter((d) => d !== ans) };
+  },
+  [NS(29)]: (rng) => {
+    const kind = rint(rng, 0, 2);
+    if (kind === 0) {
+      const t = rint(rng, -8, 3), drop = rint(rng, 4, 14); const ans = t - drop;
+      return { prompt: `The temperature was ${t}°C. It fell by ${drop}°C overnight. What is the new temperature (in °C)?`, answer: ans, tag: 'int/direction',
+        steps: [`A fall subtracts: ${t} − ${drop} = ${ans}.`], distractors: [t + drop, drop - t, -ans].filter((d) => d !== ans) };
+    }
+    if (kind === 1) {
+      const depth = rint(rng, 5, 30), desc = rint(rng, 4, 20); const ans = -depth - desc;
+      return { prompt: `A diver is ${depth} m below sea level (−${depth} m). She descends a further ${desc} m. What is her new position (in m, using a negative number for below sea level)?`, answer: ans, tag: 'int/direction',
+        steps: [`Descending subtracts: −${depth} − ${desc} = ${ans}.`], distractors: [-depth + desc, depth + desc, ans + 2 * desc].filter((d) => d !== ans) };
+    }
+    const start = -rint(rng, 5, 40), deposit = rint(rng, 10, 60); const ans = start + deposit;
+    return { prompt: `A bank account is overdrawn, with a balance of −$${Math.abs(start)} (that is, ${start} dollars). A deposit of $${deposit} is made. What is the new balance (in dollars)?`, answer: ans, tag: 'int/direction',
+      steps: [`Add the deposit: ${start} + ${deposit} = ${ans}.`], distractors: [start - deposit, deposit - start, -ans].filter((d) => d !== ans) };
+  },
 };
 
 function ordinal(n) {
@@ -218,6 +270,9 @@ const KIND_TO_SKILL = {
   nsNsRound10100: NS(16), nsNsRound1000: NS(17),
   nsNsEstimateSums: NS(18), nsNsEstimateProducts: NS(19), nsNsEstimateCheck: NS(20),
   nsNsNegIntro: NS(21), nsNsNegCompareOrder: NS(22), nsNsNegContext: NS(23),
+  // Secondary 1 (G1) — Integers
+  nsNsIntAdd: NS(24), nsNsIntSub: NS(25), nsNsIntMul: NS(26), nsNsIntDiv: NS(27),
+  nsNsIntOrderOps: NS(28), nsNsIntWord: NS(29),
 };
 
 const GENERATORS = {};

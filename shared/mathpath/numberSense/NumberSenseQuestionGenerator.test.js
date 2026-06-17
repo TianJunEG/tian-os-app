@@ -3,8 +3,18 @@ import { generateNumberSenseQuestionSet, checkNumberSenseAnswer } from './Number
 import { numberSenseSkillGraph } from './NumberSenseSkillGraph.js';
 
 const SKILL_IDS = numberSenseSkillGraph?.skillIds
-  || Array.from({ length: 23 }, (_, i) => 'NS' + String(i + 1).padStart(3, '0'));
+  || Array.from({ length: 29 }, (_, i) => 'NS' + String(i + 1).padStart(3, '0'));
 const num = (s) => Number(String(s).replace(/,/g, ''));
+
+// Re-derive a pure "expr = ?" integer expression (handles parentheses, unicode
+// operators and negatives — used for the Sec 1 G1 integer skills).
+function evalIntExpr(p) {
+  if (!/=\s*\?$/.test(p.trim())) return null;
+  let e = p.replace(/=\s*\?.*$/, '').trim();
+  if (!/^[\d\s+×÷\-−*/()]+$/.test(e)) return null;
+  e = e.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+  try { const v = Function('return (' + e + ')')(); return Number.isInteger(v) ? v : null; } catch { return null; }
+}
 
 function sampleAll(perSkill = 25) {
   const out = [];
@@ -17,9 +27,12 @@ function sampleAll(perSkill = 25) {
 describe('NumberSenseQuestionGenerator', () => {
   const questions = sampleAll();
 
-  it('produces questions for all 23 skills', () => {
+  it('produces questions for all skills (incl. Sec 1 G1 integers NS024–NS029)', () => {
     for (const skillId of SKILL_IDS) {
       expect(generateNumberSenseQuestionSet({ skillId, count: 6 }).length).toBe(6);
+    }
+    for (const id of ['NS024', 'NS025', 'NS026', 'NS027', 'NS028', 'NS029']) {
+      expect(SKILL_IDS).toContain(id);
     }
   });
 
@@ -86,5 +99,64 @@ describe('NumberSenseQuestionGenerator', () => {
     expect(checkNumberSenseAnswer({ question: mk('14, 19, 44, 58'), studentResponse: '14,19,44,58' }).correct).toBe(true);
     expect(checkNumberSenseAnswer({ question: mk('-5'), studentResponse: '-5' }).correct).toBe(true);
     expect(checkNumberSenseAnswer({ question: mk('<'), studentResponse: '>' }).correct).toBe(false);
+  });
+
+  describe('Secondary 1 (G1) integers — NS024–NS029', () => {
+    const INT = ['NS024', 'NS025', 'NS026', 'NS027', 'NS028'];
+
+    it('tags every integer skill as Secondary 1', () => {
+      for (const id of [...INT, 'NS029']) {
+        const skill = numberSenseSkillGraph.skills.find((s) => s.id === id);
+        expect(skill.singaporeLevel, id).toEqual(['Secondary 1']);
+      }
+    });
+
+    it('computes every integer arithmetic answer correctly (signs included)', () => {
+      let checked = 0;
+      for (const id of INT) {
+        for (let c = 0; c < 60; c++) {
+          for (const q of generateNumberSenseQuestionSet({ skillId: id, count: 6 })) {
+            const ev = evalIntExpr(q.prompt);
+            if (ev != null) { checked++; expect(String(ev), q.prompt).toBe(q.answer.display); }
+            expect(q.answer.display, q.prompt).toMatch(/^-?\d+$/); // a signed integer
+          }
+        }
+      }
+      expect(checked).toBeGreaterThan(1000);
+    });
+
+    it('division of integers is always exact', () => {
+      for (let c = 0; c < 80; c++) {
+        for (const q of generateNumberSenseQuestionSet({ skillId: 'NS027', count: 6 })) {
+          expect(evalIntExpr(q.prompt)).toBe(Number(q.answer.display));
+        }
+      }
+    });
+
+    it('integer word problems (temperature / depth / balance) are computed correctly', () => {
+      for (let c = 0; c < 120; c++) {
+        for (const q of generateNumberSenseQuestionSet({ skillId: 'NS029', count: 6 })) {
+          let mm;
+          if ((mm = /was (-?\d+)°C\. It fell by (\d+)°C/.exec(q.prompt))) expect(Number(q.answer.display)).toBe(+mm[1] - +mm[2]);
+          else if ((mm = /(\d+) m below sea level .−(\d+) m.\. She descends a further (\d+) m/.exec(q.prompt))) expect(Number(q.answer.display)).toBe(-(+mm[2]) - +mm[3]);
+          else if ((mm = /balance of −\$(\d+) .that is, (-?\d+) dollars.\. A deposit of \$(\d+)/.exec(q.prompt))) expect(Number(q.answer.display)).toBe(+mm[2] + +mm[3]);
+        }
+      }
+    });
+
+    it('integer MCQs are well-formed and can offer negative options', () => {
+      let sawNegativeOption = false;
+      for (const id of [...INT, 'NS029']) {
+        for (let c = 0; c < 40; c++) {
+          for (const q of generateNumberSenseQuestionSet({ skillId: id, count: 6 }).filter((x) => x.type === 'mcq')) {
+            expect(q.choices.length).toBe(4);
+            expect(new Set(q.choices).size).toBe(4);
+            expect(q.choices).toContain(q.answer.display);
+            if (q.choices.some((ch) => Number(ch) < 0)) sawNegativeOption = true;
+          }
+        }
+      }
+      expect(sawNegativeOption).toBe(true);
+    });
   });
 });
