@@ -81,6 +81,11 @@ router.post('/:episodeId/complete', async (req, res) => {
       'e14-p1-q1': 'place-value',
       'e14-p2-q1': 'rounding-nearest-10',
       'e14-p3-q1': 'rounding-nearest-100',
+      // Episode 15 — The Grand Quiz (mixed-skills finale)
+      'e15-p1-q1': 'number-patterns',
+      'e15-p2-q1': 'division-equal-sharing',
+      'e15-p3-q1': 'fraction-of-quantity',
+      'e15-p4-q1': 'measurement-conversion-m-cm',
     };
 
     await Promise.allSettled(

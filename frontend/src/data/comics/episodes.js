@@ -1559,6 +1559,144 @@ export const episodes = [
       character: 'tiano',
     },
   },
+  {
+    id: 'ep-015',
+    slug: 'grand-quiz',
+    title: 'The Grand Quiz',
+    episode: 15,
+    grade: 'P3–P4',
+    publishedAt: '2026-09-22',
+    tagline: 'Season finale! Four rounds, four hosts — Kylo faces a mixed challenge from the whole crew.',
+    coverCharacters: ['kylo', 'tiano'],
+    coverBg: 'common-room',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'common-room',
+        characters: [
+          { key: 'lejo', pose: 'pointing', side: 'left' },
+          { key: 'kylo', pose: 'excited', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lejo',
+            side: 'left',
+            text: 'Welcome to the Grand Quiz! Round 1 — patterns. What comes next: 5, 10, 20, 40?',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: "They're doubling each time!",
+          },
+        ],
+        problem: {
+          id: 'e15-p1-q1',
+          question: 'What number comes next in the pattern 5, 10, 20, 40, …?',
+          hint: 'Each number is the one before it multiplied by 2.',
+          answer: 80,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'number-patterns',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'common-room',
+        characters: [
+          { key: 'kaesy', pose: 'presenting', side: 'left' },
+          { key: 'kylo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'kaesy',
+            side: 'left',
+            text: 'Round 2 — sharing! 32 stickers, 4 friends, split them equally.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Thirty-two divided by four…',
+          },
+        ],
+        problem: {
+          id: 'e15-p2-q1',
+          question: '32 stickers are shared equally among 4 friends. How many stickers does each friend get?',
+          hint: 'Split 32 into 4 equal groups: 32 ÷ 4.',
+          answer: 8,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'division-equal-sharing',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'common-room',
+        characters: [
+          { key: 'talia', pose: 'standing', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'talia',
+            side: 'left',
+            text: 'Round 3 — fractions. What is three quarters of 20?',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'A quarter of 20 is 5, so three quarters…',
+          },
+        ],
+        problem: {
+          id: 'e15-p3-q1',
+          question: 'What is 3/4 of 20?',
+          hint: 'First find 1/4 of 20 (20 ÷ 4 = 5). Three quarters is 3 lots of that.',
+          answer: 15,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'fraction-of-quantity',
+        },
+      },
+      {
+        id: 'p4',
+        scene: 'common-room',
+        characters: [
+          { key: 'chelya', pose: 'measuring', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'chelya',
+            side: 'left',
+            text: 'Final round — measurement! A ribbon is 2 m long. How many centimetres is that?',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Metres to centimetres — times one hundred!',
+          },
+          {
+            character: 'chelya',
+            side: 'left',
+            text: 'Grand Quiz Champion!',
+          },
+        ],
+        problem: {
+          id: 'e15-p4-q1',
+          question: 'A ribbon is 2 m long. How many centimetres is that?',
+          hint: 'Remember: 1 metre = 100 centimetres, so multiply 2 × 100.',
+          answer: 200,
+          unit: ' cm',
+          unitPosition: 'suffix',
+          skill: 'measurement-conversion-m-cm',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: 'That wraps Season 1 of The Tian 7 Chronicles — thanks for playing along. Season 2 is coming soon!',
+      character: 'tiano',
+    },
+  },
 ];
 
 export function getEpisode(slug) {
