@@ -44,7 +44,7 @@ function clientQuestion(q) {
   };
 }
 
-async function publicFluencySummary(studentId) {
+export async function publicFluencySummary(studentId) {
   const records = await FluencyRecord.find({ studentId }).sort({ updatedAt: -1 }).lean();
   return classifyFluencyBuckets(records.map((record) => ({
     ...record,
@@ -52,7 +52,7 @@ async function publicFluencySummary(studentId) {
   })));
 }
 
-async function publicRetentionSummary(studentId) {
+export async function publicRetentionSummary(studentId) {
   const now = new Date();
   const rows = await RetentionReview.find({ studentId }).sort({ reviewDate: 1 }).lean();
   const shape = (row) => ({

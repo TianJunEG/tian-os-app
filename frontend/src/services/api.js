@@ -621,7 +621,12 @@ export const tutorsAPI = {
 export const parentsAPI = {
   createProfile: (data) => api.post('/parents/profile', data),
   getProfile: () => api.get('/parents/profile'),
-  updateProfile: (data) => api.put('/parents/profile', data)
+  updateProfile: (data) => api.put('/parents/profile', data),
+  // Unified, domain-aware MathPath parent dashboard (server-side aggregation).
+  mathPathDashboard: ({ studentId, subjectId = 'math', domainId = 'fractions' }) =>
+    api.get(`/parents/${studentId}/mathpath/dashboard`, { params: { subjectId, domainId } }),
+  mathPathDomains: ({ studentId, subjectId = 'math' }) =>
+    api.get(`/parents/${studentId}/mathpath/domains`, { params: { subjectId } }),
 };
 
 // Partners API

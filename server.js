@@ -16,6 +16,7 @@ import { sanitizeInputs } from './middleware/validation.js';
 import authRoutes from './routes/auth.js';
 import tutorRoutes from './routes/tutors.js';
 import parentRoutes from './routes/parents.js';
+import parentMathPathDashboardRoutes from './routes/parentMathPathDashboard.js';
 import searchRoutes from './routes/search.js';
 import bookingRoutes from './routes/bookings.js';
 import paymentRoutes from './routes/payments.js';
@@ -199,6 +200,7 @@ app.get('/healthz', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/tutors', tutorRoutes);
 app.use('/api/parents', parentRoutes);
+app.use('/api/parents', parentMathPathDashboardRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);

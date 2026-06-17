@@ -5,8 +5,8 @@ import { Card, Button, Badge, ErrorState, PageHeader, Spinner, CollapsibleSectio
 import FEATURE_FLAGS from '../../config/featureFlags';
 import ChildNav from './ChildNav';
 import { useChild } from './useChild';
-import { mathpathAPI } from '../../services/api';
-import { deriveParentPayload, availableDomainsFromMastery, domainLabel } from './parentDomainDashboardData';
+import { mathpathAPI, parentsAPI } from '../../services/api';
+import { domainLabel } from './parentDomainDashboardData';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
 import { buildMascotNarration } from '../../mathpath/dashboard/parentMascotNarration';
@@ -410,9 +410,8 @@ export default function ParentMathPathDashboardPage() {
   const child = useChild(studentId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [masteryRaw, setMasteryRaw] = useState(null);
-  // Domain is driven by the optional :domainId route param; the param-less route
-  // (/parent/children/:studentId/mathpath) defaults to fractions for the pilot.
+  const [summary, setSummary] = useState(null);
+  const [domains, setDomains] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState(routeDomainId || 'fractions');
   const [placement, setPlacement] = useState(null);
   const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
@@ -427,22 +426,26 @@ export default function ParentMathPathDashboardPage() {
     loadRequestRef.current = requestId;
     setLoading(true);
     setError('');
-    setMasteryRaw(null);
+    setSummary(null);
+    setDomains([]);
     setPlacement(null);
     setDiagnosticGrowth(null);
     setWorkingReview(null);
     setFluencySummary(null);
     setAssignmentMessage('');
     try {
-      const [masteryRes, latestRes, growthRes, workingRes, fluencyRes] = await Promise.all([
-        mathpathAPI.mastery({ studentId }),
-        mathpathAPI.getLatestDiagnostic({ studentId }),
-        mathpathAPI.getDiagnosticGrowth({ studentId }),
-        mathpathAPI.workingReviewSummary({ studentId }),
-        mathpathAPI.fluency(studentId),
+      const isFractions = selectedDomain === 'fractions';
+      const [dashboardRes, domainsRes, latestRes, growthRes, workingRes, fluencyRes] = await Promise.all([
+        parentsAPI.mathPathDashboard({ studentId, domainId: selectedDomain }),
+        parentsAPI.mathPathDomains({ studentId }),
+        isFractions ? mathpathAPI.getLatestDiagnostic({ studentId }) : Promise.resolve(null),
+        isFractions ? mathpathAPI.getDiagnosticGrowth({ studentId }) : Promise.resolve(null),
+        isFractions ? mathpathAPI.workingReviewSummary({ studentId }) : Promise.resolve(null),
+        isFractions ? mathpathAPI.fluency(studentId) : Promise.resolve(null),
       ]);
       if (requestId !== loadRequestRef.current) return;
-      setMasteryRaw(masteryRes?.data || {});
+      setSummary(dashboardRes?.data || null);
+      setDomains(domainsRes?.data?.domains || []);
       setPlacement(latestRes?.data?.result || null);
       setDiagnosticGrowth(growthRes?.data || null);
       setWorkingReview(workingRes?.data || null);
@@ -453,7 +456,7 @@ export default function ParentMathPathDashboardPage() {
     } finally {
       if (requestId === loadRequestRef.current) setLoading(false);
     }
-  }, [studentId]);
+  }, [studentId, selectedDomain]);
 
   const assignRecoveryPack = useCallback(async () => {
     const diagnosticSessionId = diagnosticGrowth?.latest?.diagnosticSessionId || diagnosticGrowth?.baseline?.diagnosticSessionId;
@@ -475,14 +478,10 @@ export default function ParentMathPathDashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const availableDomains = useMemo(() => availableDomainsFromMastery(masteryRaw), [masteryRaw]);
-
-  // Derived per-domain summary — recomputes when the parent switches domain,
-  // no refetch (records are already in masteryRaw).
-  const summary = useMemo(
-    () => (masteryRaw ? deriveParentPayload(studentId, masteryRaw, workingReview?.summary || {}, selectedDomain) : null),
-    [masteryRaw, workingReview, selectedDomain, studentId]
-  );
+  const availableDomains = useMemo(() => {
+    const ids = domains.map((d) => d.domainId);
+    return ids.includes(selectedDomain) ? ids : [selectedDomain, ...ids];
+  }, [domains, selectedDomain]);
 
   // Keep the selected domain in sync with the :domainId route param (deep links
   // and browser navigation drive the view).
@@ -491,13 +490,6 @@ export default function ParentMathPathDashboardPage() {
       setSelectedDomain(routeDomainId);
     }
   }, [routeDomainId, selectedDomain]);
-
-  // If the selected domain has no data for this child, fall back to one that does.
-  useEffect(() => {
-    if (availableDomains.length && !availableDomains.includes(selectedDomain)) {
-      setSelectedDomain(availableDomains[0]);
-    }
-  }, [availableDomains, selectedDomain]);
 
   const primary = useMemo(() => {
     const actions = summary?.recommendedNextActions || [];
@@ -525,9 +517,11 @@ export default function ParentMathPathDashboardPage() {
     );
   }
 
-  const currentFocus = summary.masteryProgress?.weakSkills?.[0] || summary.masteryProgress?.inProgressSkills?.[0] || 'Fractions diagnostic';
+  const isFractions = selectedDomain === 'fractions';
+  const currentFocus = summary.masteryProgress?.weakSkills?.[0] || summary.masteryProgress?.inProgressSkills?.[0] || 'Start diagnostic';
   const placementSkill = placement?.recommendedStartingSkill?.name || null;
   const snapshot = deriveParentSnapshot(summary, placement, child);
+  const workingSummary = isFractions ? (workingReview?.summary || {}) : {};
 
   return (
     <>
@@ -560,14 +554,16 @@ export default function ParentMathPathDashboardPage() {
 
       <div className="space-y-4">
         <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} domainName={domainLabel(selectedDomain)} />
-        <DiagnosticGrowthCard
-          growth={diagnosticGrowth}
-          onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath`)}
-          onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
-          onAssignRecovery={assignRecoveryPack}
-          assigningRecovery={assigningRecovery}
-          assignmentMessage={assignmentMessage}
-        />
+        {isFractions && (
+          <DiagnosticGrowthCard
+            growth={diagnosticGrowth}
+            onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath`)}
+            onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
+            onAssignRecovery={assignRecoveryPack}
+            assigningRecovery={assigningRecovery}
+            assignmentMessage={assignmentMessage}
+          />
+        )}
         <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} domainName={domainLabel(selectedDomain)} />
         {!!placementSkill && (
           <Card className="p-4">
@@ -578,7 +574,7 @@ export default function ParentMathPathDashboardPage() {
         )}
 
         <WeeklyActionPlanCard plan={summary.weeklyActionPlan || {}} onPrimary={() => navigate('/student/mathpath')} />
-        <AdultWorkingReviewPanel review={workingReview || {}} title="Workings and Help Requests" />
+        {isFractions && <AdultWorkingReviewPanel review={workingReview || {}} title="Workings and Help Requests" />}
 
         <CollapsibleSection
           title="Progress details"
@@ -597,7 +593,7 @@ export default function ParentMathPathDashboardPage() {
               onStartBaseline={FEATURE_FLAGS.assessments ? () => navigate('/student/mathpath/assessment') : null}
             />
             <WorkingQualityCard
-              working={summary.workingSummary || {}}
+              working={workingSummary}
               onUpload={() => navigate('/student/mathpath/working/upload')}
             />
           </div>
