@@ -905,6 +905,224 @@ export const episodes = [
       character: 'kaesy',
     },
   },
+  {
+    id: 'ep-009',
+    slug: 'shape-squad',
+    title: 'Shape Squad',
+    episode: 9,
+    grade: 'P3–P4',
+    publishedAt: '2026-08-11',
+    tagline: 'Kaesy drills the crew on shapes — count every side and corner correctly.',
+    coverCharacters: ['kaesy', 'kylo'],
+    coverBg: 'study-den',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'study-den',
+        characters: [
+          { key: 'kaesy', pose: 'presenting', side: 'left' },
+          { key: 'kylo', pose: 'excited', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'kaesy',
+            side: 'left',
+            text: 'Welcome to Shape Squad! First up — this hexagon. Count its sides.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: "Sides of a hexagon… I've got this.",
+          },
+        ],
+        problem: {
+          id: 'e9-p1-q1',
+          question: 'How many sides does a hexagon have?',
+          hint: 'A hexagon is the six-sided shape — think of a honeycomb cell.',
+          answer: 6,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: '2d-shape-sides',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'study-den',
+        characters: [
+          { key: 'kaesy', pose: 'standing', side: 'left' },
+          { key: 'kylo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'kaesy',
+            side: 'left',
+            text: 'Now a pentagon. How many corners does it have?',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Corners means the pointy bits, right?',
+          },
+        ],
+        problem: {
+          id: 'e9-p2-q1',
+          question: 'How many corners (vertices) does a pentagon have?',
+          hint: 'A pentagon has the same number of corners as sides — and a pentagon has 5 sides.',
+          answer: 5,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: '2d-shape-vertices',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'study-den',
+        characters: [
+          { key: 'kaesy', pose: 'cheeky', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'kaesy',
+            side: 'left',
+            text: 'Final challenge — add up ALL the sides: a triangle, a square and a pentagon.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Three, four and five sides…',
+          },
+          {
+            character: 'kaesy',
+            side: 'left',
+            text: 'Total them up, Squad!',
+          },
+        ],
+        problem: {
+          id: 'e9-p3-q1',
+          question: 'A triangle has 3 sides, a square has 4 sides and a pentagon has 5 sides. How many sides do they have altogether?',
+          hint: 'Add the three amounts: 3 + 4 + 5.',
+          answer: 12,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: '2d-shape-sides-total',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: 'Next week: Lejo weighs in — grams, kilograms and a mystery parcel.',
+      character: 'lejo',
+    },
+  },
+  {
+    id: 'ep-010',
+    slug: 'weighing-in',
+    title: 'Weighing In',
+    episode: 10,
+    grade: 'P3–P4',
+    publishedAt: '2026-08-18',
+    tagline: 'Parcel duty at the post desk — Lejo needs every mass measured to the gram.',
+    coverCharacters: ['lejo', 'kylo'],
+    coverBg: 'classroom',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'classroom',
+        characters: [
+          { key: 'lejo', pose: 'pointing', side: 'left' },
+          { key: 'kylo', pose: 'excited', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lejo',
+            side: 'left',
+            text: 'Post duty! Two parcels to weigh — 250 g and 350 g.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Add them for the total weight?',
+          },
+        ],
+        problem: {
+          id: 'e10-p1-q1',
+          question: 'One parcel weighs 250 g and another weighs 350 g. What is their total mass?',
+          hint: 'Add the two masses: 250 g + 350 g.',
+          answer: 600,
+          unit: ' g',
+          unitPosition: 'suffix',
+          skill: 'mass-addition',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'classroom',
+        characters: [
+          { key: 'lejo', pose: 'standing', side: 'left' },
+          { key: 'kylo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lejo',
+            side: 'left',
+            text: 'This bag of flour says 1 kilogram. How many grams is that?',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Kilograms to grams… I remember this one.',
+          },
+        ],
+        problem: {
+          id: 'e10-p2-q1',
+          question: 'How many grams are there in 1 kilogram?',
+          hint: 'Remember the rule: 1 kilogram = 1000 grams.',
+          answer: 1000,
+          unit: ' g',
+          unitPosition: 'suffix',
+          skill: 'mass-conversion-kg-g',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'classroom',
+        characters: [
+          { key: 'lejo', pose: 'aha', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'lejo',
+            side: 'left',
+            text: 'A box and a book together weigh 1500 g. The book alone is 600 g.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'So the box is the difference…',
+          },
+          {
+            character: 'lejo',
+            side: 'left',
+            text: 'Find the mass of the box.',
+          },
+        ],
+        problem: {
+          id: 'e10-p3-q1',
+          question: 'A box and a book together weigh 1500 g. The book weighs 600 g. What is the mass of the box?',
+          hint: 'Take the book away from the total: 1500 g − 600 g.',
+          answer: 900,
+          unit: ' g',
+          unitPosition: 'suffix',
+          skill: 'mass-subtraction',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: 'Next week: Chelya pours it out — millilitres, litres and a very leaky jug.',
+      character: 'chelya',
+    },
+  },
 ];
 
 export function getEpisode(slug) {

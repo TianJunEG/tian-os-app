@@ -57,6 +57,14 @@ router.post('/:episodeId/complete', async (req, res) => {
       'e8-p1-q1': 'fraction-of-quantity',
       'e8-p2-q1': 'fraction-of-quantity',
       'e8-p3-q1': 'fraction-of-set',
+      // Episode 9 — Shape Squad
+      'e9-p1-q1': '2d-shape-sides',
+      'e9-p2-q1': '2d-shape-vertices',
+      'e9-p3-q1': '2d-shape-sides-total',
+      // Episode 10 — Weighing In
+      'e10-p1-q1': 'mass-addition',
+      'e10-p2-q1': 'mass-conversion-kg-g',
+      'e10-p3-q1': 'mass-subtraction',
     };
 
     await Promise.allSettled(
