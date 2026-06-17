@@ -52,7 +52,6 @@ The biggest blockers are:
 Source evidence:
 
 - `frontend/src/mathpath/orchestration/mathPathDomainOrchestrator.js`
-- `frontend/src/mathpath/orchestrator/mathPathDomainOrchestrator.js`
 - `frontend/src/pages/student/mathpath/*`
 - `services/mathpath/assessmentBlueprintEngine.js`
 

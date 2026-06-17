@@ -1,7 +1,22 @@
 import { getSkill } from './TimeSkillGraph.js';
 import { getQuestionFamily, getQuestionFamiliesBySkill } from './TimeQuestionFamilies.js';
 
-// Seeded RNG (mulberry32)
+// MathPath — Time question generator.
+//
+// Rebuilt for question quality (see MATHPATH_QUESTION_QUALITY_AUDIT.md). Key
+// invariants:
+//   • All clock times are held as MINUTES SINCE MIDNIGHT (0–1439) and rendered
+//     via fmt12()/fmt24(); durations via fmtDur(). No concatenated integers like
+//     "905", no impossible "20:15" clock faces or "70 minutes".
+//   • Elapsed time is computed by real subtraction with hour-boundary carry and
+//     midnight wrap — never fabricated.
+//   • Distractors encode the family's misconception (base-10, AM/PM flip, …).
+//   • Worked solutions show the method; coin-style clock diagrams are emitted
+//     for the "read the clock" skills.
+//   • checkTimeAnswer compares by MEANING: "9:30", "9.30", "0930", "9:30 a.m."
+//     and "2 h 35 min" / "155 min" / "155" all normalise correctly.
+
+// ── Seeded RNG (mulberry32) ──────────────────────────────────────────────────
 function hashSeed(str) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -18,10 +33,28 @@ function makeRng(seedStr) {
 }
 function rint(rng, min, max) { return min + Math.floor(rng() * (max - min + 1)); }
 function pick(rng, arr) { return arr[rint(rng, 0, arr.length - 1)]; }
-function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
-function round2(v) { return Math.round(v * 100) / 100; }
 
-function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode }) {
+// ── Time formatting (minutes since midnight) ─────────────────────────────────
+function pad2(n) { return String(n).padStart(2, '0'); }
+function wrap(min) { return ((min % 1440) + 1440) % 1440; }
+function fmt12(min) {
+  const t = wrap(min);
+  const h = Math.floor(t / 60), m = t % 60;
+  const period = h < 12 ? 'a.m.' : 'p.m.';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${pad2(m)} ${period}`;
+}
+function fmtClock(h12, m) { return `${h12}:${pad2(m)}`; } // plain clock face, no period
+function fmt24(min) { const t = wrap(min); return `${pad2(Math.floor(t / 60))}${pad2(t % 60)}`; }
+function fmtDur(mins) {
+  const h = Math.floor(mins / 60), m = mins % 60;
+  if (h && m) return `${h} h ${m} min`;
+  if (h) return `${h} h`;
+  return `${m} min`;
+}
+
+// ── Question envelope builders ───────────────────────────────────────────────
+function shortAnswer({ family, prompt, answerDisplay, acceptedAnswers, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
   return {
     id: `${family.id}#${mode}`,
     skillId: family.skillId,
@@ -29,18 +62,18 @@ function shortAnswer({ family, prompt, answer, display, solutionSteps, misconcep
     type: 'short_answer',
     prompt,
     choices: [],
-    answer: { display: display ?? String(answer), value: answer },
-    acceptedAnswers: [display ?? String(answer)],
+    answer: { display: answerDisplay, value: answerDisplay },
+    acceptedAnswers: acceptedAnswers && acceptedAnswers.length ? acceptedAnswers : [answerDisplay],
     solutionSteps,
     misconceptionTag,
     difficulty,
     mode,
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
-
-function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, misconceptionTag, difficulty, mode, rng }) {
+function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, misconceptionTag, difficulty, mode, rng, diagram }) {
   const seen = new Set([answerDisplay]);
   const opts = [];
   for (const d of distractors.map(String)) {
@@ -66,182 +99,260 @@ function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, miscon
     mode,
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
 
-function computeAnswer_TM001_0(a, b, v) { return a % 12 || 12; }
-function buildPrompt_TM001_0(a, b, v) { return `The clock shows ${a % 12 || 12}:00. What time is it?`; }
-function computeAnswer_TM001_1(a, b, v) { return (a % 12 || 12) * 100 + 30; }
-function buildPrompt_TM001_1(a, b, v) { return `The minute hand points to 6 and the hour hand is between ${a % 12 || 12} and ${(a % 12 || 12) % 12 + 1}. What time is it? (e.g. 3:30)`; }
-function computeAnswer_TM002_0(a, b, v) { return a * 100 + b * 5; }
-function buildPrompt_TM002_0(a, b, v) { return `The clock shows ${a}:${(b * 5).toString().padStart(2,'0')}. Write the time.`; }
-function computeAnswer_TM002_1(a, b, v) { return (a + 1) * 100 + b * 5; }
-function buildPrompt_TM002_1(a, b, v) { return `It is ${a}:${(b * 5).toString().padStart(2,'0')} now. What time will it be 1 hour later?`; }
-function computeAnswer_TM003_0(a, b, v) { return a * 60; }
-function buildPrompt_TM003_0(a, b, v) { return `${a} hours = ? minutes`; }
-function computeAnswer_TM003_1(a, b, v) { return a * 60 + b * 10; }
-function buildPrompt_TM003_1(a, b, v) { return `${a} hours ${b * 10} minutes = ? minutes`; }
-function computeAnswer_TM004_0(a, b, v) { return (a % 12 + 12); }
-function buildPrompt_TM004_0(a, b, v) { return `Convert ${a % 12 || 12}:00 pm to 24-hour time. (Just the hour)`; }
-function computeAnswer_TM004_1(a, b, v) { return (a % 12 || 12); }
-function buildPrompt_TM004_1(a, b, v) { return `${(a % 12 + 12).toString().padStart(2,'0')}:${(b * 5).toString().padStart(2,'0')} in 12-hour time is ${(a % 12 || 12)}:${(b * 5).toString().padStart(2,'0')} ?`; }
-function computeAnswer_TM005_0(a, b, v) { return a * 60 + b * 5; }
-function buildPrompt_TM005_0(a, b, v) { return `A show starts at 2:00 pm and ends at ${2 + a}:${(b * 5).toString().padStart(2,'0')} pm. How many minutes did it last?`; }
-function computeAnswer_TM005_1(a, b, v) { return a * 60 - b * 10; }
-function buildPrompt_TM005_1(a, b, v) { return `A journey takes ${a} hours. ${b * 10} minutes have passed. How many minutes remain?`; }
+const FIVE_MIN = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
-function timTellHour(family, rng, variant) {
-  const v = variant % 20;
-  // Telling time to the hour and half-hour — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM001_0(a, b, v);
-  const prompt = buildPrompt_TM001_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'tim/hour-half', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'tim/hour-half', difficulty: family.difficulty, mode: 'practice' });
+// ── TM001 — Telling time to the hour and half-hour (P1) ──────────────────────
+function tm001Parts(rng) {
+  const h = rint(rng, 1, 12);
+  const m = pick(rng, [0, 30]);
+  return { h, m };
 }
-function timTellHourMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Telling time to the hour and half-hour — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM001_1(a, b, v);
-  const prompt = buildPrompt_TM001_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'tim/hour-half', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'tim/hour-half', difficulty: family.difficulty, mode: 'practice' });
+function tm001Steps(h, m) {
+  return [
+    `The short (hour) hand is ${m === 0 ? `on the ${h}` : `between ${h} and ${h % 12 + 1}`}.`,
+    m === 0 ? 'The long (minute) hand points to 12 — it is exactly o\'clock.'
+            : 'The long (minute) hand points to 6 — it is half past.',
+    `The time is ${fmtClock(h, m)}.`,
+  ];
 }
-function timTellMinutes(family, rng, variant) {
-  const v = variant % 20;
-  // Telling time to the minute — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM002_0(a, b, v);
-  const prompt = buildPrompt_TM002_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'tim/minute-skip', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'tim/minute-skip', difficulty: family.difficulty, mode: 'practice' });
+function monClockDiagram(h, m) { return { kind: 'clock', hour: h, minute: m }; }
+function timTellHour(family, rng) {
+  const { h, m } = tm001Parts(rng);
+  return shortAnswer({
+    family, prompt: 'What time does the clock show? (Write it as h:mm, e.g. 7:30)',
+    answerDisplay: fmtClock(h, m), acceptedAnswers: [fmtClock(h, m)],
+    solutionSteps: tm001Steps(h, m), misconceptionTag: 'tim/hour-half',
+    difficulty: family.difficulty, mode: 'practice', diagram: monClockDiagram(h, m),
+  });
 }
-function timTellMinutesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Telling time to the minute — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM002_1(a, b, v);
-  const prompt = buildPrompt_TM002_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'tim/minute-skip', difficulty: family.difficulty, mode: 'practice', rng });
+function timTellHourMCQ(family, rng) {
+  const { h, m } = tm001Parts(rng);
+  const nextH = h % 12 + 1;
+  const distractors = [
+    fmtClock(nextH, m),              // read the hour hand as the next hour
+    fmtClock(h, m === 0 ? 30 : 0),   // hour/half-hour confusion
+    fmtClock(nextH, m === 0 ? 30 : 0),
+  ];
+  return mcq({
+    family, prompt: 'What time does the clock show?',
+    answerDisplay: fmtClock(h, m), distractors,
+    solutionSteps: tm001Steps(h, m), misconceptionTag: 'tim/hour-half',
+    difficulty: family.difficulty, mode: 'practice', rng, diagram: monClockDiagram(h, m),
+  });
+}
+
+// ── TM002 — Telling time to the minute (P2) ──────────────────────────────────
+function tm002Parts(rng) {
+  const h = rint(rng, 1, 12);
+  const m = pick(rng, FIVE_MIN.filter((x) => x !== 0));
+  return { h, m };
+}
+function tm002Steps(h, m) {
+  return [
+    `The short (hour) hand is just past ${h}.`,
+    `The long (minute) hand points to ${m / 5} on the clock — that is ${m} minutes (count in fives).`,
+    `The time is ${fmtClock(h, m)}.`,
+  ];
+}
+function timTellMinutes(family, rng) {
+  const { h, m } = tm002Parts(rng);
+  return shortAnswer({
+    family, prompt: 'What time does the clock show? (Write it as h:mm, e.g. 7:20)',
+    answerDisplay: fmtClock(h, m), acceptedAnswers: [fmtClock(h, m)],
+    solutionSteps: tm002Steps(h, m), misconceptionTag: 'tim/minute-skip',
+    difficulty: family.difficulty, mode: 'practice', diagram: monClockDiagram(h, m),
+  });
+}
+function timTellMinutesMCQ(family, rng) {
+  const { h, m } = tm002Parts(rng);
+  const distractors = [
+    fmtClock(h, m / 5),               // read the minute-hand number as the minutes
+    fmtClock(h, (m + 5) % 60),        // miscount by one five-minute mark
+    fmtClock(h, (m + 55) % 60),
+  ];
+  return mcq({
+    family, prompt: 'What time does the clock show?',
+    answerDisplay: fmtClock(h, m), distractors,
+    solutionSteps: tm002Steps(h, m), misconceptionTag: 'tim/minute-skip',
+    difficulty: family.difficulty, mode: 'practice', rng, diagram: monClockDiagram(h, m),
+  });
+}
+
+// ── TM003 — Converting time units (P3) ───────────────────────────────────────
+// variant cycles three conversion shapes.
+function tm003Build(rng, variant) {
+  const kind = variant % 3;
+  if (kind === 0) {
+    const h = rint(rng, 2, 9);
+    return {
+      prompt: `${h} hours = ____ minutes`,
+      answer: h * 60,
+      steps: ['1 hour = 60 minutes.', `${h} × 60 = ${h * 60} minutes.`],
+      distractors: [h * 100, h * 10, h * 6],   // base-10 slips
+    };
   }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'tim/minute-skip', difficulty: family.difficulty, mode: 'practice' });
+  if (kind === 1) {
+    const m = rint(rng, 2, 9);
+    return {
+      prompt: `${m} minutes = ____ seconds`,
+      answer: m * 60,
+      steps: ['1 minute = 60 seconds.', `${m} × 60 = ${m * 60} seconds.`],
+      distractors: [m * 100, m * 10, m * 6],
+    };
+  }
+  const h = rint(rng, 1, 4);
+  const m = pick(rng, [10, 15, 20, 30, 40, 45]);
+  return {
+    prompt: `${h} h ${m} min = ____ minutes`,
+    answer: h * 60 + m,
+    steps: [`${h} hour(s) = ${h * 60} minutes.`, `${h * 60} + ${m} = ${h * 60 + m} minutes.`],
+    distractors: [h * 100 + m, h * 10 + m, h + m],  // treated 1 h as 100 / 10
+  };
 }
 function timConvert(family, rng, variant) {
-  const v = variant % 20;
-  // Converting time units (hours, minutes, seconds) — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM003_0(a, b, v);
-  const prompt = buildPrompt_TM003_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'tim/base-10-error', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'tim/base-10-error', difficulty: family.difficulty, mode: 'practice' });
+  const q = tm003Build(rng, variant);
+  return shortAnswer({
+    family, prompt: q.prompt, answerDisplay: String(q.answer),
+    acceptedAnswers: [String(q.answer)], solutionSteps: q.steps,
+    misconceptionTag: 'tim/base-10-error', difficulty: family.difficulty, mode: 'practice',
+  });
 }
 function timConvertWord(family, rng, variant) {
-  const v = variant % 20;
-  // Converting time units (hours, minutes, seconds) — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM003_1(a, b, v);
-  const prompt = buildPrompt_TM003_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'tim/base-10-error', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'tim/base-10-error', difficulty: family.difficulty, mode: 'practice' });
-}
-function tim24hr(family, rng, variant) {
-  const v = variant % 20;
-  // The 24-hour clock — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM004_0(a, b, v);
-  const prompt = buildPrompt_TM004_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'mea/24hr-convert', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'mea/24hr-convert', difficulty: family.difficulty, mode: 'practice' });
-}
-function tim24hrMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // The 24-hour clock — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM004_1(a, b, v);
-  const prompt = buildPrompt_TM004_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'mea/24hr-convert', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'mea/24hr-convert', difficulty: family.difficulty, mode: 'practice' });
-}
-function timDuration(family, rng, variant) {
-  const v = variant % 20;
-  // Duration and time intervals — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM005_0(a, b, v);
-  const prompt = buildPrompt_TM005_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'mea/time-base-60', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'mea/time-base-60', difficulty: family.difficulty, mode: 'practice' });
-}
-function timDurationWord(family, rng, variant) {
-  const v = variant % 20;
-  // Duration and time intervals — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_TM005_1(a, b, v);
-  const prompt = buildPrompt_TM005_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'mea/time-base-60', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'mea/time-base-60', difficulty: family.difficulty, mode: 'practice' });
+  const q = tm003Build(rng, variant);
+  return mcq({
+    family, prompt: q.prompt, answerDisplay: String(q.answer),
+    distractors: q.distractors.map(String), solutionSteps: q.steps,
+    misconceptionTag: 'tim/base-10-error', difficulty: family.difficulty, mode: 'practice', rng,
+  });
 }
 
-const GENERATORS = { 'timTellHour': timTellHour, 'timTellHourMCQ': timTellHourMCQ, 'timTellMinutes': timTellMinutes, 'timTellMinutesMCQ': timTellMinutesMCQ, 'timConvert': timConvert, 'timConvertWord': timConvertWord, 'tim24hr': tim24hr, 'tim24hrMCQ': tim24hrMCQ, 'timDuration': timDuration, 'timDurationWord': timDurationWord };
+// ── TM004 — The 24-hour clock (P4) ───────────────────────────────────────────
+function tm004Build(rng, variant) {
+  const m = pick(rng, [0, 5, 15, 20, 30, 40, 45, 50]);
+  if (variant % 2 === 0) {
+    // 12-hour → 24-hour
+    const h = rint(rng, 1, 11);
+    const pm = rng() < 0.5;
+    const min24 = (pm ? h + 12 : h) * 60 + m;
+    const ans = fmt24(min24);
+    return {
+      prompt: `Write ${h}:${pad2(m)} ${pm ? 'p.m.' : 'a.m.'} in 24-hour time.`,
+      answer: ans,
+      steps: pm
+        ? ['For p.m. times, add 12 to the hour.', `${h} + 12 = ${h + 12}, so ${h}:${pad2(m)} p.m. = ${ans}.`]
+        : ['For a.m. times, keep the hour and write it as two digits.', `${h}:${pad2(m)} a.m. = ${ans}.`],
+      distractors: [
+        fmt24(wrap(min24 + 720)),   // forgot/over-applied the +12 (a.m./p.m. flip)
+        fmt24(wrap(min24 + 60)),    // off by one hour
+        fmt24(wrap(min24 + 5)),     // off by five minutes
+      ],
+    };
+  }
+  // 24-hour → 12-hour
+  const H = rint(rng, 1, 23);
+  const min24 = H * 60 + m;
+  const ans = fmt12(min24);
+  return {
+    prompt: `Write ${fmt24(min24)} in 12-hour time (include a.m. or p.m.).`,
+    answer: ans,
+    steps: H >= 12
+      ? ['For 1300–2300, subtract 12 and write p.m.', `${H} − 12 = ${H === 12 ? 12 : H - 12}, so ${fmt24(min24)} = ${ans}.`]
+      : ['For 0000–1159, the hour is the same and the time is a.m.', `${fmt24(min24)} = ${ans}.`],
+    distractors: [
+      fmt12(wrap(min24 + 720)),   // flipped a.m./p.m.
+      fmt12(wrap(min24 + 60)),    // off by one hour
+      fmt12(wrap(min24 + 5)),     // off by five minutes
+    ],
+  };
+}
+function tim24hr(family, rng, variant) {
+  const q = tm004Build(rng, variant);
+  return shortAnswer({
+    family, prompt: q.prompt, answerDisplay: q.answer, acceptedAnswers: [q.answer],
+    solutionSteps: q.steps, misconceptionTag: 'mea/24hr-convert',
+    difficulty: family.difficulty, mode: 'practice',
+  });
+}
+function tim24hrMCQ(family, rng, variant) {
+  const q = tm004Build(rng, variant);
+  return mcq({
+    family, prompt: q.prompt, answerDisplay: q.answer, distractors: q.distractors,
+    solutionSteps: q.steps, misconceptionTag: 'mea/24hr-convert',
+    difficulty: family.difficulty, mode: 'practice', rng,
+  });
+}
+
+// ── TM005 — Duration and time intervals (P5) ─────────────────────────────────
+function tm005Build(rng, variant) {
+  const startH = rint(rng, 6, 21);
+  const startM = pick(rng, [0, 5, 10, 15, 20, 30, 40, 45, 50]);
+  const start = startH * 60 + startM;
+  if (variant % 2 === 0) {
+    // start + duration → end time (may cross the hour or midnight)
+    const durH = rint(rng, 1, 4);
+    const durM = pick(rng, [5, 10, 15, 20, 30, 40, 45, 50]);
+    const dur = durH * 60 + durM;
+    const end = wrap(start + dur);
+    return {
+      prompt: `A show starts at ${fmt12(start)} and lasts ${fmtDur(dur)}. What time does it end?`,
+      answer: fmt12(end),
+      steps: [
+        `Add the hours first: ${fmt12(start)} + ${durH} h = ${fmt12(start + durH * 60)}.`,
+        `Then add the minutes: + ${durM} min = ${fmt12(end)} (carry an hour if the minutes pass 60).`,
+      ],
+      distractors: [
+        fmt12(wrap(end + 60)),           // off by one hour
+        fmt12(wrap(end + 720)),          // a.m./p.m. flip
+        // base-60 slip: added the minutes without carrying the extra hour
+        fmt12(wrap(start + durH * 60 + ((startM + durM) % 60))),
+      ],
+    };
+  }
+  // elapsed time between two clock times
+  const diff = rint(rng, 8, 59) + 60 * rint(rng, 0, 4); // 8 min … ~5 h
+  const end = wrap(start + diff);
+  return {
+    prompt: `How much time passes from ${fmt12(start)} to ${fmt12(end)}?`,
+    answer: fmtDur(diff),
+    steps: [
+      `From ${fmt12(start)} to ${fmt12(start + Math.floor(diff / 60) * 60)} is ${Math.floor(diff / 60)} h.`,
+      `Then to ${fmt12(end)} is ${diff % 60} min more, so ${fmtDur(diff)} in total.`,
+    ],
+    distractors: [
+      fmtDur(diff + 60),                       // counted an extra hour
+      fmtDur(Math.max(5, diff - 60)),          // one hour short
+      fmtDur(diff + 5),                         // miscounted by one five-minute step
+    ],
+  };
+}
+function timDuration(family, rng, variant) {
+  const q = tm005Build(rng, variant);
+  return shortAnswer({
+    family, prompt: q.prompt, answerDisplay: q.answer, acceptedAnswers: [q.answer],
+    solutionSteps: q.steps, misconceptionTag: 'mea/time-base-60',
+    difficulty: family.difficulty, mode: 'practice',
+  });
+}
+function timDurationWord(family, rng, variant) {
+  const q = tm005Build(rng, variant);
+  return mcq({
+    family, prompt: q.prompt, answerDisplay: q.answer, distractors: q.distractors,
+    solutionSteps: q.steps, misconceptionTag: 'mea/time-base-60',
+    difficulty: family.difficulty, mode: 'practice', rng,
+  });
+}
+
+const GENERATORS = {
+  timTellHour, timTellHourMCQ,
+  timTellMinutes, timTellMinutesMCQ,
+  timConvert, timConvertWord,
+  tim24hr, tim24hrMCQ,
+  timDuration, timDurationWord,
+};
 
 export function generateTimeQuestionSet({ skillId, count = 6, mode = 'practice' }) {
   const families = getQuestionFamiliesBySkill(skillId);
@@ -258,12 +369,42 @@ export function generateTimeQuestionSet({ skillId, count = 6, mode = 'practice' 
   return questions;
 }
 
+// Normalise a time/duration/number answer so equivalent notations compare equal:
+//   clock times → "T<minutes since midnight>"  ("9:30", "0930", "9:30 a.m.")
+//   durations / quantities → "D<total>"        ("2 h 35 min", "155 min", "155")
+function normalizeTime(raw) {
+  let s = String(raw).trim().toLowerCase();
+  const pm = /p\.?\s?m/.test(s);
+  const am = /a\.?\s?m/.test(s);
+  let core = s.replace(/[ap]\.?\s?m\.?/g, '').trim();
+  core = core.replace(/\.$/, '');                  // drop a trailing full stop
+  const colon = /^(\d{1,2})[:.](\d{2})$/.exec(core.replace(/\s/g, ''));
+  if (colon) {
+    let h = +colon[1]; const m = +colon[2];
+    if (pm && h < 12) h += 12;
+    if (am && h === 12) h = 0;
+    return `T${wrap(h * 60 + m)}`;
+  }
+  const four = /^(\d{2})(\d{2})$/.exec(core.replace(/\s/g, ''));
+  if (four && !am && !pm) {
+    const h = +four[1], m = +four[2];
+    if (h < 24 && m < 60) return `T${h * 60 + m}`;
+  }
+  let total = 0; let matched = false;
+  const hm = /(\d+)\s*h(?:ours?|rs?)?/.exec(core);
+  if (hm) { total += (+hm[1]) * 60; matched = true; }
+  const mm = /(\d+)\s*m(?:in(?:ute)?s?)?\b/.exec(core);
+  if (mm) { total += (+mm[1]); matched = true; }
+  if (matched) return `D${total}`;
+  const num = /(\d+)/.exec(core);
+  if (num) return `D${+num[1]}`;
+  return core;
+}
+
 export function checkTimeAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
-  const expected = String(question.answer?.display ?? question.answer ?? '').trim().toLowerCase();
-  const given = String(studentResponse).trim().toLowerCase().replace(/\s+/g, '');
-  const clean = (s) => s.replace(/\s+/g, '').replace(/,/g, '');
-  return { correct: clean(given) === clean(expected) };
+  const expected = String(question.answer?.display ?? question.answer ?? '');
+  return { correct: normalizeTime(studentResponse) === normalizeTime(expected) };
 }
 
 export default { generateTimeQuestionSet, checkTimeAnswer };

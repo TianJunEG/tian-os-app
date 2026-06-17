@@ -85,6 +85,7 @@ const TimeLearningPathPage = lazy(() => import('./pages/student/mathpath/TimeLea
 const TimePracticeSession = lazy(() => import('./pages/student/mathpath/TimePracticeSession'));
 const VolumeLearningPathPage = lazy(() => import('./pages/student/mathpath/VolumeLearningPathPage'));
 const VolumePracticeSession = lazy(() => import('./pages/student/mathpath/VolumePracticeSession'));
+const DomainDiagnosticSession = lazy(() => import('./pages/student/mathpath/DomainDiagnosticSession'));
 const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
 const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
 const DecimalsAssessmentSession = lazy(() => import('./pages/student/mathpath/DecimalsAssessmentSession'));
@@ -642,6 +643,7 @@ function App() {
             <Route path="/student/mathpath/time/practice" element={<TimePracticeSession />} />
             <Route path="/student/mathpath/volume" element={<VolumeLearningPathPage />} />
             <Route path="/student/mathpath/volume/practice" element={<VolumePracticeSession />} />
+            <Route path="/student/mathpath/:domainId/diagnostic" element={<DomainDiagnosticSession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />
             <Route path="/student/mathpath/p3" element={<P3LearningPathPage />} />
@@ -722,6 +724,8 @@ function App() {
             <Route path="/parent/children/:studentId/mathpath/analyse-paper" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><PaperAnalysisPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/test-spec" element={<FeatureGuard feature="parent"><TestSpecificationPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/mathpath/assessment-upload" element={<FeatureGuard feature="parent"><AssessmentUploadPage /></FeatureGuard>} />
+            {/* Domain-scoped parent MathPath view; static sub-routes above outrank this dynamic segment in React Router. */}
+            <Route path="/parent/children/:studentId/mathpath/:domainId" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ParentMathPathDashboardPage /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/psl" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildPSLDashboard /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/science" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildScience /></FeatureGuard>} />
             <Route path="/parent/children/:studentId/lifelab" element={<FeatureGuard feature="parent" comingSoonAllowed={true}><ChildLifeLab /></FeatureGuard>} />

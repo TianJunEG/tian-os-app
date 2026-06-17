@@ -50,6 +50,13 @@ function decStr(value, dp) {
   return s;
 }
 
+// Like decStr but keeps exactly `dp` decimal places (no trailing-zero
+// stripping) — so "round to 1 d.p." shows 6.0, not 6, and a decimal factor
+// never collapses to a whole number in the prompt.
+function decFixed(value, dp) {
+  return Number.isFinite(value) ? value.toFixed(dp) : String(value);
+}
+
 function gcd(a, b) {
   a = Math.abs(a); b = Math.abs(b);
   while (b) { [a, b] = [b, a % b]; }
@@ -215,12 +222,12 @@ const GENERATORS = {
     const rounded = round(value, dp);
     return shortAnswer({
       family,
-      prompt: `Round ${decStr(value, 2)} to ${dp === 0 ? 'the nearest whole number' : '1 decimal place'}.`,
+      prompt: `Round ${decFixed(value, 2)} to ${dp === 0 ? 'the nearest whole number' : '1 decimal place'}.`,
       answer: rounded,
-      display: decStr(rounded, dp),
+      display: decFixed(rounded, dp),
       solutionSteps: [
         `Look at the digit one place to the right of the ${dp === 0 ? 'ones' : 'tenths'}.`,
-        `That digit decides whether to round up; ${decStr(value, 2)} → ${decStr(rounded, dp)}.`,
+        `That digit decides whether to round up; ${decFixed(value, 2)} → ${decFixed(rounded, dp)}.`,
       ],
       misconceptionTag: family.misconceptionTags[0] || 'dec/truncate',
       difficulty,
@@ -257,19 +264,29 @@ const GENERATORS = {
 
   decimalScaleByTen(rng, family, difficulty, mode) {
     const isMult = family.name.toLowerCase().includes('multiply');
-    const p = pick(rng, [10, 100, 1000]);
-    const dp = pick(rng, [2, 3]);
+    // Keep every answer within the P5/P6 ceiling of thousandths (≤ 3 d.p.).
+    // For division, the quotient gains log10(p) decimal places, so pick the
+    // operand's d.p. and divisor so that dp + log10(p) ≤ 3.
+    let p, dp;
+    if (isMult) {
+      p = pick(rng, [10, 100, 1000]);
+      dp = pick(rng, [2, 3]);
+    } else {
+      const shift = pick(rng, [1, 2]);          // ÷10 or ÷100
+      p = 10 ** shift;
+      dp = pick(rng, shift === 1 ? [0, 1, 2] : [0, 1]); // dp + shift ≤ 3
+    }
     const x = round(rint(rng, 11, 999) / 10 ** dp, dp);
-    const result = isMult ? round(x * p, dp) : round(x / p, dp + 3);
-    const resDp = isMult ? Math.max(0, dp) : dp + 3;
+    const resDp = isMult ? Math.max(0, dp - (String(p).length - 1)) : dp + (String(p).length - 1);
+    const result = round(isMult ? x * p : x / p, resDp);
     return shortAnswer({
       family,
-      prompt: `${decStr(x, dp)} ${isMult ? '×' : '÷'} ${p} = ?`,
+      prompt: `${decFixed(x, dp)} ${isMult ? '×' : '÷'} ${p} = ?`,
       answer: result,
-      display: decStr(result, resDp),
+      display: decFixed(result, resDp),
       solutionSteps: [
         `${isMult ? 'Multiplying' : 'Dividing'} by ${p} shifts the digits ${String(p).length - 1} place(s) ${isMult ? 'left of' : 'right of'} the point.`,
-        `${decStr(x, dp)} → ${decStr(result, resDp)}.`,
+        `${decFixed(x, dp)} → ${decFixed(result, resDp)}.`,
       ],
       misconceptionTag: family.misconceptionTags[0] || 'dec/move-wrong-way',
       difficulty,
@@ -286,12 +303,12 @@ const GENERATORS = {
     const result = round((xi * w) / f, dp);
     return shortAnswer({
       family,
-      prompt: `${decStr(x, dp)} × ${w} = ?`,
+      prompt: `${decFixed(x, dp)} × ${w} = ?`,
       answer: result,
-      display: decStr(result, dp),
+      display: decFixed(result, dp),
       solutionSteps: [
         `Multiply as whole numbers: ${xi} × ${w} = ${xi * w}.`,
-        `The factor has ${dp} decimal place(s), so the product does too: ${decStr(result, dp)}.`,
+        `The factor has ${dp} decimal place(s), so the product does too: ${decFixed(result, dp)}.`,
       ],
       misconceptionTag: family.misconceptionTags[0] || 'dec/lost-point',
       difficulty,

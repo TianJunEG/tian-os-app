@@ -4,6 +4,7 @@ import {
 } from '../../shared/mathpath/geometry/GeometryQuestionGenerator.js';
 import { selectNextGeometryPracticeTarget } from '../../shared/mathpath/geometry/GeometryPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/geometry/GeometrySkillGraph.js';
+import { assertDomainServable } from './stubDomainGate.js';
 
 export const DOMAIN_ID = 'geometry';
 
@@ -16,6 +17,7 @@ function statusFromAccuracy(accuracy) {
 export function buildGeometryPracticeSession({
   targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6, mode = 'practice',
 } = {}) {
+  assertDomainServable(DOMAIN_ID);
   let skillId = targetSkillId;
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextGeometryPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
@@ -39,6 +41,7 @@ export function buildGeometryPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {
     domainId: DOMAIN_ID,

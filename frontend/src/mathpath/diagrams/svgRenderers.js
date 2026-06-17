@@ -388,8 +388,107 @@ function lineGraph(spec) {
   return svgShell(spec, body, 'line graph');
 }
 
+// ---------- Circle family renderers (P6 Circles domain) ----------
+// Shared styling with the geometry renderers above: pale-blue fill, #111
+// outline, blue (#1d4ed8) dimension line, 14px labels.
+const CIRCLE_FILL = '#eff6ff';
+const DIM_STROKE = '#1d4ed8';
+
+// A labeled circle. data: { radius?, diameter?, label?, show: 'radius'|'diameter' }.
+function circle(spec) {
+  const d = spec.data || {};
+  const show = d.show || (Number.isFinite(d.diameter) && !Number.isFinite(d.radius) ? 'diameter' : 'radius');
+  const radius = Number.isFinite(d.radius)
+    ? d.radius
+    : (Number.isFinite(d.diameter) ? d.diameter / 2 : 7);
+  const label = d.label != null
+    ? d.label
+    : (show === 'diameter' ? `${radius * 2} cm` : `${radius} cm`);
+  const w = spec.width || 360; const h = spec.height || 280;
+  const cx = w / 2; const cy = h / 2; const r = Math.min(w, h) * 0.32;
+
+  function dimension(animate) {
+    const isDia = show === 'diameter';
+    const x1 = isDia ? cx - r : cx;
+    const x2 = cx + r;
+    const len = isDia ? 2 * r : r;
+    const labelX = isDia ? cx : cx + r / 2;
+    let out;
+    if (animate) {
+      out = `<line x1="${x1}" y1="${cy}" x2="${x2}" y2="${cy}" stroke="${DIM_STROKE}" stroke-width="2" stroke-dasharray="${len}" stroke-dashoffset="${len}"><animate attributeName="stroke-dashoffset" from="${len}" to="0" dur="0.3s" begin="0.4s" fill="freeze"/></line>`;
+    } else {
+      out = `<line x1="${x1}" y1="${cy}" x2="${x2}" y2="${cy}" stroke="${DIM_STROKE}" stroke-width="2"/>`;
+    }
+    out += `<circle cx="${cx}" cy="${cy}" r="3" fill="${DIM_STROKE}"/>`;
+    out += animate
+      ? `<text x="${labelX}" y="${cy - 8}" font-size="14" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.75s" fill="freeze"/>${esc(label)}</text>`
+      : `<text x="${labelX}" y="${cy - 8}" font-size="14" text-anchor="middle" fill="#111">${esc(label)}</text>`;
+    return out;
+  }
+
+  if (REDUCE_MOTION) {
+    let body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${CIRCLE_FILL}" stroke="${BORDER_STROKE}"/>`;
+    body += dimension(false);
+    return svgShell(spec, body, 'circle');
+  }
+  const circ = 2 * Math.PI * r;
+  let body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${CIRCLE_FILL}" stroke="${BORDER_STROKE}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}"><animate attributeName="stroke-dashoffset" from="${circ}" to="0" dur="0.5s" fill="freeze"/></circle>`;
+  body += dimension(true);
+  return svgShell(spec, body, 'circle');
+}
+
+// Semicircle / quarter circle (quadrant). data: { radius?, diameter?, label?, note? }.
+// The straight edge (diameter for semicircle, radius for quadrant) is labeled.
+function partialCircle(spec, kind) {
+  const d = spec.data || {};
+  const radius = Number.isFinite(d.radius)
+    ? d.radius
+    : (Number.isFinite(d.diameter) ? d.diameter / 2 : 7);
+  const w = spec.width || 360; const h = spec.height || 280;
+  const r = Math.min(w, h) * 0.34;
+  const cx = w / 2;
+
+  let path; let dim; let labelPos; let label;
+  if (kind === 'quarter_circle') {
+    // Quadrant with the right angle at the bottom-left: two straight radii + arc.
+    const ox = cx - r / 2; const oy = h / 2 + r / 2;
+    path = `M ${ox} ${oy} L ${ox + r} ${oy} A ${r} ${r} 0 0 0 ${ox} ${oy - r} Z`;
+    dim = { x1: ox, y1: oy, x2: ox + r, y2: oy };
+    labelPos = { x: ox + r / 2, y: oy + 18 };
+    label = d.label != null ? d.label : `${radius} cm`;
+  } else {
+    // Semicircle: flat (diameter) edge along the bottom, arc on top.
+    const ox = cx - r; const oy = h / 2 + r / 2;
+    path = `M ${ox} ${oy} A ${r} ${r} 0 0 1 ${ox + 2 * r} ${oy} Z`;
+    dim = { x1: ox, y1: oy, x2: ox + 2 * r, y2: oy };
+    labelPos = { x: cx, y: oy + 18 };
+    label = d.label != null ? d.label : `${radius * 2} cm`;
+  }
+  const aria = kind === 'quarter_circle' ? 'quarter circle' : 'semicircle';
+
+  if (REDUCE_MOTION) {
+    let body = `<path d="${path}" fill="${CIRCLE_FILL}" stroke="${BORDER_STROKE}"/>`;
+    body += `<line x1="${dim.x1}" y1="${dim.y1}" x2="${dim.x2}" y2="${dim.y2}" stroke="${DIM_STROKE}" stroke-width="2"/>`;
+    body += `<text x="${labelPos.x}" y="${labelPos.y}" font-size="14" text-anchor="middle" fill="#111">${esc(label)}</text>`;
+    if (d.note) body += `<text x="${cx}" y="${h - 12}" font-size="12" text-anchor="middle" fill="#475569">${esc(d.note)}</text>`;
+    return svgShell(spec, body, aria);
+  }
+  let body = `<path d="${path}" fill="${CIRCLE_FILL}" stroke="${BORDER_STROKE}" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.5s" fill="freeze"/></path>`;
+  const len = Math.hypot(dim.x2 - dim.x1, dim.y2 - dim.y1);
+  body += `<line x1="${dim.x1}" y1="${dim.y1}" x2="${dim.x2}" y2="${dim.y2}" stroke="${DIM_STROKE}" stroke-width="2" stroke-dasharray="${len}" stroke-dashoffset="${len}"><animate attributeName="stroke-dashoffset" from="${len}" to="0" dur="0.3s" begin="0.4s" fill="freeze"/></line>`;
+  body += `<text x="${labelPos.x}" y="${labelPos.y}" font-size="14" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.75s" fill="freeze"/>${esc(label)}</text>`;
+  if (d.note) body += `<text x="${cx}" y="${h - 12}" font-size="12" text-anchor="middle" fill="#475569" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.25s" begin="0.9s" fill="freeze"/>${esc(d.note)}</text>`;
+  return svgShell(spec, body, aria);
+}
+
+function semicircle(spec) { return partialCircle(spec, 'semicircle'); }
+function quarterCircle(spec) { return partialCircle(spec, 'quarter_circle'); }
+
 export const renderers = {
   ...sharedRenderers,
+  circle,
+  semicircle,
+  quarter_circle: quarterCircle,
   fraction_bar: fractionBar,
   fraction_circle: fractionCircle,
   number_line: numberLine,

@@ -338,7 +338,7 @@ async function resolveDiagnosticSkills({ studentId, subject = 'Math' } = {}) {
   const latest = await MathPathDiagnosticSession.findOne({
     studentId: String(studentId),
     status: 'completed',
-    ...(isScience ? { subjectId: /^science$/i } : { subjectId: 'math', domainId: 'fractions' }),
+    ...(isScience ? { subjectId: /^science$/i } : { subjectId: 'math' }),
   }).sort({ completedAt: -1, updatedAt: -1, createdAt: -1 });
   const result = latest?.result || {};
   const resultCodes = [

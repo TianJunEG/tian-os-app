@@ -29,4 +29,7 @@ const practiceSessionSchema = new mongoose.Schema({
   }
 });
 
+practiceSessionSchema.index({ studentId: 1, startedAt: -1 });
+practiceSessionSchema.index({ workspaceId: 1, studentId: 1 });
+
 export default mongoose.model('PracticeSession', practiceSessionSchema);

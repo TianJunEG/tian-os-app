@@ -216,7 +216,7 @@ router.post('/forgot-password', authRateLimit, asyncHandler(async (req, res) => 
   }
 }));
 
-router.post('/reset-password/:token', asyncHandler(async (req, res) => {
+router.post('/reset-password/:token', authRateLimit, asyncHandler(async (req, res) => {
   try {
     const { password } = req.body;
     if (!password || password.length < 6) {

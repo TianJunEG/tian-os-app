@@ -3,6 +3,7 @@ import { ThumbsUp, ThumbsDown, Clock, ChevronDown } from 'lucide-react';
 import { Card, Badge } from '../../components/ui';
 import { MathText } from '../../components/ui/Fraction';
 import { mathpathAPI } from '../../services/api';
+import { describeMistakeForParent } from '../../mathpath/insights/parentMisconceptionExplanations.js';
 
 const StrokeReplayPlayer = lazy(() => import('../../components/learning/StrokeReplayPlayer'));
 
@@ -56,7 +57,10 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
   }, [m.id, m._id, feedbackBusy]);
 
   const timeLabel = formatTimeTaken(m.timeTaken);
-  const hasMetadata = timeLabel || m.confidence || m.misconceptionTag || m.skillCode || m.workingQualityBand;
+  const hasMetadata = timeLabel || m.confidence || (m.skillCode && m.skillName && m.skillName !== m.skillCode) || m.workingQualityBand;
+  // Translate the machine misconception tag into a plain-English explanation plus a
+  // concrete at-home tip. Parents see meaning, not codes like "frac/add-denominators".
+  const parentExplanation = m.misconceptionTag ? describeMistakeForParent(m) : null;
 
   return (
     <Card className="p-5">
@@ -103,16 +107,29 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
               Confidence {m.confidence}/5
             </Badge>
           )}
-          {m.misconceptionTag && (
-            <Badge tone="gold">{m.misconceptionTag}</Badge>
-          )}
-          {m.skillCode && (
-            <span className="font-mono text-ink-300">{m.skillCode}</span>
+          {m.skillCode && m.skillName && m.skillName !== m.skillCode && (
+            <span className="text-xs text-ink-400">{m.skillName}</span>
           )}
           {m.workingQualityBand && (
             <Badge tone={QUALITY_BAND_TONE[m.workingQualityBand] || 'neutral'}>
               Working: {m.workingQualityBand.charAt(0) + m.workingQualityBand.slice(1).toLowerCase()}
             </Badge>
+          )}
+        </div>
+      )}
+
+      {parentExplanation && (
+        <div className="mt-3 rounded-xl border border-gold-tint bg-gold-tint/40 p-3">
+          <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gold-label">
+            What this means
+          </div>
+          <p className="text-sm text-ink-700">{parentExplanation.plainExplanation}</p>
+          <p className="mt-2 text-sm text-ink-600">
+            <span className="font-semibold text-gold-label">Try at home: </span>
+            {parentExplanation.atHomeTip}
+          </p>
+          {m.misconceptionTag && (
+            <p className="mt-2 text-[10px] text-ink-400">Reference: {m.misconceptionTag}</p>
           )}
         </div>
       )}

@@ -11,6 +11,7 @@ export default defineConfig({
       'middleware/**/*.test.js',
       'services/**/*.test.js',
       'shared/diagramEngine/tests/**/*.test.js',
+      'shared/mathpath/**/*.test.js',
     ],
   },
 });

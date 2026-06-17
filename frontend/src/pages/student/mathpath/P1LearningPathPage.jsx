@@ -67,7 +67,7 @@ const DOMAIN_GROUPS = [
   },
   {
     key: 'data',
-    label: 'Data & Graphs',
+    label: 'Statistics',
     description: 'Reading and interpreting picture graphs, and sorting objects.',
     icon: BarChart3,
     color: 'navy',

@@ -163,6 +163,7 @@ export const diagnosticsAPI = {
   domains: () => api.get('/diagnostics/domains'),
   startDiagnostic: (data) => api.post('/diagnostics/start', data),
   answerDiagnostic: (sessionId, data) => api.post(`/diagnostics/${sessionId}/answer`, data),
+  resumeDiagnostic: (sessionId) => api.get(`/diagnostics/${sessionId}/resume`),
   history: (params) => api.get('/diagnostics/history', { params }),
   growth: (params) => api.get('/diagnostics/growth', { params }),
   recheckSummary: (sessionId, params) => api.get(`/diagnostics/recheck-summary/${sessionId}`, { params }),

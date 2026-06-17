@@ -39,6 +39,7 @@ const mathPathWorkingSessionSchema = new mongoose.Schema(
     workingSessionId: { type: String, required: true, trim: true },
     userId: { type: String, default: '', trim: true },
     studentId: { type: String, required: true, trim: true },
+    workspaceId: { type: String, default: '', trim: true },
     practiceSessionId: { type: String, default: null },
     assessmentSessionId: { type: String, default: null },
     domainId: { type: String, required: true, trim: true },
@@ -78,6 +79,7 @@ const mathPathWorkingSessionSchema = new mongoose.Schema(
 );
 
 mathPathWorkingSessionSchema.index({ studentId: 1, domainId: 1 });
+mathPathWorkingSessionSchema.index({ workspaceId: 1, studentId: 1 });
 mathPathWorkingSessionSchema.index({ userId: 1 });
 mathPathWorkingSessionSchema.index({ workingSessionId: 1 }, { unique: true });
 mathPathWorkingSessionSchema.index({ practiceSessionId: 1 });
