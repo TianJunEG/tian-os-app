@@ -1,7 +1,20 @@
 import { getSkill } from './GeometrySkillGraph.js';
 import { getQuestionFamily, getQuestionFamiliesBySkill } from './GeometryQuestionFamilies.js';
 
-// Seeded RNG (mulberry32)
+// MathPath — Geometry question generator.
+//
+// Rebuilt for question quality (see MATHPATH_QUESTION_QUALITY_AUDIT.md). The old
+// file was a stub: every one of the 44 generators returned "Compute: a + b".
+// This version has one real builder per skill (GE001–GE022) covering 2D/3D
+// shapes and their properties, lines, angle types, angles on a line/at a point,
+// triangle and quadrilateral angles, symmetry, nets, compass directions,
+// perimeter/area, triangle area and circles — with figures, misconception
+// distractors and worked solutions, all within the P1–P6 syllabus.
+//
+// Answers are either a number (with unit) or a word (shape/direction/type);
+// checkGeometryAnswer handles both, with unit tolerance.
+
+// ── Seeded RNG (mulberry32) ──────────────────────────────────────────────────
 function hashSeed(str) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -18,808 +31,154 @@ function makeRng(seedStr) {
 }
 function rint(rng, min, max) { return min + Math.floor(rng() * (max - min + 1)); }
 function pick(rng, arr) { return arr[rint(rng, 0, arr.length - 1)]; }
-function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
 function round2(v) { return Math.round(v * 100) / 100; }
 
-function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode }) {
+function fmtVal(v, unit = '') { return unit ? `${v} ${unit}` : `${v}`; }
+
+// ── Envelope builders ────────────────────────────────────────────────────────
+function shortAnswer({ family, prompt, answerDisplay, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
   return {
-    id: `${family.id}#${mode}`,
-    skillId: family.skillId,
-    questionFamilyId: family.id,
-    type: 'short_answer',
-    prompt,
-    choices: [],
-    answer: { display: display ?? String(answer), value: answer },
-    acceptedAnswers: [display ?? String(answer)],
-    solutionSteps,
-    misconceptionTag,
-    difficulty,
-    mode,
-    workingRequired: family.workingRequired,
-    generatorKind: family.generatorKind,
+    id: `${family.id}#${mode}`, skillId: family.skillId, questionFamilyId: family.id,
+    type: 'short_answer', prompt, choices: [],
+    answer: { display: answerDisplay, value: answerDisplay }, acceptedAnswers: [answerDisplay],
+    solutionSteps, misconceptionTag, difficulty, mode,
+    workingRequired: family.workingRequired, generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
-
-function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, misconceptionTag, difficulty, mode, rng }) {
-  const seen = new Set([answerDisplay]);
-  const opts = [];
-  for (const d of distractors.map(String)) {
-    if (!seen.has(d)) { seen.add(d); opts.push(d); }
-  }
-  const choices = [answerDisplay, ...opts.slice(0, 3)];
-  for (let i = choices.length - 1; i > 0; i--) {
+function mcqFrom({ family, prompt, answerDisplay, choices, solutionSteps, misconceptionTag, difficulty, mode, rng, diagram }) {
+  let opts = [...new Set(choices.map(String))];
+  for (let i = opts.length - 1; i > 0; i--) {
     const j = rint(rng, 0, i);
-    [choices[i], choices[j]] = [choices[j], choices[i]];
+    [opts[i], opts[j]] = [opts[j], opts[i]];
   }
   return {
-    id: `${family.id}#${mode}`,
-    skillId: family.skillId,
-    questionFamilyId: family.id,
-    type: 'mcq',
-    prompt,
-    choices,
-    answer: { display: answerDisplay, value: answerDisplay },
-    acceptedAnswers: [answerDisplay],
-    solutionSteps,
-    misconceptionTag,
-    difficulty,
-    mode,
-    workingRequired: family.workingRequired,
-    generatorKind: family.generatorKind,
+    id: `${family.id}#${mode}`, skillId: family.skillId, questionFamilyId: family.id,
+    type: 'mcq', prompt, choices: opts,
+    answer: { display: answerDisplay, value: answerDisplay }, acceptedAnswers: [answerDisplay],
+    solutionSteps, misconceptionTag, difficulty, mode,
+    workingRequired: family.workingRequired, generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
 
-function computeAnswer_GE001_0(a, b, v) { return a + b; }
-function buildPrompt_GE001_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE001_1(a, b, v) { return a + b; }
-function buildPrompt_GE001_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE002_0(a, b, v) { return a + b; }
-function buildPrompt_GE002_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE002_1(a, b, v) { return a + b; }
-function buildPrompt_GE002_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE003_0(a, b, v) { return a + b; }
-function buildPrompt_GE003_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE003_1(a, b, v) { return a + b; }
-function buildPrompt_GE003_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE004_0(a, b, v) { return a + b; }
-function buildPrompt_GE004_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE004_1(a, b, v) { return a + b; }
-function buildPrompt_GE004_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE005_0(a, b, v) { return a + b; }
-function buildPrompt_GE005_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE005_1(a, b, v) { return a + b; }
-function buildPrompt_GE005_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE006_0(a, b, v) { return a + b; }
-function buildPrompt_GE006_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE006_1(a, b, v) { return a + b; }
-function buildPrompt_GE006_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE007_0(a, b, v) { return a + b; }
-function buildPrompt_GE007_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE007_1(a, b, v) { return a + b; }
-function buildPrompt_GE007_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE008_0(a, b, v) { return a + b; }
-function buildPrompt_GE008_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE008_1(a, b, v) { return a + b; }
-function buildPrompt_GE008_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE009_0(a, b, v) { return a + b; }
-function buildPrompt_GE009_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE009_1(a, b, v) { return a + b; }
-function buildPrompt_GE009_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE010_0(a, b, v) { return a + b; }
-function buildPrompt_GE010_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE010_1(a, b, v) { return a + b; }
-function buildPrompt_GE010_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE011_0(a, b, v) { return a + b; }
-function buildPrompt_GE011_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE011_1(a, b, v) { return a + b; }
-function buildPrompt_GE011_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE012_0(a, b, v) { return a + b; }
-function buildPrompt_GE012_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE012_1(a, b, v) { return a + b; }
-function buildPrompt_GE012_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE013_0(a, b, v) { return a + b; }
-function buildPrompt_GE013_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE013_1(a, b, v) { return a + b; }
-function buildPrompt_GE013_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE014_0(a, b, v) { return a + b; }
-function buildPrompt_GE014_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE014_1(a, b, v) { return a + b; }
-function buildPrompt_GE014_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE015_0(a, b, v) { return a + b; }
-function buildPrompt_GE015_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE015_1(a, b, v) { return a + b; }
-function buildPrompt_GE015_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE016_0(a, b, v) { return a + b; }
-function buildPrompt_GE016_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE016_1(a, b, v) { return a + b; }
-function buildPrompt_GE016_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE017_0(a, b, v) { return a + b; }
-function buildPrompt_GE017_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE017_1(a, b, v) { return a + b; }
-function buildPrompt_GE017_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE018_0(a, b, v) { return a + b; }
-function buildPrompt_GE018_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE018_1(a, b, v) { return a + b; }
-function buildPrompt_GE018_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE019_0(a, b, v) { return a + b; }
-function buildPrompt_GE019_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE019_1(a, b, v) { return a + b; }
-function buildPrompt_GE019_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE020_0(a, b, v) { return a + b; }
-function buildPrompt_GE020_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE020_1(a, b, v) { return a + b; }
-function buildPrompt_GE020_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE021_0(a, b, v) { return a + b; }
-function buildPrompt_GE021_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE021_1(a, b, v) { return a + b; }
-function buildPrompt_GE021_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE022_0(a, b, v) { return a + b; }
-function buildPrompt_GE022_0(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
-function computeAnswer_GE022_1(a, b, v) { return a + b; }
-function buildPrompt_GE022_1(a, b, v) { return `Compute: ${a} + ${b} = ?`; }
+const GE = (n) => `GE${String(n).padStart(3, '0')}`;
 
-function geoGeo2dShapes(family, rng, variant) {
-  const v = variant % 20;
-  // Identifying 2D shapes — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE001_0(a, b, v);
-  const prompt = buildPrompt_GE001_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/orientation-changes-shape', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/orientation-changes-shape', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeo2dShapesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Identifying 2D shapes — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE001_1(a, b, v);
-  const prompt = buildPrompt_GE001_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/orientation-changes-shape', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/orientation-changes-shape', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeo2dProperties(family, rng, variant) {
-  const v = variant % 20;
-  // Properties of 2D shapes (sides and vertices) — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE002_0(a, b, v);
-  const prompt = buildPrompt_GE002_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/side-vertex-count', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/side-vertex-count', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeo2dPropertiesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Properties of 2D shapes (sides and vertices) — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE002_1(a, b, v);
-  const prompt = buildPrompt_GE002_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/side-vertex-count', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/side-vertex-count', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoLines(family, rng, variant) {
-  const v = variant % 20;
-  // Parallel and perpendicular lines — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE003_0(a, b, v);
-  const prompt = buildPrompt_GE003_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/parallel-perp-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/parallel-perp-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoLinesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Parallel and perpendicular lines — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE003_1(a, b, v);
-  const prompt = buildPrompt_GE003_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/parallel-perp-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/parallel-perp-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleIntro(family, rng, variant) {
-  const v = variant % 20;
-  // Angle types (right, acute, obtuse) — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE004_0(a, b, v);
-  const prompt = buildPrompt_GE004_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/angle-by-arm-length', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/angle-by-arm-length', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleIntroMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Angle types (right, acute, obtuse) — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE004_1(a, b, v);
-  const prompt = buildPrompt_GE004_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/angle-by-arm-length', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/angle-by-arm-length', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleMeasure(family, rng, variant) {
-  const v = variant % 20;
-  // Measuring and drawing angles — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE005_0(a, b, v);
-  const prompt = buildPrompt_GE005_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/protractor-scale', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/protractor-scale', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleMeasureMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Measuring and drawing angles — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE005_1(a, b, v);
-  const prompt = buildPrompt_GE005_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/protractor-scale', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/protractor-scale', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleLinePoint(family, rng, variant) {
-  const v = variant % 20;
-  // Angles on a line and at a point — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE006_0(a, b, v);
-  const prompt = buildPrompt_GE006_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/angle-relationship', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/angle-relationship', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleLinePointMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Angles on a line and at a point — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE006_1(a, b, v);
-  const prompt = buildPrompt_GE006_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/angle-relationship', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/angle-relationship', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoTriangleTypes(family, rng, variant) {
-  const v = variant % 20;
-  // Types of triangles — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE007_0(a, b, v);
-  const prompt = buildPrompt_GE007_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/triangle-by-look', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/triangle-by-look', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoTriangleTypesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Types of triangles — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE007_1(a, b, v);
-  const prompt = buildPrompt_GE007_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/triangle-by-look', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/triangle-by-look', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoTriangleAngles(family, rng, variant) {
-  const v = variant % 20;
-  // Angle properties of triangles — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE008_0(a, b, v);
-  const prompt = buildPrompt_GE008_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/angle-sum-wrong', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/angle-sum-wrong', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoTriangleAnglesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Angle properties of triangles — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE008_1(a, b, v);
-  const prompt = buildPrompt_GE008_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/angle-sum-wrong', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/angle-sum-wrong', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoQuadTypes(family, rng, variant) {
-  const v = variant % 20;
-  // Types of quadrilaterals and their properties — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE009_0(a, b, v);
-  const prompt = buildPrompt_GE009_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/square-not-rectangle', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/square-not-rectangle', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoQuadTypesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Types of quadrilaterals and their properties — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE009_1(a, b, v);
-  const prompt = buildPrompt_GE009_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/square-not-rectangle', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/square-not-rectangle', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleQuad(family, rng, variant) {
-  const v = variant % 20;
-  // Angles in special quadrilaterals — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE010_0(a, b, v);
-  const prompt = buildPrompt_GE010_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/quad-angle-relationship', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/quad-angle-relationship', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAngleQuadMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Angles in special quadrilaterals — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE010_1(a, b, v);
-  const prompt = buildPrompt_GE010_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/quad-angle-relationship', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/quad-angle-relationship', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoSymmetry(family, rng, variant) {
-  const v = variant % 20;
-  // Line symmetry — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE011_0(a, b, v);
-  const prompt = buildPrompt_GE011_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/diagonal-symmetry-miss', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/diagonal-symmetry-miss', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoSymmetryMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Line symmetry — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE011_1(a, b, v);
-  const prompt = buildPrompt_GE011_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/diagonal-symmetry-miss', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/diagonal-symmetry-miss', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoSymmetryComplete(family, rng, variant) {
-  const v = variant % 20;
-  // Completing symmetric figures — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE012_0(a, b, v);
-  const prompt = buildPrompt_GE012_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/reflect-not-translate', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/reflect-not-translate', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoSymmetryCompleteMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Completing symmetric figures — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE012_1(a, b, v);
-  const prompt = buildPrompt_GE012_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/reflect-not-translate', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/reflect-not-translate', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeo3dShapes(family, rng, variant) {
-  const v = variant % 20;
-  // Identifying 3D solids (faces, edges, vertices) — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE013_0(a, b, v);
-  const prompt = buildPrompt_GE013_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/faces-edges-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/faces-edges-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeo3dShapesMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Identifying 3D solids (faces, edges, vertices) — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE013_1(a, b, v);
-  const prompt = buildPrompt_GE013_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/faces-edges-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/faces-edges-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoNetsViews(family, rng, variant) {
-  const v = variant % 20;
-  // Nets and views of solids — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE014_0(a, b, v);
-  const prompt = buildPrompt_GE014_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/net-folding', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/net-folding', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoNetsViewsMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Nets and views of solids — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE014_1(a, b, v);
-  const prompt = buildPrompt_GE014_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/net-folding', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/net-folding', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoPosition(family, rng, variant) {
-  const v = variant % 20;
-  // Position and compass directions — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE015_0(a, b, v);
-  const prompt = buildPrompt_GE015_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/compass-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/compass-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoPositionMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Position and compass directions — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE015_1(a, b, v);
-  const prompt = buildPrompt_GE015_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/compass-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/compass-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoConstruct(family, rng, variant) {
-  const v = variant % 20;
-  // Drawing and constructing figures — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE016_0(a, b, v);
-  const prompt = buildPrompt_GE016_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/construction-precision', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/construction-precision', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoConstructMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Drawing and constructing figures — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE016_1(a, b, v);
-  const prompt = buildPrompt_GE016_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/construction-precision', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/construction-precision', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoPerimeter(family, rng, variant) {
-  const v = variant % 20;
-  // Perimeter foundations (distance around) — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE017_0(a, b, v);
-  const prompt = buildPrompt_GE017_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/perimeter-vs-area', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/perimeter-vs-area', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoPerimeterMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Perimeter foundations (distance around) — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE017_1(a, b, v);
-  const prompt = buildPrompt_GE017_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/perimeter-vs-area', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/perimeter-vs-area', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAreaRect(family, rng, variant) {
-  const v = variant % 20;
-  // Area foundations (covering; rectangles) — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE018_0(a, b, v);
-  const prompt = buildPrompt_GE018_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/area-add-sides', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/area-add-sides', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAreaRectMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Area foundations (covering; rectangles) — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE018_1(a, b, v);
-  const prompt = buildPrompt_GE018_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/area-add-sides', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/area-add-sides', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAreaTriangle(family, rng, variant) {
-  const v = variant % 20;
-  // Area of triangles — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE019_0(a, b, v);
-  const prompt = buildPrompt_GE019_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/triangle-no-half', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/triangle-no-half', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoAreaTriangleMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Area of triangles — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE019_1(a, b, v);
-  const prompt = buildPrompt_GE019_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/triangle-no-half', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/triangle-no-half', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoCircle(family, rng, variant) {
-  const v = variant % 20;
-  // Circumference and area of a circle — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE020_0(a, b, v);
-  const prompt = buildPrompt_GE020_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/radius-diameter-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/radius-diameter-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoCircleMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Circumference and area of a circle — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE020_1(a, b, v);
-  const prompt = buildPrompt_GE020_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/radius-diameter-confuse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/radius-diameter-confuse', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoCircleParts(family, rng, variant) {
-  const v = variant % 20;
-  // Perimeter and area of circle parts — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE021_0(a, b, v);
-  const prompt = buildPrompt_GE021_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/forgot-straight-edges', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/forgot-straight-edges', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoCirclePartsMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Perimeter and area of circle parts — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE021_1(a, b, v);
-  const prompt = buildPrompt_GE021_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/forgot-straight-edges', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/forgot-straight-edges', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoComposite(family, rng, variant) {
-  const v = variant % 20;
-  // Composite figures: area and perimeter — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE022_0(a, b, v);
-  const prompt = buildPrompt_GE022_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/double-count-edges', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/double-count-edges', difficulty: family.difficulty, mode: 'practice' });
-}
-function geoGeoCompositeMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Composite figures: area and perimeter — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_GE022_1(a, b, v);
-  const prompt = buildPrompt_GE022_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'geo/double-count-edges', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'geo/double-count-edges', difficulty: family.difficulty, mode: 'practice' });
+// Reference data
+const POLY = [{ name: 'triangle', sides: 3 }, { name: 'quadrilateral', sides: 4 }, { name: 'pentagon', sides: 5 }, { name: 'hexagon', sides: 6 }, { name: 'octagon', sides: 8 }];
+const SYMMETRY = [{ name: 'square', lines: 4 }, { name: 'rectangle', lines: 2 }, { name: 'equilateral triangle', lines: 3 }, { name: 'regular pentagon', lines: 5 }, { name: 'regular hexagon', lines: 6 }];
+const SOLIDS = [{ name: 'cube', faces: 6, edges: 12, vertices: 8 }, { name: 'cuboid', faces: 6, edges: 12, vertices: 8 }, { name: 'square pyramid', faces: 5, edges: 8, vertices: 5 }, { name: 'triangular prism', faces: 5, edges: 9, vertices: 6 }];
+const COMPASS = ['North', 'East', 'South', 'West'];
+function angleType(x) { return x < 90 ? 'acute' : x === 90 ? 'right' : x < 180 ? 'obtuse' : 'reflex'; }
+const PI = 3.14;
+
+const BUILDERS = {
+  // GE001 — Identifying 2D shapes
+  [GE(1)]: (rng) => { const p = pick(rng, POLY); return { prompt: `How many sides does a ${p.name} have?`, answer: p.sides, tag: 'geo/orientation-changes-shape', steps: [`A ${p.name} has ${p.sides} straight sides.`], distractors: [p.sides + 1, p.sides - 1, p.sides + 2], diagram: { kind: 'polygon', sides: p.sides } }; },
+  // GE002 — Properties: sides and vertices
+  [GE(2)]: (rng) => { const p = pick(rng, POLY); const ask = pick(rng, ['sides', 'vertices']); return { prompt: `How many ${ask} does a ${p.name} have?`, answer: p.sides, tag: 'geo/side-vertex-count', steps: [`A ${p.name} has ${p.sides} ${ask} (a polygon has as many vertices as sides).`], distractors: [p.sides + 1, p.sides - 1, p.sides * 2], diagram: { kind: 'polygon', sides: p.sides } }; },
+  // GE003 — Parallel and perpendicular lines
+  [GE(3)]: (rng) => { const parallel = rng() < 0.5; return { prompt: parallel ? 'Two lines that always stay the same distance apart and never meet are called ___ lines.' : 'Two lines that meet at a right angle (90°) are called ___ lines.', answer: parallel ? 'parallel' : 'perpendicular', tag: 'geo/parallel-perp-confuse', steps: [parallel ? 'Lines that never meet are parallel.' : 'Lines that meet at 90° are perpendicular.'], choices: ['parallel', 'perpendicular'] }; },
+  // GE004 — Angle types
+  [GE(4)]: (rng) => { const x = pick(rng, [25, 40, 55, 70, 90, 110, 135, 160]); const t = angleType(x); return { prompt: `An angle measures ${x}°. What type of angle is it?`, answer: t, tag: 'geo/angle-by-arm-length', steps: [`${x}° is ${t === 'right' ? 'exactly 90°' : t === 'acute' ? 'less than 90°' : 'between 90° and 180°'}, so it is ${t}.`], choices: ['acute', 'right', 'obtuse'], diagram: { kind: 'angle', degrees: x } }; },
+  // GE005 — Measuring angles (read the protractor)
+  [GE(5)]: (rng) => { const x = pick(rng, [30, 45, 60, 75, 105, 120, 135, 150]); return { prompt: 'What is the size of the angle shown on the protractor?', answer: x, unit: '°', tag: 'geo/protractor-scale', steps: [`Read from the 0° arm: the angle is ${x}°.`], distractors: [180 - x, x + 10, x - 10], diagram: { kind: 'angle', degrees: x, protractor: true } }; },
+  // GE006 — Angles on a line and at a point
+  [GE(6)]: (rng) => { const atPoint = rng() < 0.5; const total = atPoint ? 360 : 180; const known = atPoint ? rint(rng, 80, 250) : rint(rng, 20, 160); const a = total - known; return { prompt: atPoint ? `Angles at a point add up to 360°. One angle is ${known}°. Find the other angle.` : `Angles on a straight line add up to 180°. One angle is ${known}°. Find the other angle.`, answer: a, unit: '°', tag: 'geo/angle-relationship', steps: [`${total} − ${known} = ${a}°.`], distractors: [(atPoint ? 180 : 360) - known, known, a + 10].filter((d) => d > 0), diagram: { kind: 'angle', degrees: known, partner: a, total } }; },
+  // GE007 — Types of triangles (by sides)
+  [GE(7)]: (rng) => { const type = pick(rng, ['equilateral', 'isosceles', 'scalene']); const sides = type === 'equilateral' ? [6, 6, 6] : type === 'isosceles' ? [5, 5, 8] : [4, 6, 7]; return { prompt: `A triangle has sides ${sides.join(' cm, ')} cm. What type of triangle is it (by its sides)?`, answer: type, tag: 'geo/triangle-by-look', steps: [type === 'equilateral' ? 'All three sides are equal → equilateral.' : type === 'isosceles' ? 'Two sides are equal → isosceles.' : 'All sides are different → scalene.'], choices: ['equilateral', 'isosceles', 'scalene'], diagram: { kind: 'triangle', sides } }; },
+  // GE008 — Angle properties of triangles
+  [GE(8)]: (rng) => { const a = rint(rng, 30, 80), b = rint(rng, 30, 80); const c = 180 - a - b; return { prompt: `Two angles of a triangle are ${a}° and ${b}°. Find the third angle.`, answer: c, unit: '°', tag: 'geo/angle-sum-wrong', steps: ['The angles of a triangle add up to 180°.', `180 − ${a} − ${b} = ${c}°.`], distractors: [360 - a - b, a + b, 180 - a].filter((d) => d > 0 && d !== c), diagram: { kind: 'triangle', angles: [a, b, c] } }; },
+  // GE009 — Quadrilateral types and properties
+  [GE(9)]: (rng) => { const q = pick(rng, [{ n: 'square', d: '4 equal sides and 4 right angles' }, { n: 'rectangle', d: '4 right angles and opposite sides equal' }, { n: 'rhombus', d: '4 equal sides but no right angles' }, { n: 'parallelogram', d: 'two pairs of parallel sides' }]); return { prompt: `Which quadrilateral has ${q.d}?`, answer: q.n, tag: 'geo/square-not-rectangle', steps: [`A ${q.n} has ${q.d}.`], choices: ['square', 'rectangle', 'rhombus', 'parallelogram'] }; },
+  // GE010 — Angles in special quadrilaterals
+  [GE(10)]: (rng) => { const a = rint(rng, 50, 130); const adj = 180 - a; return { prompt: `In a parallelogram, one angle is ${a}°. Find the angle next to it (co-interior).`, answer: adj, unit: '°', tag: 'geo/quad-angle-relationship', steps: ['Adjacent angles in a parallelogram add up to 180°.', `180 − ${a} = ${adj}°.`], distractors: [a, 360 - a, adj + 10].filter((d) => d > 0 && d !== adj), diagram: { kind: 'parallelogram', angle: a } }; },
+  // GE011 — Line symmetry
+  [GE(11)]: (rng) => { const s = pick(rng, SYMMETRY); return { prompt: `How many lines of symmetry does a ${s.name} have?`, answer: s.lines, tag: 'geo/diagonal-symmetry-miss', steps: [`A ${s.name} has ${s.lines} lines of symmetry.`], distractors: [s.lines + 1, s.lines - 1, s.lines + 2].filter((d) => d >= 0), diagram: { kind: 'symmetry', shape: s.name, lines: s.lines } }; },
+  // GE012 — Completing symmetric figures
+  [GE(12)]: (rng) => { const k = rint(rng, 1, 6); return { prompt: `A figure has a vertical line of symmetry. A dot is ${k} square(s) to the left of the line. How many squares to the right of the line is its mirror image?`, answer: k, unit: 'squares', tag: 'geo/reflect-not-translate', steps: ['A reflection is the same distance on the other side of the line.', `So it is ${k} square(s) to the right.`], distractors: [k + 1, k * 2, k + 2], diagram: { kind: 'reflection', distance: k } }; },
+  // GE013 — 3D solids: faces, edges, vertices
+  [GE(13)]: (rng) => { const s = pick(rng, SOLIDS); const ask = pick(rng, ['faces', 'edges', 'vertices']); return { prompt: `How many ${ask} does a ${s.name} have?`, answer: s[ask], tag: 'geo/faces-edges-confuse', steps: [`A ${s.name} has ${s.faces} faces, ${s.edges} edges and ${s.vertices} vertices.`, `So it has ${s[ask]} ${ask}.`], distractors: [s.faces, s.edges, s.vertices].filter((d) => d !== s[ask]), diagram: { kind: 'solid', solid: s.name } }; },
+  // GE014 — Nets and views of solids
+  [GE(14)]: (rng) => { const s = pick(rng, [{ n: 'cube', faces: 6 }, { n: 'square pyramid', faces: 5 }, { n: 'triangular prism', faces: 5 }, { n: 'cuboid', faces: 6 }]); return { prompt: `A net folds up into a ${s.n}. How many faces will the solid have?`, answer: s.faces, tag: 'geo/net-folding', steps: [`A ${s.n} has ${s.faces} faces, so its net has ${s.faces} parts.`], distractors: [s.faces + 1, s.faces - 1, s.faces + 2], diagram: { kind: 'net', solid: s.n } }; },
+  // GE015 — Position and compass directions
+  [GE(15)]: (rng) => { const start = rint(rng, 0, 3); const turns = pick(rng, [1, 2, 3]); const end = (start + turns) % 4; return { prompt: `You are facing ${COMPASS[start]}. You turn ${turns * 90}° clockwise. Which direction do you face now?`, answer: COMPASS[end], tag: 'geo/compass-confuse', steps: [`Each 90° clockwise turn goes ${COMPASS.join(' → ')} → ${COMPASS[0]}.`, `From ${COMPASS[start]}, ${turns} turn(s) → ${COMPASS[end]}.`], choices: [...COMPASS] }; },
+  // GE016 — Drawing and constructing figures (facts that guide construction)
+  [GE(16)]: (rng) => { const q = pick(rng, [{ p: 'Each angle of a square measures ___°.', a: 90 }, { p: 'The angles of a triangle add up to ___°.', a: 180 }, { p: 'A straight angle measures ___°.', a: 180 }, { p: 'A right angle measures ___°.', a: 90 }]); return { prompt: q.p, answer: q.a, unit: '°', tag: 'geo/construction-precision', steps: [`This is a key fact for accurate construction: ${q.a}°.`], distractors: [q.a + 90, q.a - 90, q.a + 10].filter((d) => d > 0 && d !== q.a) }; },
+  // GE017 — Perimeter foundations
+  [GE(17)]: (rng) => { const s = rint(rng, 3, 20); return { prompt: `A square has sides of ${s} cm. What is its perimeter?`, answer: 4 * s, unit: 'cm', tag: 'geo/perimeter-vs-area', steps: ['Perimeter of a square = 4 × side.', `4 × ${s} = ${4 * s} cm.`], distractors: [s * s, 2 * s, 4 * s + s].filter((d) => d !== 4 * s), diagram: { kind: 'square', side: s } }; },
+  // GE018 — Area of rectangles
+  [GE(18)]: (rng) => { const l = rint(rng, 3, 18), w = rint(rng, 2, 12); return { prompt: `A rectangle is ${l} cm long and ${w} cm wide. What is its area?`, answer: l * w, unit: 'cm²', tag: 'geo/area-add-sides', steps: ['Area of a rectangle = length × width.', `${l} × ${w} = ${l * w} cm².`], distractors: [2 * (l + w), l + w, l * w + l].filter((d) => d !== l * w), diagram: { kind: 'rectangle', l, w } }; },
+  // GE019 — Area of triangles
+  [GE(19)]: (rng) => { const b = pick(rng, [4, 6, 8, 10, 12]), h = pick(rng, [3, 5, 6, 7, 9]); const area = round2(b * h / 2); return { prompt: `A triangle has base ${b} cm and height ${h} cm. What is its area?`, answer: area, unit: 'cm²', tag: 'geo/triangle-no-half', steps: ['Area of a triangle = ½ × base × height.', `½ × ${b} × ${h} = ${area} cm².`], distractors: [b * h, round2(b * h / 2) + b, b + h].filter((d) => d !== area), diagram: { kind: 'triangle', base: b, height: h } }; },
+  // GE020 — Circumference and area of a circle (P6)
+  [GE(20)]: (rng) => { const r = pick(rng, [2, 3, 4, 5, 6, 10]); const circ = round2(2 * PI * r); const area = round2(PI * r * r); const wantArea = rng() < 0.5; return { prompt: wantArea ? `Find the area of a circle with radius ${r} cm. (Use π = 3.14.)` : `Find the circumference of a circle with radius ${r} cm. (Use π = 3.14.)`, answer: wantArea ? area : circ, unit: 'cm' + (wantArea ? '²' : ''), tag: 'geo/circumference-area-formula', steps: wantArea ? [`Area = π × r × r = 3.14 × ${r} × ${r}.`, `= ${area} cm².`] : [`Circumference = 2 × π × r = 2 × 3.14 × ${r}.`, `= ${circ} cm.`], distractors: wantArea ? [circ, round2(PI * r), round2(PI * (2 * r) * (2 * r))] : [area, round2(PI * r), round2(2 * PI * (2 * r))], diagram: { kind: 'circle', radius: r } }; },
+  // GE021 — Perimeter and area of circle parts (P6)
+  [GE(21)]: (rng) => { const r = pick(rng, [2, 4, 6, 8, 10]); const semiP = round2(PI * r + 2 * r); return { prompt: `Find the perimeter of a semicircle with radius ${r} cm. Remember to include the straight edge. (Use π = 3.14.)`, answer: semiP, unit: 'cm', tag: 'geo/forgot-straight-edges', steps: ['Perimeter of a semicircle = half the circumference + the diameter.', `= π × r + 2 × r = 3.14 × ${r} + ${2 * r} = ${semiP} cm.`], distractors: [round2(PI * r), round2(PI * r * r / 2), round2(2 * PI * r)].filter((d) => d !== semiP), diagram: { kind: 'circle-part', part: 'semicircle', radius: r } }; },
+  // GE022 — Composite figures: area
+  [GE(22)]: (rng) => { const L = rint(rng, 8, 16), W = rint(rng, 6, 12); const a = rint(rng, 2, L - 4), b = rint(rng, 2, W - 3); const area = L * W - a * b; return { prompt: `An L-shaped figure is a ${L} cm by ${W} cm rectangle with a ${a} cm by ${b} cm rectangle cut out of one corner. What is its area?`, answer: area, unit: 'cm²', tag: 'geo/missing-region', steps: [`Whole rectangle = ${L} × ${W} = ${L * W} cm².`, `Cut-out = ${a} × ${b} = ${a * b} cm².`, `Area = ${L * W} − ${a * b} = ${area} cm².`], distractors: [L * W, L * W + a * b, a * b].filter((d) => d !== area), diagram: { kind: 'composite', outer: [L, W], cut: [a, b] } }; },
+};
+
+function runBuilder(skillId, rng, variant) {
+  const build = BUILDERS[skillId];
+  return build ? build(rng, variant) : null;
 }
 
-const GENERATORS = { 'geoGeo2dShapes': geoGeo2dShapes, 'geoGeo2dShapesMCQ': geoGeo2dShapesMCQ, 'geoGeo2dProperties': geoGeo2dProperties, 'geoGeo2dPropertiesMCQ': geoGeo2dPropertiesMCQ, 'geoGeoLines': geoGeoLines, 'geoGeoLinesMCQ': geoGeoLinesMCQ, 'geoGeoAngleIntro': geoGeoAngleIntro, 'geoGeoAngleIntroMCQ': geoGeoAngleIntroMCQ, 'geoGeoAngleMeasure': geoGeoAngleMeasure, 'geoGeoAngleMeasureMCQ': geoGeoAngleMeasureMCQ, 'geoGeoAngleLinePoint': geoGeoAngleLinePoint, 'geoGeoAngleLinePointMCQ': geoGeoAngleLinePointMCQ, 'geoGeoTriangleTypes': geoGeoTriangleTypes, 'geoGeoTriangleTypesMCQ': geoGeoTriangleTypesMCQ, 'geoGeoTriangleAngles': geoGeoTriangleAngles, 'geoGeoTriangleAnglesMCQ': geoGeoTriangleAnglesMCQ, 'geoGeoQuadTypes': geoGeoQuadTypes, 'geoGeoQuadTypesMCQ': geoGeoQuadTypesMCQ, 'geoGeoAngleQuad': geoGeoAngleQuad, 'geoGeoAngleQuadMCQ': geoGeoAngleQuadMCQ, 'geoGeoSymmetry': geoGeoSymmetry, 'geoGeoSymmetryMCQ': geoGeoSymmetryMCQ, 'geoGeoSymmetryComplete': geoGeoSymmetryComplete, 'geoGeoSymmetryCompleteMCQ': geoGeoSymmetryCompleteMCQ, 'geoGeo3dShapes': geoGeo3dShapes, 'geoGeo3dShapesMCQ': geoGeo3dShapesMCQ, 'geoGeoNetsViews': geoGeoNetsViews, 'geoGeoNetsViewsMCQ': geoGeoNetsViewsMCQ, 'geoGeoPosition': geoGeoPosition, 'geoGeoPositionMCQ': geoGeoPositionMCQ, 'geoGeoConstruct': geoGeoConstruct, 'geoGeoConstructMCQ': geoGeoConstructMCQ, 'geoGeoPerimeter': geoGeoPerimeter, 'geoGeoPerimeterMCQ': geoGeoPerimeterMCQ, 'geoGeoAreaRect': geoGeoAreaRect, 'geoGeoAreaRectMCQ': geoGeoAreaRectMCQ, 'geoGeoAreaTriangle': geoGeoAreaTriangle, 'geoGeoAreaTriangleMCQ': geoGeoAreaTriangleMCQ, 'geoGeoCircle': geoGeoCircle, 'geoGeoCircleMCQ': geoGeoCircleMCQ, 'geoGeoCircleParts': geoGeoCircleParts, 'geoGeoCirclePartsMCQ': geoGeoCirclePartsMCQ, 'geoGeoComposite': geoGeoComposite, 'geoGeoCompositeMCQ': geoGeoCompositeMCQ };
+function buildChoices(q, answerDisplay) {
+  if (q.choices) return q.choices.map((c) => fmtVal(c, q.unit || ''));
+  const opts = [String(answerDisplay)];
+  const seen = new Set(opts);
+  for (const d of q.distractors || []) {
+    const disp = fmtVal(d, q.unit || '');
+    if (!seen.has(disp)) { seen.add(disp); opts.push(disp); }
+  }
+  const base = Number(q.answer);
+  const deltas = [1, -1, 2, -2, 5, -5, 10, -10];
+  for (let i = 0; opts.length < 4 && i < deltas.length && Number.isFinite(base); i++) {
+    const v = round2(base + deltas[i]);
+    if (v <= 0) continue;
+    const disp = fmtVal(v, q.unit || '');
+    if (!seen.has(disp)) { seen.add(disp); opts.push(disp); }
+  }
+  return opts.slice(0, 4);
+}
+
+function makePractice(skillId) {
+  return (family, rng, variant) => {
+    const q = runBuilder(skillId, rng, variant);
+    return shortAnswer({
+      family, prompt: q.prompt, answerDisplay: fmtVal(q.answer, q.unit || ''),
+      solutionSteps: q.steps, misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
+      difficulty: family.difficulty, mode: 'practice', diagram: q.diagram,
+    });
+  };
+}
+function makeMCQ(skillId) {
+  return (family, rng, variant) => {
+    const q = runBuilder(skillId, rng, variant);
+    const answerDisplay = fmtVal(q.answer, q.unit || '');
+    return mcqFrom({
+      family, prompt: q.prompt, answerDisplay, choices: buildChoices(q, answerDisplay),
+      solutionSteps: q.steps, misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
+      difficulty: family.difficulty, mode: 'practice', rng, diagram: q.diagram,
+    });
+  };
+}
+
+const KIND_TO_SKILL = {
+  geoGeo2dShapes: GE(1), geoGeo2dProperties: GE(2), geoGeoLines: GE(3), geoGeoAngleIntro: GE(4),
+  geoGeoAngleMeasure: GE(5), geoGeoAngleLinePoint: GE(6), geoGeoTriangleTypes: GE(7), geoGeoTriangleAngles: GE(8),
+  geoGeoQuadTypes: GE(9), geoGeoAngleQuad: GE(10), geoGeoSymmetry: GE(11), geoGeoSymmetryComplete: GE(12),
+  geoGeo3dShapes: GE(13), geoGeoNetsViews: GE(14), geoGeoPosition: GE(15), geoGeoConstruct: GE(16),
+  geoGeoPerimeter: GE(17), geoGeoAreaRect: GE(18), geoGeoAreaTriangle: GE(19), geoGeoCircle: GE(20),
+  geoGeoCircleParts: GE(21), geoGeoComposite: GE(22),
+};
+
+const GENERATORS = {};
+for (const [kind, skillId] of Object.entries(KIND_TO_SKILL)) {
+  GENERATORS[kind] = makePractice(skillId);
+  GENERATORS[`${kind}MCQ`] = makeMCQ(skillId);
+}
 
 export function generateGeometryQuestionSet({ skillId, count = 6, mode = 'practice' }) {
   const families = getQuestionFamiliesBySkill(skillId);
@@ -836,12 +195,21 @@ export function generateGeometryQuestionSet({ skillId, count = 6, mode = 'practi
   return questions;
 }
 
+// Handles numeric answers (unit-tolerant) and word answers (shape/direction/
+// type), case- and whitespace-insensitive; strips a trailing "angle".
 export function checkGeometryAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
-  const expected = String(question.answer?.display ?? question.answer ?? '').trim().toLowerCase();
-  const given = String(studentResponse).trim().toLowerCase().replace(/\s+/g, '');
-  const clean = (s) => s.replace(/\s+/g, '').replace(/,/g, '');
-  return { correct: clean(given) === clean(expected) };
+  const norm = (s) => String(s).trim().toLowerCase().replace(/\s+/g, ' ').replace(/ angle$/, '');
+  const raw = norm(studentResponse), exp = norm(question.answer?.display ?? question.answer ?? '');
+  if (raw === exp) return { correct: true };
+  const digits = (s) => s.replace(/[^0-9.\-]/g, '');
+  const a = digits(raw), b = digits(exp);
+  if (b !== '' && a !== '') {
+    if (a === b) return { correct: true };
+    const na = parseFloat(a), nb = parseFloat(b);
+    if (!Number.isNaN(na) && !Number.isNaN(nb) && na === nb) return { correct: true };
+  }
+  return { correct: false };
 }
 
 export default { generateGeometryQuestionSet, checkGeometryAnswer };

@@ -1,7 +1,11 @@
 const NUMERIC_TOLERANCE = 0.0001;
 
 function normalizeText(s) {
-  return String(s).trim().toLowerCase().replace(/\s+/g, ' ');
+  return String(s)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([\+\-\*\/\=])\s*/g, '$1');
 }
 
 function closeEnough(a, b, tol = NUMERIC_TOLERANCE) {

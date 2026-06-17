@@ -48,7 +48,11 @@
       "Bash(cd)",
       "Bash(git stash *)",
       "Bash(git checkout *)",
-      "Bash(git pull *)"
+      "Bash(git pull *)",
+      "Bash(grep -v \"MisconceptionMap.js$\")",
+      "Bash(grep -iv \"MisconceptionMap.js$\")",
+      "Bash(grep -v \"primary/.*MisconceptionMap.js$\")",
+      "Bash(grep -rhoE \"misconceptionTag:\\\\s*'[^']+'\" frontend/src services routes shared 2>/dev/null | grep -oE \"'[^']+'\" | tr -d \"'\" | sort -u > /tmp/tags.txt; echo \"=== prefixes ===\"; sed -E 's|/.*||' /tmp/tags.txt | sort | uniq -c | sort -rn; echo \"=== total ===\"; wc -l < /tmp/tags.txt)"
     ]
   }
 }

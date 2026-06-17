@@ -1797,6 +1797,23 @@ export function checkFractionAnswer(options = {}) {
     };
   }
 
+  // Text answers (e.g. True/False comparison questions) are graded by a
+  // case-insensitive string match — parseAnswer() only understands fractions and
+  // symbols, so without this a correct "True" was marked wrong.
+  if (correctAnswer?.type === 'text') {
+    const normText = (raw) => String(raw ?? '').trim().toLowerCase();
+    const normalizedStudent = normText(studentAnswer);
+    const normalizedAccepted = [
+      correctAnswer.value, correctAnswer.display,
+      ...(Array.isArray(acceptedAnswers) ? acceptedAnswers : []),
+    ].map(normText).filter(Boolean);
+    return {
+      correct: Boolean(normalizedStudent) && normalizedAccepted.includes(normalizedStudent),
+      normalizedStudentAnswer: normalizedStudent || null,
+      normalizedCorrectAnswer: normText(correctAnswer.display ?? correctAnswer.value),
+    };
+  }
+
   const parsedStudent = parseAnswer(studentAnswer);
   const parsedCorrect = typeof correctAnswer === 'string'
     ? parseAnswer(correctAnswer)

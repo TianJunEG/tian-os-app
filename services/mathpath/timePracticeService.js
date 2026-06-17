@@ -4,6 +4,7 @@ import {
 } from '../../shared/mathpath/time/TimeQuestionGenerator.js';
 import { selectNextTimePracticeTarget } from '../../shared/mathpath/time/TimePracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/time/TimeSkillGraph.js';
+import { assertDomainServable } from './stubDomainGate.js';
 
 export const DOMAIN_ID = 'time';
 
@@ -16,6 +17,7 @@ function statusFromAccuracy(accuracy) {
 export function buildTimePracticeSession({
   targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6, mode = 'practice',
 } = {}) {
+  assertDomainServable(DOMAIN_ID);
   let skillId = targetSkillId;
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextTimePracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
@@ -39,6 +41,7 @@ export function buildTimePracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {
     domainId: DOMAIN_ID,

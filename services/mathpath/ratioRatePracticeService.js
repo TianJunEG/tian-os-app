@@ -8,7 +8,7 @@ import { ratioRateSkillGraph, getSkill } from '../../shared/mathpath/ratioRate/r
 // route layer persists what these functions return. Mirrors percentagePracticeService.js
 // exactly (s/percentage/ratioRate/g, s/Percentage/RatioRate/g, s/P00/R0/g).
 
-export const DOMAIN_ID = 'ratioRate';
+export const DOMAIN_ID = 'ratio';
 
 function statusFromAccuracy(accuracy) {
   if (accuracy >= 90) return 'mastered';

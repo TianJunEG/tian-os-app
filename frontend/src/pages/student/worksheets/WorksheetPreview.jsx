@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, CheckCircle2, Printer, Send } from 'lucide-re
 import { worksheetGenAPI } from '../../../services/api';
 import { Card, EmptyState, PageHeader, Spinner, Button, Alert } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
+import QuestionDiagram from '../mathpath/components/QuestionDiagram';
 
 function VisualTable({ visual }) {
   const headers = Array.isArray(visual?.payload?.headers) ? visual.payload.headers : [];
@@ -52,7 +53,6 @@ export default function WorksheetPreview() {
 
   const c = w.content || {};
   const questions = c.questions || [];
-  const unsupportedVisualCount = questions.filter((q) => q.visual?.type && q.visual.type !== 'table').length;
   const studentLevel = c.studentLevel || questions.find((q) => q.moeLevel)?.moeLevel || '';
   const skillLabel = (c.skillNames || []).join(', ');
   const topicLabel = (c.topicNames || []).join(', ') || [...new Set(questions.map((q) => q.topicName).filter(Boolean))].join(', ');
@@ -95,11 +95,6 @@ export default function WorksheetPreview() {
         )}
       </Card>
 
-      {unsupportedVisualCount > 0 && (
-        <Alert tone="warning" className="mb-4">
-          {unsupportedVisualCount} question(s) use unsupported visual type and are shown as “Visual unavailable.”
-        </Alert>
-      )}
 
       <div className="mb-4 flex gap-2">
         <button onClick={() => setView('worksheet')} className={`h-11 flex-1 rounded-xl border text-sm font-semibold ${view === 'worksheet' ? 'border-emerald-deep bg-emerald-deep text-paper' : 'border-line-soft bg-surface-white text-emerald-deep'}`}>Worksheet</button>
@@ -115,7 +110,9 @@ export default function WorksheetPreview() {
                 <div className="flex-1">
                   <div className="text-lg text-ink-900"><MathText text={q.stem} /></div>
                   {q.visual?.type === 'table' && <VisualTable visual={q.visual} />}
-                  {q.visual?.type && q.visual.type !== 'table' && <p className="mt-2 text-sm text-ink-500">Visual unavailable.</p>}
+                  {q.visual?.type && q.visual.type !== 'table' && (
+                    <QuestionDiagram question={q} className="mt-2" />
+                  )}
                   {q.type === 'mcq' && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {(q.choices || []).map((ch, i) => <span key={i} className="rounded-lg border border-line-soft px-3 py-1 text-sm"><MathText text={String(ch)} /></span>)}
@@ -166,7 +163,7 @@ export default function WorksheetPreview() {
         </Card>
       )}
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Button variant="secondary" icon={Printer} onClick={() => window.print()}>Print</Button>
         <label className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line-soft bg-surface-white px-4 py-3 text-sm font-semibold text-emerald-deep">
           <input type="checkbox" checked={workingSubmitted} onChange={(event) => setWorkingSubmitted(event.target.checked)} />

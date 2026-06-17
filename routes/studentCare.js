@@ -52,7 +52,7 @@ async function listAccessibleStudents(req) {
   if (roles.has('admin') || (process.env.NODE_ENV !== 'production' && process.env.QA_DISABLE_RATE_LIMIT === '1')) {
     return Student.find({}).sort({ name: 1 }).limit(100).lean();
   }
-  return Student.find({ createdByUserId: req.user.id }).sort({ name: 1 }).lean();
+  return Student.find({ createdByUserId: req.user.id }).sort({ name: 1 }).limit(200).lean();
 }
 
 async function loadEvidenceForStudent(studentId, { subjectId = 'math', domainId = 'fractions' } = {}) {

@@ -181,6 +181,45 @@ describe('geometry and chart diagram animations', () => {
     expect(svg).toContain('attributeName="y"');
   });
 
+  it('circle renderer draws a circle with a labeled radius line', () => {
+    const svg = renderers.circle({
+      type: 'circle', width: 360, height: 280,
+      data: { radius: 7, show: 'radius', label: '7 cm' },
+    });
+    expect(svg).toContain('<circle');
+    expect(svg).toContain('7 cm');
+    expect(svg).toContain('stroke-dashoffset'); // animated outline
+  });
+
+  it('circle renderer draws a labeled diameter line when show=diameter', () => {
+    const svg = renderers.circle({
+      type: 'circle', width: 360, height: 280,
+      data: { diameter: 14, show: 'diameter', label: '14 cm' },
+    });
+    expect(svg).toContain('14 cm');
+    expect(svg).toContain('#1d4ed8'); // dimension line color
+  });
+
+  it('semicircle renderer draws an arc path with a labeled diameter', () => {
+    const svg = renderers.semicircle({
+      type: 'semicircle', width: 360, height: 280,
+      data: { diameter: 28, label: '28 cm', note: 'composite figure' },
+    });
+    expect(svg).toContain('<path');
+    expect(svg).toContain('A '); // arc command
+    expect(svg).toContain('28 cm');
+    expect(svg).toContain('composite figure'); // optional note
+  });
+
+  it('quarter_circle renderer draws a quadrant with a labeled radius', () => {
+    const svg = renderers.quarter_circle({
+      type: 'quarter_circle', width: 360, height: 280,
+      data: { radius: 14, label: '14 cm' },
+    });
+    expect(svg).toContain('<path');
+    expect(svg).toContain('14 cm');
+  });
+
   it('line_graph axes draw, path traces, then dots pop in', () => {
     const svg = renderers.line_graph({
       width: 400, height: 300,

@@ -4,8 +4,9 @@ import {
 } from '../../shared/mathpath/operations/OperationsQuestionGenerator.js';
 import { selectNextOperationsPracticeTarget } from '../../shared/mathpath/operations/OperationsPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/operations/OperationsSkillGraph.js';
+import { assertDomainServable } from './stubDomainGate.js';
 
-export const DOMAIN_ID = 'operations';
+export const DOMAIN_ID = 'four_operations';
 
 function statusFromAccuracy(accuracy) {
   if (accuracy >= 90) return 'mastered';
@@ -16,6 +17,7 @@ function statusFromAccuracy(accuracy) {
 export function buildOperationsPracticeSession({
   targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6, mode = 'practice',
 } = {}) {
+  assertDomainServable(DOMAIN_ID);
   let skillId = targetSkillId;
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextOperationsPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
@@ -39,6 +41,7 @@ export function buildOperationsPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {
     domainId: DOMAIN_ID,

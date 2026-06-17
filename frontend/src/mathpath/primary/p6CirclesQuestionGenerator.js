@@ -3,6 +3,7 @@ import { getQuestionFamiliesBySkill } from './p6CirclesQuestionFamilies.js';
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function round2(n) { return Math.round(n * 100) / 100; }
 
 /* ---------- Diameter/radius pools for clean arithmetic ---------- */
 
@@ -21,6 +22,32 @@ const RADII_AREA_3_14 = [5, 10, 20, 25, 50];
 // Side lengths for composite figures: multiples of 14 ensure both perimeter and area are integers
 const SIDES_COMPOSITE_22_7 = [14, 28, 42, 56, 70];
 
+/* ---------- Diagram spec helpers ---------- */
+// Emit the { type, width, height, data } shape consumed by the local diagram
+// renderers in mathpath/diagrams/svgRenderers.js.
+function circleSpec(radius) {
+  return { type: 'circle', width: 360, height: 280, data: { radius, show: 'radius', label: `${radius} cm` } };
+}
+function circleDiameterSpec(diameter) {
+  return { type: 'circle', width: 360, height: 280, data: { diameter, show: 'diameter', label: `${diameter} cm` } };
+}
+function semicircleSpec(diameter) {
+  return { type: 'semicircle', width: 360, height: 280, data: { diameter, label: `${diameter} cm` } };
+}
+function quadrantSpec(radius) {
+  return { type: 'quarter_circle', width: 360, height: 280, data: { radius, label: `${radius} cm` } };
+}
+function compositeSquareSemicirclesSpec(side) {
+  // Closest supported representation: one of the two attached semicircles,
+  // labeled, with a note describing the full square + 2-semicircles figure.
+  return {
+    type: 'semicircle',
+    width: 360,
+    height: 280,
+    data: { diameter: side, label: `${side} cm`, note: `Square side ${side} cm + a semicircle on each of 2 opposite sides` },
+  };
+}
+
 /* ---------- P6-CIR-01: Circumference of Circle ---------- */
 
 function generateCircumference(familyId) {
@@ -32,6 +59,7 @@ function generateCircumference(familyId) {
       skillId: 'P6-CIR-01', questionFamilyId: familyId,
       prompt: `Find the circumference of a circle with diameter ${d} cm. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleDiameterSpec(d),
       instructionHint: 'Circumference = π × diameter. Substitute π = 22/7 and multiply.',
       solutionText: `C = π × d = 22/7 × ${d} = ${answer} cm.`,
       misconceptionTraps: ['uses_diameter_as_radius', 'pi_approximation_error'],
@@ -40,13 +68,13 @@ function generateCircumference(familyId) {
 
   if (familyId.endsWith('_002')) {
     // Circumference from radius, π = 22/7
-    // Use radii that are multiples of 7 so 2 × 22/7 × r is clean
-    const r = pick(DIAMETERS_22_7); // re-use pool; these are multiples of 7
+    const r = pick(DIAMETERS_22_7);
     const answer = 2 * (22 / 7) * r;
     return {
       skillId: 'P6-CIR-01', questionFamilyId: familyId,
       prompt: `A circle has radius ${r} cm. Find its circumference. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleSpec(r),
       instructionHint: 'Circumference = 2 × π × radius. Substitute π = 22/7 and multiply.',
       solutionText: `C = 2 × π × r = 2 × 22/7 × ${r} = ${answer} cm.`,
       misconceptionTraps: ['uses_diameter_as_radius', 'pi_approximation_error'],
@@ -55,11 +83,12 @@ function generateCircumference(familyId) {
 
   // _003: Circumference with π = 3.14
   const d = pick(DIAMETERS_3_14);
-  const answer = 3.14 * d;
+  const answer = round2(3.14 * d);
   return {
     skillId: 'P6-CIR-01', questionFamilyId: familyId,
     prompt: `Find the circumference of a circle with diameter ${d} cm. (Take π = 3.14)`,
     answer, answerType: 'number',
+    diagramSpec: circleDiameterSpec(d),
     instructionHint: 'Circumference = π × diameter. Substitute π = 3.14 and multiply.',
     solutionText: `C = π × d = 3.14 × ${d} = ${answer} cm.`,
     misconceptionTraps: ['pi_approximation_error', 'confuses_circumference_area_formulas'],
@@ -70,13 +99,13 @@ function generateCircumference(familyId) {
 
 function generateArea(familyId) {
   if (familyId.endsWith('_001')) {
-    // Area from radius, π = 22/7
     const r = pick(RADII_AREA_22_7);
     const answer = (22 / 7) * r * r;
     return {
       skillId: 'P6-CIR-02', questionFamilyId: familyId,
       prompt: `Find the area of a circle with radius ${r} cm. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleSpec(r),
       instructionHint: 'Area = π × r × r. Substitute π = 22/7 and multiply.',
       solutionText: `A = π × r × r = 22/7 × ${r} × ${r} = 22/7 × ${r * r} = ${answer} cm².`,
       misconceptionTraps: ['area_uses_diameter_not_radius', 'confuses_circumference_area_formulas'],
@@ -84,8 +113,6 @@ function generateArea(familyId) {
   }
 
   if (familyId.endsWith('_002')) {
-    // Area from diameter, π = 22/7 — must halve to get radius
-    // Diameter must be even multiple of 7 so radius is multiple of 7
     const d = pick(DIAMETERS_AREA_22_7);
     const r = d / 2;
     const answer = (22 / 7) * r * r;
@@ -93,6 +120,7 @@ function generateArea(familyId) {
       skillId: 'P6-CIR-02', questionFamilyId: familyId,
       prompt: `The diameter of a circle is ${d} cm. Find its area. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: circleDiameterSpec(d),
       instructionHint: 'First find the radius (diameter ÷ 2), then use Area = π × r × r.',
       solutionText: `Radius = ${d} ÷ 2 = ${r} cm. A = π × r × r = 22/7 × ${r} × ${r} = ${answer} cm².`,
       misconceptionTraps: ['area_uses_diameter_not_radius', 'pi_approximation_error'],
@@ -101,11 +129,12 @@ function generateArea(familyId) {
 
   // _003: Area with π = 3.14
   const r = pick(RADII_AREA_3_14);
-  const answer = 3.14 * r * r;
+  const answer = round2(3.14 * r * r);
   return {
     skillId: 'P6-CIR-02', questionFamilyId: familyId,
     prompt: `Find the area of a circle with radius ${r} cm. (Take π = 3.14)`,
     answer, answerType: 'number',
+    diagramSpec: circleSpec(r),
     instructionHint: 'Area = π × r × r. Substitute π = 3.14 and multiply.',
     solutionText: `A = π × r × r = 3.14 × ${r} × ${r} = 3.14 × ${r * r} = ${answer} cm².`,
     misconceptionTraps: ['area_uses_diameter_not_radius', 'pi_approximation_error'],
@@ -125,6 +154,7 @@ function generateComposite(familyId) {
       skillId: 'P6-CIR-03', questionFamilyId: familyId,
       prompt: `Find the perimeter of a semicircle with diameter ${d} cm. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: semicircleSpec(d),
       instructionHint: 'Perimeter of semicircle = half the circumference + the diameter (straight edge).',
       solutionText: `Curved part = π × d ÷ 2 = 22/7 × ${d} ÷ 2 = ${curvedPart} cm. Perimeter = ${curvedPart} + ${d} = ${answer} cm.`,
       misconceptionTraps: ['forgets_straight_edge_in_semicircle', 'forgets_to_halve_for_semicircle'],
@@ -141,6 +171,7 @@ function generateComposite(familyId) {
       skillId: 'P6-CIR-03', questionFamilyId: familyId,
       prompt: `Find the area of a quadrant (quarter-circle) with radius ${r} cm. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: quadrantSpec(r),
       instructionHint: 'Area of quadrant = π × r × r ÷ 4.',
       solutionText: `Area of full circle = π × r × r = 22/7 × ${r} × ${r} = ${fullArea} cm². Area of quadrant = ${fullArea} ÷ 4 = ${answer} cm².`,
       misconceptionTraps: ['wrong_fraction_for_quadrant', 'area_uses_diameter_not_radius'],
@@ -163,6 +194,7 @@ function generateComposite(familyId) {
       skillId: 'P6-CIR-03', questionFamilyId: familyId,
       prompt: `A figure is made up of a square of side ${side} cm with a semicircle attached to each of two opposite sides. Find the perimeter of the figure. (Take π = 22/7)`,
       answer, answerType: 'number',
+      diagramSpec: compositeSquareSemicirclesSpec(side),
       instructionHint: 'Perimeter = 2 curved semicircle edges (= 1 full circumference) + 2 remaining straight sides of the square.',
       solutionText: `Two semicircle curves = 1 full circumference = π × d = 22/7 × ${side} = ${fullCircumference} cm. Two straight edges = 2 × ${side} = ${straightEdges} cm. Perimeter = ${fullCircumference} + ${straightEdges} = ${answer} cm.`,
       misconceptionTraps: ['adds_full_circumference_to_semicircle', 'forgets_straight_edge_in_semicircle'],
@@ -178,6 +210,7 @@ function generateComposite(familyId) {
     skillId: 'P6-CIR-03', questionFamilyId: familyId,
     prompt: `A figure is made up of a square of side ${side} cm with a semicircle attached to each of two opposite sides. Find the total area of the figure. (Take π = 22/7)`,
     answer, answerType: 'number',
+    diagramSpec: compositeSquareSemicirclesSpec(side),
     instructionHint: 'Total area = area of square + 2 × area of semicircle = area of square + area of 1 full circle.',
     solutionText: `Area of square = ${side} × ${side} = ${squareArea} cm². Radius of semicircle = ${side} ÷ 2 = ${r} cm. Area of 2 semicircles = π × r × r = 22/7 × ${r} × ${r} = ${circleArea} cm². Total area = ${squareArea} + ${circleArea} = ${answer} cm².`,
     misconceptionTraps: ['forgets_to_halve_for_semicircle', 'adds_full_circumference_to_semicircle'],

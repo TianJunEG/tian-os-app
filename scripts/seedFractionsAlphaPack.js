@@ -18,6 +18,11 @@ import { getCanonicalFractionSkillLinks } from '../services/mathpath/fractionSki
 
 dotenv.config();
 
+if (process.env.NODE_ENV === "production") {
+  console.error("Seed script: refusing to run in production (NODE_ENV=production).");
+  process.exit(1);
+}
+
 const LOCAL_URI = process.env.MONGODB_URI_LOCAL || 'mongodb://127.0.0.1:27017/tutor-match';
 const URI = process.env.MONGODB_URI || LOCAL_URI;
 const DOMAIN_ID = 'fractions';

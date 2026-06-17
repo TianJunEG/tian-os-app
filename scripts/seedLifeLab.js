@@ -10,6 +10,11 @@ import LifeLabActivity from '../models/LifeLabActivity.js';
 import { LIFE_LAB_SAMPLE_ACTIVITIES } from '../data/lifelabSampleActivities.js';
 
 dotenv.config();
+
+if (process.env.NODE_ENV === "production") {
+  console.error("Seed script: refusing to run in production (NODE_ENV=production).");
+  process.exit(1);
+}
 const URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tutor-match';
 
 const ACTIVITIES = LIFE_LAB_SAMPLE_ACTIVITIES;

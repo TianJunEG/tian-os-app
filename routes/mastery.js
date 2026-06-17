@@ -24,6 +24,7 @@ import StudentAchievement from '../models/studentProfile/StudentAchievement.js';
 import FluencyRecord from '../models/FluencyRecord.js';
 import RetentionReview from '../models/RetentionReview.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import { domainIdFromSlug } from '../utils/skillSlugDomain.js';
 import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLabel, isStale } from '../utils/masteryEngine.js';
 import { buildSkillGraphView } from '../utils/skillGraphView.js';
 import { runPlacement } from '../utils/placementEngine.js';
@@ -1013,7 +1014,7 @@ router.post('/p1/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = {
-        status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview',
+        status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview',
         accuracy,
         lastPractisedAt: new Date(),
       };
@@ -1203,7 +1204,7 @@ router.post('/p2/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
-      const set = { status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
+      const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
       if (accuracy >= 90) set.masteredAt = new Date();
       return MathPathStudentSkillState.findOneAndUpdate({ studentId, domainId, skillId }, { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set }, { upsert: true, new: true, setDefaultsOnInsert: true });
     }));
@@ -1333,7 +1334,7 @@ router.post('/p3/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
       const set = {
-        status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview',
+        status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview',
         accuracy,
         lastPractisedAt: new Date(),
       };
@@ -1756,7 +1757,7 @@ function readinessBandFromLevel(level = '') {
 }
 
 async function loadFractionsSkills() {
-  const skills = await Skill.find({ slug: /^fr\./i }).sort({ order: 1 });
+  const skills = await Skill.find({ slug: /^fr\./ }).sort({ order: 1 });
   const byFrameworkId = new Map();
   const byObjectId = new Map();
   for (const s of skills) {
@@ -1784,6 +1785,10 @@ router.get('/', protect, asyncHandler(async (req, res) => {
       const masteryState = deriveMastery(r);
       return {
         skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
+        // Canonical domainId derived from the skill slug prefix, so adult
+        // dashboards can filter mastery by domain (additive; may be null for
+        // skills whose slug prefix is unrecognised).
+        domainId: domainIdFromSlug(r.skillId?.slug),
         moeLevel: r.skillId?.moeLevel || '', score: r.score, attempts: r.attempts,
         status: r.status, statusLabel: STATUS_LABEL[r.status] || r.status, lastPracticedAt: r.lastPracticedAt,
         // mastery v2 (derived): 5-state ladder + 3-state fluency label + estimate quality
@@ -2633,7 +2638,7 @@ router.post('/p4/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
-      const set = { status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
+      const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
       if (accuracy >= 90) set.masteredAt = new Date();
       return MathPathStudentSkillState.findOneAndUpdate({ studentId, domainId, skillId }, { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set }, { upsert: true, new: true, setDefaultsOnInsert: true });
     }));
@@ -2730,7 +2735,7 @@ router.post('/p5/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
-      const set = { status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
+      const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
       if (accuracy >= 90) set.masteredAt = new Date();
       return MathPathStudentSkillState.findOneAndUpdate({ studentId, domainId, skillId }, { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set }, { upsert: true, new: true, setDefaultsOnInsert: true });
     }));
@@ -2828,7 +2833,7 @@ router.post('/p6/practice/:practiceSessionId/submit', protect, asyncHandler(asyn
     const bySkill = results.filter((r) => !r.error).reduce((acc, r) => { const skillId = r.skillId || ''; if (!skillId) return acc; if (!acc[skillId]) acc[skillId] = { total: 0, correct: 0 }; acc[skillId].total += 1; if (r.correct) acc[skillId].correct += 1; return acc; }, {});
     await Promise.all(Object.entries(bySkill).map(([skillId, counts]) => {
       const accuracy = counts.total ? Math.round((counts.correct / counts.total) * 100) : 0;
-      const set = { status: accuracy >= 90 ? 'mastered' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
+      const set = { status: accuracy >= 90 ? 'accurate' : accuracy >= 60 ? 'learning' : 'needsReview', accuracy, lastPractisedAt: new Date() };
       if (accuracy >= 90) set.masteredAt = new Date();
       return MathPathStudentSkillState.findOneAndUpdate({ studentId, domainId, skillId }, { $inc: { attemptCount: counts.total, correctCount: counts.correct }, $set: set }, { upsert: true, new: true, setDefaultsOnInsert: true });
     }));

@@ -8,6 +8,7 @@ export const NOTIFICATION_TYPES = [
   'recording_ready',
   'trial_ending',
   'link_request',
+  'tutor_escalation',
   'generic',
 ];
 

@@ -67,6 +67,28 @@ export default function DecimalsDiagnosticSession() {
           startedAt.current = Date.now();
         }
       } catch (e) {
+        const code = e?.response?.data?.code;
+        const inProgressSessionId = e?.response?.data?.inProgressSessionId;
+        // If a session is already in progress (tab closed mid-diagnostic), resume it
+        // instead of surfacing the replay-blocked error to the student.
+        if (code === 'DIAGNOSTIC_REPLAY_BLOCKED' && inProgressSessionId && active) {
+          try {
+            const resumeRes = await diagnosticsAPI.resumeDiagnostic(inProgressSessionId);
+            const rd = resumeRes?.data || {};
+            if (rd.currentQuestion) {
+              setSessionId(rd.sessionId);
+              setQuestion(rd.currentQuestion);
+              setProgress({
+                answeredCount: rd.answeredCount || 0,
+                estimatedQuestionCount: rd.estimatedQuestionCount || 8,
+              });
+              startedAt.current = Date.now();
+              return;
+            }
+          } catch (_) {
+            // Fall through to the error state if resume also fails.
+          }
+        }
         if (active) setError(e?.response?.data?.error || e.message || 'Could not start the check-in.');
       } finally {
         if (active) setLoading(false);

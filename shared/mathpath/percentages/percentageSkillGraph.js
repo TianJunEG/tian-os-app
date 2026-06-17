@@ -341,7 +341,7 @@ export function validatePercentageSkillGraph() {
 }
 
 export const percentageSkillGraph = {
-  domainId: 'percentages',
+  domainId: 'percentage',
   domainName: 'Percentage',
   version: '1.0.0',
   skillIds: skills.map((s) => s.id),
