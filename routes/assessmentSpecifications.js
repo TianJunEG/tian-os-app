@@ -229,6 +229,9 @@ export async function generateTestFromSpecification(specificationId, options = {
   const testMode = resolveTestMode({ testMode: spec.testMode, outputMode: spec.outputMode });
   const modeConfig = getTestModeConfig(testMode);
   const effectiveTimed = modeConfig.forceTimed ? true : Boolean(spec.timed);
+  // Booklet papers (PSLE mock / combined) need every question type represented so
+  // the sections render all booklets; selection gets a type-diversity nudge.
+  const bookletMode = testMode === 'psle_mock' || String(spec.paperType || '') === 'combined';
   const targetStudentId = spec.targetType === 'student' ? String(spec.targetStudentId || '') : String(options.targetStudentId || '');
   const sessionId = assessmentSessionId('specassess');
 
@@ -343,9 +346,24 @@ export async function generateTestFromSpecification(specificationId, options = {
     // Error-diagnosis papers prefer MCQ items with a misconception tag so a wrong
     // answer maps to a named error. This is a soft sort (preference), so the pool
     // still falls back to other items when tagged MCQs are scarce.
-    const candidates = (modeConfig.preferMcq || modeConfig.preferMisconception)
+    let candidates = (modeConfig.preferMcq || modeConfig.preferMisconception)
       ? [...pool].sort((a, b) => questionPreferenceScore(b, modeConfig) - questionPreferenceScore(a, modeConfig))
       : pool;
+
+    // Booklet papers: pull a few MCQ and open-ended items to the front of the
+    // candidate pool so the difficulty sampler actually includes them — otherwise
+    // a large short-answer bank crowds them out and only Booklet B is produced.
+    if (bookletMode) {
+      const diverse = await Question.find({
+        subjectId: subject._id,
+        skillId: { $in: skillDocIds },
+        type: { $in: ['mcq', 'open_ended'] },
+        difficulty: { $in: pickDifficultyFilter(difficulty) },
+        ...(row.includeWordProblems === false ? { stem: { $not: /word|story|problem/i } } : {}),
+      }).limit(Math.max(desiredCount, 12)).lean();
+      const seen = new Set(candidates.map((q) => String(q._id)));
+      candidates = [...diverse.filter((q) => !seen.has(String(q._id))), ...candidates];
+    }
 
     const selected = sampleQuestionsByDifficulty(candidates, desiredCount, effectiveMix);
     selected.forEach((q, idx) => {
