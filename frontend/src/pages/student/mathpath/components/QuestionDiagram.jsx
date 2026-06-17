@@ -177,7 +177,7 @@ export default function QuestionDiagram({ question }) {
 
   return (
     <div
-      className="mb-4 max-w-2xl overflow-hidden rounded-xl border border-line-soft bg-white p-2 sm:p-3"
+      className="mb-4 max-w-2xl overflow-x-auto rounded-xl border border-line-soft bg-white p-2 sm:p-3"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
