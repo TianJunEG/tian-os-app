@@ -173,6 +173,20 @@ function pickDifficultyFilter(difficulty) {
   return [difficulty];
 }
 
+// Expected marks per question for sizing the question count. For a single band
+// it's exact; for a 'mixed' topic it's the mark value weighted by the difficulty
+// mix, so desiredCount * expected ≈ allocatedMarks and the paper's actual total
+// tracks the requested totalMarks instead of assuming a flat medium rate.
+export function expectedMarksPerQuestion(difficulty, mix) {
+  if (difficulty !== 'mixed') return questionMarksForDifficulty(difficulty);
+  const e = Number(mix?.easy || 0);
+  const m = Number(mix?.medium || 0);
+  const h = Number(mix?.hard || 0);
+  const raw = e + m + h;
+  if (raw <= 0) return questionMarksForDifficulty('medium');
+  return (1 * e + 2 * m + 3 * h) / raw;
+}
+
 // Build synthetic topic rows from a student's weak skill set, one row per domain.
 // Marks are weighted by how many weak skills fall in each domain so the paper
 // spends more questions where the student is weakest.
@@ -275,10 +289,18 @@ export async function generateTestFromSpecification(specificationId, options = {
     const ratio = markSum ? weightMarks / markSum : 0;
     const allocatedMarks = Math.max(1, Math.round(totalMarks * ratio));
     const difficulty = row.difficulty || 'mixed';
-    const marksPerQuestion = questionMarksForDifficulty(difficulty === 'mixed' ? 'medium' : difficulty);
+    // Effective difficulty distribution: a per-topic override wins for 'mixed'
+    // rows, otherwise the test mode's default mix. For single-band rows the query
+    // already constrained difficulty, so the mix is effectively a no-op slice.
+    const effectiveMix = (difficulty === 'mixed'
+      ? (normalizeDifficultyMix(row.difficultyMix) || modeConfig.difficultyMix)
+      : modeConfig.difficultyMix);
+    // Size the count by the mix-weighted expected marks so the topic's actual
+    // marks track allocatedMarks (which tracks the requested totalMarks).
+    const expectedMpq = expectedMarksPerQuestion(difficulty, effectiveMix);
     const desiredCount = Math.max(
       row.questionCount || 0,
-      Math.ceil(allocatedMarks / Math.max(1, marksPerQuestion))
+      Math.round(allocatedMarks / Math.max(0.5, expectedMpq))
     );
 
     const resolvedSkillKeys = await resolveTopicSkillIds(row, subject._id);
@@ -325,20 +347,13 @@ export async function generateTestFromSpecification(specificationId, options = {
       ? [...pool].sort((a, b) => questionPreferenceScore(b, modeConfig) - questionPreferenceScore(a, modeConfig))
       : pool;
 
-    // Effective difficulty distribution: a per-topic override wins for 'mixed'
-    // rows, otherwise the test mode's default mix. For single-band rows the query
-    // already constrained difficulty, so the mix is effectively a no-op slice.
-    const effectiveMix = (difficulty === 'mixed'
-      ? (normalizeDifficultyMix(row.difficultyMix) || modeConfig.difficultyMix)
-      : modeConfig.difficultyMix);
-
     const selected = sampleQuestionsByDifficulty(candidates, desiredCount, effectiveMix);
     selected.forEach((q, idx) => {
       // Honour each question's own difficulty for marks rather than a flat
-      // topic-level value, so a balanced paper carries balanced marks. Trade-off:
-      // a topic's summed marks can drift from its planned `allocatedMarks` (which
-      // assumes the medium rate), so the paper's actual total may differ from the
-      // requested totalMarks. The session stores the actual sum (generatedTotalMarks).
+      // topic-level value, so a balanced paper carries balanced marks. The count
+      // was sized by the mix-weighted expected marks (expectedMpq), so the topic's
+      // actual total tracks allocatedMarks closely; the session stores the exact
+      // sum (generatedTotalMarks).
       const marks = questionMarksForDifficulty(q.difficulty || 'medium');
       const qSkill = skillDocs.find((s) => String(s._id) === String(q.skillId));
       const publicSkillId = String(qSkill?.metadata?.mathPathSkillId || qSkill?.metadata?.frameworkCode || qSkill?.slug || q.skillId);
