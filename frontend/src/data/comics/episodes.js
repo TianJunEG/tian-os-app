@@ -792,8 +792,117 @@ export const episodes = [
       },
     ],
     nextEpisode: {
-      teaser: "That's the whole Tian 7! New adventures — and trickier challenges — are coming soon.",
-      character: 'tiano',
+      teaser: "That's the whole Tian 7! Next up: Talia and Kylo split a feast — but only if every share is fair.",
+      character: 'talia',
+    },
+  },
+  {
+    id: 'ep-008',
+    slug: 'fair-shares',
+    title: 'Fair Shares',
+    episode: 8,
+    grade: 'P3–P4',
+    publishedAt: '2026-08-04',
+    tagline: 'Talia will only share the food if every portion is an exactly fair fraction.',
+    coverCharacters: ['talia', 'kylo'],
+    coverBg: 'hawker-centre',
+    panels: [
+      {
+        id: 'p1',
+        scene: 'hawker-centre',
+        characters: [
+          { key: 'talia', pose: 'standing', side: 'left' },
+          { key: 'kylo', pose: 'excited', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'talia',
+            side: 'left',
+            text: "Pizza time! It's cut into 8 equal slices. We share fairly, agreed?",
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Half for you, half for me. How many slices is half?',
+          },
+        ],
+        problem: {
+          id: 'e8-p1-q1',
+          question: 'A pizza is cut into 8 equal slices. How many slices make up 1/2 of the pizza?',
+          hint: 'One half means splitting the 8 slices into 2 equal groups: 8 ÷ 2.',
+          answer: 4,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'fraction-of-quantity',
+        },
+      },
+      {
+        id: 'p2',
+        scene: 'hawker-centre',
+        characters: [
+          { key: 'talia', pose: 'thinking', side: 'left' },
+          { key: 'kylo', pose: 'pointing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'talia',
+            side: 'left',
+            text: 'This kaya cake has 6 equal pieces. You may take one third.',
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'One third of six… let me work it out.',
+          },
+        ],
+        problem: {
+          id: 'e8-p2-q1',
+          question: 'A cake is cut into 6 equal pieces. How many pieces make up 1/3 of the cake?',
+          hint: 'One third means splitting the 6 pieces into 3 equal groups: 6 ÷ 3.',
+          answer: 2,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'fraction-of-quantity',
+        },
+      },
+      {
+        id: 'p3',
+        scene: 'hawker-centre',
+        characters: [
+          { key: 'talia', pose: 'happy', side: 'left' },
+          { key: 'kylo', pose: 'standing', side: 'right' },
+        ],
+        speech: [
+          {
+            character: 'talia',
+            side: 'left',
+            text: "Last one. I have 12 sweets, and I'll give away three quarters.",
+          },
+          {
+            character: 'kylo',
+            side: 'right',
+            text: 'Three quarters of twelve — that is a lot of sweets!',
+          },
+          {
+            character: 'talia',
+            side: 'left',
+            text: 'Work it out and they are all yours.',
+          },
+        ],
+        problem: {
+          id: 'e8-p3-q1',
+          question: 'Talia has 12 sweets and gives away 3/4 of them. How many sweets does she give away?',
+          hint: 'First find 1/4 of 12 (that is 12 ÷ 4 = 3). Three quarters is 3 lots of that.',
+          answer: 9,
+          unit: '',
+          unitPosition: 'suffix',
+          skill: 'fraction-of-set',
+        },
+      },
+    ],
+    nextEpisode: {
+      teaser: 'Next week: shapes, sides and angles — can the crew spot the odd one out?',
+      character: 'kaesy',
     },
   },
 ];

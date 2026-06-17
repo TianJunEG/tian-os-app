@@ -53,6 +53,10 @@ router.post('/:episodeId/complete', async (req, res) => {
       'e7-p1-q1': 'data-bar-chart-difference',
       'e7-p2-q1': 'data-addition',
       'e7-p3-q1': 'data-total',
+      // Episode 8 — Fair Shares
+      'e8-p1-q1': 'fraction-of-quantity',
+      'e8-p2-q1': 'fraction-of-quantity',
+      'e8-p3-q1': 'fraction-of-set',
     };
 
     await Promise.allSettled(
