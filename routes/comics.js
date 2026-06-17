@@ -12,68 +12,70 @@ router.use(protect);
 // real Skill document (see below); unmapped/unknown slugs save progress but are
 // skipped for mastery rather than failing. Problem IDs are episode-prefixed
 // (Ep1 is unprefixed for historical reasons) and globally unique.
+// Values are real Skill.slug values from the MathPath taxonomy
+// (scripts/domains/*.js), so MasteryRecord writes land on the right skill.
 const SKILL_SLUG = {
-  // Episode 1 — Hawker Heroes
-  'p1-q1': 'addition-within-100',
-  'p2-q1': 'money-addition',
-  'p3-q1': 'money-subtraction',
-  // Episode 2 — Sticker Squad
-  'e2-p1-q1': 'division-equal-sharing',
-  'e2-p2-q1': 'division-within-tables',
-  'e2-p3-q1': 'division-with-remainder',
-  // Episode 3 — Party Planner
-  'e3-p1-q1': 'money-addition',
-  'e3-p2-q1': 'money-multiplication',
-  'e3-p3-q1': 'money-subtraction',
-  // Episode 4 — Pattern Detective
-  'e4-p1-q1': 'number-patterns',
-  'e4-p2-q1': 'number-patterns',
-  'e4-p3-q1': 'number-patterns',
-  // Episode 5 — Measure Up
-  'e5-p1-q1': 'measurement-length-addition',
-  'e5-p2-q1': 'measurement-length-subtraction',
-  'e5-p3-q1': 'measurement-conversion-cm-m',
-  // Episode 6 — Beat the Clock
-  'e6-p1-q1': 'time-duration',
-  'e6-p2-q1': 'time-multiplication',
-  'e6-p3-q1': 'time-conversion-min-to-hour',
-  // Episode 7 — Chart Champions
-  'e7-p1-q1': 'data-bar-chart-difference',
-  'e7-p2-q1': 'data-addition',
-  'e7-p3-q1': 'data-total',
-  // Episode 8 — Fair Shares
-  'e8-p1-q1': 'fraction-of-quantity',
-  'e8-p2-q1': 'fraction-of-quantity',
-  'e8-p3-q1': 'fraction-of-set',
-  // Episode 9 — Shape Squad
-  'e9-p1-q1': '2d-shape-sides',
-  'e9-p2-q1': '2d-shape-vertices',
-  'e9-p3-q1': '2d-shape-sides-total',
-  // Episode 10 — Weighing In
-  'e10-p1-q1': 'mass-addition',
-  'e10-p2-q1': 'mass-conversion-kg-g',
-  'e10-p3-q1': 'mass-subtraction',
-  // Episode 11 — Topped Up
-  'e11-p1-q1': 'capacity-addition',
-  'e11-p2-q1': 'capacity-conversion-l-ml',
-  'e11-p3-q1': 'capacity-subtraction',
-  // Episode 12 — Table Master
-  'e12-p1-q1': 'multiplication-tables',
-  'e12-p2-q1': 'multiplication-word-problem',
-  'e12-p3-q1': 'multiplication-multistep',
-  // Episode 13 — Perimeter Patrol
-  'e13-p1-q1': 'perimeter-square',
-  'e13-p2-q1': 'perimeter-rectangle',
-  'e13-p3-q1': 'perimeter-missing-side',
-  // Episode 14 — Round It Out
-  'e14-p1-q1': 'place-value',
-  'e14-p2-q1': 'rounding-nearest-10',
-  'e14-p3-q1': 'rounding-nearest-100',
+  // Episode 1 — Hawker Heroes (money)
+  'p1-q1': 'mon.add',
+  'p2-q1': 'mon.add',
+  'p3-q1': 'mon.change',
+  // Episode 2 — Sticker Squad (division)
+  'e2-p1-q1': 'op.div.facts',
+  'e2-p2-q1': 'op.div.facts',
+  'e2-p3-q1': 'op.div.remainder',
+  // Episode 3 — Party Planner (money)
+  'e3-p1-q1': 'mon.add',
+  'e3-p2-q1': 'mon.total-cost',
+  'e3-p3-q1': 'mon.change',
+  // Episode 4 — Pattern Detective (number patterns)
+  'e4-p1-q1': 'ns.pattern.arithmetic',
+  'e4-p2-q1': 'ns.pattern.arithmetic',
+  'e4-p3-q1': 'ns.pattern.complex',
+  // Episode 5 — Measure Up (length)
+  'e5-p1-q1': 'mea.length',
+  'e5-p2-q1': 'mea.length',
+  'e5-p3-q1': 'mea.unit-convert',
+  // Episode 6 — Beat the Clock (time)
+  'e6-p1-q1': 'tim.duration',
+  'e6-p2-q1': 'tim.duration',
+  'e6-p3-q1': 'tim.convert',
+  // Episode 7 — Chart Champions (data)
+  'e7-p1-q1': 'stat.bar-graphs',
+  'e7-p2-q1': 'stat.bar-graphs',
+  'e7-p3-q1': 'stat.bar-graphs',
+  // Episode 8 — Fair Shares (fractions of a quantity)
+  'e8-p1-q1': 'fr.of-quantity',
+  'e8-p2-q1': 'fr.of-quantity',
+  'e8-p3-q1': 'fr.of-quantity',
+  // Episode 9 — Shape Squad (2D shape properties)
+  'e9-p1-q1': 'geo.2d-properties',
+  'e9-p2-q1': 'geo.2d-properties',
+  'e9-p3-q1': 'geo.2d-properties',
+  // Episode 10 — Weighing In (mass)
+  'e10-p1-q1': 'mea.mass',
+  'e10-p2-q1': 'mea.unit-convert',
+  'e10-p3-q1': 'mea.mass',
+  // Episode 11 — Topped Up (capacity)
+  'e11-p1-q1': 'mea.volume-capacity',
+  'e11-p2-q1': 'mea.unit-convert',
+  'e11-p3-q1': 'mea.volume-capacity',
+  // Episode 12 — Table Master (multiplication)
+  'e12-p1-q1': 'op.mult.facts',
+  'e12-p2-q1': 'op.mult.facts',
+  'e12-p3-q1': 'op.mult.facts',
+  // Episode 13 — Perimeter Patrol (perimeter)
+  'e13-p1-q1': 'ap.perimeter-rect',
+  'e13-p2-q1': 'ap.perimeter-rect',
+  'e13-p3-q1': 'ap.perimeter-rect',
+  // Episode 14 — Round It Out (place value & rounding)
+  'e14-p1-q1': 'ns.pv.3-digit',
+  'e14-p2-q1': 'ns.round.10-100',
+  'e14-p3-q1': 'ns.round.10-100',
   // Episode 15 — The Grand Quiz (mixed-skills finale)
-  'e15-p1-q1': 'number-patterns',
-  'e15-p2-q1': 'division-equal-sharing',
-  'e15-p3-q1': 'fraction-of-quantity',
-  'e15-p4-q1': 'measurement-conversion-m-cm',
+  'e15-p1-q1': 'ns.pattern.arithmetic',
+  'e15-p2-q1': 'op.div.facts',
+  'e15-p3-q1': 'fr.of-quantity',
+  'e15-p4-q1': 'mea.unit-convert',
 };
 
 // POST /api/comics/:episodeId/complete
