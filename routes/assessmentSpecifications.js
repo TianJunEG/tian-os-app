@@ -21,6 +21,8 @@ import {
 } from '../services/mathpath/testModePresets.js';
 import { sourceWeakSkills } from '../services/mathpath/weaknessSkillSourcer.js';
 import { buildPaperSections } from '../services/mathpath/paperSectioning.js';
+import { buildBlueprintSectionPlan } from '../services/mathpath/blueprintPaperBuilder.js';
+import AssessmentBlueprint from '../models/mathpath/AssessmentBlueprint.js';
 import { markAssessment } from '../services/mathpath/assessmentSubmissionService.js';
 import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
@@ -219,6 +221,118 @@ function questionPreferenceScore(q, modeConfig = {}) {
   return score;
 }
 
+// Generate a paper section-by-section from an AssessmentBlueprint. Draws from the
+// union of the spec's topic skills; each blueprint section fixes its name, marks,
+// question count, allowed types, and difficulty mix.
+async function generateFromBlueprint({ spec, subject, blueprint, plan, topicRows, testMode, effectiveTimed, sessionId, targetStudentId }) {
+  // Resolve the union of skills across the spec's topic rows.
+  const skillKeySet = new Set();
+  for (const row of asArray(topicRows)) {
+    const keys = await resolveTopicSkillIds(row, subject._id);
+    keys.forEach((k) => skillKeySet.add(k));
+  }
+  const skillKeys = [...skillKeySet];
+  const skillDocs = await Skill.find({
+    $or: [
+      { _id: { $in: skillKeys.map(toObjectId).filter(Boolean) } },
+      { slug: { $in: skillKeys } },
+      { 'metadata.mathPathSkillId': { $in: skillKeys } },
+      { 'metadata.frameworkCode': { $in: skillKeys } },
+    ],
+  }).select('_id slug metadata topicId');
+  const skillDocIds = skillDocs.map((s) => s._id);
+  const publicIdOf = (q) => {
+    const qSkill = skillDocs.find((s) => String(s._id) === String(q.skillId));
+    return String(qSkill?.metadata?.mathPathSkillId || qSkill?.metadata?.frameworkCode || qSkill?.slug || q.skillId);
+  };
+
+  const targetSkillIds = new Set();
+  const targetQuestionFamilyIds = new Set();
+  const responsesBlueprint = [];
+  const sections = [];
+  let sectionIndex = 0;
+
+  for (const sec of plan) {
+    const bands = ['easy', 'medium', 'hard'].filter((b) => Number(sec.difficultyMix[b] || 0) > 0);
+    const pool = await Question.find({
+      subjectId: subject._id,
+      skillId: { $in: skillDocIds },
+      ...(sec.questionTypes.length ? { type: { $in: sec.questionTypes } } : {}),
+      ...(bands.length ? { difficulty: { $in: bands } } : {}),
+    }).limit(Math.max(sec.questionCount * 5, 30)).lean();
+
+    const selected = sampleQuestionsByDifficulty(pool, sec.questionCount, sec.difficultyMix);
+    const startIndex = responsesBlueprint.length;
+    selected.forEach((q, idx) => {
+      const publicSkillId = publicIdOf(q);
+      const familyId = `BP_${sec.id}_${publicSkillId}_${idx + 1}`;
+      targetSkillIds.add(publicSkillId);
+      targetQuestionFamilyIds.add(familyId);
+      responsesBlueprint.push({
+        questionId: String(q._id),
+        skillId: publicSkillId,
+        skillRefId: String(q.skillId || ''),
+        questionFamilyId: familyId,
+        prompt: q.stem,
+        type: q.type || 'short_answer',
+        choices: q.choices || [],
+        answer: { display: String(q.answer || '') },
+        acceptedAnswers: [String(q.answer || '')],
+        solutionSteps: q.workedSolution ? [String(q.workedSolution)] : [],
+        difficulty: q.difficulty,
+        marks: questionMarksForDifficulty(q.difficulty || 'medium'),
+        misconceptionTag: String(q.misconceptionTag || ''),
+        workingRequired: true,
+        mentalMathEligible: false,
+        sectionId: sec.id,
+        sectionIndex,
+        paper: sec.paper,
+      });
+    });
+    sections.push({
+      id: sec.id,
+      paper: sec.paper,
+      name: sec.name,
+      shortName: sec.name,
+      questionTypes: sec.questionTypes,
+      instructions: '',
+      calculatorAllowed: sec.calculatorAllowed,
+      marks: selected.reduce((s, q) => s + questionMarksForDifficulty(q.difficulty || 'medium'), 0),
+      questionCount: selected.length,
+      startIndex,
+    });
+    sectionIndex += 1;
+  }
+
+  const generatedTotalMarks = responsesBlueprint.reduce((s, q) => s + Number(q.marks || 0), 0);
+
+  return persistGeneratedPaper({
+    spec,
+    sessionId,
+    targetStudentId,
+    domainId: (topicRows[0]?.domainId || 'fractions'),
+    testMode,
+    effectiveTimed,
+    targetSkillIds: [...targetSkillIds],
+    targetQuestionFamilyIds: [...targetQuestionFamilyIds],
+    generatedTotalMarks,
+    topicBlueprint: plan.map((p) => ({
+      topicName: p.name,
+      requestedMarks: p.marks,
+      allocatedMarks: p.marks,
+      questionCount: sections.find((s) => s.id === p.id)?.questionCount || 0,
+      difficulty: 'mixed',
+      difficultyMix: p.difficultyMix,
+      skillIds: [],
+    })),
+    sections,
+    questions: responsesBlueprint,
+    durationMinutes: Number(blueprint.durationMinutes || spec.durationMinutes || 0),
+    calculatorAllowed: Boolean(blueprint.calculatorAllowed),
+    blueprintId: blueprint._id,
+  });
+}
+
 export async function generateTestFromSpecification(specificationId, options = {}) {
   const spec = await AssessmentSpecification.findById(specificationId);
   if (!spec) throw new Error('Assessment specification not found.');
@@ -281,6 +395,19 @@ export async function generateTestFromSpecification(specificationId, options = {
     Number(spec.totalMarks || 0) || (synthesizedFromWeakness ? weakSkillIds.length * 4 : 0)
   );
   const markSum = topicRows.reduce((s, t) => s + Math.max(0, Number(t.marks || 0)), 0) || totalMarks;
+
+  // Blueprint-driven path: when the spec references an AssessmentBlueprint with
+  // sections, build the paper section-by-section per the blueprint (names, marks,
+  // question types, difficulty mix) instead of the type-based default.
+  if (spec.assessmentBlueprintId) {
+    const blueprint = await AssessmentBlueprint.findById(spec.assessmentBlueprintId);
+    const plan = blueprint ? buildBlueprintSectionPlan(blueprint) : [];
+    if (plan.length) {
+      return generateFromBlueprint({
+        spec, subject, blueprint, plan, topicRows, testMode, effectiveTimed, sessionId, targetStudentId,
+      });
+    }
+  }
 
   const targetSkillIds = new Set();
   const targetQuestionFamilyIds = new Set();
@@ -424,19 +551,48 @@ export async function generateTestFromSpecification(specificationId, options = {
     calculatorAllowed: Boolean(spec.calculatorAllowed),
   });
 
+  return persistGeneratedPaper({
+    spec,
+    sessionId,
+    targetStudentId,
+    domainId: (topicRows[0]?.domainId || 'fractions').toLowerCase(),
+    testMode,
+    effectiveTimed,
+    weakSkillIds,
+    synthesizedFromWeakness,
+    targetSkillIds: [...targetSkillIds],
+    targetQuestionFamilyIds: [...targetQuestionFamilyIds],
+    generatedTotalMarks,
+    topicBlueprint,
+    sections,
+    questions: sectionedQuestions,
+    durationMinutes: Number(spec.durationMinutes || 0),
+    calculatorAllowed: Boolean(spec.calculatorAllowed),
+  });
+}
+
+// Create the assessment session and shape the generate response. Shared by the
+// topic-based path and the blueprint-driven path so both persist identically.
+async function persistGeneratedPaper({
+  spec, sessionId, targetStudentId, domainId, testMode, effectiveTimed,
+  weakSkillIds = [], synthesizedFromWeakness = false,
+  targetSkillIds = [], targetQuestionFamilyIds = [],
+  generatedTotalMarks, topicBlueprint = [], sections = [], questions = [],
+  durationMinutes, calculatorAllowed, blueprintId = null,
+}) {
   const sessionDoc = await MathPathAssessmentSession.create({
     assessmentSessionId: sessionId,
     studentId: targetStudentId || 'class-assignment',
-    domainId: (topicRows[0]?.domainId || 'fractions').toLowerCase(),
+    domainId: String(domainId || 'fractions').toLowerCase(),
     assessmentType: 'curriculum',
     mode: 'tos',
     singaporeLevel: spec.level || '',
     paperType: spec.paperType || '',
-    targetSkillIds: [...targetSkillIds],
-    targetQuestionFamilyIds: [...targetQuestionFamilyIds],
+    targetSkillIds,
+    targetQuestionFamilyIds,
     totalMarks: generatedTotalMarks,
-    timeLimitMinutes: Number(spec.durationMinutes || 0),
-    calculatorAllowed: Boolean(spec.calculatorAllowed),
+    timeLimitMinutes: Number(durationMinutes || 0),
+    calculatorAllowed: Boolean(calculatorAllowed),
     workingRequired: true,
     status: 'notStarted',
     result: {
@@ -445,11 +601,12 @@ export async function generateTestFromSpecification(specificationId, options = {
       timed: effectiveTimed,
       weakSkillIds,
       synthesizedFromWeakness,
+      blueprintId: blueprintId ? String(blueprintId) : null,
       source: spec.source,
       title: spec.title,
       topicBlueprint,
       sections,
-      questions: sectionedQuestions,
+      questions,
     },
   });
 
@@ -467,12 +624,13 @@ export async function generateTestFromSpecification(specificationId, options = {
     timed: effectiveTimed,
     weakSkillIds,
     synthesizedFromWeakness,
-    durationMinutes: Number(spec.durationMinutes || 0),
-    calculatorAllowed: Boolean(spec.calculatorAllowed),
+    blueprintId: blueprintId ? String(blueprintId) : null,
+    durationMinutes: Number(durationMinutes || 0),
+    calculatorAllowed: Boolean(calculatorAllowed),
     totalMarks: generatedTotalMarks,
     topicBlueprint,
     sections,
-    questions: sectionedQuestions,
+    questions,
   };
 }
 
