@@ -941,7 +941,7 @@ function DomainSkillStatesPanel({ skillStates, domainGroup }) {
 
 function CurriculumDomainIntelligence({ dash }) {
   if (!dash || !dash.available) return null;
-  const { skillSummary, recommendedFocus, interventionPriorities, rootCauses, mistakeClusters } = dash;
+  const { skillSummary, recommendedFocus, interventionPriorities, rootCauses, mistakeClusters, fluencyBottlenecks = [], retentionRisks = [] } = dash;
 
   return (
     <div className="space-y-4">
@@ -1039,6 +1039,55 @@ function CurriculumDomainIntelligence({ dash }) {
           </div>
         ) : <p className="mt-2 text-sm text-ink-500">No recurring mistakes logged for this domain yet.</p>}
       </Card>
+
+      <Card className="p-5">
+        <div className="flex items-center gap-2">
+          <Clock3 className="h-4 w-4 text-gold-700" />
+          <h3 className="text-sm font-semibold text-ink-700">Fluency Bottlenecks</h3>
+        </div>
+        {fluencyBottlenecks.length ? (
+          <div className="mt-3 space-y-2 text-sm">
+            {fluencyBottlenecks.slice(0, 6).map((f) => (
+              <div key={f.questionFamilyId} className="rounded-lg border border-line-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink-700">{f.skillName}</p>
+                  <Badge tone={issueTone(f.issueType)}>{readableIssue(f.issueType)}</Badge>
+                </div>
+                <p className="text-ink-600">{f.questionFamilyName}</p>
+                <p className="text-ink-600">
+                  Accuracy: {f.accuracy}% · Avg time: {f.averageTime != null ? `${f.averageTime}s` : '—'}
+                  {f.benchmarkTime != null ? ` · Target: ${f.benchmarkTime}s` : ''} · {f.attempts} attempts
+                </p>
+                <p className="text-ink-700"><span className="font-semibold">Recommended:</span> {readableAction(f.recommendation)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-ink-500">
+            No fluency bottlenecks detected yet — needs at least a few timed attempts per question family.
+          </p>
+        )}
+      </Card>
+
+      <Card className="p-5">
+        <h3 className="text-sm font-semibold text-ink-700">Retention Risks</h3>
+        {retentionRisks.length ? (
+          <div className="mt-3 space-y-2 text-sm">
+            {retentionRisks.slice(0, 6).map((r) => (
+              <div key={r.skillId} className="rounded-lg border border-line-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink-700">{r.skillName}</p>
+                  <Badge tone={severityTone(r.riskLevel)}>{r.riskLevel === 'high' ? 'Likely forgotten' : 'Due for review'}</Badge>
+                </div>
+                <p className="text-ink-600">Mastered, but not practised in {r.daysSincePractice} days.</p>
+                <p className="text-ink-700"><span className="font-semibold">Recommended:</span> {readableAction(r.recommendation)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-ink-500">No retention risks — secure skills have been practised recently.</p>
+        )}
+      </Card>
     </div>
   );
 }
@@ -1059,6 +1108,7 @@ export default function TutorMathPathDashboardPage() {
   const [retentionSummary, setRetentionSummary] = useState(null);
   const [activeDomain, setActiveDomain] = useState('fractions');
   const [domainSkillStates, setDomainSkillStates] = useState([]);
+  const [domainAttempts, setDomainAttempts] = useState([]);
   const [domainStatesLoading, setDomainStatesLoading] = useState(false);
   const [studentMistakes, setStudentMistakes] = useState([]);
 
@@ -1140,10 +1190,15 @@ export default function TutorMathPathDashboardPage() {
   const loadDomainSkillStates = useCallback(async (domainGroup) => {
     setDomainStatesLoading(true);
     try {
-      const res = await mathpathAPI.getSkillStates(id, domainGroup.domainIds);
-      setDomainSkillStates(res?.data?.skillStates || []);
+      const [statesRes, attemptsRes] = await Promise.all([
+        mathpathAPI.getSkillStates(id, domainGroup.domainIds),
+        mathpathAPI.getAttempts(id, domainGroup.domainIds).catch(() => null),
+      ]);
+      setDomainSkillStates(statesRes?.data?.skillStates || []);
+      setDomainAttempts(attemptsRes?.data?.attempts || []);
     } catch {
       setDomainSkillStates([]);
+      setDomainAttempts([]);
     } finally {
       setDomainStatesLoading(false);
     }
@@ -1171,8 +1226,8 @@ export default function TutorMathPathDashboardPage() {
     if (activeDomain === 'fractions') return null;
     const resolvers = getDomainResolvers(activeDomain);
     if (!resolvers) return null;
-    return buildCurriculumDomainDashboard({ resolvers, skillStates: domainSkillStates, mistakes: studentMistakes });
-  }, [activeDomain, domainSkillStates, studentMistakes]);
+    return buildCurriculumDomainDashboard({ resolvers, skillStates: domainSkillStates, mistakes: studentMistakes, attempts: domainAttempts });
+  }, [activeDomain, domainSkillStates, studentMistakes, domainAttempts]);
 
   if (loading) return <Spinner label="Loading tutor dashboard…" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
@@ -1224,10 +1279,10 @@ export default function TutorMathPathDashboardPage() {
                   {CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} intelligence
                 </p>
                 <p className="mt-1 text-ink-600">
-                  Skill mastery, root-cause analysis, mistake clusters, intervention queue and recommended lesson focus are
-                  live for this domain, built from the student's skill states and logged mistakes. Fluency &amp; retention
-                  modelling and working-evidence review remain <span className="font-semibold">Fractions</span>-only for now
-                  (those need per-domain practice timing data that isn't collected yet).
+                  Skill mastery, root-cause analysis, mistake clusters, intervention queue, recommended lesson focus,
+                  fluency bottlenecks and retention risks are live for this domain, built from the student's skill states,
+                  logged mistakes and timed practice attempts. Working-evidence review remains
+                  <span className="font-semibold"> Fractions</span>-only for now (curriculum practice doesn't capture written working yet).
                 </p>
               </div>
             </div>
