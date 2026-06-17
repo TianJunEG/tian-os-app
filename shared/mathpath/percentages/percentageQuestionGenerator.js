@@ -45,6 +45,12 @@ function round2(value) {
   return Math.round(value * 100) / 100;
 }
 
+// Format a dollar amount with two decimal places — Singapore exams never write
+// "$4.4". The numeric answer.value is kept separate for tolerance matching.
+function money(value) {
+  return `$${Number(value).toFixed(2)}`;
+}
+
 // ── Question assembly helpers ─────────────────────────────────────────────────
 function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode }) {
   return {
@@ -252,7 +258,7 @@ const GENERATORS = {
       family,
       prompt,
       answer,
-      display: `$${answer}`,
+      display: money(answer),
       solutionSteps: [
         `${p}% of ${q} = ${change}.`,
         `New price = ${q} ${isIncrease ? '+' : '−'} ${change} = ${answer}.`,
@@ -305,7 +311,7 @@ const GENERATORS = {
       family,
       prompt,
       answer,
-      display: `$${answer}`,
+      display: money(answer),
       solutionSteps: [
         `Discount = ${p}% × $${price} = $${discount}.`,
         askAmount
@@ -333,12 +339,12 @@ const GENERATORS = {
       family,
       prompt,
       answer,
-      display: `$${answer}`,
+      display: money(answer),
       solutionSteps: [
-        `GST = ${p}% × $${price} = $${gstAmt}.`,
+        `GST = ${p}% × $${price} = ${money(gstAmt)}.`,
         askAmount
-          ? `GST amount = $${gstAmt}.`
-          : `Total = $${price} + $${gstAmt} = $${total}.`,
+          ? `GST amount = ${money(gstAmt)}.`
+          : `Total = $${price} + ${money(gstAmt)} = ${money(total)}.`,
       ],
       misconceptionTag: family.misconceptionTags[0] || 'pct/gst-wrong-base',
       difficulty,
@@ -362,7 +368,7 @@ const GENERATORS = {
       family,
       prompt,
       answer,
-      display: `$${answer}`,
+      display: money(answer),
       solutionSteps: [
         `Interest per year = ${rate}% × $${principal} = $${(principal * rate) / 100}.`,
         `Interest for ${years} year${years > 1 ? 's' : ''} = $${(principal * rate) / 100} × ${years} = $${interest}.`,

@@ -30,10 +30,13 @@ export default defineConfig({
         // Split heavy/stable vendors into their own cacheable chunks so the app
         // code stays small and KaTeX (with its fonts) loads in parallel and is
         // cached across deploys instead of re-downloaded with every app change.
-        manualChunks: (id) => {
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'react';
-          if (id.includes('katex')) return 'katex';
-          if (id.includes('lucide-react')) return 'icons';
+        // Function form (not object) is required by Vite 8's rolldown bundler.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('/katex/')) return 'katex';
+          if (id.includes('/lucide-react/')) return 'icons';
+          if (/[\\/](react|react-dom|react-router|react-router-dom|@remix-run[\\/]router|scheduler)[\\/]/.test(id)) return 'react';
+          return undefined;
         },
       },
     },

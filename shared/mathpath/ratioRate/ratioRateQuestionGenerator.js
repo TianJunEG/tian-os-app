@@ -356,9 +356,12 @@ const GENERATORS = {
     const boysAfter = boysBefore + boysAdded;
 
     if (family.name.toLowerCase().includes('harder')) {
-      // Harder: given after-ratio and total, find original boys
-      const [c, d] = pick(rng, ratioOptions.filter(([x]) => x > a));
-      if (!c) {
+      // Harder: given after-ratio and total, find original boys.
+      // Check the filtered set BEFORE destructuring: when `a` is the largest
+      // first term the filter is empty and pick() returns undefined, which used
+      // to throw on `const [c, d] = undefined` (~27% of variants). See audit.
+      const harderOptions = ratioOptions.filter(([x]) => x > a);
+      if (harderOptions.length === 0) {
         // fallback to basic
         const prompt = `Before: ${boysBefore} boys and ${girlCount} girls. ${boysAdded} boys join. How many boys are there now?`;
         return shortAnswer({
@@ -368,7 +371,9 @@ const GENERATORS = {
           misconceptionTag: 'rr/assume-total-constant', difficulty, mode,
         });
       }
-      // girlCount unchanged; after ratio boys:girls = c:d → but we keep simple version
+      // girlCount unchanged; the harder variant currently falls through to the
+      // same forward prompt below (a genuinely harder reconstruction task is a
+      // P1 follow-up — see audit).
     }
 
     const prompt = `Before, the ratio of boys to girls was ${a} : ${b}. There were ${girlCount} girls. After ${boysAdded} more boys joined, how many boys are there?`;
@@ -427,24 +432,31 @@ const GENERATORS = {
   },
 
   rrRate(rng, family, difficulty, mode) {
+    const money = (v) => `$${Number(v).toFixed(2)}`;
     const quantities = [2, 4, 5, 8, 10];
     const unitPrices = [1.5, 2, 2.5, 3, 4, 5];
     const q = pick(rng, quantities);
     const unitPrice = pick(rng, unitPrices);
     const c = round2(q * unitPrice);
-    const items = ['kg of rice', 'litres of milk', 'pens', 'exercise books', 'apples', 'kg of sugar'];
+    // Each item carries its correct per-unit noun (so it is "per kg", not the
+    // old "per item" which came from a broken split('kg of rice').pop()).
+    const items = [
+      { label: 'kg of rice', unit: 'kg' }, { label: 'litres of milk', unit: 'litre' },
+      { label: 'pens', unit: 'pen' }, { label: 'exercise books', unit: 'book' },
+      { label: 'apples', unit: 'apple' }, { label: 'kg of sugar', unit: 'kg' },
+    ];
     const item = pick(rng, items);
 
-    const askUnitRate = !family.name.toLowerCase().includes('quantity');
+    // "Find the Unit Rate" asks the rate; "Rate Word Problem" applies it.
+    const askUnitRate = family.name.toLowerCase().includes('unit rate');
     if (askUnitRate) {
-      const display = `$${unitPrice}`;
       return shortAnswer({
         family,
-        prompt: `${q} ${item} cost $${c}. Find the cost per ${item.split(' ').pop() === 'kg' ? 'kg' : 'item'}.`,
+        prompt: `${q} ${item.label} cost ${money(c)}. Find the cost per ${item.unit}.`,
         answer: unitPrice,
-        display,
+        display: money(unitPrice),
         solutionSteps: [
-          `Cost per unit = $${c} ÷ ${q} = $${unitPrice}.`,
+          `Cost per ${item.unit} = ${money(c)} ÷ ${q} = ${money(unitPrice)}.`,
         ],
         misconceptionTag: 'rr/rate-inverted',
         difficulty,
@@ -455,12 +467,12 @@ const GENERATORS = {
     const cost2 = round2(q2 * unitPrice);
     return shortAnswer({
       family,
-      prompt: `${q} ${item} cost $${c}. How much do ${q2} ${item} cost?`,
+      prompt: `${q} ${item.label} cost ${money(c)}. At the same rate, how much do ${q2} ${item.label} cost?`,
       answer: cost2,
-      display: `$${cost2}`,
+      display: money(cost2),
       solutionSteps: [
-        `Cost per unit = $${c} ÷ ${q} = $${unitPrice}.`,
-        `Cost for ${q2} = $${unitPrice} × ${q2} = $${cost2}.`,
+        `Cost per ${item.unit} = ${money(c)} ÷ ${q} = ${money(unitPrice)}.`,
+        `Cost for ${q2} = ${money(unitPrice)} × ${q2} = ${money(cost2)}.`,
       ],
       misconceptionTag: 'rr/rate-inverted',
       difficulty,
@@ -497,10 +509,13 @@ const GENERATORS = {
 
   rrSpeed(rng, family, difficulty, mode) {
     // Variants: find speed, find distance, find time
-    const variants = ['speed', 'distance', 'time'];
-    const askFor = family.name.toLowerCase().includes('distance') || family.name.toLowerCase().includes('time')
-      ? pick(rng, ['distance', 'time'])
-      : 'speed';
+    // The "Speed = Distance ÷ Time" family must ask for SPEED; the "Distance or
+    // Time from Speed" family asks for one of the others. The old test keyed on
+    // the words 'distance'/'time', which the speed family's own name contains,
+    // so it never asked for speed.
+    const askFor = family.name.toLowerCase().startsWith('speed')
+      ? 'speed'
+      : pick(rng, ['distance', 'time']);
     const speeds = [40, 50, 60, 80, 90, 100];
     const times = [2, 3, 4, 5, 6];
     const s = pick(rng, speeds);

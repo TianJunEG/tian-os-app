@@ -9,7 +9,8 @@ import { tutorAPI, mathpathAPI } from '../../services/api';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { buildTutorMathPathDashboard } from '../../mathpath/dashboard/tutorMathPathDashboardEngine';
 import { getSkill } from '../../mathpath/fractions/fractionSkillGraph';
-import { CURRICULUM_DOMAINS, getSkillFromDomain } from '../../mathpath/curriculumDomainIndex';
+import { CURRICULUM_DOMAINS, getSkillFromDomain, getDomainResolvers } from '../../mathpath/curriculumDomainIndex';
+import { buildCurriculumDomainDashboard } from '../../mathpath/dashboard/curriculumDomainTutorEngine';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import DiagnosticGrowthCard from '../../components/mathpath/DiagnosticGrowthCard';
 
@@ -646,6 +647,54 @@ function WorkingEvidenceMvp({ workingReview = {} }) {
   );
 }
 
+function QuestionsStruggledCard({ mistakes = [], skillCodeFilter = null, domainLabel }) {
+  const rows = (Array.isArray(mistakes) ? mistakes : [])
+    .filter((m) => {
+      if (!skillCodeFilter) return true;
+      return m.skillCode && skillCodeFilter.has(m.skillCode);
+    })
+    .slice(0, 8);
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center gap-2">
+        <AlertTriangle className="h-4 w-4 text-error-700" />
+        <h3 className="text-sm font-semibold text-ink-700">Questions Struggled With</h3>
+      </div>
+      {rows.length ? (
+        <div className="mt-3 space-y-2 text-sm">
+          {rows.map((m) => (
+            <div key={m.id} className="rounded-lg border border-line-soft p-3">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-medium text-ink-800">{m.questionStem || 'Question'}</p>
+                {(m.skillName || m.skillCode) && (
+                  <span className="shrink-0 font-mono text-xs text-ink-400">{m.skillCode || m.skillName}</span>
+                )}
+              </div>
+              <p className="mt-1 text-ink-600">
+                <span className="text-error-700">Answered: {m.studentAnswer || '—'}</span>
+                {m.correctAnswer ? <span className="text-emerald-deep"> · Correct: {m.correctAnswer}</span> : null}
+              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-ink-500">
+                {m.misconceptionTag && <Badge tone="error">{m.misconceptionTag}</Badge>}
+                {m.confidence && <span>Confidence: {m.confidence}</span>}
+                <span>Status: {m.learningStatus || m.mistakeStatus || 'new'}</span>
+                {m.occurredAt && <span>· {formatDate(m.occurredAt)}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-sm text-ink-500">
+          {skillCodeFilter
+            ? `No recorded incorrect questions for ${domainLabel || 'this domain'} yet.`
+            : 'No incorrect questions recorded yet.'}
+        </p>
+      )}
+    </Card>
+  );
+}
+
 function TutorActionsMvp({ id, navigate }) {
   const actions = [
     { label: 'Start Recommended Practice', icon: Target, to: `/tutor/students/${id}/lesson-prep`, disabled: false },
@@ -711,38 +760,144 @@ const DOMAIN_TAB_OPTIONS = [
   ...CURRICULUM_DOMAINS,
 ];
 
+// Normalises both the persisted MathPathStudentSkillState enum
+// (notStarted/learning/accurate/fluent/retained/needsReview/weak/forgotten)
+// and the legacy snake_case states used elsewhere.
+function normaliseMasteryState(state) {
+  return String(state || '').trim().toLowerCase().replace(/[\s_-]+/g, '');
+}
+
 function masteryLabel(state) {
-  const labels = { mastered: 'Mastered', learning: 'Learning', not_started: 'Not started', weak: 'Weak', needs_review: 'Review' };
-  return labels[state] || state || 'Not started';
+  const labels = {
+    notstarted: 'Not started', learning: 'Learning', accurate: 'Accurate',
+    fluent: 'Fluent', retained: 'Retained', needsreview: 'Review',
+    weak: 'Weak', forgotten: 'Forgotten', mastered: 'Mastered',
+  };
+  return labels[normaliseMasteryState(state)] || state || 'Not started';
 }
 
 function masteryTone(state) {
-  if (state === 'mastered') return 'positive';
-  if (state === 'learning') return 'blue';
-  if (state === 'weak' || state === 'needs_review') return 'error';
+  const key = normaliseMasteryState(state);
+  if (['mastered', 'fluent', 'retained', 'accurate'].includes(key)) return 'positive';
+  if (key === 'learning') return 'blue';
+  if (['weak', 'needsreview', 'forgotten'].includes(key)) return 'error';
   return 'neutral';
 }
 
+function skillStateAccuracy(s) {
+  if (s.attemptCount > 0) return Math.round((s.correctCount / s.attemptCount) * 100);
+  if (Number.isFinite(Number(s.accuracy)) && Number(s.accuracy) > 0) return Math.round(Number(s.accuracy));
+  return null;
+}
+
+function skillStateLastPractised(s) {
+  // Model field is British-spelt `lastPractisedAt`; tolerate the American variant too.
+  return s.lastPractisedAt || s.lastPracticedAt || null;
+}
+
+const SKILL_STATE_STATUS_FILTERS = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'attention', label: 'Needs attention (weak / review / forgotten)' },
+  { value: 'learning', label: 'Learning' },
+  { value: 'secure', label: 'Secure (accurate / fluent / retained)' },
+  { value: 'notstarted', label: 'Not started' },
+];
+
+const SKILL_STATE_DATE_FILTERS = [
+  { value: 'any', label: 'Any time' },
+  { value: '7', label: 'Practised in last 7 days' },
+  { value: '30', label: 'Practised in last 30 days' },
+];
+
+function matchesStatusFilter(state, filter) {
+  if (filter === 'all') return true;
+  const key = normaliseMasteryState(state);
+  if (filter === 'attention') return ['weak', 'needsreview', 'forgotten'].includes(key);
+  if (filter === 'learning') return key === 'learning';
+  if (filter === 'secure') return ['accurate', 'fluent', 'retained', 'mastered'].includes(key);
+  if (filter === 'notstarted') return key === 'notstarted' || !key;
+  return true;
+}
+
+function matchesDateFilter(lastPractised, filter) {
+  if (filter === 'any') return true;
+  if (!lastPractised) return false;
+  const days = Number(filter);
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return new Date(lastPractised).getTime() >= cutoff;
+}
+
 function DomainSkillStatesPanel({ skillStates, domainGroup }) {
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('any');
+
+  const decorated = useMemo(() => skillStates.map((s) => {
+    const skill = getSkillFromDomain(s.domainId, s.skillId);
+    return { ...s, _name: skill?.name || '', _topic: skill?.topic || skill?.strand || '' };
+  }), [skillStates]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return decorated.filter((s) => {
+      if (q && !(`${s.skillId} ${s._name} ${s._topic}`.toLowerCase().includes(q))) return false;
+      if (!matchesStatusFilter(s.status, statusFilter)) return false;
+      if (!matchesDateFilter(skillStateLastPractised(s), dateFilter)) return false;
+      return true;
+    });
+  }, [decorated, query, statusFilter, dateFilter]);
+
   if (!skillStates.length) {
     return (
       <Card className="p-5">
-        <p className="text-sm text-ink-500">
-          No practice data yet for {domainGroup.label}. The student hasn't started this domain.
+        <p className="text-sm font-medium text-ink-700">No practice data recorded yet for {domainGroup.label}.</p>
+        <p className="mt-1 text-sm text-ink-500">
+          This domain is wired and ready — skill states will appear here once the student attempts {domainGroup.label} practice.
+          (An empty table means no attempts yet, not that the domain is unavailable.)
         </p>
       </Card>
     );
   }
 
   const byDomain = {};
-  skillStates.forEach((s) => {
+  filtered.forEach((s) => {
     if (!byDomain[s.domainId]) byDomain[s.domainId] = [];
     byDomain[s.domainId].push(s);
   });
 
   return (
     <div className="space-y-4">
-      {Object.entries(byDomain).map(([domainId, states]) => (
+      <Card className="p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <label className="flex-1">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500">Filter by skill / topic</span>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="e.g. equivalent, area, F010…"
+              className="w-full rounded-lg border border-hairline px-3 py-2 text-sm text-ink-700 focus:border-navy-400 focus:outline-none"
+            />
+          </label>
+          <label>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500">Status</span>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="rounded-lg border border-hairline px-3 py-2 text-sm text-ink-700 focus:border-navy-400 focus:outline-none">
+              {SKILL_STATE_STATUS_FILTERS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-500">Last practised</span>
+            <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="rounded-lg border border-hairline px-3 py-2 text-sm text-ink-700 focus:border-navy-400 focus:outline-none">
+              {SKILL_STATE_DATE_FILTERS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </label>
+        </div>
+        <p className="mt-2 text-xs text-ink-400">Showing {filtered.length} of {skillStates.length} skills.</p>
+      </Card>
+
+      {filtered.length === 0 ? (
+        <Card className="p-5"><p className="text-sm text-ink-500">No skills match the current filters.</p></Card>
+      ) : Object.entries(byDomain).map(([domainId, states]) => (
         <Card key={domainId} className="p-5">
           <h3 className="mb-3 text-sm font-semibold text-ink-700 capitalize">{domainId.replace(/-/g, ' ')}</h3>
           <div className="overflow-x-auto">
@@ -753,25 +908,25 @@ function DomainSkillStatesPanel({ skillStates, domainGroup }) {
                   <th className="pb-2 pr-4">Status</th>
                   <th className="pb-2 pr-4">Accuracy</th>
                   <th className="pb-2 pr-4">Attempts</th>
-                  <th className="pb-2">Last practiced</th>
+                  <th className="pb-2">Last practised</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline">
                 {states.map((s) => {
-                  const skill = getSkillFromDomain(domainId, s.skillId);
-                  const accuracy = s.attemptCount > 0 ? Math.round((s.correctCount / s.attemptCount) * 100) : null;
+                  const accuracy = skillStateAccuracy(s);
+                  const last = skillStateLastPractised(s);
                   return (
                     <tr key={s.skillId} className="text-ink-600">
                       <td className="py-2 pr-4">
                         <span className="font-mono text-xs text-ink-400">{s.skillId}</span>
-                        {skill && <span className="ml-2 text-ink-700">{skill.name}</span>}
+                        {s._name && <span className="ml-2 text-ink-700">{s._name}</span>}
                       </td>
                       <td className="py-2 pr-4">
-                        <Badge tone={masteryTone(s.masteryState || s.status)}>{masteryLabel(s.masteryState || s.status)}</Badge>
+                        <Badge tone={masteryTone(s.status || s.masteryState)}>{masteryLabel(s.status || s.masteryState)}</Badge>
                       </td>
                       <td className="py-2 pr-4 font-mono">{accuracy != null ? `${accuracy}%` : '—'}</td>
                       <td className="py-2 pr-4 font-mono">{s.attemptCount ?? 0}</td>
-                      <td className="py-2 text-ink-400">{s.lastPracticedAt ? new Date(s.lastPracticedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
+                      <td className="py-2 text-ink-400">{last ? new Date(last).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '—'}</td>
                     </tr>
                   );
                 })}
@@ -780,6 +935,159 @@ function DomainSkillStatesPanel({ skillStates, domainGroup }) {
           </div>
         </Card>
       ))}
+    </div>
+  );
+}
+
+function CurriculumDomainIntelligence({ dash }) {
+  if (!dash || !dash.available) return null;
+  const { skillSummary, recommendedFocus, interventionPriorities, rootCauses, mistakeClusters, fluencyBottlenecks = [], retentionRisks = [] } = dash;
+
+  return (
+    <div className="space-y-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Domain skill summary">
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills mastered</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{skillSummary.mastered}/{skillSummary.total}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Weak skills</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-error-700">{skillSummary.weak}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Avg accuracy</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{skillSummary.averageAccuracy != null ? `${skillSummary.averageAccuracy}%` : '—'}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills attempted</p>
+          <p className="mt-2 font-mono text-2xl font-semibold text-emerald-deep">{skillSummary.attempted}</p>
+        </Card>
+      </section>
+
+      {recommendedFocus && (
+        <Card className="border-l-4 border-emerald p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended Lesson Focus</p>
+          <h3 className="mt-1 font-display text-xl font-semibold text-emerald-deep">{recommendedFocus.primarySkillName}</h3>
+          <p className="mt-1 text-sm text-ink-700">{recommendedFocus.why}</p>
+          <p className="mt-1 text-sm text-ink-600">Recommended action: {readableAction(recommendedFocus.recommendedAction)}</p>
+          {!!recommendedFocus.suggestedAssignments.length && (
+            <div className="mt-3 space-y-2">
+              {recommendedFocus.suggestedAssignments.map((a, i) => (
+                <div key={`${a.skillName}-${i}`} className="rounded-lg border border-line-soft p-3 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-ink-700">{a.assignmentType}: {a.skillName}</p>
+                    <Badge tone="gold">{a.recommendedQuestionCount} questions</Badge>
+                  </div>
+                  <p className="mt-1 text-ink-600">{a.reason}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold text-ink-700">Intervention Queue</h3>
+          {interventionPriorities.length ? (
+            <div className="mt-3 space-y-2 text-sm">
+              {interventionPriorities.map((p) => (
+                <div key={`${p.priorityRank}-${p.skillName}-${p.issueType}`} className="rounded-lg border border-line-soft p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-semibold text-ink-800">{p.skillName}</p>
+                    <Badge tone={severityTone(p.severity)}>{p.severity === 'high' ? 'High priority' : p.severity === 'medium' ? 'Medium' : 'Monitor'}</Badge>
+                  </div>
+                  <p className="mt-1 text-ink-600">{p.reason}</p>
+                  <p className="mt-1 text-ink-700"><span className="font-semibold">Action:</span> {readableAction(p.recommendedAction)}</p>
+                </div>
+              ))}
+            </div>
+          ) : <p className="mt-2 text-sm text-ink-500">No interventions flagged yet for this domain.</p>}
+        </Card>
+
+        <Card className="p-5">
+          <h3 className="text-sm font-semibold text-ink-700">Root Cause Analysis</h3>
+          {rootCauses.length ? (
+            <div className="mt-3 space-y-2 text-sm">
+              {rootCauses.slice(0, 4).map((r) => (
+                <div key={r.weakSkillId} className="rounded-lg border border-line-soft p-3">
+                  <p><span className="font-semibold text-ink-700">Weak skill:</span> {r.weakSkillName}</p>
+                  <p><span className="font-semibold text-ink-700">Likely root cause:</span> {r.suspectedRootCauseName}</p>
+                  <p className="text-ink-600">Chain: {r.prerequisiteChain.map((c) => c.name).join(' → ')}</p>
+                  <Badge tone={severityTone(r.severity)}>Severity: {r.severity}</Badge>
+                </div>
+              ))}
+            </div>
+          ) : <p className="mt-2 text-sm text-ink-500">No weak-skill root causes detected yet.</p>}
+        </Card>
+      </div>
+
+      <Card className="p-5">
+        <h3 className="text-sm font-semibold text-ink-700">Mistake Clusters</h3>
+        {mistakeClusters.length ? (
+          <div className="mt-3 grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+            {mistakeClusters.slice(0, 6).map((c) => (
+              <div key={c.misconceptionTag || c.name} className="rounded-lg border border-line-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink-700">{c.name}</p>
+                  <Badge tone={severityTone(c.severity)}>{c.frequency}×</Badge>
+                </div>
+                {c.affectedSkills.length ? <p className="mt-1 text-ink-600">Affected: {c.affectedSkills.join(', ')}</p> : null}
+                {c.remediation ? <p className="mt-1 text-ink-500">{c.remediation}</p> : null}
+              </div>
+            ))}
+          </div>
+        ) : <p className="mt-2 text-sm text-ink-500">No recurring mistakes logged for this domain yet.</p>}
+      </Card>
+
+      <Card className="p-5">
+        <div className="flex items-center gap-2">
+          <Clock3 className="h-4 w-4 text-gold-700" />
+          <h3 className="text-sm font-semibold text-ink-700">Fluency Bottlenecks</h3>
+        </div>
+        {fluencyBottlenecks.length ? (
+          <div className="mt-3 space-y-2 text-sm">
+            {fluencyBottlenecks.slice(0, 6).map((f) => (
+              <div key={f.questionFamilyId} className="rounded-lg border border-line-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink-700">{f.skillName}</p>
+                  <Badge tone={issueTone(f.issueType)}>{readableIssue(f.issueType)}</Badge>
+                </div>
+                <p className="text-ink-600">{f.questionFamilyName}</p>
+                <p className="text-ink-600">
+                  Accuracy: {f.accuracy}% · Avg time: {f.averageTime != null ? `${f.averageTime}s` : '—'}
+                  {f.benchmarkTime != null ? ` · Target: ${f.benchmarkTime}s` : ''} · {f.attempts} attempts
+                </p>
+                <p className="text-ink-700"><span className="font-semibold">Recommended:</span> {readableAction(f.recommendation)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-ink-500">
+            No fluency bottlenecks detected yet — needs at least a few timed attempts per question family.
+          </p>
+        )}
+      </Card>
+
+      <Card className="p-5">
+        <h3 className="text-sm font-semibold text-ink-700">Retention Risks</h3>
+        {retentionRisks.length ? (
+          <div className="mt-3 space-y-2 text-sm">
+            {retentionRisks.slice(0, 6).map((r) => (
+              <div key={r.skillId} className="rounded-lg border border-line-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-semibold text-ink-700">{r.skillName}</p>
+                  <Badge tone={severityTone(r.riskLevel)}>{r.riskLevel === 'high' ? 'Likely forgotten' : 'Due for review'}</Badge>
+                </div>
+                <p className="text-ink-600">Mastered, but not practised in {r.daysSincePractice} days.</p>
+                <p className="text-ink-700"><span className="font-semibold">Recommended:</span> {readableAction(r.recommendation)}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 text-sm text-ink-500">No retention risks — secure skills have been practised recently.</p>
+        )}
+      </Card>
     </div>
   );
 }
@@ -800,7 +1108,9 @@ export default function TutorMathPathDashboardPage() {
   const [retentionSummary, setRetentionSummary] = useState(null);
   const [activeDomain, setActiveDomain] = useState('fractions');
   const [domainSkillStates, setDomainSkillStates] = useState([]);
+  const [domainAttempts, setDomainAttempts] = useState([]);
   const [domainStatesLoading, setDomainStatesLoading] = useState(false);
+  const [studentMistakes, setStudentMistakes] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -811,7 +1121,7 @@ export default function TutorMathPathDashboardPage() {
         mathpathAPI.mastery({ studentId: id }).catch(() => null),
         mathpathAPI.getLatestDiagnostic({ studentId: id }).catch(() => null),
         mathpathAPI.getDiagnosticGrowth({ studentId: id }).catch(() => null),
-        mathpathAPI.workingReviewSummary({ studentId: id }).catch(() => null),
+        mathpathAPI.workingReviewSummary({ studentId: id, domainId: 'fractions' }).catch(() => null),
         mathpathAPI.fluency(id).catch(() => null),
         mathpathAPI.retention(id).catch(() => null),
       ]);
@@ -820,6 +1130,7 @@ export default function TutorMathPathDashboardPage() {
       const workingPayload = workingRes?.data || {};
       const practiceState = derivePracticeState(masteryPayload, studentPayload.student || {});
       const mistakePlans = buildMistakePlans(studentPayload.mistakes || []);
+      setStudentMistakes(Array.isArray(studentPayload.mistakes) ? studentPayload.mistakes : []);
 
       const pipeline = runMathPathDomainPipeline({
         studentId: id,
@@ -879,10 +1190,15 @@ export default function TutorMathPathDashboardPage() {
   const loadDomainSkillStates = useCallback(async (domainGroup) => {
     setDomainStatesLoading(true);
     try {
-      const res = await mathpathAPI.getSkillStates(id, domainGroup.domainIds);
-      setDomainSkillStates(res?.data?.skillStates || []);
+      const [statesRes, attemptsRes] = await Promise.all([
+        mathpathAPI.getSkillStates(id, domainGroup.domainIds),
+        mathpathAPI.getAttempts(id, domainGroup.domainIds).catch(() => null),
+      ]);
+      setDomainSkillStates(statesRes?.data?.skillStates || []);
+      setDomainAttempts(attemptsRes?.data?.attempts || []);
     } catch {
       setDomainSkillStates([]);
+      setDomainAttempts([]);
     } finally {
       setDomainStatesLoading(false);
     }
@@ -906,6 +1222,13 @@ export default function TutorMathPathDashboardPage() {
     return { label: 'Start Recommended Session', icon: Target, to: `/tutor/students/${id}/lesson-prep` };
   }, [dashboard, id]);
 
+  const domainDash = useMemo(() => {
+    if (activeDomain === 'fractions') return null;
+    const resolvers = getDomainResolvers(activeDomain);
+    if (!resolvers) return null;
+    return buildCurriculumDomainDashboard({ resolvers, skillStates: domainSkillStates, mistakes: studentMistakes, attempts: domainAttempts });
+  }, [activeDomain, domainSkillStates, studentMistakes, domainAttempts]);
+
   if (loading) return <Spinner label="Loading tutor dashboard…" />;
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!dashboard) return <ErrorState message="No tutor dashboard data available yet." onRetry={load} />;
@@ -922,7 +1245,9 @@ export default function TutorMathPathDashboardPage() {
       <PageHeader
         title="Tutor MathPath Dashboard"
         subtitle="Student progress by curriculum domain — root causes, fluency, retention, and session planning."
-        action={activeDomain === 'fractions' ? <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button> : null}
+        action={activeDomain === 'fractions'
+          ? <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
+          : <Button icon={FileText} onClick={() => navigate(`/tutor/students/${id}/assign-homework`)}>Assign Practice</Button>}
       />
 
       <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Select domain">
@@ -946,14 +1271,39 @@ export default function TutorMathPathDashboardPage() {
 
       {activeDomain !== 'fractions' ? (
         <div className="space-y-4">
+          <Card className="border-l-4 border-gold-400 bg-gold-50 p-4">
+            <div className="flex items-start gap-2">
+              <Brain className="mt-0.5 h-4 w-4 shrink-0 text-gold-700" />
+              <div className="text-sm text-ink-700">
+                <p className="font-semibold">
+                  {CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} intelligence
+                </p>
+                <p className="mt-1 text-ink-600">
+                  Skill mastery, root-cause analysis, mistake clusters, intervention queue, recommended lesson focus,
+                  fluency bottlenecks and retention risks are live for this domain, built from the student's skill states,
+                  logged mistakes and timed practice attempts. Working-evidence review remains
+                  <span className="font-semibold"> Fractions</span>-only for now (curriculum practice doesn't capture written working yet).
+                </p>
+              </div>
+            </div>
+          </Card>
           {domainStatesLoading ? (
             <Spinner label={`Loading ${CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} data…`} />
           ) : (
-            <DomainSkillStatesPanel
-              skillStates={domainSkillStates}
-              domainGroup={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)}
-            />
+            <>
+              <CurriculumDomainIntelligence dash={domainDash} />
+              <DomainSkillStatesPanel
+                skillStates={domainSkillStates}
+                domainGroup={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)}
+              />
+              <QuestionsStruggledCard
+                mistakes={studentMistakes}
+                skillCodeFilter={new Set(domainSkillStates.map((s) => s.skillId).filter(Boolean))}
+                domainLabel={CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label}
+              />
+            </>
           )}
+          <TutorActionsMvp id={id} navigate={navigate} />
         </div>
       ) : (
       <>
@@ -1010,6 +1360,7 @@ export default function TutorMathPathDashboardPage() {
           <RecentActivityMvp dashboard={dashboard} workingReview={workingReview || {}} />
         </div>
 
+        <QuestionsStruggledCard mistakes={studentMistakes} domainLabel="Fractions" />
         <WorkingEvidenceMvp workingReview={workingReview || {}} />
         <TutorActionsMvp id={id} navigate={navigate} />
 

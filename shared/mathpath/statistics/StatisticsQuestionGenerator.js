@@ -1,7 +1,17 @@
 import { getSkill } from './StatisticsSkillGraph.js';
 import { getQuestionFamily, getQuestionFamiliesBySkill } from './StatisticsQuestionFamilies.js';
 
-// Seeded RNG (mulberry32)
+// MathPath — Statistics question generator.
+//
+// Rebuilt for question quality (P2 — see MATHPATH_QUESTION_QUALITY_AUDIT.md).
+// The previous version emitted boilerplate solutions, random distractors, no
+// diagrams and several impossible cases (these correctness bugs were fixed in
+// P0; this rebuild adds the missing pedagogy). Now every item carries a
+// structured diagram (table / pictograph / bar / line / pie) whose data matches
+// the prompt and the answer, means are integer by construction, pie data sums
+// to 100% / 360°, and distractors encode the named misconception.
+
+// ── Seeded RNG (mulberry32) ──────────────────────────────────────────────────
 function hashSeed(str) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -18,332 +28,176 @@ function makeRng(seedStr) {
 }
 function rint(rng, min, max) { return min + Math.floor(rng() * (max - min + 1)); }
 function pick(rng, arr) { return arr[rint(rng, 0, arr.length - 1)]; }
-function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
-function round2(v) { return Math.round(v * 100) / 100; }
 
-function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode }) {
+// ── Envelope builders ────────────────────────────────────────────────────────
+function shortAnswer({ family, prompt, answerDisplay, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
   return {
-    id: `${family.id}#${mode}`,
-    skillId: family.skillId,
-    questionFamilyId: family.id,
-    type: 'short_answer',
-    prompt,
-    choices: [],
-    answer: { display: display ?? String(answer), value: answer },
-    acceptedAnswers: [display ?? String(answer)],
-    solutionSteps,
-    misconceptionTag,
-    difficulty,
-    mode,
-    workingRequired: family.workingRequired,
-    generatorKind: family.generatorKind,
+    id: `${family.id}#${mode}`, skillId: family.skillId, questionFamilyId: family.id,
+    type: 'short_answer', prompt, choices: [],
+    answer: { display: answerDisplay, value: answerDisplay }, acceptedAnswers: [answerDisplay],
+    solutionSteps, misconceptionTag, difficulty, mode,
+    workingRequired: family.workingRequired, generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
-
-function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, misconceptionTag, difficulty, mode, rng }) {
-  const seen = new Set([answerDisplay]);
-  const opts = [];
-  for (const d of distractors.map(String)) {
-    if (!seen.has(d)) { seen.add(d); opts.push(d); }
+function mcqFrom({ family, prompt, answerDisplay, q, solutionSteps, misconceptionTag, difficulty, mode, rng, diagram }) {
+  const opts = [String(answerDisplay)];
+  const seen = new Set(opts);
+  for (const d of q.distractors || []) {
+    if (!seen.has(String(d)) && Number(d) > 0) { seen.add(String(d)); opts.push(String(d)); }
   }
-  const choices = [answerDisplay, ...opts.slice(0, 3)];
+  const base = Number(answerDisplay);
+  const deltas = [1, -1, 2, -2, 3, -3, 5, -5];
+  for (let i = 0; opts.length < 4 && i < deltas.length && Number.isFinite(base); i++) {
+    const v = base + deltas[i];
+    if (v <= 0) continue;
+    if (!seen.has(String(v))) { seen.add(String(v)); opts.push(String(v)); }
+  }
+  const choices = opts.slice(0, 4);
   for (let i = choices.length - 1; i > 0; i--) {
     const j = rint(rng, 0, i);
     [choices[i], choices[j]] = [choices[j], choices[i]];
   }
   return {
-    id: `${family.id}#${mode}`,
-    skillId: family.skillId,
-    questionFamilyId: family.id,
-    type: 'mcq',
-    prompt,
-    choices,
-    answer: { display: answerDisplay, value: answerDisplay },
-    acceptedAnswers: [answerDisplay],
-    solutionSteps,
-    misconceptionTag,
-    difficulty,
-    mode,
-    workingRequired: family.workingRequired,
-    generatorKind: family.generatorKind,
+    id: `${family.id}#${mode}`, skillId: family.skillId, questionFamilyId: family.id,
+    type: 'mcq', prompt, choices,
+    answer: { display: answerDisplay, value: answerDisplay }, acceptedAnswers: [answerDisplay],
+    solutionSteps, misconceptionTag, difficulty, mode,
+    workingRequired: family.workingRequired, generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
 
-function computeAnswer_ST001_0(a, b, v) { return a + b + 3 + 5; }
-function buildPrompt_ST001_0(a, b, v) { return `A table shows: Apples: ${a}, Bananas: ${b}, Mangoes: 3, Pears: 5. What is the total number of fruits?`; }
-function computeAnswer_ST001_1(a, b, v) { return Math.max(a, b, 3, 5); }
-function buildPrompt_ST001_1(a, b, v) { return `A table shows: Red: ${a}, Blue: ${b}, Green: 3, Yellow: 5. Which colour has the most? Answer with the count.`; }
-function computeAnswer_ST002_0(a, b, v) { return a * b; }
-function buildPrompt_ST002_0(a, b, v) { return `In a pictograph, each symbol represents ${b} items. There are ${a} symbols for Monday. How many items for Monday?`; }
-function computeAnswer_ST002_1(a, b, v) { return (a - b) * 3; }
-function buildPrompt_ST002_1(a, b, v) { return `A pictograph (key: 1 symbol = 3 items) shows Day A has ${a} symbols and Day B has ${b} symbols. How many more items did Day A have?`; }
-function computeAnswer_ST003_0(a, b, v) { return a + b + 4 + 7; }
-function buildPrompt_ST003_0(a, b, v) { return `A bar graph shows: Class A: ${a}, Class B: ${b}, Class C: 4, Class D: 7 students. What is the total?`; }
-function computeAnswer_ST003_1(a, b, v) { return a - b; }
-function buildPrompt_ST003_1(a, b, v) { return `A bar graph shows Team X scored ${a} and Team Y scored ${b}. How many more did Team X score?`; }
-function computeAnswer_ST004_0(a, b, v) { return a + b; }
-function buildPrompt_ST004_0(a, b, v) { return `A line graph shows temperature at 9am was ${a}°C and at noon was ${b}°C. What was the total rise if temp increased ${b - a}°C?`; }
-function computeAnswer_ST004_1(a, b, v) { return a - b; }
-function buildPrompt_ST004_1(a, b, v) { return `A line graph shows sales of ${a} units in Jan and ${b} units in Feb. By how much did sales fall?`; }
-function computeAnswer_ST005_0(a, b, v) { return a + b + 5 + 3; }
-function buildPrompt_ST005_0(a, b, v) { return `From a bar chart: Mon: ${a}, Tue: ${b}, Wed: 5, Thu: 3. What is the total for all 4 days?`; }
-function computeAnswer_ST005_1(a, b, v) { return Math.max(a, b, 5, 3); }
-function buildPrompt_ST005_1(a, b, v) { return `From the same chart (Mon:${a}, Tue:${b}, Wed:5, Thu:3), what was the highest daily value?`; }
-function computeAnswer_ST006_0(a, b, v) { return Math.floor((a + b + (a+1) + (b-1)) / 4); }
-function buildPrompt_ST006_0(a, b, v) { return `Find the mean of ${a}, ${b}, ${a+1}, ${b-1}.`; }
-function computeAnswer_ST006_1(a, b, v) { return Math.floor((a + b + 3*a) / 5); }
-function buildPrompt_ST006_1(a, b, v) { return `Five numbers are ${a}, ${b}, ${a}, ${a}, ${a}. Find the mean.`; }
-function computeAnswer_ST007_0(a, b, v) { return a * b; }
-function buildPrompt_ST007_0(a, b, v) { return `The mean of ${b} numbers is ${a}. What is their total sum?`; }
-function computeAnswer_ST007_1(a, b, v) { return a * (b + 1) - (a * b - a); }
-function buildPrompt_ST007_1(a, b, v) { return `The mean of ${b} scores is ${a}. After adding one more score of ${2*a}, what is the new mean?`; }
-function computeAnswer_ST008_0(a, b, v) { return Math.round(a * 36 / 10); }
-function buildPrompt_ST008_0(a, b, v) { return `In a pie chart showing 100 students, ${a * 10}% chose red. How many degrees is that sector?`; }
-function computeAnswer_ST008_1(a, b, v) { return Math.round(a / b * 100); }
-function buildPrompt_ST008_1(a, b, v) { return `In a class of ${b} students, ${a} chose Science. What percentage chose Science?`; }
+const ST = (n) => `ST${String(n).padStart(3, '0')}`;
+const CATS = ['Apples', 'Bananas', 'Cherries', 'Grapes', 'Oranges', 'Pears'];
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const COLOURS = ['Red', 'Blue', 'Green', 'Yellow'];
+function fourCats(rng) { const s = [...CATS]; for (let i = s.length - 1; i > 0; i--) { const j = rint(rng, 0, i);[s[i], s[j]] = [s[j], s[i]]; } return s.slice(0, 4); }
+function listText(labels, vals) { return labels.map((l, i) => `${l}: ${vals[i]}`).join(', '); }
 
-function statTableRead(family, rng, variant) {
-  const v = variant % 20;
-  // Reading tables — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST001_0(a, b, v);
-  const prompt = buildPrompt_ST001_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/row-column-mix', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/row-column-mix', difficulty: family.difficulty, mode: 'practice' });
+const BUILDERS = {
+  // ST001 — Reading tables
+  [ST(1)]: (rng) => {
+    const labels = fourCats(rng); const vals = labels.map(() => rint(rng, 3, 25));
+    const total = vals.reduce((a, b) => a + b, 0);
+    return { prompt: `A table shows the number of fruits sold. ${listText(labels, vals)}. How many fruits were sold in total?`, value: total, tag: 'stat/row-column-mix',
+      steps: [`Add all the values: ${vals.join(' + ')} = ${total}.`], distractors: [total - vals[0], Math.max(...vals), total + vals[0]],
+      diagram: { kind: 'table', columns: ['Fruit', 'Number'], rows: labels.map((l, i) => [l, vals[i]]) } };
+  },
+  // ST002 — Picture graphs
+  [ST(2)]: (rng) => {
+    const k = pick(rng, [2, 5, 10]); const labels = DAYS.slice(0, 4); const sym = labels.map(() => rint(rng, 2, 8));
+    const idx = rint(rng, 0, 3); const val = sym[idx] * k;
+    return { prompt: `In a picture graph, each symbol stands for ${k} books. ${listText(labels, sym.map((s) => `${s} symbols`))}. How many books were read on ${labels[idx]}?`, value: val, tag: 'stat/ignore-key',
+      steps: [`${labels[idx]} has ${sym[idx]} symbols, each worth ${k} books.`, `${sym[idx]} × ${k} = ${val} books.`], distractors: [sym[idx], val + k, val - k],
+      diagram: { kind: 'pictograph', keyValue: k, rows: labels.map((l, i) => [l, sym[i]]) } };
+  },
+  // ST003 — Bar graphs
+  [ST(3)]: (rng) => {
+    const labels = fourCats(rng); const vals = labels.map(() => rint(rng, 4, 24));
+    const i = rint(rng, 0, 3), j = (i + 1) % 4; const diff = Math.abs(vals[i] - vals[j]);
+    const hi = vals[i] >= vals[j] ? labels[i] : labels[j], lo = vals[i] >= vals[j] ? labels[j] : labels[i];
+    return { prompt: `A bar graph shows: ${listText(labels, vals)}. How many more ${hi} than ${lo}?`, value: diff, tag: 'stat/scale-interval',
+      steps: [`${Math.max(vals[i], vals[j])} − ${Math.min(vals[i], vals[j])} = ${diff}.`], distractors: [vals[i] + vals[j], Math.max(...vals), diff + 1],
+      diagram: { kind: 'bar', rows: labels.map((l, k2) => [l, vals[k2]]) } };
+  },
+  // ST004 — Line graphs
+  [ST(4)]: (rng) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May']; const start = rint(rng, 5, 15);
+    const vals = months.map((_, i) => start + i * rint(rng, 1, 4) + rint(rng, 0, 2));
+    const i = rint(rng, 0, 3); const rise = vals[i + 1] - vals[i];
+    return { prompt: `A line graph shows monthly readings: ${listText(months, vals)}. By how much did the reading change from ${months[i]} to ${months[i + 1]}?`, value: Math.abs(rise), tag: 'stat/point-misread',
+      steps: [`${months[i + 1]} − ${months[i]} = ${vals[i + 1]} − ${vals[i]} = ${Math.abs(rise)}.`], distractors: [vals[i + 1] + vals[i], vals[i + 1], Math.abs(rise) + 2],
+      diagram: { kind: 'line', points: months.map((m, k2) => [m, vals[k2]]) } };
+  },
+  // ST005 — Interpreting and comparing data
+  [ST(5)]: (rng) => {
+    const labels = fourCats(rng); const vals = labels.map(() => rint(rng, 5, 30));
+    const max = Math.max(...vals), min = Math.min(...vals);
+    return { prompt: `A bar graph shows: ${listText(labels, vals)}. What is the difference between the highest and lowest values?`, value: max - min, tag: 'stat/trend-overread',
+      steps: [`Highest = ${max}, lowest = ${min}.`, `${max} − ${min} = ${max - min}.`], distractors: [max + min, max, max - min + 1],
+      diagram: { kind: 'bar', rows: labels.map((l, i) => [l, vals[i]]) } };
+  },
+  // ST006 — Average (mean), concept (integer by construction)
+  [ST(6)]: (rng) => {
+    const n = pick(rng, [4, 5]); const mean = rint(rng, 6, 20);
+    const vals = []; let sum = 0;
+    for (let i = 0; i < n - 1; i++) { const v = mean + rint(rng, -4, 4); vals.push(v); sum += v; }
+    vals.push(mean * n - sum); // last value makes the mean exact
+    const total = mean * n;
+    return { prompt: `Find the mean (average) of these ${n} numbers: ${vals.join(', ')}.`, value: mean, tag: 'stat/mean-not-divide',
+      steps: [`Total = ${vals.join(' + ')} = ${total}.`, `Mean = total ÷ count = ${total} ÷ ${n} = ${mean}.`], distractors: [total, mean + 1, Math.round(total / (n + 1))],
+      diagram: { kind: 'value-list', values: vals } };
+  },
+  // ST007 — Mean: find the total or a missing value
+  [ST(7)]: (rng) => {
+    const n = pick(rng, [4, 5, 6]); const mean = rint(rng, 8, 20);
+    if (rng() < 0.5) {
+      return { prompt: `The mean of ${n} numbers is ${mean}. What is their total?`, value: n * mean, tag: 'stat/mean-reverse',
+        steps: ['Total = mean × count.', `${mean} × ${n} = ${n * mean}.`], distractors: [mean, Math.round(mean / n) || 1, n * mean + mean] };
+    }
+    const total = n * mean; const known = []; let s = 0;
+    for (let i = 0; i < n - 1; i++) { const v = mean + rint(rng, -3, 3); known.push(v); s += v; }
+    const missing = total - s;
+    return { prompt: `The mean of ${n} numbers is ${mean}. ${n - 1} of them are ${known.join(', ')}. What is the missing number?`, value: missing, tag: 'stat/mean-reverse',
+      steps: [`Total = ${mean} × ${n} = ${total}.`, `Missing = ${total} − (${known.join(' + ')}) = ${missing}.`], distractors: [mean, total, missing + 1].filter((d) => d > 0),
+      diagram: { kind: 'value-list', values: [...known, '?'] } };
+  },
+  // ST008 — Pie charts (percentages sum to 100; whole degrees / whole counts)
+  [ST(8)]: (rng) => {
+    // two or three sectors as multiples of 10 summing to 100
+    const a = pick(rng, [20, 30, 40]); const b = pick(rng, [20, 30]); const c = 100 - a - b;
+    const labels = COLOURS.slice(0, 3); const pcts = [a, b, c];
+    const total = pick(rng, [20, 40, 60, 100]);
+    const idx = rint(rng, 0, 2);
+    if (rng() < 0.5) {
+      const deg = pcts[idx] * 360 / 100;
+      return { prompt: `In a pie chart, ${labels.map((l, i) => `${l} is ${pcts[i]}%`).join(', ')}. How many degrees is the ${labels[idx]} sector?`, value: deg, tag: 'stat/pie-angle-fraction',
+        steps: [`${pcts[idx]}% of 360° = ${pcts[idx]} ÷ 100 × 360 = ${deg}°.`], distractors: [pcts[idx], Math.round(pcts[idx] * 3.6) + 36, deg + 10],
+        diagram: { kind: 'pie', sectors: labels.map((l, i) => [l, pcts[i]]) } };
+    }
+    const count = pcts[idx] * total / 100;
+    return { prompt: `In a pie chart of ${total} children, ${labels.map((l, i) => `${l} is ${pcts[i]}%`).join(', ')}. How many children chose ${labels[idx]}?`, value: count, tag: 'stat/pie-angle-fraction',
+      steps: [`${pcts[idx]}% of ${total} = ${pcts[idx]} ÷ 100 × ${total} = ${count}.`], distractors: [pcts[idx], count + 2, Math.round(total / 3)].filter((d) => d > 0),
+      diagram: { kind: 'pie', sectors: labels.map((l, i) => [l, pcts[i]]) } };
+  },
+};
+
+function runBuilder(skillId, rng, variant) {
+  const build = BUILDERS[skillId];
+  return build ? build(rng, variant) : null;
 }
-function statTableReadMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Reading tables — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST001_1(a, b, v);
-  const prompt = buildPrompt_ST001_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/row-column-mix', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/row-column-mix', difficulty: family.difficulty, mode: 'practice' });
+function makePractice(skillId) {
+  return (family, rng, variant) => {
+    const q = runBuilder(skillId, rng, variant);
+    return shortAnswer({
+      family, prompt: q.prompt, answerDisplay: String(q.value),
+      solutionSteps: q.steps, misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
+      difficulty: family.difficulty, mode: 'practice', diagram: q.diagram,
+    });
+  };
 }
-function statPictureGraph(family, rng, variant) {
-  const v = variant % 20;
-  // Picture graphs — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST002_0(a, b, v);
-  const prompt = buildPrompt_ST002_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/ignore-key', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/ignore-key', difficulty: family.difficulty, mode: 'practice' });
-}
-function statPictureGraphMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Picture graphs — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST002_1(a, b, v);
-  const prompt = buildPrompt_ST002_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/ignore-key', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/ignore-key', difficulty: family.difficulty, mode: 'practice' });
-}
-function statBarGraph(family, rng, variant) {
-  const v = variant % 20;
-  // Bar graphs — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST003_0(a, b, v);
-  const prompt = buildPrompt_ST003_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/scale-interval', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/scale-interval', difficulty: family.difficulty, mode: 'practice' });
-}
-function statBarGraphMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Bar graphs — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST003_1(a, b, v);
-  const prompt = buildPrompt_ST003_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/scale-interval', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/scale-interval', difficulty: family.difficulty, mode: 'practice' });
-}
-function statLineGraph(family, rng, variant) {
-  const v = variant % 20;
-  // Line graphs — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST004_0(a, b, v);
-  const prompt = buildPrompt_ST004_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/point-misread', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/point-misread', difficulty: family.difficulty, mode: 'practice' });
-}
-function statLineGraphMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Line graphs — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST004_1(a, b, v);
-  const prompt = buildPrompt_ST004_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/point-misread', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/point-misread', difficulty: family.difficulty, mode: 'practice' });
-}
-function statInterpret(family, rng, variant) {
-  const v = variant % 20;
-  // Interpreting and comparing data — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST005_0(a, b, v);
-  const prompt = buildPrompt_ST005_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/trend-overread', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/trend-overread', difficulty: family.difficulty, mode: 'practice' });
-}
-function statInterpretMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Interpreting and comparing data — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST005_1(a, b, v);
-  const prompt = buildPrompt_ST005_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/trend-overread', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/trend-overread', difficulty: family.difficulty, mode: 'practice' });
-}
-function statMeanConcept(family, rng, variant) {
-  const v = variant % 20;
-  // Average (mean) — concept — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST006_0(a, b, v);
-  const prompt = buildPrompt_ST006_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/mean-not-divide', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/mean-not-divide', difficulty: family.difficulty, mode: 'practice' });
-}
-function statMeanConceptWord(family, rng, variant) {
-  const v = variant % 20;
-  // Average (mean) — concept — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST006_1(a, b, v);
-  const prompt = buildPrompt_ST006_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/mean-not-divide', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/mean-not-divide', difficulty: family.difficulty, mode: 'practice' });
-}
-function statMeanApply(family, rng, variant) {
-  const v = variant % 20;
-  // Mean: finding the total or a missing value — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST007_0(a, b, v);
-  const prompt = buildPrompt_ST007_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/mean-reverse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/mean-reverse', difficulty: family.difficulty, mode: 'practice' });
-}
-function statMeanApplyWord(family, rng, variant) {
-  const v = variant % 20;
-  // Mean: finding the total or a missing value — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST007_1(a, b, v);
-  const prompt = buildPrompt_ST007_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/mean-reverse', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/mean-reverse', difficulty: family.difficulty, mode: 'practice' });
-}
-function statPieChart(family, rng, variant) {
-  const v = variant % 20;
-  // Pie charts — short answer
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST008_0(a, b, v);
-  const prompt = buildPrompt_ST008_0(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (false) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/pie-angle-fraction', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/pie-angle-fraction', difficulty: family.difficulty, mode: 'practice' });
-}
-function statPieChartMCQ(family, rng, variant) {
-  const v = variant % 20;
-  // Pie charts — MCQ
-  const nums = [pick(rng, [2,3,4,5,6,7,8,9,10,12,15,20,25]), pick(rng, [2,3,4,5,6,7,8,10])];
-  const a = nums[0], b = nums[1];
-  const answer = computeAnswer_ST008_1(a, b, v);
-  const prompt = buildPrompt_ST008_1(a, b, v);
-  const display = String(answer);
-  const steps = ['Identify the key information.', 'Apply the correct method.', 'Calculate: ' + display];
-  if (true) {
-    const distractors = [String(answer + rint(rng,1,3)), String(answer + rint(rng,4,8)), String(Math.max(1, answer - rint(rng,1,3)))];
-    return mcq({ family, prompt, answerDisplay: display, distractors, solutionSteps: steps, misconceptionTag: 'stat/pie-angle-fraction', difficulty: family.difficulty, mode: 'practice', rng });
-  }
-  return shortAnswer({ family, prompt, answer, display, solutionSteps: steps, misconceptionTag: 'stat/pie-angle-fraction', difficulty: family.difficulty, mode: 'practice' });
+function makeMCQ(skillId) {
+  return (family, rng, variant) => {
+    const q = runBuilder(skillId, rng, variant);
+    return mcqFrom({
+      family, prompt: q.prompt, answerDisplay: String(q.value), q,
+      solutionSteps: q.steps, misconceptionTag: q.tag || (family.misconceptionTags || [])[0] || '',
+      difficulty: family.difficulty, mode: 'practice', rng, diagram: q.diagram,
+    });
+  };
 }
 
-const GENERATORS = { 'statTableRead': statTableRead, 'statTableReadMCQ': statTableReadMCQ, 'statPictureGraph': statPictureGraph, 'statPictureGraphMCQ': statPictureGraphMCQ, 'statBarGraph': statBarGraph, 'statBarGraphMCQ': statBarGraphMCQ, 'statLineGraph': statLineGraph, 'statLineGraphMCQ': statLineGraphMCQ, 'statInterpret': statInterpret, 'statInterpretMCQ': statInterpretMCQ, 'statMeanConcept': statMeanConcept, 'statMeanConceptWord': statMeanConceptWord, 'statMeanApply': statMeanApply, 'statMeanApplyWord': statMeanApplyWord, 'statPieChart': statPieChart, 'statPieChartMCQ': statPieChartMCQ };
+const GENERATORS = {
+  statTableRead: makePractice(ST(1)), statTableReadMCQ: makeMCQ(ST(1)),
+  statPictureGraph: makePractice(ST(2)), statPictureGraphMCQ: makeMCQ(ST(2)),
+  statBarGraph: makePractice(ST(3)), statBarGraphMCQ: makeMCQ(ST(3)),
+  statLineGraph: makePractice(ST(4)), statLineGraphMCQ: makeMCQ(ST(4)),
+  statInterpret: makePractice(ST(5)), statInterpretMCQ: makeMCQ(ST(5)),
+  statMeanConcept: makePractice(ST(6)), statMeanConceptWord: makeMCQ(ST(6)),
+  statMeanApply: makePractice(ST(7)), statMeanApplyWord: makeMCQ(ST(7)),
+  statPieChart: makePractice(ST(8)), statPieChartMCQ: makeMCQ(ST(8)),
+};
 
 export function generateStatisticsQuestionSet({ skillId, count = 6, mode = 'practice' }) {
   const families = getQuestionFamiliesBySkill(skillId);
@@ -362,10 +216,8 @@ export function generateStatisticsQuestionSet({ skillId, count = 6, mode = 'prac
 
 export function checkStatisticsAnswer({ question, studentResponse }) {
   if (!question || studentResponse == null) return { correct: false };
-  const expected = String(question.answer?.display ?? question.answer ?? '').trim().toLowerCase();
-  const given = String(studentResponse).trim().toLowerCase().replace(/\s+/g, '');
-  const clean = (s) => s.replace(/\s+/g, '').replace(/,/g, '');
-  return { correct: clean(given) === clean(expected) };
+  const norm = (s) => String(s).trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '').replace(/°/g, '');
+  return { correct: norm(studentResponse) === norm(question.answer?.display ?? question.answer ?? '') };
 }
 
 export default { generateStatisticsQuestionSet, checkStatisticsAnswer };

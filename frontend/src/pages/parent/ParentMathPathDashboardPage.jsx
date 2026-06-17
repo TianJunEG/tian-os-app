@@ -107,8 +107,8 @@ function deriveParentSnapshot(summary = {}, child = null, domainNoun = 'fraction
   };
 }
 
-function ChelyaUpdateCard({ snapshot }) {
-  const { body } = buildMascotNarration(snapshot, { childName: snapshot.childName, domainNoun: snapshot.domainNoun });
+function ChelyaUpdateCard({ snapshot, domainName }) {
+  const { body } = buildMascotNarration(snapshot, { childName: snapshot.childName, domainName });
   if (!body) return null;
   return (
     <Card className="border-l-4 p-5" style={{ borderLeftColor: '#059669' }}>
@@ -129,7 +129,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainLabel }) {
 
   return (
     <div className="space-y-4">
-      {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} />}
+      {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} domainName={domainLabel} />}
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">What to know right now</h2>

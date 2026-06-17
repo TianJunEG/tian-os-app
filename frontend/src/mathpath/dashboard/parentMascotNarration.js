@@ -6,19 +6,22 @@
 // Input shape: the snapshot produced by deriveParentSnapshot()
 //   { childName, mastered, total, masteryPercent, streak, attentionSkill,
 //     currentFocus, accuracy, recommendation }
+//
+// opts.domainName is the selected domain's display label (e.g. 'Fractions',
+// 'Decimals'). It replaces the previously hardcoded "fraction skills" so the
+// update reads correctly for any domain; it falls back to a generic "skills".
 
 const firstName = (name) => String(name || '').trim().split(/\s+/)[0] || 'Your child';
 
 export function buildMascotNarration(snapshot = {}, opts = {}) {
   const name = firstName(opts.childName || snapshot.childName);
-  // Domain noun for the win line — defaults to 'fraction' so the live Fractions
-  // pilot copy is unchanged; other domains pass their own (e.g. 'percentage').
-  const domainNoun = opts.domainNoun || snapshot.domainNoun || 'fraction';
   const mastered = Number(snapshot.mastered) || 0;
   const total = Number(snapshot.total) || 0;
   const streak = Number(snapshot.streak) || 0;
   const accuracy = Number(snapshot.accuracy) || 0;
   const focus = snapshot.attentionSkill || snapshot.currentFocus || '';
+  const domainName = String(opts.domainName || '').trim();
+  const skillsNoun = domainName ? `${domainName} skills` : 'skills';
   const nextStep = snapshot.recommendation
     || (focus ? `about 10 minutes on ${focus}, then review one mistake together` : '');
 
@@ -27,7 +30,7 @@ export function buildMascotNarration(snapshot = {}, opts = {}) {
   if (streak >= 3) {
     win = `${name} has kept a ${streak}-day streak going — that consistency is exactly what builds mastery`;
   } else if (mastered > 0) {
-    win = `${name} has mastered ${mastered}${total ? ` of ${total}` : ''} ${domainNoun} skills so far`;
+    win = `${name} has mastered ${mastered}${total ? ` of ${total}` : ''} ${skillsNoun} so far`;
   } else {
     win = `${name} is just getting started — every session from here builds momentum`;
   }
