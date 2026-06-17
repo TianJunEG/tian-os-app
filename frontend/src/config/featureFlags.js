@@ -8,7 +8,7 @@ const flagEnabled = (name, fallback = false) => {
   return fallback;
 };
 const WORKSHEETS_ENABLED = flagEnabled('WORKSHEETS', true);
-const FLUENCY_ENABLED = flagEnabled('FLUENCY_PILOT', false);
+const FLUENCY_ENABLED = flagEnabled('FLUENCY_PILOT', true);
 const ASSESSMENTS_ENABLED = flagEnabled('ASSESSMENTS_PILOT', false);
 const MODEL_TRAINER_ENABLED = flagEnabled('MODEL_TRAINER_PILOT', false);
 const WORKING_MATH_INSERTS_ENABLED = flagEnabled('WORKING_MATH_INSERTS_PILOT', false);
@@ -22,7 +22,7 @@ export const FEATURE_FLAGS = {
   operations: flagEnabled('OPERATIONS', true),
   numberSense: flagEnabled('NUMBER_SENSE', true),
   money: flagEnabled('MONEY', true),
-  timeDomain: flagEnabled('TIME_DOMAIN', true),
+  time: flagEnabled('TIME_DOMAIN', true),
   measurement: flagEnabled('MEASUREMENT', true),
   geometry: flagEnabled('GEOMETRY', true),
   areaPerimeter: flagEnabled('AREA_PERIMETER', true),

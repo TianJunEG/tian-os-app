@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Spinner } from '../../../../components/ui';
+import { Zap } from 'lucide-react';
+import { Button, Spinner } from '../../../../components/ui';
 import { useAuth } from '../../../../context/AuthContext';
+import FEATURE_FLAGS from '../../../../config/featureFlags';
 import DomainSkillMap from '../components/DomainSkillMap';
 import { getDomainConfig } from './core';
 
@@ -45,13 +47,20 @@ export default function DomainLearningPathPage({ domain }) {
   // the per-domain "quick check-in" that the fluency PRs added to every simple
   // learning-path page, now surfaced through the shared footer slot.
   const footerSlot = (
-    <button
-      type="button"
-      onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}
-      className="text-sm font-semibold text-emerald-deep hover:underline"
-    >
-      Not sure where to start? Take a quick check-in →
-    </button>
+    <div className="flex flex-wrap items-center gap-3">
+      <button
+        type="button"
+        onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}
+        className="text-sm font-semibold text-emerald-deep hover:underline"
+      >
+        Not sure where to start? Take a quick check-in →
+      </button>
+      {config?.startFluency && FEATURE_FLAGS.fluency && view.recommendedNext?.skillId && (
+        <Button size="s" variant="secondary" icon={Zap} onClick={() => navigate(`/student/mathpath/${domain}/fluency?skill=${view.recommendedNext.skillId}`)}>
+          Speed Drill
+        </Button>
+      )}
+    </div>
   );
 
   return <DomainSkillMap domain={domain} view={view} onPractise={startPractice} subtitle={config?.subtitle || ''} footerSlot={footerSlot} />;

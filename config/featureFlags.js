@@ -10,7 +10,7 @@ export const FLAGS = {
   operations: process.env.FEAT_OPERATIONS !== '0',
   numberSense: process.env.FEAT_NUMBER_SENSE !== '0',
   money: process.env.FEAT_MONEY !== '0',
-  timeDomain: process.env.FEAT_TIME_DOMAIN !== '0',
+  time: process.env.FEAT_TIME_DOMAIN !== '0',
   measurement: process.env.FEAT_MEASUREMENT !== '0',
   geometry: process.env.FEAT_GEOMETRY !== '0',
   areaPerimeter: process.env.FEAT_AREA_PERIMETER !== '0',

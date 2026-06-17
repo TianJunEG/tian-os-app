@@ -88,6 +88,7 @@ const VolumePracticeSession = lazy(() => import('./pages/student/mathpath/Volume
 const DomainDiagnosticSession = lazy(() => import('./pages/student/mathpath/DomainDiagnosticSession'));
 const DecimalsDiagnosticSession = lazy(() => import('./pages/student/mathpath/DecimalsDiagnosticSession'));
 const DecimalsFluencySession = lazy(() => import('./pages/student/mathpath/DecimalsFluencySession'));
+const DomainFluencySession = lazy(() => import('./pages/student/mathpath/domainPractice/DomainFluencySession'));
 const DecimalsAssessmentSession = lazy(() => import('./pages/student/mathpath/DecimalsAssessmentSession'));
 const P1LearningPathPage = lazy(() => import('./pages/student/mathpath/P1LearningPathPage'));
 const P2LearningPathPage = lazy(() => import('./pages/student/mathpath/P2LearningPathPage'));
@@ -619,20 +620,24 @@ function App() {
             <Route path="/student/mathpath/decimals" element={<DecimalsLearningPathPage />} />
             <Route path="/student/mathpath/decimals/practice" element={<DecimalsPracticeSession />} />
             <Route path="/student/mathpath/decimals/diagnostic" element={<DecimalsDiagnosticSession />} />
-            <Route path="/student/mathpath/decimals/fluency" element={<DecimalsFluencySession />} />
+            <Route path="/student/mathpath/decimals/fluency" element={<FeatureGuard feature="fluency"><DecimalsFluencySession /></FeatureGuard>} />
             <Route path="/student/mathpath/decimals/assessment" element={<DecimalsAssessmentSession />} />
             <Route path="/student/mathpath/percentages" element={<PercentagesLearningPathPage />} />
             <Route path="/student/mathpath/percentages/practice" element={<PercentagesPracticeSession />} />
+            <Route path="/student/mathpath/percentages/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="percentages" /></FeatureGuard>} />
             <Route path="/student/mathpath/ratio-rate" element={<RatioRateLearningPathPage />} />
             <Route path="/student/mathpath/ratio-rate/practice" element={<RatioRatePracticeSession />} />
+            <Route path="/student/mathpath/ratio-rate/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="ratio-rate" /></FeatureGuard>} />
             <Route path="/student/mathpath/algebra" element={<AlgebraLearningPathPage />} />
             <Route path="/student/mathpath/algebra/practice" element={<AlgebraPracticeSession />} />
+            <Route path="/student/mathpath/algebra/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="algebra" /></FeatureGuard>} />
             <Route path="/student/mathpath/area-perimeter" element={<AreaPerimeterLearningPathPage />} />
             <Route path="/student/mathpath/area-perimeter/practice" element={<AreaPerimeterPracticeSession />} />
             <Route path="/student/mathpath/circles" element={<CirclesLearningPathPage />} />
             <Route path="/student/mathpath/circles/practice" element={<CirclesPracticeSession />} />
             <Route path="/student/mathpath/geometry" element={<GeometryLearningPathPage />} />
             <Route path="/student/mathpath/geometry/practice" element={<GeometryPracticeSession />} />
+            <Route path="/student/mathpath/geometry/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="geometry" /></FeatureGuard>} />
             <Route path="/student/mathpath/measurement" element={<MeasurementLearningPathPage />} />
             <Route path="/student/mathpath/measurement/practice" element={<MeasurementPracticeSession />} />
             <Route path="/student/mathpath/money" element={<MoneyLearningPathPage />} />
@@ -647,6 +652,7 @@ function App() {
             <Route path="/student/mathpath/time/practice" element={<TimePracticeSession />} />
             <Route path="/student/mathpath/volume" element={<VolumeLearningPathPage />} />
             <Route path="/student/mathpath/volume/practice" element={<VolumePracticeSession />} />
+            <Route path="/student/mathpath/volume/fluency" element={<FeatureGuard feature="fluency"><DomainFluencySession domain="volume" /></FeatureGuard>} />
             <Route path="/student/mathpath/:domainId/diagnostic" element={<DomainDiagnosticSession />} />
             <Route path="/student/mathpath/p1" element={<P1LearningPathPage />} />
             <Route path="/student/mathpath/p2" element={<P2LearningPathPage />} />

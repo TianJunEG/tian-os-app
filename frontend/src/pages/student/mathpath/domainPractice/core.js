@@ -76,14 +76,17 @@ export const DOMAIN_PRACTICE_CONFIG = {
   percentages: {
     label: 'Percentage', start: mathpathAPI.startPercentagesPractice, submit: mathpathAPI.submitPercentagesPractice, buildView: buildPercentagesLearningPathView,
     skillStates: mathpathAPI.percentagesSkillStates, pattern: /^P0\d\d$/, subtitle: 'Per hundred, conversions, discount, GST and interest (P5–P6).',
+    startFluency: mathpathAPI.startPercentagesFluency, submitFluency: mathpathAPI.submitPercentagesFluency,
   },
   'ratio-rate': {
     label: 'Ratio & Rate', start: mathpathAPI.startRatioRatePractice, submit: mathpathAPI.submitRatioRatePractice, buildView: buildRatioRateLearningPathView,
     skillStates: mathpathAPI.ratioRateSkillStates, pattern: /^R0\d\d$/, subtitle: 'Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6).',
+    startFluency: mathpathAPI.startRatioRateFluency, submitFluency: mathpathAPI.submitRatioRateFluency,
   },
   algebra: {
     label: 'Algebra', start: mathpathAPI.startAlgebraPractice, submit: mathpathAPI.submitAlgebraPractice, buildView: buildAlgebraLearningPathView,
     skillStates: mathpathAPI.algebraSkillStates, pattern: /AL0\d\d/, subtitle: 'Patterns, unknowns, linear equations and algebraic manipulation (P4–P6).',
+    startFluency: mathpathAPI.startAlgebraFluency, submitFluency: mathpathAPI.submitAlgebraFluency,
   },
   'area-perimeter': {
     label: 'Area & Perimeter', start: mathpathAPI.startAreaPerimeterPractice, submit: mathpathAPI.submitAreaPerimeterPractice, buildView: buildAreaPerimeterLearningPathView,
@@ -96,6 +99,7 @@ export const DOMAIN_PRACTICE_CONFIG = {
   geometry: {
     label: 'Geometry', start: mathpathAPI.startGeometryPractice, submit: mathpathAPI.submitGeometryPractice, buildView: buildGeometryLearningPathView,
     skillStates: mathpathAPI.geometrySkillStates, pattern: /GE0\d\d/, subtitle: 'Angles, triangles, quadrilaterals, symmetry and nets (P3–P6).',
+    startFluency: mathpathAPI.startGeometryFluency, submitFluency: mathpathAPI.submitGeometryFluency,
   },
   measurement: {
     label: 'Measurement', start: mathpathAPI.startMeasurementPractice, submit: mathpathAPI.submitMeasurementPractice, buildView: buildMeasurementLearningPathView,
@@ -124,6 +128,7 @@ export const DOMAIN_PRACTICE_CONFIG = {
   volume: {
     label: 'Volume', start: mathpathAPI.startVolumePractice, submit: mathpathAPI.submitVolumePractice, buildView: buildVolumeLearningPathView,
     skillStates: mathpathAPI.volumeSkillStates, pattern: /VL0\d\d/, subtitle: 'Cubes, cuboids, liquid volume and displacement (P4–P6).',
+    startFluency: mathpathAPI.startVolumeFluency, submitFluency: mathpathAPI.submitVolumeFluency,
   },
 };
 

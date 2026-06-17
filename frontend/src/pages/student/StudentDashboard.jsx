@@ -1439,7 +1439,7 @@ export default function StudentDashboard() {
               </Card>
             </div>
           )}
-          {FEATURE_FLAGS.timeDomain && (
+          {FEATURE_FLAGS.time && (
             <div style={{ marginTop: 20 }}>
               <Card className="flex items-center gap-4 p-4" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
@@ -1699,7 +1699,7 @@ export default function StudentDashboard() {
             <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
-        {FEATURE_FLAGS.timeDomain && (
+        {FEATURE_FLAGS.time && (
           <Card className="flex items-center gap-4 p-4" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
               <Clock className="h-5 w-5 text-sky-600" />
@@ -1997,7 +1997,7 @@ export default function StudentDashboard() {
           <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
-      {FEATURE_FLAGS.timeDomain && (
+      {FEATURE_FLAGS.time && (
         <Card className="mt-4 flex items-center gap-4 p-4" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
             <Clock className="h-5 w-5 text-sky-600" />
