@@ -24,6 +24,12 @@ import {
 } from '../services/mathpath/decimalsAssessmentService.js';
 import { decimalsSkillGraph } from '../shared/mathpath/decimals/decimalsSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
+import { buildRetentionScheduleFromFluency, summariseRetention } from '../shared/mathpath/decimals/decimalsRetentionEngine.js';
+import {
+  buildDecimalsRetentionReview,
+  toClientRetentionQuestions,
+  scoreDecimalsRetentionReview,
+} from '../services/mathpath/decimalsRetentionService.js';
 
 const DCODE_TO_SLUG = Object.fromEntries(
   (decimalsSkillGraph.skills || []).map((s) => [s.id, s.slug])
@@ -231,6 +237,21 @@ router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 
+    if (FLUENT_BANDS.has(scored.band)) {
+      const retentionSchedule = buildRetentionScheduleFromFluency({
+        skillId: existing.targetSkillId,
+        fluencyLevel: scored.band,
+        fluentAt: new Date(),
+      });
+      if (retentionSchedule.shouldSchedule) {
+        await MathPathStudentSkillState.findOneAndUpdate(
+          { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+          { $set: { nextReviewDate: retentionSchedule.nextReviewDate, retentionStatus: 'reviewScheduled' } },
+          { upsert: false },
+        );
+      }
+    }
+
     const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', ...scored, persisted: true };
     existing.status = 'completed';
     existing.completedAt = new Date();
@@ -331,6 +352,100 @@ router.post('/assessment/:practiceSessionId/submit', protect, async (req, res) =
     res.json(summary);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit decimals assessment.' });
+  }
+});
+
+// @route GET /api/mathpath/decimals/retention
+// @desc  Return upcoming/overdue/history retention summary for this student.
+router.get('/retention', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const { states } = await loadProgress(String(student._id));
+    const summary = summariseRetention({ states });
+    res.json({ domainId: DOMAIN_ID, ...summary });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load decimals retention.' });
+  }
+});
+
+// @route POST /api/mathpath/decimals/retention/start
+// @desc  Build + persist a retention review for one skill.
+router.post('/retention/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const { skillId, count = null, previousQuestionFamilyIds = [] } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'skillId is required.' });
+
+    const review = buildDecimalsRetentionReview({ skillId, previousQuestionFamilyIds, count });
+    const practiceSessionId = `decimalsretention_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    await MathPathPracticeSession.create({
+      practiceSessionId,
+      studentId,
+      domainId: DOMAIN_ID,
+      targetSkillId: skillId,
+      targetQuestionFamilyIds: review.questionFamilyIds,
+      sessionGoal: 'Decimals retention review',
+      estimatedQuestionCount: review.questions.length,
+      questions: review.questions,
+      responses: [],
+      status: 'inProgress',
+      startedAt: new Date(),
+    });
+
+    res.json({
+      practiceSessionId,
+      domainId: DOMAIN_ID,
+      skillId,
+      mode: 'retention',
+      questionFamilyIds: review.questionFamilyIds,
+      questions: toClientRetentionQuestions(review.questions),
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start decimals retention review.' });
+  }
+});
+
+// @route POST /api/mathpath/decimals/retention/:practiceSessionId/submit
+// @desc  Grade the retention review and update the student's retention schedule.
+router.post('/retention/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Decimals retention review not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a decimals session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const { completedIntervalDays = [], lastIntervalDays = null } = req.body || {};
+
+    const scored = scoreDecimalsRetentionReview({
+      skillId: existing.targetSkillId,
+      questions: existing.questions || [],
+      responses,
+      completedIntervalDays,
+      lastIntervalDays,
+      completedAt: new Date(),
+    });
+
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      { $set: scored.set },
+      { upsert: false },
+    );
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'retention', ...scored, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = responses;
+    existing.summary = summary;
+    await existing.save();
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit decimals retention review.' });
   }
 });
 
