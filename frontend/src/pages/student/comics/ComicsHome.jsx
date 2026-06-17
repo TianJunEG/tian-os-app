@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, CheckCircle, Lock } from 'lucide-react';
 import { episodes, MASCOT_COLORS } from '../../../data/comics/episodes';
+import { comicsAPI } from '../../../services/api';
 
-function EpisodeCard({ episode, index }) {
+function EpisodeCard({ episode, isLatest, isCompleted }) {
   const navigate = useNavigate();
   const isAvailable = true; // future: lock based on release date
   const leftChar = episode.coverCharacters[0];
@@ -54,7 +55,17 @@ function EpisodeCard({ episode, index }) {
         <div style={{ position: 'absolute', top: 8, left: 10, background: '#1c1917', color: '#fbbf24', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 800 }}>
           EP {episode.episode}
         </div>
-        {[leftChar, rightChar].filter(Boolean).map((key, i) => (
+        {isLatest && (
+          <div style={{ position: 'absolute', top: 8, right: 10, background: '#dc2626', color: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 800, letterSpacing: '0.03em' }}>
+            LATEST
+          </div>
+        )}
+        {!isLatest && isCompleted && (
+          <div style={{ position: 'absolute', top: 6, right: 8, display: 'flex', alignItems: 'center', gap: 3, background: '#16a34a', color: '#fff', borderRadius: 6, padding: '2px 7px', fontSize: 11, fontWeight: 700 }}>
+            <CheckCircle size={12} /> Done
+          </div>
+        )}
+        {[leftChar, rightChar].filter(Boolean).map((key) => (
           <div key={key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1 }}>
             <img
               src={`/comics/characters/${key}-standing.png`}
@@ -90,6 +101,23 @@ function EpisodeCard({ episode, index }) {
 }
 
 export default function ComicsHome() {
+  const [completed, setCompleted] = useState(() => new Set());
+
+  useEffect(() => {
+    let on = true;
+    comicsAPI.progress()
+      .then((res) => {
+        if (on) setCompleted(new Set((res.data?.completed ?? []).map((c) => c.episodeId)));
+      })
+      .catch(() => { /* progress is non-critical; show archive without badges */ });
+    return () => { on = false; };
+  }, []);
+
+  // Newest episode first — this is a weekly series, latest content leads.
+  const ordered = [...episodes].reverse();
+  const latestId = ordered[0]?.id;
+  const doneCount = episodes.filter((e) => completed.has(e.id)).length;
+
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px 48px' }}>
       {/* Header */}
@@ -101,12 +129,22 @@ export default function ComicsHome() {
         <p style={{ fontSize: 14, color: '#78716c' }}>
           Comic word problems — solve the maths, follow the story. New episode every week.
         </p>
+        {doneCount > 0 && (
+          <p style={{ fontSize: 12, color: '#16a34a', fontWeight: 700, marginTop: 6 }}>
+            {doneCount} of {episodes.length} episodes completed
+          </p>
+        )}
       </div>
 
-      {/* Episode grid */}
+      {/* Episode grid — newest first */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
-        {episodes.map((ep, i) => (
-          <EpisodeCard key={ep.id} episode={ep} index={i} />
+        {ordered.map((ep) => (
+          <EpisodeCard
+            key={ep.id}
+            episode={ep}
+            isLatest={ep.id === latestId}
+            isCompleted={completed.has(ep.id)}
+          />
         ))}
       </div>
     </div>

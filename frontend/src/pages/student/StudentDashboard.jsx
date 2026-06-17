@@ -50,6 +50,7 @@ import {
   getFractionAssessmentBlueprintReadiness,
 } from '../../mathpath/fractions/fractionAssessmentReadinessGate';
 import FEATURE_FLAGS from '../../config/featureFlags';
+import { getLatestEpisode } from '../../data/comics/episodes';
 
 function actionMeta(nextAction = {}, assessmentReady = true) {
   const action = String(nextAction.action || '');
@@ -1305,9 +1306,11 @@ export default function StudentDashboard() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-ink-700">Tian 7 Chronicles</p>
-                  <p className="text-xs text-ink-500">Comic word problems with Kylo &amp; friends</p>
+                  <p className="text-xs text-ink-500 truncate">
+                    {getLatestEpisode() ? `New: Ep ${getLatestEpisode().episode} — ${getLatestEpisode().title}` : 'Comic word problems with Kylo & friends'}
+                  </p>
                 </div>
-                <Button to="/student/comics" size="s" icon={ArrowRight}>Read</Button>
+                <Button to={getLatestEpisode() ? `/student/comics/${getLatestEpisode().slug}` : '/student/comics'} size="s" icon={ArrowRight}>Read</Button>
               </Card>
             </div>
           )}
@@ -1863,9 +1866,11 @@ export default function StudentDashboard() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink-700">Tian 7 Chronicles</p>
-            <p className="text-xs text-ink-500">Comic word problems with Kylo &amp; friends</p>
+            <p className="text-xs text-ink-500 truncate">
+              {getLatestEpisode() ? `New: Ep ${getLatestEpisode().episode} — ${getLatestEpisode().title}` : 'Comic word problems with Kylo & friends'}
+            </p>
           </div>
-          <Button to="/student/comics" size="s" icon={ArrowRight}>Read</Button>
+          <Button to={getLatestEpisode() ? `/student/comics/${getLatestEpisode().slug}` : '/student/comics'} size="s" icon={ArrowRight}>Read</Button>
         </Card>
       )}
 
