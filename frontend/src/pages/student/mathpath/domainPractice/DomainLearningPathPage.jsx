@@ -41,5 +41,18 @@ export default function DomainLearningPathPage({ domain }) {
 
   if (loading) return <div className="grid place-items-center py-20"><Spinner /></div>;
 
-  return <DomainSkillMap domain={domain} view={view} onPractise={startPractice} subtitle={config?.subtitle || ''} />;
+  // Diagnostic check-in entry point (generic /:domainId/diagnostic route). Keeps
+  // the per-domain "quick check-in" that the fluency PRs added to every simple
+  // learning-path page, now surfaced through the shared footer slot.
+  const footerSlot = (
+    <button
+      type="button"
+      onClick={() => navigate(`/student/mathpath/${domain}/diagnostic`)}
+      className="text-sm font-semibold text-emerald-deep hover:underline"
+    >
+      Not sure where to start? Take a quick check-in →
+    </button>
+  );
+
+  return <DomainSkillMap domain={domain} view={view} onPractise={startPractice} subtitle={config?.subtitle || ''} footerSlot={footerSlot} />;
 }

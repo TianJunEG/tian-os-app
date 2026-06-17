@@ -35,7 +35,7 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined;
           const path = id.replace(/\\/g, '/');
-          if (/\/node_modules\/(react|react-dom|react-router|react-router-dom)\//.test(path)) return 'react';
+          if (/\/node_modules\/(react|react-dom|react-router|react-router-dom|@remix-run\/router|scheduler)\//.test(path)) return 'react';
           if (path.includes('/node_modules/katex/')) return 'katex';
           if (path.includes('/node_modules/lucide-react/')) return 'icons';
           return undefined;

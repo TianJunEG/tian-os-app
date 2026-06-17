@@ -1,7 +1,7 @@
 import { generateQuestionSet, generateDiagnosticSet, getAllSupportedSkillIds, getDomainForSkill } from './p6Orchestrator.js';
 import { checkP6Answer } from './p6AnswerChecker.js';
 
-const P6_PREFIXES = ['P6-ALG', 'P6-AV'];
+const P6_PREFIXES = ['P6-ALG', 'P6-AV', 'P6-SPD'];
 
 export function isP6SkillId(skillId) {
   if (!skillId) return false;

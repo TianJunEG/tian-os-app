@@ -39,6 +39,7 @@ export function buildAreaPerimeterPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {
     domainId: DOMAIN_ID,

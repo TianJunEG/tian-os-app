@@ -24,6 +24,7 @@ import StudentAchievement from '../models/studentProfile/StudentAchievement.js';
 import FluencyRecord from '../models/FluencyRecord.js';
 import RetentionReview from '../models/RetentionReview.js';
 import { resolveStudent } from '../utils/studentContext.js';
+import { domainIdFromSlug } from '../utils/skillSlugDomain.js';
 import { weakSkills, recommendNextSkill, deriveMastery, MASTERY_LABEL, fluencyLabel, isStale } from '../utils/masteryEngine.js';
 import { buildSkillGraphView } from '../utils/skillGraphView.js';
 import { runPlacement } from '../utils/placementEngine.js';
@@ -1784,6 +1785,10 @@ router.get('/', protect, asyncHandler(async (req, res) => {
       const masteryState = deriveMastery(r);
       return {
         skillId: r.skillId?._id, skillName: r.skillId?.name || '', topicName: r.skillId?.topicId?.name || '',
+        // Canonical domainId derived from the skill slug prefix, so adult
+        // dashboards can filter mastery by domain (additive; may be null for
+        // skills whose slug prefix is unrecognised).
+        domainId: domainIdFromSlug(r.skillId?.slug),
         moeLevel: r.skillId?.moeLevel || '', score: r.score, attempts: r.attempts,
         status: r.status, statusLabel: STATUS_LABEL[r.status] || r.status, lastPracticedAt: r.lastPracticedAt,
         // mastery v2 (derived): 5-state ladder + 3-state fluency label + estimate quality

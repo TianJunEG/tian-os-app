@@ -4,6 +4,7 @@ import {
 } from '../../shared/mathpath/numberSense/NumberSenseQuestionGenerator.js';
 import { selectNextNumberSensePracticeTarget } from '../../shared/mathpath/numberSense/NumberSensePracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/numberSense/NumberSenseSkillGraph.js';
+import { assertDomainServable } from './stubDomainGate.js';
 
 export const DOMAIN_ID = 'number_sense';
 
@@ -16,6 +17,7 @@ function statusFromAccuracy(accuracy) {
 export function buildNumberSensePracticeSession({
   targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6, mode = 'practice',
 } = {}) {
+  assertDomainServable(DOMAIN_ID);
   let skillId = targetSkillId;
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextNumberSensePracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
@@ -39,6 +41,7 @@ export function buildNumberSensePracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {
     domainId: DOMAIN_ID,

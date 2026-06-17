@@ -4,6 +4,7 @@ import {
 } from '../../shared/mathpath/measurement/MeasurementQuestionGenerator.js';
 import { selectNextMeasurementPracticeTarget } from '../../shared/mathpath/measurement/MeasurementPracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/measurement/MeasurementSkillGraph.js';
+import { assertDomainServable } from './stubDomainGate.js';
 
 export const DOMAIN_ID = 'measurement';
 
@@ -16,6 +17,7 @@ function statusFromAccuracy(accuracy) {
 export function buildMeasurementPracticeSession({
   targetSkillId = null, masteredSkillIds = [], weakSkillIds = [], questionCount = 6, mode = 'practice',
 } = {}) {
+  assertDomainServable(DOMAIN_ID);
   let skillId = targetSkillId;
   if (!skillId || !getSkill(skillId)) {
     skillId = selectNextMeasurementPracticeTarget({ masteredSkillIds, weakSkillIds }).skillId;
@@ -39,6 +41,7 @@ export function buildMeasurementPracticeSession({
     misconceptionTag: q.misconceptionTag || '',
     difficulty: q.difficulty,
     workingRequired: Boolean(q.workingRequired),
+    ...(q.diagram ? { diagram: q.diagram } : {}),
   }));
   return {
     domainId: DOMAIN_ID,
