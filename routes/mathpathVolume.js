@@ -12,6 +12,15 @@ import {
   toClientFluencyQuestions,
   scoreVolumeFluencyDrill,
 } from '../services/mathpath/volumeFluencyService.js';
+import {
+  buildVolumeRetentionReview,
+  toClientRetentionQuestions,
+  scoreVolumeRetentionReview,
+} from '../services/mathpath/volumeRetentionService.js';
+import {
+  buildRetentionScheduleFromFluency,
+  summariseRetention,
+} from '../shared/mathpath/volume/volumeRetentionEngine.js';
 import { volumeSkillGraph } from '../shared/mathpath/volume/VolumeSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
 
@@ -170,9 +179,26 @@ router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
       fluencyLevel: scored.band,
       lastPractisedAt: new Date(),
     };
+    let retentionScheduled = false;
     if (FLUENT_BANDS.has(scored.band)) {
+      const fluentAt = new Date();
       set.status = 'fluent';
-      set.fluentAt = new Date();
+      set.fluentAt = fluentAt;
+      // Mastery gate met → schedule the first spaced retention review.
+      // Only (re)schedule if this skill is not already in a retention cycle.
+      const prior = await MathPathStudentSkillState.findOne(
+        { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      ).lean();
+      if (!prior?.fluentAt && !prior?.nextReviewDate) {
+        const schedule = buildRetentionScheduleFromFluency({
+          skillId: existing.targetSkillId, fluencyLevel: scored.band, fluentAt,
+        });
+        if (schedule.shouldSchedule) {
+          set.retentionStatus = 'reviewScheduled';
+          set.nextReviewDate = new Date(schedule.nextReviewDate);
+          retentionScheduled = true;
+        }
+      }
     }
     await MathPathStudentSkillState.findOneAndUpdate(
       { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
@@ -180,7 +206,7 @@ router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 
-    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', ...scored, persisted: true };
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', ...scored, retentionScheduled, persisted: true };
     existing.status = 'completed';
     existing.completedAt = new Date();
     existing.responses = responses;
@@ -204,6 +230,96 @@ router.get('/skill-states', protect, async (req, res) => {
     res.json({ domainId: DOMAIN_ID, records });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to load volume skill states.' });
+  }
+});
+
+// @route GET /api/mathpath/volume/retention
+// @desc  Upcoming / overdue / retained reviews for the student (parity with
+//        fractions GET /api/fluency/me/retention). Read from skill-state rows.
+router.get('/retention', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const states = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: DOMAIN_ID }).lean();
+    res.json(summariseRetention({ states, asOf: new Date() }));
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load volume retention reviews.' });
+  }
+});
+
+// @route POST /api/mathpath/volume/retention/start
+// @desc  Build + persist a spaced retention review (same concept, fresh
+//        questions); returns answer-stripped questions. Mirrors fluency/start.
+router.post('/retention/start', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const { skillId, previousQuestionFamilyIds = [], count = null } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'skillId is required.' });
+
+    const review = buildVolumeRetentionReview({ skillId, previousQuestionFamilyIds, count });
+    const practiceSessionId = `volumeretention_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    await MathPathPracticeSession.create({
+      practiceSessionId, studentId, domainId: DOMAIN_ID,
+      targetSkillId: skillId,
+      targetQuestionFamilyIds: [...new Set(review.questions.map((q) => q.questionFamilyId))],
+      sessionGoal: 'Volume retention review', estimatedQuestionCount: review.questions.length,
+      questions: review.questions, responses: [], status: 'inProgress', startedAt: new Date(),
+    });
+
+    res.json({
+      practiceSessionId, domainId: DOMAIN_ID, skillId, mode: 'retention',
+      reviewId: review.reviewId,
+      questionFamilyIds: review.questionFamilyIds,
+      questions: toClientRetentionQuestions(review.questions),
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to start volume retention review.' });
+  }
+});
+
+// @route POST /api/mathpath/volume/retention/:practiceSessionId/submit
+// @desc  Score the review into a retention outcome; advance/reset the spaced
+//        schedule on the skill-state row. Mirrors fluency/:id/submit.
+router.post('/retention/:practiceSessionId/submit', protect, async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const studentId = String(student._id);
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Volume retention review not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a volume session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const priorState = await MathPathStudentSkillState.findOne(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+    ).lean();
+    const completedAt = new Date();
+    const scored = scoreVolumeRetentionReview({
+      skillId: existing.targetSkillId,
+      questions: existing.questions || [],
+      responses,
+      completedIntervalDays: priorState?.completedIntervalDays || [],
+      lastIntervalDays: req.body?.intervalDays ?? null,
+      completedAt,
+    });
+
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      { $inc: { attemptCount: scored.total, correctCount: scored.correct }, $set: { ...scored.set, lastPractisedAt: completedAt } },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'retention', ...scored, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = completedAt;
+    existing.responses = responses;
+    existing.summary = summary;
+    await existing.save();
+
+    res.json(summary);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to submit volume retention review.' });
   }
 });
 
