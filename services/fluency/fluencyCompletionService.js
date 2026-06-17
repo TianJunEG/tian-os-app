@@ -2,6 +2,7 @@ import FluencyRecord from '../../models/FluencyRecord.js';
 import PracticeAttempt from '../../models/PracticeAttempt.js';
 import RetentionReview from '../../models/RetentionReview.js';
 import Skill from '../../models/Skill.js';
+import MathPathStudentSkillState from '../../models/mathpath/MathPathStudentSkillState.js';
 import {
   buildRetentionReviews,
   calculateFluencyMetrics,
@@ -29,6 +30,12 @@ export async function resolveFluencySkill(ref) {
   return Skill.findById(value);
 }
 
+function fluencyLevelFromStatus(fluencyStatus) {
+  if (fluencyStatus === FLUENCY_STATUS.FLUENT) return 'gold';
+  if (fluencyStatus === FLUENCY_STATUS.DEVELOPING) return 'silver';
+  return 'bronze';
+}
+
 async function upsertRetentionReviews({ student, skill, skillCode, fluentAt }) {
   const reviews = buildRetentionReviews({
     studentId: String(student._id),
@@ -48,6 +55,15 @@ async function upsertRetentionReviews({ student, skill, skillCode, fluentAt }) {
         },
       },
       { upsert: true }
+    );
+  }
+  // Mirror retention schedule onto skill state for fractions skills (F-code).
+  const firstReview = reviews[0];
+  if (firstReview && SKILL_CODE.test(skillCode)) {
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId: String(student._id), domainId: 'fractions', skillId: skillCode },
+      { $set: { retentionStatus: 'reviewScheduled', nextReviewDate: firstReview.reviewDate } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
     );
   }
 }
@@ -118,6 +134,19 @@ export async function updateFluencyCompletionForSession({ session, student, skil
     update,
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
+
+  // Mirror fluency level onto skill state for fractions skills (F-code).
+  if (SKILL_CODE.test(skillCode)) {
+    const skillStateSet = {
+      fluencyLevel: fluencyLevelFromStatus(metrics.fluencyStatus),
+      ...(becameFluentNow ? { fluentAt: completedAt, status: 'fluent' } : {}),
+    };
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId: String(student._id), domainId: 'fractions', skillId: skillCode },
+      { $set: skillStateSet },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  }
 
   if (becameFluentNow) {
     await upsertRetentionReviews({ student, skill: resolvedSkill, skillCode, fluentAt: completedAt });
