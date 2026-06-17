@@ -131,6 +131,12 @@ const families = [
     mentalMathEligible: false,
     workingRequired: true,
   },
+
+  // ── Secondary 1 (G1) — Mensuration ──────────────────────────────────────────
+  { id: 'QF_VL005_001', skillId: 'VL005', name: 'Volume of a prism — Practice', description: 'cross-section area × length.', difficulty: 4, generatorKind: 'volPrism', recommendedQuestionCount: 20, fluencyTargetSeconds: 22, masteryTargetAccuracy: 82, masteryQuestionCount: 12, misconceptionTags: ['mea/prism-cross-section'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_VL005_002', skillId: 'VL005', name: 'Volume of a prism — MCQ', description: 'cross-section area × length.', difficulty: 4, generatorKind: 'volPrismMCQ', recommendedQuestionCount: 20, fluencyTargetSeconds: 22, masteryTargetAccuracy: 82, masteryQuestionCount: 12, misconceptionTags: ['mea/prism-cross-section'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_VL006_001', skillId: 'VL006', name: 'Surface area of a cuboid — Practice', description: '2(lw + wh + lh).', difficulty: 4, generatorKind: 'volSurfaceArea', recommendedQuestionCount: 20, fluencyTargetSeconds: 24, masteryTargetAccuracy: 82, masteryQuestionCount: 12, misconceptionTags: ['mea/surface-area-as-volume'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
+  { id: 'QF_VL006_002', skillId: 'VL006', name: 'Surface area of a cuboid — MCQ', description: '2(lw + wh + lh).', difficulty: 4, generatorKind: 'volSurfaceAreaMCQ', recommendedQuestionCount: 20, fluencyTargetSeconds: 24, masteryTargetAccuracy: 82, masteryQuestionCount: 12, misconceptionTags: ['mea/surface-area-as-volume'], assessmentRelevant: true, mentalMathEligible: false, workingRequired: true },
 ];
 
 const familyById = new Map(families.map((family) => [family.id, family]));
