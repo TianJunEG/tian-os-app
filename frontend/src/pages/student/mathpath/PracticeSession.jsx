@@ -1018,7 +1018,7 @@ function LegacyPracticeSession() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-7xl px-4">
       <div className="mb-3 rounded-xl border border-line-soft bg-white px-3 py-2 text-sm text-ink-700">
         <p className="font-semibold">{sessionMeta.label}</p>
         <p className="text-xs text-ink-500">{sessionMeta.helper}</p>
@@ -1064,7 +1064,7 @@ function LegacyPracticeSession() {
         {q.type === 'mcq' ? (
           <div className="grid gap-2">
             {choices.map((c, i) => (
-              <button key={`${i}-${c}`} disabled={!!result} onClick={() => setAnswer(c)} className={`rounded-xl border px-3 py-2 text-left ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
+              <button key={`${i}-${c}`} disabled={!!result} onClick={() => setAnswer(c)} className={`min-h-[44px] rounded-xl border px-3 py-3 text-left ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}>
                 <MathText text={c} />
               </button>
             ))}

@@ -21,7 +21,7 @@ const shellStyle = {
   background: '#f5f6f8',
   border: '1px solid #dde1e8',
   borderRadius: 16,
-  overflow: 'hidden',
+  overflowX: 'hidden',
   boxShadow: '0 36px 70px -34px rgba(30,42,66,0.45)',
 };
 
@@ -31,8 +31,10 @@ const navStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: '0 22px',
-  height: 54,
+  flexWrap: 'wrap',
+  gap: 8,
+  padding: '10px 16px',
+  minHeight: 54,
 };
 
 const cardStyle = {
@@ -94,7 +96,7 @@ function StudentCard({ name, initials, level, schedule, statusBg, statusFg, stat
     <div style={cardStyle} onClick={onClick} role="button" tabIndex={0}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
         <div style={{
-          width: 38, height: 38, borderRadius: '50%',
+          width: 44, height: 44, borderRadius: '50%',
           background: statusBg || '#e7f3ec', color: statusFg || '#1f8a5b',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 13, fontWeight: 700,
@@ -234,7 +236,7 @@ export default function TutorHome() {
   };
 
   const studentGrid = (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {students.map((s, i) => {
         const st = getStudentStatus(s);
         return (
@@ -257,7 +259,7 @@ export default function TutorHome() {
 
   return (
     <div style={pageStyle}>
-      <div style={{ maxWidth: 1360, margin: '0 auto', padding: '0 44px' }}>
+      <div className="mx-auto max-w-[1360px] px-4 sm:px-11">
         <div style={shellStyle}>
           {/* Nav */}
           <div style={navStyle}>
@@ -282,12 +284,12 @@ export default function TutorHome() {
           </div>
 
           {activeTab === 'Students' ? (
-            <div style={{ padding: '24px 30px 30px' }}>
+            <div className="p-4 sm:p-6">
               <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>My students</div>
               {studentGrid}
             </div>
           ) : activeTab === 'Notes' ? (
-            <div style={{ padding: '24px 30px 30px' }}>
+            <div className="p-4 sm:p-6">
               <div style={{ fontSize: 23, fontWeight: 800, letterSpacing: '-0.01em', marginBottom: 16 }}>Recent lesson notes</div>
               {data.recentNotes?.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -314,7 +316,7 @@ export default function TutorHome() {
               )}
             </div>
           ) : (
-          <div style={{ padding: '24px 30px 30px', display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: 20, alignItems: 'start' }}>
+          <div className="grid grid-cols-1 gap-5 p-4 sm:p-6 lg:grid-cols-[1.35fr_1fr] lg:items-start">
             {/* Caseload */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>

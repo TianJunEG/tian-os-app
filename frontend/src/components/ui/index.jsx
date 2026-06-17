@@ -69,7 +69,7 @@ const BTN_VARIANTS = {
   outlineLight: 'bg-transparent text-white border-2 border-white/40 hover:bg-white/10',
 };
 const BTN_SIZES = {
-  s: 'h-9 px-3.5 text-sm',
+  s: 'min-h-[44px] h-9 px-3.5 text-sm',
   m: 'h-[50px] px-5 text-[15.5px]',
   l: 'h-14 px-6 text-lg',
 };
@@ -403,7 +403,7 @@ export function Tooltip({ label, children, className = '' }) {
   );
 }
 
-export function Modal({ open, onClose, title, children, footer, className = '', containerClassName = 'p-4' }) {
+export function Modal({ open, onClose, title, children, footer, className = '', containerClassName = 'p-4', bodyClassName = '' }) {
   React.useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
@@ -414,13 +414,13 @@ export function Modal({ open, onClose, title, children, footer, className = '', 
   return createPortal(
     <div className={`fixed inset-0 z-[90] flex items-center justify-center ${containerClassName}`} role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative z-10 w-full max-w-lg rounded-shell border border-line bg-surface-white shadow-card ${className}`}>
-        <div className="flex items-start justify-between gap-3 border-b border-line p-5">
+      <div className={`relative z-10 flex max-h-[90dvh] w-full max-w-lg flex-col rounded-shell border border-line bg-surface-white shadow-card ${className}`}>
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line p-5">
           <h2 className="text-lg font-bold text-ink">{title}</h2>
           <IconButton icon={X} label="Close" size="s" onClick={onClose} className="-mr-1.5 -mt-1.5" />
         </div>
-        <div className="p-5">{children}</div>
-        {footer && <div className="flex justify-end gap-2 border-t border-line p-4">{footer}</div>}
+        <div className={`flex-1 overflow-y-auto p-5 ${bodyClassName}`}>{children}</div>
+        {footer && <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-line p-4">{footer}</div>}
       </div>
     </div>,
     document.body,
@@ -445,7 +445,7 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={toast}>
       {children}
       {createPortal(
-        <div className="fixed bottom-4 right-4 z-[100] flex max-w-sm flex-col gap-2">
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] right-4 z-[100] flex max-w-sm flex-col gap-2 md:bottom-4">
           {toasts.map((t) => (
             <div key={t.id} role="status"
               className={`flex items-start gap-2.5 rounded-card border border-line border-l-4 bg-surface-white p-3.5 text-sm text-body shadow-card ${TOAST_TONES[t.tone] || TOAST_TONES.info}`}>

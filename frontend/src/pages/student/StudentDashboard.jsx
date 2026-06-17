@@ -1141,7 +1141,7 @@ export default function StudentDashboard() {
     };
 
     return (
-      <main style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", color: '#232c39', background: '#eef1f5', minHeight: '100vh', padding: '40px 36px 56px' }}>
+      <main className="overflow-x-hidden px-4 pb-24 pt-8 sm:px-9 sm:pt-10 md:pb-14" style={{ fontFamily: "'Hanken Grotesk', system-ui, sans-serif", color: '#232c39', background: '#eef1f5', minHeight: '100vh' }}>
         <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
         <div style={{ maxWidth: 1240, margin: '0 auto' }}>
 

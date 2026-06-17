@@ -242,7 +242,7 @@ export default function TimesTablesFlashQuiz() {
           <div className="mt-6">
             <input
               ref={inputRef}
-              type="number"
+              type="text"
               inputMode="numeric"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
