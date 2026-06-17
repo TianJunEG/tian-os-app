@@ -21,6 +21,9 @@ import {
 } from '../services/mathpath/testModePresets.js';
 import { sourceWeakSkills } from '../services/mathpath/weaknessSkillSourcer.js';
 import { buildPaperSections } from '../services/mathpath/paperSectioning.js';
+import { markAssessment } from '../services/mathpath/assessmentSubmissionService.js';
+import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
+import { recordAttempt } from '../utils/masteryEngine.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -343,6 +346,9 @@ export async function generateTestFromSpecification(specificationId, options = {
       responsesBlueprint.push({
         questionId: String(q._id),
         skillId: publicSkillId,
+        // Skill ObjectId (the MasteryRecord key space) so submission can update
+        // mastery; publicSkillId above is for display/weakness-sourcing.
+        skillRefId: String(q.skillId || ''),
         questionFamilyId: `TOS_${publicSkillId}_${idx + 1}`,
         prompt: q.stem,
         type: q.type || 'short_answer',
@@ -352,6 +358,9 @@ export async function generateTestFromSpecification(specificationId, options = {
         solutionSteps: q.workedSolution ? [String(q.workedSolution)] : [],
         difficulty: q.difficulty,
         marks,
+        // Misconception this question probes — drives error-diagnosis mistake
+        // emission on submission.
+        misconceptionTag: String(q.misconceptionTag || ''),
         workingRequired: true,
         mentalMathEligible: false,
       });
@@ -492,6 +501,104 @@ router.post('/:id/generate', asyncHandler(async (req, res) => {
     return res.json({ generated });
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to generate test from specification.' });
+  }
+}));
+
+// Submit a generated assessment session: server-marks the responses, persists the
+// score, updates mastery per question, and (for error_diagnosis papers) emits a
+// MathPathMistakeRecord for each wrong answer tied to a misconception — closing
+// the loop back into weakness sourcing.
+router.post('/sessions/:assessmentSessionId/submit', asyncHandler(async (req, res) => {
+  try {
+    const session = await MathPathAssessmentSession.findOne({ assessmentSessionId: req.params.assessmentSessionId });
+    if (!session) return res.status(404).json({ error: 'Assessment session not found.' });
+
+    // Authorize: the student themselves, or a user with access to the source spec.
+    let authorized = String(session.studentId) === String(req.user.id);
+    if (!authorized && session.result?.specificationId) {
+      const spec = await AssessmentSpecification.findById(session.result.specificationId);
+      const access = await assertSpecAccess(req, spec);
+      authorized = access.ok;
+    }
+    if (!authorized) return res.status(403).json({ error: 'Not authorized to submit this assessment.' });
+
+    // Idempotent: a re-submit returns the existing result without double-counting
+    // mastery updates or mistake records.
+    if (session.status === 'marked') {
+      return res.json({
+        assessmentSessionId: session.assessmentSessionId,
+        status: session.status,
+        score: session.result?.score ?? 0,
+        totalAwarded: session.result?.totalAwarded ?? 0,
+        totalMarks: session.result?.totalMarks ?? session.totalMarks ?? 0,
+        alreadySubmitted: true,
+      });
+    }
+
+    const questions = asArray(session.result?.questions);
+    const marked = markAssessment({ questions, responses: asArray(req.body?.responses) });
+
+    session.status = 'marked';
+    session.submittedAt = session.submittedAt || new Date();
+    session.markedAt = new Date();
+    session.result = {
+      ...(session.result || {}),
+      responses: marked.items,
+      score: marked.scorePct,
+      totalAwarded: marked.totalAwarded,
+      totalMarks: marked.totalMarks,
+    };
+    session.markModified('result');
+    await session.save();
+
+    // Update mastery for each attempt (best-effort; keyed by the Skill ObjectId).
+    for (const item of marked.items) {
+      if (!item.skillRefId) continue;
+      try {
+        await recordAttempt({
+          studentId: String(session.studentId),
+          skillId: item.skillRefId,
+          correct: item.correct,
+          timeMs: item.timeMs || null,
+        });
+      } catch { /* mastery update is best-effort */ }
+    }
+
+    // Error-diagnosis: a wrong answer on a misconception-tagged question is logged
+    // as a mistake so it feeds back into weakness sourcing.
+    let mistakesRecorded = 0;
+    if (session.result?.testMode === 'error_diagnosis') {
+      for (const item of marked.items) {
+        if (item.correct || !item.misconceptionTag) continue;
+        try {
+          await MathPathMistakeRecord.findOneAndUpdate(
+            {
+              studentId: String(session.studentId),
+              domainId: session.domainId,
+              mistakeCode: item.misconceptionTag,
+              skillId: item.skillId || '',
+              questionFamilyId: item.questionFamilyId || '',
+            },
+            { $inc: { frequency: 1 }, $set: { mistakeName: item.misconceptionTag, severity: 'medium', lastSeenAt: new Date() } },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          );
+          mistakesRecorded += 1;
+        } catch { /* mistake emission is best-effort */ }
+      }
+    }
+
+    return res.json({
+      assessmentSessionId: session.assessmentSessionId,
+      status: session.status,
+      score: marked.scorePct,
+      totalAwarded: marked.totalAwarded,
+      totalMarks: marked.totalMarks,
+      correctCount: marked.items.filter((i) => i.correct).length,
+      questionCount: marked.items.length,
+      mistakesRecorded,
+    });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Failed to submit assessment.' });
   }
 }));
 

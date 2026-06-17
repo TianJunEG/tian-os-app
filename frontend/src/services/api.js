@@ -566,6 +566,7 @@ export const assessmentSpecificationAPI = {
   create: (data) => api.post('/assessment-specifications', data),
   update: (id, data) => api.put(`/assessment-specifications/${id}`, data),
   generateTest: (id, data = {}) => api.post(`/assessment-specifications/${id}/generate`, data),
+  submitSession: (assessmentSessionId, data = {}) => api.post(`/assessment-specifications/sessions/${assessmentSessionId}/submit`, data),
   classResults: (id) => api.get(`/assessment-specifications/${id}/class-results`),
   generatedPaperBlueprint: (id, params = {}) => api.get(`/assessment-specifications/${id}/generated-paper-blueprint`, { params }),
 };
