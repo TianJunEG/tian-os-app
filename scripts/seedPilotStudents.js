@@ -9,7 +9,7 @@ import TutorStudentLink from '../models/TutorStudentLink.js';
 import Class from '../models/Class.js';
 import ClassStudent from '../models/ClassStudent.js';
 import Skill from '../models/Skill.js';
-import MasteryRecord from '../models/MasteryRecord.js';
+import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
 import Mistake from '../models/Mistake.js';
 import MathPathAttempt from '../models/mathpath/MathPathAttempt.js';
 
@@ -119,33 +119,34 @@ async function skillMap(codes) {
 }
 
 function statusForScore(score) {
-  if (score >= 70) return 'mastered';
-  if (score >= 40) return 'learning';
-  return 'needs_review';
+  if (score >= 80) return 'accurate';
+  if (score >= 50) return 'learning';
+  return 'needsReview';
 }
 
-async function upsertMastery({ student, workspaceId, skill, score, attempts, recentTimesMs = [], confidence = 0.6 }) {
+function fluencyLevelForTimes(recentTimesMs = []) {
+  if (!recentTimesMs.length) return 'notReady';
+  return Math.max(...recentTimesMs) <= 12000 ? 'gold' : 'silver';
+}
+
+async function upsertMastery({ student, skill, score, attempts, recentTimesMs = [] }) {
   if (!skill) return false;
-  await MasteryRecord.findOneAndUpdate(
-    { studentId: student._id, skillId: skill._id },
+  const skillId = skill.metadata?.mathPathSkillId || skill.metadata?.frameworkCode;
+  if (!skillId) return false;
+  await MathPathStudentSkillState.findOneAndUpdate(
+    { studentId: String(student._id), domainId: 'fractions', skillId },
     {
-      studentId: student._id,
-      skillId: skill._id,
-      workspaceId,
-      module: 'MathPath',
-      subject: 'Math',
-      score,
-      status: statusForScore(score),
-      masteryState: score >= 85 ? 'secure' : score >= 70 ? 'mastered' : score >= 40 ? 'developing' : 'emerging',
-      attempts,
-      recentTimesMs,
-      medianTimeMs: recentTimesMs.length ? [...recentTimesMs].sort((a, b) => a - b)[Math.floor(recentTimesMs.length / 2)] : null,
-      fluencyStatus: recentTimesMs.length && Math.max(...recentTimesMs) <= 12000 ? 'automatic' : recentTimesMs.length ? 'effortful' : 'unknown',
-      confidence,
-      lastPracticedAt: new Date(),
-      recentOutcomes: Array.from({ length: Math.min(8, attempts) }, (_, idx) => idx < Math.round((score / 100) * Math.min(8, attempts))),
+      $set: {
+        status: statusForScore(score),
+        accuracy: score,
+        attemptCount: attempts,
+        correctCount: Math.round((score / 100) * attempts),
+        fluencyLevel: fluencyLevelForTimes(recentTimesMs),
+        averageTime: recentTimesMs.length ? Math.round(recentTimesMs.reduce((a, b) => a + b, 0) / recentTimesMs.length / 1000) : null,
+        lastPractisedAt: new Date(),
+      },
     },
-    { upsert: true, setDefaultsOnInsert: true }
+    { upsert: true, new: true, setDefaultsOnInsert: true }
   );
   return true;
 }
@@ -197,7 +198,7 @@ async function addMistake({ student, workspaceId, skill, source, stem, studentAn
 
 async function resetPilotEvidence(student) {
   await Promise.all([
-    MasteryRecord.deleteMany({ studentId: student._id, module: 'MathPath' }),
+    MathPathStudentSkillState.deleteMany({ studentId: String(student._id), domainId: 'fractions' }),
     Mistake.deleteMany({ studentId: student._id, module: 'MathPath' }),
     MathPathAttempt.deleteMany({ studentId: String(student._id), domainId: 'fractions' }),
   ]);
@@ -212,8 +213,8 @@ async function seedProfileEvidence({ spec, student, workspaceId, skills }) {
   let attempts = 0;
 
   if (spec.profileKey === 'weak_fractions_p4') {
-    mastery += await upsertMastery({ student, workspaceId, skill: skills.F001, score: 25, attempts: 4, confidence: 0.35 }) ? 1 : 0;
-    mastery += await upsertMastery({ student, workspaceId, skill: skills.F003, score: 30, attempts: 5, confidence: 0.3 }) ? 1 : 0;
+    mastery += await upsertMastery({ student, skill: skills.F001, score: 25, attempts: 4 }) ? 1 : 0;
+    mastery += await upsertMastery({ student, skill: skills.F003, score: 30, attempts: 5 }) ? 1 : 0;
     mistakes += await addMistake({
       student, workspaceId, skill: skills.F003, source: 'diagnostic-incorrect',
       stem: 'A bar is split into 5 equal parts. 2 parts are shaded. What fraction is shaded?',
@@ -223,12 +224,12 @@ async function seedProfileEvidence({ spec, student, workspaceId, skills }) {
 
   if (spec.profileKey === 'strong_fractions_p4') {
     for (const code of ['F001', 'F002', 'F003', 'F004', 'F005', 'F006', 'F007', 'F008']) {
-      mastery += await upsertMastery({ student, workspaceId, skill: skills[code], score: 88, attempts: 8, recentTimesMs: [6500, 7200, 7800], confidence: 0.9 }) ? 1 : 0;
+      mastery += await upsertMastery({ student, skill: skills[code], score: 88, attempts: 8, recentTimesMs: [6500, 7200, 7800] }) ? 1 : 0;
     }
   }
 
   if (spec.profileKey === 'careless_fast_p4') {
-    mastery += await upsertMastery({ student, workspaceId, skill: skills.F015, score: 58, attempts: 8, recentTimesMs: [3500, 4200, 3900], confidence: 0.55 }) ? 1 : 0;
+    mastery += await upsertMastery({ student, skill: skills.F015, score: 58, attempts: 8, recentTimesMs: [3500, 4200, 3900] }) ? 1 : 0;
     await addAttempt({ student, skillId: 'F015', familyId: 'pilot_like_fraction_addition', questionId: 'pilot_fast_q1', correct: false, answer: '4/10', correctAnswer: '4/5', seconds: 4, confidenceLevel: 'confident' });
     await addAttempt({ student, skillId: 'F015', familyId: 'pilot_like_fraction_addition', questionId: 'pilot_fast_q2', correct: true, answer: '3/7', correctAnswer: '3/7', seconds: 5, confidenceLevel: 'confident' });
     attempts += 2;
@@ -240,7 +241,7 @@ async function seedProfileEvidence({ spec, student, workspaceId, skills }) {
   }
 
   if (spec.profileKey === 'slow_low_confidence_p4') {
-    mastery += await upsertMastery({ student, workspaceId, skill: skills.F017, score: 62, attempts: 6, recentTimesMs: [42000, 48000, 51000], confidence: 0.45 }) ? 1 : 0;
+    mastery += await upsertMastery({ student, skill: skills.F017, score: 62, attempts: 6, recentTimesMs: [42000, 48000, 51000] }) ? 1 : 0;
     await addAttempt({ student, skillId: 'F017', familyId: 'pilot_unlike_fraction_addition', questionId: 'pilot_slow_q1', correct: true, answer: '5/6', correctAnswer: '5/6', seconds: 49, confidenceLevel: 'unsure' });
     await addAttempt({ student, skillId: 'F017', familyId: 'pilot_unlike_fraction_addition', questionId: 'pilot_slow_q2', correct: true, answer: '7/12', correctAnswer: '7/12', seconds: 55, confidenceLevel: 'unsure' });
     attempts += 2;
