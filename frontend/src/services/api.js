@@ -890,6 +890,11 @@ export const learningAPI = {
   getChildProfile: (childId) => api.get(`/learning/children/${childId}/profile`)
 };
 
+export const comicsAPI = {
+  complete: (episodeId, problems) => api.post(`/comics/${episodeId}/complete`, { problems }),
+  progress: () => api.get('/comics/progress'),
+};
+
 // Science API — P6 science revision bank (open-ended Q&A).
 export const scienceAPI = {
   topics: () => api.get('/science/topics'),

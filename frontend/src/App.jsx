@@ -152,6 +152,8 @@ const WorkingUploadScreen = lazy(() => import('./pages/student/mathpath/working/
 const WorkingUploadReviewScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadReviewScreen'));
 const WorkingUploadSuccessScreen = lazy(() => import('./pages/student/mathpath/working/WorkingUploadSuccessScreen'));
 // Problem Solving Lab (PSL) — guided word-problem reasoning
+const ComicsHome = lazy(() => import('./pages/student/comics/ComicsHome'));
+const ComicReader = lazy(() => import('./pages/student/comics/ComicReader'));
 const PSLHome = lazy(() => import('./pages/student/psl/PSLHome'));
 const PSLSession = lazy(() => import('./pages/student/psl/PSLSession'));
 const PSLResults = lazy(() => import('./pages/student/psl/PSLResults'));
@@ -702,6 +704,10 @@ function App() {
             <Route path="/student/spelling/practice/:sessionId" element={<FeatureGuard feature="spelling"><SpellingSelfTest /></FeatureGuard>} />
             <Route path="/student/spelling/results/:sessionId" element={<FeatureGuard feature="spelling"><SpellingPracticeResults /></FeatureGuard>} />
             <Route path="/student/spelling/mistakes" element={<FeatureGuard feature="spelling"><SpellingPracticeMistakes /></FeatureGuard>} />
+
+            {/* Tian 7 Chronicles — comic word problems */}
+            <Route path="/student/comics" element={<FeatureGuard feature="comics"><ComicsHome /></FeatureGuard>} />
+            <Route path="/student/comics/:slug" element={<FeatureGuard feature="comics"><ComicReader /></FeatureGuard>} />
 
             {/* Problem Solving Lab */}
             <Route path="/student/psl" element={<FeatureGuard feature="psl"><PSLHome /></FeatureGuard>} />
