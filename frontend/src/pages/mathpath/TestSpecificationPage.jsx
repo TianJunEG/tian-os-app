@@ -224,6 +224,7 @@ export default function TestSpecificationPage() {
           timed: generated.timed,
         },
         questions: generated.questions,
+        sections: generated.sections || [],
         assessmentType: 'curriculum',
         level: generated.level,
         specificationId: selectedSpecId,
@@ -425,6 +426,15 @@ export default function TestSpecificationPage() {
             <p className="mt-1 text-xs text-ink-500">
               Auto-built from {generated.weakSkillIds?.length || 0} weak skill{(generated.weakSkillIds?.length || 0) === 1 ? '' : 's'}: {(generated.weakSkillIds || []).join(', ')}
             </p>
+          )}
+          {(generated.sections || []).length > 1 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {generated.sections.map((sec) => (
+                <span key={sec.id} className="rounded-full border border-line-soft bg-paper px-3 py-1 text-xs text-ink-600">
+                  {sec.shortName || sec.name} · {sec.questionCount}Q · {sec.marks}m · {sec.calculatorAllowed ? 'calc' : 'no calc'}
+                </span>
+              ))}
+            </div>
           )}
           <div className="mt-3 space-y-2 text-sm text-ink-600">
             {(generated.topicBlueprint || []).map((row, idx) => (
