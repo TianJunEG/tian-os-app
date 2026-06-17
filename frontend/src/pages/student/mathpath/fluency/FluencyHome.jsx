@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ListChecks, AlertTriangle, CheckCircle2, Clock3, Target } from 'lucide-react';
+import { Zap, ListChecks, AlertTriangle, CheckCircle2, Clock3, Target, BookCheck } from 'lucide-react';
 import { mathpathAPI, skillsAPI } from '../../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../../components/ui';
 import { useAuth } from '../../../../context/AuthContext';
@@ -9,6 +9,17 @@ import FEATURE_FLAGS from '../../../../config/featureFlags';
 
 // MathPath › Fluency — home. Recommended skill, weak fluency skills, quick practice.
 // Fluency is a FEATURE of MathPath: it reuses the shared practice/result screens.
+
+// Skill-code prefix → domain slug so review items can deep-link to the right session.
+function domainFromSkillId(skillId) {
+  if (!skillId) return null;
+  if (/^P0\d\d$/.test(skillId)) return 'percentages';
+  if (/^R0\d\d$/.test(skillId)) return 'ratio-rate';
+  if (/AL0\d\d/.test(skillId)) return 'algebra';
+  if (/GE0\d\d/.test(skillId)) return 'geometry';
+  if (/VL0\d\d/.test(skillId)) return 'volume';
+  return null;
+}
 const TONE = { mastered: 'success', fluent: 'success', learning: 'gold', needs_review: 'error', not_started: 'neutral' };
 const EMPTY_FLUENCY_MESSAGE = 'No fluency practice is available yet. Continue learning to unlock fluency challenges.';
 const STATUS_META = {
@@ -154,12 +165,34 @@ export default function FluencyHome() {
         })}
       </div>
 
-      {!!retention?.upcomingReviews?.length && (
+      {(!!retention?.overdueReviews?.length || !!retention?.upcomingReviews?.length) && (
         <Card className="p-4">
-          <h3 className="text-sm font-semibold text-ink-800">Retention Reviews</h3>
-          <p className="mt-1 text-sm text-ink-600">
-            {retention.upcomingReviews.length} review{retention.upcomingReviews.length === 1 ? '' : 's'} scheduled after fluent skills.
-          </p>
+          <div className="flex items-center gap-2">
+            <BookCheck className="h-4 w-4 text-emerald" />
+            <h3 className="text-sm font-semibold text-ink-800">Retention Reviews</h3>
+            {!!retention?.overdueReviews?.length && <Badge tone="error">{retention.overdueReviews.length} overdue</Badge>}
+            {!!retention?.upcomingReviews?.length && <Badge tone="gold">{retention.upcomingReviews.length} upcoming</Badge>}
+          </div>
+          <div className="mt-3 space-y-2">
+            {[...(retention.overdueReviews || []), ...(retention.upcomingReviews || [])].slice(0, 5).map((review) => {
+              const domain = domainFromSkillId(review.skillId);
+              return (
+                <button
+                  key={review.skillId}
+                  type="button"
+                  disabled={!domain}
+                  onClick={() => domain && navigate(`/student/mathpath/${domain}/retention?skill=${review.skillId}`)}
+                  className={`w-full rounded-lg border border-line-soft bg-white/80 px-3 py-2 text-left ${domain ? 'hover:border-emerald cursor-pointer' : 'opacity-50 cursor-default'}`}
+                >
+                  <div className="text-sm font-semibold text-ink-800">{review.skillName || review.skillCode || review.skillId}</div>
+                  <div className="mt-0.5 text-xs text-ink-500">
+                    {review.reviewDate ? `Due ${review.reviewDate}` : 'Ready to review'}
+                    {domain && <span className="ml-2 text-emerald-deep">· Start review →</span>}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </Card>
       )}
 

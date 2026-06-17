@@ -9,7 +9,7 @@ const flagEnabled = (name, fallback = false) => {
 };
 const WORKSHEETS_ENABLED = flagEnabled('WORKSHEETS', true);
 const FLUENCY_ENABLED = flagEnabled('FLUENCY_PILOT', true);
-const ASSESSMENTS_ENABLED = flagEnabled('ASSESSMENTS_PILOT', false);
+const ASSESSMENTS_ENABLED = flagEnabled('ASSESSMENTS_PILOT', true);
 const MODEL_TRAINER_ENABLED = flagEnabled('MODEL_TRAINER_PILOT', false);
 const WORKING_MATH_INSERTS_ENABLED = flagEnabled('WORKING_MATH_INSERTS_PILOT', false);
 
@@ -56,7 +56,6 @@ export const FEATURE_FLAGS = {
 
   // Features shown as "Coming Soon" (still disabled but visible)
   worksheets: WORKSHEETS_ENABLED,
-  worksheetsComingSoon: false,
   parent: flagEnabled('PARENT', true),
   parentComingSoon: false,
 

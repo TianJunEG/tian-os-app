@@ -62,7 +62,7 @@ export const MODULES = ALL_MODULES.filter((m) => {
     case 'fluency': return FEATURE_FLAGS.fluency;
     case 'mistakes': return FEATURE_FLAGS.mistakes;
     case 'progress': return FEATURE_FLAGS.progress;
-    case 'worksheets': return FEATURE_FLAGS.worksheets || FEATURE_FLAGS.worksheetsComingSoon;
+    case 'worksheets': return FEATURE_FLAGS.worksheets;
     case 'spelling': return FEATURE_FLAGS.spelling;
     case 'science': return FEATURE_FLAGS.science;
     case 'lifelab': return FEATURE_FLAGS.lifelab;
