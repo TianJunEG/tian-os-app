@@ -12,6 +12,14 @@ import Skill from '../models/Skill.js';
 import Question from '../models/Question.js';
 import Subject from '../models/Subject.js';
 import { buildGeneratedPaperBlueprintFromSpecification } from '../services/mathpath/assessmentBlueprintEngine.js';
+import {
+  resolveTestMode,
+  getTestModeConfig,
+  normalizeDifficultyMix,
+  sampleQuestionsByDifficulty,
+  isTestMode,
+} from '../services/mathpath/testModePresets.js';
+import { sourceWeakSkills } from '../services/mathpath/weaknessSkillSourcer.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -45,6 +53,9 @@ function normalizeSpecPayload(body = {}) {
     outputMode: ['quickCheck', 'topicTest', 'miniPaper', 'fullPaper', 'schoolAlignedMock'].includes(String(body.outputMode || ''))
       ? String(body.outputMode)
       : 'topicTest',
+    testMode: isTestMode(body.testMode)
+      ? String(body.testMode)
+      : resolveTestMode({ outputMode: body.outputMode }),
     topics: asArray(body.topics).map((t) => ({
       topicName: String(t.topicName || '').trim(),
       topicId: t.topicId || null,
@@ -55,6 +66,7 @@ function normalizeSpecPayload(body = {}) {
       difficulty: ['easy', 'medium', 'hard', 'mixed'].includes(String(t.difficulty || '').toLowerCase())
         ? String(t.difficulty).toLowerCase()
         : 'mixed',
+      difficultyMix: normalizeDifficultyMix(t.difficultyMix),
       includeWordProblems: t.includeWordProblems !== false,
       notes: String(t.notes || '').trim(),
     })),
@@ -157,6 +169,38 @@ function pickDifficultyFilter(difficulty) {
   return [difficulty];
 }
 
+// Build synthetic topic rows from a student's weak skill set, one row per domain.
+// Marks are weighted by how many weak skills fall in each domain so the paper
+// spends more questions where the student is weakest.
+export function synthesizeWeaknessTopicRows(weakSkillIds, domainBySkill = {}) {
+  const byDomain = new Map();
+  for (const skillId of weakSkillIds) {
+    const dom = String(domainBySkill[skillId] || 'mixed');
+    if (!byDomain.has(dom)) byDomain.set(dom, []);
+    byDomain.get(dom).push(skillId);
+  }
+  return [...byDomain.entries()].map(([domainId, skillIds]) => ({
+    topicName: `Weak skills — ${domainId}`,
+    topicId: null,
+    domainId: domainId === 'mixed' ? '' : domainId,
+    skillIds,
+    marks: skillIds.length,
+    questionCount: 0,
+    difficulty: 'mixed',
+    difficultyMix: null,
+    includeWordProblems: true,
+  }));
+}
+
+// Soft ranking for error-diagnosis selection: reward MCQ items and items carrying
+// a misconception tag so wrong answers map to a named error pattern.
+function questionPreferenceScore(q, modeConfig = {}) {
+  let score = 0;
+  if (modeConfig.preferMcq && String(q.type || '') === 'mcq') score += 2;
+  if (modeConfig.preferMisconception && q.misconceptionTag) score += 1;
+  return score;
+}
+
 export async function generateTestFromSpecification(specificationId, options = {}) {
   const spec = await AssessmentSpecification.findById(specificationId);
   if (!spec) throw new Error('Assessment specification not found.');
@@ -164,13 +208,59 @@ export async function generateTestFromSpecification(specificationId, options = {
   const subject = await Subject.findOne({ key: String(spec.subject || 'math').toLowerCase() });
   if (!subject) throw new Error(`Subject "${spec.subject}" not found.`);
 
-  const topicRows = asArray(spec.topics);
-  if (!topicRows.length) throw new Error('Specification has no topic rows.');
-
-  const totalMarks = Math.max(1, Number(spec.totalMarks || 0));
-  const markSum = topicRows.reduce((s, t) => s + Math.max(0, Number(t.marks || 0)), 0) || totalMarks;
+  const testMode = resolveTestMode({ testMode: spec.testMode, outputMode: spec.outputMode });
+  const modeConfig = getTestModeConfig(testMode);
+  const effectiveTimed = modeConfig.forceTimed ? true : Boolean(spec.timed);
   const targetStudentId = spec.targetType === 'student' ? String(spec.targetStudentId || '') : String(options.targetStudentId || '');
   const sessionId = assessmentSessionId('specassess');
+
+  const specTopicRows = asArray(spec.topics);
+
+  // Data-driven modes (weakness_drill) auto-source the student's weak skills and
+  // narrow selection to them. Sourcing failures degrade gracefully to the spec's
+  // own topic/skill scope rather than aborting the paper.
+  let weakSkillSet = null;
+  let weakSkillIds = [];
+  let weakDomainBySkill = {};
+  if (modeConfig.sourceWeakSkills && targetStudentId) {
+    try {
+      const sourced = await sourceWeakSkills({
+        studentId: targetStudentId,
+        domainIds: specTopicRows.map((t) => t.domainId).filter(Boolean),
+        limit: 12,
+      });
+      weakSkillIds = sourced.skillIds;
+      weakDomainBySkill = sourced.domainBySkill || {};
+      if (weakSkillIds.length) weakSkillSet = new Set(weakSkillIds);
+    } catch {
+      weakSkillSet = null;
+    }
+  }
+
+  // When a weakness spec carries no topic rows, synthesize them from the weak
+  // skill set (grouped by domain) so the paper builds itself with zero manual config.
+  let synthesizedFromWeakness = false;
+  let topicRows = specTopicRows;
+  if (!topicRows.length && weakSkillIds.length) {
+    topicRows = synthesizeWeaknessTopicRows(weakSkillIds, weakDomainBySkill);
+    synthesizedFromWeakness = true;
+  }
+
+  if (!topicRows.length) {
+    throw new Error(
+      modeConfig.sourceWeakSkills
+        ? 'No weak skills found for this student yet, so a weakness drill cannot be built. Add topics manually or run a diagnostic/practice first.'
+        : 'Specification has no topic rows.'
+    );
+  }
+
+  // Default a paper size when synthesizing for a spec that carries no marks.
+  const totalMarks = Math.max(
+    1,
+    Number(spec.totalMarks || 0) || (synthesizedFromWeakness ? weakSkillIds.length * 4 : 0)
+  );
+  const markSum = topicRows.reduce((s, t) => s + Math.max(0, Number(t.marks || 0)), 0) || totalMarks;
+
   const targetSkillIds = new Set();
   const targetQuestionFamilyIds = new Set();
   const topicBlueprint = [];
@@ -187,7 +277,19 @@ export async function generateTestFromSpecification(specificationId, options = {
       Math.ceil(allocatedMarks / Math.max(1, marksPerQuestion))
     );
 
-    const skillKeys = await resolveTopicSkillIds(row, subject._id);
+    const resolvedSkillKeys = await resolveTopicSkillIds(row, subject._id);
+    // For weakness mode, keep only the weak skills within this topic. If the topic
+    // has no weak overlap, fall back to its full skill set so the paper still fills.
+    let skillKeys = resolvedSkillKeys;
+    let topicWeakSourced = false;
+    if (weakSkillSet) {
+      const intersect = resolvedSkillKeys.filter((k) => weakSkillSet.has(k));
+      if (intersect.length) {
+        skillKeys = intersect;
+        topicWeakSourced = true;
+      }
+    }
+
     const skillDocs = await Skill.find({
       $or: [
         { _id: { $in: skillKeys.map(toObjectId).filter(Boolean) } },
@@ -201,18 +303,39 @@ export async function generateTestFromSpecification(specificationId, options = {
     const skillPublicIds = skillDocs.map((s) => String(s.metadata?.mathPathSkillId || s.metadata?.frameworkCode || s.slug || s._id));
     skillPublicIds.forEach((id) => targetSkillIds.add(id));
 
-    const questions = await Question.find({
+    const pool = await Question.find({
       subjectId: subject._id,
       skillId: { $in: skillDocIds },
       difficulty: { $in: pickDifficultyFilter(difficulty) },
       ...(row.includeWordProblems === false ? { stem: { $not: /word|story|problem/i } } : {}),
     })
-      .limit(Math.max(desiredCount * 3, desiredCount))
+      // Fetch a generous candidate pool so the difficulty sampler has buckets to
+      // draw from rather than seeing only the first N of one difficulty.
+      .limit(Math.max(desiredCount * 5, desiredCount, 30))
       .lean();
 
-    const selected = questions.slice(0, desiredCount);
+    // Error-diagnosis papers prefer MCQ items with a misconception tag so a wrong
+    // answer maps to a named error. This is a soft sort (preference), so the pool
+    // still falls back to other items when tagged MCQs are scarce.
+    const candidates = (modeConfig.preferMcq || modeConfig.preferMisconception)
+      ? [...pool].sort((a, b) => questionPreferenceScore(b, modeConfig) - questionPreferenceScore(a, modeConfig))
+      : pool;
+
+    // Effective difficulty distribution: a per-topic override wins for 'mixed'
+    // rows, otherwise the test mode's default mix. For single-band rows the query
+    // already constrained difficulty, so the mix is effectively a no-op slice.
+    const effectiveMix = (difficulty === 'mixed'
+      ? (normalizeDifficultyMix(row.difficultyMix) || modeConfig.difficultyMix)
+      : modeConfig.difficultyMix);
+
+    const selected = sampleQuestionsByDifficulty(candidates, desiredCount, effectiveMix);
     selected.forEach((q, idx) => {
-      const marks = marksPerQuestion;
+      // Honour each question's own difficulty for marks rather than a flat
+      // topic-level value, so a balanced paper carries balanced marks. Trade-off:
+      // a topic's summed marks can drift from its planned `allocatedMarks` (which
+      // assumes the medium rate), so the paper's actual total may differ from the
+      // requested totalMarks. The session stores the actual sum (generatedTotalMarks).
+      const marks = questionMarksForDifficulty(q.difficulty || 'medium');
       const qSkill = skillDocs.find((s) => String(s._id) === String(q.skillId));
       const publicSkillId = String(qSkill?.metadata?.mathPathSkillId || qSkill?.metadata?.frameworkCode || qSkill?.slug || q.skillId);
       targetQuestionFamilyIds.add(`TOS_${publicSkillId}_${idx + 1}`);
@@ -239,8 +362,10 @@ export async function generateTestFromSpecification(specificationId, options = {
       allocatedMarks,
       questionCount: selected.length,
       difficulty,
+      difficultyMix: difficulty === 'mixed' ? effectiveMix : null,
       includeWordProblems: row.includeWordProblems !== false,
       skillIds: skillPublicIds,
+      weaknessSourced: topicWeakSourced,
     });
   }
 
@@ -262,7 +387,10 @@ export async function generateTestFromSpecification(specificationId, options = {
     status: 'notStarted',
     result: {
       specificationId: String(spec._id),
-      timed: Boolean(spec.timed),
+      testMode,
+      timed: effectiveTimed,
+      weakSkillIds,
+      synthesizedFromWeakness,
       source: spec.source,
       title: spec.title,
       topicBlueprint,
@@ -280,7 +408,10 @@ export async function generateTestFromSpecification(specificationId, options = {
     level: spec.level,
     subject: spec.subject,
     paperType: spec.paperType,
-    timed: Boolean(spec.timed),
+    testMode,
+    timed: effectiveTimed,
+    weakSkillIds,
+    synthesizedFromWeakness,
     durationMinutes: Number(spec.durationMinutes || 0),
     calculatorAllowed: Boolean(spec.calculatorAllowed),
     totalMarks: generatedTotalMarks,

@@ -5,6 +5,19 @@ const TARGET_TYPES = ['student', 'class'];
 const STATUS = ['draft', 'active', 'archived'];
 const SOURCE = ['parentProvided', 'teacherProvided', 'tutorProvided', 'manual'];
 const TEST_OUTPUT_MODES = ['quickCheck', 'topicTest', 'miniPaper', 'fullPaper', 'schoolAlignedMock'];
+const TEST_MODES = [
+  'topic_test', 'skill_test', 'mixed_review', 'weakness_drill',
+  'timed_paper', 'weighted_exam', 'error_diagnosis', 'psle_mock',
+];
+
+const difficultyMixSchema = new mongoose.Schema(
+  {
+    easy: { type: Number, default: 0 },
+    medium: { type: Number, default: 0 },
+    hard: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
 
 const topicRowSchema = new mongoose.Schema(
   {
@@ -15,6 +28,9 @@ const topicRowSchema = new mongoose.Schema(
     marks: { type: Number, default: 0 },
     questionCount: { type: Number, default: 0 },
     difficulty: { type: String, enum: ['easy', 'medium', 'hard', 'mixed'], default: 'mixed' },
+    // Optional per-topic override for the difficulty distribution when difficulty
+    // is 'mixed'. Falls back to the testMode default when unset.
+    difficultyMix: { type: difficultyMixSchema, default: null },
     includeWordProblems: { type: Boolean, default: true },
     notes: { type: String, default: '' },
   },
@@ -41,6 +57,9 @@ const assessmentSpecificationSchema = new mongoose.Schema(
     status: { type: String, enum: STATUS, default: 'draft' },
     assessmentBlueprintId: { type: mongoose.Schema.Types.ObjectId, ref: 'AssessmentBlueprint', default: null },
     outputMode: { type: String, enum: TEST_OUTPUT_MODES, default: 'topicTest' },
+    // First-class assessment mode. Drives difficulty balancing and selection
+    // behaviour in generateTestFromSpecification (see services/mathpath/testModePresets.js).
+    testMode: { type: String, enum: TEST_MODES, default: 'topic_test' },
     topics: { type: [topicRowSchema], default: [] },
   },
   { timestamps: true, collection: 'mathpath_assessment_specifications' }
