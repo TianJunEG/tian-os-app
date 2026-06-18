@@ -3,7 +3,7 @@ import { generateNumberSenseQuestionSet, checkNumberSenseAnswer } from './Number
 import { numberSenseSkillGraph } from './NumberSenseSkillGraph.js';
 
 const SKILL_IDS = numberSenseSkillGraph?.skillIds
-  || Array.from({ length: 29 }, (_, i) => 'NS' + String(i + 1).padStart(3, '0'));
+  || Array.from({ length: 35 }, (_, i) => 'NS' + String(i + 1).padStart(3, '0'));
 const num = (s) => Number(String(s).replace(/,/g, ''));
 
 // Re-derive a pure "expr = ?" integer expression (handles parentheses, unicode
@@ -157,6 +157,47 @@ describe('NumberSenseQuestionGenerator', () => {
         }
       }
       expect(sawNegativeOption).toBe(true);
+    });
+  });
+
+  describe('Secondary 1 (G1) Number — NS030–NS035 (factors, powers, roots)', () => {
+    const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; };
+    const pf = (n) => { const f = []; let d = 2; while (d * d <= n) { while (n % d === 0) { f.push(d); n /= d; } d++; } if (n > 1) f.push(n); return f; };
+
+    it('tags every Number skill as Secondary 1', () => {
+      for (const id of ['NS030', 'NS031', 'NS032', 'NS033', 'NS034', 'NS035']) {
+        expect(numberSenseSkillGraph.skills.find((s) => s.id === id).singaporeLevel).toEqual(['Secondary 1']);
+      }
+    });
+
+    it('computes prime factorisation, HCF, LCM, squares/cubes, roots and powers correctly', () => {
+      let checked = 0;
+      for (const id of ['NS030', 'NS031', 'NS032', 'NS033', 'NS034', 'NS035']) {
+        for (let c = 0; c < 60; c++) {
+          for (const q of generateNumberSenseQuestionSet({ skillId: id, count: 6 })) {
+            const d = q.answer.display; let mm;
+            if ((mm = /Express (\d+) as a product/.exec(q.prompt))) { checked++; expect(d).toBe(pf(+mm[1]).join(' × ')); }
+            else if ((mm = /HCF\) of (\d+) and (\d+)/.exec(q.prompt))) { checked++; expect(+d).toBe(gcd(+mm[1], +mm[2])); }
+            else if ((mm = /LCM\) of (\d+) and (\d+)/.exec(q.prompt))) { checked++; expect(+d).toBe(Math.abs(+mm[1] * +mm[2]) / gcd(+mm[1], +mm[2])); }
+            else if ((mm = /What is (\d+)(²|³)\?/.exec(q.prompt))) { checked++; expect(+d).toBe(mm[2] === '²' ? (+mm[1]) ** 2 : (+mm[1]) ** 3); }
+            else if ((mm = /What is (√|∛)(\d+)\?/.exec(q.prompt))) { checked++; expect(+d).toBe(mm[1] === '√' ? Math.round(Math.sqrt(+mm[2])) : Math.round(Math.cbrt(+mm[2]))); }
+            else if ((mm = /Evaluate (\d+)\^(\d+)/.exec(q.prompt))) { checked++; expect(+d).toBe((+mm[1]) ** (+mm[2])); }
+          }
+        }
+      }
+      expect(checked).toBeGreaterThan(1500);
+    });
+
+    it('prime-factorisation MCQs are well-formed and the checker accepts ×, x or *', () => {
+      for (let c = 0; c < 40; c++) {
+        for (const q of generateNumberSenseQuestionSet({ skillId: 'NS030', count: 6 }).filter((x) => x.type === 'mcq')) {
+          expect(q.choices.length).toBeGreaterThanOrEqual(2);
+          expect(new Set(q.choices).size).toBe(q.choices.length);
+          expect(q.choices).toContain(q.answer.display);
+        }
+      }
+      expect(checkNumberSenseAnswer({ question: { answer: { display: '2 × 2 × 3' } }, studentResponse: '2x2x3' }).correct).toBe(true);
+      expect(checkNumberSenseAnswer({ question: { answer: { display: '2 × 2 × 3' } }, studentResponse: '2*2*3' }).correct).toBe(true);
     });
   });
 });

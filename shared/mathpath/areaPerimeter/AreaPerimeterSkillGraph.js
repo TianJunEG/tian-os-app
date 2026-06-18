@@ -105,6 +105,26 @@ const areaPerimeterSkills = [
     heuristic: 'bar-model',
     questionFamilies: ['QF_AP006_001', 'QF_AP006_002'],
   },
+
+  // ── Secondary 1 (G1) — Mensuration: area of special quadrilaterals ──────────
+  {
+    id: 'AP007', slug: 'ap.area-parallelogram', name: 'Area of a parallelogram',
+    description: 'Find the area of a parallelogram (base × height).',
+    strand: 'Area', prerequisites: ['AP003'], crossDomainPrerequisites: [], difficulty: 3,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 85, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 88, targetAverageSeconds: 15 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AP003'], misconceptions: ['mea/use-slant-side', 'mea/area-units'],
+    questionFamilies: ['QF_AP007_001', 'QF_AP007_002'],
+  },
+  {
+    id: 'AP008', slug: 'ap.area-trapezium', name: 'Area of a trapezium',
+    description: 'Find the area of a trapezium using ½(a + b)h.',
+    strand: 'Area', prerequisites: ['AP007'], crossDomainPrerequisites: [], difficulty: 4,
+    singaporeLevel: ['Secondary 1'], mastery: { minimumAccuracy: 82, minimumQuestions: 12 },
+    fluency: { targetAccuracy: 85, targetAverageSeconds: 20 }, retention: { reviewDays: RETENTION_REVIEW_DAYS },
+    remediationIfWeak: ['AP007'], misconceptions: ['mea/trapezium-no-half', 'mea/area-units'],
+    questionFamilies: ['QF_AP008_001', 'QF_AP008_002'],
+  },
 ];
 
 const skills = areaPerimeterSkills.map((skill) => ({ ...skill }));
@@ -181,7 +201,7 @@ function detectCycles(graphSkills) {
 }
 
 export function validateAreaPerimeterSkillGraph() {
-  const expectedIds = ['AP001', 'AP002', 'AP003', 'AP004', 'AP005', 'AP006'];
+  const expectedIds = ['AP001', 'AP002', 'AP003', 'AP004', 'AP005', 'AP006', 'AP007', 'AP008'];
   const actualIds = skills.map((s) => s.id);
   const missingSkills = expectedIds.filter((id) => !skillById.has(id));
   const duplicateIds = actualIds.filter((id, index) => actualIds.indexOf(id) !== index);

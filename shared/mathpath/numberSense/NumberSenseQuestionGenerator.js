@@ -38,6 +38,10 @@ function cmpSym(a, b) { return a > b ? '>' : a < b ? '<' : '='; }
 // wrap a negative in parentheses for readable expressions, e.g. (-6).
 function nzInt(rng, max) { const v = rint(rng, 1, max) * (rng() < 0.5 ? -1 : 1); return v; }
 function par(n) { return n < 0 ? `(${n})` : `${n}`; }
+// Number helpers (Secondary 1): gcd, lcm, and prime factorisation.
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
+function primeFactors(n) { const f = []; let d = 2; while (d * d <= n) { while (n % d === 0) { f.push(d); n /= d; } d++; } if (n > 1) f.push(n); return f; }
 
 // ── Question envelope builders ───────────────────────────────────────────────
 function shortAnswer({ family, prompt, answerDisplay, acceptedAnswers, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
@@ -208,6 +212,62 @@ const BUILDERS = {
     return { prompt: `A bank account is overdrawn, with a balance of −$${Math.abs(start)} (that is, ${start} dollars). A deposit of $${deposit} is made. What is the new balance (in dollars)?`, answer: ans, tag: 'int/direction',
       steps: [`Add the deposit: ${start} + ${deposit} = ${ans}.`], distractors: [start - deposit, deposit - start, -ans].filter((d) => d !== ans) };
   },
+
+  // ── Secondary 1 (G1) — Number: factors, powers and roots (MOE N1.2/N1.3) ────
+  // NS030 — Prime factorisation (answer is a product of primes)
+  [NS(30)]: (rng) => {
+    const N = pick(rng, [12, 18, 20, 24, 28, 36, 40, 45, 48, 50, 54, 60, 72, 84, 90, 100]);
+    const pf = primeFactors(N);
+    const ans = pf.join(' × ');
+    const merged = [pf[0] * pf[1], ...pf.slice(2)].join(' × ');           // not fully factorised
+    const dropped = pf.slice(1).join(' × ');                              // missing a factor
+    const extra = [...pf, 2].sort((a, b) => a - b).join(' × ');           // an extra factor
+    return { prompt: `Express ${N} as a product of its prime factors (write the primes in order, e.g. 2 × 2 × 3).`, answer: ans, tag: 'num/not-fully-factorised',
+      steps: [`Divide by the smallest prime repeatedly: ${N} = ${ans}.`],
+      choices: [...new Set([ans, merged, dropped, extra])] };
+  },
+  // NS031 — HCF by prime factorisation
+  [NS(31)]: (rng) => {
+    const a = pick(rng, [12, 18, 24, 30, 36, 40, 48]), b = pick(rng, [16, 20, 24, 28, 36, 45, 60]);
+    const ans = gcd(a, b);
+    return { prompt: `Find the highest common factor (HCF) of ${a} and ${b}.`, answer: ans, tag: 'num/hcf-lcm-confuse',
+      steps: [`${a} = ${primeFactors(a).join(' × ')}; ${b} = ${primeFactors(b).join(' × ')}.`, `Take the common prime factors: HCF = ${ans}.`],
+      distractors: [lcm(a, b), ans + 1, Math.min(a, b)].filter((d) => d !== ans) };
+  },
+  // NS032 — LCM by prime factorisation
+  [NS(32)]: (rng) => {
+    const a = pick(rng, [4, 6, 8, 9, 10, 12, 15]), b = pick(rng, [6, 8, 9, 10, 14, 15, 18]);
+    const ans = lcm(a, b);
+    return { prompt: `Find the lowest common multiple (LCM) of ${a} and ${b}.`, answer: ans, tag: 'num/hcf-lcm-confuse',
+      steps: [`${a} = ${primeFactors(a).join(' × ')}; ${b} = ${primeFactors(b).join(' × ')}.`, `Take the highest power of each prime: LCM = ${ans}.`],
+      distractors: [gcd(a, b), a * b, ans + a].filter((d) => d !== ans) };
+  },
+  // NS033 — Squares and cubes
+  [NS(33)]: (rng) => {
+    const cube = rng() < 0.4;
+    const base = cube ? rint(rng, 2, 6) : rint(rng, 2, 13);
+    const ans = cube ? base ** 3 : base ** 2;
+    return { prompt: `What is ${base}${cube ? '³' : '²'}?`, answer: ans, tag: 'num/power-as-multiply',
+      steps: [`${base}${cube ? '³' : '²'} = ${base} × ${base}${cube ? ` × ${base}` : ''} = ${ans}.`],
+      distractors: [cube ? base * 3 : base * 2, ans + base, cube ? base ** 2 : base ** 3].filter((d) => d !== ans && d > 0) };
+  },
+  // NS034 — Square and cube roots (perfect values)
+  [NS(34)]: (rng) => {
+    const cube = rng() < 0.4;
+    const ans = cube ? rint(rng, 2, 6) : rint(rng, 2, 12);
+    const radicand = cube ? ans ** 3 : ans ** 2;
+    return { prompt: `What is ${cube ? '∛' : '√'}${radicand}?`, answer: ans, tag: 'num/root-as-divide',
+      steps: [`${ans} × ${ans}${cube ? ` × ${ans}` : ''} = ${radicand}, so ${cube ? '∛' : '√'}${radicand} = ${ans}.`],
+      distractors: [cube ? Math.round(radicand / 3) : Math.round(radicand / 2), ans + 1, ans + 2].filter((d) => d !== ans && d > 0) };
+  },
+  // NS035 — Index notation / evaluating powers
+  [NS(35)]: (rng) => {
+    const base = pick(rng, [2, 3, 4, 5]), exp = base === 2 ? rint(rng, 3, 8) : rint(rng, 2, 4);
+    const ans = base ** exp;
+    return { prompt: `Evaluate ${base}^${exp} (that is, ${base} to the power of ${exp}).`, answer: ans, tag: 'num/power-as-multiply',
+      steps: [`${base}^${exp} = ${Array(exp).fill(base).join(' × ')} = ${ans}.`],
+      distractors: [base * exp, base ** (exp - 1), ans + base].filter((d) => d !== ans && d > 0) };
+  },
 };
 
 function ordinal(n) {
@@ -273,6 +333,9 @@ const KIND_TO_SKILL = {
   // Secondary 1 (G1) — Integers
   nsNsIntAdd: NS(24), nsNsIntSub: NS(25), nsNsIntMul: NS(26), nsNsIntDiv: NS(27),
   nsNsIntOrderOps: NS(28), nsNsIntWord: NS(29),
+  // Secondary 1 (G1) — Number: factors, powers and roots
+  nsNsPrimeFactorise: NS(30), nsNsHcf: NS(31), nsNsLcm: NS(32),
+  nsNsSquaresCubes: NS(33), nsNsRoots: NS(34), nsNsPowers: NS(35),
 };
 
 const GENERATORS = {};
@@ -306,6 +369,9 @@ export function checkNumberSenseAnswer({ question, studentResponse }) {
   const noSpaceComma = (s) => s.replace(/[\s,]+/g, '');
   if (noSpace(raw) === noSpace(exp)) return { correct: true };       // ordered lists
   if (noSpaceComma(raw) === noSpaceComma(exp)) return { correct: true }; // numbers w/ separators
+  // Prime-factorisation products: accept ×, x or * as the multiplication sign.
+  const prod = (s) => s.replace(/[×x*]/g, '*').replace(/\s+/g, '');
+  if (/[×x*]/.test(exp) && prod(raw) === prod(exp)) return { correct: true };
   return { correct: false };
 }
 

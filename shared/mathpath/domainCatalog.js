@@ -156,7 +156,7 @@ export const DOMAIN_CATALOG = [
     subjectId: 'math',
     levelRange: 'P1–S1',
     topicOrder: 0,
-    strands: ['counting', 'place value', 'compare & order', 'rounding', 'factors & multiples', 'negative numbers', 'integers (Sec 1 G1)'],
+    strands: ['counting', 'place value', 'compare & order', 'rounding', 'factors & multiples', 'negative numbers', 'integers (Sec 1 G1)', 'factors, powers & roots (Sec 1 G1)'],
     prerequisites: [],
     questionTypes: ['mcq', 'short_answer', 'fill_blank', 'number_line', 'place_value_blocks'],
     misconceptionTags: ['place_value_error', 'factor_multiple_confusion', 'rounding_error', 'careless_copying'],
@@ -172,7 +172,7 @@ export const DOMAIN_CATALOG = [
       worksheet: 'planned',
       paperAnalysis: 'planned',
       intervention: 'planned',
-      skillGraph: 'available',    // NumberSenseSkillGraph.js (29 skills: NS001–NS029, incl. Sec 1 G1 integers NS024–NS029)
+      skillGraph: 'available',    // NumberSenseSkillGraph.js (35 skills: NS001–NS035, incl. Sec 1 G1 integers NS024–NS029 and factors/powers/roots NS030–NS035)
     },
     skillGraphFile: 'scripts/domains/numberSense.js',
     notes: 'DB-free diagnostic adapter registered (engine_ready); session runtime + UI pending (Step 3).',
