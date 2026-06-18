@@ -882,7 +882,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 4, 1, d - 1);
         const relation = a === b ? '=' : (a > b ? '>' : '<');
         return {
-          prompt: `Fill in the correct symbol: ${a}/${d} __ ${b}/${d}`,
+          prompt: `Write >, < or = to compare: ${a}/${d} and ${b}/${d}`,
           answer: { type: 'text', value: relation, display: relation },
           acceptedAnswers: [relation],
           solutionSteps: ['Denominators are the same, so compare numerators.', `Since ${a} ${relation} ${b}, the symbol is "${relation}".`],
@@ -937,7 +937,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 7, n + 1, 12);
         const relation = a === b ? '=' : (a < b ? '>' : '<');
         return {
-          prompt: `Fill in the correct symbol: ${n}/${a} __ ${n}/${b}`,
+          prompt: `Write >, < or = to compare: ${n}/${a} and ${n}/${b}`,
           answer: { type: 'text', value: relation, display: relation },
           acceptedAnswers: [relation],
           solutionSteps: ['Numerators are equal.', 'Smaller denominator means larger fraction.', `So the symbol is "${relation}".`],
@@ -1112,7 +1112,7 @@ function templateForSkill(skillId, variant, ctx) {
         const n2 = seq(s + 9, 1, d - 1);
         const cmp = w1 !== w2 ? (w1 > w2 ? '>' : '<') : (n1 === n2 ? '=' : (n1 > n2 ? '>' : '<'));
         return {
-          prompt: `Compare: ${w1} ${n1}/${d} __ ${w2} ${n2}/${d}. Fill in >, < or =.`,
+          prompt: `Write >, < or = to compare: ${w1} ${n1}/${d} and ${w2} ${n2}/${d}`,
           answer: { type: 'text', value: cmp, display: cmp },
           acceptedAnswers: [cmp],
           solutionSteps: [
