@@ -26,6 +26,8 @@ const mistakeSchema = new mongoose.Schema({
   workingSessionId: { type: String, default: '', trim: true },
   workingImage: { type: String, default: '' },
   workingStrokes: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  workingMathObjects: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  fullscreenWorkingSubmitted: { type: Boolean, default: false },
   timeTaken: { type: Number, default: null },
   workingId: { type: String, default: '', trim: true },
   remediationId: { type: String, default: '', trim: true },

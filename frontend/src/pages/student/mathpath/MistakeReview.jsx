@@ -31,14 +31,21 @@ function hasCompleteReviewData(mistake = {}) {
 
 function WorkingReviewCard({ mistake }) {
   const insight = mistake.workingInsight || mistake.workingAnalysisResult || null;
-  const hasWorking = Boolean(mistake.workingId || mistake.workingPreviewImage || mistake.extractedWorkingText);
+  const previewImage = mistake.workingPreviewImage || mistake.workingImage || '';
+  const hasWorking = Boolean(
+    mistake.workingSubmitted
+    || mistake.fullscreenWorkingSubmitted
+    || mistake.workingId
+    || previewImage
+    || mistake.extractedWorkingText
+  );
   if (!insight && !hasWorking) return null;
   const steps = Array.isArray(insight?.detectedSteps) ? insight.detectedSteps.filter((step) => step?.text).slice(0, 3) : [];
   return (
     <section className="rounded-3xl bg-sky-50 p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.08em] text-emerald">Working Review</p>
-      {mistake.workingPreviewImage && (
-        <img src={mistake.workingPreviewImage} alt="Submitted working" className="mt-3 max-h-44 w-full rounded-2xl object-contain bg-white" />
+      {previewImage && (
+        <img src={previewImage} alt="Submitted working" className="mt-3 max-h-44 w-full rounded-2xl object-contain bg-white" />
       )}
       {!insight && hasWorking && (
         <p className="mt-3 rounded-2xl bg-white p-3 text-sm text-ink-700">Working saved. Analysis is still being prepared.</p>

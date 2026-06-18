@@ -33,6 +33,7 @@ export const FLAGS = {
   spelling: process.env.FEAT_SPELLING !== '0',
   comics: process.env.FEAT_COMICS !== '0',
   psl: process.env.FEAT_PSL !== '0',
+  comics: process.env.FEAT_COMICS !== '0',
   admin: true,
 };
 

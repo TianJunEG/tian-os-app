@@ -4,9 +4,11 @@ import mongoose from 'mongoose';
 import { body, validationResult } from 'express-validator';
 import User from '../models/User.js';
 import Student from '../models/Student.js';
+import Workspace from '../models/Workspace.js';
+import WorkspaceMember from '../models/WorkspaceMember.js';
 import { protect, getSignedToken } from '../middleware/auth.js';
 import { authRateLimit } from '../middleware/rateLimiter.js';
-import { sendPasswordResetEmail } from '../utils/emailService.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, appBaseUrl } from '../utils/emailService.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -56,20 +58,12 @@ router.post(
       // misses case variants (e.g. John@X.com vs the stored john@x.com).
       const email = String(req.body.email).toLowerCase().trim();
 
-      // Check if user already exists
       let user = await User.findOne({ email });
       if (user) {
         return res.status(400).json({ error: 'User already exists with that email' });
       }
 
-      // Create user
-      user = new User({
-        name,
-        email,
-        password,
-        role
-      });
-
+      user = new User({ name, email, password, role, roles: [role] });
       try {
         await user.save();
       } catch (saveError) {
@@ -82,7 +76,28 @@ router.post(
         throw saveError;
       }
 
-      // Generate token
+      // Create default workspace and membership
+      const workspace = await Workspace.create({
+        type: role,
+        role,
+        name: `${name}'s ${role.charAt(0).toUpperCase() + role.slice(1)} Workspace`,
+        ownerUserId: user._id,
+      });
+      await WorkspaceMember.create({
+        workspaceId: workspace._id,
+        userId: user._id,
+        role,
+        status: 'active',
+      });
+      user.defaultWorkspace = workspace._id;
+      await user.save();
+
+      // Fire welcome email — non-blocking, failure must not break registration
+      const loginUrl = `${appBaseUrl()}/${role}`;
+      sendWelcomeEmail({ user, role, loginUrl }).catch((err) =>
+        console.error('Welcome email failed (non-fatal):', err.message)
+      );
+
       const token = getSignedToken(user._id, user.role);
 
       res.status(201).json({
@@ -92,8 +107,8 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       console.error(error);

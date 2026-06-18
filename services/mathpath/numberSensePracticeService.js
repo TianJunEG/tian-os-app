@@ -5,6 +5,7 @@ import {
 import { selectNextNumberSensePracticeTarget } from '../../shared/mathpath/numberSense/NumberSensePracticeEngine.js';
 import { getSkill } from '../../shared/mathpath/numberSense/NumberSenseSkillGraph.js';
 import { assertDomainServable } from './stubDomainGate.js';
+import { copyWorkingEvidenceFields } from './workingEvidenceFields.js';
 
 export const DOMAIN_ID = 'number_sense';
 
@@ -69,6 +70,7 @@ export function scoreNumberSenseSubmission({ questions = [], responses = [] } = 
       correct: verdict.correct,
       misconceptionTag: verdict.correct ? '' : (question.misconceptionTag || ''),
       confidence: r.confidence || '', timeTaken: Number(r.timeTaken || 0),
+      ...copyWorkingEvidenceFields(r),
     };
   });
   const graded = results.filter((r) => !r.error);

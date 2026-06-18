@@ -28,11 +28,20 @@ export function buildSubmitPayload(answers = []) {
   return {
     responses: answers
       .filter((a) => a && a.questionId != null && String(a.studentAnswer ?? '').trim() !== '')
-      .map((a) => ({
-        questionId: a.questionId,
-        studentAnswer: String(a.studentAnswer),
-        timeTaken: Number(a.timeTaken || 0),
-      })),
+      .map((a) => {
+        const response = {
+          questionId: a.questionId,
+          studentAnswer: String(a.studentAnswer),
+          timeTaken: Number(a.timeTaken || 0),
+        };
+        if (a.workingSubmitted) response.workingSubmitted = true;
+        if (a.workingImage) response.workingImage = a.workingImage;
+        if (Array.isArray(a.workingStrokes)) response.workingStrokes = a.workingStrokes;
+        if (Array.isArray(a.workingMathObjects)) response.workingMathObjects = a.workingMathObjects;
+        if (a.workingSessionId) response.workingSessionId = String(a.workingSessionId);
+        if (a.fullscreenWorkingSubmitted) response.fullscreenWorkingSubmitted = true;
+        return response;
+      }),
   };
 }
 

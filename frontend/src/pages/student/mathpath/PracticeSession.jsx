@@ -872,6 +872,10 @@ export function buildPracticeTelemetryEvents({ studentId = '', sessionType = 'pr
   });
 }
 
+export function resolveWorkingSessionStudentId({ flowSession = null, fallbackStudentId = '' } = {}) {
+  return String(flowSession?.studentId || fallbackStudentId || '').trim();
+}
+
 function canonicalSkillName(skillId, fallback = '') {
   const normalized = String(skillId || '').toUpperCase();
   if (!/^F\d{3}$/.test(normalized)) return fallback || String(skillId || '');
@@ -1489,7 +1493,7 @@ export default function PracticeSession() {
     });
 
     mathpathAPI.createWorkingSession({
-      studentId,
+      studentId: resolveWorkingSessionStudentId({ flowSession, fallbackStudentId: studentId }),
       practiceSessionId,
       domainId: flowSession?.domainId || 'fractions',
       skillIds: [...new Set(questionRefs.map((ref) => ref.skillId).filter(Boolean))],

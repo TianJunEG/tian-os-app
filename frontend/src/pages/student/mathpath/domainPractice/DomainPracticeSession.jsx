@@ -4,6 +4,8 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../../components/ui';
 import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
+import FullScreenWorkingMode from '../../../../components/learning/FullScreenWorkingMode';
+import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
 import { getMascotForModule } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
 import {
@@ -41,6 +43,8 @@ export default function DomainPracticeSession({ domain }) {
   const [index, setIndex] = useState(0);
   const [draft, setDraft] = useState('');
   const [answers, setAnswers] = useState([]);
+  const [workingByQuestion, setWorkingByQuestion] = useState({});
+  const [workingQuestionId, setWorkingQuestionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const questionStartedAt = useRef(Date.now());
@@ -73,6 +77,7 @@ export default function DomainPracticeSession({ domain }) {
   const questions = session?.questions || [];
   const current = questions[index] || null;
   const isLast = index >= questions.length - 1;
+  const currentWorking = current?.questionId ? (workingByQuestion[current.questionId] || {}) : {};
 
   async function finish(allAnswers) {
     setSubmitting(true);
@@ -92,6 +97,14 @@ export default function DomainPracticeSession({ domain }) {
       questionId: current.questionId,
       studentAnswer: draft,
       timeTaken: Math.round((Date.now() - questionStartedAt.current) / 1000),
+      ...(currentWorking.workingSubmitted ? {
+        workingSubmitted: true,
+        workingImage: currentWorking.workingImage || '',
+        workingStrokes: currentWorking.workingStrokes || [],
+        workingMathObjects: currentWorking.workingMathObjects || [],
+        workingSessionId: currentWorking.workingSessionId || session?.workingSessionId || session?.practiceSessionId || '',
+        fullscreenWorkingSubmitted: true,
+      } : {}),
     };
     const nextAnswers = [...answers, answer];
     setAnswers(nextAnswers);
@@ -185,6 +198,20 @@ export default function DomainPracticeSession({ domain }) {
             )}
           </>
         )}
+
+        <div className="mt-5">
+          <WorkingPreviewCard
+            workingImage={currentWorking.workingImage || ''}
+            workingSubmitted={Boolean(currentWorking.workingSubmitted)}
+            onOpen={() => setWorkingQuestionId(current?.questionId || null)}
+            onRemove={currentWorking.workingSubmitted ? () => setWorkingByQuestion((prev) => {
+              const next = { ...prev };
+              delete next[current.questionId];
+              return next;
+            }) : undefined}
+            openLabel="Open working"
+          />
+        </div>
       </Card>
 
       <div className="flex justify-end">
@@ -192,6 +219,27 @@ export default function DomainPracticeSession({ domain }) {
           {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
         </Button>
       </div>
+      <FullScreenWorkingMode
+        open={Boolean(workingQuestionId)}
+        questionId={workingQuestionId || current?.questionId || ''}
+        questionText={current?.prompt || ''}
+        initialStrokes={currentWorking.workingStrokes || []}
+        initialMathObjects={currentWorking.workingMathObjects || []}
+        onClose={() => setWorkingQuestionId(null)}
+        onSave={(payload) => {
+          const questionId = workingQuestionId || current?.questionId;
+          if (!questionId) return;
+          setWorkingByQuestion((prev) => ({
+            ...prev,
+            [questionId]: {
+              ...payload,
+              workingSessionId: session?.workingSessionId || session?.practiceSessionId || '',
+              fullscreenWorkingSubmitted: Boolean(payload.workingSubmitted),
+            },
+          }));
+          setWorkingQuestionId(null);
+        }}
+      />
     </div>
   );
 }

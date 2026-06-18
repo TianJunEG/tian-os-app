@@ -24,6 +24,9 @@ const initializeEmailService = async () => {
         pass: process.env.EMAIL_PASSWORD
       }
     });
+  } else if (process.env.NODE_ENV === 'test') {
+    // Test/e2e: avoid external Ethereal network calls during server startup.
+    transporter = nodemailer.createTransport({ jsonTransport: true });
   } else {
     // Development: Use Ethereal (test email service)
     const testAccount = await nodemailer.createTestAccount();
@@ -279,6 +282,23 @@ export const sendPartnerInquiryAcknowledgementEmail = async (inquiry) => {
   });
 };
 
+export const appBaseUrl = () => process.env.APP_BASE_URL || 'http://localhost:3000';
+
+const ROLE_LOGIN_PATH = { tutor: '/tutor', parent: '/parent', teacher: '/teacher', admin: '/admin' };
+
+export const sendWelcomeEmail = async ({ user, role, loginUrl }) => {
+  const safeName = escapeHtml(user?.name || 'there');
+  const safeLogin = loginUrl || `${appBaseUrl()}${ROLE_LOGIN_PATH[role] || ''}`;
+  const html = `
+    <h2>Welcome to Tian OS!</h2>
+    <p>Hi ${safeName},</p>
+    <p>Your ${escapeHtml(role)} account is ready. Click below to log in:</p>
+    <p><a href="${escapeHtml(safeLogin)}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Log In</a></p>
+    <p>Best regards,<br>The Tian OS Team</p>
+  `;
+  return sendEmail({ to: user.email, subject: 'Welcome to Tian OS', html });
+};
+
 export const sendPasswordResetEmail = async ({ to, name, resetUrl, expiresInMinutes = 60 }) => {
   const safeName = escapeHtml(name || 'there');
   const html = `
@@ -303,4 +323,6 @@ export default {
   sendPartnerInquiryNotificationEmail,
   sendPartnerInquiryAcknowledgementEmail,
   sendPasswordResetEmail,
+  sendWelcomeEmail,
+  appBaseUrl,
 };
