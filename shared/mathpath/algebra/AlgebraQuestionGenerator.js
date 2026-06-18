@@ -97,6 +97,17 @@ const BUILDERS = {
   [AL(9)]: (rng) => { const L = pick(rng, LETTERS), x = rint(rng, 2, 9), k = rint(rng, 2, 4), b = rint(rng, 1, 9); return { prompt: `Solve: ${k}${L} + ${b} = ${k * x + b}. What is ${L}?`, value: x, tag: 'alg/order-of-undo', steps: [`Subtract ${b}: ${k}${L} = ${k * x}.`, `Divide by ${k}: ${L} = ${x}.`], distractors: [k * x + b, k * x, x + 1] }; },
   // AL010 — Word problem forming a simple (non-negative) relationship
   [AL(10)]: (rng) => { const L = pick(rng, LETTERS), more = rint(rng, 2, 9), end = rint(rng, 10, 20); const start = end + more; return { prompt: `A pupil had ${L} stickers. After giving away ${more}, they had ${end} left. How many stickers did they start with?`, value: start, tag: 'alg/wrong-relation', steps: [`${L} − ${more} = ${end}, so ${L} = ${end} + ${more} = ${start}.`], distractors: [end - more > 0 ? end - more : end + 1, end, more] }; },
+  // Word-problem variants (_W) — richer contextual application, difficulty +1
+  AL001W: (rng) => { const start = rint(rng, 8, 25), add = rint(rng, 3, 12); return { prompt: `A baker baked some muffins. After adding ${add} more, there were ${start + add} altogether. How many did the baker bake at first?`, value: start, tag: 'alg/equals-means-answer', steps: [`Let n = number baked at first.`, `n + ${add} = ${start + add}`, `n = ${start + add} − ${add} = ${start}.`], distractors: [start + add, add, start + 1] }; },
+  AL002W: (rng) => { const L = pick(rng, LETTERS), cut = rint(rng, 3, 12), end = rint(rng, 5, 20); return { prompt: `A ribbon is ${L} cm long. After cutting ${cut} cm from it, the ribbon is ${end} cm long. Find ${L}.`, value: cut + end, tag: 'alg/letter-as-label', steps: [`${L} − ${cut} = ${end}`, `${L} = ${end} + ${cut} = ${cut + end}.`], distractors: [end, cut, end - cut > 0 ? end - cut : cut + end + 1] }; },
+  AL003W: (rng) => { const L = pick(rng, LETTERS), k = rint(rng, 2, 8), v = rint(rng, 3, 12); const items = pick(rng, ['stickers', 'marbles', 'cards', 'pencils']); return { prompt: `Each pupil has ${L} ${items}. There are ${k} pupils in a group. If ${L} = ${v}, how many ${items} are there altogether?`, value: k * v, tag: 'alg/3n-means-3-plus-n', steps: [`Total = ${k}${L}.`, `When ${L} = ${v}: ${k} × ${v} = ${k * v}.`], distractors: [k + v, Number(`${k}${v}`), k * v + k] }; },
+  AL004W: (rng) => { const L = pick(rng, LETTERS), less = rint(rng, 2, 12); const obj = pick(rng, ['books', 'marbles', 'stickers', 'cards']); const [p1, p2] = pick(rng, [['Ali', 'Ben'], ['Sam', 'Joy'], ['Kai', 'Mia']]); return { prompt: `${p1} has ${L} ${obj}. ${p2} has ${less} fewer ${obj} than ${p1}. Write an expression for the number of ${obj} ${p2} has.`, value: `${L} - ${less}`, tag: 'alg/word-order', steps: [`${p2} has ${less} fewer, so the expression is ${L} − ${less}.`], choices: [`${L} - ${less}`, `${L} + ${less}`, `${less} - ${L}`, `${less}`] }; },
+  AL005W: (rng) => { const L = pick(rng, LETTERS), k = rint(rng, 2, 6), c = rint(rng, 1, 9), v = rint(rng, 2, 9); return { prompt: `A shop charges (${k}${L} + ${c}) dollars for ${L} hours of tuition. Find the charge for ${v} hours.`, value: k * v + c, tag: 'alg/sub-ignore-precedence', steps: [`Substitute ${L} = ${v}: ${k} × ${v} + ${c} = ${k * v} + ${c} = ${k * v + c}.`], distractors: [k * (v + c), k + v + c, k * v] }; },
+  AL006W: (rng) => { const L = pick(rng, LETTERS), a = rint(rng, 2, 6), b = rint(rng, 1, 4); const pc = 2 * (a + b); return { prompt: `A rectangle has length ${a}${L} cm and width ${b}${L} cm. Write an expression for the perimeter.`, value: `${pc}${L}`, tag: 'alg/combine-unlike', steps: [`Perimeter = 2(${a}${L}) + 2(${b}${L}) = ${2 * a}${L} + ${2 * b}${L} = ${pc}${L}.`], choices: [`${pc}${L}`, `${a + b}${L}`, `${2 * a * b}${L}`, `${pc + 2}${L}`] }; },
+  AL007W: (rng) => { const L = pick(rng, LETTERS), k = rint(rng, 2, 5), c = rint(rng, 1, 6), v = rint(rng, 2, 8); const total = k * (v + c); return { prompt: `${k} boxes each hold (${L} + ${c}) apples. If ${L} = ${v}, find the total number of apples.`, value: total, tag: 'alg/distribute-partial', steps: [`Total = ${k}(${L} + ${c}).`, `When ${L} = ${v}: ${k}(${v} + ${c}) = ${k} × ${v + c} = ${total}.`], distractors: [k * v + c, k + v + c, total + k] }; },
+  AL008W: (rng) => { const x = rint(rng, 3, 18), b = rint(rng, 2, 12); if (rng() < 0.5) { return { prompt: `A jar held some sweets. After ${b} more were added, there were ${x + b} sweets in total. How many sweets were in the jar at first?`, value: x, tag: 'alg/same-side-op', steps: [`Let n = starting number. n + ${b} = ${x + b}. n = ${x}.`], distractors: [x + b, b, x + 1] }; } return { prompt: `A pupil had some stickers. After giving ${b} away, she had ${x} left. How many did she start with?`, value: x + b, tag: 'alg/same-side-op', steps: [`Let n = starting number. n − ${b} = ${x}. n = ${x} + ${b} = ${x + b}.`], distractors: [x, b, x + b + 1] }; },
+  AL009W: (rng) => { const x = rint(rng, 2, 9), k = rint(rng, 2, 4), b = rint(rng, 1, 9), L = pick(rng, LETTERS); const total = k * x + b; return { prompt: `There are ${k} bags with ${L} marbles each and ${b} loose marbles. There are ${total} marbles in total. How many marbles are in each bag?`, value: x, tag: 'alg/order-of-undo', steps: [`${k}${L} + ${b} = ${total}`, `${k}${L} = ${k * x}`, `${L} = ${x}.`], distractors: [total, k * x, x + 1] }; },
+  AL010W: (rng) => { const x = rint(rng, 3, 10), k = rint(rng, 2, 4), L = pick(rng, LETTERS); const together = (k + 1) * x; const [p1, p2] = pick(rng, [['Ali', 'Ben'], ['Sam', 'Jay'], ['Kai', 'Mia']]); return { prompt: `${p1} has ${k} times as many marbles as ${p2}. Together they have ${together} marbles. Let ${p2} have ${L} marbles. Form an equation and find ${L}.`, value: x, tag: 'alg/wrong-relation', steps: [`${p2}: ${L}; ${p1}: ${k}${L}.`, `${L} + ${k}${L} = ${together}`, `${k + 1}${L} = ${together}`, `${L} = ${x}.`], distractors: [together, k * x, x + 1] }; },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -135,6 +146,16 @@ const GENERATORS = {
   algEquation1Step: makePractice(AL(8)), algEquation1StepWord: makeMCQ(AL(8)),
   algEquation2Step: makePractice(AL(9)), algEquation2StepWord: makeMCQ(AL(9)),
   algWordToEquation: makePractice(AL(10)), algWordToEquationMCQ: makeMCQ(AL(10)),
+  algUnknownArithWord: makePractice('AL001W'),
+  algUnknownLetterWord: makePractice('AL002W'),
+  algNotationWord: makePractice('AL003W'),
+  algFormExpressionWord2: makePractice('AL004W'),
+  algSubstituteContext: makePractice('AL005W'),
+  algSimplifyPerimeter: makePractice('AL006W'),
+  algBracketsWord: makePractice('AL007W'),
+  algEquation1StepContext: makePractice('AL008W'),
+  algEquation2StepContext: makePractice('AL009W'),
+  algWordToEquationHard: makePractice('AL010W'),
 };
 
 export function generateAlgebraQuestionSet({ skillId, count = 6, mode = 'practice' }) {

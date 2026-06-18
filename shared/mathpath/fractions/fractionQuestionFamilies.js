@@ -15,6 +15,11 @@ const SKILL_IDS = new Set(fractionSkillGraph.skillIds);
 const QUARANTINED_FAMILIES = {
   QF_F011_005: { reason: 'Same-denominator comparison filed under equivalent-fraction generation.', canonicalSkillId: 'F007' },
   QF_F012_004: { reason: 'Same-numerator comparison filed under simplification.', canonicalSkillId: 'F008' },
+  QF_F013_001: { reason: 'Multiple-choice "which is greater than 1 whole" format conflicts with free-input answer UI.' },
+  QF_F013_002: { reason: 'Multi-shape fraction bar diagram (N shapes × D parts) requires renderer not yet supported; shows blank bars.' },
+  QF_F013_003: { reason: 'Improper-fraction visual model requires multi-bar renderer not yet supported; shows blank bars.' },
+  QF_F013_004: { reason: 'Countable-noun word problem (tickets/layers) is not a fractions question type used in this curriculum.' },
+  QF_F014_003: { reason: 'Mixed-number bar model has shaded > parts (shaded = w×d + n, parts = d); multi-bar renderer not yet supported; shows blank bars.' },
   QF_F013_005: { reason: 'Signed/negative fraction comparison is outside the F001–F026 pilot scope.' },
   QF_F014_005: { reason: 'Fraction/decimal ordering is outside mixed-number interpretation and pilot scope.' },
   QF_F017_004: { reason: 'Signed fraction addition is outside same-denominator subtraction and pilot scope.' },

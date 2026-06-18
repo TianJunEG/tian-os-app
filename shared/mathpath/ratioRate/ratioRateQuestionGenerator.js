@@ -52,7 +52,7 @@ function reduceFraction(num, den) {
 }
 
 // ── Question assembly helpers ─────────────────────────────────────────────────
-function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode }) {
+function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode, diagram }) {
   return {
     id: `${family.id}#${mode}`,
     skillId: family.skillId,
@@ -68,10 +68,11 @@ function shortAnswer({ family, prompt, answer, display, solutionSteps, misconcep
     mode,
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
 
-function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, misconceptionTag, difficulty, mode, rng }) {
+function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, misconceptionTag, difficulty, mode, rng, diagram }) {
   const seen = new Set([answerDisplay]);
   const opts = [];
   for (const d of distractors.map(String)) {
@@ -98,6 +99,7 @@ function mcq({ family, prompt, answerDisplay, distractors, solutionSteps, miscon
     mode,
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
+    ...(diagram ? { diagram } : {}),
   };
 }
 
@@ -127,6 +129,7 @@ const GENERATORS = {
           `Red : Total = ${a} : ${total}.`,
         ],
         misconceptionTag: 'rr/part-whole-mixup',
+        diagram: { kind: 'bar-model', parts: [{ value: a, label: 'Red' }, { value: b, label: 'Blue' }], totalLabel: `${total} counters` },
         difficulty, mode,
       });
     }
@@ -139,6 +142,7 @@ const GENERATORS = {
         `Red : Blue = ${a} : ${b}.`,
       ],
       misconceptionTag: 'rr/order-reversed',
+      diagram: { kind: 'bar-model', bars: [{ label: 'Red', value: a }, { label: 'Blue', value: b }] },
       difficulty, mode,
     });
   },
@@ -304,6 +308,7 @@ const GENERATORS = {
         ...(askBoth ? [`${nameB}'s share = ${b} × $${unitVal} = $${shareB}.`] : []),
       ],
       misconceptionTag: 'rr/forgot-total-units',
+      diagram: { kind: 'bar-model', parts: [{ value: a, label: `${nameA}: ${a} units` }, { value: b, label: `${nameB}: ${b} units` }], totalLabel: `$${total}` },
       difficulty,
       mode,
     });
@@ -338,6 +343,11 @@ const GENERATORS = {
         ...(askAll ? [] : [`Largest share = $${maxShare}.`]),
       ],
       misconceptionTag: 'rr/three-units-error',
+      diagram: { kind: 'bar-model', parts: [
+        { value: a, label: `${n1}: ${a}` },
+        { value: b, label: `${n2}: ${b}` },
+        { value: c, label: `${n3}: ${c}` },
+      ], totalLabel: `$${total}` },
       difficulty,
       mode,
     });
@@ -368,7 +378,9 @@ const GENERATORS = {
           family, prompt,
           answer: boysAfter, display: String(boysAfter),
           solutionSteps: [`Boys after = ${boysBefore} + ${boysAdded} = ${boysAfter}.`],
-          misconceptionTag: 'rr/assume-total-constant', difficulty, mode,
+          misconceptionTag: 'rr/assume-total-constant',
+          diagram: { kind: 'bar-model', bars: [{ label: 'Boys before', value: boysBefore }, { label: 'Boys after', value: boysAfter }] },
+          difficulty, mode,
         });
       }
       // girlCount unchanged; the harder variant currently falls through to the
@@ -388,6 +400,7 @@ const GENERATORS = {
         `Boys after = ${boysBefore} + ${boysAdded} = ${boysAfter}.`,
       ],
       misconceptionTag: 'rr/assume-total-constant',
+      diagram: { kind: 'bar-model', bars: [{ label: 'Boys before', value: boysBefore }, { label: 'Girls', value: girlCount }, { label: 'Boys after', value: boysAfter }] },
       difficulty,
       mode,
     });

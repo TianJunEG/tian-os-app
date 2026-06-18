@@ -800,7 +800,7 @@ function templateForSkill(skillId, variant, ctx) {
         ];
         if (ctx.mode === 'diagnostic') {
           return {
-            prompt: `Compare ${n}/${barFrac} and ${n}/${symFrac}. Which fraction is greater?`,
+            prompt: `Which fraction is greater, ${n}/${barFrac} or ${n}/${symFrac}?`,
             answer: { type: 'text', value: answer, display: answer },
             acceptedAnswers: [answer],
             solutionSteps: steps,
@@ -839,7 +839,7 @@ function templateForSkill(skillId, variant, ctx) {
       const shown = ensureNotAlreadySorted(deterministicShuffle(picked, s), sortedFractions);
       const arr = sortedFractions.map(fracStr);
       return {
-        prompt: `Order these fractions from smallest to largest: ${shown.map(fracStr).join(', ')}.`,
+        prompt: `Arrange the following fractions in order. Begin with the smallest: ${shown.map(fracStr).join(', ')}.`,
         answer: { type: 'list', value: arr, display: arr.join(', ') },
         acceptedAnswers: [arr.join(','), arr.join(', ')],
         solutionSteps: ['Convert to comparable values (or common denominator).', `Order: ${arr.join(', ')}.`],
@@ -869,7 +869,7 @@ function templateForSkill(skillId, variant, ctx) {
       const d = seq(s + 5, n + 1, 9);
       const k = [2, 3, 4][Math.abs(s) % 3];
       return {
-        prompt: `Complete: ${n}/${d} = ?/${d * k}`,
+        prompt: `Find the missing number.  ${n}/${d} = ___/${d * k}`,
         answer: answerPayloadFraction(n * k, d * k),
         acceptedAnswers: [fracStr({ numerator: n * k, denominator: d * k })],
         solutionSteps: [`Multiply numerator and denominator by ${k}.`, `${n}/${d} = ${n * k}/${d * k}.`],
@@ -882,7 +882,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 4, 1, d - 1);
         const relation = a === b ? '=' : (a > b ? '>' : '<');
         return {
-          prompt: `Fill in the correct symbol: ${a}/${d} __ ${b}/${d}`,
+          prompt: `Fill in >, < or =.  ${a}/${d} ___ ${b}/${d}`,
           answer: { type: 'text', value: relation, display: relation },
           acceptedAnswers: [relation],
           solutionSteps: ['Denominators are the same, so compare numerators.', `Since ${a} ${relation} ${b}, the symbol is "${relation}".`],
@@ -894,7 +894,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 6, 1, d - 1);
         const greater = a > b ? '>' : (a < b ? '<' : '=');
         return {
-          prompt: `A model shows ${a}/${d} and ${b}/${d}. Which fraction is greater (or equal if same)?`,
+          prompt: `Fill in >, < or =.  ${a}/${d} ___ ${b}/${d}`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
           solutionSteps: ['Both fractions have equal-sized parts.', 'Compare the number of parts shaded.', `Answer: ${greater}.`],
@@ -937,7 +937,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 7, n + 1, 12);
         const relation = a === b ? '=' : (a < b ? '>' : '<');
         return {
-          prompt: `Fill in the correct symbol: ${n}/${a} __ ${n}/${b}`,
+          prompt: `Fill in >, < or =.  ${n}/${a} ___ ${n}/${b}`,
           answer: { type: 'text', value: relation, display: relation },
           acceptedAnswers: [relation],
           solutionSteps: ['Numerators are equal.', 'Smaller denominator means larger fraction.', `So the symbol is "${relation}".`],
@@ -950,7 +950,7 @@ function templateForSkill(skillId, variant, ctx) {
         const greater = a <= b ? `${n}/${a}` : `${n}/${b}`;
         if (ctx.mode === 'diagnostic') {
           return {
-            prompt: `Compare ${n}/${a} and ${n}/${b}. Which fraction is larger?`,
+            prompt: `Which fraction is greater, ${n}/${a} or ${n}/${b}?`,
             answer: { type: 'text', value: greater, display: greater },
             acceptedAnswers: [greater],
             solutionSteps: ['Same numerator means same number of parts selected.', 'Larger part size comes from smaller denominator.', `Answer: ${greater}.`],
@@ -959,7 +959,7 @@ function templateForSkill(skillId, variant, ctx) {
         // Visual: bar model for one fraction, compare with the other symbolically
         const barDenom = Math.abs(s) % 2 === 0 ? a : b;
         return {
-          prompt: `The bar model shows ${n}/${barDenom}. Compare it with ${n}/${barDenom === a ? b : a}. Which fraction is larger?`,
+          prompt: `The bar model shows ${n}/${barDenom}. Which is greater, ${n}/${barDenom} or ${n}/${barDenom === a ? b : a}?`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
           diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: barDenom, shaded: n, labelMode: 'none' } },
@@ -971,7 +971,7 @@ function templateForSkill(skillId, variant, ctx) {
       const d = seq(s + 5, n / g + 1, 12) * g;
       const simp = simplifyFraction(n, d);
       return {
-        prompt: `Simplify ${n}/${d} to lowest terms.`,
+        prompt: `Express ${n}/${d} in its simplest form.`,
         answer: answerPayloadFraction(simp.numerator, simp.denominator),
         acceptedAnswers: [fracStr(simp)],
         solutionSteps: ['Find the greatest common factor.', `Divide numerator and denominator by ${gcd(n, d)}.`],
@@ -1056,7 +1056,7 @@ function templateForSkill(skillId, variant, ctx) {
       const d = seq(s, 2, 8);
       const n = seq(s + 3, d + 1, d * 3);
       return {
-        prompt: `Write ${n}/${d} as a mixed number.`,
+        prompt: `Express ${n}/${d} as a mixed number.`,
         answer: (() => { const m = toMixed({ numerator: n, denominator: d }); return answerPayloadMixed(m.whole, m.numerator, m.denominator); })(),
         acceptedAnswers: [mixedStr(toMixed({ numerator: n, denominator: d })), fracStr({ numerator: n, denominator: d })],
         solutionSteps: ['Divide numerator by denominator.', 'Use quotient as whole part and remainder as numerator.'],
@@ -1069,7 +1069,7 @@ function templateForSkill(skillId, variant, ctx) {
         const d = seq(s + 5, n + 1, 8);
         const improperN = w * d + n;
         return {
-          prompt: `Convert ${w} ${n}/${d} to an improper fraction.`,
+          prompt: `Express ${w} ${n}/${d} as an improper fraction.`,
           answer: answerPayloadFraction(improperN, d),
           acceptedAnswers: [`${improperN}/${d}`],
           solutionSteps: [`Multiply the whole number by the denominator: ${w} × ${d} = ${w * d}.`, `Add the numerator: ${w * d} + ${n} = ${improperN}.`, `Keep the same denominator: ${improperN}/${d}.`],
@@ -1141,7 +1141,7 @@ function templateForSkill(skillId, variant, ctx) {
           sorted,
         );
         return {
-          prompt: `Order from smallest to largest: ${shown.join(', ')}`,
+          prompt: `Arrange the following in order. Begin with the smallest: ${shown.join(', ')}`,
           answer: { type: 'list', value: sorted, display: sorted.join(', ') },
           acceptedAnswers: [sorted.join(','), sorted.join(', ')],
           solutionSteps: ['Convert all values to decimals or fractions with a common denominator.', `Order: ${sorted.join(', ')}.`],
@@ -1150,7 +1150,7 @@ function templateForSkill(skillId, variant, ctx) {
       const w = seq(s, 1, 5); const n = seq(s + 3, 1, 5); const d = seq(s + 5, n + 1, 8);
       const imp = frac(w * d + n, d);
       return {
-        prompt: `Convert the mixed number ${w} ${n}/${d} to an improper fraction.`,
+        prompt: `Express ${w} ${n}/${d} as an improper fraction.`,
         answer: answerPayloadFraction(imp.numerator, imp.denominator),
         acceptedAnswers: [fracStr(imp)],
         solutionSteps: [`Multiply ${w} × ${d} and add ${n}.`, `Write the result over ${d}: ${imp.numerator}/${imp.denominator}.`],
@@ -1162,7 +1162,7 @@ function templateForSkill(skillId, variant, ctx) {
         const d = seq(s, 2, 8); const w = seq(s + 2, 1, 4); const n = seq(s + 5, 1, d - 1);
         const imp = frac(w * d + n, d);
         return {
-          prompt: `Convert ${w} ${n}/${d} to an improper fraction.`,
+          prompt: `Express ${w} ${n}/${d} as an improper fraction.`,
           answer: answerPayloadFraction(imp.numerator, imp.denominator),
           acceptedAnswers: [fracStr(imp)],
           solutionSteps: [`Multiply ${w} × ${d} = ${w * d}.`, `Add ${n}: ${w * d} + ${n} = ${w * d + n}.`, `Result: ${imp.numerator}/${imp.denominator}.`],
@@ -1174,7 +1174,7 @@ function templateForSkill(skillId, variant, ctx) {
         const n = seq(s + 3, d + 1, d * 3);
         const m = toMixed({ numerator: n, denominator: d });
         return {
-          prompt: `Write ${n}/${d} as a mixed number.`,
+          prompt: `Express ${n}/${d} as a mixed number.`,
           answer: answerPayloadMixed(m.whole, m.numerator, m.denominator),
           acceptedAnswers: [mixedStr(m), fracStr({ numerator: n, denominator: d })],
           solutionSteps: [`Divide: ${n} ÷ ${d} = ${m.whole} remainder ${m.numerator}.`, `Mixed number: ${mixedStr(m)}.`],
@@ -1240,7 +1240,7 @@ function templateForSkill(skillId, variant, ctx) {
       const d = seq(s, 2, 8); const w = seq(s + 2, 1, 4); const n = seq(s + 5, 1, d - 1);
       const imp = frac(w * d + n, d);
       return {
-        prompt: `Convert ${w} ${n}/${d} to an improper fraction.`,
+        prompt: `Express ${w} ${n}/${d} as an improper fraction.`,
         answer: answerPayloadFraction(imp.numerator, imp.denominator),
         acceptedAnswers: [fracStr(imp)],
         solutionSteps: [`Multiply ${w} × ${d} and add ${n}.`, `Result: ${imp.numerator}/${imp.denominator}.`],
@@ -1250,10 +1250,10 @@ function templateForSkill(skillId, variant, ctx) {
       const d = seq(s, 3, 12); const a = seq(s + 1, 1, d - 1); const b = seq(s + 4, 1, d - 1);
       const ans = frac(a + b, d);
       return {
-        prompt: `Compute: ${a}/${d} + ${b}/${d}`,
+        prompt: `Find the value of ${a}/${d} + ${b}/${d}.`,
         answer: answerPayloadFraction(ans.numerator, ans.denominator),
         acceptedAnswers: [fracStr(ans)],
-        solutionSteps: ['Keep denominator the same.', `Add numerators: ${a}+${b}=${a + b}.`, `Answer: ${fracStr(ans)}.`],
+        solutionSteps: ['Keep the denominator the same.', `Add the numerators: ${a} + ${b} = ${a + b}.`, `Answer: ${fracStr(ans)}.`],
       };
     }
     case 'F017': {
@@ -1261,19 +1261,19 @@ function templateForSkill(skillId, variant, ctx) {
         const d = seq(s, 4, 12); const b = seq(s + 1, 1, d - 2); const a = seq(s + 5, b + 1, d - 1);
         const ans = frac(a - b, d);
         return {
-          prompt: `Compute: ${a}/${d} - ${b}/${d}`,
+          prompt: `Find the value of ${a}/${d} - ${b}/${d}.`,
           answer: answerPayloadFraction(ans.numerator, ans.denominator),
           acceptedAnswers: [fracStr(ans)],
-          solutionSteps: ['Use the same denominator.', `Subtract numerators: ${a} - ${b} = ${a - b}.`, `Answer: ${fracStr(ans)}.`],
+          solutionSteps: ['The denominator stays the same.', `Subtract the numerators: ${a} - ${b} = ${a - b}.`, `Answer: ${fracStr(ans)}.`],
         };
       }
       const d = seq(s, 4, 12); const b = seq(s + 1, 1, d - 2); const a = seq(s + 5, b + 1, d - 1);
       const ans = frac(a - b, d);
       return {
-        prompt: `Compute: ${a}/${d} - ${b}/${d}`,
+        prompt: `Find the value of ${a}/${d} - ${b}/${d}.`,
         answer: answerPayloadFraction(ans.numerator, ans.denominator),
         acceptedAnswers: [fracStr(ans)],
-        solutionSteps: ['Keep denominator the same.', `Subtract numerators: ${a}-${b}=${a - b}.`, `Answer: ${fracStr(ans)}.`],
+        solutionSteps: ['The denominator stays the same.', `Subtract the numerators: ${a} - ${b} = ${a - b}.`, `Answer: ${fracStr(ans)}.`],
       };
     }
     case 'F018': {
@@ -1285,10 +1285,10 @@ function templateForSkill(skillId, variant, ctx) {
         const cd = lcm(a.denominator, b.denominator);
         const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
         return {
-          prompt: `Compute: ${fracStr(a)} - ${fracStr(b)}`,
+          prompt: `Find the value of ${fracStr(a)} - ${fracStr(b)}.`,
           answer: answerPayloadFraction(ans.numerator, ans.denominator),
           acceptedAnswers: [fracStr(ans)],
-          solutionSteps: ['Find a common denominator.', `Convert fractions to denominator ${cd}.`, `Subtract numerators and simplify to ${fracStr(ans)}.`],
+          solutionSteps: ['Find a common denominator.', `Convert both fractions to denominator ${cd}.`, `Subtract the numerators and simplify to ${fracStr(ans)}.`],
         };
       }
       if (familyId.endsWith('_006')) {
@@ -1299,7 +1299,7 @@ function templateForSkill(skillId, variant, ctx) {
         const cd = lcm(a.denominator, b.denominator);
         const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
         return {
-          prompt: `Compute and write in lowest terms: ${fracStr(a)} - ${fracStr(b)}`,
+          prompt: `Find the value of ${fracStr(a)} - ${fracStr(b)}. Express your answer in its simplest form.`,
           answer: answerPayloadFraction(ans.numerator, ans.denominator),
           acceptedAnswers: [fracStr(ans)],
           solutionSteps: ['Find the least common denominator.', `Convert both fractions to denominator ${cd}.`, `Subtract numerators and simplify to ${fracStr(ans)}.`],
@@ -1310,10 +1310,10 @@ function templateForSkill(skillId, variant, ctx) {
       const cd = lcm(a.denominator, b.denominator);
       const ans = frac(a.numerator * (cd / a.denominator) + b.numerator * (cd / b.denominator), cd);
       return {
-        prompt: `Compute: ${fracStr(a)} + ${fracStr(b)}`,
+        prompt: `Find the value of ${fracStr(a)} + ${fracStr(b)}.`,
         answer: answerPayloadFraction(ans.numerator, ans.denominator),
         acceptedAnswers: [fracStr(ans)],
-        solutionSteps: ['Find a common denominator.', `Convert fractions to denominator ${cd}.`, `Add numerators and simplify to ${fracStr(ans)}.`],
+        solutionSteps: ['Find a common denominator.', `Convert both fractions to denominator ${cd}.`, `Add the numerators and simplify to ${fracStr(ans)}.`],
       };
     }
     case 'F019': {
@@ -1324,7 +1324,7 @@ function templateForSkill(skillId, variant, ctx) {
       const cd = lcm(a.denominator, b.denominator);
       const ans = frac(a.numerator * (cd / a.denominator) - b.numerator * (cd / b.denominator), cd);
       return {
-        prompt: `Compute: ${fracStr(a)} - ${fracStr(b)}`,
+        prompt: `Find the value of ${fracStr(a)} - ${fracStr(b)}.`,
         answer: answerPayloadFraction(ans.numerator, ans.denominator),
         acceptedAnswers: [fracStr(ans)],
         solutionSteps: ['Find a common denominator.', `Convert both fractions to denominator ${cd}.`, `Subtract and simplify to ${fracStr(ans)}.`],
@@ -1370,7 +1370,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = decimal === '0.5' ? frac(1, 2) : decimal === '0.25' ? frac(1, 4) : frac(1, 5);
         const ans = frac(a.numerator * b.numerator, a.denominator * b.denominator);
         return {
-          prompt: `Compute and give your answer as a simplified fraction: ${fracStr(a)} × ${decimal}`,
+          prompt: `Find the value of ${fracStr(a)} × ${decimal}. Express your answer in its simplest form.`,
           answer: answerPayloadFraction(ans.numerator, ans.denominator),
           acceptedAnswers: [fracStr(ans)],
           solutionSteps: [`Convert ${decimal} to ${fracStr(b)}.`, `Multiply fractions and simplify to ${fracStr(ans)}.`],
@@ -1381,7 +1381,7 @@ function templateForSkill(skillId, variant, ctx) {
         const w = seq(s + 4, 2, 6);
         const ans = frac(a.numerator * w, a.denominator);
         return {
-          prompt: `Compute: ${fracStr(a)} × ${w}`,
+          prompt: `Find the value of ${fracStr(a)} × ${w}. Express your answer in its simplest form.`,
           answer: answerPayloadFraction(ans.numerator, ans.denominator),
           acceptedAnswers: [fracStr(ans)],
           solutionSteps: ['Multiply numerator by whole number.', `Simplify to ${fracStr(ans)}.`],
@@ -1391,7 +1391,7 @@ function templateForSkill(skillId, variant, ctx) {
       const b = frac(seq(s + 5, 1, 4), seq(s + 7, 2, 8));
       const ans = frac(a.numerator * b.numerator, a.denominator * b.denominator);
       return {
-        prompt: `Compute: ${fracStr(a)} × ${fracStr(b)}`,
+        prompt: `Find the value of ${fracStr(a)} × ${fracStr(b)}. Express your answer in its simplest form.`,
         answer: answerPayloadFraction(ans.numerator, ans.denominator),
         acceptedAnswers: [fracStr(ans)],
         solutionSteps: ['Multiply numerators.', 'Multiply denominators.', `Simplify to ${fracStr(ans)}.`],
@@ -1403,7 +1403,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = frac(seq(s + 4, 1, 4), seq(s + 6, 2, 8));
         const ans = frac(a.numerator * b.denominator, a.denominator * b.numerator);
         return {
-          prompt: `Compute: (${fracStr(a)}) ÷ ${fracStr(b)}`,
+          prompt: `Find the value of ${fracStr(a)} ÷ ${fracStr(b)}.`,
           answer: answerPayloadFraction(ans.numerator, ans.denominator),
           acceptedAnswers: [fracStr(ans)],
           solutionSteps: ['Keep the first fraction.', 'Invert the second fraction.', `Multiply and simplify to ${fracStr(ans)}.`],
@@ -1413,7 +1413,7 @@ function templateForSkill(skillId, variant, ctx) {
       const b = frac(seq(s + 4, 1, 4), seq(s + 6, 2, 8));
       const ans = frac(a.numerator * b.denominator, a.denominator * b.numerator);
       return {
-        prompt: `Compute: ${fracStr(a)} ÷ ${fracStr(b)}`,
+        prompt: `Find the value of ${fracStr(a)} ÷ ${fracStr(b)}.`,
         answer: answerPayloadFraction(ans.numerator, ans.denominator),
         acceptedAnswers: [fracStr(ans)],
         solutionSteps: ['Keep the first fraction.', 'Invert the second fraction.', `Multiply and simplify to ${fracStr(ans)}.`],
@@ -1563,10 +1563,10 @@ function templateForSkill(skillId, variant, ctx) {
         c.numerator * lcm(lcm(a.denominator, b.denominator), c.denominator) / c.denominator,
         lcm(lcm(a.denominator, b.denominator), c.denominator));
       return {
-        prompt: `Exam-style: Compute ${fracStr(a)} + ${fracStr(b)} - ${fracStr(c)}.`,
+        prompt: `Find the value of ${fracStr(a)} + ${fracStr(b)} - ${fracStr(c)}.`,
         answer: answerPayloadFraction(ans.numerator, ans.denominator),
         acceptedAnswers: [fracStr(ans)],
-        solutionSteps: ['Find common denominator for all fractions.', 'Convert each fraction.', `Compute and simplify to ${fracStr(ans)}.`],
+        solutionSteps: ['Find a common denominator for all fractions.', 'Convert each fraction.', `Simplify to ${fracStr(ans)}.`],
       };
     }
     case 'F026': {
@@ -1592,7 +1592,7 @@ function templateForSkill(skillId, variant, ctx) {
       const total = multipleInRange(s, 30, 90, f.denominator);
       const ans = (total * f.numerator) / f.denominator;
       return {
-        prompt: `Mastery challenge: ${fracStr(f)} of ${total} students passed. How many students passed?`,
+        prompt: `${fracStr(f)} of ${total} students passed. How many students passed?`,
         answer: answerPayloadWhole(ans),
         acceptedAnswers: [String(ans)],
         solutionSteps: [`Find 1/${f.denominator} of ${total}.`, `Multiply by ${f.numerator} to get ${ans}.`],

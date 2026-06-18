@@ -135,6 +135,63 @@ const BUILDERS = {
       diagram: { kind: 'tank', baseArea: base, volume: vol, height },
     };
   },
+  // ── Word-problem families (_003): real-world context ─────────────────────────
+  'VL001W': (rng) => {
+    const { l, w, h } = dims(rng, 5, 4, 4);
+    const ans = l * w * h;
+    const name = pick(rng, ['Ali', 'Sam', 'Kai', 'Mia']);
+    return {
+      prompt: `${name} builds a model using unit cubes, arranged ${l} long, ${w} wide and ${h} high. How many unit cubes does ${name} use?`,
+      value: ans, unit: 'cubes', tag: 'vol/hidden-cubes',
+      steps: [`Each layer: ${l} × ${w} = ${l * w} cubes.`, `${h} layers: ${l * w} × ${h} = ${ans} cubes.`],
+      distractors: [l * w, l + w + h, l * w + h],
+    };
+  },
+  'VL002W': (rng) => {
+    const { l, w, h } = dims(rng);
+    const ans = l * w * h;
+    const obj = pick(rng, ['fish tank', 'storage box', 'aquarium', 'wooden crate']);
+    return {
+      prompt: `A ${obj} measures ${l} cm by ${w} cm by ${h} cm. What is its volume?`,
+      value: ans, unit: 'cm³', tag: 'mea/volume-add-edges',
+      steps: ['Volume = length × width × height.', `${l} × ${w} × ${h} = ${ans} cm³.`],
+      distractors: [l + w + h, l * w, 2 * (l * w + w * h + l * h)],
+    };
+  },
+  'VL003W': (rng) => {
+    const { l, w, h } = dims(rng, 10, 8, 6);
+    const ans = l * w * h;
+    const obj = pick(rng, ['gift box', 'cardboard box', 'chocolate box', 'pencil case']);
+    return {
+      prompt: `A ${obj} is a cuboid. Its net has edges ${l} cm, ${w} cm and ${h} cm. What is the volume of the box?`,
+      value: ans, unit: 'cm³', tag: 'mea/net-dimensions',
+      steps: ['Identify the three edge lengths from the net, then multiply.', `${l} × ${w} × ${h} = ${ans} cm³.`],
+      distractors: [2 * (l * w + w * h + l * h), l + w + h, l * w],
+    };
+  },
+  'VL004W': (rng, variant) => {
+    if (variant % 2 === 0) {
+      const rate = rint(rng, 2, 9), t = rint(rng, 2, 8);
+      const ans = rate * t;
+      const src = pick(rng, ['pump', 'tap', 'hose', 'pipe']);
+      return {
+        prompt: `A ${src} fills a tank at ${rate} litres per minute. How much water is in the tank after ${t} minutes?`,
+        value: ans, unit: 'L', tag: 'mea/rate-volume-confuse',
+        steps: ['Volume = flow rate × time.', `${rate} × ${t} = ${ans} L.`],
+        distractors: [rate + t, ans + rate, Math.abs(rate - t) || rate],
+      };
+    }
+    const base = pick(rng, [10, 12, 15, 20, 25]);
+    const height = rint(rng, 2, 9);
+    const vol = base * height;
+    const obj = pick(rng, ['fish tank', 'bucket', 'container', 'basin']);
+    return {
+      prompt: `A ${obj} has a base area of ${base} cm². ${vol} cm³ of water is poured in. What is the height of the water?`,
+      value: height, unit: 'cm', tag: 'mea/rate-volume-confuse',
+      steps: ['Height = volume ÷ base area.', `${vol} ÷ ${base} = ${height} cm.`],
+      distractors: [vol - base, base, vol],
+    };
+  },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -180,6 +237,10 @@ GENERATORS.volUnitCubesMCQ = makeMCQ(VL(1));
 GENERATORS.volCuboidWord = makeMCQ(VL(2));
 GENERATORS.volNetsWord = makeMCQ(VL(3));
 GENERATORS.volWaterRateWord = makeMCQ(VL(4));
+GENERATORS.volUnitCubesWord = makePractice('VL001W');
+GENERATORS.volCuboidContext = makePractice('VL002W');
+GENERATORS.volNetsContext = makePractice('VL003W');
+GENERATORS.volWaterRateContext = makePractice('VL004W');
 
 export function generateVolumeQuestionSet({ skillId, count = 6, mode = 'practice' }) {
   const families = getQuestionFamiliesBySkill(skillId);

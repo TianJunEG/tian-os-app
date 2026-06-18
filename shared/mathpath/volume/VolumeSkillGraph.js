@@ -17,7 +17,7 @@ const volumeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: [],
     misconceptions: ['vol/hidden-cubes'],
-    questionFamilies: ['QF_VL001_001', 'QF_VL001_002'],
+    questionFamilies: ['QF_VL001_001', 'QF_VL001_002', 'QF_VL001_003'],
   },
   {
     id: 'VL002',
@@ -34,7 +34,7 @@ const volumeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['VL001'],
     misconceptions: ['mea/volume-add-edges'],
-    questionFamilies: ['QF_VL002_001', 'QF_VL002_002'],
+    questionFamilies: ['QF_VL002_001', 'QF_VL002_002', 'QF_VL002_003'],
   },
   {
     id: 'VL003',
@@ -51,7 +51,7 @@ const volumeSkills = [
     retention: { reviewDays: RETENTION_REVIEW_DAYS },
     remediationIfWeak: ['VL002'],
     misconceptions: ['mea/net-dimensions'],
-    questionFamilies: ['QF_VL003_001', 'QF_VL003_002'],
+    questionFamilies: ['QF_VL003_001', 'QF_VL003_002', 'QF_VL003_003'],
   },
   {
     id: 'VL004',
@@ -69,7 +69,7 @@ const volumeSkills = [
     remediationIfWeak: ['VL002'],
     misconceptions: ['mea/rate-volume-confuse'],
     heuristic: 'ratio',
-    questionFamilies: ['QF_VL004_001', 'QF_VL004_002'],
+    questionFamilies: ['QF_VL004_001', 'QF_VL004_002', 'QF_VL004_003'],
   },
 ];
 

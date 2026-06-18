@@ -214,6 +214,180 @@ const BUILDERS = {
       distractors: [start - each, spent, start + spent],
     };
   },
+
+  // ── Word-problem families (_003): one per skill, harder real-world contexts ──
+
+  // ME001W — Mixed-unit length: total of two paths in cm
+  'ME001W': (rng) => {
+    const aM = rint(rng, 1, 8), aCm = rint(rng, 10, 90);
+    const bM = rint(rng, 1, 8), bCm = rint(rng, 10, 90);
+    const totalCm = (aM + bM) * 100 + aCm + bCm;
+    return {
+      prompt: `Path A is ${aM} m ${aCm} cm long. Path B is ${bM} m ${bCm} cm long. What is their total length in cm?`,
+      value: totalCm, unit: 'cm', tag: 'mea/wrong-unit',
+      steps: [`Path A: ${aM} m ${aCm} cm = ${aM * 100 + aCm} cm.`, `Path B: ${bM} m ${bCm} cm = ${bM * 100 + bCm} cm. Total = ${totalCm} cm.`],
+      distractors: [aM + bM, totalCm / 100, totalCm + 100],
+    };
+  },
+  // ME002W — Mixed-unit mass: bag total in grams
+  'ME002W': (rng) => {
+    const a = rint(rng, 1, 5), b = rint(rng, 100, 900);
+    const total = a * 1000 + b;
+    return {
+      prompt: `A shopping bag has ${a} kg and ${b} g of vegetables. What is the total mass in grams?`,
+      value: total, unit: 'g', tag: 'mea/wrong-unit',
+      steps: [`${a} kg = ${a * 1000} g.`, `Total = ${a * 1000} + ${b} = ${total} g.`],
+      distractors: [a + b, total - 1000, total / 1000],
+    };
+  },
+  // ME003W — Mixed-unit capacity: jug total in ml
+  'ME003W': (rng) => {
+    const a = rint(rng, 1, 5), b = rint(rng, 100, 900);
+    const total = a * 1000 + b;
+    return {
+      prompt: `A jug holds ${a} L and ${b} ml of juice. What is the total volume in ml?`,
+      value: total, unit: 'ml', tag: 'mea/capacity-volume-confuse',
+      steps: [`${a} L = ${a * 1000} ml.`, `Total = ${a * 1000} + ${b} = ${total} ml.`],
+      distractors: [a + b, total - 1000, total / 1000],
+    };
+  },
+  // ME004W — Scale applied: bowl + fruit → find fruit mass
+  'ME004W': (rng) => {
+    const bowl = pick(rng, [150, 200, 250, 300]);
+    const fruitG = rint(rng, 2, 12) * 100;
+    const total = bowl + fruitG;
+    return {
+      prompt: `A scale reads ${total} g when a bowl of fruit is placed on it. The empty bowl weighs ${bowl} g. What is the mass of the fruit?`,
+      value: fruitG, unit: 'g', tag: 'mea/scale-interval',
+      steps: [`Mass of fruit = scale reading − bowl mass.`, `${total} − ${bowl} = ${fruitG} g.`],
+      distractors: [total, total + bowl, fruitG + 100],
+    };
+  },
+  // ME005W — 24-hour clock in a schedule context
+  'ME005W': (rng) => {
+    const h = rint(rng, 1, 11), m = pick(rng, [0, 5, 15, 20, 30, 45]);
+    const pm = rng() < 0.5;
+    const H = pm ? h + 12 : h;
+    const ans = `${String(H).padStart(2, '0')}${String(m).padStart(2, '0')}`;
+    const event = pick(rng, ['concert', 'match', 'class', 'show', 'flight', 'bus']);
+    return {
+      prompt: `A ${event} is scheduled at ${h}:${String(m).padStart(2, '0')} ${pm ? 'p.m.' : 'a.m.'}. Write this time in 24-hour format.`,
+      value: ans, unit: '', tag: 'mea/24hr-convert', raw: true,
+      steps: pm ? [`For p.m., add 12 to the hour: ${h} + 12 = ${H}.`, `Answer: ${ans}.`]
+                : [`For a.m., write with 4 digits.`, `Answer: ${ans}.`],
+      choices: [ans, `${String(pm ? h : h + 12).padStart(2, '0')}${String(m).padStart(2, '0')}`, `${String((H + 1) % 24).padStart(2, '0')}${String(m).padStart(2, '0')}`, `${String(H).padStart(2, '0')}${String((m + 5) % 60).padStart(2, '0')}`],
+    };
+  },
+  // ME006W — Find end time given start time + duration
+  'ME006W': (rng) => {
+    const startH = rint(rng, 8, 15), startM = pick(rng, [0, 10, 15, 30]);
+    const durH = rint(rng, 1, 3), durM = pick(rng, [0, 10, 15, 20, 30]);
+    const startMin = startH * 60 + startM;
+    const endMin = startMin + durH * 60 + durM;
+    const f = (t) => `${String(Math.floor(t / 60)).padStart(2, '0')}${String(t % 60).padStart(2, '0')}`;
+    const event = pick(rng, ['lesson', 'match', 'workshop', 'concert']);
+    const durLabel = durM > 0 ? `${durH} h ${durM} min` : `${durH} h`;
+    return {
+      prompt: `A ${event} starts at ${f(startMin)} and lasts ${durLabel}. At what time does it end? (Give answer in 24-hour format.)`,
+      value: f(endMin), unit: '', tag: 'mea/time-base-60', raw: true,
+      steps: [`Duration = ${durH * 60 + durM} min total.`, `${f(startMin)} + ${durH * 60 + durM} min = ${f(endMin)}.`],
+      choices: [f(endMin), f((endMin + 30) % (24 * 60)), f((endMin + 60) % (24 * 60)), f(endMin - 30)],
+    };
+  },
+  // ME007W — Two-step: multiply by count, then convert kg → g
+  'ME007W': (rng) => {
+    const n = rint(rng, 2, 5), wKg = rint(rng, 1, 4);
+    const totalG = n * wKg * 1000;
+    const obj = pick(rng, ['bags of rice', 'bags of flour', 'boxes of apples', 'boxes of books']);
+    return {
+      prompt: `Ali buys ${n} ${obj}, each weighing ${wKg} kg. What is the total mass in grams?`,
+      value: totalG, unit: 'g', tag: 'mea/convert-direction',
+      steps: [`Total mass = ${n} × ${wKg} kg = ${n * wKg} kg.`, `${n * wKg} kg = ${n * wKg} × 1000 = ${totalG} g.`],
+      distractors: [n * wKg, totalG / 100, totalG + 1000],
+    };
+  },
+  // ME008W — Cut ribbon: convert mixed units then subtract
+  'ME008W': (rng) => {
+    const aM = rint(rng, 1, 5), aCm = rint(rng, 20, 90);
+    const cut = rint(rng, 10, Math.max(10, aCm - 5));
+    const totalCm = aM * 100 + aCm;
+    const left = totalCm - cut;
+    return {
+      prompt: `Kai has a ribbon ${aM} m ${aCm} cm long. He cuts off ${cut} cm. How many cm does he have left?`,
+      value: left, unit: 'cm', tag: 'mea/compare-mixed-units',
+      steps: [`${aM} m ${aCm} cm = ${totalCm} cm.`, `${totalCm} − ${cut} = ${left} cm.`],
+      distractors: [aM * 100 - cut, totalCm + cut, left + 100],
+    };
+  },
+  // ME009W — Find length given perimeter and width (reverse perimeter)
+  'ME009W': (rng) => {
+    const perim = rint(rng, 10, 30) * 2;
+    const maxW = Math.floor(perim / 4) - 1;
+    const w = rint(rng, 2, Math.max(2, maxW));
+    const l = perim / 2 - w;
+    return {
+      prompt: `A rectangular field has a perimeter of ${perim} m. Its width is ${w} m. What is its length?`,
+      value: l, unit: 'm', tag: 'mea/perimeter-units',
+      steps: [`Perimeter = 2 × (length + width).`, `2 × (length + ${w}) = ${perim}, so length + ${w} = ${perim / 2}.`, `Length = ${perim / 2} − ${w} = ${l} m.`],
+      distractors: [perim - w, perim / 2, perim - 2 * w],
+    };
+  },
+  // ME010W — Find width given area and length (reverse area)
+  'ME010W': (rng) => {
+    const l = rint(rng, 4, 15), w = rint(rng, 3, 12);
+    const area = l * w;
+    return {
+      prompt: `A rectangular garden has an area of ${area} m². Its length is ${l} m. What is its width?`,
+      value: w, unit: 'm', tag: 'mea/area-units',
+      steps: [`Area = length × width.`, `${area} = ${l} × width, so width = ${area} ÷ ${l} = ${w} m.`],
+      distractors: [area, l + w, w + 2],
+    };
+  },
+  // ME011W — Find height given volume and base dimensions (fish tank)
+  'ME011W': (rng) => {
+    const l = rint(rng, 3, 10), w = rint(rng, 2, 8), h = rint(rng, 2, 6);
+    const vol = l * w * h;
+    return {
+      prompt: `A fish tank has a volume of ${vol} cm³. It is ${l} cm long and ${w} cm wide. What is its height?`,
+      value: h, unit: 'cm', tag: 'mea/volume-add-edges',
+      steps: [`Volume = length × width × height.`, `${vol} = ${l} × ${w} × height, so height = ${vol} ÷ ${l * w} = ${h} cm.`],
+      distractors: [l + w + h, l * w, h + 2],
+    };
+  },
+  // ME012W — Find height given volume and base dimensions (gift box / net context)
+  'ME012W': (rng) => {
+    const l = rint(rng, 3, 10), w = rint(rng, 2, 8), h = rint(rng, 2, 6);
+    const vol = l * w * h;
+    return {
+      prompt: `A gift box is a cuboid with volume ${vol} cm³. Its base measures ${l} cm by ${w} cm. What is the height of the box?`,
+      value: h, unit: 'cm', tag: 'mea/net-dimensions',
+      steps: [`Volume = length × width × height.`, `${vol} = ${l} × ${w} × height, so height = ${vol} ÷ ${l * w} = ${h} cm.`],
+      distractors: [l + w + h, l * w, h + 3],
+    };
+  },
+  // ME013W — Find time to fill a tank given flow rate (inverse rate)
+  'ME013W': (rng) => {
+    const rate = rint(rng, 2, 8), t = rint(rng, 2, 8);
+    const total = rate * t;
+    return {
+      prompt: `Water flows into a tank at ${rate} litres per minute. How many minutes does it take to fill a ${total}-litre tank?`,
+      value: t, unit: 'min', tag: 'mea/rate-volume-confuse',
+      steps: [`Time = volume ÷ rate.`, `${total} ÷ ${rate} = ${t} min.`],
+      distractors: [rate * total, t + rate, Math.abs(total - rate)],
+    };
+  },
+  // ME014W — Two-item purchase: book + pen, find change
+  'ME014W': (rng) => {
+    const bookCost = rint(rng, 3, 12), penCost = rint(rng, 1, 5);
+    const extra = rint(rng, 2, 20);
+    const start = bookCost + penCost + extra;
+    return {
+      prompt: `Ali has $${start}.00. He buys a book for $${bookCost}.00 and a pen for $${penCost}.00. How much money does he have left?`,
+      value: extra, money: true, tag: 'mea/money-decimal-place',
+      steps: [`Total spent = $${bookCost} + $${penCost} = $${bookCost + penCost}.`, `Left = $${start} − $${bookCost + penCost} = $${extra}.`],
+      distractors: [start - bookCost, start - penCost, bookCost + penCost],
+    };
+  },
 };
 
 function runBuilder(skillId, rng, variant) {
@@ -270,6 +444,11 @@ const KIND_TO_SKILL = {
   meaMeaTimeTell: ME(5), meaMeaTimeDuration: ME(6), meaMeaUnitConvert: ME(7), meaMeaCompareMeasures: ME(8),
   meaMeaPerimeterApply: ME(9), meaMeaAreaApply: ME(10), meaMeaVolumeCuboid: ME(11), meaMeaNetsVolume: ME(12),
   meaMeaVolumeRate: ME(13), meaMeaMoney: ME(14),
+  // Word-problem generator kinds (_003 families)
+  meaMeaLengthWord: 'ME001W', meaMeaMassWord: 'ME002W', meaMeaCapacityWord: 'ME003W', meaMeaScaleApply: 'ME004W',
+  meaMeaTimeSchedule: 'ME005W', meaMeaEndTime: 'ME006W', meaMeaConvertApply: 'ME007W', meaMeaCompareApply: 'ME008W',
+  meaMeaPerimeterFind: 'ME009W', meaMeaAreaFind: 'ME010W', meaMeaVolumeFind: 'ME011W', meaMeaNetFind: 'ME012W',
+  meaMeaFillTime: 'ME013W', meaMeaMoneyMulti: 'ME014W',
 };
 
 const GENERATORS = {};
