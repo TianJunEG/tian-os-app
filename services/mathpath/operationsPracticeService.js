@@ -28,7 +28,7 @@ export function buildOperationsPracticeSession({
     err.status = 400;
     throw err;
   }
-  const raw = generateOperationsQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateOperationsQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,
