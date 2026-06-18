@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 // Escape user-supplied values before interpolating into email HTML.
 const escapeHtml = (value) =>
@@ -9,72 +9,35 @@ const escapeHtml = (value) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
-// Initialize email transporter
-// For production: use a real email service (SendGrid, AWS SES, etc.)
-// For development: use ethereal (fake email service for testing)
-let transporter;
-
-const initializeEmailService = async () => {
-  if (process.env.NODE_ENV === 'production') {
-    // Production: Use your email service credentials
-    transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
-  } else if (process.env.NODE_ENV === 'test') {
-    // Test/e2e: avoid external Ethereal network calls during server startup.
-    transporter = nodemailer.createTransport({ jsonTransport: true });
-  } else {
-    // Development: Use Ethereal (test email service)
-    const testAccount = await nodemailer.createTestAccount();
-    transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass
-      }
-    });
-  }
-};
-
-// Initialize on module load
-initializeEmailService().catch(console.error);
-
-/**
- * Send email
- * @param {Object} options - Email options
- * @param {string} options.to - Recipient email
- * @param {string} options.subject - Email subject
- * @param {string} options.html - HTML email body
- * @param {string} options.text - Plain text email body (optional)
- */
-export const sendEmail = async ({ to, subject, html, text }) => {
-  try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"Tian OS" <noreply@tianos.app>',
-      to,
-      subject,
-      text,
-      html
-    });
-
-    console.log('Email sent:', info.messageId);
-
-    // In development, log the preview URL
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
+// Resend client — lazily initialised so the server boots in test/dev without
+// a real API key. In test mode all sends are no-ops.
+let _resend = null;
+function getResend() {
+  if (!_resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is not set. Add it to your environment variables.');
     }
-
-    return info;
-  } catch (error) {
-    console.error('Email send error:', error);
-    throw error;
+    _resend = new Resend(process.env.RESEND_API_KEY);
   }
+  return _resend;
+}
+
+const FROM = process.env.EMAIL_FROM || '"Tian OS" <noreply@tianos.app>';
+
+export const sendEmail = async ({ to, subject, html, text }) => {
+  // Skip actual sending in test environment.
+  if (process.env.NODE_ENV === 'test') {
+    console.log(`[test] email suppressed — to:${to} subject:${subject}`);
+    return { id: 'test-suppressed' };
+  }
+  const resend = getResend();
+  const { data, error } = await resend.emails.send({ from: FROM, to, subject, html, text });
+  if (error) {
+    console.error('Resend error:', error);
+    throw new Error(error.message || 'Failed to send email via Resend.');
+  }
+  console.log('Email sent via Resend:', data?.id);
+  return data;
 };
 
 /**
