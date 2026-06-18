@@ -867,6 +867,12 @@ export default function FullScreenWorkingMode({
             </div>
           ))}
         </div>}
+        {(questionContent || questionText) && (
+          <div className="flex-shrink-0 rounded-xl border border-line-soft bg-surface-raised px-4 py-2.5">
+            <span className="mr-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Q</span>
+            <span className="text-base font-medium text-ink-900">{questionContent || questionText}</span>
+          </div>
+        )}
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto rounded-xl border border-line-soft bg-surface-raised p-3">
           <div
             className="relative rounded-xl bg-white shadow-rest"

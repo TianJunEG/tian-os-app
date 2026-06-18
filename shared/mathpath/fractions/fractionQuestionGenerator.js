@@ -765,7 +765,7 @@ function templateForSkill(skillId, variant, ctx) {
       const b = distinctSeq(s + 5, 2, 9, a);
       const relation = a < b ? '>' : '<';
       return {
-        prompt: `Which is greater: 1/${a} or 1/${b}?`,
+        prompt: `Write > or < to compare: 1/${a} and 1/${b}`,
         answer: { type: 'text', value: relation, display: relation },
         acceptedAnswers: [relation],
         solutionSteps: ['For unit fractions, smaller denominator means larger value.', `So the sign is "${relation}".`],
@@ -777,7 +777,7 @@ function templateForSkill(skillId, variant, ctx) {
       const b = distinctSeq(s + 4, 1, d - 1, a);
       const greater = a > b ? '>' : '<';
       return {
-        prompt: `Which is greater: ${a}/${d} or ${b}/${d}?`,
+        prompt: `Write > or < to compare: ${a}/${d} and ${b}/${d}`,
         answer: { type: 'text', value: greater, display: greater },
         acceptedAnswers: [greater],
         solutionSteps: ['Denominators are equal.', 'Compare numerators directly.', `The symbol is "${greater}".`],
@@ -820,7 +820,7 @@ function templateForSkill(skillId, variant, ctx) {
       const b = distinctSeq(s + 5, n + 1, 12, a);
       const greater = a < b ? '>' : '<';
       return {
-        prompt: `Which is greater: ${n}/${a} or ${n}/${b}?`,
+        prompt: `Write > or < to compare: ${n}/${a} and ${n}/${b}`,
         answer: { type: 'text', value: greater, display: greater },
         acceptedAnswers: [greater],
         solutionSteps: ['Numerators are equal.', 'Smaller denominator gives larger fraction.', `The symbol is "${greater}".`],
@@ -894,7 +894,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 6, 1, d - 1);
         const greater = a > b ? '>' : (a < b ? '<' : '=');
         return {
-          prompt: `A model shows ${a}/${d} and ${b}/${d}. Which fraction is greater (or equal if same)?`,
+          prompt: `A model shows ${a}/${d} and ${b}/${d}. Write >, < or = to compare.`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
           solutionSteps: ['Both fractions have equal-sized parts.', 'Compare the number of parts shaded.', `Answer: ${greater}.`],
@@ -1047,7 +1047,7 @@ function templateForSkill(skillId, variant, ctx) {
         const b = seq(s + 5, -(d - 1), -1);
         const greater = a > 0 && b < 0 ? '>' : '<';
         return {
-          prompt: `Which is greater: ${a}/${d} or ${b}/${d}?`,
+          prompt: `Write > or < to compare: ${a}/${d} and ${b}/${d}`,
           answer: { type: 'text', value: greater, display: greater },
           acceptedAnswers: [greater],
           solutionSteps: ['Positive fractions are always greater than negative fractions.', `${a}/${d} is positive and ${b}/${d} is negative, so the answer is "${greater}".`],
