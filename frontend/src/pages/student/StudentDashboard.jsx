@@ -32,6 +32,7 @@ import {
   UserCircle,
   Wrench,
 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
@@ -904,13 +905,20 @@ function LowerPrimaryBanner() {
 function DiagnosticPrompts({ domains, containerClassName = '', containerStyle }) {
   const list = (domains && domains.length) ? domains : [{ domainId: 'fractions', displayName: 'Fractions' }];
   return (
-    <div className={`space-y-3 ${containerClassName}`} style={containerStyle}>
-      {list.map((d) => (
-        <Card key={d.domainId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-500">Start your {d.displayName} Diagnostic to find your best starting point.</p>
-          <Button to={`/student/mathpath/diagnostic?domain=${encodeURIComponent(d.domainId)}`} size="s" icon={ArrowRight}>Start Diagnostic</Button>
-        </Card>
-      ))}
+    <div className={containerClassName} style={containerStyle}>
+      <p className="mb-3 text-sm text-ink-500">Choose a topic to find your starting point:</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {list.map((d) => (
+          <NavLink
+            key={d.domainId}
+            to={`/student/mathpath/diagnostic?domain=${encodeURIComponent(d.domainId)}`}
+            className="flex min-w-0 items-center justify-between gap-2 rounded-btn border border-line bg-surface-white px-3 py-2.5 text-sm font-medium text-ink hover:bg-surface-raised hover:border-gold transition-colors"
+          >
+            <span className="break-words">{d.displayName}</span>
+            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-body-faint" />
+          </NavLink>
+        ))}
+      </div>
     </div>
   );
 }
