@@ -17,7 +17,7 @@ export default function SentenceHighlighter({
       {sentences.map((sentence, index) => (
         <p
           key={`${sentence}-${index}`}
-          className={`mb-2 rounded-lg px-2 py-1 leading-relaxed last:mb-0 ${index === activeIndex ? 'bg-gold-100 text-emerald-deep' : ''}`}
+          className={`mb-2 rounded-lg px-2 py-1 leading-relaxed last:mb-0 ${index === activeIndex ? 'bg-gold-tint text-emerald-deep' : ''}`}
         >
           <KeyFactHighlighter
             sentence={sentence}

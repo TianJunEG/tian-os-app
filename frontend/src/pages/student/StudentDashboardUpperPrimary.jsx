@@ -417,8 +417,8 @@ export default function StudentDashboardUpperPrimary({
         {FEATURE_FLAGS.psl && (
           <div style={{ marginTop: 20 }}>
             <Card className="flex items-center gap-4 p-4" interactive>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
-                <Brain className="h-5 w-5 text-gold-600" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-tint">
+                <Brain className="h-5 w-5 text-gold-deep" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>

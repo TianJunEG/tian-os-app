@@ -80,8 +80,8 @@ function NextToUnlockBanner({ achievements = [] }) {
   if (!nextLocked) return null;
   const display = getAchievementDisplay(nextLocked);
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-gold-200 bg-gradient-to-r from-gold-50 to-ivory p-4">
-      <Star className="h-6 w-6 text-gold-500" />
+    <div className="flex items-center gap-3 rounded-2xl border border-gold-tint bg-gradient-to-r from-gold-tint2 to-ivory p-4">
+      <Star className="h-6 w-6 text-gold" />
       <div>
         <p className="text-sm font-bold text-emerald-deep">Next to unlock: {display.title}</p>
         <p className="text-xs text-ink-500">{display.description}</p>
@@ -181,9 +181,9 @@ function SnapshotCard({ icon: Icon, label, value, visual }) {
 function AchievementBadge({ achievement, visual }) {
   const display = getAchievementDisplay(achievement);
   return (
-    <Card className={`p-4 ${achievement.unlocked ? 'border-gold-300 bg-gradient-to-br from-gold-100 to-gold-50' : 'border-line-soft bg-bone opacity-75'}`}>
+    <Card className={`p-4 ${achievement.unlocked ? 'border-gold-border bg-gradient-to-br from-gold-tint to-gold-tint2' : 'border-line-soft bg-bone opacity-75'}`}>
       <div className="flex items-start gap-3">
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl ${achievement.unlocked ? 'bg-gold-200' : 'bg-line-soft text-ink-400'}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xl ${achievement.unlocked ? 'bg-gold-tint' : 'bg-line-soft text-ink-400'}`}>
           {achievement.unlocked ? display.emoji : <Lock className="h-5 w-5" />}
         </span>
         <div className="min-w-0">
@@ -208,7 +208,7 @@ function TimelineItem({ event }) {
           <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-400">{formatEventDate(event.occurredAt)}</span>
         </div>
         {event.description && <p className="mt-1 text-sm text-ink-500">{event.description}</p>}
-        {event.xpAwarded > 0 && <p className="mt-2 text-sm font-semibold text-gold-700">Earned {event.xpAwarded} XP</p>}
+        {event.xpAwarded > 0 && <p className="mt-2 text-sm font-semibold text-gold-deep">Earned {event.xpAwarded} XP</p>}
       </div>
     </li>
   );
@@ -216,7 +216,7 @@ function TimelineItem({ event }) {
 
 function PersonalBestTile({ icon: Icon, label, value, subtitle, tone = 'default', visual }) {
   const tones = {
-    gold: 'border-gold-200 bg-gradient-to-br from-gold-50 to-yellow-50',
+    gold: 'border-gold-tint bg-gradient-to-br from-gold-tint2 to-yellow-50',
     fire: 'border-orange-200 bg-gradient-to-br from-orange-50 to-red-50',
     sky: 'border-sky-200 bg-gradient-to-br from-sky-50 to-blue-50',
     mint: 'border-mint-200 bg-gradient-to-br from-mint-50 to-emerald-50',
@@ -224,7 +224,7 @@ function PersonalBestTile({ icon: Icon, label, value, subtitle, tone = 'default'
     default: visual.styles.card,
   };
   const iconTones = {
-    gold: 'bg-gold-100 text-gold-700',
+    gold: 'bg-gold-tint text-gold-deep',
     fire: 'bg-orange-100 text-orange-600',
     sky: 'bg-sky-100 text-sky-700',
     mint: 'bg-mint-100 text-emerald-700',
@@ -588,7 +588,7 @@ export default function StudentProfile() {
           <DecorativeMotif enabled={visual.styles.decorative} />
           <p className="text-sm font-semibold text-ink-500">{visual.styles.streakLabel}</p>
           <div className="mt-3 flex items-end gap-3">
-            <Flame className="h-8 w-8 text-gold-500" />
+            <Flame className="h-8 w-8 text-gold" />
             <p className="font-mono text-3xl sm:text-4xl font-semibold leading-none text-ink-900 tabular-nums">{summary.streak || 0}</p>
             <p className="pb-1 text-sm font-semibold text-ink-500">{summary.streak === 1 ? 'day' : 'days'}</p>
           </div>

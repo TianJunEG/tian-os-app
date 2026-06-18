@@ -686,16 +686,16 @@ function AnswerFeedbackCard({ feedback, correctAnswer, solutionSteps, onTryAgain
       {correct && (
         <>
           <span className="tian-sparkle-dot pointer-events-none absolute right-8 top-4 h-2 w-2 rounded-full bg-success-400" />
-          <span className="tian-sparkle-dot pointer-events-none absolute right-14 top-8 h-1.5 w-1.5 rounded-full bg-gold-400 [animation-delay:120ms]" />
+          <span className="tian-sparkle-dot pointer-events-none absolute right-14 top-8 h-1.5 w-1.5 rounded-full bg-gold [animation-delay:120ms]" />
           <span className="tian-sparkle-dot pointer-events-none absolute right-5 top-10 h-1 w-1 rounded-full bg-emerald-border [animation-delay:210ms]" />
           {feedback.showConfetti && (
             <span aria-hidden="true" className="pointer-events-none absolute right-10 top-8">
               {[
                 ['-18px', '-18px', 'bg-success-400'],
-                ['14px', '-20px', 'bg-gold-400'],
+                ['14px', '-20px', 'bg-gold'],
                 ['24px', '4px', 'bg-emerald-border'],
                 ['-10px', '18px', 'bg-success-300'],
-                ['8px', '20px', 'bg-gold-300'],
+                ['8px', '20px', 'bg-gold-border'],
               ].map(([x, y, color], index) => (
                 <span
                   key={`${x}-${y}`}
@@ -2012,7 +2012,7 @@ export default function PracticeSession() {
             </div>
           )}
           {summary.workingUploadRequired && (
-            <div className="mt-5 rounded-xl border border-gold-300 bg-gold-100 p-4 text-sm text-gold-900">
+            <div className="mt-5 rounded-xl border border-gold-border bg-gold-tint p-4 text-sm text-gold-deep">
               <p className="font-semibold">Please upload your working sheet for this session.</p>
               <Button
                 className="mt-3"
@@ -2100,7 +2100,7 @@ export default function PracticeSession() {
           }
         `}</style>
         {!currentQuestionValidation.ok ? (
-          <div className="rounded-2xl border border-gold-200 bg-gold-50 p-5 text-sm text-ink-700">
+          <div className="rounded-2xl border border-gold-tint bg-gold-tint2 p-5 text-sm text-ink-700">
             <p className="font-semibold text-emerald-deep">{DIAGRAM_LOAD_ERROR_MESSAGE}</p>
             <p className="mt-1 text-ink-500">This visual question needs a diagram before it can be answered.</p>
             <Button className="mt-4" onClick={tryAnotherQuestion}>

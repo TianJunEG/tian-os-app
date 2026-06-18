@@ -160,7 +160,7 @@ export function ReviewFilterBar({ filter, setFilter }) {
 export function MissingReviewState() {
   return (
     <Card className="p-6 text-center">
-      <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-gold-100 text-gold-800">
+      <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-gold-tint text-gold-deep">
         <AlertTriangle className="h-5 w-5" />
       </div>
       <p className="text-sm text-ink-700">No reviewable attempts were found for this session.</p>

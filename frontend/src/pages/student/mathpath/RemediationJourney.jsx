@@ -25,7 +25,7 @@ function stepTone(status) {
 
 function StepIcon({ status }) {
   if (status === 'completed' || status === 'skipped') return <CheckCircle2 className="h-5 w-5 text-success-600" />;
-  if (status === 'in_progress') return <Circle className="h-5 w-5 text-gold-500" />;
+  if (status === 'in_progress') return <Circle className="h-5 w-5 text-gold" />;
   return <Lock className="h-4 w-4 text-ink-300" />;
 }
 
@@ -113,7 +113,7 @@ export default function RemediationJourney() {
           const action = isCurrent ? stepAction(step, session) : null;
 
           return (
-            <Card key={step.step} className={`p-4 ${isCurrent ? 'ring-2 ring-gold-300' : ''}`}>
+            <Card key={step.step} className={`p-4 ${isCurrent ? 'ring-2 ring-gold-border' : ''}`}>
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex flex-col items-center">
                   <StepIcon status={step.status} />
@@ -145,7 +145,7 @@ export default function RemediationJourney() {
                   )}
 
                   {isCurrent && step.metadata?.needsTutorIntervention && (
-                    <p className="mt-2 rounded-lg bg-gold-100 px-3 py-2 text-sm font-medium text-gold-800">
+                    <p className="mt-2 rounded-lg bg-gold-tint px-3 py-2 text-sm font-medium text-gold-deep">
                       Maximum attempts reached. A tutor can help you with this skill.
                     </p>
                   )}

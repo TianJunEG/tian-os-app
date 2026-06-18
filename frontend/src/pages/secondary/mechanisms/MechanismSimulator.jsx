@@ -66,7 +66,7 @@ export default function MechanismSimulator() {
       {/* Mode toolbar */}
       {teacher ? (
         <Card className="mb-4 flex flex-wrap items-center gap-2 p-3">
-          <span className="mr-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">
+          <span className="mr-1 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep">
             <GraduationCap className="h-3.5 w-3.5" /> Teacher tools
           </span>
           <Button size="s" variant={reveal ? 'gold' : 'secondary'} icon={reveal ? EyeOff : Eye} onClick={() => setReveal((v) => !v)}>

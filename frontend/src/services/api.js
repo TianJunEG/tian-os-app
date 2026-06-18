@@ -657,6 +657,12 @@ export const parentsAPI = {
     api.get(`/parents/${studentId}/mathpath/domains`, { params: { subjectId } }),
 };
 
+// BrightDesk integration API
+export const integrationsAPI = {
+  generateBrightdeskToken: (studentId) =>
+    api.post('/integrations/brightdesk/generate-token', { studentId }),
+};
+
 // Partners API
 export const partnersAPI = {
   submitInquiry: (data) => api.post('/partners/inquiries', data),

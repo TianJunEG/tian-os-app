@@ -159,8 +159,8 @@ export default function DecimalsDiagnosticSession() {
               </div>
             </div>
           )}
-          <div className="mt-5 flex items-center gap-3 rounded-xl bg-gold-50 p-3">
-            <Sparkles className="h-5 w-5 text-gold-700" />
+          <div className="mt-5 flex items-center gap-3 rounded-xl bg-gold-tint2 p-3">
+            <Sparkles className="h-5 w-5 text-gold-deep" />
             <p className="text-sm font-semibold text-ink-700">Recommended start: {result.recommendedStartingSkillName || result.recommendedStartingSkillId}</p>
           </div>
         </Card>

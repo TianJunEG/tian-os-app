@@ -243,9 +243,9 @@ export default function DiagnosticResultScreen() {
                 {summary.stillNeedsWork?.length ? (
                   <div className="mt-3 space-y-2">
                     {summary.stillNeedsWork.map((skill) => (
-                      <div key={skill.displayName} className="rounded-xl bg-gold-100 px-3 py-2">
-                        <p className="font-semibold text-gold-800">{skill.displayName}</p>
-                        <p className="mt-1 text-sm text-gold-800">You are getting better, and this still needs a little more practice.</p>
+                      <div key={skill.displayName} className="rounded-xl bg-gold-tint px-3 py-2">
+                        <p className="font-semibold text-gold-deep">{skill.displayName}</p>
+                        <p className="mt-1 text-sm text-gold-deep">You are getting better, and this still needs a little more practice.</p>
                       </div>
                     ))}
                   </div>
@@ -389,7 +389,7 @@ export default function DiagnosticResultScreen() {
             <p className="text-sm text-ink-600">No strong root-cause pattern was detected. Continue with the recommended practice to collect more evidence.</p>
           )}
           {misconceptions.length > 0 && (
-            <div className="mt-4 rounded-xl bg-gold-50 px-3 py-3 text-sm text-gold-900">
+            <div className="mt-4 rounded-xl bg-gold-tint2 px-3 py-3 text-sm text-gold-deep">
               <p className="font-semibold">Possible misconception</p>
               <p className="mt-1">{misconceptions[0].description}</p>
             </div>
@@ -438,9 +438,9 @@ export default function DiagnosticResultScreen() {
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Avg skip rate</p>
               <p className="mt-1 text-xl font-semibold text-success-800">{timingOverall.average_skip_rate == null ? '--' : `${Number(timingOverall.average_skip_rate).toFixed(1)}%`}</p>
             </div>
-            <div className="rounded-xl bg-gold-50 px-3 py-2">
+            <div className="rounded-xl bg-gold-tint2 px-3 py-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Avg fluency score</p>
-              <p className="mt-1 text-xl font-semibold text-gold-800">{timingOverall.average_fluency_score == null ? '--' : `${Number(timingOverall.average_fluency_score).toFixed(1)}`}</p>
+              <p className="mt-1 text-xl font-semibold text-gold-deep">{timingOverall.average_fluency_score == null ? '--' : `${Number(timingOverall.average_fluency_score).toFixed(1)}`}</p>
             </div>
           </div>
           {timingBySkill.length > 0 && (
@@ -536,7 +536,7 @@ export default function DiagnosticResultScreen() {
               </p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <p className="rounded-lg bg-success-100 px-3 py-2 text-sm text-success-700">Mastery signals: {calibrated.masterySignals || 0}</p>
-                <p className="rounded-lg bg-gold-100 px-3 py-2 text-sm text-gold-800">Lucky correct: {calibrated.luckyCorrect || 0}</p>
+                <p className="rounded-lg bg-gold-tint px-3 py-2 text-sm text-gold-deep">Lucky correct: {calibrated.luckyCorrect || 0}</p>
                 <p className="rounded-lg bg-error-100 px-3 py-2 text-sm text-error-700">Misconception alerts: {calibrated.misconceptionAlerts || 0}</p>
                 <p className="rounded-lg bg-bone px-3 py-2 text-sm text-ink-700">Learning gaps: {calibrated.learningGaps || 0}</p>
               </div>

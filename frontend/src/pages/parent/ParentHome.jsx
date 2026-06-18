@@ -171,7 +171,7 @@ export default function ParentHome() {
           <Link to={`/parent/children/${child.studentId}/mathpath`} className="text-sm font-semibold text-emerald-deep">
             Open Parent MathPath dashboard →
           </Link>
-          <Link to={`/parent/success-centre?child=${child.studentId}`} className="ml-4 text-sm font-semibold text-gold-700">
+          <Link to={`/parent/success-centre?child=${child.studentId}`} className="ml-4 text-sm font-semibold text-gold-deep">
             Open Success Centre →
           </Link>
         </div>
@@ -233,7 +233,7 @@ export default function ParentHome() {
                 <p className="text-sm text-ink-500">{child.weakestSkill} in {child.weakestTopic}</p>
                 <div className="mt-2 flex flex-col gap-1">
                   <Link to={`/parent/children/${child.studentId}/weak-topics`} className="text-sm font-semibold text-emerald-deep">View weak topics →</Link>
-                  <Link to={`/parent/children/${child.studentId}/worksheets/new?mode=weak_skills`} className="text-sm font-semibold text-gold-700">Generate worksheet for {child.weakestSkill} →</Link>
+                  <Link to={`/parent/children/${child.studentId}/worksheets/new?mode=weak_skills`} className="text-sm font-semibold text-gold-deep">Generate worksheet for {child.weakestSkill} →</Link>
                 </div>
               </div>
             </div>
@@ -247,7 +247,7 @@ export default function ParentHome() {
           <p className="mt-1 text-sm text-ink-500">{completed} of {assignments.length} completed</p>
           <div className="mt-1 flex flex-col gap-1">
             <Link to={`/parent/children/${child.studentId}/assignments`} className="text-sm font-semibold text-emerald-deep">View practice tasks →</Link>
-            <Link to={`/parent/children/${child.studentId}/worksheets`} className="text-sm font-semibold text-gold-700">Mastery worksheet generator →</Link>
+            <Link to={`/parent/children/${child.studentId}/worksheets`} className="text-sm font-semibold text-gold-deep">Mastery worksheet generator →</Link>
           </div>
         </Card>
       </div>

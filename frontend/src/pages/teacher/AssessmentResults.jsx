@@ -68,7 +68,7 @@ export default function AssessmentResults() {
         </div>
         {summary.averageScore != null && (
           <ProgressBar value={summary.averageScore} max={100}
-            barClassName={summary.averageScore >= 80 ? 'bg-emerald-500' : summary.averageScore >= 50 ? 'bg-gold-400' : 'bg-red-400'} className="mt-3" />
+            barClassName={summary.averageScore >= 80 ? 'bg-emerald-500' : summary.averageScore >= 50 ? 'bg-gold' : 'bg-red-400'} className="mt-3" />
         )}
       </Card>
 
@@ -121,7 +121,7 @@ export default function AssessmentResults() {
                 </p>
                 <div className="flex items-center gap-1 whitespace-nowrap">
                   {q.correctPct != null && (
-                    <span className={`text-sm font-semibold ${q.correctPct >= 80 ? 'text-emerald-600' : q.correctPct >= 50 ? 'text-gold-600' : 'text-red-500'}`}>
+                    <span className={`text-sm font-semibold ${q.correctPct >= 80 ? 'text-emerald-600' : q.correctPct >= 50 ? 'text-gold-deep' : 'text-red-500'}`}>
                       {q.correctPct}%
                     </span>
                   )}
@@ -134,7 +134,7 @@ export default function AssessmentResults() {
               </div>
               {q.correctPct != null && (
                 <ProgressBar value={q.correctPct} max={100}
-                  barClassName={q.correctPct >= 80 ? 'bg-emerald-500' : q.correctPct >= 50 ? 'bg-gold-400' : 'bg-red-400'} className="mt-2" />
+                  barClassName={q.correctPct >= 80 ? 'bg-emerald-500' : q.correctPct >= 50 ? 'bg-gold' : 'bg-red-400'} className="mt-2" />
               )}
               {q.commonWrongAnswers?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">

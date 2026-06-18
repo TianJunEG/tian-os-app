@@ -297,7 +297,7 @@ export default function AssessmentIntroScreen() {
           <Card className="p-5">
             <p className="mb-3 text-sm font-semibold text-ink-700">School-Aligned Test Setup</p>
             {!ownerType && (
-              <div className="mb-3 rounded-lg border border-gold-200 bg-gold-50 p-3 text-sm text-ink-700">
+              <div className="mb-3 rounded-lg border border-gold-tint bg-gold-tint2 p-3 text-sm text-ink-700">
                 School-aligned test setup is available to parent, tutor, or teacher accounts.
               </div>
             )}

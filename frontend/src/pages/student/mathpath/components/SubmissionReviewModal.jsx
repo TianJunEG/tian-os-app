@@ -78,7 +78,7 @@ export default function SubmissionReviewModal({
 
         <div className="space-y-2 pt-1">
           {!confirmEnabled && !hasWorking ? (
-            <p className="text-xs text-gold-700">Please make a working choice to submit.</p>
+            <p className="text-xs text-gold-deep">Please make a working choice to submit.</p>
           ) : null}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" disabled={busy} onClick={onClose}>Go back</Button>

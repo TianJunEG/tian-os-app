@@ -69,7 +69,7 @@ export default function DiagnosticGrowthCard({
         <p className="rounded-xl bg-mint-50 px-3 py-2 text-ink-700">
           Top improved skill: <span className="font-semibold">{topImproved?.skillName || skillLabel(topImproved?.skillId) || 'Not enough data yet'}</span>
         </p>
-        <p className="rounded-xl bg-gold-50 px-3 py-2 text-ink-700">
+        <p className="rounded-xl bg-gold-tint2 px-3 py-2 text-ink-700">
           Remaining weak skill: <span className="font-semibold">{remainingWeak || 'None flagged'}</span>
         </p>
       </div>

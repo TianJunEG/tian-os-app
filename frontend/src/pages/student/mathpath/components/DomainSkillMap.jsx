@@ -37,7 +37,7 @@ function SkillCard({ skill, onPractise }) {
       aria-label={clickable ? `Practise ${skill.name}` : `${skill.name} — locked`}
       onClick={clickable ? () => onPractise(skill.id) : undefined}
       onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPractise(skill.id); } } : undefined}
-      className={`p-4 transition ${clickable ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : 'bg-surface-white/80 opacity-75'} ${skill.current ? 'ring-2 ring-gold-400/60' : ''}`}
+      className={`p-4 transition ${clickable ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md' : 'bg-surface-white/80 opacity-75'} ${skill.current ? 'ring-2 ring-gold/60' : ''}`}
     >
       <div className="flex min-h-[3.25rem] items-start justify-between gap-3">
         <p className="text-base font-semibold leading-snug text-ink-800">{skill.name}</p>
@@ -91,11 +91,11 @@ export default function DomainSkillMap({ domain, view, onPractise, footerSlot = 
         </div>
         <ProgressBar className="mt-4" value={view.progress.mastered} max={view.progress.total} />
         <div className="mt-4 flex items-center gap-3">
-          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${meta.chip || 'bg-gold-100 text-gold-700'}`}>
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${meta.chip || 'bg-gold-tint text-gold-deep'}`}>
             {Icon ? <Icon className="h-5 w-5" /> : null}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended next</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Recommended next</p>
             <p className="truncate text-sm font-semibold text-ink-700">{view.recommendedNext.skillName}</p>
           </div>
           <Button size="s" icon={ArrowRight} onClick={() => onPractise(view.recommendedNext.skillId)}>Practise</Button>

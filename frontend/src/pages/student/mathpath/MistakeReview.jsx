@@ -181,7 +181,7 @@ export default function MistakeReview() {
                     <span className="text-base font-semibold text-emerald-deep">{m.skillName || m.skillCode || 'MathPath'}</span>
                     <Badge tone="gold">Preparing review</Badge>
                   </div>
-                  <p className="rounded-2xl bg-gold-100 p-3 text-sm text-gold-800">
+                  <p className="rounded-2xl bg-gold-tint p-3 text-sm text-gold-deep">
                     This review item is still being prepared. Complete question details are not available yet.
                   </p>
                   <div className="flex flex-wrap gap-2">

@@ -430,7 +430,7 @@ export default function PSLSession() {
               href="/student/psl/decision-guide"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-xs font-medium text-gold-600 hover:text-gold-700"
+              className="flex items-center gap-1.5 text-xs font-medium text-gold-deep hover:text-gold-deep"
             >
               <Compass className="h-3.5 w-3.5" />
               Not sure? Open the Decision Guide

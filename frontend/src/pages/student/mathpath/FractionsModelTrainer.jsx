@@ -59,7 +59,7 @@ function HighlightedQuestion({ text, step }) {
       <p className="text-lg leading-8 text-ink-800">
         {segments.map((seg, i) =>
           seg.highlighted
-            ? <mark key={i} className="rounded bg-gold-200 px-0.5 font-semibold text-gold-900">{seg.text}</mark>
+            ? <mark key={i} className="rounded bg-gold-tint px-0.5 font-semibold text-gold-deep">{seg.text}</mark>
             : <span key={i}>{seg.text}</span>
         )}
       </p>
@@ -247,7 +247,7 @@ function BarModel({ model = {}, hidePartLabels = false }) {
           const partClass = removed
             ? 'bg-danger-tint text-danger-deep opacity-80'
             : selected || (model.highlightRemaining && remaining)
-              ? 'bg-gold-100 text-gold-800'
+              ? 'bg-gold-tint text-gold-deep'
               : remaining
                 ? 'bg-blue-50 text-emerald-deep'
                 : 'bg-white text-ink-500';
@@ -458,7 +458,7 @@ function BranchingModel({ branchModel }) {
             </div>
           ))}
         </div>
-        <div className="rounded-xl bg-gold-100 px-3 py-2 font-semibold text-gold-800">New amount: {branchModel.remainderLabel}</div>
+        <div className="rounded-xl bg-gold-tint px-3 py-2 font-semibold text-gold-deep">New amount: {branchModel.remainderLabel}</div>
         <div className="grid grid-cols-2 gap-2">
           {second.map((branch) => (
             <div key={`${branch.label}-${branch.value}`} className="rounded-xl border border-line-soft px-3 py-2">
@@ -679,7 +679,7 @@ function PatternTrainerLab() {
             <p><span className="font-semibold">Accepted:</span> {analysis.quality?.acceptedCount || generated.length}</p>
           </div>
           {(analysis.quality?.warnings || analysis.pattern.qualityWarnings || []).map((warning) => (
-            <p key={warning} className="mt-2 text-gold-800">Warning: {warning}</p>
+            <p key={warning} className="mt-2 text-gold-deep">Warning: {warning}</p>
           ))}
         </div>
       )}
@@ -1025,8 +1025,8 @@ export default function FractionsModelTrainer() {
                 </div>
               )}
               {currentStep.sense_check && shouldRevealTeacherSolution && (
-                <div className="mt-4 rounded-xl border border-gold-200 bg-gold-100/50 p-4">
-                  <p className="text-sm font-semibold text-gold-700">Does your answer make sense?</p>
+                <div className="mt-4 rounded-xl border border-gold-tint bg-gold-tint/50 p-4">
+                  <p className="text-sm font-semibold text-gold-deep">Does your answer make sense?</p>
                   <p className="mt-1 text-sm text-ink-700">{currentStep.sense_check}</p>
                   {mode === 'we_do' && (
                     <div className="mt-3 flex flex-wrap gap-2">

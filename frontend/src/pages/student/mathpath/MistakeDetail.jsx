@@ -168,7 +168,7 @@ export default function MistakeDetail() {
         <PageHeader title="Mistake detail" subtitle={m.skillName || m.skillCode || 'MathPath'} />
         <Card className="p-5 sm:p-6">
           <Badge tone="gold">Preparing review</Badge>
-          <p className="mt-3 rounded-2xl bg-gold-100 p-3 text-sm text-gold-800">
+          <p className="mt-3 rounded-2xl bg-gold-tint p-3 text-sm text-gold-deep">
             This review item is still being prepared. Complete question details are not available yet.
           </p>
           <div className="mt-4">
@@ -270,7 +270,7 @@ export default function MistakeDetail() {
             <div className="rounded-2xl bg-white p-3">
               <p className="text-sm font-semibold text-ink-800">{correctionFlow.correctionPrompt || 'Write the corrected answer.'}</p>
               <input
-                className="mt-2 min-h-[48px] w-full rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/40"
+                className="mt-2 min-h-[48px] w-full rounded-xl border border-line-soft bg-surface-white px-3 text-base text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40"
                 value={correctionAttempt || m.correctionAttempt || ''}
                 onChange={(event) => setCorrectionAttempt(event.target.value)}
                 placeholder="Corrected answer"

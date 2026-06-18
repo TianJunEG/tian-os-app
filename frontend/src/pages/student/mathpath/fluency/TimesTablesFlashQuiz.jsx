@@ -65,7 +65,7 @@ function SkipCountLadder({ factor, count }) {
         <span
           key={i}
           className={`rounded-full px-3 py-1 text-sm font-bold ${
-            i === count - 1 ? 'bg-gold-200 text-gold-700' : 'bg-bone text-ink-600'
+            i === count - 1 ? 'bg-gold-tint text-gold-deep' : 'bg-bone text-ink-600'
           }`}
         >
           {val}

@@ -151,8 +151,8 @@ export default function PracticeResult() {
       )}
 
       {recommended && (
-        <Card className="mb-5 border-l-4 border-l-gold-400 p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended next</div>
+        <Card className="mb-5 border-l-4 border-l-gold p-4">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-gold-deep">Recommended next</div>
           <p className="mt-0.5 text-base font-semibold text-ink-800">
             {canonicalSkillName(recommended.skillId, recommended.skillName)}
             {recommended.topicName ? <span className="font-normal text-ink-500"> · {recommended.topicName}</span> : null}

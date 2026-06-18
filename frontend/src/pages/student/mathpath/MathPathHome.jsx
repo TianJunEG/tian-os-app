@@ -422,9 +422,9 @@ export default function MathPathHome() {
           </div>
         )}
         {hasPlacement && domainProgress?.needsRecheck && (
-          <div className="mt-4 rounded-xl border border-gold-300 bg-gold-100 p-4">
-            <p className="text-sm font-semibold text-gold-900">Re-check suggested</p>
-            <p className="mt-1 text-sm text-gold-900">You've had a long break or repeated struggles. A short check-in can refresh your placement.</p>
+          <div className="mt-4 rounded-xl border border-gold-border bg-gold-tint p-4">
+            <p className="text-sm font-semibold text-gold-deep">Re-check suggested</p>
+            <p className="mt-1 text-sm text-gold-deep">You've had a long break or repeated struggles. A short check-in can refresh your placement.</p>
             <Button className="mt-3" variant="secondary" onClick={() => startDiagnostic('recheck')}>
               Run Check-In Again
             </Button>
@@ -529,8 +529,8 @@ export default function MathPathHome() {
       {/* Admin preview — hidden from students */}
       {isPreviewMode && (
         <>
-          <Card className="border-l-4 border-l-gold-500 p-4">
-            <p className="text-sm font-semibold text-gold-800">Curriculum Preview — not visible to beta users</p>
+          <Card className="border-l-4 border-l-gold p-4">
+            <p className="text-sm font-semibold text-gold-deep">Curriculum Preview — not visible to beta users</p>
           </Card>
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Levels and skills</h3>
@@ -544,9 +544,9 @@ export default function MathPathHome() {
             </button>
           </div>
           {selectedSkill && (
-            <Card className="mb-4 border-l-4 border-l-gold-500 p-4">
+            <Card className="mb-4 border-l-4 border-l-gold p-4">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-gold-800">Skill detail</p>
+                <p className="text-sm font-semibold text-gold-deep">Skill detail</p>
                 <button type="button" onClick={() => { setSelectedSkill(null); setSkillPreview(null); setSkillPreviewError(''); }} className="text-xs text-ink-500 underline">Close</button>
               </div>
               {skillPreviewLoading ? (

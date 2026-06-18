@@ -93,7 +93,7 @@ export default function BookingPage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-600">Marketplace</div>
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-gold-deep">Marketplace</div>
             <h1 className="text-3xl font-serif font-medium text-emerald-deep leading-tight">Book a Session</h1>
           </div>
         </div>

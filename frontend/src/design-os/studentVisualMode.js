@@ -60,7 +60,7 @@ export const VISUAL_MODE_STYLES = Object.freeze({
     primaryCta: 'bg-violet-600 text-white hover:bg-violet-700',
     secondaryCta: 'border-sky-200 bg-white/85 text-navy-700 hover:bg-sky-50',
     icon: 'bg-white/80 text-navy-700 shadow-resting',
-    primaryIcon: 'bg-gradient-to-br from-sky-400 to-gold-400 text-white',
+    primaryIcon: 'bg-gradient-to-br from-sky-400 to-gold text-white',
     title: 'text-ink-900',
     accent: 'text-navy-700',
     muted: 'text-ink-500',

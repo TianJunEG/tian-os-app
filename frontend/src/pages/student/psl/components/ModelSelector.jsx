@@ -30,11 +30,11 @@ export default function ModelSelector({ modelType, unknownPosition, onSelectMode
               onClick={() => onSelectModel(m.key)}
               className={`min-h-[44px] rounded-xl border p-4 text-left transition-colors ${
                 modelType === m.key
-                  ? 'border-gold-400 bg-gold-50 shadow-sm'
-                  : 'border-ink-200 bg-white hover:border-gold-300'
+                  ? 'border-gold bg-gold-tint2 shadow-sm'
+                  : 'border-ink-200 bg-white hover:border-gold-border'
               }`}
             >
-              <span className={`block text-sm font-semibold ${modelType === m.key ? 'text-gold-700' : 'text-ink-700'}`}>
+              <span className={`block text-sm font-semibold ${modelType === m.key ? 'text-gold-deep' : 'text-ink-700'}`}>
                 {m.label}
               </span>
               <span className="mt-1 block text-xs text-ink-400">{m.desc}</span>
@@ -54,8 +54,8 @@ export default function ModelSelector({ modelType, unknownPosition, onSelectMode
                 onClick={() => onSelectPosition(pos.key)}
                 className={`rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
                   unknownPosition === pos.key
-                    ? 'border-gold-400 bg-gold-50 font-semibold text-gold-700'
-                    : 'border-ink-200 bg-white text-ink-600 hover:border-gold-300'
+                    ? 'border-gold bg-gold-tint2 font-semibold text-gold-deep'
+                    : 'border-ink-200 bg-white text-ink-600 hover:border-gold-border'
                 }`}
               >
                 {pos.label}

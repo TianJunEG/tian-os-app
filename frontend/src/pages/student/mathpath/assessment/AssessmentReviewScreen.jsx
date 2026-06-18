@@ -237,7 +237,7 @@ export default function AssessmentReviewScreen() {
           <div className="rounded-lg bg-surface-raised px-3 py-2"><p className="text-xs text-ink-500">Time Used</p><p className="font-mono text-lg">{Math.floor(totalTimeSeconds / 60)}:{String(totalTimeSeconds % 60).padStart(2, '0')}</p></div>
         </div>
         {(unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0) && (
-          <div className="mt-4 flex items-start gap-2 rounded-lg border border-gold-300 bg-gold-100 p-3 text-sm text-gold-900">
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-gold-border bg-gold-tint p-3 text-sm text-gold-deep">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>Complete every answer, confidence choice, and working evidence declaration before submitting.</p>
           </div>
@@ -247,7 +247,7 @@ export default function AssessmentReviewScreen() {
             <div key={q.questionId} className="flex items-center justify-between gap-2 text-sm">
               <p className="truncate text-ink-700">Q{i + 1} · {getSkill(q.skillId)?.name || 'Skill'}</p>
               <div className="flex items-center gap-2">
-                {flagged[q.questionId] && <span className="rounded-full bg-gold-100 px-2 py-0.5 text-xs text-gold-900">Flagged</span>}
+                {flagged[q.questionId] && <span className="rounded-full bg-gold-tint px-2 py-0.5 text-xs text-gold-deep">Flagged</span>}
                 <span className={`rounded-full px-2 py-0.5 text-xs ${answers[q.questionId] ? 'bg-success-100 text-success-700' : 'bg-error-100 text-error-700'}`}>
                   {answers[q.questionId] ? 'Answered' : 'Unanswered'}
                 </span>

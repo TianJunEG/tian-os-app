@@ -98,7 +98,7 @@ const DOMAIN_GROUPS = [
 const COLOR_MAP = {
   violet: { badge: 'navy', border: 'border-purple-tint', bg: 'bg-gradient-to-br from-violet-50 via-white to-violet-50', icon: 'bg-purple-tint text-purple' },
   navy: { badge: 'navy', border: 'border-emerald-border', bg: 'bg-gradient-to-br from-navy-50 via-white to-emerald-50', icon: 'bg-emerald-tint text-emerald-deep' },
-  gold: { badge: 'gold', border: 'border-gold-200', bg: 'bg-gradient-to-br from-gold-50 via-white to-yellow-50', icon: 'bg-gold-100 text-gold-700' },
+  gold: { badge: 'gold', border: 'border-gold-tint', bg: 'bg-gradient-to-br from-gold-tint2 via-white to-yellow-50', icon: 'bg-gold-tint text-gold-deep' },
   mint: { badge: 'success', border: 'border-mint-200', bg: 'bg-gradient-to-br from-mint-50 via-white to-emerald-50', icon: 'bg-mint-100 text-success-700' },
   emerald: { badge: 'navy', border: 'border-emerald-200', bg: 'bg-gradient-to-br from-emerald-50 via-white to-violet-50', icon: 'bg-emerald-100 text-emerald-deep' },
 };

@@ -14,7 +14,7 @@ export default function BarModelViewer({ modelType = 'partWhole', unknownPositio
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <div
-              className="flex items-center justify-center rounded-lg bg-gold-100 px-3 py-2 text-sm font-bold text-gold-700"
+              className="flex items-center justify-center rounded-lg bg-gold-tint px-3 py-2 text-sm font-bold text-gold-deep"
               style={{ width: `${largerWidth}%`, minHeight: 36 }}
             >
               {unknownPosition === 'larger' ? '?' : larger}
@@ -49,7 +49,7 @@ export default function BarModelViewer({ modelType = 'partWhole', unknownPositio
     <div className="space-y-2 rounded-xl border border-ink-200 bg-surface-white p-3 sm:p-4">
       <p className="text-xs font-medium text-ink-400">Part-Whole Model</p>
       <div className="space-y-1.5">
-        <div className="flex items-center justify-center rounded-lg bg-gold-100 px-3 py-2 text-sm font-bold text-gold-700" style={{ minHeight: 36 }}>
+        <div className="flex items-center justify-center rounded-lg bg-gold-tint px-3 py-2 text-sm font-bold text-gold-deep" style={{ minHeight: 36 }}>
           {unknownPosition === 'whole' ? '?' : whole}
         </div>
         <div className="flex gap-1">

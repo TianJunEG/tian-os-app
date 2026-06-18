@@ -418,7 +418,7 @@ export default function PaperAnalysisPage() {
                           <p className="mt-1 text-xs text-ink-500">Misconceptions: {question.misconceptionTags.join(', ')}</p>
                         )}
                       </div>
-                      {question.needsAdultReview && <span className="rounded-full bg-gold-100 px-2 py-1 text-xs font-semibold text-gold-800">Review needed</span>}
+                      {question.needsAdultReview && <span className="rounded-full bg-gold-tint px-2 py-1 text-xs font-semibold text-gold-deep">Review needed</span>}
                     </div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       <label className="text-xs text-ink-600 sm:col-span-2">

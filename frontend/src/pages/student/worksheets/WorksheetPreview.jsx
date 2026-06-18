@@ -141,8 +141,8 @@ export default function WorksheetPreview() {
               ))}
             </ol>
             {c.reviewSection?.length > 0 && (
-              <Card className="border-l-4 border-l-gold-500 p-3 text-sm text-ink-700">
-                <p className="mb-1 font-semibold text-gold-700">Remediation Notes</p>
+              <Card className="border-l-4 border-l-gold p-3 text-sm text-ink-700">
+                <p className="mb-1 font-semibold text-gold-deep">Remediation Notes</p>
                 <ul className="list-disc pl-4">
                   {c.reviewSection.map((r, i) => (
                     <li key={i}><MathText text={r.stem} />: <MathText text={String(r.correctAnswer)} /></li>

@@ -149,11 +149,11 @@ function shapeLatestDiagnostic(latest = {}) {
 }
 
 const COURSE_THEMES = {
-  mathpath: 'from-sky-100 via-navy-50 to-gold-100 text-emerald-deep',
-  fluency: 'from-success-100 via-paper to-gold-100 text-success-700',
+  mathpath: 'from-sky-100 via-navy-50 to-gold-tint text-emerald-deep',
+  fluency: 'from-success-100 via-paper to-gold-tint text-success-700',
   mistakes: 'from-error-100 via-paper to-navy-50 text-error-700',
   progress: 'from-navy-50 via-paper to-success-100 text-emerald-deep',
-  worksheet: 'from-gold-100 via-paper to-navy-50 text-gold-700',
+  worksheet: 'from-gold-tint via-paper to-navy-50 text-gold-deep',
 };
 
 function CourseArt({ icon: Icon, theme = COURSE_THEMES.mathpath, symbol = '+' }) {
@@ -236,7 +236,7 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
             <img src="/illustrations/mission-fractions.png" alt="" aria-hidden="true" className="max-h-48 w-auto object-contain" />
           </div>
         ) : (
-          <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-100 text-emerald-deep" />
+          <CourseArt icon={Calculator} symbol="=" theme="from-navy-50 via-paper to-gold-tint text-emerald-deep" />
         )}
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-2">
@@ -279,7 +279,7 @@ function TodaysMissionCard({ currentSkill, nextAction, hasPlacement, visual, ass
 function CompactStatCard({ icon: Icon, label, value, tone = 'navy', visual }) {
   const toneClass = {
     navy: 'bg-emerald-tint text-emerald-deep',
-    gold: 'bg-gold-100 text-gold-700',
+    gold: 'bg-gold-tint text-gold-deep',
     success: 'bg-success-100 text-success-700',
   }[tone] || 'bg-emerald-tint text-emerald-deep';
   return (
@@ -716,7 +716,7 @@ export default function StudentDashboard() {
             Profile
           </Button>
           <div className="inline-flex items-center gap-2 rounded-full border border-line-soft bg-surface-white px-4 py-2 text-sm font-semibold text-ink-700">
-            <Flame className="h-4 w-4 text-gold-500" />
+            <Flame className="h-4 w-4 text-gold" />
             {hasActivity ? 1 : 0}
           </div>
         </div>
@@ -795,8 +795,8 @@ export default function StudentDashboard() {
 
       {FEATURE_FLAGS.psl && (
         <Card className="mt-4 flex items-center gap-4 p-4" interactive>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
-            <Brain className="h-5 w-5 text-gold-600" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-tint">
+            <Brain className="h-5 w-5 text-gold-deep" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>

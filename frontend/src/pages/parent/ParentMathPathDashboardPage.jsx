@@ -147,7 +147,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
     <div className="space-y-4">
       {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} domainName={domainName} />}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Child Snapshot</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">What to know right now</h2>
       </div>
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Child Snapshot">
@@ -163,7 +163,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
         </Card>
         <Card className="p-4">
           <div className="flex items-center gap-2">
-            <Flame className="h-4 w-4 text-gold-600" />
+            <Flame className="h-4 w-4 text-gold-deep" />
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Streak</p>
           </div>
           <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-emerald-deep">{snapshot.streak}</p>
@@ -176,10 +176,10 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
       </section>
 
       <section className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-[1.2fr_0.8fr]" aria-label="Parent action summary">
-        <Card className="border-l-4 border-l-gold-500 p-5">
+        <Card className="border-l-4 border-l-gold p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Needs Attention</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Needs Attention</p>
               <h2 className="mt-2 font-display text-2xl font-semibold text-emerald-deep">{snapshot.attentionSkill}</h2>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div>
@@ -196,8 +196,8 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathP
               {snapshot.accuracy < 50 ? 'Watch closely' : snapshot.accuracy < 70 ? 'Needs practice' : 'On track'}
             </Badge>
           </div>
-          <div className="mt-5 rounded-xl border border-gold-200 bg-gold-50 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-800">Recommendation</p>
+          <div className="mt-5 rounded-xl border border-gold-tint bg-gold-tint2 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Recommendation</p>
             <p className="mt-1 font-semibold text-ink-800">{snapshot.recommendation}</p>
             {snapshot.supportInsight && (
               <div className="mt-3 grid gap-2 text-sm text-ink-700">
@@ -602,7 +602,7 @@ export default function ParentMathPathDashboardPage() {
         {!!summary.warnings?.length && (
           <Card className="p-4">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-4 w-4 text-gold-700" />
+              <AlertTriangle className="mt-0.5 h-4 w-4 text-gold-deep" />
               <p className="text-sm text-ink-600">Some sections are partial while more student data is being collected.</p>
             </div>
           </Card>

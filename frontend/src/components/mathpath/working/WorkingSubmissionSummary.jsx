@@ -55,7 +55,7 @@ export default function WorkingSubmissionSummary({
         </div>
       </div>
 
-      <p className={`mt-3 text-sm font-semibold ${ready ? 'text-success-700' : 'text-gold-700'}`}>
+      <p className={`mt-3 text-sm font-semibold ${ready ? 'text-success-700' : 'text-gold-deep'}`}>
         {ready ? 'Ready to continue' : workingOnPaperCount > 0 ? 'Upload your paper working' : 'Working still needed'}
       </p>
       {allNoWorking && (
@@ -73,7 +73,7 @@ export default function WorkingSubmissionSummary({
               Student choice required: upload working or mark no working needed.
             </p>
             {q.workingOnPaper && (
-              <p className="mt-1 rounded-md bg-gold-50 px-2 py-1 text-[11px] font-semibold text-gold-800">
+              <p className="mt-1 rounded-md bg-gold-tint2 px-2 py-1 text-[11px] font-semibold text-gold-deep">
                 You chose paper working for this question. Upload a page before continuing.
               </p>
             )}
@@ -89,7 +89,7 @@ export default function WorkingSubmissionSummary({
       </div>
 
       {missingWarning && (
-        <div className="mt-3 flex items-start gap-2 rounded-lg border border-gold-300 bg-gold-100 p-2 text-xs text-gold-900">
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-gold-border bg-gold-tint p-2 text-xs text-gold-deep">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <p>{missingWarning}</p>
         </div>

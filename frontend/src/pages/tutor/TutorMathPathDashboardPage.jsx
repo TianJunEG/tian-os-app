@@ -400,7 +400,7 @@ function InterventionQueueCard({ priorities = [], snapshot }) {
     <Card className="p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Intervention Queue</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Intervention Queue</p>
           <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">{snapshot.studentName}</h2>
         </div>
         <Badge tone={severityTone(rows[0]?.severity)}>{rows.length} priorit{rows.length === 1 ? 'y' : 'ies'}</Badge>
@@ -441,7 +441,7 @@ function TutorIntelligenceCard({ insight = {} }) {
     <Card className="p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Tutor Intelligence Engine</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Tutor Intelligence Engine</p>
           <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">Root cause, evidence, next intervention</h2>
         </div>
         <Badge tone={severityTone(insight.severity)}>{insight.confidence || 'Building data'} confidence</Badge>
@@ -464,8 +464,8 @@ function TutorIntelligenceCard({ insight = {} }) {
         </div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-gold-200 bg-gold-50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-800">Recommended Intervention</p>
+      <div className="mt-4 rounded-xl border border-gold-tint bg-gold-tint2 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Recommended Intervention</p>
         <p className="mt-1 text-lg font-semibold text-emerald-deep">{intervention.title || 'Continue monitoring'}</p>
         <p className="mt-1 text-sm text-ink-700">{insight.nextTutorAction || 'Review the next practice session before assigning remediation.'}</p>
         {!!intervention.steps?.length && (
@@ -491,12 +491,12 @@ function SessionRecommendationsMvp({ plan = {}, snapshot }) {
       <h3 className="mt-1 font-display text-xl font-semibold text-emerald-deep">Next Session Plan — {plan.estimatedDurationMinutes || 45} minutes</h3>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-line-soft p-4">
-          <p className="font-mono text-sm font-semibold text-gold-700">20 min</p>
+          <p className="font-mono text-sm font-semibold text-gold-deep">20 min</p>
           <p className="mt-1 font-semibold text-ink-800">{focus}</p>
           <p className="mt-1 text-sm text-ink-600">{plan.mainIntervention || `Reteach ${focus} using shaded diagrams and number lines.`}</p>
         </div>
         <div className="rounded-xl border border-line-soft p-4">
-          <p className="font-mono text-sm font-semibold text-gold-700">10 min</p>
+          <p className="font-mono text-sm font-semibold text-gold-deep">10 min</p>
           <p className="mt-1 font-semibold text-ink-800">{secondaryLabel}</p>
           <p className="mt-1 text-sm text-ink-600">Do guided practice together before independent work.</p>
         </div>
@@ -966,7 +966,7 @@ function CurriculumDomainIntelligence({ dash }) {
 
       {recommendedFocus && (
         <Card className="border-l-4 border-emerald p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended Lesson Focus</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-deep">Recommended Lesson Focus</p>
           <h3 className="mt-1 font-display text-xl font-semibold text-emerald-deep">{recommendedFocus.primarySkillName}</h3>
           <p className="mt-1 text-sm text-ink-700">{recommendedFocus.why}</p>
           <p className="mt-1 text-sm text-ink-600">Recommended action: {readableAction(recommendedFocus.recommendedAction)}</p>
@@ -1042,7 +1042,7 @@ function CurriculumDomainIntelligence({ dash }) {
 
       <Card className="p-5">
         <div className="flex items-center gap-2">
-          <Clock3 className="h-4 w-4 text-gold-700" />
+          <Clock3 className="h-4 w-4 text-gold-deep" />
           <h3 className="text-sm font-semibold text-ink-700">Fluency Bottlenecks</h3>
         </div>
         {fluencyBottlenecks.length ? (
@@ -1271,9 +1271,9 @@ export default function TutorMathPathDashboardPage() {
 
       {activeDomain !== 'fractions' ? (
         <div className="space-y-4">
-          <Card className="border-l-4 border-gold-400 bg-gold-50 p-4">
+          <Card className="border-l-4 border-gold bg-gold-tint2 p-4">
             <div className="flex items-start gap-2">
-              <Brain className="mt-0.5 h-4 w-4 shrink-0 text-gold-700" />
+              <Brain className="mt-0.5 h-4 w-4 shrink-0 text-gold-deep" />
               <div className="text-sm text-ink-700">
                 <p className="font-semibold">
                   {CURRICULUM_DOMAINS.find((d) => d.key === activeDomain)?.label} intelligence

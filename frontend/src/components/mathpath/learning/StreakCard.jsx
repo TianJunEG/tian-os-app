@@ -6,7 +6,7 @@ export default function StreakCard({ streakDays = 1, message }) {
   return (
     <Card className="p-4">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-tint text-gold-deep">
           <Flame className="h-5 w-5" />
         </span>
         <div>

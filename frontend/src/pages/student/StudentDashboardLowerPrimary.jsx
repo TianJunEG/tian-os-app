@@ -141,7 +141,7 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
       title: 'Word Problems',
       body: 'Solve word problems step by step',
       to: '/student/psl',
-      tone: 'border-gold-100 from-gold-50 to-white text-gold-600',
+      tone: 'border-gold-tint from-gold-tint2 to-white text-gold-deep',
     }] : []),
   ];
 
@@ -237,7 +237,7 @@ export default function StudentDashboardLowerPrimary({
           <h1 className="mt-1 font-display text-3xl sm:text-4xl font-semibold text-ink-900">
             <span className="relative inline-block">
               Today's Plan
-              <span className="absolute -bottom-1 left-0 h-1.5 w-full rounded-full bg-gold-300/80" aria-hidden />
+              <span className="absolute -bottom-1 left-0 h-1.5 w-full rounded-full bg-gold-border/80" aria-hidden />
             </span>
           </h1>
         </div>
@@ -245,7 +245,7 @@ export default function StudentDashboardLowerPrimary({
           <div className="relative hidden items-center gap-2 rounded-full border border-sky-100 bg-white/90 py-2 pl-2 pr-4 shadow-rest sm:flex">
             <img src="/illustrations/mascot-star.png" alt="" aria-hidden="true" className="h-12 w-12 shrink-0 object-contain drop-shadow-sm" />
             <span className="text-sm font-semibold text-emerald-deep">Let's go! 💪</span>
-            <span className="absolute -bottom-3 -right-2 rotate-6 rounded-lg border border-gold-200 bg-tianYellow px-2 py-0.5 text-[11px] font-semibold text-gold-700 shadow-rest">You've got this!</span>
+            <span className="absolute -bottom-3 -right-2 rotate-6 rounded-lg border border-gold-tint bg-tianYellow px-2 py-0.5 text-[11px] font-semibold text-gold-deep shadow-rest">You've got this!</span>
           </div>
           {canResetStudentState && (
             <Button size="s" variant="secondary" onClick={resetStudentState} disabled={resetting}>

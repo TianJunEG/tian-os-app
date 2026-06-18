@@ -16,7 +16,7 @@ export default function PathwayListMobile({ nodes = [], onNodeOpen }) {
                   node.status === 'completed'
                     ? 'border-success-500 bg-success-500'
                     : node.status === 'current'
-                      ? 'border-gold-500 bg-gold-100'
+                      ? 'border-gold bg-gold-tint'
                       : 'border-ink-100 bg-surface-white'
                 }`}
               />
