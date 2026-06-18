@@ -45,7 +45,7 @@ import pilotAnalyticsRoutes from './routes/pilotAnalytics.js';
 import telemetryRoutes from './routes/telemetry.js';
 import mathpathWorkingRoutes from './routes/mathpathWorking.js';
 import mathpathDecimalsRoutes from './routes/mathpathDecimals.js';
-import mathpathPercentageRoutes from './routes/mathpathPercentage.js';
+import mathpathPercentageRoutes from './routes/mathpathPercentages.js';
 import mathpathRatioRateRoutes from './routes/mathpathRatioRate.js';
 import mathpathOperationsRoutes from './routes/mathpathOperations.js';
 import mathpathNumberSenseRoutes from './routes/mathpathNumberSense.js';
