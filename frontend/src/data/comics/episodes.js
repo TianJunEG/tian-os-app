@@ -1706,3 +1706,16 @@ export function getEpisode(slug) {
 export function getLatestEpisode() {
   return episodes[episodes.length - 1];
 }
+
+export function getFirstEpisode() {
+  return episodes[0];
+}
+
+// Where a student should land when they "start" the series: the first episode
+// they haven't finished yet (chronological), so a new student begins at Ep 1
+// rather than being dropped into the latest/finale. If every episode is done,
+// fall back to the latest so returning readers can re-read it.
+export function getResumeEpisode(completedIds = []) {
+  const done = completedIds instanceof Set ? completedIds : new Set(completedIds);
+  return episodes.find((e) => !done.has(e.id)) ?? getLatestEpisode();
+}

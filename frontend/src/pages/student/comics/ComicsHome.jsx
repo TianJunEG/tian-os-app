@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, CheckCircle, Lock } from 'lucide-react';
-import { episodes, MASCOT_COLORS } from '../../../data/comics/episodes';
+import { BookOpen, CheckCircle, Lock, ArrowRight } from 'lucide-react';
+import { episodes, MASCOT_COLORS, getResumeEpisode } from '../../../data/comics/episodes';
 import { comicsAPI } from '../../../services/api';
 
 function EpisodeCard({ episode, isLatest, isCompleted }) {
@@ -101,6 +101,7 @@ function EpisodeCard({ episode, isLatest, isCompleted }) {
 }
 
 export default function ComicsHome() {
+  const navigate = useNavigate();
   const [completed, setCompleted] = useState(() => new Set());
 
   useEffect(() => {
@@ -113,10 +114,13 @@ export default function ComicsHome() {
     return () => { on = false; };
   }, []);
 
-  // Newest episode first — this is a weekly series, latest content leads.
-  const ordered = [...episodes].reverse();
-  const latestId = ordered[0]?.id;
+  // Chronological order (Ep 1 first): the comics are a learning progression, so
+  // a first-time reader should see the start, not the finale.
+  const ordered = episodes;
+  const latestId = episodes[episodes.length - 1]?.id;
   const doneCount = episodes.filter((e) => completed.has(e.id)).length;
+  const allDone = doneCount === episodes.length;
+  const resume = getResumeEpisode(completed);
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px 48px' }}>
@@ -133,6 +137,30 @@ export default function ComicsHome() {
           <p style={{ fontSize: 12, color: '#16a34a', fontWeight: 700, marginTop: 6 }}>
             {doneCount} of {episodes.length} episodes completed
           </p>
+        )}
+
+        {resume && (
+          <button
+            onClick={() => navigate(`/student/comics/${resume.slug}`)}
+            style={{
+              marginTop: 14,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: '#f59e0b',
+              color: '#fff',
+              border: '2.5px solid #1c1917',
+              borderRadius: 12,
+              padding: '10px 18px',
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '3px 3px 0 #1c1917',
+            }}
+          >
+            {allDone ? 'Re-read' : doneCount > 0 ? 'Continue' : 'Start reading'} · Ep {resume.episode}: {resume.title}
+            <ArrowRight size={16} />
+          </button>
         )}
       </div>
 
