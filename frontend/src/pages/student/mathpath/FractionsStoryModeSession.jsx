@@ -56,7 +56,7 @@ function StoryFractionBar({ model = {}, showRemainderSubgroups = false }) {
             {Array.from({ length: subdivideBy }).map((_, index) => (
               <div
                 key={index}
-                className={`min-h-[42px] border-r border-emerald-tint last:border-r-0 ${index < removedSubparts ? 'bg-gold-200' : 'bg-emerald-tint'}`}
+                className={`min-h-[42px] border-r border-emerald-tint last:border-r-0 ${index < removedSubparts ? 'bg-gold-tint2' : 'bg-emerald-tint'}`}
               />
             ))}
           </div>
@@ -100,7 +100,7 @@ function StoryNumberLine({ model = {} }) {
           const left = `${(index / denominator) * 100}%`;
           return (
             <div key={index} className="absolute top-2 -translate-x-1/2 text-center" style={{ left }}>
-              <div className={`mx-auto h-4 w-1 rounded-full ${index === removed ? 'bg-gold-500' : 'bg-emerald-bright'}`} />
+              <div className={`mx-auto h-4 w-1 rounded-full ${index === removed ? 'bg-gold' : 'bg-emerald-bright'}`} />
               <span className="mt-1 block text-[11px] sm:text-xs text-ink-600">{index}/{denominator}</span>
             </div>
           );
@@ -458,7 +458,7 @@ export default function FractionsStoryModeSession() {
             )}
 
             {sceneFeedback ? (
-              <div className={`rounded-xl border p-4 text-sm ${sceneFeedback.tone === 'success' ? 'border-success-200 bg-success-50 text-success-800' : 'border-gold-300 bg-gold-100 text-gold-900'}`}>
+              <div className={`rounded-xl border p-4 text-sm ${sceneFeedback.tone === 'success' ? 'border-success-200 bg-success-50 text-success-800' : 'border-gold-border bg-gold-tint text-gold-deep'}`}>
                 <div className="flex gap-2">
                   {sceneFeedback.tone === 'success' ? <Sparkles className="h-5 w-5 shrink-0" /> : <Lightbulb className="h-5 w-5 shrink-0" />}
                   <div>

@@ -109,7 +109,7 @@ export default function SciencePracticePage() {
             <ArrowLeft className="w-5 h-5" /> Dashboard
           </button>
           <div className="flex items-center gap-2 font-extrabold text-emerald-deep">
-            <FlaskConical className="w-5 h-5 text-gold-500" /> P6 Science
+            <FlaskConical className="w-5 h-5 text-gold" /> P6 Science
           </div>
         </div>
       </header>
@@ -186,8 +186,8 @@ export default function SciencePracticePage() {
               </button>
             ) : (
               <>
-                <div className="p-4 rounded-lg bg-gold-50 border border-gold-200 mb-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gold-700 mb-1">
+                <div className="p-4 rounded-lg bg-gold-tint border border-gold-border mb-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gold-deep mb-1">
                     Model answer
                   </p>
                   <p className="text-gray-800">{q.answer}</p>
@@ -220,7 +220,7 @@ export default function SciencePracticePage() {
         {phase === 'done' && (
           <div className="bg-white rounded-xl shadow p-6 text-center">
             <Trophy
-              className={`w-12 h-12 mx-auto mb-3 ${accuracy >= 80 ? 'text-gold-500' : 'text-gray-300'}`}
+              className={`w-12 h-12 mx-auto mb-3 ${accuracy >= 80 ? 'text-gold' : 'text-gray-300'}`}
             />
             <h1 className="text-2xl sm:text-3xl font-extrabold text-emerald-deep mb-1">{accuracy}%</h1>
             <p className="text-gray-600 mb-1">

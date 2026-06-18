@@ -258,7 +258,7 @@ export default function MistakeReview() {
                     misconceptionTag: m.misconceptionTag,
                     workingAnalysisResult: m.workingInsight || m.workingAnalysisResult || null,
                   }]}
-                  onPractise={() => practiseSimilar(m.skillId)}
+                  onPractise={() => practiseSimilar(m.skillCode || m.skillId)}
                 />
               )}
               </>
