@@ -281,7 +281,7 @@ export default function PSLHome() {
                   </span>
                 </button>
                 {isOpen && (
-                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {group.skills.map((skill) => {
                       const blocked = readiness[skill.skillId] && !readiness[skill.skillId].allReady;
                       const isMastered = skill.mastery?.status === 'mastered';

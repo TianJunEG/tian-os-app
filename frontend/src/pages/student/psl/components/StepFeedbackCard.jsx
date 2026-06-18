@@ -75,7 +75,7 @@ export default function StepFeedbackCard({ correct, partial, feedback, misconcep
         <button
           type="button"
           onClick={onContinue}
-          className="w-full rounded-xl bg-gold-400 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gold-500"
+          className="w-full btn-gold rounded-xl px-4 py-2.5 text-sm font-semibold"
         >
           Continue
         </button>
