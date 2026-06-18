@@ -1,8 +1,8 @@
 # Tian OS MathPath Bible
 
 **Status:** Working documentation  
-**Last updated:** June 8, 2026  
-**Current safe scope:** MathPath Fractions Intervention Pilot
+**Last updated:** June 2026
+**Current scope:** MathPath — 18 domains, Fractions pilot live, multi-domain engines built
 
 ---
 
@@ -32,29 +32,29 @@ The goal is to make clear:
 
 ## 2. Current MathPath Scope
 
-The current safe MathPath scope is:
+MathPath covers **18 Singapore Primary Mathematics domains**. The full catalog and per-domain capability status are in `shared/mathpath/domainCatalog.js` — that file is the authoritative source; this section is a summary.
 
-> **Fractions Intervention Pilot**
+### What is live
 
-MathPath is not yet a complete P1–P6 Singapore Math product.
+- **Fractions** — F001–F026, fully built: diagnostic, practice, fluency, retention, story mode (F025–F026), mistake-to-mastery, worksheets, assignments, parent/tutor/teacher dashboards. This is the anchor domain for the active pilot.
+- **All 18 domains** — skill graphs, question generators, practice engines, and misconception maps exist for every domain.
+- **Percentage and Ratio** — fluency + retention engines live (added June 2026).
+- **P1–P6 grade-level engines** — 272 files in `frontend/src/mathpath/primary/` covering grade-scoped skill graphs and question generators for each year level.
+- **Diagnostic engine** — adaptive, domain-agnostic; 17 domain adapters registered. Fractions is `available`; most other domains are `engine_ready` (logic built, DB session or UI pending).
 
-Current focus:
+### What is not yet live
 
-- Fractions
-- F001–F026 canonical skill map
-- diagnostic
-- mistake evidence
-- Recovery Pack
-- teaching flow
-- recheck
-- growth report
+- Full multi-domain pilot beyond Fractions — diagnostic sessions, assignments, and worksheets for non-Fractions domains are `planned` or `engine_ready` but not in active pilot use.
+- Complete Singapore Math school readiness — school pilot requires broader domain coverage and validated question quality across all domains.
+- PSLE-readiness positioning — requires Ratio, Percentage, Geometry, Speed, Data fully live with assessed content.
 
-Do not currently claim:
+### Safe claims as of June 2026
 
-- complete P1–P6 MathPath coverage
-- complete Singapore Math coverage
-- full school readiness
-- validated mastery across all primary math topics
+- Fractions intervention (P2–P6, F001–F026): ✓
+- Adaptive diagnostic for Fractions: ✓
+- Fluency + retention for Fractions, Percentage, Ratio: ✓
+- Multi-domain practice (student-facing): ✓ for most domains
+- Complete P1–P6 product with full school claims: not yet
 
 ---
 

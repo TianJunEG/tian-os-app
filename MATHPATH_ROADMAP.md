@@ -1,5 +1,15 @@
 # MATHPATH_ROADMAP.md
 
+> **ARCHIVED — June 2026.**
+> This file describes the original `mathpath-mvp/` Next.js + MongoDB prototype (6 skills, 2 domains).
+> It does not reflect the current system.
+>
+> For current architecture: [`CLAUDE.md`](CLAUDE.md)
+> For current MathPath scope: [`docs/tian-os/03_MATHPATH_BIBLE.md`](docs/tian-os/03_MATHPATH_BIBLE.md)
+> For domain architecture: [`docs/mathpath/DOMAIN_ARCHITECTURE.md`](docs/mathpath/DOMAIN_ARCHITECTURE.md)
+
+---
+
 The direction for **MathPath** — the adaptive math mastery + fluency module of Tian OS. This is
 the source of truth for what MathPath is, what it is *not*, and what comes next.
 
