@@ -36,7 +36,7 @@ export default function SubmissionReviewModal({
         {!reflection && (
           <div>
             <h3 className="mb-1 text-base font-semibold text-ink-800">How sure are you?</h3>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2">
               {reflectionOptions.map((option) => (
                 <button
                   key={option.value}

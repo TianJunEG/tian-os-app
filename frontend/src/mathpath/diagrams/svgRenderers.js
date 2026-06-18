@@ -205,6 +205,44 @@ function comparisonBar(spec) {
   return svgShell(spec, body, 'comparison bar');
 }
 
+function fractionBarPair(spec) {
+  const { bars = [] } = spec.data;
+  const w = spec.width || 640;
+  const h = spec.height || 260;
+  const x = 40; const bw = w - 80; const bh = 44; const rowH = 110;
+  let body = '';
+  if (REDUCE_MOTION) {
+    bars.forEach((bar, i) => {
+      const { parts, shaded, label } = bar;
+      const y = 30 + i * rowH;
+      const seg = bw / parts;
+      for (let j = 0; j < parts; j++) body += `<rect x="${x + j * seg}" y="${y}" width="${seg}" height="${bh}" fill="${j < shaded ? SHADED_FILL : UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
+      if (label) body += `<text x="${w / 2}" y="${y + bh + 22}" font-size="18" text-anchor="middle" fill="#111">${esc(label)}</text>`;
+    });
+  } else {
+    bars.forEach((bar, i) => {
+      const { parts, shaded, label } = bar;
+      const y = 30 + i * rowH;
+      const seg = bw / parts;
+      const perSeg = Math.min(0.18, 1.2 / (shaded || 1));
+      const barDelay = i * 0.65;
+      for (let j = 0; j < parts; j++) {
+        if (j < shaded) {
+          const delay = (barDelay + j * perSeg).toFixed(2);
+          body += `<rect x="${x + j * seg}" y="${y}" width="${seg}" height="${bh}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"><animate attributeName="fill" from="${UNSHADED_FILL}" to="${SHADED_FILL}" dur="0.3s" begin="${delay}s" fill="freeze"/></rect>`;
+        } else {
+          body += `<rect x="${x + j * seg}" y="${y}" width="${seg}" height="${bh}" fill="${UNSHADED_FILL}" stroke="${PARTITION_STROKE}"/>`;
+        }
+      }
+      if (label) {
+        const labelDelay = (barDelay + shaded * perSeg + 0.15).toFixed(2);
+        body += `<text x="${w / 2}" y="${y + bh + 22}" font-size="18" text-anchor="middle" fill="#111" opacity="0"><animate attributeName="opacity" from="0" to="1" dur="0.3s" begin="${labelDelay}s" fill="freeze"/>${esc(label)}</text>`;
+      }
+    });
+  }
+  return svgShell({ ...spec, width: w, height: h }, body, 'fraction bar pair');
+}
+
 function beforeAfterBar(spec) {
   const { before, after } = spec.data;
   return comparisonBar({ ...spec, data: { leftValue: before, rightValue: after, leftLabel: 'Before', rightLabel: 'After' } });
@@ -490,6 +528,7 @@ export const renderers = {
   semicircle,
   quarter_circle: quarterCircle,
   fraction_bar: fractionBar,
+  fraction_bar_pair: fractionBarPair,
   fraction_circle: fractionCircle,
   number_line: numberLine,
   part_whole_bar: partWholeBar,

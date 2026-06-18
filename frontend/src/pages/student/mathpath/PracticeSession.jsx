@@ -596,7 +596,8 @@ function speakText(text) {
   window.speechSynthesis.cancel();
   const clean = String(text || '')
     .replace(/\$[^$]*\$/g, '')
-    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 over $2')
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 out of $2')
+    .replace(/(\d+)\/(\d+)/g, '$1 out of $2')
     .replace(/\\times/g, ' times ')
     .replace(/\\div/g, ' divided by ')
     .replace(/[\\{}]/g, '')
@@ -2172,14 +2173,14 @@ export default function PracticeSession() {
             {!answered && answer && (
               <div className="mt-2 rounded-xl border border-line-soft bg-white p-2">
                 <p className="mb-1 text-xs font-semibold text-ink-600">How sure are you?</p>
-                <div className="grid grid-cols-3 gap-1">
+                <div className="grid grid-cols-2 gap-2">
                   {REFLECTION_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
                       disabled={busy}
                       onClick={() => setReflection(opt.value)}
-                      className={`rounded-lg border px-2 py-1.5 text-xs ${reflection === opt.value ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-600 hover:bg-surface-raised'}`}
+                      className={`rounded-lg border px-2 py-2 text-sm ${reflection === opt.value ? 'border-emerald bg-emerald-tint font-semibold text-emerald-deep' : 'border-line-soft text-ink-600 hover:bg-surface-raised'}`}
                     >
                       {opt.label}
                     </button>

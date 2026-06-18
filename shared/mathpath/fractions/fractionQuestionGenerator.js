@@ -806,12 +806,22 @@ function templateForSkill(skillId, variant, ctx) {
             solutionSteps: steps,
           };
         }
-        // Visual: show one fraction as a bar model, compare with a symbolic fraction
+        // Visual: show both fractions as bar models so the student can compare directly
         return {
-          prompt: `The bar model shows ${n}/${barFrac}. Which is greater: the shaded fraction or ${n}/${symFrac}?`,
+          prompt: `These bar models show ${n}/${barFrac} and ${n}/${symFrac}. Which fraction is greater?`,
           answer: { type: 'text', value: answer, display: answer },
           acceptedAnswers: [answer],
-          diagramSpec: { type: 'fraction_bar', width: 640, height: 180, data: { parts: barFrac, shaded: n, labelMode: 'none' } },
+          diagramSpec: {
+            type: 'fraction_bar_pair',
+            width: 640,
+            height: 260,
+            data: {
+              bars: [
+                { parts: barFrac, shaded: n, label: `${n}/${barFrac}` },
+                { parts: symFrac, shaded: n, label: `${n}/${symFrac}` },
+              ],
+            },
+          },
           solutionSteps: steps,
         };
       }
