@@ -2,6 +2,13 @@
 // Images live in /public/comics/characters/<key>-<pose>.png
 //                 /public/comics/backgrounds/<scene>.jpg
 // Until real assets land, the reader shows colored placeholders.
+//
+// A problem may define `generate(rng, tier, ctx)` to scale its numbers to the
+// reader's level while keeping the same story (see comicDifficulty.js). It
+// returns the dynamic fields (question/hint/answer, and menuNote when prices
+// change); static fields (id/unit/skill) stay on the object. `ctx` is shared
+// across an episode's panels so story-linked values stay consistent.
+import { rint, tierInt } from './comicDifficulty';
 
 export const MASCOT_COLORS = {
   kylo: '#1e3a5f',
@@ -46,12 +53,19 @@ export const episodes = [
         ],
         problem: {
           id: 'p1-q1',
-          question: 'Lejo has $13 and Kylo has $7. How much money do they have altogether?',
-          hint: 'Add Lejo\'s money and Kylo\'s money together: $13 + $7.',
-          answer: 20,
           unit: '$',
           unitPosition: 'prefix',
           skill: 'addition-within-100',
+          generate: (rng, tier) => {
+            const band = [[3, 9], [12, 49], [25, 150], [120, 850]];
+            const a = tierInt(rng, tier, band);
+            const b = tierInt(rng, tier, band);
+            return {
+              question: `Lejo has $${a} and Kylo has $${b}. How much money do they have altogether?`,
+              hint: `Add Lejo's money and Kylo's money together: $${a} + $${b}.`,
+              answer: a + b,
+            };
+          },
         },
       },
       {
@@ -81,12 +95,24 @@ export const episodes = [
         menuNote: 'Char kway teow $4 · Chicken rice $3 · Ice kachang $2 · Kaya toast $1',
         problem: {
           id: 'p2-q1',
-          question: 'Kylo orders char kway teow ($4), ice kachang ($2) and chicken rice ($3). What is the total cost?',
-          hint: 'Add the prices of all three items: $4 + $2 + $3.',
-          answer: 9,
           unit: '$',
           unitPosition: 'prefix',
           skill: 'money-addition',
+          generate: (rng, tier, ctx) => {
+            const band = [[1, 5], [2, 12], [5, 25], [10, 60]];
+            const ckt = tierInt(rng, tier, band); // char kway teow
+            const cr = tierInt(rng, tier, band);  // chicken rice
+            const ik = tierInt(rng, tier, band);  // ice kachang
+            const kt = tierInt(rng, tier, band);  // kaya toast
+            const total = ckt + ik + cr;          // Kylo orders three of them
+            ctx.foodTotal = total;                // panel 3 reuses this
+            return {
+              menuNote: `Char kway teow $${ckt} · Chicken rice $${cr} · Ice kachang $${ik} · Kaya toast $${kt}`,
+              question: `Kylo orders char kway teow ($${ckt}), ice kachang ($${ik}) and chicken rice ($${cr}). What is the total cost?`,
+              hint: `Add the prices of all three items: $${ckt} + $${ik} + $${cr}.`,
+              answer: total,
+            };
+          },
         },
       },
       {
@@ -115,12 +141,20 @@ export const episodes = [
         ],
         problem: {
           id: 'p3-q1',
-          question: 'They paid with $20. The food cost $9. How much change did they receive?',
-          hint: 'Subtract the amount spent from the amount paid: $20 − $9.',
-          answer: 11,
           unit: '$',
           unitPosition: 'prefix',
           skill: 'money-subtraction',
+          generate: (rng, tier, ctx) => {
+            // Reuse the meal total from panel 2 so the story stays consistent.
+            const food = ctx.foodTotal ?? tierInt(rng, tier, [[5, 9], [15, 40], [40, 150], [150, 700]]);
+            const step = food < 20 ? 5 : food < 100 ? 10 : 50;       // pay with a round note
+            const paid = (Math.floor(food / step) + 1 + rint(rng, 0, 1)) * step;
+            return {
+              question: `They paid with $${paid}. The food cost $${food}. How much change did they receive?`,
+              hint: `Subtract the amount spent from the amount paid: $${paid} − $${food}.`,
+              answer: paid - food,
+            };
+          },
         },
       },
     ],
