@@ -23,7 +23,7 @@ function EarlyAccessPage() {
           We're currently onboarding schools and families by invitation. Reach out and we'll get you set up.
         </p>
         <a
-          href="mailto:tech@astracollective.biz?subject=Tian OS early access"
+          href="mailto:darbotai@gmail.com?subject=Tian OS early access"
           className="mt-5 flex w-full items-center justify-center rounded-xl bg-emerald-deep px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
         >
           Request access
