@@ -685,7 +685,13 @@ function normalizeRatioAnswer(raw) {
     .toLowerCase()
     .replace(/\s+/g, '')
     .replace(/[−–]/g, '-')
-    .replace(/^\$/, '');
+    .replace(/\$/g, '');
+}
+
+// Extract all numbers from a string (handles "$78 and $130", "78, 130", "78 130")
+function extractNumbers(s) {
+  const nums = String(s ?? '').replace(/\$/g, '').match(/-?\d+(?:\.\d+)?/g) || [];
+  return nums.map(Number).sort((a, b) => a - b);
 }
 
 // Normalise a ratio string "a : b" → "a:b"
@@ -737,7 +743,16 @@ export function checkRatioRateAnswer({ question, studentResponse } = {}) {
     if (Number.isFinite(n)) numericMatch = Math.abs(n - target) < 0.01;
   }
 
-  const correct = ratioMatch || fractionMatch || stringMatch || numericMatch;
+  // Multi-value match: "$78 and $130" == "78, 130" == "78 130" == "$78, $130"
+  // Extracts all numbers from both sides, sorts, compares element-by-element.
+  const multiValueMatch = accepted.some((a) => {
+    const accNums = extractNumbers(a);
+    const subNums = extractNumbers(submitted);
+    if (accNums.length < 2 || accNums.length !== subNums.length) return false;
+    return accNums.every((n, i) => Math.abs(n - subNums[i]) < 0.01);
+  });
+
+  const correct = ratioMatch || fractionMatch || stringMatch || numericMatch || multiValueMatch;
   return {
     correct,
     score: correct ? 1 : 0,
