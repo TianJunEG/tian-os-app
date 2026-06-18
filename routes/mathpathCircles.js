@@ -8,18 +8,29 @@ import { persistDomainPracticeMistakes } from '../services/mathpath/domainMistak
 import {
   DOMAIN_ID, buildCirclesPracticeSession, toClientQuestions, scoreCirclesSubmission,
 } from '../services/mathpath/circlesPracticeService.js';
+import {
+  buildCirclesFluencyDrill,
+  toClientFluencyQuestions,
+  scoreCirclesFluencyDrill,
+} from '../services/mathpath/circlesFluencyService.js';
+import {
+  buildCirclesRetentionReview,
+  toClientRetentionQuestions,
+  scoreCirclesRetentionReview,
+} from '../services/mathpath/circlesRetentionService.js';
+import {
+  buildRetentionScheduleFromFluency,
+  summariseRetention,
+} from '../shared/mathpath/circles/circlesRetentionEngine.js';
 import { circlesSkillGraph } from '../shared/mathpath/circles/CirclesSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
-import { buildCirclesFluencyDrill, toClientFluencyQuestions, scoreCirclesFluencyDrill } from '../services/mathpath/circlesFluencyService.js';
-import { buildRetentionScheduleFromFluency, summariseRetention } from '../shared/mathpath/circles/circlesRetentionEngine.js';
-import { buildCirclesRetentionReview, toClientRetentionQuestions, scoreCirclesRetentionReview } from '../services/mathpath/circlesRetentionService.js';
 
 const CODE_TO_SLUG = Object.fromEntries(
   (circlesSkillGraph.skills || []).map((s) => [s.id, s.slug])
 );
+const FLUENT_BANDS = new Set(['gold', 'platinum']);
 
 const router = express.Router();
-const FLUENT_BANDS = new Set(['gold', 'platinum']);
 
 function newSessionId() {
   return `circlespractice_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -119,102 +130,170 @@ router.get('/skill-states', protect, async (req, res) => {
   }
 });
 
+// @route POST /api/mathpath/circles/fluency/start
+// @desc  Build + persist a timed fluency drill; returns answer-stripped questions.
 router.post('/fluency/start', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
     const { skillId, count = 8 } = req.body || {};
-    if (!skillId) return res.status(400).json({ error: 'skillId required.' });
-    const drill = buildCirclesFluencyDrill({ skillId, studentId, count });
-    const sessionId = `circlesfluency_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    if (!skillId) return res.status(400).json({ error: 'skillId is required.' });
+
+    const drill = buildCirclesFluencyDrill({ skillId, count });
+    const practiceSessionId = `circlesfluency_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
     await MathPathPracticeSession.create({
-      practiceSessionId: sessionId, studentId, domainId: DOMAIN_ID,
-      targetSkillId: skillId, mode: 'fluency',
-      sessionGoal: 'Circles fluency drill', estimatedQuestionCount: drill.totalQuestions,
+      practiceSessionId, studentId, domainId: DOMAIN_ID,
+      targetSkillId: skillId,
+      targetQuestionFamilyIds: [...new Set(drill.questions.map((q) => q.questionFamilyId))],
+      sessionGoal: 'Circles fluency', estimatedQuestionCount: drill.questions.length,
       questions: drill.questions, responses: [], status: 'inProgress', startedAt: new Date(),
     });
-    res.json({ sessionId, ...toClientFluencyQuestions(drill) });
+
+    res.json({
+      practiceSessionId, domainId: DOMAIN_ID, skillId,
+      benchmarks: drill.benchmarks,
+      targetSeconds: drill.targetSeconds,
+      questions: toClientFluencyQuestions(drill.questions),
+    });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start circles fluency drill.' });
   }
 });
 
-router.post('/fluency/:id/submit', protect, async (req, res) => {
+// @route POST /api/mathpath/circles/fluency/:practiceSessionId/submit
+// @desc  Score the drill into a fluency band; persist fluencyLevel on the skill.
+router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
-    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.id, studentId });
-    if (!existing) return res.status(404).json({ error: 'Fluency session not found.' });
-    const { answers = [], timingsSeconds = [] } = req.body || {};
-    const scored = scoreCirclesFluencyDrill({ drill: existing.toObject(), answers, timingsSeconds });
-    const skillUpdate = { fluencyLevel: scored.fluencyLevel, fluencyAccuracy: scored.accuracy, lastFluencyAt: new Date(), lastPractisedAt: new Date() };
-    if (FLUENT_BANDS.has(scored.fluencyLevel)) {
-      const schedule = buildRetentionScheduleFromFluency({ skillId: existing.targetSkillId, fluencyLevel: scored.fluencyLevel, fluentAt: new Date() });
-      if (schedule.shouldSchedule) { skillUpdate.nextReviewDate = new Date(schedule.nextReviewDate); skillUpdate.retentionStatus = 'reviewScheduled'; }
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Circles fluency drill not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a circles session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const scored = scoreCirclesFluencyDrill({ skillId: existing.targetSkillId, questions: existing.questions || [], responses });
+
+    const set = { fluencyLevel: scored.band, lastPractisedAt: new Date() };
+    let retentionScheduled = false;
+    if (FLUENT_BANDS.has(scored.band)) {
+      const fluentAt = new Date();
+      set.status = 'fluent';
+      set.fluentAt = fluentAt;
+      const prior = await MathPathStudentSkillState.findOne(
+        { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      ).lean();
+      if (!prior?.fluentAt && !prior?.nextReviewDate) {
+        const schedule = buildRetentionScheduleFromFluency({
+          skillId: existing.targetSkillId, fluencyLevel: scored.band, fluentAt,
+        });
+        if (schedule.shouldSchedule) {
+          set.retentionStatus = 'reviewScheduled';
+          set.nextReviewDate = new Date(schedule.nextReviewDate);
+          retentionScheduled = true;
+        }
+      }
     }
     await MathPathStudentSkillState.findOneAndUpdate(
       { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
-      { $set: skillUpdate },
+      { $inc: { attemptCount: scored.total, correctCount: scored.correct }, $set: set },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
-    existing.status = 'completed'; existing.completedAt = new Date();
-    existing.summary = { ...scored, persisted: true };
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', ...scored, retentionScheduled, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = new Date();
+    existing.responses = responses;
+    existing.summary = summary;
     await existing.save();
-    res.json({ sessionId: req.params.id, ...scored, persisted: true });
+
+    res.json(summary);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit circles fluency drill.' });
   }
 });
 
+// @route GET /api/mathpath/circles/retention
+// @desc  Return upcoming/overdue/history buckets for the student's circles retention.
 router.get('/retention', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const states = await MathPathStudentSkillState.find({ studentId: String(student._id), domainId: DOMAIN_ID }).lean();
-    res.json({ domainId: DOMAIN_ID, ...summariseRetention({ states }) });
+    res.json(summariseRetention({ states, asOf: new Date() }));
   } catch (err) {
-    res.status(err.status || 500).json({ error: err.message || 'Failed to load circles retention summary.' });
+    res.status(err.status || 500).json({ error: err.message || 'Failed to load circles retention reviews.' });
   }
 });
 
+// @route POST /api/mathpath/circles/retention/start
+// @desc  Build + persist a spaced retention review (same concept, fresh questions).
 router.post('/retention/start', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
-    const { skillId, previousQuestionFamilyIds = [], difficulty = null } = req.body || {};
-    if (!skillId) return res.status(400).json({ error: 'skillId required.' });
-    const review = buildCirclesRetentionReview({ skillId, studentId, previousQuestionFamilyIds, difficulty });
-    const sessionId = `circlesretention_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const { skillId, count = null } = req.body || {};
+    if (!skillId) return res.status(400).json({ error: 'skillId is required.' });
+
+    const review = buildCirclesRetentionReview({ skillId, count });
+    const practiceSessionId = `circlesretention_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
     await MathPathPracticeSession.create({
-      practiceSessionId: sessionId, studentId, domainId: DOMAIN_ID,
-      targetSkillId: skillId, mode: 'retention',
-      sessionGoal: 'Circles retention review', estimatedQuestionCount: review.totalQuestions,
+      practiceSessionId, studentId, domainId: DOMAIN_ID,
+      targetSkillId: skillId,
+      targetQuestionFamilyIds: review.questionFamilyIds,
+      sessionGoal: 'Circles retention review', estimatedQuestionCount: review.questions.length,
       questions: review.questions, responses: [], status: 'inProgress', startedAt: new Date(),
     });
-    res.json({ sessionId, ...toClientRetentionQuestions(review) });
+
+    res.json({
+      practiceSessionId, domainId: DOMAIN_ID, skillId, mode: 'retention',
+      questions: toClientRetentionQuestions(review.questions),
+    });
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to start circles retention review.' });
   }
 });
 
-router.post('/retention/:id/submit', protect, async (req, res) => {
+// @route POST /api/mathpath/circles/retention/:practiceSessionId/submit
+// @desc  Score the review into a retention outcome; advance/reset the spaced schedule.
+router.post('/retention/:practiceSessionId/submit', protect, async (req, res) => {
   try {
     const student = await resolveStudent(req);
     const studentId = String(student._id);
-    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.id, studentId });
-    if (!existing) return res.status(404).json({ error: 'Retention session not found.' });
-    const { answers = [], timingsSeconds = [] } = req.body || {};
-    const scored = scoreCirclesRetentionReview({ review: { ...existing.toObject(), mode: 'retention' }, answers, timingsSeconds });
-    if (scored.set) {
-      await MathPathStudentSkillState.findOneAndUpdate(
-        { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
-        { $set: scored.set },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
-    }
-    existing.status = 'completed'; existing.completedAt = new Date();
-    existing.summary = { ...scored, persisted: true };
+    const existing = await MathPathPracticeSession.findOne({ practiceSessionId: req.params.practiceSessionId, studentId });
+    if (!existing) return res.status(404).json({ error: 'Circles retention review not found.' });
+    if (existing.domainId !== DOMAIN_ID) return res.status(400).json({ error: 'Session is not a circles session.' });
+    if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
+
+    const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const priorState = await MathPathStudentSkillState.findOne(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+    ).lean();
+    const completedAt = new Date();
+    const scored = scoreCirclesRetentionReview({
+      skillId: existing.targetSkillId,
+      questions: existing.questions || [],
+      responses,
+      completedIntervalDays: priorState?.completedIntervalDays || [],
+      lastIntervalDays: req.body?.intervalDays ?? null,
+      completedAt,
+    });
+
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId, domainId: DOMAIN_ID, skillId: existing.targetSkillId },
+      { $inc: { attemptCount: scored.total, correctCount: scored.correct }, $set: { ...scored.set, lastPractisedAt: completedAt } },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'retention', ...scored, persisted: true };
+    existing.status = 'completed';
+    existing.completedAt = completedAt;
+    existing.responses = responses;
+    existing.summary = summary;
     await existing.save();
-    res.json({ sessionId: req.params.id, ...scored, persisted: true });
+
+    res.json(summary);
   } catch (err) {
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit circles retention review.' });
   }

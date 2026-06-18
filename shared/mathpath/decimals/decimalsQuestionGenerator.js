@@ -472,6 +472,301 @@ const GENERATORS = {
       mode,
     });
   },
+
+  // ── Word-problem generators (real-world context variants) ───────────────────
+
+  decimalPlaceValueWord(rng, family, difficulty, mode) {
+    const ctxList = [
+      { item: 'price tag shows $', ctx: 'price tag' },
+      { item: 'parcel weighs ', unit: 'kg', ctx: 'parcel' },
+      { item: 'ribbon is ', unit: 'm long', ctx: 'ribbon' },
+    ];
+    const ctx = pick(rng, ctxList);
+    const whole = rint(rng, 1, 9), t = rint(rng, 1, 9), h = rint(rng, 1, 9);
+    const display = `${whole}.${t}${h}`;
+    const place = pick(rng, ['tenths', 'hundredths']);
+    const answerDigit = place === 'tenths' ? t : h;
+    const label = ctx.unit ? `${display} ${ctx.unit}` : `${ctx.item}${display}`;
+    return shortAnswer({
+      family,
+      prompt: `A ${ctx.unit ? ctx.ctx : ctx.item.replace('$', '')}${ctx.unit ? '' : ''} reads ${label}. Which digit is in the ${place} place?`,
+      answer: answerDigit, display: String(answerDigit),
+      solutionSteps: [`Count places after the decimal point: tenths, hundredths.`, `The ${place} digit of ${display} is ${answerDigit}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/place-confuse',
+      difficulty, mode,
+    });
+  },
+
+  decimalCompareWord(rng, family, difficulty, mode) {
+    const ctxList = [
+      { unit: 'L', itemA: 'bottle A', itemB: 'bottle B', verb: 'holds' },
+      { unit: 'kg', itemA: 'bag A', itemB: 'bag B', verb: 'weighs' },
+      { unit: 'm', itemA: 'rope A', itemB: 'rope B', verb: 'is' },
+    ];
+    const ctx = pick(rng, ctxList);
+    const whole = rint(rng, 0, 4);
+    const aTenth = rint(rng, 1, 8);
+    const x = round(whole + aTenth / 10, 1);
+    const yHund = rint(rng, 1, 9);
+    const y = round(whole + (aTenth - 1) / 10 + yHund / 100, 2);
+    const xs = decStr(x, 1), ys = decStr(y, 2);
+    const larger = x >= y ? xs : ys;
+    return mcq({
+      family, rng,
+      prompt: `${ctx.itemA} ${ctx.verb} ${xs} ${ctx.unit} and ${ctx.itemB} ${ctx.verb} ${ys} ${ctx.unit}. Which ${ctx.verb.includes('is') ? 'is' : 'holds'} more?`,
+      answerDisplay: larger,
+      distractors: [larger === xs ? ys : xs],
+      solutionSteps: [`Compare place by place: ${xs} vs ${ys}.`, `${larger} ${ctx.unit} is larger.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/longer-decimal',
+      difficulty, mode,
+    });
+  },
+
+  decimalOrderWord(rng, family, difficulty, mode) {
+    const ctxList = [
+      { verb: 'Four athletes ran', unit: 'km', asc: false, prompt: 'Rank them from fastest to slowest (shortest time = fastest, so arrange distances from longest to shortest).' },
+      { verb: 'Four pupils scored', unit: 'points', asc: true, prompt: 'Arrange the scores from lowest to highest.' },
+      { verb: 'Four packages weigh', unit: 'kg', asc: true, prompt: 'Arrange the weights from lightest to heaviest.' },
+    ];
+    const ctx = pick(rng, ctxList);
+    const set = [];
+    const seen = new Set();
+    while (set.length < 4) {
+      const dp = pick(rng, [1, 2]);
+      const v = round(rint(rng, 1, 9) / (dp === 1 ? 10 : 100) + rint(rng, 0, 3), 2);
+      const s = decStr(v, 2);
+      if (!seen.has(s)) { seen.add(s); set.push(v); }
+    }
+    const sorted = [...set].sort((a, b) => ctx.asc ? a - b : b - a);
+    const display = sorted.map((v) => decStr(v, 2)).join(', ');
+    return shortAnswer({
+      family,
+      prompt: `${ctx.verb} ${set.map((v) => decStr(v, 2)).join(', ')} ${ctx.unit}. ${ctx.prompt}`,
+      answer: display, display,
+      solutionSteps: [`Align decimal points and compare place by place.`, `Answer: ${display}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/align-right',
+      difficulty, mode,
+    });
+  },
+
+  decimalRoundWord(rng, family, difficulty, mode) {
+    const value = round(rint(rng, 10, 99) / 10 + rint(rng, 1, 9) / 100, 2);
+    const rounded = round(value, 1);
+    const ctxList = [
+      `A parcel weighs ${decFixed(value, 2)} kg. Round its weight to 1 decimal place.`,
+      `A plank is ${decFixed(value, 2)} m long. Round its length to 1 decimal place.`,
+      `A jug holds ${decFixed(value, 2)} L. Round its capacity to 1 decimal place.`,
+    ];
+    return shortAnswer({
+      family,
+      prompt: pick(rng, ctxList),
+      answer: rounded, display: decFixed(rounded, 1),
+      solutionSteps: [`Look at the hundredths digit of ${decFixed(value, 2)}.`, `Round to 1 d.p.: ${decFixed(rounded, 1)}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/truncate',
+      difficulty, mode,
+    });
+  },
+
+  decimalAddSubWord(rng, family, difficulty, mode) {
+    const isAdd = rng() < 0.5;
+    const dp = pick(rng, [1, 2]);
+    const f = 10 ** dp;
+    let xi = rint(rng, 11, 99), yi = rint(rng, 11, 99);
+    if (!isAdd && yi > xi) [xi, yi] = [yi, xi];
+    const x = round(xi / f, dp), y = round(yi / f, dp);
+    const result = round((isAdd ? xi + yi : xi - yi) / f, dp);
+    const addCtx = pick(rng, [
+      `Ali spent $${decStr(x, dp)} and Ben spent $${decStr(y, dp)}. How much did they spend altogether?`,
+      `A rope is ${decStr(x, dp)} m. Another rope is ${decStr(y, dp)} m. What is their total length?`,
+    ]);
+    const subCtx = pick(rng, [
+      `A plank is ${decStr(x, dp)} m long. A piece ${decStr(y, dp)} m long is cut off. How long is the remaining piece?`,
+      `Ali had $${decStr(x, dp)}. She spent $${decStr(y, dp)}. How much did she have left?`,
+    ]);
+    return shortAnswer({
+      family,
+      prompt: isAdd ? addCtx : subCtx,
+      answer: result, display: decStr(result, dp),
+      solutionSteps: [`Align decimal points and ${isAdd ? 'add' : 'subtract'}.`, `= ${decStr(result, dp)}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/add-misalign',
+      difficulty, mode,
+    });
+  },
+
+  decimalScaleWord(rng, family, difficulty, mode) {
+    const isMult = rng() < 0.5;
+    if (isMult) {
+      const p = pick(rng, [10, 100, 1000]);
+      const dp = pick(rng, [2, 3]);
+      const x = round(rint(rng, 11, 99) / 10 ** dp, dp);
+      const resDp = Math.max(0, dp - (String(p).length - 1));
+      const result = round(x * p, resDp);
+      return shortAnswer({
+        family,
+        prompt: `A recipe needs ${decFixed(x, dp)} kg of flour per batch. How many kg are needed for ${p} batches?`,
+        answer: result, display: decFixed(result, resDp),
+        solutionSteps: [`${decFixed(x, dp)} × ${p} = ${decFixed(result, resDp)} kg.`],
+        misconceptionTag: family.misconceptionTags[0] || 'dec/move-wrong-way',
+        difficulty, mode,
+      });
+    }
+    const shift = pick(rng, [1, 2]);
+    const p = 10 ** shift;
+    const dp = pick(rng, shift === 1 ? [0, 1, 2] : [0, 1]);
+    const xVal = round(rint(rng, 11, 999) / 10 ** dp, dp);
+    const resDp = dp + shift;
+    const result = round(xVal / p, resDp);
+    return shortAnswer({
+      family,
+      prompt: `A tank holds ${decFixed(xVal, dp)} L shared equally among ${p} bottles. How many litres does each bottle hold?`,
+      answer: result, display: decFixed(result, resDp),
+      solutionSteps: [`${decFixed(xVal, dp)} ÷ ${p} = ${decFixed(result, resDp)} L.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/move-wrong-way',
+      difficulty, mode,
+    });
+  },
+
+  decimalMultWholeWord(rng, family, difficulty, mode) {
+    const dp = pick(rng, [1, 2]);
+    const f = 10 ** dp;
+    const xi = rint(rng, 11, 99);
+    const x = round(xi / f, dp);
+    const w = rint(rng, 2, 9);
+    const result = round((xi * w) / f, dp);
+    const ctxList = [
+      `Each bottle holds ${decFixed(x, dp)} L. How much water is in ${w} bottles?`,
+      `A ribbon costs $${decFixed(x, dp)} per metre. How much do ${w} metres cost?`,
+      `One brick weighs ${decFixed(x, dp)} kg. What is the total weight of ${w} bricks?`,
+    ];
+    return shortAnswer({
+      family,
+      prompt: pick(rng, ctxList),
+      answer: result, display: decFixed(result, dp),
+      solutionSteps: [`${decFixed(x, dp)} × ${w} = ${decFixed(result, dp)}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/lost-point',
+      difficulty, mode,
+    });
+  },
+
+  decimalMultDecimalWord(rng, family, difficulty, mode) {
+    const dpX = pick(rng, [1, 2]);
+    const xi = rint(rng, 11, 99), yi = rint(rng, 11, 99);
+    const x = round(xi / 10 ** dpX, dpX);
+    const y = round(yi / 10, 1);
+    const totalDp = dpX + 1;
+    const result = round((xi * yi) / 10 ** totalDp, totalDp);
+    return shortAnswer({
+      family,
+      prompt: `A rectangle is ${decStr(x, dpX)} m wide and ${decStr(y, 1)} m long. What is its area in m²?`,
+      answer: result, display: decStr(result, totalDp),
+      solutionSteps: [`Area = length × width = ${decStr(x, dpX)} × ${decStr(y, 1)}.`, `= ${decStr(result, totalDp)} m².`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/wrong-place-count',
+      difficulty, mode,
+    });
+  },
+
+  decimalDivWholeWord(rng, family, difficulty, mode) {
+    const w = rint(rng, 2, 9);
+    const dp = pick(rng, [1, 2]);
+    const f = 10 ** dp;
+    const qi = rint(rng, 11, 80);
+    const dividend = round((qi * w) / f, dp);
+    const quotient = round(qi / f, dp);
+    const ctxList = [
+      `A ${decStr(dividend, dp)} m rope is cut into ${w} equal pieces. How long is each piece?`,
+      `${w} friends share $${decStr(dividend, dp)} equally. How much does each person get?`,
+    ];
+    return shortAnswer({
+      family,
+      prompt: pick(rng, ctxList),
+      answer: quotient, display: decStr(quotient, dp),
+      solutionSteps: [`${decStr(dividend, dp)} ÷ ${w} = ${decStr(quotient, dp)}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/quotient-point',
+      difficulty, mode,
+    });
+  },
+
+  decimalDivDecimalWord(rng, family, difficulty, mode) {
+    const di = rint(rng, 2, 9);
+    const divisor = round(di / 10, 1);
+    const qi = rint(rng, 2, 20);
+    const dividend = round((di * qi) / 10, 1);
+    const ctxList = [
+      `A ${decStr(dividend, 1)} m pipe is cut into pieces each ${decStr(divisor, 1)} m long. How many pieces are there?`,
+      `A ${decStr(dividend, 1)} kg bag of rice is packed into bags of ${decStr(divisor, 1)} kg each. How many bags are filled?`,
+    ];
+    return shortAnswer({
+      family,
+      prompt: pick(rng, ctxList),
+      answer: qi, display: String(qi),
+      solutionSteps: [`Multiply both by 10: ${di * qi} ÷ ${di} = ${qi}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/no-scale-divisor',
+      difficulty, mode,
+    });
+  },
+
+  decimalToFractionWord(rng, family, difficulty, mode) {
+    const dp = pick(rng, [1, 2]);
+    const f = 10 ** dp;
+    const numRaw = rint(rng, 1, f - 1);
+    const value = round(numRaw / f, dp);
+    const g = gcd(numRaw, f);
+    const display = `${numRaw / g}/${f / g}`;
+    const ctxList = [
+      `A pupil answered ${decStr(value, dp)} of a test correctly. Write this as a fraction in its simplest form.`,
+      `A recipe uses ${decStr(value, dp)} of a bag of flour. Write this as a fraction in its simplest form.`,
+    ];
+    return shortAnswer({
+      family,
+      prompt: pick(rng, ctxList),
+      answer: display, display,
+      solutionSteps: [`${decStr(value, dp)} = ${numRaw}/${f}. Divide by ${g}: ${display}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/wrong-denominator',
+      difficulty, mode,
+    });
+  },
+
+  fractionToDecimalWord(rng, family, difficulty, mode) {
+    const den = pick(rng, [2, 4, 5, 10, 20, 25, 50, 100]);
+    const num = rint(rng, 1, den - 1);
+    const value = round(num / den, 4);
+    const display = decStr(value, 4);
+    const ctxList = [
+      `A pupil got ${num}/${den} of the questions correct. Write this score as a decimal.`,
+      `${num}/${den} of a tank is filled with water. Write this as a decimal.`,
+    ];
+    return shortAnswer({
+      family,
+      prompt: pick(rng, ctxList),
+      answer: value, display,
+      solutionSteps: [`${num} ÷ ${den} = ${display}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/divide-reversed',
+      difficulty, mode,
+    });
+  },
+
+  decimalMeasureConvertWord(rng, family, difficulty, mode) {
+    const pairs = [
+      { big: 'km', small: 'm', factor: 1000 },
+      { big: 'kg', small: 'g', factor: 1000 },
+      { big: 'L', small: 'ml', factor: 1000 },
+      { big: 'm', small: 'cm', factor: 100 },
+    ];
+    const pair = pick(rng, pairs);
+    const a = round(rint(rng, 11, 99) / 100, 2);
+    const b = round(rint(rng, 11, 99) / 100, 2);
+    const totalBig = round(a + b, 2);
+    const totalSmall = Math.round(totalBig * pair.factor);
+    const names = pick(rng, [['Ali', 'Ben'], ['Sam', 'Jay'], ['Kai', 'Mia']]);
+    return shortAnswer({
+      family,
+      prompt: `${names[0]} walked ${decStr(a, 2)} ${pair.big} and ${names[1]} walked ${decStr(b, 2)} ${pair.big}. How many ${pair.small} did they walk altogether?`,
+      answer: totalSmall, display: String(totalSmall),
+      solutionSteps: [`Total = ${decStr(a, 2)} + ${decStr(b, 2)} = ${decStr(totalBig, 2)} ${pair.big}.`, `${decStr(totalBig, 2)} × ${pair.factor} = ${totalSmall} ${pair.small}.`],
+      misconceptionTag: family.misconceptionTags[0] || 'dec/convert-direction',
+      difficulty, mode,
+    });
+  },
 };
 
 // ── Public API ──────────────────────────────────────────────────────────────
