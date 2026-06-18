@@ -32,6 +32,7 @@ export default function MathPathHome() {
   const visualStyles = getVisualModeStyles(visualMode);
   const studentId = user?._id || user?.id || user?.email || '';
   const [mastery, setMastery] = useState(null);
+  const [skillGraph, setSkillGraph] = useState(null);
   const [topics, setTopics] = useState([]);
   const [domainProgress, setDomainProgress] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,11 +62,12 @@ export default function MathPathHome() {
   useEffect(() => {
     (async () => {
       try {
-        const [masteryRes, mapRes, latestRes, mistakesRes] = await Promise.allSettled([
+        const [masteryRes, mapRes, latestRes, mistakesRes, graphRes] = await Promise.allSettled([
           mathpathAPI.mastery(),
           mathpathAPI.map(),
           mathpathAPI.getLatestDiagnostic(),
           mathpathAPI.mistakes({ status: 'all' }),
+          mathpathAPI.graph(),
         ]);
 
         if (masteryRes.status !== 'fulfilled' || mapRes.status !== 'fulfilled' || latestRes.status !== 'fulfilled') {
@@ -88,6 +90,7 @@ export default function MathPathHome() {
         });
 
         setMastery(masteryData);
+        if (graphRes.status === 'fulfilled') setSkillGraph(graphRes.value?.data || null);
         setTopics(mapData.topics || []);
         setLatestPlacement(latestData || null);
         setDomainProgress(derivedState);
@@ -232,7 +235,8 @@ export default function MathPathHome() {
   const mastered = records.filter((r) => r.status === 'mastered');
   const learning = records.filter((r) => r.status === 'learning');
   const totalFractionsSkills = fractionSkillGraph.skillIds?.length || 26;
-  const courseMasteredCount = Math.min(mastered.length, totalFractionsSkills);
+  const graphMastered = skillGraph?.summary?.mastered ?? null;
+  const courseMasteredCount = Math.min(graphMastered !== null ? Math.max(mastered.length, graphMastered) : mastered.length, totalFractionsSkills);
   const courseProgressPct = totalFractionsSkills
     ? Math.round((courseMasteredCount / totalFractionsSkills) * 100)
     : 0;

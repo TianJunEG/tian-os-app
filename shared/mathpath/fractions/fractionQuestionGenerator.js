@@ -1724,7 +1724,8 @@ export function generateDiagnosticQuestionSet(options = {}) {
 }
 
 export function generatePracticeQuestionSet(options = {}) {
-  const { practiceQueue = [], count = 8 } = options;
+  const { practiceQueue = [], count = 8, difficulty = 2 } = options;
+  const getDifficulty = (i) => (Array.isArray(difficulty) ? (difficulty[i] ?? difficulty[difficulty.length - 1] ?? 2) : difficulty);
   if (!practiceQueue.length) return [];
   const out = [];
   const seenSignatures = new Set();
@@ -1752,7 +1753,7 @@ export function generatePracticeQuestionSet(options = {}) {
         candidate = generateFractionQuestion({
           skillId: row.skillId,
           questionFamilyId: familyId,
-          difficulty: 2,
+          difficulty: getDifficulty(i),
           mode: 'practice',
           variant: variantSeed,
         });
