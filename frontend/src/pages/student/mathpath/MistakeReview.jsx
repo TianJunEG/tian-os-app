@@ -134,7 +134,7 @@ export default function MistakeReview() {
 
   return (
     <>
-      <PageHeader title="Mistake to mastery" subtitle="Review recent slips, then practise to fix them." />
+      <PageHeader title="Mistake to mastery" subtitle="Review recent slips, then practise to fix them." action={<Button variant="secondary" size="s" onClick={() => navigate('/student/mathpath/mistakes')}>← Back</Button>} />
       {mistakes.length === 0 ? (
         <EmptyState
           icon={PartyPopper}
@@ -231,7 +231,7 @@ export default function MistakeReview() {
                 <Button variant="secondary" size="s" icon={ArrowRight} onClick={() => setOpenHelp(openHelp === m.id ? null : m.id)}>
                   {openHelp === m.id ? 'Hide Try Together' : 'Try Together'}
                 </Button>
-                <Button variant="secondary" size="s" onClick={() => practiseSimilar(m.skillId)} disabled={starting}>Try Again</Button>
+                <Button variant="secondary" size="s" onClick={() => practiseSimilar(m.skillCode || m.skillId)} disabled={starting}>Try Again</Button>
                 {(() => {
                   const modelTrainer = getModelDrawingTrainerForMistake({
                     mistakeCode: m.misconceptionTag,
@@ -252,7 +252,7 @@ export default function MistakeReview() {
               </div>
               {openHelp === m.id && (
                 <RemediationPanel
-                  skillId={m.skillId}
+                  skillId={m.skillCode || m.skillId}
                   recentAttempts={[{
                     correct: false,
                     misconceptionTag: m.misconceptionTag,

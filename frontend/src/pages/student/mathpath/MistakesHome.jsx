@@ -152,7 +152,7 @@ export default function MistakesHome() {
       <div className="space-y-2">
         {weak.length === 0 && hasMistakes && <Card className={`p-4 text-sm text-ink-500 ${visualStyles.accentCard}`}>No weak-skill clusters yet.</Card>}
         {weak.map((w) => (
-          <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => practise(w.skillId)}>
+          <Card key={w.skillId} interactive className={`flex items-center justify-between p-4 ${visualStyles.accentCard}`} role="button" onClick={() => navigate('/student/mathpath/mistakes/review')}>
             <div>
               <div className="font-semibold text-ink-700">{w.skillName}</div>
               <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-500">

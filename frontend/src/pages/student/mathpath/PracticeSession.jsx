@@ -1466,10 +1466,10 @@ export default function PracticeSession() {
 
   useEffect(() => {
     if (!isMainFlowRender) return undefined;
-    if (summary || loading || !questions.length) return undefined;
+    if (summary || loading || !questions.length || !!feedback) return undefined;
     const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt) / 1000)), 250);
     return () => clearInterval(t);
-  }, [isMainFlowRender, summary, loading, questions.length, questionStartedAt]);
+  }, [isMainFlowRender, summary, loading, questions.length, questionStartedAt, feedback]);
 
   useEffect(() => {
     if (!isMainFlowRender) return undefined;

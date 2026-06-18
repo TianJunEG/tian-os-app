@@ -124,7 +124,7 @@ export default function MistakeDetail() {
   const practise = async () => {
     if (starting) return; setStarting(true);
     try {
-      const skillId = m.skillId;
+      const skillId = m.skillCode || m.skillId;
       const isFrameworkSkillId = /^F\d{3}$/i.test(String(skillId || ''));
       if (isFrameworkSkillId) {
         navigate('/student/mathpath/practice/recommended-pathway', {
@@ -188,7 +188,7 @@ export default function MistakeDetail() {
 
   return (
     <>
-      <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} />
+      <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} action={<Button variant="secondary" size="s" onClick={() => navigate(-1)}>← Back</Button>} />
       <Card className="p-5 sm:p-6">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -363,7 +363,7 @@ export default function MistakeDetail() {
       {showHelp && (
         <CollapsibleSection title="Remediation help" summary="Hints and model drawing pathways for this mistake." defaultOpen surface={false}>
           <RemediationPanel
-            skillId={m.skillId}
+            skillId={m.skillCode || m.skillId}
             recentAttempts={[{
               correct: false,
               misconceptionTag: m.misconceptionTag,

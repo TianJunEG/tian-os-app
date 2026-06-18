@@ -22,6 +22,7 @@ export const SYMBOL_DEFS = {
   theta: { token: 'θ', label: 'θ', title: 'Theta' },
   times: { token: '×', label: '×', title: 'Multiply' },
   divide: { token: '÷', label: '÷', title: 'Divide' },
+  colon: { token: ':', label: ':', title: 'Colon (ratio)' },
   fraction: { token: '/', label: '/', title: 'Fraction bar' },
   lparen: { token: '(', label: '(', title: 'Open bracket' },
   rparen: { token: ')', label: ')', title: 'Close bracket' },

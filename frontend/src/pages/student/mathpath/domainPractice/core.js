@@ -161,7 +161,7 @@ export const DOMAIN_ANSWER_SYMBOLS = {
   'area-perimeter': ['square', 'root', 'times', 'fraction'],
   volume: ['cube', 'square', 'times', 'fraction'],
   measurement: ['times', 'divide', 'fraction'],
-  'ratio-rate': ['fraction', 'divide', 'times'],
+  'ratio-rate': ['colon', 'fraction', 'divide', 'times'],
   percentages: ['fraction', 'divide', 'times'],
 };
 
