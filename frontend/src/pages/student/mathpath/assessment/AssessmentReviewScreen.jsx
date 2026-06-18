@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, AlertTriangle } from 'lucide-react';
 import { Card, Button, PageHeader, ErrorState } from '../../../../components/ui';
+import { assessmentSpecificationAPI } from '../../../../services/api';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
 import { repairFractionQuestions } from '../../../../mathpath/fractions/fractionQuestionRepair';
 import {
@@ -70,7 +71,7 @@ export default function AssessmentReviewScreen() {
     [questions]
   );
 
-  const submit = () => {
+  const submit = async () => {
     if (unanswered > 0 || missingConfidence > 0 || incompleteEvidence > 0) {
       setError('Complete every answer, confidence choice, and working evidence declaration before submitting.');
       return;
@@ -121,6 +122,21 @@ export default function AssessmentReviewScreen() {
           correctAnswer: q.answer?.display || '',
         };
       });
+      // Persist the submission to the backend for spec-generated papers so the
+      // server marks it, updates mastery, and emits error-diagnosis mistakes.
+      // Best-effort: client-side scoring below still drives the results screen.
+      if (location.state?.specificationId && session.assessmentSessionId) {
+        try {
+          await assessmentSpecificationAPI.submitSession(session.assessmentSessionId, {
+            responses: responses.map((r) => ({
+              questionId: r.questionId,
+              answer: r.studentAnswer,
+              timeTaken: r.timeTaken,
+            })),
+          });
+        } catch { /* persistence is best-effort; don't block the student's results */ }
+      }
+
       const scored = scoreFractionAssessmentSubmission({
         assessmentSessionId: session.assessmentSessionId,
         responses,

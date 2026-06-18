@@ -20,6 +20,12 @@ import {
   isTestMode,
 } from '../services/mathpath/testModePresets.js';
 import { sourceWeakSkills } from '../services/mathpath/weaknessSkillSourcer.js';
+import { buildPaperSections } from '../services/mathpath/paperSectioning.js';
+import { buildBlueprintSectionPlan } from '../services/mathpath/blueprintPaperBuilder.js';
+import AssessmentBlueprint from '../models/mathpath/AssessmentBlueprint.js';
+import { markAssessment } from '../services/mathpath/assessmentSubmissionService.js';
+import MathPathMistakeRecord from '../models/mathpath/MathPathMistakeRecord.js';
+import { recordAttempt } from '../utils/masteryEngine.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -169,6 +175,20 @@ function pickDifficultyFilter(difficulty) {
   return [difficulty];
 }
 
+// Expected marks per question for sizing the question count. For a single band
+// it's exact; for a 'mixed' topic it's the mark value weighted by the difficulty
+// mix, so desiredCount * expected ≈ allocatedMarks and the paper's actual total
+// tracks the requested totalMarks instead of assuming a flat medium rate.
+export function expectedMarksPerQuestion(difficulty, mix) {
+  if (difficulty !== 'mixed') return questionMarksForDifficulty(difficulty);
+  const e = Number(mix?.easy || 0);
+  const m = Number(mix?.medium || 0);
+  const h = Number(mix?.hard || 0);
+  const raw = e + m + h;
+  if (raw <= 0) return questionMarksForDifficulty('medium');
+  return (1 * e + 2 * m + 3 * h) / raw;
+}
+
 // Build synthetic topic rows from a student's weak skill set, one row per domain.
 // Marks are weighted by how many weak skills fall in each domain so the paper
 // spends more questions where the student is weakest.
@@ -201,6 +221,118 @@ function questionPreferenceScore(q, modeConfig = {}) {
   return score;
 }
 
+// Generate a paper section-by-section from an AssessmentBlueprint. Draws from the
+// union of the spec's topic skills; each blueprint section fixes its name, marks,
+// question count, allowed types, and difficulty mix.
+async function generateFromBlueprint({ spec, subject, blueprint, plan, topicRows, testMode, effectiveTimed, sessionId, targetStudentId }) {
+  // Resolve the union of skills across the spec's topic rows.
+  const skillKeySet = new Set();
+  for (const row of asArray(topicRows)) {
+    const keys = await resolveTopicSkillIds(row, subject._id);
+    keys.forEach((k) => skillKeySet.add(k));
+  }
+  const skillKeys = [...skillKeySet];
+  const skillDocs = await Skill.find({
+    $or: [
+      { _id: { $in: skillKeys.map(toObjectId).filter(Boolean) } },
+      { slug: { $in: skillKeys } },
+      { 'metadata.mathPathSkillId': { $in: skillKeys } },
+      { 'metadata.frameworkCode': { $in: skillKeys } },
+    ],
+  }).select('_id slug metadata topicId');
+  const skillDocIds = skillDocs.map((s) => s._id);
+  const publicIdOf = (q) => {
+    const qSkill = skillDocs.find((s) => String(s._id) === String(q.skillId));
+    return String(qSkill?.metadata?.mathPathSkillId || qSkill?.metadata?.frameworkCode || qSkill?.slug || q.skillId);
+  };
+
+  const targetSkillIds = new Set();
+  const targetQuestionFamilyIds = new Set();
+  const responsesBlueprint = [];
+  const sections = [];
+  let sectionIndex = 0;
+
+  for (const sec of plan) {
+    const bands = ['easy', 'medium', 'hard'].filter((b) => Number(sec.difficultyMix[b] || 0) > 0);
+    const pool = await Question.find({
+      subjectId: subject._id,
+      skillId: { $in: skillDocIds },
+      ...(sec.questionTypes.length ? { type: { $in: sec.questionTypes } } : {}),
+      ...(bands.length ? { difficulty: { $in: bands } } : {}),
+    }).limit(Math.max(sec.questionCount * 5, 30)).lean();
+
+    const selected = sampleQuestionsByDifficulty(pool, sec.questionCount, sec.difficultyMix);
+    const startIndex = responsesBlueprint.length;
+    selected.forEach((q, idx) => {
+      const publicSkillId = publicIdOf(q);
+      const familyId = `BP_${sec.id}_${publicSkillId}_${idx + 1}`;
+      targetSkillIds.add(publicSkillId);
+      targetQuestionFamilyIds.add(familyId);
+      responsesBlueprint.push({
+        questionId: String(q._id),
+        skillId: publicSkillId,
+        skillRefId: String(q.skillId || ''),
+        questionFamilyId: familyId,
+        prompt: q.stem,
+        type: q.type || 'short_answer',
+        choices: q.choices || [],
+        answer: { display: String(q.answer || '') },
+        acceptedAnswers: [String(q.answer || '')],
+        solutionSteps: q.workedSolution ? [String(q.workedSolution)] : [],
+        difficulty: q.difficulty,
+        marks: questionMarksForDifficulty(q.difficulty || 'medium'),
+        misconceptionTag: String(q.misconceptionTag || ''),
+        workingRequired: true,
+        mentalMathEligible: false,
+        sectionId: sec.id,
+        sectionIndex,
+        paper: sec.paper,
+      });
+    });
+    sections.push({
+      id: sec.id,
+      paper: sec.paper,
+      name: sec.name,
+      shortName: sec.name,
+      questionTypes: sec.questionTypes,
+      instructions: '',
+      calculatorAllowed: sec.calculatorAllowed,
+      marks: selected.reduce((s, q) => s + questionMarksForDifficulty(q.difficulty || 'medium'), 0),
+      questionCount: selected.length,
+      startIndex,
+    });
+    sectionIndex += 1;
+  }
+
+  const generatedTotalMarks = responsesBlueprint.reduce((s, q) => s + Number(q.marks || 0), 0);
+
+  return persistGeneratedPaper({
+    spec,
+    sessionId,
+    targetStudentId,
+    domainId: (topicRows[0]?.domainId || 'fractions'),
+    testMode,
+    effectiveTimed,
+    targetSkillIds: [...targetSkillIds],
+    targetQuestionFamilyIds: [...targetQuestionFamilyIds],
+    generatedTotalMarks,
+    topicBlueprint: plan.map((p) => ({
+      topicName: p.name,
+      requestedMarks: p.marks,
+      allocatedMarks: p.marks,
+      questionCount: sections.find((s) => s.id === p.id)?.questionCount || 0,
+      difficulty: 'mixed',
+      difficultyMix: p.difficultyMix,
+      skillIds: [],
+    })),
+    sections,
+    questions: responsesBlueprint,
+    durationMinutes: Number(blueprint.durationMinutes || spec.durationMinutes || 0),
+    calculatorAllowed: Boolean(blueprint.calculatorAllowed),
+    blueprintId: blueprint._id,
+  });
+}
+
 export async function generateTestFromSpecification(specificationId, options = {}) {
   const spec = await AssessmentSpecification.findById(specificationId);
   if (!spec) throw new Error('Assessment specification not found.');
@@ -211,6 +343,9 @@ export async function generateTestFromSpecification(specificationId, options = {
   const testMode = resolveTestMode({ testMode: spec.testMode, outputMode: spec.outputMode });
   const modeConfig = getTestModeConfig(testMode);
   const effectiveTimed = modeConfig.forceTimed ? true : Boolean(spec.timed);
+  // Booklet papers (PSLE mock / combined) need every question type represented so
+  // the sections render all booklets; selection gets a type-diversity nudge.
+  const bookletMode = testMode === 'psle_mock' || String(spec.paperType || '') === 'combined';
   const targetStudentId = spec.targetType === 'student' ? String(spec.targetStudentId || '') : String(options.targetStudentId || '');
   const sessionId = assessmentSessionId('specassess');
 
@@ -261,6 +396,19 @@ export async function generateTestFromSpecification(specificationId, options = {
   );
   const markSum = topicRows.reduce((s, t) => s + Math.max(0, Number(t.marks || 0)), 0) || totalMarks;
 
+  // Blueprint-driven path: when the spec references an AssessmentBlueprint with
+  // sections, build the paper section-by-section per the blueprint (names, marks,
+  // question types, difficulty mix) instead of the type-based default.
+  if (spec.assessmentBlueprintId) {
+    const blueprint = await AssessmentBlueprint.findById(spec.assessmentBlueprintId);
+    const plan = blueprint ? buildBlueprintSectionPlan(blueprint) : [];
+    if (plan.length) {
+      return generateFromBlueprint({
+        spec, subject, blueprint, plan, topicRows, testMode, effectiveTimed, sessionId, targetStudentId,
+      });
+    }
+  }
+
   const targetSkillIds = new Set();
   const targetQuestionFamilyIds = new Set();
   const topicBlueprint = [];
@@ -271,10 +419,18 @@ export async function generateTestFromSpecification(specificationId, options = {
     const ratio = markSum ? weightMarks / markSum : 0;
     const allocatedMarks = Math.max(1, Math.round(totalMarks * ratio));
     const difficulty = row.difficulty || 'mixed';
-    const marksPerQuestion = questionMarksForDifficulty(difficulty === 'mixed' ? 'medium' : difficulty);
+    // Effective difficulty distribution: a per-topic override wins for 'mixed'
+    // rows, otherwise the test mode's default mix. For single-band rows the query
+    // already constrained difficulty, so the mix is effectively a no-op slice.
+    const effectiveMix = (difficulty === 'mixed'
+      ? (normalizeDifficultyMix(row.difficultyMix) || modeConfig.difficultyMix)
+      : modeConfig.difficultyMix);
+    // Size the count by the mix-weighted expected marks so the topic's actual
+    // marks track allocatedMarks (which tracks the requested totalMarks).
+    const expectedMpq = expectedMarksPerQuestion(difficulty, effectiveMix);
     const desiredCount = Math.max(
       row.questionCount || 0,
-      Math.ceil(allocatedMarks / Math.max(1, marksPerQuestion))
+      Math.round(allocatedMarks / Math.max(0.5, expectedMpq))
     );
 
     const resolvedSkillKeys = await resolveTopicSkillIds(row, subject._id);
@@ -317,24 +473,32 @@ export async function generateTestFromSpecification(specificationId, options = {
     // Error-diagnosis papers prefer MCQ items with a misconception tag so a wrong
     // answer maps to a named error. This is a soft sort (preference), so the pool
     // still falls back to other items when tagged MCQs are scarce.
-    const candidates = (modeConfig.preferMcq || modeConfig.preferMisconception)
+    let candidates = (modeConfig.preferMcq || modeConfig.preferMisconception)
       ? [...pool].sort((a, b) => questionPreferenceScore(b, modeConfig) - questionPreferenceScore(a, modeConfig))
       : pool;
 
-    // Effective difficulty distribution: a per-topic override wins for 'mixed'
-    // rows, otherwise the test mode's default mix. For single-band rows the query
-    // already constrained difficulty, so the mix is effectively a no-op slice.
-    const effectiveMix = (difficulty === 'mixed'
-      ? (normalizeDifficultyMix(row.difficultyMix) || modeConfig.difficultyMix)
-      : modeConfig.difficultyMix);
+    // Booklet papers: pull a few MCQ and open-ended items to the front of the
+    // candidate pool so the difficulty sampler actually includes them — otherwise
+    // a large short-answer bank crowds them out and only Booklet B is produced.
+    if (bookletMode) {
+      const diverse = await Question.find({
+        subjectId: subject._id,
+        skillId: { $in: skillDocIds },
+        type: { $in: ['mcq', 'open_ended'] },
+        difficulty: { $in: pickDifficultyFilter(difficulty) },
+        ...(row.includeWordProblems === false ? { stem: { $not: /word|story|problem/i } } : {}),
+      }).limit(Math.max(desiredCount, 12)).lean();
+      const seen = new Set(candidates.map((q) => String(q._id)));
+      candidates = [...diverse.filter((q) => !seen.has(String(q._id))), ...candidates];
+    }
 
     const selected = sampleQuestionsByDifficulty(candidates, desiredCount, effectiveMix);
     selected.forEach((q, idx) => {
       // Honour each question's own difficulty for marks rather than a flat
-      // topic-level value, so a balanced paper carries balanced marks. Trade-off:
-      // a topic's summed marks can drift from its planned `allocatedMarks` (which
-      // assumes the medium rate), so the paper's actual total may differ from the
-      // requested totalMarks. The session stores the actual sum (generatedTotalMarks).
+      // topic-level value, so a balanced paper carries balanced marks. The count
+      // was sized by the mix-weighted expected marks (expectedMpq), so the topic's
+      // actual total tracks allocatedMarks closely; the session stores the exact
+      // sum (generatedTotalMarks).
       const marks = questionMarksForDifficulty(q.difficulty || 'medium');
       const qSkill = skillDocs.find((s) => String(s._id) === String(q.skillId));
       const publicSkillId = String(qSkill?.metadata?.mathPathSkillId || qSkill?.metadata?.frameworkCode || qSkill?.slug || q.skillId);
@@ -342,6 +506,9 @@ export async function generateTestFromSpecification(specificationId, options = {
       responsesBlueprint.push({
         questionId: String(q._id),
         skillId: publicSkillId,
+        // Skill ObjectId (the MasteryRecord key space) so submission can update
+        // mastery; publicSkillId above is for display/weakness-sourcing.
+        skillRefId: String(q.skillId || ''),
         questionFamilyId: `TOS_${publicSkillId}_${idx + 1}`,
         prompt: q.stem,
         type: q.type || 'short_answer',
@@ -351,6 +518,9 @@ export async function generateTestFromSpecification(specificationId, options = {
         solutionSteps: q.workedSolution ? [String(q.workedSolution)] : [],
         difficulty: q.difficulty,
         marks,
+        // Misconception this question probes — drives error-diagnosis mistake
+        // emission on submission.
+        misconceptionTag: String(q.misconceptionTag || ''),
         workingRequired: true,
         mentalMathEligible: false,
       });
@@ -370,19 +540,59 @@ export async function generateTestFromSpecification(specificationId, options = {
   }
 
   const generatedTotalMarks = responsesBlueprint.reduce((s, q) => s + Number(q.marks || 0), 0);
+
+  // Group the flat question list into PSLE-style paper sections (Paper 1 booklets
+  // + Paper 2). Reorders the questions by section and tags each with its section;
+  // non-booklet specs collapse to a single section, preserving prior behaviour.
+  const { sections, questions: sectionedQuestions } = buildPaperSections({
+    questions: responsesBlueprint,
+    paperType: spec.paperType,
+    testMode,
+    calculatorAllowed: Boolean(spec.calculatorAllowed),
+  });
+
+  return persistGeneratedPaper({
+    spec,
+    sessionId,
+    targetStudentId,
+    domainId: (topicRows[0]?.domainId || 'fractions').toLowerCase(),
+    testMode,
+    effectiveTimed,
+    weakSkillIds,
+    synthesizedFromWeakness,
+    targetSkillIds: [...targetSkillIds],
+    targetQuestionFamilyIds: [...targetQuestionFamilyIds],
+    generatedTotalMarks,
+    topicBlueprint,
+    sections,
+    questions: sectionedQuestions,
+    durationMinutes: Number(spec.durationMinutes || 0),
+    calculatorAllowed: Boolean(spec.calculatorAllowed),
+  });
+}
+
+// Create the assessment session and shape the generate response. Shared by the
+// topic-based path and the blueprint-driven path so both persist identically.
+async function persistGeneratedPaper({
+  spec, sessionId, targetStudentId, domainId, testMode, effectiveTimed,
+  weakSkillIds = [], synthesizedFromWeakness = false,
+  targetSkillIds = [], targetQuestionFamilyIds = [],
+  generatedTotalMarks, topicBlueprint = [], sections = [], questions = [],
+  durationMinutes, calculatorAllowed, blueprintId = null,
+}) {
   const sessionDoc = await MathPathAssessmentSession.create({
     assessmentSessionId: sessionId,
     studentId: targetStudentId || 'class-assignment',
-    domainId: (topicRows[0]?.domainId || 'fractions').toLowerCase(),
+    domainId: String(domainId || 'fractions').toLowerCase(),
     assessmentType: 'curriculum',
     mode: 'tos',
     singaporeLevel: spec.level || '',
     paperType: spec.paperType || '',
-    targetSkillIds: [...targetSkillIds],
-    targetQuestionFamilyIds: [...targetQuestionFamilyIds],
+    targetSkillIds,
+    targetQuestionFamilyIds,
     totalMarks: generatedTotalMarks,
-    timeLimitMinutes: Number(spec.durationMinutes || 0),
-    calculatorAllowed: Boolean(spec.calculatorAllowed),
+    timeLimitMinutes: Number(durationMinutes || 0),
+    calculatorAllowed: Boolean(calculatorAllowed),
     workingRequired: true,
     status: 'notStarted',
     result: {
@@ -391,10 +601,12 @@ export async function generateTestFromSpecification(specificationId, options = {
       timed: effectiveTimed,
       weakSkillIds,
       synthesizedFromWeakness,
+      blueprintId: blueprintId ? String(blueprintId) : null,
       source: spec.source,
       title: spec.title,
       topicBlueprint,
-      questions: responsesBlueprint,
+      sections,
+      questions,
     },
   });
 
@@ -412,11 +624,13 @@ export async function generateTestFromSpecification(specificationId, options = {
     timed: effectiveTimed,
     weakSkillIds,
     synthesizedFromWeakness,
-    durationMinutes: Number(spec.durationMinutes || 0),
-    calculatorAllowed: Boolean(spec.calculatorAllowed),
+    blueprintId: blueprintId ? String(blueprintId) : null,
+    durationMinutes: Number(durationMinutes || 0),
+    calculatorAllowed: Boolean(calculatorAllowed),
     totalMarks: generatedTotalMarks,
     topicBlueprint,
-    questions: responsesBlueprint,
+    sections,
+    questions,
   };
 }
 
@@ -478,6 +692,104 @@ router.post('/:id/generate', asyncHandler(async (req, res) => {
     return res.json({ generated });
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Failed to generate test from specification.' });
+  }
+}));
+
+// Submit a generated assessment session: server-marks the responses, persists the
+// score, updates mastery per question, and (for error_diagnosis papers) emits a
+// MathPathMistakeRecord for each wrong answer tied to a misconception — closing
+// the loop back into weakness sourcing.
+router.post('/sessions/:assessmentSessionId/submit', asyncHandler(async (req, res) => {
+  try {
+    const session = await MathPathAssessmentSession.findOne({ assessmentSessionId: req.params.assessmentSessionId });
+    if (!session) return res.status(404).json({ error: 'Assessment session not found.' });
+
+    // Authorize: the student themselves, or a user with access to the source spec.
+    let authorized = String(session.studentId) === String(req.user.id);
+    if (!authorized && session.result?.specificationId) {
+      const spec = await AssessmentSpecification.findById(session.result.specificationId);
+      const access = await assertSpecAccess(req, spec);
+      authorized = access.ok;
+    }
+    if (!authorized) return res.status(403).json({ error: 'Not authorized to submit this assessment.' });
+
+    // Idempotent: a re-submit returns the existing result without double-counting
+    // mastery updates or mistake records.
+    if (session.status === 'marked') {
+      return res.json({
+        assessmentSessionId: session.assessmentSessionId,
+        status: session.status,
+        score: session.result?.score ?? 0,
+        totalAwarded: session.result?.totalAwarded ?? 0,
+        totalMarks: session.result?.totalMarks ?? session.totalMarks ?? 0,
+        alreadySubmitted: true,
+      });
+    }
+
+    const questions = asArray(session.result?.questions);
+    const marked = markAssessment({ questions, responses: asArray(req.body?.responses) });
+
+    session.status = 'marked';
+    session.submittedAt = session.submittedAt || new Date();
+    session.markedAt = new Date();
+    session.result = {
+      ...(session.result || {}),
+      responses: marked.items,
+      score: marked.scorePct,
+      totalAwarded: marked.totalAwarded,
+      totalMarks: marked.totalMarks,
+    };
+    session.markModified('result');
+    await session.save();
+
+    // Update mastery for each attempt (best-effort; keyed by the Skill ObjectId).
+    for (const item of marked.items) {
+      if (!item.skillRefId) continue;
+      try {
+        await recordAttempt({
+          studentId: String(session.studentId),
+          skillId: item.skillRefId,
+          correct: item.correct,
+          timeMs: item.timeMs || null,
+        });
+      } catch { /* mastery update is best-effort */ }
+    }
+
+    // Error-diagnosis: a wrong answer on a misconception-tagged question is logged
+    // as a mistake so it feeds back into weakness sourcing.
+    let mistakesRecorded = 0;
+    if (session.result?.testMode === 'error_diagnosis') {
+      for (const item of marked.items) {
+        if (item.correct || !item.misconceptionTag) continue;
+        try {
+          await MathPathMistakeRecord.findOneAndUpdate(
+            {
+              studentId: String(session.studentId),
+              domainId: session.domainId,
+              mistakeCode: item.misconceptionTag,
+              skillId: item.skillId || '',
+              questionFamilyId: item.questionFamilyId || '',
+            },
+            { $inc: { frequency: 1 }, $set: { mistakeName: item.misconceptionTag, severity: 'medium', lastSeenAt: new Date() } },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          );
+          mistakesRecorded += 1;
+        } catch { /* mistake emission is best-effort */ }
+      }
+    }
+
+    return res.json({
+      assessmentSessionId: session.assessmentSessionId,
+      status: session.status,
+      score: marked.scorePct,
+      totalAwarded: marked.totalAwarded,
+      totalMarks: marked.totalMarks,
+      correctCount: marked.items.filter((i) => i.correct).length,
+      questionCount: marked.items.length,
+      mistakesRecorded,
+    });
+  } catch (err) {
+    return res.status(400).json({ error: err.message || 'Failed to submit assessment.' });
   }
 }));
 
