@@ -1,7 +1,20 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
-const backendPort = process.env.BACKEND_PORT || '5001';
+const apiBase = process.env.PLAYWRIGHT_API_BASE_URL || process.env.VITE_API_URL || 'http://localhost:5001/api';
+
+function portFromUrl(url, fallback) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.port) return parsed.port;
+    return parsed.protocol === 'https:' ? '443' : '80';
+  } catch {
+    return fallback;
+  }
+}
+
+const frontendPort = portFromUrl(baseURL, '3000');
+const backendPort = process.env.BACKEND_PORT || portFromUrl(apiBase, '5001');
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -36,8 +49,8 @@ export default defineConfig({
       },
     },
     {
-      command: 'npm run dev',
-      port: 3000,
+      command: `VITE_API_URL=${apiBase} npm run dev -- --host 0.0.0.0 --port ${frontendPort}`,
+      port: Number(frontendPort),
       reuseExistingServer: true,
       timeout: 15_000,
     },
