@@ -50,7 +50,11 @@ router.post(
     }
 
     try {
-      const { name, email, password, role } = req.body;
+      const { name, password, role } = req.body;
+      // The User schema lowercases email on write, but Mongoose does NOT apply
+      // that to queries — so normalise here or the duplicate check below silently
+      // misses case variants (e.g. John@X.com vs the stored john@x.com).
+      const email = String(req.body.email).toLowerCase().trim();
 
       // Check if user already exists
       let user = await User.findOne({ email });
@@ -66,7 +70,17 @@ router.post(
         role
       });
 
-      await user.save();
+      try {
+        await user.save();
+      } catch (saveError) {
+        // Race between the check above and save, or a case variant that slipped
+        // through: surface the unique-index violation as a clean 400 rather than
+        // a 500 carrying the raw Mongo E11000 message.
+        if (saveError?.code === 11000) {
+          return res.status(400).json({ error: 'User already exists with that email' });
+        }
+        throw saveError;
+      }
 
       // Generate token
       const token = getSignedToken(user._id, user.role);
@@ -83,7 +97,7 @@ router.post(
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
   }
 );
@@ -105,7 +119,10 @@ router.post(
     }
 
     try {
-      const { email, password } = req.body;
+      const { password } = req.body;
+      // Emails are stored lowercased; normalise the lookup so a different-case
+      // entry (mobile keyboards auto-capitalise) still matches the account.
+      const email = String(req.body.email).toLowerCase().trim();
 
       // Find user and select password
       const user = await User.findOne({ email }).select('+password');
@@ -143,7 +160,7 @@ router.post(
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'Login failed. Please try again.' });
     }
   }
 );
