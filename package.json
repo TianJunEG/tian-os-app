@@ -25,6 +25,7 @@
     "seed:science": "node scripts/seedScience.js",
     "seed:mathpath": "node scripts/seedFoundation.js && node scripts/seedQuestions.js && node scripts/seedFluency.js",
     "seed:fractions-alpha-pack": "node scripts/seedFractionsAlphaPack.js",
+    "provision:workspace": "node scripts/provisionWorkspace.js",
     "seed:tutor": "node scripts/seedTutor.js",
     "seed:teacher": "node scripts/seedTeacher.js",
     "seed:test-accounts": "node scripts/seedTestAccounts.js",
