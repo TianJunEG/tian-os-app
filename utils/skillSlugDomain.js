@@ -25,6 +25,19 @@ const PREFIX_TO_DOMAIN = {
   cir: 'circles',
 };
 
+const DOMAIN_ALIASES = {
+  whole_numbers: 'number_sense',
+  wholeNumbers: 'number_sense',
+  numberSense: 'number_sense',
+  ratio_rate: 'ratio',
+  'ratio-rate': 'ratio',
+};
+
+export function canonicalDomainId(domainId = '') {
+  const raw = String(domainId || '').trim();
+  return DOMAIN_ALIASES[raw] || DOMAIN_ALIASES[raw.toLowerCase()] || raw;
+}
+
 // Returns the canonical domainId for a skill slug, or null when the slug is
 // missing or its prefix is unrecognised (caller decides how to treat unknowns).
 export function domainIdFromSlug(slug) {
@@ -34,5 +47,5 @@ export function domainIdFromSlug(slug) {
   return PREFIX_TO_DOMAIN[prefix] || null;
 }
 
-export { PREFIX_TO_DOMAIN };
-export default { domainIdFromSlug, PREFIX_TO_DOMAIN };
+export { PREFIX_TO_DOMAIN, DOMAIN_ALIASES };
+export default { domainIdFromSlug, canonicalDomainId, PREFIX_TO_DOMAIN, DOMAIN_ALIASES };

@@ -9,6 +9,7 @@ import {
 } from '../services/mathpath/measurementPracticeService.js';
 import { measurementSkillGraph } from '../shared/mathpath/measurement/MeasurementSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
+import { persistDomainPracticeEvidence } from '../services/mathpath/domainPracticeEvidenceService.js';
 
 const CODE_TO_SLUG = Object.fromEntries(
   (measurementSkillGraph.skills || []).map((s) => [s.id, s.slug])
@@ -62,6 +63,7 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
     if (existing.status === 'completed') return res.json({ ...(existing.summary || {}), alreadyCompleted: true });
     const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
     const scored = scoreMeasurementSubmission({ questions: existing.questions || [], responses });
+    const evidence = await persistDomainPracticeEvidence({ student, domainId: DOMAIN_ID, session: existing, scored, responses });
     await Promise.all(Object.entries(scored.perSkill).map(([skillId, counts]) => {
       const set = { status: counts.status, accuracy: counts.accuracy, lastPractisedAt: new Date() };
       if (counts.status === 'mastered') set.masteredAt = new Date();
@@ -100,8 +102,12 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
     }
     const summary = {
       practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID,
-      results: scored.results, perSkill: scored.perSkill,
+      results: evidence.results, perSkill: scored.perSkill,
       accuracySummary: scored.accuracySummary, persisted: true,
+      evidencePersisted: {
+        attempts: evidence.attemptsPersisted,
+        sharedMistakes: evidence.sharedMistakesPersisted,
+      },
       ...(pslSuggestion && { pslSuggestion }),
     };
     existing.status = 'completed';

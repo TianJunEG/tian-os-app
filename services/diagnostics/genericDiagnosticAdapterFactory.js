@@ -183,6 +183,12 @@ export function createDiagnosticDomain(config = {}) {
       type:            question.questionType || question.type || 'short_answer',
       choices:         question.choices || [],
       answer:          question.answer,
+      diagram:         question.diagram || null,
+      diagramSpec:     question.diagramSpec || null,
+      visual:          question.visual || null,
+      requiresDiagram: Boolean(question.requiresDiagram),
+      requiresVisual:  Boolean(question.requiresVisual),
+      visualRequired:  Boolean(question.visualRequired),
     };
   }
 

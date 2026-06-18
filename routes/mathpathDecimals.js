@@ -23,6 +23,7 @@ import {
 } from '../services/mathpath/decimalsAssessmentService.js';
 import { decimalsSkillGraph } from '../shared/mathpath/decimals/decimalsSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
+import { persistDomainPracticeEvidence } from '../services/mathpath/domainPracticeEvidenceService.js';
 
 const DCODE_TO_SLUG = Object.fromEntries(
   (decimalsSkillGraph.skills || []).map((s) => [s.id, s.slug])
@@ -94,6 +95,7 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
 
     const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
     const scored = scoreDecimalsSubmission({ questions: existing.questions || [], responses });
+    const evidence = await persistDomainPracticeEvidence({ student, domainId: DOMAIN_ID, session: existing, scored, responses });
 
     // Persist per-skill mastery state.
     await Promise.all(Object.entries(scored.perSkill).map(([skillId, counts]) => {
@@ -145,10 +147,14 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
     const summary = {
       practiceSessionId: req.params.practiceSessionId,
       domainId: DOMAIN_ID,
-      results: scored.results,
+      results: evidence.results,
       perSkill: scored.perSkill,
       accuracySummary: scored.accuracySummary,
       persisted: true,
+      evidencePersisted: {
+        attempts: evidence.attemptsPersisted,
+        sharedMistakes: evidence.sharedMistakesPersisted,
+      },
       ...(pslSuggestion && { pslSuggestion }),
     };
     existing.status = 'completed';

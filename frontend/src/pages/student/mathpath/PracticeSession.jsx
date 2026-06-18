@@ -596,10 +596,11 @@ function speakText(text) {
   window.speechSynthesis.cancel();
   const clean = String(text || '')
     .replace(/\$[^$]*\$/g, '')
-    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 over $2')
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, '$1 out of $2')
     .replace(/\\times/g, ' times ')
     .replace(/\\div/g, ' divided by ')
     .replace(/[\\{}]/g, '')
+    .replace(/\b(\d+)\/(\d+)\b/g, '$1 out of $2')
     .replace(/\s+/g, ' ')
     .trim();
   if (!clean) return;
@@ -1489,7 +1490,6 @@ export default function PracticeSession() {
     });
 
     mathpathAPI.createWorkingSession({
-      studentId,
       practiceSessionId,
       domainId: flowSession?.domainId || 'fractions',
       skillIds: [...new Set(questionRefs.map((ref) => ref.skillId).filter(Boolean))],

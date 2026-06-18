@@ -212,7 +212,10 @@ export default function RecoveryPackTeachingFlow() {
         </Card>
 
         <Card className="p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.worked_example}</p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.worked_example}</p>
+            {stageDone(pack, 'worked_example') && <CheckCircle className="h-5 w-5 shrink-0 text-success-700" />}
+          </div>
           <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">{pack.workedExample?.title || 'Worked Example'}</h2>
           <div className="mt-4 grid gap-3">
             <p className="rounded-xl bg-tianRose px-3 py-2 text-sm text-ink-700"><span className="font-semibold">Common wrong method:</span> {pack.workedExample?.content?.incorrectMethod || 'A common shortcut gives the wrong relationship.'}</p>
@@ -220,20 +223,27 @@ export default function RecoveryPackTeachingFlow() {
             <p className="rounded-xl bg-success-100 px-3 py-2 text-sm text-success-700"><span className="font-semibold">Correct method:</span> {pack.workedExample?.content?.correctMethod || 'Work step by step and keep the parts labelled.'}</p>
             <p className="rounded-xl bg-surface-white px-3 py-2 text-sm text-ink-700"><span className="font-semibold">Key takeaway:</span> {pack.workedExample?.content?.keyTakeaway || 'Use the model first, then calculate.'}</p>
           </div>
-          {!stageDone(pack, 'worked_example') && (
+          {stageDone(pack, 'worked_example') ? (
+            <p className="mt-4 text-sm font-semibold text-success-700">Got it — moving on.</p>
+          ) : (
             <Button className="mt-4" onClick={() => markProgress({ stageId: 'worked_example' })} disabled={busy.startsWith('worked_example')}>
-              I understand this example
+              {busy.startsWith('worked_example') ? 'Saving…' : 'I understand this example'}
             </Button>
           )}
         </Card>
 
         <Card className="p-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.visual_explanation}</p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{STAGE_LABELS.visual_explanation}</p>
+            {stageDone(pack, 'visual_explanation') && <CheckCircle className="h-5 w-5 shrink-0 text-success-700" />}
+          </div>
           <h2 className="mt-2 font-display text-xl font-semibold text-emerald-deep">See the idea before calculating.</h2>
           <VisualModelCard visual={pack.visualExplanation} />
-          {!stageDone(pack, 'visual_explanation') && (
+          {stageDone(pack, 'visual_explanation') ? (
+            <p className="mt-4 text-sm font-semibold text-success-700">Got it — moving on.</p>
+          ) : (
             <Button className="mt-4" onClick={() => markProgress({ stageId: 'visual_explanation' })} disabled={busy.startsWith('visual_explanation')}>
-              I have viewed the model
+              {busy.startsWith('visual_explanation') ? 'Saving…' : 'I have viewed the model'}
             </Button>
           )}
         </Card>

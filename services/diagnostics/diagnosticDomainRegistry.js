@@ -15,6 +15,7 @@ import measurementDiagnosticDomain from './domains/measurementDiagnosticDomain.j
 import geometryDiagnosticDomain from './domains/geometryDiagnosticDomain.js';
 import statisticsDiagnosticDomain from './domains/statisticsDiagnosticDomain.js';
 import algebraDiagnosticDomain from './domains/algebraDiagnosticDomain.js';
+import { canonicalDomainId } from '../../utils/skillSlugDomain.js';
 
 const domains = new Map();
 
@@ -31,7 +32,8 @@ export function registerDiagnosticDomain(domain) {
 }
 
 export function getDiagnosticDomain({ subjectId = 'math', domainId = 'fractions' } = {}) {
-  const domain = domains.get(keyFor({ subjectId, domainId }));
+  const domain = domains.get(keyFor({ subjectId, domainId }))
+    || domains.get(keyFor({ subjectId, domainId: canonicalDomainId(domainId) }));
   if (!domain) {
     const err = new Error(`Diagnostic domain is not registered: ${subjectId}/${domainId}`);
     err.status = 404;
@@ -42,7 +44,8 @@ export function getDiagnosticDomain({ subjectId = 'math', domainId = 'fractions'
 }
 
 export function hasDiagnosticDomain({ subjectId = 'math', domainId = 'fractions' } = {}) {
-  return domains.has(keyFor({ subjectId, domainId }));
+  return domains.has(keyFor({ subjectId, domainId }))
+    || domains.has(keyFor({ subjectId, domainId: canonicalDomainId(domainId) }));
 }
 
 export function listDiagnosticDomains() {

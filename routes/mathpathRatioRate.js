@@ -12,6 +12,7 @@ import {
 } from '../services/mathpath/ratioRatePracticeService.js';
 import { ratioRateSkillGraph } from '../shared/mathpath/ratioRate/ratioRateSkillGraph.js';
 import { skillHasPSLContent, getHeuristicForSkill } from '../services/mathpath/heuristicBridge.js';
+import { persistDomainPracticeEvidence } from '../services/mathpath/domainPracticeEvidenceService.js';
 
 const RCODE_TO_SLUG = Object.fromEntries(
   (ratioRateSkillGraph.skills || []).map((s) => [s.id, s.slug])
@@ -81,6 +82,7 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
 
     const responses = Array.isArray(req.body?.responses) ? req.body.responses : [];
     const scored = scoreRatioRateSubmission({ questions: existing.questions || [], responses });
+    const evidence = await persistDomainPracticeEvidence({ student, domainId: DOMAIN_ID, session: existing, scored, responses });
 
     await Promise.all(Object.entries(scored.perSkill).map(([skillId, counts]) => {
       const set = { status: counts.status, accuracy: counts.accuracy, lastPractisedAt: new Date() };
@@ -129,10 +131,14 @@ router.post('/practice/:practiceSessionId/submit', protect, async (req, res) => 
     const summary = {
       practiceSessionId: req.params.practiceSessionId,
       domainId: DOMAIN_ID,
-      results: scored.results,
+      results: evidence.results,
       perSkill: scored.perSkill,
       accuracySummary: scored.accuracySummary,
       persisted: true,
+      evidencePersisted: {
+        attempts: evidence.attemptsPersisted,
+        sharedMistakes: evidence.sharedMistakesPersisted,
+      },
       ...(pslSuggestion && { pslSuggestion }),
     };
     existing.status = 'completed';

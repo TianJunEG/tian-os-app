@@ -36,10 +36,21 @@ function stepAction(step, session) {
   if ((step.step === 'reteach' || step.step === 'check_understanding' || step.step === 'original_complexity') && session.currentAssignmentId) {
     return { label: 'Continue Recovery Pack', to: `/student/mathpath/assignments/${session.currentAssignmentId}` };
   }
-  if (step.step === 'simplify') {
-    return { label: 'View Prerequisites', to: null };
-  }
   return null;
+}
+
+function prereqPracticeTarget(skillId, journeyId) {
+  return {
+    to: `/student/mathpath/practice/skill-${skillId}`,
+    state: {
+      skillId,
+      questionCount: 6,
+      sessionType: 'remediation',
+      source: 'remediation-journey',
+      backTo: `/student/mathpath/remediation/${journeyId}`,
+      homeBase: `/student/mathpath/remediation/${journeyId}`,
+    },
+  };
 }
 
 export default function RemediationJourney() {
@@ -133,14 +144,31 @@ export default function RemediationJourney() {
 
                   {isCurrent && step.step === 'simplify' && session.prerequisites?.length > 0 && (
                     <div className="mt-3 space-y-1">
-                      {session.prerequisites.map((p) => (
-                        <div key={p.skillId} className="flex items-center justify-between rounded-lg bg-ink-50 px-3 py-2 text-sm">
-                          <span className="font-medium text-ink-700">{p.skillName || p.skillId}</span>
-                          <Badge tone={p.status === 'mastered' ? 'success' : p.status === 'skipped' ? 'neutral' : 'gold'}>
-                            {p.status === 'mastered' ? 'Mastered' : p.status === 'skipped' ? 'Skipped' : p.status === 'in_progress' ? 'Practising' : 'Pending'}
-                          </Badge>
-                        </div>
-                      ))}
+                      {session.prerequisites.map((p) => {
+                        const { to, state: navState } = prereqPracticeTarget(p.skillId, id);
+                        const isDone = p.status === 'mastered' || p.status === 'skipped';
+                        return (
+                          <button
+                            key={p.skillId}
+                            type="button"
+                            onClick={() => navigate(to, { state: navState })}
+                            disabled={isDone}
+                            className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                              isDone
+                                ? 'bg-ink-50 cursor-default'
+                                : 'bg-gold-50 border border-gold-200 hover:bg-gold-100 cursor-pointer'
+                            }`}
+                          >
+                            <span className="font-medium text-ink-700">{p.skillName || p.skillId}</span>
+                            <div className="flex items-center gap-2">
+                              <Badge tone={p.status === 'mastered' ? 'success' : p.status === 'skipped' ? 'neutral' : 'gold'}>
+                                {p.status === 'mastered' ? 'Mastered' : p.status === 'skipped' ? 'Skipped' : p.status === 'in_progress' ? 'Practising' : 'Pending'}
+                              </Badge>
+                              {!isDone && <ArrowRight className="h-3.5 w-3.5 text-gold-600" />}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
 

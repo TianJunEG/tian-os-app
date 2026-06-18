@@ -52,6 +52,7 @@ import {
   startFractionPracticeFlow,
   submitFractionPracticeAttempt,
 } from '../shared/mathpath/fractions/fractionPracticeFlow.js';
+import { checkFractionAnswer } from '../shared/mathpath/fractions/fractionQuestionGenerator.js';
 import { fractionSkillGraph } from '../shared/mathpath/fractions/fractionSkillGraph.js';
 import {
   approvePracticeSet,
@@ -542,12 +543,64 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
       return res.json({ ...existing.summary, persisted: true, duplicateIgnored: true, lifecycleLog: existing.lifecycleLog || {} });
     }
 
-    const submitted = submitFractionPracticeAttempt({
-      practiceSessionId: req.params.practiceSessionId,
-      studentId,
-      sessionType: req.body?.sessionType || existing.summary?.sessionType || 'practice',
-      responses: Array.isArray(req.body?.responses) ? req.body.responses : [],
-    });
+    let submitted;
+    const rawResponses = Array.isArray(req.body?.responses) ? req.body.responses : [];
+    const resolvedSessionType = req.body?.sessionType || existing.summary?.sessionType || 'practice';
+    try {
+      submitted = submitFractionPracticeAttempt({
+        practiceSessionId: req.params.practiceSessionId,
+        studentId,
+        sessionType: resolvedSessionType,
+        responses: rawResponses,
+      });
+    } catch (flowErr) {
+      // In-memory session lost (backend restart or client-side fallback session).
+      // Reconstruct a minimal scored submission from the DB questions + raw responses.
+      if (!flowErr.message?.includes('not found')) throw flowErr;
+      const dbQuestionsById = new Map((existing.questions || []).map((q) => [String(q.questionId), q]));
+      const fallbackResults = rawResponses.map((response) => {
+        const question = dbQuestionsById.get(String(response.questionId || ''));
+        const skipped = Boolean(response.skipped || !String(response.studentAnswer || '').trim());
+        const answerCheck = (!skipped && question)
+          ? checkFractionAnswer({ studentAnswer: response.studentAnswer, correctAnswer: question.answer, acceptedAnswers: question.acceptedAnswers || [] })
+          : { correct: false, normalizedStudentAnswer: null, normalizedCorrectAnswer: question?.answer?.display || null };
+        return {
+          questionId: response.questionId || '',
+          skillId: question?.skillId || '',
+          questionFamilyId: question?.questionFamilyId || '',
+          studentAnswer: response.studentAnswer || '',
+          correctAnswer: question?.answer?.display || '',
+          correct: answerCheck.correct,
+          answerCorrect: answerCheck.correct,
+          normalizedStudentAnswer: answerCheck.normalizedStudentAnswer,
+          normalizedCorrectAnswer: answerCheck.normalizedCorrectAnswer,
+          timeTaken: Number(response.timeTaken || 0),
+          confidence: response.confidence ?? null,
+          skipped,
+          workingSubmitted: Boolean(response.workingSubmitted),
+          workingOnPaper: Boolean(response.workingOnPaper),
+          workingNotNeeded: Boolean(response.workingNotNeeded),
+          solutionSteps: question?.solutionSteps || [],
+        };
+      });
+      const scoredFallback = fallbackResults.filter((r) => r.questionId);
+      const correctCount = scoredFallback.filter((r) => r.correct).length;
+      submitted = {
+        practiceSessionId: req.params.practiceSessionId,
+        sessionType: resolvedSessionType,
+        results: fallbackResults,
+        accuracySummary: {
+          totalQuestions: scoredFallback.length,
+          correctCount,
+          incorrectCount: Math.max(0, scoredFallback.length - correctCount),
+          accuracyPercentage: scoredFallback.length ? Math.round((correctCount / scoredFallback.length) * 1000) / 10 : 0,
+          averageSeconds: 0,
+        },
+        fluencySummary: { averageSeconds: 0, familyFluencySummary: [], accurateButSlowCount: 0, fluentCount: 0 },
+        sessionRecommendation: 'continuePractice',
+        _reconstructedFromDb: true,
+      };
+    }
     const results = submitted.results || [];
     const questionsById = new Map((existing.questions || []).map((question) => [String(question.questionId), question]));
     const attemptDocs = results

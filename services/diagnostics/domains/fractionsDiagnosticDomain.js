@@ -66,6 +66,18 @@ function hasPrimaryLevelNegativeFractionQuestion(question = {}) {
   return /\(\s*-\d+\s*\/\s*\d+\s*\)|-\d+\s*\/\s*\d+/.test(text);
 }
 
+const BLOCKED_STEM_PATTERNS = [
+  /words.friendly/i,
+  /enter the same mixed number/i,
+  /compute:\s*\d+\s*[×x]\s*\d+\s*=\s*\?/i,  // bare whole-number multiplication
+];
+
+function isBlockedQuestion(question = {}) {
+  if (question.hasFigure || question.figureDependent) return true;
+  const stem = String(question.stem || '');
+  return BLOCKED_STEM_PATTERNS.some((re) => re.test(stem));
+}
+
 function resolveDiagnosticCount(mode = 'core', purpose = 'baseline') {
   const p = DIAG_PURPOSES.has(String(purpose || '').toLowerCase())
     ? String(purpose || '').toLowerCase()
@@ -216,6 +228,7 @@ async function selectInitialQuestions({ targetSkills = [], count = 10, studentLe
     },
     { $sample: { size: sampleSize } },
   ]);
+  questions = questions.filter((q) => !isBlockedQuestion(q));
   if (/^P[1-6]$/i.test(studentLevel || '')) {
     questions = questions.filter((q) => !hasPrimaryLevelNegativeFractionQuestion(q));
   }
@@ -257,12 +270,13 @@ async function getQuestionBank({ targetSkillIds = [] }) {
       { questionCategory: 'diagnostic' },
     ],
   });
+  const filtered = docs.filter((doc) => !isBlockedQuestion(doc));
   const skillByDbId = new Map(targetSkills.map((skill) => [String(skill._id), skill]));
   return {
-    docs,
+    docs: filtered,
     skillsByFrameworkId: byFrameworkId,
     skillByDbId,
-    bank: docs.map((doc) => genericQuestionFromDoc(doc, skillByDbId.get(String(doc.skillId)))),
+    bank: filtered.map((doc) => genericQuestionFromDoc(doc, skillByDbId.get(String(doc.skillId)))),
   };
 }
 

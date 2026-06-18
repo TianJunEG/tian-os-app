@@ -8,6 +8,7 @@ const mistakeSchema = new mongoose.Schema({
   questionId: { type: mongoose.Schema.Types.Mixed, required: true },
   sessionId: { type: String, default: '', trim: true },
   attemptId: { type: String, default: '', trim: true },
+  domainId: { type: String, default: '', trim: true, index: true },
   skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', default: null },
   skillCode: { type: String, default: '', trim: true },
   module: { type: String, default: 'MathPath' },
@@ -153,6 +154,7 @@ const mistakeSchema = new mongoose.Schema({
 
 mistakeSchema.index({ studentId: 1, occurredAt: -1 });
 mistakeSchema.index({ studentId: 1, skillId: 1, status: 1 });
+mistakeSchema.index({ studentId: 1, domainId: 1, status: 1 });
 mistakeSchema.index({ attemptId: 1 });
 mistakeSchema.index({ workingId: 1 });
 mistakeSchema.index({ remediationId: 1 });

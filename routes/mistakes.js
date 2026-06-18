@@ -13,6 +13,7 @@ import {
 } from '../services/mathpath/mistakeCorrectionFlow.js';
 import r2 from '../services/storage/r2.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { domainIdFromSlug } from '../utils/skillSlugDomain.js';
 
 const router = express.Router();
 
@@ -20,6 +21,24 @@ const MISCONCEPTION_LABELS = {
   'frac/add-without-common': 'Added numerators and denominators directly',
   'frac/add-denominators': 'Added numerators and denominators directly',
 };
+
+function domainLabel(domainId = '') {
+  if (!domainId) return 'MathPath';
+  return String(domainId).replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function inferMistakeDomainId(m = {}) {
+  return m.domainId || domainIdFromSlug(m.skillSlug || m.skillId?.slug) || '';
+}
+
+function nextActionForWeakSkill(row = {}) {
+  const domain = domainLabel(row.domainId);
+  const skill = row.skillName || row.skillCode || 'this skill';
+  if (row.confidenceRiskCount > 0) {
+    return `Review the worked solution for ${skill}, then assign a short ${domain} retry.`;
+  }
+  return `Assign 5-10 minutes of ${domain} practice for ${skill}.`;
+}
 
 export function isHighConfidence(confidence = '') {
   return ['high', 'i_know_this', 'very_confident', 'confident'].includes(String(confidence || '').toLowerCase());
@@ -35,9 +54,11 @@ export function buildWeakSkillAggregation(mistakes = []) {
         skillCode: m.skillCode,
         skillName: m.skillName,
         topicName: m.topicName,
+        domainId: inferMistakeDomainId(m),
         count: 0,
         latestMistakeDate: null,
         confidenceRiskCount: 0,
+        nextAction: '',
       };
     }
     bySkill[key].count++;
@@ -47,7 +68,9 @@ export function buildWeakSkillAggregation(mistakes = []) {
       bySkill[key].latestMistakeDate = occurred;
     }
   }
-  return Object.values(bySkill).sort((a, b) => b.count - a.count);
+  return Object.values(bySkill)
+    .map((row) => ({ ...row, nextAction: nextActionForWeakSkill(row) }))
+    .sort((a, b) => b.count - a.count);
 }
 
 function shapeWorkingFields(source = {}) {
@@ -66,6 +89,7 @@ function normalizeMistakePayload(raw = {}) {
   return {
     questionId,
     sessionId: String(raw.sessionId || raw.practiceSessionId || '').trim(),
+    domainId: String(raw.domainId || '').trim(),
     skillCode,
     attemptId: String(raw.attemptId || '').trim(),
     questionStem: String(raw.questionText || raw.questionStem || raw.prompt || '').trim(),
@@ -117,8 +141,11 @@ router.get('/', protect, asyncHandler(async (req, res) => {
     // ?domain=fractions keeps times-table/fluency slips out of the fractions review
     // so they are not mistaken for fraction gaps. Opt-in, so other callers are
     // unaffected. Fluency slips are surfaced separately by the fluency module.
-    if (String(req.query.domain || '').toLowerCase() === 'fractions') {
-      filter.skillCode = { $regex: /^F\d{3}$/i };
+    const requestedDomain = String(req.query.domain || '').toLowerCase();
+    if (requestedDomain === 'fractions') {
+      filter.$or = [{ domainId: 'fractions' }, { skillCode: { $regex: /^F\d{3}$/i } }];
+    } else if (requestedDomain) {
+      filter.domainId = requestedDomain;
     }
 
     const mistakes = await Mistake.find(filter)
@@ -127,6 +154,7 @@ router.get('/', protect, asyncHandler(async (req, res) => {
 
     const shaped = await Promise.all(mistakes.map(async (m) => ({
       id: m._id, questionId: m.questionId, sessionId: m.sessionId || '', attemptId: m.attemptId || '',
+      domainId: inferMistakeDomainId(m),
       skillId: m.skillId?._id || null, skillCode: m.skillCode || '',
       skillName: m.skillId?.name || m.skillCode || 'Unknown skill',
       topicName: m.skillId?.topicId?.name || '', module: m.module,
@@ -135,6 +163,7 @@ router.get('/', protect, asyncHandler(async (req, res) => {
       studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       answerCorrect: Boolean(m.answerCorrect),
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
+      nextAction: m.nextAction || '',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
       workingSubmitted: Boolean(m.workingSubmitted),
@@ -191,6 +220,7 @@ router.post('/bulk', protect, asyncHandler(async (req, res) => {
         questionId: normalized.questionId,
         sessionId: normalized.sessionId,
         attemptId: normalized.attemptId,
+        domainId: normalized.domainId,
         skillId,
         skillCode: normalized.skillCode,
         module: raw.module || 'MathPath',
@@ -261,6 +291,7 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
     });
     res.json({
       id: m._id, questionId: m.questionId, sessionId: m.sessionId || '', attemptId: m.attemptId || '',
+      domainId: inferMistakeDomainId(m),
       skillId: m.skillId?._id || null, skillCode: m.skillCode || '',
       skillName: m.skillId?.name || m.skillCode || 'Unknown skill', topicName: m.skillId?.topicId?.name || '',
       questionText: m.questionText || m.questionStem,
@@ -268,6 +299,7 @@ router.get('/:id', protect, asyncHandler(async (req, res) => {
       studentAnswer: m.studentAnswer, correctAnswer: m.correctAnswer,
       answerCorrect: Boolean(m.answerCorrect),
       workedSolution: m.workedSolution, mistakeType: m.mistakeType, misconceptionTag: m.misconceptionTag, source: m.source || 'other',
+      nextAction: m.nextAction || '',
       mistakeTypeLabel: MISCONCEPTION_LABELS[m.misconceptionTag] || '',
       confidence: m.confidence || '',
       workingSubmitted: Boolean(m.workingSubmitted),

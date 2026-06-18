@@ -117,7 +117,6 @@ export default function WorkingUploadReviewScreen() {
           throw new Error('We could not confirm your student account. Please return to MathPath and try again.');
         }
         const created = await withSubmissionTimeout(mathpathAPI.createWorkingSession({
-          studentId,
           practiceSessionId: state.practiceSessionId || null,
           assessmentSessionId: state.assessmentSessionId || null,
           domainId: 'fractions',

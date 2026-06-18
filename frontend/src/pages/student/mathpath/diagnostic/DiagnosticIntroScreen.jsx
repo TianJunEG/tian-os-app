@@ -44,6 +44,7 @@ export default function DiagnosticIntroScreen() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
 
+  const domainLabel = domainId.charAt(0).toUpperCase() + domainId.slice(1).replace(/([A-Z])/g, ' $1');
   const enrichment = ['P1', 'P2'].includes(String(studentLevel || '').toUpperCase());
   const estimate = useMemo(() => {
     if (diagnosticPurpose === 'baseline') {
@@ -114,13 +115,13 @@ export default function DiagnosticIntroScreen() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        title={diagnosticPurpose === 'baseline' ? 'Fractions Check-In' : 'Fractions Diagnostic'}
+        title={diagnosticPurpose === 'baseline' ? `${domainLabel} Check-In` : `${domainLabel} Diagnostic`}
         subtitle="Find your best starting point in MathPath."
       />
       <div className="space-y-4">
         <Card className="p-5">
           <p className="text-sm text-ink-700">
-            This check-in helps MathPath find your best starting point for Fractions. It is not a school test.
+            This check-in helps MathPath find your best starting point for {domainLabel}. It is not a school test.
             Try your best so we can recommend the right practice.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
@@ -172,14 +173,14 @@ export default function DiagnosticIntroScreen() {
           <Card className="border-l-4 border-l-gold-500 p-4">
             <div className="flex items-start gap-2 text-sm text-gold-900">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>Fractions are usually introduced later. This may be used for enrichment or early exposure.</p>
+              <p>{domainLabel} is usually introduced later. This may be used for enrichment or early exposure.</p>
             </div>
           </Card>
         )}
 
         {error && <Card className="p-3 text-sm text-error-700">{error}</Card>}
         <Button size="l" icon={ArrowRight} className="w-full" onClick={startDiagnostic} disabled={starting}>
-          {starting ? 'Starting…' : diagnosticPurpose === 'baseline' ? 'Start Fractions Check-In' : 'Start Diagnostic'}
+          {starting ? 'Starting…' : diagnosticPurpose === 'baseline' ? `Start ${domainLabel} Check-In` : 'Start Diagnostic'}
         </Button>
       </div>
     </div>

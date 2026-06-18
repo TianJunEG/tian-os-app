@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { diagnosticsAPI } from '../../../services/api';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../components/ui';
 import { MascotBubble } from '../../../components/MascotAvatar';
+import QuestionDiagram from './components/QuestionDiagram';
 
 // Generic adaptive diagnostic ("check-in") that serves every MathPath domain.
 // Mirrors DecimalsDiagnosticSession but reads the domain from the :domainId
@@ -21,8 +22,11 @@ const DOMAIN_CONFIG = {
   decimals: { domainId: 'decimals', label: 'Decimals' },
   percentages: { domainId: 'percentage', label: 'Percentage' },
   'ratio-rate': { domainId: 'ratio', label: 'Ratio & Rate' },
+  rate: { domainId: 'ratio', label: 'Ratio & Rate' },
   'area-perimeter': { domainId: 'area_perimeter', label: 'Area & Perimeter' },
   'number-sense': { domainId: 'number_sense', label: 'Number Sense' },
+  'whole-numbers': { domainId: 'number_sense', label: 'Number Sense' },
+  whole_numbers: { domainId: 'number_sense', label: 'Number Sense' },
   operations: { domainId: 'four_operations', label: 'Operations' },
   algebra: { domainId: 'algebra', label: 'Algebra' },
   circles: { domainId: 'circles', label: 'Circles' },
@@ -227,6 +231,7 @@ export default function DomainDiagnosticSession() {
       )}
 
       <Card className="p-6">
+        <QuestionDiagram question={question} />
         <p className="text-lg font-semibold text-ink-900">{question?.prompt}</p>
         {question?.type === 'mcq' ? (
           <div className="mt-5 grid gap-2">
