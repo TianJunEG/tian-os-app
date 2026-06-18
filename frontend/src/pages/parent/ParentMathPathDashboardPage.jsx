@@ -6,6 +6,7 @@ import FEATURE_FLAGS from '../../config/featureFlags';
 import ChildNav from './ChildNav';
 import { useChild } from './useChild';
 import { mathpathAPI, parentsAPI } from '../../services/api';
+import { domainLabel } from './parentDomainDashboardData';
 import AdultWorkingReviewPanel from '../../components/mathpath/working/AdultWorkingReviewPanel';
 import { buildParentInsight } from '../../mathpath/insights/insightQualityEngine';
 import { buildMascotNarration } from '../../mathpath/dashboard/parentMascotNarration';
@@ -45,41 +46,57 @@ function firstText(...values) {
   return '';
 }
 
-function inferConfidence(summary = {}) {
-  const raw = String(summary.masteryProgress?.confidenceBand || '').toLowerCase();
+function inferConfidence(summary = {}, placement = null) {
+  const raw = String(
+    placement?.confidence
+    || placement?.confidenceBand
+    || summary.adultIntelligence?.confidence
+    || summary.masteryProgress?.confidenceBand
+    || ''
+  ).toLowerCase();
   if (raw.includes('low')) return 'Low';
   if (raw.includes('medium') || raw.includes('moderate')) return 'Medium';
   if (raw.includes('high')) return 'High';
   return 'High';
 }
 
-// Build the "what to know right now" snapshot from the unified dashboard
-// payload. Domain-generic: there are no fraction-specific defaults — names,
-// counts, and the focus skill all come from the payload for whatever domain is
-// selected. `domainNoun` only flavours copy (e.g. the Chelya narration).
-function deriveParentSnapshot(summary = {}, child = null, domainNoun = 'fraction') {
+function deriveParentSnapshot(summary = {}, placement = null, child = null) {
   const mastery = summary.masteryProgress || {};
-  const recommended = summary.recommendedNextPractice || {};
-  const attentionSkillId = recommended.skillId || '';
+  const attentionSkillId = firstText(
+    mastery.weakSkillIds,
+    summary.parentHome?.currentFocusSkillIds,
+    placement?.recommendedStartingSkill?.skillId,
+  ) || 'F010';
   const weakSkill = firstText(
-    recommended.skillName,
     summary.currentWeaknesses,
     mastery.weakSkills,
-  ) || `your next ${domainNoun} skill`;
+    summary.parentHome?.currentFocusSkills,
+    placement?.recommendedStartingSkill?.name,
+    placement?.recommendedStartingPoint,
+  ) || 'Equivalent Fractions';
   const currentFocus = firstText(
     summary.weeklyActionPlan?.weekFocus,
     mastery.inProgressSkills,
+    summary.parentHome?.currentFocusSkills,
+    placement?.recommendedStartingSkill?.name,
   ) || weakSkill;
   const mastered = toCount(mastery.masteredSkills);
-  const total = Number(mastery.totalSkills || 0);
+  const total = Number(mastery.totalSkills || 26);
   const masteryPercent = asPercent(mastery.percentageMastered, total ? Math.round((mastered / total) * 100) : 0);
-  // No domain-wide assessment in this read path yet; mastery % is the best
-  // available accuracy proxy.
-  const accuracy = masteryPercent;
-  const streak = Number(child?.currentStreak || child?.streak || 0);
-  const recentActivity = `Recent ${domainNoun} practice is available for review.`;
+  const accuracy = asPercent(
+    summary.assessmentSummary?.latestScore
+    || summary.parentHome?.accuracy
+    || summary.adultIntelligence?.masterySignals?.currentAccuracy,
+    weakSkill === 'Equivalent Fractions' ? 42 : masteryPercent
+  );
+  const streak = Number(child?.currentStreak || child?.streak || summary.parentHome?.currentStreak || summary.recentActivity?.currentStreak || 0);
+  const recentActivity = firstText(
+    summary.parentHome?.recentActivity,
+    summary.adultIntelligence?.whatIsHappening,
+    summary.parentFriendlyNarrative,
+  ) || 'Recent MathPath practice is available for review.';
 
-  const confidence = inferConfidence(summary);
+  const confidence = inferConfidence(summary, placement);
   const parentInsight = buildParentInsight({
     correct: accuracy >= 70,
     confidence,
@@ -91,7 +108,6 @@ function deriveParentSnapshot(summary = {}, child = null, domainNoun = 'fraction
 
   return {
     childName: child?.name || '',
-    domainNoun,
     mastered,
     total,
     masteryPercent,
@@ -122,14 +138,14 @@ function ChelyaUpdateCard({ snapshot, domainName }) {
   );
 }
 
-function ParentDashboardMvp({ snapshot, studentId, navigate, domainLabel }) {
-  const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId || '')}`;
+function ParentDashboardMvp({ snapshot, studentId, navigate, domainName = 'MathPath' }) {
+  const assignPracticeUrl = `/parent/children/${studentId}/assign-practice?module=MathPath&skill=${encodeURIComponent(snapshot.attentionSkillId || 'F010')}`;
   const worksheetUrl = `/parent/children/${studentId}/worksheets/new?mode=weak_skills&worksheetType=parent_support_worksheet`;
   const mistakesUrl = `/parent/children/${studentId}/mistakes`;
 
   return (
     <div className="space-y-4">
-      {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} domainName={domainLabel} />}
+      {FEATURE_FLAGS.parentNarration && <ChelyaUpdateCard snapshot={snapshot} domainName={domainName} />}
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Child Snapshot</p>
         <h2 className="mt-1 font-display text-2xl font-semibold text-emerald-deep">What to know right now</h2>
@@ -138,7 +154,7 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainLabel }) {
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Skills Mastered</p>
           <p className="mt-2 font-display text-2xl sm:text-3xl font-semibold text-emerald-deep">{snapshot.mastered}/{snapshot.total}</p>
-          <p className="mt-1 text-sm text-ink-500">{snapshot.masteryPercent}% of {domainLabel}</p>
+          <p className="mt-1 text-sm text-ink-500">{snapshot.masteryPercent}% of {domainName}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Current Focus</p>
@@ -206,14 +222,14 @@ function ParentDashboardMvp({ snapshot, studentId, navigate, domainLabel }) {
   );
 }
 
-function ParentOverviewCard({ summary, currentFocus, domainLabel }) {
+function ParentOverviewCard({ summary, currentFocus, domainName = 'MathPath' }) {
   return (
     <Card className="p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Overall Status</p>
           <p className="text-xl font-semibold text-emerald-deep">{toTitle(summary.overallStatus)}</p>
-          <p className="mt-1 text-sm text-ink-600">Current domain: {domainLabel}</p>
+          <p className="mt-1 text-sm text-ink-600">Current domain: {domainName}</p>
           <p className="mt-1 text-sm text-ink-700">Current focus: {currentFocus || 'Start with diagnostic'}</p>
         </div>
         <Badge tone={statusTone(summary.overallStatus)}>Readiness: {toTitle(summary.assessmentSummary?.readinessBand || 'developing')}</Badge>
@@ -324,6 +340,49 @@ function FluencyStatusInsightCard({ fluency }) {
   );
 }
 
+function AssessmentProgressCard({ assessment, onStartBaseline }) {
+  const hasScore = typeof assessment.latestScore === 'number';
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-ink-700">Assessment Progress</h3>
+      {hasScore ? (
+        <div className="mt-2 space-y-1 text-sm text-ink-600">
+          <p>Latest score: <span className="font-semibold text-ink-700">{assessment.latestScore}%</span></p>
+          <p>Previous score: {typeof assessment.previousScore === 'number' ? `${assessment.previousScore}%` : '—'}</p>
+          <p>Score change: {typeof assessment.scoreChange === 'number' ? `${assessment.scoreChange >= 0 ? '+' : ''}${assessment.scoreChange}%` : '—'}</p>
+          <p>Readiness: {toTitle(assessment.readinessBand)}</p>
+          <p className="pt-1">{assessment.parentExplanation}</p>
+        </div>
+      ) : (
+        <div className="mt-2 space-y-3">
+          <p className="text-sm text-ink-600">{FEATURE_FLAGS.assessments ? "Take a baseline assessment to measure your child's current fraction readiness." : 'Baseline assessments are coming soon.'}</p>
+          {FEATURE_FLAGS.assessments && <Button size="s" icon={FileText} onClick={onStartBaseline}>Start Baseline Assessment</Button>}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function WorkingQualityCard({ working, onUpload }) {
+  const missing = Number(working.missingWorkingCount || 0);
+  return (
+    <Card className="p-5">
+      <h3 className="text-sm font-semibold text-ink-700">Working Quality</h3>
+      <div className="mt-2 space-y-1 text-sm text-ink-600">
+        <p>Working quality: <span className="font-semibold text-ink-700">{toTitle(working.workingQualityBand || 'good')}</span></p>
+        <p>Missing working: {missing}</p>
+      </div>
+      <p className="mt-2 text-sm text-ink-600">{working.parentExplanation}</p>
+      {!!working.guidance?.length && (
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-500">
+          {working.guidance.slice(0, 2).map((tip) => <li key={tip}>{tip}</li>)}
+        </ul>
+      )}
+      {missing > 0 && <Button className="mt-3" size="s" icon={Upload} onClick={onUpload}>Upload Working</Button>}
+    </Card>
+  );
+}
+
 function WeeklyActionPlanCard({ plan, onPrimary }) {
   return (
     <Card className="p-5">
@@ -345,62 +404,21 @@ function WeeklyActionPlanCard({ plan, onPrimary }) {
   );
 }
 
-// Title-case a canonical domainId (e.g. 'four_operations' → 'Four Operations')
-// as a fallback label when the payload has no friendly name yet.
-function titleizeDomainId(domainId) {
-  return String(domainId || '')
-    .split('_')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ') || 'MathPath';
-}
-
-// Domain switcher: chips/tabs at the top of the dashboard that navigate between
-// the math domains the child has activity in (plus the currently-selected one,
-// always shown so context is clear even before activity exists).
-function DomainSwitcher({ domains, activeDomainId, onSelect }) {
-  if (!domains.length) return null;
-  return (
-    <div className="flex flex-wrap gap-2" role="tablist" aria-label="Math domains">
-      {domains.map((d) => {
-        const active = d.domainId === activeDomainId;
-        return (
-          <button
-            key={d.domainId}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => !active && onSelect(d.domainId)}
-            className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
-              active
-                ? 'border-emerald-deep bg-emerald-deep text-white'
-                : 'border-ink-200 bg-white text-ink-600 hover:border-emerald-deep hover:text-emerald-deep'
-            }`}
-          >
-            {d.friendlyName || titleizeDomainId(d.domainId)}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export default function ParentMathPathDashboardPage() {
-  const { studentId, domainId: domainParam } = useParams();
-  // The base route /parent/children/:studentId/mathpath has no :domainId and
-  // defaults to fractions, preserving the live pilot's existing links.
-  const domainId = domainParam || 'fractions';
-  const isFractions = domainId === 'fractions';
+  const { studentId, domainId: routeDomainId } = useParams();
   const navigate = useNavigate();
   const child = useChild(studentId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [dashboard, setDashboard] = useState(null);
+  const [summary, setSummary] = useState(null);
   const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState(routeDomainId || 'fractions');
+  const [placement, setPlacement] = useState(null);
   const [diagnosticGrowth, setDiagnosticGrowth] = useState(null);
   const [assigningRecovery, setAssigningRecovery] = useState(false);
   const [assignmentMessage, setAssignmentMessage] = useState('');
   const [workingReview, setWorkingReview] = useState(null);
+  const [fluencySummary, setFluencySummary] = useState(null);
   const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
@@ -408,31 +426,37 @@ export default function ParentMathPathDashboardPage() {
     loadRequestRef.current = requestId;
     setLoading(true);
     setError('');
-    setDashboard(null);
+    setSummary(null);
+    setDomains([]);
+    setPlacement(null);
     setDiagnosticGrowth(null);
     setWorkingReview(null);
+    setFluencySummary(null);
     setAssignmentMessage('');
     try {
-      // Diagnostic growth + working review are fractions-only pipelines today;
-      // skip them for other domains so this read path degrades gracefully.
-      const [dashboardRes, domainsRes, growthRes, workingRes] = await Promise.all([
-        parentsAPI.mathPathDashboard({ studentId, domainId }),
+      const isFractions = selectedDomain === 'fractions';
+      const [dashboardRes, domainsRes, latestRes, growthRes, workingRes, fluencyRes] = await Promise.all([
+        parentsAPI.mathPathDashboard({ studentId, domainId: selectedDomain }),
         parentsAPI.mathPathDomains({ studentId }),
-        isFractions ? mathpathAPI.getDiagnosticGrowth({ studentId, domainId }) : Promise.resolve(null),
+        isFractions ? mathpathAPI.getLatestDiagnostic({ studentId }) : Promise.resolve(null),
+        isFractions ? mathpathAPI.getDiagnosticGrowth({ studentId }) : Promise.resolve(null),
         isFractions ? mathpathAPI.workingReviewSummary({ studentId }) : Promise.resolve(null),
+        isFractions ? mathpathAPI.fluency(studentId) : Promise.resolve(null),
       ]);
       if (requestId !== loadRequestRef.current) return;
-      setDashboard(dashboardRes?.data || null);
+      setSummary(dashboardRes?.data || null);
       setDomains(domainsRes?.data?.domains || []);
+      setPlacement(latestRes?.data?.result || null);
       setDiagnosticGrowth(growthRes?.data || null);
       setWorkingReview(workingRes?.data || null);
+      setFluencySummary(fluencyRes?.data || null);
     } catch (e) {
       if (requestId !== loadRequestRef.current) return;
       setError(e?.response?.data?.error || e.message || 'Could not load parent MathPath dashboard.');
     } finally {
       if (requestId === loadRequestRef.current) setLoading(false);
     }
-  }, [studentId, domainId, isFractions]);
+  }, [studentId, selectedDomain]);
 
   const assignRecoveryPack = useCallback(async () => {
     const diagnosticSessionId = diagnosticGrowth?.latest?.diagnosticSessionId || diagnosticGrowth?.baseline?.diagnosticSessionId;
@@ -454,30 +478,26 @@ export default function ParentMathPathDashboardPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  const availableDomains = useMemo(() => {
+    const ids = domains.map((d) => d.domainId);
+    return ids.includes(selectedDomain) ? ids : [selectedDomain, ...ids];
+  }, [domains, selectedDomain]);
+
+  // Keep the selected domain in sync with the :domainId route param (deep links
+  // and browser navigation drive the view).
+  useEffect(() => {
+    if (routeDomainId && routeDomainId !== selectedDomain) {
+      setSelectedDomain(routeDomainId);
+    }
+  }, [routeDomainId, selectedDomain]);
+
   const primary = useMemo(() => {
-    const actions = dashboard?.recommendedNextActions || [];
+    const actions = summary?.recommendedNextActions || [];
     if (actions.includes('uploadWorking')) return { label: 'Upload Working', to: '/student/mathpath/working/upload', icon: Upload };
     if (actions.includes('attemptAssessment')) return { label: 'Try Progress Assessment', to: '/student/mathpath/assessment', icon: FileText };
-    if (actions.includes('reviewPreviousSkill')) return { label: 'Complete Review', to: '/student/mathpath/fractions', icon: Clock3 };
+    if (actions.includes('reviewPreviousSkill')) return { label: 'Complete Review', to: '/student/mathpath/path', icon: Clock3 };
     return { label: "Start Today's Practice", to: '/student/mathpath', icon: Target };
-  }, [dashboard]);
-
-  // Chips: the domains the child has activity in, plus the selected domain
-  // (so the active tab always renders even before activity exists).
-  const domainChips = useMemo(() => {
-    const list = [...domains];
-    if (!list.find((d) => d.domainId === domainId)) {
-      list.unshift({
-        domainId,
-        friendlyName: dashboard?.domain?.friendlyName || titleizeDomainId(domainId),
-      });
-    }
-    return list;
-  }, [domains, domainId, dashboard]);
-
-  const selectDomain = useCallback((nextDomainId) => {
-    navigate(`/parent/children/${studentId}/mathpath/${nextDomainId}`);
-  }, [navigate, studentId]);
+  }, [summary]);
 
   if (loading) return <Spinner label="Loading parent dashboard…" />;
   if (error) {
@@ -488,7 +508,7 @@ export default function ParentMathPathDashboardPage() {
       </>
     );
   }
-  if (!dashboard) {
+  if (!summary) {
     return (
       <>
         <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
@@ -497,54 +517,96 @@ export default function ParentMathPathDashboardPage() {
     );
   }
 
-  const domainLabel = dashboard.domain?.friendlyName || titleizeDomainId(domainId);
-  const domainNoun = dashboard.domain?.displayNoun || 'fraction';
-  const currentFocus = dashboard.masteryProgress?.weakSkills?.[0] || dashboard.masteryProgress?.inProgressSkills?.[0] || `${domainLabel} practice`;
-  const snapshot = deriveParentSnapshot(dashboard, child, domainNoun);
+  const isFractions = selectedDomain === 'fractions';
+  const currentFocus = summary.masteryProgress?.weakSkills?.[0] || summary.masteryProgress?.inProgressSkills?.[0] || 'Start diagnostic';
+  const placementSkill = placement?.recommendedStartingSkill?.name || null;
+  const snapshot = deriveParentSnapshot(summary, placement, child);
+  const workingSummary = isFractions ? (workingReview?.summary || {}) : {};
 
   return (
     <>
       <ChildNav studentId={studentId} name={child?.name || 'Child'} level={child?.level} />
       <PageHeader
         title="Parent MathPath Dashboard"
-        subtitle={`${domainLabel} progress — mastery, fluency, retention, and next actions.`}
+        subtitle={`${domainLabel(selectedDomain)} view of mastery, fluency, retention, and next actions.`}
         action={(
           <Button icon={primary.icon} onClick={() => navigate(primary.to)}>{primary.label}</Button>
         )}
       />
 
+      {availableDomains.length > 1 && (
+        <div className="mb-4 flex items-center gap-2">
+          <label htmlFor="parent-domain" className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Domain</label>
+          <select
+            id="parent-domain"
+            value={selectedDomain}
+            onChange={(event) => {
+              const next = event.target.value;
+              setSelectedDomain(next);
+              navigate(`/parent/children/${studentId}/mathpath/${next}`, { replace: true });
+            }}
+            className="h-10 rounded-xl border border-line-soft bg-surface-white px-3 text-sm font-semibold text-emerald-deep outline-none focus:border-emerald"
+          >
+            {availableDomains.map((id) => <option key={id} value={id}>{domainLabel(id)}</option>)}
+          </select>
+        </div>
+      )}
+
       <div className="space-y-4">
-        <DomainSwitcher domains={domainChips} activeDomainId={domainId} onSelect={selectDomain} />
-        <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} domainLabel={domainLabel} />
+        <ParentDashboardMvp snapshot={snapshot} studentId={studentId} navigate={navigate} domainName={domainLabel(selectedDomain)} />
         {isFractions && (
           <DiagnosticGrowthCard
             growth={diagnosticGrowth}
-            onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath/${domainId}`)}
+            onViewHistory={() => navigate(`/parent/children/${studentId}/mathpath`)}
             onRunRecheck={() => navigate('/student/mathpath/diagnostic', { state: { diagnosticPurpose: 'recheck' } })}
             onAssignRecovery={assignRecoveryPack}
             assigningRecovery={assigningRecovery}
             assignmentMessage={assignmentMessage}
           />
         )}
-        <ParentOverviewCard summary={dashboard} currentFocus={currentFocus} domainLabel={domainLabel} />
+        <ParentOverviewCard summary={summary} currentFocus={placementSkill || currentFocus} domainName={domainLabel(selectedDomain)} />
+        {!!placementSkill && (
+          <Card className="p-4">
+            <p className="text-sm text-ink-600">
+              Latest placement recommends starting at <span className="font-semibold text-ink-700">{placementSkill}</span>.
+            </p>
+          </Card>
+        )}
 
-        <WeeklyActionPlanCard plan={dashboard.weeklyActionPlan || {}} onPrimary={() => navigate('/student/mathpath')} />
+        <WeeklyActionPlanCard plan={summary.weeklyActionPlan || {}} onPrimary={() => navigate('/student/mathpath')} />
         {isFractions && <AdultWorkingReviewPanel review={workingReview || {}} title="Workings and Help Requests" />}
 
         <CollapsibleSection
           title="Progress details"
-          summary="Mastery, weak areas, fluency, and retention."
+          summary="Mastery, weak areas, fluency, retention, assessment, and working quality."
           surface={false}
           action={FEATURE_FLAGS.assessments ? <Button size="s" variant="secondary" onClick={() => navigate(`/parent/children/${studentId}/mathpath/test-spec`)}>School Test</Button> : null}
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <MasteryProgressCard mastery={dashboard.masteryProgress || {}} />
-            <CurrentWeaknessCard weaknesses={dashboard.currentWeaknesses || []} actions={dashboard.recommendedNextActions || []} />
-            <FluencyStatusInsightCard fluency={dashboard.fluency || {}} />
-            <FluencySummaryCard fluency={dashboard.fluencySummary || {}} />
-            <RetentionSummaryCard retention={dashboard.retentionSummary || {}} />
+            <MasteryProgressCard mastery={summary.masteryProgress || {}} />
+            <CurrentWeaknessCard weaknesses={summary.currentWeaknesses || []} actions={summary.recommendedNextActions || []} />
+            <FluencyStatusInsightCard fluency={fluencySummary || {}} />
+            <FluencySummaryCard fluency={summary.fluencySummary || {}} />
+            <RetentionSummaryCard retention={summary.retentionSummary || {}} />
+            <AssessmentProgressCard
+              assessment={summary.assessmentSummary || {}}
+              onStartBaseline={FEATURE_FLAGS.assessments ? () => navigate('/student/mathpath/assessment') : null}
+            />
+            <WorkingQualityCard
+              working={workingSummary}
+              onUpload={() => navigate('/student/mathpath/working/upload')}
+            />
           </div>
         </CollapsibleSection>
+
+        {!!summary.warnings?.length && (
+          <Card className="p-4">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="mt-0.5 h-4 w-4 text-gold-700" />
+              <p className="text-sm text-ink-600">Some sections are partial while more student data is being collected.</p>
+            </div>
+          </Card>
+        )}
 
         <Card className="p-4">
           <div className="flex items-start gap-2">

@@ -31,6 +31,7 @@ import Skill from '../models/Skill.js';
 import MasteryRecord from '../models/MasteryRecord.js';
 import FluencyRecord from '../models/FluencyRecord.js';
 import Mistake from '../models/Mistake.js';
+import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
 import ParentInvite from '../models/ParentInvite.js';
 import UpgradeRequest from '../models/UpgradeRequest.js';
 import Subscription from '../models/Subscription.js';
@@ -79,6 +80,7 @@ async function cleanup() {
   await Promise.all([
     MasteryRecord.deleteMany({ studentId: { $in: studentIds } }),
     FluencyRecord.deleteMany({ studentId: { $in: studentIds } }),
+    MathPathStudentSkillState.deleteMany({ studentId: { $in: studentIds.map(String) } }),
     Mistake.deleteMany({ studentId: { $in: studentIds } }),
     ClassStudent.deleteMany({ workspaceId: { $in: wsIds } }),
     ClassJoinCode.deleteMany({ workspaceId: { $in: wsIds } }),
@@ -220,9 +222,19 @@ async function main() {
   premiumParent.defaultWorkspace = premWs._id; await premiumParent.save();
   const premChild = await Student.create({ name: 'Sam (P4)', level: 'Primary 4', workspaceId: premWs._id, createdByUserId: premiumParent._id, profile: { mainFocus: 'MathPath', modulesUsed: ['MathPath'] } });
   await StudentGuardian.create({ studentId: premChild._id, guardianUserId: premiumParent._id, workspaceId: premWs._id, relation: 'parent' });
-  for (let j = 0; j < Math.min(4, skills.length); j++) {
-    const score = 55 + j * 8;
-    await MasteryRecord.create({ studentId: premChild._id, skillId: skills[j]._id, workspaceId: premWs._id, subject: 'Math', score, attempts: 3, status: statusFor(score), lastPracticedAt: new Date() });
+  // Premium parent dashboard reads MathPathStudentSkillState — write fractions skill state directly.
+  const premSkillCodes = [
+    { skillId: 'F001', score: 55, status: 'learning', fluencyLevel: 'notReady' },
+    { skillId: 'F002', score: 63, status: 'learning', fluencyLevel: 'notReady' },
+    { skillId: 'F003', score: 71, status: 'accurate', fluencyLevel: 'silver' },
+    { skillId: 'F004', score: 79, status: 'accurate', fluencyLevel: 'gold' },
+  ];
+  for (const { skillId, score, status, fluencyLevel } of premSkillCodes) {
+    await MathPathStudentSkillState.findOneAndUpdate(
+      { studentId: String(premChild._id), domainId: 'fractions', skillId },
+      { $set: { status, accuracy: score, attemptCount: 3, correctCount: Math.round((score / 100) * 3), fluencyLevel, lastPractisedAt: new Date() } },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
   }
   await setSubscription(premiumParent._id, 'parent_plus', 'active', 200); // 200 days left
 

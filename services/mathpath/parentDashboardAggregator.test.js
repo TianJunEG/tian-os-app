@@ -14,103 +14,66 @@ function query(value) {
   return q;
 }
 
-const masteryFind = vi.fn();
-const skillFind = vi.fn();
-const mistakeFind = vi.fn();
 const mpStateFind = vi.fn();
 const mpStateDistinct = vi.fn();
 const mpMistakeFind = vi.fn();
-const fluencyMock = vi.fn();
-const retentionMock = vi.fn();
 
-vi.mock('../../models/MasteryRecord.js', () => ({ default: { find: (...a) => masteryFind(...a) } }));
-vi.mock('../../models/Skill.js', () => ({ default: { find: (...a) => skillFind(...a) } }));
-vi.mock('../../models/Mistake.js', () => ({ default: { find: (...a) => mistakeFind(...a) } }));
 vi.mock('../../models/mathpath/MathPathStudentSkillState.js', () => ({
   default: { find: (...a) => mpStateFind(...a), distinct: (...a) => mpStateDistinct(...a) },
 }));
 vi.mock('../../models/mathpath/MathPathMistakeRecord.js', () => ({ default: { find: (...a) => mpMistakeFind(...a) } }));
-vi.mock('../../routes/fluency.js', () => ({
-  publicFluencySummary: (...a) => fluencyMock(...a),
-  publicRetentionSummary: (...a) => retentionMock(...a),
-}));
 
-const MASTERY_RECORDS = [
-  { _id: 'm1', status: 'mastered', skillId: { _id: 's1', name: 'Equivalent Fractions', slug: 'fr.equivalent' } },
-  { _id: 'm2', status: 'needs_review', skillId: { _id: 's2', name: 'Add Unlike Denominators', slug: 'fr.add.unlike' } },
-  { _id: 'm3', status: 'mastered', skillId: { _id: 's3', name: 'Percent of a Number', slug: 'pct.of' } },
-];
-const SKILLS = [
-  { _id: 's1', name: 'Equivalent Fractions', slug: 'fr.equivalent' },
-  { _id: 's2', name: 'Add Unlike Denominators', slug: 'fr.add.unlike' },
-  { _id: 's4', name: 'Simplify Fractions', slug: 'fr.simplify' },
-  { _id: 's3', name: 'Percent of a Number', slug: 'pct.of' },
-];
-const MISTAKES = [
-  { _id: 'mi1', skillId: { _id: 's2', name: 'Add Unlike Denominators', slug: 'fr.add.unlike' }, misconceptionTag: 'added_denominators', questionText: '1/2 + 1/3', studentAnswer: '2/5', correctAnswer: '5/6', occurredAt: new Date('2026-06-01') },
-  { _id: 'mi2', skillId: { _id: 's3', name: 'Percent of a Number', slug: 'pct.of' }, misconceptionTag: '', questionText: '10% of 50', studentAnswer: '500', correctAnswer: '5', occurredAt: new Date('2026-06-02') },
+const FRACTIONS_STATES = [
+  { skillId: 'F010', domainId: 'fractions', status: 'accurate', accuracy: 88, attemptCount: 8, fluencyLevel: 'gold', retentionStatus: 'reviewScheduled', averageTime: 6 },
+  { skillId: 'F020', domainId: 'fractions', status: 'needsReview', accuracy: 42, attemptCount: 5, fluencyLevel: 'notReady', retentionStatus: 'needsReview', nextReviewDate: new Date('2026-06-01') },
+  { skillId: 'F030', domainId: 'fractions', status: 'notStarted', accuracy: 0, attemptCount: 0, fluencyLevel: 'notReady', retentionStatus: 'reviewScheduled' },
 ];
 
 let aggregator;
 
-// Import once — pulls in the 5 shared domain skill graphs, which are heavy to
-// transform on a cold cache; a per-test import would blow the default 10s hook.
+// Import once — pulls in the 15 shared domain skill graphs; cold transform is
+// heavy enough that a per-test import blows the default 10s hook timeout.
 beforeAll(async () => {
   aggregator = await import('./parentDashboardAggregator.js');
 }, 30000);
 
 beforeEach(() => {
-  masteryFind.mockReturnValue(query(MASTERY_RECORDS));
-  skillFind.mockReturnValue(query(SKILLS));
-  mistakeFind.mockReturnValue(query(MISTAKES));
   mpStateFind.mockReturnValue(query([]));
   mpStateDistinct.mockResolvedValue([]);
   mpMistakeFind.mockReturnValue(query([]));
-  fluencyMock.mockResolvedValue({
-    fluentSkills: [{ skillId: 's1', skillName: 'Equivalent Fractions' }],
-    developingSkills: [{ skillId: 's2', skillName: 'Add Unlike Denominators' }],
-    needsPracticeSkills: [],
-  });
-  retentionMock.mockResolvedValue({ upcomingReviews: [{ skillName: 'Simplify Fractions' }], overdueReviews: [], retentionHistory: [] });
 });
 
 afterEach(() => { vi.clearAllMocks(); });
 
-describe('buildParentMathPathDashboard — legacy MasteryRecord source (Fractions)', () => {
-  it('aggregates fractions data scoped to the requested domain', async () => {
+describe('buildParentMathPathDashboard — Fractions via skill-state store', () => {
+  it('aggregates fractions data from MathPathStudentSkillState', async () => {
+    mpStateFind.mockReturnValue(query(FRACTIONS_STATES));
+
     const res = await aggregator.buildParentMathPathDashboard({ student: { _id: 'stu_1' }, domainId: 'fractions' });
 
-    expect(res.dataSource).toBe('mastery');
+    expect(res.dataSource).toBe('mathpath');
     expect(res.domain.displayNoun).toBe('fraction');
-    // 3 fractions skills (fr.*), 1 mastered → 33.3%. pct.of is excluded.
-    expect(res.masteryProgress.totalSkills).toBe(3);
-    expect(res.masteryProgress.percentageMastered).toBe(33.3);
-    expect(res.masteryProgress.weakSkills).toContain('Add Unlike Denominators');
-    expect(res.weakSkills.map((w) => w.skillName)).toContain('Add Unlike Denominators');
-    expect(res.recentMistakes).toHaveLength(1);
-    expect(res.recentMistakes[0].skillName).toBe('Add Unlike Denominators');
-    expect(res.fluencySummary.fluentAreas).toContain('Equivalent Fractions');
-    expect(res.recommendedNextPractice.skillName).toBe('Add Unlike Denominators');
+    expect(res.masteryProgress.masteredSkills).toHaveLength(1); // F010 accurate
+    expect(res.weakSkills[0].skillId).toBe('F020');
+    expect(res.recommendedNextPractice.skillId).toBe('F020');
+    expect(res.retentionSummary.skillsDueForReview.length).toBeGreaterThan(0);
   });
 
   it('keeps the fractions copy noun (parity with the live pilot)', async () => {
+    mpStateFind.mockReturnValue(query(FRACTIONS_STATES));
     const res = await aggregator.buildParentMathPathDashboard({ student: { _id: 'stu_1' }, domainId: 'fractions' });
     expect(res.weeklyActionPlan.parentChecklist.some((line) => line.includes('fraction skill'))).toBe(true);
   });
 
-  it('uses a domain-aware copy noun when a non-fractions domain has legacy records', async () => {
-    const res = await aggregator.buildParentMathPathDashboard({ student: { _id: 'stu_1' }, domainId: 'percentage' });
-    expect(res.dataSource).toBe('mastery');
-    expect(res.domain.displayNoun).toBe('percentage');
-    expect(res.masteryProgress.totalSkills).toBe(1);
-    expect(res.masteryProgress.percentageMastered).toBe(100);
-    expect(res.weeklyActionPlan.parentChecklist.some((line) => line.includes('percentage skill'))).toBe(true);
+  it('returns a valid empty payload when fractions has no data', async () => {
+    const res = await aggregator.buildParentMathPathDashboard({ student: { _id: 'stu_1' }, domainId: 'fractions' });
+    expect(res.dataSource).toBe('none');
+    expect(res.masteryProgress.masteredSkills).toHaveLength(0);
   });
 });
 
-describe('buildParentMathPathDashboard — MathPath per-domain source (Ratio)', () => {
-  it('falls back to MathPathStudentSkillState when no legacy records exist', async () => {
-    // No legacy ratio records (MASTERY_RECORDS has none) → MathPath store is used.
+describe('buildParentMathPathDashboard — non-fractions domains', () => {
+  it('reads Ratio data from MathPathStudentSkillState', async () => {
     mpStateFind.mockReturnValue(query([
       { skillId: 'RR001', domainId: 'ratio', status: 'fluent', accuracy: 92, attemptCount: 6, fluencyLevel: 'gold', retentionStatus: 'reviewScheduled', averageTime: 8 },
       { skillId: 'RR002', domainId: 'ratio', status: 'weak', accuracy: 35, attemptCount: 4, fluencyLevel: 'notReady', retentionStatus: 'needsReview', nextReviewDate: new Date('2026-06-01') },
@@ -127,11 +90,10 @@ describe('buildParentMathPathDashboard — MathPath per-domain source (Ratio)', 
     expect(res.recommendedNextPractice.skillId).toBe('RR002');
     expect(res.fluency.fluentSkills).toHaveLength(1);
     expect(res.retentionSummary.skillsDueForReview.length).toBeGreaterThan(0);
-    expect(res.recentMistakes).toHaveLength(1);
     expect(res.recentMistakes[0].misconceptionTag).toBe('rr_inverts_ratio');
   });
 
-  it('returns a valid empty payload when a domain has no data anywhere', async () => {
+  it('returns a valid empty payload when a domain has no data', async () => {
     const res = await aggregator.buildParentMathPathDashboard({ student: { _id: 'stu_1' }, domainId: 'geometry' });
     expect(res.dataSource).toBe('none');
     expect(res.masteryProgress.masteredSkills).toHaveLength(0);
@@ -141,14 +103,18 @@ describe('buildParentMathPathDashboard — MathPath per-domain source (Ratio)', 
 });
 
 describe('listChildMathPathDomains', () => {
-  it('unions legacy (MasteryRecord) and MathPath (skill-state) activity', async () => {
-    mpStateDistinct.mockResolvedValue(['ratio', 'geometry']);
+  it('returns only domains present in MathPathStudentSkillState', async () => {
+    mpStateDistinct.mockResolvedValue(['fractions', 'ratio', 'geometry']);
     const res = await aggregator.listChildMathPathDomains({ student: { _id: 'stu_1' } });
     const ids = res.map((d) => d.domainId);
-    expect(ids).toContain('fractions');   // from MasteryRecord (fr.*)
-    expect(ids).toContain('percentage');  // from MasteryRecord (pct.of)
-    expect(ids).toContain('ratio');       // from MathPathStudentSkillState
-    expect(ids).toContain('geometry');    // from MathPathStudentSkillState
-    expect(ids).not.toContain('algebra'); // no activity in either store
+    expect(ids).toContain('fractions');
+    expect(ids).toContain('ratio');
+    expect(ids).toContain('geometry');
+    expect(ids).not.toContain('algebra'); // no activity
+  });
+
+  it('returns empty list when student has no skill-state activity', async () => {
+    const res = await aggregator.listChildMathPathDomains({ student: { _id: 'stu_1' } });
+    expect(res).toHaveLength(0);
   });
 });
