@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../../components/ui';
 import { MascotBubble } from '../../../../components/MascotAvatar';
 import { MathText } from '../../../../components/ui/Fraction';
@@ -20,6 +20,7 @@ import {
 } from './core';
 
 const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
+const INACTIVITY_SECONDS = 120;
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'Solid', color: 'bg-emerald-100 border-emerald-300 text-emerald-800 hover:bg-emerald-200' },
@@ -50,7 +51,23 @@ export default function DomainPracticeSession({ domain }) {
   const [elapsedSec, setElapsedSec] = useState(0);
   const [showReflection, setShowReflection] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState(null);
+  const [showInactivityAlert, setShowInactivityAlert] = useState(false);
+
   const questionStartedAt = useRef(Date.now());
+  const lastActivityAt = useRef(Date.now());
+  const inactivityPausedSec = useRef(0);
+  const inactivityPausedAt = useRef(null);
+
+  const resetActivity = useCallback(() => {
+    lastActivityAt.current = Date.now();
+    if (showInactivityAlert) {
+      if (inactivityPausedAt.current) {
+        inactivityPausedSec.current += Math.floor((Date.now() - inactivityPausedAt.current) / 1000);
+        inactivityPausedAt.current = null;
+      }
+      setShowInactivityAlert(false);
+    }
+  }, [showInactivityAlert]);
 
   useEffect(() => {
     if (!config) {
@@ -67,6 +84,7 @@ export default function DomainPracticeSession({ domain }) {
         if (active) {
           setSession(data);
           questionStartedAt.current = Date.now();
+          lastActivityAt.current = Date.now();
         }
       } catch (e) {
         if (active) setError(e?.response?.data?.error || e.message || 'Could not start practice.');
@@ -77,12 +95,40 @@ export default function DomainPracticeSession({ domain }) {
     return () => { active = false; };
   }, [domain, targetSkillId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Timer — runs while answering, pauses during reflection and on the result screen
+  // Timer — runs while answering, pauses during reflection, inactivity alert, and result screen
   useEffect(() => {
-    if (loading || result || showReflection) return undefined;
-    const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt.current) / 1000)), 250);
+    if (loading || result || showReflection || showInactivityAlert) return undefined;
+    const t = setInterval(() => {
+      const activeSeconds = Math.floor((Date.now() - questionStartedAt.current) / 1000) - inactivityPausedSec.current;
+      setElapsedSec(Math.max(0, activeSeconds));
+    }, 250);
     return () => clearInterval(t);
-  }, [loading, result, showReflection, index]);
+  }, [loading, result, showReflection, showInactivityAlert, index]);
+
+  // Inactivity watchdog — fires every 5s, shows alert after 2 min idle
+  useEffect(() => {
+    if (loading || result || showReflection || showInactivityAlert) return undefined;
+    const t = setInterval(() => {
+      const idleSec = (Date.now() - lastActivityAt.current) / 1000;
+      if (idleSec >= INACTIVITY_SECONDS) {
+        inactivityPausedAt.current = Date.now();
+        setShowInactivityAlert(true);
+      }
+    }, 5000);
+    return () => clearInterval(t);
+  }, [loading, result, showReflection, showInactivityAlert]);
+
+  // Track activity via pointer and keyboard events on the document
+  useEffect(() => {
+    if (loading || result) return undefined;
+    const handler = () => { lastActivityAt.current = Date.now(); };
+    document.addEventListener('pointerdown', handler, { passive: true });
+    document.addEventListener('keydown', handler, { passive: true });
+    return () => {
+      document.removeEventListener('pointerdown', handler);
+      document.removeEventListener('keydown', handler);
+    };
+  }, [loading, result]);
 
   const questions = session?.questions || [];
   const current = questions[index] || null;
@@ -106,7 +152,7 @@ export default function DomainPracticeSession({ domain }) {
     const answer = {
       questionId: current.questionId,
       studentAnswer: draft,
-      timeTaken: Math.round((Date.now() - questionStartedAt.current) / 1000),
+      timeTaken: Math.round((Date.now() - questionStartedAt.current) / 1000) - inactivityPausedSec.current,
       ...(currentWorking.workingSubmitted ? {
         workingSubmitted: true,
         workingImage: currentWorking.workingImage || '',
@@ -127,12 +173,15 @@ export default function DomainPracticeSession({ domain }) {
     setDraft('');
     setShowReflection(false);
     setPendingAnswer(null);
+    inactivityPausedSec.current = 0;
+    inactivityPausedAt.current = null;
     if (isLast) {
       finish(nextAnswers);
     } else {
       setIndex((i) => i + 1);
       setElapsedSec(0);
       questionStartedAt.current = Date.now();
+      lastActivityAt.current = Date.now();
     }
   }
 
@@ -178,6 +227,16 @@ export default function DomainPracticeSession({ domain }) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
+      {/* Back button */}
+      <button
+        type="button"
+        onClick={() => navigate(backRoute)}
+        className="flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-ink-800 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to {label}
+      </button>
+
       <PageHeader title={`${label} Practice`} subtitle={targetName} />
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-semibold text-ink-500">Question {index + 1} of {questions.length}</span>
@@ -277,6 +336,25 @@ export default function DomainPracticeSession({ domain }) {
           setWorkingQuestionId(null);
         }}
       />
+
+      {/* Inactivity alert — modal overlay */}
+      {showInactivityAlert && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <p className="mb-1 text-lg font-bold text-ink-900">Still there?</p>
+            <p className="mb-5 text-sm text-ink-500">
+              Your session has been paused after 2 minutes of inactivity. The timer is on hold.
+            </p>
+            <button
+              type="button"
+              onClick={resetActivity}
+              className="w-full rounded-xl bg-emerald py-3 text-base font-semibold text-white transition hover:bg-emerald-deep"
+            >
+              Continue practice
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
