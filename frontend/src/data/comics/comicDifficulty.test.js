@@ -68,10 +68,12 @@ describe('Episode 1 generated problems are correct and story-consistent', () => 
       const m1 = p1.question.match(/\$(\d+) and Kylo has \$(\d+)/);
       expect(Number(p1.answer)).toBe(Number(m1[1]) + Number(m1[2]));
 
-      // p2: three ordered prices sum to the answer; those prices appear in the menu
-      const m2 = p2.question.match(/\(\$(\d+)\), ice kachang \(\$(\d+)\) and chicken rice \(\$(\d+)\)/);
-      const [ckt, ik, cr] = [Number(m2[1]), Number(m2[2]), Number(m2[3])];
-      expect(Number(p2.answer)).toBe(ckt + ik + cr);
+      // p2: quantity × price for each item sums to the answer; prices stay
+      // realistic (≤ $9) and appear in the menu, difficulty rides on quantity.
+      const m2 = p2.question.match(/(\d+) char kway teow \(at \$(\d+) each\), (\d+) ice kachang \(at \$(\d+) each\) and (\d+) chicken rice \(at \$(\d+) each\)/);
+      const [qCkt, ckt, qIk, ik, qCr, cr] = m2.slice(1).map(Number);
+      expect(Number(p2.answer)).toBe(qCkt * ckt + qIk * ik + qCr * cr);
+      expect([ckt, ik, cr].every((p) => p >= 2 && p <= 9)).toBe(true);
       expect(p2.menuNote).toContain(`Char kway teow $${ckt}`);
       expect(p2.menuNote).toContain(`Ice kachang $${ik}`);
       expect(p2.menuNote).toContain(`Chicken rice $${cr}`);

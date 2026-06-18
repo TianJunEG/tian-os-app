@@ -99,17 +99,21 @@ export const episodes = [
           unitPosition: 'prefix',
           skill: 'money-addition',
           generate: (rng, tier, ctx) => {
-            const band = [[1, 5], [2, 12], [5, 25], [10, 60]];
-            const ckt = tierInt(rng, tier, band); // char kway teow
-            const cr = tierInt(rng, tier, band);  // chicken rice
-            const ik = tierInt(rng, tier, band);  // ice kachang
-            const kt = tierInt(rng, tier, band);  // kaya toast
-            const total = ckt + ik + cr;          // Kylo orders three of them
-            ctx.foodTotal = total;                // panel 3 reuses this
+            // Hawker prices stay realistic ($2–9). Difficulty comes from the
+            // QUANTITY Kylo orders (repeated addition → multiplication), not from
+            // inflating prices to silly amounts.
+            const price = () => rint(rng, 2, 9);
+            const ckt = price(), cr = price(), ik = price(), kt = price();
+            const qtyBand = [[1, 1], [1, 3], [2, 5], [3, 8]]; // ordered-quantity range per tier
+            const qCkt = tierInt(rng, tier, qtyBand);
+            const qIk = tierInt(rng, tier, qtyBand);
+            const qCr = tierInt(rng, tier, qtyBand);
+            const total = qCkt * ckt + qIk * ik + qCr * cr;
+            ctx.foodTotal = total; // panel 3 reuses this
             return {
               menuNote: `Char kway teow $${ckt} · Chicken rice $${cr} · Ice kachang $${ik} · Kaya toast $${kt}`,
-              question: `Kylo orders char kway teow ($${ckt}), ice kachang ($${ik}) and chicken rice ($${cr}). What is the total cost?`,
-              hint: `Add the prices of all three items: $${ckt} + $${ik} + $${cr}.`,
+              question: `Kylo orders ${qCkt} char kway teow (at $${ckt} each), ${qIk} ice kachang (at $${ik} each) and ${qCr} chicken rice (at $${cr} each). What is the total cost?`,
+              hint: `Multiply each price by how many, then add: ${qCkt}×$${ckt} + ${qIk}×$${ik} + ${qCr}×$${cr}.`,
               answer: total,
             };
           },
