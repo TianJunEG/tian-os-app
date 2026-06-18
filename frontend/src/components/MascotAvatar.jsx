@@ -149,9 +149,17 @@ export function MascotBubble({ name, message, size = 'md', className = '', voice
 
   if (!mascot) return null;
 
+  const headSrc = `/mascots/${name}-head.png`;
+  const fallbackSrc = `/mascots/${name}.png`;
+
   return (
     <div className={`flex items-start gap-3 ${className}`}>
-      <MascotAvatar name={name} size={size} />
+      <img
+        src={headSrc}
+        alt={mascot.name}
+        className={`${SIZE_CLASSES[size] || SIZE_CLASSES.md} shrink-0 rounded-full object-cover`}
+        onError={(e) => { e.currentTarget.src = fallbackSrc; }}
+      />
       <div
         className="relative rounded-2xl px-4 py-2.5 text-sm font-medium text-ink-700"
         style={{ backgroundColor: mascot.colorLight }}

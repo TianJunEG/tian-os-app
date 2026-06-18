@@ -20,14 +20,19 @@ export default function MascotBubble({ text, mascotKey = 'lejo' }) {
   const textColor = mascot?.color || '#ea580c';
 
   return (
-    <div className="flex items-start gap-2 mb-1">
-      <MascotAvatar name={mascotKey} size="xs" showRing={false} />
+    <div className="flex items-start gap-3 mb-2">
+      <img
+        src={`/mascots/${mascotKey}-head.png`}
+        alt={displayName}
+        className="h-14 w-14 shrink-0 rounded-full object-cover"
+        onError={(e) => { e.currentTarget.src = `/mascots/${mascotKey}.png`; }}
+      />
       <div
-        className="relative rounded-lg border px-3 py-1.5 text-xs leading-relaxed"
+        className="relative rounded-lg border px-4 py-2.5 text-sm leading-relaxed"
         style={{ backgroundColor: bgColor, borderColor, color: '#1e293b' }}
       >
         <div
-          className="absolute -left-1.5 top-2 h-3 w-3 rotate-45 border-l border-b"
+          className="absolute -left-1.5 top-3 h-3 w-3 rotate-45 border-l border-b"
           style={{ backgroundColor: bgColor, borderColor }}
         />
         <span className="relative"><strong style={{ color: textColor }}>{displayName}:</strong> {text}</span>

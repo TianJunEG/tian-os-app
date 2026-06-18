@@ -558,7 +558,7 @@ export default function PSLSession() {
 
               {/* Step label */}
               <div className="mb-2" style={{ position: 'relative', zIndex: 2 }}>
-                <span className="mono-label" style={{ color: '#a8743a', fontSize: '11px', letterSpacing: '0.16em' }}>
+                <span className="mono-label" style={{ color: '#a8743a', fontSize: '14px', letterSpacing: '0.16em' }}>
                   STEP {currentStepIdx + 1} &middot; {STEP_SHORT_LABELS[currentStepIdx]?.toUpperCase()}
                 </span>
               </div>
