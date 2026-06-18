@@ -8,6 +8,7 @@ import FullScreenWorkingMode from '../../../../components/learning/FullScreenWor
 import WorkingPreviewCard from '../../../../components/learning/WorkingPreviewCard';
 import { getMascotForModule } from '../../../../config/mascots';
 import MathSymbolBar from '../components/MathSymbolBar';
+import AnswerInputRenderer, { getAnswerInputType } from '../components/AnswerInputRenderer';
 import {
   buildSubmitPayload,
   summarisePracticeResult,
@@ -202,22 +203,18 @@ export default function DomainPracticeSession({ domain }) {
             ))}
           </div>
         ) : (
-          <>
-            <input
-              type="text"
-              inputMode="text"
+          <div className="mt-5">
+            <AnswerInputRenderer
+              question={current}
               value={draft}
+              onChange={setDraft}
               disabled={showReflection}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim() && !showReflection) submitAnswer(); }}
-              placeholder="Type your answer"
-              className="mt-5 min-h-[3.25rem] w-full rounded-xl border border-ink-200 px-4 py-3 text-xl focus:border-navy-400 focus:outline-none disabled:bg-gray-50 disabled:opacity-70"
-              autoFocus={!showReflection}
+              onEnter={() => { if (draft.trim() && !showReflection) submitAnswer(); }}
             />
-            {domainSymbols.length > 0 && (
+            {domainSymbols.length > 0 && ['text', 'decimal', 'whole_number'].includes(getAnswerInputType(current)) && (
               <MathSymbolBar symbols={domainSymbols} value={draft} onChange={setDraft} disabled={showReflection} className="mt-3" />
             )}
-          </>
+          </div>
         )}
 
         <div className="mt-5">

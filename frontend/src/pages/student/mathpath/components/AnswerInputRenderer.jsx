@@ -177,7 +177,7 @@ export default function AnswerInputRenderer({
         onChange={(event) => onChange?.(event.target.value)}
         disabled={disabled}
         inputMode={inputMode}
-        placeholder={type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer'}
+        placeholder={question?.placeholder || (type === 'decimal' ? 'e.g. 0.25' : type === 'whole_number' ? 'e.g. 12' : 'Type your answer')}
         className="w-full rounded-xl border border-line-soft px-4 py-3 font-mono text-lg text-ink-900 focus:border-emerald focus:outline-none focus:ring-2 focus:ring-emerald/20"
         onKeyDown={(event) => { if (event.key === 'Enter') onEnter?.(); }}
       />

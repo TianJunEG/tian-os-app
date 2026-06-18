@@ -52,7 +52,7 @@ function reduceFraction(num, den) {
 }
 
 // ── Question assembly helpers ─────────────────────────────────────────────────
-function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode }) {
+function shortAnswer({ family, prompt, answer, display, solutionSteps, misconceptionTag, difficulty, mode, placeholder }) {
   return {
     id: `${family.id}#${mode}`,
     skillId: family.skillId,
@@ -68,6 +68,7 @@ function shortAnswer({ family, prompt, answer, display, solutionSteps, misconcep
     mode,
     workingRequired: family.workingRequired,
     generatorKind: family.generatorKind,
+    ...(placeholder ? { placeholder } : {}),
   };
 }
 
@@ -301,6 +302,7 @@ const GENERATORS = {
       prompt,
       answer,
       display,
+      placeholder: askBoth ? `e.g. $${shareA} and $${shareB}` : undefined,
       solutionSteps: [
         `Total units = ${a} + ${b} = ${a + b}.`,
         `1 unit = $${total} ÷ ${a + b} = $${unitVal}.`,
@@ -333,6 +335,7 @@ const GENERATORS = {
       prompt,
       answer: display,
       display,
+      placeholder: askAll ? `e.g. $${shares[0]}, $${shares[1]}, $${shares[2]}` : undefined,
       solutionSteps: [
         `Total units = ${a} + ${b} + ${c} = ${sumABC}.`,
         `1 unit = $${total} ÷ ${sumABC} = $${unitVal}.`,
