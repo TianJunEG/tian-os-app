@@ -8,13 +8,13 @@ if (process.env.NODE_ENV === "production") {
 import mongoose from 'mongoose';
 import connectDB from '../config/db.js';
 import PSLProblemTemplate from '../models/psl/PSLProblemTemplate.js';
-import { strategyScaffold, makeTemplate } from './pslTemplateFactory.js';
+import { dataInterpScaffold, makeTemplate } from './pslTemplateFactory.js';
 
 // Data-Interpretation heuristic – 22 templates across 8 skills (P4–P6)
 const mk = (id, skill, level, story, constraints, choices, solTpl) =>
   makeTemplate(id, skill, 'dataInterpretation', {
     heuristic: 'data-interpretation', level, storyTemplate: story, constraints,
-    scaffold: strategyScaffold('data-interpretation', choices),
+    scaffold: dataInterpScaffold(choices),
     solutionTemplate: solTpl || '',
   });
 const g4 = () => ({ min: 10, max: 50 });
