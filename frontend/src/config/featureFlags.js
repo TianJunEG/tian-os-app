@@ -73,6 +73,9 @@ export const FEATURE_FLAGS = {
   tutorMarketplace: flagEnabled('TUTOR_MARKETPLACE'),
   certification: flagEnabled('CERTIFICATION'),
   fractionsStoryMode: flagEnabled('FRACTIONS_STORY_MODE'),
+  // Self-serve registration gate. Off by default until the company is
+  // registered and pricing confirmed. Set VITE_ENABLE_OPEN_REGISTRATION=1.
+  openRegistration: flagEnabled('OPEN_REGISTRATION'),
 };
 
 export const isFractionsStoryModeEnabled = () => FEATURE_FLAGS.fractionsStoryMode;

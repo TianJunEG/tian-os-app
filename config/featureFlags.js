@@ -34,6 +34,9 @@ export const FLAGS = {
   comics: process.env.FEAT_COMICS !== '0',
   psl: process.env.FEAT_PSL !== '0',
   admin: true,
+  // Self-serve registration is closed until the company is registered and
+  // pricing is set. Set FEAT_OPEN_REGISTRATION=1 in env to re-enable.
+  openRegistration: process.env.FEAT_OPEN_REGISTRATION === '1',
 };
 
 export default { TIANOS_VERSION, FLAGS };

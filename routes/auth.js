@@ -46,6 +46,15 @@ router.post(
       .isIn(['parent', 'tutor'])
   ],
   async (req, res) => {
+    // Self-serve registration is closed until the company is registered and
+    // pricing is confirmed. Set FEAT_OPEN_REGISTRATION=1 to re-enable.
+    if (process.env.FEAT_OPEN_REGISTRATION !== '1') {
+      return res.status(403).json({
+        error: 'registration_closed',
+        message: 'Tian OS is currently in early access. Contact us to get an account.',
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });

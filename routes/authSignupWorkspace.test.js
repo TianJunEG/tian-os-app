@@ -2,6 +2,9 @@ import express from 'express';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server-core';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Open registration so these tests can exercise the full signup flow.
+process.env.FEAT_OPEN_REGISTRATION = '1';
 import User from '../models/User.js';
 import Workspace from '../models/Workspace.js';
 import WorkspaceMember from '../models/WorkspaceMember.js';

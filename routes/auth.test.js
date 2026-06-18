@@ -1,5 +1,8 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
+// Open registration so register-route tests can exercise the full flow.
+process.env.FEAT_OPEN_REGISTRATION = '1';
+
 // Guards the email-normalisation fixes on the public auth routes:
 //  - register lowercases the email before the duplicate check AND the save, so
 //    case variants (John@X.com vs the stored john@x.com) don't slip past the
