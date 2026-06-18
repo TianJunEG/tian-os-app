@@ -40,7 +40,7 @@ async function request(path, { method = 'GET', body = {}, params = {} } = {}) {
 
 describe('Percentage retention routes', () => {
   beforeAll(async () => {
-    const mod = await import('./mathpathPercentage.js');
+    const mod = await import('./mathpathPercentages.js');
     router = mod.default;
   });
 

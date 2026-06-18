@@ -66,7 +66,6 @@ export const FEATURE_FLAGS = {
   spelling: flagEnabled('SPELLING', true),
   comics: flagEnabled('COMICS', true),
   psl: flagEnabled('PSL', true),
-  comics: flagEnabled('COMICS', true),
   tutor: flagEnabled('TUTOR', true),
   teacher: flagEnabled('TEACHER', true),
   admin: flagEnabled('ADMIN', true),

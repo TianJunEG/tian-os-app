@@ -85,6 +85,11 @@ describe('Decimals question families', () => {
       'decimalRound', 'decimalAddSub', 'decimalScaleByTen', 'decimalMultWhole',
       'decimalMultDecimal', 'decimalDivWhole', 'decimalDivDecimal',
       'decimalToFraction', 'fractionToDecimal', 'decimalMeasureConvert',
+      // _003 word-problem families (added with PR #299)
+      'decimalScaleWord', 'decimalPlaceValueWord', 'decimalCompareWord', 'decimalOrderWord',
+      'decimalRoundWord', 'decimalAddSubWord', 'decimalMultWholeWord', 'decimalMultDecimalWord',
+      'decimalDivWholeWord', 'decimalDivDecimalWord', 'decimalToFractionWord', 'fractionToDecimalWord',
+      'decimalMeasureConvertWord',
     ]);
     for (const family of getAllQuestionFamilies()) {
       expect(knownKinds.has(family.generatorKind)).toBe(true);

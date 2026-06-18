@@ -54,8 +54,8 @@ describe('Circles fluency routes', () => {
     const drill = buildCirclesFluencyDrill({ skillId: 'CI001', count: 4 });
     const session = { ...drill, targetSkillId: 'CI001', status: 'inProgress', toObject() { return { ...this }; }, save: vi.fn(async function () { return this; }) };
     MathPathPracticeSession.findOne.mockResolvedValueOnce(session);
-    const answers = drill.questions.map((q) => q.answer?.display ?? q.answer);
-    const res = await request('/fluency/x/submit', { method: 'POST', body: { answers, timingsSeconds: drill.questions.map(() => 10) } });
+    const responses = drill.questions.map((q) => ({ questionId: q.questionId, studentAnswer: q.answer?.display ?? q.answer, timeTaken: 10 }));
+    const res = await request('/fluency/x/submit', { method: 'POST', body: { responses } });
     expect(res.status).toBe(200);
     expect(res.data.mode).toBe('fluency');
     expect(res.data).toHaveProperty('fluencyLevel');

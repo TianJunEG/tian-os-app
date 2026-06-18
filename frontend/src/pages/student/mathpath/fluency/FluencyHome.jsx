@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ListChecks, AlertTriangle, CheckCircle2, Clock3, Target, BookCheck } from 'lucide-react';
+import { Zap, ListChecks, AlertTriangle, CheckCircle2, Clock3, Target, BookOpenCheck } from 'lucide-react';
 import { mathpathAPI, skillsAPI } from '../../../../services/api';
 import { Card, Button, Badge, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../../components/ui';
 import { useAuth } from '../../../../context/AuthContext';
@@ -168,7 +168,7 @@ export default function FluencyHome() {
       {(!!retention?.overdueReviews?.length || !!retention?.upcomingReviews?.length) && (
         <Card className="p-4">
           <div className="flex items-center gap-2">
-            <BookCheck className="h-4 w-4 text-emerald" />
+            <BookOpenCheck className="h-4 w-4 text-emerald" />
             <h3 className="text-sm font-semibold text-ink-800">Retention Reviews</h3>
             {!!retention?.overdueReviews?.length && <Badge tone="error">{retention.overdueReviews.length} overdue</Badge>}
             {!!retention?.upcomingReviews?.length && <Badge tone="gold">{retention.upcomingReviews.length} upcoming</Badge>}

@@ -21,12 +21,18 @@ User.findOne = (...a) => findOneMock(...a);
 
 vi.mock('../models/User.js', () => ({ default: User }));
 vi.mock('../models/Student.js', () => ({ default: { findOne: () => ({ select: () => ({ sort: () => ({ lean: async () => null }) }) }) } }));
+vi.mock('../models/Workspace.js', () => ({ default: { create: vi.fn(async (doc) => ({ _id: 'ws_id', ...doc })) } }));
+vi.mock('../models/WorkspaceMember.js', () => ({ default: { create: vi.fn(async () => {}) } }));
 vi.mock('../middleware/auth.js', () => ({
   protect: (_req, _res, next) => next(),
   getSignedToken: () => 'signed.jwt.token',
 }));
 vi.mock('../middleware/rateLimiter.js', () => ({ authRateLimit: (_req, _res, next) => next() }));
-vi.mock('../utils/emailService.js', () => ({ sendPasswordResetEmail: vi.fn(async () => {}) }));
+vi.mock('../utils/emailService.js', () => ({
+  sendPasswordResetEmail: vi.fn(async () => {}),
+  sendWelcomeEmail: vi.fn(async () => {}),
+  appBaseUrl: () => 'http://localhost:3000',
+}));
 
 let router;
 
@@ -60,8 +66,8 @@ describe('auth routes — email normalisation', () => {
     expect(res.status).toBe(201);
     // dup-check queried with the lowercased email, not the raw mixed-case input
     expect(findOneMock).toHaveBeenCalledWith({ email: 'john@x.com' });
-    // and the persisted user carries the lowercased email
-    expect(saveMock).toHaveBeenCalledTimes(1);
+    // user.save() is called twice: once to create the user, once to attach defaultWorkspace
+    expect(saveMock).toHaveBeenCalledTimes(2);
     expect(res.data).toMatchObject({ success: true, token: 'signed.jwt.token', user: { email: 'john@x.com', role: 'parent' } });
   });
 

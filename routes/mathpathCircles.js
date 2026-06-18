@@ -151,7 +151,7 @@ router.post('/fluency/start', protect, async (req, res) => {
     });
 
     res.json({
-      practiceSessionId, domainId: DOMAIN_ID, skillId,
+      practiceSessionId, domainId: DOMAIN_ID, skillId, mode: 'fluency',
       benchmarks: drill.benchmarks,
       targetSeconds: drill.targetSeconds,
       questions: toClientFluencyQuestions(drill.questions),
@@ -201,7 +201,7 @@ router.post('/fluency/:practiceSessionId/submit', protect, async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 
-    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', ...scored, retentionScheduled, persisted: true };
+    const summary = { practiceSessionId: req.params.practiceSessionId, domainId: DOMAIN_ID, mode: 'fluency', fluencyLevel: scored.band, ...scored, retentionScheduled, persisted: true };
     existing.status = 'completed';
     existing.completedAt = new Date();
     existing.responses = responses;
