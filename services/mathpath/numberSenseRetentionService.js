@@ -7,8 +7,8 @@ export function buildNumberSenseRetentionReview({ skillId, studentId = null, pre
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown number sense skill: ${skillId}`);
   const review = generateRetentionReview({ skillId, previousQuestionFamilyIds, difficulty });
-  const questionSet = generateNumberSenseQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds });
-  return { ...review, domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, mode: 'retention', questions: questionSet.questions, totalQuestions: questionSet.questions.length, generatedAt: new Date().toISOString() };
+  const questions = generateNumberSenseQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds });
+  return { ...review, domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, mode: 'retention', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 
 export function toClientRetentionQuestions(review) {
@@ -19,7 +19,7 @@ export function scoreNumberSenseRetentionReview({ review, answers = [], timingsS
   if (!review) throw new Error('review required');
   const results = review.questions.map((q, i) => {
     const given = answers[i] ?? null;
-    const correct = given != null ? checkNumberSenseAnswer({ question: q, answer: given }) : false;
+    const correct = given != null ? checkNumberSenseAnswer({ question: q, studentResponse: given }) : false;
     return { questionIndex: i, familyId: q.familyId, correct, givenAnswer: given, correctAnswer: q.answer, timeSeconds: timingsSeconds[i] ?? null };
   });
   const correctCount = results.filter((r) => r.correct).length;

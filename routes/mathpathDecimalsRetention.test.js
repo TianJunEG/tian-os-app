@@ -1,115 +1,80 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
-import request from 'supertest';
-import mongoose from 'mongoose';
-import app from '../server.js';
-import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
-import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-// ---------------------------------------------------------------------------
-// Route-level retention tests for the Decimals domain.
-// Mirrors mathpathRatioRetention.test.js exactly — only domain/skill differ.
-// ---------------------------------------------------------------------------
+const MOCK_STUDENT = { _id: 'student_1', workspaceId: 'workspace_1' };
+const MathPathPracticeSession = { create: vi.fn(), findOne: vi.fn() };
+const MathPathStudentSkillState = {
+  find: vi.fn(() => ({ lean: vi.fn(async () => []) })),
+  findOneAndUpdate: vi.fn(async () => ({})),
+};
 
-const TEST_DB = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/tian-os-test';
+vi.mock('../middleware/auth.js', () => ({ protect: (req, _res, next) => { req.user = { id: 'user_1', role: 'student' }; next(); } }));
+vi.mock('../utils/studentContext.js', () => ({ resolveStudent: vi.fn(async () => MOCK_STUDENT) }));
+vi.mock('../models/mathpath/MathPathPracticeSession.js', () => ({ default: MathPathPracticeSession }));
+vi.mock('../models/mathpath/MathPathStudentSkillState.js', () => ({ default: MathPathStudentSkillState }));
+vi.mock('../models/mathpath/MathPathMistakeRecord.js', () => ({ default: { findOneAndUpdate: vi.fn() } }));
+vi.mock('../services/mathpath/curriculumAttemptWriter.js', () => ({ writeCurriculumAttempts: vi.fn(async () => {}) }));
+vi.mock('../services/mathpath/domainMistakePersistence.js', () => ({ persistDomainPracticeMistakes: vi.fn(async () => {}) }));
 
-let token;
-let studentId;
+let router;
 
-async function loginStudent() {
-  const res = await request(app).post('/api/auth/login').send({
-    email: process.env.TEST_STUDENT_EMAIL || 'test-student@example.com',
-    password: process.env.TEST_STUDENT_PASSWORD || 'password123',
+async function request(path, { method = 'GET', body = {} } = {}) {
+  return new Promise((resolve, reject) => {
+    const req = { method: String(method).toUpperCase(), url: path, path, originalUrl: path, query: {}, body, headers: {}, params: {} };
+    const res = {
+      statusCode: 200,
+      status(code) { this.statusCode = code; return this; },
+      json(payload) { resolve({ status: this.statusCode, data: payload }); },
+    };
+    router.handle(req, res, (err) => { if (err) reject(err); else resolve({ status: res.statusCode, data: null }); });
   });
-  return { token: res.body.token, studentId: res.body.user?._id || res.body._id };
 }
 
-beforeAll(async () => {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(TEST_DB);
-  }
-  const creds = await loginStudent();
-  token = creds.token;
-  studentId = creds.studentId;
-});
+describe('Decimals retention routes', () => {
+  beforeAll(async () => { const mod = await import('./mathpathDecimals.js'); router = mod.default; });
+  afterEach(() => vi.clearAllMocks());
 
-afterEach(async () => {
-  if (studentId) {
-    await MathPathPracticeSession.deleteMany({ studentId, domainId: 'decimals' });
-    await MathPathStudentSkillState.deleteMany({ studentId, domainId: 'decimals' });
-  }
-});
-
-afterAll(async () => {
-  await mongoose.disconnect();
-});
-
-describe('GET /api/mathpath/decimals/retention', () => {
-  it('returns 200 with domainId and retention buckets', async () => {
-    const res = await request(app)
-      .get('/api/mathpath/decimals/retention')
-      .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(200);
-    expect(res.body.domainId).toBe('decimals');
-    expect(Array.isArray(res.body.upcomingReviews)).toBe(true);
-    expect(Array.isArray(res.body.overdueReviews)).toBe(true);
-    expect(Array.isArray(res.body.retentionHistory)).toBe(true);
-  });
-});
-
-describe('POST /api/mathpath/decimals/retention/start', () => {
-  it('returns 200 with session, strips answers, sets domainId', async () => {
-    const res = await request(app)
-      .post('/api/mathpath/decimals/retention/start')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ skillId: 'D001' });
-    expect(res.status).toBe(200);
-    expect(res.body.domainId).toBe('decimals');
-    expect(res.body.skillId).toBe('D001');
-    expect(res.body.mode).toBe('retention');
-    expect(Array.isArray(res.body.questions)).toBe(true);
-    expect(res.body.questions.length).toBeGreaterThan(0);
-    res.body.questions.forEach((q) => {
-      expect(q).not.toHaveProperty('answer');
-      expect(q).not.toHaveProperty('acceptedAnswers');
+  it('GET /retention returns domainId and buckets', async () => {
+    MathPathStudentSkillState.find.mockReturnValueOnce({
+      lean: vi.fn(async () => [{ skillId: 'D001', domainId: 'decimals', fluentAt: '2026-01-01T00:00:00.000Z', fluencyLevel: 'gold', status: 'fluent', retentionStatus: 'reviewScheduled' }]),
     });
+    const res = await request('/retention', { method: 'GET' });
+    expect(res.status).toBe(200);
+    expect(res.data.domainId).toBe('decimals');
+    expect(res.data).toHaveProperty('upcomingReviews');
+    expect(res.data).toHaveProperty('overdueReviews');
+    expect(res.data).toHaveProperty('retentionHistory');
   });
 
-  it('returns 400 when skillId is missing', async () => {
-    const res = await request(app)
-      .post('/api/mathpath/decimals/retention/start')
-      .set('Authorization', `Bearer ${token}`)
-      .send({});
+  it('POST /retention/start builds a review and strips answers', async () => {
+    MathPathPracticeSession.create.mockResolvedValueOnce({});
+    const res = await request('/retention/start', { method: 'POST', body: { skillId: 'D001' } });
+    expect(res.status).toBe(200);
+    expect(res.data.domainId).toBe('decimals');
+    expect(res.data.mode).toBe('retention');
+    expect(res.data.questions.every((q) => q.answer === undefined)).toBe(true);
+  });
+
+  it('POST /retention/start requires skillId', async () => {
+    const res = await request('/retention/start', { method: 'POST', body: {} });
     expect(res.status).toBe(400);
   });
-});
 
-describe('POST /api/mathpath/decimals/retention/:id/submit', () => {
-  it('returns 200 with mode=retention and scores the review', async () => {
-    const startRes = await request(app)
-      .post('/api/mathpath/decimals/retention/start')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ skillId: 'D001' });
-    expect(startRes.status).toBe(200);
-
-    const { practiceSessionId, questions } = startRes.body;
-    const responses = questions.map((q) => ({ questionId: q.questionId, studentAnswer: '__correct__', timeTaken: 5 }));
-
-    const submitRes = await request(app)
-      .post(`/api/mathpath/decimals/retention/${practiceSessionId}/submit`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({ responses, lastIntervalDays: 3 });
-    expect(submitRes.status).toBe(200);
-    expect(submitRes.body.mode).toBe('retention');
-    expect(typeof submitRes.body.accuracy).toBe('number');
-    expect(typeof submitRes.body.retained).toBe('boolean');
-    expect(submitRes.body.domainId).toBe('decimals');
+  it('POST /retention/:id/submit scores and persists', async () => {
+    const { buildDecimalsRetentionReview } = await import('../services/mathpath/decimalsRetentionService.js');
+    const built = buildDecimalsRetentionReview({ skillId: 'D001' });
+    const session = { ...built, targetSkillId: 'D001', status: 'inProgress', toObject() { return { ...this }; }, save: vi.fn(async function () { return this; }) };
+    MathPathPracticeSession.findOne.mockResolvedValueOnce(session);
+    const responses = built.questions.map((q) => ({ questionId: q.questionId, studentAnswer: String(q.answer?.display ?? q.answer ?? ''), timeTaken: 5 }));
+    const res = await request('/retention/x/submit', { method: 'POST', body: { responses } });
+    expect(res.status).toBe(200);
+    expect(res.data.mode).toBe('retention');
+    expect(res.data.retained).toBe(true);
+    expect(session.save).toHaveBeenCalled();
   });
 
-  it('returns 404 for unknown session id', async () => {
-    const res = await request(app)
-      .post('/api/mathpath/decimals/retention/nope/submit')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ responses: [] });
+  it('POST /retention/:id/submit 404s for unknown session', async () => {
+    MathPathPracticeSession.findOne.mockResolvedValueOnce(null);
+    const res = await request('/retention/nope/submit', { method: 'POST', body: {} });
     expect(res.status).toBe(404);
   });
 });

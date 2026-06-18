@@ -31,8 +31,8 @@ export function buildCirclesFluencyDrill({ skillId, studentId = null, count = 8 
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown circles skill: ${skillId}`);
   const benchmarks = getFluencyBenchmarks(skillId);
-  const questionSet = generateCirclesQuestionSet({ skillId, count, mode: 'fluency' });
-  return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions: questionSet.questions, totalQuestions: questionSet.questions.length, generatedAt: new Date().toISOString() };
+  const questions = generateCirclesQuestionSet({ skillId, count, mode: 'fluency' });
+  return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 
 export function toClientFluencyQuestions(drill) {

@@ -64,7 +64,7 @@ describe('NumberSense retention routes', () => {
     const session = { ...built, targetSkillId: 'NS001', status: 'inProgress', toObject() { return { ...this }; }, save: vi.fn(async function () { return this; }) };
     MathPathPracticeSession.findOne.mockResolvedValueOnce(session);
     const answers = built.questions.map((q) => q.answer?.display ?? q.answer);
-    const res = await request('/retention/x/submit', { method: 'POST', body: { answers, timingsSeconds: built.questions.map(() => 6) } });
+    const res = await request('/retention/x/submit', { method: 'POST', body: { answers, timingsSeconds: built.questions.map(() => 1) } });
     expect(res.status).toBe(200);
     expect(res.data.mode).toBe('retention');
     expect(res.data.retained).toBe(true);

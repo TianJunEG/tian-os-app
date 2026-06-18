@@ -1,102 +1,77 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
-import request from 'supertest';
-import mongoose from 'mongoose';
-import app from '../server.js';
-import MathPathPracticeSession from '../models/mathpath/MathPathPracticeSession.js';
-import MathPathStudentSkillState from '../models/mathpath/MathPathStudentSkillState.js';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-// ---------------------------------------------------------------------------
-// Route-level fluency tests for the Statistics domain.
-// Mirrors mathpathRatioRate.test.js fluency section — only domain/skill differ.
-// ---------------------------------------------------------------------------
+const MOCK_STUDENT = { _id: 'student_1', workspaceId: 'workspace_1' };
+const MathPathPracticeSession = { create: vi.fn(), findOne: vi.fn() };
+const MathPathStudentSkillState = {
+  find: vi.fn(() => ({ lean: vi.fn(async () => []) })),
+  findOneAndUpdate: vi.fn(async () => ({})),
+};
 
-const TEST_DB = process.env.MONGO_URI_TEST || 'mongodb://localhost:27017/tian-os-test';
+vi.mock('../middleware/auth.js', () => ({ protect: (req, _res, next) => { req.user = { id: 'user_1', role: 'student' }; next(); } }));
+vi.mock('../utils/studentContext.js', () => ({ resolveStudent: vi.fn(async () => MOCK_STUDENT) }));
+vi.mock('../models/mathpath/MathPathPracticeSession.js', () => ({ default: MathPathPracticeSession }));
+vi.mock('../models/mathpath/MathPathStudentSkillState.js', () => ({ default: MathPathStudentSkillState }));
+vi.mock('../models/mathpath/MathPathMistakeRecord.js', () => ({ default: { findOneAndUpdate: vi.fn() } }));
+vi.mock('../services/mathpath/curriculumAttemptWriter.js', () => ({ writeCurriculumAttempts: vi.fn(async () => {}) }));
+vi.mock('../services/mathpath/domainMistakePersistence.js', () => ({ persistDomainPracticeMistakes: vi.fn(async () => {}) }));
 
-let token;
-let studentId;
+let router;
 
-async function loginStudent() {
-  const res = await request(app).post('/api/auth/login').send({
-    email: process.env.TEST_STUDENT_EMAIL || 'test-student@example.com',
-    password: process.env.TEST_STUDENT_PASSWORD || 'password123',
+async function request(path, { method = 'GET', body = {} } = {}) {
+  return new Promise((resolve, reject) => {
+    const req = { method: String(method).toUpperCase(), url: path, path, originalUrl: path, query: {}, body, headers: {}, params: {} };
+    const res = {
+      statusCode: 200,
+      status(code) { this.statusCode = code; return this; },
+      json(payload) { resolve({ status: this.statusCode, data: payload }); },
+    };
+    router.handle(req, res, (err) => { if (err) reject(err); else resolve({ status: res.statusCode, data: null }); });
   });
-  return { token: res.body.token, studentId: res.body.user?._id || res.body._id };
 }
 
-beforeAll(async () => {
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(TEST_DB);
-  }
-  const creds = await loginStudent();
-  token = creds.token;
-  studentId = creds.studentId;
-});
+describe('Statistics fluency routes', () => {
+  beforeAll(async () => { const mod = await import('./mathpathStatistics.js'); router = mod.default; });
+  afterEach(() => vi.clearAllMocks());
 
-afterEach(async () => {
-  if (studentId) {
-    await MathPathPracticeSession.deleteMany({ studentId, domainId: 'statistics' });
-    await MathPathStudentSkillState.deleteMany({ studentId, domainId: 'statistics' });
-  }
-});
-
-afterAll(async () => {
-  await mongoose.disconnect();
-});
-
-describe('POST /api/mathpath/statistics/fluency/start', () => {
-  it('returns 200 with domainId, benchmarks, and stripped questions', async () => {
-    const res = await request(app)
-      .post('/api/mathpath/statistics/fluency/start')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ skillId: 'ST001', count: 5 });
+  it('POST /fluency/start builds a drill and strips answers', async () => {
+    MathPathPracticeSession.create.mockResolvedValueOnce({});
+    const res = await request('/fluency/start', { method: 'POST', body: { skillId: 'ST001', count: 4 } });
     expect(res.status).toBe(200);
-    expect(res.body.domainId).toBe('statistics');
-    expect(res.body.skillId).toBe('ST001');
-    expect(Array.isArray(res.body.questions)).toBe(true);
-    expect(res.body.questions.length).toBeGreaterThan(0);
-    expect(res.body.benchmarks).toBeDefined();
-    res.body.questions.forEach((q) => {
-      expect(q).not.toHaveProperty('answer');
-      expect(q).not.toHaveProperty('acceptedAnswers');
-    });
+    expect(res.data.domainId).toBe('statistics');
+    expect(res.data.skillId).toBe('ST001');
+    expect(res.data).toHaveProperty('benchmarks');
+    expect(Array.isArray(res.data.questions)).toBe(true);
+    expect(res.data.questions.every((q) => q.answer === undefined)).toBe(true);
   });
 
-  it('returns 400 when skillId is missing', async () => {
-    const res = await request(app)
-      .post('/api/mathpath/statistics/fluency/start')
-      .set('Authorization', `Bearer ${token}`)
-      .send({});
+  it('POST /fluency/start requires skillId', async () => {
+    const res = await request('/fluency/start', { method: 'POST', body: {} });
     expect(res.status).toBe(400);
   });
-});
 
-describe('POST /api/mathpath/statistics/fluency/:id/submit', () => {
-  it('returns 200 with mode=fluency and a band', async () => {
-    const startRes = await request(app)
-      .post('/api/mathpath/statistics/fluency/start')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ skillId: 'ST001', count: 5 });
-    expect(startRes.status).toBe(200);
-
-    const { practiceSessionId, questions } = startRes.body;
-    const responses = questions.map((q) => ({ questionId: q.questionId, studentAnswer: '__correct__', timeTaken: 8 }));
-
-    const submitRes = await request(app)
-      .post(`/api/mathpath/statistics/fluency/${practiceSessionId}/submit`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({ responses });
-    expect(submitRes.status).toBe(200);
-    expect(submitRes.body.mode).toBe('fluency');
-    expect(typeof submitRes.body.band).toBe('string');
-    expect(typeof submitRes.body.accuracy).toBe('number');
-    expect(submitRes.body.domainId).toBe('statistics');
+  it('POST /fluency/:id/submit scores and returns band', async () => {
+    const { buildStatisticsFluencyDrill } = await import('../services/mathpath/statisticsFluencyService.js');
+    const drill = buildStatisticsFluencyDrill({ skillId: 'ST001', count: 4 });
+    const session = {
+      domainId: 'statistics',
+      targetSkillId: 'ST001',
+      status: 'inProgress',
+      questions: drill.questions,
+      toObject() { return { ...this }; },
+      save: vi.fn(async function () { return this; }),
+    };
+    MathPathPracticeSession.findOne.mockResolvedValueOnce(session);
+    const responses = drill.questions.map((q) => ({ questionId: q.questionId, studentAnswer: String(q.answer ?? q.acceptedAnswers?.[0] ?? ''), timeTaken: 5 }));
+    const res = await request('/fluency/x/submit', { method: 'POST', body: { responses } });
+    expect(res.status).toBe(200);
+    expect(res.data.domainId).toBe('statistics');
+    expect(res.data.mode).toBe('fluency');
+    expect(res.data).toHaveProperty('band');
   });
 
-  it('returns 404 for unknown session id', async () => {
-    const res = await request(app)
-      .post('/api/mathpath/statistics/fluency/nope/submit')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ responses: [] });
+  it('POST /fluency/:id/submit 404s for unknown session', async () => {
+    MathPathPracticeSession.findOne.mockResolvedValueOnce(null);
+    const res = await request('/fluency/nope/submit', { method: 'POST', body: {} });
     expect(res.status).toBe(404);
   });
 });

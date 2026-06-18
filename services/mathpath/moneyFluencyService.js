@@ -31,8 +31,8 @@ export function buildMoneyFluencyDrill({ skillId, studentId = null, count = 8 } 
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown money skill: ${skillId}`);
   const benchmarks = getFluencyBenchmarks(skillId);
-  const questionSet = generateMoneyQuestionSet({ skillId, count, mode: 'fluency' });
-  return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions: questionSet.questions, totalQuestions: questionSet.questions.length, generatedAt: new Date().toISOString() };
+  const questions = generateMoneyQuestionSet({ skillId, count, mode: 'fluency' });
+  return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 
 export function toClientFluencyQuestions(drill) {

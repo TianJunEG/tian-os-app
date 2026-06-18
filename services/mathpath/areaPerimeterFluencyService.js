@@ -31,8 +31,8 @@ export function buildAreaPerimeterFluencyDrill({ skillId, studentId = null, coun
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown area/perimeter skill: ${skillId}`);
   const benchmarks = getFluencyBenchmarks(skillId);
-  const questionSet = generateAreaPerimeterQuestionSet({ skillId, count, mode: 'fluency' });
-  return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions: questionSet.questions, totalQuestions: questionSet.questions.length, generatedAt: new Date().toISOString() };
+  const questions = generateAreaPerimeterQuestionSet({ skillId, count, mode: 'fluency' });
+  return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 
 export function toClientFluencyQuestions(drill) {
