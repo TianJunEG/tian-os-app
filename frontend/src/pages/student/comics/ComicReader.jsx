@@ -424,9 +424,12 @@ export default function ComicReader() {
     );
   }
 
+  // Once the last panel is finished, currentPanel advances past the array to
+  // show the end card — so `panel` is undefined here. Guard every dereference
+  // below (optional chaining) or the end-card render throws.
   const panel = episode.panels[currentPanel];
   const isLast = currentPanel === episode.panels.length - 1;
-  const currentProblemSolved = panel.problem ? solvedProblems[panel.problem.id] === true : true;
+  const currentProblemSolved = panel?.problem ? solvedProblems[panel.problem.id] === true : true;
   const allSolved = episode.panels.every((p) => !p.problem || solvedProblems[p.problem.id] === true);
 
   const goNext = async () => {
