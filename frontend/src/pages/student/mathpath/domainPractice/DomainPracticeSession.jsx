@@ -18,15 +18,14 @@ import {
   getDomainSymbols,
 } from './core';
 
-// One shared practice-session UI for every non-fractions MathPath domain.
-// Pulls a server-built question set (answers stripped) from the domain's
-// /start endpoint, collects answers one question at a time, then submits for
-// grading. The server owns correctness, so feedback is shown on the result
-// screen. The component is thin orchestration over the pure helpers in core.js.
-//
-// All MathPath domains share one mascot (Kylo) via getMascotForModule, so a
-// child gets a consistent buddy across Decimals, Circles, Algebra, etc.
 const MASCOT_KEY = getMascotForModule('mathpath')?.key || 'kylo';
+
+const REFLECTION_OPTIONS = [
+  { value: 'i_know_this', label: 'Solid', color: 'bg-emerald-100 border-emerald-300 text-emerald-800 hover:bg-emerald-200' },
+  { value: 'not_sure', label: "Not sure", color: 'bg-amber-100 border-amber-300 text-amber-800 hover:bg-amber-200' },
+  { value: 'i_need_practice', label: 'Shaky', color: 'bg-orange-100 border-orange-300 text-orange-800 hover:bg-orange-200' },
+  { value: 'i_need_help', label: 'Need help', color: 'bg-red-100 border-red-300 text-red-800 hover:bg-red-200' },
+];
 
 export default function DomainPracticeSession({ domain }) {
   const navigate = useNavigate();
@@ -39,7 +38,7 @@ export default function DomainPracticeSession({ domain }) {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [session, setSession] = useState(null); // { practiceSessionId, questions }
+  const [session, setSession] = useState(null);
   const [index, setIndex] = useState(0);
   const [draft, setDraft] = useState('');
   const [answers, setAnswers] = useState([]);
@@ -47,6 +46,9 @@ export default function DomainPracticeSession({ domain }) {
   const [workingQuestionId, setWorkingQuestionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const [showReflection, setShowReflection] = useState(false);
+  const [pendingAnswer, setPendingAnswer] = useState(null);
   const questionStartedAt = useRef(Date.now());
 
   useEffect(() => {
@@ -74,6 +76,13 @@ export default function DomainPracticeSession({ domain }) {
     return () => { active = false; };
   }, [domain, targetSkillId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Timer — runs while answering, pauses during reflection and on the result screen
+  useEffect(() => {
+    if (loading || result || showReflection) return undefined;
+    const t = setInterval(() => setElapsedSec(Math.floor((Date.now() - questionStartedAt.current) / 1000)), 250);
+    return () => clearInterval(t);
+  }, [loading, result, showReflection, index]);
+
   const questions = session?.questions || [];
   const current = questions[index] || null;
   const isLast = index >= questions.length - 1;
@@ -91,8 +100,8 @@ export default function DomainPracticeSession({ domain }) {
     }
   }
 
-  function recordAndAdvance() {
-    if (!current) return;
+  function submitAnswer() {
+    if (!current || !draft.trim()) return;
     const answer = {
       questionId: current.questionId,
       studentAnswer: draft,
@@ -106,13 +115,22 @@ export default function DomainPracticeSession({ domain }) {
         fullscreenWorkingSubmitted: true,
       } : {}),
     };
+    setPendingAnswer(answer);
+    setShowReflection(true);
+  }
+
+  function confirmReflection(reflectionValue) {
+    const answer = { ...pendingAnswer, reflection: reflectionValue };
     const nextAnswers = [...answers, answer];
     setAnswers(nextAnswers);
     setDraft('');
+    setShowReflection(false);
+    setPendingAnswer(null);
     if (isLast) {
       finish(nextAnswers);
     } else {
       setIndex((i) => i + 1);
+      setElapsedSec(0);
       questionStartedAt.current = Date.now();
     }
   }
@@ -160,9 +178,10 @@ export default function DomainPracticeSession({ domain }) {
   return (
     <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
       <PageHeader title={`${label} Practice`} subtitle={targetName} />
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-semibold text-ink-500">Question {index + 1} of {questions.length}</span>
-        <ProgressBar className="ml-4 flex-1" value={index} max={questions.length} />
+        <ProgressBar className="flex-1" value={index} max={questions.length} />
+        <span className="shrink-0 font-mono text-sm text-ink-400">{elapsedSec}s</span>
       </div>
 
       <Card className="p-6">
@@ -174,8 +193,9 @@ export default function DomainPracticeSession({ domain }) {
               <button
                 key={choice}
                 type="button"
+                disabled={showReflection}
                 onClick={() => setDraft(choice)}
-                className={`min-h-[3rem] rounded-xl border px-4 py-3 text-left text-lg transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'}`}
+                className={`min-h-[3rem] rounded-xl border px-4 py-3 text-left text-lg transition ${draft === choice ? 'border-navy-400 bg-emerald-tint font-semibold text-emerald-deep' : 'border-ink-200 hover:border-navy-300'} disabled:opacity-50`}
               >
                 <MathText text={String(choice)} />
               </button>
@@ -187,14 +207,15 @@ export default function DomainPracticeSession({ domain }) {
               type="text"
               inputMode="text"
               value={draft}
+              disabled={showReflection}
               onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim()) recordAndAdvance(); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && draft.trim() && !showReflection) submitAnswer(); }}
               placeholder="Type your answer"
-              className="mt-5 min-h-[3.25rem] w-full rounded-xl border border-ink-200 px-4 py-3 text-xl focus:border-navy-400 focus:outline-none"
-              autoFocus
+              className="mt-5 min-h-[3.25rem] w-full rounded-xl border border-ink-200 px-4 py-3 text-xl focus:border-navy-400 focus:outline-none disabled:bg-gray-50 disabled:opacity-70"
+              autoFocus={!showReflection}
             />
             {domainSymbols.length > 0 && (
-              <MathSymbolBar symbols={domainSymbols} value={draft} onChange={setDraft} className="mt-3" />
+              <MathSymbolBar symbols={domainSymbols} value={draft} onChange={setDraft} disabled={showReflection} className="mt-3" />
             )}
           </>
         )}
@@ -214,11 +235,30 @@ export default function DomainPracticeSession({ domain }) {
         </div>
       </Card>
 
-      <div className="flex justify-end">
-        <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={recordAndAdvance}>
-          {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
-        </Button>
-      </div>
+      {showReflection ? (
+        <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-sm">
+          <p className="mb-3 text-sm font-semibold text-ink-600">How did that feel?</p>
+          <div className="grid grid-cols-2 gap-2">
+            {REFLECTION_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => confirmReflection(opt.value)}
+                className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${opt.color}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="flex justify-end">
+          <Button icon={isLast ? CheckCircle2 : ArrowRight} disabled={!draft.trim() || submitting} onClick={submitAnswer}>
+            {submitting ? 'Submitting…' : isLast ? 'Finish' : 'Next'}
+          </Button>
+        </div>
+      )}
+
       <FullScreenWorkingMode
         open={Boolean(workingQuestionId)}
         questionId={workingQuestionId || current?.questionId || ''}
