@@ -7,7 +7,7 @@ export function buildMoneyRetentionReview({ skillId, studentId = null, previousQ
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown money skill: ${skillId}`);
   const review = generateRetentionReview({ skillId, previousQuestionFamilyIds, difficulty });
-  const questions = generateMoneyQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds });
+  const questions = generateMoneyQuestionSet({ skillId, count: review.recommendedQuestionCount, mode: 'retention', familyIds: review.questionFamilyIds, sessionSalt: Date.now().toString() });
   return { ...review, domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, mode: 'retention', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 

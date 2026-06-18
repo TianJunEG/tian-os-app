@@ -31,7 +31,7 @@ export function buildMoneyFluencyDrill({ skillId, studentId = null, count = 8 } 
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown money skill: ${skillId}`);
   const benchmarks = getFluencyBenchmarks(skillId);
-  const questions = generateMoneyQuestionSet({ skillId, count, mode: 'fluency' });
+  const questions = generateMoneyQuestionSet({ skillId, count, mode: 'fluency', sessionSalt: Date.now().toString() });
   return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 

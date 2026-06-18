@@ -457,16 +457,27 @@ for (const [kind, skillId] of Object.entries(KIND_TO_SKILL)) {
   GENERATORS[`${kind}MCQ`] = makeMCQ(skillId);
 }
 
-export function generateMeasurementQuestionSet({ skillId, count = 6, mode = 'practice' }) {
+export function generateMeasurementQuestionSet({ skillId, count = 6, mode = 'practice', sessionSalt = '' }) {
   const families = getQuestionFamiliesBySkill(skillId);
   if (!families.length) return [];
   const questions = [];
+  const seenPrompts = new Set();
   let variant = 0;
-  for (let i = 0; i < count; i++) {
-    const family = families[i % families.length];
-    const rng = makeRng(`${skillId}-${family.id}-${variant}`);
+  let fi = 0;
+  const maxAttempts = count * 5;
+  while (questions.length < count && variant < maxAttempts) {
+    const family = families[fi % families.length];
+    const rng = makeRng(`${skillId}-${family.id}-${variant}-${sessionSalt}`);
     const gen = GENERATORS[family.generatorKind];
-    if (gen) questions.push(gen(family, rng, variant));
+    if (gen) {
+      const q = gen(family, rng, variant);
+      const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+      if (!seenPrompts.has(dedupKey) || variant >= count * 3) {
+        seenPrompts.add(dedupKey);
+        questions.push(q);
+        fi++;
+      }
+    }
     variant++;
   }
   return questions;

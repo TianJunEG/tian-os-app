@@ -40,7 +40,7 @@ export function buildDecimalsPracticeSession({
     throw err;
   }
 
-  const raw = generateDecimalQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateDecimalQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,

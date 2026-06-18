@@ -88,7 +88,7 @@ export function buildCirclesFluencyDrill({ skillId, count = 8 } = {}) {
   }
   const benchmarks = getFluencyBenchmarks(families[0]);
   const familyTarget = new Map(families.map((f) => [f.id, f.fluencyTargetSeconds]));
-  const raw = generateCirclesQuestionSet({ skillId, count, mode: 'fluency' });
+  const raw = generateCirclesQuestionSet({ skillId, count, mode: 'fluency', sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_f${index}`,
     skillId: q.skillId,

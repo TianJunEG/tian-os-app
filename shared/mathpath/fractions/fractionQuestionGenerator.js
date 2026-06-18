@@ -444,8 +444,8 @@ function ensureNotAlreadySorted(shown = [], sorted = []) {
   return shown.length > 1 ? [shown[1], ...shown.slice(2), shown[0]] : shown;
 }
 
-function templateContext(skillId, questionFamilyId, difficulty = 2, mode = 'practice', variant = 0) {
-  const seed = hash(`${skillId}|${questionFamilyId}|${difficulty}|${mode}|${variant}`);
+function templateContext(skillId, questionFamilyId, difficulty = 2, mode = 'practice', variant = 0, sessionSalt = '') {
+  const seed = hash(`${skillId}|${questionFamilyId}|${difficulty}|${mode}|${variant}|${sessionSalt}`);
   return { seed, difficulty, mode, variant, questionFamilyId };
 }
 
@@ -1616,12 +1616,13 @@ export function generateFractionQuestion(options = {}) {
     difficulty = 2,
     mode = 'practice',
     variant = 0,
+    sessionSalt = '',
   } = options;
   if (!getSkill(skillId)) throw new Error(`Invalid skillId: ${skillId}`);
   const family = getQuestionFamily(questionFamilyId);
   if (!family) throw new Error(`Invalid questionFamilyId: ${questionFamilyId}`);
 
-  const ctx = templateContext(skillId, questionFamilyId, difficulty, mode, variant);
+  const ctx = templateContext(skillId, questionFamilyId, difficulty, mode, variant, sessionSalt);
   const payload = templateForSkill(skillId, variant % 3, ctx);
   const workingRequired = shouldRequireWorkingForGeneratedQuestion(skillId, mode, family);
 
@@ -1648,18 +1649,31 @@ export function generateFractionQuestionSet(options = {}) {
     count = 5,
     mode = 'practice',
     difficulty = 2,
+    sessionSalt = '',
   } = options;
   const ids = questionFamilyIds.length ? questionFamilyIds : getQuestionFamiliesBySkill(skillId).map((f) => f.id);
   if (!ids.length) return [];
-  return Array.from({ length: count }).map((_, i) =>
-    generateFractionQuestion({
+  const seenPrompts = new Set();
+  const out = [];
+  let attempt = 0;
+  const maxAttempts = count * 5;
+  while (out.length < count && attempt < maxAttempts) {
+    const q = generateFractionQuestion({
       skillId,
-      questionFamilyId: ids[i % ids.length],
+      questionFamilyId: ids[attempt % ids.length],
       difficulty,
       mode,
-      variant: i,
-    })
-  );
+      variant: attempt,
+      sessionSalt,
+    });
+    const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
+    if (!seenPrompts.has(dedupKey) || attempt >= count * 3) {
+      seenPrompts.add(dedupKey);
+      out.push(q);
+    }
+    attempt++;
+  }
+  return out;
 }
 
 export function generateDiagnosticQuestionSet(options = {}) {

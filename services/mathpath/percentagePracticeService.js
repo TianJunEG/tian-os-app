@@ -40,7 +40,7 @@ export function buildPercentagePracticeSession({
     throw err;
   }
 
-  const raw = generatePercentageQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generatePercentageQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,

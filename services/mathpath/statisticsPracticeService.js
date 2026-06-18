@@ -25,7 +25,7 @@ export function buildStatisticsPracticeSession({
     err.status = 400;
     throw err;
   }
-  const raw = generateStatisticsQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateStatisticsQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,

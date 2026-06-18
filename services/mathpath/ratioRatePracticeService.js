@@ -51,7 +51,7 @@ export function buildRatioRatePracticeSession({
     throw err;
   }
 
-  const raw = generateRatioRateQuestionSet({ skillId, count: questionCount, mode });
+  const raw = generateRatioRateQuestionSet({ skillId, count: questionCount, mode, sessionSalt: Date.now().toString() });
   const questions = raw.map((q, index) => ({
     questionId: `${q.questionFamilyId}_${index}`,
     skillId: q.skillId,

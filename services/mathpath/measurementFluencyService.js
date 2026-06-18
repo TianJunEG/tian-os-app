@@ -31,7 +31,7 @@ export function buildMeasurementFluencyDrill({ skillId, studentId = null, count 
   const skill = getSkill(skillId);
   if (!skill) throw new Error(`Unknown measurement skill: ${skillId}`);
   const benchmarks = getFluencyBenchmarks(skillId);
-  const questions = generateMeasurementQuestionSet({ skillId, count, mode: 'fluency' });
+  const questions = generateMeasurementQuestionSet({ skillId, count, mode: 'fluency', sessionSalt: Date.now().toString() });
   return { domainId: DOMAIN_ID, skillId, skillName: skill.name, studentId, benchmarks, mode: 'fluency', questions, totalQuestions: questions.length, generatedAt: new Date().toISOString() };
 }
 
