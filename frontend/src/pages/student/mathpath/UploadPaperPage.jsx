@@ -141,7 +141,6 @@ export default function UploadPaperPage() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
-                capture="environment"
                 className="hidden"
                 onChange={handleFileSelect}
               />

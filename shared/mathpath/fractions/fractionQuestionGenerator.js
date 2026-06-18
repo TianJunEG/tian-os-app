@@ -670,20 +670,36 @@ function templateForSkill(skillId, variant, ctx) {
     case 'F001': {
       const d = seq(s, 2, 8);
       const shaded = variant === 0 ? 1 : seq(s, 1, d - 1);
-      const F001_PROMPTS = [
-        'What fraction of the shape is shaded?',
+      // Rotate through bar → circle → triangle for visual variety.
+      // Circles and triangles cap at 8 and 6 parts respectively for clarity.
+      const shapeChoice = Math.abs(s + variant) % 3;
+      const useCircle = shapeChoice === 1 && d <= 8;
+      const useTriangle = shapeChoice === 2 && d <= 6;
+      const shapeType = useCircle ? 'fraction_circle' : useTriangle ? 'fraction_triangle' : 'fraction_bar';
+      const F001_BAR_PROMPTS = [
         'Look at the bar model below. What fraction is shaded?',
         'The bar is divided into equal parts. What fraction of the bar has been shaded?',
         `The bar below has ${d} equal parts. Some parts are shaded. Write the fraction that is shaded.`,
       ];
+      const F001_CIRCLE_PROMPTS = [
+        'What fraction of the circle is shaded?',
+        'The circle is divided into equal parts. What fraction has been shaded?',
+        `Look at the circle below. ${shaded} out of ${d} equal parts are shaded. Write the fraction.`,
+      ];
+      const F001_TRIANGLE_PROMPTS = [
+        'What fraction of the triangle is shaded?',
+        'The triangle is divided into equal sections. What fraction has been shaded?',
+        `Look at the triangle below. ${shaded} out of ${d} equal parts are shaded. Write the fraction.`,
+      ];
+      const promptList = useCircle ? F001_CIRCLE_PROMPTS : useTriangle ? F001_TRIANGLE_PROMPTS : F001_BAR_PROMPTS;
       return {
-        prompt: F001_PROMPTS[Math.abs(s + variant) % F001_PROMPTS.length],
+        prompt: promptList[Math.abs(s + variant) % promptList.length],
         answer: answerPayloadFraction(shaded, d),
         acceptedAnswers: [fracStr({ numerator: shaded, denominator: d })],
         diagramSpec: {
-          type: 'fraction_bar',
+          type: shapeType,
           width: 640,
-          height: 180,
+          height: 200,
           data: { parts: d, shaded, labelMode: 'none' },
         },
         solutionSteps: ['Count shaded parts.', 'Count total equal parts.', `Write fraction as ${shaded}/${d}.`],

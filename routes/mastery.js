@@ -704,6 +704,8 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
     }
     logPracticeLifecycle(lifecycleLog);
 
+    // Telemetry is non-critical — a write failure must not block the student from
+    // seeing their results. Errors are logged for monitoring but not re-thrown.
     await recordLearningEvents([
       ...attemptDocs.map((attempt) => ({
         studentId,
@@ -736,10 +738,13 @@ router.post('/fractions/practice/:practiceSessionId/submit', protect, asyncHandl
         sessionId: req.params.practiceSessionId,
         metadata: { source: 'mathpath_practice', total: results.length, correct: results.filter((r) => r.correct).length },
       },
-    ]);
+    ]).catch((err) => {
+      console.error('[mastery] fractions practice submit — recordLearningEvents failed (non-fatal):', err.message);
+    });
 
     res.json({ ...summary, assignmentProgress });
   } catch (err) {
+    console.error('[mastery] fractions practice submit error:', err);
     res.status(err.status || 500).json({ error: err.message || 'Failed to submit practice.' });
   }
 }));

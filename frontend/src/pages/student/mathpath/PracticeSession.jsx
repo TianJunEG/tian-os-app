@@ -1943,7 +1943,7 @@ export default function PracticeSession() {
       });
       setSummary(submitted);
     } catch (e) {
-      setError(e.message || 'Failed to submit session.');
+      setError(e?.response?.data?.error || e.message || 'Failed to submit session.');
     } finally {
       setBusy(false);
     }
