@@ -1,21 +1,23 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { getEpisode, MASCOT_COLORS } from '../../../data/comics/episodes';
 import { comicsAPI } from '../../../services/api';
+import useComicNarration from './useComicNarration';
 
 // ─── Speech bubble ───────────────────────────────────────────────────────────
 
-function SpeechBubble({ text, side, color }) {
+function SpeechBubble({ text, side, color, onPlay, isSpeaking }) {
   const isLeft = side === 'left';
   return (
     <div
       style={{
         position: 'relative',
-        background: '#fff',
+        background: isSpeaking ? '#fffbeb' : '#fff',
         border: `2.5px solid ${color}`,
         borderRadius: 14,
         padding: '8px 13px',
+        paddingRight: onPlay ? 30 : 13,
         fontSize: 13,
         fontWeight: 600,
         lineHeight: 1.4,
@@ -24,9 +26,31 @@ function SpeechBubble({ text, side, color }) {
         marginLeft: isLeft ? 8 : 'auto',
         marginRight: isLeft ? 'auto' : 8,
         marginTop: 6,
+        boxShadow: isSpeaking ? `0 0 0 3px ${color}44` : 'none',
+        transition: 'box-shadow 0.15s, background 0.15s',
       }}
     >
       {text}
+      {onPlay && (
+        <button
+          type="button"
+          aria-label="Read aloud"
+          onClick={(e) => { e.stopPropagation(); onPlay(); }}
+          style={{
+            position: 'absolute',
+            top: 5,
+            right: 5,
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            padding: 2,
+            lineHeight: 0,
+            color,
+          }}
+        >
+          <Volume2 size={14} />
+        </button>
+      )}
       {/* tail */}
       <span
         style={{
@@ -126,7 +150,7 @@ const SCENE_COLORS = {
   'hawker-centre': 'linear-gradient(135deg, #fef3c7 0%, #fde68a 60%, #fbbf24 100%)',
 };
 
-function ScenePanel({ scene, characters, speech }) {
+function ScenePanel({ scene, characters, speech, onPlayLine, speakingIndex = -1 }) {
   const bg = SCENE_COLORS[scene] ?? 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)';
 
   // Group speeches by side
@@ -177,12 +201,26 @@ function ScenePanel({ scene, characters, speech }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 12px 0', position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 6 }}>
           {leftSpeech.map((s, i) => (
-            <SpeechBubble key={i} text={s.text} side="left" color={leftColor} />
+            <SpeechBubble
+              key={i}
+              text={s.text}
+              side="left"
+              color={leftColor}
+              onPlay={onPlayLine ? () => onPlayLine(s) : undefined}
+              isSpeaking={speakingIndex === speech.indexOf(s)}
+            />
           ))}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 6, alignItems: 'flex-end' }}>
           {rightSpeech.map((s, i) => (
-            <SpeechBubble key={i} text={s.text} side="right" color={rightColor} />
+            <SpeechBubble
+              key={i}
+              text={s.text}
+              side="right"
+              color={rightColor}
+              onPlay={onPlayLine ? () => onPlayLine(s) : undefined}
+              isSpeaking={speakingIndex === speech.indexOf(s)}
+            />
           ))}
         </div>
       </div>
@@ -416,6 +454,17 @@ export default function ComicReader() {
     setSolvedProblems((prev) => ({ ...prev, [problemId]: correct }));
   }, []);
 
+  const narration = useComicNarration();
+
+  // Auto-narrate a panel's dialogue when the toggle is on; always cut off any
+  // in-flight speech when the panel changes (incl. advancing to the end card).
+  useEffect(() => {
+    narration.stop();
+    const current = episode?.panels?.[currentPanel];
+    if (narration.autoNarrate && current) narration.playPanel(current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPanel, narration.autoNarrate, episode]);
+
   if (!episode) {
     return (
       <div style={{ padding: 32, textAlign: 'center', color: '#78716c' }}>
@@ -455,7 +504,7 @@ export default function ComicReader() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <button
-          onClick={() => navigate('/student/comics')}
+          onClick={() => { narration.stop(); navigate('/student/comics'); }}
           style={{
             background: 'none',
             border: 'none',
@@ -471,7 +520,32 @@ export default function ComicReader() {
         >
           <ArrowLeft size={16} /> All episodes
         </button>
-        <div style={{ marginLeft: 'auto', fontSize: 12, color: '#a8a29e', fontWeight: 500 }}>
+        {narration.supported && (
+          <button
+            type="button"
+            onClick={() => narration.setAutoNarrate(!narration.autoNarrate)}
+            aria-pressed={narration.autoNarrate}
+            title={narration.autoNarrate ? 'Auto-narration on' : 'Auto-narration off'}
+            style={{
+              marginLeft: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              cursor: 'pointer',
+              borderRadius: 999,
+              padding: '4px 10px',
+              fontSize: 12,
+              fontWeight: 700,
+              border: `1.5px solid ${narration.autoNarrate ? '#f59e0b' : '#d4d4d4'}`,
+              background: narration.autoNarrate ? '#fffbeb' : 'transparent',
+              color: narration.autoNarrate ? '#b45309' : '#78716c',
+            }}
+          >
+            {narration.autoNarrate ? <Volume2 size={14} /> : <VolumeX size={14} />}
+            Narrate
+          </button>
+        )}
+        <div style={{ marginLeft: narration.supported ? 12 : 'auto', fontSize: 12, color: '#a8a29e', fontWeight: 500 }}>
           {showEndCard ? '✓ Done' : `Panel ${currentPanel + 1} of ${episode.panels.length}`}
         </div>
       </div>
@@ -509,6 +583,8 @@ export default function ComicReader() {
             scene={panel.scene}
             characters={panel.characters}
             speech={panel.speech}
+            onPlayLine={narration.supported ? (line) => narration.playLine(line, panel.characters) : undefined}
+            speakingIndex={narration.speakingIndex}
           />
 
           {/* Menu note if present */}
