@@ -132,12 +132,16 @@ export default function FractionAnswerInput({
       const host = hostRef.current;
       if (!host || typeof window === 'undefined') return;
       const rect = host.getBoundingClientRect();
-      const width = Math.min(352, window.innerWidth - 32);
+      // Use visualViewport when available so the virtual keyboard height is excluded
+      const vvHeight = window.visualViewport?.height ?? window.innerHeight;
+      const vvWidth = window.visualViewport?.width ?? window.innerWidth;
+      const width = Math.min(352, vvWidth - 32);
       const estHeight = 280;
       let left = rect.left + rect.width / 2 - width / 2;
-      left = Math.max(16, Math.min(left, window.innerWidth - width - 16));
+      left = Math.max(16, Math.min(left, vvWidth - width - 16));
       let top = rect.bottom + 8;
-      if (top + estHeight > window.innerHeight - 16) {
+      // Flip above the input if there isn't room below (accounts for virtual keyboard)
+      if (top + estHeight > vvHeight - 16) {
         top = Math.max(16, rect.top - estHeight - 8);
       }
       setPopupPos({ left, top, width });
@@ -145,9 +149,11 @@ export default function FractionAnswerInput({
     updatePosition();
     window.addEventListener('resize', updatePosition);
     window.addEventListener('scroll', updatePosition, true);
+    window.visualViewport?.addEventListener('resize', updatePosition);
     return () => {
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
+      window.visualViewport?.removeEventListener('resize', updatePosition);
     };
   }, [popupOpen]);
 

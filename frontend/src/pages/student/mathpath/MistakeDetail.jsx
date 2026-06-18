@@ -190,8 +190,8 @@ export default function MistakeDetail() {
     <>
       <PageHeader title="Mistake detail" subtitle={`${m.topicName ? m.topicName + ' · ' : ''}${m.skillName}`} />
       <Card className="p-5 sm:p-6">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Badge tone="neutral">{m.mistakeTypeLabel || TYPE_LABEL[m.mistakeType] || m.mistakeType}</Badge>
             <Badge tone="navy">{SOURCE_LABEL[m.source] || 'Source: ' + (m.source || 'other')}</Badge>
           </div>

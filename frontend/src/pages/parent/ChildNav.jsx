@@ -41,13 +41,16 @@ export default function ChildNav({ studentId, name, level, showAssign = true }) 
           <Button size="m" icon={BookOpen} to={`${base}/assign-practice`}>Assign practice</Button>
         )}
       </div>
-      <div className="mt-4 flex gap-1 overflow-x-auto border-b border-line-soft">
-        {tabs.map(([label, to, exact]) => (
-          <NavLink key={to} to={to} end={exact}
-            className={({ isActive }) => `whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition ${isActive ? 'border-emerald-deep text-emerald-deep' : 'border-transparent text-ink-500 hover:text-emerald-deep'}`}>
-            {label}
-          </NavLink>
-        ))}
+      <div className="relative mt-4 border-b border-line-soft">
+        <div className="flex gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {tabs.map(([label, to, exact]) => (
+            <NavLink key={to} to={to} end={exact}
+              className={({ isActive }) => `inline-flex min-h-[44px] items-center whitespace-nowrap border-b-2 px-3 py-2 text-sm font-semibold transition ${isActive ? 'border-emerald-deep text-emerald-deep' : 'border-transparent text-ink-500 hover:text-emerald-deep'}`}>
+              {label}
+            </NavLink>
+          ))}
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent" aria-hidden="true" />
       </div>
     </div>
   );

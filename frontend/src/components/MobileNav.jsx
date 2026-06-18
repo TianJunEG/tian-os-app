@@ -54,7 +54,7 @@ export default function MobileNav() {
               aria-label={label}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[11px] font-medium leading-none">{label}</span>
+              <span className="text-xs font-medium leading-none">{label}</span>
             </button>
           );
         })}

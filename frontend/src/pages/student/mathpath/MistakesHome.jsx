@@ -117,7 +117,7 @@ export default function MistakesHome() {
     : `No mistakes to review, ${firstName} — you're on fire!`;
 
   return (
-    <div className={`${visualStyles.page} space-y-6`}>
+    <div className={`${visualStyles.page} space-y-6 overflow-x-hidden`}>
       <PageHeader title="Mistake-to-Mastery" subtitle="MathPath · turn recent slips into mastery" />
 
       {mascot && (

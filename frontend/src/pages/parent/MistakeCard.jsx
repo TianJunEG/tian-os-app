@@ -173,7 +173,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
             <button
               onClick={() => submitFeedback('helpful')}
               disabled={feedbackBusy}
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold transition ${
+              className={`inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
                 feedback === 'helpful'
                   ? 'bg-success-100 text-success-700'
                   : 'bg-white text-ink-400 hover:bg-success-50 hover:text-success-600'
@@ -184,7 +184,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
             <button
               onClick={() => submitFeedback('not_helpful')}
               disabled={feedbackBusy}
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold transition ${
+              className={`inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
                 feedback === 'not_helpful'
                   ? 'bg-error-100 text-error-700'
                   : 'bg-white text-ink-400 hover:bg-error-50 hover:text-error-600'

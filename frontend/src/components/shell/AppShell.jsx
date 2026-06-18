@@ -160,12 +160,12 @@ export default function AppShell({ children }) {
       </div>
       {!activityShell && (
         <nav className={`fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-dash border px-2 shadow-card backdrop-blur md:hidden ${isStudentShell ? 'border-white/80 bg-white/90' : 'border-line bg-surface-white/90'}`}
-          style={{ height: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          style={{ minHeight: 64, paddingBottom: 'env(safe-area-inset-bottom)' }}>
           {set.bottom.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end !== false}
               className={({ isActive }) => `flex flex-1 flex-col items-center justify-center gap-0.5 rounded-shell py-2 transition ${isActive ? activeNavClass : 'text-body-faint'}`}>
               <item.icon className="h-5 w-5" />
-              <span className="text-[10px] font-semibold">{item.label}</span>
+              <span className="text-xs font-semibold">{item.label}</span>
             </NavLink>
           ))}
         </nav>

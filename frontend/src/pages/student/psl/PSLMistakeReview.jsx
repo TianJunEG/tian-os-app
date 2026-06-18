@@ -81,7 +81,7 @@ export default function PSLMistakeReview() {
           <div className="mb-5 flex items-center gap-3">
             <button
               onClick={() => navigate('/student/psl')}
-              className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl transition-colors"
               style={{ border: '1px solid #dde1e8', background: '#fff' }}
             >
               <ArrowLeft className="h-4 w-4" style={{ color: '#5a6675' }} />
