@@ -6,6 +6,24 @@ on:
     branches: [main, master]
 
 jobs:
+  guards:
+    name: Repo guards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Fail fast if any unresolved git merge-conflict markers were committed.
+      # A botched merge left these in shared/ generators and crashed the backend
+      # on boot in production — this catches them in seconds, before any build.
+      - name: No merge-conflict markers
+        run: |
+          if git grep -nE '^(<{7} |={7}$|>{7} )' -- '*.js' '*.jsx' '*.cjs' '*.ts' '*.tsx' '*.json' '*.yml' '*.yaml' '*.css'; then
+            echo "::error::Unresolved git merge-conflict markers committed — resolve them before merging."
+            exit 1
+          fi
+          echo "No merge-conflict markers ✓"
+
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
@@ -33,9 +51,11 @@ jobs:
 
       # Syntax-check every backend file (no execution, so the server never
       # boots and CI can't hang on app.listen / DB connect). Catches errors in
-      # files the test suite doesn't import.
+      # files the test suite doesn't import — e.g. unresolved merge-conflict
+      # markers in shared/ that crash the server on boot (a real prod incident).
+      # `shared/` and `workers/` are imported at startup, so they MUST be here.
       - name: Syntax check
-        run: git ls-files -z 'server.js' 'config/*.js' 'routes/*.js' 'models/*.js' 'middleware/*.js' 'utils/*.js' | xargs -0 -n1 node --check
+        run: git ls-files -z 'server.js' 'config/*.js' 'routes/*.js' 'models/*.js' 'middleware/*.js' 'utils/*.js' 'shared/*.js' 'services/*.js' 'workers/*.js' | xargs -0 -n1 node --check
 
       - name: Run tests
         run: npm test
