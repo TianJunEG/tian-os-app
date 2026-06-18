@@ -9,7 +9,18 @@ export default class ErrorBoundary extends React.Component {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(error) {
+    // Chunk load failures happen when a new deploy invalidates cached JS URLs.
+    // Auto-reload fetches fresh index.html + new chunks without user interaction.
+    const isChunkError = (
+      /Failed to fetch dynamically imported module/i.test(error?.message || '')
+      || /Loading chunk \d+ failed/i.test(error?.message || '')
+      || error?.name === 'ChunkLoadError'
+    );
+    if (isChunkError && typeof window !== 'undefined') {
+      window.location.reload();
+      return { hasError: false };
+    }
     return { hasError: true };
   }
 

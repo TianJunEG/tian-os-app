@@ -284,11 +284,12 @@ export default function StudentDashboardUpperPrimary({
             {expandedCards.a && (
               <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>{metrics.accuracy.body}</div>
             )}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 46, marginTop: 'auto', paddingTop: 16 }}>
-              {[24, 38, 30, 24, 42, 32, 46].map((h, i) => (
-                <span key={i} style={{ flex: 1, height: h, background: i % 2 === 0 ? '#bfe3cf' : '#57b389', borderRadius: '6px 6px 2px 2px' }} />
-              ))}
-            </div>
+            {!metrics.accuracy.empty && (
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 46, marginTop: 'auto', paddingTop: 16 }}>
+                <span style={{ flex: 1, height: Math.max(4, Math.round(Number(dashboardAnalytics?.accuracyRate || 0) * 0.46)), background: '#57b389', borderRadius: '6px 6px 2px 2px' }} />
+                <span style={{ flex: 1, height: 4, background: '#bfe3cf', borderRadius: '6px 6px 2px 2px', opacity: 0.5 }} />
+              </div>
+            )}
           </div>
 
           {/* Questions answered */}
@@ -306,11 +307,11 @@ export default function StudentDashboardUpperPrimary({
             {expandedCards.q && (
               <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>Across MathPath &amp; Word Problems this week.</div>
             )}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 46, marginTop: 'auto', paddingTop: 16 }}>
-              {[16, 28, 22, 24, 36, 30, 34, 44, 30, 52].map((h, i) => (
-                <span key={i} style={{ flex: 1, height: h, background: i % 2 === 0 ? '#f1d6a3' : '#e3a64f', borderRadius: '5px 5px 2px 2px' }} />
-              ))}
-            </div>
+            {!metrics.questions.empty && (
+              <div style={{ marginTop: 'auto', paddingTop: 16, fontSize: 12, color: '#a8743a', fontWeight: 500 }}>
+                This week
+              </div>
+            )}
           </div>
 
           {/* Working submitted */}
@@ -328,11 +329,12 @@ export default function StudentDashboardUpperPrimary({
             {expandedCards.w && (
               <div style={{ fontSize: 14.5, color: '#5a6675', lineHeight: 1.5, marginTop: 8 }}>Keep showing your thinking {'—'} it helps your tutor help you.</div>
             )}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 46, marginTop: 'auto', paddingTop: 16 }}>
-              {[26, 40, 32, 28, 44, 34, 30, 50].map((h, i) => (
-                <span key={i} style={{ flex: 1, height: h, background: i % 2 === 0 ? '#bcd6f5' : '#5a93e0', borderRadius: '6px 6px 2px 2px' }} />
-              ))}
-            </div>
+            {!metrics.working.empty && (
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 46, marginTop: 'auto', paddingTop: 16 }}>
+                <span style={{ flex: 1, height: Math.max(4, Math.round(Number(dashboardAnalytics?.workingSubmissionRate || 0) * 0.46)), background: '#5a93e0', borderRadius: '6px 6px 2px 2px' }} />
+                <span style={{ flex: 1, height: 4, background: '#bcd6f5', borderRadius: '6px 6px 2px 2px', opacity: 0.5 }} />
+              </div>
+            )}
           </div>
 
           {/* Confidence insight */}
