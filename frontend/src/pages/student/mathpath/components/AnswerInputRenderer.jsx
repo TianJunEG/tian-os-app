@@ -6,8 +6,41 @@ import MathSymbolBar from './MathSymbolBar';
 // brackets) that a bare text input can't provide.
 const EXPRESSION_SYMBOLS = ['x', 'power', 'root', 'fraction', 'times', 'divide', 'lparen', 'rparen', 'pi'];
 
+function isComparisonQuestion(question = {}) {
+  const prompt = String(question.prompt || question.stem || '');
+  if (/write\s*[><]\s*or\s*[><]/i.test(prompt)) return true;
+  const ans = String(question.answer?.value ?? question.answer?.display ?? question.answer ?? '').trim();
+  return ans === '>' || ans === '<';
+}
+
+function ComparisonAnswerInput({ value, onChange, disabled }) {
+  return (
+    <div>
+      <span className="mb-3 block text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Choose the symbol</span>
+      <div className="flex gap-4">
+        {['>', '<'].map((sym) => (
+          <button
+            key={sym}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange?.(sym)}
+            className={`flex h-20 w-24 items-center justify-center rounded-2xl border-2 text-4xl font-bold transition
+              ${value === sym
+                ? 'border-emerald bg-emerald text-white shadow-md'
+                : 'border-line-soft bg-white text-ink-700 hover:border-emerald hover:bg-emerald-tint'}
+              disabled:opacity-50`}
+          >
+            {sym}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function normalizeType(question = {}) {
   if (question.type === 'mcq') return 'multiple_choice';
+  if (isComparisonQuestion(question)) return 'comparison';
 
   const explicit = String(
     question.answerFormat
@@ -128,6 +161,10 @@ export default function AnswerInputRenderer({
 
   if (type === 'ordering') {
     return <OrderingAnswerInput question={question} value={value} onChange={onChange} disabled={disabled} onEnter={onEnter} />;
+  }
+
+  if (type === 'comparison') {
+    return <ComparisonAnswerInput value={value} onChange={onChange} disabled={disabled} />;
   }
 
   const inputMode = type === 'decimal' ? 'decimal' : type === 'whole_number' ? 'numeric' : 'text';

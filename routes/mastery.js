@@ -2511,7 +2511,21 @@ router.get('/diagnostic/:sessionId', protect, asyncHandler(async (req, res) => {
 router.post('/remediation', protect, asyncHandler(async (req, res) => {
   try {
     const { skillSlug, skillId, recentAttempts = [] } = req.body || {};
-    const skill = skillSlug ? await Skill.findOne({ slug: skillSlug }) : (skillId ? await Skill.findById(skillId) : null);
+    let skill = null;
+    if (skillSlug) {
+      skill = await Skill.findOne({ slug: skillSlug });
+    } else if (skillId) {
+      const isObjectId = /^[a-f\d]{24}$/i.test(String(skillId));
+      skill = isObjectId
+        ? await Skill.findById(skillId)
+        : await Skill.findOne({
+            $or: [
+              { 'metadata.mathPathSkillId': skillId },
+              { 'metadata.frameworkCode': skillId },
+              { slug: skillId },
+            ],
+          });
+    }
     if (!skill) return res.status(404).json({ error: 'Skill not found.' });
     const prereqSkills = await Skill.find({ _id: { $in: skill.prerequisiteSkillIds || [] } });
     const plan = buildRemediationPlan({ skill, recentAttempts, prereqSkills });
