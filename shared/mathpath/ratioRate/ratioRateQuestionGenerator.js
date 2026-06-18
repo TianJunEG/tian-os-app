@@ -191,9 +191,13 @@ const GENERATORS = {
   },
 
   rrThreeTerm(rng, family, difficulty, mode) {
-    const factors = [2, 3, 4, 5];
-    // Coprime triples
-    const tripleOptions = [[1,2,3],[2,3,4],[1,3,5],[2,3,5],[1,2,5],[3,4,5],[1,4,5],[2,5,7],[1,3,4],[3,5,7]];
+    const factors = [2, 3, 4, 5, 6];
+    // Coprime triples (gcd of all three = 1) — 20 options keeps the pool large
+    // enough that duplicate questions within a 6-question session are negligible.
+    const tripleOptions = [
+      [1,2,3],[2,3,4],[1,3,5],[2,3,5],[1,2,5],[3,4,5],[1,4,5],[2,5,7],[1,3,4],[3,5,7],
+      [2,3,7],[1,4,7],[3,4,7],[4,5,6],[3,5,8],[2,5,9],[1,5,9],[4,5,7],[3,7,8],[5,7,9],
+    ];
     const [p, q, r] = pick(rng, tripleOptions);
     const f = pick(rng, factors);
     const a = p * f;
@@ -663,7 +667,7 @@ export function generateRatioRateQuestionSet({ skillId, questionFamilyIds, count
     const variant = Math.floor(attempt / familyIds.length);
     const q = generateRatioRateQuestion({ questionFamilyId: familyId, mode, difficulty, variant, sessionSalt });
     const dedupKey = q.prompt + '|||' + (q.answer?.display ?? q.answer);
-    if (!seenPrompts.has(dedupKey) || attempt >= count * 3) {
+    if (!seenPrompts.has(dedupKey) || attempt >= maxAttempts - 1) {
       seenPrompts.add(dedupKey);
       out.push(q);
     }
