@@ -66,6 +66,7 @@ export const FEATURE_FLAGS = {
   mechanisms: flagEnabled('MECHANISMS'),
   spelling: flagEnabled('SPELLING', true),
   psl: flagEnabled('PSL', true),
+  comics: flagEnabled('COMICS', true),
   tutor: flagEnabled('TUTOR', true),
   teacher: flagEnabled('TEACHER', true),
   admin: flagEnabled('ADMIN', true),

@@ -77,6 +77,7 @@ import lifelabRoutes from './routes/lifelab.js';
 import spellingPracticeRoutes from './routes/spellingPractice.js';
 import mechanismsRoutes from './routes/mechanisms.js';
 import pslRoutes from './routes/psl.js';
+import comicsRoutes from './routes/comics.js';
 import assessmentSpecificationRoutes from './routes/assessmentSpecifications.js';
 import assessmentBlueprintRoutes from './routes/assessmentBlueprints.js';
 import assessmentUploadRoutes from './routes/assessmentUploads.js';
@@ -274,6 +275,7 @@ app.use('/api/lifelab', featureGate({ feature: 'lifelab', minVersion: 'v0.6' }),
 app.use('/api/spelling-practice', featureGate({ feature: 'spelling', minVersion: 'v0.6' }), spellingPracticeRoutes);
 app.use('/api/mechanisms', featureGate({ feature: 'mechanisms', minVersion: 'v0.6' }), mechanismsRoutes);
 app.use('/api/psl', featureGate({ feature: 'psl', minVersion: 'v0.7' }), pslRoutes);
+app.use('/api/comics', featureGate({ feature: 'comics', minVersion: 'v0.7' }), comicsRoutes);
 app.use('/api/assessment-specifications', assessmentSpecificationRoutes);
 app.use('/api/assessment-blueprints', assessmentBlueprintRoutes);
 app.use('/api/assessment-uploads', assessmentUploadRoutes);

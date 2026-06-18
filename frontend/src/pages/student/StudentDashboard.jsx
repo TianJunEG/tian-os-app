@@ -50,6 +50,7 @@ import {
   getFractionAssessmentBlueprintReadiness,
 } from '../../mathpath/fractions/fractionAssessmentReadinessGate';
 import FEATURE_FLAGS from '../../config/featureFlags';
+import { getLatestEpisode } from '../../data/comics/episodes';
 
 function actionMeta(nextAction = {}, assessmentReady = true) {
   const action = String(nextAction.action || '');
@@ -1297,6 +1298,23 @@ export default function StudentDashboard() {
             <UpperPrimaryRecommendedNext currentSkill={vm.currentSkill} nextAction={vm.nextAction} hasPlacement={vm.hasPlacement} masteredSkillCount={safeMasteredCount} />
           </div>
 
+          {FEATURE_FLAGS.comics && (
+            <div style={{ marginTop: 20 }}>
+              <Card className="flex items-center gap-4 p-4" interactive>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: '#fef3c7' }}>
+                  <BookOpen className="h-5 w-5" style={{ color: '#d97706' }} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-ink-700">Tian 7 Chronicles</p>
+                  <p className="text-xs text-ink-500 truncate">
+                    {getLatestEpisode() ? `New: Ep ${getLatestEpisode().episode} — ${getLatestEpisode().title}` : 'Comic word problems with Kylo & friends'}
+                  </p>
+                </div>
+                <Button to={getLatestEpisode() ? `/student/comics/${getLatestEpisode().slug}` : '/student/comics'} size="s" icon={ArrowRight}>Read</Button>
+              </Card>
+            </div>
+          )}
+
           {FEATURE_FLAGS.psl && (
             <div style={{ marginTop: 20 }}>
               <Card className="flex items-center gap-4 p-4" interactive>
@@ -1840,6 +1858,21 @@ export default function StudentDashboard() {
           visual={visual}
           assessmentReady={assessmentGate.ready}
       />
+
+      {FEATURE_FLAGS.comics && (
+        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ background: '#fef3c7' }}>
+            <BookOpen className="h-5 w-5" style={{ color: '#d97706' }} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-ink-700">Tian 7 Chronicles</p>
+            <p className="text-xs text-ink-500 truncate">
+              {getLatestEpisode() ? `New: Ep ${getLatestEpisode().episode} — ${getLatestEpisode().title}` : 'Comic word problems with Kylo & friends'}
+            </p>
+          </div>
+          <Button to={getLatestEpisode() ? `/student/comics/${getLatestEpisode().slug}` : '/student/comics'} size="s" icon={ArrowRight}>Read</Button>
+        </Card>
+      )}
 
       {FEATURE_FLAGS.psl && (
         <Card className="mt-4 flex items-center gap-4 p-4" interactive>
