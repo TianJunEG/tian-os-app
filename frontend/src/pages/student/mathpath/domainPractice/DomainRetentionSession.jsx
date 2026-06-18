@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { BookCheck, Timer } from 'lucide-react';
+import { BookOpenCheck, Timer } from 'lucide-react';
 import { Alert, Badge, Button, Card, PageHeader, ProgressBar, Spinner } from '../../../../components/ui';
 import { buildFluencySubmitPayload } from '../DecimalsFluencySession';
 import { getDomainConfig } from './core';
@@ -113,7 +113,7 @@ export default function DomainRetentionSession({ domain }) {
       <div className="mx-auto max-w-2xl space-y-5 px-4 py-8">
         <PageHeader title="Review complete" subtitle={`${result.correct ?? '?'}/${result.total ?? '?'} correct · ${result.accuracy ?? 0}% accuracy.`} />
         <Card className="p-6 text-center">
-          <BookCheck className="mx-auto h-8 w-8 text-emerald" />
+          <BookOpenCheck className="mx-auto h-8 w-8 text-emerald" />
           <p className="mt-2 text-2xl font-display font-semibold text-ink-900">{meta.label}</p>
           <div className="mt-2 flex justify-center gap-2">
             <Badge tone={retentionTone(status)}>{result.accuracy ?? 0}% accurate</Badge>
@@ -169,7 +169,7 @@ export default function DomainRetentionSession({ domain }) {
       </Card>
 
       <div className="flex justify-end">
-        <Button icon={BookCheck} disabled={!draft.trim() || submitting} onClick={recordAndAdvance}>
+        <Button icon={BookOpenCheck} disabled={!draft.trim() || submitting} onClick={recordAndAdvance}>
           {submitting ? 'Scoring…' : isLast ? 'Finish' : 'Next'}
         </Button>
       </div>
