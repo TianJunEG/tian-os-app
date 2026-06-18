@@ -541,7 +541,7 @@ export default function ParentMathPathDashboardPage() {
       />
 
       {availableDomains.length > 1 && (
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
           <label htmlFor="parent-domain" className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Domain</label>
           <select
             id="parent-domain"
@@ -551,7 +551,7 @@ export default function ParentMathPathDashboardPage() {
               setSelectedDomain(next);
               navigate(`/parent/children/${studentId}/mathpath/${next}`, { replace: true });
             }}
-            className="h-10 rounded-xl border border-line-soft bg-surface-white px-3 text-sm font-semibold text-emerald-deep outline-none focus:border-emerald"
+            className="h-10 w-full rounded-xl border border-line-soft bg-surface-white px-3 text-sm font-semibold text-emerald-deep outline-none focus:border-emerald sm:w-auto"
           >
             {availableDomains.map((id) => <option key={id} value={id}>{domainLabel(id)}</option>)}
           </select>

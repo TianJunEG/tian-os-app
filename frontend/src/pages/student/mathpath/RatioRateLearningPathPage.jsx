@@ -25,11 +25,11 @@ function SkillCard({ skill, selected, onSelect }) {
   const levelTag = (skill.singaporeLevel || []).join('/');
   return (
     <Card
-      className={`p-4 cursor-pointer transition ${skill.current ? 'ring-2 ring-gold-400/60' : ''} ${skill.locked ? 'bg-surface-white/80 opacity-75' : ''} ${selected ? 'ring-2 ring-navy-400/60' : ''}`}
+      className={`min-w-0 p-4 cursor-pointer transition ${skill.current ? 'ring-2 ring-gold-400/60' : ''} ${skill.locked ? 'bg-surface-white/80 opacity-75' : ''} ${selected ? 'ring-2 ring-navy-400/60' : ''}`}
       onClick={() => onSelect(skill.id)}
     >
       <div className="flex min-h-[3.25rem] items-start justify-between gap-3">
-        <p className="text-base font-semibold leading-snug text-ink-800">{skill.name}</p>
+        <p className="break-words text-base font-semibold leading-snug text-ink-800">{skill.name}</p>
         <span className="shrink-0">
           {skill.locked ? <Lock className="h-4 w-4 text-ink-300" /> : skill.complete ? <CheckCircle2 className="h-4 w-4 text-success-700" /> : null}
         </span>
@@ -40,7 +40,7 @@ function SkillCard({ skill, selected, onSelect }) {
         {levelTag && <Badge tone="neutral">{levelTag}</Badge>}
       </div>
       {skill.locked && skill.missingPrerequisiteNames[0] && (
-        <p className="mt-3 line-clamp-1 text-xs text-ink-400">Unlocks after {skill.missingPrerequisiteNames[0]}</p>
+        <p className="mt-3 line-clamp-2 break-words text-xs text-ink-400">Unlocks after {skill.missingPrerequisiteNames[0]}</p>
       )}
     </Card>
   );
@@ -86,7 +86,7 @@ export default function RatioRateLearningPathPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
+    <div className="mx-auto w-full max-w-4xl space-y-5 px-3 py-5 sm:space-y-6 sm:px-4 sm:py-6">
       <PageHeader title="Ratio & Rate" subtitle="Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)." />
 
       <Card className="p-5">
@@ -96,15 +96,15 @@ export default function RatioRateLearningPathPage() {
           <Badge tone="gold">{view.progress.inProgress} in progress</Badge>
         </div>
         <ProgressBar className="mt-4" value={view.progress.mastered} max={view.progress.total} />
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gold-100 text-gold-700">
             <Target className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gold-700">Recommended Next</p>
-            <p className="truncate text-sm font-semibold text-ink-700">{view.recommendedNext.skillName}</p>
+            <p className="break-words text-sm font-semibold text-ink-700">{view.recommendedNext.skillName}</p>
           </div>
-          <Button size="s" icon={ArrowRight} onClick={() => startPractice(view.recommendedNext.skillId)}>Practise</Button>
+          <Button className="w-full justify-center sm:w-auto" size="s" icon={ArrowRight} onClick={() => startPractice(view.recommendedNext.skillId)}>Practise</Button>
         </div>
       </Card>
 
@@ -120,8 +120,8 @@ export default function RatioRateLearningPathPage() {
               Complete {selected.missingPrerequisiteNames.join(', ')} to unlock this skill.
             </p>
           )}
-          <div className="mt-3 flex gap-2">
-            <Button size="s" disabled={selected.locked} onClick={() => !selected.locked && startPractice(selected.id)}>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <Button className="justify-center" size="s" disabled={selected.locked} onClick={() => !selected.locked && startPractice(selected.id)}>
               {selected.locked ? 'Locked' : 'Practise This Skill'}
             </Button>
           </div>
@@ -130,7 +130,7 @@ export default function RatioRateLearningPathPage() {
 
       {view.strands.map((strand) => (
         <section key={strand.label}>
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">{strand.label}</h3>
             <span className="text-xs text-ink-400">{strand.skills.length} skills</span>
           </div>

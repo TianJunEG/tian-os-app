@@ -64,9 +64,9 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
 
   return (
     <Card className="p-5">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-ink-700">{m.skillName}</span>
-        <div className="flex flex-wrap justify-end gap-2">
+      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <span className="break-words text-sm font-semibold text-ink-700">{m.skillName}</span>
+        <div className="flex flex-wrap gap-2 sm:justify-end">
           {m.topicName && <Badge tone="neutral">{m.topicName}</Badge>}
           <Badge tone={LEARNING_STATUS_TONE[learningStatus] || 'neutral'}>
             {LEARNING_STATUS_LABEL[learningStatus] || learningStatus}
@@ -81,16 +81,16 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
       {learningStatus === 'new' && m.occurredAt && (Date.now() - new Date(m.occurredAt).getTime()) > 86400000 && (
         <p className="mt-1 text-[11px] font-semibold text-amber-600">Needs attention — open for over 24 hours</p>
       )}
-      <div className="text-ink-900"><Stem text={m.questionStem} /></div>
+      <div className="break-words text-ink-900"><Stem text={m.questionStem} /></div>
       <div className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-        <div className="rounded-xl bg-error-100 p-3">
+        <div className="min-w-0 rounded-xl bg-error-100 p-3">
           <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-error-700">Answered</div>
-          <div className="text-ink-900"><Ans text={m.studentAnswer || '—'} /></div>
+          <div className="break-words text-ink-900"><Ans text={m.studentAnswer || '—'} /></div>
         </div>
         {m.correctAnswer && (
-          <div className="rounded-xl bg-success-100 p-3">
+          <div className="min-w-0 rounded-xl bg-success-100 p-3">
             <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-success-700">{formula ? 'Correct' : 'Model answer'}</div>
-            <div className="text-ink-900"><Ans text={String(m.correctAnswer)} /></div>
+            <div className="break-words text-ink-900"><Ans text={String(m.correctAnswer)} /></div>
           </div>
         )}
       </div>
@@ -108,7 +108,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
             </Badge>
           )}
           {m.skillCode && m.skillName && m.skillName !== m.skillCode && (
-            <span className="text-xs text-ink-400">{m.skillName}</span>
+            <span className="break-words text-xs text-ink-400">{m.skillName}</span>
           )}
           {m.workingQualityBand && (
             <Badge tone={QUALITY_BAND_TONE[m.workingQualityBand] || 'neutral'}>
@@ -123,7 +123,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
           <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gold-label">
             What this means
           </div>
-          <p className="text-sm text-ink-700">{parentExplanation.plainExplanation}</p>
+          <p className="break-words text-sm text-ink-700">{parentExplanation.plainExplanation}</p>
           <p className="mt-2 text-sm text-ink-600">
             <span className="font-semibold text-gold-label">Try at home: </span>
             {parentExplanation.atHomeTip}
@@ -135,7 +135,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
       )}
 
       {m.workedSolution && (
-        <p className="mt-3 text-sm text-ink-500"><Stem text={m.workedSolution} /></p>
+        <p className="mt-3 break-words text-sm text-ink-500"><Stem text={m.workedSolution} /></p>
       )}
 
       {(m.workingImage || m.workingStrokes?.length > 0 || m.workingInsight) && (
@@ -168,7 +168,7 @@ export default function MistakeCard({ mistake: m, formula = false, action = null
               audioSrc={m.explanationAudioUrl || undefined}
             />
           </Suspense>
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="text-[11px] text-ink-400">Was this helpful?</span>
             <button
               onClick={() => submitFeedback('helpful')}
@@ -242,7 +242,7 @@ function WorkingEvidence({ workingImage, workingStrokes, workingInsight }) {
             </Suspense>
           )}
           {workingInsight && (
-            <div className="space-y-1 text-xs text-ink-500">
+            <div className="space-y-1 break-words text-xs text-ink-500">
               {workingInsight.detectedMethod && (
                 <p><span className="font-semibold text-ink-600">Method:</span> {workingInsight.detectedMethod}</p>
               )}

@@ -90,14 +90,220 @@ export function questionRequiresDiagram(question = {}) {
 function explicitDiagramCandidates(question = {}) {
   return [
     question?.diagramSpec,
-    question?.diagram,
+    normaliseDiagramSpec(question?.diagram),
     question?.visual?.type === 'svg' && question.visual?.payload?.type ? question.visual.payload : null,
   ].filter(Boolean);
+}
+
+function normaliseDiagramSpec(spec = null) {
+  if (!spec || spec.type) return spec;
+  const kind = String(spec.kind || '').toLowerCase();
+  const base = { width: 640, height: 260 };
+  if (!kind) return spec;
+  if (kind === 'number-line') {
+    const min = Number.isFinite(spec.from) ? spec.from : 0;
+    const max = Number.isFinite(spec.to) ? spec.to : 10;
+    return {
+      ...base,
+      type: 'number_line',
+      data: {
+        min,
+        max,
+        minStepCount: Math.max(1, Math.round(max - min)),
+        points: spec.mark != null ? [{ value: Number(spec.mark), label: '?' }] : [],
+        endpointLabels: [String(min), String(max)],
+      },
+    };
+  }
+  if (kind === 'rectangle' || kind === 'square') {
+    const widthUnits = Number(spec.l || spec.length || spec.side || spec.W || 4);
+    const heightUnits = Number(spec.w || spec.width || spec.side || spec.H || 3);
+    return { ...base, height: 300, type: 'rectangle_area', data: { widthUnits, heightUnits } };
+  }
+  if (kind === 'triangle') {
+    return {
+      ...base,
+      height: 300,
+      type: 'triangle_area',
+      data: { base: spec.base || spec.sides?.[0] || 6, height: spec.height || spec.h || 4 },
+    };
+  }
+  if (kind === 'circle') {
+    return {
+      width: 360,
+      height: 280,
+      type: 'circle',
+      data: {
+        radius: Number(spec.radius || 0) || undefined,
+        diameter: spec.label === 'diameter' ? Number(spec.radius || 0) * 2 : undefined,
+        show: spec.label === 'diameter' ? 'diameter' : 'radius',
+      },
+    };
+  }
+  if (kind === 'circle-part') {
+    const part = String(spec.part || '').toLowerCase();
+    return {
+      width: 360,
+      height: 280,
+      type: part.includes('quarter') ? 'quarter_circle' : 'semicircle',
+      data: { radius: Number(spec.radius || 0) || 7 },
+    };
+  }
+  if (kind === 'cuboid' || kind === 'unit-cubes') {
+    return {
+      ...base,
+      height: 320,
+      type: 'cuboid',
+      data: { length: spec.l || spec.length || 4, width: spec.w || spec.width || 3, height: spec.h || spec.height || 2 },
+    };
+  }
+  if (kind === 'coins') {
+    return {
+      ...base,
+      height: 260,
+      type: 'coins',
+      data: { items: spec.items || spec.coins || [] },
+    };
+  }
+  if (kind === 'clock') {
+    return {
+      width: 360,
+      height: 300,
+      type: 'clock',
+      data: { hour: spec.hour ?? spec.hours, minute: spec.minute ?? spec.minutes ?? 0 },
+    };
+  }
+  if (kind === 'bar-model') {
+    return {
+      ...base,
+      type: 'bar_model',
+      data: {
+        parts: spec.parts || spec.partsCents || [],
+        partsCents: spec.partsCents || [],
+        wholeCents: spec.wholeCents,
+        unknownIndex: spec.unknownIndex,
+        totalLabel: spec.totalLabel,
+        bars: spec.bars || [],
+        diffLabel: spec.diffLabel || spec.differenceLabel,
+      },
+    };
+  }
+  if (kind === 'scale') {
+    return {
+      ...base,
+      height: 180,
+      type: 'scale',
+      data: {
+        start: spec.start,
+        interval: spec.interval,
+        marks: spec.marks,
+        reading: spec.reading ?? spec.value,
+        unit: spec.unit,
+      },
+    };
+  }
+  if (kind === 'tank') {
+    return {
+      ...base,
+      height: 320,
+      type: 'tank',
+      data: {
+        fillFraction: spec.fillFraction ?? spec.fraction,
+        volumeLabel: spec.volumeLabel || spec.label,
+      },
+    };
+  }
+  if (kind === 'net') {
+    return {
+      ...base,
+      height: 300,
+      type: 'net',
+      data: { label: spec.label || spec.solid || 'cuboid net' },
+    };
+  }
+  if (kind === 'l-shape' || kind === 'composite') {
+    return {
+      ...base,
+      height: 320,
+      type: kind === 'l-shape' ? 'l_shape' : 'composite_shape',
+      data: {
+        label: spec.label,
+        top: spec.top,
+        length: spec.length || spec.l,
+        height: spec.height || spec.h,
+      },
+    };
+  }
+  if (kind === 'angle') {
+    return { ...base, height: 300, type: 'angle_on_line', data: { angleDegrees: spec.degrees || spec.angle || 90 } };
+  }
+  if (kind === 'table') {
+    return { ...base, type: 'table', data: { headers: spec.columns || [], rows: spec.rows || [] } };
+  }
+  if (kind === 'bar') {
+    return {
+      ...base,
+      height: 320,
+      type: 'bar_chart',
+      data: { bars: (spec.rows || []).map(([label, value]) => ({ label, value })) },
+    };
+  }
+  if (kind === 'line') {
+    return {
+      ...base,
+      height: 320,
+      type: 'line_graph',
+      data: { points: (spec.points || []).map(([label, value]) => ({ label, value })) },
+    };
+  }
+  if (kind === 'pictograph') {
+    return {
+      ...base,
+      height: 320,
+      type: 'pictograph',
+      data: { rows: spec.rows || [], keyValue: spec.keyValue || spec.key },
+    };
+  }
+  if (kind === 'value-list') {
+    return {
+      ...base,
+      height: 180,
+      type: 'value_list',
+      data: { values: spec.values || spec.items || [] },
+    };
+  }
+  if (kind === 'pie') {
+    return {
+      width: 420,
+      height: 300,
+      type: 'pie_chart',
+      data: { sectors: spec.sectors || spec.parts || spec.rows || [] },
+    };
+  }
+  return {
+    ...base,
+    type: 'table',
+    data: {
+      headers: ['Diagram detail', 'Value'],
+      rows: Object.entries(spec)
+        .filter(([key]) => key !== 'kind')
+        .map(([key, value]) => [key, Array.isArray(value) || typeof value === 'object' ? JSON.stringify(value) : String(value)]),
+    },
+  };
+}
+
+function inferPercentageGridDiagram(prompt = '') {
+  const m = String(prompt).match(/(\d+)\s+squares?\s+out\s+of\s+100.*shaded/i);
+  if (!m) return null;
+  const shaded = Number(m[1]);
+  if (!Number.isFinite(shaded) || shaded < 0 || shaded > 100) return null;
+  return { type: 'percentage_grid', width: 310, height: 330, data: { shaded } };
 }
 
 function inferredDiagramCandidates(question = {}) {
   const prompt = question?.prompt || question?.stem || '';
   return [
+    inferPercentageGridDiagram(prompt),
     inferNumberLineDiagram(prompt),
     inferShadedFractionDiagram(prompt),
     inferShadedFractionDiagramFromAnswer(question),
@@ -177,7 +383,8 @@ export default function QuestionDiagram({ question }) {
 
   return (
     <div
-      className="mb-4 max-w-2xl overflow-hidden rounded-xl border border-line-soft bg-white p-2 sm:p-3"
+      data-testid="question-diagram"
+      className="mb-4 w-full max-w-full overflow-hidden rounded-lg border border-line-soft bg-white p-2 sm:rounded-xl sm:p-3 [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[42vh] [&_svg]:w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );

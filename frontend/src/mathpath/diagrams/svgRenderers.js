@@ -11,7 +11,7 @@ function esc(s) {
 function svgShell(spec, body, ariaLabel = '') {
   const w = spec.width || 640;
   const h = spec.height || 360;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(ariaLabel)}"><rect x="0" y="0" width="${w}" height="${h}" fill="#fff"/>${body}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="100%" style="height:auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(ariaLabel)}"><rect x="0" y="0" width="${w}" height="${h}" fill="#fff"/>${body}</svg>`;
 }
 
 // Respect OS-level reduced-motion preference — render the final state instantly.
@@ -484,6 +484,222 @@ function partialCircle(spec, kind) {
 function semicircle(spec) { return partialCircle(spec, 'semicircle'); }
 function quarterCircle(spec) { return partialCircle(spec, 'quarter_circle'); }
 
+function moneyLabel(value) {
+  const cents = Number(value || 0);
+  if (!Number.isFinite(cents)) return esc(value);
+  return cents >= 100 && cents % 100 === 0 ? `$${cents / 100}` : `${cents}c`;
+}
+
+function coinSet(spec) {
+  const items = spec.data?.items || [];
+  const coins = items.flatMap((item) => Array.from({ length: Math.max(0, Number(item.count) || 0) }, () => item));
+  const w = spec.width || 640; const h = spec.height || 260;
+  const cols = Math.max(1, Math.min(8, Math.ceil(Math.sqrt(coins.length || 1))));
+  const gapX = (w - 80) / cols;
+  let body = '';
+  coins.forEach((coin, i) => {
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const cx = 40 + gapX * col + gapX / 2;
+    const cy = 58 + row * 66;
+    body += `<circle cx="${cx}" cy="${cy}" r="24" fill="#fde68a" stroke="#92400e" stroke-width="2"/>`;
+    body += `<text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="#111">${moneyLabel(coin.valueCents ?? coin.value ?? coin.amount)}</text>`;
+  });
+  if (!coins.length) body += `<text x="${w / 2}" y="${h / 2}" text-anchor="middle" font-size="16">No coins shown</text>`;
+  return svgShell({ ...spec, width: w, height: h }, body, 'coins');
+}
+
+function clockFace(spec) {
+  const d = spec.data || {};
+  const hour = Number(d.hour ?? d.hours ?? 0);
+  const minute = Number(d.minute ?? d.minutes ?? 0);
+  const w = spec.width || 360; const h = spec.height || 300;
+  const cx = w / 2; const cy = h / 2; const r = Math.min(w, h) * 0.36;
+  const minuteAngle = ((minute / 60) * 360 - 90) * Math.PI / 180;
+  const hourAngle = (((hour % 12) + minute / 60) / 12 * 360 - 90) * Math.PI / 180;
+  let body = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#111" stroke-width="2"/>`;
+  for (let i = 1; i <= 12; i += 1) {
+    const a = (i / 12 * 360 - 90) * Math.PI / 180;
+    const tx = cx + Math.cos(a) * (r - 18);
+    const ty = cy + Math.sin(a) * (r - 18) + 5;
+    body += `<text x="${tx}" y="${ty}" text-anchor="middle" font-size="13">${i}</text>`;
+  }
+  body += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.cos(hourAngle) * (r * 0.48)}" y2="${cy + Math.sin(hourAngle) * (r * 0.48)}" stroke="#111" stroke-width="5" stroke-linecap="round"/>`;
+  body += `<line x1="${cx}" y1="${cy}" x2="${cx + Math.cos(minuteAngle) * (r * 0.72)}" y2="${cy + Math.sin(minuteAngle) * (r * 0.72)}" stroke="#1d4ed8" stroke-width="3" stroke-linecap="round"/>`;
+  body += `<circle cx="${cx}" cy="${cy}" r="5" fill="#111"/>`;
+  return svgShell({ ...spec, width: w, height: h }, body, 'clock');
+}
+
+function pictograph(spec) {
+  const rows = spec.data?.rows || [];
+  const keyValue = spec.data?.keyValue || spec.data?.key || 1;
+  const w = spec.width || 640; const h = Math.max(spec.height || 260, 90 + rows.length * 42);
+  let body = `<text x="24" y="28" font-size="13" fill="#475569">Each symbol = ${esc(keyValue)}</text>`;
+  rows.forEach((row, idx) => {
+    const label = Array.isArray(row) ? row[0] : row.label;
+    const count = Number(Array.isArray(row) ? row[1] : row.count) || 0;
+    const y = 64 + idx * 42;
+    body += `<text x="28" y="${y + 6}" font-size="14" fill="#111">${esc(label)}</text>`;
+    for (let i = 0; i < count; i += 1) {
+      const x = 150 + i * 28;
+      body += `<circle cx="${x}" cy="${y}" r="9" fill="#93c5fd" stroke="#1e3a8a"/>`;
+    }
+  });
+  return svgShell({ ...spec, width: w, height: h }, body, 'pictograph');
+}
+
+function pieChart(spec) {
+  const sectors = spec.data?.sectors || spec.data?.parts || [];
+  const values = sectors.map((s) => Number(Array.isArray(s) ? s[1] : s.value) || 0);
+  const total = values.reduce((sum, value) => sum + value, 0) || 1;
+  const w = spec.width || 420; const h = spec.height || 300;
+  const cx = w / 2 - 35; const cy = h / 2; const r = Math.min(w, h) * 0.32;
+  let angle = -Math.PI / 2;
+  const colors = ['#bfdbfe', '#bbf7d0', '#fde68a', '#fecaca', '#ddd6fe', '#c7d2fe'];
+  let body = '';
+  sectors.forEach((sector, idx) => {
+    const value = values[idx];
+    const next = angle + (value / total) * Math.PI * 2;
+    const large = next - angle > Math.PI ? 1 : 0;
+    const x0 = cx + r * Math.cos(angle); const y0 = cy + r * Math.sin(angle);
+    const x1 = cx + r * Math.cos(next); const y1 = cy + r * Math.sin(next);
+    body += `<path d="M ${cx} ${cy} L ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1} Z" fill="${colors[idx % colors.length]}" stroke="#111"/>`;
+    const mid = (angle + next) / 2;
+    const label = Array.isArray(sector) ? sector[0] : sector.label;
+    body += `<text x="${cx + Math.cos(mid) * (r + 45)}" y="${cy + Math.sin(mid) * (r + 5)}" font-size="12" text-anchor="middle">${esc(label || value)}</text>`;
+    angle = next;
+  });
+  return svgShell({ ...spec, width: w, height: h }, body, 'pie chart');
+}
+
+function valueList(spec) {
+  const values = spec.data?.values || spec.data?.items || [];
+  const w = spec.width || 640; const h = spec.height || 180;
+  let body = '';
+  values.forEach((value, idx) => {
+    const x = 32 + idx * 74;
+    body += `<rect x="${x}" y="58" width="56" height="46" rx="6" fill="#eff6ff" stroke="#111"/>`;
+    body += `<text x="${x + 28}" y="86" text-anchor="middle" font-size="16" font-weight="700">${esc(value)}</text>`;
+  });
+  return svgShell({ ...spec, width: w, height: h }, body, 'value list');
+}
+
+function barModel(spec) {
+  const d = spec.data || {};
+  if (Array.isArray(d.parts) || Array.isArray(d.partsCents)) {
+    const rawParts = d.parts || d.partsCents;
+    const parts = rawParts.map((part, idx) => {
+      const value = Number(part.value ?? part.valueCents ?? part.amount ?? part) || 1;
+      return { value, label: part.label || (d.unknownIndex === idx ? '?' : moneyLabel(value)), fill: part.fill };
+    });
+    return partWholeBar({ ...spec, type: 'part_whole_bar', data: { parts, totalLabel: d.totalLabel || (d.wholeCents ? moneyLabel(d.wholeCents) : '') } });
+  }
+  if (Array.isArray(d.bars)) {
+    const [a = {}, b = {}] = d.bars;
+    return comparisonBar({
+      ...spec,
+      type: 'comparison_bar',
+      data: {
+        leftValue: Number(a.value || a.amount || 1),
+        rightValue: Number(b.value || b.amount || 1),
+        leftLabel: a.label || 'A',
+        rightLabel: b.label || 'B',
+        diffLabel: d.diffLabel || d.differenceLabel || '',
+      },
+    });
+  }
+  return partWholeBar({ ...spec, type: 'part_whole_bar', data: { parts: [{ value: 1, label: '?' }, { value: 1, label: '?' }] } });
+}
+
+function scaleReadout(spec) {
+  const d = spec.data || {};
+  const start = Number(d.start ?? 0);
+  const interval = Number(d.interval ?? 1);
+  const marks = Math.max(2, Number(d.marks ?? 10));
+  const reading = Number(d.reading ?? d.value ?? start);
+  const unit = d.unit || '';
+  const w = spec.width || 640; const h = spec.height || 180;
+  const x0 = 54; const x1 = w - 54; const y = h / 2;
+  const end = start + interval * marks;
+  const t = Math.max(0, Math.min(1, (reading - start) / (end - start || 1)));
+  const px = x0 + (x1 - x0) * t;
+  let body = `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="#111" stroke-width="2"/>`;
+  for (let i = 0; i <= marks; i += 1) {
+    const x = x0 + (x1 - x0) * (i / marks);
+    body += `<line x1="${x}" y1="${y - 10}" x2="${x}" y2="${y + 10}" stroke="#111"/>`;
+    if (i % Math.ceil(marks / 5) === 0 || i === marks) {
+      body += `<text x="${x}" y="${y + 30}" font-size="12" text-anchor="middle">${esc(start + i * interval)}</text>`;
+    }
+  }
+  body += `<polygon points="${px},${y - 36} ${px - 10},${y - 14} ${px + 10},${y - 14}" fill="#1d4ed8"/>`;
+  body += `<text x="${px}" y="${y - 44}" font-size="14" text-anchor="middle" fill="#1d4ed8">${esc(`${reading}${unit ? ` ${unit}` : ''}`)}</text>`;
+  return svgShell({ ...spec, width: w, height: h }, body, 'scale');
+}
+
+function tankDiagram(spec) {
+  const d = spec.data || {};
+  const fill = Math.max(0, Math.min(1, Number(d.fillFraction ?? d.fraction ?? 0.55)));
+  const w = spec.width || 500; const h = spec.height || 320;
+  const x = 130; const y = 70; const tw = 210; const th = 150; const ox = 45; const oy = -34;
+  const waterH = th * fill;
+  let body = `<polygon points="${x},${y} ${x + tw},${y} ${x + tw + ox},${y + oy} ${x + ox},${y + oy}" fill="#f8fafc" stroke="#111"/>`;
+  body += `<polygon points="${x + tw},${y} ${x + tw + ox},${y + oy} ${x + tw + ox},${y + th + oy} ${x + tw},${y + th}" fill="#f8fafc" stroke="#111"/>`;
+  body += `<rect x="${x}" y="${y}" width="${tw}" height="${th}" fill="#fff" stroke="#111"/>`;
+  body += `<rect x="${x + 1}" y="${y + th - waterH}" width="${tw - 2}" height="${waterH}" fill="#93c5fd" opacity="0.8"/>`;
+  body += `<text x="${x + tw / 2}" y="${y + th + 28}" text-anchor="middle" font-size="14">${esc(d.volumeLabel || d.label || 'volume')}</text>`;
+  return svgShell({ ...spec, width: w, height: h }, body, 'tank');
+}
+
+function netDiagram(spec) {
+  const d = spec.data || {};
+  const label = d.label || 'cuboid net';
+  const w = spec.width || 520; const h = spec.height || 300;
+  const s = 58; const x = 160; const y = 80;
+  const squares = [[1, 0], [0, 1], [1, 1], [2, 1], [3, 1], [1, 2]];
+  let body = '';
+  squares.forEach(([dx, dy], idx) => {
+    body += `<rect x="${x + dx * s}" y="${y + dy * s}" width="${s}" height="${s}" fill="${idx === 2 ? '#bfdbfe' : '#eff6ff'}" stroke="#111"/>`;
+  });
+  body += `<text x="${w / 2}" y="${h - 24}" text-anchor="middle" font-size="14">${esc(label)}</text>`;
+  return svgShell({ ...spec, width: w, height: h }, body, 'net');
+}
+
+function lShapeDiagram(spec) {
+  const d = spec.data || {};
+  const w = spec.width || 520; const h = spec.height || 320;
+  const x = 120; const y = 58; const outerW = 280; const outerH = 190; const notchW = 110; const notchH = 78;
+  const points = `${x},${y} ${x + outerW},${y} ${x + outerW},${y + outerH} ${x + notchW},${y + outerH} ${x + notchW},${y + notchH} ${x},${y + notchH}`;
+  let body = `<polygon points="${points}" fill="#eff6ff" stroke="#111" stroke-width="2"/>`;
+  body += `<text x="${x + outerW / 2}" y="${y - 12}" text-anchor="middle" font-size="13">${esc(d.top || d.length || 'length')}</text>`;
+  body += `<text x="${x + outerW + 18}" y="${y + outerH / 2}" font-size="13">${esc(d.height || 'height')}</text>`;
+  if (d.label) body += `<text x="${w / 2}" y="${h - 24}" text-anchor="middle" font-size="14">${esc(d.label)}</text>`;
+  return svgShell({ ...spec, width: w, height: h }, body, 'composite shape');
+}
+
+function percentageGrid(spec) {
+  const d = spec.data || {};
+  const shaded = Math.min(100, Math.max(0, Number(d.shaded ?? 0)));
+  const cellSize = 28;
+  const gap = 2;
+  const cols = 10;
+  const rows = 10;
+  const w = cols * (cellSize + gap) + gap + 2;
+  const h = rows * (cellSize + gap) + gap + 40;
+  let cells = '';
+  for (let i = 0; i < 100; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = gap + col * (cellSize + gap);
+    const y = gap + row * (cellSize + gap);
+    const fill = i < shaded ? '#4ade80' : '#f1f5f9';
+    const stroke = i < shaded ? '#16a34a' : '#cbd5e1';
+    cells += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${fill}" stroke="${stroke}" stroke-width="1" rx="2"/>`;
+  }
+  const label = `${shaded} out of 100 squares shaded = ${shaded}%`;
+  cells += `<text x="${w / 2}" y="${h - 10}" text-anchor="middle" font-size="13" fill="#475569">${esc(label)}</text>`;
+  return svgShell({ ...spec, width: w, height: h }, cells, `${shaded} out of 100`);
+}
+
 export const renderers = {
   ...sharedRenderers,
   circle,
@@ -503,4 +719,16 @@ export const renderers = {
   table,
   bar_chart: barChart,
   line_graph: lineGraph,
+  percentage_grid: percentageGrid,
+  coins: coinSet,
+  clock: clockFace,
+  pictograph,
+  pie_chart: pieChart,
+  value_list: valueList,
+  bar_model: barModel,
+  scale: scaleReadout,
+  tank: tankDiagram,
+  net: netDiagram,
+  l_shape: lShapeDiagram,
+  composite_shape: lShapeDiagram,
 };

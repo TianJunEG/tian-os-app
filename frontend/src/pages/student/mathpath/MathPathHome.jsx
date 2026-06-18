@@ -350,6 +350,22 @@ export default function MathPathHome() {
   const previewLevelSummaryCount = Math.min(2, previewLevels.length);
   const previewSkillCount = topics.reduce((total, topic) => total + ((topic.skills || []).length), 0);
   const levelPath = `/student/mathpath/${String(effectiveStudentLevel).toLowerCase()}`;
+  const domainLinks = [
+    FEATURE_FLAGS.decimals && { label: 'Decimals', to: '/student/mathpath/decimals' },
+    FEATURE_FLAGS.percentages && { label: 'Percentages', to: '/student/mathpath/percentages' },
+    FEATURE_FLAGS.ratioRate && { label: 'Ratio & Rate', to: '/student/mathpath/ratio-rate' },
+    FEATURE_FLAGS.operations && { label: 'Operations', to: '/student/mathpath/operations' },
+    FEATURE_FLAGS.numberSense && { label: 'Number Sense', to: '/student/mathpath/number-sense' },
+    FEATURE_FLAGS.money && { label: 'Money', to: '/student/mathpath/money' },
+    FEATURE_FLAGS.timeDomain && { label: 'Time', to: '/student/mathpath/time' },
+    FEATURE_FLAGS.measurement && { label: 'Measurement', to: '/student/mathpath/measurement' },
+    FEATURE_FLAGS.geometry && { label: 'Geometry', to: '/student/mathpath/geometry' },
+    FEATURE_FLAGS.areaPerimeter && { label: 'Area & Perimeter', to: '/student/mathpath/area-perimeter' },
+    FEATURE_FLAGS.circles && { label: 'Circles', to: '/student/mathpath/circles' },
+    FEATURE_FLAGS.volume && { label: 'Volume & Capacity', to: '/student/mathpath/volume' },
+    FEATURE_FLAGS.statistics && { label: 'Statistics', to: '/student/mathpath/statistics' },
+    FEATURE_FLAGS.algebra && { label: 'Algebra', to: '/student/mathpath/algebra' },
+  ].filter(Boolean);
 
   return (
     <>
@@ -392,8 +408,8 @@ export default function MathPathHome() {
         </div>
         <div className="mt-5">
           <ProgressBar value={courseMasteredCount} max={totalFractionsSkills} barClassName={visualStyles.progress} />
-          <div className="mt-2 flex items-center justify-between text-sm font-semibold text-ink-500">
-            <span>{courseMasteredCount}/{totalFractionsSkills} skills mastered</span>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-sm font-semibold text-ink-500">
+            <span className="break-words">{courseMasteredCount}/{totalFractionsSkills} skills mastered</span>
             <span className={visualStyles.accent}>{courseProgressPct}%</span>
           </div>
         </div>
@@ -443,10 +459,10 @@ export default function MathPathHome() {
       {/* Quick actions — focused set */}
       <section>
         <h2 className="mb-3 font-display text-xl font-semibold text-ink-900 sm:mb-4 sm:text-2xl">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           <Card className="flex h-full flex-col border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-sky-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700"><Layers className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">{effectiveStudentLevel} Mathematics</h3>
+            <h3 className="mt-4 break-words font-display text-lg font-semibold text-ink-900 sm:text-xl">{effectiveStudentLevel} Mathematics</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Browse your syllabus skills and topics.</p>
             <Button to={levelPath} variant="secondary" className="mt-4 w-full border-emerald-200 bg-white/80 text-emerald-700 hover:bg-emerald-50">
               Explore {effectiveStudentLevel}
@@ -454,19 +470,19 @@ export default function MathPathHome() {
           </Card>
           <Card className="flex h-full flex-col border-mint-100 bg-gradient-to-br from-mint-50 via-white to-sky-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-mint-100 text-success-700"><Compass className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Explore Skills</h3>
+            <h3 className="mt-4 break-words font-display text-lg font-semibold text-ink-900 sm:text-xl">Explore Skills</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">See your readiness across all fractions skills.</p>
             <Button to="/student/mathpath/path" variant="secondary" className="mt-4 w-full border-mint-200 bg-white/80 text-success-700 hover:bg-mint-50">Explore</Button>
           </Card>
           <Card className="flex h-full flex-col border-amber-100 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-100 text-amber-700"><Target className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Decimals</h3>
+            <h3 className="mt-4 break-words font-display text-lg font-semibold text-ink-900 sm:text-xl">Decimals</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Place value, operations, conversions — 14 skills (P4–P6).</p>
             <Button to="/student/mathpath/decimals" variant="secondary" className="mt-4 w-full border-amber-200 bg-white/80 text-amber-700 hover:bg-amber-50">Explore</Button>
           </Card>
           <Card className="flex h-full flex-col border-pink-100 bg-gradient-to-br from-pink-50 via-white to-orange-50 p-4">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-pink-100 text-pink-700"><Camera className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Upload Test Paper</h3>
+            <h3 className="mt-4 break-words font-display text-lg font-semibold text-ink-900 sm:text-xl">Upload Test Paper</h3>
             <p className="mt-1 flex-1 text-sm text-ink-500">Snap a photo of your marked test and get targeted practice.</p>
             <Button to="/student/mathpath/upload-paper" variant="secondary" className="mt-4 w-full border-pink-200 bg-white/80 text-pink-700 hover:bg-pink-50">
               Upload Paper
@@ -475,7 +491,7 @@ export default function MathPathHome() {
           {FEATURE_FLAGS.fluency && (
             <Card className="flex h-full flex-col border-teal-100 bg-gradient-to-br from-teal-50 via-white to-sky-50 p-4">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-tint text-emerald-deep"><Zap className="h-6 w-6" /></span>
-              <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Speed &amp; Accuracy</h3>
+              <h3 className="mt-4 break-words font-display text-lg font-semibold text-ink-900 sm:text-xl">Speed &amp; Accuracy</h3>
               <p className="mt-1 flex-1 text-sm text-ink-500">Build times-table fluency with flash quizzes.</p>
               <Button to="/student/mathpath/fluency/times-tables" variant="secondary" className="mt-4 w-full border-teal-200 bg-white/80 text-emerald-deep hover:bg-emerald-tint">
                 Practise Now
@@ -485,7 +501,7 @@ export default function MathPathHome() {
           {!isEarlyLevel && hasPlacement && (
             <Card className={`flex h-full flex-col p-4 ${visualStyles.accentCard}`}>
               <span className={`grid h-11 w-11 place-items-center rounded-2xl ${visualStyles.icon}`}><GraduationCap className="h-6 w-6" /></span>
-              <h3 className="mt-4 font-display text-xl font-semibold text-ink-900">Recovery Packs</h3>
+              <h3 className="mt-4 break-words font-display text-lg font-semibold text-ink-900 sm:text-xl">Recovery Packs</h3>
               <p className="mt-1 flex-1 text-sm text-ink-500">Targeted practice for skills that need work.</p>
               <Button to="/student/mathpath/assignments" variant="secondary" className="mt-4 w-full">View Packs</Button>
             </Card>
@@ -493,9 +509,30 @@ export default function MathPathHome() {
         </div>
       </section>
 
+      {domainLinks.length > 0 && (
+        <section>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-display text-xl font-semibold text-ink-900 sm:text-2xl">More MathPath Domains</h2>
+            <span className="text-xs font-semibold text-ink-400">{domainLinks.length} available</span>
+          </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {domainLinks.map((domain) => (
+              <Link
+                key={domain.to}
+                to={domain.to}
+                className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-line-soft bg-surface-white px-3 py-2.5 text-sm font-semibold text-ink-700 transition hover:border-emerald hover:bg-emerald-tint"
+              >
+                <span className="break-words">{domain.label}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-ink-400" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Topic map — collapsed by default */}
       <section>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Topic map</h3>
           <button
             type="button"
@@ -510,8 +547,8 @@ export default function MathPathHome() {
           {(showTopicMapSection ? visibleTopics : visibleTopics.slice(0, topicMapSummaryCount)).map((t) => (
             <Link key={t.topicId} to={`/student/mathpath/topics/${t.topicId}`} className="block">
               <Card interactive className="p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <h4 className="font-semibold text-ink-700">{t.name}</h4>
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <h4 className="break-words font-semibold text-ink-700">{t.name}</h4>
                   <Badge tone="neutral">{t.masteredCount}/{t.total}</Badge>
                 </div>
                 <ProgressBar value={t.masteredCount} max={Math.max(t.total, 1)} />
@@ -533,7 +570,7 @@ export default function MathPathHome() {
           <Card className="border-l-4 border-l-gold-500 p-4">
             <p className="text-sm font-semibold text-gold-800">Curriculum Preview — not visible to beta users</p>
           </Card>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-500">Levels and skills</h3>
             <button
               type="button"
@@ -546,7 +583,7 @@ export default function MathPathHome() {
           </div>
           {selectedSkill && (
             <Card className="mb-4 border-l-4 border-l-gold-500 p-4">
-              <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-semibold text-gold-800">Skill detail</p>
                 <button type="button" onClick={() => { setSelectedSkill(null); setSkillPreview(null); setSkillPreviewError(''); }} className="text-xs text-ink-500 underline">Close</button>
               </div>

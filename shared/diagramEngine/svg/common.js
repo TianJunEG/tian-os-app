@@ -17,7 +17,7 @@ export function specData(spec) {
 export function svgShell(spec, body, ariaLabel = '') {
   const width = Number(spec?.width) > 0 ? Number(spec.width) : 640;
   const height = Number(spec?.height) > 0 ? Number(spec.height) : 360;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(ariaLabel)}"><rect x="0" y="0" width="${width}" height="${height}" fill="#ffffff"/>${body}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" style="height:auto" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(ariaLabel)}"><rect x="0" y="0" width="${width}" height="${height}" fill="#ffffff"/>${body}</svg>`;
 }
 
 export function toFractionString(value) {

@@ -32,6 +32,7 @@ import {
   UserCircle,
   Wrench,
 } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { runMathPathDomainPipeline } from '../../mathpath/orchestration/mathPathDomainOrchestrator';
 import { validateStudentDashboardPayload } from '../../mathpath/orchestration/pipelineContract';
@@ -662,8 +663,8 @@ function RecentActivityCard({ activities = [] }) {
                   <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-ink-800">{activity.title}</p>
-                  <p className="text-xs text-ink-500">{formatRelativeActivityTime(activity.occurredAt)}</p>
+                  <p className="break-words text-sm font-semibold text-ink-800">{activity.title}</p>
+                  <p className="break-words text-xs text-ink-500">{formatRelativeActivityTime(activity.occurredAt)}</p>
                 </div>
               </div>
             );
@@ -671,7 +672,7 @@ function RecentActivityCard({ activities = [] }) {
         </div>
       ) : (
         <div className="mt-4 rounded-[16px] border border-dashed border-line-soft bg-white px-4 py-5">
-          <p className="text-sm font-semibold text-ink-700">No recent activity yet. Start your diagnostic to begin.</p>
+          <p className="break-words text-sm font-semibold text-ink-700">No recent activity yet. Start your diagnostic to begin.</p>
         </div>
       )}
     </Card>
@@ -903,13 +904,20 @@ function LowerPrimaryBanner() {
 function DiagnosticPrompts({ domains, containerClassName = '', containerStyle }) {
   const list = (domains && domains.length) ? domains : [{ domainId: 'fractions', displayName: 'Fractions' }];
   return (
-    <div className={`space-y-3 ${containerClassName}`} style={containerStyle}>
-      {list.map((d) => (
-        <Card key={d.domainId} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-500">Start your {d.displayName} Diagnostic to find your best starting point.</p>
-          <Button to={`/student/mathpath/diagnostic?domain=${encodeURIComponent(d.domainId)}`} size="s" icon={ArrowRight}>Start Diagnostic</Button>
-        </Card>
-      ))}
+    <div className={containerClassName} style={containerStyle}>
+      <p className="mb-3 text-sm text-ink-500">Choose a topic to find your starting point:</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {list.map((d) => (
+          <NavLink
+            key={d.domainId}
+            to={`/student/mathpath/diagnostic?domain=${encodeURIComponent(d.domainId)}`}
+            className="flex min-w-0 items-center justify-between gap-2 rounded-btn border border-line bg-surface-white px-3 py-2.5 text-sm font-medium text-ink hover:bg-surface-raised hover:border-gold transition-colors"
+          >
+            <span className="break-words">{d.displayName}</span>
+            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-body-faint" />
+          </NavLink>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1299,214 +1307,214 @@ export default function StudentDashboard() {
 
           {FEATURE_FLAGS.psl && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
                   <Brain className="h-5 w-5 text-gold-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>
-                  <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Problem Solving Lab</p>
+                  <p className="break-words text-xs text-ink-500">Learn to solve word problems step by step</p>
                 </div>
-                <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
               </Card>
             </div>
           )}
 
           {FEATURE_FLAGS.decimals && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
                   <Calculator className="h-5 w-5 text-emerald" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Decimals</p>
-                  <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Decimals</p>
+                  <p className="break-words text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
                 </div>
-                <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
 
           {FEATURE_FLAGS.percentages && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-tint">
                   <Percent className="h-5 w-5 text-purple" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Percentage</p>
-                  <p className="text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Percentage</p>
+                  <p className="break-words text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
                 </div>
-                <Button to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
 
           {FEATURE_FLAGS.ratioRate && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100">
                   <Scale className="h-5 w-5 text-teal-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Ratio &amp; Rate</p>
-                  <p className="text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Ratio &amp; Rate</p>
+                  <p className="break-words text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
                 </div>
-                <Button to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.operations && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
                   <Calculator className="h-5 w-5 text-orange-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Operations</p>
-                  <p className="text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Operations</p>
+                  <p className="break-words text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
                 </div>
-                <Button to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.numberSense && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
                   <Hash className="h-5 w-5 text-indigo-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Number Sense</p>
-                  <p className="text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Number Sense</p>
+                  <p className="break-words text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
                 </div>
-                <Button to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.money && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
                   <DollarSign className="h-5 w-5 text-green-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Money</p>
-                  <p className="text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Money</p>
+                  <p className="break-words text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
                 </div>
-                <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.timeDomain && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
                   <Clock className="h-5 w-5 text-sky-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Time</p>
-                  <p className="text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Time</p>
+                  <p className="break-words text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
                 </div>
-                <Button to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.measurement && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
                   <Ruler className="h-5 w-5 text-amber-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Measurement</p>
-                  <p className="text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Measurement</p>
+                  <p className="break-words text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
                 </div>
-                <Button to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.geometry && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100">
                   <Triangle className="h-5 w-5 text-violet-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Geometry</p>
-                  <p className="text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Geometry</p>
+                  <p className="break-words text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
                 </div>
-                <Button to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.areaPerimeter && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100">
                   <Square className="h-5 w-5 text-rose-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
-                  <p className="text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
+                  <p className="break-words text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
                 </div>
-                <Button to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.circles && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100">
                   <Circle className="h-5 w-5 text-cyan-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Circles</p>
-                  <p className="text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Circles</p>
+                  <p className="break-words text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
                 </div>
-                <Button to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.volume && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-100">
                   <Box className="h-5 w-5 text-lime-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
-                  <p className="text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
+                  <p className="break-words text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
                 </div>
-                <Button to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.statistics && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
                   <BarChart2 className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Statistics</p>
-                  <p className="text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Statistics</p>
+                  <p className="break-words text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
                 </div>
-                <Button to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
           {FEATURE_FLAGS.algebra && (
             <div style={{ marginTop: 20 }}>
-              <Card className="flex items-center gap-4 p-4" interactive>
+              <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fuchsia-100">
                   <Sigma className="h-5 w-5 text-fuchsia-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-ink-700">Algebra</p>
-                  <p className="text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
+                  <p className="break-words text-sm font-semibold text-ink-700">Algebra</p>
+                  <p className="break-words text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
                 </div>
-                <Button to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
+                <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
               </Card>
             </div>
           )}
@@ -1585,173 +1593,173 @@ export default function StudentDashboard() {
         <LowerPrimaryBanner />
 
         {FEATURE_FLAGS.decimals && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
               <Calculator className="h-5 w-5 text-emerald" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Decimals</p>
-              <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Decimals</p>
+              <p className="break-words text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
             </div>
-            <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
 
         {FEATURE_FLAGS.percentages && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-tint">
               <Percent className="h-5 w-5 text-purple" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Percentage</p>
-              <p className="text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Percentage</p>
+              <p className="break-words text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
             </div>
-            <Button to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
 
         {FEATURE_FLAGS.ratioRate && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100">
               <Scale className="h-5 w-5 text-teal-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Ratio &amp; Rate</p>
-              <p className="text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Ratio &amp; Rate</p>
+              <p className="break-words text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
             </div>
-            <Button to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.operations && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
               <Calculator className="h-5 w-5 text-orange-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Operations</p>
-              <p className="text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Operations</p>
+              <p className="break-words text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
             </div>
-            <Button to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.numberSense && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
               <Hash className="h-5 w-5 text-indigo-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Number Sense</p>
-              <p className="text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Number Sense</p>
+              <p className="break-words text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
             </div>
-            <Button to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.money && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
               <DollarSign className="h-5 w-5 text-green-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Money</p>
-              <p className="text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Money</p>
+              <p className="break-words text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
             </div>
-            <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.timeDomain && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
               <Clock className="h-5 w-5 text-sky-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Time</p>
-              <p className="text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Time</p>
+              <p className="break-words text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
             </div>
-            <Button to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.measurement && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
               <Ruler className="h-5 w-5 text-amber-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Measurement</p>
-              <p className="text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Measurement</p>
+              <p className="break-words text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
             </div>
-            <Button to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.geometry && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100">
               <Triangle className="h-5 w-5 text-violet-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Geometry</p>
-              <p className="text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Geometry</p>
+              <p className="break-words text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
             </div>
-            <Button to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.areaPerimeter && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100">
               <Square className="h-5 w-5 text-rose-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
-              <p className="text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
+              <p className="break-words text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
             </div>
-            <Button to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.circles && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100">
               <Circle className="h-5 w-5 text-cyan-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Circles</p>
-              <p className="text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Circles</p>
+              <p className="break-words text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
             </div>
-            <Button to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.volume && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-100">
               <Box className="h-5 w-5 text-lime-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
-              <p className="text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
+              <p className="break-words text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
             </div>
-            <Button to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.statistics && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
               <BarChart2 className="h-5 w-5 text-blue-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Statistics</p>
-              <p className="text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Statistics</p>
+              <p className="break-words text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
             </div>
-            <Button to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
         {FEATURE_FLAGS.algebra && (
-          <Card className="flex items-center gap-4 p-4" interactive>
+          <Card className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fuchsia-100">
               <Sigma className="h-5 w-5 text-fuchsia-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-ink-700">Algebra</p>
-              <p className="text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
+              <p className="break-words text-sm font-semibold text-ink-700">Algebra</p>
+              <p className="break-words text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
             </div>
-            <Button to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
+            <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
           </Card>
         )}
 
@@ -1842,186 +1850,186 @@ export default function StudentDashboard() {
       />
 
       {FEATURE_FLAGS.psl && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-100">
             <Brain className="h-5 w-5 text-gold-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Problem Solving Lab</p>
-            <p className="text-xs text-ink-500">Learn to solve word problems step by step</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Problem Solving Lab</p>
+            <p className="break-words text-xs text-ink-500">Learn to solve word problems step by step</p>
           </div>
-          <Button to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/psl" size="s" icon={ArrowRight}>Start</Button>
         </Card>
       )}
 
       {FEATURE_FLAGS.decimals && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-tint">
             <Calculator className="h-5 w-5 text-emerald" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Decimals</p>
-            <p className="text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Decimals</p>
+            <p className="break-words text-xs text-ink-500">Place value, operations and measurement (P4–P6)</p>
           </div>
-          <Button to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/decimals" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
 
       {FEATURE_FLAGS.percentages && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-tint">
             <Percent className="h-5 w-5 text-purple" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Percentage</p>
-            <p className="text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Percentage</p>
+            <p className="break-words text-xs text-ink-500">Per hundred, conversions, discount, GST and interest (P5–P6)</p>
           </div>
-          <Button to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/percentages" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
 
       {FEATURE_FLAGS.ratioRate && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100">
             <Scale className="h-5 w-5 text-teal-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Ratio &amp; Rate</p>
-            <p className="text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Ratio &amp; Rate</p>
+            <p className="break-words text-xs text-ink-500">Equivalent ratios, dividing in a ratio, speed and direct proportion (P5–P6)</p>
           </div>
-          <Button to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/ratio-rate" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.operations && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
             <Calculator className="h-5 w-5 text-orange-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Operations</p>
-            <p className="text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Operations</p>
+            <p className="break-words text-xs text-ink-500">Add, subtract, multiply &amp; divide (P1–P4)</p>
           </div>
-          <Button to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/operations" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.numberSense && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
             <Hash className="h-5 w-5 text-indigo-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Number Sense</p>
-            <p className="text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Number Sense</p>
+            <p className="break-words text-xs text-ink-500">Place value, rounding &amp; patterns (P1–P4)</p>
           </div>
-          <Button to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/number-sense" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.money && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100">
             <DollarSign className="h-5 w-5 text-green-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Money</p>
-            <p className="text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Money</p>
+            <p className="break-words text-xs text-ink-500">Dollars, cents &amp; everyday calculations (P1–P4)</p>
           </div>
-          <Button to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/money" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.timeDomain && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100">
             <Clock className="h-5 w-5 text-sky-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Time</p>
-            <p className="text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Time</p>
+            <p className="break-words text-xs text-ink-500">Clock, calendar &amp; duration (P1–P4)</p>
           </div>
-          <Button to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/time" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.measurement && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100">
             <Ruler className="h-5 w-5 text-amber-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Measurement</p>
-            <p className="text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Measurement</p>
+            <p className="break-words text-xs text-ink-500">Length, mass and capacity (P2–P5)</p>
           </div>
-          <Button to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/measurement" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.geometry && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100">
             <Triangle className="h-5 w-5 text-violet-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Geometry</p>
-            <p className="text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Geometry</p>
+            <p className="break-words text-xs text-ink-500">Angles, shapes &amp; properties (P3–P6)</p>
           </div>
-          <Button to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/geometry" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.areaPerimeter && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-100">
             <Square className="h-5 w-5 text-rose-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
-            <p className="text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Area &amp; Perimeter</p>
+            <p className="break-words text-xs text-ink-500">Rectilinear and composite figures (P3–P6)</p>
           </div>
-          <Button to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/area-perimeter" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.circles && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-100">
             <Circle className="h-5 w-5 text-cyan-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Circles</p>
-            <p className="text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Circles</p>
+            <p className="break-words text-xs text-ink-500">Circumference, area and composite shapes (P5–P6)</p>
           </div>
-          <Button to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/circles" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.volume && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lime-100">
             <Box className="h-5 w-5 text-lime-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
-            <p className="text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Volume &amp; Capacity</p>
+            <p className="break-words text-xs text-ink-500">Cuboids and liquid volume (P4–P6)</p>
           </div>
-          <Button to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/volume" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.statistics && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
             <BarChart2 className="h-5 w-5 text-blue-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Statistics</p>
-            <p className="text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Statistics</p>
+            <p className="break-words text-xs text-ink-500">Charts, tables and averages (P3–P6)</p>
           </div>
-          <Button to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/statistics" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
       {FEATURE_FLAGS.algebra && (
-        <Card className="mt-4 flex items-center gap-4 p-4" interactive>
+        <Card className="mt-4 flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center" interactive>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fuchsia-100">
             <Sigma className="h-5 w-5 text-fuchsia-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-ink-700">Algebra</p>
-            <p className="text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
+            <p className="break-words text-sm font-semibold text-ink-700">Algebra</p>
+            <p className="break-words text-xs text-ink-500">Equations, unknowns &amp; patterns (P5–P6)</p>
           </div>
-          <Button to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
+          <Button className="w-full justify-center sm:w-auto" to="/student/mathpath/algebra" size="s" icon={ArrowRight}>Explore</Button>
         </Card>
       )}
 
