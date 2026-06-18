@@ -885,7 +885,10 @@ export const billingAPI = {
   pendingUpgrades: () => api.get('/billing/premium-home/pending'),
   activateUpgrade: (id) => api.post(`/billing/premium-home/requests/${id}/activate`),
   rejectUpgrade: (id, note = '') => api.post(`/billing/premium-home/requests/${id}/reject`, { note }),
-  // Legacy Stripe path (kept available, no longer the default).
+  // Stripe PayNow: create a dynamic QR code for instant self-serve payment.
+  paynowCreate: () => api.post('/billing/paynow/create'),
+  paynowStatus: (piId) => api.get(`/billing/paynow/status/${piId}`),
+  // Legacy Stripe card path.
   checkoutPremiumHome: (billing = 'monthly') => api.post('/billing/checkout/premium-home', { billing }),
   confirmCheckout: (sessionId) => api.post('/billing/checkout/confirm', { sessionId }),
   devActivatePremiumHome: () => api.post('/billing/dev/activate-premium-home'),
