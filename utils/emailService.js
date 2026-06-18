@@ -56,7 +56,7 @@ initializeEmailService().catch(console.error);
 export const sendEmail = async ({ to, subject, html, text }) => {
   try {
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"TutorMatch" <noreply@tutormatch.com>',
+      from: process.env.EMAIL_FROM || '"Tian OS" <noreply@tianos.app>',
       to,
       subject,
       text,
@@ -82,7 +82,7 @@ export const sendEmail = async ({ to, subject, html, text }) => {
  */
 export const sendTutorApprovalEmail = async (tutor) => {
   const html = `
-    <h2>Welcome to TutorMatch! 🎉</h2>
+    <h2>Welcome to Tian OS! 🎉</h2>
     <p>Hi ${tutor.name},</p>
     <p>Great news! Your tutor profile has been verified and approved. You can now start accepting bookings from students.</p>
     <h3>Next Steps:</h3>
@@ -92,7 +92,7 @@ export const sendTutorApprovalEmail = async (tutor) => {
       <li>Start accepting bookings</li>
     </ul>
     <p><a href="http://localhost:3000/tutor/dashboard" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Go to Dashboard</a></p>
-    <p>Best regards,<br>The TutorMatch Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -116,7 +116,7 @@ export const sendParentInvite = async ({ to, studentName, schoolName, inviteUrl,
     <p><a href="${inviteUrl}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">View ${safeStudent}'s progress</a></p>
     ${expiryNote}
     <p style="color:#666;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${escapeHtml(inviteUrl)}</p>
-    <p>Best regards,<br>The MathPath Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
   return sendEmail({ to, subject: `Follow ${studentName || 'your child'}'s progress on MathPath`, html });
 };
@@ -133,7 +133,7 @@ export const sendTutorRejectionEmail = async (tutor, notes) => {
     <p>${notes}</p>
     <p>You can reapply after addressing the feedback above.</p>
     <p><a href="http://localhost:3000/tutor/apply" style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reapply Now</a></p>
-    <p>Questions? Contact our support team.<br>Best regards,<br>The TutorMatch Team</p>
+    <p>Questions? Contact our support team.<br>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -164,7 +164,7 @@ export const sendBookingConfirmationEmail = async (parent, tutor, booking) => {
     </ul>
     <p>Join Link: <a href="${booking.meetingLink}">${booking.meetingLink}</a></p>
     <p><a href="http://localhost:3000/bookings/${booking._id}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">View Booking</a></p>
-    <p>Best regards,<br>The TutorMatch Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -192,7 +192,7 @@ export const sendSessionReminderEmail = async (user, booking, tutor) => {
       <li><strong>Subject:</strong> ${booking.subject}</li>
     </ul>
     <p><a href="${booking.meetingLink}" style="background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Join Session</a></p>
-    <p>See you soon!<br>The TutorMatch Team</p>
+    <p>See you soon!<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -219,7 +219,7 @@ export const sendPaymentConfirmationEmail = async (parent, booking, amount) => {
       <li><strong>Booking:</strong> ${booking.subject}</li>
     </ul>
     <p><a href="http://localhost:3000/payments" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">View Payment History</a></p>
-    <p>Best regards,<br>The TutorMatch Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
 
   return sendEmail({
@@ -308,7 +308,7 @@ export const sendPasswordResetEmail = async ({ to, name, resetUrl, expiresInMinu
     <p><a href="${resetUrl}" style="background-color:#1F6B53;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;display:inline-block;">Reset Password</a></p>
     <p style="color:#666;font-size:13px;">This link expires in ${expiresInMinutes} minutes. If you didn't request this, you can safely ignore this email.</p>
     <p style="color:#666;font-size:13px;">If the button doesn't work, copy this link into your browser:<br>${escapeHtml(resetUrl)}</p>
-    <p>Best regards,<br>The MathPath Team</p>
+    <p>Best regards,<br>The Tian OS Team</p>
   `;
   return sendEmail({ to, subject: 'Password Reset Request', html });
 };

@@ -386,6 +386,7 @@ export const mathpathAPI = {
 // (skillsAPI / assignmentsAPI / worksheetGenAPI live in the learning-core block below.)
 export const familyAPI = {
   children: () => api.get('/family/children'),
+  createChild: (data) => api.post('/students', data),
   recommendations: (studentId) => api.get(`/family/children/${studentId}/recommendations`)
 };
 
