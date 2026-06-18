@@ -60,7 +60,6 @@ describe('AlgebraQuestionGenerator', () => {
     expect(checkAlgebraAnswer({ question: { answer: { display: '12p' } }, studentResponse: '12' }).correct).toBe(false);
   });
 
-<<<<<<< HEAD
   describe('Secondary 1 (G1) — AL011–AL016', () => {
     it('tags every Sec 1 algebra skill as Secondary 1', () => {
       for (const id of ['AL011', 'AL012', 'AL013', 'AL014', 'AL015', 'AL016']) {
@@ -103,7 +102,7 @@ describe('AlgebraQuestionGenerator', () => {
         }
       }
     });
-=======
+  });
   it('word-problem families (_003) cycle in at every 3rd position', () => {
     // AL004 _003 produces subtraction-expression answers like "n - 5"
     const al4 = generateAlgebraQuestionSet({ skillId: 'AL004', count: 9 });
@@ -122,6 +121,5 @@ describe('AlgebraQuestionGenerator', () => {
         expect(qs[i].solutionSteps.length).toBeGreaterThan(0);
       }
     }
->>>>>>> e9bc46eb (feat(mathpath): word-problem _003 families for 7 domains + Circles retention engine)
   });
 });
