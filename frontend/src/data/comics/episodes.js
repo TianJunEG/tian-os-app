@@ -8,7 +8,7 @@
 // returns the dynamic fields (question/hint/answer, and menuNote when prices
 // change); static fields (id/unit/skill) stay on the object. `ctx` is shared
 // across an episode's panels so story-linked values stay consistent.
-import { rint, tierInt } from './comicDifficulty';
+import { rint, pick, tierInt, POLYGONS } from './comicDifficulty';
 
 export const MASCOT_COLORS = {
   kylo: '#1e3a5f',
@@ -204,9 +204,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p1-q1',
-          question: 'Kaesy shares 24 stickers equally among 3 friends. How many stickers does each friend get?',
-          hint: 'Split 24 into 3 equal groups: 24 ÷ 3.',
-          answer: 8,
+          generate: (rng, tier) => {
+            const friends = tierInt(rng, tier, [[2, 3], [2, 4], [3, 6], [4, 8]]);
+            const each = tierInt(rng, tier, [[3, 6], [4, 9], [6, 12], [8, 15]]);
+            const total = friends * each;
+            return {
+              question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers does each friend get?`,
+              hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
+              answer: each,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'division-equal-sharing',
@@ -233,9 +240,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p2-q1',
-          question: 'Kaesy shares 36 stickers equally among 4 friends. How many stickers does each friend get?',
-          hint: 'Split 36 into 4 equal groups: 36 ÷ 4.',
-          answer: 9,
+          generate: (rng, tier) => {
+            const friends = tierInt(rng, tier, [[3, 4], [3, 5], [4, 7], [5, 9]]);
+            const each = tierInt(rng, tier, [[3, 7], [5, 9], [7, 12], [9, 15]]);
+            const total = friends * each;
+            return {
+              question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers does each friend get?`,
+              hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
+              answer: each,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'division-within-tables',
@@ -267,9 +281,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e2-p3-q1',
-          question: 'Kaesy shares 30 stickers equally among 4 friends. How many stickers are left over?',
-          hint: 'Each friend gets 7 (because 4 × 7 = 28). Then 30 − 28 tells you how many are left over.',
-          answer: 2,
+          generate: (rng, tier) => {
+            const friends = tierInt(rng, tier, [[3, 4], [3, 5], [4, 6], [5, 8]]);
+            const each = tierInt(rng, tier, [[4, 7], [5, 9], [7, 12], [9, 15]]);
+            const rem = rint(rng, 1, friends - 1);
+            const total = friends * each + rem;
+            return {
+              question: `Kaesy shares ${total} stickers equally among ${friends} friends. How many stickers are left over?`,
+              hint: `Each friend gets ${each} (because ${friends} × ${each} = ${friends * each}). Then ${total} − ${friends * each} tells you how many are left over.`,
+              answer: rem,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'division-with-remainder',
@@ -313,9 +335,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e3-p1-q1',
-          question: 'Talia buys balloons for $8 and a banner for $6. How much does she spend on decorations altogether?',
-          hint: 'Add the two prices together: $8 + $6.',
-          answer: 14,
+          generate: (rng, tier) => {
+            const band = [[3, 9], [5, 15], [8, 30], [15, 60]];
+            const balloons = tierInt(rng, tier, band);
+            const banner = tierInt(rng, tier, band);
+            return {
+              question: `Talia buys balloons for $${balloons} and a banner for $${banner}. How much does she spend on decorations altogether?`,
+              hint: `Add the two prices together: $${balloons} + $${banner}.`,
+              answer: balloons + banner,
+            };
+          },
           unit: '$',
           unitPosition: 'prefix',
           skill: 'money-addition',
@@ -342,9 +371,15 @@ export const episodes = [
         ],
         problem: {
           id: 'e3-p2-q1',
-          question: 'Talia buys 5 pizzas that cost $4 each. How much do the pizzas cost in total?',
-          hint: '5 groups of $4. Multiply: 5 × 4, or add $4 five times.',
-          answer: 20,
+          generate: (rng, tier) => {
+            const qty = tierInt(rng, tier, [[2, 4], [3, 6], [5, 9], [6, 12]]);
+            const price = tierInt(rng, tier, [[3, 6], [4, 9], [5, 12], [6, 15]]);
+            return {
+              question: `Talia buys ${qty} pizzas that cost $${price} each. How much do the pizzas cost in total?`,
+              hint: `${qty} groups of $${price}. Multiply: ${qty} × ${price}, or add $${price} ${qty} times.`,
+              answer: qty * price,
+            };
+          },
           unit: '$',
           unitPosition: 'prefix',
           skill: 'money-multiplication',
@@ -376,9 +411,18 @@ export const episodes = [
         ],
         problem: {
           id: 'e3-p3-q1',
-          question: 'Talia started with $50 and spent $14 on decorations and $20 on food. How much money does she have left?',
-          hint: 'First add what she spent: $14 + $20 = $34. Then subtract that from $50.',
-          answer: 16,
+          generate: (rng, tier) => {
+            const band = [[8, 18], [12, 30], [20, 60], [40, 120]];
+            const decor = tierInt(rng, tier, band);
+            const food = tierInt(rng, tier, band);
+            const spent = decor + food;
+            const start = spent + tierInt(rng, tier, [[10, 30], [20, 40], [40, 80], [80, 160]]);
+            return {
+              question: `Talia started with $${start} and spent $${decor} on decorations and $${food} on food. How much money does she have left?`,
+              hint: `First add what she spent: $${decor} + $${food} = $${spent}. Then subtract that from $${start}.`,
+              answer: start - spent,
+            };
+          },
           unit: '$',
           unitPosition: 'prefix',
           skill: 'money-subtraction',
@@ -422,9 +466,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e4-p1-q1',
-          question: 'Look at this pattern: 3, 6, 9, 12, … What number comes next?',
-          hint: 'Each number goes up by the same amount. 3, 6, 9, 12 — what is being added each time?',
-          answer: 15,
+          generate: (rng, tier) => {
+            const step = tierInt(rng, tier, [[2, 5], [3, 9], [6, 15], [10, 25]]);
+            const start = tierInt(rng, tier, [[1, 6], [2, 12], [5, 30], [10, 50]]);
+            const t = [start, start + step, start + 2 * step, start + 3 * step];
+            return {
+              question: `Look at this pattern: ${t.join(', ')}, … What number comes next?`,
+              hint: `Each number goes up by the same amount. ${t.join(', ')} — what is being added each time?`,
+              answer: start + 4 * step,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'number-patterns',
@@ -451,9 +502,15 @@ export const episodes = [
         ],
         problem: {
           id: 'e4-p2-q1',
-          question: 'Look at this pattern: 2, 4, 8, 16, … What number comes next?',
-          hint: 'Each number is the one before it multiplied by 2.',
-          answer: 32,
+          generate: (rng, tier) => {
+            const start = tierInt(rng, tier, [[2, 3], [2, 5], [3, 7], [4, 10]]);
+            const t = [start, start * 2, start * 4, start * 8];
+            return {
+              question: `Look at this pattern: ${t.join(', ')}, … What number comes next?`,
+              hint: 'Each number is the one before it multiplied by 2.',
+              answer: start * 16,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'number-patterns',
@@ -485,9 +542,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e4-p3-q1',
-          question: 'Look at this pattern: 1, 4, 9, 16, … What number comes next?',
-          hint: 'Look at the gaps: +3, then +5, then +7. The gap grows by 2 each time, so the next gap is +9.',
-          answer: 25,
+          generate: (rng, tier) => {
+            const n = tierInt(rng, tier, [[1, 2], [1, 3], [2, 5], [4, 8]]);
+            const sq = (k) => k * k;
+            const t = [sq(n), sq(n + 1), sq(n + 2), sq(n + 3)];
+            const g = [t[1] - t[0], t[2] - t[1], t[3] - t[2]];
+            return {
+              question: `Look at this pattern: ${t.join(', ')}, … What number comes next?`,
+              hint: `Look at the gaps: +${g[0]}, then +${g[1]}, then +${g[2]}. The gap grows by 2 each time, so the next gap is +${g[2] + 2}.`,
+              answer: sq(n + 4),
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'number-patterns',
@@ -531,9 +596,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e5-p1-q1',
-          question: 'Chelya joins a 35 cm ribbon and a 28 cm ribbon end to end. How long is the ribbon now?',
-          hint: 'Add the two lengths together: 35 cm + 28 cm.',
-          answer: 63,
+          generate: (rng, tier) => {
+            const band = [[10, 50], [20, 90], [40, 150], [80, 400]];
+            const a = tierInt(rng, tier, band);
+            const b = tierInt(rng, tier, band);
+            return {
+              question: `Chelya joins a ${a} cm ribbon and a ${b} cm ribbon end to end. How long is the ribbon now?`,
+              hint: `Add the two lengths together: ${a} cm + ${b} cm.`,
+              answer: a + b,
+            };
+          },
           unit: ' cm',
           unitPosition: 'suffix',
           skill: 'measurement-length-addition',
@@ -560,9 +632,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e5-p2-q1',
-          question: 'Chelya cuts 35 cm off a 90 cm ribbon. How many centimetres are left?',
-          hint: 'Take away the piece she cut: 90 cm − 35 cm.',
-          answer: 55,
+          generate: (rng, tier) => {
+            const cut = tierInt(rng, tier, [[10, 40], [20, 70], [40, 120], [80, 300]]);
+            const left = tierInt(rng, tier, [[10, 50], [20, 80], [40, 150], [80, 400]]);
+            const total = cut + left;
+            return {
+              question: `Chelya cuts ${cut} cm off a ${total} cm ribbon. How many centimetres are left?`,
+              hint: `Take away the piece she cut: ${total} cm − ${cut} cm.`,
+              answer: left,
+            };
+          },
           unit: ' cm',
           unitPosition: 'suffix',
           skill: 'measurement-length-subtraction',
@@ -594,9 +673,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e5-p3-q1',
-          question: 'Four ribbons, each 25 cm, laid end to end, measure 100 cm in total. How many metres is that?',
-          hint: 'Remember: 100 cm makes 1 metre.',
-          answer: 1,
+          generate: (rng, tier) => {
+            const metres = tierInt(rng, tier, [[1, 2], [1, 4], [3, 8], [5, 15]]);
+            const each = pick(rng, [20, 25, 50]); // realistic length that divides 100
+            const total = metres * 100;
+            const count = total / each;
+            return {
+              question: `${count} ribbons, each ${each} cm, laid end to end, measure ${total} cm in total. How many metres is that?`,
+              hint: 'Remember: 100 cm makes 1 metre.',
+              answer: metres,
+            };
+          },
           unit: ' m',
           unitPosition: 'suffix',
           skill: 'measurement-conversion-cm-m',
@@ -645,9 +732,18 @@ export const episodes = [
         ],
         problem: {
           id: 'e6-p1-q1',
-          question: 'It is 2:15 now and the match kicks off at 3:00. How many minutes until kick-off?',
-          hint: 'Count on from 2:15 to 3:00. From 2:15 to 3:00 is 45 minutes.',
-          answer: 45,
+          generate: (rng, tier) => {
+            const gapHours = tierInt(rng, tier, [[1, 1], [1, 2], [2, 3], [3, 4]]);
+            const startHour = rint(rng, 1, 12 - gapHours);
+            const startMin = rint(rng, 1, 11) * 5; // :05–:55
+            const mm = String(startMin).padStart(2, '0');
+            const endHour = startHour + gapHours;
+            return {
+              question: `It is ${startHour}:${mm} now and the match kicks off at ${endHour}:00. How many minutes until kick-off?`,
+              hint: `Count on from ${startHour}:${mm} to ${endHour}:00.`,
+              answer: gapHours * 60 - startMin,
+            };
+          },
           unit: ' min',
           unitPosition: 'suffix',
           skill: 'time-duration',
@@ -674,9 +770,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e6-p2-q1',
-          question: 'A match has two halves of 40 minutes each. How many minutes of play is that in total?',
-          hint: 'Two halves of 40 minutes: 40 × 2, or 40 + 40.',
-          answer: 80,
+          generate: (rng, tier) => {
+            const periods = tierInt(rng, tier, [[2, 2], [2, 3], [3, 4], [4, 6]]);
+            const mins = tierInt(rng, tier, [[20, 45], [30, 50], [35, 60], [40, 90]]);
+            const word = periods === 2 ? 'halves' : periods === 4 ? 'quarters' : 'periods';
+            return {
+              question: `A match has ${periods} ${word} of ${mins} minutes each. How many minutes of play is that in total?`,
+              hint: `${periods} periods of ${mins} minutes: ${mins} × ${periods}.`,
+              answer: periods * mins,
+            };
+          },
           unit: ' min',
           unitPosition: 'suffix',
           skill: 'time-multiplication',
@@ -708,9 +811,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e6-p3-q1',
-          question: 'The whole match, including half-time, lasts 95 minutes. That is 1 hour and how many minutes?',
-          hint: '1 hour is 60 minutes. Take 60 away from 95 to find the extra minutes.',
-          answer: 35,
+          generate: (rng, tier) => {
+            const hours = tierInt(rng, tier, [[1, 1], [1, 2], [2, 3], [2, 4]]);
+            const extra = rint(rng, 1, 11) * 5; // 5–55
+            const total = hours * 60 + extra;
+            const hourWord = hours === 1 ? '1 hour' : `${hours} hours`;
+            return {
+              question: `The whole match, including half-time, lasts ${total} minutes. That is ${hourWord} and how many minutes?`,
+              hint: `${hourWord} is ${hours * 60} minutes. Take ${hours * 60} away from ${total} to find the extra minutes.`,
+              answer: extra,
+            };
+          },
           unit: ' min',
           unitPosition: 'suffix',
           skill: 'time-conversion-min-to-hour',
@@ -755,9 +866,21 @@ export const episodes = [
         menuNote: 'League points — Lions 12 · Tigers 9 · Bears 15 · Eagles 6',
         problem: {
           id: 'e7-p1-q1',
-          question: 'On the chart, the Bears have 15 points and the Eagles have 6 points. How many more points do the Bears have than the Eagles?',
-          hint: 'Find the difference: 15 − 6.',
-          answer: 9,
+          generate: (rng, tier, ctx) => {
+            const band = [[4, 15], [8, 25], [15, 45], [30, 90]];
+            const eagles = tierInt(rng, tier, band);
+            const bears = eagles + tierInt(rng, tier, [[2, 10], [3, 15], [5, 25], [10, 40]]);
+            const lions = tierInt(rng, tier, band);
+            const tigers = tierInt(rng, tier, band);
+            ctx.teams = { lions, tigers, bears, eagles };
+            ctx.menu = `League points — Lions ${lions} · Tigers ${tigers} · Bears ${bears} · Eagles ${eagles}`;
+            return {
+              menuNote: ctx.menu,
+              question: `On the chart, the Bears have ${bears} points and the Eagles have ${eagles} points. How many more points do the Bears have than the Eagles?`,
+              hint: `Find the difference: ${bears} − ${eagles}.`,
+              answer: bears - eagles,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'data-bar-chart-difference',
@@ -785,9 +908,15 @@ export const episodes = [
         menuNote: 'League points — Lions 12 · Tigers 9 · Bears 15 · Eagles 6',
         problem: {
           id: 'e7-p2-q1',
-          question: 'The Lions have 12 points and the Tigers have 9 points. How many points do the Lions and Tigers have altogether?',
-          hint: 'Add the two values: 12 + 9.',
-          answer: 21,
+          generate: (rng, tier, ctx) => {
+            const { lions, tigers } = ctx.teams;
+            return {
+              menuNote: ctx.menu,
+              question: `The Lions have ${lions} points and the Tigers have ${tigers} points. How many points do the Lions and Tigers have altogether?`,
+              hint: `Add the two values: ${lions} + ${tigers}.`,
+              answer: lions + tigers,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'data-addition',
@@ -820,9 +949,15 @@ export const episodes = [
         menuNote: 'League points — Lions 12 · Tigers 9 · Bears 15 · Eagles 6',
         problem: {
           id: 'e7-p3-q1',
-          question: 'Add up all four teams: 12 + 9 + 15 + 6. What is the total number of points scored in the league?',
-          hint: 'Add them step by step: 12 + 9 = 21, then + 15 = 36, then + 6.',
-          answer: 42,
+          generate: (rng, tier, ctx) => {
+            const { lions, tigers, bears, eagles } = ctx.teams;
+            return {
+              menuNote: ctx.menu,
+              question: `Add up all four teams: ${lions} + ${tigers} + ${bears} + ${eagles}. What is the total number of points scored in the league?`,
+              hint: `Add them step by step: ${lions} + ${tigers} = ${lions + tigers}, then + ${bears} = ${lions + tigers + bears}, then + ${eagles}.`,
+              answer: lions + tigers + bears + eagles,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'data-total',
@@ -866,9 +1001,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e8-p1-q1',
-          question: 'A pizza is cut into 8 equal slices. How many slices make up 1/2 of the pizza?',
-          hint: 'One half means splitting the 8 slices into 2 equal groups: 8 ÷ 2.',
-          answer: 4,
+          generate: (rng, tier) => {
+            const den = pick(rng, [2, 3, 4]);
+            const k = tierInt(rng, tier, [[2, 4], [3, 8], [6, 14], [10, 25]]);
+            const whole = den * k;
+            const word = den === 2 ? 'half' : den === 3 ? 'third' : 'quarter';
+            return {
+              question: `A pizza is cut into ${whole} equal slices. How many slices make up 1/${den} of the pizza?`,
+              hint: `One ${word} means splitting the ${whole} slices into ${den} equal groups: ${whole} ÷ ${den}.`,
+              answer: whole / den,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'fraction-of-quantity',
@@ -895,9 +1038,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e8-p2-q1',
-          question: 'A cake is cut into 6 equal pieces. How many pieces make up 1/3 of the cake?',
-          hint: 'One third means splitting the 6 pieces into 3 equal groups: 6 ÷ 3.',
-          answer: 2,
+          generate: (rng, tier) => {
+            const den = pick(rng, [3, 4, 6]);
+            const k = tierInt(rng, tier, [[1, 3], [2, 6], [4, 10], [6, 18]]);
+            const whole = den * k;
+            const word = den === 3 ? 'third' : den === 4 ? 'quarter' : 'sixth';
+            return {
+              question: `A cake is cut into ${whole} equal pieces. How many pieces make up 1/${den} of the cake?`,
+              hint: `One ${word} means splitting the ${whole} pieces into ${den} equal groups: ${whole} ÷ ${den}.`,
+              answer: whole / den,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'fraction-of-quantity',
@@ -929,9 +1080,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e8-p3-q1',
-          question: 'Talia has 12 sweets and gives away 3/4 of them. How many sweets does she give away?',
-          hint: 'First find 1/4 of 12 (that is 12 ÷ 4 = 3). Three quarters is 3 lots of that.',
-          answer: 9,
+          generate: (rng, tier) => {
+            const den = pick(rng, [3, 4, 5]);
+            const num = rint(rng, 2, den - 1);
+            const k = tierInt(rng, tier, [[2, 4], [3, 8], [5, 12], [8, 20]]);
+            const whole = den * k;
+            return {
+              question: `Talia has ${whole} sweets and gives away ${num}/${den} of them. How many sweets does she give away?`,
+              hint: `First find 1/${den} of ${whole} (that is ${whole} ÷ ${den} = ${k}). ${num} lots of that is ${num} × ${k}.`,
+              answer: num * k,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'fraction-of-set',
@@ -975,9 +1134,15 @@ export const episodes = [
         ],
         problem: {
           id: 'e9-p1-q1',
-          question: 'How many sides does a hexagon have?',
-          hint: 'A hexagon is the six-sided shape — think of a honeycomb cell.',
-          answer: 6,
+          generate: (rng) => {
+            const words = { 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight' };
+            const s = pick(rng, POLYGONS);
+            return {
+              question: `How many sides does a ${s.name} have?`,
+              hint: `A ${s.name} is the ${words[s.sides]}-sided shape.`,
+              answer: s.sides,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: '2d-shape-sides',
@@ -1004,9 +1169,14 @@ export const episodes = [
         ],
         problem: {
           id: 'e9-p2-q1',
-          question: 'How many corners (vertices) does a pentagon have?',
-          hint: 'A pentagon has the same number of corners as sides — and a pentagon has 5 sides.',
-          answer: 5,
+          generate: (rng) => {
+            const s = pick(rng, POLYGONS);
+            return {
+              question: `How many corners (vertices) does a ${s.name} have?`,
+              hint: `A ${s.name} has the same number of corners as sides — and a ${s.name} has ${s.sides} sides.`,
+              answer: s.sides,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: '2d-shape-vertices',
@@ -1038,9 +1208,15 @@ export const episodes = [
         ],
         problem: {
           id: 'e9-p3-q1',
-          question: 'A triangle has 3 sides, a square has 4 sides and a pentagon has 5 sides. How many sides do they have altogether?',
-          hint: 'Add the three amounts: 3 + 4 + 5.',
-          answer: 12,
+          generate: (rng) => {
+            const pool = [...POLYGONS];
+            const [a, b, c] = [0, 0, 0].map(() => pool.splice(rint(rng, 0, pool.length - 1), 1)[0]);
+            return {
+              question: `A ${a.name} has ${a.sides} sides, a ${b.name} has ${b.sides} sides and a ${c.name} has ${c.sides} sides. How many sides do they have altogether?`,
+              hint: `Add the three amounts: ${a.sides} + ${b.sides} + ${c.sides}.`,
+              answer: a.sides + b.sides + c.sides,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: '2d-shape-sides-total',
@@ -1084,9 +1260,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e10-p1-q1',
-          question: 'One parcel weighs 250 g and another weighs 350 g. What is their total mass?',
-          hint: 'Add the two masses: 250 g + 350 g.',
-          answer: 600,
+          generate: (rng, tier) => {
+            const band = [[5, 20], [10, 40], [20, 90], [40, 180]];
+            const a = tierInt(rng, tier, band) * 10; // grams, in tens
+            const b = tierInt(rng, tier, band) * 10;
+            return {
+              question: `One parcel weighs ${a} g and another weighs ${b} g. What is their total mass?`,
+              hint: `Add the two masses: ${a} g + ${b} g.`,
+              answer: a + b,
+            };
+          },
           unit: ' g',
           unitPosition: 'suffix',
           skill: 'mass-addition',
@@ -1113,9 +1296,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e10-p2-q1',
-          question: 'How many grams are there in 1 kilogram?',
-          hint: 'Remember the rule: 1 kilogram = 1000 grams.',
-          answer: 1000,
+          generate: (rng, tier) => {
+            const kg = tierInt(rng, tier, [[1, 1], [1, 4], [3, 9], [5, 20]]);
+            if (kg === 1) {
+              return { question: 'How many grams are there in 1 kilogram?', hint: 'Remember the rule: 1 kilogram = 1000 grams.', answer: 1000 };
+            }
+            return {
+              question: `How many grams are there in ${kg} kilograms?`,
+              hint: `1 kilogram = 1000 grams, so multiply ${kg} × 1000.`,
+              answer: kg * 1000,
+            };
+          },
           unit: ' g',
           unitPosition: 'suffix',
           skill: 'mass-conversion-kg-g',
@@ -1147,9 +1338,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e10-p3-q1',
-          question: 'A box and a book together weigh 1500 g. The book weighs 600 g. What is the mass of the box?',
-          hint: 'Take the book away from the total: 1500 g − 600 g.',
-          answer: 900,
+          generate: (rng, tier) => {
+            const book = tierInt(rng, tier, [[20, 60], [30, 90], [50, 150], [80, 300]]) * 10;
+            const box = tierInt(rng, tier, [[20, 80], [40, 120], [60, 180], [100, 400]]) * 10;
+            const total = book + box;
+            return {
+              question: `A box and a book together weigh ${total} g. The book weighs ${book} g. What is the mass of the box?`,
+              hint: `Take the book away from the total: ${total} g − ${book} g.`,
+              answer: box,
+            };
+          },
           unit: ' g',
           unitPosition: 'suffix',
           skill: 'mass-subtraction',
@@ -1193,9 +1391,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e11-p1-q1',
-          question: 'A jug holds 400 ml of juice. Chelya adds 350 ml more. How much juice is in the jug now?',
-          hint: 'Add the two amounts: 400 ml + 350 ml.',
-          answer: 750,
+          generate: (rng, tier) => {
+            const band = [[5, 20], [10, 40], [20, 90], [40, 180]];
+            const a = tierInt(rng, tier, band) * 10;
+            const add = tierInt(rng, tier, band) * 10;
+            return {
+              question: `A jug holds ${a} ml of juice. Chelya adds ${add} ml more. How much juice is in the jug now?`,
+              hint: `Add the two amounts: ${a} ml + ${add} ml.`,
+              answer: a + add,
+            };
+          },
           unit: ' ml',
           unitPosition: 'suffix',
           skill: 'capacity-addition',
@@ -1222,9 +1427,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e11-p2-q1',
-          question: 'How many millilitres are there in 1 litre?',
-          hint: 'Remember the rule: 1 litre = 1000 millilitres.',
-          answer: 1000,
+          generate: (rng, tier) => {
+            const litres = tierInt(rng, tier, [[1, 1], [1, 4], [3, 9], [5, 20]]);
+            if (litres === 1) {
+              return { question: 'How many millilitres are there in 1 litre?', hint: 'Remember the rule: 1 litre = 1000 millilitres.', answer: 1000 };
+            }
+            return {
+              question: `How many millilitres are there in ${litres} litres?`,
+              hint: `1 litre = 1000 millilitres, so multiply ${litres} × 1000.`,
+              answer: litres * 1000,
+            };
+          },
           unit: ' ml',
           unitPosition: 'suffix',
           skill: 'capacity-conversion-l-ml',
@@ -1256,9 +1469,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e11-p3-q1',
-          question: 'A flask holds 1000 ml. It is filled to 750 ml. How many more millilitres are needed to fill it?',
-          hint: 'Find the difference: 1000 ml − 750 ml.',
-          answer: 250,
+          generate: (rng, tier) => {
+            const filled = tierInt(rng, tier, [[20, 70], [40, 90], [60, 180], [100, 400]]) * 10;
+            const more = tierInt(rng, tier, [[10, 40], [20, 60], [40, 120], [80, 300]]) * 10;
+            const capacity = filled + more;
+            return {
+              question: `A flask holds ${capacity} ml. It is filled to ${filled} ml. How many more millilitres are needed to fill it?`,
+              hint: `Find the difference: ${capacity} ml − ${filled} ml.`,
+              answer: more,
+            };
+          },
           unit: ' ml',
           unitPosition: 'suffix',
           skill: 'capacity-subtraction',
@@ -1302,9 +1522,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e12-p1-q1',
-          question: 'What is 7 × 6?',
-          hint: 'Seven sixes. If you know 7 × 5 = 35, add one more 7 to get 7 × 6.',
-          answer: 42,
+          generate: (rng, tier) => {
+            const band = [[2, 6], [3, 9], [6, 12], [8, 20]];
+            const a = tierInt(rng, tier, band);
+            const b = tierInt(rng, tier, band);
+            return {
+              question: `What is ${a} × ${b}?`,
+              hint: `${a} groups of ${b}. If you know ${a} × ${b - 1} = ${a * (b - 1)}, add one more ${a}.`,
+              answer: a * b,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'multiplication-tables',
@@ -1331,9 +1558,15 @@ export const episodes = [
         ],
         problem: {
           id: 'e12-p2-q1',
-          question: 'A box holds 8 cupcakes. How many cupcakes are there in 4 boxes?',
-          hint: '4 groups of 8: multiply 4 × 8.',
-          answer: 32,
+          generate: (rng, tier) => {
+            const per = tierInt(rng, tier, [[4, 8], [5, 10], [6, 12], [8, 20]]);
+            const boxes = tierInt(rng, tier, [[2, 4], [3, 6], [5, 9], [6, 12]]);
+            return {
+              question: `A box holds ${per} cupcakes. How many cupcakes are there in ${boxes} boxes?`,
+              hint: `${boxes} groups of ${per}: multiply ${boxes} × ${per}.`,
+              answer: boxes * per,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'multiplication-word-problem',
@@ -1365,9 +1598,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e12-p3-q1',
-          question: 'Kylo buys 3 packs of 6 stickers and is given 5 more. How many stickers does he have altogether?',
-          hint: 'First multiply: 3 × 6 = 18. Then add the 5 free stickers.',
-          answer: 23,
+          generate: (rng, tier) => {
+            const packs = tierInt(rng, tier, [[2, 4], [3, 6], [4, 8], [6, 12]]);
+            const per = tierInt(rng, tier, [[4, 8], [5, 10], [6, 12], [8, 15]]);
+            const extra = tierInt(rng, tier, [[2, 6], [3, 10], [5, 15], [8, 25]]);
+            return {
+              question: `Kylo buys ${packs} packs of ${per} stickers and is given ${extra} more. How many stickers does he have altogether?`,
+              hint: `First multiply: ${packs} × ${per} = ${packs * per}. Then add the ${extra} free stickers.`,
+              answer: packs * per + extra,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'multiplication-multistep',
@@ -1411,9 +1651,14 @@ export const episodes = [
         ],
         problem: {
           id: 'e13-p1-q1',
-          question: 'A square goal box has sides of 5 m each. What is its perimeter?',
-          hint: 'A square has 4 equal sides. Add them, or multiply: 4 × 5.',
-          answer: 20,
+          generate: (rng, tier) => {
+            const side = tierInt(rng, tier, [[3, 9], [5, 15], [10, 30], [20, 80]]);
+            return {
+              question: `A square goal box has sides of ${side} m each. What is its perimeter?`,
+              hint: `A square has 4 equal sides. Add them, or multiply: 4 × ${side}.`,
+              answer: 4 * side,
+            };
+          },
           unit: ' m',
           unitPosition: 'suffix',
           skill: 'perimeter-square',
@@ -1440,9 +1685,15 @@ export const episodes = [
         ],
         problem: {
           id: 'e13-p2-q1',
-          question: 'A rectangular pitch is 30 m long and 20 m wide. What is its perimeter?',
-          hint: 'A rectangle has two long sides and two short sides: 30 + 20 + 30 + 20.',
-          answer: 100,
+          generate: (rng, tier) => {
+            const l = tierInt(rng, tier, [[5, 12], [10, 30], [20, 60], [40, 120]]);
+            const w = tierInt(rng, tier, [[3, 10], [8, 25], [15, 50], [30, 100]]);
+            return {
+              question: `A rectangular pitch is ${l} m long and ${w} m wide. What is its perimeter?`,
+              hint: `A rectangle has two long sides and two short sides: ${l} + ${w} + ${l} + ${w}.`,
+              answer: 2 * (l + w),
+            };
+          },
           unit: ' m',
           unitPosition: 'suffix',
           skill: 'perimeter-rectangle',
@@ -1474,9 +1725,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e13-p3-q1',
-          question: 'A rectangle has a perimeter of 24 m. Its length is 8 m. What is its width?',
-          hint: 'Half the perimeter is one length + one width: 24 ÷ 2 = 12. Then take away the length: 12 − 8.',
-          answer: 4,
+          generate: (rng, tier) => {
+            const length = tierInt(rng, tier, [[5, 10], [8, 20], [15, 40], [30, 80]]);
+            const width = tierInt(rng, tier, [[3, 9], [5, 18], [10, 35], [20, 70]]);
+            const perimeter = 2 * (length + width);
+            return {
+              question: `A rectangle has a perimeter of ${perimeter} m. Its length is ${length} m. What is its width?`,
+              hint: `Half the perimeter is one length + one width: ${perimeter} ÷ 2 = ${perimeter / 2}. Then take away the length: ${perimeter / 2} − ${length}.`,
+              answer: width,
+            };
+          },
           unit: ' m',
           unitPosition: 'suffix',
           skill: 'perimeter-missing-side',
@@ -1520,9 +1778,23 @@ export const episodes = [
         ],
         problem: {
           id: 'e14-p1-q1',
-          question: 'In the number 473, what is the value of the digit 7?',
-          hint: 'The 7 sits in the tens column, so its value is 7 tens.',
-          answer: 70,
+          generate: (rng, tier) => {
+            const digits = tierInt(rng, tier, [[2, 3], [3, 3], [3, 4], [4, 5]]);
+            const pos = rint(rng, 0, digits - 1);
+            const v = rint(rng, 1, 9); // the asked digit — kept unique so it's unambiguous
+            const arr = Array.from({ length: digits }, (_, i) => {
+              if (i === pos) return v;
+              let d; do { d = i === 0 ? rint(rng, 1, 9) : rint(rng, 0, 9); } while (d === v);
+              return d;
+            });
+            const place = Math.pow(10, digits - 1 - pos);
+            const names = { 1: 'ones', 10: 'tens', 100: 'hundreds', 1000: 'thousands', 10000: 'ten-thousands' };
+            return {
+              question: `In the number ${Number(arr.join(''))}, what is the value of the digit ${v}?`,
+              hint: `The ${v} sits in the ${names[place]} column, so its value is ${v} ${names[place]}.`,
+              answer: v * place,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'place-value',
@@ -1549,9 +1821,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e14-p2-q1',
-          question: 'Round 68 to the nearest 10.',
-          hint: 'The ones digit is 8, which is 5 or more, so round up to the next ten.',
-          answer: 70,
+          generate: (rng, tier) => {
+            const tens = tierInt(rng, tier, [[1, 8], [2, 19], [10, 89], [30, 299]]);
+            const ones = rint(rng, 1, 9);
+            const n = tens * 10 + ones;
+            return {
+              question: `Round ${n} to the nearest 10.`,
+              hint: `The ones digit is ${ones}, which is ${ones >= 5 ? '5 or more, so round up' : 'less than 5, so round down'}.`,
+              answer: ones >= 5 ? (tens + 1) * 10 : tens * 10,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'rounding-nearest-10',
@@ -1583,9 +1862,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e14-p3-q1',
-          question: 'Round 234 to the nearest 100.',
-          hint: 'Look at the tens digit (3). It is less than 5, so round down to 200.',
-          answer: 200,
+          generate: (rng, tier) => {
+            const hund = tierInt(rng, tier, [[1, 8], [1, 19], [3, 89], [10, 299]]);
+            const rem = rint(rng, 1, 99);
+            const n = hund * 100 + rem;
+            return {
+              question: `Round ${n} to the nearest 100.`,
+              hint: `Look at the tens digit (${Math.floor(rem / 10)}). It is ${rem >= 50 ? '5 or more, so round up' : 'less than 5, so round down'}.`,
+              answer: rem >= 50 ? (hund + 1) * 100 : hund * 100,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'rounding-nearest-100',
@@ -1629,9 +1915,15 @@ export const episodes = [
         ],
         problem: {
           id: 'e15-p1-q1',
-          question: 'What number comes next in the pattern 5, 10, 20, 40, …?',
-          hint: 'Each number is the one before it multiplied by 2.',
-          answer: 80,
+          generate: (rng, tier) => {
+            const start = tierInt(rng, tier, [[2, 5], [3, 7], [4, 10], [5, 15]]);
+            const t = [start, start * 2, start * 4, start * 8];
+            return {
+              question: `What number comes next in the pattern ${t.join(', ')}, …?`,
+              hint: 'Each number is the one before it multiplied by 2.',
+              answer: start * 16,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'number-patterns',
@@ -1658,9 +1950,16 @@ export const episodes = [
         ],
         problem: {
           id: 'e15-p2-q1',
-          question: '32 stickers are shared equally among 4 friends. How many stickers does each friend get?',
-          hint: 'Split 32 into 4 equal groups: 32 ÷ 4.',
-          answer: 8,
+          generate: (rng, tier) => {
+            const friends = tierInt(rng, tier, [[2, 4], [3, 5], [4, 7], [5, 9]]);
+            const each = tierInt(rng, tier, [[4, 8], [5, 10], [7, 12], [9, 15]]);
+            const total = friends * each;
+            return {
+              question: `${total} stickers are shared equally among ${friends} friends. How many stickers does each friend get?`,
+              hint: `Split ${total} into ${friends} equal groups: ${total} ÷ ${friends}.`,
+              answer: each,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'division-equal-sharing',
@@ -1687,9 +1986,17 @@ export const episodes = [
         ],
         problem: {
           id: 'e15-p3-q1',
-          question: 'What is 3/4 of 20?',
-          hint: 'First find 1/4 of 20 (20 ÷ 4 = 5). Three quarters is 3 lots of that.',
-          answer: 15,
+          generate: (rng, tier) => {
+            const den = pick(rng, [3, 4, 5]);
+            const num = rint(rng, 2, den - 1);
+            const k = tierInt(rng, tier, [[2, 5], [3, 8], [5, 12], [8, 20]]);
+            const whole = den * k;
+            return {
+              question: `What is ${num}/${den} of ${whole}?`,
+              hint: `First find 1/${den} of ${whole} (${whole} ÷ ${den} = ${k}). ${num} lots of that is ${num} × ${k}.`,
+              answer: num * k,
+            };
+          },
           unit: '',
           unitPosition: 'suffix',
           skill: 'fraction-of-quantity',
@@ -1721,9 +2028,14 @@ export const episodes = [
         ],
         problem: {
           id: 'e15-p4-q1',
-          question: 'A ribbon is 2 m long. How many centimetres is that?',
-          hint: 'Remember: 1 metre = 100 centimetres, so multiply 2 × 100.',
-          answer: 200,
+          generate: (rng, tier) => {
+            const m = tierInt(rng, tier, [[2, 5], [2, 9], [4, 15], [8, 30]]);
+            return {
+              question: `A ribbon is ${m} m long. How many centimetres is that?`,
+              hint: `Remember: 1 metre = 100 centimetres, so multiply ${m} × 100.`,
+              answer: m * 100,
+            };
+          },
           unit: ' cm',
           unitPosition: 'suffix',
           skill: 'measurement-conversion-m-cm',

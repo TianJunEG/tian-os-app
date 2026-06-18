@@ -68,6 +68,15 @@ export function tierInt(rng, tier, bands) {
   return rint(rng, lo, hi);
 }
 
+// Polygons for the shape-fact problems: there are no numbers to scale up
+// (a square always has 4 sides), so we vary WHICH shape is asked instead —
+// keeps the question fresh on replay without inventing unrealistic values.
+export const POLYGONS = [
+  { name: 'triangle', sides: 3 }, { name: 'quadrilateral', sides: 4 },
+  { name: 'pentagon', sides: 5 }, { name: 'hexagon', sides: 6 },
+  { name: 'heptagon', sides: 7 }, { name: 'octagon', sides: 8 },
+];
+
 // Generate the concrete problem for each panel, in order, sharing one ctx so
 // story-linked values stay consistent. Returns an array aligned to panels;
 // each entry merges the static problem fields with the generated ones (and may
