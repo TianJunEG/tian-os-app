@@ -3,7 +3,7 @@ import { protect } from '../middleware/auth.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import ComicProgress from '../models/ComicProgress.js';
 import Skill from '../models/Skill.js';
-import { recordAttempt } from '../utils/masteryEngine.js';
+import { recordAttempt, weakSkills } from '../utils/masteryEngine.js';
 
 const router = express.Router();
 router.use(protect);
@@ -78,6 +78,22 @@ const SKILL_SLUG = {
   'e15-p4-q1': 'mea.unit-convert',
 };
 
+// Reverse the problem-level map to skill slug → [episodeId,…] (episode order),
+// so a weak skill can point at the comic episode(s) that practise it.
+function episodeIdFor(problemId) {
+  const m = /^e(\d+)-/.exec(problemId);
+  return `ep-${String(m ? Number(m[1]) : 1).padStart(3, '0')}`;
+}
+const EPISODES_BY_SKILL = (() => {
+  const map = {};
+  for (const [problemId, slug] of Object.entries(SKILL_SLUG)) {
+    const ep = episodeIdFor(problemId);
+    (map[slug] ||= []);
+    if (!map[slug].includes(ep)) map[slug].push(ep);
+  }
+  return map;
+})();
+
 // POST /api/comics/:episodeId/complete
 // Body: { problems: [{ problemId, correct }] }
 router.post('/:episodeId/complete', async (req, res) => {
@@ -141,6 +157,38 @@ router.get('/progress', async (req, res) => {
   } catch (err) {
     if (err && err.status) return res.status(err.status).json({ error: err.message });
     res.status(500).json({ error: 'Failed to fetch progress' });
+  }
+});
+
+// GET /api/comics/recommended — the comic episode that practises the student's
+// weakest MathPath skill (preferring one they haven't finished yet). Powers the
+// adaptive "what to read next" entry; the frontend falls back to chronological
+// resume when there is no signal yet (recommended: null).
+router.get('/recommended', async (req, res) => {
+  try {
+    const student = await resolveStudent(req);
+    const weak = await weakSkills(student._id, { limit: 12 }); // weakest first
+    const done = new Set(
+      (await ComicProgress.find({ studentId: student._id }, { episodeId: 1 }).lean()).map((r) => r.episodeId),
+    );
+
+    let fresh = null;  // covers a weak skill AND not yet completed (best)
+    let review = null; // covers a weak skill but already completed (re-practice)
+    for (const rec of weak) {
+      const slug = rec.skillId?.slug;
+      const eps = slug && EPISODES_BY_SKILL[slug];
+      if (!eps || !eps.length) continue;
+      const base = { skillSlug: slug, skillName: rec.skillId?.name || '' };
+      const notDone = eps.find((id) => !done.has(id));
+      if (notDone) { fresh = { ...base, episodeId: notDone }; break; }
+      if (!review) review = { ...base, episodeId: eps[0] };
+    }
+
+    res.json({ recommended: fresh || review || null });
+  } catch (err) {
+    if (err && err.status) return res.status(err.status).json({ error: err.message });
+    console.error('comics recommended error', err);
+    res.status(500).json({ error: 'Failed to compute recommendation' });
   }
 });
 
