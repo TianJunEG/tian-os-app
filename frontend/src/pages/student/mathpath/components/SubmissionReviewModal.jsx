@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Button } from '../../../../components/ui';
 import WorkingEvidenceDecision from '../../../../components/learning/WorkingEvidenceDecision';
+import { speak } from '../../../../utils/sound';
 
 export default function SubmissionReviewModal({
   open,
@@ -42,7 +43,10 @@ export default function SubmissionReviewModal({
                 key={option.value}
                 type="button"
                 disabled={busy}
-                onClick={() => onSelectAndConfirm?.(option.value)}
+                onClick={() => {
+                  speak(option.label, { rate: 0.85, gender: 'female' });
+                  onSelectAndConfirm?.(option.value);
+                }}
                 className="flex flex-col items-center gap-2 rounded-2xl border-2 border-line-soft bg-surface-raised px-4 py-5 text-center transition hover:border-emerald hover:bg-emerald-tint active:scale-95"
               >
                 <span className="text-5xl leading-none">{option.emoji}</span>

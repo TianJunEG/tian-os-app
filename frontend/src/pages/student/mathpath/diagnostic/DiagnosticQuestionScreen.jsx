@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Volume2 } from 'lucide-react';
+import { speak } from '../../../../utils/sound';
 import { Card, Button, ProgressBar, Spinner, ErrorState } from '../../../../components/ui';
 import { MathText } from '../../../../components/ui/Fraction';
 import { checkFractionAnswer } from '../../../../mathpath/fractions/fractionQuestionGenerator';
@@ -21,6 +22,23 @@ import {
   resolveWorkingRequirementLevel,
 } from '../../../../components/learning/WorkingEvidenceDecision';
 import SubmissionReviewModal from '../components/SubmissionReviewModal';
+
+// Strip dot-array lines (⬤⬤⬤ + ⬤⬤ = ?) and math noise; keep the numeric line.
+function toSpeakable(text = '') {
+  return text
+    .split('\n')
+    .filter((line) => !/^[\s⬤●○+\-×÷=?]+$/.test(line.trim()))
+    .join(' ')
+    .replace(/[⬤●○]/g, '')
+    .replace(/([+])/g, ' plus ')
+    .replace(/[−–-]/g, ' minus ')
+    .replace(/[×]/g, ' times ')
+    .replace(/[÷]/g, ' divided by ')
+    .replace(/=/g, ' equals ')
+    .replace(/\?/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const REFLECTION_OPTIONS = [
   { value: 'i_know_this', label: 'I know this!', emoji: '😊' },
@@ -100,8 +118,17 @@ export default function DiagnosticQuestionScreen() {
     setStartedAt(questionStart);
     setElapsed(0);
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - questionStart) / 1000)), 250);
-    return () => clearInterval(t);
-  }, [idx, questions.length, session]);
+    if (isLowerPrimary) {
+      const readable = toSpeakable(questions[idx]?.prompt || questions[idx]?.stem || '');
+      if (readable) speak(readable, { rate: 0.8, gender: 'female' });
+    }
+    return () => {
+      clearInterval(t);
+      if (isLowerPrimary && typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [idx, questions.length, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (hydrating && (!session || !questions.length)) return <Spinner label="Loading diagnostic…" />;
 
@@ -119,6 +146,10 @@ export default function DiagnosticQuestionScreen() {
   const workingReady = hasWorkingDecision(currentWorking);
   const questionText = q.prompt || q.stem || '';
   const currentQuestionValidation = validateQuestionDiagram(q);
+  const speakQuestion = useCallback(() => {
+    const readable = toSpeakable(questionText);
+    if (readable) speak(readable, { rate: 0.8, gender: 'female' });
+  }, [questionText]);
 
   const confidenceCalibration = (correct, value) => {
     if (correct && value === 'i_know_this') return 'mastery_signal';
@@ -272,9 +303,22 @@ export default function DiagnosticQuestionScreen() {
           <section className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{session?.displayName || 'Maths Diagnostic'}</p>
-              <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
+              <div className="flex items-center gap-2">
+                {isLowerPrimary && (
+                  <button
+                    type="button"
+                    aria-label="Read question aloud"
+                    onClick={speakQuestion}
+                    className="flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1.5 text-sm font-semibold text-sky-700 hover:bg-sky-200 active:scale-95 transition"
+                  >
+                    <Volume2 className="h-4 w-4" />
+                    Read
+                  </button>
+                )}
+                <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
+              </div>
             </div>
-            <p className="mb-3 rounded-lg bg-emerald-tint px-3 py-1.5 text-xs text-emerald-deep">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
+            {!isLowerPrimary && <p className="mb-3 rounded-lg bg-emerald-tint px-3 py-1.5 text-xs text-emerald-deep">Do not use a calculator for this diagnostic unless your teacher allows it.</p>}
             <div className="origin-top-left" style={{ zoom: questionZoom }}>
             <div className="mb-3 text-lg leading-relaxed text-ink-900">
               {expressionQuestion ? (
@@ -301,7 +345,11 @@ export default function DiagnosticQuestionScreen() {
                   {choices.map((c, i) => (
                     <button
                       key={`${i}-${c}`}
-                      onClick={() => { setAnswer(c); if (isLowerPrimary) setReviewModalOpen(true); }}
+                      onClick={() => {
+                        if (isLowerPrimary) speak(toSpeakable(c), { rate: 0.85, gender: 'female' });
+                        setAnswer(c);
+                        if (isLowerPrimary) setTimeout(() => setReviewModalOpen(true), 400);
+                      }}
                       className={`rounded-xl border text-left ${isLowerPrimary ? 'px-4 py-5 text-2xl font-bold text-center' : 'px-3 py-2'} ${answer === c ? 'border-emerald bg-emerald-tint' : 'border-line-soft hover:bg-emerald-tint'}`}
                     >
                       <MathText text={c} />
