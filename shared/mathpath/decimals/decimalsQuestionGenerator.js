@@ -171,12 +171,15 @@ const GENERATORS = {
     const xs = decStr(x, 1);
     const ys = decStr(y, 2);
     const larger = x >= y ? xs : ys;
+    // Two extra distractors: adjacent tenths values above and below x.
+    const dUp = decStr(round(whole + (aTenth + 1) / 10, 1), 1);
+    const dDown = decStr(round(whole + Math.max(0, aTenth - 2) / 10, 1), 1);
     return mcq({
       family,
       rng,
       prompt: `Which is larger: ${xs} or ${ys}?`,
       answerDisplay: larger,
-      distractors: [larger === xs ? ys : xs],
+      distractors: [larger === xs ? ys : xs, dUp, dDown],
       solutionSteps: [
         `Line up the decimal points and compare place by place.`,
         `${xs} has ${aTenth} tenths; ${ys} has ${aTenth - 1} tenths, so ${larger} is larger.`,
@@ -515,7 +518,7 @@ const GENERATORS = {
       family, rng,
       prompt: `${ctx.itemA} ${ctx.verb} ${xs} ${ctx.unit} and ${ctx.itemB} ${ctx.verb} ${ys} ${ctx.unit}. Which ${ctx.verb.includes('is') ? 'is' : 'holds'} more?`,
       answerDisplay: larger,
-      distractors: [larger === xs ? ys : xs],
+      distractors: [larger === xs ? ys : xs, decStr(round(whole + (aTenth + 1) / 10, 1), 1), decStr(round(whole + Math.max(0, aTenth - 2) / 10, 1), 1)],
       solutionSteps: [`Compare place by place: ${xs} vs ${ys}.`, `${larger} ${ctx.unit} is larger.`],
       misconceptionTag: family.misconceptionTags[0] || 'dec/longer-decimal',
       difficulty, mode,
