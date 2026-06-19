@@ -264,7 +264,7 @@ export default function DiagnosticQuestionScreen() {
         <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.75fr)]">
           <section className="min-w-0 min-h-0 xl:overflow-y-auto xl:pr-1">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">Fractions Diagnostic</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink-500">{session?.displayName || 'Maths Diagnostic'}</p>
               <QuestionZoomControls value={questionZoom} onChange={setQuestionZoom} />
             </div>
             <p className="mb-3 rounded-lg bg-emerald-tint px-3 py-1.5 text-xs text-emerald-deep">Do not use a calculator for this diagnostic unless your teacher allows it.</p>
