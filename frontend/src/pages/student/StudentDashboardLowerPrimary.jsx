@@ -190,8 +190,10 @@ function LowerPrimaryBanner() {
   );
 }
 
-function DiagnosticPrompts({ domains, containerClassName = '', containerStyle }) {
-  const list = (domains && domains.length) ? domains : [{ domainId: 'fractions', displayName: 'Fractions' }];
+function DiagnosticPrompts({ domains, level, containerClassName = '', containerStyle }) {
+  const year = Number(String(level || '').match(/\d/)?.[0] || 0);
+  const fallback = year <= 2 ? { domainId: 'whole-numbers', displayName: 'Whole Numbers' } : { domainId: 'fractions', displayName: 'Fractions' };
+  const list = (domains && domains.length) ? domains : [fallback];
   return (
     <div className={containerClassName} style={containerStyle}>
       <p className="mb-3 text-sm text-ink-500">Choose a topic to find your starting point:</p>
@@ -224,6 +226,7 @@ export default function StudentDashboardLowerPrimary({
   displayXp,
   showDiagnosticPrompt,
   diagnosticDomains,
+  studentLevel,
   canResetStudentState,
   resetStudentState,
   resetting,
@@ -455,7 +458,7 @@ export default function StudentDashboardLowerPrimary({
       )}
 
       {showDiagnosticPrompt && (
-        <DiagnosticPrompts domains={diagnosticDomains} />
+        <DiagnosticPrompts domains={diagnosticDomains} level={studentLevel} />
       )}
     </main>
   );
