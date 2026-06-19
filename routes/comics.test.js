@@ -43,9 +43,9 @@ vi.mock('../models/Skill.js', () => ({
 
 let router;
 
-function request(path, { method = 'GET', body } = {}) {
+function request(path, { method = 'GET', body, query } = {}) {
   return new Promise((resolve, reject) => {
-    const req = { method: method.toUpperCase(), url: path, path, originalUrl: path, query: {}, body: body || {}, headers: {}, params: {} };
+    const req = { method: method.toUpperCase(), url: path, path, originalUrl: path, query: query || {}, body: body || {}, headers: {}, params: {} };
     const res = {
       statusCode: 200,
       status(code) { this.statusCode = code; return this; },
@@ -179,5 +179,41 @@ describe('comics routes', () => {
 
     expect(res.status).toBe(200);
     expect(res.data).toEqual({ recommended: null });
+  });
+
+  it("returns a child's comic activity (episodes newest-first + named skills), parent-scoped", async () => {
+    comicProgressFind.mockImplementationOnce(() => ({
+      sort: () => ({
+        lean: async () => [
+          { episodeId: 'ep-003', completedAt: new Date('2026-02-02'), problems: [{ problemId: 'e3-p1-q1', correct: true }, { problemId: 'e3-p3-q1', correct: true }] },
+          { episodeId: 'ep-001', completedAt: new Date('2026-01-01'), problems: [{ problemId: 'p1-q1', correct: true }] },
+        ],
+      }),
+    }));
+    skillFind.mockImplementationOnce(() => ({ lean: async () => [
+      { slug: 'mon.add', name: 'Adding money' }, { slug: 'mon.change', name: 'Giving change' },
+    ] }));
+
+    const res = await request('/activity', { query: { studentId: 'child_9' } });
+
+    expect(res.status).toBe(200);
+    // resolveStudent validates guardianship with the explicit studentId
+    expect(resolveStudentMock).toHaveBeenCalledWith(expect.anything(), 'child_9');
+    expect(res.data.completed).toEqual([
+      { episodeId: 'ep-003', completedAt: expect.any(Date) },
+      { episodeId: 'ep-001', completedAt: expect.any(Date) },
+    ]);
+    // e3-p1-q1→mon.add, e3-p3-q1→mon.change, p1-q1→mon.add ⇒ distinct, name-resolved
+    expect(res.data.skills).toEqual([
+      { slug: 'mon.add', name: 'Adding money' },
+      { slug: 'mon.change', name: 'Giving change' },
+    ]);
+  });
+
+  it('propagates a guardianship access error from /activity', async () => {
+    resolveStudentMock.mockRejectedValueOnce({ status: 403, message: 'Not your child.' });
+    const res = await request('/activity', { query: { studentId: 'someone-elses-kid' } });
+    expect(res.status).toBe(403);
+    expect(res.data).toEqual({ error: 'Not your child.' });
   });
 });

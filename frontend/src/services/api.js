@@ -934,6 +934,8 @@ export const comicsAPI = {
   complete: (episodeId, problems) => api.post(`/comics/${episodeId}/complete`, { problems }),
   progress: () => api.get('/comics/progress'),
   recommended: () => api.get('/comics/recommended'),
+  // studentId scopes to a child (parent view); omit for the logged-in student.
+  activity: (studentId) => api.get('/comics/activity', studentId ? { params: { studentId } } : undefined),
 };
 
 // Science API — P6 science revision bank (open-ended Q&A).
