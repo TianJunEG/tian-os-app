@@ -42,7 +42,8 @@ describe('FullScreenWorkingMode', () => {
 
     expect(screen.getByTestId('worksheet-working-space')).toBeInTheDocument();
     expect(screen.getByTestId('worksheet-question-panel')).toBeInTheDocument();
-    expect(screen.getByText('Ali had 18 stickers left.')).toBeInTheDocument();
+    // Component renders question text in both the compact header and the full body panel.
+    expect(screen.getAllByText('Ali had 18 stickers left.').length).toBeGreaterThan(0);
     expect(screen.getByTestId('working-toolbar')).toBeInTheDocument();
 
     const canvas = screen.getByLabelText('Full-screen working canvas');
@@ -75,10 +76,10 @@ describe('FullScreenWorkingMode', () => {
       />
     );
 
-    expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
+    expect(screen.getAllByText('Shade 3/5 of the bar.').length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: 'Clear' })).not.toBeDisabled();
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
-    expect(screen.getByText('Shade 3/5 of the bar.')).toBeInTheDocument();
+    expect(screen.getAllByText('Shade 3/5 of the bar.').length).toBeGreaterThan(0);
     expect(screen.getByText('Save Working')).toBeDisabled();
   });
 

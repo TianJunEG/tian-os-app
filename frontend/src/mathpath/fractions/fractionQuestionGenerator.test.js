@@ -26,11 +26,11 @@ describe('fractionQuestionGenerator', () => {
     expect(q.allowedInputTools).toEqual(['fraction', 'mixed', 'whole', 'clear']);
     expect(q.requiresDiagram).toBe(true);
     expect(q.diagramSpec).toMatchObject({
-      type: 'fraction_bar',
+      type: 'fraction_circle',
       data: { labelMode: 'none' },
     });
     expect(q.requiredVisualTypes).toContain('shaded_fraction_model');
-    expect(q.providedVisualTypes).toEqual(expect.arrayContaining(['fraction_strip', 'shaded_fraction_model']));
+    expect(q.providedVisualTypes).toEqual(expect.arrayContaining(['fraction_circle']));
   });
 
   it('scores comparison questions using symbol answers (F006)', () => {

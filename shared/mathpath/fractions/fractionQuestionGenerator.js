@@ -1770,10 +1770,17 @@ export function generatePracticeQuestionSet(options = {}) {
       }
     }
 
-    // If every attempt collided (very small operand space), keep the last generated
-    // question so the session still has its full length rather than dropping items.
-    const selected = chosen || fallback;
-    if (selected) out.push(selected);
+    // Unique question found → push. Fallback (all variants collided) → only push
+    // if its signature hasn't been seen; a duplicate is worse than a shorter session.
+    if (chosen) {
+      out.push(chosen);
+    } else if (fallback) {
+      const sig = renderedQuestionSignature(fallback);
+      if (!seenSignatures.has(sig)) {
+        seenSignatures.add(sig);
+        out.push(fallback);
+      }
+    }
   }
   return out;
 }
