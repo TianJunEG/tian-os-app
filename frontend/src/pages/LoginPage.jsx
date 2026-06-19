@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Wordmark } from '../components/tianos';
 import { Card, Button, Field, Input, Alert } from '../components/ui';
 import { ROLE_HOME } from '../config/nav';
 import { MASCOT_ORDER } from '../config/mascots';
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -63,9 +63,9 @@ export default function LoginPage() {
         {error && <Alert tone="error" icon={AlertCircle} className="mb-4">{error}</Alert>}
 
         <form onSubmit={handleSubmit}>
-          <Field label="Email">
-            <Input type="email" name="email" value={formData.email} onChange={handleChange}
-              placeholder="you@example.com" icon={Mail} autoComplete="email" required />
+          <Field label="Email or username">
+            <Input type="text" name="identifier" value={formData.identifier} onChange={handleChange}
+              placeholder="you@example.com or username" icon={User} autoComplete="username" required />
           </Field>
           <Field label="Password">
             <div className="relative">

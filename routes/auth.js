@@ -133,7 +133,7 @@ router.post(
   '/login',
   authRateLimit,
   [
-    body('email', 'Please provide a valid email').isEmail(),
+    // Accept either `email` (legacy) or `identifier` (email or username).
     body('password', 'Password is required').notEmpty()
   ],
   async (req, res) => {
@@ -143,13 +143,14 @@ router.post(
     }
 
     try {
-      const { password } = req.body;
-      // Emails are stored lowercased; normalise the lookup so a different-case
-      // entry (mobile keyboards auto-capitalise) still matches the account.
-      const email = String(req.body.email).toLowerCase().trim();
+      const { email, identifier, password } = req.body;
+      const loginId = (identifier || email || '').trim().toLowerCase();
+      if (!loginId) return res.status(400).json({ error: 'Email or username is required' });
 
-      // Find user and select password
-      const user = await User.findOne({ email }).select('+password');
+      // Find user by email or username
+      const user = await User.findOne(
+        loginId.includes('@') ? { email: loginId } : { username: loginId }
+      ).select('+password');
 
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials' });
