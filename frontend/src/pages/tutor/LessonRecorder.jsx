@@ -99,8 +99,8 @@ export default function LessonRecorder() {
 
     const rid = ridRef.current;
     const mr = mediaRef.current;
-    try {
-      if (mr && mr.state !== 'inactive') {
+    if (mr && mr.state !== 'inactive') {
+      try {
         await new Promise((resolve) => { mr.onstop = resolve; mr.stop(); });
         mr.stream.getTracks().forEach((t) => t.stop());
         const type = mr.mimeType || 'audio/webm';
@@ -108,11 +108,17 @@ export default function LessonRecorder() {
         const fd = new FormData();
         fd.append('audio', blob, 'audio.webm');
         await recordingsAPI.uploadAudio(rid, fd);
+      } catch (e) {
+        console.warn('[LessonRecorder] audio upload failed:', e);
+        // Non-fatal: ink is saved; proceed to finalise so the recording is usable.
       }
+    }
+    try {
       await recordingsAPI.finalise(rid, { durationMs: Date.now() - t0Ref.current, pageCount: 1 });
       setStatus('done');
-    } catch {
-      setError('Saved your ink, but uploading audio/finalising failed. Try again.');
+    } catch (e) {
+      console.error('[LessonRecorder] finalise failed:', e);
+      setError('Ink was saved but the recording could not be finalised. Please try again.');
       setStatus('error');
     }
   };

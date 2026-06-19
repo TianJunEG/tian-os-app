@@ -94,6 +94,10 @@ router.post('/:rid/audio', upload.single('audio'), asyncHandler(async (req, res)
   const rec = await ownedRecording(req);
   if (!rec) return res.status(404).json({ error: 'Recording not found.' });
   if (!req.file) return res.status(400).json({ error: 'No audio file.' });
+  if (!r2.isConfigured()) {
+    console.warn('[recordings] R2 not configured — audio upload skipped. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_ENDPOINT.');
+    return res.json({ stored: false, skipped: true });
+  }
   const key = `recordings/${rec._id}/audio.webm`;
   await r2.putAudioObject(key, req.file.buffer, req.file.mimetype || 'audio/webm');
   rec.audioStorageKey = key;
