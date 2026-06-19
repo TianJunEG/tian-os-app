@@ -10,10 +10,10 @@ function inferLevel(user) {
 }
 
 function modeForLevel(level) {
-  const l = String(level || '').toUpperCase();
-  if (l === 'P3') return 'basic';
+  const l = String(level || '').toUpperCase().replace(/\s+/g, '');
+  if (l === 'K2' || l === 'K1') return 'basic';
+  if (l === 'P1' || l === 'P2' || l === 'P3') return 'basic';
   if (l === 'P4') return 'core';
-  if (l === 'P1' || l === 'P2') return 'basic';
   return 'full';
 }
 
@@ -135,7 +135,7 @@ export default function DiagnosticIntroScreen() {
                 }}
                 className="mt-1 w-full rounded-lg border border-line-soft px-3 py-2 text-sm"
               >
-                {['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'Sec1', 'Sec2', 'Sec3', 'Sec4'].map((l) => <option key={l}>{l}</option>)}
+                {['K2', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'Secondary G1'].map((l) => <option key={l}>{l}</option>)}
               </select>
             </label>
             {allowModeOverride ? (

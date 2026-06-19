@@ -98,7 +98,7 @@ function LowerPrimaryStatCard({ icon: Icon, img, label, value, subtitle, caption
   );
 }
 
-function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0, visual }) {
+function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, masteredSkillCount = 0, visual, studentLevel }) {
   const assessmentGate = getFractionAssessmentBlueprintReadiness({
     completedSkillIds: Array.from({ length: masteredSkillCount }, (_, index) => `F${String(index + 1).padStart(3, '0')}`),
   });
@@ -113,13 +113,16 @@ function LowerPrimaryRecommendedNext({ currentSkill, nextAction, hasPlacement, m
         homeBase: '/student',
       }
     : undefined;
+  const sl = String(studentLevel || '').toLowerCase().trim();
+  const isK2orP1 = /k2|kindy|preschool/.test(sl) || sl === 'primary 1' || sl === 'p1';
+  const noPlacementRoute = isK2orP1 ? '/student/mathpath/operations/diagnostic' : '/student/mathpath/diagnostic';
   const cards = [
     {
       icon: BookOpen,
       img: '/illustrations/icon-book.png',
       title: 'Continue Learning',
       body: 'Pick up where you left off',
-      to: hasPlacement ? action.to : '/student/mathpath/diagnostic',
+      to: hasPlacement ? action.to : noPlacementRoute,
       state: action.to?.startsWith('/student/mathpath/practice/') ? continueState : undefined,
       tone: 'border-emerald-100 from-emerald-50 to-white text-emerald-600',
       disabled: action.disabled,
@@ -313,6 +316,7 @@ export default function StudentDashboardLowerPrimary({
         hasPlacement={vm.hasPlacement}
         masteredSkillCount={safeMasteredCount}
         visual={visual}
+        studentLevel={studentLevel}
       />
 
       <LowerPrimaryBanner />
