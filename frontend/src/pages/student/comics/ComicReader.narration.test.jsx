@@ -13,7 +13,10 @@ vi.mock('../../../utils/tts', () => ({
   createSpeaker: () => ({ play, stop }),
 }));
 vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { studentLevel: 'P4' } }) }));
-vi.mock('../../../services/api', () => ({ comicsAPI: { complete: vi.fn().mockResolvedValue({}) } }));
+vi.mock('../../../services/api', () => ({
+  comicsAPI: { complete: vi.fn().mockResolvedValue({}), recommended: vi.fn().mockResolvedValue({ data: { recommended: null } }) },
+  learningTelemetryAPI: { recordEvent: vi.fn().mockResolvedValue({}) },
+}));
 
 function renderReader() {
   return render(

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { getEpisode, getEpisodeById, MASCOT_COLORS } from '../../../data/comics/episodes';
 import { resolveTier, generateEpisodeProblems } from '../../../data/comics/comicDifficulty';
-import { comicsAPI } from '../../../services/api';
+import { comicsAPI, learningTelemetryAPI } from '../../../services/api';
 import { useAuth } from '../../../context/AuthContext';
 import useComicNarration from './useComicNarration';
 
@@ -524,6 +524,18 @@ export default function ComicReader() {
     setNextRec(null);
   }, [slug]);
 
+  // Phase 3 instrumentation — one "opened" event per episode view (the top of
+  // the engagement funnel). Fire-and-forget; never block the reader.
+  useEffect(() => {
+    if (!episode) return;
+    learningTelemetryAPI.recordEvent({
+      eventType: 'comic_episode_opened',
+      domain: 'comics',
+      sessionId: episode.id,
+      metadata: { episodeId: episode.id, episodeTitle: episode.title },
+    }).catch(() => {});
+  }, [episode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // On the end card, fetch the adaptive next pick. The finished episode was just
   // written to progress, so /recommended already excludes it; we also guard
   // against recommending the same episode.
@@ -562,11 +574,25 @@ export default function ComicReader() {
     if (isLast) {
       if (!submitted && allSolved) {
         setSubmitted(true);
+        const answers = Object.values(solvedProblems);
         try {
           await comicsAPI.complete(episode.id, Object.entries(solvedProblems).map(([id, correct]) => ({ problemId: id, correct })));
         } catch (_) {
           // non-blocking
         }
+        // Phase 3 instrumentation — the engagement signal for retention /
+        // trial→paid. Fire-and-forget; never block the reader.
+        learningTelemetryAPI.recordEvent({
+          eventType: 'comic_episode_completed',
+          domain: 'comics',
+          sessionId: episode.id,
+          metadata: {
+            episodeId: episode.id,
+            tier,
+            problemsCorrect: answers.filter(Boolean).length,
+            problemsTotal: answers.length,
+          },
+        }).catch(() => {});
       }
       setCurrentPanel(episode.panels.length); // show end card
     } else {

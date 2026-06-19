@@ -11,8 +11,10 @@ import ComicReader from './ComicReader';
 
 const completeMock = vi.fn().mockResolvedValue({});
 const recommendedMock = vi.fn().mockResolvedValue({ data: { recommended: null } });
+const recordEventMock = vi.fn().mockResolvedValue({});
 vi.mock('../../../services/api', () => ({
   comicsAPI: { complete: (...a) => completeMock(...a), recommended: (...a) => recommendedMock(...a) },
+  learningTelemetryAPI: { recordEvent: (...a) => recordEventMock(...a) },
 }));
 vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { studentLevel: 'P4' } }) }));
 // Deterministic problems so this reader-flow test is stable; the engine's own
@@ -47,6 +49,7 @@ function solveCurrentPanel(container, answer) {
 describe('ComicReader', () => {
   beforeEach(() => {
     completeMock.mockClear();
+    recordEventMock.mockClear();
     recommendedMock.mockReset();
     recommendedMock.mockResolvedValue({ data: { recommended: null } });
   });
@@ -86,6 +89,29 @@ describe('ComicReader', () => {
   it('shows a friendly message for an unknown episode slug', () => {
     renderReader('does-not-exist');
     expect(screen.getByText('Episode not found.')).toBeInTheDocument();
+  });
+
+  it('emits telemetry: comic_episode_opened on mount and comic_episode_completed on finish', async () => {
+    const { container } = renderReader();
+
+    await waitFor(() => expect(recordEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'comic_episode_opened',
+        domain: 'comics',
+        metadata: expect.objectContaining({ episodeId: 'ep-001' }),
+      }),
+    ));
+
+    finishEpisode(container);
+    await screen.findByText('Episode complete!');
+
+    await waitFor(() => expect(recordEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'comic_episode_completed',
+        domain: 'comics',
+        metadata: expect.objectContaining({ episodeId: 'ep-001', problemsTotal: 3, problemsCorrect: 3 }),
+      }),
+    ));
   });
 
   it('offers an adaptive "Play next" on the end card and navigates to it', async () => {
