@@ -1,8 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Lightbulb, CheckCircle, XCircle, BookOpen, Volume2, VolumeX } from 'lucide-react';
 import { getEpisode, MASCOT_COLORS } from '../../../data/comics/episodes';
+import { resolveTier, generateEpisodeProblems } from '../../../data/comics/comicDifficulty';
 import { comicsAPI } from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 import useComicNarration from './useComicNarration';
 
 // ─── Speech bubble ───────────────────────────────────────────────────────────
@@ -450,6 +452,19 @@ export default function ComicReader() {
   const [solvedProblems, setSolvedProblems] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
+  const { user } = useAuth();
+  // One seed per reading: numbers stay stable while you read, fresh on replay.
+  const [seed] = useState(() => Math.floor(Math.random() * 1e9));
+  // Difficulty tier from the student's level (never easier than the episode's
+  // own grade); higher levels get harder numbers on the same story.
+  const tier = useMemo(() => resolveTier(user || {}, episode?.grade || ''), [user, episode]);
+  // Concrete, level-scaled problems for every panel, generated once per reading
+  // with a shared ctx so story-linked numbers stay consistent across panels.
+  const problems = useMemo(
+    () => (episode ? generateEpisodeProblems(episode, tier, seed) : []),
+    [episode, tier, seed],
+  );
+
   const handleSolve = useCallback((problemId, correct) => {
     setSolvedProblems((prev) => ({ ...prev, [problemId]: correct }));
   }, []);
@@ -477,9 +492,10 @@ export default function ComicReader() {
   // show the end card — so `panel` is undefined here. Guard every dereference
   // below (optional chaining) or the end-card render throws.
   const panel = episode.panels[currentPanel];
+  const problem = problems[currentPanel]; // level-scaled (or static) problem for this panel
   const isLast = currentPanel === episode.panels.length - 1;
-  const currentProblemSolved = panel?.problem ? solvedProblems[panel.problem.id] === true : true;
-  const allSolved = episode.panels.every((p) => !p.problem || solvedProblems[p.problem.id] === true);
+  const currentProblemSolved = problem ? solvedProblems[problem.id] === true : true;
+  const allSolved = problems.every((p) => !p || solvedProblems[p.id] === true);
 
   const goNext = async () => {
     if (isLast) {
@@ -587,8 +603,9 @@ export default function ComicReader() {
             speakingIndex={narration.speakingIndex}
           />
 
-          {/* Menu note if present */}
-          {panel.menuNote && (
+          {/* Menu note if present — a generated problem may override it when it
+              regenerates the prices, so the menu and the question stay in sync. */}
+          {(problem?.menuNote ?? panel.menuNote) && (
             <div
               style={{
                 marginTop: 10,
@@ -601,17 +618,17 @@ export default function ComicReader() {
                 fontStyle: 'italic',
               }}
             >
-              📋 {panel.menuNote}
+              📋 {problem?.menuNote ?? panel.menuNote}
             </div>
           )}
 
           {/* Problem */}
-          {panel.problem && (
+          {problem && (
             <ProblemBox
               key={panel.id}
-              problem={panel.problem}
+              problem={problem}
               onSolve={handleSolve}
-              solved={solvedProblems[panel.problem.id] === true}
+              solved={solvedProblems[problem.id] === true}
               episode={episode.id}
               panelIndex={currentPanel}
             />

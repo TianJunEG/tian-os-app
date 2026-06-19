@@ -11,6 +11,16 @@ import ComicReader from './ComicReader';
 
 const completeMock = vi.fn().mockResolvedValue({});
 vi.mock('../../../services/api', () => ({ comicsAPI: { complete: (...a) => completeMock(...a) } }));
+vi.mock('../../../context/AuthContext', () => ({ useAuth: () => ({ user: { studentLevel: 'P4' } }) }));
+// Deterministic problems so this reader-flow test is stable; the engine's own
+// level-scaling of numbers is covered by comicDifficulty.test.js.
+vi.mock('../../../data/comics/comicDifficulty', () => ({
+  resolveTier: () => 1,
+  generateEpisodeProblems: (episode) => {
+    const fixed = { 'p1-q1': 20, 'p2-q1': 9, 'p3-q1': 11 };
+    return episode.panels.map((p) => (p.problem ? { ...p.problem, question: 'Q', hint: 'H', answer: fixed[p.problem.id] ?? 1 } : null));
+  },
+}));
 
 function renderReader(slug = 'hawker-heroes') {
   return render(
