@@ -221,7 +221,7 @@ export function ModuleCard({ module, footer }) {
 }
 
 const CONTROL_BASE =
-  'w-full rounded-btn bg-surface-white text-sm text-ink placeholder:text-body-faint2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald/20 disabled:cursor-not-allowed disabled:opacity-50';
+  'w-full rounded-btn bg-surface-white text-base text-ink placeholder:text-body-faint2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald/20 disabled:cursor-not-allowed disabled:opacity-50';
 const controlBorder = (invalid) =>
   invalid ? 'border border-danger focus-visible:border-danger' : 'border border-line-soft focus-visible:border-emerald';
 
