@@ -192,4 +192,33 @@ router.get('/recommended', async (req, res) => {
   }
 });
 
+// GET /api/comics/activity?studentId=… — a child's comic activity, for the
+// parent "look what they did" surface (and the student's own). resolveStudent
+// validates guardianship when studentId is supplied. Returns completed episodes
+// (newest first) + the distinct skills practised; the frontend resolves episode
+// titles from its episodes data.
+router.get('/activity', async (req, res) => {
+  try {
+    const student = await resolveStudent(req, req.query.studentId);
+    const records = await ComicProgress.find(
+      { studentId: student._id },
+      { episodeId: 1, completedAt: 1, problems: 1 },
+    ).sort({ completedAt: -1 }).lean();
+
+    const completed = records.map((r) => ({ episodeId: r.episodeId, completedAt: r.completedAt }));
+    const slugs = [...new Set(
+      records.flatMap((r) => (r.problems || []).map((p) => SKILL_SLUG[p.problemId]).filter(Boolean)),
+    )];
+    const skillDocs = slugs.length ? await Skill.find({ slug: { $in: slugs } }, { slug: 1, name: 1 }).lean() : [];
+    const nameBySlug = new Map(skillDocs.map((s) => [s.slug, s.name]));
+    const skills = slugs.map((slug) => ({ slug, name: nameBySlug.get(slug) || slug }));
+
+    res.json({ completed, skills });
+  } catch (err) {
+    if (err && err.status) return res.status(err.status).json({ error: err.message });
+    console.error('comics activity error', err);
+    res.status(500).json({ error: 'Failed to fetch activity' });
+  }
+});
+
 export default router;
