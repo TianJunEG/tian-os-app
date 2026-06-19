@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Wrench } from 'lucide-react';
+import { ArrowRight, Wrench, BookOpen } from 'lucide-react';
 import { mathpathAPI } from '../../../services/api';
 import { Card, Button, Badge, StatTile, ProgressBar, PageHeader, Spinner, EmptyState, CollapsibleSection } from '../../../components/ui';
 import { MathText } from '../../../components/ui/Fraction';
@@ -25,6 +25,7 @@ export default function PracticeResult() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
+  const [guidedStarting, setGuidedStarting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -67,10 +68,26 @@ export default function PracticeResult() {
     }
   }
 
+  async function startGuidedRecovery() {
+    const skillId = data?.gatedSkillId;
+    if (!skillId || guidedStarting) return;
+    setGuidedStarting(true);
+    try {
+      const { data: s } = await mathpathAPI.startSession({
+        feature: 'Guided Recovery', skillId, questionCount: 5, mode: 'guided',
+      });
+      navigate(`/student/mathpath/practice/${s.session_id}`, {
+        state: { items: s.items, resultsBase: '/student/mathpath', backTo: '/student/mathpath', homeBase: '/student/mathpath' },
+      });
+    } catch {
+      setGuidedStarting(false);
+    }
+  }
+
   if (loading) return <Spinner label="Scoring…" />;
   if (!data) return <EmptyState message="Could not load these results." />;
 
-  const { stats, skills, mistakes } = data;
+  const { stats, skills, mistakes, remediationGated } = data;
   // Route follow-on actions by module/feature so a session returns where it began
   // (Science → Science, an assigned Mastery Worksheet → the worksheets list).
   const isScience = data.session?.module === 'Science Adaptive Revision';
@@ -185,24 +202,43 @@ export default function PracticeResult() {
         </Card>
       )}
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        {mistakes.length > 0 && (
-          <Button icon={Wrench} onClick={() => navigate(mistakesBase)} className="flex-1">Review mistakes</Button>
-        )}
-        {!isScience && !isWorksheet && (
-          <Button variant="secondary" onClick={() => navigate('/student/progress')} className="flex-1">View progress</Button>
-        )}
-        <Button
-          variant={mistakes.length > 0 ? 'ghost' : 'primary'}
-          icon={ArrowRight}
-          disabled={mistakes.length > 0}
-          onClick={() => navigate(homeBase)}
-          className="flex-1"
-        >
-          {/* Self-explanatory when disabled — a title tooltip is invisible on touch. */}
-          {mistakes.length > 0 ? 'Review mistakes first' : homeLabel}
-        </Button>
-      </div>
+      {remediationGated ? (
+        <Card className="mb-5 border-l-4 border-l-error-500 bg-error-50 p-5">
+          <p className="text-sm font-semibold text-error-800">
+            You've scored below 40% on this skill twice in a row.
+          </p>
+          <p className="mt-1 text-sm text-error-700">
+            Before trying again on your own, work through a guided session.
+            It will walk you through each step so the next attempt sticks.
+          </p>
+          <Button
+            icon={BookOpen}
+            disabled={guidedStarting}
+            onClick={startGuidedRecovery}
+            className="mt-4 w-full"
+          >
+            {guidedStarting ? 'Starting…' : 'Work through this with guidance'}
+          </Button>
+        </Card>
+      ) : (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {mistakes.length > 0 && (
+            <Button icon={Wrench} onClick={() => navigate(mistakesBase)} className="flex-1">Review mistakes</Button>
+          )}
+          {!isScience && !isWorksheet && (
+            <Button variant="secondary" onClick={() => navigate('/student/progress')} className="flex-1">View progress</Button>
+          )}
+          <Button
+            variant={mistakes.length > 0 ? 'ghost' : 'primary'}
+            icon={ArrowRight}
+            disabled={mistakes.length > 0}
+            onClick={() => navigate(homeBase)}
+            className="flex-1"
+          >
+            {mistakes.length > 0 ? 'Review mistakes first' : homeLabel}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

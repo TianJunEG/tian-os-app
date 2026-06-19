@@ -43,7 +43,10 @@ const masteryRecordSchema = new mongoose.Schema({
   recentOutcomes: { type: [Boolean], default: [] },
   consistency: { type: Number, default: 1 },
   confidence: { type: Number, default: 0 },
-  lastPracticedAt: { type: Date, default: null }
+  lastPracticedAt: { type: Date, default: null },
+  // Set when the student scores < 40% on 2 consecutive non-guided sessions.
+  // Cleared automatically once they complete a guided session for this skill.
+  remediationGated: { type: Boolean, default: false },
 });
 
 masteryRecordSchema.index({ studentId: 1, skillId: 1 }, { unique: true });

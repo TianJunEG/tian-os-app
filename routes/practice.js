@@ -6,6 +6,7 @@ import Question from '../models/Question.js';
 import Skill from '../models/Skill.js';
 import Mistake from '../models/Mistake.js';
 import Assignment from '../models/Assignment.js';
+import MasteryRecord from '../models/MasteryRecord.js';
 import Worksheet from '../models/Worksheet.js';
 import { resolveStudent } from '../utils/studentContext.js';
 import { recordAttempt } from '../utils/masteryEngine.js';
@@ -425,6 +426,40 @@ router.post('/sessions/:id/complete', protect, asyncHandler(async (req, res) => 
       ]);
     }
 
+    // ── Remediation gate ────────────────────────────────────────────────────
+    // If the student scores < 40% twice in a row on the same skill (excluding
+    // guided/remediation sessions), gate them into a guided session before they
+    // can retry independently. Clear the gate when they finish any guided session.
+    const skillIds = session.skillIds?.map(String) || [];
+    const isGuidedMode = ['guided', 'remediation'].includes(session.mode);
+
+    if (skillIds.length) {
+      if (isGuidedMode) {
+        // Guided session completed — lift the gate for all skills in this session.
+        await MasteryRecord.updateMany(
+          { studentId: session.studentId, skillId: { $in: skillIds } },
+          { $set: { remediationGated: false } }
+        );
+      } else if (scorePct < 40) {
+        // Check if the previous non-guided session on the same skill also scored < 40%.
+        const prev = await PracticeSession.findOne({
+          studentId: session.studentId,
+          skillIds: { $in: skillIds },
+          status: 'completed',
+          mode: { $nin: ['guided', 'remediation', 'fluency', 'diagnostic'] },
+          _id: { $ne: session._id },
+        }).sort({ endedAt: -1 });
+
+        if (prev?.summary?.scorePct < 40) {
+          await MasteryRecord.updateMany(
+            { studentId: session.studentId, skillId: { $in: skillIds } },
+            { $set: { remediationGated: true } }
+          );
+        }
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     res.json({
       session_id: session._id,
       summary: {
@@ -453,6 +488,21 @@ router.get('/sessions/:id', protect, asyncHandler(async (req, res) => {
     const total = attempts.length, correct = attempts.filter((a) => a.correct).length;
     const times = attempts.map((a) => a.timeMs).filter((t) => typeof t === 'number');
 
+    // Check if any skill is remediation-gated (only meaningful for non-guided sessions).
+    let remediationGated = false;
+    let gatedSkillId = null;
+    if (skillIds.length && !['guided', 'remediation'].includes(session.mode)) {
+      const gatedRecord = await MasteryRecord.findOne({
+        studentId: session.studentId,
+        skillId: { $in: skillIds },
+        remediationGated: true,
+      }).select('skillId');
+      if (gatedRecord) {
+        remediationGated = true;
+        gatedSkillId = String(gatedRecord.skillId);
+      }
+    }
+
     res.json({
       session: {
         id: session._id, module: session.module, mode: session.mode, feature: session.feature, status: session.status,
@@ -472,6 +522,8 @@ router.get('/sessions/:id', protect, asyncHandler(async (req, res) => {
         fluencyStatus: session.summary?.fluencyStatus || '',
       },
       mistakes: mistakes.map((m) => ({ id: m._id, stem: m.questionStem, yourAnswer: m.studentAnswer, correctAnswer: m.correctAnswer })),
+      remediationGated,
+      gatedSkillId,
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to load session.' });
