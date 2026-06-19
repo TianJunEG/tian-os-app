@@ -46,7 +46,6 @@ import { ToastProvider, useToast } from './components/ui';
 import { registerApiErrorHandler } from './services/api';
 import { ROLE_HOME } from './config/nav';
 import FeatureGuard from './components/FeatureGuard';
-const BrightdeskAuthPage = lazy(() => import('./pages/BrightdeskAuthPage'));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
 const MorePage = lazy(() => import('./pages/MorePage'));
@@ -461,7 +460,6 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
-          <Route path="/brightdesk-auth" element={<BrightdeskAuthPage />} />
           <Route path="/demo/stroke-replay" element={<StrokeReplayDemo />} />
           <Route path="/demo/diagrams" element={<DiagramDemo />} />
           <Route path="/founder" element={<FounderStoryPage />} />
